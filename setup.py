@@ -11,7 +11,7 @@ setup(name='soaplib',
       complex class structures, binary attachments, simple framework for creating additional
       serialization mechanisms and a client library.
       """,
-      classifier7s=[
+      classifiers=[
       'Programming Language :: Python',
       'Operating System :: OS Independent',
       'Natural Language :: English',
