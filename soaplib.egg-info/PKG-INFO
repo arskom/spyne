@@ -1,0 +1,16 @@
+Metadata-Version: 1.0
+Name: soaplib
+Version: 0.7.0dev-r21909
+Summary: A simple library for writing soap web services
+Home-page: http://trac.optio.webfactional.com
+Author: Aaron Bickell
+Author-email: abickell@optio.com
+License: LGPL
+Description: This is a simple, easily extendible soap library that provides several useful tools for
+        creating and publishing soap web services in python.  This package features on-demand
+        wsdl generation for the published services, a wsgi-compliant web application, support for
+        complex class structures, binary attachments, simple framework for creating additional
+        serialization mechanisms and a client library.
+        
+Keywords: soap
+Platform: UNKNOWN
