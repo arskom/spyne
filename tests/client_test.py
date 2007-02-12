@@ -19,7 +19,11 @@ import time
 import httplib
 
 from threading import Thread
-from cherrypy._cpwsgiserver import CherryPyWSGIServer
+
+try:
+    from cherrypy.wsgiserver    import CherryPyWSGIServer # CP 3.0.0
+except:
+    from cherrypy._cpwsgiserver import CherryPyWSGIServer # CP 2.2.x
 
 class Address(ClassSerializer):
     class types:

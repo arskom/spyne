@@ -26,7 +26,7 @@ setup(name='soaplib',
       license='LGPL',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       zip_safe=False,
-      install_requires=['cElementTree','pytz'],
+      install_requires=['cElementTree','pytz','cherrypy'],
 	  test_suite='tests.test_suite',
       entry_points="""
       """,

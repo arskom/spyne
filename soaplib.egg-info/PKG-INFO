@@ -1,6 +1,6 @@
 Metadata-Version: 1.0
 Name: soaplib
-Version: 0.7.0dev-r21909
+Version: 0.7.0dev-r9
 Summary: A simple library for writing soap web services
 Home-page: http://trac.optio.webfactional.com
 Author: Aaron Bickell
@@ -14,3 +14,9 @@ Description: This is a simple, easily extendible soap library that provides seve
         
 Keywords: soap
 Platform: UNKNOWN
+Classifier: Programming Language :: Python
+Classifier: Operating System :: OS Independent
+Classifier: Natural Language :: English
+Classifier: Development Status :: 2 - Pre-Alpha
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Internet :: WWW/HTTP :: Dynamic Content
