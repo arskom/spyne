@@ -21,14 +21,13 @@ class ClassSerializerMeta(type):
             return
         types = cls.types
         members = dict(inspect.getmembers(types))
-
         cls.soap_members = {}
         cls.prefix = 'tns'
         cls.namespace = None
         
         for k,v in members.items():
             if k == '_namespace_':
-                cls.namespace = v
+                cls.namespace=v
                 
             elif not k.startswith('__'):
                 cls.soap_members[k] = v
@@ -51,7 +50,9 @@ class ClassSerializer(object):
             name = '{%s}%s'%(cls.namespace,name)
             
         element = ElementTree.Element(name)
-        element.set('xmlns','')
+        if not cls.namespace:
+            element.set('xmlns','')
+            
         for k,v in cls.soap_members.items():
             member_value = getattr(value,k,None)    
 

@@ -129,6 +129,9 @@ class SimpleSoapClient(object):
         conn.request("POST",self.path,body=body,headers=httpHeaders)
         response = conn.getresponse()
         data = response.read()
+        
+        dump(self.host,self.path,dict(response.getheaders()),data)
+        
         conn.close()
         if str(response.status) not in['200','202']:
             # consider everything NOT 200 or 202 as an error response
