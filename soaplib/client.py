@@ -135,6 +135,7 @@ class SimpleSoapClient(object):
         conn.close()
         if str(response.status) not in['200','202']:
             # consider everything NOT 200 or 202 as an error response
+            
             if str(response.status) == '500': 
                 fault = None
                 try:
@@ -158,6 +159,12 @@ class SimpleSoapClient(object):
         return results[0] 
 
 class ServiceClient(object):
+    '''
+    This class is a simple, convenient class for calling remote web services.
+    @param host the host of the SOAP service being called
+    @param path the path to the web service
+    @param impl the SimpleWSGISoapApp which defines the remote service
+    '''
 
     def __init__(self,host,path,server_impl):
         if host.startswith("http://"):

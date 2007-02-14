@@ -184,11 +184,6 @@ class Any:
     @classmethod
     def add_to_schema(cls,added_params):
         pass
-    
-    @classmethod
-    def collect_namespaces(cls, ns_map):
-        pass
-
 
 class String:
 
@@ -210,10 +205,6 @@ class String:
 
     @classmethod
     def add_to_schema(cls,added_params):
-        pass
-    
-    @classmethod
-    def collect_namespaces(cls, ns_map):
         pass
 
 class Fault(Exception):
@@ -307,12 +298,6 @@ class Integer:
     def add_to_schema(cls,added_params):
         pass
 
-    @classmethod
-    def collect_namespaces(cls, ns_map):
-        pass
-
-
-
 class DateTime:
 
     @classmethod
@@ -337,10 +322,6 @@ class DateTime:
     def add_to_schema(cls,added_params):
         pass
 
-    @classmethod
-    def collect_namespaces(cls, ns_map):
-        pass
-
 class Float:
 
     @classmethod
@@ -363,19 +344,12 @@ class Float:
     def add_to_schema(cls,added_params):
         pass
 
-    @classmethod
-    def collect_namespaces(cls, ns_map):
-        pass
-
-
-
 class Null:
 
     @classmethod
     def to_xml(cls,value,name='retval'):
         element = ElementTree.Element(name)
         element.set('xs:null','1')
-        #element.set('xmlns','')
         return element
     
     @classmethod
@@ -415,10 +389,6 @@ class Boolean:
 
     @classmethod
     def add_to_schema(cls,added_params):
-        pass
-
-    @classmethod
-    def collect_namespaces(cls, ns_map):
         pass
     
 class Array:

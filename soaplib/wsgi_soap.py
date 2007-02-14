@@ -10,13 +10,11 @@ from threading import local
 
 request = local()
 
-
 _exceptions = False
 _exception_logger = None
 
 _debug = False
 _debug_logger = None
-
 
 ###################################################################
 # Logging / Debugging Utilities                                   #
@@ -217,8 +215,7 @@ class WSGISoapApp(object):
             
             # retrieve the method descriptor
             descriptor = func(_soap_descriptor=True)
-            params = descriptor.inMessage.from_xml(payload)
-            
+            params = descriptor.inMessage.from_xml(*[payload])
             # implementation hook
             self.onMethodExec(environ,body,params,descriptor.inMessage.params)
             
@@ -231,16 +228,9 @@ class WSGISoapApp(object):
             if not (descriptor.isAsync or descriptor.isCallback):
                 
                 results = descriptor.outMessage.to_xml(*[retval])
-            
+
             # implementation hook
             self.onResults(environ,results,retval)
-            
-            # check to see if the headers need to be sent back
-            # only send them back if the method is Async, because
-            # the caller will need the 'relatesTo' header value
-            #result_headers = None
-            #if descriptor.isAsync:
-            #    result_header = header
             
             # construct the soap response, and serialize it
             envelope = make_soap_envelope(results,tns=service.__tns__) #,header_elements=header_elements)

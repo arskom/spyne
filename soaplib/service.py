@@ -96,8 +96,8 @@ class SoapServiceBase(object):
         '''Determines if this object has callback methods or not'''
         for method in self.methods():
             if method.isCallback: 
-                return 1
-        return 0
+                return True
+        return False
 
     def header_objects(self):
         return []
@@ -140,9 +140,7 @@ class SoapServiceBase(object):
         root.set('xmlns','http://schemas.xmlsoap.org/wsdl/')
         root.set('xmlns:soap','http://schemas.xmlsoap.org/wsdl/soap/')
         root.set('xmlns:xs','http://www.w3.org/2001/XMLSchema')
-        #root.set('xmlns:xsd','http://www.w3.org/2001/XMLSchema')
         root.set('xmlns:plnk','http://schemas.xmlsoap.org/ws/2003/05/partner-link/')
-        #root.set('xmlns:bpws','http://schemas.xmlsoap.org/ws/2003/03/business-process/')
         root.set('xmlns:SOAP-ENC',"http://schemas.xmlsoap.org/soap/encoding/")
         root.set('xmlns:wsdl',"http://schemas.xmlsoap.org/wsdl/")
         root.set('name',serviceName)
@@ -150,10 +148,7 @@ class SoapServiceBase(object):
         types = ElementTree.SubElement(root,"types")
 
         methods = self.methods()
-
-
         hasCallbacks = self._hasCallbacks()
-        #header_objects = self.header_objects() 
 
         self._add_schema(types,methods)
         self._add_messages_for_methods(root,methods)
@@ -316,10 +311,6 @@ class SoapServiceBase(object):
             inPart.set('element','tns:'+method.inMessage.typ)
 
             messages.append(inMessage)
-            
-            #out_name = 'retval'
-            #if method.outMessage.params != []:
-            #    out_name = method.outMessage.params[0][0]
 
             # making out part                
             outMessage = ElementTree.Element('message')

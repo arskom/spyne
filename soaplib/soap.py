@@ -17,7 +17,7 @@ class Message(object):
                 raise Exception("Parameter number mismatch expected [%s] got [%s]"%(len(self.params),len(data)))
 
         element = ElementTree.Element(self.name)
-	if self.name.find('}') == -1 and self.ns:
+        if self.name.find('}') == -1 and self.ns:
             element.set('xmlns',self.ns)
 
         for i in range(0,len(self.params)):
@@ -123,7 +123,6 @@ def make_soap_envelope(message, tns=None, header_elements=None):
         for h in header_elements:
             headerElement.append(h)
    
-    #body = ElementTree.SubElement(envelope,'SOAP-ENV:Body')
     body = ElementTree.SubElement(envelope,'SOAP-ENV:Body')
 
     if type(message) == list:

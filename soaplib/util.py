@@ -45,10 +45,6 @@ def get_callback_info():
                         replyToAddress = replyTo.text
     return messageId, replyToAddress
 
-def create_passthru_headers():
-    msgid,replyto = get_callback_info()
-    return create_callback_info_headers(msgid,replyto)
-
 def get_relates_to_info():
     '''Retrives the relatesTo header. This is used for callbacks'''
     from soaplib.wsgi_soap import request
@@ -73,36 +69,6 @@ def split_url(url):
     else:
         port = 80
     return '%s:%s'%(host,port), path
-
-def get_service_locations(wsdl_url):
-    '''
-    This method returns a map of services and portypes to their soap service locations.
-    Ex.
-
-    service_map = get_service_locations('http://myserver:8080/service.wsdl')
-    service_location = service_map[service_name][port_type]
-    '''
-    host, path = split_url(wsdl_url)
-    conn = httplib.HTTPConnection(host)
-    conn.request('GET',path)
-    resp = conn.getresponse()
-    if resp.status != 200:
-        raise Exception("Recieved code [%s] from url [%s], expected 200"%(resp.status,wsdl_url))
-    data = resp.read()
-    element = ElementTree.fromstring(data)
-
-    service_map = {}
-    for definitionNode in element.getchildren():
-        if definitionNode.tag.find("service") != -1:
-            serviceName = definitionNode.get('name')
-            if not service_map.has_key(serviceName):
-                service_map[serviceName] = {}
-
-            for serviceNode in definitionNode.getchildren():
-                port_name = serviceNode.get('name')
-                location = serviceNode.getchildren()[0].get('location')
-                service_map[serviceName][port_name] = location
-    return service_map
 
 def reconstruct_url(environ):
     '''
