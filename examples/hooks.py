@@ -33,6 +33,7 @@ class HelloWorldService(SimpleWSGISoapApp):
     @soapmethod(String,Integer,_returns=Array(String))
     def say_hello(self,name,times):
         results = []
+        raise Exception("this is some crazy crap")
         for i in range(0,times):
             results.append('Hello, %s'%name)
         return results

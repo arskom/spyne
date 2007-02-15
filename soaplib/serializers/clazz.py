@@ -16,13 +16,11 @@ class ClassSerializerMeta(type):
         assumes that all attributes assigned to this class  are internal 
         serialzers for this class
         '''
-
         if not hasattr(cls,'types'):
             return
         types = cls.types
         members = dict(inspect.getmembers(types))
         cls.soap_members = {}
-        cls.prefix = 'tns'
         cls.namespace = None
         
         for k,v in members.items():
@@ -48,7 +46,7 @@ class ClassSerializer(object):
     def to_xml(cls,value,name='retval'):
         if cls.namespace:
             name = '{%s}%s'%(cls.namespace,name)
-            
+        
         element = ElementTree.Element(name)
         if not cls.namespace:
             element.set('xmlns','')
@@ -80,7 +78,7 @@ class ClassSerializer(object):
     @classmethod
     def get_datatype(cls,withNamespace=False):
         if withNamespace:
-            return '%s:%s'%(cls.prefix,cls.__name__)
+            return 'tns:%s'%(cls.__name__)
         return cls.__name__
  
     @classmethod

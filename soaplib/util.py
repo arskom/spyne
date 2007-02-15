@@ -6,8 +6,7 @@ from urllib import quote
 
 def create_relates_to_header(relatesTo,attrs={}):
     '''Creates a 'relatesTo' header for async callbacks'''
-    relatesToElement = ElementTree.Element('RelatesTo')
-    relatesToElement.set('xmlns','http://schemas.xmlsoap.org/ws/2003/03/addressing')
+    relatesToElement = ElementTree.Element('{http://schemas.xmlsoap.org/ws/2003/03/addressing}RelatesTo')
     for k,v in attrs.items():
         relatesToElement.set(k,v)
     relatesToElement.text = relatesTo
@@ -15,11 +14,11 @@ def create_relates_to_header(relatesTo,attrs={}):
 
 def create_callback_info_headers(messageId,replyTo):
     '''Creates MessageId and ReplyTo headers for initiating an async function'''
-    messageIdElement = ElementTree.Element('wsa:MessageID')
+    messageIdElement = ElementTree.Element('{http://schemas.xmlsoap.org/ws/2003/03/addressing}MessageID')
     messageIdElement.text = messageId
 
-    replyToElement = ElementTree.Element('wsa:ReplyTo')
-    addressElement = ElementTree.SubElement(replyToElement,'wsa:Address')
+    replyToElement = ElementTree.Element('{http://schemas.xmlsoap.org/ws/2003/03/addressing}ReplyTo')
+    addressElement = ElementTree.SubElement(replyToElement,'{http://schemas.xmlsoap.org/ws/2003/03/addressing}Address')
     addressElement.text = replyTo
 
     return messageIdElement, replyToElement
@@ -30,8 +29,6 @@ def get_callback_info():
     messageId = None
     replyToAddress = None
     from soaplib.wsgi_soap import request
-
-
     headerElement = request.header
     if headerElement:
         headers = headerElement.getchildren()

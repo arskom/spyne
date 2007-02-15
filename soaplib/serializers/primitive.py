@@ -235,7 +235,12 @@ class Fault(Exception):
     def from_xml(cls, element): 
         code = _element_to_string(element.find('faultcode'))
         string = _element_to_string(element.find('faultstring'))
-        detail = _element_to_string(element.find('detail'))
+        detail_element = element.find('detail')
+        if len(detail_element.getchildren()):
+            detail = ElementTree.tostring(detail_element)
+        else:
+            detail = _element_to_string(element.find('detail'))
+        
         return Fault(faultcode = code, faultstring = string, detail = detail)   
         
     @classmethod
@@ -274,7 +279,6 @@ class Fault(Exception):
         io.write(" FaultDetail          \r\n")
         io.write(self.detail)
         return io.getvalue()
-
 
 class Integer:
 
@@ -427,7 +431,6 @@ class Array:
         if withNamespace:
             return '%s:%s'%(self.namespace,self.type_name)
         return self.type_name
-
 
     def add_to_schema(self,schema_dict):
         typ = self.get_datatype()
