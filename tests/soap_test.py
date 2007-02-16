@@ -134,7 +134,7 @@ class test(unittest.TestCase):
         f = fault.getchildren()[0].getchildren()[0]
         self.assertEquals(f.find('faultstring').text,'something happened')
         self.assertEquals(f.find('faultcode').text,'DatabaseError')
-        self.assertEquals(f.find('detail').getchildren()[0].find('detail').text,'error on line 12')
+        self.assertEquals(f.find('detail').text,'error on line 12')
     
 
 def test_suite():

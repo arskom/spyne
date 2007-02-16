@@ -223,10 +223,6 @@ class SoapServiceBase(object):
                 opOutput = ElementTree.SubElement(operation,'output')
                 opOutput.set('name',method.outMessage.typ)
                 opOutput.set('message','tns:%s'%method.outMessage.typ)
-                
-            opFault = ElementTree.SubElement(operation,'fault')
-            opFault.set('name',method.inMessage.typ+'Fault')
-            opFault.set('message','tns:%s'%method.inMessage.typ+'Fault')
         
         # make partner link
         plink = ElementTree.SubElement(root,'plnk:partnerLinkType')
@@ -266,9 +262,6 @@ class SoapServiceBase(object):
         @param the list of methods.
         '''
         schema_entries = {}
-        from soaplib.serializers.primitive import Fault
-        Fault.add_to_schema(schema_entries)
-
         for method in methods:
             params = method.inMessage.params 
             returns = method.outMessage.params
@@ -320,15 +313,6 @@ class SoapServiceBase(object):
             outPart.set('element', 'tns:'+method.outMessage.typ)
             messages.append(outMessage)
             
-            faultMessage = ElementTree.Element('message')
-            faultMessage.set('name',method.inMessage.typ+'Fault')
-            faultPart = ElementTree.SubElement(faultMessage,'part')
-            faultPart.set('name', 'fault')
-            faultPart.set('element', 'tns:ExceptionFaultType')
-            messages.append(faultMessage)
-            
-            
-            
         for message in messages:
             root.append(message)
 
@@ -372,12 +356,6 @@ class SoapServiceBase(object):
             input.set('name',method.inMessage.typ)
             soapBody = ElementTree.SubElement(input,'soap:body')
             soapBody.set('use','literal')
-            
-            fault = ElementTree.SubElement(operation,'soap:fault')
-            fault.set('name',method.inMessage.typ+'Fault')
-            soapBody = ElementTree.SubElement(fault,'soap:body')
-            soapBody.set('use','literal')
-            
 
             if method.outMessage.params != None and not method.isAsync and not method.isCallback:
                 output = ElementTree.SubElement(operation,'output')

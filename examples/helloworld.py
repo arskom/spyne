@@ -24,5 +24,5 @@ def make_client():
     
 if __name__=='__main__':
     from cherrypy._cpwsgiserver import CherryPyWSGIServer
-    server = CherryPyWSGIServer(('localhost',7889),HelloWorldService())
+    server = CherryPyWSGIServer(('10.10.21.16',7889),HelloWorldService())
     server.start()

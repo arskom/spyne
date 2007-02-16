@@ -221,14 +221,7 @@ class Fault(Exception):
         fault = ElementTree.Element(name)
         ElementTree.SubElement(fault, 'faultcode').text = value.faultcode
         ElementTree.SubElement(fault, 'faultstring').text = value.faultstring
-        detail = ElementTree.SubElement(fault, 'detail')
-        
-        exception = ElementTree.SubElement(detail,value.name)
-        _detail = ElementTree.SubElement(exception,'detail')
-        _message = ElementTree.SubElement(exception,'message')
-        _message = value.faultstring
-        _detail.text = value.detail
-        
+        detail = ElementTree.SubElement(fault, 'detail').text = value.detail
         return fault
 
     @classmethod
