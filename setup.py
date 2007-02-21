@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
-version = '0.7.0'
+version = '0.7.1'
 
 setup(name='soaplib',
       version=version,
@@ -26,7 +26,7 @@ setup(name='soaplib',
       license='LGPL',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       zip_safe=False,
-      install_requires=['cElementTree','pytz','cherrypy'],
+      install_requires=['ElementTree','cElementTree','pytz','cherrypy'],
 	  test_suite='tests.test_suite',
       entry_points="""
       """,
