@@ -46,6 +46,7 @@ def make_client():
     return client
     
 if __name__=='__main__':
-    from cherrypy._cpwsgiserver import CherryPyWSGIServer
+    try:from cherrypy.wsgiserver import CherryPyWSGIServer
+    except:from cherrypy._cpwsgiserver import CherryPyWSGIServer
     server = CherryPyWSGIServer(('localhost',7889),DocumentArchiver())
     server.start()

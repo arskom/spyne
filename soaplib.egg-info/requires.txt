@@ -1,3 +1,4 @@
+ElementTree
 cElementTree
 pytz
 cherrypy

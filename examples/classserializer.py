@@ -64,6 +64,7 @@ class UserManager(SimpleWSGISoapApp):
         return [v for k,v in user_database.items()]
 
 if __name__=='__main__':
-    from cherrypy._cpwsgiserver import CherryPyWSGIServer
-    server = CherryPyWSGIServer(('192.168.1.101',7789),UserManager())
+    try:from cherrypy.wsgiserver import CherryPyWSGIServer
+    except:from cherrypy._cpwsgiserver import CherryPyWSGIServer
+    server = CherryPyWSGIServer(('localhost',7789),UserManager())
     server.start()

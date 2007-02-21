@@ -36,6 +36,7 @@ class SleepingService(SimpleWSGISoapApp):
         pass
         
 if __name__=='__main__':
-    from cherrypy._cpwsgiserver import CherryPyWSGIServer
-    server = CherryPyWSGIServer(('192.168.1.101',7789),SleepingService())
+    try:from cherrypy.wsgiserver import CherryPyWSGIServer
+    except:from cherrypy._cpwsgiserver import CherryPyWSGIServer
+    server = CherryPyWSGIServer(('localhost',7789),SleepingService())
     server.start()
