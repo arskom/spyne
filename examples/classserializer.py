@@ -18,11 +18,6 @@ class Permission(ClassSerializer):
     class types:
         application = String
         feature = String
-        
-    @classmethod
-    def to_xml(cls,value,name):
-        print 'hello'
-        return 'asdf'
 
 class User(ClassSerializer):
     class types:
