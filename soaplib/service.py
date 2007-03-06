@@ -17,6 +17,7 @@ def soapmethod(*params, **kparams):
             
                 _returns = kparams.get('_returns')
                 _isCallback = kparams.get('_isCallback',False)
+                _soapAction = kparams.get('_soapAction',name)
                 _isAsync = kparams.get('_isAsync',False)
                 _inMessage = kparams.get('_inMessage',name)
                 _outMessage = kparams.get('_outMessage','%sResponse'%name)
@@ -41,7 +42,7 @@ def soapmethod(*params, **kparams):
                     out_params = []
                 out_message = Message(_outMessage,out_params,ns=ns,typ=_outMessage)
                 
-                descriptor = MethodDescriptor(f.func_name,in_message,out_message,_isCallback,_isAsync)
+                descriptor = MethodDescriptor(f.func_name,_soapAction,in_message,out_message,_isCallback,_isAsync)
                 return descriptor
             return f(*args, **kwargs)
         explainMethod.func_name = f.func_name
@@ -348,7 +349,7 @@ class SoapServiceBase(object):
             operation.set('name',method.name)
 
             soapOperation = ElementTree.SubElement(operation,'soap:operation')
-            soapOperation.set('soapAction',method.name)
+            soapOperation.set('soapAction',method.soapAction)
 
             soapOperation.set('style','document')
 

@@ -107,11 +107,16 @@ class InteropService(SimpleWSGISoapApp):
         # new
         return 'howdy'
         
+    @soapmethod(String,_returns=String,_soapAction="http://sample.org/webservices/doSomething")
+    def doSomethingElse(self,s):
+        return s
+        
 if __name__ == '__main__':
     
     from cherrypy._cpwsgiserver import CherryPyWSGIServer
  
-    addr = ('127.0.0.1',9753)
+    addr = ('192.168.1.100',9753)
+    #addr = ('127.0.0.1',9753)
     log_debug(True)
     log_exceptions(True)
     server = CherryPyWSGIServer(addr,InteropService())

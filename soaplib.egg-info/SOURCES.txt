@@ -10,6 +10,7 @@ examples/helloworld.py
 examples/hooks.py
 soaplib/__init__.py
 soaplib/client.py
+soaplib/easy_client.py
 soaplib/service.py
 soaplib/soap.py
 soaplib/util.py

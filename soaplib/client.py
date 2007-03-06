@@ -110,7 +110,7 @@ class SimpleSoapClient(object):
         envelope = make_soap_envelope(msg,header_elements=headers)
 
         body = ElementTree.tostring(envelope)
-        methodName = '\"%s\"'%self.descriptor.name
+        methodName = '\"%s\"'%self.descriptor.soapAction
         httpHeaders = {"Content-Length":len(body),
                       "Content-type":'text/xml; charset="UTF-8"',
                       "Accept":"application/soap+xml, application/dime, multipart/related, text/*",
