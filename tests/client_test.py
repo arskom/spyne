@@ -94,7 +94,7 @@ class test(unittest.TestCase):
         inMessage = Message('a',[('s',String),('i',Integer)])
         outMessage = Message('aResponse',[('retval',DateTime)])
         
-        desc = MethodDescriptor('a','a',inMessage,outMessage)
+        desc = MethodDescriptor('a','a',inMessage,outMessage,'')
 
         client = SimpleSoapClient('127.0.0.1:9191','/',desc)
         results = client('abc',54)
@@ -104,7 +104,7 @@ class test(unittest.TestCase):
         inMessage = Message('b',[('p',Person),('s',String),('a',Integer)])
         outMessage = Message('bResponse',[('retval',Address)])
         
-        desc = MethodDescriptor('b','b',inMessage,outMessage)
+        desc = MethodDescriptor('b','b',inMessage,outMessage,'')
 
         client = SimpleSoapClient('127.0.0.1:9191','/',desc)
         p = Person()
@@ -123,7 +123,7 @@ class test(unittest.TestCase):
         inMessage = Message('d',[('person',Person)])
         outMessage = Message('dResponse',[])
 
-        desc = MethodDescriptor('d','d',inMessage,outMessage)
+        desc = MethodDescriptor('d','d',inMessage,outMessage,'')
         
         client = SimpleSoapClient('127.0.0.1:9191','/',desc)
         p = Person()
@@ -134,7 +134,7 @@ class test(unittest.TestCase):
     def test_fault(self):
         inMessage = Message('fault',[])
         outMessage = Message('faultResponse',[])
-        desc = MethodDescriptor('fault','fault',inMessage,outMessage)
+        desc = MethodDescriptor('fault','fault',inMessage,outMessage,'')
         
         client = SimpleSoapClient('127.0.0.1:9191','/',desc)
         try:

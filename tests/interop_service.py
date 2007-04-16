@@ -115,8 +115,7 @@ if __name__ == '__main__':
     
     from cherrypy._cpwsgiserver import CherryPyWSGIServer
  
-    addr = ('192.168.1.100',9753)
-    #addr = ('127.0.0.1',9753)
+    addr = ('127.0.0.1',9753)
     log_debug(True)
     log_exceptions(True)
     server = CherryPyWSGIServer(addr,InteropService())

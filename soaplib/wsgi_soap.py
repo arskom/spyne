@@ -202,7 +202,7 @@ class WSGISoapApp(object):
                 
             input = environ.get('wsgi.input')
             length = environ.get("CONTENT_LENGTH")
-            body = input.read(int(length))            
+            body = input.read(int(length))
             debug(body)
             
             # deserialize the body of the message

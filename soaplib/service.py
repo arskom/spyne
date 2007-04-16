@@ -41,8 +41,9 @@ def soapmethod(*params, **kparams):
                 else:
                     out_params = []
                 out_message = Message(_outMessage,out_params,ns=ns,typ=_outMessage)
+                doc = getattr(f,'__doc__')
+                descriptor = MethodDescriptor(f.func_name,_soapAction,in_message,out_message,doc,_isCallback,_isAsync)
                 
-                descriptor = MethodDescriptor(f.func_name,_soapAction,in_message,out_message,_isCallback,_isAsync)
                 return descriptor
             return f(*args, **kwargs)
         explainMethod.func_name = f.func_name
@@ -215,6 +216,8 @@ class SoapServiceBase(object):
             for name,param in method.inMessage.params:
                 params.append(name)
 
+            documentation = ElementTree.SubElement(operation,'documentation')
+            documentation.text = method.doc
             operation.set('parameterOrder',method.inMessage.typ)
             opInput = ElementTree.SubElement(operation,'input')
             opInput.set('name',method.inMessage.typ)

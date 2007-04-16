@@ -70,13 +70,14 @@ class MethodDescriptor:
     by the soapdocument, or soapmethod decorators.  
     '''
 
-    def __init__(self, name, soapAction, inMessage, outMessage, isCallback=False, isAsync=False):
+    def __init__(self, name, soapAction, inMessage, outMessage, doc, isCallback=False, isAsync=False):
         self.inMessage = inMessage
         self.outMessage = outMessage
         self.soapAction = soapAction
         self.name = name
         self.isCallback = isCallback
         self.isAsync = isAsync
+        self.doc = doc
 
 def from_soap(xml_string):
     '''

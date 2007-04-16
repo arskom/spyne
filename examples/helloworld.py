@@ -12,6 +12,10 @@ class HelloWorldService(SimpleWSGISoapApp):
     
     @soapmethod(String,Integer,_returns=Array(String))
     def say_hello(self,name,times):
+    	'''
+        Docstrings for service methods appear as documentation in the wsdl
+        <b>what fun</b>
+    	'''
         results = []
         for i in range(0,times):
             results.append('Hello, %s'%name)
