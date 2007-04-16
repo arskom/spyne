@@ -197,7 +197,7 @@ class WSGISoapApp(object):
                 return [wsdl_content]
             
             if environ['REQUEST_METHOD'].lower() != 'post':
-                start_response('405 Method Not Allowed',[])
+                start_response('405 Method Not Allowed',[('Allow','POST')])
                 return ''
                 
             input = environ.get('wsgi.input')
