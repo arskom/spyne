@@ -5,7 +5,7 @@ import datetime
 from soaplib.serializers.primitive import Integer, String
 from soaplib.serializers.clazz import ClassSerializer
 from soaplib.serializers.primitive import String, Integer, DateTime, Float, Array
-from soaplib.soap import Message, MethodDescriptor, make_soap_envelope, make_soap_fault
+from soaplib.soap import Message, MethodDescriptor, make_soap_envelope, make_soap_fault, from_soap
 
 class Address(ClassSerializer):
     class types:
@@ -44,6 +44,37 @@ class test(unittest.TestCase):
         
         self.assertEquals('a',values[0])
         self.assertEquals(43,values[1])
+        
+    def test_href(self):
+        
+        a = '''<?xml version="1.0" encoding="utf-8"?>
+        <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
+        xmlns:tns="http://tempuri.org/"
+        xmlns:types="http://example.com/encodedTypes"
+        xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+          <soap:Body soap:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
+            <tns:myResponse xsi:type="tns:myResponse">
+              <myResult href="#id1" />
+            </tns:myResponse>
+            <soapenc:Array id="id1" soapenc:arrayType="tns:MyData[2]">
+              <Item href="#id2" />
+              <Item href="#id3" />
+            </soapenc:Array>
+            <tns:MyData id="id2" xsi:type="tns:MyData">
+              <Machine xsi:type="xsd:string">somemachine</Machine>
+              <UserName xsi:type="xsd:string">someuser</UserName>
+            </tns:MyData>
+            <tns:MyData id="id3" xsi:type="tns:MyData">
+              <Machine xsi:type="xsd:string">machine2</Machine>
+              <UserName xsi:type="xsd:string">user2</UserName>
+            </tns:MyData>
+          </soap:Body>
+        </soap:Envelope>
+        '''
+        payload,header = from_soap(a)
+        self.assertEquals(len(payload.getchildren()[0].getchildren()),2) # quick and dirty test href reconstruction
         
     def test_namespaces(self):
         m = Message('{some_namespace}myMessage',[('s',String),('i',Integer)])
