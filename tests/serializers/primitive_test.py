@@ -20,6 +20,28 @@ class test(unittest.TestCase):
         dt = DateTime.from_xml(element)
         self.assertEquals(n,dt)
 
+    def test_utcdatetime(self):
+        datestring = '2007-05-15T13:40:44Z'
+        e = ElementTree.Element('test')
+        e.text = datestring
+        
+        dt = DateTime.from_xml(e)    
+
+        self.assertEquals(dt.year,2007)
+        self.assertEquals(dt.month,5)
+        self.assertEquals(dt.day,15)
+        
+        datestring = '2007-05-15T13:40:44.003Z'
+        e = ElementTree.Element('test')
+        e.text = datestring
+        
+        dt = DateTime.from_xml(e)    
+
+        self.assertEquals(dt.year,2007)
+        self.assertEquals(dt.month,5)
+        self.assertEquals(dt.day,15)
+        
+
     def test_integer(self):
         i = 12
         integer = Integer()

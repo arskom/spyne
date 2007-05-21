@@ -12,10 +12,10 @@ from pytz.reference import FixedOffset
 
 string_encoding = 'utf-8'
 
-_utc_re = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3,6}Z')
-_offset_re = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3,9}[\+|\-][0-9]{2}:?[0-9]{2}')
-_local_re = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3,6}')
-_local_trunk_re = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}')
+_utc_re = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.?[0-9]{0,6}Z')
+_offset_re = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3,9}[\+|\-][0-9]{2}:?[0-9]{2}.?[0-9]{0,6}')
+_local_re = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.?[0-9]{0,6}')
+_local_trunk_re = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.?[0-9]{0,6}')
 
 def _is_null_element(element):
     for k in element.keys():
@@ -39,7 +39,10 @@ def _element_to_datetime(element):
         
         y,m,d = parse_date(d)
         
-        t,rest = t.split(".")
+        if  t.find('.') > -1:
+            t,rest = t.split(".")
+        else:
+            rest = '0'
         # pad the microseconds out appropriately
         rest = rest[0:5]
         rest = rest+'0'*(6-len(rest))
@@ -67,8 +70,10 @@ def _element_to_datetime(element):
             offset_hours = int(offset[0:1])
             offset_min = int(offset[2:3])
         
-                    
-        t,rest = t.split(".")
+        if t.find('.') > 1:
+            t,rest = t.split(".")
+        else:
+            rest = '0'
         # pad the microseconds out appropriately
         rest = rest[0:6]
         rest = rest+'0'*(6-len(rest))
