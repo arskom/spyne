@@ -229,17 +229,20 @@ class Fault(Exception):
         detail = ElementTree.SubElement(fault, 'detail').text = value.detail
         return fault
 
+
     @classmethod
-    def from_xml(cls, element): 
+    def from_xml(cls, element):
         code = _element_to_string(element.find('faultcode'))
         string = _element_to_string(element.find('faultstring'))
         detail_element = element.find('detail')
-        if len(detail_element.getchildren()):
-            detail = ElementTree.tostring(detail_element)
+        if detail_element:
+            if len(detail_element.getchildren()):
+                detail = ElementTree.tostring(detail_element)
+            else:
+                detail = _element_to_string(element.find('detail'))
         else:
-            detail = _element_to_string(element.find('detail'))
-        
-        return Fault(faultcode = code, faultstring = string, detail = detail)   
+            detail = ''
+        return Fault(faultcode = code, faultstring = string, detail = detail)
         
     @classmethod
     def get_datatype(cls,withNamespace=False):
