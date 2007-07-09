@@ -55,6 +55,12 @@ class TestService(SoapServiceBase):
     @soapmethod(Person, isCallback=True)
     def e(self, Person):
         pass
+        
+    @soapmethod(String, String, String, _returns=String, 
+                _inputVariableNames={'_from':'from','_self':'self','_import':'import'},
+                _outVariableName="return")
+    def f(self,_from, _self, _import):
+        return '1234'
 
 class OverrideNamespaceService(SimpleWSGISoapApp):
     __tns__ = "http://someservice.com/override"
@@ -81,6 +87,10 @@ class test(unittest.TestCase):
     def test_override_default_names(self):
         wsdl = ElementTree.fromstring(OverrideNamespaceService().wsdl(''))
         self.assertEquals(wsdl.get('targetNamespace'),"http://someservice.com/override")
+        
+    def test_override_param_names(self):
+        for n in ['self','import','return','from']:
+            self.assertTrue(n in self._wsdl)
         
 
 def test_suite():

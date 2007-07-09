@@ -20,6 +20,7 @@ def soapmethod(*params, **kparams):
                 _soapAction = kparams.get('_soapAction',name)
                 _isAsync = kparams.get('_isAsync',False)
                 _inMessage = kparams.get('_inMessage',name)
+                _inVariableNames = kparams.get('_inVariableNames',{})
                 _outMessage = kparams.get('_outMessage','%sResponse'%name)
                 _outVariableName = kparams.get('_outVariableName','retval')
                 
@@ -32,7 +33,7 @@ def soapmethod(*params, **kparams):
 
                 # input message
                 param_names = f.func_code.co_varnames[1:f.func_code.co_argcount]
-                in_params = [(param_names[i],params[i]) for i in range(0,len(params))]
+                in_params = [(_inVariableNames.get(param_names[i],param_names[i]),params[i]) for i in range(0,len(params))]
                 in_message = Message(_inMessage,in_params,ns=ns,typ=_inMessage)
                 
                 # output message
