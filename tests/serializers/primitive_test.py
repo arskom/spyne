@@ -83,11 +83,19 @@ class test(unittest.TestCase):
     def test_boolean(self):
         b = Boolean.to_xml(True)
         self.assertEquals('true',b.text)
+
+        b = Boolean.to_xml(0)
+        self.assertEquals('false',b.text)
+
+        b = Boolean.to_xml(1)
+        self.assertEquals('true',b.text)
+
         b = Boolean.from_xml(b)
         self.assertEquals(b,True)
         
         b = Boolean.to_xml(False)
         self.assertEquals('false',b.text)
+        
         b = Boolean.from_xml(b)
         self.assertEquals(b,False)
 

@@ -375,7 +375,9 @@ class Boolean:
     
     @classmethod
     def to_xml(cls,value,name='retval'):
-        e = _generic_to_xml(str(value).lower(),name,cls.get_datatype(True))    
+        # applied patch from Julius Volz
+        #e = _generic_to_xml(str(value).lower(),name,cls.get_datatype(True))    
+        e = _generic_to_xml(str(bool(value)).lower(),name,cls.get_datatype(True))
         e.set('xmlns','')
         return e
     
