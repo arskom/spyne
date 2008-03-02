@@ -1,4 +1,8 @@
-import cElementTree as ElementTree
+try:
+    from xml.etree import cElementTree as ElementTree
+except ImportError:
+    import cElementTree as ElementTree
+
 import httplib
 from soaplib.soap import from_soap, make_soap_envelope
 from soaplib.util import split_url, create_relates_to_header

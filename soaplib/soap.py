@@ -1,4 +1,7 @@
-import cElementTree as ElementTree
+try:
+    from xml.etree import cElementTree as ElementTree
+except ImportError:
+    import cElementTree as ElementTree
 from soaplib.serializers.primitive import Fault
 
 class Message(object):

@@ -8,6 +8,7 @@ examples/binary.py
 examples/classserializer.py
 examples/helloworld.py
 examples/hooks.py
+examples/override.py
 soaplib/__init__.py
 soaplib/client.py
 soaplib/easy_client.py

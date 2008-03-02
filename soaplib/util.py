@@ -1,7 +1,9 @@
 import httplib
 import datetime
-import cElementTree as ElementTree
-
+try:
+    from xml.etree import cElementTree as ElementTree
+except ImportError:
+    import cElementTree as ElementTree
 from urllib import quote
 
 def create_relates_to_header(relatesTo,attrs={}):

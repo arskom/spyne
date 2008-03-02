@@ -1,5 +1,8 @@
 import base64
-import cElementTree as ElementTree
+try:
+    from xml.etree import cElementTree as ElementTree
+except ImportError:
+    import cElementTree as ElementTree
 import cStringIO
 
 class Attachment(object):
