@@ -26,6 +26,7 @@ def soapmethod(*params, **kparams):
                 _inVariableNames = kparams.get('_inVariableNames',{})
                 _outMessage = kparams.get('_outMessage','%sResponse'%name)
                 _outVariableName = kparams.get('_outVariableName','retval')
+                _mtom = kparams.get('_mtom',False)
                 
                 ns = None
                 # passed in from the _get_soap_methods() call
@@ -46,7 +47,7 @@ def soapmethod(*params, **kparams):
                     out_params = []
                 out_message = Message(_outMessage,out_params,ns=ns,typ=_outMessage)
                 doc = getattr(f,'__doc__')
-                descriptor = MethodDescriptor(f.func_name,_soapAction,in_message,out_message,doc,_isCallback,_isAsync)
+                descriptor = MethodDescriptor(f.func_name,_soapAction,in_message,out_message,doc,_isCallback,_isAsync,_mtom)
                 
                 return descriptor
             return f(*args, **kwargs)

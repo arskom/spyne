@@ -4,7 +4,7 @@ except ImportError:
     import cElementTree as ElementTree
 
 import httplib
-from soaplib.soap import from_soap, make_soap_envelope
+from soaplib.soap import from_soap, make_soap_envelope, collapse_swa, apply_mtom
 from soaplib.util import split_url, create_relates_to_header
 from soaplib.serializers.primitive import Fault
 from cStringIO import StringIO
@@ -86,13 +86,14 @@ class SimpleSoapClient(object):
     def __call__(self,*args,**kwargs):
         '''
         This method executes the http request to the remote web service.  With
-        the exception of 'headers' and 'msgid', all keyword arguments to this method
-        are put in the http header.  The 'headers' keyword is to denote a list of elements
-        to be included in the soap header, and 'msgid' is a convenience keyword used in async
-        web services which creates a WS-Addressing messageid header to be included in the 
-        soap headers.
-        
-        @param the arguments to the remote method
+        the exception of 'headers', 'msgid', and 'mtom'; all keyword arguments 
+        to this method are put in the http header.  The 'headers' keyword is to
+        denote a list of elements to be included in the soap header, 'msgid'
+        is a convenience keyword used in async web services which creates a
+        WS-Addressing messageid header to be included in the soap headers, and
+        'mtom' enables the Message Transmission Optimization Mechanism.
+
+        @param the arguments to the remot method
         @param the keyword arguments 
         '''
         if len(args) != len(self.descriptor.inMessage.params):
@@ -105,6 +106,7 @@ class SimpleSoapClient(object):
 
         # grab the soap headers passed into this call
         headers = kwargs.get('headers',[])
+        mtom = kwargs.get('mtom',False)
         msgid = kwargs.get('msgid')
         if msgid:
             # special case for the msgid field as a convenience 
@@ -124,16 +126,25 @@ class SimpleSoapClient(object):
                       
         for k,v in kwargs.items():
             # add all the other keywords to the http headers
-            if k not in ('headers','msgid'):
+            if k not in ('headers','msgid','mtom'):
                 httpHeaders[k]=v
-                      
+
+        if mtom:
+            httpHeaders, body = apply_mtom( httpHeaders, body,
+                                            self.descriptor.inMessage.params,
+                                            args )
+ 
         dump(self.host,self.path,httpHeaders,body)               
+
                        
         conn = httplib.HTTPConnection(self.host)
         conn.request("POST",self.path,body=body,headers=httpHeaders)
         response = conn.getresponse()
-        data = response.read()
-        
+        data = response.read() 
+
+        contenttype = response.getheader('Content-Type')
+        data = collapse_swa(contenttype, data)
+
         dump(self.host,self.path,dict(response.getheaders()),data)
         
         conn.close()
@@ -168,6 +179,7 @@ class ServiceClient(object):
     @param host the host of the SOAP service being called
     @param path the path to the web service
     @param impl the SimpleWSGISoapApp which defines the remote service
+    @param mtom whether or not to send attachments using MTOM
     '''
 
     def __init__(self,host,path,server_impl):

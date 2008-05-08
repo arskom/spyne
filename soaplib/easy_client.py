@@ -154,6 +154,3 @@ if __name__ == '__main__':
 	for sc in d.retval:
 	    print sc.s
 	
-	
-	
-	

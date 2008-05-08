@@ -17,6 +17,9 @@ soaplib/soap.py
 soaplib/util.py
 soaplib/wsgi_soap.py
 soaplib.egg-info/PKG-INFO
+soaplib.egg-info/PKG-INFO.mine
+soaplib.egg-info/PKG-INFO.r10
+soaplib.egg-info/PKG-INFO.r27
 soaplib.egg-info/SOURCES.txt
 soaplib.egg-info/dependency_links.txt
 soaplib.egg-info/entry_points.txt

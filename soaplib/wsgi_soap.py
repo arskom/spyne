@@ -5,7 +5,7 @@ except ImportError:
 import cStringIO
 import traceback
 
-from soaplib.soap import make_soap_envelope, make_soap_fault, from_soap
+from soaplib.soap import make_soap_envelope, make_soap_fault, from_soap, collapse_swa, apply_mtom
 from soaplib.service import SoapServiceBase
 from soaplib.util import reconstruct_url
 from soaplib.serializers.primitive import string_encoding
@@ -205,7 +205,8 @@ class WSGISoapApp(object):
                 
             input = environ.get('wsgi.input')
             length = environ.get("CONTENT_LENGTH")
-            body = input.read(int(length))
+            body = collapse_swa( environ.get("CONTENT_TYPE"), 
+                                 input.read(int(length)) )
             debug(body)
             
             # deserialize the body of the message
@@ -223,7 +224,7 @@ class WSGISoapApp(object):
             self.onMethodExec(environ,body,params,descriptor.inMessage.params)
             
             # call the method
-            retval = apply(func, params)
+            retval = func(*params)
             
             # transform the results into an element
             # only expect a single element
@@ -238,11 +239,18 @@ class WSGISoapApp(object):
             # construct the soap response, and serialize it
             envelope = make_soap_envelope(results,tns=service.__tns__) #,header_elements=header_elements)
             resp = ElementTree.tostring(envelope, encoding=string_encoding)
+            headers = {'Content-Type': 'text/xml'}
+
+            if descriptor.mtom:
+                headers, resp = apply_mtom( headers, resp,
+                                            descriptor.outMessage.params,
+                                            (retval,) )
+
             
             if environ.has_key('CONTENT_LENGTH'):
                 del(environ['CONTENT_LENGTH'])
             # initiate the response
-            start_response('200 OK',[('Content-type','text/xml')])
+            start_response('200 OK',headers.items())
             
             self.onReturn(environ,resp)
             
