@@ -93,7 +93,7 @@ class SimpleSoapClient(object):
         WS-Addressing messageid header to be included in the soap headers, and
         'mtom' enables the Message Transmission Optimization Mechanism.
 
-        @param the arguments to the remot method
+        @param the arguments to the remote method
         @param the keyword arguments 
         '''
         if len(args) != len(self.descriptor.inMessage.params):

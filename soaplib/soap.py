@@ -363,9 +363,9 @@ def apply_mtom(headers, envelope, params, paramvals):
     
     # Extract attachments from SOAP envelope.
     for i in range(len(params)):
-        name, type = params[i]
-        if str(type) == "<class 'soaplib.serializers.binary.Attachment'>":
-            id = "soaplibAttachment_%s" % (len(mtompkg)-1,)
+        name, typ = params[i]
+        if str(typ) == "<class 'soaplib.serializers.binary.Attachment'>":
+            id = "soaplibAttachment_%s" % (len(mtompkg.get_payload()),)
             param = message[i]
             param.text = ""
             incl = ElementTree.SubElement(
@@ -406,7 +406,7 @@ def apply_mtom(headers, envelope, params, paramvals):
     for name, value in mtompkg.items():
         mtomheaders[name] = value
     
-    if len(mtompkg) <= 2:
+    if len(mtompkg.get_payload()) <= 1:
         return (headers, envelope)
     
     return (mtomheaders, mtombody)
