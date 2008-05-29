@@ -7,7 +7,7 @@ import re
 import cStringIO 
 
 import pytz
-from pytz.reference import FixedOffset
+from pytz import FixedOffset
 
 #######################################################
 # Utility Functions
