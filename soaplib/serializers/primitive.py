@@ -380,13 +380,18 @@ class Boolean:
     def to_xml(cls,value,name='retval'):
         # applied patch from Julius Volz
         #e = _generic_to_xml(str(value).lower(),name,cls.get_datatype(True))    
-        e = _generic_to_xml(str(bool(value)).lower(),name,cls.get_datatype(True))
+        if value == None:
+            return Null.to_xml('',name)
+        else:
+            e = _generic_to_xml(str(bool(value)).lower(),name,cls.get_datatype(True))
         e.set('xmlns','')
         return e
     
     @classmethod
     def from_xml(cls,element):
         s = _element_to_string(element)
+        if s == None: 
+            return None
         if s and s.lower()[0] == 't':
             return True
         return False

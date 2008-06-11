@@ -105,7 +105,11 @@ class test(unittest.TestCase):
         b = Boolean.to_xml(False)
         self.assertEquals(b.get('xsi:type'),'xs:boolean')
         
+        b = Boolean.to_xml(None)
+        self.assertEquals('1',b.get('xs:null'))
         
+        b = Boolean.from_xml(b)
+        self.assertEquals(b,None)
         
 
 def test_suite():
