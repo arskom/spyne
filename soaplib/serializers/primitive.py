@@ -15,10 +15,10 @@ from pytz import FixedOffset
 
 string_encoding = 'utf-8'
 
-_utc_re = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.?[0-9]{0,6}Z')
-_offset_re = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3,9}[\+|\-][0-9]{2}:?[0-9]{2}.?[0-9]{0,6}')
-_local_re = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.?[0-9]{0,6}')
-_local_trunk_re = re.compile('[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.?[0-9]{0,6}')
+_datetime_pattern = r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})T(?P<hr>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})(?P<fractional_sec>\.\d+)?'
+_local_re = re.compile(_datetime_pattern)
+_utc_re = re.compile(_datetime_pattern + 'Z')
+_offset_re = re.compile(_datetime_pattern + r'(?P<tz_hr>[+-]\d{2}):(?P<tz_min>\d{2})')
 
 def _is_null_element(element):
     for k in element.keys():
@@ -33,86 +33,26 @@ def _element_to_datetime(element):
     if not text:
         return None
     
-    def parse_date(s):
-        return s.split('-')
+    def parse_date(date_match, tz=None):
+        fields = date_match.groupdict(0)
+        year, month, day, hr, min, sec = [ int(fields[x]) for x in 
+           ("year", "month", "day", "hr", "min", "sec")]
+        # use of decimal module here (rather than float) might be better
+        # here, if willing to require python 2.4 or higher
+        microsec = float(fields.get("fractional_sec", 0)) * 10**6
+        return datetime.datetime(year, month, day, hr, min, sec, microsec, tz)
     
-    def utc(text):
-        text = text[0:-1]
-        d,t = text.split('T')
-        
-        y,m,d = parse_date(d)
-        
-        if  t.find('.') > -1:
-            t,rest = t.split(".")
-        else:
-            rest = '0'
-        # pad the microseconds out appropriately
-        rest = rest[0:5]
-        rest = rest+'0'*(6-len(rest))
-        
-        hr,mi,se = t.split(':')
-        
-        dt = datetime.datetime(int(y),int(m),int(d),int(hr),int(mi),int(se),int(rest),pytz.utc)
-        return dt
-
-    def offset(text):
-        date,t = text.split('T')
-        y,m,d = parse_date(date)
-
-        sep = '+'
-        if t.find('-') > -1:
-            sep = '-'
-        
-        t,offset = t.split(sep)
-        
-        if offset.find(':') > -1:
-            offset_hours,offset_min = offset.split(':')
-            offset_hours = int(offset_hours)
-            offset_min = int(offset_min)
-        else:
-            offset_hours = int(offset[0:1])
-            offset_min = int(offset[2:3])
-        
-        if t.find('.') > 1:
-            t,rest = t.split(".")
-        else:
-            rest = '0'
-        # pad the microseconds out appropriately
-        rest = rest[0:6]
-        rest = rest+'0'*(6-len(rest))
-
-        hr,mi,se = t.split(':')        
-        offset_hours, offset_min
-
-        offset_min = offset_min + 60*offset_hours
-        if sep == '-':
-            offset_min = -1 * offset_min
-        dt = datetime.datetime(int(y),int(m),int(d),int(hr),int(mi),int(se),int(rest),FixedOffset(offset_min,{}))
-
-        return dt
-
-    def local(text):
-        date,time = text.split('T')
-        y,m,d = parse_date(date)
-
-        micro = 0
-        if time.find('.') > -1:
-            rest = time.split('.')[-1]
-            rest = rest[0:6]
-            rest = rest+'0'*(6-len(rest))
-            micro = rest
-        hr,mi,se = time.split('.')[0].split(':')
-        return datetime.datetime(int(y),int(m),int(d),int(hr),int(mi),int(se),int(micro))
-        
-    if _utc_re.match(text):
-        d = utc(text)
-        return d
-    elif _offset_re.match(text):
-        return offset(text)
-    elif _local_re.match(text) or _local_trunk_re.match(text):
-        return local(text)
-    else:
-        raise Exception("DateTime [%s] not in known format"%text)
+    match = _utc_re.match(text)
+    if match:
+        return parse_date(match, tz=pytz.utc)
+    match = _offset_re.match(text)
+    if match:
+        tz_hr, tz_min = [int(match.group(x)) for x in "tz_hr", "tz_min"]
+        return parse_date(match, tz=FixedOffset(tz_hr*60 + tz_min, {}))
+    match = _local_re.match(text)
+    if match:
+        return parse_date(match)
+    raise Exception("DateTime [%s] not in known format"%text)
 
 def _element_to_string(element):
     text = element.text
