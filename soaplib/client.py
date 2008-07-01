@@ -141,11 +141,11 @@ class SimpleSoapClient(object):
         conn.request("POST",self.path,body=body,headers=httpHeaders)
         response = conn.getresponse()
         data = response.read() 
-
+        
+        dump(self.host,self.path,dict(response.getheaders()),data)
+        
         contenttype = response.getheader('Content-Type')
         data = collapse_swa(contenttype, data)
-
-        dump(self.host,self.path,dict(response.getheaders()),data)
         
         conn.close()
         if str(response.status) not in['200','202']:
