@@ -308,18 +308,20 @@ class SoapServiceBase(object):
             inMessage  = ElementTree.Element('message')
             inMessage.set('name',method.inMessage.typ)
 
-            inPart = ElementTree.SubElement(inMessage,'part')
-            inPart.set('name',method.inMessage.name)
-            inPart.set('element','tns:'+method.inMessage.typ)
+            if len(method.inMessage.params) > 0:
+                inPart = ElementTree.SubElement(inMessage,'part')
+                inPart.set('name',method.inMessage.name)
+                inPart.set('element','tns:'+method.inMessage.typ)
 
             messages.append(inMessage)
 
             # making out part                
             outMessage = ElementTree.Element('message')
             outMessage.set('name',method.outMessage.typ)
-            outPart = ElementTree.SubElement(outMessage,'part')
-            outPart.set('name', method.outMessage.name)
-            outPart.set('element', 'tns:'+method.outMessage.typ)
+            if len(method.outMessage.params) > 0:
+                outPart = ElementTree.SubElement(outMessage,'part')
+                outPart.set('name', method.outMessage.name)
+                outPart.set('element', 'tns:'+method.outMessage.typ)
             messages.append(outMessage)
             
         for message in messages:
