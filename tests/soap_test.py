@@ -5,7 +5,7 @@ except ImportError:
     import cElementTree as et
 import datetime
 
-from soaplib.serializers.primitive import Integer, String
+from soaplib.serializers.primitive import Integer, String, Repeating
 from soaplib.serializers.clazz import ClassSerializer
 from soaplib.serializers.primitive import String, Integer, DateTime, Float, Array
 from soaplib.soap import Message, MethodDescriptor, make_soap_envelope, make_soap_fault, from_soap
@@ -169,6 +169,16 @@ class test(unittest.TestCase):
         self.assertEquals(f.find('faultstring').text,'something happened')
         self.assertEquals(f.find('faultcode').text,'DatabaseError')
         self.assertEquals(f.find('detail').text,'error on line 12')
+        
+    def test_message_repeating(self):
+        m = Message('myMessage',[('p',Repeating(String))])
+        method = m.to_xml(["a","b","c","d"])
+        self.assertEquals(len(method.getchildren()),4)
+
+        data = m.from_xml(method)
+    
+        self.assertEquals(data,[["a","b","c","d"]])
+        
     
 
 def test_suite():

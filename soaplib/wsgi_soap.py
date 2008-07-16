@@ -236,8 +236,13 @@ class WSGISoapApp(object):
             # implementation hook
             self.onResults(environ,results,retval)
             
+            # grab any headers that were included in the request
+            response_headers = None
+            if hasattr(request,'response_headers'):
+                response_headers = request.response_headers
+            
             # construct the soap response, and serialize it
-            envelope = make_soap_envelope(results,tns=service.__tns__) #,header_elements=header_elements)
+            envelope = make_soap_envelope(results,tns=service.__tns__,header_elements=response_headers) 
             resp = ElementTree.tostring(envelope, encoding=string_encoding)
             headers = {'Content-Type': 'text/xml'}
 
@@ -249,6 +254,7 @@ class WSGISoapApp(object):
             
             if environ.has_key('CONTENT_LENGTH'):
                 del(environ['CONTENT_LENGTH'])
+                
             # initiate the response
             start_response('200 OK',headers.items())
             

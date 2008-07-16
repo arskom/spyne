@@ -111,6 +111,18 @@ class test(unittest.TestCase):
         b = Boolean.from_xml(b)
         self.assertEquals(b,None)
         
+    def test_repeating(self):
+        serializer = Repeating(String)
+        
+        data = ["a","b","c","d"]
+        
+        elements = serializer.to_xml(data)
+        self.assertEquals(len(elements),4)
+        
+        newdata = serializer.from_xml(*elements)
+        
+        self.assertEquals(data,newdata)
+
 
 def test_suite():
     loader = unittest.TestLoader()

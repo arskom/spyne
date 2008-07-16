@@ -45,7 +45,14 @@ class Message(object):
             name,serializer = self.params[i]
             d = data[i]
             e = serializer.to_xml(d,name)
-            element.append(e)
+            if type(e) in (list,tuple):
+                elist = e
+                for e in elist:
+                    element.append(e)
+            elif e == None:
+                pass
+            else:
+                element.append(e)
             
         return element
         
@@ -53,18 +60,20 @@ class Message(object):
         results = []        
         children = element.getchildren()
         
-        def find(name):
+        def findall(name):
             # inner method for finding child node
+            nodes = []
             for c in children:
                 if c.tag.split('}')[-1] == name:
-                    return c
+                    nodes.append(c)
+            return nodes
                 
         for name, serializer in self.params:
-            child = find(name)
-            if child != None:
-                results.append(serializer.from_xml(child))
-            else:
+            childnodes = findall(name)
+            if len(childnodes) == 0:
                 results.append(None)
+            else:
+                results.append(serializer.from_xml(*childnodes))
         return results
         
     def add_to_schema(self,schemaDict):

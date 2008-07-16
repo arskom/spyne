@@ -61,20 +61,28 @@ class ClassSerializer(object):
             if subvalue is None:
                 v = Null
                 
-            subelement = v.to_xml(subvalue,name=k)
-            element.append(subelement)
-
+            subelements = v.to_xml(subvalue,name=k)
+            if type(subelements) != list:
+                subelements = [subelements]
+            for s in subelements:
+                element.append(s)
         return element
 
     @classmethod
     def from_xml(cls, element):
         obj = cls()
         children = element.getchildren()
-        for child in children:
-            tag = child.tag.split('}')[-1]
+        d = {}
+        for c in children:
+            name = c.tag.split('}')[-1]
+            if not d.has_key(name):
+                d[name] = []
+            d[name].append(c)
+            
+        for tag,v in d.items():
             member = cls.soap_members.get(tag)
             
-            value = member.from_xml(child)
+            value = member.from_xml(*v)
             setattr(obj,tag,value)
         return obj
 

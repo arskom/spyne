@@ -28,6 +28,10 @@ class Person(ClassSerializer):
         age = Integer
         addresses = Array(Address)
         titles = Array(String)
+        
+class ClassWithRepeatingData(ClassSerializer):
+    class types:
+        people = Repeating(Person)
 
 ##########################################################
 # Complex Classes
@@ -178,6 +182,34 @@ class test(unittest.TestCase):
         self.assertTrue(a.has_key("tns:Person"))
         self.assertTrue(a.has_key("tns:Address"))
         self.assertTrue(a.has_key("tns:AddressArray"))
+
+    def test_repeating(self):
+        
+        peeps = []
+        names = ['bob','jim','peabody','mumblesleves']
+        for name in names:
+            a = Person()
+            a.name = name
+            a.birthdate = datetime.datetime(1979,1,1)
+            a.age = 27
+            a.addresses = []
+            
+            for i in range(0,25):
+                addr = Address()
+                addr.street = '555 downtown'
+                addr.city = 'funkytown'
+                a.addresses.append(addr)
+
+            peeps.append(a)
+            
+        rpt = ClassWithRepeatingData()
+        rpt.people = peeps
+        
+        e = ClassWithRepeatingData.to_xml(rpt)
+        rpt2 = ClassWithRepeatingData.from_xml(e)
+        
+        self.assertEquals(len(rpt2.people),len(rpt.people))
+        
 
 def test_suite():
     loader = unittest.TestLoader()

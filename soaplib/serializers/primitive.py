@@ -407,6 +407,33 @@ class Array:
             schema_dict['%sElement'%(self.get_datatype(True))] = typeElement
             schema_dict[self.get_datatype(True)] = complexTypeNode
 
+class Repeating(object):
+
+    def __init__(self,serializer,type_name=None,namespace='tns'):
+        self.serializer = serializer
+        
+    def to_xml(self,values,name='retval'):
+        if values == None:
+            values = []
+        res = []
+        for value in values:
+            serializer = self.serializer
+            if value == None:
+                serializer = Null
+            res.append(
+                serializer.to_xml(value,name=name)
+            )
+        return res    
+
+    def from_xml(self,*elements):
+        results = []
+        for child in elements:
+            results.append(self.serializer.from_xml(child))
+        return results    
+        
+    def add_to_schema(self,schema_dict):
+        raise Exception("The Repeating serializer is experimental and not supported for wsdl generation")
+        
 ###################################################################
 # Deprecated Functionality
 ###################################################################

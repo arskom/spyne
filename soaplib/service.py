@@ -2,6 +2,7 @@ try:
     from xml.etree import cElementTree as ElementTree
 except ImportError:
     import cElementTree as ElementTree
+
 from soaplib.soap import Message, MethodDescriptor
 
 def soapmethod(*params, **kparams):
