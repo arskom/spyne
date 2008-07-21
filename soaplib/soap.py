@@ -3,6 +3,7 @@ try:
 except ImportError:
     import cElementTree as ElementTree
 from soaplib.serializers.primitive import Fault
+from soaplib.serializers.binary import Attachment
 
 try:
     #python 2.5
@@ -373,7 +374,7 @@ def apply_mtom(headers, envelope, params, paramvals):
     # Extract attachments from SOAP envelope.
     for i in range(len(params)):
         name, typ = params[i]
-        if str(typ) == "<class 'soaplib.serializers.binary.Attachment'>":
+        if typ == Attachment:
             id = "soaplibAttachment_%s" % (len(mtompkg.get_payload()),)
             param = message[i]
             param.text = ""
@@ -382,6 +383,8 @@ def apply_mtom(headers, envelope, params, paramvals):
                        "{http://www.w3.org/2004/08/xop/include}Include"
                    )
             incl.attrib["href"] = "cid:%s" % id
+            if paramvals[i].fileName and not paramvals[i].data:
+                paramvals[i].load_from_file()
             data = paramvals[i].data
             attachment = None
             try:

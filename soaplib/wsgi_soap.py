@@ -205,9 +205,9 @@ class WSGISoapApp(object):
                 
             input = environ.get('wsgi.input')
             length = environ.get("CONTENT_LENGTH")
-            body = collapse_swa( environ.get("CONTENT_TYPE"), 
-                                 input.read(int(length)) )
+            body = input.read(int(length))
             debug(body)
+            body = collapse_swa( environ.get("CONTENT_TYPE"), body)
             
             # deserialize the body of the message
             payload, header = from_soap(body)
