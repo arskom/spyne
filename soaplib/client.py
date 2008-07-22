@@ -73,15 +73,17 @@ class SimpleSoapClient(object):
     but is most frequently used by the ServiceClient object.
     '''
 
-    def __init__(self,host,path,descriptor):
+    def __init__(self,host,path,descriptor,scheme="http"):
         '''
         @param remote host
         @param remote path
         @param MethodDescriptor of the remote method being called
+        @param remote scheme
         '''
         self.host = host
         self.path = path
         self.descriptor = descriptor
+        self.scheme = scheme
 
     def __call__(self,*args,**kwargs):
         '''
@@ -136,8 +138,13 @@ class SimpleSoapClient(object):
  
         dump(self.host,self.path,httpHeaders,body)               
 
-                       
-        conn = httplib.HTTPConnection(self.host)
+        if self.scheme == "http": 
+            conn = httplib.HTTPConnection(self.host)
+        elif self.scheme == "https":
+            conn = httplib.HTTPSConnection(self.host)
+        else:
+            raise RuntimeError("Unsupported URI connection scheme: %s" % scheme)
+            
         conn.request("POST",self.path,body=body,headers=httpHeaders)
         response = conn.getresponse()
         data = response.read() 
@@ -182,14 +189,14 @@ class ServiceClient(object):
     @param mtom whether or not to send attachments using MTOM
     '''
 
-    def __init__(self,host,path,server_impl):
+    def __init__(self,host,path,server_impl, scheme="http"):
         if host.startswith("http://"):
             host = host[6:]
             
         self.server = server_impl
         for method in self.server.methods():
-            setattr(self,method.name,SimpleSoapClient(host,path,method))    
+            setattr(self,method.name,SimpleSoapClient(host,path,method,scheme))
 
 def make_service_client(url,impl):
-    host,path = split_url(url)
-    return ServiceClient(host,path,impl)
+    scheme,host,path = split_url(url)
+    return ServiceClient(host,path,impl, scheme)

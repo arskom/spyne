@@ -5,6 +5,7 @@ try:
 except ImportError:
     import cElementTree as ElementTree
 from urllib import quote
+import urllib
 
 def create_relates_to_header(relatesTo,attrs={}):
     '''Creates a 'relatesTo' header for async callbacks'''
@@ -22,7 +23,6 @@ def create_callback_info_headers(messageId,replyTo):
     replyToElement = ElementTree.Element('{http://schemas.xmlsoap.org/ws/2003/03/addressing}ReplyTo')
     addressElement = ElementTree.SubElement(replyToElement,'{http://schemas.xmlsoap.org/ws/2003/03/addressing}Address')
     addressElement.text = replyTo
-
     return messageIdElement, replyToElement
 
 def get_callback_info():
@@ -56,18 +56,10 @@ def get_relates_to_info():
                 return header.text
 
 def split_url(url):
-    '''Splits a url into (host:port, path)'''
-    wsdlstr = url.split('://')[-1]
-    parts = wsdlstr.split('/')
-    host = parts[0]
-    path = '/'+'/'.join(parts[1:])
-    hostport = host.split(':')
-    if len(hostport) > 1:
-        host =  hostport[0]
-        port = hostport[1]
-    else:
-        port = 80
-    return '%s:%s'%(host,port), path
+    '''Splits a url into (uri_scheme, host[:port], path)'''
+    scheme, remainder = urllib.splittype(url)
+    host, path = urllib.splithost(remainder)
+    return scheme.lower(), host, path
 
 def reconstruct_url(environ):
     '''

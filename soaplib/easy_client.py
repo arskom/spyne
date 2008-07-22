@@ -35,8 +35,14 @@ class caller(object):
                       'User-Agent':'Soaplib/1.0',
                       'SOAPAction':methodName
                       }
-        url,path = split_url(self.host)
-        conn = httplib.HTTPConnection(url)
+        scheme,host,path = split_url(self.host)
+        if scheme == "http":
+            conn = httplib.HTTPConnection(host)
+        elif scheme == "https":
+            conn = httplib.HTTPSConnection(host)
+        else:
+            raise RuntimeError("Unsupported URI connection scheme: %s" % scheme)
+
         conn.request("POST",path,body=body,headers=httpHeaders)
         response = conn.getresponse()
         raw_data = response.read()
