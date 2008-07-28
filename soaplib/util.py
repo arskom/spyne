@@ -1,9 +1,6 @@
 import httplib
 import datetime
-try:
-    from xml.etree import cElementTree as ElementTree
-except ImportError:
-    import cElementTree as ElementTree
+from etimport import ElementTree
 from urllib import quote
 import urllib
 

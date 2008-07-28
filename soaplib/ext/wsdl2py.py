@@ -1,4 +1,4 @@
-import cElementTree as et
+from soaplib.etimport import ElementTree as et
 import urllib2
 import new
 from soaplib.soap import Message, MethodDescriptor

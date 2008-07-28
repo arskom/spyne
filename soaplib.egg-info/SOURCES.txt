@@ -14,6 +14,7 @@ examples/override.py
 soaplib/__init__.py
 soaplib/client.py
 soaplib/easy_client.py
+soaplib/etimport.py
 soaplib/service.py
 soaplib/soap.py
 soaplib/util.py

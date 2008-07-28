@@ -1,8 +1,5 @@
+from soaplib.etimport import ElementTree
 import base64
-try:
-    from xml.etree import cElementTree as ElementTree
-except ImportError:
-    import cElementTree as ElementTree
 import cStringIO
 
 class Attachment(object):

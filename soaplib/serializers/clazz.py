@@ -1,8 +1,5 @@
 import inspect
-try:
-    from xml.etree import cElementTree as ElementTree
-except ImportError:
-    import cElementTree as ElementTree
+from soaplib.etimport import ElementTree
 
 from primitive import Null
 

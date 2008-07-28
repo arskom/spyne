@@ -1,7 +1,4 @@
-try:
-    from xml.etree import cElementTree as ElementTree
-except ImportError:
-    import cElementTree as ElementTree
+from etimport import ElementTree
 import cStringIO
 import traceback
 

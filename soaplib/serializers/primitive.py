@@ -1,7 +1,4 @@
-try:
-    from xml.etree import cElementTree as ElementTree
-except ImportError:
-    import cElementTree as ElementTree
+from soaplib.etimport import ElementTree
 import datetime
 import re
 import cStringIO 

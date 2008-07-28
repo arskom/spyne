@@ -1,9 +1,6 @@
 import unittest
-try:
-    from xml.etree import cElementTree as et
-except ImportError:
-    import cElementTree as et
 import datetime
+from soaplib.etimport import ElementTree as et
 
 from soaplib.serializers.primitive import Integer, String, Repeating
 from soaplib.serializers.clazz import ClassSerializer
