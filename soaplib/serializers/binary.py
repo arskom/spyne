@@ -1,6 +1,6 @@
-from soaplib.etimport import ElementTree
 import base64
 import cStringIO
+from soaplib.etimport import ElementTree
 
 class Attachment(object):
 

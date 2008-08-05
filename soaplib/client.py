@@ -1,4 +1,4 @@
-from etimport import ElementTree
+from soaplib.etimport import ElementTree
 
 import httplib
 from soaplib.soap import from_soap, make_soap_envelope, collapse_swa, apply_mtom

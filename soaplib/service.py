@@ -1,5 +1,4 @@
-from etimport import ElementTree
-
+from soaplib.etimport import ElementTree
 from soaplib.soap import Message, MethodDescriptor
 
 def soapmethod(*params, **kparams):

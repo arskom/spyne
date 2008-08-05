@@ -1,4 +1,4 @@
-from etimport import ElementTree
+from soaplib.etimport import ElementTree
 from soaplib.serializers.primitive import Fault
 from soaplib.serializers.binary import Attachment
 

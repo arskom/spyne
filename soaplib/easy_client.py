@@ -2,7 +2,7 @@ from soaplib.serializers.clazz import ClassSerializer
 from soaplib.serializers.primitive import *
 from soaplib.soap import *
 from soaplib.util import split_url
-from etimport import ElementTree as et
+from soaplib.etimport import ElementTree as et
 
 import new, datetime, httplib
 

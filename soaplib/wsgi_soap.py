@@ -1,4 +1,3 @@
-from etimport import ElementTree
 import cStringIO
 import traceback
 
@@ -6,6 +5,7 @@ from soaplib.soap import make_soap_envelope, make_soap_fault, from_soap, collaps
 from soaplib.service import SoapServiceBase
 from soaplib.util import reconstruct_url
 from soaplib.serializers.primitive import string_encoding
+from soaplib.etimport import ElementTree
 from threading import local
 
 request = local()

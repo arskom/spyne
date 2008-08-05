@@ -1,10 +1,10 @@
-from soaplib.etimport import ElementTree as et
 import urllib2
 import new
 from soaplib.soap import Message, MethodDescriptor
 from soaplib.serializers import primitive
 from soaplib.serializers.clazz import ClassSerializer
 from soaplib.client import *
+from soaplib.etimport import ElementTree as et
 
 from warnings import warn
 warn('This module is under active development and should not be used in a production scenario')

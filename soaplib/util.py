@@ -1,8 +1,8 @@
 import httplib
 import datetime
-from etimport import ElementTree
-from urllib import quote
 import urllib
+from urllib import quote
+from soaplib.etimport import ElementTree
 
 def create_relates_to_header(relatesTo,attrs={}):
     '''Creates a 'relatesTo' header for async callbacks'''
