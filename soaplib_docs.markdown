@@ -439,8 +439,9 @@ These hooks are useful for transaction handling, logging and measuring performan
 Servers
 -------
 
-Soaplib services can be deployed as WSGI applications, in any WSGI-compliant web server.  Soaplib
-services have been successfully run on the following web servers:
+Soaplib services can be deployed as WSGI applications, in any WSGI-compliant
+web server.  Soaplib services have been successfully run on the following web
+servers:
 
 * CherryPy 2.2
 * Flup
