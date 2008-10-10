@@ -9,8 +9,8 @@ try:
     from email.encoders import encode_7or8bit
 except:
     #python 2.4
-    from email import MIMENonMultipart
-    from email import MIMEMultipart
+    from email.MIMENonMultipart import MIMENonMultipart
+    from email.MIMEMultipart import MIMEMultipart
     from email.Encoders import encode_7or8bit
 
 from email import message_from_string
