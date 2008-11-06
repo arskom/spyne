@@ -12,7 +12,7 @@ from pytz import FixedOffset
 
 string_encoding = 'utf-8'
 
-_datetime_pattern = r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})T(?P<hr>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})(?P<fractional_sec>\.\d+)?'
+_datetime_pattern = r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})[T ](?P<hr>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})(?P<fractional_sec>\.\d+)?'
 _local_re = re.compile(_datetime_pattern)
 _utc_re = re.compile(_datetime_pattern + 'Z')
 _offset_re = re.compile(_datetime_pattern + r'(?P<tz_hr>[+-]\d{2}):(?P<tz_min>\d{2})')
