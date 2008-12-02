@@ -36,7 +36,7 @@ def _element_to_datetime(element):
            ("year", "month", "day", "hr", "min", "sec")]
         # use of decimal module here (rather than float) might be better
         # here, if willing to require python 2.4 or higher
-        microsec = float(fields.get("fractional_sec", 0)) * 10**6
+        microsec = int(float(fields.get("fractional_sec", 0)) * 10**6)
         return datetime.datetime(year, month, day, hr, min, sec, microsec, tz)
     
     match = _utc_re.match(text)
