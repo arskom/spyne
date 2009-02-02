@@ -1,6 +1,6 @@
 import base64
 import cStringIO
-from soaplib.etimport import ElementTree
+from soaplib.xml import *
 
 class Attachment(object):
 
@@ -45,8 +45,7 @@ class Attachment(object):
         if value.__class__ is not Attachment:
             raise Exception("Do not know how to serialize class %s"%type(value))
             
-        element = ElementTree.Element(name)
-        element.set('xmlns','')
+        element = create_xml_element(name)
         if value.data:
             # the data has already been loaded, just encode
             # and return the element

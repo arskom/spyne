@@ -1,4 +1,4 @@
-from soaplib.etimport import ElementTree
+from soaplib.xml import *
 from soaplib.serializers.primitive import Fault
 from soaplib.serializers.binary import Attachment
 
@@ -35,9 +35,7 @@ class Message(object):
             if len(data) != len(self.params):
                 raise Exception("Parameter number mismatch expected [%s] got [%s]"%(len(self.params),len(data)))
 
-        element = ElementTree.Element(self.name)
-        if self.name.find('}') == -1 and self.ns:
-            element.set('xmlns',self.ns)
+        element = create_xml_element(self.name, self.ns)
 
         for i in range(0,len(self.params)):
             name,serializer = self.params[i]
@@ -75,17 +73,17 @@ class Message(object):
         return results
         
     def add_to_schema(self,schemaDict):
-        complexType = ElementTree.Element('xs:complexType')
+        complexType = create_xml_element(qualify('complexType', ns['xs']))
         complexType.set('name',self.typ)
         
-        sequence = ElementTree.SubElement(complexType,'xs:sequence')
+        sequence = create_xml_subelement(complexType, qualify('sequence', ns['xs']))
         if self.params:
             for name,serializer in self.params:
-                e = ElementTree.SubElement(sequence,'xs:element')
+                e = create_xml_subelement(sequence, qualify('element', ns['xs']))
                 e.set('name',name)
                 e.set('type',serializer.get_datatype(True))
                 
-        element = ElementTree.Element('xs:element')
+        element = create_xml_element(qualify('element', ns['xs']))
         element.set('name',self.typ)
         element.set('type','%s:%s'%('tns',self.typ))
         
@@ -158,22 +156,22 @@ def make_soap_envelope(message, tns=None, header_elements=None):
     @returns the envelope element
     '''
     
-    envelope = ElementTree.Element('SOAP-ENV:Envelope')
-    if tns:
-        envelope.set('xmlns:tns',tns)
-        envelope.set('xmlns',tns)
+    if tns is None:
+        tns = ''
+        
+    envelope = create_xml_element(
+        qualify('Envelope', ns['SOAP-ENV']),
+        tns,
+        { 'tns': tns }
+    )
 
-    envelope.set('xmlns:SOAP-ENV','http://schemas.xmlsoap.org/soap/envelope/')
-    envelope.set('xmlns:xsi','http://www.w3.org/1999/XMLSchema-instance')
-    envelope.set('xmlns:xs','http://www.w3.org/2001/XMLSchema')
-    
     if header_elements:
-        headerElement = ElementTree.SubElement(envelope,'SOAP-ENV:Header')
+        headerElement = create_xml_subelement(envelope, qualify('Header', ns['SOAP-ENV']))
         
         for h in header_elements:
             headerElement.append(h)
    
-    body = ElementTree.SubElement(envelope,'SOAP-ENV:Body')
+    body = create_xml_subelement(envelope, qualify('Body', ns['SOAP-ENV']))
 
     if type(message) == list:
         for m in message:
@@ -375,7 +373,7 @@ def apply_mtom(headers, envelope, params, paramvals):
             id = "soaplibAttachment_%s" % (len(mtompkg.get_payload()),)
             param = message[i]
             param.text = ""
-            incl = ElementTree.SubElement(
+            incl = create_xml_subelement(
                        param, 
                        "{http://www.w3.org/2004/08/xop/include}Include"
                    )
@@ -429,11 +427,9 @@ def make_soap_fault(faultString, faultCode='Server', detail=None):
     @param faultCode defaults to 'Server', but can be overridden
     @returns the element corresponding to the fault message
     '''
-    envelope = ElementTree.Element('SOAP-ENV:Envelope')
-    envelope.set('xmlns:SOAP-ENV','http://schemas.xmlsoap.org/soap/envelope/')
+    envelope = create_xml_element(qualify('Envelope', ns['SOAP-ENV']))
+    body = create_xml_subelement(envelope, qualify('Body', ns['SOAP-ENV']))
 
-    body = ElementTree.SubElement(envelope,'SOAP-ENV:Body')
-    
     f = Fault(faultCode,faultString,detail)
     body.append(Fault.to_xml(f))
 

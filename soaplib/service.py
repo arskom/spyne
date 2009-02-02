@@ -1,4 +1,4 @@
-from soaplib.etimport import ElementTree
+from soaplib.xml import *
 from soaplib.soap import Message, MethodDescriptor
 
 def soapmethod(*params, **kparams):
@@ -133,23 +133,16 @@ class SoapServiceBase(object):
         serviceName = self.__class__.__name__.split('.')[-1]
 
         tns = self.__tns__
-
-        root = ElementTree.Element("definitions")
-
+        
+        root = create_xml_element(
+            "definitions", 
+            'http://schemas.xmlsoap.org/wsdl/',
+            { 'tns': tns, 'typens' : tns }
+        )
         root.set('targetNamespace',tns)
-
-        root.set('xmlns:tns',tns)
-        root.set('xmlns:typens',tns)
-
-        root.set('xmlns','http://schemas.xmlsoap.org/wsdl/')
-        root.set('xmlns:soap','http://schemas.xmlsoap.org/wsdl/soap/')
-        root.set('xmlns:xs','http://www.w3.org/2001/XMLSchema')
-        root.set('xmlns:plnk','http://schemas.xmlsoap.org/ws/2003/05/partner-link/')
-        root.set('xmlns:SOAP-ENC',"http://schemas.xmlsoap.org/soap/encoding/")
-        root.set('xmlns:wsdl',"http://schemas.xmlsoap.org/wsdl/")
         root.set('name',serviceName)
         
-        types = ElementTree.SubElement(root,"types")
+        types = create_xml_subelement(root, "types")
 
         methods = self.methods()
         hasCallbacks = self._hasCallbacks()
@@ -163,95 +156,95 @@ class SoapServiceBase(object):
         if hasCallbacks:
             root.set('xmlns:wsa','http://schemas.xmlsoap.org/ws/2003/03/addressing')
 
-            wsaSchemaNode = ElementTree.SubElement(types, "schema")
+            wsaSchemaNode = create_xml_subelement(types, "schema")
             wsaSchemaNode.set("targetNamespace", tns+'Callback')
             wsaSchemaNode.set("xmlns", "http://www.w3.org/2001/XMLSchema")
 
-            importNode = ElementTree.SubElement(wsaSchemaNode, "import")
+            importNode = create_xml_subelement(wsaSchemaNode, "import")
             importNode.set("namespace", "http://schemas.xmlsoap.org/ws/2003/03/addressing")
             importNode.set("schemaLocation", "http://schemas.xmlsoap.org/ws/2003/03/addressing/")
 
         
-            reltMessage = ElementTree.SubElement(root,'message')
+            reltMessage = create_xml_subelement(root,'message')
             reltMessage.set('name','RelatesToHeader')
-            reltPart = ElementTree.SubElement(reltMessage,'part')
+            reltPart = create_xml_subelement(reltMessage,'part')
             reltPart.set('name','RelatesTo')
             reltPart.set('element','wsa:RelatesTo')
 
-            replyMessage = ElementTree.SubElement(root,'message')
+            replyMessage = create_xml_subelement(root,'message')
             replyMessage.set('name','ReplyToHeader')
-            replyPart = ElementTree.SubElement(replyMessage,'part')
+            replyPart = create_xml_subelement(replyMessage,'part')
             replyPart.set('name','ReplyTo')
             replyPart.set('element','wsa:ReplyTo')
 
-            idHeader = ElementTree.SubElement(root,'message')
+            idHeader = create_xml_subelement(root,'message')
             idHeader.set('name','MessageIDHeader')
-            idPart = ElementTree.SubElement(idHeader,'part')
+            idPart = create_xml_subelement(idHeader,'part')
             idPart.set('name','MessageID')
             idPart.set('element','wsa:MessageID')
 
             # make portTypes
-            callbackPortType = ElementTree.SubElement(root,'portType')
+            callbackPortType = create_xml_subelement(root,'portType')
             callbackPortType.set('name','%sCallback'%serviceName)
             
             cbServiceName = '%sCallback'%serviceName
-            cbService = ElementTree.SubElement(root,'service')
+            cbService = create_xml_subelement(root,'service')
             cbService.set('name',cbServiceName)
-            cbWsdlPort = ElementTree.SubElement(cbService,'port')
+            cbWsdlPort = create_xml_subelement(cbService,'port')
             cbWsdlPort.set('name',cbServiceName)
             cbWsdlPort.set('binding','tns:%s'%cbServiceName)
-            cbAddr = ElementTree.SubElement(cbWsdlPort,'soap:address')
+            cbAddr = create_xml_subelement(cbWsdlPort, qualify('address', ns['soap']))
             cbAddr.set('location',url)
             
             
         serviceName = self.__class__.__name__.split('.')[-1] 
-        portType = ElementTree.SubElement(root,'portType')
+        portType = create_xml_subelement(root,'portType')
         portType.set('name',serviceName)
         for method in methods:
             if method.isCallback:
-                operation = ElementTree.SubElement(callbackPortType,'operation')
+                operation = create_xml_subelement(callbackPortType,'operation')
             else:
-                operation = ElementTree.SubElement(portType,'operation')
+                operation = create_xml_subelement(portType,'operation')
                 
             operation.set('name',method.name)
             params = []
             for name,param in method.inMessage.params:
                 params.append(name)
 
-            documentation = ElementTree.SubElement(operation,'documentation')
+            documentation = create_xml_subelement(operation,'documentation')
             documentation.text = method.doc
             operation.set('parameterOrder',method.inMessage.typ)
-            opInput = ElementTree.SubElement(operation,'input')
+            opInput = create_xml_subelement(operation,'input')
             opInput.set('name',method.inMessage.typ)
             opInput.set('message','tns:%s'%method.inMessage.typ)
 
             if method.outMessage.params != None and not method.isCallback and not method.isAsync:
-                opOutput = ElementTree.SubElement(operation,'output')
+                opOutput = create_xml_subelement(operation,'output')
                 opOutput.set('name',method.outMessage.typ)
                 opOutput.set('message','tns:%s'%method.outMessage.typ)
         
         # make partner link
-        plink = ElementTree.SubElement(root,'plnk:partnerLinkType')
+        plink = create_xml_subelement(root, qualify('partnerLinkType', ns['plnk']))
         plink.set('name',serviceName)
-        role = ElementTree.SubElement(plink,'plnk:role')
+        role = create_xml_subelement(plink, qualify('role', ns['plnk']))
         role.set('name', serviceName)
-        plinkPortType = ElementTree.SubElement(role,'plnk:portType')
+        plinkPortType = create_xml_subelement(role, qualify('portType', ns['plnk']))
         plinkPortType.set('name','tns:%s'%serviceName) 
 
         if hasCallbacks:
-            role = ElementTree.SubElement(plink,'plnk:role')
+            role = create_xml_subelement(plink, qualify('role', ns['plnk']))
             role.set('name', '%sCallback'%serviceName)
-            plinkPortType = ElementTree.SubElement(role,'plnk:portType')
+            plinkPortType = create_xml_subelement(role, qualify('portType', ns['plnk']))
             plinkPortType.set('name','tns:%sCallback'%serviceName) 
 
         self._add_bindings_for_methods(root,serviceName,methods)
 
-        service = ElementTree.SubElement(root,'service')
+        service = create_xml_subelement(root,'service')
         service.set('name',serviceName)
-        wsdlPort = ElementTree.SubElement(service,'port')
+        wsdlPort = create_xml_subelement(service,'port')
         wsdlPort.set('name',serviceName)
         wsdlPort.set('binding','tns:%s'%serviceName)
-        addr = ElementTree.SubElement(wsdlPort,'soap:address')
+        addr = create_xml_subelement(wsdlPort, qualify('address', ns['soap']))
         addr.set('location',url)
 
         wsdl = ElementTree.tostring(root)
@@ -282,7 +275,7 @@ class SoapServiceBase(object):
             method.outMessage.add_to_schema(schema_entries)
 
 
-        schemaNode = ElementTree.SubElement(types, "schema")
+        schemaNode = create_xml_subelement(types, "schema")
         schemaNode.set("targetNamespace", self.__tns__)
         schemaNode.set("xmlns", "http://www.w3.org/2001/XMLSchema")
         
@@ -302,21 +295,21 @@ class SoapServiceBase(object):
         for method in methods:
             methodName = method.name
             # making in part
-            inMessage  = ElementTree.Element('message')
+            inMessage  = create_xml_element('message')
             inMessage.set('name',method.inMessage.typ)
 
             if len(method.inMessage.params) > 0:
-                inPart = ElementTree.SubElement(inMessage,'part')
+                inPart = create_xml_subelement(inMessage,'part')
                 inPart.set('name',method.inMessage.name)
                 inPart.set('element','tns:'+method.inMessage.typ)
 
             messages.append(inMessage)
 
             # making out part                
-            outMessage = ElementTree.Element('message')
+            outMessage = create_xml_element('message')
             outMessage.set('name',method.outMessage.typ)
             if len(method.outMessage.params) > 0:
-                outPart = ElementTree.SubElement(outMessage,'part')
+                outPart = create_xml_subelement(outMessage,'part')
                 outPart.set('name', method.outMessage.name)
                 outPart.set('element', 'tns:'+method.outMessage.typ)
             messages.append(outMessage)
@@ -335,44 +328,44 @@ class SoapServiceBase(object):
         hasCallbacks = self._hasCallbacks()
     
         # make binding
-        binding = ElementTree.SubElement(root,'binding')
+        binding = create_xml_subelement(root,'binding')
         binding.set('name',serviceName)
         binding.set('type','tns:%s'%serviceName)
         
-        sbinding = ElementTree.SubElement(binding,'soap:binding')
+        sbinding = create_xml_subelement(binding, qualify('binding', ns['soap']))
         sbinding.set('style','document')
         sbinding.set('transport','http://schemas.xmlsoap.org/soap/http')
 
         if hasCallbacks:
-            callbackBinding = ElementTree.SubElement(root,'binding')
+            callbackBinding = create_xml_subelement(root,'binding')
             callbackBinding.set('name','%sCallback'%serviceName)
             callbackBinding.set('type','typens:%sCallback'%serviceName)
 
-            sbinding = ElementTree.SubElement(callbackBinding,'soap:binding')
+            sbinding = create_xml_subelement(callbackBinding, qualify('binding', ns['soap']))
             sbinding.set('transport','http://schemas.xmlsoap.org/soap/http')
 
         for method in methods:
-            operation = ElementTree.Element('operation')
+            operation = create_xml_element('operation')
             operation.set('name',method.name)
 
-            soapOperation = ElementTree.SubElement(operation,'soap:operation')
+            soapOperation = create_xml_subelement(operation, qualify('operation', ns['soap']))
             soapOperation.set('soapAction',method.soapAction)
 
             soapOperation.set('style','document')
 
-            input = ElementTree.SubElement(operation,'input')
+            input = create_xml_subelement(operation,'input')
             input.set('name',method.inMessage.typ)
-            soapBody = ElementTree.SubElement(input,'soap:body')
+            soapBody = create_xml_subelement(input, qualify('body', ns['soap']))
             soapBody.set('use','literal')
 
             if method.outMessage.params != None and not method.isAsync and not method.isCallback:
-                output = ElementTree.SubElement(operation,'output')
+                output = create_xml_subelement(operation,'output')
                 output.set('name',method.outMessage.typ)
-                soapBody = ElementTree.SubElement(output,'soap:body')
+                soapBody = create_xml_subelement(output, qualify('body', ns['soap']))
                 soapBody.set('use','literal')
 
             if method.isCallback:
-                relatesTo = ElementTree.SubElement(input,'soap:header')
+                relatesTo = create_xml_subelement(input, qualify('header', ns['soap']))
                 relatesTo.set('message','tns:RelatesToHeader')
                 relatesTo.set('part','RelatesTo')
                 relatesTo.set('use','literal')
@@ -380,12 +373,12 @@ class SoapServiceBase(object):
                 callbackBinding.append(operation)
             else:
                 if method.isAsync:
-                    rtHeader = ElementTree.SubElement(input,'soap:header')
+                    rtHeader = create_xml_subelement(input, qualify('header', ns['soap']))
                     rtHeader.set('message','tns:ReplyToHeader')
                     rtHeader.set('part','ReplyTo')
                     rtHeader.set('use','literal')
 
-                    midHeader = ElementTree.SubElement(input,'soap:header')
+                    midHeader = create_xml_subelement(input, qualify('header', ns['soap']))
                     midHeader.set('message','tns:MessageIDHeader')
                     midHeader.set('part','MessageID')
                     midHeader.set('use','literal')

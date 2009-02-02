@@ -1,4 +1,4 @@
-from soaplib.etimport import ElementTree
+from soaplib.xml import *
 import datetime
 import re
 import cStringIO 
@@ -85,21 +85,21 @@ def _element_to_unicode(element):
        return u
 
 def _unicode_to_xml(value,name,typ):
-    retval = ElementTree.Element(name)
+    retval = create_xml_element(name)
     if value == None:
         return Null.to_xml(value,name)
     if type(value) == unicode:
         retval.text = value
     else: 
         retval.text = unicode(value,string_encoding)
-    retval.set('xsi:type',typ)
+    retval.set(qualify('type', ns['xsi']),typ)
     return retval
 
 def _generic_to_xml(value,name,typ):
-    retval = ElementTree.Element(name)
+    retval = create_xml_element(name)
     if value:
         retval.text = value
-    retval.set('xsi:type',typ)
+    retval.set(qualify('type', ns['xsi']),typ)
     return retval
 
 class Any:
@@ -108,8 +108,7 @@ class Any:
     def to_xml(cls,value,name='retval'):
         if type(value) == str:
             value = ElementTree.fromstring(value)
-        e = ElementTree.Element(name)
-        e.set('xmlns','')
+        e = create_xml_element(name)
         e.append(value) 
         return e 
         
@@ -123,7 +122,7 @@ class Any:
     @classmethod
     def get_datatype(cls,withNamespace=False):
         if withNamespace:
-            return 'xs:anyType'
+            return qualify('anyType', ns['xs'])
         return 'anyType'
 
     @classmethod
@@ -135,7 +134,6 @@ class String:
     @classmethod
     def to_xml(cls,value,name='retval'):
         e = _unicode_to_xml(value,name,cls.get_datatype(True))
-        e.set('xmlns','')
         return e
         
     @classmethod
@@ -145,7 +143,7 @@ class String:
     @classmethod
     def get_datatype(cls,withNamespace=False):
         if withNamespace:
-            return 'xs:string'
+            return qualify('string', ns['xs'])
         return 'string'
 
     @classmethod
@@ -161,12 +159,11 @@ class Fault(Exception):
         self.name = name
 
     @classmethod
-    def to_xml(cls, value, name='SOAP-ENV:Fault'):
-        
-        fault = ElementTree.Element(name)
-        ElementTree.SubElement(fault, 'faultcode').text = value.faultcode
-        ElementTree.SubElement(fault, 'faultstring').text = value.faultstring
-        detail = ElementTree.SubElement(fault, 'detail').text = value.detail
+    def to_xml(cls, value, name=qualify("Fault", ns["SOAP-ENV"])):
+        fault = create_xml_element(name)
+        create_xml_subelement(fault, 'faultcode').text = value.faultcode
+        create_xml_subelement(fault, 'faultstring').text = value.faultstring
+        detail = create_xml_subelement(fault, 'detail').text = value.detail
         return fault
 
 
@@ -193,19 +190,19 @@ class Fault(Exception):
 
     @classmethod
     def add_to_schema(cls,schema_dict):   
-        complexTypeNode = ElementTree.Element('complexType')
+        complexTypeNode = create_xml_element('complexType')
         complexTypeNode.set('name', cls.get_datatype())        
-        sequenceNode = ElementTree.SubElement(complexTypeNode, 'sequence')
-        faultTypeElem = ElementTree.SubElement(sequenceNode,'element')
+        sequenceNode = create_xml_subelement(complexTypeNode, 'sequence')
+        faultTypeElem = create_xml_subelement(sequenceNode,'element')
         faultTypeElem.set('name','detail')
         faultTypeElem.set('type','xs:string')
-        faultTypeElem = ElementTree.SubElement(sequenceNode,'element')
+        faultTypeElem = create_xml_subelement(sequenceNode,'element')
         faultTypeElem.set('name','message')
         faultTypeElem.set('type','xs:string')
     
         schema_dict[cls.get_datatype()] = complexTypeNode
         
-        typeElementItem = ElementTree.Element('element')
+        typeElementItem = create_xml_element('element')
         typeElementItem.set('name', 'ExceptionFaultType')
         typeElementItem.set('type', cls.get_datatype(True))
         schema_dict['%sElement'%(cls.get_datatype(True))] = typeElementItem
@@ -226,7 +223,6 @@ class Integer:
     @classmethod
     def to_xml(cls,value,name='retval'):
         e = _generic_to_xml(str(value),name,cls.get_datatype(True))
-        e.set('xmlns','')
         return e
     
     @classmethod
@@ -236,7 +232,7 @@ class Integer:
     @classmethod
     def get_datatype(cls,withNamespace=False):
         if withNamespace:
-            return 'xs:int'
+            return qualify('int', ns['xs'])
         return 'int'
 
     @classmethod
@@ -250,7 +246,6 @@ class DateTime:
         if type(value) == datetime.datetime:
             value = value.isoformat('T')
         e = _generic_to_xml(value,name,cls.get_datatype(True))    
-        e.set('xmlns','')
         return e
     
     @classmethod
@@ -260,7 +255,7 @@ class DateTime:
     @classmethod
     def get_datatype(cls,withNamespace=False):
         if withNamespace:
-            return 'xs:dateTime'
+            return qualify('dateTime', ns['xs'])
         return 'dateTime'
 
     @classmethod
@@ -271,8 +266,7 @@ class Float:
 
     @classmethod
     def to_xml(cls,value,name='retval'):
-        e = _generic_to_xml(str(value),name,cls.get_datatype(True))    
-        e.set('xmlns','')
+        e = _generic_to_xml(str(value),name,cls.get_datatype(True))
         return e
     
     @classmethod
@@ -282,7 +276,7 @@ class Float:
     @classmethod
     def get_datatype(cls,withNamespace=False):
         if withNamespace:
-            return 'xs:float'
+            return qualify('float', ns['xs'])
         return 'float'
 
     @classmethod
@@ -293,8 +287,8 @@ class Null:
 
     @classmethod
     def to_xml(cls,value,name='retval'):
-        element = ElementTree.Element(name)
-        element.set('xs:null','1')
+        element = create_xml_element(name)
+        element.set(qualify('null', ns['xs']),'1')
         return element
     
     @classmethod
@@ -304,7 +298,7 @@ class Null:
     @classmethod
     def get_datatype(cls,withNamespace=False):
         if withNamespace:
-            return 'xs:null'
+            return qualify('null', ns['xs'])
         return 'null'
 
     @classmethod
@@ -321,7 +315,6 @@ class Boolean:
             return Null.to_xml('',name)
         else:
             e = _generic_to_xml(str(bool(value)).lower(),name,cls.get_datatype(True))
-        e.set('xmlns','')
         return e
     
     @classmethod
@@ -336,7 +329,7 @@ class Boolean:
     @classmethod
     def get_datatype(cls,withNamespace=False):
         if withNamespace:
-            return 'xs:boolean'
+            return qualify('boolean', ns['xs'])
         return 'boolean'
 
     @classmethod
@@ -354,12 +347,11 @@ class Array:
             self.type_name = type_name
 
     def to_xml(self,values,name='retval'):
-        res = ElementTree.Element(name)
+        res = create_xml_element(name)
         typ = self.get_datatype(True)
-        res.set('xmlns','') 
         if values == None:
             values = []
-        res.set('xsi:type',self.get_datatype(True))
+        res.set(qualify('type', ns['xsi']),self.get_datatype(True))
         for value in values:
             serializer = self.serializer
             if value == None:
@@ -387,17 +379,25 @@ class Array:
 
         if not schema_dict.has_key(typ):
 
-            complexTypeNode = ElementTree.Element("xs:complexType")
+            tag = qualify('complexType', ns['xs'])
+            complexTypeNode = create_xml_element(tag)
             complexTypeNode.set('name',self.get_datatype(False))
 
-            sequenceNode = ElementTree.SubElement(complexTypeNode, 'xs:sequence')
-            elementNode = ElementTree.SubElement(sequenceNode, 'xs:element')
+            sequenceNode = create_xml_subelement(
+                complexTypeNode, 
+                qualify('sequence', ns['xs'])
+            )
+            elementNode = create_xml_subelement(
+                sequenceNode, 
+                qualify('element', ns['xs'])
+            )
             elementNode.set('minOccurs','0')
             elementNode.set('maxOccurs','unbounded')
             elementNode.set('type',self.serializer.get_datatype(True))
             elementNode.set('name',self.serializer.get_datatype(False))
 
-            typeElement = ElementTree.Element("xs:element")            
+            tag = qualify('element', ns['xs'])
+            typeElement = create_xml_element(tag)         
             typeElement.set('name',typ)
             typeElement.set('type',self.get_datatype(True))
             
@@ -448,10 +448,10 @@ class Map:
         self.serializer = serializer
 
     def to_xml(self,data, name='xsd:retval'):
-        element = ElementTree.Element(name)
+        element = create_xml_element(name)
         for k,v in data.items():
-            item = ElementTree.SubElement(element,'%sItem'%self.get_datatype())
-            key = ElementTree.SubElement(item,'key')
+            item = create_xml_subelement(element,'%sItem'%self.get_datatype())
+            key = create_xml_subelement(item,'key')
             key.text = k
             ser = self.serializer
             if v == None:
@@ -495,26 +495,26 @@ class Map:
         if not schema_dict.has_key(typ):
 
             # items
-            itemNode = ElementTree.Element('complexType')
+            itemNode = create_xml_element('complexType')
             itemNode.set('name','%sItem'%typ)
 
-            sequence = ElementTree.SubElement(itemNode,'sequence')
+            sequence = create_xml_subelement(itemNode,'sequence')
 
-            key_node = ElementTree.SubElement(sequence,'element')
+            key_node = create_xml_subelement(sequence,'element')
             key_node.set('name','key')
             key_node.set('minOccurs','1')
             key_node.set('type','xs:string')
 
-            value_node = ElementTree.SubElement(sequence,'element')
+            value_node = create_xml_subelement(sequence,'element')
             value_node.set('name','value')
             value_node.set('minOccurs','1')
             value_node.set('type',self.serializer.get_datatype(True))
 
-            complexTypeNode = ElementTree.Element("complexType")
+            complexTypeNode = create_xml_element("complexType")
             complexTypeNode.set('name',typ)
 
-            sequenceNode = ElementTree.SubElement(complexTypeNode, 'sequence')
-            elementNode = ElementTree.SubElement(sequenceNode, 'element')
+            sequenceNode = create_xml_subelement(complexTypeNode, 'sequence')
+            elementNode = create_xml_subelement(sequenceNode, 'element')
             elementNode.set('minOccurs','0')
             elementNode.set('maxOccurs','unbounded')
             elementNode.set('name','%sItem'%typ)
@@ -523,12 +523,12 @@ class Map:
             schema_dict[self.get_datatype(True)] = complexTypeNode
             schema_dict['tns:%sItem'%typ] = itemNode 
 
-            typeElement = ElementTree.Element("element")
+            typeElement = create_xml_element("element")
             typeElement.set('name',typ)
             typeElement.set('type',self.get_datatype(True))
             schema_dict['%sElement'%(self.get_datatype(True))] = typeElement
 
-            typeElementItem = ElementTree.Element("element")
+            typeElementItem = create_xml_element("element")
             typeElementItem.set('name','%sItem'%typ)
             typeElementItem.set('type','%sItem'%self.get_datatype(True))            
             schema_dict['%sElementItem'%(self.get_datatype(True))] = typeElementItem            

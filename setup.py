@@ -10,6 +10,8 @@ setup(name='soaplib',
       wsdl generation for the published services, a wsgi-compliant web application, support for
       complex class structures, binary attachments, simple framework for creating additional
       serialization mechanisms and a client library.
+      
+      This is a fork of the original project that uses lxml as it's XML API.
       """,
       classifiers=[
       'Programming Language :: Python',
@@ -26,7 +28,7 @@ setup(name='soaplib',
       license='LGPL',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       zip_safe=False,
-      install_requires=['pytz','cherrypy'],
+      install_requires=['pytz','cherrypy','lxml'],
 	  test_suite='tests.test_suite',
       entry_points="""
       """,

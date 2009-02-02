@@ -208,7 +208,7 @@ class WSGISoapApp(object):
             
             # deserialize the body of the message
             payload, header = from_soap(body)
-            if payload:
+            if len(payload):
                 methodname = payload.tag.split('}')[-1]
             else:
                 # check HTTP_SOAPACTION
@@ -222,7 +222,7 @@ class WSGISoapApp(object):
             
             # retrieve the method descriptor
             descriptor = func(_soap_descriptor=True)
-            if payload:
+            if len(payload):
                 params = descriptor.inMessage.from_xml(*[payload])
             else:
                 params = ()

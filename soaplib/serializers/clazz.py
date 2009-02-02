@@ -1,5 +1,5 @@
 import inspect
-from soaplib.etimport import ElementTree
+from soaplib.xml import *
 
 from primitive import Null
 
@@ -44,13 +44,8 @@ class ClassSerializer(object):
 
     @classmethod
     def to_xml(cls,value,name='retval'):
-        if cls.namespace:
-            name = '{%s}%s'%(cls.namespace,name)
+        element = create_xml_element(qualify(name, cls.namespace))
         
-        element = ElementTree.Element(name)
-        if not cls.namespace:
-            element.set('xmlns','')
-            
         for k,v in cls.soap_members.items():
             member_value = getattr(value,k,None)    
 
@@ -96,17 +91,25 @@ class ClassSerializer(object):
             for k,v in cls.soap_members.items():
                 v.add_to_schema(schemaDict)
 
-            schema_node = ElementTree.Element('xs:complexType')
+            tag = qualify("complexType", ns["xs"])
+            schema_node = create_xml_element(tag)
             schema_node.set('name',cls.__name__)
 
-            sequence_node = ElementTree.SubElement(schema_node,'xs:sequence')
+            sequence_node = create_xml_subelement(
+                schema_node, 
+                qualify('sequence', ns["xs"])
+            )
             for k,v in cls.soap_members.items():
-                member_node = ElementTree.SubElement(sequence_node,'xs:element')
+                member_node = create_xml_subelement(
+                    sequence_node,
+                    qualify('element', ns["xs"])
+                )
                 member_node.set('name',k)
                 member_node.set('minOccurs','0')
                 member_node.set('type',v.get_datatype(True))
 
-            typeElement = ElementTree.Element("xs:element")
+            tag = qualify("element", ns["xs"])
+            typeElement = create_xml_element(tag)
             typeElement.set('name',cls.__name__)
             typeElement.set('type','tns:'+cls.__name__)
             schemaDict[cls.get_datatype(True)+'Complex'] = schema_node

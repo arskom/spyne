@@ -1,6 +1,7 @@
 import unittest
 import datetime
 from soaplib.etimport import ElementTree
+from soaplib.xml import *
 from soaplib.serializers.primitive import *
 
 class test(unittest.TestCase):
@@ -22,7 +23,7 @@ class test(unittest.TestCase):
 
     def test_utcdatetime(self):
         datestring = '2007-05-15T13:40:44Z'
-        e = ElementTree.Element('test')
+        e = create_xml_element('test')
         e.text = datestring
         
         dt = DateTime.from_xml(e)    
@@ -32,7 +33,7 @@ class test(unittest.TestCase):
         self.assertEquals(dt.day,15)
         
         datestring = '2007-05-15T13:40:44.003Z'
-        e = ElementTree.Element('test')
+        e = create_xml_element('test')
         e.text = datestring
         
         dt = DateTime.from_xml(e)    
@@ -47,7 +48,10 @@ class test(unittest.TestCase):
         integer = Integer()
         element = Integer.to_xml(i)
         self.assertEquals(element.text,'12')
-        self.assertEquals('xs:int',element.get('xsi:type'))
+        self.assertEquals(
+            qualify('int', ns['xs']),
+            element.get(qualify('type', ns['xsi']))
+        )
         value = integer.from_xml(element)
         self.assertEquals(value,i)
 
@@ -55,7 +59,10 @@ class test(unittest.TestCase):
         f = 1.22255645
         element = Float.to_xml(f)
         self.assertEquals(element.text,'1.22255645')
-        self.assertEquals('xs:float',element.get('xsi:type'))
+        self.assertEquals(
+            qualify('float', ns['xs']),
+            element.get(qualify('type', ns['xsi']))
+        )
         f2 = Float.from_xml(element)
         self.assertEquals(f2,f)
 
@@ -68,7 +75,7 @@ class test(unittest.TestCase):
         self.assertEquals(values[3],values2[3])
 
     def test_unicode(self):
-        s = u'\x05\x06\x05\x06'        
+        s = u'\x34\x55\x65\x34'         
         self.assertEquals(4,len(s))
         element = String.to_xml(s)
         value = String.from_xml(element)
@@ -76,7 +83,7 @@ class test(unittest.TestCase):
 
     def test_null(self):
         element = Null.to_xml('doesnt matter')
-        self.assertEquals('1',element.get('xs:null'))
+        self.assertEquals('1',element.get(qualify('null', ns['xs'])))
         value = Null.from_xml(element)
         self.assertEquals(None,value)
         
@@ -100,10 +107,13 @@ class test(unittest.TestCase):
         self.assertEquals(b,False)
 
         b = Boolean.to_xml(False)
-        self.assertEquals(b.get('xsi:type'),'xs:boolean')
-        
+        self.assertEquals(
+            qualify('boolean', ns['xs']),
+            b.get(qualify('type', ns['xsi']))
+        )
+
         b = Boolean.to_xml(None)
-        self.assertEquals('1',b.get('xs:null'))
+        self.assertEquals('1',b.get(qualify('null', ns['xs'])))
         
         b = Boolean.from_xml(b)
         self.assertEquals(b,None)
