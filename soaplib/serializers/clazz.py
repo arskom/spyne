@@ -1,5 +1,5 @@
 import inspect
-from soaplib.xml import *
+from soaplib.xml import ns, create_xml_element, create_xml_subelement, qualify
 
 from primitive import Null
 
@@ -43,8 +43,9 @@ class ClassSerializer(object):
             setattr(self,k,None)
 
     @classmethod
-    def to_xml(cls,value,name='retval'):
-        element = create_xml_element(qualify(name, cls.namespace))
+    def to_xml(cls,value,name='retval', nsmap=ns):
+        element = create_xml_element(
+            nsmap.get(cls.get_namespace_id()) + name, nsmap)
         
         for k,v in cls.soap_members.items():
             member_value = getattr(value,k,None)    
@@ -53,7 +54,7 @@ class ClassSerializer(object):
             if subvalue is None:
                 v = Null
                 
-            subelements = v.to_xml(subvalue,name=k)
+            subelements = v.to_xml(subvalue,name=k,nsmap=nsmap)
             if type(subelements) != list:
                 subelements = [subelements]
             for s in subelements:
@@ -79,38 +80,40 @@ class ClassSerializer(object):
         return obj
 
     @classmethod
-    def get_datatype(cls,withNamespace=False):
-        if withNamespace:
-            return 'tns:%s'%(cls.__name__)
+    def get_datatype(cls,nsmap=None):
+        if nsmap is not None:
+            return nsmap.get(cls.get_namespace_id()) + cls.__name__
         return cls.__name__
- 
-    @classmethod
-    def add_to_schema(cls, schemaDict):
         
-        if not schemaDict.has_key(cls.get_datatype(True)):
-            for k,v in cls.soap_members.items():
-                v.add_to_schema(schemaDict)
+    @classmethod
+    def get_namespace_id(cls):
+        return 'tns'
 
-            tag = qualify("complexType", ns["xs"])
-            schema_node = create_xml_element(tag)
+    @classmethod
+    def add_to_schema(cls, schemaDict, nsmap):
+        
+        if not schemaDict.has_key(cls.get_datatype(nsmap)):
+            for k,v in cls.soap_members.items():
+                v.add_to_schema(schemaDict, nsmap)
+
+            schema_node = create_xml_element(
+                nsmap.get("xs") + "complexType", nsmap)
             schema_node.set('name',cls.__name__)
 
             sequence_node = create_xml_subelement(
-                schema_node, 
-                qualify('sequence', ns["xs"])
-            )
+                schema_node, nsmap.get('xs') + 'sequence')
             for k,v in cls.soap_members.items():
                 member_node = create_xml_subelement(
-                    sequence_node,
-                    qualify('element', ns["xs"])
-                )
+                    sequence_node, nsmap.get('xs') + 'element')
                 member_node.set('name',k)
                 member_node.set('minOccurs','0')
-                member_node.set('type',v.get_datatype(True))
+                member_node.set('type',
+                    "%s:%s" % (v.get_namespace_id(), v.get_datatype()))
 
-            tag = qualify("element", ns["xs"])
-            typeElement = create_xml_element(tag)
+            typeElement = create_xml_element(
+                nsmap.get('xs') + 'element', nsmap)
             typeElement.set('name',cls.__name__)
-            typeElement.set('type','tns:'+cls.__name__)
-            schemaDict[cls.get_datatype(True)+'Complex'] = schema_node
-            schemaDict[cls.get_datatype(True)] = typeElement
+            typeElement.set('type',
+                "%s:%s" % (cls.get_namespace_id(),cls.__name__))
+            schemaDict[cls.get_datatype(nsmap)+'Complex'] = schema_node
+            schemaDict[cls.get_datatype(nsmap)] = typeElement

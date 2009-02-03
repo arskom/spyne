@@ -221,7 +221,7 @@ class WSGISoapApp(object):
             func = getattr(service, methodname)
             
             # retrieve the method descriptor
-            descriptor = func(_soap_descriptor=True)
+            descriptor = func(_soap_descriptor=True, klazz=service.__class__)
             if len(payload):
                 params = descriptor.inMessage.from_xml(*[payload])
             else:
@@ -249,6 +249,7 @@ class WSGISoapApp(object):
             
             # construct the soap response, and serialize it
             envelope = make_soap_envelope(results,tns=service.__tns__,header_elements=response_headers) 
+            ElementTree.cleanup_namespaces(envelope)
             resp = ElementTree.tostring(envelope, encoding=string_encoding)
             headers = {'Content-Type': 'text/xml'}
 

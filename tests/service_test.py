@@ -80,7 +80,6 @@ class test(unittest.TestCase):
         self.wsdl = ElementTree.fromstring(self._wsdl)
         
     def test_portypes(self):
-        
         porttype = self.wsdl.find('{http://schemas.xmlsoap.org/wsdl/}portType')
         self.assertEquals(len(self.service._soap_methods),len(porttype.getchildren()))
 

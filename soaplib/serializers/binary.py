@@ -1,6 +1,6 @@
 import base64
 import cStringIO
-from soaplib.xml import *
+from soaplib.xml import ns, create_xml_element
 
 class Attachment(object):
 
@@ -36,7 +36,7 @@ class Attachment(object):
         f.close()
 
     @classmethod
-    def to_xml(cls,value,name='retval'):
+    def to_xml(cls,value,name='retval',nsmap=ns):
         '''This class method takes the data from the attachment and 
         base64 encodes it as the text of an Element.  An attachment can
         specify a filename and if no data is given, it will read the data 
@@ -45,7 +45,7 @@ class Attachment(object):
         if value.__class__ is not Attachment:
             raise Exception("Do not know how to serialize class %s"%type(value))
             
-        element = create_xml_element(name)
+        element = create_xml_element(name, nsmap)
         if value.data:
             # the data has already been loaded, just encode
             # and return the element
@@ -79,14 +79,18 @@ class Attachment(object):
         return a
 
     @classmethod
-    def get_datatype(cls,withNamespace=False):
+    def get_datatype(cls,nsmap=None):
         '''Returns the datatype base64Binary'''
-        if withNamespace:
-            return 'xs:base64Binary'
+        if nsmap is not None:
+            return nsmap.get(cls.get_namespace_id()) + 'base64Binary'
         return 'base64Binary'
+        
+    @classmethod
+    def get_namespace_id(cls):
+        return 'xs'
 
     @classmethod
-    def add_to_schema(cls,added_params):
+    def add_to_schema(cls,added_params,nsmap):
         ''' 
         Nothing needs to happen here as base64Binary is a standard
         schema element

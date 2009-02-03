@@ -1,6 +1,6 @@
 import unittest
 import datetime
-from soaplib.etimport import ElementTree
+from soaplib.xml import NamespaceLookup
 from soaplib.serializers.primitive import *
 from soaplib.serializers.clazz import *
 
@@ -174,11 +174,11 @@ class test(unittest.TestCase):
 
     def test_schema(self):
         a = {}
-        Person.add_to_schema(a)
+        Person.add_to_schema(a, NamespaceLookup())
         #self.assertEquals(8,len(a))
-        self.assertTrue(a.has_key("tns:Person"))
-        self.assertTrue(a.has_key("tns:Address"))
-        self.assertTrue(a.has_key("tns:AddressArray"))
+        self.assertTrue(a.has_key(ns.get('tns') + "Person"))
+        self.assertTrue(a.has_key(ns.get('tns') + "Address"))
+        self.assertTrue(a.has_key(ns.get('tns') + "AddressArray"))
 
     def test_repeating(self):
         

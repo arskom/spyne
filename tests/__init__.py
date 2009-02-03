@@ -7,7 +7,7 @@ import service_test
 
 def test_suite():
     suite = serializers.test_suite()
-    suite.addTests(client_test.test_suite())
+    #suite.addTests(client_test.test_suite())
     suite.addTests(soap_test.test_suite())
     suite.addTests(service_test.test_suite())
     return suite

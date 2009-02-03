@@ -265,7 +265,7 @@ of the most basic blocks within soaplib.
 	abcd
 	>>> String.get_datatype()
 	'string'
-	>>> String.get_datatype(True)
+	>>> String.get_datatype(nsmap)
 	'xs:string'
 	>>> 
 
@@ -286,7 +286,7 @@ data, use the `Any` type.
 	<xsd:retval SOAP-ENC:arrayType="xs:string[4]"><string xsi:type="xs:string">a</string><string xsi:type="xs:string">b</string><string xsi:type="xs:string">c</string><string xsi:type="xs:string">d</string></xsd:retval>
 	>>> print array_serializer.from_xml(element)
 	['a', 'b', 'c', 'd']
-	>>>
+	>>>   
 
 Class
 -----
@@ -359,16 +359,19 @@ to the following interface can be used as a soaplib serializer.
 
 	class MySerializer:
 
-	    def to_xml(self,value,name='retval'):
+	    def to_xml(self,value,name='retval',nsmap=None):
 			pass
             
 	    def from_xml(self,element):
 			pass
 
-	    def get_datatype(self,withNamespace=False):
+	    def get_datatype(self,nsmap=None):
+			pass
+			
+	    def get_namespace_id(self):
 			pass
 
-	    def add_to_schema(self,added_params):
+	    def add_to_schema(self,added_params,nsmap):
 			pass
 
 This feature is particularly useful when adapting soaplib to an existing project and converting existing

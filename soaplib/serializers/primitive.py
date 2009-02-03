@@ -1,4 +1,4 @@
-from soaplib.xml import *
+from soaplib.xml import ns, create_xml_element, create_xml_subelement
 import datetime
 import re
 import cStringIO 
@@ -84,31 +84,40 @@ def _element_to_unicode(element):
     except:
        return u
 
-def _unicode_to_xml(value,name,typ):
-    retval = create_xml_element(name)
+def _unicode_to_xml(value, name, cls, nsmap):
+    retval = create_xml_element(name, nsmap)
     if value == None:
-        return Null.to_xml(value,name)
+        return Null.to_xml(value,name,nsmap)
     if type(value) == unicode:
         retval.text = value
     else: 
         retval.text = unicode(value,string_encoding)
-    retval.set(qualify('type', ns['xsi']),typ)
+    retval.set(
+        nsmap.get('xsi') + 'type', 
+        "%s:%s" % (cls.get_namespace_id(), cls.get_datatype()))
     return retval
 
-def _generic_to_xml(value,name,typ):
-    retval = create_xml_element(name)
+def _generic_to_xml(value, name, cls, nsmap):
+    retval = create_xml_element(name, nsmap)
     if value:
         retval.text = value
-    retval.set(qualify('type', ns['xsi']),typ)
+    retval.set(
+        nsmap.get('xsi') + 'type',
+        "%s:%s" % (cls.get_namespace_id(), cls.get_datatype()))
     return retval
+    
+def _get_datatype(cls, typename, nsmap):
+    if nsmap is not None:
+        return nsmap.get(cls.get_namespace_id()) + typename
+    return typename
 
 class Any:
 
     @classmethod
-    def to_xml(cls,value,name='retval'):
+    def to_xml(cls,value,name='retval',nsmap=ns):
         if type(value) == str:
             value = ElementTree.fromstring(value)
-        e = create_xml_element(name)
+        e = create_xml_element(name, nsmap)
         e.append(value) 
         return e 
         
@@ -120,20 +129,22 @@ class Any:
         return None
 
     @classmethod
-    def get_datatype(cls,withNamespace=False):
-        if withNamespace:
-            return qualify('anyType', ns['xs'])
-        return 'anyType'
+    def get_datatype(cls, nsmap=None):
+        return _get_datatype(cls, 'anyType', nsmap)
 
     @classmethod
-    def add_to_schema(cls,added_params):
+    def get_namespace_id(cls):
+        return 'xs'
+
+    @classmethod
+    def add_to_schema(cls,added_params,nsmap):
         pass
 
 class String:
 
     @classmethod
-    def to_xml(cls,value,name='retval'):
-        e = _unicode_to_xml(value,name,cls.get_datatype(True))
+    def to_xml(cls,value,name='retval',nsmap=ns):
+        e = _unicode_to_xml(value, name, cls, nsmap)
         return e
         
     @classmethod
@@ -141,13 +152,15 @@ class String:
         return _element_to_unicode(element)
 
     @classmethod
-    def get_datatype(cls,withNamespace=False):
-        if withNamespace:
-            return qualify('string', ns['xs'])
-        return 'string'
+    def get_datatype(cls, nsmap=None):
+        return _get_datatype(cls, 'string', nsmap)
 
     @classmethod
-    def add_to_schema(cls,added_params):
+    def get_namespace_id(cls):
+        return 'xs'
+
+    @classmethod
+    def add_to_schema(cls,added_params,nsmap):
         pass
 
 class Fault(Exception):
@@ -159,8 +172,8 @@ class Fault(Exception):
         self.name = name
 
     @classmethod
-    def to_xml(cls, value, name=qualify("Fault", ns["SOAP-ENV"])):
-        fault = create_xml_element(name)
+    def to_xml(cls, value, name, nsmap=ns):
+        fault = create_xml_element(name, nsmap)
         create_xml_subelement(fault, 'faultcode').text = value.faultcode
         create_xml_subelement(fault, 'faultstring').text = value.faultstring
         detail = create_xml_subelement(fault, 'detail').text = value.detail
@@ -180,17 +193,18 @@ class Fault(Exception):
         else:
             detail = ''
         return Fault(faultcode = code, faultstring = string, detail = detail)
-        
-    @classmethod
-    def get_datatype(cls,withNamespace=False):
-        t = 'ExceptionFaultType'
-        if withNamespace:
-            return 'tns:%s'%t
-        return t
 
     @classmethod
-    def add_to_schema(cls,schema_dict):   
-        complexTypeNode = create_xml_element('complexType')
+    def get_datatype(cls, nsmap=None):
+        return _get_datatype(cls, 'ExceptionFaultType', nsmap)
+
+    @classmethod
+    def get_namespace_id(cls):
+        return 'tns'
+
+    @classmethod
+    def add_to_schema(cls,schema_dict,nsmap):   
+        complexTypeNode = create_xml_element('complexType', nsmap)
         complexTypeNode.set('name', cls.get_datatype())        
         sequenceNode = create_xml_subelement(complexTypeNode, 'sequence')
         faultTypeElem = create_xml_subelement(sequenceNode,'element')
@@ -202,10 +216,10 @@ class Fault(Exception):
     
         schema_dict[cls.get_datatype()] = complexTypeNode
         
-        typeElementItem = create_xml_element('element')
+        typeElementItem = create_xml_element('element', nsmap)
         typeElementItem.set('name', 'ExceptionFaultType')
-        typeElementItem.set('type', cls.get_datatype(True))
-        schema_dict['%sElement'%(cls.get_datatype(True))] = typeElementItem
+        typeElementItem.set('type', cls.get_datatype(nsmap))
+        schema_dict['%sElement'%(cls.get_datatype(nsmap))] = typeElementItem
         
     def __str__(self):
         io = cStringIO.StringIO()
@@ -221,8 +235,8 @@ class Fault(Exception):
 class Integer:
 
     @classmethod
-    def to_xml(cls,value,name='retval'):
-        e = _generic_to_xml(str(value),name,cls.get_datatype(True))
+    def to_xml(cls,value,name='retval',nsmap=ns):
+        e = _generic_to_xml(str(value), name, cls, nsmap)
         return e
     
     @classmethod
@@ -230,22 +244,24 @@ class Integer:
         return _element_to_integer(element)
 
     @classmethod
-    def get_datatype(cls,withNamespace=False):
-        if withNamespace:
-            return qualify('int', ns['xs'])
-        return 'int'
+    def get_datatype(cls, nsmap=None):
+        return _get_datatype(cls, 'int', nsmap)
 
     @classmethod
-    def add_to_schema(cls,added_params):
+    def get_namespace_id(cls):
+        return 'xs'
+
+    @classmethod
+    def add_to_schema(cls,added_params,nsmap):
         pass
 
 class DateTime:
 
     @classmethod
-    def to_xml(cls,value,name='retval'):
+    def to_xml(cls,value,name='retval',nsmap=ns):
         if type(value) == datetime.datetime:
             value = value.isoformat('T')
-        e = _generic_to_xml(value,name,cls.get_datatype(True))    
+        e = _generic_to_xml(value, name, cls, nsmap)    
         return e
     
     @classmethod
@@ -253,20 +269,22 @@ class DateTime:
         return _element_to_datetime(element)            
 
     @classmethod
-    def get_datatype(cls,withNamespace=False):
-        if withNamespace:
-            return qualify('dateTime', ns['xs'])
-        return 'dateTime'
+    def get_datatype(cls, nsmap=None):
+        return _get_datatype(cls, 'dateTime', nsmap)
 
     @classmethod
-    def add_to_schema(cls,added_params):
+    def get_namespace_id(cls):
+        return 'xs'
+
+    @classmethod
+    def add_to_schema(cls,added_params,nsmap):
         pass
 
 class Float:
 
     @classmethod
-    def to_xml(cls,value,name='retval'):
-        e = _generic_to_xml(str(value),name,cls.get_datatype(True))
+    def to_xml(cls,value,name='retval',nsmap=ns):
+        e = _generic_to_xml(str(value), name, cls, nsmap)
         return e
     
     @classmethod
@@ -274,21 +292,23 @@ class Float:
         return _element_to_float(element)
 
     @classmethod
-    def get_datatype(cls,withNamespace=False):
-        if withNamespace:
-            return qualify('float', ns['xs'])
-        return 'float'
+    def get_datatype(cls, nsmap=None):
+        return _get_datatype(cls, 'float', nsmap)
 
     @classmethod
-    def add_to_schema(cls,added_params):
+    def get_namespace_id(cls):
+        return 'xs'
+
+    @classmethod
+    def add_to_schema(cls,added_params,nsmap):
         pass
 
 class Null:
 
     @classmethod
-    def to_xml(cls,value,name='retval'):
-        element = create_xml_element(name)
-        element.set(qualify('null', ns['xs']),'1')
+    def to_xml(cls,value,name='retval',nsmap=ns):
+        element = create_xml_element(name, nsmap)
+        element.set(cls.get_datatype(nsmap),'1')
         return element
     
     @classmethod
@@ -296,25 +316,27 @@ class Null:
         return None
 
     @classmethod
-    def get_datatype(cls,withNamespace=False):
-        if withNamespace:
-            return qualify('null', ns['xs'])
-        return 'null'
+    def get_datatype(cls, nsmap=None):
+        return _get_datatype(cls, 'null', nsmap)
 
     @classmethod
-    def add_to_schema(cls,added_params):
+    def get_namespace_id(cls):
+        return 'xs'
+
+    @classmethod
+    def add_to_schema(cls,added_params,nsmap):
         pass
 
 class Boolean:
     
     @classmethod
-    def to_xml(cls,value,name='retval'):
+    def to_xml(cls,value,name='retval',nsmap=ns):
         # applied patch from Julius Volz
-        #e = _generic_to_xml(str(value).lower(),name,cls.get_datatype(True))    
+        #e = _generic_to_xml(str(value).lower(),name,cls.get_datatype(nsmap))    
         if value == None:
-            return Null.to_xml('',name)
+            return Null.to_xml('', name, nsmap)
         else:
-            e = _generic_to_xml(str(bool(value)).lower(),name,cls.get_datatype(True))
+            e = _generic_to_xml(str(bool(value)).lower(), name, cls, nsmap)
         return e
     
     @classmethod
@@ -327,38 +349,41 @@ class Boolean:
         return False
 
     @classmethod
-    def get_datatype(cls,withNamespace=False):
-        if withNamespace:
-            return qualify('boolean', ns['xs'])
-        return 'boolean'
+    def get_datatype(cls, nsmap=None):
+        return _get_datatype(cls, 'boolean', nsmap)
 
     @classmethod
-    def add_to_schema(cls,added_params):
+    def get_namespace_id(cls):
+        return 'xs'
+
+    @classmethod
+    def add_to_schema(cls,added_params,nsmap):
         pass
     
 class Array:
     
-    def __init__(self,serializer,type_name=None,namespace='tns'):
+    def __init__(self,serializer,type_name=None,namespace_id='tns'):
         self.serializer = serializer
-        self.namespace = namespace
+        self.namespace_id = namespace_id
         if not type_name:
             self.type_name = '%sArray'%self.serializer.get_datatype()
         else:
             self.type_name = type_name
 
-    def to_xml(self,values,name='retval'):
-        res = create_xml_element(name)
-        typ = self.get_datatype(True)
+    def to_xml(self,values,name='retval',nsmap=ns):
+        res = create_xml_element(name, nsmap)
+        typ = self.get_datatype(nsmap)
         if values == None:
             values = []
-        res.set(qualify('type', ns['xsi']),self.get_datatype(True))
+        res.set(
+            nsmap.get('xsi') + 'type', 
+            "%s:%s" % (self.get_namespace_id(), self.get_datatype()))
         for value in values:
             serializer = self.serializer
             if value == None:
                 serializer = Null
             res.append(
-                serializer.to_xml(value,name=serializer.get_datatype(False))
-            )
+                serializer.to_xml(value, serializer.get_datatype(), nsmap))
         return res    
 
     def from_xml(self,element):
@@ -367,49 +392,49 @@ class Array:
             results.append(self.serializer.from_xml(child))
         return results
 
-    def get_datatype(self,withNamespace=False):
-        if withNamespace:
-            return '%s:%s'%(self.namespace,self.type_name)
-        return self.type_name
+    def get_datatype(self, nsmap=None):
+        return _get_datatype(self, self.type_name, nsmap)
 
-    def add_to_schema(self,schema_dict):
+    def get_namespace_id(self):
+        return self.namespace_id
+
+    def add_to_schema(self,schema_dict,nsmap):
         typ = self.get_datatype()
         
-        self.serializer.add_to_schema(schema_dict)
+        self.serializer.add_to_schema(schema_dict, nsmap)
 
         if not schema_dict.has_key(typ):
 
-            tag = qualify('complexType', ns['xs'])
-            complexTypeNode = create_xml_element(tag)
-            complexTypeNode.set('name',self.get_datatype(False))
+            complexTypeNode = create_xml_element(
+                nsmap.get('xs') + 'complexType', nsmap)
+            complexTypeNode.set('name',self.get_datatype())
 
             sequenceNode = create_xml_subelement(
-                complexTypeNode, 
-                qualify('sequence', ns['xs'])
-            )
+                complexTypeNode, nsmap.get('xs') + 'sequence')
             elementNode = create_xml_subelement(
-                sequenceNode, 
-                qualify('element', ns['xs'])
-            )
+                sequenceNode, nsmap.get('xs') + 'element')
             elementNode.set('minOccurs','0')
             elementNode.set('maxOccurs','unbounded')
-            elementNode.set('type',self.serializer.get_datatype(True))
-            elementNode.set('name',self.serializer.get_datatype(False))
+            elementNode.set('type',
+                "%s:%s" % (self.namespace_id, self.serializer.get_datatype()))
+            elementNode.set('name',self.serializer.get_datatype())
 
-            tag = qualify('element', ns['xs'])
-            typeElement = create_xml_element(tag)         
+            typeElement = create_xml_element(
+                nsmap.get('xs') + 'element', nsmap)
             typeElement.set('name',typ)
-            typeElement.set('type',self.get_datatype(True))
+            typeElement.set('type',
+                "%s:%s" % (self.namespace_id, self.get_datatype()))
             
-            schema_dict['%sElement'%(self.get_datatype(True))] = typeElement
-            schema_dict[self.get_datatype(True)] = complexTypeNode
+            schema_dict['%sElement'%(self.get_datatype(nsmap))] = typeElement
+            schema_dict[self.get_datatype(nsmap)] = complexTypeNode
 
 class Repeating(object):
 
-    def __init__(self,serializer,type_name=None,namespace='tns'):
+    def __init__(self,serializer,type_name=None,namespace_id='tns'):
         self.serializer = serializer
+        self.namespace_id = namespace_id
         
-    def to_xml(self,values,name='retval'):
+    def to_xml(self,values,name='retval',nsmap=ns):
         if values == None:
             values = []
         res = []
@@ -418,9 +443,12 @@ class Repeating(object):
             if value == None:
                 serializer = Null
             res.append(
-                serializer.to_xml(value,name=name)
+                serializer.to_xml(value,name,nsmap)
             )
-        return res    
+        return res  
+        
+    def get_namespace_id(self):
+        return self.namespace_id  
 
     def from_xml(self,*elements):
         results = []
@@ -428,109 +456,5 @@ class Repeating(object):
             results.append(self.serializer.from_xml(child))
         return results    
         
-    def add_to_schema(self,schema_dict):
+    def add_to_schema(self,schema_dict,nsmap):
         raise Exception("The Repeating serializer is experimental and not supported for wsdl generation")
-        
-###################################################################
-# Deprecated Functionality
-###################################################################
-class SoapFault(Fault):
-    def __init__(self,*args,**kwargs):
-        from warnings import warn
-        warn("The SoapFault class will be deprecated, use the 'Fault' class",DeprecationWarning)
-        Fault.__init__(self,*args,**kwargs)
-
-class Map:
-
-    def __init__(self,serializer):
-        from warnings import warn
-        warn("The Map serializer will be deprecated, use the 'Any' class",DeprecationWarning)
-        self.serializer = serializer
-
-    def to_xml(self,data, name='xsd:retval'):
-        element = create_xml_element(name)
-        for k,v in data.items():
-            item = create_xml_subelement(element,'%sItem'%self.get_datatype())
-            key = create_xml_subelement(item,'key')
-            key.text = k
-            ser = self.serializer
-            if v == None:
-                ser = Null
-            item.append(ser.to_xml(v,'value'))
-        return element
-
-    def from_xml(self,element):
-        data = {}
-        for item in element.getchildren():
-            value = item.find('value')
-            key = item.find('key')
-            assert(len(item.getchildren()) == 2)
-
-            children = item.getchildren()
-            if children[0].tag.lower().endswith('key'):
-                key = children[0]
-                value = children[1]
-            else:
-                key = children[1]
-                value = children[0]
-            if _is_null_element(value):
-                data[key.text] = Null.from_xml(value)
-            else:
-                data[key.text] = self.serializer.from_xml(value)
-        return data
-
-    def get_datatype(self,withNamespace=False):
-        typ = self.serializer.get_datatype()
-        if withNamespace:
-            if hasattr(self.serializer,'prefix'):
-                return '%s:%sMap'%(self.serializer.prefix,typ)
-            else:
-                return 'tns:%sMap'%(typ)
-        return '%sMap'%typ
-
-    def add_to_schema(self,schema_dict):
-        typ = self.get_datatype()
-        self.serializer.add_to_schema(schema_dict)
-
-        if not schema_dict.has_key(typ):
-
-            # items
-            itemNode = create_xml_element('complexType')
-            itemNode.set('name','%sItem'%typ)
-
-            sequence = create_xml_subelement(itemNode,'sequence')
-
-            key_node = create_xml_subelement(sequence,'element')
-            key_node.set('name','key')
-            key_node.set('minOccurs','1')
-            key_node.set('type','xs:string')
-
-            value_node = create_xml_subelement(sequence,'element')
-            value_node.set('name','value')
-            value_node.set('minOccurs','1')
-            value_node.set('type',self.serializer.get_datatype(True))
-
-            complexTypeNode = create_xml_element("complexType")
-            complexTypeNode.set('name',typ)
-
-            sequenceNode = create_xml_subelement(complexTypeNode, 'sequence')
-            elementNode = create_xml_subelement(sequenceNode, 'element')
-            elementNode.set('minOccurs','0')
-            elementNode.set('maxOccurs','unbounded')
-            elementNode.set('name','%sItem'%typ)
-            elementNode.set('type','tns:%sItem'%typ)
-
-            schema_dict[self.get_datatype(True)] = complexTypeNode
-            schema_dict['tns:%sItem'%typ] = itemNode 
-
-            typeElement = create_xml_element("element")
-            typeElement.set('name',typ)
-            typeElement.set('type',self.get_datatype(True))
-            schema_dict['%sElement'%(self.get_datatype(True))] = typeElement
-
-            typeElementItem = create_xml_element("element")
-            typeElementItem.set('name','%sItem'%typ)
-            typeElementItem.set('type','%sItem'%self.get_datatype(True))            
-            schema_dict['%sElementItem'%(self.get_datatype(True))] = typeElementItem            
-
-

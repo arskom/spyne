@@ -1,4 +1,5 @@
-from soaplib.xml import *
+from soaplib.xml import create_xml_element, create_xml_subelement
+from soaplib.xml import NamespaceLookup, ElementTree
 from soaplib.serializers.primitive import Fault
 from soaplib.serializers.binary import Attachment
 
@@ -19,7 +20,6 @@ from email import message_from_string
 from base64 import b64encode
 from StringIO import StringIO
 
-
 class Message(object):
     
     def __init__(self,name,params,ns=None,typ=None):
@@ -34,13 +34,14 @@ class Message(object):
         if len(self.params):
             if len(data) != len(self.params):
                 raise Exception("Parameter number mismatch expected [%s] got [%s]"%(len(self.params),len(data)))
-
-        element = create_xml_element(self.name, self.ns)
+  
+        nsmap = NamespaceLookup(self.ns)
+        element = create_xml_element(self.name, nsmap, self.ns)
 
         for i in range(0,len(self.params)):
-            name,serializer = self.params[i]
+            name, serializer = self.params[i]
             d = data[i]
-            e = serializer.to_xml(d,name)
+            e = serializer.to_xml(d, name, nsmap)
             if type(e) in (list,tuple):
                 elist = e
                 for e in elist:
@@ -49,7 +50,8 @@ class Message(object):
                 pass
             else:
                 element.append(e)
-            
+           
+        ElementTree.cleanup_namespaces(element)     
         return element
         
     def from_xml(self,element):
@@ -72,20 +74,21 @@ class Message(object):
                 results.append(serializer.from_xml(*childnodes))
         return results
         
-    def add_to_schema(self,schemaDict):
-        complexType = create_xml_element(qualify('complexType', ns['xs']))
+    def add_to_schema(self,schemaDict, nsmap):
+        complexType = create_xml_element(nsmap.get('xs') + 'complexType', nsmap)
         complexType.set('name',self.typ)
         
-        sequence = create_xml_subelement(complexType, qualify('sequence', ns['xs']))
+        sequence = create_xml_subelement(complexType, nsmap.get('xs') + 'sequence')
         if self.params:
             for name,serializer in self.params:
-                e = create_xml_subelement(sequence, qualify('element', ns['xs']))
+                e = create_xml_subelement(sequence, nsmap.get('xs') + 'element')
                 e.set('name',name)
-                e.set('type',serializer.get_datatype(True))
+                e.set('type',
+                    "%s:%s" % (serializer.get_namespace_id(), serializer.get_datatype()))
                 
-        element = create_xml_element(qualify('element', ns['xs']))
+        element = create_xml_element(nsmap.get('xs') + 'element', nsmap)
         element.set('name',self.typ)
-        element.set('type','%s:%s'%('tns',self.typ))
+        element.set('type','%s:%s' % ('tns',self.typ))
         
         schemaDict[self.typ] = complexType
         schemaDict[self.typ+'Element'] = element
@@ -135,7 +138,7 @@ def resolve_hrefs(element,xmlids):
             continue # don't need to resolve this element    
         elif e.get('href'):
             resolved_element = xmlids[e.get('href').replace('#','')]
-            if not resolved_element: continue
+            if resolved_element is None: continue
             resolve_hrefs(resolved_element,xmlids)
 
             [e.set(k,v) for k,v in resolved_element.items()]              # copies the attributes
@@ -146,7 +149,7 @@ def resolve_hrefs(element,xmlids):
     return element
 
 
-def make_soap_envelope(message, tns=None, header_elements=None):
+def make_soap_envelope(message, tns='', header_elements=None):
     '''
     This method takes the results from a soap method call, and wraps them
     in the appropriate soap envelope with any specified headers
@@ -155,23 +158,17 @@ def make_soap_envelope(message, tns=None, header_elements=None):
     @param any header elements to be included in the soap response
     @returns the envelope element
     '''
+    nsmap = NamespaceLookup(tns)
     
-    if tns is None:
-        tns = ''
-        
-    envelope = create_xml_element(
-        qualify('Envelope', ns['SOAP-ENV']),
-        tns,
-        { 'tns': tns }
-    )
+    envelope = create_xml_element(nsmap.get('SOAP-ENV') + 'Envelope', nsmap, tns)
 
     if header_elements:
-        headerElement = create_xml_subelement(envelope, qualify('Header', ns['SOAP-ENV']))
+        headerElement = create_xml_subelement(envelope, nsmap.get('SOAP-ENV') + 'Header')
         
         for h in header_elements:
             headerElement.append(h)
    
-    body = create_xml_subelement(envelope, qualify('Body', ns['SOAP-ENV']))
+    body = create_xml_subelement(envelope, nsmap.get('SOAP-ENV') + 'Body')
 
     if type(message) == list:
         for m in message:
@@ -427,10 +424,12 @@ def make_soap_fault(faultString, faultCode='Server', detail=None):
     @param faultCode defaults to 'Server', but can be overridden
     @returns the element corresponding to the fault message
     '''
-    envelope = create_xml_element(qualify('Envelope', ns['SOAP-ENV']))
-    body = create_xml_subelement(envelope, qualify('Body', ns['SOAP-ENV']))
+    
+    nsmap = NamespaceLookup()
+    envelope = create_xml_element(nsmap.get('SOAP-ENV') + 'Envelope', nsmap)
+    body = create_xml_subelement(envelope, nsmap.get('SOAP-ENV') + 'Body')
 
     f = Fault(faultCode,faultString,detail)
-    body.append(Fault.to_xml(f))
+    body.append(Fault.to_xml(f, nsmap.get('SOAP-ENV') + "Fault", nsmap))
 
     return envelope

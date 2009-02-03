@@ -2,6 +2,7 @@ import unittest
 import shutil
 import base64
 from soaplib.serializers.binary import *
+from soaplib.xml import NamespaceLookup
 from tempfile import mkstemp
 import os, shutil
 
@@ -88,15 +89,15 @@ class test(unittest.TestCase):
 
     def test_add_to_schema(self):
         schema = {}
-        Attachment.add_to_schema(schema)
+        Attachment.add_to_schema(schema, NamespaceLookup())
         self.assertEquals(0,len(schema.keys()))
 
     def test_get_datatype(self):
         dt = Attachment.get_datatype()
-        self.assertEquals('base64Binary',dt)
-        dt = Attachment.get_datatype(True)
+        self.assertEquals('base64Binary', dt)
+        dt = Attachment.get_datatype(ns)
 
-        self.assertEquals('xs:base64Binary',dt)        
+        self.assertEquals(ns.get('xs') + 'base64Binary', dt)        
 
 
 def test_suite():

@@ -81,9 +81,9 @@ class test(unittest.TestCase):
         e = m.to_xml('a',43)
         self.assertEquals(e.tag,'{some_namespace}myMessage')
 
-        m1 = Message('myMessage',[('s',String),('i',Integer)],ns='some_namespace')
+        m1 = Message('myMessage',[('{some_namespace}s',String),('i',Integer)],ns='some_namespace')
         e2 = m1.to_xml('a',43)
-        self.assertEquals(e2.get('xmlns'),'some_namespace')
+        self.assertEquals(e2.nsmap[None],'some_namespace')
 
     def test_class_to_xml(self):
         m = Message('myMessage',[('p',Person)])
