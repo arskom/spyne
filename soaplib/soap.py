@@ -49,9 +49,9 @@ class Message(object):
             elif e == None:
                 pass
             else:
-                element.append(e)
-           
-        ElementTree.cleanup_namespaces(element)     
+                element.append(e)    
+      
+        ElementTree.cleanup_namespaces(element)    
         return element
         
     def from_xml(self,element):

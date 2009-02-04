@@ -209,16 +209,16 @@ class Fault(Exception):
         sequenceNode = create_xml_subelement(complexTypeNode, 'sequence')
         faultTypeElem = create_xml_subelement(sequenceNode,'element')
         faultTypeElem.set('name','detail')
-        faultTypeElem.set('type','xs:string')
+        faultTypeElem.set(nsmap.get('xsi') + 'type', 'xs:string')
         faultTypeElem = create_xml_subelement(sequenceNode,'element')
         faultTypeElem.set('name','message')
-        faultTypeElem.set('type','xs:string')
+        faultTypeElem.set(nsmap.get('xsi') + 'type', 'xs:string')
     
         schema_dict[cls.get_datatype()] = complexTypeNode
         
         typeElementItem = create_xml_element('element', nsmap)
         typeElementItem.set('name', 'ExceptionFaultType')
-        typeElementItem.set('type', cls.get_datatype(nsmap))
+        typeElementItem.set(nsmap.get('xsi') + 'type', cls.get_datatype(nsmap))
         schema_dict['%sElement'%(cls.get_datatype(nsmap))] = typeElementItem
         
     def __str__(self):
@@ -375,8 +375,7 @@ class Array:
         typ = self.get_datatype(nsmap)
         if values == None:
             values = []
-        res.set(
-            nsmap.get('xsi') + 'type', 
+        res.set(nsmap.get('xsi') + 'type', 
             "%s:%s" % (self.get_namespace_id(), self.get_datatype()))
         for value in values:
             serializer = self.serializer
@@ -415,14 +414,14 @@ class Array:
                 sequenceNode, nsmap.get('xs') + 'element')
             elementNode.set('minOccurs','0')
             elementNode.set('maxOccurs','unbounded')
-            elementNode.set('type',
+            elementNode.set(nsmap.get('xsi') + 'type',
                 "%s:%s" % (self.namespace_id, self.serializer.get_datatype()))
             elementNode.set('name',self.serializer.get_datatype())
 
             typeElement = create_xml_element(
                 nsmap.get('xs') + 'element', nsmap)
             typeElement.set('name',typ)
-            typeElement.set('type',
+            typeElement.set(nsmap.get('xsi') + 'type',
                 "%s:%s" % (self.namespace_id, self.get_datatype()))
             
             schema_dict['%sElement'%(self.get_datatype(nsmap))] = typeElement
