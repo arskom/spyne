@@ -1,6 +1,6 @@
 Metadata-Version: 1.0
 Name: soaplib
-Version: 0.7.2dev-r38
+Version: 0.7.2dev
 Summary: A simple library for writing soap web services
 Home-page: http://trac.optio.webfactional.com
 Author: Aaron Bickell
@@ -11,6 +11,8 @@ Description: This is a simple, easily extendible soap library that provides seve
         wsdl generation for the published services, a wsgi-compliant web application, support for
         complex class structures, binary attachments, simple framework for creating additional
         serialization mechanisms and a client library.
+        
+        This is a fork of the original project that uses lxml as it's XML API.
         
 Keywords: soap
 Platform: UNKNOWN

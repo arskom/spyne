@@ -19,6 +19,7 @@ soaplib/service.py
 soaplib/soap.py
 soaplib/util.py
 soaplib/wsgi_soap.py
+soaplib/xml.py
 soaplib.egg-info/PKG-INFO
 soaplib.egg-info/SOURCES.txt
 soaplib.egg-info/dependency_links.txt
