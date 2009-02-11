@@ -1,8 +1,12 @@
 #!/usr/bin/env python
+
 from setuptools import setup, find_packages
+
+
 version = '0.7.2'
 
-setup(name='soaplib',
+
+setup(name='soaplib-lxml',
       version=version,
       description="A simple library for writing soap web services",
       long_description="""\
@@ -34,4 +38,3 @@ setup(name='soaplib',
       entry_points="""
       """,
       )
-      
