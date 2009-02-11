@@ -141,7 +141,7 @@ class WSGISoapApp(object):
         '''
         raise Exception("Not implemented")
     
-    def __call__(self, environ, start_response):
+    def __call__(self, environ, start_response, address_url=None):
         '''
         This method conforms to the WSGI spec for callable wsgi applications (PEP 333).
         This method looks in environ['wsgi.input'] for a fully formed soap request envelope,
@@ -168,7 +168,10 @@ class WSGISoapApp(object):
                 # /stuff/stuff/stuff/serviceName.wsdl or ?WSDL
                 #
                 serviceName = serviceName.split('.')[0]
-                url = reconstruct_url(environ).split('.wsdl')[0]
+                if address_url:
+                    url = address_url
+                else:
+                    url = reconstruct_url(environ).split('.wsdl')[0]
                 
                 start_response('200 OK',[('Content-type','text/xml')])
                 try:
