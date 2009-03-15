@@ -5,16 +5,18 @@ class NamespaceLookup(object):
     Class to manage XML namespaces
     '''
 
-    def __init__(self, tns = None):
+    def __init__(self, tns = None, wsdl_map = False):
         self.nsmap = {
-            'wsdl':'http://schemas.xmlsoap.org/wsdl/',
-            'soap':'http://schemas.xmlsoap.org/wsdl/soap/',
             'xs': 'http://www.w3.org/2001/XMLSchema',
             'xsi': 'http://www.w3.org/1999/XMLSchema-instance',
             'plnk':'http://schemas.xmlsoap.org/ws/2003/05/partner-link/',
-            'SOAP-ENC':'http://schemas.xmlsoap.org/soap/encoding/',
-            'SOAP-ENV':'http://schemas.xmlsoap.org/soap/envelope/',
         }
+        if wsdl_map:
+            self.nsmap['soap'] = 'http://schemas.xmlsoap.org/wsdl/soap/'
+            self.nsmap['wsdl'] = 'http://schemas.xmlsoap.org/wsdl/'
+        else:
+            self.nsmap['SOAP-ENC'] = 'http://schemas.xmlsoap.org/soap/encoding/'
+            self.nsmap['SOAP-ENV'] = 'http://schemas.xmlsoap.org/soap/envelope/'
         if tns is not None:
             self.nsmap['tns'] = tns
             self.nsmap['typens'] = tns

@@ -137,7 +137,7 @@ class SoapServiceBase(object):
         methods = self.methods()
         hasCallbacks = self._hasCallbacks() 
         
-        nsmap = NamespaceLookup(tns)
+        nsmap = NamespaceLookup(tns, True)
         if hasCallbacks:
             nsmap.set('wsa','http://schemas.xmlsoap.org/ws/2003/03/addressing')
         
@@ -246,7 +246,6 @@ class SoapServiceBase(object):
         addr = create_xml_subelement(wsdlPort, nsmap.get('soap') + 'address')
         addr.set('location',url)
 
-        ElementTree.cleanup_namespaces(root)
         wsdl = ElementTree.tostring(root)
         wsdl = "<?xml version='1.0' encoding='utf-8' ?>%s"%(wsdl)
 
