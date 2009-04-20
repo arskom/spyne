@@ -1,4 +1,5 @@
 from soaplib.xml import ns, create_xml_element, create_xml_subelement
+from soaplib.etimport import ElementTree
 import datetime
 import re
 import cStringIO 
@@ -185,7 +186,7 @@ class Fault(Exception):
         code = _element_to_string(element.find('faultcode'))
         string = _element_to_string(element.find('faultstring'))
         detail_element = element.find('detail')
-        if detail_element:
+        if detail_element is not None:
             if len(detail_element.getchildren()):
                 detail = ElementTree.tostring(detail_element)
             else:

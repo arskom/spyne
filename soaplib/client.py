@@ -112,7 +112,8 @@ class SimpleSoapClient(object):
             # when dealing with async callback methods
             headers.append(create_relates_to_header(msgid))
 
-        envelope = make_soap_envelope(msg,header_elements=headers)
+        tns = self.descriptor.inMessage.ns
+        envelope = make_soap_envelope(msg, tns, header_elements=headers)
 
         body = ElementTree.tostring(envelope)
         methodName = '\"%s\"'%self.descriptor.soapAction
