@@ -3,6 +3,8 @@ from soaplib.service import soapmethod
 from soaplib.serializers.primitive import String, Integer, Array
 from soaplib.serializers.clazz import ClassSerializer
 
+from wsgiref.simple_server import make_server
+
 '''
 This example shows how to define and use complex structures
 in soaplib.  This example uses an extremely simple in-memory
@@ -59,7 +61,5 @@ class UserManager(SimpleWSGISoapApp):
         return [v for k,v in user_database.items()]
 
 if __name__=='__main__':
-    try:from cherrypy.wsgiserver import CherryPyWSGIServer
-    except:from cherrypy._cpwsgiserver import CherryPyWSGIServer
-    server = CherryPyWSGIServer(('localhost',7789),UserManager())
-    server.start()
+    server = make_server('localhost', 7789, UserManager())
+    server.serve_forever()

@@ -40,7 +40,7 @@ What is soaplib?
 
 Soaplib is an easy to use python library written at 
 [Optio Software, Inc.](http://www.optio.com/)
-for writing and calling soap web services.  Writing soap web services in
+for writing and calling soap web services.	Writing soap web services in
 any language has always been extremely difficult and yielded mixed
 results.  With a very small amount of code, soaplib allows you to write
 a useful web service and deploy it as a WSGI application.  WSGI is a python
@@ -62,14 +62,12 @@ Requirements
 * a WSGI-compliant web server (CherryPy, WSGIUtils, Flup, etc.)
 * [pytz](http://pytz.sourceforge.net/)(available through easy_install)
 * [easy_install](http://peak.telecommunity.com/dist/ez_setup.py) (optional)
-        
+		
 Intro Examples
 ==============
 	
 HelloWorld	
 ----------
-
-This example uses the [CherryPy](http://www.cherrypy.org/) webserver to deploy this service
 
 1. Declaring a Soaplib Service
 
@@ -80,21 +78,21 @@ This example uses the [CherryPy](http://www.cherrypy.org/) webserver to deploy t
 		class HelloWorldService(SimpleWSGISoapApp):
 			@soapmethod(String,Integer,_returns=Array(String))
 			def say_hello(self,name,times):
-		        results = []
-			        for i in range(0,times):
-			            results.append('Hello, %s'%name)
-			        return results
+				results = []
+					for i in range(0,times):
+						results.append('Hello, %s'%name)
+					return results
 			
 		if __name__=='__main__':
-	   		from cherrypy._cpwsgiserver import CherryPyWSGIServer
-		    server = CherryPyWSGIServer(('localhost',7789),HelloWorldService())
-		    server.start()
+			from wsgiref.simple_server import make_server
+			server = make_server('localhost', 7789, HelloWorldService())
+			server.serve_forever()
 	
 	Dissecting this example:
 	
 	`SimpleWSGISoapApp` is the base class for WSGI soap services.
 	
-	 	from soaplib.wsgi_soap import SimpleWSGISoapApp
+		from soaplib.wsgi_soap import SimpleWSGISoapApp
 	
 	The `soapmethod` decorator exposes methods as soap method and declares the
 	data types it accepts and returns
@@ -121,21 +119,21 @@ This example uses the [CherryPy](http://www.cherrypy.org/) webserver to deploy t
 	input variables and return types are standard python objects.
 	
 		def say_hello(self,name,times):
-	        results = []
-		        for i in range(0,times):
-		            results.append('Hello, %s'%name)
-		        return results
+			results = []
+				for i in range(0,times):
+					results.append('Hello, %s'%name)
+				return results
 		
 2. Deploying the service		
 
 	deploy this web service.  Soaplib has been tested with several other web servers, 
-	This example uses the [CherryPy](http://www.cherrrypy.org) WSGI web server to 
+	This example uses the reference WSGI web server (available in Python 2.5+) to 
 	and any WSGI-compliant server *should* work.
 	
 		if __name__=='__main__':
-	   		from cherrypy._cpwsgiserver import CherryPyWSGIServer
-		    server = CherryPyWSGIServer(('localhost',7789),HelloWorldService())
-		    server.start()
+			from wsgiref.simple_server import make_server
+			server = make_server('localhost', 7789, HelloWorldService())
+			server.serve_forever()
 
 3. Calling this service
 	
@@ -154,7 +152,7 @@ This example uses the [CherryPy](http://www.cherrypy.org/) webserver to deploy t
 User Manager
 ------------
 
-Lets try a more complicated example than just strings and integers!  The following is
+Lets try a more complicated example than just strings and integers!	 The following is
 an extremely simple example using complex, nested data.
 
 	from soaplib.wsgi_soap import SimpleWSGISoapApp
@@ -166,71 +164,71 @@ an extremely simple example using complex, nested data.
 	userid_seq = 1
 
 	class Permission(ClassSerializer):
-	    class types:
-	        application = String
-	        feature = String
+		class types:
+			application = String
+			feature = String
 
 	class User(ClassSerializer):
-	    class types:
-	        userid = Integer
-	        username = String
-	        firstname = String
-	        lastname = String
-	        permissions = Array(Permission)
+		class types:
+			userid = Integer
+			username = String
+			firstname = String
+			lastname = String
+			permissions = Array(Permission)
 
 	class UserManager(SimpleWSGISoapApp):
 
-	    @soapmethod(User,_returns=Integer)
-	    def add_user(self,user):
-	        global user_database
+		@soapmethod(User,_returns=Integer)
+		def add_user(self,user):
+			global user_database
 			global userid_seq
-	        user.userid = userid_seq
-	        userid_seq = user_seq+1
-	        user_database[user.userid] = user
-	        return user.userid
+			user.userid = userid_seq
+			userid_seq = user_seq+1
+			user_database[user.userid] = user
+			return user.userid
 
-	    @soapmethod(Integer,_returns=User)
-	    def get_user(self,userid):
-	        global user_database
-	        return user_database[userid]
+		@soapmethod(Integer,_returns=User)
+		def get_user(self,userid):
+			global user_database
+			return user_database[userid]
 
-	    @soapmethod(User)
-	    def modify_user(self,user):
-	        global user_database
-	        user_database[user.userid] = user
+		@soapmethod(User)
+		def modify_user(self,user):
+			global user_database
+			user_database[user.userid] = user
 
-	    @soapmethod(Integer)
-	    def delete_user(self,userid):
-	        global user_database
-	        del user_database[userid]
+		@soapmethod(Integer)
+		def delete_user(self,userid):
+			global user_database
+			del user_database[userid]
 
-	    @soapmethod(_returns=Array(User))
-	    def list_users(self):
-	        global user_database
-	        return [v for k,v in user_database.items()]
+		@soapmethod(_returns=Array(User))
+		def list_users(self):
+			global user_database
+			return [v for k,v in user_database.items()]
 
 	if __name__=='__main__':
-	    from cherrypy._cpwsgiserver import CherryPyWSGIServer
-	    server = CherryPyWSGIServer(('localhost',7789),UserManager())
-	    server.start()
+		from wsgiref.simple_server import make_server
+		server = make_server('localhost', 7789, UserManager())
+		server.start()
 
 Jumping into what's new:
 
 	class Permission(ClassSerializer):
-	    class types:
-	        application = String
-	        feature = String
+		class types:
+			application = String
+			feature = String
 
 	class User(ClassSerializer):
-	    class types:
-	        userid = Integer
-	        username = String
-	        firstname = String
-	        lastname = String
-	        permissions = Array(Permission)
+		class types:
+			userid = Integer
+			username = String
+			firstname = String
+			lastname = String
+			permissions = Array(Permission)
 
 The `Permission` and `User` structures in the example are standard python objects
-that extend `ClassSerializer`.  The `ClassSerializer` uses an innerclass called
+that extend `ClassSerializer`.	The `ClassSerializer` uses an innerclass called
 `types` to declare the attributes of this class.  At instantiation time, a 
 metaclass is used to inspect the `types` and assigns the value of `None` to
 each attribute of the `types` class to the new object.
@@ -253,10 +251,10 @@ generally needed.
 
 Primitives
 ----------
-The basic primitive types are `String`, `Integer`, `DateTime`, `Null`, `Float`, `Boolean`.  These are some
+The basic primitive types are `String`, `Integer`, `DateTime`, `Null`, `Float`, `Boolean`.	These are some
 of the most basic blocks within soaplib.  
 
-	>>> from soaplib.serializers.primitive import *        
+	>>> from soaplib.serializers.primitive import *		   
 	>>> import cElementTree as et
 	>>> element = String.to_xml('abcd','nodename')
 	>>> print et.tostring(element)
@@ -274,7 +272,7 @@ Collections
 -----------
 The two collections available in soaplib are `Array`s and `Map`s.  Unlike the primitive 
 serializers, both of these serializers need to be instantiated with the proper internal 
-type so it can properly (de)serialize the data.  All `Array`s and `Map`s are homogeneous, 
+type so it can properly (de)serialize the data.	 All `Array`s and `Map`s are homogeneous, 
 meaning that the data they hold are all of the same type.  For mixed typing or more dynamic
 data, use the `Any` type.
 
@@ -286,32 +284,32 @@ data, use the `Any` type.
 	<xsd:retval SOAP-ENC:arrayType="xs:string[4]"><string xsi:type="xs:string">a</string><string xsi:type="xs:string">b</string><string xsi:type="xs:string">c</string><string xsi:type="xs:string">d</string></xsd:retval>
 	>>> print array_serializer.from_xml(element)
 	['a', 'b', 'c', 'd']
-	>>>   
+	>>>	  
 
 Class
 -----
 The `ClassSerializer` is used to define and serialize complex, nested structures.
 
-	>>> from soaplib.serializers.primitive import *    
+	>>> from soaplib.serializers.primitive import *	   
 	>>> import cElementTree as et
 	>>> from soaplib.serializers.clazz import *
 	>>> class Permission(ClassSerializer):
-	...	    class types:
-	...	        application = String
-	...	        feature = String
+	...		class types:
+	...			application = String
+	...			feature = String
 	>>>
-	>>>	class User(ClassSerializer):
-	... 	class types:
-	...	        userid = Integer
-	...	        username = String
-	...	        firstname = String
-	...	        lastname = String... 
-	...	        permissions = Array(Permission)
+	>>> class User(ClassSerializer):
+	...		class types:
+	...			userid = Integer
+	...			username = String
+	...			firstname = String
+	...			lastname = String... 
+	...			permissions = Array(Permission)
 	>>> 
 	>>> u = User()
 	>>> u.username = 'bill'
 	>>> u.permissions = [] 
-	>>> p = Permission()            
+	>>> p = Permission()			
 	>>> p.application = 'email'
 	>>> p.feature = 'send'
 	>>> u.permissions.append(p)
@@ -325,7 +323,7 @@ The `ClassSerializer` is used to define and serialize complex, nested structures
 Attachment
 ----------
 The `Attachment` serializer is used for transmitting binary data as base64 encoded strings.
-Data in `Attachment` objects can be loaded manually, or read from file.  All encoding of
+Data in `Attachment` objects can be loaded manually, or read from file.	 All encoding of
 the binary data is done just prior to the data being sent, and decoding immediately upon
 receipt of the `Attachment`.
 
@@ -345,10 +343,10 @@ receipt of the `Attachment`.
 
 Any
 ---
-The `Any` type is a serializer used to transmit unstructured xml data.  `Any` types are very
+The `Any` type is a serializer used to transmit unstructured xml data.	`Any` types are very
 useful for handling dynamic data, and provides a very pythonic way for passing data using
 soaplib.  The `Any` serializer does not perform any useful task because the data passed in
-and returned are `Element` objects.  The `Any` type's main purpose is to declare its presence
+and returned are `Element` objects.	 The `Any` type's main purpose is to declare its presence
 in the `wsdl`.
 
 
@@ -359,19 +357,19 @@ to the following interface can be used as a soaplib serializer.
 
 	class MySerializer:
 
-	    def to_xml(self,value,name='retval',nsmap=None):
-			pass
-            
-	    def from_xml(self,element):
-			pass
-
-	    def get_datatype(self,nsmap=None):
+		def to_xml(self,value,name='retval',nsmap=None):
 			pass
 			
-	    def get_namespace_id(self):
+		def from_xml(self,element):
 			pass
 
-	    def add_to_schema(self,added_params,nsmap):
+		def get_datatype(self,nsmap=None):
+			pass
+			
+		def get_namespace_id(self):
+			pass
+
+		def add_to_schema(self,added_params,nsmap):
 			pass
 
 This feature is particularly useful when adapting soaplib to an existing project and converting existing
@@ -379,7 +377,7 @@ object to `ClassSerializers` is impractical.
 
 Client
 ======
-Soaplib provides a simple soap client to call remote soap implementations.  Using the `ServiceClient` object
+Soaplib provides a simple soap client to call remote soap implementations.	Using the `ServiceClient` object
 is the simplest way to make soap client requests.  The `ServiceClient` uses an example or stub 
 implementation to know how to properly construct the soap messages.
 
@@ -396,7 +394,7 @@ TODO
 WSGI
 ====
 All soaplib services can be deployed as WSGI applications, and this gives soaplib great flexibility
-with how they can be deployed.  Any WSGI middleware layer can be put between the WSGI webserver and
+with how they can be deployed.	Any WSGI middleware layer can be put between the WSGI webserver and
 the WSGI soap application.
 
 Deployment
@@ -410,32 +408,32 @@ Hooks
 events in the execution of the wsgi request.
 
 	def onCall(self,environ):
-	    '''This is the first method called when this WSGI app is invoked'''
-	    pass
+		'''This is the first method called when this WSGI app is invoked'''
+		pass
 
 	def onWsdl(self,environ,wsdl):
-	    '''This is called when a wsdl is requested'''
-	    pass
+		'''This is called when a wsdl is requested'''
+		pass
 
 	def onWsdlException(self,environ,exc,resp):
-	    '''Called when an exception occurs durring wsdl generation'''
-	    pass
+		'''Called when an exception occurs durring wsdl generation'''
+		pass
 
 	def onMethodExec(self,environ,body,py_params,soap_params):
-	    '''Called BEFORE the service implementing the functionality is called'''
-	    pass
+		'''Called BEFORE the service implementing the functionality is called'''
+		pass
 
 	def onResults(self,environ,py_results,soap_results):
-	    '''Called AFTER the service implementing the functionality is called'''
-	    pass
+		'''Called AFTER the service implementing the functionality is called'''
+		pass
 
 	def onException(self,environ,exc,resp):
-	    '''Called when an error occurs durring execution'''
-	    pass
+		'''Called when an error occurs durring execution'''
+		pass
 
 	def onReturn(self,environ,returnString):
-	    '''Called before the application returns'''
-	    pass
+		'''Called before the application returns'''
+		pass
 
 These hooks are useful for transaction handling, logging and measuring performance.
 
@@ -443,7 +441,7 @@ Servers
 -------
 
 Soaplib services can be deployed as WSGI applications, in any WSGI-compliant
-web server.  Soaplib services have been successfully run on the following web
+web server.	 Soaplib services have been successfully run on the following web
 servers:
 
 * CherryPy 2.2

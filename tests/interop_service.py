@@ -113,15 +113,15 @@ class InteropService(SimpleWSGISoapApp):
         
 if __name__ == '__main__':
     
-    from cherrypy._cpwsgiserver import CherryPyWSGIServer
- 
+    from wsgiref.simple_server import make_server
+    
     addr = ('127.0.0.1',9753)
     log_debug(True)
     log_exceptions(True)
-    server = CherryPyWSGIServer(addr,InteropService())
-    print 'Starting interop server at -- %s:%s'%addr
+    server = make_server(*addr, InteropService())
+    print 'Starting interop server at -- %s:%s' % addr
 
-    server.start()
+    server.serve_forever()
     
         
         

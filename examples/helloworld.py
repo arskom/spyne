@@ -2,6 +2,8 @@ from soaplib.wsgi_soap import SimpleWSGISoapApp
 from soaplib.service import soapmethod
 from soaplib.serializers.primitive import String, Integer, Array
 
+from wsgiref.simple_server import make_server
+
 '''
 This is a simple HelloWorld example to show the basics of writing
 a webservice using soaplib, starting a server, and creating a service
@@ -30,7 +32,5 @@ def make_client():
     return client
     
 if __name__=='__main__':
-    try:from cherrypy.wsgiserver import CherryPyWSGIServer
-    except:from cherrypy._cpwsgiserver import CherryPyWSGIServer
-    server = CherryPyWSGIServer(('localhost',7889),HelloWorldService())
-    server.start()
+    server = make_server('localhost', 7889, HelloWorldService())
+    server.serve_forever()

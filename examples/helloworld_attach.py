@@ -5,6 +5,8 @@ from soaplib.service import soapmethod
 from soaplib.serializers.primitive import String, Integer, Array
 from soaplib.serializers.binary import Attachment
 
+from wsgiref.simple_server import make_server
+
 class HelloWorldService(SimpleWSGISoapApp):
 
     @soapmethod(Attachment,Integer,_returns=Array(String), _mtom=True)
@@ -15,8 +17,5 @@ class HelloWorldService(SimpleWSGISoapApp):
         return results
         
 if __name__=='__main__':
-    try:from cherrypy.wsgiserver import CherryPyWSGIServer
-    except:from cherrypy._cpwsgiserver import CherryPyWSGIServer
-    # this example uses CherryPy2.2, use cherrypy.wsgiserver.CherryPyWSGIServer for CherryPy 3.0
-    server = CherryPyWSGIServer(('localhost',7789),HelloWorldService())
-    server.start()
+    server = make_server('localhost', 7789, HelloWorldService())
+    server.serve_forever()

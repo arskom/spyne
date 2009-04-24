@@ -19,11 +19,7 @@ import time
 import httplib
 
 from threading import Thread
-
-try:
-    from cherrypy.wsgiserver    import CherryPyWSGIServer # CP 3.0.0
-except:
-    from cherrypy._cpwsgiserver import CherryPyWSGIServer # CP 2.2.x
+from wsgiref.simple_server import make_server
 
 class Address(ClassSerializer):
     class types:
@@ -81,8 +77,8 @@ class TestService(SimpleWSGISoapApp):
 class test(unittest.TestCase):
 
     def setUp(self):
-        self.server = CherryPyWSGIServer(('127.0.0.1',9191),TestService())
-        t = Thread(target=self.server.start)
+        self.server = make_server('127.0.0.1', 9191, TestService())
+        t = Thread(target=self.server.serve_forever)
         t.start()
         time.sleep(3)
 

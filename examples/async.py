@@ -4,6 +4,7 @@ from soaplib.serializers.primitive import String, Integer, Array
 from soaplib.serializers.binary import Attachment
 from soaplib.util import get_callback_info
  
+from wsgiref.simple_server import make_server
 from threading import Thread
 from tempfile import mkstemp
 import time
@@ -36,7 +37,5 @@ class SleepingService(SimpleWSGISoapApp):
         pass
         
 if __name__=='__main__':
-    try:from cherrypy.wsgiserver import CherryPyWSGIServer
-    except:from cherrypy._cpwsgiserver import CherryPyWSGIServer
-    server = CherryPyWSGIServer(('localhost',7789),SleepingService())
-    server.start()
+    server = make_server('localhost', 7789, SleepingService())
+    server.serve_forever()

@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 
 from setuptools import setup, find_packages
+import sys
+
+if sys.hexversion < 0x2050000
+   raise RuntimeError("Python 2.5 or higher required)
 
 
 VERSION = '0.7.2'
@@ -34,7 +38,7 @@ setup(name='soaplib-lxml',
       license='LGPL',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       zip_safe=False,
-      install_requires=['pytz', 'cherrypy', 'lxml'],
+      install_requires=['pytz', 'lxml'],
       test_suite='tests.test_suite',
       entry_points="""
       """,
