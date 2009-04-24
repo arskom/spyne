@@ -49,6 +49,7 @@ def soapmethod(*params, **kparams):
                 
                 return descriptor
             return f(*args, **kwargs)
+        explainMethod.__doc__ = f.__doc__
         explainMethod.func_name = f.func_name
         explainMethod._is_soap_method = True
         return explainMethod
