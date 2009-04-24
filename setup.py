@@ -3,8 +3,8 @@
 from setuptools import setup, find_packages
 import sys
 
-if sys.hexversion < 0x2050000
-   raise RuntimeError("Python 2.5 or higher required)
+if sys.hexversion < 0x2050000:
+   raise RuntimeError("Python 2.5 or higher required")
 
 
 VERSION = '0.7.2'
