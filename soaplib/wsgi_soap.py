@@ -4,7 +4,7 @@ import traceback
 from soaplib.soap import make_soap_envelope, make_soap_fault, from_soap, collapse_swa, apply_mtom
 from soaplib.service import SoapServiceBase
 from soaplib.util import reconstruct_url
-from soaplib.serializers.primitive import string_encoding
+from soaplib.serializers.primitive import string_encoding, Fault
 from soaplib.etimport import ElementTree
 from threading import local
 
@@ -276,6 +276,19 @@ class WSGISoapApp(object):
             reset_request()
             return [resp]
         
+        except Fault,e:
+            # The user issued a Fault, so handle it just like an exception!
+            fault = make_soap_fault(e.faultstring,e.faultcode,e.detail)
+            faultStr = ElementTree.tostring(fault, encoding=string_encoding)
+            exceptions(faultStr)
+            
+            self.onException(environ,e,faultStr)
+            reset_request()
+
+            # initiate the response
+            start_response('500 Internal Server Error',[('Content-type','text/xml')])
+            return [faultStr]
+        
         except Exception, e:
             # Dump the stack trace to a buffer to be sent
             # back to the caller
@@ -302,6 +315,8 @@ class WSGISoapApp(object):
             # initiate the response
             start_response('500 Internal Server Error',[('Content-type','text/xml')])
             return [faultStr]
+            
+        
 
 class SimpleWSGISoapApp(WSGISoapApp, SoapServiceBase):
     '''
