@@ -112,16 +112,13 @@ class InteropService(SimpleWSGISoapApp):
         return s
         
 if __name__ == '__main__':
-    
-    from wsgiref.simple_server import make_server
-    
-    addr = ('127.0.0.1',9753)
-    log_debug(True)
-    log_exceptions(True)
-    server = make_server(*addr, InteropService())
-    print 'Starting interop server at -- %s:%s' % addr
+    try:
+        from wsgiref.simple_server import make_server
+        log_debug(True)
+        log_exceptions(True)
+        server = make_server('127.0.0.1',9753, InteropService())
+        print 'Starting interop server at -- %s:%s' % ('127.0.0.1',9753)
+        server.serve_forever()
+    except ImportError:
+        print "Error: example server code requires Python >= 2.5"
 
-    server.serve_forever()
-    
-        
-        

@@ -5,8 +5,6 @@ from soaplib.service import soapmethod
 from soaplib.serializers.primitive import String, Integer, Array
 from soaplib.serializers.binary import Attachment
 
-from wsgiref.simple_server import make_server
-
 class HelloWorldService(SimpleWSGISoapApp):
 
     @soapmethod(Attachment,Integer,_returns=Array(String), _mtom=True)
@@ -17,5 +15,9 @@ class HelloWorldService(SimpleWSGISoapApp):
         return results
         
 if __name__=='__main__':
-    server = make_server('localhost', 7789, HelloWorldService())
-    server.serve_forever()
+    try:
+        from wsgiref.simple_server import make_server
+        server = make_server('localhost', 7789, HelloWorldService())
+        server.serve_forever()
+    except ImportError:
+        print "Error: example server code requires Python >= 2.5"

@@ -10,16 +10,11 @@ from soaplib.client import *
 from soaplib.util import *
 from soaplib.soap import *
 
-import BaseHTTPServer, cgi
-import cStringIO 
-import sys
 from threading import Thread
-import socket
-import time
-import httplib
-
-from threading import Thread
-from wsgiref.simple_server import make_server
+try:
+    from wsgiref.simple_server import make_server
+except ImportError:
+    raise Exception("UnitTests require Python >= 2.5")
 
 class Address(ClassSerializer):
     class types:
@@ -53,8 +48,8 @@ class TestService(SimpleWSGISoapApp):
     def a(self, s, i):
         return datetime.datetime(1901,12,15)
 
-    @soapmethod(Person, String, Address, _returns=Address)
-    def b(self, p,s,a):
+    @soapmethod(Person, String, Integer, _returns=Address)
+    def b(self, p,s,i):
         a = Address()
         a.zip = 4444
         a.street = 'wsgi way'
@@ -78,13 +73,12 @@ class test(unittest.TestCase):
 
     def setUp(self):
         self.server = make_server('127.0.0.1', 9191, TestService())
-        t = Thread(target=self.server.serve_forever)
-        t.start()
-        time.sleep(3)
+        self.server.allow_reuse_address = True
+        Thread(target=self.server.serve_forever).start()
 
     def tearDown(self):
-        self.server.stop()
-        time.sleep(3)
+        self.server.shutdown()
+        del self.server
 
     def test_simple(self):
         inMessage = Message('a',[('s',String),('i',Integer)])
@@ -97,7 +91,7 @@ class test(unittest.TestCase):
         self.assertEquals(results,datetime.datetime(1901,12,15))    
 
     def test_nested(self):
-        inMessage = Message('b',[('p',Person),('s',String),('a',Integer)])
+        inMessage = Message('b',[('p',Person),('s',String),('i',Integer)])
         outMessage = Message('bResponse',[('retval',Address)])
         
         desc = MethodDescriptor('b','b',inMessage,outMessage,'')
@@ -138,7 +132,7 @@ class test(unittest.TestCase):
         except Fault, f:
             self.assertEquals(f.faultcode,'faultFault')
             self.assertEquals(f.faultstring,'Testing faults')
-            #self.assertTrue(f.detail.find('client_test.py') > -1)
+            self.assertTrue(f.detail.find('client_test.py') > -1)
         else:
             raise 
 
@@ -155,7 +149,7 @@ class test(unittest.TestCase):
         client = ServiceClient('127.0.0.1:9191','/',TestService())
 
         r = client.a('bobo',23)
-        self.assertEquals(r,datetime.datetime(1901,12,15))    
+        self.assertEquals(r,datetime.datetime(1901, 12, 15))    
 
         p = Person()
         p.name = 'wilson'

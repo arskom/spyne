@@ -3,8 +3,6 @@ from soaplib.service import soapmethod
 from soaplib.serializers.primitive import String, Integer, Array
 from soaplib.serializers.clazz import ClassSerializer
 
-from wsgiref.simple_server import make_server
-
 '''
 This example shows how to define and use complex structures
 in soaplib.  This example uses an extremely simple in-memory
@@ -61,5 +59,9 @@ class UserManager(SimpleWSGISoapApp):
         return [v for k,v in user_database.items()]
 
 if __name__=='__main__':
-    server = make_server('localhost', 7789, UserManager())
-    server.serve_forever()
+    try:
+        from wsgiref.simple_server import make_server
+        server = make_server('localhost', 7789, UserManager())
+        server.serve_forever()
+    except ImportError:
+        print "Error: example server code requires Python >= 2.5"

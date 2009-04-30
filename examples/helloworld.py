@@ -2,8 +2,6 @@ from soaplib.wsgi_soap import SimpleWSGISoapApp
 from soaplib.service import soapmethod
 from soaplib.serializers.primitive import String, Integer, Array
 
-from wsgiref.simple_server import make_server
-
 '''
 This is a simple HelloWorld example to show the basics of writing
 a webservice using soaplib, starting a server, and creating a service
@@ -32,5 +30,9 @@ def make_client():
     return client
     
 if __name__=='__main__':
-    server = make_server('localhost', 7889, HelloWorldService())
-    server.serve_forever()
+    try:
+        from wsgiref.simple_server import make_server
+        server = make_server('localhost', 7889, HelloWorldService())
+        server.serve_forever()
+    except ImportError:
+        print "Error: example server code requires Python >= 2.5"

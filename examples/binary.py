@@ -3,7 +3,7 @@ from soaplib.service import soapmethod
 from soaplib.serializers.primitive import String, Integer, Array
 from soaplib.serializers.binary import Attachment
 
-from wsgiref.simple_server import make_server
+
 from tempfile import mkstemp
 import os
 
@@ -47,5 +47,9 @@ def make_client():
     return client
     
 if __name__=='__main__':
-    server = make_server('localhost', 7889, DocumentArchiver())
-    server.serve_forever()
+    try:
+        from wsgiref.simple_server import make_server
+        server = make_server('localhost', 7889, DocumentArchiver())
+        server.serve_forever()
+    except ImportError:
+        print "Error: example server code requires Python >= 2.5"

@@ -3,8 +3,7 @@ from soaplib.service import soapmethod
 from soaplib.serializers.primitive import String, Integer, Array
 from soaplib.serializers.binary import Attachment
 from soaplib.util import get_callback_info
- 
-from wsgiref.simple_server import make_server
+
 from threading import Thread
 from tempfile import mkstemp
 import time
@@ -37,5 +36,9 @@ class SleepingService(SimpleWSGISoapApp):
         pass
         
 if __name__=='__main__':
-    server = make_server('localhost', 7789, SleepingService())
-    server.serve_forever()
+    try:
+        from wsgiref.simple_server import make_server
+        server = make_server('localhost', 7789, SleepingService())
+        server.serve_forever()
+    except ImportError:
+        print "Error: example server code requires Python >= 2.5"

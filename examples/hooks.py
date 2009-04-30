@@ -4,8 +4,6 @@ from soaplib.serializers.primitive import String, Integer, Array
 from soaplib.wsgi_soap import request
 
 from time import time
-from wsgiref.simple_server import make_server
-
 
 '''
 This example is an enhanced version of the HelloWorld example that
@@ -64,5 +62,9 @@ def make_client():
     return client
     
 if __name__=='__main__':
-    server = make_server('localhost', 7889, HelloWorldService())
-    server.serve_forever()
+    try:
+        from wsgiref.simple_server import make_server
+        server = make_server('localhost', 7889, HelloWorldService())
+        server.serve_forever()
+    except ImportError:
+        print "Error: example server code requires Python >= 2.5"

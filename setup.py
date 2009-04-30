@@ -3,11 +3,7 @@
 from setuptools import setup, find_packages
 import sys
 
-if sys.hexversion < 0x2050000:
-   raise RuntimeError("Python 2.5 or higher required")
-
-
-VERSION = '0.7.2'
+VERSION = '0.8.0'
 LONG_DESC = """\
 This is a simple, easily extendible soap library that provides several useful
 tools for creating and publishing soap web services in python.  This package
@@ -27,14 +23,16 @@ setup(name='soaplib-lxml',
           'Programming Language :: Python',
           'Operating System :: OS Independent',
           'Natural Language :: English',
-          'Development Status :: 2 - Pre-Alpha',
+          'Development Status :: 4 - Beta',
           'Intended Audience :: Developers',
           'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
       ],
       keywords='soap',
       author='Aaron Bickell',
       author_email='abickell@optio.com',
-      url='http://trac.optio.webfactional.com',
+      maintainer = 'Jamie Kirkpatrick',
+      maintainer_email = 'jkp@kirkconsulting.co.uk',
+      url='http://wiki.github.com/jkp/soaplib-lxml',
       license='LGPL',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       zip_safe=False,
