@@ -230,7 +230,8 @@ class Fault(Exception):
         io.write(" FaultCode            %s \r\n"%self.faultcode)
         io.write(" FaultString          %s \r\n"%self.faultstring)
         io.write(" FaultDetail          \r\n")
-        io.write(self.detail)
+        if self.detail is not None:
+            io.write(self.detail)
         return io.getvalue()
 
 class Integer:
