@@ -21,7 +21,6 @@ from base64 import b64encode
 from StringIO import StringIO
 
 class Message(object):
-    
     def __init__(self,name,params,ns=None,typ=None):
         self.name = name
         self.params = params
@@ -56,7 +55,10 @@ class Message(object):
         
     def from_xml(self,element):
         results = []        
-        children = element.getchildren()
+        try:
+            children = element.getchildren()
+        except:
+            return []
         
         def findall(name):
             # inner method for finding child node

@@ -210,8 +210,13 @@ class WSGISoapApp(object):
             body = collapse_swa( environ.get("CONTENT_TYPE"), body)
             
             # deserialize the body of the message
-            payload, header = from_soap(body)
-            if len(payload):
+            try:
+                payload, header = from_soap(body)
+            except SyntaxError,e:
+                payload = None
+                header = None
+
+            if payload:
                 methodname = payload.tag.split('}')[-1]
             else:
                 # check HTTP_SOAPACTION
@@ -219,13 +224,13 @@ class WSGISoapApp(object):
                 if methodname.startswith('"') and methodname.endswith('"'):
                     methodname = methodname[1:-1]
             request.header = header
-            
+
             # call the method
             func = getattr(service, methodname)
             
             # retrieve the method descriptor
             descriptor = func(_soap_descriptor=True, klazz=service.__class__)
-            if len(payload):
+            if payload:
                 params = descriptor.inMessage.from_xml(*[payload])
             else:
                 params = ()
@@ -239,7 +244,6 @@ class WSGISoapApp(object):
             # only expect a single element
             results = None
             if not (descriptor.isAsync or descriptor.isCallback):
-                
                 results = descriptor.outMessage.to_xml(*[retval])
 
             # implementation hook
@@ -326,8 +330,6 @@ class WSGISoapApp(object):
             # initiate the response
             start_response('500 Internal Server Error',[('Content-type','text/xml')])
             return [faultStr]
-            
-        
 
 class SimpleWSGISoapApp(WSGISoapApp, SoapServiceBase):
     '''
