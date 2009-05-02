@@ -55,7 +55,7 @@ def exceptions(msg):
 def reset_request():
     '''
     This method clears the data stored in the threadlocal 
-    requets object
+    request object
     '''
     request.environ = None
     request.header = None

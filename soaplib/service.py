@@ -72,7 +72,7 @@ class SoapServiceBase(object):
     '''
     This class serves as the base for all soap services.  Subclasses of this 
     class will use the soapmethod and soapdocument decorators to flag methods
-    to be exposed via soap.  This class is repsonsible for generating the 
+    to be exposed via soap.  This class is responsible for generating the 
     wsdl for this object.
     '''
     def __init__(self):

@@ -12,9 +12,9 @@ class ClassSerializerMeta(type):
     def __init__(cls, clsname, bases, dictionary):
         '''
         This initializes the class, and sets all the appropriate
-        types onto the class for serialization.  This implemenation
+        types onto the class for serialization.  This implementation
         assumes that all attributes assigned to this class  are internal 
-        serialzers for this class
+        serializers for this class
         '''
         if not hasattr(cls,'types'):
             return
