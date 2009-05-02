@@ -35,7 +35,12 @@ def soapmethod(*params, **kparams):
 
                 # input message
                 param_names = f.func_code.co_varnames[1:f.func_code.co_argcount]
-                in_params = [(_inVariableNames.get(param_names[i],param_names[i]),params[i]) for i in range(0,len(params))]
+                try:
+                    in_params = [(_inVariableNames.get(param_names[i], param_names[i]), params[i]) for i in range(0, len(params))]
+                except IndexError,e:
+                    print f.func_name
+                    raise Exception("%s has parameter numbers mismatching" %f.func_name)
+
                 in_message = Message(_inMessage,in_params,ns=ns,typ=_inMessage)
                 
                 # output message
