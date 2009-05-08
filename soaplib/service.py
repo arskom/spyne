@@ -23,7 +23,7 @@ def soapmethod(*params, **kparams):
                 _inMessage = kparams.get('_inMessage',name)
                 _inVariableNames = kparams.get('_inVariableNames',{})
                 _outMessage = kparams.get('_outMessage','%sResponse'%name)
-                _outVariableName = kparams.get('_outVariableName','retval')
+                _outVariableName = kparams.get('_outVariableName', '%sResult'%name)
                 _mtom = kparams.get('_mtom',False)
                 
                 ns = None

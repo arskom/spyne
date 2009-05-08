@@ -161,7 +161,7 @@ class WSGISoapApp(object):
             
             serviceName = environ['PATH_INFO'].split('/')[-1]
             service = self.getHandler(environ)
-            if serviceName.lower().endswith('wsdl'):
+            if (environ['QUERY_STRING'].endswith('wsdl') or environ['PATH_INFO'].endswith('wsdl')) and environ['REQUEST_METHOD'].lower() == 'get':
                 # get the wsdl for the service
                 #
                 # Assume path_info matches pattern
@@ -223,6 +223,9 @@ class WSGISoapApp(object):
                 methodname = environ.get("HTTP_SOAPACTION")
                 if methodname.startswith('"') and methodname.endswith('"'):
                     methodname = methodname[1:-1]
+                if methodname.find('/') >0:
+                    methodname = methodname.split('/')[1]
+
             request.header = header
 
             # call the method
