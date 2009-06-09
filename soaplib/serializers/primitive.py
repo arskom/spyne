@@ -257,6 +257,31 @@ class Integer:
     def add_to_schema(cls,added_params,nsmap):
         pass
 
+
+class Double:
+
+    @classmethod
+    def to_xml(cls,value,name='retval',nsmap=ns):
+        e = _generic_to_xml(str(value), name, cls, nsmap)
+        return e
+
+    @classmethod
+    def from_xml(cls,element):
+        return _element_to_integer(element)
+
+    @classmethod
+    def get_datatype(cls, nsmap=None):
+        return _get_datatype(cls, 'double', nsmap)
+
+    @classmethod
+    def get_namespace_id(cls):
+        return 'xs'
+
+    @classmethod
+    def add_to_schema(cls,added_params,nsmap):
+        pass
+
+
 class DateTime:
 
     @classmethod
