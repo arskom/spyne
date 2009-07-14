@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 import sys
 
-VERSION = '0.8.0'
+VERSION = '0.8.1'
 LONG_DESC = """\
 This is a simple, easily extendible soap library that provides several useful
 tools for creating and publishing soap web services in python.  This package
