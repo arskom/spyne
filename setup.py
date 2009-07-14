@@ -36,7 +36,10 @@ setup(name='soaplib',
       license='LGPL',
       packages=find_packages(exclude=['ez_setup', 'examples', 'tests']),
       zip_safe=False,
-      install_requires=['pytz', 'lxml'],
+      install_requires=[
+        'pytz',
+        'lxml>=2.2.1',
+      ],
       test_suite='tests.test_suite',
       entry_points="""
       """,
