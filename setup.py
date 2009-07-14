@@ -12,10 +12,10 @@ wsgi-compliant web application, support for complex class structures, binary
 attachments, simple framework for creating additional serialization mechanisms
 and a client library.
 
-This is a fork of the original project that uses lxml as it's XML API.
+This prokect now uses lxml as it's XML API, providing full namespace support.
 """
 
-setup(name='soaplib-lxml',
+setup(name='soaplib',
       version=VERSION,
       description="A simple library for writing soap web services",
       long_description=LONG_DESC,
