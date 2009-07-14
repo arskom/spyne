@@ -277,8 +277,19 @@ class WSGISoapApp(object):
             return [resp]
         
         except Fault,e:
+
+	        # grab any headers that were included in the request
+            response_headers = None
+            if hasattr(request,'response_headers'):
+                response_headers = request.response_headers
+	    
             # The user issued a Fault, so handle it just like an exception!
-            fault = make_soap_fault(e.faultstring,e.faultcode,e.detail)
+            fault = make_soap_fault(
+                e.faultstring,
+                e.faultcode,
+                e.detail,
+                header_elements = response_headers)
+                
             faultStr = ElementTree.tostring(fault, encoding=string_encoding)
             exceptions(faultStr)
             

@@ -415,18 +415,27 @@ def apply_mtom(headers, envelope, params, paramvals):
     
     return (mtomheaders, mtombody)
 
-def make_soap_fault(faultString, faultCode='Server', detail=None):
+def make_soap_fault(faultString, faultCode = 'Server', detail = None, 
+    header_elements = None):
     '''
-    This method populates a soap fault message with the provided fault string and 
-    details.  
+    This method populates a soap fault message with the provided 
+    fault string and details.  
     @param faultString the short description of the error
     @param detail the details of the exception, such as a stack trace
     @param faultCode defaults to 'Server', but can be overridden
+    @param header_elements A list of XML elements to add to the fault header.
     @returns the element corresponding to the fault message
     '''
     
     nsmap = NamespaceLookup()
     envelope = create_xml_element(nsmap.get('SOAP-ENV') + 'Envelope', nsmap)
+    
+    if header_elements:
+        header = create_xml_subelement(
+            envelope, nsmap.get('SOAP-ENV') + 'Header')
+        for element in header_elements:
+            header.append(element)
+    
     body = create_xml_subelement(envelope, nsmap.get('SOAP-ENV') + 'Body')
 
     f = Fault(faultCode,faultString,detail)
