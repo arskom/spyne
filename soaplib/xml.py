@@ -15,8 +15,10 @@ class NamespaceLookup(object):
             self.nsmap['soap'] = 'http://schemas.xmlsoap.org/wsdl/soap/'
             self.nsmap['wsdl'] = 'http://schemas.xmlsoap.org/wsdl/'
         else:
-            self.nsmap['SOAP-ENC'] = 'http://schemas.xmlsoap.org/soap/encoding/'
-            self.nsmap['SOAP-ENV'] = 'http://schemas.xmlsoap.org/soap/envelope/'
+            self.nsmap['SOAP-ENC'] \
+                = 'http://schemas.xmlsoap.org/soap/encoding/'
+            self.nsmap['SOAP-ENV'] \
+                = 'http://schemas.xmlsoap.org/soap/envelope/'
         if tns is not None:
             self.nsmap['tns'] = tns
             self.nsmap['typens'] = tns
