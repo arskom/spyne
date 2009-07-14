@@ -402,7 +402,7 @@ class Array:
         typ = self.get_datatype(nsmap)
         if values == None:
             values = []
-        res.set(nsmap.get('xsi') + 'type', 
+        res.set('type', 
             "%s:%s" % (self.get_namespace_id(), self.get_datatype()))
         for value in values:
             serializer = self.serializer
@@ -441,14 +441,14 @@ class Array:
                 sequenceNode, nsmap.get('xs') + 'element')
             elementNode.set('minOccurs','0')
             elementNode.set('maxOccurs','unbounded')
-            elementNode.set(nsmap.get('xsi') + 'type',
+            elementNode.set('type',
                 "%s:%s" % (self.namespace_id, self.serializer.get_datatype()))
             elementNode.set('name',self.serializer.get_datatype())
 
             typeElement = create_xml_element(
                 nsmap.get('xs') + 'element', nsmap)
             typeElement.set('name',typ)
-            typeElement.set(nsmap.get('xsi') + 'type',
+            typeElement.set('type',
                 "%s:%s" % (self.namespace_id, self.get_datatype()))
             
             schema_dict['%sElement'%(self.get_datatype(nsmap))] = typeElement
