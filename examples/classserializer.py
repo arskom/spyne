@@ -12,14 +12,16 @@ dictionary to store the User objects.
 user_database = {}
 userid_seq = 1
 
-from soaplib.serializers.primitive import String, Integer, Array
-from soaplib.serializers.clazz import ClassSerializer
+
 class Permission(ClassSerializer):
+
     class types:
         application = String
         feature = String
 
+
 class User(ClassSerializer):
+
     class types:
         userid = Integer
         username = String
@@ -27,36 +29,38 @@ class User(ClassSerializer):
         lastname = String
         permissions = Array(Permission)
 
+
 class UserManager(SimpleWSGISoapApp):
-    
-    @soapmethod(User,_returns=Integer)
-    def add_user(self,user):
+
+    @soapmethod(User, _returns=Integer)
+    def add_user(self, user):
         global user_database
         global userid_seq
         user.userid = userid_seq
         userid_seq = userid_seq+1
         user_database[user.userid] = user
         return user.userid
-        
-    @soapmethod(Integer,_returns=User)
-    def get_user(self,userid):
+
+    @soapmethod(Integer, _returns=User)
+    def get_user(self, userid):
         global user_database
         return user_database[userid]
-        
+
     @soapmethod(User)
-    def modify_user(self,user):
+    def modify_user(self, user):
         global user_database
         user_database[user.userid] = user
-        
+
     @soapmethod(Integer)
-    def delete_user(self,userid):
+    def delete_user(self, userid):
         global user_database
         del user_database[userid]
-        
+
     @soapmethod(_returns=Array(User))
     def list_users(self):
         global user_database
-        return [v for k,v in user_database.items()]
+        return [v for k, v in user_database.items()]
+
 
 if __name__=='__main__':
     try:
