@@ -1,5 +1,6 @@
 from soaplib.etimport import ElementTree
 
+
 class NamespaceLookup(object):
     '''
     Class to manage XML namespaces
@@ -9,7 +10,7 @@ class NamespaceLookup(object):
         self.nsmap = {
             'xs': 'http://www.w3.org/2001/XMLSchema',
             'xsi': 'http://www.w3.org/1999/XMLSchema-instance',
-            'plnk':'http://schemas.xmlsoap.org/ws/2003/05/partner-link/',
+            'plnk': 'http://schemas.xmlsoap.org/ws/2003/05/partner-link/',
         }
         if wsdl_map:
             self.nsmap['soap'] = 'http://schemas.xmlsoap.org/wsdl/soap/'
@@ -22,20 +23,23 @@ class NamespaceLookup(object):
         if tns is not None:
             self.nsmap['tns'] = tns
             self.nsmap['typens'] = tns
-        
+
     def get_all(self):
         '''
         Return all namespaces
         '''
         return self.nsmap
-        
+
     def get(self, key):
         '''
         Lookup and return a given namespace
         '''
-        ns = self.nsmap[key] if key in self.nsmap else ''
+        if key in self.nsmap:
+            ns = self.nsmap[key]
+        else:
+            ns = ''
         return "{%s}" % ns
-        
+
     def set(self, key, ns):
         '''
         Add a namespace to the map (replaces)
@@ -44,7 +48,7 @@ class NamespaceLookup(object):
 
 '''
 Default namespace lookup
-'''        
+'''
 ns = NamespaceLookup()
 
 
@@ -61,13 +65,16 @@ def create_xml_element(name, nslookup, default_ns=None):
     @param default_ns The default namespace to use for the element.
     @param extended_map A mapping of any additional namespaces to add.
     '''
-    namespace_map = { None: default_ns } if default_ns is not None else {}
+    if default_ns is not None:
+        namespace_map = {None: default_ns}
+    else:
+        namespace_map = {}
     for key, value in nslookup.get_all().iteritems():
         if value != default_ns:
             namespace_map[key] = value
     return ElementTree.Element(name, nsmap=namespace_map)
-    
-    
+
+
 def create_xml_subelement(parent, name):
     '''
     Factory method to create a new XML subelement
@@ -75,4 +82,3 @@ def create_xml_subelement(parent, name):
     if not name.startswith("{") and None in parent.nsmap:
         name = qualify(name, parent.nsmap[None])
     return ElementTree.SubElement(parent, name)
-    

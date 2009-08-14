@@ -1,26 +1,34 @@
-import httplib
 import datetime
 import urllib
 from urllib import quote
+
 from soaplib.etimport import ElementTree
 
-def create_relates_to_header(relatesTo,attrs={}):
+
+def create_relates_to_header(relatesTo, attrs={}):
     '''Creates a 'relatesTo' header for async callbacks'''
-    relatesToElement = ElementTree.Element('{http://schemas.xmlsoap.org/ws/2003/03/addressing}RelatesTo')
-    for k,v in attrs.items():
-        relatesToElement.set(k,v)
+    relatesToElement = ElementTree.Element(
+        '{http://schemas.xmlsoap.org/ws/2003/03/addressing}RelatesTo')
+    for k, v in attrs.items():
+        relatesToElement.set(k, v)
     relatesToElement.text = relatesTo
     return relatesToElement
 
-def create_callback_info_headers(messageId,replyTo):
-    '''Creates MessageId and ReplyTo headers for initiating an async function'''
-    messageIdElement = ElementTree.Element('{http://schemas.xmlsoap.org/ws/2003/03/addressing}MessageID')
+
+def create_callback_info_headers(messageId, replyTo):
+    '''Creates MessageId and ReplyTo headers for initiating an
+    async function'''
+    messageIdElement = ElementTree.Element(
+        '{http://schemas.xmlsoap.org/ws/2003/03/addressing}MessageID')
     messageIdElement.text = messageId
 
-    replyToElement = ElementTree.Element('{http://schemas.xmlsoap.org/ws/2003/03/addressing}ReplyTo')
-    addressElement = ElementTree.SubElement(replyToElement,'{http://schemas.xmlsoap.org/ws/2003/03/addressing}Address')
+    replyToElement = ElementTree.Element(
+        '{http://schemas.xmlsoap.org/ws/2003/03/addressing}ReplyTo')
+    addressElement = ElementTree.SubElement(replyToElement,
+        '{http://schemas.xmlsoap.org/ws/2003/03/addressing}Address')
     addressElement.text = replyTo
     return messageIdElement, replyToElement
+
 
 def get_callback_info():
     '''Retrieves the messageId and replyToAddress from the message header.
@@ -41,10 +49,10 @@ def get_callback_info():
                         replyToAddress = replyTo.text
     return messageId, replyToAddress
 
-def get_relates_to_info():
-    '''Retrives the relatesTo header. This is used for callbacks'''
-    from soaplib.wsgi_soap import request
 
+def get_relates_to_info():
+    '''Retrieves the relatesTo header. This is used for callbacks'''
+    from soaplib.wsgi_soap import request
     headerElement = request.header
     if headerElement:
         headers = headerElement.getchildren()
@@ -52,11 +60,13 @@ def get_relates_to_info():
             if header.tag.lower().find('relatesto') != -1:
                 return header.text
 
+
 def split_url(url):
     '''Splits a url into (uri_scheme, host[:port], path)'''
     scheme, remainder = urllib.splittype(url)
     host, path = urllib.splithost(remainder)
     return scheme.lower(), host, path
+
 
 def reconstruct_url(environ):
     '''
@@ -66,7 +76,7 @@ def reconstruct_url(environ):
     This algorithm was found via PEP 333, the wsgi spec and
     contributed by Ian Bicking.
     '''
-    url = environ['wsgi.url_scheme']+'://'
+    url = environ['wsgi.url_scheme'] + '://'
     if environ.get('HTTP_HOST'):
         url += environ['HTTP_HOST']
     else:
@@ -74,49 +84,58 @@ def reconstruct_url(environ):
 
         if environ['wsgi.url_scheme'] == 'https':
             if environ['SERVER_PORT'] != '443':
-               url += ':' + environ['SERVER_PORT']
+                url += ':' + environ['SERVER_PORT']
         else:
             if environ['SERVER_PORT'] != '80':
-               url += ':' + environ['SERVER_PORT']
+                url += ':' + environ['SERVER_PORT']
 
-    if quote(environ.get('SCRIPT_NAME','')) == '/' and quote(environ.get('PATH_INFO',''))[0:1] == '/':
+    if (quote(environ.get('SCRIPT_NAME', '')) == '/' and
+        quote(environ.get('PATH_INFO', ''))[0:1] == '/'):
         #skip this if it is only a slash
         pass
-    elif quote(environ.get('SCRIPT_NAME',''))[0:2] == '//':
-        url += quote(environ.get('SCRIPT_NAME',''))[1:]
+    elif quote(environ.get('SCRIPT_NAME', ''))[0:2] == '//':
+        url += quote(environ.get('SCRIPT_NAME', ''))[1:]
     else:
-        url += quote(environ.get('SCRIPT_NAME',''))
+        url += quote(environ.get('SCRIPT_NAME', ''))
 
-    url += quote(environ.get('PATH_INFO',''))
+    url += quote(environ.get('PATH_INFO', ''))
     if environ.get('QUERY_STRING'):
         url += '?' + environ['QUERY_STRING']
     return url
-    
+
 
 ###################################################################
 # Deprecated Functionality
 ###################################################################
 from warnings import warn
+
+
 def deprecate(name):
-    warn("Method [%s] will be removed at the end of this iteration"%name,DeprecationWarning)    
+    warn("Method [%s] will be removed at the end of this iteration" %
+        name, DeprecationWarning)
+
 
 def convertDateTime(date):
     deprecate('convertDateTime')
-    date = date.replace("T"," ")
+    date = date.replace("T", " ")
     d, t = date.split(' ')
-    y,mo,da = d.split('-')
-    h,mi,s = t.split(':')
+    y, mo, da = d.split('-')
+    h, mi, s = t.split(':')
     ms = 0
-    try: s,ms = s.split('.')
-    except: pass
-    return datetime.datetime(int(y),int(mo),int(da),int(h),int(mi),int(s),int(ms))
+    try:
+        s, ms = s.split('.')
+    except:
+        pass
+    return datetime.datetime(int(y), int(mo), int(da), int(h), int(mi),
+        int(s), int(ms))
 
 converters = {
-    'datetime':convertDateTime,
-    'integer':int,
-    'float':float,
-    'boolean':bool,
+    'datetime': convertDateTime,
+    'integer': int,
+    'float': float,
+    'boolean': bool,
 }
+
 
 def element2dict(element):
     deprecate('element2dict')
@@ -124,8 +143,9 @@ def element2dict(element):
         element = ElementTree.fromstring(element)
 
     children = element.getchildren()
-    tag = element.tag.split('}')[-1] 
-    return {tag:_element2dict(children)}
+    tag = element.tag.split('}')[-1]
+    return {tag: _element2dict(children)}
+
 
 def _get_element_value(element):
     deprecate('_get_element_value')
@@ -138,16 +158,19 @@ def _get_element_value(element):
     if xsd_type:
         t = xsd_type.lower().split(':')[-1]
         conv = converters.get(t)
-        if conv: return conv(element.text)
-        else: return element.text
+        if conv:
+            return conv(element.text)
+        else:
+            return element.text
     return element.text
+
 
 def _element2dict(child_elements):
     deprecate('_element2dict')
     d = {}
     for child in child_elements:
 
-        tag = child.tag.split('}')[-1] 
+        tag = child.tag.split('}')[-1]
         children = child.getchildren()
         if children:
             typ = None
@@ -162,7 +185,7 @@ def _element2dict(child_elements):
                     else:
                         d[tag].append(_get_element_value(c))
             else:
-                d[tag] = _element2dict(children) 
+                d[tag] = _element2dict(children)
         else:
             typ = None
             for k in child.keys():
@@ -173,7 +196,7 @@ def _element2dict(child_elements):
     return d
 
 
-def dict2element(*args,**kwargs):
+def dict2element(*args, **kwargs):
     deprecate('dict2element')
     if len(kwargs) == 1:
         dictionary = kwargs
@@ -181,29 +204,29 @@ def dict2element(*args,**kwargs):
         dictionary = args[0]
     if not len(dictionary.keys()):
         return ElementTree.Element('none')
-    root = dictionary.keys()[0] 
-    element =  _dict2element(dictionary[root],root)
-    element.set('xmlns:optio','http://www.optio.com/schemas')
+    root = dictionary.keys()[0]
+    element = _dict2element(dictionary[root], root)
+    element.set('xmlns:optio', 'http://www.optio.com/schemas')
     return element
 
-def _dict2element(data,tag):
+
+def _dict2element(data, tag):
     deprecate('_dict2element')
-    d = {   datetime.datetime:'xs:dateTime',
-            int:'xs:integer',
-            bool:'xs:boolean',
-            float:'xs:float',
-           } 
+    d = {datetime.datetime: 'xs:dateTime',
+         int: 'xs:integer',
+         bool: 'xs:boolean',
+         float: 'xs:float',
+    }
     root = ElementTree.Element(tag)
     if type(data) == dict:
-        for k,v in data.items():
-            root.append(_dict2element(v,k))
-    elif type(data) == list or type(data) == tuple:
-        root.set('type','optio:array')
+        for k, v in data.items():
+            root.append(_dict2element(v, k))
+    elif type(data) in (list, tuple):
+        root.set('type', 'optio:array')
         for item in data:
-            root.append(_dict2element(item,'item'))
+            root.append(_dict2element(item, 'item'))
     elif data is not None:
-        t = d.get(type(data),'xs:string')
+        t = d.get(type(data), 'xs:string')
         root.text = str(data)
-        root.set('type',t)
+        root.set('type', t)
     return root
-

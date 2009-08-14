@@ -2,9 +2,10 @@ import base64
 import cStringIO
 from soaplib.xml import ns, create_xml_element
 
+
 class Attachment(object):
 
-    def __init__(self,data=None,fileName=None):
+    def __init__(self, data=None, fileName=None):
         self.data = data
         self.fileName = fileName
 
@@ -19,7 +20,7 @@ class Attachment(object):
             raise Exception("No data to write")
         if not self.fileName:
             raise Exception("No filename specified")
-        f = open(self.fileName,'wb')
+        f = open(self.fileName, 'wb')
         f.write(self.data)
         f.flush()
         f.close()
@@ -31,20 +32,21 @@ class Attachment(object):
         '''
         if not self.fileName:
             raise Exception("No filename specified")
-        f = open(self.fileName,'rb')
+        f = open(self.fileName, 'rb')
         self.data = f.read()
         f.close()
 
     @classmethod
-    def to_xml(cls,value,name='retval',nsmap=ns):
-        '''This class method takes the data from the attachment and 
-        base64 encodes it as the text of an Element.  An attachment can
-        specify a filename and if no data is given, it will read the data 
+    def to_xml(cls, value, name='retval', nsmap=ns):
+        '''This class method takes the data from the attachment and
+        base64 encodes it as the text of an Element. An attachment can
+        specify a filename and if no data is given, it will read the data
         from the file
         '''
         if value.__class__ is not Attachment:
-            raise Exception("Do not know how to serialize class %s"%type(value))
-            
+            raise Exception("Do not know how to serialize class %s" %
+                type(value))
+
         element = create_xml_element(name, nsmap)
         if value.data:
             # the data has already been loaded, just encode
@@ -56,7 +58,7 @@ class Attachment(object):
             data_string = cStringIO.StringIO()
 
             fileName = value.fileName
-            file = open(fileName,'rb')
+            file = open(fileName, 'rb')
             base64.encode(file, data_string)
             file.close()
 
@@ -65,11 +67,11 @@ class Attachment(object):
             element.text = str(data_string.read())
         else:
             raise Exception("Neither data nor a filename has been specified")
-        
-        return element    
-    
+
+        return element
+
     @classmethod
-    def from_xml(cls,element):
+    def from_xml(cls, element):
         '''
         This method returns an Attachment object that contains
         the base64 decoded string of the text of the given element
@@ -79,19 +81,19 @@ class Attachment(object):
         return a
 
     @classmethod
-    def get_datatype(cls,nsmap=None):
+    def get_datatype(cls, nsmap=None):
         '''Returns the datatype base64Binary'''
         if nsmap is not None:
             return nsmap.get(cls.get_namespace_id()) + 'base64Binary'
         return 'base64Binary'
-        
+
     @classmethod
     def get_namespace_id(cls):
         return 'xs'
 
     @classmethod
-    def add_to_schema(cls,added_params,nsmap):
-        ''' 
+    def add_to_schema(cls, added_params, nsmap):
+        '''
         Nothing needs to happen here as base64Binary is a standard
         schema element
         '''
@@ -108,15 +110,10 @@ if __name__ == '__main__':
     a = Attachment(fileName='/tmp/boxer.tiff')
     a.load_data()
     #print a.data
-    element = Attachment.to_xml(a,'bob')
+    element = Attachment.to_xml(a, 'bob')
     a1 = Attachment.from_xml(element)
 
     a1.fileName = '/tmp/boxer2.tiff'
     a1.save_data()
 
     os.system('open /tmp/boxer2.tiff')
-
-    
-
-
-

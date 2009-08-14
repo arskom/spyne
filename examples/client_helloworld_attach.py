@@ -6,5 +6,5 @@ from helloworld_attach import HelloWorldService
 from soaplib.client import debug
 debug(True)
 
-client = make_service_client('http://localhost:7789/',HelloWorldService())
-print client.say_hello(Attachment(data="Dave"),5,mtom=True)
+client = make_service_client('http://localhost:7789/', HelloWorldService())
+print client.say_hello(Attachment(data="Dave"), 5, mtom=True)
