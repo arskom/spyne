@@ -32,6 +32,8 @@ schqname = '{%s}' % schnamespace
 sequence = '%ssequence' % schqname
 all = '%sall' % schqname
 ctype = '%scomplexType' % schqname
+ccontent = '%scomplexContent' % schqname
+crestrict = '%srestriction' % schqname
 stype = '%ssimpleType' % schqname
 scelement = '%selement' % schqname
 scattr = '%sattribute' % schqname
@@ -98,58 +100,63 @@ during the parse: \n%s" % "\n".join(self.unsupported)
 
     def process(self):
         """
-            Begin processing of the supplied document
-            
-            First processes found complex types, with extractcomplex,
-            then process found top-level elements with extractelement.
+        Begin processing of the supplied document
+        
+        First processes found complex types, with extract_complex,
+        then process found top-level elements with extract_element.
         """
         self.tns = self.document.get('targetNamespace')
         for el in self.document.findall('%scomplexType' % schqname):
-            self.extractcomplex(el)
+            self.extract_complex(el)
         for el in self.document.findall(scelement):
             #pull out top level elements (e.g. used for messages
             #in doc literal).
-            self.extractelement(el)
-        self.rewirearrays()
+            self.extract_element(el)
+        self.rewire_arrays()
 
-    def extractelement(self, element):
+    def extract_element(self, element):
         """ 
-            Create an element object based on the supplied element.
-            The resulting element is stored in elements and returned.
+        Create an element object based on the supplied element.
+        The resulting element is stored in elements and returned.
         """
         typename = element.get('type')
         if typename is not None:
-            typ = self.getclass(self.extracttypename(typename))
-            klass = self.getelementclass(element.get('name'), typename)
+            typ = self.get_class(self.extract_typename(typename))
+            klass = self.get_element_class(element.get('name'), typename)
             klass.type = typ
         else:
             #element contains an inline complex type.
             typelist = []
             for child in element.getchildren():
-                typelist += self.extractcomplex(child, element)
+                typelist += self.extract_complex(child, element)
             for (typename, typevalue) in typelist:
-                klass = self.getelementclass(element.get('name'), typename)
+                klass = self.get_element_class(element.get('name'), typename)
                 klass.type = typevalue
         return [(None, klass)]
 
-    def extractcomplex(self, element, parent=None, inuse=False):
+    def extract_complex(self, element, parent=None, inuse=False):
         """ 
-            Create an complex object based on the supplied element.
+        Create an complex object based on the supplied element.
 
-            The resulting object is stored in ctypes and returned if created.
-            parent - if supplied the parent object can be used to create a class,
-                this is used for inline complextypes which are unnamed.  The resulting
-                class is created as <nameofparentelement>+CT.
-            inuse - if inuse is True the extracted type is flagged as used by another type
-                types that are not used e.g. messages are not marked and are not 
-                written out by the typeparser.  This prevents add_userResponse being
-                created as a ClassSerializer.
+        The resulting object is stored in ctypes and returned if created.
+        parent - if supplied the parent object can be used to create a class,
+            this is used for inline complextypes which are unnamed.  The resulting
+            class is created as <nameofparentelement>+CT.
+        inuse - if inuse is True the extracted type is flagged as used by another type
+            types that are not used e.g. messages are not marked and are not 
+            written out by the typeparser.  This prevents add_userResponse being
+            created as a ClassSerializer.
         """
+        #if element.tag == ccontent:
+        #    typelist = []
+        #    for child in element.getchildren():
+        #        typelist += self.extract_complex(child, inuse=True)
+        #    return typelist
         if element.tag == ctype:
             name = element.get('name')
             if name is None:
                 name = parent.get('name') + 'CT'
-            klass = self.getclass(name, inuse=inuse)
+            klass = self.get_class(name, inuse=inuse)
             #attempt to detect a nested array type here 
             #and tag it as an array, we can then later replace the
             #types with their array types in a second parse
@@ -158,7 +165,7 @@ during the parse: \n%s" % "\n".join(self.unsupported)
                 if len(children) == 1 and (children[0].get('maxOccurs') == 'unbounded' or 
                     children[0].get('maxOccurs') > 0):
                     child = children[0]
-                    typelist = self.extractcomplex(child, inuse=True)
+                    typelist = self.extract_complex(child, inuse=True)
                     #items in a soaplib Array are named according to their datatype, 
                     #if this isn't the case we're just have a Repeating wrapped in 
                     #a class so don't tag
@@ -170,7 +177,7 @@ during the parse: \n%s" % "\n".join(self.unsupported)
                 print e
             typelist = []
             for child in element.getchildren():
-                typelist += self.extractcomplex(child, inuse=True)
+                typelist += self.extract_complex(child, inuse=True)
             for (typename, typevalue) in typelist:
                 setattr(klass.types, typename, typevalue)
             #reassign metaclass: as dynamically building the class
@@ -181,26 +188,26 @@ during the parse: \n%s" % "\n".join(self.unsupported)
         elif element.tag == sequence or element.tag == all:
             typelist = []
             for child in element.getchildren():
-                typelist += self.extractcomplex(child, inuse=True)
+                typelist += self.extract_complex(child, inuse=True)
             return typelist
         elif element.tag == scelement:
             etype = element.get('type')
             #cope with nested ctypes
             if etype is None:
                 child = element.getchildren()[0]
-                typelist = self.extractcomplex(child, inuse=True)
+                typelist = self.extract_complex(child, inuse=True)
                 try:                
                     (typename, typevalue) = typelist[0]
                     return [(element.get('name'), typevalue)]
                 except:
                     return []
-            #use qualifytype to search the built-ins using a qname
+            #use qualify_type to search the built-ins using a qname
             #print builtins
-            if self.qualifytype(etype) in builtins:
-                serializer = builtins[self.qualifytype(etype)]
+            if self.qualify_type(etype) in builtins:
+                serializer = builtins[self.qualify_type(etype)]
             else:
                 try:
-                    serializer = self.getclass(self.extracttypename(etype), inuse=True)
+                    serializer = self.get_class(self.extract_typename(etype), inuse=True)
                 except Exception,e:
                     print "Exception: %s" % e
                     print "Could not get serializer for type: %s" % etype
@@ -226,7 +233,7 @@ during the parse: \n%s" % "\n".join(self.unsupported)
                 serializer = builtins[etype]
             else:
                 try:
-                    serializer = self.getclass(self.extracttypename(etype))
+                    serializer = self.get_class(self.extract_typename(etype))
                 except Exception,e:
                     return []
             return [(element.get('name'), serializer)]
@@ -244,7 +251,7 @@ during the parse: \n%s" % "\n".join(self.unsupported)
         return []
 
     @classmethod
-    def extracttypename(cls,name):
+    def extract_typename(cls,name):
         """
             Split a typename e.g. returning the unqualified name,
             this can be used to create classnames.
@@ -254,10 +261,10 @@ during the parse: \n%s" % "\n".join(self.unsupported)
         except:
             return name
 
-    def qualifytype(self, typestr):
+    def qualify_type(self, typestr):
         """
             Extract a full qname e.g. {http://example}elementname and return.
-            This method is used to extract builtins, contrast with extracttypename.
+            This method is used to extract builtins, contrast with extract_typename.
         """
         try:            
             spl = typestr.split(':')        
@@ -266,7 +273,7 @@ during the parse: \n%s" % "\n".join(self.unsupported)
         except:
             return "{%s}%s" % (self.tns, typestr)
 
-    def getclass(self, name, inuse=False):
+    def get_class(self, name, inuse=False):
         """
             return a ClassSerializer named name, if the class hasn't previously
             been request create a new class, otherwise return the cached class.
@@ -281,7 +288,7 @@ during the parse: \n%s" % "\n".join(self.unsupported)
             klass.inuse = inuse
         return klass
 
-    def getelementclass(self, name, type):
+    def get_element_class(self, name, type):
         """
             return an ElementType object named name, if this element has
             been previously request return the cached ElementType.
@@ -294,7 +301,7 @@ during the parse: \n%s" % "\n".join(self.unsupported)
             self.elements[qname] = klass
             return klass
 
-    def rewirearrays(self):
+    def rewire_arrays(self):
         """
             Find all tagged elements and replace the objects with the actual array.
             This step finds all complextypes that are just Arrays such as StringArray
@@ -319,28 +326,28 @@ during the parse: \n%s" % "\n".join(self.unsupported)
         """
         writedict = {}
         f = open(filename, 'w')
-        self.writeimports(f)
+        self.write_imports(f)
         for (k,v) in self.ctypes.items():
-            self.writeclass(writedict, v, f)
-        self.writeelements(f)
+            self.write_class(writedict, v, f)
+        self.write_elements(f)
         f.close()
     
-    def writeimports(self, f):
+    def write_imports(self, f):
         """ write the header python imports to f """
         f.write('from soaplib.serializers.clazz import ClassSerializer\n')
         f.write('from soaplib.serializers.primitive import String, DateTime, Integer, Boolean, Float, Array, Any\n')
         f.write('from soaplib.serializers.binary import Attachment\n\n')
         
-    def writeclass(self, writedict, klass, f):
+    def write_class(self, writedict, klass, f):
         """ 
             write out the supplied class (klass) to file f.
 
             writedict - A dictionary of already written classes,
                 ensuring each class is only written once.
-            The actual writing is done by printclass this, write class
+            The actual writing is done by print_class this, write class
             ensures that all subclasses get written out.
         """
-        if self.isprimitive(klass):
+        if self.is_primitive(klass):
             "%s is primitive" % klass
             return
         name = klass.__name__
@@ -357,12 +364,12 @@ during the parse: \n%s" % "\n".join(self.unsupported)
                     subclass = subclass.serializer
             except:
                 pass
-            self.writeclass(writedict, subclass, f)
-        self.printclass(name, klass, f)
+            self.write_class(writedict, subclass, f)
+        self.print_class(name, klass, f)
         writedict[name] = 1
 
     @classmethod
-    def isprimitive(cls, obj):
+    def is_primitive(cls, obj):
         """ return if the obj supplied is a builtin soaplib object """
         if obj in builtinobj or obj.__class__ in builtinobj:
             #check arrays as they may contain unprimitive types
@@ -377,7 +384,7 @@ during the parse: \n%s" % "\n".join(self.unsupported)
             return True
         return False
 
-    def printclass(self, name, klass, f):
+    def print_class(self, name, klass, f):
         """ 
             Writes klass with name to f
         """
@@ -403,7 +410,7 @@ during the parse: \n%s" % "\n".join(self.unsupported)
                 f.write("%s%s%s = %s\n" % (self.spacer, self.spacer, tname, tvalue.__name__))
         f.write("\n")
     
-    def writeelements(self, f):
+    def write_elements(self, f):
         """ 
             Write out the dictionary of elements collected from
             the parsed xmlschema.
