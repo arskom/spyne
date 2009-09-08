@@ -482,7 +482,7 @@ class Array:
             elementNode.set('minOccurs', '0')
             elementNode.set('maxOccurs', 'unbounded')
             elementNode.set('type',
-                "%s:%s" % (self.namespace_id, self.serializer.get_datatype()))
+                "%s:%s" % (self.serializer.get_namespace_id(), self.serializer.get_datatype()))
             elementNode.set('name', self.serializer.get_datatype())
 
             typeElement = create_xml_element(
