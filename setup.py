@@ -40,6 +40,10 @@ setup(name='soaplib',
         'lxml>=2.2.1',
       ],
       test_suite='tests.test_suite',
-      entry_points="""
-      """,
+      entry_points={
+        'console_scripts': [
+            'xsd2py = soaplib.parsers.typeparse:run',
+            'wsdl2py = soaplib.parsers.wsdlparse:run'
+        ]
+      },
       )

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 #
 # soaplib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
 #
@@ -17,25 +16,28 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from soaplib.service import soapmethod
-from soaplib.serializers.primitive import String, Integer, Array
-from soaplib.serializers.binary import Attachment
-from soaplib.wsgi_soap import SimpleWSGISoapApp
+'''
+This example shows how to parse wsdl created by the classserializer.py 
+server and use the dynamically generated objects as a client
+'''
 
+from soaplib.parsers.wsdlparse import WSDLParser
+import lxml.etree as et
+import urllib2 as ulib
+from soaplib.client import make_service_client
 
-class HelloWorldService(SimpleWSGISoapApp):
+wp = WSDLParser.from_url('http://localhost:7789/wsdl')
+UserManager = wp.services['UserManager']
+User = wp.ctypes['{UserManager.UserManager}User']
+user = User()
+user.username = 'john_smith'
+user.firstname = 'john'
+user.surname = 'smith'
+client = make_service_client('http://localhost:7789/', UserManager())
+userid = client.add_user(user)
+print "adding user - id: %s" % userid
+users = client.list_users()
+for u in users:
+    print u.username
+ 
 
-    @soapmethod(Attachment, Integer, _returns=Array(String), _mtom=True)
-    def say_hello(self, name, times):
-        results = []
-        for i in range(0, times):
-            results.append('Hello, %s' % name.data)
-        return results
-
-if __name__=='__main__':
-    try:
-        from wsgiref.simple_server import make_server
-        server = make_server('localhost', 7789, HelloWorldService())
-        server.serve_forever()
-    except ImportError:
-        print "Error: example server code requires Python >= 2.5"
