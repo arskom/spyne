@@ -325,6 +325,12 @@ class SoapServiceBase(object):
         schemaNode = create_xml_subelement(types, "schema")
         schemaNode.set("targetNamespace", self.__tns__)
         schemaNode.set("xmlns", "http://www.w3.org/2001/XMLSchema")
+        ###########################################################
+        # RJBALEST: 
+        # Added to satisfy .NET 2008 wsdl compiler.                                                                
+	#                                                                                                               
+        schemaNode.set('elementFormDefault','qualified')
+        ###########################################################
 
         for xxx, node in schema_entries.items():
             schemaNode.append(node)
