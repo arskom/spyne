@@ -23,17 +23,17 @@ import sys
 from soaplib.etimport import ElementTree
 from soaplib.soap import (from_soap, make_soap_envelope, collapse_swa,
     apply_mtom)
-from soaplib.util import split_url, create_relates_to_header
+from soaplib.util import split_url, create_relates_to_header, check_pyversion
 from soaplib.serializers.primitive import Fault
 
-
-# This sets the HTTP version string sent to the server to 1.0
-# preventing the response from bein 'chunked'.  This is done
-# because of a know bug in python (#900744).  Rather than apply
-# the patch to all the installed systems, it is simpler to set this
-# version string, to be later removed in python 2.5
-#
-httplib.HTTPConnection._http_vsn_str = 'HTTP/1.0'
+if not check_pyversion(2, 5, 2):
+    # This sets the HTTP version string sent to the server to 1.0
+    # preventing the response from bein 'chunked'.  This is done
+    # because of a know bug in python (#900744).  Rather than apply
+    # the patch to all the installed systems, it is simpler to set this
+    # version string, to be later removed in python 2.5
+    #
+    httplib.HTTPConnection._http_vsn_str = 'HTTP/1.0'
 
 _debug = False
 _out = sys.stdout
