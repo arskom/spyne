@@ -121,6 +121,10 @@ def reconstruct_url(environ):
         url += '?' + environ['QUERY_STRING']
     return url
 
+def check_pyversion(*minversion):
+    import sys
+    pyver = sys.version_info[:3]
+    return pyver >= minversion
 
 ###################################################################
 # Deprecated Functionality
