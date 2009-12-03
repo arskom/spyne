@@ -66,7 +66,16 @@ class test(unittest.TestCase):
         integer = Integer()
         element = Integer.to_xml(i)
         self.assertEquals(element.text, '12')
-        self.assertEquals('xs:int', element.get(ns.get('xsi') + 'type'))
+        self.assertEquals('xs:integer', element.get(ns.get('xsi') + 'type'))
+        value = integer.from_xml(element)
+        self.assertEquals(value, i)
+
+    def test_large_integer(self):
+        i = 128375873458473
+        integer = Integer()
+        element = Integer.to_xml(i)
+        self.assertEquals(element.text, '128375873458473')
+        self.assertEquals('xs:integer', element.get(ns.get('xsi') + 'type'))
         value = integer.from_xml(element)
         self.assertEquals(value, i)
 
