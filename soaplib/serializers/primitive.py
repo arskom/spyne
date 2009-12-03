@@ -283,7 +283,7 @@ class Integer:
 
     @classmethod
     def get_datatype(cls, nsmap=None):
-        return _get_datatype(cls, 'int', nsmap)
+        return _get_datatype(cls, 'integer', nsmap)
 
     @classmethod
     def get_namespace_id(cls):
