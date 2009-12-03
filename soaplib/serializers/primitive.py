@@ -42,7 +42,7 @@ _offset_re = re.compile(_datetime_pattern +
 
 def _is_null_element(element):
     for k in element.keys():
-        if k.endswith('null'):
+        if k.split('}')[-1] == 'nil':
             return True
     return False
 
@@ -382,7 +382,7 @@ class Null:
 
     @classmethod
     def get_datatype(cls, nsmap=None):
-        return _get_datatype(cls, 'null', nsmap)
+        return _get_datatype(cls, 'nil', nsmap)
 
     @classmethod
     def get_namespace_id(cls):
