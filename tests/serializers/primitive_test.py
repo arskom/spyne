@@ -95,7 +95,7 @@ class test(unittest.TestCase):
 
     def test_null(self):
         element = Null.to_xml('doesnt matter')
-        self.assertEquals('1', element.get(ns.get('xs') + 'null'))
+        self.assertEquals('1', element.get(ns.get('xs') + 'nil'))
         value = Null.from_xml(element)
         self.assertEquals(None, value)
 
@@ -122,7 +122,7 @@ class test(unittest.TestCase):
         self.assertEquals('xs:boolean', b.get(ns.get('xsi') + 'type'))
 
         b = Boolean.to_xml(None)
-        self.assertEquals('1', b.get(ns.get('xs') + 'null'))
+        self.assertEquals('1', b.get(ns.get('xs') + 'nil'))
 
         b = Boolean.from_xml(b)
         self.assertEquals(b, None)

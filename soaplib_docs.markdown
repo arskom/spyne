@@ -315,7 +315,7 @@ The `ClassSerializer` is used to define and serialize complex, nested structures
 	>>> u.permissions.append(p)
 	>>> element = User.to_xml(u)
 	>>> et.tostring(element)
-	'<xsd:retval><username xsi:type="xs:string">bill</username><lastname xsi:null="1" /><userid xsi:null="1" /><firstname xsi:null="1" /><permissions SOAP-ENC:arrayType="typens:Permission[1]"><Permission><application xsi:type="xs:string">email</application><feature xsi:type="xs:string">send</feature></Permission></permissions></xsd:retval>'
+	'<xsd:retval><username xsi:type="xs:string">bill</username><lastname xsi:nil="1" /><userid xsi:nil="1" /><firstname xsi:nil="1" /><permissions SOAP-ENC:arrayType="typens:Permission[1]"><Permission><application xsi:type="xs:string">email</application><feature xsi:type="xs:string">send</feature></Permission></permissions></xsd:retval>'
 	>>> User.from_xml(element).username
 	'bill'
 	>>>
