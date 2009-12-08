@@ -52,9 +52,11 @@ class Message(object):
 
     def to_xml(self, *data):
         if len(self.params):
+            if len(self.params) >= 2:
+              data = data[0]
             if len(data) != len(self.params):
                 raise Exception("Parameter number mismatch expected [%s] "
-                    "got [%s]"%(len(self.params), len(data)))
+                    "got [%s] for response %s"%(len(self.params), len(data), self.name))
 
         nsmap = NamespaceLookup(self.ns)
         element = create_xml_element(self.name, nsmap, self.ns)
