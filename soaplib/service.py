@@ -44,7 +44,7 @@ def soapmethod(*params, **kparams):
                 _inMessage = kparams.get('_inMessage', name)
                 _inVariableNames = kparams.get('_inVariableNames', {})
                 _outMessage = kparams.get('_outMessage', '%sResponse' % name)
-                _outVariableName = kparams.get('_outVariableName',
+                _outVariableNames = kparams.get('_outVariableNames',
                     '%sResult' % name)
                 _mtom = kparams.get('_mtom', False)
 
@@ -70,14 +70,21 @@ def soapmethod(*params, **kparams):
                 in_message = Message(_inMessage, in_params, ns=ns,
                     typ=_inMessage)
 
-                # output message
+                # output message  
+                out_params = []
                 if _returns:
-                    out_params = [(_outVariableName, _returns)]
+                  if isinstance(_returns, (list, tuple)):
+                      returns = zip(_outVariableNames, _returns)
+                      for key, value in returns:
+                          out_params.append((key, value))
+                  else:
+                      out_params = [(_outVariableNames, _returns)]
                 else:
                     out_params = []
                 out_message = Message(_outMessage, out_params, ns=ns,
                     typ=_outMessage)
                 doc = getattr(f, '__doc__')
+                
                 descriptor = MethodDescriptor(f.func_name, _soapAction,
                     in_message, out_message, doc, _isCallback, _isAsync,
                     _mtom)
