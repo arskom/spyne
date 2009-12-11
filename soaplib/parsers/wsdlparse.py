@@ -104,7 +104,7 @@ class WSDLParser(object):
         """
         #global catalogue stores all types
         self.url = url
-        self.tp = None
+        self.tps = list()
         self.ctypes = {}
         self.elements = {}
         self.messagecat = {}
@@ -119,15 +119,7 @@ class WSDLParser(object):
         self.tns = self.gettns(document)
         self.spacer = spacer
         self.importwsdl(document)
-        tp = self.importtypes(document)
-        if self.tp is None:
-            self.tp = tp
-        elif tp is not None:
-            self.tp.ctypes.update(tp.ctypes)
-            self.tp.elements.update(tp.elements)
-        self.nsmap.update(self.tp.nsmap)
-        self.ctypes = self.tp.ctypes
-        self.elements = self.tp.elements
+        self.importtypes(document)
         self.retrievemessages(document)
         self.processports(document)
         self.processbindings(document)
@@ -162,11 +154,8 @@ during the parse: \n%s" % "\n".join(self.unsupported)
             for cats in ['ctypes', 'elements', 'messagecat', 'portcat', 'bindingcat']:
                 getattr(self, cats).update(getattr(wp, cats))
             document.remove(imp)
-            if self.tp is None:
-                self.tp = wp.tp
-            elif wp.tp is not None:
-                self.tp.ctypes.update(wp.tp.ctypes)
-                self.tp.elements.update(wp.tp.elements)
+            for tp in wp.tps:
+                self._add_tp(tp)
     
     def importtypes(self, document):
         """ 
@@ -192,9 +181,17 @@ during the parse: \n%s" % "\n".join(self.unsupported)
                 element = ElementTree.fromstring(d)
             else:
                 #inline schema
-                element = t.find(schqname+"schema")
-            return TypeParser(element)
-        return None
+                for element in t.findall(schqname+"schema"):
+                    self._add_tp(TypeParser(element, global_ctypes=self.ctypes, global_elements=self.elements))
+                return
+            self._add_tp(TypeParser(element, global_ctypes=self.ctypes, global_elements=self.elements))
+        return
+
+    def _add_tp(self, typeparser):
+        self.ctypes.update(typeparser.ctypes)
+        self.elements.update(typeparser.elements)
+        self.nsmap.update(typeparser.nsmap)
+        self.tps.append(typeparser)
     
     def retrievemessages(self, document):
         """ 
@@ -463,6 +460,11 @@ def run():
             builtins[name] = serializers[value]
     wp = WSDLParser.from_url(url)
     #write out xsd
-    tp = wp.tp.tofile(path.abspath(options.schoutput))
+    f = open(path.abspath(options.schoutput), 'w')
+    wp.tps[0].write_imports(f)
+    for tp in wp.tps:
+        tp.write_body(f)
+    f.close()
     #write out wsdl
     wp.tofile(path.abspath(options.output), config=options)
+

@@ -30,6 +30,7 @@ schnamespace = 'http://www.w3.org/2001/XMLSchema'
 schqname = '{%s}' % schnamespace
 
 sequence = '%ssequence' % schqname
+choice = '%schoice' % schqname
 all = '%sall' % schqname
 ctype = '%scomplexType' % schqname
 ccontent = '%scomplexContent' % schqname
@@ -66,6 +67,19 @@ class ElementType(object):
         self.name = name
         self.type = type
 
+class HierDict(dict):
+    def __init__(self, parent=None, **kwargs):
+        self._parent = parent
+        super(HierDict, self).__init__(**kwargs)
+
+    def __getitem__(self, name):
+        try:
+            return super(HierDict,self).__getitem__(name)
+        except KeyError, e:
+            if self._parent is None:
+                raise
+            return self._parent[name]
+
 class TypeParser(object):
     """
         The main TypeParser class parses a given xml schema and 
@@ -76,7 +90,7 @@ class TypeParser(object):
         a warning about unsupported types that are encountered
         during  the parse.
     """
-    def __init__(self, document=None, spacer='    ', warn=True):
+    def __init__(self, document=None, spacer='    ', warn=True, global_ctypes={}, global_elements={}):
         """
             SPACER should move
             init TypeParser
@@ -84,13 +98,17 @@ class TypeParser(object):
             to the root of the xml schema to parse.
         """
         #global catalogue stores all types
-        self.ctypes = {}
+        self.ctypes = HierDict(global_ctypes)
         #global catalogue stores all elements
-        self.elements = {}
+        self.elements = HierDict(global_elements)
+        self.spacer = spacer
+        if document is not None:
+            self._process_document(document, warn)
+
+    def _process_document(self, document, warn=True):
         self.document = document
         self.nsmap = document.nsmap
         self.tns = None
-        self.spacer = spacer
         self.unsupported = set()
         self.process()
         if warn is True and len(self.unsupported) > 0:
@@ -152,6 +170,7 @@ during the parse: \n%s" % "\n".join(self.unsupported)
         #    for child in element.getchildren():
         #        typelist += self.extract_complex(child, inuse=True)
         #    return typelist
+        #print 'complexType', element, element.get('name'), parent
         if element.tag == ctype:
             name = element.get('name')
             if name is None:
@@ -162,6 +181,7 @@ during the parse: \n%s" % "\n".join(self.unsupported)
             #types with their array types in a second parse
             try:
                 children = element.xpath('./xs:sequence/xs:element', namespaces={'xs': schnamespace})
+                children.extend(element.xpath('./xs:choice/xs:element', namespaces={'xs': schnamespace}))
                 if len(children) == 1 and (children[0].get('maxOccurs') == 'unbounded' or 
                     children[0].get('maxOccurs') > 0):
                     child = children[0]
@@ -185,7 +205,7 @@ during the parse: \n%s" % "\n".join(self.unsupported)
             #been set so we re-call it here.
             ClassSerializerMeta.__init__(klass, name, ClassSerializer, {})
             return [(None, klass)]
-        elif element.tag == sequence or element.tag == all:
+        elif element.tag == sequence or element.tag == all or element.tag == choice:
             typelist = []
             for child in element.getchildren():
                 typelist += self.extract_complex(child, inuse=True)
@@ -195,7 +215,7 @@ during the parse: \n%s" % "\n".join(self.unsupported)
             #cope with nested ctypes
             if etype is None:
                 child = element.getchildren()[0]
-                typelist = self.extract_complex(child, inuse=True)
+                typelist = self.extract_complex(child, inuse=True, parent=element)
                 try:                
                     (typename, typevalue) = typelist[0]
                     return [(element.get('name'), typevalue)]
@@ -320,22 +340,26 @@ during the parse: \n%s" % "\n".join(self.unsupported)
         """ 
             Write out a python file mapping the parsed xmlschema
             to filename.
+        """
+        f = open(filename, 'w')
+        self.write_imports(f)
+        self.write_body(f)
+        f.close()
 
+    def write_body(self, f):
+        """
             Maintains a dictionary writedict which holds all written
             classes to prevent repeats.
         """
         writedict = {}
-        f = open(filename, 'w')
-        self.write_imports(f)
         for (k,v) in self.ctypes.items():
             self.write_class(writedict, v, f)
         self.write_elements(f)
-        f.close()
     
     def write_imports(self, f):
         """ write the header python imports to f """
         f.write('from soaplib.serializers.clazz import ClassSerializer\n')
-        f.write('from soaplib.serializers.primitive import String, DateTime, Integer, Boolean, Float, Array, Any\n')
+        f.write('from soaplib.serializers.primitive import String, DateTime, Integer, Boolean, Float, Array, Any, Repeating\n')
         f.write('from soaplib.serializers.binary import Attachment\n\n')
         
     def write_class(self, writedict, klass, f):
