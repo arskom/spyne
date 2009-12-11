@@ -66,14 +66,13 @@ class ClassSerializer(object):
     def to_xml(cls, value, name='retval', nsmap=ns):
         element = create_xml_element(
             nsmap.get(cls.get_namespace_id()) + name, nsmap)
-
+        
         for k, v in cls.soap_members.items():
             member_value = getattr(value, k, None)
 
             subvalue = getattr(value, k, None)
-            if subvalue is None:
-                v = Null
-
+            #if subvalue is None:
+            #    v = Null
             subelements = v.to_xml(subvalue, name=k, nsmap=nsmap)
             if type(subelements) != list:
                 subelements = [subelements]

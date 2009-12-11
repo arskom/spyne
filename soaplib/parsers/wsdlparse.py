@@ -23,7 +23,7 @@ from string import Template
 import urllib2 as ulib
 
 from soaplib.etimport import ElementTree
-from soaplib.serializers.primitive import Array, Repeating
+from soaplib.serializers.primitive import Array, Repeating, Optional
 from soaplib.serializers.clazz import ClassSerializer
 from soaplib.parsers.typeparse import TypeParser, schqname
 from soaplib.wsgi_soap import SimpleWSGISoapApp
@@ -335,6 +335,8 @@ during the parse: \n%s" % "\n".join(self.unsupported)
                         return (k, 'Array(%s)' % v.serializer.__name__, v)
                     elif v.__class__ == Repeating:
                         return (k, 'Repeating(%s)' % v.serializer.__name__, v)
+                    elif v.__class__ == Optional:
+                        return (k, 'Optional(%s)' % v.serializer.__name__, v)
                 except:
                     pass
                 return (k, v.__name__, v)

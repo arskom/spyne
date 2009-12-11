@@ -524,3 +524,34 @@ class Repeating(object):
     def add_to_schema(self, schema_dict, nsmap):
         raise Exception("The Repeating serializer is experimental and not "
             "supported for wsdl generation")
+
+class Optional(object):
+    def __init__(self, serializer, type_name=None, namespace_id='tns'):
+        self.serializer = serializer
+        self.namespace_id = namespace_id
+        if not type_name:
+            self.type_name = '%sOptional' % self.serializer.get_datatype()
+        else:
+            self.type_name = type_name
+
+    def to_xml(self, value, name='retval', nsmap=ns):
+        if value is None:
+            return []
+        return self.serializer.to_xml(value, name, nsmap)
+
+    def get_namespace_id(self):
+        return self.namespace_id
+
+    def from_xml(self, element):
+        if element is None:
+            return None
+        return self.serializer.from_xml(element)
+
+    def add_to_schema(self, schema_dict, nsmap):
+        raise Exception("The Optional serializer is experimental and not "
+            "supported for wsdl generation")
+
+    def get_datatype(self):
+        return self.serializer.get_datatype()
+
+

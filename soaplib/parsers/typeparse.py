@@ -23,7 +23,7 @@ import os.path as path
 
 from soaplib.etimport import ElementTree
 from soaplib.serializers.clazz import ClassSerializer, ClassSerializerMeta
-from soaplib.serializers.primitive import String, DateTime, Integer, Boolean, Float, Array, Any, Repeating
+from soaplib.serializers.primitive import String, DateTime, Integer, Boolean, Float, Array, Any, Repeating, Optional
 from soaplib.serializers.binary import Attachment
 
 schnamespace = 'http://www.w3.org/2001/XMLSchema'
@@ -205,12 +205,24 @@ during the parse: \n%s" % "\n".join(self.unsupported)
             #been set so we re-call it here.
             ClassSerializerMeta.__init__(klass, name, ClassSerializer, {})
             return [(None, klass)]
-        elif element.tag == sequence or element.tag == all or element.tag == choice:
+        elif element.tag == choice:
+            typelist = []
+            for child in element.getchildren():
+                for stype in self.extract_complex(child, inuse=True):
+                    print stype
+                    if isinstance(stype[1], Optional):
+                        typelist.append(stype)
+                    else:
+                        typelist.append((stype[0], Optional(stype[1])))
+            print typelist
+            return typelist
+        elif element.tag == sequence or element.tag == all:
             typelist = []
             for child in element.getchildren():
                 typelist += self.extract_complex(child, inuse=True)
             return typelist
         elif element.tag == scelement:
+            minoccurs = element.get('minOccurs')
             etype = element.get('type')
             #cope with nested ctypes
             if etype is None:
@@ -218,6 +230,8 @@ during the parse: \n%s" % "\n".join(self.unsupported)
                 typelist = self.extract_complex(child, inuse=True, parent=element)
                 try:                
                     (typename, typevalue) = typelist[0]
+                    if minoccurs == '0':
+                        typevalue = Optional(typevalue)
                     return [(element.get('name'), typevalue)]
                 except:
                     return []
@@ -232,12 +246,16 @@ during the parse: \n%s" % "\n".join(self.unsupported)
                     print "Exception: %s" % e
                     print "Could not get serializer for type: %s" % etype
                     return []
-            #check for array     
+            #check for array
+            
             maxoccurs = element.get('maxOccurs')
             if maxoccurs > 0 or maxoccurs == 'unbounded':
                 return [(element.get('name'), Repeating(serializer))]
             else:
-                return [(element.get('name'), serializer)]
+                if minoccurs == '0':
+                    return [(element.get('name'), Optional(serializer))]
+                else:
+                    return [(element.get('name'), serializer)]
         elif element.tag == scany:
             if element.get('name'):
                 return [(element.get('name'), Any)]
@@ -384,7 +402,7 @@ during the parse: \n%s" % "\n".join(self.unsupported)
             if  not mname.startswith('__')]:
             #special case to get types out of arrays/repeatings
             try:        
-                if subclass.__class__ == Array or subclass.__class__ == Repeating:
+                if subclass.__class__ in (Array, Repeating, Optional):
                     subclass = subclass.serializer
             except:
                 pass
@@ -428,6 +446,8 @@ during the parse: \n%s" % "\n".join(self.unsupported)
                     f.write("%s%s%s = Array(%s)\n" % (self.spacer, self.spacer, tname, tvalue.serializer.__name__))
                 elif tvalue.__class__ == Repeating:
                     f.write("%s%s%s = Repeating(%s)\n" % (self.spacer, self.spacer, tname, tvalue.serializer.__name__))
+                elif tvalue.__class__ == Optional:
+                    f.write("%s%s%s = Optional(%s)\n" % (self.spacer, self.spacer, tname, tvalue.serializer.__name__))
                 else:
                     f.write("%s%s%s = %s\n" % (self.spacer, self.spacer, tname, tvalue.__name__))
             except:
