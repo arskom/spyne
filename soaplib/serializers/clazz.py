@@ -57,10 +57,10 @@ class ClassSerializerMeta(type):
 class ClassSerializer(object):
     __metaclass__ = ClassSerializerMeta
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         cls = self.__class__
         for k, v in cls.soap_members.items():
-            setattr(self, k, None)
+            setattr(self, k, kwargs.get(k, None))
 
     @classmethod
     def to_xml(cls, value, name='retval', nsmap=ns):
