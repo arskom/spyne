@@ -101,6 +101,7 @@ def _element_to_float(element):
     f = element.text
     if f is None:
         return None
+    print type(f), f
     return float(f)
 
 
@@ -143,6 +144,13 @@ def _get_datatype(cls, typename, nsmap):
     if nsmap is not None:
         return nsmap.get(cls.get_namespace_id()) + typename
     return typename
+
+def nillable(func):
+    def wrapper(cls, value, *args, **kwargs):
+        if value is None:
+            return Null.to_xml(value, *args, **kwargs)
+        return func(cls, value, *args, **kwargs)
+    return wrapper
 
 class BasePrimitive(object):
     @classmethod
@@ -202,12 +210,15 @@ class Any(BasePrimitive):
 class String(BasePrimitive):
 
     @classmethod
+    @nillable
     def to_xml(cls, value, name='retval', nsmap=ns):
         e = _unicode_to_xml(value, name, cls, nsmap)
         return e
 
     @classmethod
     def from_xml(cls, element):
+        if element is None:
+            return None
         return _element_to_unicode(element)
 
     @classmethod
@@ -297,6 +308,7 @@ class Fault(Exception):
 class Integer(BasePrimitive):
 
     @classmethod
+    @nillable
     def to_xml(cls, value, name='retval', nsmap=ns):
         e = _generic_to_xml(str(value), name, cls, nsmap)
         return e
@@ -321,6 +333,7 @@ class Integer(BasePrimitive):
 class Double(BasePrimitive):
 
     @classmethod
+    @nillable
     def to_xml(cls, value, name='retval', nsmap=ns):
         e = _generic_to_xml(str(value), name, cls, nsmap)
         return e
@@ -345,6 +358,7 @@ class Double(BasePrimitive):
 class DateTime(BasePrimitive):
 
     @classmethod
+    @nillable
     def to_xml(cls, value, name='retval', nsmap=ns):
         if type(value) == datetime.datetime:
             value = value.isoformat('T')
@@ -371,6 +385,7 @@ class DateTime(BasePrimitive):
 class Float(BasePrimitive):
 
     @classmethod
+    @nillable
     def to_xml(cls, value, name='retval', nsmap=ns):
         e = _generic_to_xml(str(value), name, cls, nsmap)
         return e
@@ -392,7 +407,7 @@ class Float(BasePrimitive):
         pass
 
 
-class Null(BasePrimtive):
+class Null(BasePrimitive):
 
     @classmethod
     def to_xml(cls, value, name='retval', nsmap=ns):
@@ -420,14 +435,11 @@ class Null(BasePrimtive):
 class Boolean(BasePrimitive):
 
     @classmethod
+    @nillable
     def to_xml(cls, value, name='retval', nsmap=ns):
         # applied patch from Julius Volz
         #e = _generic_to_xml(str(value).lower(),name,cls.get_datatype(nsmap))
-        if value == None:
-            return Null.to_xml('', name, nsmap)
-        else:
-            e = _generic_to_xml(str(bool(value)).lower(), name, cls, nsmap)
-        return e
+        return _generic_to_xml(str(bool(value)).lower(), name, cls, nsmap)
 
     @classmethod
     def from_xml(cls, element):
@@ -451,7 +463,7 @@ class Boolean(BasePrimitive):
         pass
 
 
-class Array(BasePrimtive):
+class Array(BasePrimitive):
 
     def __init__(self, serializer, type_name=None, namespace_id='tns'):
         self.serializer = serializer

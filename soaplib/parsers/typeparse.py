@@ -399,11 +399,8 @@ during the parse: \n%s" % "\n".join(self.unsupported)
         for subclass in [mvalue for (mname, mvalue) in inspect.getmembers(klass.types) 
             if  not mname.startswith('__')]:
             #special case to get types out of arrays/repeatings
-            try:        
-                if subclass.__class__ in (Array, Repeating, Optional):
-                    subclass = subclass.serializer
-            except:
-                pass
+            if hasattr(subclass, 'serializer'):
+                subclass = subclass.serializer
             self.write_class(writedict, subclass, f)
         self.print_class(name, klass, f)
         writedict[name] = 1
