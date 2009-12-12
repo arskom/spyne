@@ -89,7 +89,7 @@ class Message(object):
                 if c.tag.split('}')[-1] == name:
                     nodes.append(c)
             return nodes
-
+        
         for name, serializer in self.params:
             childnodes = findall(name)
             if len(childnodes) == 0:

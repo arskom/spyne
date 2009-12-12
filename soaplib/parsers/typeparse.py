@@ -209,12 +209,10 @@ during the parse: \n%s" % "\n".join(self.unsupported)
             typelist = []
             for child in element.getchildren():
                 for stype in self.extract_complex(child, inuse=True):
-                    print stype
                     if isinstance(stype[1], Optional):
                         typelist.append(stype)
                     else:
                         typelist.append((stype[0], Optional(stype[1])))
-            print typelist
             return typelist
         elif element.tag == sequence or element.tag == all:
             typelist = []

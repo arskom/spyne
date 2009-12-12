@@ -204,6 +204,9 @@ class SimpleSoapClient(object):
 
         payload, headers = from_soap(data)
         results = self.descriptor.outMessage.from_xml(payload)
+        #TODO: consider supporting multiple return types in a better manner
+        if len(results) > 1:
+            return results
         return results[0]
 
 
