@@ -144,8 +144,32 @@ def _get_datatype(cls, typename, nsmap):
         return nsmap.get(cls.get_namespace_id()) + typename
     return typename
 
+class BasePrimitive(object):
+    @classmethod
+    def to_xml(cls, value, name='retval', nsmap=ns):
+        raise NotImplemented
 
-class Any:
+    @classmethod
+    def from_xml(cls, element):
+        raise NotImplemented
+
+    @classmethod
+    def get_datatype(cls, nsmap=None):
+        raise NotImplemented
+
+    @classmethod
+    def get_namespace_id(cls):
+        raise NotImplemented
+
+    @classmethod
+    def add_to_schema(cls, added_params, nsmap):
+        raise NotImplemented
+    
+    @classmethod
+    def print_class(cls):
+        return cls.__name__
+
+class Any(BasePrimitive):
 
     @classmethod
     def to_xml(cls, value, name='retval', nsmap=ns):
@@ -175,7 +199,7 @@ class Any:
         pass
 
 
-class String:
+class String(BasePrimitive):
 
     @classmethod
     def to_xml(cls, value, name='retval', nsmap=ns):
@@ -270,7 +294,7 @@ class Fault(Exception):
         return io.getvalue()
 
 
-class Integer:
+class Integer(BasePrimitive):
 
     @classmethod
     def to_xml(cls, value, name='retval', nsmap=ns):
@@ -294,7 +318,7 @@ class Integer:
         pass
 
 
-class Double:
+class Double(BasePrimitive):
 
     @classmethod
     def to_xml(cls, value, name='retval', nsmap=ns):
@@ -318,7 +342,7 @@ class Double:
         pass
 
 
-class DateTime:
+class DateTime(BasePrimitive):
 
     @classmethod
     def to_xml(cls, value, name='retval', nsmap=ns):
@@ -344,7 +368,7 @@ class DateTime:
         pass
 
 
-class Float:
+class Float(BasePrimitive):
 
     @classmethod
     def to_xml(cls, value, name='retval', nsmap=ns):
@@ -368,7 +392,7 @@ class Float:
         pass
 
 
-class Null:
+class Null(BasePrimtive):
 
     @classmethod
     def to_xml(cls, value, name='retval', nsmap=ns):
@@ -393,7 +417,7 @@ class Null:
         pass
 
 
-class Boolean:
+class Boolean(BasePrimitive):
 
     @classmethod
     def to_xml(cls, value, name='retval', nsmap=ns):
@@ -427,7 +451,7 @@ class Boolean:
         pass
 
 
-class Array:
+class Array(BasePrimtive):
 
     def __init__(self, serializer, type_name=None, namespace_id='tns'):
         self.serializer = serializer
@@ -494,8 +518,11 @@ class Array:
             schema_dict['%sElement' % (self.get_datatype(nsmap))] = typeElement
             schema_dict[self.get_datatype(nsmap)] = complexTypeNode
 
+    def print_class(self):
+        return "%s(%s)" % (cls.__name__, self.serializer.print_class())
 
-class Repeating(object):
+
+class Repeating(BasePrimitive):
 
     def __init__(self, serializer, type_name=None, namespace_id='tns'):
         self.serializer = serializer
@@ -525,7 +552,10 @@ class Repeating(object):
         raise Exception("The Repeating serializer is experimental and not "
             "supported for wsdl generation")
 
-class Optional(object):
+    def print_class(self):
+        return "%s(%s)" % (cls.__name__, self.serializer.print_class())
+
+class Optional(BasePrimitive):
     def __init__(self, serializer, type_name=None, namespace_id='tns'):
         self.serializer = serializer
         self.namespace_id = namespace_id
@@ -553,5 +583,8 @@ class Optional(object):
 
     def get_datatype(self):
         return self.serializer.get_datatype()
+
+    def print_class(self):
+        return "%s(%s)" % (cls.__name__, self.serializer.print_class())
 
 

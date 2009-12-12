@@ -438,18 +438,7 @@ during the parse: \n%s" % "\n".join(self.unsupported)
         if len(types) == 0:
             f.write("%s%spass\n" % (self.spacer, self.spacer))
         for tname, tvalue in types:
-            #special case for arrays
-            try:
-                if tvalue.__class__ == Array:
-                    f.write("%s%s%s = Array(%s)\n" % (self.spacer, self.spacer, tname, tvalue.serializer.__name__))
-                elif tvalue.__class__ == Repeating:
-                    f.write("%s%s%s = Repeating(%s)\n" % (self.spacer, self.spacer, tname, tvalue.serializer.__name__))
-                elif tvalue.__class__ == Optional:
-                    f.write("%s%s%s = Optional(%s)\n" % (self.spacer, self.spacer, tname, tvalue.serializer.__name__))
-                else:
-                    f.write("%s%s%s = %s\n" % (self.spacer, self.spacer, tname, tvalue.__name__))
-            except:
-                f.write("%s%s%s = %s\n" % (self.spacer, self.spacer, tname, tvalue.__name__))
+            f.write("%s%s%s = %s\n" % (self.spacer, self.spacer, tname, tvalue.print_class()))
         f.write("\n")
     
     def write_elements(self, f):
