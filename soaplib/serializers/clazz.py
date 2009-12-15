@@ -71,14 +71,13 @@ class ClassSerializer(object):
         # attribute. Otherwise .NET will reject the message.
         xmlns = nsmap.nsmap[cls.get_namespace_id()]
         element.set('xmlns', xmlns)
-
+        
         for k, v in cls.soap_members.items():
             member_value = getattr(value, k, None)
 
             subvalue = getattr(value, k, None)
-            if subvalue is None:
-                v = Null
-
+            #if subvalue is None:
+            #    v = Null
             subelements = v.to_xml(subvalue, name=k, nsmap=nsmap)
             if type(subelements) != list:
                 subelements = [subelements]

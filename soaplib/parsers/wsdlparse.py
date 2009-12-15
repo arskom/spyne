@@ -23,7 +23,6 @@ from string import Template
 import urllib2 as ulib
 
 from soaplib.etimport import ElementTree
-from soaplib.serializers.primitive import Array, Repeating
 from soaplib.serializers.clazz import ClassSerializer
 from soaplib.parsers.typeparse import TypeParser, schqname
 from soaplib.wsgi_soap import SimpleWSGISoapApp
@@ -329,15 +328,7 @@ during the parse: \n%s" % "\n".join(self.unsupported)
             self.unsupported.add('Multiple return values')
         for (k,v) in outtype.types.__dict__.items():
             if not k.startswith('_'):
-                #detect array
-                try:
-                    if v.__class__ == Array:
-                        return (k, 'Array(%s)' % v.serializer.__name__, v)
-                    elif v.__class__ == Repeating:
-                        return (k, 'Repeating(%s)' % v.serializer.__name__, v)
-                except:
-                    pass
-                return (k, v.__name__, v)
+                return (k, v.print_class(), v)
         #if we get here we have no types
         raise Exception('No types found in %s' % k)
 
@@ -363,12 +354,7 @@ during the parse: \n%s" % "\n".join(self.unsupported)
             return the name of type t, needed as arrays need 
             special treatment.
         """
-        if getattr(t, '__class__', None) == Array:
-            return 'Array(%s)' % t.serializer.__name__
-        elif getattr(t, '__class__', None) == Repeating:
-            return 'Repeating(%s)' % t.serializer.__name__
-        else:
-            return t.__name__
+        return t.print_class()
 
     def writeservice(self, servcls, f):
         """
