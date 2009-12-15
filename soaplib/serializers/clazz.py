@@ -67,15 +67,10 @@ class ClassSerializer(object):
         element = create_xml_element(
             nsmap.get(cls.get_namespace_id()) + name, nsmap)
 
-        ####################################################
-        # RJBALEST: Added 31-Oct-09
-        # Because namespaces are not getting output,
-        # explicitly set xmlns as an attribute.
-        # Otherwise .NET will reject the message.
-        #
+        # Because namespaces are not getting output, explicitly set xmlns as an
+        # attribute. Otherwise .NET will reject the message.
         xmlns = nsmap.nsmap[cls.get_namespace_id()]
         element.set('xmlns', xmlns)
-        ####################################################
 
         for k, v in cls.soap_members.items():
             member_value = getattr(value, k, None)

@@ -204,12 +204,7 @@ def make_soap_envelope(message, tns='', header_elements=None):
             headerElement.append(h)
     body = create_xml_subelement(envelope, nsmap.get('SOAP-ENV') + 'Body')
 
-    ######################################
-    # RJBALEST: 
-    # Get the default namespace 
-    #
-    xmlns = message.nsmap[None]
-    ######################################
+    xmlns = message.nsmap[None] # Get the default namespace 
 
     if type(message) == list:
         for m in message:
@@ -217,13 +212,9 @@ def make_soap_envelope(message, tns='', header_elements=None):
     elif message != None:
         body.append(message)
 
-    ######################################
-    # RJBALEST:
-    # Set xmlns as a normal attribute so it doesn't 
-    # get cleanup up and is guaranteed to remain.
-    #
-    message.set('xmlns', xmlns)                                                                                   
-    ######################################
+    # Set xmlns as a normal attribute so it doesn't get cleaned up and is 
+    # guaranteed to remain.
+    message.set('xmlns', xmlns)
 
     return envelope
 
