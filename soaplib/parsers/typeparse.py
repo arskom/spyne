@@ -245,7 +245,6 @@ during the parse: \n%s" % "\n".join(self.unsupported)
                     print "Could not get serializer for type: %s" % etype
                     return []
             #check for array
-            
             maxoccurs = element.get('maxOccurs')
             if maxoccurs > 0 or maxoccurs == 'unbounded':
                 return [(element.get('name'), Repeating(serializer))]

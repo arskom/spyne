@@ -66,6 +66,11 @@ class ClassSerializer(object):
     def to_xml(cls, value, name='retval', nsmap=ns):
         element = create_xml_element(
             nsmap.get(cls.get_namespace_id()) + name, nsmap)
+
+        # Because namespaces are not getting output, explicitly set xmlns as an
+        # attribute. Otherwise .NET will reject the message.
+        xmlns = nsmap.nsmap[cls.get_namespace_id()]
+        element.set('xmlns', xmlns)
         
         for k, v in cls.soap_members.items():
             member_value = getattr(value, k, None)
