@@ -48,6 +48,8 @@ class ClassSerializerMeta(type):
 
             elif not k.startswith('__'):
                 cls.soap_members[k] = v
+                if v == Array:
+                    raise Exception("%s.%s is an array of what?" % ( cls.__name__, k ))
 
         # COM bridge attributes that are otherwise harmless
         cls._public_methods_ = []
