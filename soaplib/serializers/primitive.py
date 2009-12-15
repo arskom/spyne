@@ -531,7 +531,7 @@ class Array(BasePrimitive):
             schema_dict[self.get_datatype(nsmap)] = complexTypeNode
 
     def print_class(self):
-        return "%s(%s)" % (cls.__name__, self.serializer.print_class())
+        return "%s(%s)" % (type(self).__name__, self.serializer.print_class())
 
 
 class Repeating(BasePrimitive):
@@ -565,7 +565,7 @@ class Repeating(BasePrimitive):
             "supported for wsdl generation")
 
     def print_class(self):
-        return "%s(%s)" % (cls.__name__, self.serializer.print_class())
+        return "%s(%s)" % (type(self).__name__, self.serializer.print_class())
 
 class Optional(BasePrimitive):
     def __init__(self, serializer, type_name=None, namespace_id='tns'):
@@ -597,6 +597,6 @@ class Optional(BasePrimitive):
         return self.serializer.get_datatype()
 
     def print_class(self):
-        return "%s(%s)" % (cls.__name__, self.serializer.print_class())
+        return "%s(%s)" % (type(self).__name__, self.serializer.print_class())
 
 

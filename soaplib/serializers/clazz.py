@@ -139,3 +139,8 @@ class ClassSerializer(object):
                 "%s:%s" % (cls.get_namespace_id(), cls.__name__))
             schemaDict[cls.get_datatype(nsmap)+'Complex'] = schema_node
             schemaDict[cls.get_datatype(nsmap)] = typeElement
+
+    @classmethod
+    def print_class(cls):
+        return cls.__name__
+
