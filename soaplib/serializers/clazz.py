@@ -64,6 +64,15 @@ class ClassSerializer(object):
         for k, v in cls.soap_members.items():
             setattr(self, k, kwargs.get(k, None))
 
+        self.NO_EXTENSION=True
+
+    def __setattr__(self,k,v):
+        if not hasattr(self,k) and getattr(self, 'NO_EXTENSION', False):
+            raise Exception("'%s' object is not extendable at this point in code.\nInvalid member '%s'\n" % (self.__class__.__name__,k))
+        else:
+            object.__setattr__(self,k,v)
+
+
     @classmethod
     def to_xml(cls, value, name='retval', nsmap=ns):
         element = create_xml_element(
