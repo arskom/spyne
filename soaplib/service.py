@@ -32,7 +32,6 @@ def soapmethod(*params, **kparams):
     '''
 
     def explain(f):
-
         def explainMethod(*args, **kwargs):
             if '_soap_descriptor' in kwargs:
                 name = f.func_name
@@ -73,23 +72,24 @@ def soapmethod(*params, **kparams):
                 # output message  
                 out_params = []
                 if _returns:
-                  if isinstance(_returns, (list, tuple)):
-                      returns = zip(_outVariableNames, _returns)
-                      for key, value in returns:
-                          out_params.append((key, value))
-                  else:
-                      out_params = [(_outVariableNames, _returns)]
+                    if isinstance(_returns, (list, tuple)):
+                        returns = zip(_outVariableNames, _returns)
+                        for key, value in returns:
+                            out_params.append((key, value))
+                    else:
+                        out_params = [(_outVariableNames, _returns)]
                 else:
                     out_params = []
                 out_message = Message(_outMessage, out_params, ns=ns,
                     typ=_outMessage)
                 doc = getattr(f, '__doc__')
-                
+
                 descriptor = MethodDescriptor(f.func_name, _soapAction,
                     in_message, out_message, doc, _isCallback, _isAsync,
                     _mtom)
                 return descriptor
             return f(*args, **kwargs)
+
         explainMethod.__doc__ = f.__doc__
         explainMethod.func_name = f.func_name
         explainMethod._is_soap_method = True

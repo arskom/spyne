@@ -48,6 +48,8 @@ class ClassSerializerMeta(type):
 
             elif not k.startswith('__'):
                 cls.soap_members[k] = v
+                if v == Array:
+                    raise Exception("%s.%s is an array of what?" % ( cls.__name__, k ))
 
         # COM bridge attributes that are otherwise harmless
         cls._public_methods_ = []
@@ -62,6 +64,15 @@ class ClassSerializer(object):
         for k, v in cls.soap_members.items():
             setattr(self, k, kwargs.get(k, None))
 
+        self.NO_EXTENSION=True
+
+    def __setattr__(self,k,v):
+        if not hasattr(self,k) and getattr(self, 'NO_EXTENSION', False):
+            raise Exception("'%s' object is not extendable at this point in code.\nInvalid member '%s'\n" % (self.__class__.__name__,k))
+        else:
+            object.__setattr__(self,k,v)
+
+
     @classmethod
     def to_xml(cls, value, name='retval', nsmap=ns):
         element = create_xml_element(
@@ -74,8 +85,6 @@ class ClassSerializer(object):
             element.set('xmlns', xmlns)
         
         for k, v in cls.soap_members.items():
-            member_value = getattr(value, k, None)
-
             subvalue = getattr(value, k, None)
             #if subvalue is None:
             #    v = Null
@@ -121,7 +130,7 @@ class ClassSerializer(object):
 
             schema_node = create_xml_element(
                 nsmap.get("xs") + "complexType", nsmap)
-            schema_node.set('name', cls.__name__)
+            schema_node.set('name',cls.get_datatype())
 
             sequence_node = create_xml_subelement(
                 schema_node, nsmap.get('xs') + 'sequence')
@@ -135,9 +144,9 @@ class ClassSerializer(object):
 
             typeElement = create_xml_element(
                 nsmap.get('xs') + 'element', nsmap)
-            typeElement.set('name', cls.__name__)
+            typeElement.set('name',cls.get_datatype())
             typeElement.set('type',
-                "%s:%s" % (cls.get_namespace_id(), cls.__name__))
+                "%s:%s" % (cls.get_namespace_id(),cls.get_datatype()))
             schemaDict[cls.get_datatype(nsmap)+'Complex'] = schema_node
             schemaDict[cls.get_datatype(nsmap)] = typeElement
 

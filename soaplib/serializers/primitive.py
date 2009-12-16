@@ -101,7 +101,6 @@ def _element_to_float(element):
     f = element.text
     if f is None:
         return None
-    print type(f), f
     return float(f)
 
 
@@ -180,6 +179,7 @@ class BasePrimitive(object):
 class Any(BasePrimitive):
 
     @classmethod
+    @nillable
     def to_xml(cls, value, name='retval', nsmap=ns):
         if type(value) == str:
             value = ElementTree.fromstring(value)
