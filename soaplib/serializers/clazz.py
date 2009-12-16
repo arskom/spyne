@@ -84,8 +84,6 @@ class ClassSerializer(object):
         element.set('xmlns', xmlns)
         
         for k, v in cls.soap_members.items():
-            member_value = getattr(value, k, None)
-
             subvalue = getattr(value, k, None)
             #if subvalue is None:
             #    v = Null
@@ -131,7 +129,7 @@ class ClassSerializer(object):
 
             schema_node = create_xml_element(
                 nsmap.get("xs") + "complexType", nsmap)
-            schema_node.set('name', cls.__name__)
+            schema_node.set('name',cls.get_datatype())
 
             sequence_node = create_xml_subelement(
                 schema_node, nsmap.get('xs') + 'sequence')
@@ -145,8 +143,8 @@ class ClassSerializer(object):
 
             typeElement = create_xml_element(
                 nsmap.get('xs') + 'element', nsmap)
-            typeElement.set('name', cls.__name__)
+            typeElement.set('name',cls.get_datatype())
             typeElement.set('type',
-                "%s:%s" % (cls.get_namespace_id(), cls.__name__))
+                "%s:%s" % (cls.get_namespace_id(),cls.get_datatype()))
             schemaDict[cls.get_datatype(nsmap)+'Complex'] = schema_node
             schemaDict[cls.get_datatype(nsmap)] = typeElement
