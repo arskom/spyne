@@ -52,8 +52,6 @@ class Message(object):
 
     def to_xml(self, *data):
         if len(self.params):
-            if len(self.params) >= 2:
-              data = data[0]
             if len(data) != len(self.params):
                 raise Exception("Parameter number mismatch expected [%s] "
                     "got [%s] for response %s"%(len(self.params), len(data), self.name))
