@@ -69,7 +69,7 @@ class ClassSerializer(object):
 
         # Because namespaces are not getting output, explicitly set xmlns as an
         # attribute. Otherwise .NET will reject the message.
-        if None not in nsmap.nsmap:
+        if None not in nsmap.nsmap and cls.get_namespace_id() in nsmap.nsmap:
             xmlns = nsmap.nsmap[cls.get_namespace_id()]
             element.set('xmlns', xmlns)
         
