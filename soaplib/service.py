@@ -72,12 +72,12 @@ def soapmethod(*params, **kparams):
                 # output message  
                 out_params = []
                 if _returns:
-                  if isinstance(_returns, (list, tuple)):
-                      returns = zip(_outVariableNames, _returns)
-                      for key, value in returns:
-                          out_params.append((key, value))
-                  else:
-                      out_params = [(_outVariableNames, _returns)]
+                    if isinstance(_returns, (list, tuple)):
+                        returns = zip(_outVariableNames, _returns)
+                        for key, value in returns:
+                            out_params.append((key, value))
+                    else:
+                        out_params = [(_outVariableNames, _returns)]
                 else:
                     out_params = []
                 out_message = Message(_outMessage, out_params, ns=ns,
