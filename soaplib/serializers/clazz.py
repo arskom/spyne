@@ -19,7 +19,7 @@
 import inspect
 from soaplib.xml import ns, create_xml_element, create_xml_subelement
 
-from primitive import Null
+from primitive import Null, Array
 
 
 class ClassSerializerMeta(type):
