@@ -121,7 +121,7 @@ class test(unittest.TestCase):
 
     def test_override_param_names(self):
         for n in ['self', 'import', 'return', 'from']:
-            self.assertTrue(n in self._wsdl)
+            self.assertTrue(n in self._wsdl, '"%s" not in self._wsdl' % n)
 
 
 def test_suite():
