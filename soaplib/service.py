@@ -353,10 +353,9 @@ class SoapServiceBase(object):
             inMessage = create_xml_element('message', nsmap)
             inMessage.set('name', method.inMessage.typ)
 
-            if len(method.inMessage.params) > 0:
-                inPart = create_xml_subelement(inMessage, 'part')
-                inPart.set('name', method.inMessage.name)
-                inPart.set('element', 'tns:' + method.inMessage.typ)
+            inPart = create_xml_subelement(inMessage, 'part')
+            inPart.set('name', method.inMessage.name)
+            inPart.set('element', 'tns:' + method.inMessage.typ)
 
             messages.append(inMessage)
 
