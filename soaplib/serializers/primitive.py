@@ -340,7 +340,7 @@ class Double(BasePrimitive):
 
     @classmethod
     def from_xml(cls, element):
-        return _element_to_integer(element)
+        return _element_to_float(element)
 
     @classmethod
     def get_datatype(cls, nsmap=None):
