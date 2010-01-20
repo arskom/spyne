@@ -10,3 +10,4 @@ MANIFEST
 dist
 build
 soaplib_lxml.egg-info
+soaplib.egg-info
