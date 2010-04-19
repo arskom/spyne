@@ -114,12 +114,12 @@ class Message(object):
                     "%s:%s" % (serializer.get_namespace_id(),
                         serializer.get_datatype()))
 
-        element = create_xml_element(nsmap.get('xs') + 'element', nsmap)
-        element.set('name', self.typ)
-        element.set('type', '%s:%s' % ('tns', self.typ))
+            element = create_xml_element(nsmap.get('xs') + 'element', nsmap)
+            element.set('name', self.typ)
+            element.set('type', '%s:%s' % ('tns', self.typ))
 
-        schemaDict[self.typ] = complexType
-        schemaDict[self.typ + 'Element'] = element
+            schemaDict[self.typ] = complexType
+            schemaDict[self.typ + 'Element'] = element
 
 
 class MethodDescriptor:
