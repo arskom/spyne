@@ -260,7 +260,7 @@ class SoapServiceBase(object):
             opInput.set('name', method.inMessage.typ)
             opInput.set('message', 'tns:%s' % method.inMessage.typ)
 
-            if (method.outMessage.params != None and
+            if (len(method.outMessage.params) > 0 and
                 not method.isCallback and not method.isAsync):
                 opOutput = create_xml_subelement(operation, 'output')
                 opOutput.set('name', method.outMessage.typ)
