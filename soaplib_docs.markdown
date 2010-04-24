@@ -183,7 +183,7 @@ an extremely simple example using complex, nested data.
 			global user_database
 			global userid_seq
 			user.userid = userid_seq
-			userid_seq = user_seq+1
+			userid_seq = userid_seq + 1
 			user_database[user.userid] = user
 			return user.userid
 
@@ -210,7 +210,7 @@ an extremely simple example using complex, nested data.
 	if __name__=='__main__':
 		from wsgiref.simple_server import make_server
 		server = make_server('localhost', 7789, UserManager())
-		server.start()
+		server.serve_forever()
 
 Jumping into what's new:
 
