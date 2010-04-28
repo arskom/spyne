@@ -135,6 +135,16 @@ class SoapServiceBase(object):
         '''
         return self._soap_methods
 
+    def get_method(self, name):
+        '''Returns the metod descriptor based on element name or soap action'''
+        for method in self.methods():
+            if '{%s}%s' % (self.__tns__, method.inMessage.name) == name:
+                return method
+        for method in self.methods():
+            if method.soapAction == name:
+                return method
+        raise Exception('Method "%s" not found' % name)        
+
     def _hasCallbacks(self):
         '''Determines if this object has callback methods or not'''
         for method in self.methods():
