@@ -11,6 +11,17 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   pages/helloworld
+   pages/client
+   pages/usermanager
+   pages/serializers
+   pages/binaryfiles
+   pages/message_api
+   pages/hooks
+   pages/apache_axis
+   pages/indices_and_tables
+
+
 Indices and tables
 ==================
 
