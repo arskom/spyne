@@ -12,18 +12,17 @@ Primitives
 The basic primitive types are String, Integer, DateTime, Null, Float, Boolean.
 These are some of the most basic blocks within soaplib. ::
 
->>> from soaplib.serializers.primitive import *        
->>> import cElementTree as et
->>> element = String.to_xml('abcd','nodename')
->>> print et.tostring(element)
-<nodename xsi:type="xs:string">abcd</nodename>
->>> print String.from_xml(element)
-abcd
->>> String.get_datatype()
-'string'
->>> String.get_datatype(True)
-'xs:string'
->>> 
+    >>> from soaplib.serializers.primitive import *        
+    >>> import cElementTree as et
+    >>> element = String.to_xml('abcd','nodename')
+    >>> print et.tostring(element)
+    <nodename xsi:type="xs:string">abcd</nodename>
+    >>> print String.from_xml(element)
+    abcd
+    >>> String.get_datatype()
+    'string'
+    >>> String.get_datatype(True)
+    'xs:string'
 
 Collections
 -----------
