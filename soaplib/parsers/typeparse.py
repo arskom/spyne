@@ -23,7 +23,7 @@ import os.path as path
 
 from soaplib.etimport import ElementTree
 from soaplib.serializers.clazz import ClassSerializer, ClassSerializerMeta
-from soaplib.serializers.primitive import String, DateTime, Integer, Boolean, Float, Array, Any, Repeating, Optional, Decimal
+from soaplib.serializers.primitive import String, DateTime, Date, Integer, Boolean, Float, Array, Any, Repeating, Optional, Decimal
 from soaplib.serializers.binary import Attachment
 
 schnamespace = 'http://www.w3.org/2001/XMLSchema'
@@ -40,11 +40,12 @@ scelement = '%selement' % schqname
 scattr = '%sattribute' % schqname
 scany = '%sany' % schqname
 
-builtinobj = [String, DateTime, Integer, Decimal, Boolean, Float, Array, Any, Attachment]
+builtinobj = [String, DateTime, Date, Integer, Decimal, Boolean, Float, Array, Any, Attachment]
 
 serializers = {
     'String': String,
     'DateTime': DateTime,
+    'Date': Date,
     'Integer': Integer,
     'Decimal': Decimal,
     'Boolean': Boolean,
@@ -58,7 +59,8 @@ builtins = {
     '%sstring' % schqname: String,
     '%sint' % schqname: Integer,
     '%sdecimal' % schqname: Decimal,
-    '%sdateTime' % schqname: DateTime,    
+    '%sdateTime' % schqname: DateTime,
+    '%sdate' % schqname: Date,
     '%sfloat' % schqname: Float,
     '%sboolean' % schqname: Boolean,
     '%sbase64Binary' % schqname: Attachment,
@@ -376,7 +378,7 @@ during the parse: \n%s" % "\n".join(self.unsupported)
     def write_imports(self, f):
         """ write the header python imports to f """
         f.write('from soaplib.serializers.clazz import ClassSerializer\n')
-        f.write('from soaplib.serializers.primitive import String, DateTime, Integer, Decimal, Boolean, Float, Array, Any, Repeating\n')
+        f.write('from soaplib.serializers.primitive import String, DateTime, Date, Integer, Decimal, Boolean, Float, Array, Any, Repeating\n')
         f.write('from soaplib.serializers.binary import Attachment\n\n')
         
     def write_class(self, writedict, klass, f):

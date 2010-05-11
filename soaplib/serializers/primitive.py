@@ -33,6 +33,7 @@ from soaplib.etimport import ElementTree
 
 string_encoding = 'utf-8'
 
+_date_pattern = (r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})')
 _datetime_pattern = (r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})[T ]'
     r'(?P<hr>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})(?P<fractional_sec>\.\d+)?')
 _local_re = re.compile(_datetime_pattern)
@@ -75,6 +76,24 @@ def _element_to_datetime(element):
     if match:
         return parse_date(match)
     raise Exception("DateTime [%s] not in known format" % text)
+
+def _element_to_date(element):
+    # expect ISO formatted dates
+    #
+    text = element.text
+    if not text:
+        return None
+    
+    def parse_date(date_match):
+        fields = date_match.groupdict(0)
+        year, month, day = [int(fields[x]) for x in
+           ("year", "month", "day")]
+        return datetime.date(year, month, day)
+    
+    match = _date_pattern.match(text)
+    if match:
+        return parse_date(match)
+    raise Exception("Date [%s] not in known format" % text)
 
 
 def _element_to_string(element):
@@ -405,6 +424,33 @@ class DateTime(BasePrimitive):
     def add_to_schema(cls, added_params, nsmap):
         pass
 
+class Date(BasePrimitive):
+
+    @classmethod
+    @nillable
+    def to_xml(cls, value, name='retval', nsmap=ns):
+        if isinstance(value, datetime.datetime):
+            pass #CONSIDER: should we automatically convert to date?
+        if isinstance(value, datetime.date):
+            value = value.isoformat()
+        e = _generic_to_xml(value, name, cls, nsmap)
+        return e
+
+    @classmethod
+    def from_xml(cls, element):
+        return _element_to_date(element)
+
+    @classmethod
+    def get_datatype(cls, nsmap=None):
+        return _get_datatype(cls, 'date', nsmap)
+
+    @classmethod
+    def get_namespace_id(cls):
+        return 'xs'
+
+    @classmethod
+    def add_to_schema(cls, added_params, nsmap):
+        pass
 
 class Float(BasePrimitive):
 
