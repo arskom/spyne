@@ -21,6 +21,7 @@ import datetime
 import pytz
 from pytz import FixedOffset
 import re
+import decimal
 
 from soaplib.xml import ns, create_xml_element, create_xml_subelement
 from soaplib.etimport import ElementTree
@@ -329,6 +330,29 @@ class Integer(BasePrimitive):
     def add_to_schema(cls, added_params, nsmap):
         pass
 
+class Decimal(BasePrimitive):
+
+    @classmethod
+    @nillable
+    def to_xml(cls, value, name='retval', nsmap=ns):
+        e = _generic_to_xml(str(value), name, cls, nsmap)
+        return e
+
+    @classmethod
+    def from_xml(cls, element):
+        return decimal.Decimal(_element_to_unicode(element))
+
+    @classmethod
+    def get_datatype(cls, nsmap=None):
+        return _get_datatype(cls, 'decimal', nsmap)
+
+    @classmethod
+    def get_namespace_id(cls):
+        return 'xs'
+
+    @classmethod
+    def add_to_schema(cls, added_params, nsmap):
+        pass
 
 class Double(BasePrimitive):
 
