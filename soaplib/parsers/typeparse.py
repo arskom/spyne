@@ -376,7 +376,7 @@ during the parse: \n%s" % "\n".join(self.unsupported)
     def write_imports(self, f):
         """ write the header python imports to f """
         f.write('from soaplib.serializers.clazz import ClassSerializer\n')
-        f.write('from soaplib.serializers.primitive import String, DateTime, Integer, Boolean, Float, Array, Any, Repeating\n')
+        f.write('from soaplib.serializers.primitive import String, DateTime, Integer, Decimal, Boolean, Float, Array, Any, Repeating\n')
         f.write('from soaplib.serializers.binary import Attachment\n\n')
         
     def write_class(self, writedict, klass, f):
