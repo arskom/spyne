@@ -19,9 +19,9 @@
 import base64
 import cStringIO
 from soaplib.xml import ns, create_xml_element
+from primitive import BasePrimitive
 
-
-class Attachment(object):
+class Attachment(BasePrimitive):
 
     def __init__(self, data=None, fileName=None):
         self.data = data

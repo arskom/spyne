@@ -208,11 +208,11 @@ during the parse: \n%s" % "\n".join(self.unsupported)
         elif element.tag == choice:
             typelist = []
             for child in element.getchildren():
-                for stype in self.extract_complex(child, inuse=True):
-                    if isinstance(stype[1], Optional):
-                        typelist.append(stype)
+                for complex_stype in self.extract_complex(child, inuse=True):
+                    if isinstance(complex_stype[1], Optional):
+                        typelist.append(complex_stype)
                     else:
-                        typelist.append((stype[0], Optional(stype[1])))
+                        typelist.append((complex_stype[0], Optional(complex_stype[1])))
             return typelist
         elif element.tag == sequence or element.tag == all:
             typelist = []
