@@ -267,7 +267,7 @@ class SoapServiceBase(object):
             opInput.set('name', method.inMessage.typ)
             opInput.set('message', 'tns:%s' % method.inMessage.typ)
 
-            if (method.outMessage.params != None and
+            if (len(method.outMessage.params) > 0 and
                 not method.isCallback and not method.isAsync):
                 opOutput = create_xml_subelement(operation, 'output')
                 opOutput.set('name', method.outMessage.typ)
@@ -359,13 +359,14 @@ class SoapServiceBase(object):
 
             messages.append(inMessage)
 
-            # making out part
-            outMessage = create_xml_element('message', nsmap)
-            outMessage.set('name', method.outMessage.typ)
-            outPart = create_xml_subelement(outMessage, 'part')
-            outPart.set('name', method.outMessage.name)
-            outPart.set('element', 'tns:' + method.outMessage.typ)
-            messages.append(outMessage)
+            # making out part only if necessary
+            if len(method.outMessage.params) > 0:
+                outMessage = create_xml_element('message', nsmap)
+                outMessage.set('name', method.outMessage.typ)
+                outPart = create_xml_subelement(outMessage, 'part')
+                outPart.set('name', method.outMessage.name)
+                outPart.set('element', 'tns:' + method.outMessage.typ)
+                messages.append(outMessage)
 
         for message in messages:
             root.append(message)
@@ -413,7 +414,7 @@ class SoapServiceBase(object):
             soapBody = create_xml_subelement(input, nsmap.get('soap') + 'body')
             soapBody.set('use', 'literal')
 
-            if (method.outMessage.params != None and
+            if (len(method.outMessage.params) > 0 and
                 not method.isAsync and not method.isCallback):
                 output = create_xml_subelement(operation, 'output')
                 output.set('name', method.outMessage.typ)

@@ -122,16 +122,9 @@ def reconstruct_url(environ):
     return url
 
 def check_pyversion(*minversion):
-    """
-    Returns true if python version is
-    at least >= given version (as a 3-tuple)
-    """
     import sys
     pyver = sys.version_info[:3]
-    if pyver[0] != minversion[0]: return pyver[0] > minversion[0]
-    if pyver[1] != minversion[1]: return pyver[1] > minversion[1]
-    return pyver[2] >= minversion[2]
-
+    return pyver >= minversion
 
 ###################################################################
 # Deprecated Functionality
