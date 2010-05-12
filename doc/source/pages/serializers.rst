@@ -41,7 +41,6 @@ type. For mixed typing or more dynamic data, use the Any type. ::
     <myarray xmlns=""><string xmlns="" xsi:type="xs:string">a</string><string xmlns="" xsi:type="xs:string">b</string><string xmlns="" xsi:type="xs:string">c</string><string xmlns="" xsi:type="xs:string">d</string></myarray>
     >>> print array_serializer.from_xml(element)
     ['a', 'b', 'c', 'd']
-    >>>
 
 Class
 -----
