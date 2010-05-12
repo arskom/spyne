@@ -22,7 +22,8 @@ Declaring a Soaplib Service
             
     if __name__=='__main__':
         from cherrypy._cpwsgiserver import CherryPyWSGIServer
-        # this example uses CherryPy2.2, use cherrypy.wsgiserver.CherryPyWSGIServer for CherryPy 3.0
+        # this example uses CherryPy2.2, 
+        # use cherrypy.wsgiserver.CherryPyWSGIServer for CherryPy 3.0
         server = CherryPyWSGIServer(('localhost',7789),HelloWorldService())
         server.start()
 
