@@ -1,12 +1,38 @@
 # All files to globally ignore
+
+#python cruft
 *.pyc
 *.pyo
 *$py.class
+*.egg
+*.egg-info
+.noseids
+*prof*
+pip-log.txt
 *.swp
 *.patch
 *#
-*~
 MANIFEST
 dist
 build
 soaplib_lxml.egg-info
+
+# Mac cruft
+.DS_Store
+
+#emacs cruft
+*~
+*#*
+*.pyc
+*flymake.py
+.ropeproject
+
+# wing cruft
+*.wpr
+
+#virtualenv cruft
+bin
+lib
+include
+develop-eggs
+.installed.cfg
