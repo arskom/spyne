@@ -29,21 +29,6 @@ from threading import local
 
 request = local()
 
-_exceptions = False
-_exception_logger = None
-
-_debug = False
-_debug_logger = None
-
-###################################################################
-# Logging / Debugging Utilities                                   #
-# replace with python logger?                                     #
-###################################################################
-
-
-def _dump(e): # util?
-    print e
-
 def reset_request():
     '''
     This method clears the data stored in the threadlocal
