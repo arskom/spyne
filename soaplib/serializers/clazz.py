@@ -18,9 +18,7 @@
 
 import inspect
 from soaplib.xml import ns, create_xml_element, create_xml_subelement
-
-from primitive import Null, Array
-
+from soaplib.serializers.primitive import BasePrimitive, Array
 
 class ClassSerializerMeta(type):
     '''
@@ -35,9 +33,8 @@ class ClassSerializerMeta(type):
         assumes that all attributes assigned to this class  are internal
         serializers for this class
         '''
-        if not hasattr(cls, 'types'):
-            return
-        types = cls.types
+
+        types = cls
         members = dict(inspect.getmembers(types))
         cls.soap_members = {}
         cls.namespace = None
@@ -47,18 +44,37 @@ class ClassSerializerMeta(type):
                 cls.namespace=v
 
             elif not k.startswith('__'):
-                cls.soap_members[k] = v
-                if v == Array:
-                    raise Exception("%s.%s is an array of what?" % ( cls.__name__, k ))
+                subc=False
+                try:
+                    if issubclass(v,BasePrimitive):
+                        subc = True
+                except TypeError:
+                    pass
+
+                try:
+                    if issubclass(v,ClassSerializer):
+                        subc = True
+                except NameError:
+                    pass
+                except TypeError:
+                    pass
+
+                if isinstance(v,BasePrimitive):
+                    subc = True
+                elif isinstance(v,cls):
+                    subc = True
+
+                if subc:
+                    cls.soap_members[k] = v
+                    if v == Array:
+                        raise Exception("%s.%s is an array of what?" % (cls.__name__, k))
 
         # COM bridge attributes that are otherwise harmless
         cls._public_methods_ = []
         cls._public_attrs_ = cls.soap_members.keys()
 
 
-class ClassSerializer(object):
-    __metaclass__ = ClassSerializerMeta
-
+class ClassSerializerBase(object):
     def __init__(self, **kwargs):
         cls = self.__class__
         for k, v in cls.soap_members.items():
@@ -68,7 +84,9 @@ class ClassSerializer(object):
 
     def __setattr__(self,k,v):
         if not hasattr(self,k) and getattr(self, 'NO_EXTENSION', False):
-            raise Exception("'%s' object is not extendable at this point in code.\nInvalid member '%s'\n" % (self.__class__.__name__,k))
+            raise Exception("'%s' object is not extendable at this point in code."
+                                    "\nInvalid member '%s'\n" %
+                                                  (self.__class__.__name__, k) )
         else:
             object.__setattr__(self,k,v)
 
@@ -113,8 +131,8 @@ class ClassSerializer(object):
     @classmethod
     def get_datatype(cls, nsmap=None):
         if nsmap is not None:
-            return nsmap.get(cls.get_namespace_id()) + cls.__name__
-        return cls.__name__
+            return nsmap.get(cls.get_namespace_id()) + name
+        return name
 
     @classmethod
     def get_namespace_id(cls):
@@ -148,6 +166,8 @@ class ClassSerializer(object):
             schemaDict[cls.get_datatype(nsmap)+'Complex'] = schema_node
             schemaDict[cls.get_datatype(nsmap)] = typeElement
 
+class ClassSerializer(ClassSerializerBase):
+    __metaclass__ = ClassSerializerMeta
     @classmethod
     def print_class(cls):
         return cls.__name__
