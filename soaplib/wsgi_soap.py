@@ -128,7 +128,7 @@ class WSGISoapApp(object):
         '''
         pass
 
-    def onResults(self, environ, py_results, soap_results):
+    def onResults(self, environ, py_results, soap_results, http_response_headers):
         '''
         Called AFTER the service implementing the functionality is called
         @param the wsgi environment
@@ -280,7 +280,8 @@ class WSGISoapApp(object):
                 results = descriptor.outMessage.to_xml(*[retval])
 
             # implementation hook
-            self.onResults(environ, results, retval)
+            headers = {'Content-Type': 'text/xml'}
+            self.onResults(environ, results, retval, headers)
 
             # grab any headers that were included in the request
             response_headers = None
@@ -291,7 +292,6 @@ class WSGISoapApp(object):
             envelope = make_soap_envelope(results, tns=service.__tns__,
                 header_elements=response_headers)
             resp = ElementTree.tostring(envelope, encoding=string_encoding)
-            headers = {'Content-Type': 'text/xml'}
 
             if descriptor.mtom:
                 headers, resp = apply_mtom(headers, resp,
