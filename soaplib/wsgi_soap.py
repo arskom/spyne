@@ -27,12 +27,6 @@ from soaplib.serializers.primitive import string_encoding, Fault
 from soaplib.etimport import ElementTree
 from threading import local
 
-try:
-    import tidy
-    have_tidy = True
-except ImportError,e:
-    have_tidy = False
-
 request = local()
 
 _exceptions = False
@@ -241,11 +235,7 @@ class WSGISoapApp(object):
             methodname = environ.get("HTTP_SOAPACTION")
 
             debug('\033[92m'+ methodname +'\033[0m')
-            if have_tidy:
-                debug(tidy.parseString(body, output_xml=1, input_xml=1,
-                                         add_xml_decl=1, indent=1, tidy_mark=0))
-            else:
-                debug(body)
+            debug(body)
 
             body = collapse_swa(environ.get("CONTENT_TYPE"), body)
 
@@ -316,11 +306,7 @@ class WSGISoapApp(object):
             self.onReturn(environ, resp)
 
             debug('\033[91m'+ "Response" + '\033[0m')
-            if have_tidy:
-                debug(tidy.parseString(resp, output_xml=1, input_xml=1,
-                                         add_xml_decl=1, indent=1, tidy_mark=0))
-            else:
-                debug(resp)
+            debug(resp)
 
             # return the serialized results
             reset_request()
@@ -341,11 +327,8 @@ class WSGISoapApp(object):
 
             faultStr = ElementTree.tostring(fault, encoding=string_encoding)
 
-            if have_tidy:
-                exceptions(tidy.parseString(faultStr, output_xml=1, input_xml=1,
+            exceptions(tidy.parseString(faultStr, output_xml=1, input_xml=1,
                                          add_xml_decl=1, indent=1, tidy_mark=0))
-            else:
-                exceptions(faultStr)
 
             self.onException(environ, e, faultStr)
             reset_request()
@@ -374,11 +357,7 @@ class WSGISoapApp(object):
 
             faultStr = ElementTree.tostring(make_soap_fault(faultstring,
                 faultcode, detail), encoding=string_encoding)
-            if have_tidy:
-                exceptions(tidy.parseString(faultStr, output_xml=1, input_xml=1,
-                                         add_xml_decl=1, indent=1, tidy_mark=0))
-            else:
-                exceptions(faultStr)
+            exceptions(faultStr)
 
             self.onException(environ, e, faultStr)
             reset_request()
