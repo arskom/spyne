@@ -86,8 +86,6 @@ class ClassSerializer(object):
         
         for k, v in cls.soap_members.items():
             subvalue = getattr(value, k, None)
-            #if subvalue is None:
-            #    v = Null
             subelements = v.to_xml(subvalue, name=k, nsmap=nsmap)
             if type(subelements) != list:
                 subelements = [subelements]
