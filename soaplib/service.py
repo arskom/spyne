@@ -62,14 +62,13 @@ def soapmethod(*params, **kparams):
                                   param_names[i]), params[i])
                                  for i in range(0, len(params))]
                 except IndexError, e:
-                    print f.func_name
                     raise Exception("%s has parameter numbers mismatching" %
                         f.func_name)
 
                 in_message = Message(_inMessage, in_params, ns=ns,
                     typ=_inMessage)
 
-                # output message  
+                # output message
                 out_params = []
                 if _returns:
                     if isinstance(_returns, (list, tuple)):
@@ -364,9 +363,10 @@ class SoapServiceBase(object):
             inMessage = create_xml_element('message', nsmap)
             inMessage.set('name', method.inMessage.typ)
 
-            inPart = create_xml_subelement(inMessage, 'part')
-            inPart.set('name', method.inMessage.name)
-            inPart.set('element', 'tns:' + method.inMessage.typ)
+            if len(method.inMessage.params) > 0:
+                inPart = create_xml_subelement(inMessage, 'part')
+                inPart.set('name', method.inMessage.name)
+                inPart.set('element', 'tns:' + method.inMessage.typ)
 
             messages.append(inMessage)
 
