@@ -327,8 +327,7 @@ class WSGISoapApp(object):
 
             faultStr = ElementTree.tostring(fault, encoding=string_encoding)
 
-            exceptions(tidy.parseString(faultStr, output_xml=1, input_xml=1,
-                                         add_xml_decl=1, indent=1, tidy_mark=0))
+            exceptions(faultStr)
 
             self.onException(environ, e, faultStr)
             reset_request()
