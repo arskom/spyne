@@ -16,8 +16,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import cStringIO
 import traceback
+import logging
 
 from soaplib.soap import (make_soap_envelope, make_soap_fault, from_soap,
     collapse_swa, apply_mtom)
@@ -44,45 +44,16 @@ _debug_logger = None
 def _dump(e): # util?
     print e
 
-
-def log_exceptions(on, out=_dump):
-    global _exceptions
-    global _exception_logger
-
-    _exceptions=on
-    _exception_logger=out
-
-
-def log_debug(on, out=_dump):
-    global _debug
-    global _debug_logger
-    _debug=on
-    _debug_logger=out
-
-
-def debug(msg):
-    global _debug
-    global _debug_logger
-    if _debug:
-        _debug_logger(msg)
-
-
-def exceptions(msg):
-    global _exceptions
-    global _exception_logger
-    if _exceptions:
-        _exception_logger(msg)
-
-
 def reset_request():
     '''
     This method clears the data stored in the threadlocal
     request object
     '''
+    global request
+    
     request.environ = None
     request.header = None
     request.additional = {}
-
 
 class WSGISoapApp(object):
     '''
@@ -208,13 +179,12 @@ class WSGISoapApp(object):
                 except Exception, e:
 
                     # implementation hook
-                    buffer = cStringIO.StringIO()
-                    traceback.print_exc(file=buffer)
-                    buffer.seek(0)
-                    stacktrace = str(buffer.read())
+                    logging.error(traceback.format_exc())
+
                     faultStr = ElementTree.tostring(make_soap_fault(str(e),
-                        detail=stacktrace), encoding=string_encoding)
-                    exceptions(faultStr)
+                        detail=""), encoding=string_encoding)
+                    logging.debug(faultStr)
+
                     self.onWsdlException(environ, e, faultStr)
                     # initiate the response
                     start_response('500', [('Content-type', 'text/xml'),
@@ -234,20 +204,17 @@ class WSGISoapApp(object):
 
             methodname = environ.get("HTTP_SOAPACTION")
 
-            debug('\033[92m'+ methodname +'\033[0m')
-            debug(body)
+            if not (methodname is None):
+                logging.debug('\033[92m'+ methodname +'\033[0m')
+            logging.debug(body)
 
             body = collapse_swa(environ.get("CONTENT_TYPE"), body)
 
             # deserialize the body of the message
-            try:
-                payload, header = from_soap(body)
-            except SyntaxError, e:
-                payload = None
-                header = None
+            payload, header = from_soap(body)
 
             if payload is not None and len(payload) > 0:
-                methodname = payload.tag.split('}')[-1]
+                methodname = payload.tag
             else:
                 # check HTTP_SOAPACTION
                 methodname = environ.get("HTTP_SOAPACTION")
@@ -266,6 +233,7 @@ class WSGISoapApp(object):
                 params = descriptor.inMessage.from_xml(*[payload])
             else:
                 params = ()
+
             # implementation hook
             self.onMethodExec(environ, body, params,
                 descriptor.inMessage.params)
@@ -305,8 +273,8 @@ class WSGISoapApp(object):
 
             self.onReturn(environ, resp)
 
-            debug('\033[91m'+ "Response" + '\033[0m')
-            debug(resp)
+            logging.debug('\033[91m'+ "Response" + '\033[0m')
+            logging.debug(ElementTree.tostring(envelope,pretty_print=True))
 
             # return the serialized results
             reset_request()
@@ -327,7 +295,7 @@ class WSGISoapApp(object):
 
             faultStr = ElementTree.tostring(fault, encoding=string_encoding)
 
-            exceptions(faultStr)
+            logging.error(faultStr)
 
             self.onException(environ, e, faultStr)
             reset_request()
@@ -342,21 +310,26 @@ class WSGISoapApp(object):
             # back to the caller
 
             # capture stacktrace
-            buffer = cStringIO.StringIO()
-            traceback.print_exc(file=buffer)
-            buffer.seek(0)
-            stacktrace = str(buffer.read())
+            stacktrace=traceback.format_exc()
+
+            # psycopg specific
+            if hasattr(e,'statement') and hasattr(e,'params'):
+                e.statement=""
+                e.params={}
 
             faultstring = str(e)
+
             if methodname:
-                faultcode = faultCode = '%sFault' % methodname
+                faultcode = '%sFault' % methodname
             else:
                 faultcode = 'Server'
-            detail = stacktrace
+
+            detail = ' '
+            logging.error(stacktrace)
 
             faultStr = ElementTree.tostring(make_soap_fault(faultstring,
                 faultcode, detail), encoding=string_encoding)
-            exceptions(faultStr)
+            logging.debug(faultStr)
 
             self.onException(environ, e, faultStr)
             reset_request()
