@@ -26,6 +26,7 @@ import decimal
 from soaplib.xml import ns, create_xml_element, create_xml_subelement
 from soaplib.etimport import ElementTree
 
+from lxml import etree
 
 #######################################################
 # Utility Functions
@@ -40,7 +41,6 @@ _local_re = re.compile(_datetime_pattern)
 _utc_re = re.compile(_datetime_pattern + 'Z')
 _offset_re = re.compile(_datetime_pattern +
     r'(?P<tz_hr>[+-]\d{2}):(?P<tz_min>\d{2})')
-
 
 def _is_null_element(element):
     for k in element.keys():
@@ -103,7 +103,6 @@ def _element_to_string(element):
     else:
         return None
 
-
 def _element_to_integer(element):
     i = element.text
     if not i:
@@ -116,13 +115,11 @@ def _element_to_integer(element):
         except:
             return None
 
-
 def _element_to_float(element):
     f = element.text
     if f is None:
         return None
     return float(f)
-
 
 def _element_to_unicode(element):
     u = element.text
@@ -133,7 +130,6 @@ def _element_to_unicode(element):
         return u.encode(string_encoding)
     except:
         return u
-
 
 def _unicode_to_xml(value, name, cls, nsmap):
     retval = create_xml_element(name, nsmap)
@@ -148,7 +144,6 @@ def _unicode_to_xml(value, name, cls, nsmap):
         "%s:%s" % (cls.get_namespace_id(), cls.get_datatype()))
     return retval
 
-
 def _generic_to_xml(value, name, cls, nsmap):
     retval = create_xml_element(name, nsmap)
     if value:
@@ -157,7 +152,6 @@ def _generic_to_xml(value, name, cls, nsmap):
         nsmap.get('xsi') + 'type',
         "%s:%s" % (cls.get_namespace_id(), cls.get_datatype()))
     return retval
-
 
 def _get_datatype(cls, typename, nsmap):
     if nsmap is not None:
@@ -191,20 +185,21 @@ class BasePrimitive(object):
     @classmethod
     def add_to_schema(cls, added_params, nsmap):
         raise NotImplemented
-    
+
     @classmethod
     def print_class(cls):
         return cls.__name__
 
 class Any(BasePrimitive):
-
     @classmethod
     @nillable
     def to_xml(cls, value, name='retval', nsmap=ns):
-        if type(value) == str:
+        if isinstance(value,str) or isinstance(value,unicode):
             value = ElementTree.fromstring(value)
+
         e = create_xml_element(name, nsmap)
         e.append(value)
+
         return e
 
     @classmethod
@@ -226,6 +221,79 @@ class Any(BasePrimitive):
     def add_to_schema(cls, added_params, nsmap):
         pass
 
+def _dict_to_etree(d,nsmap):
+    """the dict values are either dicts or iterables"""
+
+    retval = []
+    for k,v in d.items():
+        if v is None:
+            retval.append(create_xml_element(k,nsmap))
+        else:
+            if isinstance(v,dict):
+                retval.append(create_xml_element(_dict_to_etree(v),nsmap))
+
+            else:
+                for e in v:
+                    retval.append(create_xml_element(str(e),nsmap))
+
+    return retval
+
+def _etree_to_dict(elt,with_root=True):
+    r = {}
+
+    if with_root:
+        retval = {elt.tag: r}
+    else:
+        retval = r
+
+    for e in elt:
+        if (e.text is None) or e.text.isspace():
+            r[e.tag] = _etree_to_dict(e,False)
+
+        else:
+            if e.tag in r:
+                if not (e.text is None):
+                    r[e.tag].append(e.text)
+            else:
+                if e.text is None:
+                    r[e.tag] = []
+                else:
+                    r[e.tag] = [e.text]
+
+    if with_root:
+        if len(r) == 0:
+            retval[elt.tag] = []
+        return retval
+    else:
+        return retval if len(r) > 0 else []
+
+class AnyAsDict(BasePrimitive):
+    @classmethod
+    @nillable
+    def to_xml(cls, value, name='retval', nsmap=ns):
+        e = create_xml_element(name, nsmap)
+        e.extend(_dict_to_xml(value, nsmap))
+
+        return e
+
+    @classmethod
+    def from_xml(cls, element):
+        children = element.getchildren()
+        if children:
+            return _etree_to_dict(element.getchildren()[0])
+        return None
+
+    @classmethod
+    def get_datatype(cls, nsmap=None):
+        return _get_datatype(cls, 'anyType', nsmap)
+
+    @classmethod
+    def get_namespace_id(cls):
+        return 'xs'
+
+    @classmethod
+    def add_to_schema(cls, added_params, nsmap):
+        pass
 
 class String(BasePrimitive):
 
@@ -253,9 +321,7 @@ class String(BasePrimitive):
     def add_to_schema(cls, added_params, nsmap):
         pass
 
-
 class Fault(Exception):
-
     def __init__(self, faultcode = 'Server', faultstring = None,
                  detail = None, name = 'ExceptionFault'):
         self.faultcode = faultcode
@@ -350,7 +416,6 @@ class Integer(BasePrimitive):
         pass
 
 class Decimal(BasePrimitive):
-
     @classmethod
     @nillable
     def to_xml(cls, value, name='retval', nsmap=ns):
@@ -374,7 +439,6 @@ class Decimal(BasePrimitive):
         pass
 
 class Double(BasePrimitive):
-
     @classmethod
     @nillable
     def to_xml(cls, value, name='retval', nsmap=ns):
@@ -397,9 +461,8 @@ class Double(BasePrimitive):
     def add_to_schema(cls, added_params, nsmap):
         pass
 
-
 class DateTime(BasePrimitive):
-
+    
     @classmethod
     @nillable
     def to_xml(cls, value, name='retval', nsmap=ns):
@@ -425,7 +488,6 @@ class DateTime(BasePrimitive):
         pass
 
 class Date(BasePrimitive):
-
     @classmethod
     @nillable
     def to_xml(cls, value, name='retval', nsmap=ns):
@@ -453,7 +515,6 @@ class Date(BasePrimitive):
         pass
 
 class Float(BasePrimitive):
-
     @classmethod
     @nillable
     def to_xml(cls, value, name='retval', nsmap=ns):
@@ -476,9 +537,7 @@ class Float(BasePrimitive):
     def add_to_schema(cls, added_params, nsmap):
         pass
 
-
 class Null(BasePrimitive):
-
     @classmethod
     def to_xml(cls, value, name='retval', nsmap=ns):
         element = create_xml_element(name, nsmap)
@@ -501,9 +560,7 @@ class Null(BasePrimitive):
     def add_to_schema(cls, added_params, nsmap):
         pass
 
-
 class Boolean(BasePrimitive):
-
     @classmethod
     @nillable
     def to_xml(cls, value, name='retval', nsmap=ns):
@@ -531,7 +588,6 @@ class Boolean(BasePrimitive):
     @classmethod
     def add_to_schema(cls, added_params, nsmap):
         pass
-
 
 class Array(BasePrimitive):
 
@@ -605,7 +661,6 @@ class Array(BasePrimitive):
 
 
 class Repeating(BasePrimitive):
-
     def __init__(self, serializer, type_name=None, namespace_id='tns'):
         self.serializer = serializer
         self.namespace_id = namespace_id
