@@ -57,8 +57,7 @@ Features
 Requirements
 ------------
 * Python 2.4 or greater (tested mainly on 2.4.3)
-* [ElementTree](http://effbot.org/downloads/elementtree-1.2.6-20050316.tar.gz) (available through easy_install)
-* [cElementTree](http://effbot.org/downloads/cElementTree-1.0.5-20051216.tar.gz) (available through easy_install)
+* [lxml](http://codespeak.net/lxml/) (available through easy_install)
 * a WSGI-compliant web server (CherryPy, WSGIUtils, Flup, etc.)
 * [pytz](http://pytz.sourceforge.net/)(available through easy_install)
 * [easy_install](http://peak.telecommunity.com/dist/ez_setup.py) (optional)
