@@ -247,7 +247,7 @@ class WSGISoapApp(object):
                 header = None
 
             if payload is not None and len(payload) > 0:
-                methodname = payload.tag.split('}')[-1]
+                methodname = payload.tag
             else:
                 # check HTTP_SOAPACTION
                 methodname = environ.get("HTTP_SOAPACTION")
