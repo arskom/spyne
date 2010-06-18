@@ -90,6 +90,10 @@ class TestService(SoapServiceBase):
     def f(self, _from, _self, _import):
         return '1234'
 
+class TestMultipleReturnService(SoapServiceBase):
+    @soapmethod(String, _returns=(String, String, String))
+    def multi(self, s):
+        return s, 'a', 'b'
 
 class OverrideNamespaceService(SimpleWSGISoapApp):
     __tns__ = "http://someservice.com/override"
@@ -121,8 +125,19 @@ class test(unittest.TestCase):
 
     def test_override_param_names(self):
         for n in ['self', 'import', 'return', 'from']:
-            self.assertTrue(n in self._wsdl)
+            self.assertTrue(n in self._wsdl, '"%s" not in self._wsdl' % n)
 
+    def test_multiple_return(self):
+        service = TestMultipleReturnService()
+        service.wsdl('')
+        message = service.methods()[0].outMessage
+        self.assertEquals(len(message.params), 3)
+        sent_xml = message.to_xml('a','b','c')
+        response_data = message.from_xml(sent_xml)
+        self.assertEquals(len(response_data), 3)
+        self.assertEqual(response_data[0], 'a')
+        self.assertEqual(response_data[1], 'b')
+        self.assertEqual(response_data[2], 'c')
 
 def test_suite():
     loader = unittest.TestLoader()
@@ -130,3 +145,4 @@ def test_suite():
 
 if __name__== '__main__':
     unittest.TextTestRunner().run(test_suite())
+

@@ -32,7 +32,6 @@ def soapmethod(*params, **kparams):
     '''
 
     def explain(f):
-
         def explainMethod(*args, **kwargs):
             if '_soap_descriptor' in kwargs:
                 name = f.func_name
@@ -44,8 +43,8 @@ def soapmethod(*params, **kparams):
                 _inMessage = kparams.get('_inMessage', name)
                 _inVariableNames = kparams.get('_inVariableNames', {})
                 _outMessage = kparams.get('_outMessage', '%sResponse' % name)
-                _outVariableName = kparams.get('_outVariableName',
-                    '%sResult' % name)
+                _outVariableNames = kparams.get('_outVariableNames',
+                    kparams.get('_outVariableName', '%sResult' % name))
                 _mtom = kparams.get('_mtom', False)
 
                 ns = None
@@ -70,19 +69,27 @@ def soapmethod(*params, **kparams):
                 in_message = Message(_inMessage, in_params, ns=ns,
                     typ=_inMessage)
 
-                # output message
+                # output message  
+                out_params = []
                 if _returns:
-                    out_params = [(_outVariableName, _returns)]
+                    if isinstance(_returns, (list, tuple)):
+                        returns = zip(_outVariableNames, _returns)
+                        for key, value in returns:
+                            out_params.append((key, value))
+                    else:
+                        out_params = [(_outVariableNames, _returns)]
                 else:
                     out_params = []
                 out_message = Message(_outMessage, out_params, ns=ns,
                     typ=_outMessage)
                 doc = getattr(f, '__doc__')
+
                 descriptor = MethodDescriptor(f.func_name, _soapAction,
                     in_message, out_message, doc, _isCallback, _isAsync,
                     _mtom)
                 return descriptor
             return f(*args, **kwargs)
+
         explainMethod.__doc__ = f.__doc__
         explainMethod.func_name = f.func_name
         explainMethod._is_soap_method = True
@@ -134,6 +141,16 @@ class SoapServiceBase(object):
         @return method descriptor list
         '''
         return self._soap_methods
+
+    def get_method(self, name):
+        '''Returns the metod descriptor based on element name or soap action'''
+        for method in self.methods():
+            if '{%s}%s' % (self.__tns__, method.inMessage.name) == name:
+                return method
+        for method in self.methods():
+            if method.soapAction == name:
+                return method
+        raise Exception('Method "%s" not found' % name)        
 
     def _hasCallbacks(self):
         '''Determines if this object has callback methods or not'''
@@ -197,6 +214,7 @@ class SoapServiceBase(object):
             wsaSchemaNode = create_xml_subelement(types, "schema")
             wsaSchemaNode.set("targetNamespace", tns+'Callback')
             wsaSchemaNode.set("xmlns", "http://www.w3.org/2001/XMLSchema")
+            wsaSchemaNode.set("elementFormDefault", "qualified")
 
             importNode = create_xml_subelement(wsaSchemaNode, "import")
             importNode.set("namespace",
@@ -325,6 +343,7 @@ class SoapServiceBase(object):
         schemaNode = create_xml_subelement(types, "schema")
         schemaNode.set("targetNamespace", self.__tns__)
         schemaNode.set("xmlns", "http://www.w3.org/2001/XMLSchema")
+        schemaNode.set("elementFormDefault", "qualified")
 
         for xxx, node in schema_entries.items():
             schemaNode.append(node)
@@ -345,10 +364,9 @@ class SoapServiceBase(object):
             inMessage = create_xml_element('message', nsmap)
             inMessage.set('name', method.inMessage.typ)
 
-            if len(method.inMessage.params) > 0:
-                inPart = create_xml_subelement(inMessage, 'part')
-                inPart.set('name', method.inMessage.name)
-                inPart.set('element', 'tns:' + method.inMessage.typ)
+            inPart = create_xml_subelement(inMessage, 'part')
+            inPart.set('name', method.inMessage.name)
+            inPart.set('element', 'tns:' + method.inMessage.typ)
 
             messages.append(inMessage)
 

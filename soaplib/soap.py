@@ -54,7 +54,7 @@ class Message(object):
         if len(self.params):
             if len(data) != len(self.params):
                 raise Exception("Parameter number mismatch expected [%s] "
-                    "got [%s]"%(len(self.params), len(data)))
+                    "got [%s] for response %s"%(len(self.params), len(data), self.name))
 
         nsmap = NamespaceLookup(self.ns)
         element = create_xml_element(self.name, nsmap, self.ns)
@@ -89,7 +89,7 @@ class Message(object):
                 if c.tag.split('}')[-1] == name:
                     nodes.append(c)
             return nodes
-
+        
         for name, serializer in self.params:
             childnodes = findall(name)
             if len(childnodes) == 0:
@@ -144,7 +144,7 @@ def from_soap(xml_string):
     '''
     Parses the xml string into the header and payload
     '''
-    root, xmlids = ElementTree.XMLID(xml_string)
+    root, xmlids = ElementTree.XMLID(xml_string.encode()) 
     if xmlids:
         resolve_hrefs(root, xmlids)
     body = None
@@ -201,11 +201,13 @@ def make_soap_envelope(message, tns='', header_elements=None):
         for h in header_elements:
             headerElement.append(h)
     body = create_xml_subelement(envelope, nsmap.get('SOAP-ENV') + 'Body')
+
     if type(message) == list:
         for m in message:
             body.append(m)
     elif message != None:
         body.append(message)
+
     return envelope
 
 

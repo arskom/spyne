@@ -16,6 +16,7 @@ MANIFEST
 dist
 build
 soaplib_lxml.egg-info
+soaplib.egg-info
 
 # Mac cruft
 .DS_Store

@@ -23,13 +23,14 @@ import os.path as path
 
 from soaplib.etimport import ElementTree
 from soaplib.serializers.clazz import ClassSerializer, ClassSerializerMeta
-from soaplib.serializers.primitive import String, DateTime, Integer, Boolean, Float, Array, Any, Repeating
+from soaplib.serializers.primitive import String, DateTime, Date, Integer, Boolean, Float, Array, Any, Repeating, Optional, Decimal
 from soaplib.serializers.binary import Attachment
 
 schnamespace = 'http://www.w3.org/2001/XMLSchema'
 schqname = '{%s}' % schnamespace
 
 sequence = '%ssequence' % schqname
+choice = '%schoice' % schqname
 all = '%sall' % schqname
 ctype = '%scomplexType' % schqname
 ccontent = '%scomplexContent' % schqname
@@ -39,12 +40,14 @@ scelement = '%selement' % schqname
 scattr = '%sattribute' % schqname
 scany = '%sany' % schqname
 
-builtinobj = [String, DateTime, Integer, Boolean, Float, Array, Any, Attachment]
+builtinobj = [String, DateTime, Date, Integer, Decimal, Boolean, Float, Array, Any, Attachment]
 
 serializers = {
     'String': String,
     'DateTime': DateTime,
+    'Date': Date,
     'Integer': Integer,
+    'Decimal': Decimal,
     'Boolean': Boolean,
     'Float': Float,
     'Array': Array,
@@ -55,7 +58,9 @@ serializers = {
 builtins = {
     '%sstring' % schqname: String,
     '%sint' % schqname: Integer,
-    '%sdateTime' % schqname: DateTime,    
+    '%sdecimal' % schqname: Decimal,
+    '%sdateTime' % schqname: DateTime,
+    '%sdate' % schqname: Date,
     '%sfloat' % schqname: Float,
     '%sboolean' % schqname: Boolean,
     '%sbase64Binary' % schqname: Attachment,
@@ -65,6 +70,19 @@ class ElementType(object):
     def __init__(self, name, type):
         self.name = name
         self.type = type
+
+class HierDict(dict):
+    def __init__(self, parent=None, **kwargs):
+        self._parent = parent
+        super(HierDict, self).__init__(**kwargs)
+
+    def __getitem__(self, name):
+        try:
+            return super(HierDict,self).__getitem__(name)
+        except KeyError, e:
+            if self._parent is None:
+                raise
+            return self._parent[name]
 
 class TypeParser(object):
     """
@@ -76,7 +94,7 @@ class TypeParser(object):
         a warning about unsupported types that are encountered
         during  the parse.
     """
-    def __init__(self, document=None, spacer='    ', warn=True):
+    def __init__(self, document=None, spacer='    ', warn=True, global_ctypes={}, global_elements={}):
         """
             SPACER should move
             init TypeParser
@@ -84,13 +102,17 @@ class TypeParser(object):
             to the root of the xml schema to parse.
         """
         #global catalogue stores all types
-        self.ctypes = {}
+        self.ctypes = HierDict(global_ctypes)
         #global catalogue stores all elements
-        self.elements = {}
+        self.elements = HierDict(global_elements)
+        self.spacer = spacer
+        if document is not None:
+            self._process_document(document, warn)
+
+    def _process_document(self, document, warn=True):
         self.document = document
         self.nsmap = document.nsmap
         self.tns = None
-        self.spacer = spacer
         self.unsupported = set()
         self.process()
         if warn is True and len(self.unsupported) > 0:
@@ -152,6 +174,7 @@ during the parse: \n%s" % "\n".join(self.unsupported)
         #    for child in element.getchildren():
         #        typelist += self.extract_complex(child, inuse=True)
         #    return typelist
+        #print 'complexType', element, element.get('name'), parent
         if element.tag == ctype:
             name = element.get('name')
             if name is None:
@@ -162,6 +185,7 @@ during the parse: \n%s" % "\n".join(self.unsupported)
             #types with their array types in a second parse
             try:
                 children = element.xpath('./xs:sequence/xs:element', namespaces={'xs': schnamespace})
+                children.extend(element.xpath('./xs:choice/xs:element', namespaces={'xs': schnamespace}))
                 if len(children) == 1 and (children[0].get('maxOccurs') == 'unbounded' or 
                     children[0].get('maxOccurs') > 0):
                     child = children[0]
@@ -185,19 +209,31 @@ during the parse: \n%s" % "\n".join(self.unsupported)
             #been set so we re-call it here.
             ClassSerializerMeta.__init__(klass, name, ClassSerializer, {})
             return [(None, klass)]
+        elif element.tag == choice:
+            typelist = []
+            for child in element.getchildren():
+                for complex_stype in self.extract_complex(child, inuse=True):
+                    if isinstance(complex_stype[1], Optional):
+                        typelist.append(complex_stype)
+                    else:
+                        typelist.append((complex_stype[0], Optional(complex_stype[1])))
+            return typelist
         elif element.tag == sequence or element.tag == all:
             typelist = []
             for child in element.getchildren():
                 typelist += self.extract_complex(child, inuse=True)
             return typelist
         elif element.tag == scelement:
+            minoccurs = element.get('minOccurs')
             etype = element.get('type')
             #cope with nested ctypes
             if etype is None:
                 child = element.getchildren()[0]
-                typelist = self.extract_complex(child, inuse=True)
+                typelist = self.extract_complex(child, inuse=True, parent=element)
                 try:                
                     (typename, typevalue) = typelist[0]
+                    if minoccurs == '0':
+                        typevalue = Optional(typevalue)
                     return [(element.get('name'), typevalue)]
                 except:
                     return []
@@ -212,12 +248,15 @@ during the parse: \n%s" % "\n".join(self.unsupported)
                     print "Exception: %s" % e
                     print "Could not get serializer for type: %s" % etype
                     return []
-            #check for array     
+            #check for array
             maxoccurs = element.get('maxOccurs')
             if maxoccurs > 0 or maxoccurs == 'unbounded':
                 return [(element.get('name'), Repeating(serializer))]
             else:
-                return [(element.get('name'), serializer)]
+                if minoccurs == '0':
+                    return [(element.get('name'), Optional(serializer))]
+                else:
+                    return [(element.get('name'), serializer)]
         elif element.tag == scany:
             if element.get('name'):
                 return [(element.get('name'), Any)]
@@ -320,22 +359,26 @@ during the parse: \n%s" % "\n".join(self.unsupported)
         """ 
             Write out a python file mapping the parsed xmlschema
             to filename.
+        """
+        f = open(filename, 'w')
+        self.write_imports(f)
+        self.write_body(f)
+        f.close()
 
+    def write_body(self, f):
+        """
             Maintains a dictionary writedict which holds all written
             classes to prevent repeats.
         """
         writedict = {}
-        f = open(filename, 'w')
-        self.write_imports(f)
         for (k,v) in self.ctypes.items():
             self.write_class(writedict, v, f)
         self.write_elements(f)
-        f.close()
     
     def write_imports(self, f):
         """ write the header python imports to f """
         f.write('from soaplib.serializers.clazz import ClassSerializer\n')
-        f.write('from soaplib.serializers.primitive import String, DateTime, Integer, Boolean, Float, Array, Any\n')
+        f.write('from soaplib.serializers.primitive import String, DateTime, Date, Integer, Decimal, Boolean, Float, Array, Any, Repeating\n')
         f.write('from soaplib.serializers.binary import Attachment\n\n')
         
     def write_class(self, writedict, klass, f):
@@ -359,11 +402,8 @@ during the parse: \n%s" % "\n".join(self.unsupported)
         for subclass in [mvalue for (mname, mvalue) in inspect.getmembers(klass.types) 
             if  not mname.startswith('__')]:
             #special case to get types out of arrays/repeatings
-            try:        
-                if subclass.__class__ == Array or subclass.__class__ == Repeating:
-                    subclass = subclass.serializer
-            except:
-                pass
+            if hasattr(subclass, 'serializer'):
+                subclass = subclass.serializer
             self.write_class(writedict, subclass, f)
         self.print_class(name, klass, f)
         writedict[name] = 1
@@ -398,16 +438,7 @@ during the parse: \n%s" % "\n".join(self.unsupported)
         if len(types) == 0:
             f.write("%s%spass\n" % (self.spacer, self.spacer))
         for tname, tvalue in types:
-            #special case for arrays
-            try:
-                if tvalue.__class__ == Array:
-                    f.write("%s%s%s = Array(%s)\n" % (self.spacer, self.spacer, tname, tvalue.serializer.__name__))
-                elif tvalue.__class__ == Repeating:
-                    f.write("%s%s%s = Repeating(%s)\n" % (self.spacer, self.spacer, tname, tvalue.serializer.__name__))
-                else:
-                    f.write("%s%s%s = %s\n" % (self.spacer, self.spacer, tname, tvalue.__name__))
-            except:
-                f.write("%s%s%s = %s\n" % (self.spacer, self.spacer, tname, tvalue.__name__))
+            f.write("%s%s%s = %s\n" % (self.spacer, self.spacer, tname, tvalue.print_class()))
         f.write("\n")
     
     def write_elements(self, f):

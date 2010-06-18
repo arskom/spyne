@@ -23,7 +23,6 @@ from string import Template
 import urllib2 as ulib
 
 from soaplib.etimport import ElementTree
-from soaplib.serializers.primitive import Array, Repeating
 from soaplib.serializers.clazz import ClassSerializer
 from soaplib.parsers.typeparse import TypeParser, schqname
 from soaplib.wsgi_soap import SimpleWSGISoapApp
@@ -37,7 +36,7 @@ soapqname = "{%s}" % soapns
 
 headerstr = '''
 from soaplib.serializers.clazz import ClassSerializer
-from soaplib.serializers.primitive import String, DateTime, Integer, Boolean, Float, Array, Any
+from soaplib.serializers.primitive import String, DateTime, Date, Integer, Boolean, Float, Array, Any, Decimal
 from soaplib.serializers.binary import Attachment
 from soaplib.wsgi_soap import SimpleWSGISoapApp
 from soaplib.service import soapmethod
@@ -104,7 +103,7 @@ class WSDLParser(object):
         """
         #global catalogue stores all types
         self.url = url
-        self.tp = None
+        self.tps = list()
         self.ctypes = {}
         self.elements = {}
         self.messagecat = {}
@@ -119,15 +118,7 @@ class WSDLParser(object):
         self.tns = self.gettns(document)
         self.spacer = spacer
         self.importwsdl(document)
-        tp = self.importtypes(document)
-        if self.tp is None:
-            self.tp = tp
-        elif tp is not None:
-            self.tp.ctypes.update(tp.ctypes)
-            self.tp.elements.update(tp.elements)
-        self.nsmap.update(self.tp.nsmap)
-        self.ctypes = self.tp.ctypes
-        self.elements = self.tp.elements
+        self.importtypes(document)
         self.retrievemessages(document)
         self.processports(document)
         self.processbindings(document)
@@ -162,11 +153,8 @@ during the parse: \n%s" % "\n".join(self.unsupported)
             for cats in ['ctypes', 'elements', 'messagecat', 'portcat', 'bindingcat']:
                 getattr(self, cats).update(getattr(wp, cats))
             document.remove(imp)
-            if self.tp is None:
-                self.tp = wp.tp
-            elif wp.tp is not None:
-                self.tp.ctypes.update(wp.tp.ctypes)
-                self.tp.elements.update(wp.tp.elements)
+            for tp in wp.tps:
+                self._add_tp(tp)
     
     def importtypes(self, document):
         """ 
@@ -192,9 +180,17 @@ during the parse: \n%s" % "\n".join(self.unsupported)
                 element = ElementTree.fromstring(d)
             else:
                 #inline schema
-                element = t.find(schqname+"schema")
-            return TypeParser(element)
-        return None
+                for element in t.findall(schqname+"schema"):
+                    self._add_tp(TypeParser(element, global_ctypes=self.ctypes, global_elements=self.elements))
+                return
+            self._add_tp(TypeParser(element, global_ctypes=self.ctypes, global_elements=self.elements))
+        return
+
+    def _add_tp(self, typeparser):
+        self.ctypes.update(typeparser.ctypes)
+        self.elements.update(typeparser.elements)
+        self.nsmap.update(typeparser.nsmap)
+        self.tps.append(typeparser)
     
     def retrievemessages(self, document):
         """ 
@@ -332,15 +328,7 @@ during the parse: \n%s" % "\n".join(self.unsupported)
             self.unsupported.add('Multiple return values')
         for (k,v) in outtype.types.__dict__.items():
             if not k.startswith('_'):
-                #detect array
-                try:
-                    if v.__class__ == Array:
-                        return (k, 'Array(%s)' % v.serializer.__name__, v)
-                    elif v.__class__ == Repeating:
-                        return (k, 'Repeating(%s)' % v.serializer.__name__, v)
-                except:
-                    pass
-                return (k, v.__name__, v)
+                return (k, v.print_class(), v)
         #if we get here we have no types
         raise Exception('No types found in %s' % k)
 
@@ -366,12 +354,7 @@ during the parse: \n%s" % "\n".join(self.unsupported)
             return the name of type t, needed as arrays need 
             special treatment.
         """
-        if getattr(t, '__class__', None) == Array:
-            return 'Array(%s)' % t.serializer.__name__
-        elif getattr(t, '__class__', None) == Repeating:
-            return 'Repeating(%s)' % t.serializer.__name__
-        else:
-            return t.__name__
+        return t.print_class()
 
     def writeservice(self, servcls, f):
         """
@@ -463,6 +446,11 @@ def run():
             builtins[name] = serializers[value]
     wp = WSDLParser.from_url(url)
     #write out xsd
-    tp = wp.tp.tofile(path.abspath(options.schoutput))
+    f = open(path.abspath(options.schoutput), 'w')
+    wp.tps[0].write_imports(f)
+    for tp in wp.tps:
+        tp.write_body(f)
+    f.close()
     #write out wsdl
     wp.tofile(path.abspath(options.output), config=options)
+

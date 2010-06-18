@@ -21,6 +21,7 @@ import datetime
 import pytz
 from pytz import FixedOffset
 import re
+import decimal
 
 from soaplib.xml import ns, create_xml_element, create_xml_subelement
 from soaplib.etimport import ElementTree
@@ -32,6 +33,7 @@ from soaplib.etimport import ElementTree
 
 string_encoding = 'utf-8'
 
+_date_pattern = (r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})')
 _datetime_pattern = (r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})[T ]'
     r'(?P<hr>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})(?P<fractional_sec>\.\d+)?')
 _local_re = re.compile(_datetime_pattern)
@@ -74,6 +76,24 @@ def _element_to_datetime(element):
     if match:
         return parse_date(match)
     raise Exception("DateTime [%s] not in known format" % text)
+
+def _element_to_date(element):
+    # expect ISO formatted dates
+    #
+    text = element.text
+    if not text:
+        return None
+    
+    def parse_date(date_match):
+        fields = date_match.groupdict(0)
+        year, month, day = [int(fields[x]) for x in
+           ("year", "month", "day")]
+        return datetime.date(year, month, day)
+    
+    match = _date_pattern.match(text)
+    if match:
+        return parse_date(match)
+    raise Exception("Date [%s] not in known format" % text)
 
 
 def _element_to_string(element):
@@ -144,10 +164,42 @@ def _get_datatype(cls, typename, nsmap):
         return nsmap.get(cls.get_namespace_id()) + typename
     return typename
 
+def nillable(func):
+    def wrapper(cls, value, *args, **kwargs):
+        if value is None:
+            return Null.to_xml(value, *args, **kwargs)
+        return func(cls, value, *args, **kwargs)
+    return wrapper
 
-class Any:
+class BasePrimitive(object):
+    @classmethod
+    def to_xml(cls, value, name='retval', nsmap=ns):
+        raise NotImplemented
 
     @classmethod
+    def from_xml(cls, element):
+        raise NotImplemented
+
+    @classmethod
+    def get_datatype(cls, nsmap=None):
+        raise NotImplemented
+
+    @classmethod
+    def get_namespace_id(cls):
+        raise NotImplemented
+
+    @classmethod
+    def add_to_schema(cls, added_params, nsmap):
+        raise NotImplemented
+    
+    @classmethod
+    def print_class(cls):
+        return cls.__name__
+
+class Any(BasePrimitive):
+
+    @classmethod
+    @nillable
     def to_xml(cls, value, name='retval', nsmap=ns):
         if type(value) == str:
             value = ElementTree.fromstring(value)
@@ -175,15 +227,18 @@ class Any:
         pass
 
 
-class String:
+class String(BasePrimitive):
 
     @classmethod
+    @nillable
     def to_xml(cls, value, name='retval', nsmap=ns):
         e = _unicode_to_xml(value, name, cls, nsmap)
         return e
 
     @classmethod
     def from_xml(cls, element):
+        if element is None:
+            return None
         return _element_to_unicode(element)
 
     @classmethod
@@ -270,9 +325,10 @@ class Fault(Exception):
         return io.getvalue()
 
 
-class Integer:
+class Integer(BasePrimitive):
 
     @classmethod
+    @nillable
     def to_xml(cls, value, name='retval', nsmap=ns):
         e = _generic_to_xml(str(value), name, cls, nsmap)
         return e
@@ -293,17 +349,41 @@ class Integer:
     def add_to_schema(cls, added_params, nsmap):
         pass
 
-
-class Double:
+class Decimal(BasePrimitive):
 
     @classmethod
+    @nillable
     def to_xml(cls, value, name='retval', nsmap=ns):
         e = _generic_to_xml(str(value), name, cls, nsmap)
         return e
 
     @classmethod
     def from_xml(cls, element):
-        return _element_to_integer(element)
+        return decimal.Decimal(_element_to_unicode(element))
+
+    @classmethod
+    def get_datatype(cls, nsmap=None):
+        return _get_datatype(cls, 'decimal', nsmap)
+
+    @classmethod
+    def get_namespace_id(cls):
+        return 'xs'
+
+    @classmethod
+    def add_to_schema(cls, added_params, nsmap):
+        pass
+
+class Double(BasePrimitive):
+
+    @classmethod
+    @nillable
+    def to_xml(cls, value, name='retval', nsmap=ns):
+        e = _generic_to_xml(str(value), name, cls, nsmap)
+        return e
+
+    @classmethod
+    def from_xml(cls, element):
+        return _element_to_float(element)
 
     @classmethod
     def get_datatype(cls, nsmap=None):
@@ -318,9 +398,10 @@ class Double:
         pass
 
 
-class DateTime:
+class DateTime(BasePrimitive):
 
     @classmethod
+    @nillable
     def to_xml(cls, value, name='retval', nsmap=ns):
         if type(value) == datetime.datetime:
             value = value.isoformat('T')
@@ -343,10 +424,38 @@ class DateTime:
     def add_to_schema(cls, added_params, nsmap):
         pass
 
-
-class Float:
+class Date(BasePrimitive):
 
     @classmethod
+    @nillable
+    def to_xml(cls, value, name='retval', nsmap=ns):
+        if isinstance(value, datetime.datetime):
+            pass #CONSIDER: should we automatically convert to date?
+        if isinstance(value, datetime.date):
+            value = value.isoformat()
+        e = _generic_to_xml(value, name, cls, nsmap)
+        return e
+
+    @classmethod
+    def from_xml(cls, element):
+        return _element_to_date(element)
+
+    @classmethod
+    def get_datatype(cls, nsmap=None):
+        return _get_datatype(cls, 'date', nsmap)
+
+    @classmethod
+    def get_namespace_id(cls):
+        return 'xs'
+
+    @classmethod
+    def add_to_schema(cls, added_params, nsmap):
+        pass
+
+class Float(BasePrimitive):
+
+    @classmethod
+    @nillable
     def to_xml(cls, value, name='retval', nsmap=ns):
         e = _generic_to_xml(str(value), name, cls, nsmap)
         return e
@@ -368,7 +477,7 @@ class Float:
         pass
 
 
-class Null:
+class Null(BasePrimitive):
 
     @classmethod
     def to_xml(cls, value, name='retval', nsmap=ns):
@@ -393,17 +502,14 @@ class Null:
         pass
 
 
-class Boolean:
+class Boolean(BasePrimitive):
 
     @classmethod
+    @nillable
     def to_xml(cls, value, name='retval', nsmap=ns):
         # applied patch from Julius Volz
         #e = _generic_to_xml(str(value).lower(),name,cls.get_datatype(nsmap))
-        if value == None:
-            return Null.to_xml('', name, nsmap)
-        else:
-            e = _generic_to_xml(str(bool(value)).lower(), name, cls, nsmap)
-        return e
+        return _generic_to_xml(str(bool(value)).lower(), name, cls, nsmap)
 
     @classmethod
     def from_xml(cls, element):
@@ -427,7 +533,7 @@ class Boolean:
         pass
 
 
-class Array:
+class Array(BasePrimitive):
 
     def __init__(self, serializer, type_name=None, namespace_id='tns'):
         self.serializer = serializer
@@ -494,8 +600,11 @@ class Array:
             schema_dict['%sElement' % (self.get_datatype(nsmap))] = typeElement
             schema_dict[self.get_datatype(nsmap)] = complexTypeNode
 
+    def print_class(self):
+        return "%s(%s)" % (type(self).__name__, self.serializer.print_class())
 
-class Repeating(object):
+
+class Repeating(BasePrimitive):
 
     def __init__(self, serializer, type_name=None, namespace_id='tns'):
         self.serializer = serializer
@@ -524,3 +633,40 @@ class Repeating(object):
     def add_to_schema(self, schema_dict, nsmap):
         raise Exception("The Repeating serializer is experimental and not "
             "supported for wsdl generation")
+
+    def print_class(self):
+        return "%s(%s)" % (type(self).__name__, self.serializer.print_class())
+
+class Optional(BasePrimitive):
+    def __init__(self, serializer, type_name=None, namespace_id='tns'):
+        self.serializer = serializer
+        self.namespace_id = namespace_id
+        if not type_name:
+            self.type_name = '%sOptional' % self.serializer.get_datatype()
+        else:
+            self.type_name = type_name
+
+    def to_xml(self, value, name='retval', nsmap=ns):
+        if value is None:
+            return []
+        return self.serializer.to_xml(value, name, nsmap)
+
+    def get_namespace_id(self):
+        return self.namespace_id
+
+    def from_xml(self, element):
+        if element is None:
+            return None
+        return self.serializer.from_xml(element)
+
+    def add_to_schema(self, schema_dict, nsmap):
+        raise Exception("The Optional serializer is experimental and not "
+            "supported for wsdl generation")
+
+    def get_datatype(self):
+        return self.serializer.get_datatype()
+
+    def print_class(self):
+        return "%s(%s)" % (type(self).__name__, self.serializer.print_class())
+
+

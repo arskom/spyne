@@ -231,7 +231,12 @@ class WSGISoapApp(object):
             input = environ.get('wsgi.input')
             length = environ.get("CONTENT_LENGTH")
             body = input.read(int(length))
+
+            methodname = environ.get("HTTP_SOAPACTION")
+
+            debug('\033[92m'+ methodname +'\033[0m')
             debug(body)
+
             body = collapse_swa(environ.get("CONTENT_TYPE"), body)
 
             # deserialize the body of the message
@@ -241,8 +246,8 @@ class WSGISoapApp(object):
                 payload = None
                 header = None
 
-            if payload:
-                methodname = payload.tag.split('}')[-1]
+            if payload is not None and len(payload) > 0:
+                methodname = payload.tag
             else:
                 # check HTTP_SOAPACTION
                 methodname = environ.get("HTTP_SOAPACTION")
@@ -253,12 +258,11 @@ class WSGISoapApp(object):
 
             request.header = header
 
-            # call the method
-            func = getattr(service, methodname)
-
             # retrieve the method descriptor
-            descriptor = func(_soap_descriptor=True, klazz=service.__class__)
-            if payload:
+            descriptor = service.get_method(methodname)
+            func = getattr(service, descriptor.name)
+            
+            if payload is not None and len(payload) > 0:
                 params = descriptor.inMessage.from_xml(*[payload])
             else:
                 params = ()
@@ -286,7 +290,6 @@ class WSGISoapApp(object):
             # construct the soap response, and serialize it
             envelope = make_soap_envelope(results, tns=service.__tns__,
                 header_elements=response_headers)
-            ElementTree.cleanup_namespaces(envelope)
             resp = ElementTree.tostring(envelope, encoding=string_encoding)
             headers = {'Content-Type': 'text/xml'}
 
@@ -302,6 +305,7 @@ class WSGISoapApp(object):
 
             self.onReturn(environ, resp)
 
+            debug('\033[91m'+ "Response" + '\033[0m')
             debug(resp)
 
             # return the serialized results
@@ -322,6 +326,7 @@ class WSGISoapApp(object):
                 header_elements=response_headers)
 
             faultStr = ElementTree.tostring(fault, encoding=string_encoding)
+
             exceptions(faultStr)
 
             self.onException(environ, e, faultStr)
