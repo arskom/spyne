@@ -177,6 +177,8 @@ def resolve_hrefs(element, xmlids):
             [e.set(k, v) for k, v in resolved_element.items()]
             # copies the children
             [e.append(child) for child in resolved_element.getchildren()]
+            # copies the text
+            e.text = resolved_element.text
         else:
             resolve_hrefs(e, xmlids)
     return element
