@@ -1,3 +1,4 @@
+
 Serializers
 ===========
 
@@ -44,38 +45,35 @@ type. For mixed typing or more dynamic data, use the Any type. ::
 
 Class
 -----
+The `ClassSerializer` is used to define and serialize complex, nested structures.
 
-The ClassSerializer is used to define and serialize complex, nested structures. ::
-
-    >>> from soaplib.serializers.primitive import *    
-    >>> import cElementTree as et
-    >>> from soaplib.serializers.clazz import *
-    >>> class Permission(ClassSerializer):
-    ...     class types:
-    ...         application = String
-    ...         feature = String
-    >>>
-    >>> class User(ClassSerializer):
-    ...     class types:
-    ...         userid = Integer
-    ...         username = String
-    ...         firstname = String
-    ...         lastname = String 
-    ...         permissions = Array(Permission)
-    >>> 
-    >>> u = User()
-    >>> u.username = 'bill'
-    >>> u.permissions = [] 
-    >>> p = Permission()            
-    >>> p.application = 'email'
-    >>> p.feature = 'send'
-    >>> u.permissions.append(p)
-    >>> element = User.to_xml(u)
-    >>> et.tostring(element)
-    '<retval xmlns=""><username xmlns="" xsi:type="xs:string">bill</username><lastname xs:null="1" /><userid xs:null="1" /><firstname xs:null="1" /><permissions xmlns=""><Permission xmlns=""><application xmlns="" xsi:type="xs:string">email</application><feature xmlns="" xsi:type="xs:string">send</feature></Permission></permissions></retval>'
-    >>> User.from_xml(element).username
-    'bill'
-    >>>
+	>>> from soaplib.serializers.primitive import *
+	>>> import cElementTree as et
+	>>> from soaplib.serializers.clazz import *
+	>>> class Permission(ClassSerializer):
+	...		application = String
+	...		feature = String
+	>>>
+	>>> class User(ClassSerializer):
+	...		userid = Integer
+	...		username = String
+	...		firstname = String
+	...		lastname = String
+	...		permissions = Array(Permission)
+	>>>
+	>>> u = User()
+	>>> u.username = 'bill'
+	>>> u.permissions = []
+	>>> p = Permission()
+	>>> p.application = 'email'
+	>>> p.feature = 'send'
+	>>> u.permissions.append(p)
+	>>> element = User.to_xml(u)
+	>>> et.tostring(element)
+	'<xsd:retval><username xsi:type="xs:string">bill</username><lastname xsi:nil="1" /><userid xsi:nil="1" /><firstname xsi:nil="1" /><permissions SOAP-ENC:arrayType="typens:Permission[1]"><Permission><application xsi:type="xs:string">email</application><feature xsi:type="xs:string">send</feature></Permission></permissions></xsd:retval>'
+	>>> User.from_xml(element).username
+	'bill'
+	>>>
 
 Attachment
 ----------
@@ -107,8 +105,28 @@ passing data using soaplib. The Any serializer does not perform any useful task
 because the data passed in and returned are Element objects. The Any type's main
 purpose is to declare its presence in the wsdl.
 
-Custom 
+AnyAsDict
+---------
+`AnyAsDict` type does the same thing as the `Any` type, except it serializes
+to/from dicts with lists instead of raw lxml.etree._Element objects.
+
+Custom
 ------
-Soaplib provides a very simple interface for writing custom serializers. Any
-object conforming to the following interface can be used as a soaplib
-serializer.
+Soaplib provides a very simple interface for writing custom serializers. Just
+inherit from soaplib.serializers.base.Base and override from_xml and to_xml and
+add_to_schema functions.
+
+	from soaplib.serializers.base import Base
+
+	class MySerializer(Base):
+		@classmethod
+		def to_xml(self,value,name='retval'):
+			pass
+
+		@classmethod
+		def from_xml(self,element):
+			pass
+
+		@classmethod
+		def add_to_schema(self,added_params):
+			pass

@@ -49,7 +49,7 @@ class Base(object):
         return retval
 
     @classmethod
-    def set_namespace(cls, ns):
+    def set_namespace(cls, ns): # FIXME: not needed anymore.
         cls.__namespace__ = ns
 
     @classmethod

@@ -1,3 +1,4 @@
+
 Hello World
 ===========
 This example uses the CherryPy webserver to deploy this service.
@@ -8,12 +9,11 @@ Declaring a Soaplib Service
 ::
 
     from soaplib.wsgi_soap import SimpleWSGISoapApp
-    from soaplib.service import soapmethod
+    from soaplib.service import rpc
     from soaplib.serializers.primitive import String, Integer, Array
-    
+
     class HelloWorldService(SimpleWSGISoapApp):
-    
-        @soapmethod(String,Integer,_returns=Array(String))
+        @rpc(String,Integer,_returns=Array(String))
         def say_hello(self,name,times):
             results = []
             for i in range(0,times):
@@ -31,10 +31,10 @@ Dissecting this example: SimpleWSGISoapApp is the base class for WSGI soap servi
 
     from soaplib.wsgi_soap import SimpleWSGISoapApp
 
-The soapmethod decorator exposes methods as soap method and declares the
+The rpc decorator exposes methods as soap method and declares the
 data types it accepts and returns. ::
 
-    from soaplib.service import soapmethod
+    from soaplib.service import rpc
 
 Import the serializers for this method (more on serializers later)::
 
@@ -45,12 +45,12 @@ be deployed as a WSGI application.::
 
     class HelloWorldService(SimpleWSGISoapApp):
 
-The soapmethod decorator flags each method as a soap method, and defines
+The rpc decorator flags each method as a soap method, and defines
 the types and order of the soap parameters, as well as the return value.
 This method takes in a String, an Integer and returns an 
 Array of Strings -> Array(String).::
 
-    @soapmethod(String,Integer,_returns=Array(String))
+    @rpc(String,Integer,_returns=Array(String))
 
 The method itself has nothing special about it whatsoever. All input 
 variables and return types are standard python objects::
@@ -64,7 +64,7 @@ variables and return types are standard python objects::
 Deploying the service 
 ---------------------
 
-oaplib has been tested with several other web servers, This example uses the
+soaplib has been tested with several other web servers, This example uses the
 CherryPy WSGI web server to and any WSGI-compliant server *should* work.::
     
     if __name__=='__main__':
@@ -87,3 +87,4 @@ remote functionality, as well as a _stub_ of the remote service. As in this
 case, the _stub_ can be the instance of the remote functionality, however the
 requirements are that it just have the same method signatures and definitions as
 the server implementation.
+
