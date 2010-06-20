@@ -1,0 +1,16 @@
+
+Contributors (chronological order):
+
+Aaron Bickell 
+    Original Author
+
+Jamie Kirkpatrick 
+    lxml migration
+
+Burak Arslan 
+    multiple <schema/> tags
+    sqlalchemy support
+    consistent class customization
+    general code cleaning
+
+<add yourself as you see fit.>
