@@ -67,9 +67,6 @@ class Base(object):
     @nillable_value
     @classmethod
     def to_xml(cls, value, name='retval'):
-        """
-        returns any value inside a list
-        """
         retval = etree.Element(name)
         retval.set('{%(xsi)s}type' % soaplib.nsmap, cls.type_name)
 
@@ -91,6 +88,20 @@ class Base(object):
 
     @classmethod
     def customize(cls, **kwargs):
+        """
+        This class duplicates and customizes the class. The original class
+        remains intact. It's a hack, advice to better write this function is
+        welcome.
+
+        An example where this is useful:
+            Array(String) normally creates an instance of Array class. This is
+            inconsistent with the rest of the type definitions (e.g. String)
+            being classes and not instances.
+
+            Thanks to this function, one will get a new Array class instead,
+            with its serializer set to String.
+        """
+
         cls_dict = {}
 
         for k in cls.__dict__:

@@ -151,4 +151,10 @@ class ClassSerializerBase(NonExtendingClass, Base):
                 v.add_to_schema(schema_dict)
 
 class ClassSerializer(ClassSerializerBase):
+    """
+    The general complexType factory. Attempts to instantiate this class will
+    result in *gasp* instances. Those who'd like to customize the class should
+    use the customize method. (see soaplib.serializers.base.Base)
+    """
+    
     __metaclass__ = ClassSerializerMeta
