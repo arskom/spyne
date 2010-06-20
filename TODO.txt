@@ -1,7 +1,0 @@
-Code to sort out after namespace map addition:
-
-Message.to_xml()
-ClassSerializerMeta.namespace
-
-create_xml_element - pass nsmap
-_add_messages_for_methods / _add_bindings_for_methods : create_xml_element (no nsmap)
