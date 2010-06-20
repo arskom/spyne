@@ -41,11 +41,9 @@ Overview
 What is soaplib?
 ----------------
 
-Soaplib is an easy to use python library written at 
-[Optio Software, Inc.](http://www.optio.com/)
-for writing and calling soap web services.	Writing soap web services in
-any language has always been extremely difficult and yielded mixed
-results.  With a very small amount of code, soaplib allows you to write
+Soaplib is an easy to use python library for publishing soap web services
+using WSDL 1.1 standard, and answering SOAP requests.
+With a very small amount of code, soaplib allows you to write
 a useful web service and deploy it as a WSGI application.  WSGI is a python
 web standard for writing portable, extendable web applications in python.
 More information on WSGI can be found [here](http://wsgi.org/wsgi).
@@ -64,21 +62,21 @@ Requirements
 * a WSGI-compliant web server (CherryPy, WSGIUtils, Flup, etc.)
 * [pytz](http://pytz.sourceforge.net/)(available through easy_install)
 * [easy_install](http://peak.telecommunity.com/dist/ez_setup.py) (optional)
-		
+
 Intro Examples
 ==============
-	
-HelloWorld	
+
+HelloWorld
 ----------
 
 1. Declaring a Soaplib Service
 
 		from soaplib.wsgi_soap import SimpleWSGISoapApp
-		from soaplib.service import soapmethod
+		from soaplib.service import rpc
 		from soaplib.serializers.primitive import String, Integer, Array
 	
 		class HelloWorldService(SimpleWSGISoapApp):
-			@soapmethod(String,Integer,_returns=Array(String))
+			@rpc(String,Integer,_returns=Array(String))
 			def say_hello(self,name,times):
 				results = []
 					for i in range(0,times):
@@ -96,10 +94,10 @@ HelloWorld
 	
 		from soaplib.wsgi_soap import SimpleWSGISoapApp
 	
-	The `soapmethod` decorator exposes methods as soap method and declares the
+	The `rpc` decorator exposes methods as soap method and declares the
 	data types it accepts and returns
 	
-		from soaplib.service import soapmethod
+		from soaplib.service import rpc
 	
 	Import the serializers to for this method (more on serializers later)
 	
@@ -115,7 +113,7 @@ HelloWorld
 	as the return value.  This method takes in a `String`, an `Integer`
 	and returns an Array of Strings -> `Array(String)`. 
 		
-		@soapmethod(String,Integer,_returns=Array(String))
+		@rpc(String,Integer,_returns=Array(String))
 
 	The method itself has nothing special about it whatsoever. All
 	input variables and return types are standard python objects.
@@ -166,21 +164,19 @@ an extremely simple example using complex, nested data.
 	userid_seq = 1
 
 	class Permission(ClassSerializer):
-		class types:
-			application = String
-			feature = String
+		application = String
+		feature = String
 
 	class User(ClassSerializer):
-		class types:
-			userid = Integer
-			username = String
-			firstname = String
-			lastname = String
-			permissions = Array(Permission)
+		userid = Integer
+		username = String
+		firstname = String
+		lastname = String
+		permissions = Array(Permission)
 
 	class UserManager(SimpleWSGISoapApp):
 
-		@soapmethod(User,_returns=Integer)
+		@rpc(User,_returns=Integer)
 		def add_user(self,user):
 			global user_database
 			global userid_seq
@@ -189,22 +185,22 @@ an extremely simple example using complex, nested data.
 			user_database[user.userid] = user
 			return user.userid
 
-		@soapmethod(Integer,_returns=User)
+		@rpc(Integer,_returns=User)
 		def get_user(self,userid):
 			global user_database
 			return user_database[userid]
 
-		@soapmethod(User)
+		@rpc(User)
 		def modify_user(self,user):
 			global user_database
 			user_database[user.userid] = user
 
-		@soapmethod(Integer)
+		@rpc(Integer)
 		def delete_user(self,userid):
 			global user_database
 			del user_database[userid]
 
-		@soapmethod(_returns=Array(User))
+		@rpc(_returns=Array(User))
 		def list_users(self):
 			global user_database
 			return [v for k,v in user_database.items()]
@@ -217,17 +213,15 @@ an extremely simple example using complex, nested data.
 Jumping into what's new:
 
 	class Permission(ClassSerializer):
-		class types:
-			application = String
-			feature = String
+		application = String
+		feature = String
 
 	class User(ClassSerializer):
-		class types:
-			userid = Integer
-			username = String
-			firstname = String
-			lastname = String
-			permissions = Array(Permission)
+		userid = Integer
+		username = String
+		firstname = String
+		lastname = String
+		permissions = Array(Permission)
 
 The `Permission` and `User` structures in the example are standard python objects
 that extend `ClassSerializer`.	The `ClassSerializer` uses an innerclass called
@@ -263,9 +257,9 @@ of the most basic blocks within soaplib.
 	<nodename xsi:type="xs:string">abcd</nodename>
 	>>> print String.from_xml(element)
 	abcd
-	>>> String.get_datatype()
+	>>> String.get_type_name()
 	'string'
-	>>> String.get_datatype(nsmap)
+	>>> String.get_type_name_ns()
 	'xs:string'
 	>>> 
 
@@ -296,17 +290,15 @@ The `ClassSerializer` is used to define and serialize complex, nested structures
 	>>> import cElementTree as et
 	>>> from soaplib.serializers.clazz import *
 	>>> class Permission(ClassSerializer):
-	...		class types:
-	...			application = String
-	...			feature = String
+	...		application = String
+	...		feature = String
 	>>>
 	>>> class User(ClassSerializer):
-	...		class types:
-	...			userid = Integer
-	...			username = String
-	...			firstname = String
-	...			lastname = String... 
-	...			permissions = Array(Permission)
+	...		userid = Integer
+	...		username = String
+	...		firstname = String
+	...		lastname = String... 
+	...		permissions = Array(Permission)
 	>>> 
 	>>> u = User()
 	>>> u.username = 'bill'
@@ -351,47 +343,30 @@ soaplib.  The `Any` serializer does not perform any useful task because the data
 and returned are `Element` objects.	 The `Any` type's main purpose is to declare its presence
 in the `wsdl`.
 
+AnyAsDict
+---------
+`AnyAsDict` type does the same thing as the `Any` type, except it serializes to/from dicts with
+lists instead of raw lxml.etree._Element objects.
 
 Custom
 ------
-Soaplib provides a very simple interface for writing custom serializers.  Any object conforming
-to the following interface can be used as a soaplib serializer.
+Soaplib provides a very simple interface for writing custom serializers. Just inherit from 
+soaplib.serializers.base.Base and override from_xml and to_xml and add_to_schema functions.
 
-	class MySerializer:
+	from soaplib.serializers.base import Base
 
-		def to_xml(self,value,name='retval',nsmap=None):
+	class MySerializer(Base):
+		@classmethod
+		def to_xml(self,value,name='retval'):
 			pass
-			
+
+		@classmethod
 		def from_xml(self,element):
 			pass
 
-		def get_datatype(self,nsmap=None):
+		@classmethod
+		def add_to_schema(self,added_params):
 			pass
-			
-		def get_namespace_id(self):
-			pass
-
-		def add_to_schema(self,added_params,nsmap):
-			pass
-
-This feature is particularly useful when adapting soaplib to an existing project and converting existing
-object to `ClassSerializers` is impractical.
-
-Client
-======
-Soaplib provides a simple soap client to call remote soap implementations.	Using the `ServiceClient` object
-is the simplest way to make soap client requests.  The `ServiceClient` uses an example or stub 
-implementation to know how to properly construct the soap messages.
-
-	>>> from soaplib.client import make_service_client
-	>>> client = make_service_client('http://localhost:7789/',HelloWorldService())
-	>>> print client.say_hello("Dave",5)
-
-This method provides the most straightforward method of creating a SOAP client using soaplib.
-
-Message API
-===========
-TODO
 
 WSGI
 ====
@@ -409,31 +384,31 @@ Hooks
 `WSGISoapApp`s have a set of extensible 'hooks' that can be implemented to capture different
 events in the execution of the wsgi request.
 
-	def onCall(self,environ):
+	def on_call(self,environ):
 		'''This is the first method called when this WSGI app is invoked'''
 		pass
 
-	def onWsdl(self,environ,wsdl):
+	def on_wsdl(self,environ,wsdl):
 		'''This is called when a wsdl is requested'''
 		pass
 
-	def onWsdlException(self,environ,exc,resp):
+	def on_wsdl_exception(self,environ,exc,resp):
 		'''Called when an exception occurs durring wsdl generation'''
 		pass
 
-	def onMethodExec(self,environ,body,py_params,soap_params):
+	def on_method_exec(self,environ,body,py_params,soap_params):
 		'''Called BEFORE the service implementing the functionality is called'''
 		pass
 
-	def onResults(self,environ,py_results,soap_results):
+	def on_results(self,environ,py_results,soap_results,http_headers):
 		'''Called AFTER the service implementing the functionality is called'''
 		pass
 
-	def onException(self,environ,exc,resp):
+	def on_exception(self,environ,exc,resp):
 		'''Called when an error occurs durring execution'''
 		pass
 
-	def onReturn(self,environ,returnString):
+	def on_return(self,environ,returnString):
 		'''Called before the application returns'''
 		pass
 
@@ -450,5 +425,3 @@ servers:
 * Flup
 * Twisted.web2
 * WSGIUtils 0.9
-
-
