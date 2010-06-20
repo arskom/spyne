@@ -53,8 +53,8 @@ _ns_xsi = nsmap['xsi']
 class Primitive(Base):
     def __new__(cls, **kwargs):
         """
-        Overriden so that any attempt to instantiate a primivite will return a
-        customized class instead.
+        Overriden so that any attempt to instantiate a primitive will return a
+        customized class instead of an instance.
 
         See serializers.base.Base for more information.
         """

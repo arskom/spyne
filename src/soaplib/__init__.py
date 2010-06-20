@@ -30,7 +30,7 @@ nsmap = {
 }
 
 # prefix map
-prefmap = dict([(a[1],a[0]) for a in nsmap.items() ])
+prefmap = dict([(a[1],a[0]) for a in nsmap.items()])
 
 _ns_counter = 0
 def get_namespace_prefix(ns):

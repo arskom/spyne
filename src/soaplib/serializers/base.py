@@ -89,9 +89,9 @@ class Base(object):
     @classmethod
     def customize(cls, **kwargs):
         """
-        This class duplicates and customizes the class. The original class
-        remains intact. It's a hack, advice to better write this function is
-        welcome.
+        This function duplicates and customizes the class it belongs to. The
+        original class remains intact. The implementation seems to be a hack,
+        advice to better write this function is welcome.
 
         An example where this is useful:
             Array(String) normally creates an instance of Array class. This is
