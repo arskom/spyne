@@ -44,7 +44,7 @@ def reset_request():
     request object
     '''
     global request
-    
+
     request.environ = None
     request.header = None
     request.additional = {}
@@ -222,7 +222,7 @@ class WSGISoapApp(object):
             # retrieve the method descriptor
             descriptor = service.get_method(methodname)
             func = getattr(service, descriptor.name)
-            
+
             if payload is not None and len(payload) > 0:
                 params = descriptor.in_message.from_xml(*[payload])
             else:

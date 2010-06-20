@@ -1,6 +1,6 @@
 
 #
-# soaplib - Copyright (C) Soaplib contributors. 
+# soaplib - Copyright (C) Soaplib contributors.
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -150,7 +150,7 @@ class AnyAsDict(Any):
 class String(Primitive):
     min_len = 0
     max_len = float('inf')
-    
+
     def __new__(cls, *args, **kwargs):
         assert len(args) <= 1
 
@@ -164,13 +164,13 @@ class String(Primitive):
             retval.min_len = kwargs.get("min_len",0)
 
         return retval
-    
+
     @nillable_value
     @classmethod
     def to_xml(cls, value, name='retval'):
         if not isinstance(value,unicode):
             value = unicode(value, string_encoding)
-        
+
         return Primitive.to_xml(cls, value, name)
 
     @nillable_element
@@ -215,7 +215,7 @@ class Date(Primitive):
     def from_xml(cls, element):
         """expect ISO formatted dates"""
         text = element.text
-        
+
         def parse_date(date_match):
             fields = date_match.groupdict(0)
             year, month, day = [int(fields[x]) for x in

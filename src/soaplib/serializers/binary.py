@@ -40,7 +40,7 @@ class Attachment(Primitive):
         and will do no additional transformations on it, simply write it to
         disk.
         '''
-        
+
         if not self.data:
             raise Exception("No data to write")
 

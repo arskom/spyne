@@ -40,7 +40,7 @@ class Base(object):
     @classmethod
     def get_namespace_prefix(cls):
         retval = cls.__namespace__
-        
+
         if retval is None:
             retval = soaplib.prefmap['http://www.w3.org/2001/XMLSchema']
         else:
@@ -63,7 +63,7 @@ class Base(object):
     @classmethod
     def get_type_name_ns(cls):
         return "%s:%s" % (cls.get_namespace_prefix(), cls.get_type_name())
-    
+
     @nillable_value
     @classmethod
     def to_xml(cls, value, name='retval'):

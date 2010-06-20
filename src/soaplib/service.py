@@ -74,7 +74,7 @@ def rpc(*params, **kparams):
 
                 try:
                     in_params = []
-                    
+
                     for i in range(len(params)):
                         e0=_in_variable_names.get(param_names[i],param_names[i])
                         e1=params[i]
@@ -99,7 +99,7 @@ def rpc(*params, **kparams):
                         out_params = [(_out_variable_names, _returns)]
                 else:
                     out_params = []
-                    
+
                 out_message = Message(_out_message, out_params, ns=ns,
                                                                typ=_out_message)
 
@@ -109,15 +109,15 @@ def rpc(*params, **kparams):
                     _mtom)
 
                 return descriptor
-            
+
             return f(*args, **kwargs)
 
         explain_method.__doc__ = f.__doc__
         explain_method.func_name = f.func_name
         explain_method._is_soap_method = True
-        
+
         return explain_method
-    
+
     return explain
 
 class SoapServiceBase(object):
@@ -256,7 +256,7 @@ class SoapServiceBase(object):
 
         root = etree.Element("{%s}definitions" % _ns_wsdl, nsmap=soaplib.nsmap)
         root.append(types)
-        
+
         root.set('targetNamespace', _ns_tns)
         root.set('name', service_name)
 
@@ -407,13 +407,13 @@ class SoapServiceBase(object):
                 schema.set("elementFormDefault", "qualified")
 
                 schema_nodes[ns] = schema
-                
+
             else:
                 schema = schema_nodes[ns]
 
             for node in schema_entries[ns].simple.values():
                 schema.append(node)
-                
+
             for node in schema_entries[ns].complex.values():
                 schema.append(node)
 
@@ -453,7 +453,7 @@ class SoapServiceBase(object):
         @param the name of this service
         @param the methods to be add to the binding node
         '''
-        
+
         has_callbacks = self._has_callbacks()
         _pref_tns = soaplib.get_namespace_prefix(self.get_tns())
 
@@ -504,7 +504,7 @@ class SoapServiceBase(object):
                 relates_to.set('use', 'literal')
 
                 cb_binding.append(operation)
-                
+
             else:
                 if method.is_async:
                     rt_header = etree.SubElement(input,'{%s}header' % _ns_soap)
@@ -516,5 +516,5 @@ class SoapServiceBase(object):
                     mid_header.set('message', '%s:MessageIDHeader' % _pref_tns)
                     mid_header.set('part', 'MessageID')
                     mid_header.set('use', 'literal')
-                    
+
                 binding.append(operation)

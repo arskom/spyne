@@ -45,14 +45,14 @@ class ClassSerializerMeta(type):
         cls._type_info = {}
         cls.__type_name__ = cls.__name__
         cls.set_namespace(cls.__module__)
-        
+
         for k, v in cls_dict.items():
             if k == '__namespace__':
                 cls.set_namespace(v)
 
             elif k == '__type_name__':
                 cls.__type_name__ = v
-                
+
             elif not k.startswith('__'):
                 subc = False
                 try:
@@ -60,7 +60,7 @@ class ClassSerializerMeta(type):
                         subc = True
                 except:
                     pass
-                    
+
                 if subc:
                     cls._type_info[k] = v
                     if v is Array:
@@ -125,7 +125,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
     def add_to_schema(cls, schema_dict):
         try:
             schema_dict[cls.get_namespace_prefix()].complex[cls.get_type_name()]
-            
+
         except KeyError:
             complex_type = etree.Element("{%(xs)s}complexType" % nsmap)
             complex_type.set('name',cls.get_type_name())
@@ -146,7 +146,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
             ns_dict.simple[cls.get_type_name()] = element
             ns_dict.complex[cls.get_type_name()] = complex_type
             schema_dict[cls.get_namespace_prefix()] = ns_dict
-            
+
             for k, v in cls._type_info.items():
                 v.add_to_schema(schema_dict)
 
@@ -158,5 +158,5 @@ class ClassSerializer(ClassSerializerBase):
     Those who'd like to customize the class should use the customize method.
     (see soaplib.serializers.base.Base)
     """
-    
+
     __metaclass__ = ClassSerializerMeta

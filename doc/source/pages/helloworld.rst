@@ -19,10 +19,10 @@ Declaring a Soaplib Service
             for i in range(0,times):
                 results.append('Hello, %s'%name)
             return results
-            
+
     if __name__=='__main__':
         from cherrypy._cpwsgiserver import CherryPyWSGIServer
-        # this example uses CherryPy2.2, 
+        # this example uses CherryPy2.2,
         # use cherrypy.wsgiserver.CherryPyWSGIServer for CherryPy 3.0
         server = CherryPyWSGIServer(('localhost',7789),HelloWorldService())
         server.start()
@@ -47,12 +47,12 @@ be deployed as a WSGI application.::
 
 The rpc decorator flags each method as a soap method, and defines
 the types and order of the soap parameters, as well as the return value.
-This method takes in a String, an Integer and returns an 
+This method takes in a String, an Integer and returns an
 Array of Strings -> Array(String).::
 
     @rpc(String,Integer,_returns=Array(String))
 
-The method itself has nothing special about it whatsoever. All input 
+The method itself has nothing special about it whatsoever. All input
 variables and return types are standard python objects::
 
     def say_hello(self,name,times):
@@ -61,12 +61,12 @@ variables and return types are standard python objects::
             results.append('Hello, %s'%name)
         return results
 
-Deploying the service 
+Deploying the service
 ---------------------
 
 soaplib has been tested with several other web servers, This example uses the
 CherryPy WSGI web server to and any WSGI-compliant server *should* work.::
-    
+
     if __name__=='__main__':
         from cherrypy._cpwsgiserver import CherryPyWSGIServer
         server = CherryPyWSGIServer(('localhost',7789),HelloWorldService())
@@ -78,7 +78,7 @@ Calling this service ::
     >>> from helloworld import HelloWorldService
     >>> client = make_service_client('http://localhost:7789/',HelloWorldService())
     >>> print client.say_hello("Dave",5)
-    
+
     ['Hello, Dave','Hello, Dave','Hello, Dave','Hello, Dave','Hello, Dave']
 
 soaplib.client.make_service_client is a utility method to construct a callable

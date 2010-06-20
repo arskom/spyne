@@ -45,7 +45,7 @@ def create_callback_info_headers(message_id, reply_to):
     replyToElement = etree.Element('{%s}ReplyTo' % _ns_addr)
     addressElement = etree.SubElement(replyToElement, '{%s}Address' % _ns_addr)
     addressElement.text = reply_to
-    
+
     return messageIdElement, replyToElement
 
 def get_callback_info():
