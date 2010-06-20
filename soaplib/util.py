@@ -1,5 +1,6 @@
+
 #
-# soaplib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
+# soaplib - Copyright (C) Soaplib contributors.
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -20,33 +21,32 @@ import datetime
 import urllib
 from urllib import quote
 
-from soaplib.etimport import ElementTree
+from lxml import etree
+from soaplib import nsmap
 
+_ns_addr =  nsmap['wsa']
 
 def create_relates_to_header(relatesTo, attrs={}):
     '''Creates a 'relatesTo' header for async callbacks'''
-    relatesToElement = ElementTree.Element(
-        '{http://schemas.xmlsoap.org/ws/2003/03/addressing}RelatesTo')
+    relatesToElement = etree.Element(
+        '{%s}RelatesTo' % _ns_addr)
     for k, v in attrs.items():
         relatesToElement.set(k, v)
     relatesToElement.text = relatesTo
     return relatesToElement
 
 
-def create_callback_info_headers(messageId, replyTo):
+def create_callback_info_headers(message_id, reply_to):
     '''Creates MessageId and ReplyTo headers for initiating an
     async function'''
-    messageIdElement = ElementTree.Element(
-        '{http://schemas.xmlsoap.org/ws/2003/03/addressing}MessageID')
-    messageIdElement.text = messageId
+    messageIdElement = etree.Element('{%s}MessageID' % _ns_addr)
+    messageIdElement.text = message_id
 
-    replyToElement = ElementTree.Element(
-        '{http://schemas.xmlsoap.org/ws/2003/03/addressing}ReplyTo')
-    addressElement = ElementTree.SubElement(replyToElement,
-        '{http://schemas.xmlsoap.org/ws/2003/03/addressing}Address')
-    addressElement.text = replyTo
+    replyToElement = etree.Element('{%s}ReplyTo' % _ns_addr)
+    addressElement = etree.SubElement(replyToElement, '{%s}Address' % _ns_addr)
+    addressElement.text = reply_to
+    
     return messageIdElement, replyToElement
-
 
 def get_callback_info():
     '''Retrieves the messageId and replyToAddress from the message header.
@@ -162,7 +162,7 @@ converters = {
 def element2dict(element):
     deprecate('element2dict')
     if type(element) == str:
-        element = ElementTree.fromstring(element)
+        element = etree.fromstring(element)
 
     children = element.getchildren()
     tag = element.tag.split('}')[-1]
@@ -225,7 +225,7 @@ def dict2element(*args, **kwargs):
     else:
         dictionary = args[0]
     if not len(dictionary.keys()):
-        return ElementTree.Element('none')
+        return etree.Element('none')
     root = dictionary.keys()[0]
     element = _dict2element(dictionary[root], root)
     element.set('xmlns:optio', 'http://www.optio.com/schemas')
@@ -239,7 +239,7 @@ def _dict2element(data, tag):
          bool: 'xs:boolean',
          float: 'xs:float',
     }
-    root = ElementTree.Element(tag)
+    root = etree.Element(tag)
     if type(data) == dict:
         for k, v in data.items():
             root.append(_dict2element(v, k))

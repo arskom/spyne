@@ -1,5 +1,6 @@
+
 #
-# soaplib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
+# soaplib - Copyright (C) Soaplib contributors. 
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -16,17 +17,20 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import cStringIO
 import datetime
-import pytz
-from pytz import FixedOffset
-import re
 import decimal
+import re
+import pytz
 
-from soaplib.xml import ns, create_xml_element, create_xml_subelement
-from soaplib.etimport import ElementTree
-
+from soaplib.serializers.base import Null
 from lxml import etree
+from pytz import FixedOffset
+
+from soaplib import nsmap
+from soaplib.serializers import Base
+from soaplib.serializers import SchemaInfo
+from soaplib.serializers import nillable_element
+from soaplib.serializers import nillable_value
 
 #######################################################
 # Utility Functions
@@ -34,174 +38,37 @@ from lxml import etree
 
 string_encoding = 'utf-8'
 
-_date_pattern = (r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})')
-_datetime_pattern = (r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})[T ]'
-    r'(?P<hr>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})(?P<fractional_sec>\.\d+)?')
+_date_pattern =   r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})'
+_time_pattern =   r'(?P<hr>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})(?P<sec_frac>\.\d+)?'
+_offset_pattern = r'(?P<tz_hr>[+-]\d{2}):(?P<tz_min>\d{2})'
+_datetime_pattern = _date_pattern + '[T ]' + _time_pattern + _offset_pattern
+
 _local_re = re.compile(_datetime_pattern)
 _utc_re = re.compile(_datetime_pattern + 'Z')
-_offset_re = re.compile(_datetime_pattern +
-    r'(?P<tz_hr>[+-]\d{2}):(?P<tz_min>\d{2})')
+_offset_re = re.compile(_datetime_pattern)
 
-def _is_null_element(element):
-    for k in element.keys():
-        if k.split('}')[-1] == 'nil':
-            return True
-    return False
+_ns_xs = nsmap['xs']
+_ns_xsi = nsmap['xsi']
 
+class Primitive(Base):
+    def __new__(cls, **kwargs):
+        return Base.customize(**kwargs)
 
-def _element_to_datetime(element):
-    # expect ISO formatted dates
-    #
-    text = element.text
-    if not text:
-        return None
+class Any(Primitive):
+    __type_name__ = 'anyType'
 
-    def parse_date(date_match, tz=None):
-        fields = date_match.groupdict(0)
-        year, month, day, hr, min, sec = [int(fields[x]) for x in
-           ("year", "month", "day", "hr", "min", "sec")]
-        # use of decimal module here (rather than float) might be better
-        # here, if willing to require python 2.4 or higher
-        microsec = int(float(fields.get("fractional_sec", 0)) * 10**6)
-        return datetime.datetime(year, month, day, hr, min, sec, microsec, tz)
-
-    match = _utc_re.match(text)
-    if match:
-        return parse_date(match, tz=pytz.utc)
-    match = _offset_re.match(text)
-    if match:
-        tz_hr, tz_min = [int(match.group(x)) for x in "tz_hr", "tz_min"]
-        return parse_date(match, tz=FixedOffset(tz_hr*60 + tz_min, {}))
-    match = _local_re.match(text)
-    if match:
-        return parse_date(match)
-    raise Exception("DateTime [%s] not in known format" % text)
-
-def _element_to_date(element):
-    # expect ISO formatted dates
-    #
-    text = element.text
-    if not text:
-        return None
-    
-    def parse_date(date_match):
-        fields = date_match.groupdict(0)
-        year, month, day = [int(fields[x]) for x in
-           ("year", "month", "day")]
-        return datetime.date(year, month, day)
-    
-    match = _date_pattern.match(text)
-    if match:
-        return parse_date(match)
-    raise Exception("Date [%s] not in known format" % text)
-
-
-def _element_to_string(element):
-    text = element.text
-    if text:
-        return text.decode(string_encoding)
-    else:
-        return None
-
-def _element_to_integer(element):
-    i = element.text
-    if not i:
-        return None
-    try:
-        return int(str(i))
-    except:
-        try:
-            return long(i)
-        except:
-            return None
-
-def _element_to_float(element):
-    f = element.text
-    if f is None:
-        return None
-    return float(f)
-
-def _element_to_unicode(element):
-    u = element.text
-    if not u:
-        return None
-    try:
-        u = str(u)
-        return u.encode(string_encoding)
-    except:
-        return u
-
-def _unicode_to_xml(value, name, cls, nsmap):
-    retval = create_xml_element(name, nsmap)
-    if value == None:
-        return Null.to_xml(value, name, nsmap)
-    if type(value) == unicode:
-        retval.text = value
-    else:
-        retval.text = unicode(value, string_encoding)
-    retval.set(
-        nsmap.get('xsi') + 'type',
-        "%s:%s" % (cls.get_namespace_id(), cls.get_datatype()))
-    return retval
-
-def _generic_to_xml(value, name, cls, nsmap):
-    retval = create_xml_element(name, nsmap)
-    if value:
-        retval.text = value
-    retval.set(
-        nsmap.get('xsi') + 'type',
-        "%s:%s" % (cls.get_namespace_id(), cls.get_datatype()))
-    return retval
-
-def _get_datatype(cls, typename, nsmap):
-    if nsmap is not None:
-        return nsmap.get(cls.get_namespace_id()) + typename
-    return typename
-
-def nillable(func):
-    def wrapper(cls, value, *args, **kwargs):
-        if value is None:
-            return Null.to_xml(value, *args, **kwargs)
-        return func(cls, value, *args, **kwargs)
-    return wrapper
-
-class BasePrimitive(object):
+    @nillable_value
     @classmethod
-    def to_xml(cls, value, name='retval', nsmap=ns):
-        raise NotImplemented
-
-    @classmethod
-    def from_xml(cls, element):
-        raise NotImplemented
-
-    @classmethod
-    def get_datatype(cls, nsmap=None):
-        raise NotImplemented
-
-    @classmethod
-    def get_namespace_id(cls):
-        raise NotImplemented
-
-    @classmethod
-    def add_to_schema(cls, added_params, nsmap):
-        raise NotImplemented
-
-    @classmethod
-    def print_class(cls):
-        return cls.__name__
-
-class Any(BasePrimitive):
-    @classmethod
-    @nillable
-    def to_xml(cls, value, name='retval', nsmap=ns):
+    def to_xml(cls, value, name='retval'):
         if isinstance(value,str) or isinstance(value,unicode):
-            value = ElementTree.fromstring(value)
+            value = etree.fromstring(value)
 
-        e = create_xml_element(name, nsmap)
+        e = etree.Element(name)
         e.append(value)
 
         return e
 
+    @nillable_element
     @classmethod
     def from_xml(cls, element):
         children = element.getchildren()
@@ -209,519 +76,284 @@ class Any(BasePrimitive):
             return element.getchildren()[0]
         return None
 
+class AnyAsDict(Any):
     @classmethod
-    def get_datatype(cls, nsmap=None):
-        return _get_datatype(cls, 'anyType', nsmap)
+    def _dict_to_etree(cls, d):
+        """the dict values are either dicts or iterables"""
 
-    @classmethod
-    def get_namespace_id(cls):
-        return 'xs'
-
-    @classmethod
-    def add_to_schema(cls, added_params, nsmap):
-        pass
-
-def _dict_to_etree(d,nsmap):
-    """the dict values are either dicts or iterables"""
-
-    retval = []
-    for k,v in d.items():
-        if v is None:
-            retval.append(create_xml_element(k,nsmap))
-        else:
-            if isinstance(v,dict):
-                retval.append(create_xml_element(_dict_to_etree(v),nsmap))
-
+        retval = []
+        for k,v in d.items():
+            if v is None:
+                retval.append(etree.Element(k))
             else:
-                for e in v:
-                    retval.append(create_xml_element(str(e),nsmap))
+                if isinstance(v,dict):
+                    retval.append(etree.Element(cls._dict_to_etree(v)))
 
-    return retval
-
-def _etree_to_dict(elt,with_root=True):
-    r = {}
-
-    if with_root:
-        retval = {elt.tag: r}
-    else:
-        retval = r
-
-    for e in elt:
-        if (e.text is None) or e.text.isspace():
-            r[e.tag] = _etree_to_dict(e,False)
-
-        else:
-            if e.tag in r:
-                if not (e.text is None):
-                    r[e.tag].append(e.text)
-            else:
-                if e.text is None:
-                    r[e.tag] = []
                 else:
-                    r[e.tag] = [e.text]
+                    for e in v:
+                        retval.append(etree.Element(str(e)))
 
-    if with_root:
-        if len(r) == 0:
-            retval[elt.tag] = []
         return retval
-    else:
-        return retval if len(r) > 0 else []
 
-class AnyAsDict(BasePrimitive):
     @classmethod
-    @nillable
-    def to_xml(cls, value, name='retval', nsmap=ns):
-        e = create_xml_element(name, nsmap)
-        e.extend(_dict_to_xml(value, nsmap))
+    def _etree_to_dict(cls, elt,with_root=True):
+        r = {}
+
+        if with_root:
+            retval = {elt.tag: r}
+        else:
+            retval = r
+
+        for e in elt:
+            if (e.text is None) or e.text.isspace():
+                r[e.tag] = cls._etree_to_dict(e,False)
+
+            else:
+                if e.tag in r:
+                    if not (e.text is None):
+                        r[e.tag].append(e.text)
+                else:
+                    if e.text is None:
+                        r[e.tag] = []
+                    else:
+                        r[e.tag] = [e.text]
+
+        if with_root:
+            if len(r) == 0:
+                retval[elt.tag] = []
+            return retval
+        else:
+            return retval if len(r) > 0 else []
+
+    @nillable_value
+    @classmethod
+    def to_xml(cls, value, name='retval'):
+        e = etree.Element(name)
+        e.extend(cls._dict_to_etree(value))
 
         return e
 
+    @nillable_element
     @classmethod
     def from_xml(cls, element):
         children = element.getchildren()
         if children:
-            return _etree_to_dict(element.getchildren()[0])
+            return cls._etree_to_dict(element.getchildren()[0])
         return None
 
-    @classmethod
-    def get_datatype(cls, nsmap=None):
-        return _get_datatype(cls, 'anyType', nsmap)
-
-    @classmethod
-    def get_namespace_id(cls):
-        return 'xs'
-
-    @classmethod
-    def add_to_schema(cls, added_params, nsmap):
-        pass
-
-class String(BasePrimitive):
-
-    @classmethod
-    @nillable
-    def to_xml(cls, value, name='retval', nsmap=ns):
-        e = _unicode_to_xml(value, name, cls, nsmap)
-        return e
-
-    @classmethod
-    def from_xml(cls, element):
-        if element is None:
-            return None
-        return _element_to_unicode(element)
-
-    @classmethod
-    def get_datatype(cls, nsmap=None):
-        return _get_datatype(cls, 'string', nsmap)
-
-    @classmethod
-    def get_namespace_id(cls):
-        return 'xs'
-
-    @classmethod
-    def add_to_schema(cls, added_params, nsmap):
-        pass
-
-class Fault(Exception):
-    def __init__(self, faultcode = 'Server', faultstring = None,
-                 detail = None, name = 'ExceptionFault'):
-        self.faultcode = faultcode
-        self.faultstring = faultstring
-        self.detail = detail
-        self.name = name
-
-    @classmethod
-    def to_xml(cls, value, name, nsmap=ns):
-        fault = create_xml_element(name, nsmap)
-        create_xml_subelement(fault, 'faultcode').text = value.faultcode
-        create_xml_subelement(fault, 'faultstring').text = value.faultstring
-        detail = create_xml_subelement(fault, 'detail').text = value.detail
-        return fault
-
-    @classmethod
-    def from_xml(cls, element):
-        code = _element_to_string(element.find('faultcode'))
-        string = _element_to_string(element.find('faultstring'))
-        detail_element = element.find('detail')
-        if detail_element is not None:
-            if len(detail_element.getchildren()):
-                detail = ElementTree.tostring(detail_element)
-            else:
-                detail = _element_to_string(element.find('detail'))
-        else:
-            detail = ''
-        return Fault(faultcode=code, faultstring=string, detail=detail)
-
-    @classmethod
-    def get_datatype(cls, nsmap=None):
-        return _get_datatype(cls, 'ExceptionFaultType', nsmap)
-
-    @classmethod
-    def get_namespace_id(cls):
-        return 'tns'
-
-    @classmethod
-    def add_to_schema(cls, schema_dict, nsmap):
-        complexTypeNode = create_xml_element('complexType', nsmap)
-        complexTypeNode.set('name', cls.get_datatype())
-        sequenceNode = create_xml_subelement(complexTypeNode, 'sequence')
-        faultTypeElem = create_xml_subelement(sequenceNode, 'element')
-        faultTypeElem.set('name', 'detail')
-        faultTypeElem.set(nsmap.get('xsi') + 'type', 'xs:string')
-        faultTypeElem = create_xml_subelement(sequenceNode, 'element')
-        faultTypeElem.set('name', 'message')
-        faultTypeElem.set(nsmap.get('xsi') + 'type', 'xs:string')
-
-        schema_dict[cls.get_datatype()] = complexTypeNode
-
-        typeElementItem = create_xml_element('element', nsmap)
-        typeElementItem.set('name', 'ExceptionFaultType')
-        typeElementItem.set(nsmap.get('xsi') + 'type', cls.get_datatype(nsmap))
-        schema_dict['%sElement' % (cls.get_datatype(nsmap))] = typeElementItem
-
-    def __str__(self):
-        io = cStringIO.StringIO()
-        io.write("*" * 80)
-        io.write("\r\n")
-        io.write(" Recieved soap fault \r\n")
-        io.write(" FaultCode            %s \r\n" % self.faultcode)
-        io.write(" FaultString          %s \r\n" % self.faultstring)
-        io.write(" FaultDetail          \r\n")
-        if self.detail is not None:
-            io.write(self.detail)
-        return io.getvalue()
-
-
-class Integer(BasePrimitive):
-
-    @classmethod
-    @nillable
-    def to_xml(cls, value, name='retval', nsmap=ns):
-        e = _generic_to_xml(str(value), name, cls, nsmap)
-        return e
-
-    @classmethod
-    def from_xml(cls, element):
-        return _element_to_integer(element)
-
-    @classmethod
-    def get_datatype(cls, nsmap=None):
-        return _get_datatype(cls, 'integer', nsmap)
-
-    @classmethod
-    def get_namespace_id(cls):
-        return 'xs'
-
-    @classmethod
-    def add_to_schema(cls, added_params, nsmap):
-        pass
-
-class Decimal(BasePrimitive):
-    @classmethod
-    @nillable
-    def to_xml(cls, value, name='retval', nsmap=ns):
-        e = _generic_to_xml(str(value), name, cls, nsmap)
-        return e
-
-    @classmethod
-    def from_xml(cls, element):
-        return decimal.Decimal(_element_to_unicode(element))
-
-    @classmethod
-    def get_datatype(cls, nsmap=None):
-        return _get_datatype(cls, 'decimal', nsmap)
-
-    @classmethod
-    def get_namespace_id(cls):
-        return 'xs'
-
-    @classmethod
-    def add_to_schema(cls, added_params, nsmap):
-        pass
-
-class Double(BasePrimitive):
-    @classmethod
-    @nillable
-    def to_xml(cls, value, name='retval', nsmap=ns):
-        e = _generic_to_xml(str(value), name, cls, nsmap)
-        return e
-
-    @classmethod
-    def from_xml(cls, element):
-        return _element_to_float(element)
-
-    @classmethod
-    def get_datatype(cls, nsmap=None):
-        return _get_datatype(cls, 'double', nsmap)
-
-    @classmethod
-    def get_namespace_id(cls):
-        return 'xs'
-
-    @classmethod
-    def add_to_schema(cls, added_params, nsmap):
-        pass
-
-class DateTime(BasePrimitive):
+class String(Primitive):
+    min_len = 0
+    max_len = float('inf')
     
-    @classmethod
-    @nillable
-    def to_xml(cls, value, name='retval', nsmap=ns):
-        if type(value) == datetime.datetime:
-            value = value.isoformat('T')
-        e = _generic_to_xml(value, name, cls, nsmap)
-        return e
+    def __new__(cls, *args, **kwargs):
+        assert len(args) <= 1
 
+        retval = Primitive.__new__(cls, **kwargs)
+
+        if len(args) == 1:
+            retval.max_len = args[0]
+
+        else:
+            retval.max_len = kwargs.get("max_len",float('inf'))
+            retval.min_len = kwargs.get("min_len",0)
+
+        return retval
+    
+    @nillable_value
+    @classmethod
+    def to_xml(cls, value, name='retval'):
+        if not isinstance(value,unicode):
+            value = unicode(value, string_encoding)
+        
+        return Primitive.to_xml(cls, value, name)
+
+    @nillable_element
     @classmethod
     def from_xml(cls, element):
-        return _element_to_datetime(element)
+        try:
+            u = str(u)
+            return u.encode(string_encoding)
+        except:
+            return u
 
-    @classmethod
-    def get_datatype(cls, nsmap=None):
-        return _get_datatype(cls, 'dateTime', nsmap)
-
-    @classmethod
-    def get_namespace_id(cls):
-        return 'xs'
-
-    @classmethod
-    def add_to_schema(cls, added_params, nsmap):
-        pass
-
-class Date(BasePrimitive):
-    @classmethod
-    @nillable
-    def to_xml(cls, value, name='retval', nsmap=ns):
-        if isinstance(value, datetime.datetime):
-            pass #CONSIDER: should we automatically convert to date?
-        if isinstance(value, datetime.date):
-            value = value.isoformat()
-        e = _generic_to_xml(value, name, cls, nsmap)
-        return e
-
+class Integer(Primitive):
+    @nillable_element
     @classmethod
     def from_xml(cls, element):
-        return _element_to_date(element)
-
-    @classmethod
-    def get_datatype(cls, nsmap=None):
-        return _get_datatype(cls, 'date', nsmap)
-
-    @classmethod
-    def get_namespace_id(cls):
-        return 'xs'
-
-    @classmethod
-    def add_to_schema(cls, added_params, nsmap):
-        pass
-
-class Float(BasePrimitive):
-    @classmethod
-    @nillable
-    def to_xml(cls, value, name='retval', nsmap=ns):
-        e = _generic_to_xml(str(value), name, cls, nsmap)
-        return e
-
-    @classmethod
-    def from_xml(cls, element):
-        return _element_to_float(element)
-
-    @classmethod
-    def get_datatype(cls, nsmap=None):
-        return _get_datatype(cls, 'float', nsmap)
-
-    @classmethod
-    def get_namespace_id(cls):
-        return 'xs'
-
-    @classmethod
-    def add_to_schema(cls, added_params, nsmap):
-        pass
-
-class Null(BasePrimitive):
-    @classmethod
-    def to_xml(cls, value, name='retval', nsmap=ns):
-        element = create_xml_element(name, nsmap)
-        element.set(cls.get_datatype(nsmap), '1')
-        return element
-
-    @classmethod
-    def from_xml(cls, element):
-        return None
-
-    @classmethod
-    def get_datatype(cls, nsmap=None):
-        return _get_datatype(cls, 'nil', nsmap)
-
-    @classmethod
-    def get_namespace_id(cls):
-        return 'xs'
-
-    @classmethod
-    def add_to_schema(cls, added_params, nsmap):
-        pass
-
-class Boolean(BasePrimitive):
-    @classmethod
-    @nillable
-    def to_xml(cls, value, name='retval', nsmap=ns):
-        # applied patch from Julius Volz
-        #e = _generic_to_xml(str(value).lower(),name,cls.get_datatype(nsmap))
-        return _generic_to_xml(str(bool(value)).lower(), name, cls, nsmap)
-
-    @classmethod
-    def from_xml(cls, element):
-        s = _element_to_string(element)
-        if s == None:
+        i = element.text
+        if not i:
             return None
+
+        try:
+            return int(str(i))
+        except:
+            try:
+                return long(i)
+            except:
+                return None
+
+class Decimal(Primitive):
+    @nillable_element
+    @classmethod
+    def from_xml(cls, element):
+        return decimal.Decimal(element.text)
+
+class Date(Primitive):
+    @nillable_value
+    @classmethod
+    def to_xml(cls, value, name='retval'):
+        return Primitive.to_xml(cls,value.isoformat(),name)
+
+    @nillable_element
+    @classmethod
+    def from_xml(cls, element):
+        """expect ISO formatted dates"""
+        text = element.text
+        
+        def parse_date(date_match):
+            fields = date_match.groupdict(0)
+            year, month, day = [int(fields[x]) for x in
+               ("year", "month", "day")]
+            return datetime.date(year, month, day)
+
+        match = _date_pattern.match(text)
+        if not match:
+            raise Exception("Date [%s] not in known format" % text)
+
+        return parse_date(match)
+
+class DateTime(Primitive):
+    @nillable_value
+    @classmethod
+    def to_xml(cls, value, name='retval'):
+        return Primitive.to_xml(cls,value.isoformat('T'),name)
+
+    @nillable_element
+    @classmethod
+    def from_xml(cls, element):
+        """expect ISO formatted dates"""
+
+        text = element.text
+        def parse_date(date_match, tz=None):
+            fields = date_match.groupdict(0)
+            year, month, day, hr, min, sec = [int(fields[x]) for x in
+               ("year", "month", "day", "hr", "min", "sec")]
+            # use of decimal module here (rather than float) might be better
+            # here, if willing to require python 2.4 or higher
+            microsec = int(float(fields.get("sec_frac", 0)) * 10**6)
+            return datetime.datetime(year, month, day, hr, min, sec, microsec, tz)
+
+        match = _utc_re.match(text)
+        if match:
+            return parse_date(match, tz=pytz.utc)
+
+        match = _offset_re.match(text)
+        if match:
+            tz_hr, tz_min = [int(match.group(x)) for x in "tz_hr", "tz_min"]
+            return parse_date(match, tz=FixedOffset(tz_hr*60 + tz_min, {}))
+
+        match = _local_re.match(text)
+        if not match:
+            raise Exception("DateTime [%s] not in known format" % text)
+
+        return parse_date(match)
+
+class Double(Primitive):
+    @nillable_element
+    @classmethod
+    def from_xml(cls, element):
+        return float(element.text)
+
+class Float(Double):
+    pass
+
+class Boolean(Primitive):
+    @nillable_value
+    @classmethod
+    def to_xml(cls, value, name='retval'):
+        return Primitive.to_xml(cls,str(bool(value)).lower(),name)
+
+    @nillable_element
+    @classmethod
+    def from_xml(cls, element):
+        s = element.text
         if s and s.lower()[0] == 't':
             return True
         return False
 
+class Array(Primitive):
+    serializer = None
+
+    def __new__(cls, serializer, **kwargs):
+        retval = Primitive.__new__(cls, **kwargs)
+        retval.min_occurs = 0
+        retval.max_occurs = "unbounded"
+        retval.serializer = serializer
+
+        retval.__type_name__ = '%sArray' % retval.serializer.get_type_name()
+        retval.__namespace__ = retval.serializer.__namespace__
+
+        if "min_occurs" in kwargs:
+            retval.min_occurs = kwargs['min_occurs']
+        if "max_occurs" in kwargs:
+            retval.min_occurs = kwargs['max_occurs']
+
+        return retval
+
+    @nillable_value
     @classmethod
-    def get_datatype(cls, nsmap=None):
-        return _get_datatype(cls, 'boolean', nsmap)
+    def to_xml(cls, values, name='retval'):
+        retval = etree.Element(name)
 
-    @classmethod
-    def get_namespace_id(cls):
-        return 'xs'
-
-    @classmethod
-    def add_to_schema(cls, added_params, nsmap):
-        pass
-
-class Array(BasePrimitive):
-
-    def __init__(self, serializer, type_name=None, namespace_id='tns'):
-        self.serializer = serializer
-        self.namespace_id = namespace_id
-        if not type_name:
-            self.type_name = '%sArray' % self.serializer.get_datatype()
-        else:
-            self.type_name = type_name
-
-    def to_xml(self, values, name='retval', nsmap=ns):
-        res = create_xml_element(name, nsmap)
-        typ = self.get_datatype(nsmap)
         if values == None:
             values = []
-        res.set('type',
-            "%s:%s" % (self.get_namespace_id(), self.get_datatype()))
+
+        retval.set('type', "%s" % cls.get_type_name_ns())
+
+        try:
+            iter(values)
+        except TypeError, e:
+            raise TypeError(values, name)
+
         for value in values:
-            serializer = self.serializer
+            serializer = cls.serializer
             if value == None:
                 serializer = Null
-            res.append(
-                serializer.to_xml(value, serializer.get_datatype(), nsmap))
-        return res
+            retval.append(
+                serializer.to_xml(value, serializer.get_datatype()))
 
-    def from_xml(self, element):
+        return retval
+
+    @nillable_element
+    @classmethod
+    def from_xml(cls, element):
         results = []
+
         for child in element.getchildren():
-            results.append(self.serializer.from_xml(child))
+            results.append(cls.serializer.from_xml(child))
+
         return results
 
-    def get_datatype(self, nsmap=None):
-        return _get_datatype(self, self.type_name, nsmap)
+    @classmethod
+    def add_to_schema(cls, schema_dict):
+        if not (cls in schema_dict):
+            complex_type = etree.Element('{%s}complexType' % _ns_xs)
+            complex_type.set('name', cls.get_type_name())
 
-    def get_namespace_id(self):
-        return self.namespace_id
+            sequence = etree.SubElement(complex_type,'{%s}sequence' % _ns_xs)
 
-    def add_to_schema(self, schema_dict, nsmap):
-        typ = self.get_datatype()
+            element = etree.SubElement(sequence, '{%s}element' % _ns_xs)
+            element.set('minOccurs', str(cls.min_occurs))
+            element.set('maxOccurs', str(cls.max_occurs))
+            element.set('name', cls.serializer.get_type_name())
+            element.set('type', cls.serializer.get_type_name_ns())
 
-        self.serializer.add_to_schema(schema_dict, nsmap)
+            top_level_element = etree.Element('{%s}element' % _ns_xs)
+            top_level_element.set('name', cls.get_type_name())
+            top_level_element.set('type', cls.get_type_name_ns())
 
-        if not typ in schema_dict:
+            ns_dict = schema_dict.get(cls.get_namespace_prefix(), SchemaInfo())
+            ns_dict.complex[cls.get_type_name_ns()] = complex_type
+            ns_dict.simple[cls.get_type_name()] = top_level_element
 
-            complexTypeNode = create_xml_element(
-                nsmap.get('xs') + 'complexType', nsmap)
-            complexTypeNode.set('name', self.get_datatype())
-
-            sequenceNode = create_xml_subelement(
-                complexTypeNode, nsmap.get('xs') + 'sequence')
-            elementNode = create_xml_subelement(
-                sequenceNode, nsmap.get('xs') + 'element')
-            elementNode.set('minOccurs', '0')
-            elementNode.set('maxOccurs', 'unbounded')
-            elementNode.set('type',
-                "%s:%s" % (self.serializer.get_namespace_id(), self.serializer.get_datatype()))
-            elementNode.set('name', self.serializer.get_datatype())
-
-            typeElement = create_xml_element(
-                nsmap.get('xs') + 'element', nsmap)
-            typeElement.set('name', typ)
-            typeElement.set('type',
-                "%s:%s" % (self.namespace_id, self.get_datatype()))
-
-            schema_dict['%sElement' % (self.get_datatype(nsmap))] = typeElement
-            schema_dict[self.get_datatype(nsmap)] = complexTypeNode
-
-    def print_class(self):
-        return "%s(%s)" % (type(self).__name__, self.serializer.print_class())
-
-
-class Repeating(BasePrimitive):
-    def __init__(self, serializer, type_name=None, namespace_id='tns'):
-        self.serializer = serializer
-        self.namespace_id = namespace_id
-
-    def to_xml(self, values, name='retval', nsmap=ns):
-        if values == None:
-            values = []
-        res = []
-        for value in values:
-            serializer = self.serializer
-            if value == None:
-                serializer = Null
-            res.append(serializer.to_xml(value, name, nsmap))
-        return res
-
-    def get_namespace_id(self):
-        return self.namespace_id
-
-    def from_xml(self, *elements):
-        results = []
-        for child in elements:
-            results.append(self.serializer.from_xml(child))
-        return results
-
-    def add_to_schema(self, schema_dict, nsmap):
-        raise Exception("The Repeating serializer is experimental and not "
-            "supported for wsdl generation")
-
-    def print_class(self):
-        return "%s(%s)" % (type(self).__name__, self.serializer.print_class())
-
-class Optional(BasePrimitive):
-    def __init__(self, serializer, type_name=None, namespace_id='tns'):
-        self.serializer = serializer
-        self.namespace_id = namespace_id
-        if not type_name:
-            self.type_name = '%sOptional' % self.serializer.get_datatype()
-        else:
-            self.type_name = type_name
-
-    def to_xml(self, value, name='retval', nsmap=ns):
-        if value is None:
-            return []
-        return self.serializer.to_xml(value, name, nsmap)
-
-    def get_namespace_id(self):
-        return self.namespace_id
-
-    def from_xml(self, element):
-        if element is None:
-            return None
-        return self.serializer.from_xml(element)
-
-    def add_to_schema(self, schema_dict, nsmap):
-        raise Exception("The Optional serializer is experimental and not "
-            "supported for wsdl generation")
-
-    def get_datatype(self):
-        return self.serializer.get_datatype()
-
-    def print_class(self):
-        return "%s(%s)" % (type(self).__name__, self.serializer.print_class())
-
-
+            cls.serializer.add_to_schema(schema_dict)

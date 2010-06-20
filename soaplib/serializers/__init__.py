@@ -1,5 +1,7 @@
+
 #
-# soaplib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
+# soaplib - Copyright (C) Soaplib contributors. See CONTRIBUTORS file at the
+#           package root for more information.
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -16,4 +18,4 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-pass
+from base import *

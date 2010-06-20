@@ -1,6 +1,6 @@
 
 #
-# soaplib - Copyright (C) 2010 Arskom Ltd. www.arskom.com.tr
+# soaplib - Copyright (C) Soaplib contributors. 
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -17,8 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import inspect
-
 import sqlalchemy
 from sqlalchemy import Column
 
@@ -33,6 +31,8 @@ _type_map = {
     sqlalchemy.UnicodeText: soap.String,
 
     sqlalchemy.Float: soap.Float,
+    sqlalchemy.Double: soap.Double,
+    sqlalchemy.Decimal: soap.Decimal,
     sqlalchemy.Numeric: soap.Double,
     sqlalchemy.Integer: soap.Integer,
     sqlalchemy.SmallInteger: soap.Integer,
@@ -43,36 +43,32 @@ _type_map = {
 }
 
 class TableSerializerMeta(DeclarativeMeta):
-    def __init__(cls, name, bases, dict_):
-        types = cls
-        members = dict(inspect.getmembers(types))
-        cls.soap_members = {}
-        cls.namespace = None
+    # FIXME: ClassSerializerMeta ile birlestirilecek
+    def __init__(cls, cls_name, cls_bases, cls_dict):
+        cls._type_info = {}
+        cls.__type_name__ = cls.__name__
+        cls.set_namespace(cls.__module__)
 
-        for k, v in members.items():
-            if isinstance(v, Column):
-                if v.type in _type_map:
-                    soap_type = _type_map[v.type]
-                elif type(v.type) in _type_map:
-                    soap_type = _type_map[type(v.type)]
-                else:
-                    raise Exception("soap_type was not found. maybe _type_map "
-                                    "needs a new entry.")
+        for k, v in cls_dict.items():
+            if k == '__namespace__':
+                cls.set_namespace(v)
 
-                cls.soap_members[k]=soap_type;
+            elif k == '__type_name__':
+                cls.__type_name__ = v
 
-            elif v is soap.Array:
-                if v.type in _type_map:
-                    soap_type = soap.Array(_type_map[v.type])
-                elif type(v.type) in _type_map:
-                    soap_type = soap.Array(_type_map[type(v.type)])
-                else:
-                    raise Exception("soap_type was not found. maybe _type_map "
-                                    "needs a new entry.")
+            elif not k.startswith('__'):
+                if isinstance(v, Column):
+                    if v.type in _type_map:
+                        rpc_type = _type_map[v.type]
+                    elif type(v.type) in _type_map:
+                        rpc_type = _type_map[type(v.type)]
+                    else:
+                        raise Exception("soap_type was not found. maybe _type_map "
+                                        "needs a new entry.")
 
-                cls.soap_members[k]=soap_type;
+                    cls._type_info[k]=rpc_type
 
-        DeclarativeMeta.__init__(cls, name, bases, dict_)
+        DeclarativeMeta.__init__(cls, cls_name, cls_bases, cls_dict)
 
 class TableSerializer(ClassSerializerBase):
     __metaclass__ = TableSerializerMeta

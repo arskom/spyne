@@ -1,5 +1,6 @@
+
 #
-# soaplib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
+# soaplib - Copyright (C) Soaplib contributors.
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -16,9 +17,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import inspect
-from soaplib.xml import ns, create_xml_element, create_xml_subelement
-from soaplib.serializers.primitive import BasePrimitive, Array
+from lxml import etree
+
+from soaplib import nsmap
+
+from soaplib.serializers import Base
+from soaplib.serializers import SchemaInfo
+from soaplib.serializers import nillable_element
+from soaplib.serializers import nillable_value
+
+from soaplib.serializers.primitive import Array
 
 class ClassSerializerMeta(type):
     '''
@@ -26,7 +34,7 @@ class ClassSerializerMeta(type):
     the appropriate datatypes for (de)serialization
     '''
 
-    def __init__(cls, clsname, bases, dictionary):
+    def __init__(cls, cls_name, cls_bases, cls_dict):
         '''
         This initializes the class, and sets all the appropriate
         types onto the class for serialization.  This implementation
@@ -34,86 +42,66 @@ class ClassSerializerMeta(type):
         serializers for this class
         '''
 
-        types = cls
-        members = dict(inspect.getmembers(types))
-        cls.soap_members = {}
-        cls.namespace = None
+        cls._type_info = {}
+        cls.__type_name__ = cls.__name__
+        cls.set_namespace(cls.__module__)
+        
+        for k, v in cls_dict.items():
+            if k == '__namespace__':
+                cls.set_namespace(v)
 
-        for k, v in members.items():
-            if k == '_namespace_':
-                cls.namespace=v
-
+            elif k == '__type_name__':
+                cls.__type_name__ = v
+                
             elif not k.startswith('__'):
-                subc=False
+                subc = False
                 try:
-                    if issubclass(v,BasePrimitive):
+                    if issubclass(v,Base):
                         subc = True
-                except TypeError:
+                except:
                     pass
-
-                try:
-                    if issubclass(v,ClassSerializer):
-                        subc = True
-                except NameError:
-                    pass
-                except TypeError:
-                    pass
-
-                if isinstance(v,BasePrimitive):
-                    subc = True
-                elif isinstance(v,cls):
-                    subc = True
-
+                    
                 if subc:
-                    cls.soap_members[k] = v
-                    if v == Array:
-                        raise Exception("%s.%s is an array of what?" % (cls.__name__, k))
+                    cls._type_info[k] = v
+                    if v is Array:
+                        #print "%-30s" % cls_name, "%-30s" % k, v, v.serializer
+                        if v.serializer is None:
+                            raise Exception(
+                                "%s.%s is an array of what?" % (cls.get_type_name(), k))
 
-        # COM bridge attributes that are otherwise harmless
-        cls._public_methods_ = []
-        cls._public_attrs_ = cls.soap_members.keys()
+class NonExtendingClass(object):
+    def __setattr__(self,k,v):
+        if not hasattr(self,k) and getattr(self, 'NO_EXTENSION', False):
+            raise Exception("'%s' object is not extendable at this point in "
+                            "code.\nInvalid member '%s'" %
+                                                  (self.__class__.__name__, k) )
+        object.__setattr__(self,k,v)
 
-
-class ClassSerializerBase(object):
+class ClassSerializerBase(NonExtendingClass, Base):
     def __init__(self, **kwargs):
         cls = self.__class__
-        for k, v in cls.soap_members.items():
+
+        for k in cls._type_info.keys():
             setattr(self, k, kwargs.get(k, None))
 
         self.NO_EXTENSION=True
 
-    def __setattr__(self,k,v):
-        if not hasattr(self,k) and getattr(self, 'NO_EXTENSION', False):
-            raise Exception("'%s' object is not extendable at this point in code."
-                                    "\nInvalid member '%s'\n" %
-                                                  (self.__class__.__name__, k) )
-        else:
-            object.__setattr__(self,k,v)
-
-
+    @nillable_value
     @classmethod
-    def to_xml(cls, value, name='retval', nsmap=ns):
-        element = create_xml_element(
-            nsmap.get(cls.get_namespace_id()) + name, nsmap)
+    def to_xml(cls, value, name='retval'):
+        element = etree.Element("{%s}%s" % (cls._type_info.namespace, name))
 
-        # Because namespaces are not getting output, explicitly set xmlns as an
-        # attribute. Otherwise .NET will reject the message.
-        if None not in nsmap.nsmap and cls.get_namespace_id() in nsmap.nsmap:
-            xmlns = nsmap.nsmap[cls.get_namespace_id()]
-            element.set('xmlns', xmlns)
-        
-        for k, v in cls.soap_members.items():
+        for k, v in cls._type_info.items():
             subvalue = getattr(value, k, None)
-            subelements = v.to_xml(subvalue, name=k, nsmap=nsmap)
-            if type(subelements) != list:
-                subelements = [subelements]
-            for s in subelements:
-                element.append(s)
+            subelement = v.to_xml(subvalue, name="{%s}%s" %
+                                                 (cls._type_info.namespace, k))
+            element.append(subelement)
+
         return element
 
+    @nillable_element
     @classmethod
     def from_xml(cls, element):
-        obj = cls()
         children = element.getchildren()
         d = {}
         for c in children:
@@ -122,53 +110,45 @@ class ClassSerializerBase(object):
                 d[name] = []
             d[name].append(c)
 
-        for tag, v in d.items():
-            member = cls.soap_members.get(tag)
+        for k,v in d.items():
+            member = cls._type_info.get(k)
+            if member is None:
+                raise Exception('the %s object does not have a "%s" member' %
+                                                              (cls.__name__,k))
+
             value = member.from_xml(*v)
-            setattr(obj, tag, value)
-        return obj
+            setattr(cls, k, value)
+
+        return cls
 
     @classmethod
-    def get_datatype(cls, nsmap=None):
-        if nsmap is not None:
-            return nsmap.get(cls.get_namespace_id()) + name
-        return name
+    def add_to_schema(cls, schema_dict):
+        try:
+            schema_dict[cls.get_namespace_prefix()].complex[cls.get_type_name()]
+            
+        except KeyError:
+            complex_type = etree.Element("{%(xs)s}complexType" % nsmap)
+            complex_type.set('name',cls.get_type_name())
 
-    @classmethod
-    def get_namespace_id(cls):
-        return 'tns'
+            sequence = etree.SubElement(complex_type, '{%(xs)s}sequence'% nsmap)
 
-    @classmethod
-    def add_to_schema(cls, schemaDict, nsmap):
-        if not cls.get_datatype(nsmap) in schemaDict:
-            for k, v in cls.soap_members.items():
-                v.add_to_schema(schemaDict, nsmap)
+            for k, v in cls._type_info.items():
+                member = etree.SubElement(sequence, '{%(xs)s}element' % nsmap)
+                member.set('name', k)
+                member.set('minOccurs', '0')
+                member.set('type', v.get_type_name_ns())
 
-            schema_node = create_xml_element(
-                nsmap.get("xs") + "complexType", nsmap)
-            schema_node.set('name',cls.get_datatype())
+            element = etree.Element('{%(xs)s}element' % nsmap)
+            element.set('name',cls.get_type_name())
+            element.set('type',cls.get_type_name_ns())
 
-            sequence_node = create_xml_subelement(
-                schema_node, nsmap.get('xs') + 'sequence')
-            for k, v in cls.soap_members.items():
-                member_node = create_xml_subelement(
-                    sequence_node, nsmap.get('xs') + 'element')
-                member_node.set('name', k)
-                member_node.set('minOccurs', '0')
-                member_node.set('type',
-                    "%s:%s" % (v.get_namespace_id(), v.get_datatype()))
-
-            typeElement = create_xml_element(
-                nsmap.get('xs') + 'element', nsmap)
-            typeElement.set('name',cls.get_datatype())
-            typeElement.set('type',
-                "%s:%s" % (cls.get_namespace_id(),cls.get_datatype()))
-            schemaDict[cls.get_datatype(nsmap)+'Complex'] = schema_node
-            schemaDict[cls.get_datatype(nsmap)] = typeElement
+            ns_dict = schema_dict.get(cls.get_namespace_prefix(), SchemaInfo())
+            ns_dict.simple[cls.get_type_name()] = element
+            ns_dict.complex[cls.get_type_name()] = complex_type
+            schema_dict[cls.get_namespace_prefix()] = ns_dict
+            
+            for k, v in cls._type_info.items():
+                v.add_to_schema(schema_dict)
 
 class ClassSerializer(ClassSerializerBase):
     __metaclass__ = ClassSerializerMeta
-    @classmethod
-    def print_class(cls):
-        return cls.__name__
-
