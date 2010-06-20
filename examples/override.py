@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from soaplib.service import soapmethod
+from soaplib.service import rpc
 from soaplib.serializers.primitive import String
 from soaplib.wsgi_soap import SimpleWSGISoapApp
 
@@ -30,11 +30,11 @@ that are python keywords like, from, to, import, return, etc.
 
 class EmailManager(SimpleWSGISoapApp):
 
-    @soapmethod(String, String, String,
-        _inVariableNames = {'_to': 'to', '_from': 'from',
+    @rpc(String, String, String,
+        _in_variable_names = {'_to': 'to', '_from': 'from',
             '_message': 'message'},
-        _outVariableName = 'return')
-    def sendEmail(self, _to, _from, message):
+        _out_variable_name = 'return')
+    def send_email(self, _to, _from, message):
         # do email sending here
         return 'sent!'
 

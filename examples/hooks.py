@@ -19,11 +19,10 @@
 
 from time import time
 
-from soaplib.service import soapmethod
+from soaplib.service import rpc
 from soaplib.serializers.primitive import String, Integer, Array
 from soaplib.wsgi_soap import request
 from soaplib.wsgi_soap import SimpleWSGISoapApp
-
 
 '''
 This example is an enhanced version of the HelloWorld example that
@@ -33,13 +32,13 @@ information on both the method execution as well as the duration
 of the entire call, including serialization and deserialization. The
 available hooks are:
 
-    * onCall
-    * onWsdl
-    * onWsdlException
-    * onMethodExec
-    * onResults
-    * onException
-    * onReturn
+    * on_call
+    * on_wsdl
+    * on_wsdl_exception
+    * on_method_exec
+    * on_results
+    * on_exception
+    * on_return
 
 These method can be used to easily apply cross-cutting functionality
 accross all methods in the service to do things like database transaction
@@ -51,7 +50,7 @@ to hold the data points for this request.
 
 class HelloWorldService(SimpleWSGISoapApp):
 
-    @soapmethod(String, Integer, _returns=Array(String))
+    @rpc(String, Integer, _returns=Array(String))
     def say_hello(self, name, times):
         results = []
         raise Exception("this is some crazy crap")
@@ -59,16 +58,16 @@ class HelloWorldService(SimpleWSGISoapApp):
             results.append('Hello, %s' % name)
         return results
 
-    def onCall(self, environ):
+    def on_call(self, environ):
         request.additional['call_start'] = time()
 
-    def onMethodExec(self, environ, body, py_params, soap_params):
+    def on_method_exec(self, environ, body, py_params, soap_params):
         request.additional['method_start'] = time()
 
-    def onResults(self, environ, py_results, soap_results):
+    def on_results(self, environ, py_results, soap_results, http_headers):
         request.additional['method_end'] = time()
 
-    def onReturn(self, environ, returnString):
+    def on_return(self, environ, return_String):
         call_start = request.additional['call_start']
         call_end = time()
         method_start = request.additional['method_start']

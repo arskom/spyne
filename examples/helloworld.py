@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from soaplib.service import soapmethod
+from soaplib.service import rpc
 from soaplib.serializers.primitive import String, Integer, Array
 from soaplib.wsgi_soap import SimpleWSGISoapApp
 
@@ -29,8 +29,7 @@ client.
 
 
 class HelloWorldService(SimpleWSGISoapApp):
-
-    @soapmethod(String, Integer, _returns=Array(String))
+    @rpc(String, Integer, _returns=Array(String))
     def say_hello(self, name, times):
         '''
         Docstrings for service methods appear as documentation in the wsdl

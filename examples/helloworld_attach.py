@@ -17,15 +17,14 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from soaplib.service import soapmethod
+from soaplib.service import rpc
 from soaplib.serializers.primitive import String, Integer, Array
 from soaplib.serializers.binary import Attachment
 from soaplib.wsgi_soap import SimpleWSGISoapApp
 
 
 class HelloWorldService(SimpleWSGISoapApp):
-
-    @soapmethod(Attachment, Integer, _returns=Array(String), _mtom=True)
+    @rpc(Attachment, Integer, _returns=Array(String), _mtom=True)
     def say_hello(self, name, times):
         results = []
         for i in range(0, times):
