@@ -153,8 +153,10 @@ class ClassSerializerBase(NonExtendingClass, Base):
 class ClassSerializer(ClassSerializerBase):
     """
     The general complexType factory. Attempts to instantiate this class will
-    result in *gasp* instances. Those who'd like to customize the class should
-    use the customize method. (see soaplib.serializers.base.Base)
+    result in *gasp* instances, contrary to primivites where a similar attempt
+    will result in customized duplicates of the original class definition.
+    Those who'd like to customize the class should use the customize method.
+    (see soaplib.serializers.base.Base)
     """
     
     __metaclass__ = ClassSerializerMeta
