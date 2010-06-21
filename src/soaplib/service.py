@@ -354,7 +354,7 @@ class SoapServiceBase(object):
             plink_port_type = etree.SubElement(role, '{%s}portType' % _ns_plink)
             plink_port_type.set('name', '%s:%sCallback' % (_pref_tns,service_name))
 
-        self._add_bindings_for_methods(root, service_name, methods)
+        self.__add_bindings_for_methods(root, service_name, methods)
 
         service = etree.SubElement(root, '{%s}service' % _ns_wsdl)
         service.set('name', service_name)
@@ -446,7 +446,7 @@ class SoapServiceBase(object):
                 out_part.set('name', method.out_message.name)
                 out_part.set('element', '%s:%s' % (_pref_tns, method.out_message.typ))
 
-    def _add_bindings_for_methods(self, root, service_name, methods):
+    def __add_bindings_for_methods(self, root, service_name, methods):
         '''
         A private method for adding bindings to the wsdld
         @param the root element of the wsdl
