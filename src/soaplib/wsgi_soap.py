@@ -325,7 +325,7 @@ class WSGISoapApp(object):
                 faultcode, detail), encoding=string_encoding)
             logging.debug(faultStr)
 
-            self.onException(environ, e, faultStr)
+            self.on_exception(environ, e, faultStr)
             reset_request()
 
             # initiate the response
