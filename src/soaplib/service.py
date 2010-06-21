@@ -19,6 +19,7 @@
 
 import soaplib
 from lxml import etree
+
 from soaplib.soap import Message
 from soaplib.soap import MethodDescriptor
 
@@ -31,7 +32,7 @@ _pref_wsa = soaplib.prefmap['http://schemas.xmlsoap.org/ws/2003/03/addressing']
 
 def rpc(*params, **kparams):
     '''
-    This is a method decorator to flag a method as a soap 'rpc' method.  It
+    This is a method decorator to flag a method as a remote procedure call.  It
     will behave like a normal python method on a class, and will only behave
     differently when the keyword '_method_descriptor' is passed in, returning
     a 'MethodDescriptor' object.  This decorator does none of the soap/xml
@@ -42,69 +43,65 @@ def rpc(*params, **kparams):
     def explain(f):
         def explain_method(*args, **kwargs):
             if '_method_descriptor' in kwargs:
-                name = f.func_name
+                # input message
+                def get_input_message(ns):
+                    _in_message = kparams.get('_in_message', f.func_name)
+                    _in_variable_names = kparams.get('_in_variable_names', {})
+                    param_names = f.func_code.co_varnames[1:f.func_code.co_argcount]
 
-                _returns = kparams.get('_returns')
+                    try:
+                        in_params = {}
+
+                        for i in range(len(params)):
+                            e0 = _in_variable_names.get(param_names[i],
+                                                                 param_names[i])
+                            e1 = params[i]
+
+                            in_params[e0] = e1
+
+                    except IndexError, e:
+                        raise Exception("%s has parameter numbers mismatching" %
+                            f.func_name)
+
+                    return Message(type_name=_in_message, namespace=ns,
+                                                            members=in_params)
+
+                def get_output_message(ns):
+                    _returns = kparams.get('_returns')
+                    _out_variable_names = kparams.get('_out_variable_names',
+                            kparams.get('_out_variable_name', '%sResult' % f.func_name))
+                    _out_message = kparams.get('_out_message', '%sResponse' % f.func_name)
+
+                    out_params = {}
+
+                    if _returns:
+                        if isinstance(_returns, (list, tuple)):
+                            returns = zip(_out_variable_names, _returns)
+                            for key, value in returns:
+                                out_params[key] = value
+                        else:
+                            out_params[_out_variable_names] = _returns
+                    else:
+                        out_params = []
+
+                    return Message(type_name=_out_message, namespace=ns,
+                                                            members=out_params)
+
+
                 _is_callback = kparams.get('_is_callback', False)
-                _soap_action = kparams.get('_soap_action', name)
+                _public_name = kparams.get('_public_name', f.func_name)
                 _is_async = kparams.get('_is_async', False)
-
-                _in_message = kparams.get('_in_message', name)
-                _in_variable_names = kparams.get('_in_variable_names', {})
-
-                _out_message = kparams.get('_out_message', '%sResponse' % name)
-                _out_variable_names = kparams.get('_out_variable_names',
-                            kparams.get('_out_variable_name', '%sResult' % name))
-
                 _mtom = kparams.get('_mtom', False)
-
-                # FIXME: Debug code, might not be neccessary
-                for p in params:
-                    assert isinstance(p, type)
-
-                ns = None
 
                 # the decorator function does not have a reference to the
                 # class and needs to be passed in
-                if 'clazz' in kwargs:
-                    ns = kwargs['clazz'].get_tns()
+                ns = kwargs['clazz'].get_tns()
 
-                # input message
-                param_names = f.func_code.co_varnames[1:f.func_code.co_argcount]
-
-                try:
-                    in_params = []
-
-                    for i in range(len(params)):
-                        e0=_in_variable_names.get(param_names[i],param_names[i])
-                        e1=params[i]
-
-                        in_params.append((e0,e1))
-
-                except IndexError, e:
-                    raise Exception("%s has parameter numbers mismatching" %
-                        f.func_name)
-
-                in_message = Message(_in_message, in_params, ns=ns,
-                                                                typ=_in_message)
-
-                # output message
-                out_params = []
-                if _returns:
-                    if isinstance(_returns, (list, tuple)):
-                        returns = zip(_out_variable_names, _returns)
-                        for key, value in returns:
-                            out_params.append((key, value))
-                    else:
-                        out_params = [(_out_variable_names, _returns)]
-                else:
-                    out_params = []
-
-                out_message = Message(_out_message, out_params, ns=ns,
-                                                               typ=_out_message)
+                in_message = get_input_message(ns)
+                out_message = get_output_message(ns)
 
                 doc = getattr(f, '__doc__')
-                descriptor = MethodDescriptor(f.func_name, _soap_action,
+                descriptor = MethodDescriptor(f.func_name, _public_name,
                     in_message, out_message, doc, _is_callback, _is_async,
                     _mtom)
 
@@ -113,12 +110,55 @@ def rpc(*params, **kparams):
             return f(*args, **kwargs)
 
         explain_method.__doc__ = f.__doc__
+        explain_method._is_rpc = True
         explain_method.func_name = f.func_name
-        explain_method._is_soap_method = True
 
         return explain_method
 
     return explain
+
+
+class _SchemaInfo(object):
+    def __init__(self):
+        self.simple = {}
+        self.complex = {}
+
+class _SchemaEntries(object):
+    def __init__(self):
+        self.namespaces = {}
+        self.imports = {}
+
+    def has_class(self, cls):
+        retval = False
+
+        if cls.get_namespace_prefix() == 'xs':
+            retval = True
+
+        else:
+            ns_prefix = cls.get_namespace_prefix()
+            type_name = cls.get_type_name()
+
+            if ns_prefix in self.namespaces and \
+                                   type_name in self.namespaces[ns_prefix].complex:
+                retval = True
+
+        return retval
+
+    def get_schema_info(self, prefix):
+        if prefix in self.namespaces:
+            schema = self.namespaces[prefix]
+        else:
+            schema = self.namespaces[prefix] = _SchemaInfo()
+
+        return schema
+
+    def add_simple_node(self, cls, node):
+        schema_info = self.get_schema_info(cls.get_namespace_prefix())
+        schema_info.simple[cls.get_type_name()] = node
+
+    def add_complex_node(self, cls, node):
+        schema_info = self.get_schema_info(cls.get_namespace_prefix())
+        schema_info.complex[cls.get_type_name()] = node
 
 class SoapServiceBase(object):
     '''
@@ -143,14 +183,15 @@ class SoapServiceBase(object):
         @return the namespace
         '''
 
-        serviceName = cls.__name__.split('.')[-1]
         if not (cls.__tns__ is None):
             return cls.__tns__
 
-        if cls.__module__ == '__main__':
-            return '.'.join((serviceName, serviceName))
+        service_name = cls.__name__.split('.')[-1]
 
-        return '.'.join((cls.__module__, serviceName))
+        if cls.__module__ == '__main__':
+            return '.'.join((service_name, service_name))
+
+        return '.'.join((cls.__module__, service_name))
 
     def _get_soap_methods(self):
         '''Returns a list of method descriptors for this object'''
@@ -158,7 +199,7 @@ class SoapServiceBase(object):
 
         for funcName in dir(self):
             func = getattr(self, funcName)
-            if callable(func) and hasattr(func, '_is_soap_method'):
+            if callable(func) and hasattr(func, '_is_rpc'):
                 descriptor = func(_method_descriptor=True, clazz=self.__class__)
                 soap_methods.append(descriptor)
 
@@ -317,25 +358,21 @@ class SoapServiceBase(object):
                 operation = etree.SubElement(port_type, '{%s}operation' % _ns_wsdl)
 
             operation.set('name', method.name)
-            params = []
-            for name, param in method.in_message.params:
-                params.append(name)
 
             if method.doc is not None:
                 documentation = etree.SubElement(operation, '{%s}documentation' % _ns_wsdl)
                 documentation.text = method.doc
 
-            operation.set('parameterOrder', method.in_message.typ)
+            operation.set('parameterOrder', method.in_message.get_type_name())
 
             op_input = etree.SubElement(operation, '{%s}input' % _ns_wsdl)
-            op_input.set('name', method.in_message.typ)
-            op_input.set('message', '%s:%s' % (_pref_tns, method.in_message.typ))
+            op_input.set('name', method.in_message.get_type_name())
+            op_input.set('message', '%s:%s' % (_pref_tns, method.in_message.get_type_name()))
 
-            if (len(method.out_message.params) > 0 and
-                             (not method.is_callback) and (not method.is_async) ):
+            if (not method.is_callback) and (not method.is_async):
                 op_output = etree.SubElement(operation, '{%s}output' %  _ns_wsdl)
-                op_output.set('name', method.out_message.typ)
-                op_output.set('message', '%s:%s' % (_pref_tns, method.out_message.typ))
+                op_output.set('name', method.out_message.get_type_name())
+                op_output.set('message', '%s:%s' % (_pref_tns, method.out_message.get_type_name()))
 
         # make partner link
         plink = etree.SubElement(root, '{%s}partnerLinkType' % _ns_plink)
@@ -381,26 +418,15 @@ class SoapServiceBase(object):
         @param the list of methods.
         '''
 
-        # this is a dict of SchemaInfo objects. keys are the values from
-        # cls.get_namespace()
-        schema_entries = {}
+        schema_entries = _SchemaEntries()
 
         for method in methods:
-            params = method.in_message.params
-            returns = method.out_message.params
-
-            for name, param in params:
-                param.add_to_schema(schema_entries)
-
-            if returns:
-                returns[0][1].add_to_schema(schema_entries)
-
             method.in_message.add_to_schema(schema_entries)
             method.out_message.add_to_schema(schema_entries)
 
         schema_nodes = {}
 
-        for ns in schema_entries.keys():
+        for ns in schema_entries.namespaces:
             if not (ns in schema_nodes):
                 schema = etree.SubElement(types, "{%s}schema" % _ns_xs)
                 schema.set("targetNamespace", soaplib.nsmap[ns])
@@ -411,10 +437,10 @@ class SoapServiceBase(object):
             else:
                 schema = schema_nodes[ns]
 
-            for node in schema_entries[ns].simple.values():
+            for node in schema_entries.namespaces[ns].simple.values():
                 schema.append(node)
 
-            for node in schema_entries[ns].complex.values():
+            for node in schema_entries.namespaces[ns].complex.values():
                 schema.append(node)
 
     def __add_messages_for_methods(self, root, methods):
@@ -430,21 +456,18 @@ class SoapServiceBase(object):
         for method in methods:
             # making in part
             in_message = etree.SubElement(root, '{%s}message' % _ns_wsdl)
-            in_message.set('name', method.in_message.typ)
+            in_message.set('name', method.in_message.get_type_name())
 
-            if len(method.in_message.params) > 0:
-                in_part = etree.SubElement(in_message, '{%s}part' % _ns_wsdl)
-                in_part.set('name', method.in_message.name)
-                in_part.set('element', method.in_message.typ)
+            in_part = etree.SubElement(in_message, '{%s}part' % _ns_wsdl)
+            in_part.set('name', method.in_message.get_type_name())
+            in_part.set('element', method.in_message.get_type_name())
 
-            # making out part only if necessary
-            if len(method.out_message.params) > 0:
-                out_message = etree.SubElement(root, '{%s}message' % _ns_wsdl)
-                out_message.set('name', method.out_message.typ)
+            out_message = etree.SubElement(root, '{%s}message' % _ns_wsdl)
+            out_message.set('name', method.out_message.get_type_name())
 
-                out_part = etree.SubElement(out_message, '{%s}part' % _ns_wsdl)
-                out_part.set('name', method.out_message.name)
-                out_part.set('element', '%s:%s' % (_pref_tns, method.out_message.typ))
+            out_part = etree.SubElement(out_message, '{%s}part' % _ns_wsdl)
+            out_part.set('name', method.out_message.get_type_name())
+            out_part.set('element', '%s:%s' % (_pref_tns, method.out_message.get_type_name()))
 
     def __add_bindings_for_methods(self, root, service_name, methods):
         '''
@@ -479,19 +502,18 @@ class SoapServiceBase(object):
             operation.set('name', method.name)
 
             soap_operation = etree.SubElement(operation, '{%s}operation' % _ns_soap)
-            soap_operation.set('soapAction', method.soap_action)
+            soap_operation.set('soapAction', method.public_name)
             soap_operation.set('style', 'document')
 
             input = etree.SubElement(operation, '{%s}input' % _ns_wsdl)
-            input.set('name', method.in_message.typ)
+            input.set('name', method.in_message.get_type_name())
 
             soap_body = etree.SubElement(input, '{%s}body' % _ns_soap)
             soap_body.set('use', 'literal')
 
-            if (len(method.out_message.params) > 0 and
-                              (not method.is_async) and (not method.is_callback)):
+            if (not method.is_async) and (not method.is_callback):
                 output = etree.SubElement(operation, '{%s}output' % _ns_wsdl)
-                output.set('name', method.out_message.typ)
+                output.set('name', method.out_message.get_type_name())
 
                 soap_body = etree.SubElement(output, '{%s}body' % _ns_soap)
                 soap_body.set('use', 'literal')

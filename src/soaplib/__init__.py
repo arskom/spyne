@@ -36,6 +36,9 @@ _ns_counter = 0
 def get_namespace_prefix(ns):
     global _ns_counter
 
+    if not (isinstance(ns, str) or isinstance(ns, unicode)):
+        raise TypeError("Argument must be string or unicode")
+
     if not (ns in prefmap):
         pref = "tns%d" % _ns_counter
         prefmap[ns] = pref

@@ -39,18 +39,18 @@ class Base(object):
 
     @classmethod
     def get_namespace_prefix(cls):
-        retval = cls.__namespace__
-
-        if retval is None:
-            retval = soaplib.prefmap['http://www.w3.org/2001/XMLSchema']
-        else:
-            retval = soaplib.get_namespace_prefix(cls.__namespace__)
+        retval = soaplib.get_namespace_prefix(cls.get_namespace())
 
         return retval
 
     @classmethod
-    def set_namespace(cls, ns): # FIXME: not needed anymore.
-        cls.__namespace__ = ns
+    def get_namespace(cls):
+        retval = cls.__namespace__
+
+        if retval is None:
+            retval = cls.__module__
+
+        return retval
 
     @classmethod
     def get_type_name(cls):
@@ -80,7 +80,7 @@ class Base(object):
         raise Exception("Not Implemented")
 
     @classmethod
-    def add_to_schema(cls, schema_dict):
+    def add_to_schema(cls, schema_entries):
         '''
         Nothing needs to happen when the type is a standard schema element
         '''
@@ -113,6 +113,14 @@ class Base(object):
 
         cls_dup = type(cls.__name__, cls.__bases__, cls_dict)
 
+        if cls_dup is None:
+            print cls
+            print cls.__name__
+            print cls.__bases__
+            print cls_dict
+            raise Exception("asd")
+
+
         return cls_dup
 
 class Null(Base):
@@ -123,8 +131,3 @@ class Null(Base):
 
     def from_xml(self, element):
         return None
-
-class SchemaInfo(object):
-    def __init__(self):
-        self.simple = {}
-        self.complex = {}

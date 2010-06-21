@@ -28,13 +28,8 @@ from pytz import FixedOffset
 
 from soaplib import nsmap
 from soaplib.serializers import Base
-from soaplib.serializers import SchemaInfo
 from soaplib.serializers import nillable_element
 from soaplib.serializers import nillable_value
-
-#######################################################
-# Utility Functions
-#######################################################
 
 string_encoding = 'utf-8'
 
@@ -51,6 +46,8 @@ _ns_xs = nsmap['xs']
 _ns_xsi = nsmap['xsi']
 
 class Primitive(Base):
+    __namespace__ = "http://www.w3.org/2001/XMLSchema"
+
     def __new__(cls, **kwargs):
         """
         Overriden so that any attempt to instantiate a primitive will return a
@@ -58,7 +55,7 @@ class Primitive(Base):
 
         See serializers.base.Base for more information.
         """
-        return Base.customize(**kwargs)
+        return cls.customize(**kwargs)
 
 class Any(Primitive):
     __type_name__ = 'anyType'
@@ -297,7 +294,7 @@ class Array(Primitive):
         retval.serializer = serializer
 
         retval.__type_name__ = '%sArray' % retval.serializer.get_type_name()
-        retval.__namespace__ = retval.serializer.__namespace__
+        retval.__namespace__ = retval.serializer.get_namespace()
 
         if "min_occurs" in kwargs:
             retval.min_occurs = kwargs['min_occurs']
@@ -341,8 +338,8 @@ class Array(Primitive):
         return results
 
     @classmethod
-    def add_to_schema(cls, schema_dict):
-        if not (cls in schema_dict):
+    def add_to_schema(cls, schema_entries):
+        if not schema_entries.has_class(cls):
             complex_type = etree.Element('{%s}complexType' % _ns_xs)
             complex_type.set('name', cls.get_type_name())
 
@@ -354,12 +351,10 @@ class Array(Primitive):
             element.set('name', cls.serializer.get_type_name())
             element.set('type', cls.serializer.get_type_name_ns())
 
+            schema_entries.add_complex_node(cls, complex_type)
+
             top_level_element = etree.Element('{%s}element' % _ns_xs)
             top_level_element.set('name', cls.get_type_name())
             top_level_element.set('type', cls.get_type_name_ns())
 
-            ns_dict = schema_dict.get(cls.get_namespace_prefix(), SchemaInfo())
-            ns_dict.complex[cls.get_type_name_ns()] = complex_type
-            ns_dict.simple[cls.get_type_name()] = top_level_element
-
-            cls.serializer.add_to_schema(schema_dict)
+            schema_entries.add_simple_node(cls, top_level_element)

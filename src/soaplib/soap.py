@@ -39,7 +39,8 @@ from email import message_from_string
 # import soaplib stuff
 from soaplib.serializers.exception import Fault
 from soaplib.serializers.binary import Attachment
-from soaplib.serializers import SchemaInfo
+from soaplib.serializers.base import Base
+from soaplib.serializers.clazz import ClassSerializer
 
 import soaplib
 
@@ -47,89 +48,14 @@ _ns_xs = soaplib.nsmap['xs']
 _ns_soap_env = soaplib.nsmap['soap_env']
 _ns_soap_enc = soaplib.nsmap['soap_enc']
 
-class Message(object):
-    def __init__(self, name, params, ns, typ=None):
-        self.name = name
-        self.params = params
-        self.typ = typ or name
-        self.ns = ns
+class Message(ClassSerializer):
+    def __new__(cls, namespace, type_name, members):
+        cls_dup = cls.customize()
+        cls_dup.__namespace__ = namespace
+        cls_dup.__type_name__ = type_name
+        cls_dup._type_info = members
 
-        if not (isinstance(self.ns, str)) :
-            raise Exception("punk")
-
-    def to_xml(self, *data):
-        if len(self.params) > 0:
-            if len(data) != len(self.params):
-                raise Exception("Parameter number mismatch expected [%s] "
-                    "got [%s] for response %s"%(len(self.params), len(data), self.name))
-
-        element = etree.Element("{%s}%s" % (self.ns, self.name))
-
-        for i in range(0, len(self.params)):
-            name, serializer = self.params[i]
-
-            d = data[i]
-            e = serializer.to_xml(d, name)
-
-            if type(e) in (list, tuple):
-                elist = e
-                for e in elist:
-                    element.append(e)
-
-            elif e == None:
-                pass
-
-            else:
-                element.append(e)
-
-        etree.cleanup_namespaces(element)
-        return element
-
-    def from_xml(self, element):
-        results = []
-        try:
-            children = element.getchildren()
-        except:
-            return []
-
-        def findall(name):
-            # inner method for finding child node
-            nodes = []
-            for c in children:
-                if c.tag.split('}')[-1] == name:
-                    nodes.append(c)
-            return nodes
-
-        for name, serializer in self.params:
-            childnodes = findall(name)
-            if len(childnodes) == 0:
-                results.append(None)
-            else:
-                results.append(serializer.from_xml(*childnodes))
-        return results
-
-    def add_to_schema(self, schema_dict):
-        complex_type = etree.Element('{%s}complexType' % _ns_xs)
-        complex_type.set('name', self.typ)
-        _pref_tns = soaplib.get_namespace_prefix(self.ns)
-
-        sequence = etree.SubElement(complex_type, '{%s}sequence' % _ns_xs)
-        if self.params:
-            for name, serializer in self.params:
-                e = etree.SubElement(sequence, '{%s}element' % _ns_xs)
-                e.set('name', name)
-                e.set('type', serializer.get_type_name_ns())
-
-            element = etree.Element('{%s}element' % _ns_xs)
-            element.set('name', self.typ)
-            element.set('type', '%s:%s' % (_pref_tns, self.typ))
-
-            pref = soaplib.get_namespace_prefix(self.ns)
-            ns_dict = schema_dict.get(pref, SchemaInfo())
-            ns_dict.simple[self.name] = element
-            ns_dict.complex[self.name] = complex_type
-
-            schema_dict[pref] = ns_dict
+        return cls_dup
 
 class MethodDescriptor(object):
     '''
@@ -137,17 +63,16 @@ class MethodDescriptor(object):
     and is returned by the soapdocument, or soapmethod decorators.
     '''
 
-    def __init__(self, name, soap_action, in_message, out_message, doc,
+    def __init__(self, name, public_name, in_message, out_message, doc,
                  is_callback=False, is_async=False, mtom=False):
+        self.name = name
+        self.public_name = public_name
         self.in_message = in_message
         self.out_message = out_message
-        self.soap_action = soap_action
-        self.name = name
+        self.doc = doc
         self.is_callback = is_callback
         self.is_async = is_async
-        self.doc = doc
         self.mtom = mtom
-
 
 def from_soap(xml_string):
     '''

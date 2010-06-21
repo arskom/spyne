@@ -43,20 +43,12 @@ _type_map = {
 }
 
 class TableSerializerMeta(DeclarativeMeta):
-    # FIXME: ClassSerializerMeta ile birlestirilecek
-    def __init__(cls, cls_name, cls_bases, cls_dict):
-        cls._type_info = {}
-        cls.__type_name__ = cls.__name__
-        cls.set_namespace(cls.__module__)
+    def __new__(cls, cls_name, cls_bases, cls_dict):
+        cls_dict["_type_info"] = _type_info = {}
+        cls_dict["__type_name__"] = cls_name
 
         for k, v in cls_dict.items():
-            if k == '__namespace__':
-                cls.set_namespace(v)
-
-            elif k == '__type_name__':
-                cls.__type_name__ = v
-
-            elif not k.startswith('__'):
+            if not k.startswith('__'):
                 if isinstance(v, Column):
                     if v.type in _type_map:
                         rpc_type = _type_map[v.type]
@@ -66,9 +58,9 @@ class TableSerializerMeta(DeclarativeMeta):
                         raise Exception("soap_type was not found. maybe _type_map "
                                         "needs a new entry.")
 
-                    cls._type_info[k]=rpc_type
+                    _type_info[k]=rpc_type
 
-        DeclarativeMeta.__init__(cls, cls_name, cls_bases, cls_dict)
+        return DeclarativeMeta.__new__(cls, cls_name, cls_bases, cls_dict)
 
 class TableSerializer(ClassSerializerBase):
     __metaclass__ = TableSerializerMeta
