@@ -17,7 +17,13 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import cStringIO
+import soaplib
+from lxml import etree
 from soaplib.serializers import Base
+
+_ns_xs = soaplib.nsmap['xs']
+_ns_xsi = soaplib.nsmap['xsi']
 
 # FIXME: totally untested
 
@@ -41,18 +47,19 @@ class Fault(Exception, Base):
 
     @classmethod
     def from_xml(cls, element):
-        code = _element_to_string(element.find('faultcode'))
-        string = _element_to_string(element.find('faultstring'))
+        code = element.find('faultcode').text
+        string = element.find('faultstring').text
         detail_element = element.find('detail')
         if detail_element is not None:
             if len(detail_element.getchildren()):
-                detail = ElementTree.tostring(detail_element)
+                detail = etree.tostring(detail_element)
             else:
-                detail = _element_to_string(element.find('detail'))
+                detail = element.find('detail').text
         else:
             detail = ''
         return Fault(faultcode=code, faultstring=string, detail=detail)
 
+    @classmethod
     def add_to_schema(self, schema_dict):
         complex_type = etree.Element('complexType')
         complex_type.set('name', self.get_datatype())
@@ -70,7 +77,7 @@ class Fault(Exception, Base):
 
         typeElementItem = etree.Element('element')
         typeElementItem.set('name', 'ExceptionFaultType')
-        typeElementItem.set('{%s}type' % _ns_xsi, self.get_datatype(nsmap))
+        typeElementItem.set('{%s}type' % _ns_xsi, self.get_type_name_ns())
         schema_dict['%sElement' % (self.type_name_ns)] = typeElementItem
 
     def __str__(self):
@@ -81,6 +88,8 @@ class Fault(Exception, Base):
         io.write(" FaultCode            %s \r\n" % self.faultcode)
         io.write(" FaultString          %s \r\n" % self.faultstring)
         io.write(" FaultDetail          \r\n")
+
         if self.detail is not None:
             io.write(self.detail)
+
         return io.getvalue()
