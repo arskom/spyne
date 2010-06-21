@@ -86,7 +86,7 @@ def from_soap(xml_string):
     # find the body and header elements
     for e in root.getchildren():
         name = e.tag.split('}')[-1].lower() # FIXME
-        if name == '{%s}body' % nsmap['soap_env']:
+        if name == '{%s}body' % soaplib.nsmap['soap_env']:
             body = e
         elif name == 'header':
             header = e
