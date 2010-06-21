@@ -152,11 +152,27 @@ class _SchemaEntries(object):
 
         return schema
 
+    def __check_imports(self, cls, node): # TODO: incomplete
+        ns = cls.get_namespace_prefix()
+        if not (ns in self.imports):
+            self.imports[ns] = []
+
+        for seq in node:
+            for e in seq:
+                pref = e.attrib['type'].split(':')[0]
+                if not (pref in ('xs')):
+                    try:
+                        self.imports[ns].append(soaplib.nsmap[pref])
+                    except:
+                        print soaplib.nsmap
+                        raise
+
     def add_simple_node(self, cls, node):
         schema_info = self.get_schema_info(cls.get_namespace_prefix())
         schema_info.simple[cls.get_type_name()] = node
 
     def add_complex_node(self, cls, node):
+        self.__check_imports(cls, node)
         schema_info = self.get_schema_info(cls.get_namespace_prefix())
         schema_info.complex[cls.get_type_name()] = node
 
@@ -443,6 +459,10 @@ class SoapServiceBase(object):
 
             for node in schema_entries.namespaces[ns].complex.values():
                 schema.append(node)
+
+            for namespace in schema_entries.imports[ns]:
+                import_ = etree.SubElement(schema, "{%s}import" % _ns_xs)
+                import_.set("namespace", namespace)
 
     def __add_messages_for_methods(self, root, methods):
         '''
