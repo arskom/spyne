@@ -139,7 +139,7 @@ class _SchemaEntries(object):
             type_name = cls.get_type_name()
 
             if ns_prefix in self.namespaces and \
-                                   type_name in self.namespaces[ns_prefix].complex:
+                                type_name in self.namespaces[ns_prefix].complex:
                 retval = True
 
         return retval
@@ -163,9 +163,8 @@ class _SchemaEntries(object):
 class SoapServiceBase(object):
     '''
     This class serves as the base for all soap services.  Subclasses of this
-    class will use the soapmethod and soapdocument decorators to flag methods
-    to be exposed via soap.  This class is responsible for generating the
-    wsdl for this object.
+    class will use the rpc decorator to flag methods to be exposed via soap.
+    This class is responsible for generating the wsdl for this object.
     '''
 
     __tns__ = None
@@ -264,11 +263,12 @@ class SoapServiceBase(object):
     def wsdl(self, url):
         '''
         This method generates and caches the wsdl for this object based
-        on the soap methods designated by the soapmethod or soapdocument
-        descriptors
+        on the soap methods designated by the rpc decorator.
+
         @param url the url that this service can be found at.  This must be
         passed in by the caller because this object has no notion of the
         server environment in which it runs.
+
         @returns the string of the wsdl
         '''
         if not self.__wsdl == None:
@@ -413,7 +413,8 @@ class SoapServiceBase(object):
     def __add_schema(self, types, methods):
         '''
         A private method for adding the appropriate entries
-        to the schema for the types in the specified methods
+        to the schema for the types in the specified methods.
+
         @param the schema node to add the schema elements to
         @param the list of methods.
         '''
@@ -471,7 +472,8 @@ class SoapServiceBase(object):
 
     def __add_bindings_for_methods(self, root, service_name, methods):
         '''
-        A private method for adding bindings to the wsdld
+        A private method for adding bindings to the wsdl
+
         @param the root element of the wsdl
         @param the name of this service
         @param the methods to be add to the binding node

@@ -39,7 +39,6 @@ from email import message_from_string
 # import soaplib stuff
 from soaplib.serializers.exception import Fault
 from soaplib.serializers.binary import Attachment
-from soaplib.serializers.base import Base
 from soaplib.serializers.clazz import ClassSerializer
 
 import soaplib
