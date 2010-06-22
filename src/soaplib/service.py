@@ -528,7 +528,8 @@ class SoapServiceBase(object):
             operation = etree.Element('{%s}operation' % _ns_wsdl)
             operation.set('name', method.name)
 
-            soap_operation = etree.SubElement(operation, '{%s}operation' % _ns_soap)
+            soap_operation = etree.SubElement(operation, '{%s}operation' %
+                                                                       _ns_soap)
             soap_operation.set('soapAction', method.public_name)
             soap_operation.set('style', 'document')
 
