@@ -155,14 +155,14 @@ class _SchemaEntries(object):
     def __check_imports(self, cls, node): # TODO: incomplete
         ns = cls.get_namespace_prefix()
         if not (ns in self.imports):
-            self.imports[ns] = []
+            self.imports[ns] = set()
 
         for seq in node:
             for e in seq:
                 pref = e.attrib['type'].split(':')[0]
                 if not (pref in ('xs')):
                     try:
-                        self.imports[ns].append(soaplib.nsmap[pref])
+                        self.imports[ns].add(soaplib.nsmap[pref])
                     except:
                         print soaplib.nsmap
                         raise
