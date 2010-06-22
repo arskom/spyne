@@ -269,6 +269,11 @@ class SoapServiceBase(object):
         return [service_name]
 
     def sort_xml(self, root):
+        # lxml SubElement objects can only have one parent, contrary to other
+        # ElementTree apis. Once a SubElement is attached to another parent, it
+        # is detached from its previous parent. That's why re-appending the
+        # SubElements in sorted order works.
+
         children = root.getchildren()
         children.sort(key=lambda x: x.tag)
 
@@ -419,7 +424,7 @@ class SoapServiceBase(object):
         addr = etree.SubElement(wsdl_port, '{%s}address' % _ns_soap)
         addr.set('location', url)
 
-        self.sort_xml(root)
+        self.sort_xml(root) # useful for debugging.
         wsdl = etree.tostring(root, xml_declaration=True, encoding="UTF-8")
 
         #cache the wsdl for next time
