@@ -181,8 +181,9 @@ class WSGISoapApp(object):
 
                     self.on_wsdl_exception(environ, e, faultStr)
                     # initiate the response
-                    start_response('500', [('Content-type', 'text/xml'),
-                        ('Content-length', str(len(faultStr)))])
+                    start_response('500 Internal Server Error',
+                                   [('Content-type', 'text/xml'),
+                                    ('Content-length', str(len(faultStr)))])
                     return [faultStr]
 
                 reset_request()
