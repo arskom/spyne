@@ -48,7 +48,8 @@ _ns_soap_env = soaplib.nsmap['soap_env']
 _ns_soap_enc = soaplib.nsmap['soap_enc']
 
 class Message(ClassSerializer):
-    def __new__(cls, namespace, type_name, members):
+    @classmethod
+    def c(cls, namespace, type_name, members):
         cls_dup = Message.customize()
         cls_dup.__namespace__ = namespace
         cls_dup.__type_name__ = type_name

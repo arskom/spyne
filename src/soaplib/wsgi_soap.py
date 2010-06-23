@@ -220,16 +220,23 @@ class WSGIApp(object):
             self.on_method_exec(http_request_env, params, body)
 
             # call the method
-            results_raw = func(*params)
+            result_raw = func(*params)
+
+            # create result message
+            assert len(descriptor.out_message._type_info) == 1
+
+            result_message = descriptor.out_message()
+            attr_name = descriptor.out_message._type_info.keys()[0]
+            setattr(result_message, attr_name, result_raw)
 
             # transform the results into an element
             # only expect a single element
             results_soap = None
             if not (descriptor.is_async or descriptor.is_callback):
-                results_soap = descriptor.out_message.to_xml(*[results_raw])
+                results_soap = result_message.to_xml(*[result_message])
 
             # implementation hook
-            self.on_results(http_request_env, results_raw, results_soap,
+            self.on_results(http_request_env, result_raw, results_soap,
                                                           soap_response_headers)
 
             # construct the soap response, and serialize it
@@ -239,7 +246,7 @@ class WSGIApp(object):
 
             if descriptor.mtom:
                 http_resp_headers, results_str = apply_mtom(http_resp_headers,
-                    results_str,descriptor.out_message._type_info,[results_raw])
+                    results_str,descriptor.out_message._type_info,[result_raw])
 
             self.on_return(http_request_env, http_resp_headers, results_str)
 

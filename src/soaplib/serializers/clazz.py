@@ -65,7 +65,7 @@ class ClassSerializerMeta(type):
 
 class NonExtendingClass(object):
     def __setattr__(self,k,v):
-        if not hasattr(self,k) and getattr(self, 'NO_EXTENSION', False):
+        if not hasattr(self,k) and getattr(self, '__NO_EXTENSION', False):
             raise Exception("'%s' object is not extendable at this point in "
                             "code.\nInvalid member '%s'" %
                                                   (self.__class__.__name__, k) )
@@ -78,23 +78,21 @@ class ClassSerializerBase(NonExtendingClass, Base):
         for k in cls._type_info.keys():
             setattr(self, k, kwargs.get(k, None))
 
-        self.NO_EXTENSION=True
+        self.__NO_EXTENSION=True
 
     @classmethod
     @nillable_value
     def to_xml(cls, value, name='retval'):
         element = etree.Element("{%s}%s" % (cls.get_namespace(), name))
 
-        print
-        print type(value), value
         for k, v in cls._type_info.items():
+            print value.__dict__
             subvalue = getattr(value, k, None)
             print k, subvalue
             subelement = v.to_xml(subvalue, name="{%s}%s" %
                                                  (cls.get_namespace(), k))
             element.append(subelement)
 
-        print
         return element
 
     @classmethod

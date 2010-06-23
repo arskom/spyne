@@ -18,6 +18,7 @@
 #
 
 import soaplib
+from pprint import pprint
 
 from lxml import etree
 
@@ -72,7 +73,7 @@ class Base(object):
     @nillable_value
     def to_xml(cls, value, name='retval'):
         retval = etree.Element(name)
-        retval.set('{%(xsi)s}type' % soaplib.nsmap, cls.type_name)
+        retval.set('{%(xsi)s}type' % soaplib.nsmap, cls.get_type_name())
 
         if value:
             retval.text = value
@@ -112,8 +113,7 @@ class Base(object):
             if not (k in ("__dict__", "__module__", "__weakref__")):
                 cls_dict[k] = cls.__dict__[k]
 
-        for k,v in kwargs.items():
-            cls_dict[k] = v
+        cls_dict.update(kwargs)
 
         cls_dup = type(cls.__name__, cls.__bases__, cls_dict)
 
