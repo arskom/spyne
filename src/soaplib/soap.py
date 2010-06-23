@@ -194,7 +194,7 @@ def collapse_swa(content_type, envelope):
     @param  envelope     body of the HTTP message, a soap envelope
     @return              appication/soap+xml version of the given HTTP body
     '''
-    
+
     # convert multipart messages back to pure SOAP
     mime_type = content_type.lower().split(';')
     if 'multipart/related' not in mime_type:

@@ -74,9 +74,12 @@ class Any(Primitive):
     @nillable_element
     def from_xml(cls, element):
         children = element.getchildren()
+        retval = None
+
         if children:
-            return element.getchildren()[0]
-        return None
+            retval = element.getchildren()[0]
+
+        return retval
 
 class AnyAsDict(Any):
     @classmethod

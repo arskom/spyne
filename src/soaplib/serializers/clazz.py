@@ -85,12 +85,16 @@ class ClassSerializerBase(NonExtendingClass, Base):
     def to_xml(cls, value, name='retval'):
         element = etree.Element("{%s}%s" % (cls.get_namespace(), name))
 
+        print
+        print type(value), value
         for k, v in cls._type_info.items():
             subvalue = getattr(value, k, None)
+            print k, subvalue
             subelement = v.to_xml(subvalue, name="{%s}%s" %
                                                  (cls.get_namespace(), k))
             element.append(subelement)
 
+        print
         return element
 
     @classmethod
@@ -108,7 +112,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
             member = cls._type_info.get(k)
             if member is None:
                 raise Exception('the %s object does not have a "%s" member' %
-                                                              (cls.__name__,k))
+                                                               (cls.__name__,k))
 
             value = member.from_xml(*v)
             setattr(cls, k, value)
