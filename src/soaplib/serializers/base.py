@@ -113,20 +113,12 @@ class Base(object):
 
         cls_dup = type(cls.__name__, cls.__bases__, cls_dict)
 
-        if cls_dup is None:
-            print cls
-            print cls.__name__
-            print cls.__bases__
-            print cls_dict
-            raise Exception("asd")
-
-
         return cls_dup
 
 class Null(Base):
     def to_xml(self, value, name='retval'):
         element = etree.Element(name)
-        element.set('xs:nil', '1') # FIXME: hack!
+        element.set('xs:nil', '1')
         return element
 
     def from_xml(self, element):

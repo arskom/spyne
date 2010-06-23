@@ -78,8 +78,10 @@ def from_soap(xml_string):
     Parses the xml string into the header and payload
     '''
     root, xmlids = etree.XMLID(xml_string.encode())
+
     if xmlids:
         resolve_hrefs(root, xmlids)
+
     body = None
     header = None
 
@@ -96,24 +98,29 @@ def from_soap(xml_string):
 
     return payload, header
 
-
 def resolve_hrefs(element, xmlids):
     for e in element:
         if e.get('id'):
             continue # don't need to resolve this element
+
         elif e.get('href'):
             resolved_element = xmlids[e.get('href').replace('#', '')]
+
             if resolved_element is None:
                 continue
+
             resolve_hrefs(resolved_element, xmlids)
+
             # copies the attributes
             [e.set(k, v) for k, v in resolved_element.items()]
+
             # copies the children
             [e.append(child) for child in resolved_element.getchildren()]
+
         else:
             resolve_hrefs(e, xmlids)
-    return element
 
+    return element
 
 def make_soap_envelope(message, tns='', header_elements=None):
     '''

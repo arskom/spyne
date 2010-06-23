@@ -22,11 +22,10 @@ import decimal
 import re
 import pytz
 
-from soaplib.serializers.base import Null
 from lxml import etree
 from pytz import FixedOffset
 
-from soaplib import nsmap
+import soaplib
 from soaplib.serializers import Base
 from soaplib.serializers import nillable_element
 from soaplib.serializers import nillable_value
@@ -42,8 +41,8 @@ _local_re = re.compile(_datetime_pattern)
 _utc_re = re.compile(_datetime_pattern + 'Z')
 _offset_re = re.compile(_datetime_pattern)
 
-_ns_xs = nsmap['xs']
-_ns_xsi = nsmap['xsi']
+_ns_xs = soaplib.nsmap['xs']
+_ns_xsi = soaplib.nsmap['xsi']
 
 class Primitive(Base):
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
@@ -294,7 +293,11 @@ class Array(Primitive):
         retval.serializer = serializer
 
         retval.__type_name__ = '%sArray' % retval.serializer.get_type_name()
-        retval.__namespace__ = retval.serializer.get_namespace()
+
+        if retval.serializer.get_namespace() == soaplib.nsmap['xs']:
+            retval.__namespace__ = None
+        else:
+            retval.__namespace__ = retval.serializer.get_namespace()
 
         if "min_occurs" in kwargs:
             retval.min_occurs = kwargs['min_occurs']
@@ -319,23 +322,20 @@ class Array(Primitive):
             raise TypeError(values, name)
 
         for value in values:
-            serializer = cls.serializer
-            if value == None:
-                serializer = Null
             retval.append(
-                serializer.to_xml(value, serializer.get_datatype()))
+                serializer.to_xml(value, cls.serializer.get_type_name()))
 
         return retval
 
     @nillable_element
     @classmethod
     def from_xml(cls, element):
-        results = []
+        retval = []
 
         for child in element.getchildren():
-            results.append(cls.serializer.from_xml(child))
+            retval.append(cls.serializer.from_xml(child))
 
-        return results
+        return retval
 
     @classmethod
     def add_to_schema(cls, schema_entries):

@@ -130,16 +130,16 @@ class _SchemaEntries(object):
 
     def has_class(self, cls):
         retval = False
+        ns_prefix = cls.get_namespace_prefix()
 
-        if cls.get_namespace_prefix() == 'xs':
+        if ns_prefix == 'xs':
             retval = True
 
         else:
-            ns_prefix = cls.get_namespace_prefix()
             type_name = cls.get_type_name()
 
-            if ns_prefix in self.namespaces and \
-                                type_name in self.namespaces[ns_prefix].complex:
+            if (ns_prefix in self.namespaces) and \
+                              (type_name in self.namespaces[ns_prefix].complex):
                 retval = True
 
         return retval
@@ -161,11 +161,7 @@ class _SchemaEntries(object):
             for e in seq:
                 pref = e.attrib['type'].split(':')[0]
                 if not (pref in ('xs')):
-                    try:
-                        self.imports[ns].add(soaplib.nsmap[pref])
-                    except:
-                        print soaplib.nsmap
-                        raise
+                    self.imports[ns].add(soaplib.nsmap[pref])
 
     def add_simple_node(self, cls, node):
         schema_info = self.get_schema_info(cls.get_namespace_prefix())
