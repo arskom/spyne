@@ -25,8 +25,6 @@ from soaplib.serializers import Base
 _ns_xs = soaplib.nsmap['xs']
 _ns_xsi = soaplib.nsmap['xsi']
 
-# FIXME: totally untested
-
 class Fault(Exception, Base):
     def __init__(self, faultcode = 'Server', faultstring = None,
                  detail = None, name = 'ExceptionFault'):

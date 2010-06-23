@@ -19,6 +19,10 @@
 
 import soaplib
 
+from lxml import etree
+
+_ns_xs = soaplib.nsmap['xs']
+
 def nillable_value(func):
     def wrapper(cls, value, *args, **kwargs):
         if value is None:
@@ -64,8 +68,8 @@ class Base(object):
     def get_type_name_ns(cls):
         return "%s:%s" % (cls.get_namespace_prefix(), cls.get_type_name())
 
-    @nillable_value
     @classmethod
+    @nillable_value
     def to_xml(cls, value, name='retval'):
         retval = etree.Element(name)
         retval.set('{%(xsi)s}type' % soaplib.nsmap, cls.type_name)
@@ -116,10 +120,12 @@ class Base(object):
         return cls_dup
 
 class Null(Base):
-    def to_xml(self, value, name='retval'):
+    @classmethod
+    def to_xml(cls, value, name='retval'):
         element = etree.Element(name)
-        element.set('xs:nil', '1')
+        element.set('{%s}nil' % _ns_xs, '1')
         return element
 
-    def from_xml(self, element):
+    @classmethod
+    def from_xml(cls, element):
         return None

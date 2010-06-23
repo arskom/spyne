@@ -62,8 +62,8 @@ class Attachment(Primitive):
         self.data = f.read()
         f.close()
 
-    @nillable_value
     @classmethod
+    @nillable_value
     def to_xml(cls, value, name='retval'):
         '''
         This class method takes the data from the attachment and
@@ -97,8 +97,8 @@ class Attachment(Primitive):
 
         return element
 
-    @nillable_element
     @classmethod
+    @nillable_element
     def from_xml(cls, element):
         '''
         This method returns an Attachment object that contains

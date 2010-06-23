@@ -229,11 +229,11 @@ class ServiceBase(object):
         '''
 
         for method in self.methods():
-            if '{%s}%s' % (self.__tns__, method.in_message.name) == name:
+            if '{%s}%s' % (self.__tns__, method.in_message.get_type_name()) == name:
                 return method
 
         for method in self.methods():
-            if method.soap_action == name:
+            if method.public_name == name:
                 return method
 
         raise Exception('Method "%s" not found' % name)

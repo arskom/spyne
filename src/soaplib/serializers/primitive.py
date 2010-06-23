@@ -59,8 +59,8 @@ class Primitive(Base):
 class Any(Primitive):
     __type_name__ = 'anyType'
 
-    @nillable_value
     @classmethod
+    @nillable_value
     def to_xml(cls, value, name='retval'):
         if isinstance(value,str) or isinstance(value,unicode):
             value = etree.fromstring(value)
@@ -70,8 +70,8 @@ class Any(Primitive):
 
         return e
 
-    @nillable_element
     @classmethod
+    @nillable_element
     def from_xml(cls, element):
         children = element.getchildren()
         if children:
@@ -127,16 +127,16 @@ class AnyAsDict(Any):
         else:
             return retval if len(r) > 0 else []
 
-    @nillable_value
     @classmethod
+    @nillable_value
     def to_xml(cls, value, name='retval'):
         e = etree.Element(name)
         e.extend(cls._dict_to_etree(value))
 
         return e
 
-    @nillable_element
     @classmethod
+    @nillable_element
     def from_xml(cls, element):
         children = element.getchildren()
         if children:
@@ -161,16 +161,16 @@ class String(Primitive):
 
         return retval
 
-    @nillable_value
     @classmethod
+    @nillable_value
     def to_xml(cls, value, name='retval'):
         if not isinstance(value,unicode):
             value = unicode(value, string_encoding)
 
         return Primitive.to_xml(cls, value, name)
 
-    @nillable_element
     @classmethod
+    @nillable_element
     def from_xml(cls, element):
         try:
             u = str(u)
@@ -179,8 +179,8 @@ class String(Primitive):
             return u
 
 class Integer(Primitive):
-    @nillable_element
     @classmethod
+    @nillable_element
     def from_xml(cls, element):
         i = element.text
         if not i:
@@ -195,19 +195,19 @@ class Integer(Primitive):
                 return None
 
 class Decimal(Primitive):
-    @nillable_element
     @classmethod
+    @nillable_element
     def from_xml(cls, element):
         return decimal.Decimal(element.text)
 
 class Date(Primitive):
-    @nillable_value
     @classmethod
+    @nillable_value
     def to_xml(cls, value, name='retval'):
         return Primitive.to_xml(cls,value.isoformat(),name)
 
-    @nillable_element
     @classmethod
+    @nillable_element
     def from_xml(cls, element):
         """expect ISO formatted dates"""
         text = element.text
@@ -225,13 +225,13 @@ class Date(Primitive):
         return parse_date(match)
 
 class DateTime(Primitive):
-    @nillable_value
     @classmethod
+    @nillable_value
     def to_xml(cls, value, name='retval'):
         return Primitive.to_xml(cls,value.isoformat('T'),name)
 
-    @nillable_element
     @classmethod
+    @nillable_element
     def from_xml(cls, element):
         """expect ISO formatted dates"""
 
@@ -261,8 +261,8 @@ class DateTime(Primitive):
         return parse_date(match)
 
 class Double(Primitive):
-    @nillable_element
     @classmethod
+    @nillable_element
     def from_xml(cls, element):
         return float(element.text)
 
@@ -270,13 +270,13 @@ class Float(Double):
     pass
 
 class Boolean(Primitive):
-    @nillable_value
     @classmethod
+    @nillable_value
     def to_xml(cls, value, name='retval'):
         return Primitive.to_xml(cls,str(bool(value)).lower(),name)
 
-    @nillable_element
     @classmethod
+    @nillable_element
     def from_xml(cls, element):
         s = element.text
         if s and s.lower()[0] == 't':
@@ -306,8 +306,8 @@ class Array(Primitive):
 
         return retval
 
-    @nillable_value
     @classmethod
+    @nillable_value
     def to_xml(cls, values, name='retval'):
         retval = etree.Element(name)
 
@@ -327,8 +327,8 @@ class Array(Primitive):
 
         return retval
 
-    @nillable_element
     @classmethod
+    @nillable_element
     def from_xml(cls, element):
         retval = []
 

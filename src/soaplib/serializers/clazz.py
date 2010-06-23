@@ -38,7 +38,7 @@ class ClassSerializerMeta(type):
     def __new__(cls, cls_name, cls_bases, cls_dict):
         '''
         This initializes the class, and sets all the appropriate types onto the
-        class for serialization. 
+        class for serialization.
         '''
 
         cls_dict["__type_name__"] = cls_name
@@ -62,7 +62,7 @@ class ClassSerializerMeta(type):
                                                                   (cls_name, k))
 
         return type.__new__(cls, cls_name, cls_bases, cls_dict)
-    
+
 class NonExtendingClass(object):
     def __setattr__(self,k,v):
         if not hasattr(self,k) and getattr(self, 'NO_EXTENSION', False):
@@ -80,21 +80,21 @@ class ClassSerializerBase(NonExtendingClass, Base):
 
         self.NO_EXTENSION=True
 
-    @nillable_value
     @classmethod
+    @nillable_value
     def to_xml(cls, value, name='retval'):
-        element = etree.Element("{%s}%s" % (cls._type_info.namespace, name))
+        element = etree.Element("{%s}%s" % (cls.get_namespace(), name))
 
         for k, v in cls._type_info.items():
             subvalue = getattr(value, k, None)
             subelement = v.to_xml(subvalue, name="{%s}%s" %
-                                                 (cls._type_info.namespace, k))
+                                                 (cls.get_namespace(), k))
             element.append(subelement)
 
         return element
 
-    @nillable_element
     @classmethod
+    @nillable_element
     def from_xml(cls, element):
         children = element.getchildren()
         d = {}
@@ -136,6 +136,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
             element = etree.Element('{%s}element' % _ns_xs)
             element.set('name',cls.get_type_name())
             element.set('type',cls.get_type_name_ns())
+
             schema_entries.add_simple_node(cls, element)
 
             # add member nodes

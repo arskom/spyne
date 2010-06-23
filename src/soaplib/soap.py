@@ -49,7 +49,7 @@ _ns_soap_enc = soaplib.nsmap['soap_enc']
 
 class Message(ClassSerializer):
     def __new__(cls, namespace, type_name, members):
-        cls_dup = cls.customize()
+        cls_dup = Message.customize()
         cls_dup.__namespace__ = namespace
         cls_dup.__type_name__ = type_name
         cls_dup._type_info = members
@@ -77,50 +77,24 @@ def from_soap(xml_string):
     '''
     Parses the xml string into the header and payload
     '''
-    root, xmlids = etree.XMLID(xml_string.encode())
-
-    if xmlids:
-        resolve_hrefs(root, xmlids)
+    root = etree.fromstring(xml_string)
 
     body = None
     header = None
 
     # find the body and header elements
     for e in root.getchildren():
-        name = e.tag.split('}')[-1].lower() # FIXME
-        if name == '{%s}body' % soaplib.nsmap['soap_env']:
+        if e.tag == '{%s}Body' % soaplib.nsmap['soap_env']:
             body = e
-        elif name == 'header':
+
+        elif e.tag == '{%s}Header' % soaplib.nsmap['soap_env']:
             header = e
+
     payload = None
     if len(body.getchildren()):
         payload = body.getchildren()[0]
 
     return payload, header
-
-def resolve_hrefs(element, xmlids):
-    for e in element:
-        if e.get('id'):
-            continue # don't need to resolve this element
-
-        elif e.get('href'):
-            resolved_element = xmlids[e.get('href').replace('#', '')]
-
-            if resolved_element is None:
-                continue
-
-            resolve_hrefs(resolved_element, xmlids)
-
-            # copies the attributes
-            [e.set(k, v) for k, v in resolved_element.items()]
-
-            # copies the children
-            [e.append(child) for child in resolved_element.getchildren()]
-
-        else:
-            resolve_hrefs(e, xmlids)
-
-    return element
 
 def make_soap_envelope(message, tns='', header_elements=None):
     '''
@@ -134,9 +108,9 @@ def make_soap_envelope(message, tns='', header_elements=None):
     '''
     envelope = etree.Element('{%s}Envelope' % _ns_soap_env)
     if header_elements:
-        headerElement = etree.SubElement(envelope, '{%s}Header' % _ns_soap_env)
+        soap_header = etree.SubElement(envelope, '{%s}Header' % _ns_soap_env)
         for h in header_elements:
-            headerElement.append(h)
+            soap_header.append(h)
     body = etree.SubElement(envelope, '{%s}Body' % _ns_soap_env)
 
     if type(message) == list:
@@ -220,6 +194,7 @@ def collapse_swa(content_type, envelope):
     @param  envelope     body of the HTTP message, a soap envelope
     @return              appication/soap+xml version of the given HTTP body
     '''
+    
     # convert multipart messages back to pure SOAP
     mime_type = content_type.lower().split(';')
     if 'multipart/related' not in mime_type:
@@ -312,7 +287,7 @@ def apply_mtom(headers, envelope, params, paramvals):
         n, v = ctparam.strip().split('=')
         rootparams[n] = v.strip("\"'")
 
-    # Set up initial MIME parts
+    # Set up initial MIME parts.
     mtompkg = MIMEMultipart('related',
         boundary='?//<><>soaplib_MIME_boundary<>')
     rootpkg = None
@@ -340,7 +315,7 @@ def apply_mtom(headers, envelope, params, paramvals):
     mtompkg.attach(rootpkg)
 
     # Extract attachments from SOAP envelope.
-    for i in range(len(params)):
+    for name,typ in params.items():
         name, typ = params[i]
         if typ == Attachment:
             id = "soaplibAttachment_%s" % (len(mtompkg.get_payload()), )
