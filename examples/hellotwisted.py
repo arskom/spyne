@@ -30,9 +30,7 @@ from twisted.internet import reactor
 This is the HelloWorld example running in the twisted framework.
 '''
 
-
 class HelloWorldService(SimpleWSGIApp):
-
     @rpc(String, Integer, _returns=Array(String))
     def say_hello(self, name, times):
         '''
@@ -53,5 +51,7 @@ if __name__=='__main__':
     resource = WSGIResource(reactor, reactor.getThreadPool(), service)
     root = Resource()
     root.putChild('SOAP', resource)
+    print "listening on 0.0.0.0:7889"
+    print "point your browser to: http://localhost:7889/SOAP/?wsdl"
     reactor.listenTCP(7889, Site(root))
     reactor.run()
