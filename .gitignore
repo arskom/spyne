@@ -37,3 +37,6 @@ lib
 include
 develop-eggs
 .installed.cfg
+
+# netbeans cruft
+nbproject
