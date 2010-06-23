@@ -47,7 +47,9 @@ def rpc(*params, **kparams):
                 def get_input_message(ns):
                     _in_message = kparams.get('_in_message', f.func_name)
                     _in_variable_names = kparams.get('_in_variable_names', {})
-                    param_names = f.func_code.co_varnames[1:f.func_code.co_argcount]
+
+                    arg_count = f.func_code.co_argcount
+                    param_names = f.func_code.co_varnames[1:arg_count]
 
                     try:
                         in_params = {}
@@ -69,14 +71,16 @@ def rpc(*params, **kparams):
                 def get_output_message(ns):
                     _returns = kparams.get('_returns')
                     _out_variable_names = kparams.get('_out_variable_names',
-                            kparams.get('_out_variable_name', '%sResult' % f.func_name))
-                    _out_message = kparams.get('_out_message', '%sResponse' % f.func_name)
+                            kparams.get('_out_variable_name', '%sResult'
+                                                                 % f.func_name))
+                    _out_message = kparams.get('_out_message', '%sResponse' %
+                                                                    f.func_name)
 
                     out_params = {}
 
                     if _returns:
                         if isinstance(_returns, (list, tuple)):
-                            out_params = dict(zip(_out_variable_names, _returns))
+                            out_params = dict(zip(_out_variable_names,_returns))
                         else:
                             out_params[_out_variable_names] = _returns
                     else:
@@ -227,7 +231,8 @@ class ServiceBase(object):
         '''
 
         for method in self.methods():
-            if '{%s}%s' % (self.__tns__, method.in_message.get_type_name()) == name:
+            type_name = method.in_message.get_type_name()
+            if '{%s}%s' % (self.get_tns(), type_name) == name:
                 return method
 
         for method in self.methods():
@@ -361,33 +366,37 @@ class ServiceBase(object):
             cb_wsdl_port.set('name', cb_service_name)
             cb_wsdl_port.set('binding', '%s:%s' % (_pref_tns, cb_service_name))
 
-            cb_address = etree.SubElement(cb_wsdl_port, '{%s}address' % _ns_soap)
+            cb_address = etree.SubElement(cb_wsdl_port, '{%s}address'% _ns_soap)
             cb_address.set('location', url)
 
         port_type = etree.SubElement(root, '{%s}portType' % _ns_wsdl)
         port_type.set('name', service_name)
         for method in methods:
             if method.is_callback:
-                operation = etree.SubElement(cb_port_type, '{%s}operation' % _ns_wsdl)
+                operation = etree.SubElement(cb_port_type, '{%s}operation'
+                                                                    % _ns_wsdl)
             else:
-                operation = etree.SubElement(port_type, '{%s}operation' % _ns_wsdl)
+                operation = etree.SubElement(port_type,'{%s}operation'%_ns_wsdl)
 
             operation.set('name', method.name)
 
             if method.doc is not None:
-                documentation = etree.SubElement(operation, '{%s}documentation' % _ns_wsdl)
+                documentation = etree.SubElement(operation, '{%s}documentation'
+                                                                    % _ns_wsdl)
                 documentation.text = method.doc
 
             operation.set('parameterOrder', method.in_message.get_type_name())
 
             op_input = etree.SubElement(operation, '{%s}input' % _ns_wsdl)
             op_input.set('name', method.in_message.get_type_name())
-            op_input.set('message', '%s:%s' % (_pref_tns, method.in_message.get_type_name()))
+            op_input.set('message', '%s:%s' % (_pref_tns,
+                                             method.in_message.get_type_name()))
 
             if (not method.is_callback) and (not method.is_async):
                 op_output = etree.SubElement(operation, '{%s}output' %  _ns_wsdl)
                 op_output.set('name', method.out_message.get_type_name())
-                op_output.set('message', '%s:%s' % (_pref_tns, method.out_message.get_type_name()))
+                op_output.set('message', '%s:%s' % (_pref_tns,
+                                            method.out_message.get_type_name()))
 
         # make partner link
         plink = etree.SubElement(root, '{%s}partnerLinkType' % _ns_plink)
@@ -404,7 +413,8 @@ class ServiceBase(object):
             role.set('name', '%sCallback' % service_name)
 
             plink_port_type = etree.SubElement(role, '{%s}portType' % _ns_plink)
-            plink_port_type.set('name', '%s:%sCallback' % (_pref_tns,service_name))
+            plink_port_type.set('name', '%s:%sCallback' %
+                                                       (_pref_tns,service_name))
 
         self.__add_bindings_for_methods(root, service_name, methods)
 
@@ -487,7 +497,8 @@ class ServiceBase(object):
 
             out_part = etree.SubElement(out_message, '{%s}part' % _ns_wsdl)
             out_part.set('name', method.out_message.get_type_name())
-            out_part.set('element', '%s:%s' % (_pref_tns, method.out_message.get_type_name()))
+            out_part.set('element', '%s:%s' % (_pref_tns,
+                                            method.out_message.get_type_name()))
 
     def __add_bindings_for_methods(self, root, service_name, methods):
         '''
@@ -556,7 +567,7 @@ class ServiceBase(object):
                     rt_header.set('part', 'ReplyTo')
                     rt_header.set('use', 'literal')
 
-                    mid_header = etree.SubElement(input, '{%s}header' % _ns_soap)
+                    mid_header = etree.SubElement(input, '{%s}header'% _ns_soap)
                     mid_header.set('message', '%s:MessageIDHeader' % _pref_tns)
                     mid_header.set('part', 'MessageID')
                     mid_header.set('use', 'literal')
