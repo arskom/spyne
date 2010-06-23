@@ -29,7 +29,7 @@ from lxml import etree
 
 from soaplib.serializers.exception import Fault
 from soaplib.serializers.primitive import string_encoding
-from soaplib.service import SoapServiceBase
+from soaplib.service import ServiceBase
 from soaplib.soap import apply_mtom
 from soaplib.soap import collapse_swa
 from soaplib.soap import make_soap_envelope
@@ -49,7 +49,7 @@ def reset_request():
     request.header = None
     request.additional = {}
 
-class WSGISoapApp(object):
+class WSGIApp(object):
     '''
     This is the base object representing a soap web application, and conforms
     to the WSGI specification (PEP 333).  This object should be overridden
@@ -335,10 +335,10 @@ class WSGISoapApp(object):
             return [faultStr]
 
 
-class SimpleWSGISoapApp(WSGISoapApp, SoapServiceBase):
+class SimpleWSGIApp(WSGIApp, ServiceBase):
     '''
-    This object is a VERY simple extention of the base WSGISoapApp.
-    It subclasses both WSGISoapApp, and SoapServiceBase, so that
+    This object is a VERY simple extention of the base WSGIApp.
+    It subclasses both WSGIApp, and ServiceBase, so that
     an object can simply subclass this single object, and it will
     be both a wsgi application and a soap service.  This is convenient
     if you want to only expose some functionality, and dont need
@@ -347,8 +347,8 @@ class SimpleWSGISoapApp(WSGISoapApp, SoapServiceBase):
     '''
 
     def __init__(self):
-        WSGISoapApp.__init__(self)
-        SoapServiceBase.__init__(self)
+        WSGIApp.__init__(self)
+        ServiceBase.__init__(self)
 
     def get_handler(self, environ):
         return self

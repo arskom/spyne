@@ -59,7 +59,7 @@ class Message(ClassSerializer):
 class MethodDescriptor(object):
     '''
     This class represents the method signature of a soap method,
-    and is returned by the soapdocument, or soapmethod decorators.
+    and is returned by the soapdocument, or rpc decorators.
     '''
 
     def __init__(self, name, public_name, in_message, out_message, doc,

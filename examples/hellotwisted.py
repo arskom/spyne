@@ -17,9 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from soaplib.service import soapmethod
+from soaplib.service import rpc
 from soaplib.serializers.primitive import String, Integer, Array
-from soaplib.wsgi_soap import SimpleWSGISoapApp
+from soaplib.wsgi_soap import SimpleWSGIApp
 
 from twisted.web.server import Site
 from twisted.web.resource import Resource
@@ -31,9 +31,9 @@ This is the HelloWorld example running in the twisted framework.
 '''
 
 
-class HelloWorldService(SimpleWSGISoapApp):
+class HelloWorldService(SimpleWSGIApp):
 
-    @soapmethod(String, Integer, _returns=Array(String))
+    @rpc(String, Integer, _returns=Array(String))
     def say_hello(self, name, times):
         '''
         Docstrings for service methods appear as documentation in the wsdl

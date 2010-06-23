@@ -24,9 +24,9 @@ from soaplib.client import SimpleSoapClient, ServiceClient
 from soaplib.serializers.primitive import (Array, DateTime, Float,
     Integer, String, Fault)
 from soaplib.serializers.clazz import ClassSerializer
-from soaplib.service import soapmethod
+from soaplib.service import rpc
 from soaplib.soap import MethodDescriptor, Message
-from soaplib.wsgi_soap import SimpleWSGISoapApp
+from soaplib.wsgi_soap import SimpleWSGIApp
 
 try:
     from wsgiref.simple_server import make_server
@@ -68,13 +68,13 @@ class Response(ClassSerializer):
         param1 = Float
 
 
-class TestService(SimpleWSGISoapApp):
+class TestService(SimpleWSGIApp):
 
-    @soapmethod(String, Integer, _returns=DateTime)
+    @rpc(String, Integer, _returns=DateTime)
     def a(self, s, i):
         return datetime.datetime(1901, 12, 15)
 
-    @soapmethod(Person, String, Integer, _returns=Address)
+    @rpc(Person, String, Integer, _returns=Address)
     def b(self, p, s, i):
         a = Address()
         a.zip = 4444
@@ -83,15 +83,15 @@ class TestService(SimpleWSGISoapApp):
 
         return a
 
-    @soapmethod(Person, _isAsync=True)
+    @rpc(Person, _isAsync=True)
     def d(self, person):
         pass
 
-    @soapmethod(Person, _isCallback=True)
+    @rpc(Person, _isCallback=True)
     def e(self, person):
         pass
 
-    @soapmethod()
+    @rpc()
     def fault(self):
         raise Exception('Testing faults')
 

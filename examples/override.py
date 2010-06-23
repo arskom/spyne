@@ -19,7 +19,7 @@
 
 from soaplib.service import rpc
 from soaplib.serializers.primitive import String
-from soaplib.wsgi_soap import SimpleWSGISoapApp
+from soaplib.wsgi_soap import SimpleWSGIApp
 
 '''
 This example shows how to override the variable names for fun and profit.
@@ -28,7 +28,7 @@ that are python keywords like, from, to, import, return, etc.
 '''
 
 
-class EmailManager(SimpleWSGISoapApp):
+class EmailManager(SimpleWSGIApp):
 
     @rpc(String, String, String,
         _in_variable_names = {'_to': 'to', '_from': 'from',

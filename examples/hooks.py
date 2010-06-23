@@ -22,7 +22,7 @@ from time import time
 from soaplib.service import rpc
 from soaplib.serializers.primitive import String, Integer, Array
 from soaplib.wsgi_soap import request
-from soaplib.wsgi_soap import SimpleWSGISoapApp
+from soaplib.wsgi_soap import SimpleWSGIApp
 
 '''
 This example is an enhanced version of the HelloWorld example that
@@ -48,7 +48,7 @@ to hold the data points for this request.
 '''
 
 
-class HelloWorldService(SimpleWSGISoapApp):
+class HelloWorldService(SimpleWSGIApp):
 
     @rpc(String, Integer, _returns=Array(String))
     def say_hello(self, name, times):

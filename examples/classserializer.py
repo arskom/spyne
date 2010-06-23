@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from soaplib.wsgi_soap import SimpleWSGISoapApp
+from soaplib.wsgi_soap import SimpleWSGIApp
 from soaplib.service import rpc
 from soaplib.serializers.primitive import String, Integer, Array
 from soaplib.serializers.clazz import ClassSerializer
@@ -43,7 +43,7 @@ class User(ClassSerializer):
     lastname = String
     permissions = Array(Permission)
 
-class UserManager(SimpleWSGISoapApp):
+class UserManager(SimpleWSGIApp):
     @rpc(User, _returns=Integer)
     def add_user(self, user):
         global user_database

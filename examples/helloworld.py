@@ -19,7 +19,7 @@
 
 from soaplib.service import rpc
 from soaplib.serializers.primitive import String, Integer, Array
-from soaplib.wsgi_soap import SimpleWSGISoapApp
+from soaplib.wsgi_soap import SimpleWSGIApp
 
 '''
 This is a simple HelloWorld example to show the basics of writing
@@ -28,7 +28,7 @@ client.
 '''
 
 
-class HelloWorldService(SimpleWSGISoapApp):
+class HelloWorldService(SimpleWSGIApp):
     @rpc(String, Integer, _returns=Array(String))
     def say_hello(self, name, times):
         '''

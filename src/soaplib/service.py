@@ -37,7 +37,7 @@ def rpc(*params, **kparams):
     differently when the keyword '_method_descriptor' is passed in, returning
     a 'MethodDescriptor' object.  This decorator does none of the soap/xml
     serialization, only flags a method as a soap method.  This decorator
-    should only be used on member methods of an instance of SoapServiceBase.
+    should only be used on member methods of an instance of ServiceBase.
     '''
 
     def explain(f):
@@ -176,7 +176,7 @@ class _SchemaEntries(object):
         schema_info = self.get_schema_info(cls.get_namespace_prefix())
         schema_info.complex[cls.get_type_name()] = node
 
-class SoapServiceBase(object):
+class ServiceBase(object):
     '''
     This class serves as the base for all soap services.  Subclasses of this
     class will use the rpc decorator to flag methods to be exposed via soap.

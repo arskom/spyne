@@ -20,10 +20,10 @@
 from soaplib.service import rpc
 from soaplib.serializers.primitive import String, Integer, Array
 from soaplib.serializers.binary import Attachment
-from soaplib.wsgi_soap import SimpleWSGISoapApp
+from soaplib.wsgi_soap import SimpleWSGIApp
 
 
-class HelloWorldService(SimpleWSGISoapApp):
+class HelloWorldService(SimpleWSGIApp):
     @rpc(Attachment, Integer, _returns=Array(String), _mtom=True)
     def say_hello(self, name, times):
         results = []

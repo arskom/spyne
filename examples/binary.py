@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from soaplib.wsgi_soap import SimpleWSGISoapApp
+from soaplib.wsgi_soap import SimpleWSGIApp
 from soaplib.service import rpc
 from soaplib.serializers.primitive import String
 from soaplib.serializers.binary import Attachment
@@ -27,7 +27,7 @@ from tempfile import mkstemp
 import os
 
 
-class DocumentArchiver(SimpleWSGISoapApp):
+class DocumentArchiver(SimpleWSGIApp):
     @rpc(Attachment, _returns=String)
     def archive_document(self, document):
         '''

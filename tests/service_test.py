@@ -23,8 +23,8 @@ from soaplib.etimport import ElementTree
 from soaplib.serializers.primitive import (String, Integer, DateTime, Float,
     Array)
 from soaplib.serializers.clazz import ClassSerializer
-from soaplib.service import soapmethod, SoapServiceBase
-from soaplib.wsgi_soap import SimpleWSGISoapApp
+from soaplib.service import rpc, ServiceBase
+from soaplib.wsgi_soap import SimpleWSGIApp
 
 
 class Address(ClassSerializer):
@@ -61,44 +61,44 @@ class Response(ClassSerializer):
         param1 = Float
 
 
-class TestService(SoapServiceBase):
+class TestService(ServiceBase):
 
-    @soapmethod(String, _returns=String)
+    @rpc(String, _returns=String)
     def aa(self, s):
         return s
 
-    @soapmethod(String, Integer, _returns=DateTime)
+    @rpc(String, Integer, _returns=DateTime)
     def a(self, s, i):
         return datetime.datetime.now()
 
-    @soapmethod(Person, String, Address, _returns=Address)
+    @rpc(Person, String, Address, _returns=Address)
     def b(self, p, s, a):
         return Address()
 
-    @soapmethod(Person, isAsync=True)
+    @rpc(Person, isAsync=True)
     def d(self, Person):
         pass
 
-    @soapmethod(Person, isCallback=True)
+    @rpc(Person, isCallback=True)
     def e(self, Person):
         pass
 
-    @soapmethod(String, String, String, _returns=String,
+    @rpc(String, String, String, _returns=String,
         _inputVariableNames={'_from': 'from', '_self': 'self',
             '_import': 'import'},
         _outVariableName="return")
     def f(self, _from, _self, _import):
         return '1234'
 
-class TestMultipleReturnService(SoapServiceBase):
-    @soapmethod(String, _returns=(String, String, String))
+class TestMultipleReturnService(ServiceBase):
+    @rpc(String, _returns=(String, String, String))
     def multi(self, s):
         return s, 'a', 'b'
 
-class OverrideNamespaceService(SimpleWSGISoapApp):
+class OverrideNamespaceService(SimpleWSGIApp):
     __tns__ = "http://someservice.com/override"
 
-    @soapmethod(String, _returns=String)
+    @rpc(String, _returns=String)
     def mymethod(self, s):
         return s
 
