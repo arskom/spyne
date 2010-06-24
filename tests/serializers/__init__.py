@@ -1,3 +1,4 @@
+
 #
 # soaplib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
 #
@@ -18,16 +19,17 @@
 
 import unittest
 
-import primitive_test
-import clazz_test
-import binary_test
-
+import test_binary
+import test_clazz
+import test_primitive
 
 def test_suite():
     loader = unittest.TestLoader()
-    suite = loader.loadTestsFromTestCase(primitive_test.test)
-    suite.addTests(clazz_test.test_suite())
-    suite.addTests(binary_test.test_suite())
+
+    suite = loader.loadTestsFromTestCase(test_primitive.test)
+    suite.addTests(test_clazz.test_suite())
+    suite.addTests(test_binary.test_suite())
+
     return suite
 
 if __name__== '__main__':
