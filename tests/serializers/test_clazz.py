@@ -1,3 +1,4 @@
+
 #
 # soaplib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
 #
@@ -16,80 +17,49 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import unittest
 import datetime
+import unittest
+import soaplib
 
-from soaplib.xml import NamespaceLookup, ns
-from soaplib.serializers.primitive import (Float, Array, String, Integer,
-    DateTime, Repeating)
 from soaplib.serializers.clazz import ClassSerializer
 
-
-##########################################################
-# Simple Classes
-##########################################################
-
+from soaplib.serializers.primitive import Array
+from soaplib.serializers.primitive import DateTime
+from soaplib.serializers.primitive import Float
+from soaplib.serializers.primitive import Integer
+from soaplib.serializers.primitive import String
 
 class Address(ClassSerializer):
-
-    class types:
-        street = String
-        city = String
-        zip = Integer
-        since = DateTime
-        laditude = Float
-        longitude = Float
-
+    street = String
+    city = String
+    zip = Integer
+    since = DateTime
+    laditude = Float
+    longitude = Float
 
 class Person(ClassSerializer):
-
-    class types:
-        name = String
-        birthdate = DateTime
-        age = Integer
-        addresses = Array(Address)
-        titles = Array(String)
-
-
-class ClassWithRepeatingData(ClassSerializer):
-
-    class types:
-        people = Repeating(Person)
-
-##########################################################
-# Complex Classes
-##########################################################
-
+    name = String
+    birthdate = DateTime
+    age = Integer
+    addresses = Array(Address)
+    titles = Array(String)
 
 class Level2(ClassSerializer):
-
-    class types:
-        arg1 = String
-        arg2 = Float
-
+    arg1 = String
+    arg2 = Float
 
 class Level3(ClassSerializer):
-
-    class types:
-        arg1 = Integer
-
+    arg1 = Integer
 
 class Level4(ClassSerializer):
-
-    class types:
-        arg1 = String
-
+    arg1 = String
 
 class Level1(ClassSerializer):
+    level2 = Level2
+    level3 = Array(Level3)
+    level4 = Array(Level4)
 
-    class types:
-        level2 = Level2
-        level3 = Array(Level3)
-        level4 = Array(Level4)
-
-
-class test(unittest.TestCase):
-
+class TestClassSerializer(unittest.TestCase):
     def test_simple_class(self):
         a = Address()
         a.street = '123 happy way'
@@ -198,41 +168,14 @@ class test(unittest.TestCase):
 
     def test_schema(self):
         a = {}
-        Person.add_to_schema(a, NamespaceLookup())
-        #self.assertEquals(8, len(a))
-        self.assertTrue(ns.get('tns') + "Person" in a)
-        self.assertTrue(ns.get('tns') + "Address" in a)
-        self.assertTrue(ns.get('tns') + "AddressArray" in a)
-
-    def test_repeating(self):
-        peeps = []
-        names = ['bob', 'jim', 'peabody', 'mumblesleves']
-        for name in names:
-            a = Person()
-            a.name = name
-            a.birthdate = datetime.datetime(1979, 1, 1)
-            a.age = 27
-            a.addresses = []
-
-            for i in range(0, 25):
-                addr = Address()
-                addr.street = '555 downtown'
-                addr.city = 'funkytown'
-                a.addresses.append(addr)
-            peeps.append(a)
-
-        rpt = ClassWithRepeatingData()
-        rpt.people = peeps
-
-        e = ClassWithRepeatingData.to_xml(rpt)
-        rpt2 = ClassWithRepeatingData.from_xml(e)
-
-        self.assertEquals(len(rpt2.people), len(rpt.people))
-
+        Person.add_to_schema(a)
+        self.assertTrue( ("{%s}Person" % soaplib.nsmap['tns']) in a)
+        self.assertTrue( ("{%s}Address" % soaplib.nsmap['tns']) in a)
+        self.assertTrue( ("{%s}AddressArray" % soaplib.nsmap['tns']) in a)
 
 def test_suite():
     loader = unittest.TestLoader()
-    return loader.loadTestsFromTestCase(test)
+    return loader.loadTestsFromTestCase(TestClassSerializer)
 
 if __name__== '__main__':
     unittest.TextTestRunner().run(test_suite())
