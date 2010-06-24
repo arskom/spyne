@@ -1,3 +1,4 @@
+
 #
 # soaplib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
 #
@@ -16,43 +17,34 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from soaplib.service import rpc
 from soaplib.serializers.binary import Attachment
 from soaplib.serializers.clazz import ClassSerializer
-from soaplib.serializers.primitive import (
-    String, Integer, DateTime, Float, Boolean, Array)
-from soaplib.wsgi_soap import SimpleWSGIApp, log_debug, log_exceptions
-
+from soaplib.serializers.primitive import Array
+from soaplib.serializers.primitive import Boolean
+from soaplib.serializers.primitive import DateTime
+from soaplib.serializers.primitive import Float
+from soaplib.serializers.primitive import Integer
+from soaplib.serializers.primitive import String
+from soaplib.service import rpc
+from soaplib.wsgi_soap import SimpleWSGIApp
 
 class SimpleClass(ClassSerializer):
-
-    class types:
-        i = Integer
-        s = String
-
+    i = Integer
+    s = String
 
 class OtherClass(ClassSerializer):
-
-    class types:
-        dt = DateTime
-        f = Float
-        b = Boolean
-
+    dt = DateTime
+    f = Float
+    b = Boolean
 
 class NestedClass(ClassSerializer):
-
-    class types:
-        simple = Array(SimpleClass)
-        s = String
-        i = Integer
-        f = Float
-        other = OtherClass
-
+    simple = Array(SimpleClass)
+    s = String
+    i = Integer
+    f = Float
+    other = OtherClass
 
 class InteropService(SimpleWSGIApp):
-
-    # basic primitives
-
     @rpc(Integer, _returns=Integer)
     def echoInteger(self, i):
         return i
@@ -141,14 +133,12 @@ class InteropService(SimpleWSGIApp):
     def doSomethingElse(self, s):
         return s
 
-
 if __name__ == '__main__':
     try:
         from wsgiref.simple_server import make_server
-        log_debug(True)
-        log_exceptions(True)
         server = make_server('127.0.0.1', 9753, InteropService())
         print 'Starting interop server at -- %s:%s' % ('127.0.0.1', 9753)
         server.serve_forever()
+
     except ImportError:
         print "Error: example server code requires Python >= 2.5"
