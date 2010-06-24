@@ -154,6 +154,7 @@ class String(Primitive):
     def __new__(cls, *args, **kwargs):
         assert len(args) <= 1
 
+        retval = cls.customize(**kwargs)
 
         if len(args) == 1:
             retval.max_len = args[0]
