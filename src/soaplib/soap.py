@@ -78,7 +78,9 @@ def from_soap(xml_string):
     '''
     Parses the xml string into the header and payload
     '''
-    root = etree.fromstring(xml_string)
+    root, xmlids = etree.XMLID(xml_string.encode())
+    if xmlids:
+        resolve_hrefs(root, xmlids)
 
     body = None
     header = None
@@ -96,6 +98,33 @@ def from_soap(xml_string):
         payload = body.getchildren()[0]
 
     return payload, header
+
+# see http://www.w3.org/TR/2000/NOTE-SOAP-20000508/
+# section 5.2.1 for an example of how the id and href attributes are used.
+def resolve_hrefs(element, xmlids):
+    for e in element:
+        if e.get('id'):
+            continue # don't need to resolve this element
+
+        elif e.get('href'):
+            resolved_element = xmlids[e.get('href').replace('#', '')]
+            if resolved_element is None:
+                continue
+            resolve_hrefs(resolved_element, xmlids)
+
+            # copies the attributes
+            [e.set(k, v) for k, v in resolved_element.items()]
+
+            # copies the children
+            [e.append(child) for child in resolved_element.getchildren()]
+
+            # copies the text
+            e.text = resolved_element.text
+
+        else:
+            resolve_hrefs(e, xmlids)
+
+    return element
 
 def make_soap_envelope(message, tns='', header_elements=None):
     '''
@@ -179,7 +208,6 @@ def join_attachment(id, envelope, payload, prefix=True):
 
     return (joinedmsg, numreplaces)
 
-
 def collapse_swa(content_type, envelope):
     '''
     Translates an SwA multipart/related message into an
@@ -244,7 +272,6 @@ def collapse_swa(content_type, envelope):
                 False)
 
     return soapmsg
-
 
 def apply_mtom(headers, envelope, params, paramvals):
     '''
@@ -364,7 +391,6 @@ def apply_mtom(headers, envelope, params, paramvals):
         return (headers, envelope)
 
     return (mtomheaders, mtombody)
-
 
 def make_soap_fault(fault_string, fault_code = 'Server', detail = None,
         header_elements = None):
