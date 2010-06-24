@@ -190,12 +190,17 @@ class Integer(Primitive):
             return None
 
         try:
-            return int(str(i))
+            return int(i)
         except:
             try:
                 return long(i)
             except:
                 return None
+
+    @classmethod
+    @nillable_value
+    def to_xml(cls, value, name='retval'):
+        return Primitive.to_xml(str(value),name)
 
 class Decimal(Primitive):
     @classmethod
