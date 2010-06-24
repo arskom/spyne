@@ -325,6 +325,7 @@ class Array(Primitive):
 
         retval.set('type', "%s" % cls.get_type_name_ns())
 
+        # so that we see the variable name in the exception
         try:
             iter(values)
         except TypeError, e:
@@ -332,7 +333,7 @@ class Array(Primitive):
 
         for value in values:
             retval.append(
-                serializer.to_xml(value, cls.serializer.get_type_name()))
+                cls.serializer.to_xml(value, cls.serializer.get_type_name()))
 
         return retval
 
