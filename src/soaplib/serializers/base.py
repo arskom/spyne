@@ -37,6 +37,14 @@ def nillable_element(func):
         return func(cls, element, *args, **kwargs)
     return wrapper
 
+def string_to_xml(cls, value, name):
+    retval = etree.Element(name)
+
+    retval.set('{%s}type' % soaplib.nsmap['xsi'], cls.get_type_name_ns())
+    retval.text = value
+
+    return retval
+
 class Base(object):
     __namespace__ = None
     __type_name__ = None
@@ -69,18 +77,8 @@ class Base(object):
         return "%s:%s" % (cls.get_namespace_prefix(), cls.get_type_name())
 
     @classmethod
-    @nillable_value
     def to_xml(cls, value, name='retval'):
-        retval = etree.Element(name)
-        retval.set('{%(xsi)s}type' % soaplib.nsmap, cls.get_type_name())
-
-        retval.text = value
-
-        return retval
-
-    @classmethod
-    def from_xml(cls, element):
-        raise Exception("Not Implemented")
+        return string_to_xml(cls, value, name)
 
     @classmethod
     def add_to_schema(cls, schema_entries):
