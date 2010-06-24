@@ -20,14 +20,15 @@
 import base64
 import cStringIO
 
-from soaplib.serializers.primitive import Primitive
+from soaplib.serializers.base import Base
 from soaplib.serializers import nillable_value, nillable_element
 
 from lxml import etree
 
-class Attachment(Primitive):
-    type_name = 'base64Binary'
-
+class Attachment(Base):
+    __type_name__ = 'base64Binary'
+    __namespace__ = "http://www.w3.org/2001/XMLSchema"
+    
     def __init__(self, data=None, file_name=None):
         self.data = data
         self.file_name = file_name
