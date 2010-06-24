@@ -1,3 +1,4 @@
+
 #
 # soaplib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
 #
@@ -16,15 +17,24 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import unittest
 import datetime
-from soaplib.serializers.primitive import (Boolean, String, Repeating,
-    DateTime, Float, Array, Integer, Null)
-from soaplib.xml import ns, create_xml_element
+import unittest
 
+from lxml import etree
 
-class test(unittest.TestCase):
+import soaplib
+_ns_xs = soaplib.nsmap['xs']
+_ns_xsi = soaplib.nsmap['xsi']
 
+from soaplib.serializers.primitive import Array
+from soaplib.serializers.primitive import Boolean
+from soaplib.serializers.primitive import DateTime
+from soaplib.serializers.primitive import Float
+from soaplib.serializers.primitive import Integer
+from soaplib.serializers.base import Null
+from soaplib.serializers.primitive import String
+
+class TestPrimitive(unittest.TestCase):
     def test_string(self):
         s = String()
         element = String.to_xml('value')
@@ -42,7 +52,7 @@ class test(unittest.TestCase):
 
     def test_utcdatetime(self):
         datestring = '2007-05-15T13:40:44Z'
-        e = create_xml_element('test', ns)
+        e = etree.Element('test')
         e.text = datestring
 
         dt = DateTime.from_xml(e)
@@ -52,7 +62,7 @@ class test(unittest.TestCase):
         self.assertEquals(dt.day, 15)
 
         datestring = '2007-05-15T13:40:44.003Z'
-        e = create_xml_element('test', ns)
+        e = etree.Element('test')
         e.text = datestring
 
         dt = DateTime.from_xml(e)
@@ -66,7 +76,7 @@ class test(unittest.TestCase):
         integer = Integer()
         element = Integer.to_xml(i)
         self.assertEquals(element.text, '12')
-        self.assertEquals('xs:integer', element.get(ns.get('xsi') + 'type'))
+        self.assertEquals('xs:integer', element.get('{%s}type' % _ns_xsi))
         value = integer.from_xml(element)
         self.assertEquals(value, i)
 
@@ -75,23 +85,31 @@ class test(unittest.TestCase):
         integer = Integer()
         element = Integer.to_xml(i)
         self.assertEquals(element.text, '128375873458473')
-        self.assertEquals('xs:integer', element.get(ns.get('xsi') + 'type'))
+        self.assertEquals('xs:integer', element.get('{%s}type' % _ns_xsi))
         value = integer.from_xml(element)
         self.assertEquals(value, i)
 
     def test_float(self):
         f = 1.22255645
+
         element = Float.to_xml(f)
         self.assertEquals(element.text, '1.22255645')
-        self.assertEquals('xs:float', element.get(ns.get('xsi') + 'type'))
+        self.assertEquals('xs:float', element.get('{%s}type' % _ns_xsi))
+
         f2 = Float.from_xml(element)
         self.assertEquals(f2, f)
 
     def test_array(self):
         serializer = Array(String)
         values = ['a', 'b', 'c', 'd', 'e', 'f']
+
         element = serializer.to_xml(values)
         self.assertEquals(len(values), len(element.getchildren()))
+
+        print etree.tostring(element, pretty_print=True)
+
+        print serializer.from_xml
+
         values2 = serializer.from_xml(element)
         self.assertEquals(values[3], values2[3])
 
@@ -104,7 +122,7 @@ class test(unittest.TestCase):
 
     def test_null(self):
         element = Null.to_xml('doesnt matter')
-        self.assertEquals('1', element.get(ns.get('xs') + 'nil'))
+        self.assertEquals('1', element.get('{%s}nil' % _ns_xs))
         value = Null.from_xml(element)
         self.assertEquals(None, value)
 
@@ -128,30 +146,17 @@ class test(unittest.TestCase):
         self.assertEquals(b, False)
 
         b = Boolean.to_xml(False)
-        self.assertEquals('xs:boolean', b.get(ns.get('xsi') + 'type'))
+        self.assertEquals('xs:boolean', b.get('{%s}type' % _ns_xsi))
 
         b = Boolean.to_xml(None)
-        self.assertEquals('1', b.get(ns.get('xs') + 'nil'))
+        self.assertEquals('1', b.get('{%s}nil' % _ns_xs))
 
         b = Boolean.from_xml(b)
         self.assertEquals(b, None)
 
-    def test_repeating(self):
-        serializer = Repeating(String)
-
-        data = ["a", "b", "c", "d"]
-
-        elements = serializer.to_xml(data)
-        self.assertEquals(len(elements), 4)
-
-        newdata = serializer.from_xml(*elements)
-
-        self.assertEquals(data, newdata)
-
-
 def test_suite():
     loader = unittest.TestLoader()
-    return loader.loadTestsFromTestCase(test)
+    return loader.loadTestsFromTestCase(TestPrimitive)
 
 if __name__== '__main__':
     unittest.TextTestRunner().run(test_suite())
