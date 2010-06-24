@@ -66,11 +66,11 @@ class Base(object):
 
     @classmethod
     def get_type_name(cls):
-        tn = cls.__type_name__
-        if tn is None:
-            tn = cls.__name__.lower()
+        retval = cls.__type_name__
+        if retval is None:
+            retval = cls.__name__.lower()
 
-        return tn
+        return retval
 
     @classmethod
     def get_type_name_ns(cls):
