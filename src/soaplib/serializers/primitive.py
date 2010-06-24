@@ -170,7 +170,7 @@ class String(Primitive):
         if not isinstance(value,unicode):
             value = unicode(value, string_encoding)
 
-        return Primitive.to_xml(value, name)
+        return string_to_xml(cls, value, name)
 
     @classmethod
     @nillable_element
@@ -200,7 +200,7 @@ class Integer(Primitive):
     @classmethod
     @nillable_value
     def to_xml(cls, value, name='retval'):
-        return Primitive.to_xml(str(value),name)
+        return string_to_xml(cls, str(value),name)
 
 class Decimal(Primitive):
     @classmethod
@@ -212,7 +212,7 @@ class Date(Primitive):
     @classmethod
     @nillable_value
     def to_xml(cls, value, name='retval'):
-        return Primitive.to_xml(value.isoformat(),name)
+        return string_to_xml(cls, value.isoformat(),name)
 
     @classmethod
     @nillable_element
@@ -236,7 +236,7 @@ class DateTime(Primitive):
     @classmethod
     @nillable_value
     def to_xml(cls, value, name='retval'):
-        return Primitive.to_xml(value.isoformat('T'),name)
+        return string_to_xml(cls, value.isoformat('T'),name)
 
     @classmethod
     @nillable_element
@@ -281,7 +281,7 @@ class Boolean(Primitive):
     @classmethod
     @nillable_value
     def to_xml(cls, value, name='retval'):
-        return Primitive.to_xml(str(bool(value)).lower(),name)
+        return string_to_xml(cls, str(bool(value)).lower(),name)
 
     @classmethod
     @nillable_element
