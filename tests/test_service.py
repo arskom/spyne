@@ -1,3 +1,4 @@
+
 #
 # soaplib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
 #
@@ -16,53 +17,46 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import unittest
 import datetime
-from soaplib.etimport import ElementTree
+import unittest
 
-from soaplib.serializers.primitive import (String, Integer, DateTime, Float,
-    Array)
+from lxml import etree
+
 from soaplib.serializers.clazz import ClassSerializer
-from soaplib.service import rpc, ServiceBase
+from soaplib.serializers.primitive import Array
+from soaplib.serializers.primitive import DateTime
+from soaplib.serializers.primitive import Float
+from soaplib.serializers.primitive import Integer
+from soaplib.serializers.primitive import String
+
+from soaplib.service import ServiceBase
+from soaplib.service import rpc
+
 from soaplib.wsgi_soap import SimpleWSGIApp
 
-
 class Address(ClassSerializer):
-
-    class types:
-        street = String
-        city = String
-        zip = Integer
-        since = DateTime
-        laditude = Float
-        longitude = Float
-
+    street = String
+    city = String
+    zip = Integer
+    since = DateTime
+    laditude = Float
+    longitude = Float
 
 class Person(ClassSerializer):
-
-    class types:
-        name = String
-        birthdate = DateTime
-        age = Integer
-        addresses = Array(Address)
-        titles = Array(String)
-
+    name = String
+    birthdate = DateTime
+    age = Integer
+    addresses = Array(Address)
+    titles = Array(String)
 
 class Request(ClassSerializer):
-
-    class types:
-        param1 = String
-        param2 = Integer
-
+    param1 = String
+    param2 = Integer
 
 class Response(ClassSerializer):
-
-    class types:
-        param1 = Float
-
+    param1 = Float
 
 class TestService(ServiceBase):
-
     @rpc(String, _returns=String)
     def aa(self, s):
         return s
@@ -84,9 +78,9 @@ class TestService(ServiceBase):
         pass
 
     @rpc(String, String, String, _returns=String,
-        _inputVariableNames={'_from': 'from', '_self': 'self',
+        _in_variable_names={'_from': 'from', '_self': 'self',
             '_import': 'import'},
-        _outVariableName="return")
+        _out_variable_name="return")
     def f(self, _from, _self, _import):
         return '1234'
 
@@ -102,8 +96,7 @@ class OverrideNamespaceService(SimpleWSGIApp):
     def mymethod(self, s):
         return s
 
-
-class test(unittest.TestCase):
+class Test(unittest.TestCase):
     '''
     Most of the service tests are excersized through the interop tests
     '''
@@ -111,15 +104,15 @@ class test(unittest.TestCase):
     def setUp(self):
         self.service = TestService()
         self._wsdl = self.service.wsdl('')
-        self.wsdl = ElementTree.fromstring(self._wsdl)
+        self.wsdl = etree.fromstring(self._wsdl)
 
     def test_portypes(self):
         porttype = self.wsdl.find('{http://schemas.xmlsoap.org/wsdl/}portType')
         self.assertEquals(
-            len(self.service._soap_methods), len(porttype.getchildren()))
+            len(self.service._remote_methods), len(porttype.getchildren()))
 
     def test_override_default_names(self):
-        wsdl = ElementTree.fromstring(OverrideNamespaceService().wsdl(''))
+        wsdl = etree.fromstring(OverrideNamespaceService().wsdl(''))
         self.assertEquals(wsdl.get('targetNamespace'),
             "http://someservice.com/override")
 
@@ -130,10 +123,13 @@ class test(unittest.TestCase):
     def test_multiple_return(self):
         service = TestMultipleReturnService()
         service.wsdl('')
-        message = service.methods()[0].outMessage
-        self.assertEquals(len(message.params), 3)
-        sent_xml = message.to_xml('a','b','c')
+
+        message = service.methods()[0].out_message
+        self.assertEquals(len(message._type_info), 3)
+
+        sent_xml = message.to_xml( ('a','b','c') )
         response_data = message.from_xml(sent_xml)
+
         self.assertEquals(len(response_data), 3)
         self.assertEqual(response_data[0], 'a')
         self.assertEqual(response_data[1], 'b')
@@ -141,8 +137,7 @@ class test(unittest.TestCase):
 
 def test_suite():
     loader = unittest.TestLoader()
-    return loader.loadTestsFromTestCase(test)
+    return loader.loadTestsFromTestCase(Test)
 
 if __name__== '__main__':
     unittest.TextTestRunner().run(test_suite())
-
