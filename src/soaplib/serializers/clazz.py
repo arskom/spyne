@@ -86,7 +86,6 @@ class ClassSerializerBase(NonExtendingClass, Base):
         element = etree.Element("{%s}%s" % (cls.get_namespace(), name))
 
         for k, v in cls._type_info.items():
-            print value.__dict__
             subvalue = getattr(value, k, None)
             print k, subvalue
             subelement = v.to_xml(subvalue, name="{%s}%s" %
