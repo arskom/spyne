@@ -174,6 +174,7 @@ class String(Primitive):
     @classmethod
     @nillable_element
     def from_xml(cls, element):
+        u=element.text
         try:
             u = str(u)
             return u.encode(string_encoding)
