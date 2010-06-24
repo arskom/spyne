@@ -29,6 +29,7 @@ import soaplib
 from soaplib.serializers import Base
 from soaplib.serializers import nillable_element
 from soaplib.serializers import nillable_value
+from soaplib.serializers import string_to_xml
 
 string_encoding = 'utf-8'
 
