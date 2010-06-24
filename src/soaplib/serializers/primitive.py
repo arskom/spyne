@@ -153,7 +153,6 @@ class String(Primitive):
     def __new__(cls, *args, **kwargs):
         assert len(args) <= 1
 
-        retval = Primitive.__new__(cls, **kwargs)
 
         if len(args) == 1:
             retval.max_len = args[0]
@@ -295,7 +294,8 @@ class Array(Primitive):
     serializer = None
 
     def __new__(cls, serializer, **kwargs):
-        retval = Primitive.__new__(cls, **kwargs)
+        retval = cls.customize(**kwargs)
+
         retval.min_occurs = 0
         retval.max_occurs = "unbounded"
         retval.serializer = serializer
