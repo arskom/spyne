@@ -18,7 +18,6 @@
 #
 
 import soaplib
-from pprint import pprint
 
 from lxml import etree
 
@@ -75,8 +74,7 @@ class Base(object):
         retval = etree.Element(name)
         retval.set('{%(xsi)s}type' % soaplib.nsmap, cls.get_type_name())
 
-        if value:
-            retval.text = value
+        retval.text = value
 
         return retval
 
