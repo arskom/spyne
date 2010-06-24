@@ -1,3 +1,4 @@
+
 #
 # soaplib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
 #
@@ -19,15 +20,13 @@
 import base64
 import os
 import shutil
-from tempfile import mkstemp
 import unittest
+from tempfile import mkstemp
 
-from soaplib.serializers.binary import Attachment, ns
-from soaplib.xml import NamespaceLookup
+import soaplib
+from soaplib.serializers.binary import Attachment
 
-
-class test(unittest.TestCase):
-
+class TestBinary(unittest.TestCase):
     def setUp(self):
         os.mkdir('binaryDir')
 
@@ -55,7 +54,7 @@ class test(unittest.TestCase):
 
     def test_to_xml_file(self):
         a = Attachment()
-        a.fileName = self.tmpfile
+        a.file_name = self.tmpfile
         f = open(self.tmpfile, 'rb')
         data = f.read()
         f.close()
@@ -66,12 +65,15 @@ class test(unittest.TestCase):
 
     def test_to_from_xml_file(self):
         a = Attachment()
-        a.fileName = self.tmpfile
+        a.file_name = self.tmpfile
         element = Attachment.to_xml(a)
+
         data = Attachment.from_xml(element).data
+
         f = open(self.tmpfile, 'rb')
         fdata = f.read()
         f.close()
+
         self.assertEquals(data, fdata)
 
     def test_exception(self):
@@ -86,28 +88,29 @@ class test(unittest.TestCase):
         f = open(self.tmpfile)
         data = f.read()
         f.close()
+
         a = Attachment()
         a.data = data
         element = Attachment.to_xml(a)
         a2 = Attachment.from_xml(element)
+
         self.assertEquals(data, a2.data)
 
     def test_add_to_schema(self):
         schema = {}
-        Attachment.add_to_schema(schema, NamespaceLookup())
+        Attachment.add_to_schema(schema)
         self.assertEquals(0, len(schema.keys()))
 
     def test_get_datatype(self):
-        dt = Attachment.get_datatype()
+        dt = Attachment.get_type_name()
         self.assertEquals('base64Binary', dt)
-        dt = Attachment.get_datatype(ns)
-        self.assertEquals(ns.get('xs') + 'base64Binary', dt)
 
+        dt = Attachment.get_namespace()
+        assert soaplib.nsmap['xs'] == dt
 
 def test_suite():
     loader = unittest.TestLoader()
-    return loader.loadTestsFromTestCase(test)
-
+    return loader.loadTestsFromTestCase(TestBinary)
 
 if __name__== '__main__':
     unittest.TextTestRunner().run(test_suite())
