@@ -73,6 +73,8 @@ class Attachment(Base):
         from the file
         '''
 
+        assert isinstance(value, cls)
+
         element = etree.Element(name)
         if value.data:
             # the data has already been loaded, just encode
