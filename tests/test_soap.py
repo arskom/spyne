@@ -1,3 +1,4 @@
+
 #
 # soaplib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
 #
@@ -18,40 +19,46 @@
 
 import unittest
 
-from soaplib.etimport import ElementTree as et
-from soaplib.serializers.clazz import ClassSerializer
-from soaplib.serializers.primitive import (String, Integer, DateTime, Float,
-    Array, Repeating)
-from soaplib.soap import (Message, make_soap_envelope, make_soap_fault,
-    from_soap)
+from lxml import etree
 
+from soaplib.serializers.clazz import ClassSerializer
+
+from soaplib.serializers.primitive import Array
+from soaplib.serializers.primitive import DateTime
+from soaplib.serializers.primitive import Float
+from soaplib.serializers.primitive import Integer
+from soaplib.serializers.primitive import String
+
+from soaplib.soap import Message
+from soaplib.soap import from_soap
+from soaplib.soap import make_soap_envelope
+from soaplib.soap import make_soap_fault
 
 class Address(ClassSerializer):
-
-    class types:
-        street = String
-        city = String
-        zip = Integer
-        since = DateTime
-        laditude = Float
-        longitude = Float
-
+    street = String
+    city = String
+    zip = Integer
+    since = DateTime
+    laditude = Float
+    longitude = Float
 
 class Person(ClassSerializer):
+    name = String
+    birthdate = DateTime
+    age = Integer
+    addresses = Array(Address)
+    titles = Array(String)
 
-    class types:
-        name = String
-        birthdate = DateTime
-        age = Integer
-        addresses = Array(Address)
-        titles = Array(String)
-
-
-class test(unittest.TestCase):
-
+class TestSoap(unittest.TestCase):
     def test_simple_message(self):
-        m = Message('myMessage', [('s', String), ('i', Integer)])
-        e = m.to_xml('a', 43)
+        m = Message.c(
+            namespace=None,
+            type_name='myMessage',
+            members={'s': String, 'i': Integer}
+        )
+
+        m_inst = m(s="a", i=43)
+        e = m.to_xml(m_inst)
 
         self.assertEquals(e.tag, 'myMessage')
 
@@ -99,19 +106,29 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
         self.assertEquals(len(payload.getchildren()[0].getchildren()), 2)
 
     def test_namespaces(self):
-        m = Message('{some_namespace}myMessage',
-            [('s', String), ('i', Integer)])
-        e = m.to_xml('a', 43)
+        m = Message.c(
+            namespace="some_namespace",
+            type_name='myMessage',
+            members={'s': String, 'i': Integer}
+        )
+
+        e = m.to_xml('a')
         self.assertEquals(e.tag, '{some_namespace}myMessage')
 
-        m1 = Message('myMessage',
-            [('{some_namespace}s', String), ('i', Integer)],
-            ns='some_namespace')
+        m1 = Message.c(
+            namespace="some_namespace",
+            type_name='myMessage',
+            members={'{some_namespace}s': String, 'i': Integer}
+        )
         e2 = m1.to_xml('a', 43)
         self.assertEquals(e2.nsmap[None], 'some_namespace')
 
     def test_class_to_xml(self):
-        m = Message('myMessage', [('p', Person)])
+        m = Message.c(
+            namespace=None,
+            type_name='myMessage',
+            members={'p': Person}
+        )
 
         p = Person()
         p.name = 'steve-o'
@@ -133,7 +150,12 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
         self.assertEquals(p1.addresses, [])
 
     def test_to_xml_nested(self):
-        m = Message('myMessage', [('p', Person)])
+        m = Message.c(
+            namespace=None,
+            type_name='myMessage',
+            members={'p':Person}
+        )
+
         p = Person()
         p.name = 'steve-o'
         p.age = 2
@@ -150,22 +172,31 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
         element = m.to_xml(p)
 
         self.assertEquals('myMessage', element.tag)
+
         addresses = element.getchildren()[0].find('addresses').getchildren()
         self.assertEquals(1000, len(addresses))
         self.assertEquals('0', addresses[0].find('zip').text)
 
     def test_soap_envelope(self):
-        m = Message('myMessage', [('p', Person)])
+        m = Message.c(
+            namespace=None,
+            type_name='myMessage',
+            members={'p': Person}
+        )
         env = make_soap_envelope(m.to_xml(Person()))
 
         self.assertTrue(env.tag.endswith('Envelope'))
         self.assertTrue(env.getchildren()[0].tag.endswith('Body'))
 
-        m = Message('myMessage', [('p', Person)])
+        m = Message.c(
+            namespace=None,
+            type_name='myMessage',
+            members={'p': Person}
+        )
         env = make_soap_envelope(m.to_xml(Person()),
-            header_elements=[et.Element('header1'), et.Element('header2')])
+            header_elements=[etree.Element('header1'), etree.Element('header2')])
 
-        env = et.fromstring(et.tostring(env))
+        env = etree.fromstring(etree.tostring(env))
 
         self.assertTrue(env.getchildren()[0].tag.endswith('Header'))
         self.assertEquals(len(env.getchildren()[0].getchildren()), 2)
@@ -173,7 +204,7 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
 
     def test_soap_fault(self):
         fault = make_soap_fault('something happened')
-        fault = et.fromstring(et.tostring(fault))
+        fault = etree.fromstring(etree.tostring(fault))
 
         self.assertTrue(fault.getchildren()[0].tag.endswith, 'Body')
         self.assertTrue(
@@ -187,27 +218,16 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
         fault = make_soap_fault('something happened', 'DatabaseError',
             'error on line 12')
 
-        fault = et.fromstring(et.tostring(fault))
+        fault = etree.fromstring(etree.tostring(fault))
 
         f = fault.getchildren()[0].getchildren()[0]
         self.assertEquals(f.find('faultstring').text, 'something happened')
         self.assertEquals(f.find('faultcode').text, 'DatabaseError')
         self.assertEquals(f.find('detail').text, 'error on line 12')
 
-    def test_message_repeating(self):
-        m = Message('myMessage', [('p', Repeating(String))])
-        method = m.to_xml(["a", "b", "c", "d"])
-        self.assertEquals(len(method.getchildren()), 4)
-
-        data = m.from_xml(method)
-
-        self.assertEquals(data, [["a", "b", "c", "d"]])
-
-
 def test_suite():
     loader = unittest.TestLoader()
-    return loader.loadTestsFromTestCase(test)
-
+    return loader.loadTestsFromTestCase(TestSoap)
 
 if __name__== '__main__':
     unittest.TextTestRunner().run(test_suite())
