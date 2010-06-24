@@ -53,6 +53,8 @@ class Message(ClassSerializer):
         cls_dup = Message.customize()
         cls_dup.__namespace__ = namespace
         cls_dup.__type_name__ = type_name
+
+        assert isinstance(members, dict)
         cls_dup._type_info = members
 
         return cls_dup
