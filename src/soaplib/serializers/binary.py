@@ -28,14 +28,14 @@ from lxml import etree
 class Attachment(Primitive):
     type_name = 'base64Binary'
 
-    def __init__(self, data=None, fileName=None):
+    def __init__(self, data=None, file_name=None):
         self.data = data
-        self.fileName = fileName
+        self.file_name = file_name
 
     def save_to_file(self):
         '''
         This method writes the data to the specified file.  This method
-        assumes that the filename is the full path to the file to be written.
+        assumes that the file_name is the full path to the file to be written.
         This method also assumes that self.data is the base64 decoded data,
         and will do no additional transformations on it, simply write it to
         disk.
@@ -44,10 +44,10 @@ class Attachment(Primitive):
         if not self.data:
             raise Exception("No data to write")
 
-        if not self.fileName:
-            raise Exception("No filename specified")
+        if not self.file_name:
+            raise Exception("No file_name specified")
 
-        f = open(self.fileName, 'wb')
+        f = open(self.file_name, 'wb')
         f.write(self.data)
         f.close()
 
@@ -56,9 +56,9 @@ class Attachment(Primitive):
         This method loads the data from the specified file, and does
         no encoding/decoding of the data
         '''
-        if not self.fileName:
-            raise Exception("No filename specified")
-        f = open(self.fileName, 'rb')
+        if not self.file_name:
+            raise Exception("No file_name specified")
+        f = open(self.file_name, 'rb')
         self.data = f.read()
         f.close()
 
@@ -68,7 +68,7 @@ class Attachment(Primitive):
         '''
         This class method takes the data from the attachment and
         base64 encodes it as the text of an Element. An attachment can
-        specify a filename and if no data is given, it will read the data
+        specify a file_name and if no data is given, it will read the data
         from the file
         '''
 
@@ -78,13 +78,13 @@ class Attachment(Primitive):
             # and return the element
             element.text = base64.encodestring(value.data)
 
-        elif value.fileName:
+        elif value.file_name:
             # the data hasn't been loaded, but a file has been
             # specified
             data_string = cStringIO.StringIO()
 
-            fileName = value.fileName
-            file = open(fileName, 'rb')
+            file_name = value.file_name
+            file = open(file_name, 'rb')
             base64.encode(file, data_string)
             file.close()
 
@@ -93,7 +93,7 @@ class Attachment(Primitive):
             element.text = str(data_string.read())
 
         else:
-            raise Exception("Neither data nor a filename has been specified")
+            raise Exception("Neither data nor a file_name has been specified")
 
         return element
 
