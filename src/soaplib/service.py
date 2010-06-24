@@ -83,8 +83,6 @@ def rpc(*params, **kparams):
                             out_params = dict(zip(_out_variable_names,_returns))
                         else:
                             out_params[_out_variable_names] = _returns
-                    else:
-                        out_params = []
 
                     return Message.c(type_name=_out_message, namespace=ns,
                                                             members=out_params)
@@ -184,9 +182,9 @@ class ServiceBase(object):
     __tns__ = None
 
     def __init__(self):
-        self._soap_methods = []
+        self._remote_methods = []
         self.__wsdl = None
-        self._soap_methods = self._get_soap_methods()
+        self._remote_methods = self._get_remote_methods()
 
     @classmethod
     def get_tns(cls):
@@ -206,24 +204,24 @@ class ServiceBase(object):
 
         return '.'.join((cls.__module__, service_name))
 
-    def _get_soap_methods(self):
+    def _get_remote_methods(self):
         '''Returns a list of method descriptors for this object'''
-        soap_methods = []
+        remote_methods = []
 
         for funcName in dir(self):
             func = getattr(self, funcName)
             if callable(func) and hasattr(func, '_is_rpc'):
                 descriptor = func(_method_descriptor=True, clazz=self.__class__)
-                soap_methods.append(descriptor)
+                remote_methods.append(descriptor)
 
-        return soap_methods
+        return remote_methods
 
     def methods(self):
         '''
         returns the soap methods for this object
         @return method descriptor list
         '''
-        return self._soap_methods
+        return self._remote_methods
 
     def get_method(self, name):
         '''
