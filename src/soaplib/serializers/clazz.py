@@ -100,6 +100,8 @@ class ClassSerializerBase(NonExtendingClass, Base):
         children = element.getchildren()
 
         for c in children:
+            assert c.tag.split('}')[0].split('{')[-1] == cls.get_namespace()
+
             key = c.tag.split('}')[-1]
 
             member = cls._type_info.get(key)
