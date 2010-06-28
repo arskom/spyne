@@ -80,10 +80,45 @@ class ClassSerializerBase(NonExtendingClass, Base):
 
         self.__NO_EXTENSION=True
 
+    def __len__(self):
+        return len(self._type_info)
+
+    def __getitem__(self,i):
+        return getattr(self, self.__get_sorted_names()[i], None)
+
+    @classmethod
+    def __get_sorted_names(cls):
+        keys = getattr(cls, '__sorted_type_names', None)
+        if keys is None:
+            cls.__sorted_type_names = keys = cls._type_info.keys()
+            keys.sort()
+        return keys
+
     @classmethod
     @nillable_value
     def to_xml(cls, value, name='retval'):
         element = etree.Element("{%s}%s" % (cls.get_namespace(), name))
+
+        if isinstance(value, list) or isinstance(value, tuple):
+            array = value
+            value = cls()
+
+            keys = cls.__get_sorted_names()
+
+            assert(len(array) <= len(keys))
+
+            for i in range(len(value)):
+                setattr(value, keys[i], array[i])
+
+        elif isinstance(value, dict):
+            map = value
+            value = cls()
+
+            for k,v in map.items():
+                if k in cls._type_info:
+                    setattr(value, k, v)
+                else:
+                    raise KeyError(k)
 
         for k, v in cls._type_info.items():
             subvalue = getattr(value, k, None)
