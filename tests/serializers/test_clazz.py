@@ -166,13 +166,6 @@ class TestClassSerializer(unittest.TestCase):
         self.assertEquals(len(l1.level4), len(l.level4))
         self.assertEquals(100, len(l.level3))
 
-    def test_schema(self):
-        a = {}
-        Person.add_to_schema(a)
-        self.assertTrue( ("{%s}Person" % soaplib.nsmap['tns']) in a)
-        self.assertTrue( ("{%s}Address" % soaplib.nsmap['tns']) in a)
-        self.assertTrue( ("{%s}AddressArray" % soaplib.nsmap['tns']) in a)
-
 def test_suite():
     loader = unittest.TestLoader()
     return loader.loadTestsFromTestCase(TestClassSerializer)
