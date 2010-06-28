@@ -96,7 +96,10 @@ class ClassSerializerBase(NonExtendingClass, Base):
 
     @classmethod
     @nillable_value
-    def to_xml(cls, value, name='retval'):
+    def to_xml(cls, value, name=None):
+        if name is None:
+            name = cls.get_type_name()
+        
         element = etree.Element("{%s}%s" % (cls.get_namespace(), name))
 
         if isinstance(value, list) or isinstance(value, tuple):
