@@ -276,6 +276,11 @@ class Double(Primitive):
     def from_xml(cls, element):
         return float(element.text)
 
+    @classmethod
+    @nillable_value
+    def to_xml(cls, value, name='retval'):
+        return string_to_xml(cls, str(value), name)
+
 class Float(Double):
     pass
 
