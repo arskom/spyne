@@ -125,8 +125,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
 
         for k, v in cls._type_info.items():
             subvalue = getattr(value, k, None)
-            subelement = v.to_xml(subvalue, name="{%s}%s" %
-                                                       (cls.get_namespace(), k))
+            subelement = v.to_xml(subvalue, k)
             element.append(subelement)
 
         return element
@@ -138,8 +137,6 @@ class ClassSerializerBase(NonExtendingClass, Base):
         children = element.getchildren()
 
         for c in children:
-            assert c.tag.split('}')[0].split('{')[-1] == cls.get_namespace()
-
             key = c.tag.split('}')[-1]
 
             member = cls._type_info.get(key)
