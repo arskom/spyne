@@ -70,23 +70,33 @@ def rpc(*params, **kparams):
 
                 def get_output_message(ns):
                     _returns = kparams.get('_returns')
-                    _out_variable_names = kparams.get('_out_variable_names',
-                            kparams.get('_out_variable_name', '%sResult'
-                                                                 % f.func_name))
+
                     _out_message = kparams.get('_out_message', '%sResponse' %
                                                                     f.func_name)
 
+                    kparams.get('_out_variable_name')
                     out_params = {}
 
                     if _returns:
                         if isinstance(_returns, (list, tuple)):
+                            _out_variable_names = kparams.get(
+                                '_out_variable_names',
+                                    ['%sResult%d' % (f.func_name, i)
+                                                   for i in range(len(_returns))
+                                    ])
+
+                            assert (len(_returns) == len(_out_variable_names))
+
                             out_params = dict(zip(_out_variable_names,_returns))
+
                         else:
-                            out_params[_out_variable_names] = _returns
+                            _out_variable_name = kparams.get(
+                                 '_out_variable_name', '%sResult' % f.func_name)
+
+                            out_params[_out_variable_name] = _returns
 
                     return Message.c(type_name=_out_message, namespace=ns,
-                                                            members=out_params)
-
+                                                             members=out_params)
 
                 _is_callback = kparams.get('_is_callback', False)
                 _public_name = kparams.get('_public_name', f.func_name)
@@ -102,8 +112,8 @@ def rpc(*params, **kparams):
 
                 doc = getattr(f, '__doc__')
                 descriptor = MethodDescriptor(f.func_name, _public_name,
-                    in_message, out_message, doc, _is_callback, _is_async,
-                    _mtom)
+                        in_message, out_message, doc, _is_callback, _is_async,
+                        _mtom)
 
                 return descriptor
 

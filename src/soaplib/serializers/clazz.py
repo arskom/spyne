@@ -64,7 +64,7 @@ class ClassSerializerMeta(type):
         return type.__new__(cls, cls_name, cls_bases, cls_dict)
 
 class NonExtendingClass(object):
-    def __setattr__(self,k,v):
+    def __setattr__(self, k, v):
         if not hasattr(self,k) and getattr(self, '__NO_EXTENSION', False):
             raise Exception("'%s' object is not extendable at this point in "
                             "code.\nInvalid member '%s'" %
@@ -88,7 +88,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
         for k, v in cls._type_info.items():
             subvalue = getattr(value, k, None)
             subelement = v.to_xml(subvalue, name="{%s}%s" %
-                                                 (cls.get_namespace(), k))
+                                                       (cls.get_namespace(), k))
             element.append(subelement)
 
         return element
@@ -96,24 +96,21 @@ class ClassSerializerBase(NonExtendingClass, Base):
     @classmethod
     @nillable_element
     def from_xml(cls, element):
+        inst = cls()
         children = element.getchildren()
-        d = {}
-        for c in children:
-            name = c.tag.split('}')[-1]
-            if not name in d:
-                d[name] = []
-            d[name].append(c)
 
-        for k,v in d.items():
-            member = cls._type_info.get(k)
+        for c in children:
+            key = c.tag.split('}')[-1]
+
+            member = cls._type_info.get(key)
             if member is None:
                 raise Exception('the %s object does not have a "%s" member' %
-                                                               (cls.__name__,k))
+                                                             (cls.__name__,key))
 
-            value = member.from_xml(*v)
-            setattr(cls, k, value)
+            value = member.from_xml(c)
+            setattr(inst, key, value)
 
-        return cls
+        return inst
 
     @classmethod
     def add_to_schema(cls, schema_entries):

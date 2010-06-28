@@ -28,7 +28,7 @@ from lxml import etree
 class Attachment(Base):
     __type_name__ = 'base64Binary'
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
-    
+
     def __init__(self, data=None, file_name=None):
         self.data = data
         self.file_name = file_name
