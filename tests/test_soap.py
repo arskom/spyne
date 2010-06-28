@@ -60,18 +60,15 @@ class TestSoap(unittest.TestCase):
         m_inst = m(s="a", i=43)
         e = m.to_xml(m_inst)
 
-        self.assertEquals(e.tag, 'myMessage')
+        self.assertEquals(e.tag, '{%s}myMessage' % m.get_namespace())
 
-        self.assertEquals(e.getchildren()[0].tag, 's')
-        self.assertEquals(e.getchildren()[1].tag, 'i')
-
-        self.assertEquals(e.getchildren()[0].text, 'a')
-        self.assertEquals(e.getchildren()[1].text, '43')
+        self.assertEquals(e.find('s').text, 'a')
+        self.assertEquals(e.find('i').text, '43')
 
         values = m.from_xml(e)
 
-        self.assertEquals('a', values[0])
-        self.assertEquals(43, values[1])
+        self.assertEquals('a', values.s)
+        self.assertEquals(43, values.i)
 
     def test_href(self):
         # the template. Start at pos 0, some servers complain if
@@ -113,7 +110,10 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
             members={'s': String, 'i': Integer}
         )
 
-        e = m.to_xml('a')
+        mi = m()
+        mi.s = 'a'
+
+        e = m.to_xml(mi)
         self.assertEquals(e.tag, '{some_namespace}myMessage')
 
         m1 = Message.c(
@@ -121,8 +121,6 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
             type_name='myMessage',
             members={'{some_namespace}s': String, 'i': Integer}
         )
-        e2 = m1.to_xml('a', 43)
-        self.assertEquals(e2.nsmap[None], 'some_namespace')
 
     def test_class_to_xml(self):
         m = Message.c(
@@ -173,9 +171,11 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
             a.longitude = '444.234'
             p.addresses.append(a)
 
-        element = m.to_xml(p)
+        m_inst = m(p=p)
 
-        self.assertEquals('myMessage', element.tag)
+        element = m.to_xml(m_inst)
+
+        self.assertEquals('{%s}myMessage' % m.get_namespace(), element.tag)
 
         addresses = element.getchildren()[0].find('addresses').getchildren()
         self.assertEquals(1000, len(addresses))
