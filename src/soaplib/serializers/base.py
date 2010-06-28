@@ -32,7 +32,8 @@ def nillable_value(func):
 
 def nillable_element(func):
     def wrapper(cls, element):
-        if element.text is None and len(element.getchildren()) == 0:
+        if bool(element.get('{%s}nil' % _ns_xs)):
+            #element.text is None and len(element.getchildren()) == 0:
             return None
         return func(cls, element)
     return wrapper
