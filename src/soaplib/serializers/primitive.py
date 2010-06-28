@@ -36,11 +36,11 @@ string_encoding = 'utf-8'
 _date_pattern =   r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})'
 _time_pattern =   r'(?P<hr>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})(?P<sec_frac>\.\d+)?'
 _offset_pattern = r'(?P<tz_hr>[+-]\d{2}):(?P<tz_min>\d{2})'
-_datetime_pattern = _date_pattern + '[T ]' + _time_pattern + _offset_pattern
+_datetime_pattern = _date_pattern + '[T ]' + _time_pattern
 
 _local_re = re.compile(_datetime_pattern)
 _utc_re = re.compile(_datetime_pattern + 'Z')
-_offset_re = re.compile(_datetime_pattern)
+_offset_re = re.compile(_datetime_pattern + _offset_pattern)
 
 _ns_xs = soaplib.nsmap['xs']
 _ns_xsi = soaplib.nsmap['xsi']
