@@ -109,6 +109,16 @@ class TestPrimitive(unittest.TestCase):
         values2 = serializer.from_xml(element)
         self.assertEquals(values[3], values2[3])
 
+    def test_array_empty(self):
+        serializer = Array(String)
+        values = []
+
+        element = serializer.to_xml(values)
+        self.assertEquals(len(values), len(element.getchildren()))
+
+        values2 = serializer.from_xml(element)
+        self.assertEquals(len(values2), 0)
+
     def test_unicode(self):
         s = u'\x34\x55\x65\x34'
         self.assertEquals(4, len(s))
