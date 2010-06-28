@@ -24,10 +24,10 @@ from lxml import etree
 _ns_xs = soaplib.nsmap['xs']
 
 def nillable_value(func):
-    def wrapper(cls, value, name='retval'):
+    def wrapper(cls, value, *args, **kwargs):
         if value is None:
-            return Null.to_xml(value, name)
-        return func(cls, value, name)
+            return Null.to_xml(value, *args, **kwargs)
+        return func(cls, value, *args, **kwargs)
     return wrapper
 
 def nillable_element(func):
