@@ -84,7 +84,7 @@ class TestService(ServiceBase):
     def f(self, _from, _self, _import):
         return '1234'
 
-class TestMultipleReturnService(ServiceBase):
+class MultipleReturnService(ServiceBase):
     @rpc(String, _returns=(String, String, String))
     def multi(self, s):
         return s, 'a', 'b'
@@ -121,13 +121,17 @@ class Test(unittest.TestCase):
             self.assertTrue(n in self._wsdl, '"%s" not in self._wsdl' % n)
 
     def test_multiple_return(self):
-        service = TestMultipleReturnService()
+        service = MultipleReturnService()
         service.wsdl('')
 
-        message = service.methods()[0].out_message
+        message = service.methods()[0].out_message()
+
+        print message._type_info
         self.assertEquals(len(message._type_info), 3)
 
         sent_xml = message.to_xml( ('a','b','c') )
+
+        print etree.tostring(sent_xml, pretty_print=True)
         response_data = message.from_xml(sent_xml)
 
         self.assertEquals(len(response_data), 3)
