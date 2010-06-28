@@ -106,10 +106,6 @@ class TestPrimitive(unittest.TestCase):
         element = serializer.to_xml(values)
         self.assertEquals(len(values), len(element.getchildren()))
 
-        print etree.tostring(element, pretty_print=True)
-
-        print serializer.from_xml
-
         values2 = serializer.from_xml(element)
         self.assertEquals(values[3], values2[3])
 
