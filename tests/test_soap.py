@@ -131,13 +131,16 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
             members={'p': Person}
         )
 
-        p = Person()
-        p.name = 'steve-o'
-        p.age = 2
+        m.p = Person()
+        m.p.name = 'steve-o'
+        m.p.age = 2
+        m.p.addresses = []
 
-        element = m.to_xml(p)
+        element = m.to_xml(m)
 
-        self.assertEquals(element.tag, 'myMessage')
+        print etree.tostring(element, pretty_print=True)
+
+        self.assertEquals(element.tag, '{%s}myMessage' % m.get_namespace())
         self.assertEquals(element.getchildren()[0].find('name').text,
             'steve-o')
         self.assertEquals(element.getchildren()[0].find('age').text, '2')
@@ -146,8 +149,8 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
 
         p1 = m.from_xml(element)[0]
 
-        self.assertEquals(p1.name, p.name)
-        self.assertEquals(p1.age, p.age)
+        self.assertEquals(p1.name, m.p.name)
+        self.assertEquals(p1.age, m.p.age)
         self.assertEquals(p1.addresses, [])
 
     def test_to_xml_nested(self):
