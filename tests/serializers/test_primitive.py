@@ -128,7 +128,7 @@ class TestPrimitive(unittest.TestCase):
 
     def test_null(self):
         element = Null.to_xml('doesnt matter')
-        self.assertEquals('1', element.get('{%s}nil' % _ns_xs))
+        self.assertTrue( bool(element.get('{%s}nil' % _ns_xs)) )
         value = Null.from_xml(element)
         self.assertEquals(None, value)
 
