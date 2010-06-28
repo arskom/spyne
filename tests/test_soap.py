@@ -101,6 +101,7 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
     </tns:MyData>
   </soap:Body>
 </soap:Envelope>'''
+
         payload, header = from_soap(a)
         # quick and dirty test href reconstruction
         self.assertEquals(len(payload.getchildren()[0].getchildren()), 2)

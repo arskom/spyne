@@ -299,6 +299,7 @@ def apply_mtom(headers, envelope, params, paramvals):
     soaptree = etree.parse(soapmsg)
     soapns = soaptree.getroot().tag.split('}')[0].strip('{')
     soapbody = soaptree.getroot().find("{%s}Body" % soapns)
+
     message = None
     for child in list(soapbody):
         if child.tag != "%sFault" % (soapns, ):
@@ -337,34 +338,46 @@ def apply_mtom(headers, envelope, params, paramvals):
 
     # Set up root SOAP part headers.
     del(rootpkg['mime-version'])
+
     rootpkg.add_header('Content-ID', '<soaplibEnvelope>')
+
     for n, v in rootparams.items():
         rootpkg.set_param(n, v)
+
     rootpkg.set_param('type', roottype)
 
     mtompkg.attach(rootpkg)
 
     # Extract attachments from SOAP envelope.
-    for name,typ in params.items():
+    for i in range(len(params)):
         name, typ = params[i]
+
         if typ == Attachment:
             id = "soaplibAttachment_%s" % (len(mtompkg.get_payload()), )
+            
             param = message[i]
             param.text = ""
+
             incl = etree.SubElement(param,
-                "{http://www.w3.org/2004/08/xop/include}Include")
+                               "{http://www.w3.org/2004/08/xop/include}Include")
             incl.attrib["href"] = "cid:%s" % id
+
             if paramvals[i].fileName and not paramvals[i].data:
                 paramvals[i].load_from_file()
+
             data = paramvals[i].data
             attachment = None
+
             try:
                 attachment = MIMEApplication(data, _encoder=encode_7or8bit)
+
             except NameError:
                 attachment = MIMENonMultipart("application", "octet-stream")
                 attachment.set_payload(data)
                 encode_7or8bit(attachment)
+
             del(attachment['mime-version'])
+
             attachment.add_header('Content-ID', '<%s>' % (id, ))
             mtompkg.attach(attachment)
 
