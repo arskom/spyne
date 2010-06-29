@@ -139,9 +139,9 @@ class Test(unittest.TestCase):
         self.assertEqual(response_data[1], 'b')
         self.assertEqual(response_data[2], 'c')
 
-def test_suite():
+def suite():
     loader = unittest.TestLoader()
     return loader.loadTestsFromTestCase(Test)
 
 if __name__== '__main__':
-    unittest.TextTestRunner().run(test_suite())
+    unittest.TextTestRunner().run(suite())

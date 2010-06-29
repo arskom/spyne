@@ -23,14 +23,14 @@ import test_binary
 import test_clazz
 import test_primitive
 
-def test_suite():
+def suite():
     loader = unittest.TestLoader()
 
-    suite = loader.loadTestsFromTestCase(test_primitive.test)
-    suite.addTests(test_clazz.test_suite())
-    suite.addTests(test_binary.test_suite())
+    suite = loader.loadTestsFromTestCase(test_primitive.TestPrimitive)
+    suite.addTests(test_clazz.suite())
+    suite.addTests(test_binary.suite())
 
     return suite
 
 if __name__== '__main__':
-    unittest.TextTestRunner().run(test_suite())
+    unittest.TextTestRunner().run(suite())

@@ -229,9 +229,9 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
         self.assertEquals(f.find('faultcode').text, 'DatabaseError')
         self.assertEquals(f.find('detail').text, 'error on line 12')
 
-def test_suite():
+def suite():
     loader = unittest.TestLoader()
     return loader.loadTestsFromTestCase(TestSoap)
 
 if __name__== '__main__':
-    unittest.TextTestRunner().run(test_suite())
+    unittest.TextTestRunner().run(suite())

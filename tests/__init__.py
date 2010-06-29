@@ -23,12 +23,12 @@ import serializers
 import test_soap
 import test_service
 
-def test_suite():
-    suite = serializers.test_suite()
-    suite.addTests(test_soap.test_suite())
-    suite.addTests(test_service.test_suite())
+def suite():
+    suite = serializers.suite()
+    suite.addTests(test_soap.suite())
+    suite.addTests(test_service.suite())
 
     return suite
 
 if __name__== '__main__':
-    unittest.TextTestRunner().run(test_suite())
+    unittest.TextTestRunner().run(suite())

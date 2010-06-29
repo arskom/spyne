@@ -168,9 +168,9 @@ class TestClassSerializer(unittest.TestCase):
         self.assertEquals(len(l1.level4), len(l.level4))
         self.assertEquals(100, len(l.level3))
 
-def test_suite():
+def suite():
     loader = unittest.TestLoader()
     return loader.loadTestsFromTestCase(TestClassSerializer)
 
 if __name__== '__main__':
-    unittest.TextTestRunner().run(test_suite())
+    unittest.TextTestRunner().run(suite())
