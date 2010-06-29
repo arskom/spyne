@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<wsdl:definitions xmlns:plink="http://schemas.xmlsoap.org/ws/2003/05/partner-link/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsa="http://schemas.xmlsoap.org/ws/2003/03/addressing" xmlns:soap_enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:tns="InteropService.InteropService" xmlns:s1="__main__" xmlns:s0="soaplib.serializers.base" xmlns:soap_env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/1999/XMLSchema-instance" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="InteropService.InteropService" name="InteropService">
+<wsdl:definitions xmlns:wsa="http://schemas.xmlsoap.org/ws/2003/03/addressing" xmlns:soap_env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:s0="soaplib.serializers.base" xmlns:soap_enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:plink="http://schemas.xmlsoap.org/ws/2003/05/partner-link/" xmlns:tns="InteropService.InteropService" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsi="http://www.w3.org/1999/XMLSchema-instance" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="InteropService.InteropService" name="InteropService">
   <plink:partnerLinkType name="InteropService">
     <plink:role name="InteropService">
       <plink:portType name="tns:InteropService" />
@@ -415,50 +415,15 @@
     </wsdl:port>
   </wsdl:service>
   <wsdl:types>
-    <xs:schema targetNamespace="__main__" elementFormDefault="qualified">
-      <xs:complexType name="SimpleClassArray">
-        <xs:sequence>
-          <xs:element minOccurs="0" maxOccurs="unbounded" name="SimpleClass" type="s1:SimpleClass" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="NestedClassArray">
-        <xs:sequence>
-          <xs:element minOccurs="0" maxOccurs="unbounded" name="NestedClass" type="s1:NestedClass" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="NestedClass">
-        <xs:sequence>
-          <xs:element name="simple" minOccurs="0" type="s1:SimpleClassArray" />
-          <xs:element name="i" minOccurs="0" type="xs:integer" />
-          <xs:element name="s" minOccurs="0" type="xs:string" />
-          <xs:element name="other" minOccurs="0" type="s1:OtherClass" />
-          <xs:element name="f" minOccurs="0" type="xs:float" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="SimpleClass">
-        <xs:sequence>
-          <xs:element name="i" minOccurs="0" type="xs:integer" />
-          <xs:element name="s" minOccurs="0" type="xs:string" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="OtherClass">
-        <xs:sequence>
-          <xs:element name="dt" minOccurs="0" type="xs:dateTime" />
-          <xs:element name="b" minOccurs="0" type="xs:boolean" />
-          <xs:element name="f" minOccurs="0" type="xs:float" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:element name="SimpleClassArray" type="s1:SimpleClassArray" />
-      <xs:element name="NestedClassArray" type="s1:NestedClassArray" />
-      <xs:element name="NestedClass" type="s1:NestedClass" />
-      <xs:element name="SimpleClass" type="s1:SimpleClass" />
-      <xs:element name="OtherClass" type="s1:OtherClass" />
-      <xs:import namespace="__main__" />
-    </xs:schema>
     <xs:schema targetNamespace="soaplib.serializers.base" elementFormDefault="qualified">
       <xs:complexType name="integerArray">
         <xs:sequence>
           <xs:element minOccurs="0" maxOccurs="unbounded" name="integer" type="xs:integer" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="SimpleClassArray">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="SimpleClass" type="tns:SimpleClass" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="dateTimeArray">
@@ -481,19 +446,34 @@
           <xs:element minOccurs="0" maxOccurs="unbounded" name="base64Binary" type="xs:base64Binary" />
         </xs:sequence>
       </xs:complexType>
+      <xs:complexType name="NestedClassArray">
+        <xs:sequence>
+          <xs:element minOccurs="0" maxOccurs="unbounded" name="NestedClass" type="tns:NestedClass" />
+        </xs:sequence>
+      </xs:complexType>
       <xs:complexType name="stringArray">
         <xs:sequence>
           <xs:element minOccurs="0" maxOccurs="unbounded" name="string" type="xs:string" />
         </xs:sequence>
       </xs:complexType>
       <xs:element name="integerArray" type="s0:integerArray" />
+      <xs:element name="SimpleClassArray" type="s0:SimpleClassArray" />
       <xs:element name="dateTimeArray" type="s0:dateTimeArray" />
       <xs:element name="floatArray" type="s0:floatArray" />
       <xs:element name="booleanArray" type="s0:booleanArray" />
       <xs:element name="base64BinaryArray" type="s0:base64BinaryArray" />
+      <xs:element name="NestedClassArray" type="s0:NestedClassArray" />
       <xs:element name="stringArray" type="s0:stringArray" />
+      <xs:import namespace="InteropService.InteropService" />
     </xs:schema>
     <xs:schema targetNamespace="InteropService.InteropService" elementFormDefault="qualified">
+      <xs:complexType name="multiParam">
+        <xs:sequence>
+          <xs:element name="i" minOccurs="0" type="xs:integer" />
+          <xs:element name="s" minOccurs="0" type="xs:string" />
+          <xs:element name="dt" minOccurs="0" type="xs:dateTime" />
+        </xs:sequence>
+      </xs:complexType>
       <xs:complexType name="testEmptyResponse">
         <xs:sequence />
       </xs:complexType>
@@ -524,7 +504,7 @@
       </xs:complexType>
       <xs:complexType name="echoNestedClassArrayResponse">
         <xs:sequence>
-          <xs:element name="echoNestedClassArrayResult" minOccurs="0" type="s1:NestedClassArray" />
+          <xs:element name="echoNestedClassArrayResult" minOccurs="0" type="s0:NestedClassArray" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echoBoolean">
@@ -542,7 +522,7 @@
       </xs:complexType>
       <xs:complexType name="echoSimpleClassArray">
         <xs:sequence>
-          <xs:element name="sca" minOccurs="0" type="s1:SimpleClassArray" />
+          <xs:element name="sca" minOccurs="0" type="s0:SimpleClassArray" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echoEnumResponse">
@@ -572,7 +552,7 @@
       </xs:complexType>
       <xs:complexType name="echoSimpleClassArrayResponse">
         <xs:sequence>
-          <xs:element name="echoSimpleClassArrayResult" minOccurs="0" type="s1:SimpleClassArray" />
+          <xs:element name="echoSimpleClassArrayResult" minOccurs="0" type="s0:SimpleClassArray" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echoBooleanArray">
@@ -598,6 +578,12 @@
           <xs:element name="i" minOccurs="0" type="xs:integer" />
         </xs:sequence>
       </xs:complexType>
+      <xs:complexType name="SimpleClass">
+        <xs:sequence>
+          <xs:element name="i" minOccurs="0" type="xs:integer" />
+          <xs:element name="s" minOccurs="0" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
       <xs:complexType name="echoIntegerResponse">
         <xs:sequence>
           <xs:element name="echoIntegerResult" minOccurs="0" type="xs:integer" />
@@ -605,12 +591,12 @@
       </xs:complexType>
       <xs:complexType name="echoSimpleClass">
         <xs:sequence>
-          <xs:element name="sc" minOccurs="0" type="s1:SimpleClass" />
+          <xs:element name="sc" minOccurs="0" type="tns:SimpleClass" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echoNestedClassResponse">
         <xs:sequence>
-          <xs:element name="echoNestedClassResult" minOccurs="0" type="s1:NestedClass" />
+          <xs:element name="echoNestedClassResult" minOccurs="0" type="tns:NestedClass" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="testEmpty">
@@ -623,7 +609,7 @@
       </xs:complexType>
       <xs:complexType name="echoNestedClass">
         <xs:sequence>
-          <xs:element name="nc" minOccurs="0" type="s1:NestedClass" />
+          <xs:element name="nc" minOccurs="0" type="tns:NestedClass" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echoIntegerArrayResponse">
@@ -631,16 +617,25 @@
           <xs:element name="echoIntegerArrayResult" minOccurs="0" type="s0:integerArray" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="multiParam">
+      <xs:complexType name="OtherClass">
         <xs:sequence>
-          <xs:element name="i" minOccurs="0" type="xs:integer" />
-          <xs:element name="s" minOccurs="0" type="xs:string" />
           <xs:element name="dt" minOccurs="0" type="xs:dateTime" />
+          <xs:element name="b" minOccurs="0" type="xs:boolean" />
+          <xs:element name="f" minOccurs="0" type="xs:float" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echoFloatArrayResponse">
         <xs:sequence>
           <xs:element name="echoFloatArrayResult" minOccurs="0" type="s0:floatArray" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="NestedClass">
+        <xs:sequence>
+          <xs:element name="simple" minOccurs="0" type="s0:SimpleClassArray" />
+          <xs:element name="i" minOccurs="0" type="xs:integer" />
+          <xs:element name="s" minOccurs="0" type="xs:string" />
+          <xs:element name="other" minOccurs="0" type="tns:OtherClass" />
+          <xs:element name="f" minOccurs="0" type="xs:float" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echoFloatResponse">
@@ -650,7 +645,7 @@
       </xs:complexType>
       <xs:complexType name="echoNestedClassArray">
         <xs:sequence>
-          <xs:element name="nca" minOccurs="0" type="s1:NestedClassArray" />
+          <xs:element name="nca" minOccurs="0" type="s0:NestedClassArray" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echoAttachmentResponse">
@@ -660,7 +655,7 @@
       </xs:complexType>
       <xs:complexType name="echoSimpleClassResponse">
         <xs:sequence>
-          <xs:element name="echoSimpleClassResult" minOccurs="0" type="s1:SimpleClass" />
+          <xs:element name="echoSimpleClassResult" minOccurs="0" type="tns:SimpleClass" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echoAttachmentArrayResponse">
@@ -698,6 +693,7 @@
           <xs:element name="echoBooleanArrayResult" minOccurs="0" type="s0:booleanArray" />
         </xs:sequence>
       </xs:complexType>
+      <xs:element name="multiParam" type="tns:multiParam" />
       <xs:element name="testEmptyResponse" type="tns:testEmptyResponse" />
       <xs:element name="echoDateTimeArrayResponse" type="tns:echoDateTimeArrayResponse" />
       <xs:element name="echoFloatArray" type="tns:echoFloatArray" />
@@ -721,14 +717,16 @@
       <xs:element name="returnOnly" type="tns:returnOnly" />
       <xs:element name="returnOnlyResponse" type="tns:returnOnlyResponse" />
       <xs:element name="echoInteger" type="tns:echoInteger" />
+      <xs:element name="SimpleClass" type="tns:SimpleClass" />
       <xs:element name="echoSimpleClass" type="tns:echoSimpleClass" />
       <xs:element name="echoNestedClassResponse" type="tns:echoNestedClassResponse" />
       <xs:element name="testEmpty" type="tns:testEmpty" />
       <xs:element name="echoAttachmentArray" type="tns:echoAttachmentArray" />
       <xs:element name="echoNestedClass" type="tns:echoNestedClass" />
       <xs:element name="echoIntegerArrayResponse" type="tns:echoIntegerArrayResponse" />
-      <xs:element name="multiParam" type="tns:multiParam" />
+      <xs:element name="OtherClass" type="tns:OtherClass" />
       <xs:element name="echoFloatArrayResponse" type="tns:echoFloatArrayResponse" />
+      <xs:element name="NestedClass" type="tns:NestedClass" />
       <xs:element name="echoFloatResponse" type="tns:echoFloatResponse" />
       <xs:element name="echoNestedClassArray" type="tns:echoNestedClassArray" />
       <xs:element name="echoAttachmentResponse" type="tns:echoAttachmentResponse" />
@@ -741,7 +739,6 @@
       <xs:element name="echoEnum" type="tns:echoEnum" />
       <xs:element name="echoIntegerResponse" type="tns:echoIntegerResponse" />
       <xs:import namespace="soaplib.serializers.base" />
-      <xs:import namespace="__main__" />
       <xs:import namespace="InteropService.InteropService" />
       <xs:simpleType name="DaysOfWeekEnum">
         <xs:restriction base="xs:string">

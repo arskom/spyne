@@ -51,17 +51,20 @@ class Base(object):
     __type_name__ = None
 
     @classmethod
-    def get_namespace_prefix(cls):
-        retval = soaplib.get_namespace_prefix(cls.get_namespace())
+    def get_namespace_prefix(cls, default_ns=None):
+        retval = soaplib.get_namespace_prefix(cls.get_namespace(default_ns))
 
         return retval
 
     @classmethod
-    def get_namespace(cls):
+    def get_namespace(cls, default_ns=None):
         retval = cls.__namespace__
 
         if retval is None:
             retval = cls.__module__
+
+        if retval == '__main__' and not (default_ns is None):
+            retval = default_ns
 
         return retval
 
@@ -74,8 +77,8 @@ class Base(object):
         return retval
 
     @classmethod
-    def get_type_name_ns(cls):
-        return "%s:%s" % (cls.get_namespace_prefix(), cls.get_type_name())
+    def get_type_name_ns(cls, default_ns=None):
+        return "%s:%s" % (cls.get_namespace_prefix(default_ns), cls.get_type_name())
 
     @classmethod
     def to_xml(cls, value, name='retval'):

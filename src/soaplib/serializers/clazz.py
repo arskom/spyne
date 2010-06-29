@@ -42,7 +42,6 @@ class ClassSerializerMeta(type):
         class for serialization.
         '''
 
-
         type_name = cls_dict.get("__type_name__", None)
         if type_name is None:
             cls_dict["__type_name__"] = cls_name
@@ -156,6 +155,8 @@ class ClassSerializerBase(NonExtendingClass, Base):
     @classmethod
     def add_to_schema(cls, schema_entries):
         if not schema_entries.has_class(cls):
+            tns = schema_entries.tns
+
             # complex node
             complex_type = etree.Element("{%s}complexType" % _ns_xs)
             complex_type.set('name',cls.get_type_name())
@@ -164,19 +165,19 @@ class ClassSerializerBase(NonExtendingClass, Base):
 
             for k, v in cls._type_info.items():
                 if issubclass(v, EnumBase):
-                    v.__namespace__ = cls.get_namespace()
+                    v.__namespace__ = cls.get_namespace(tns)
                 
                 member = etree.SubElement(sequence, '{%s}element' % _ns_xs)
                 member.set('name', k)
                 member.set('minOccurs', '0')
-                member.set('type', v.get_type_name_ns())
+                member.set('type', v.get_type_name_ns(tns))
 
             schema_entries.add_complex_type(cls, complex_type)
 
             # simple node
             element = etree.Element('{%s}element' % _ns_xs)
             element.set('name',cls.get_type_name())
-            element.set('type',cls.get_type_name_ns())
+            element.set('type',cls.get_type_name_ns(tns))
 
             schema_entries.add_element(cls, element)
 

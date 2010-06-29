@@ -368,12 +368,12 @@ class Array(Primitive):
             element.set('minOccurs', str(cls.min_occurs))
             element.set('maxOccurs', str(cls.max_occurs))
             element.set('name', cls.serializer.get_type_name())
-            element.set('type', cls.serializer.get_type_name_ns())
+            element.set('type', cls.serializer.get_type_name_ns(schema_entries.tns))
 
             schema_entries.add_complex_type(cls, complex_type)
 
             top_level_element = etree.Element('{%s}element' % _ns_xs)
             top_level_element.set('name', cls.get_type_name())
-            top_level_element.set('type', cls.get_type_name_ns())
+            top_level_element.set('type', cls.get_type_name_ns(schema_entries.tns))
 
             schema_entries.add_element(cls, top_level_element)

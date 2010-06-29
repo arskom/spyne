@@ -37,6 +37,8 @@ _ns_counter = 0
 def get_namespace_prefix(ns):
     global _ns_counter
 
+    assert ns != "__main__"
+
     if not (isinstance(ns, str) or isinstance(ns, unicode)):
         raise TypeError("Argument must be string or unicode")
 
