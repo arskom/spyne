@@ -296,9 +296,7 @@ class Boolean(Primitive):
     @nillable_element
     def from_xml(cls, element):
         s = element.text
-        if s and s.lower()[0] == 't':
-            return True
-        return False
+        return (s and s.lower()[0] == 't')
 
 class Array(Primitive):
     serializer = None
