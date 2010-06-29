@@ -300,6 +300,7 @@ class Boolean(Primitive):
 
 class Array(Primitive):
     serializer = None
+    __namespace__ = None
 
     def __new__(cls, serializer, **kwargs):
         retval = cls.customize(**kwargs)
@@ -310,16 +311,23 @@ class Array(Primitive):
 
         retval.__type_name__ = '%sArray' % retval.serializer.get_type_name()
 
-        if retval.serializer.get_namespace() == soaplib.nsmap['xs']:
-            retval.__namespace__ = None
-        else:
-            retval.__namespace__ = retval.serializer.get_namespace()
-
         if "min_occurs" in kwargs:
             retval.min_occurs = kwargs['min_occurs']
         if "max_occurs" in kwargs:
             retval.min_occurs = kwargs['max_occurs']
 
+        return retval
+
+    @classmethod
+    def get_namespace(cls, default_ns):
+        retval = cls.__namespace__
+
+        if retval is None:
+            if cls.serializer.get_namespace(default_ns) == soaplib.nsmap['xs']:
+                retval = default_ns
+            else:
+                retval = cls.serializer.get_namespace(default_ns)
+            
         return retval
 
     @classmethod
