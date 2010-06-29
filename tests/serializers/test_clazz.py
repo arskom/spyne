@@ -67,7 +67,7 @@ class TestClassSerializer(unittest.TestCase):
         a.street = '123 happy way'
         a.city = 'badtown'
         a.zip = 32
-        a.laditude = 4.3
+        a.lattitude = 4.3
         a.longitude = 88.0
 
         element = Address.to_xml(a)
@@ -78,11 +78,11 @@ class TestClassSerializer(unittest.TestCase):
         self.assertEquals(a.street, r.street)
         self.assertEquals(a.city, r.city)
         self.assertEquals(a.zip, r.zip)
-        self.assertEquals(a.laditude, r.laditude)
+        self.assertEquals(a.lattitude, r.laditude)
         self.assertEquals(a.longitude, r.longitude)
         self.assertEquals(a.since, r.since)
 
-    def test_nested_class(self):
+    def test_nested_class(self): # FIXME: this test is incomplete
         p = Person()
         element = Person.to_xml(p)
 
@@ -110,8 +110,8 @@ class TestClassSerializer(unittest.TestCase):
 
         peeps2 = serializer.from_xml(element)
         for i in range(0, 4):
-            self.assertEquals(peeps[i].name, names[i])
-            self.assertEquals(peeps[i].birthdate,
+            self.assertEquals(peeps2[i].name, names[i])
+            self.assertEquals(peeps2[i].birthdate,
                 datetime.datetime(1979, 1, 1))
 
     def test_class_nested_array(self):

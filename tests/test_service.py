@@ -126,7 +126,6 @@ class Test(unittest.TestCase):
 
         message = service.methods()[0].out_message()
 
-        print message._type_info
         self.assertEquals(len(message._type_info), 3)
 
         sent_xml = message.to_xml( ('a','b','c') )
