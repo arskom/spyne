@@ -20,7 +20,6 @@
 import datetime
 import unittest
 
-import soaplib
 from soaplib.serializers.clazz import ClassSerializer
 
 from soaplib.serializers.primitive import Array
@@ -28,8 +27,6 @@ from soaplib.serializers.primitive import DateTime
 from soaplib.serializers.primitive import Float
 from soaplib.serializers.primitive import Integer
 from soaplib.serializers.primitive import String
-
-from soaplib.service import _SchemaEntries
 
 class Address(ClassSerializer):
     street = String

@@ -18,11 +18,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import datetime
 import unittest
-
-from lxml import etree
-
 import soaplib
 _ns_xs = soaplib.nsmap['xs']
 _ns_xsi = soaplib.nsmap['xsi']
@@ -30,14 +26,7 @@ _ns_xsi = soaplib.nsmap['xsi']
 from soaplib.service import ServiceBase
 from soaplib.service import rpc
 
-from soaplib.serializers.primitive import Array
-from soaplib.serializers.primitive import Boolean
-from soaplib.serializers.primitive import DateTime
-from soaplib.serializers.primitive import Float
-from soaplib.serializers.primitive import Integer
 from soaplib.serializers.enum import Enum
-from soaplib.serializers.base import Null
-from soaplib.serializers.primitive import String
 
 DaysOfWeekEnum = Enum(
     'Monday',
@@ -51,7 +40,7 @@ DaysOfWeekEnum = Enum(
 
 class TestService(ServiceBase):
     @rpc(DaysOfWeekEnum, _returns=DaysOfWeekEnum)
-    def rpc(self, day):
+    def remote_call(self, day):
         return DaysOfWeekEnum.Sunday
 
 class TestEnum(unittest.TestCase):
