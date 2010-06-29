@@ -42,7 +42,10 @@ class ClassSerializerMeta(type):
         class for serialization.
         '''
 
-        cls_dict["__type_name__"] = cls_name
+
+        type_name = cls_dict.get("__type_name__", None)
+        if type_name is None:
+            cls_dict["__type_name__"] = cls_name
 
         if not ('_type_info' in cls_dict):
             cls_dict['_type_info'] = _type_info = {}
