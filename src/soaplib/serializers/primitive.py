@@ -235,6 +235,8 @@ class Date(Primitive):
         return parse_date(match)
 
 class DateTime(Primitive):
+    __type_name__ = 'dateTime'
+    
     @classmethod
     @nillable_value
     def to_xml(cls, value, name='retval'):
