@@ -58,25 +58,26 @@ class Fault(Exception, Base):
         return Fault(faultcode=code, faultstring=string, detail=detail)
 
     @classmethod
-    def add_to_schema(self, schema_dict):
+    def add_to_schema(cls, schema_dict):
         complex_type = etree.Element('complexType')
-        complex_type.set('name', self.get_datatype())
+        complex_type.set('name', cls.get_datatype())
         sequenceNode = etree.SubElement(complex_type, 'sequence')
 
         element = etree.SubElement(sequenceNode, 'element')
         element.set('name', 'detail')
-        element.set('{%s}type' % _ns_xsi, '{%s}string' % _ns_xs)
+        element.set('{%s}type' % _ns_xsi, 'xs:string')
 
         element = etree.SubElement(sequenceNode, 'element')
         element.set('name', 'message')
-        element.set('{%s}type' % _ns_xsi, '{%s}string' % _ns_xs)
+        element.set('{%s}type' % _ns_xsi, 'xs:string')
 
-        schema_dict[self.type_name_ns] = complex_type
+        schema_dict.add_complex_type(cls, complex_type)
 
-        typeElementItem = etree.Element('element')
-        typeElementItem.set('name', 'ExceptionFaultType')
-        typeElementItem.set('{%s}type' % _ns_xsi, self.get_type_name_ns())
-        schema_dict['%sElement' % (self.type_name_ns)] = typeElementItem
+        top_level_element = etree.Element('element')
+        top_level_element.set('name', 'ExceptionFaultType')
+        top_level_element.set('{%s}type' % _ns_xsi, cls.get_type_name_ns())
+
+        schema_dict.add_element(cls, top_level_element)
 
     def __str__(self):
         io = cStringIO.StringIO()
