@@ -130,13 +130,14 @@ def rpc(*params, **kparams):
 
 class _SchemaInfo(object):
     def __init__(self):
-        self.simple = {}
-        self.complex = {}
+        self.elements = {}
+        self.types = {}
 
 class _SchemaEntries(object):
-    def __init__(self):
+    def __init__(self, tns):
         self.namespaces = {}
         self.imports = {}
+        self.tns = tns
 
     def has_class(self, cls):
         retval = False
@@ -149,7 +150,7 @@ class _SchemaEntries(object):
             type_name = cls.get_type_name()
 
             if (ns_prefix in self.namespaces) and \
-                              (type_name in self.namespaces[ns_prefix].complex):
+                              (type_name in self.namespaces[ns_prefix].types):
                 retval = True
 
         return retval
@@ -173,14 +174,19 @@ class _SchemaEntries(object):
                 if not (pref in ('xs')):
                     self.imports[ns].add(soaplib.nsmap[pref])
 
-    def add_simple_node(self, cls, node):
+    def add_element(self, cls, node):
         schema_info = self.get_schema_info(cls.get_namespace_prefix())
-        schema_info.simple[cls.get_type_name()] = node
+        schema_info.elements[cls.get_type_name()] = node
 
-    def add_complex_node(self, cls, node):
+    def add_simple_type(self, cls, node):
+        namespace_prefix = soaplib.get_namespace_prefix(self.tns)
+        schema_info = self.get_schema_info(namespace_prefix)
+        schema_info.types[cls.get_type_name()] = node
+
+    def add_complex_type(self, cls, node):
         self.__check_imports(cls, node)
         schema_info = self.get_schema_info(cls.get_namespace_prefix())
-        schema_info.complex[cls.get_type_name()] = node
+        schema_info.types[cls.get_type_name()] = node
 
 class ServiceBase(object):
     '''
@@ -452,7 +458,7 @@ class ServiceBase(object):
         @param the list of methods.
         '''
 
-        schema_entries = _SchemaEntries()
+        schema_entries = _SchemaEntries(self.get_tns())
 
         for method in methods:
             method.in_message.add_to_schema(schema_entries)
@@ -471,10 +477,10 @@ class ServiceBase(object):
             else:
                 schema = schema_nodes[ns]
 
-            for node in schema_entries.namespaces[ns].simple.values():
+            for node in schema_entries.namespaces[ns].elements.values():
                 schema.append(node)
 
-            for node in schema_entries.namespaces[ns].complex.values():
+            for node in schema_entries.namespaces[ns].types.values():
                 schema.append(node)
 
             for namespace in schema_entries.imports[ns]:

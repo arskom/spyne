@@ -164,14 +164,14 @@ class ClassSerializerBase(NonExtendingClass, Base):
                 member.set('minOccurs', '0')
                 member.set('type', v.get_type_name_ns())
 
-            schema_entries.add_complex_node(cls, complex_type)
+            schema_entries.add_complex_type(cls, complex_type)
 
             # simple node
             element = etree.Element('{%s}element' % _ns_xs)
             element.set('name',cls.get_type_name())
             element.set('type',cls.get_type_name_ns())
 
-            schema_entries.add_simple_node(cls, element)
+            schema_entries.add_element(cls, element)
 
             # add member nodes
             for k, v in cls._type_info.items():
