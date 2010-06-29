@@ -312,7 +312,7 @@ class ServiceBase(object):
         url = url.replace('.wsdl', '')
 
         # otherwise build it
-        # FIXME: we may want to customize service_name.
+        # TODO: we may want to customize service_name.
         service_name = self.__class__.__name__.split('.')[-1]
 
         # set the targetNamespace prefix as tns
