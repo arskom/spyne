@@ -168,7 +168,14 @@ class _SchemaEntries(object):
         if not (ns in self.imports):
             self.imports[ns] = set()
 
-        for seq in node:
+        for c in node:
+            if c.tag == "{%s}complexContent" % _ns_xs:
+                seq = c.getchildren()[0].getchildren()[0]
+            else:
+                seq = c
+
+            assert seq.tag == '{%s}sequence' % _ns_xs, seq.tag
+
             for e in seq:
                 pref = e.attrib['type'].split(':')[0]
                 if not (pref in ('xs')):

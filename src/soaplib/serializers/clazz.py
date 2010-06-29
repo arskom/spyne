@@ -46,6 +46,18 @@ class ClassSerializerMeta(type):
         if type_name is None:
             cls_dict["__type_name__"] = cls_name
 
+        # get base class (if exists) and enforce single inheritance
+        extends = cls_dict.get("__extends__", None)
+        for b in cls_bases:
+            base_types = getattr(b,"_type_info", None)
+
+            if not (base_types is None):
+                assert extends is None or cls_dict["__extends__"] is b, \
+                                "WSDL 1.1 does not support multiple inheritance"
+
+                if len(base_types) > 0:
+                    cls_dict["__extends__"] = extends = b
+
         if not ('_type_info' in cls_dict):
             cls_dict['_type_info'] = _type_info = {}
 
@@ -161,7 +173,14 @@ class ClassSerializerBase(NonExtendingClass, Base):
             complex_type = etree.Element("{%s}complexType" % _ns_xs)
             complex_type.set('name',cls.get_type_name())
 
-            sequence = etree.SubElement(complex_type, '{%s}sequence'% _ns_xs)
+            sequence_parent = complex_type
+            if not (getattr(cls, '__extends__', None) is None):
+                complex_content = etree.SubElement(complex_type, "{%s}complexContent" % _ns_xs )
+                extension = etree.SubElement(complex_content, "{%s}extension" % _ns_xs)
+                extension.set('base', cls.__extends__.get_type_name_ns())
+                sequence_parent = extension
+
+            sequence = etree.SubElement(sequence_parent, '{%s}sequence'% _ns_xs)
 
             for k, v in cls._type_info.items():
                 if issubclass(v, EnumBase):
