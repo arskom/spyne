@@ -36,7 +36,7 @@ class Address(ClassSerializer):
     city = String
     zip = Integer
     since = DateTime
-    laditude = Float
+    lattitude = Float
     longitude = Float
 
 class Person(ClassSerializer):
@@ -78,7 +78,7 @@ class TestClassSerializer(unittest.TestCase):
         self.assertEquals(a.street, r.street)
         self.assertEquals(a.city, r.city)
         self.assertEquals(a.zip, r.zip)
-        self.assertEquals(a.lattitude, r.laditude)
+        self.assertEquals(a.lattitude, r.lattitude)
         self.assertEquals(a.longitude, r.longitude)
         self.assertEquals(a.since, r.since)
 
