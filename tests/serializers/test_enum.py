@@ -47,12 +47,14 @@ class TestEnum(unittest.TestCase):
     def test_wsdl(self):
         TestService().wsdl('punk')
 
+        raise Exception("test something")
+
     def test_serialize(self):
         mo = DaysOfWeekEnum.Monday
 
         elt = DaysOfWeekEnum.to_xml(mo)
 
-        raise Exception("test something :)")
+        raise Exception("test something")
 
 def suite():
     loader = unittest.TestLoader()
