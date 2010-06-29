@@ -177,7 +177,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
             if not (getattr(cls, '__extends__', None) is None):
                 complex_content = etree.SubElement(complex_type, "{%s}complexContent" % _ns_xs )
                 extension = etree.SubElement(complex_content, "{%s}extension" % _ns_xs)
-                extension.set('base', cls.__extends__.get_type_name_ns())
+                extension.set('base', cls.__extends__.get_type_name_ns(tns))
                 sequence_parent = extension
 
             sequence = etree.SubElement(sequence_parent, '{%s}sequence'% _ns_xs)
