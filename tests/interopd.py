@@ -45,6 +45,11 @@ class NestedClass(ClassSerializer):
     f = Float
     other = OtherClass
 
+class ExtensionClass(NestedClass):
+    p = OtherClass
+    l = DateTime
+    q = Integer
+
 DaysOfWeekEnum = Enum(
     'Monday',
     'Tuesday',
@@ -114,6 +119,10 @@ class InteropService(SimpleWSGIApp):
 
     @rpc(NestedClass, _returns=NestedClass)
     def echoNestedClass(self, nc):
+        return nc
+
+    @rpc(ExtensionClass, _returns=ExtensionClass)
+    def echoExtensionClass(self, nc):
         return nc
 
     @rpc(Array(NestedClass), _returns=Array(NestedClass))

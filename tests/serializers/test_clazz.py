@@ -43,6 +43,10 @@ class Person(ClassSerializer):
     addresses = Array(Address)
     titles = Array(String)
 
+class Employee(Person):
+    employee_id = Integer
+    salary = Float
+
 class Level2(ClassSerializer):
     arg1 = String
     arg2 = Float
