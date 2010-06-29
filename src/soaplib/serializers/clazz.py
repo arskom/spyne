@@ -23,6 +23,7 @@ import soaplib
 
 _ns_xs = soaplib.nsmap['xs']
 
+from enum import EnumBase
 from soaplib.serializers import Base
 from soaplib.serializers import nillable_element
 from soaplib.serializers import nillable_value
@@ -159,6 +160,9 @@ class ClassSerializerBase(NonExtendingClass, Base):
             sequence = etree.SubElement(complex_type, '{%s}sequence'% _ns_xs)
 
             for k, v in cls._type_info.items():
+                if issubclass(v, EnumBase):
+                    v.__namespace__ = cls.get_namespace()
+                
                 member = etree.SubElement(sequence, '{%s}element' % _ns_xs)
                 member.set('name', k)
                 member.set('minOccurs', '0')
