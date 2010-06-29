@@ -19,6 +19,7 @@
 
 from soaplib.serializers.binary import Attachment
 from soaplib.serializers.clazz import ClassSerializer
+from soaplib.serializers.enum import Enum
 from soaplib.serializers.primitive import Array
 from soaplib.serializers.primitive import Boolean
 from soaplib.serializers.primitive import DateTime
@@ -44,6 +45,16 @@ class NestedClass(ClassSerializer):
     f = Float
     other = OtherClass
 
+DaysOfWeekEnum = Enum(
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+    type_name = 'DaysOfWeekEnum'
+)
+
 class InteropService(SimpleWSGIApp):
     @rpc(Integer, _returns=Integer)
     def echoInteger(self, i):
@@ -64,6 +75,10 @@ class InteropService(SimpleWSGIApp):
     @rpc(Boolean, _returns=Boolean)
     def echoBoolean(self, b):
         return b
+
+    @rpc(DaysOfWeekEnum, _returns=DaysOfWeekEnum)
+    def echoEnum(self, day):
+        return day
 
     # lists of primitives
 
@@ -115,21 +130,18 @@ class InteropService(SimpleWSGIApp):
 
     @rpc()
     def testEmpty(self):
-        # new
         pass
 
     @rpc(String, Integer, DateTime)
     def multiParam(self, s, i, dt):
-        # new
         pass
 
     @rpc(_returns=String)
     def returnOnly(self):
-        # new
         return 'howdy'
 
     @rpc(String, _returns=String,
-        _soapAction="http://sample.org/webservices/doSomething")
+                        _public_name="http://sample.org/webservices/doSomething")
     def doSomethingElse(self, s):
         return s
 
