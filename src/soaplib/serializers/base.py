@@ -61,10 +61,10 @@ class Base(object):
         retval = cls.__namespace__
 
         if retval is None:
-            retval = cls.__module__
-
-        if retval == '__main__' and not (default_ns is None):
             retval = default_ns
+
+        if retval is None:
+            retval = cls.__module__
 
         return retval
 
