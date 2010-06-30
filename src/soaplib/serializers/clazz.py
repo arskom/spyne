@@ -300,12 +300,13 @@ class ClassSerializerBase(NonExtendingClass, Base):
         Lets you create a class programmatically.
         """
 
-        cls = ClassSerializer.customize()
-        cls.__namespace__ = namespace
-        cls.__type_name__ = type_name
-        cls._type_info = TypeInfo(members)
+        cls_dict = {}
 
-        return cls
+        cls_dict['__namespace__'] = namespace
+        cls_dict['__type_name__'] = type_name
+        cls_dict['_type_info'] = TypeInfo(members)
+
+        return ClassSerializerMeta(type_name, (ClassSerializer,), cls_dict)
 
 class ClassSerializer(ClassSerializerBase):
     """
