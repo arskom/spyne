@@ -178,7 +178,7 @@ class _SchemaEntries(object):
 
             for e in seq:
                 pref = e.attrib['type'].split(':')[0]
-                if not (pref in ('xs')):
+                if not (pref in ('xs', ns)):
                     self.imports[ns].add(soaplib.nsmap[pref])
 
     def add_element(self, cls, node):
