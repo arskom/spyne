@@ -22,6 +22,7 @@ from lxml import etree
 
 from soaplib.soap import Message
 from soaplib.soap import MethodDescriptor
+from soaplib.serializers.clazz import TypeInfo
 
 _ns_xs = soaplib.nsmap['xs']
 _ns_wsdl = soaplib.nsmap['wsdl']
