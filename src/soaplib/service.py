@@ -164,13 +164,13 @@ class _SchemaEntries(object):
         return schema
 
     def __check_imports(self, cls, node): # TODO: incomplete
-        ns = cls.get_namespace_prefix(self.tns)
-        if not (ns in self.imports):
-            self.imports[ns] = set()
+        pref_tns = cls.get_namespace_prefix(self.tns)
+        if not (pref_tns in self.imports):
+            self.imports[pref_tns] = set()
 
         for c in node:
             if c.tag == "{%s}complexContent" % _ns_xs:
-                seq = c.getchildren()[0].getchildren()[0]
+                seq = c.getchildren()[0].getchildren()[0] # FIXME: ugly, isn't it?
             else:
                 seq = c
 
@@ -178,8 +178,8 @@ class _SchemaEntries(object):
 
             for e in seq:
                 pref = e.attrib['type'].split(':')[0]
-                if not (pref in ('xs', ns)):
-                    self.imports[ns].add(soaplib.nsmap[pref])
+                if not (pref in ('xs', pref_tns)):
+                    self.imports[pref_tns].add(soaplib.nsmap[pref])
 
     def add_element(self, cls, node):
         schema_info = self.get_schema_info(cls.get_namespace_prefix(self.tns))
