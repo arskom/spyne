@@ -198,13 +198,14 @@ class ClassSerializerBase(NonExtendingClass, Base):
         element = etree.Element("{%s}%s" % (cls.get_namespace(), name))
 
         if isinstance(value, list) or isinstance(value, tuple):
+            assert len(value) <= len(cls._type_info)
+
             array = value
             value = cls()
 
-            assert(len(array) <= len(cls._type_info))
-
-            for i in range(len(value)):
-                setattr(value, cls._type_info.get_key_from_index(i), array[i])
+            keys = cls._type_info.keys()
+            for i in range(len(array)):
+                setattr(value, keys[i], array[i])
 
         elif isinstance(value, dict):
             map = value
