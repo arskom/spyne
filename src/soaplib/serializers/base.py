@@ -39,6 +39,9 @@ def nillable_element(func):
     return wrapper
 
 def string_to_xml(cls, value, name):
+    assert isinstance(value, str) or isinstance(value, unicode), "'value' must " \
+                    "be string or unicode. it is instead '%s'" % repr(value)
+
     retval = etree.Element(name)
 
     retval.set('{%s}type' % soaplib.nsmap['xsi'], cls.get_type_name_ns())
