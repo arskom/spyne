@@ -160,8 +160,8 @@ class String(Primitive):
             retval.max_len = args[0]
 
         else:
-            retval.max_len = kwargs.get("max_len",float('inf'))
-            retval.min_len = kwargs.get("min_len",0)
+            retval.min_len = kwargs.get("min_len", 0)
+            retval.max_len = kwargs.get("max_len", float('inf'))
 
         return retval
 
