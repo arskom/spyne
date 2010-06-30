@@ -61,10 +61,11 @@ class Base(object):
         retval = cls.__namespace__
 
         if retval is None:
-            retval = default_ns
-
-        if retval is None:
             retval = cls.__module__
+
+        if not (default_ns is None):
+            if retval.startswith("soaplib") or retval == '__main__':
+                retval = default_ns
 
         return retval
 
