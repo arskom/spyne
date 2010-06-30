@@ -272,6 +272,19 @@ class ClassSerializerBase(NonExtendingClass, Base):
 
             schema_entries.add_element(cls, element)
 
+    @staticmethod
+    def produce(namespace, type_name, members):
+        """
+        Lets you create a class programmatically.
+        """
+
+        cls = ClassSerializer.customize()
+        cls.__namespace__ = namespace
+        cls.__type_name__ = type_name
+
+        cls._type_info = TypeInfo(members)
+
+        return cls
             # add member nodes
             for k, v in cls._type_info.items():
                 v.add_to_schema(schema_entries)

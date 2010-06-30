@@ -65,7 +65,7 @@ def rpc(*params, **kparams):
                         raise Exception("%s has parameter numbers mismatching" %
                             f.func_name)
 
-                    return Message.c(type_name=_in_message, namespace=ns,
+                    return Message.produce(type_name=_in_message, namespace=ns,
                                                             members=in_params)
 
                 def get_output_message(ns):
@@ -95,7 +95,7 @@ def rpc(*params, **kparams):
 
                             out_params[_out_variable_name] = _returns
 
-                    return Message.c(type_name=_out_message, namespace=ns,
+                    return Message.produce(type_name=_out_message, namespace=ns,
                                                              members=out_params)
 
                 _is_callback = kparams.get('_is_callback', False)

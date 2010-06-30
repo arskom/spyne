@@ -51,7 +51,7 @@ class Person(ClassSerializer):
 
 class TestSoap(unittest.TestCase):
     def test_simple_message(self):
-        m = Message.c(
+        m = Message.produce(
             namespace=None,
             type_name='myMessage',
             members={'s': String, 'i': Integer}
@@ -104,10 +104,10 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
         self.assertEquals(len(payload.getchildren()[0].getchildren()), 2)
 
     def test_namespaces(self):
-        m = Message.c(
+        m = Message.produce(
             namespace="some_namespace",
             type_name='myMessage',
-            members={'s': String, 'i': Integer}
+            members={'s': String, 'i': Integer},
         )
 
         mi = m()
@@ -116,15 +116,15 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
         e = m.to_xml(mi)
         self.assertEquals(e.tag, '{some_namespace}myMessage')
 
-        m1 = Message.c(
+        m1 = Message.produce(
             namespace="some_namespace",
             type_name='myMessage',
-            members={'{some_namespace}s': String, 'i': Integer}
+            members={'{some_namespace}s': String, 'i': Integer},
         )
 
     def test_class_to_xml(self):
-        m = Message.c(
-            namespace=None,
+        m = Message.produce(
+            namespace="test_class_to_xml",
             type_name='myMessage',
             members={'p': Person}
         )
@@ -152,8 +152,8 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
         self.assertEquals(p1.addresses, [])
 
     def test_to_xml_nested(self):
-        m = Message.c(
-            namespace=None,
+        m = Message.produce(
+            namespace="test_to_xml_nested",
             type_name='myMessage',
             members={'p':Person}
         )
@@ -182,7 +182,7 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
         self.assertEquals('0', addresses[0].find('zip').text)
 
     def test_soap_envelope(self):
-        m = Message.c(
+        m = Message.produce(
             namespace=None,
             type_name='myMessage',
             members={'p': Person}
@@ -192,7 +192,7 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
         self.assertTrue(env.tag.endswith('Envelope'))
         self.assertTrue(env.getchildren()[0].tag.endswith('Body'))
 
-        m = Message.c(
+        m = Message.produce(
             namespace=None,
             type_name='myMessage',
             members={'p': Person}
