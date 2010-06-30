@@ -319,16 +319,16 @@ class Array(Primitive):
         return retval
 
     @classmethod
-    def get_namespace(cls, default_ns):
-        retval = cls.__namespace__
+    def resolve_namespace(cls, default_ns):
+        cls.serializer.resolve_namespace(default_ns)
 
-        if retval is None:
-            if cls.serializer.get_namespace(default_ns) == soaplib.nsmap['xs']:
-                retval = default_ns
+        if cls.__namespace__ is None:
+            if cls.serializer.get_namespace() != soaplib.nsmap['xs']:
+                cls.__namespace__ = cls.serializer.get_namespace()
             else:
-                retval = cls.serializer.get_namespace(default_ns)
-            
-        return retval
+                cls.__namespace__ = default_ns
+
+        assert not (cls.__namespace__ is None)
 
     @classmethod
     @nillable_value
@@ -364,6 +364,8 @@ class Array(Primitive):
 
     @classmethod
     def add_to_schema(cls, schema_entries):
+        cls.resolve_namespace(schema_entries.tns)
+
         if not schema_entries.has_class(cls):
             complex_type = etree.Element('{%s}complexType' % _ns_xs)
             complex_type.set('name', cls.get_type_name())
@@ -374,12 +376,12 @@ class Array(Primitive):
             element.set('minOccurs', str(cls.min_occurs))
             element.set('maxOccurs', str(cls.max_occurs))
             element.set('name', cls.serializer.get_type_name())
-            element.set('type', cls.serializer.get_type_name_ns(schema_entries.tns))
+            element.set('type', cls.serializer.get_type_name_ns())
 
             schema_entries.add_complex_type(cls, complex_type)
 
             top_level_element = etree.Element('{%s}element' % _ns_xs)
             top_level_element.set('name', cls.get_type_name())
-            top_level_element.set('type', cls.get_type_name_ns(schema_entries.tns))
+            top_level_element.set('type', cls.get_type_name_ns())
 
             schema_entries.add_element(cls, top_level_element)

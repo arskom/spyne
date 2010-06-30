@@ -116,27 +116,21 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
         e = m.to_xml(mi)
         self.assertEquals(e.tag, '{some_namespace}myMessage')
 
-        m1 = Message.produce(
-            namespace="some_namespace",
-            type_name='myMessage',
-            members={'{some_namespace}s': String, 'i': Integer},
-        )
-
     def test_class_to_xml(self):
         m = Message.produce(
-            namespace="test_class_to_xml",
+            namespace=None,
             type_name='myMessage',
             members={'p': Person}
         )
 
+        m.resolve_namespace("punk")
+        
         m.p = Person()
         m.p.name = 'steve-o'
         m.p.age = 2
         m.p.addresses = []
 
         element = m.to_xml(m)
-
-        print etree.tostring(element, pretty_print=True)
 
         self.assertEquals(element.tag, '{%s}myMessage' % m.get_namespace())
         self.assertEquals(element.getchildren()[0].find('name').text,
@@ -153,10 +147,12 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
 
     def test_to_xml_nested(self):
         m = Message.produce(
-            namespace="test_to_xml_nested",
+            namespace=None,
             type_name='myMessage',
             members={'p':Person}
         )
+
+        m.resolve_namespace("m")
 
         p = Person()
         p.name = 'steve-o'

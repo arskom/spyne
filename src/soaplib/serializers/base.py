@@ -54,23 +54,32 @@ class Base(object):
     __type_name__ = None
 
     @classmethod
-    def get_namespace_prefix(cls, default_ns=None):
-        retval = soaplib.get_namespace_prefix(cls.get_namespace(default_ns))
+    def get_namespace_prefix(cls):
+        ns = cls.get_namespace()
+
+        assert ns != "__main__", cls
+        assert ns != "soaplib.serializers.base", cls
+
+        retval = soaplib.get_namespace_prefix(ns)
 
         return retval
 
     @classmethod
-    def get_namespace(cls, default_ns=None):
+    def get_namespace(cls):
         retval = cls.__namespace__
 
         if retval is None:
             retval = cls.__module__
 
-        if not (default_ns is None):
-            if retval.startswith("soaplib") or retval == '__main__':
-                retval = default_ns
-
         return retval
+
+    @classmethod
+    def resolve_namespace(cls, default_ns):
+        if cls.__namespace__ is None:
+            cls.__namespace__ = cls.__module__
+
+            if (cls.__namespace__.startswith("soaplib") or cls.__namespace__ == '__main__'):
+                cls.__namespace__ = default_ns
 
     @classmethod
     def get_type_name(cls):
@@ -81,8 +90,8 @@ class Base(object):
         return retval
 
     @classmethod
-    def get_type_name_ns(cls, default_ns=None):
-        return "%s:%s" % (cls.get_namespace_prefix(default_ns), cls.get_type_name())
+    def get_type_name_ns(cls):
+        return "%s:%s" % (cls.get_namespace_prefix(), cls.get_type_name())
 
     @classmethod
     def to_xml(cls, value, name='retval'):
@@ -94,7 +103,7 @@ class Base(object):
         Nothing needs to happen when the type is a standard schema element
         '''
         pass
-
+    
     @classmethod
     def customize(cls, **kwargs):
         """

@@ -101,6 +101,8 @@ class TestPrimitive(unittest.TestCase):
 
     def test_array(self):
         serializer = Array(String)
+        serializer.resolve_namespace("zbank")
+
         values = ['a', 'b', 'c', 'd', 'e', 'f']
 
         element = serializer.to_xml(values)
@@ -111,6 +113,8 @@ class TestPrimitive(unittest.TestCase):
 
     def test_array_empty(self):
         serializer = Array(String)
+        serializer.resolve_namespace("zbank")
+
         values = []
 
         element = serializer.to_xml(values)

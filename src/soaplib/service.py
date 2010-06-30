@@ -142,7 +142,7 @@ class _SchemaEntries(object):
 
     def has_class(self, cls):
         retval = False
-        ns_prefix = cls.get_namespace_prefix(self.tns)
+        ns_prefix = cls.get_namespace_prefix()
 
         if ns_prefix == 'xs':
             retval = True
@@ -165,7 +165,7 @@ class _SchemaEntries(object):
         return schema
 
     def __check_imports(self, cls, node):
-        pref_tns = cls.get_namespace_prefix(self.tns)
+        pref_tns = cls.get_namespace_prefix()
         if not (pref_tns in self.imports):
             self.imports[pref_tns] = set()
 
@@ -183,7 +183,7 @@ class _SchemaEntries(object):
                     self.imports[pref_tns].add(soaplib.nsmap[pref])
 
     def add_element(self, cls, node):
-        schema_info = self.get_schema_info(cls.get_namespace_prefix(self.tns))
+        schema_info = self.get_schema_info(cls.get_namespace_prefix())
         schema_info.elements[cls.get_type_name()] = node
 
     def add_simple_type(self, cls, node):
@@ -193,7 +193,7 @@ class _SchemaEntries(object):
 
     def add_complex_type(self, cls, node):
         self.__check_imports(cls, node)
-        schema_info = self.get_schema_info(cls.get_namespace_prefix(self.tns))
+        schema_info = self.get_schema_info(cls.get_namespace_prefix())
         schema_info.types[cls.get_type_name()] = node
 
 class ServiceBase(object):

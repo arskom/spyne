@@ -36,6 +36,8 @@ class Address(ClassSerializer):
     lattitude = Float
     longitude = Float
 
+Address.resolve_namespace(__name__)
+
 class Person(ClassSerializer):
     name = String
     birthdate = DateTime
@@ -43,24 +45,36 @@ class Person(ClassSerializer):
     addresses = Array(Address)
     titles = Array(String)
 
+Person.resolve_namespace(__name__)
+
 class Employee(Person):
     employee_id = Integer
     salary = Float
+
+Employee.resolve_namespace(__name__)
 
 class Level2(ClassSerializer):
     arg1 = String
     arg2 = Float
 
+Level2.resolve_namespace(__name__)
+
 class Level3(ClassSerializer):
     arg1 = Integer
 
+Level3.resolve_namespace(__name__)
+
 class Level4(ClassSerializer):
     arg1 = String
+
+Level4.resolve_namespace(__name__)
 
 class Level1(ClassSerializer):
     level2 = Level2
     level3 = Array(Level3)
     level4 = Array(Level4)
+
+Level1.resolve_namespace(__name__)
 
 class TestClassSerializer(unittest.TestCase):
     def test_simple_class(self):
@@ -92,8 +106,6 @@ class TestClassSerializer(unittest.TestCase):
         self.assertEquals(None, p.age)
         self.assertEquals(None, p.addresses)
 
-        p2 = Person()
-
     def test_class_array(self):
         peeps = []
         names = ['bob', 'jim', 'peabody', 'mumblesleves']
@@ -105,6 +117,8 @@ class TestClassSerializer(unittest.TestCase):
             peeps.append(a)
 
         serializer = Array(Person)
+        serializer.resolve_namespace(__name__)
+
         element = serializer.to_xml(peeps)
 
         self.assertEquals(4, len(element.getchildren()))
@@ -118,6 +132,7 @@ class TestClassSerializer(unittest.TestCase):
     def test_class_nested_array(self):
         peeps = []
         names = ['bob', 'jim', 'peabody', 'mumblesleves']
+
         for name in names:
             a = Person()
             a.name = name
@@ -133,6 +148,7 @@ class TestClassSerializer(unittest.TestCase):
             peeps.append(a)
 
         serializer = Array(Person)
+        serializer.resolve_namespace(__name__)
         element = serializer.to_xml(peeps)
 
         self.assertEquals(4, len(element.getchildren()))

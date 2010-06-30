@@ -237,38 +237,53 @@ class ClassSerializerBase(NonExtendingClass, Base):
         return inst
 
     @classmethod
-    def add_to_schema(cls, schema_entries):
-        if not schema_entries.has_class(cls):
-            tns = schema_entries.tns
+    def resolve_namespace(cls, default_ns):
+        if cls.__namespace__ is None:
+            cls.__namespace__ = cls.__module__
 
+            if (cls.__namespace__.startswith("soaplib") or cls.__namespace__ == '__main__'):
+                cls.__namespace__ = default_ns
+
+        for k, v in cls._type_info.items():
+            if issubclass(v, EnumBase):
+                v.__namespace__ = cls.get_namespace()
+
+            v.resolve_namespace(default_ns)
+
+    @classmethod
+    def add_to_schema(cls, schema_entries):
+        cls.resolve_namespace(schema_entries.tns)
+
+        if not schema_entries.has_class(cls):
             # complex node
             complex_type = etree.Element("{%s}complexType" % _ns_xs)
             complex_type.set('name',cls.get_type_name())
 
             sequence_parent = complex_type
             if not (getattr(cls, '__extends__', None) is None):
+                cls.__extends__.add_to_schema(schema_entries)
+
                 complex_content = etree.SubElement(complex_type, "{%s}complexContent" % _ns_xs )
                 extension = etree.SubElement(complex_content, "{%s}extension" % _ns_xs)
-                extension.set('base', cls.__extends__.get_type_name_ns(tns))
+                extension.set('base', cls.__extends__.get_type_name_ns())
                 sequence_parent = extension
 
             sequence = etree.SubElement(sequence_parent, '{%s}sequence'% _ns_xs)
 
             for k, v in cls._type_info.items():
-                if issubclass(v, EnumBase):
-                    v.__namespace__ = cls.get_namespace(tns)
-                
+                v.add_to_schema(schema_entries)
+
                 member = etree.SubElement(sequence, '{%s}element' % _ns_xs)
                 member.set('name', k)
                 member.set('minOccurs', '0')
-                member.set('type', v.get_type_name_ns(tns))
+                member.set('type', v.get_type_name_ns())
 
             schema_entries.add_complex_type(cls, complex_type)
 
             # simple node
             element = etree.Element('{%s}element' % _ns_xs)
             element.set('name',cls.get_type_name())
-            element.set('type',cls.get_type_name_ns(tns))
+            element.set('type',cls.get_type_name_ns())
 
             schema_entries.add_element(cls, element)
 
@@ -281,13 +296,9 @@ class ClassSerializerBase(NonExtendingClass, Base):
         cls = ClassSerializer.customize()
         cls.__namespace__ = namespace
         cls.__type_name__ = type_name
-
         cls._type_info = TypeInfo(members)
 
         return cls
-            # add member nodes
-            for k, v in cls._type_info.items():
-                v.add_to_schema(schema_entries)
 
 class ClassSerializer(ClassSerializerBase):
     """
