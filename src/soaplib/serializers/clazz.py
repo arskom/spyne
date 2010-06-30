@@ -69,6 +69,12 @@ class TypeInfo(object):
     def __contains__(self, what):
         return (what in self.__dict)
 
+    def __repr__(self):
+        return "<TypeInfo: %s>" % repr(list(self.items()))
+
+    def __str__(self):
+        return repr(self)
+
     def __len__(self):
         assert len(self.__list) == len(self.__dict)
 
