@@ -367,6 +367,8 @@ class Array(Primitive):
         cls.resolve_namespace(schema_entries.tns)
 
         if not schema_entries.has_class(cls):
+            cls.serializer.add_to_schema(schema_entries)
+
             complex_type = etree.Element('{%s}complexType' % _ns_xs)
             complex_type.set('name', cls.get_type_name())
 
