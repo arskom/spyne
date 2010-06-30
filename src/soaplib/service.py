@@ -52,7 +52,7 @@ def rpc(*params, **kparams):
                     param_names = f.func_code.co_varnames[1:arg_count]
 
                     try:
-                        in_params = {}
+                        in_params = TypeInfo()
 
                         for i in range(len(params)):
                             e0 = _in_variable_names.get(param_names[i],
@@ -75,7 +75,7 @@ def rpc(*params, **kparams):
                                                                     f.func_name)
 
                     kparams.get('_out_variable_name')
-                    out_params = {}
+                    out_params = TypeInfo()
 
                     if _returns:
                         if isinstance(_returns, (list, tuple)):
@@ -87,7 +87,7 @@ def rpc(*params, **kparams):
 
                             assert (len(_returns) == len(_out_variable_names))
 
-                            out_params = dict(zip(_out_variable_names,_returns))
+                            out_params = TypeInfo(zip(_out_variable_names,_returns))
 
                         else:
                             _out_variable_name = kparams.get(
@@ -163,7 +163,7 @@ class _SchemaEntries(object):
 
         return schema
 
-    def __check_imports(self, cls, node): # TODO: incomplete
+    def __check_imports(self, cls, node):
         pref_tns = cls.get_namespace_prefix(self.tns)
         if not (pref_tns in self.imports):
             self.imports[pref_tns] = set()

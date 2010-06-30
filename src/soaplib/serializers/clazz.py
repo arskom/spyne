@@ -30,6 +30,84 @@ from soaplib.serializers import nillable_value
 
 from soaplib.serializers.primitive import Array
 
+class TypeInfo(object):
+    """
+    Sort of an ordered dictionary implementation.
+    """
+
+    class Empty(object):
+        pass
+
+    def __init__(self, data=[]):
+        if isinstance(data, self.__class__):
+            self.__list = list(data.__list)
+            self.__dict = dict(data.__dict)
+
+        else:
+            self.__list = []
+            self.__dict = {}
+
+            self.update(data)
+
+    def __getitem__(self, key):
+        if isinstance(key, int):
+            return self.__dict[self.__list[key]]
+        else:
+            return self.__dict[key]
+
+    def __setitem__(self, key, val):
+        if isinstance(key, int):
+            self.__dict[self.__list[key]] = val
+
+        else:
+            if not (key in self.__dict):
+                self.__list.append(key)
+            self.__dict[key] = val
+
+        assert len(self.__list) == len(self.__dict), (repr(self.__list), repr(self.__dict))
+
+    def __contains__(self, what):
+        return (what in self.__dict)
+
+    def __len__(self):
+        assert len(self.__list) == len(self.__dict)
+
+        return len(self.__list)
+
+    def __iter__(self):
+        return iter(self.__list)
+
+    def items(self):
+        for k in self.__list:
+            yield k, self.__dict[k]
+
+    def keys(self):
+        return self.__list
+
+    def update(self, data):
+        if isinstance(data, dict):
+            data = data.items()
+
+        for k,v in data:
+            self[k] = v
+
+    def get(self, key, default=Empty):
+        if key in self.__dict:
+            return self[key]
+
+        else:
+            if default is Empty:
+                raise KeyError(key)
+            else:
+                return default
+
+    def append(self, t):
+        k, v = t
+        self[k] = v
+
+    def get_key_from_index(self, idx):
+        return self.__list[idx]
+
 class ClassSerializerMeta(type):
     '''
     This is the metaclass that populates ClassSerializer instances with
@@ -49,7 +127,7 @@ class ClassSerializerMeta(type):
         # get base class (if exists) and enforce single inheritance
         extends = cls_dict.get("__extends__", None)
         for b in cls_bases:
-            base_types = getattr(b,"_type_info", None)
+            base_types = getattr(b, "_type_info", None)
 
             if not (base_types is None):
                 assert extends is None or cls_dict["__extends__"] is b, \
@@ -59,9 +137,9 @@ class ClassSerializerMeta(type):
                     cls_dict["__extends__"] = extends = b
 
         if not ('_type_info' in cls_dict):
-            cls_dict['_type_info'] = _type_info = {}
+            cls_dict['_type_info'] = _type_info = TypeInfo()
 
-            for k, v in cls_dict.items():
+            for k,v in cls_dict.items():
                 if not k.startswith('__'):
                     subc = False
                     try:
@@ -75,6 +153,10 @@ class ClassSerializerMeta(type):
                         if v is Array and v.serializer is None:
                             raise Exception("%s.%s is an array of what?" %
                                                                   (cls_name, k))
+        else:
+            _type_info = cls_dict['_type_info']
+            if not isinstance(_type_info, TypeInfo):
+                cls_dict['_type_info'] = TypeInfo(_type_info)
 
         return type.__new__(cls, cls_name, cls_bases, cls_dict)
 
@@ -99,15 +181,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
         return len(self._type_info)
 
     def __getitem__(self,i):
-        return getattr(self, self.__get_sorted_names()[i], None)
-
-    @classmethod
-    def __get_sorted_names(cls):
-        keys = getattr(cls, '__sorted_type_names', None)
-        if keys is None:
-            cls.__sorted_type_names = keys = cls._type_info.keys()
-            keys.sort()
-        return keys
+        return getattr(self, self._type_info.get_key_from_index(i), None)
 
     @classmethod
     @nillable_value
@@ -121,12 +195,10 @@ class ClassSerializerBase(NonExtendingClass, Base):
             array = value
             value = cls()
 
-            keys = cls.__get_sorted_names()
-
-            assert(len(array) <= len(keys))
+            assert(len(array) <= len(cls._type_info))
 
             for i in range(len(value)):
-                setattr(value, keys[i], array[i])
+                setattr(value, cls._type_info.get_key_from_index(i), array[i])
 
         elif isinstance(value, dict):
             map = value
@@ -154,7 +226,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
         for c in children:
             key = c.tag.split('}')[-1]
 
-            member = cls._type_info.get(key)
+            member = cls._type_info.get(key, None)
             if member is None:
                 raise Exception('the %s object does not have a "%s" member' %
                                                              (cls.__name__,key))
