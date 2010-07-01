@@ -162,7 +162,6 @@ class String(SimpleType):
 
     @classmethod
     def add_to_schema(cls, schema_entries):
-        print "STRING"
         if not schema_entries.has_class(cls) and not cls.is_default():
             restriction = cls.get_restriction_tag(schema_entries)
 
