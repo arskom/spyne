@@ -1,7 +1,7 @@
 
 from lxml import etree
 
-from base import Base
+from base import SimpleType
 from base import nillable_element
 from base import nillable_value
 from base import string_to_xml
@@ -12,7 +12,7 @@ _ns_xs = soaplib.nsmap['xs']
 
 # adapted from: http://code.activestate.com/recipes/413486/
 
-class EnumBase(Base):
+class EnumBase(SimpleType):
     @classmethod
     @nillable_value
     def to_xml(cls, value, name=None):
@@ -91,7 +91,6 @@ def Enum(*values, **kwargs):
                     enumeration.set('value', v)
 
                 schema_entries.add_simple_type(cls, simple_type)
-
 
     for i,v in enumerate(values):
         setattr(EnumType, v, EnumValue(i))

@@ -52,6 +52,8 @@ def string_to_xml(cls, value, name):
 class Base(object):
     __namespace__ = None
     __type_name__ = None
+    class Empty(object):
+        pass
 
     @classmethod
     def get_namespace_prefix(cls):
@@ -142,3 +144,50 @@ class Null(Base):
     @classmethod
     def from_xml(cls, element):
         return None
+
+class SimpleType(Base):
+    __namespace__ = "http://www.w3.org/2001/XMLSchema"
+    __base_type__ = None
+    values = set()
+
+    def __new__(cls, **kwargs):
+        """
+        Overriden so that any attempt to instantiate a primitive will return a
+        customized class instead of an instance.
+
+        See serializers.base.Base for more information.
+        """
+
+        retval = cls.customize(**kwargs)
+
+        retval.values = kwargs.get("values", SimpleType.values)
+
+        if not retval.is_default():
+            retval.__base_type__ = cls.get_type_name_ns()
+            retval.__type_name__ = kwargs.get("type_name", Base.Empty)
+
+        return retval
+
+    @classmethod
+    def is_default(cls):
+        return cls.values == SimpleType.values
+
+    @classmethod
+    def get_restriction_tag(cls, schema_entries):
+        simple_type = etree.Element('{%s}simpleType' % _ns_xs)
+        simple_type.set('name', cls.get_type_name())
+        schema_entries.add_simple_type(cls, simple_type)
+
+        restriction = etree.SubElement(simple_type, '{%s}restriction' % _ns_xs)
+        restriction.set('base', cls.__base_type__)
+
+        for v in cls.values:
+            enumeration = etree.SubElement(restriction, '{%s}enumeration' % _ns_xs)
+            enumeration.set('value', v)
+
+        return restriction
+
+    @classmethod
+    def add_to_schema(cls, schema_entries):
+        if not schema_entries.has_class(cls) and not cls.is_default():
+            cls.get_restriction_tag(schema_entries)

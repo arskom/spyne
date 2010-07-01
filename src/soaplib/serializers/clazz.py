@@ -252,9 +252,9 @@ class ClassSerializerBase(NonExtendingClass, Base):
                 cls.__namespace__ = default_ns
 
         for k, v in cls._type_info.items():
-            if issubclass(v, EnumBase):
+            if v.__type_name__ is Base.Empty:
                 v.__namespace__ = cls.get_namespace()
-
+                v.__type_name__ = "%s_%sType" % (cls.get_type_name(), k)
             v.resolve_namespace(default_ns)
 
     @classmethod

@@ -26,7 +26,7 @@ from lxml import etree
 from pytz import FixedOffset
 
 import soaplib
-from soaplib.serializers import Base
+from soaplib.serializers import SimpleType
 from soaplib.serializers import nillable_element
 from soaplib.serializers import nillable_value
 from soaplib.serializers import string_to_xml
@@ -45,19 +45,7 @@ _offset_re = re.compile(_datetime_pattern + _offset_pattern)
 _ns_xs = soaplib.nsmap['xs']
 _ns_xsi = soaplib.nsmap['xsi']
 
-class Primitive(Base):
-    __namespace__ = "http://www.w3.org/2001/XMLSchema"
-
-    def __new__(cls, **kwargs):
-        """
-        Overriden so that any attempt to instantiate a primitive will return a
-        customized class instead of an instance.
-
-        See serializers.base.Base for more information.
-        """
-        return cls.customize(**kwargs)
-
-class Any(Primitive):
+class Any(SimpleType):
     __type_name__ = 'anyType'
 
     @classmethod
@@ -147,23 +135,55 @@ class AnyAsDict(Any):
             return cls._etree_to_dict(element.getchildren()[0])
         return None
 
-class String(Primitive):
+class String(SimpleType):
     min_len = 0
     max_len = float('inf')
+    pattern = None
 
     def __new__(cls, *args, **kwargs):
         assert len(args) <= 1
+        retval = SimpleType.__new__(cls,**kwargs)
 
-        retval = cls.customize(**kwargs)
+        retval.min_len = kwargs.get("min_len", String.min_len)
+        retval.max_len = kwargs.get("max_len", String.max_len)
+        retval.pattern = kwargs.get("pattern", String.pattern)
 
         if len(args) == 1:
             retval.max_len = args[0]
 
-        else:
-            retval.min_len = kwargs.get("min_len", 0)
-            retval.max_len = kwargs.get("max_len", float('inf'))
-
         return retval
+
+    @classmethod
+    def is_default(cls):
+        return (SimpleType.is_default()
+            and cls.min_len == String.min_len
+            and cls.max_len == String.max_len
+            and cls.pattern == String.pattern)
+
+    @classmethod
+    def add_to_schema(cls, schema_entries):
+        print "STRING"
+        if not schema_entries.has_class(cls) and not cls.is_default():
+            restriction = cls.get_restriction_tag(schema_entries)
+
+            # length
+            if cls.min_len == cls.max_len:
+                length = etree.SubElement(restriction, '{%s}length' % _ns_xs)
+                length.set('value', str(cls.min_len))
+
+            else:
+                if cls.min_len != String.min_len:
+                    min_length = etree.SubElement(restriction, '{%s}minLength' % _ns_xs)
+                    min_length.set('value', str(cls.min_len))
+
+                if cls.max_len != String.min_len:
+                    max_length = etree.SubElement(restriction, '{%s}minLength' % _ns_xs)
+                    max_length.set('value', str(cls.max_len))
+
+            # pattern
+            if cls.min_len != String.min_len:
+                pattern = etree.SubElement(restriction, '{%s}pattern' % _ns_xs)
+                pattern.set('value', cls.pattern)
 
     @classmethod
     @nillable_value
@@ -183,7 +203,7 @@ class String(Primitive):
         except:
             return u
 
-class Integer(Primitive):
+class Integer(SimpleType):
     @classmethod
     @nillable_element
     def from_xml(cls, element):
@@ -204,13 +224,13 @@ class Integer(Primitive):
     def to_xml(cls, value, name='retval'):
         return string_to_xml(cls, str(value),name)
 
-class Decimal(Primitive):
+class Decimal(SimpleType):
     @classmethod
     @nillable_element
     def from_xml(cls, element):
         return decimal.Decimal(element.text)
 
-class Date(Primitive):
+class Date(SimpleType):
     @classmethod
     @nillable_value
     def to_xml(cls, value, name='retval'):
@@ -234,7 +254,7 @@ class Date(Primitive):
 
         return parse_date(match)
 
-class DateTime(Primitive):
+class DateTime(SimpleType):
     __type_name__ = 'dateTime'
     
     @classmethod
@@ -272,7 +292,7 @@ class DateTime(Primitive):
 
         return parse_date(match)
 
-class Double(Primitive):
+class Double(SimpleType):
     @classmethod
     @nillable_element
     def from_xml(cls, element):
@@ -286,7 +306,7 @@ class Double(Primitive):
 class Float(Double):
     pass
 
-class Boolean(Primitive):
+class Boolean(SimpleType):
     @classmethod
     @nillable_value
     def to_xml(cls, value, name='retval'):
@@ -298,7 +318,7 @@ class Boolean(Primitive):
         s = element.text
         return (s and s.lower()[0] == 't')
 
-class Array(Primitive):
+class Array(SimpleType):
     serializer = None
     __namespace__ = None
 
