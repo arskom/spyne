@@ -233,7 +233,7 @@ class WSGIApp(object):
             # only expect a single element
             results_soap = None
             if not (descriptor.is_async or descriptor.is_callback):
-                results_soap = result_message.to_xml(result_message)
+                results_soap = descriptor.out_message.to_xml(result_message, service.get_tns())
 
             # implementation hook
             self.on_results(http_request_env, result_raw, results_soap,
