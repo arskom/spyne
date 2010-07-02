@@ -157,7 +157,7 @@ class ClassSerializerMeta(type):
 
                     if subc:
                         _type_info[k] = v
-                        if v is Array and v.serializer is None:
+                        if issubclass(v, Array) and v.serializer is None:
                             raise Exception("%s.%s is an array of what?" %
                                                                   (cls_name, k))
         else:
