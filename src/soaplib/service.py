@@ -327,12 +327,8 @@ class ServiceBase(object):
         # TODO: we may want to customize service_name.
         service_name = self.__class__.__name__.split('.')[-1]
 
-        # set the targetNamespace prefix as tns
         _ns_tns = self.get_tns()
-        _pref_tns = 'tns'
-
-        soaplib.nsmap[_pref_tns] = _ns_tns
-        soaplib.prefmap[_ns_tns] = _pref_tns
+        _pref_tns = soaplib.get_namespace_prefix(_ns_tns)
 
         # get the methods
         methods = self.methods()
