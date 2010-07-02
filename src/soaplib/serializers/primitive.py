@@ -50,7 +50,7 @@ class Any(SimpleType):
 
     @classmethod
     @nillable_value
-    def to_xml(cls, value, name='retval'):
+    def to_xml(cls, value, tns, name='retval'):
         if isinstance(value,str) or isinstance(value,unicode):
             value = etree.fromstring(value)
 
@@ -121,7 +121,7 @@ class AnyAsDict(Any):
 
     @classmethod
     @nillable_value
-    def to_xml(cls, value, name='retval'):
+    def to_xml(cls, value, tns, name='retval'):
         e = etree.Element(name)
         e.extend(cls._dict_to_etree(value))
 
@@ -186,11 +186,11 @@ class String(SimpleType):
 
     @classmethod
     @nillable_value
-    def to_xml(cls, value, name='retval'):
+    def to_xml(cls, value, tns, name='retval'):
         if not isinstance(value,unicode):
             value = unicode(value, string_encoding)
 
-        return string_to_xml(cls, value, name)
+        return string_to_xml(cls, value, tns, name)
 
     @classmethod
     @nillable_element
@@ -220,8 +220,8 @@ class Integer(SimpleType):
 
     @classmethod
     @nillable_value
-    def to_xml(cls, value, name='retval'):
-        return string_to_xml(cls, str(value),name)
+    def to_xml(cls, value, tns, name='retval'):
+        return string_to_xml(cls, str(value), tns, name)
 
 class Decimal(SimpleType):
     @classmethod
@@ -232,8 +232,8 @@ class Decimal(SimpleType):
 class Date(SimpleType):
     @classmethod
     @nillable_value
-    def to_xml(cls, value, name='retval'):
-        return string_to_xml(cls, value.isoformat(),name)
+    def to_xml(cls, value, tns, name='retval'):
+        return string_to_xml(cls, value.isoformat(), tns, name)
 
     @classmethod
     @nillable_element
@@ -258,8 +258,8 @@ class DateTime(SimpleType):
     
     @classmethod
     @nillable_value
-    def to_xml(cls, value, name='retval'):
-        return string_to_xml(cls, value.isoformat('T'),name)
+    def to_xml(cls, value, tns, name='retval'):
+        return string_to_xml(cls, value.isoformat('T'), tns, name)
 
     @classmethod
     @nillable_element
@@ -299,8 +299,8 @@ class Double(SimpleType):
 
     @classmethod
     @nillable_value
-    def to_xml(cls, value, name='retval'):
-        return string_to_xml(cls, str(value), name)
+    def to_xml(cls, value, tns, name='retval'):
+        return string_to_xml(cls, str(value), tns, name)
 
 class Float(Double):
     pass
@@ -308,8 +308,8 @@ class Float(Double):
 class Boolean(SimpleType):
     @classmethod
     @nillable_value
-    def to_xml(cls, value, name='retval'):
-        return string_to_xml(cls, str(bool(value)).lower(),name)
+    def to_xml(cls, value, tns, name='retval'):
+        return string_to_xml(cls, str(bool(value)).lower(), tns, name)
 
     @classmethod
     @nillable_element
@@ -351,8 +351,8 @@ class Array(SimpleType):
 
     @classmethod
     @nillable_value
-    def to_xml(cls, values, name='retval'):
-        retval = etree.Element(name)
+    def to_xml(cls, values, tns, name='retval'):
+        retval = etree.Element("{%s}%s" % (tns,name))
 
         if values == None:
             values = []
@@ -367,7 +367,7 @@ class Array(SimpleType):
 
         for value in values:
             retval.append(
-                cls.serializer.to_xml(value, cls.serializer.get_type_name()))
+                cls.serializer.to_xml(value, tns, cls.serializer.get_type_name()))
 
         return retval
 

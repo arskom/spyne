@@ -264,6 +264,7 @@ class WSGIApp(object):
 
             # The user issued a Fault, so handle it just like an exception!
             fault = make_soap_fault(
+                service.get_tns(),
                 e.faultstring,
                 e.faultcode,
                 e.detail,
@@ -301,7 +302,8 @@ class WSGIApp(object):
             detail = ' '
             logging.error(stacktrace)
 
-            fault_str = etree.tostring(make_soap_fault(faultstring,
+            fault_str = etree.tostring(make_soap_fault(service.get_tns(),
+                faultstring,
                 faultcode, detail), encoding=string_encoding)
             logging.debug(fault_str)
 

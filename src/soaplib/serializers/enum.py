@@ -15,11 +15,11 @@ _ns_xs = soaplib.nsmap['xs']
 class EnumBase(SimpleType):
     @classmethod
     @nillable_value
-    def to_xml(cls, value, name=None):
+    def to_xml(cls, value, tns, name=None):
         if name is None:
             name = cls.get_type_name()
 
-        return string_to_xml(cls, str(value), name)
+        return string_to_xml(cls, str(value), tns, name)
 
     @classmethod
     @nillable_element

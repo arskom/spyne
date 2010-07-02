@@ -398,7 +398,7 @@ def apply_mtom(headers, envelope, params, paramvals):
 
     return (mtomheaders, mtombody)
 
-def make_soap_fault(fault_string, fault_code = 'Server', detail = None,
+def make_soap_fault(tns, fault_string, fault_code = 'Server', detail = None,
         header_elements = None):
     '''
     This method populates a soap fault message with the provided
@@ -418,6 +418,6 @@ def make_soap_fault(fault_string, fault_code = 'Server', detail = None,
     body = etree.SubElement(envelope, '{%s}Body'  % _ns_soap_env)
 
     f = Fault(fault_code, fault_string, detail)
-    body.append(Fault.to_xml(f, "{%s}Fault" % _ns_soap_env))
+    body.append(Fault.to_xml(f, "{%s}Fault" % _ns_soap_env, tns))
 
     return envelope

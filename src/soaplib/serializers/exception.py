@@ -34,8 +34,8 @@ class Fault(Exception, Base):
         self.name = name
 
     @classmethod
-    def to_xml(cls, value, name):
-        fault = etree.Element(name)
+    def to_xml(cls, value, tns, name):
+        fault = etree.Element("{%s}%s" % (tns,name))
 
         etree.SubElement(fault, 'faultcode').text = value.faultcode
         etree.SubElement(fault, 'faultstring').text = value.faultstring

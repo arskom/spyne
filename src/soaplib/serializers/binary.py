@@ -65,7 +65,7 @@ class Attachment(Base):
 
     @classmethod
     @nillable_value
-    def to_xml(cls, value, name='retval'):
+    def to_xml(cls, value, tns, name='retval'):
         '''
         This class method takes the data from the attachment and
         base64 encodes it as the text of an Element. An attachment can
@@ -75,7 +75,7 @@ class Attachment(Base):
 
         assert isinstance(value, cls)
 
-        element = etree.Element(name)
+        element = etree.Element('{%s}%s' % (tns,name))
         if value.data:
             # the data has already been loaded, just encode
             # and return the element

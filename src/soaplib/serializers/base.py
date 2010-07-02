@@ -24,10 +24,10 @@ from lxml import etree
 _ns_xs = soaplib.nsmap['xs']
 
 def nillable_value(func):
-    def wrapper(cls, value, *args, **kwargs):
+    def wrapper(cls, value, tns, *args, **kwargs):
         if value is None:
-            return Null.to_xml(value, *args, **kwargs)
-        return func(cls, value, *args, **kwargs)
+            return Null.to_xml(value, tns, *args, **kwargs)
+        return func(cls, value, tns, *args, **kwargs)
     return wrapper
 
 def nillable_element(func):
@@ -38,11 +38,11 @@ def nillable_element(func):
         return func(cls, element)
     return wrapper
 
-def string_to_xml(cls, value, name):
+def string_to_xml(cls, value, tns, name):
     assert isinstance(value, str) or isinstance(value, unicode), "'value' must " \
                     "be string or unicode. it is instead '%s'" % repr(value)
 
-    retval = etree.Element(name)
+    retval = etree.Element("{%s}%s" % (tns,name))
 
     retval.set('{%s}type' % soaplib.nsmap['xsi'], cls.get_type_name_ns())
     retval.text = value
@@ -96,8 +96,8 @@ class Base(object):
         return "%s:%s" % (cls.get_namespace_prefix(), cls.get_type_name())
 
     @classmethod
-    def to_xml(cls, value, name='retval'):
-        return string_to_xml(cls, value, name)
+    def to_xml(cls, value, tns, name='retval'):
+        return string_to_xml(cls, value, tns, name)
 
     @classmethod
     def add_to_schema(cls, schema_entries):
@@ -136,8 +136,8 @@ class Base(object):
 
 class Null(Base):
     @classmethod
-    def to_xml(cls, value, name='retval'):
-        element = etree.Element(name)
+    def to_xml(cls, value, tns, name='retval'):
+        element = etree.Element("{%s}%s" % (tns,name))
         element.set('{%s}nil' % _ns_xs, '1')
         return element
 

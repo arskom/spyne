@@ -191,11 +191,11 @@ class ClassSerializerBase(NonExtendingClass, Base):
 
     @classmethod
     @nillable_value
-    def to_xml(cls, value, name=None):
+    def to_xml(cls, value, tns, name=None):
         if name is None:
             name = cls.get_type_name()
         
-        element = etree.Element("{%s}%s" % (cls.get_namespace(), name))
+        element = etree.Element("{%s}%s" % (tns, name))
 
         if isinstance(value, list) or isinstance(value, tuple):
             assert len(value) <= len(cls._type_info)
@@ -219,7 +219,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
 
         for k, v in cls._type_info.items():
             subvalue = getattr(value, k, None)
-            subelement = v.to_xml(subvalue, k)
+            subelement = v.to_xml(subvalue, tns, k)
             element.append(subelement)
 
         return element
