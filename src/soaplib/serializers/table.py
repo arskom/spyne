@@ -31,7 +31,6 @@ _type_map = {
     sqlalchemy.UnicodeText: soap.String,
 
     sqlalchemy.Float: soap.Float,
-    sqlalchemy.Decimal: soap.Decimal,
     sqlalchemy.Numeric: soap.Double,
     sqlalchemy.Integer: soap.Integer,
     sqlalchemy.SmallInteger: soap.Integer,
