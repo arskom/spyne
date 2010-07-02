@@ -418,6 +418,6 @@ def make_soap_fault(tns, fault_string, fault_code = 'Server', detail = None,
     body = etree.SubElement(envelope, '{%s}Body'  % _ns_soap_env)
 
     f = Fault(fault_code, fault_string, detail)
-    body.append(Fault.to_xml(f, "{%s}Fault" % _ns_soap_env, tns))
+    body.append(Fault.to_xml(f, _ns_soap_env, "Fault"))
 
     return envelope
