@@ -142,6 +142,7 @@ class ClassSerializerMeta(type):
                 if len(base_types) > 0:
                     cls_dict["__extends__"] = extends = b
 
+        # populate soap members
         if not ('_type_info' in cls_dict):
             cls_dict['_type_info'] = _type_info = TypeInfo()
 
