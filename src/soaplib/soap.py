@@ -129,7 +129,7 @@ def make_soap_envelope(message, tns='', header_elements=None):
     @param any header elements to be included in the soap response
     @returns the envelope element
     '''
-    envelope = etree.Element('{%s}Envelope' % _ns_soap_env)
+    envelope = etree.Element('{%s}Envelope' % _ns_soap_env, nsmap=soaplib.nsmap)
     if header_elements:
         soap_header = etree.SubElement(envelope, '{%s}Header' % _ns_soap_env)
         for h in header_elements:
