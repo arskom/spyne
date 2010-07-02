@@ -19,15 +19,24 @@
 
 # namespace map
 
+ns_xsd = 'http://www.w3.org/2001/XMLSchema'
+ns_xsi = 'http://www.w3.org/1999/XMLSchema-instance'
+ns_plink = 'http://schemas.xmlsoap.org/ws/2003/05/partner-link/'
+ns_soap = 'http://schemas.xmlsoap.org/wsdl/soap/'
+ns_wsdl = 'http://schemas.xmlsoap.org/wsdl/'
+ns_soap_enc = 'http://schemas.xmlsoap.org/soap/encoding/'
+ns_soap_env = 'http://schemas.xmlsoap.org/soap/envelope/'
+ns_wsa = 'http://schemas.xmlsoap.org/ws/2003/03/addressing'
+
 nsmap = {
-    'xs': 'http://www.w3.org/2001/XMLSchema',
-    'xsi': 'http://www.w3.org/1999/XMLSchema-instance',
-    'plink': 'http://schemas.xmlsoap.org/ws/2003/05/partner-link/',
-    'soap': 'http://schemas.xmlsoap.org/wsdl/soap/',
-    'wsdl': 'http://schemas.xmlsoap.org/wsdl/',
-    'soap_enc': 'http://schemas.xmlsoap.org/soap/encoding/',
-    'soap_env': 'http://schemas.xmlsoap.org/soap/envelope/',
-    'wsa': 'http://schemas.xmlsoap.org/ws/2003/03/addressing',
+    'xs': ns_xsd,
+    'xsi': ns_xsi,
+    'plink': ns_plink,
+    'soap': ns_soap,
+    'wsdl': ns_wsdl,
+    'soap_enc': ns_soap_enc,
+    'soap_env': ns_soap_env,
+    'wsa': ns_wsa,
 }
 
 # prefix map
@@ -44,10 +53,15 @@ def get_namespace_prefix(ns):
 
     if not (ns in prefmap):
         pref = "s%d" % _ns_counter
+        while pref in nsmap:
+            _ns_counter += 1
+            pref = "s%d" % _ns_counter
+
         prefmap[ns] = pref
         nsmap[pref] = ns
 
         _ns_counter += 1
+        
     else:
         pref = prefmap[ns]
 
