@@ -195,7 +195,7 @@ class String(SimpleType):
     @classmethod
     @nillable_element
     def from_xml(cls, element):
-        u=element.text
+        u=element.text or ""
         try:
             u = str(u)
             return u.encode(string_encoding)
