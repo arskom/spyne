@@ -102,7 +102,7 @@ class TypeInfo(object):
             return self[key]
 
         else:
-            if default is Empty:
+            if default is TypeInfo.Empty:
                 raise KeyError(key)
             else:
                 return default
