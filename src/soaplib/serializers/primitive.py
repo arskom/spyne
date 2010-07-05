@@ -339,15 +339,13 @@ class Array(SimpleType):
 
     @classmethod
     def resolve_namespace(cls, default_ns):
-        cls.serializer.resolve_namespace(default_ns)
+        cls.serializer.resolve_namespace(cls.get_namespace())
 
         if cls.__namespace__ is None:
             if cls.serializer.get_namespace() != soaplib.nsmap['xs']:
                 cls.__namespace__ = cls.serializer.get_namespace()
             else:
                 cls.__namespace__ = default_ns
-
-        assert not (cls.__namespace__ is None)
 
     @classmethod
     @nillable_value
@@ -383,8 +381,6 @@ class Array(SimpleType):
 
     @classmethod
     def add_to_schema(cls, schema_entries):
-        cls.resolve_namespace(schema_entries.tns)
-
         if not schema_entries.has_class(cls):
             cls.serializer.add_to_schema(schema_entries)
 

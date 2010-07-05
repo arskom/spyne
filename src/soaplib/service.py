@@ -317,6 +317,7 @@ class ServiceBase(object):
 
         @returns the string of the wsdl
         '''
+
         if not self.__wsdl == None:
             # return the cached __wsdl
             return self.__wsdl

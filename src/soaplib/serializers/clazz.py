@@ -256,12 +256,11 @@ class ClassSerializerBase(NonExtendingClass, Base):
             if v.__type_name__ is Base.Empty:
                 v.__namespace__ = cls.get_namespace()
                 v.__type_name__ = "%s_%sType" % (cls.get_type_name(), k)
-            v.resolve_namespace(default_ns)
+
+            v.resolve_namespace(cls.get_namespace())
 
     @classmethod
     def add_to_schema(cls, schema_entries):
-        cls.resolve_namespace(schema_entries.tns)
-
         if not schema_entries.has_class(cls):
             # complex node
             complex_type = etree.Element("{%s}complexType" % _ns_xs)
