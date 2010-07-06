@@ -480,7 +480,7 @@ class ServiceBase(object):
 
         for ns in schema_entries.namespaces:
             if not (ns in schema_nodes):
-                schema = etree.SubElement(types, "{%s}schema" % _ns_xs)
+                schema = etree.SubElement(types, "{%s}schema" % _ns_xs, nsmap=soaplib.nsmap)
                 schema.set("targetNamespace", soaplib.nsmap[ns])
                 schema.set("elementFormDefault", "qualified")
 
