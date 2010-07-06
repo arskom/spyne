@@ -35,6 +35,8 @@ from soaplib.service import rpc
 from soaplib.wsgi_soap import SimpleWSGIApp
 
 class Address(ClassSerializer):
+    __namespace__ = "TestService"
+
     street = String
     city = String
     zip = Integer
@@ -43,6 +45,8 @@ class Address(ClassSerializer):
     longitude = Float
 
 class Person(ClassSerializer):
+    __namespace__ = "TestService"
+
     name = String
     birthdate = DateTime
     age = Integer
@@ -50,11 +54,32 @@ class Person(ClassSerializer):
     titles = Array(String)
 
 class Request(ClassSerializer):
+    __namespace__ = "TestService"
+
     param1 = String
     param2 = Integer
 
 class Response(ClassSerializer):
+    __namespace__ = "TestService"
+
     param1 = Float
+
+class TypeNS1(ClassSerializer):
+    __namespace__ = "TestService.NS1"
+
+    s = String
+    i = Integer
+
+class TypeNS2(ClassSerializer):
+    __namespace__ = "TestService.NS2"
+
+    d = DateTime
+    f = Float
+
+class MultipleNamespaceService(ServiceBase):
+    @rpc(TypeNS1, TypeNS2)
+    def a(t1, t2):
+        return "OK"
 
 class TestService(ServiceBase):
     @rpc(String, _returns=String)
@@ -137,6 +162,10 @@ class Test(unittest.TestCase):
         self.assertEqual(response_data[0], 'a')
         self.assertEqual(response_data[1], 'b')
         self.assertEqual(response_data[2], 'c')
+
+    def test_multiple_ns(self):
+        svc = MultipleNamespaceService()
+        wsdl = svc.wsdl("URL")
 
 def suite():
     loader = unittest.TestLoader()
