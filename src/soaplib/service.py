@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from StringIO import StringIO
+
 import soaplib
 from lxml import etree
 
@@ -440,9 +442,32 @@ class ServiceBase(object):
 
         wsdl = etree.tostring(root, xml_declaration=True, encoding="UTF-8")
 
+        self.__build_validator(wsdl)
+
         #cache the wsdl for next time
         self.__wsdl = wsdl
         return self.__wsdl
+
+    def __build_validator(self, wsdl):
+        class Resolver(etree.Resolver):
+            def resolve(self, url, id, ctx):
+                print url,id,ctx
+
+        parser = etree.XMLParser()
+        parser.resolvers.add(Resolver())
+        doc = etree.parse(StringIO(wsdl), parser)
+        ret = self.__root_schema(doc.getroot())
+        etree.XMLSchema(ret)
+
+    def __root_schema(self,elt): # FIXME: quick hack for testing functionality.
+        for e in elt:
+            if e.tag == "{%s}schema" % soaplib.ns_xsd:
+                if e.attrib['targetNamespace'] == self.get_tns():
+                    return e
+            else:
+                retval = self.__root_schema(e)
+                if retval != None:
+                    return retval
 
     def __add_schema(self, types, methods):
         '''
