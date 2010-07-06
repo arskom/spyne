@@ -442,32 +442,24 @@ class ServiceBase(object):
 
         wsdl = etree.tostring(root, xml_declaration=True, encoding="UTF-8")
 
-        self.__build_validator(wsdl)
-
         #cache the wsdl for next time
         self.__wsdl = wsdl
         return self.__wsdl
 
-    def __build_validator(self, wsdl):
+    def __build_validator(self, root_ns, schema_nodes):
         class Resolver(etree.Resolver):
             def resolve(self, url, id, ctx):
-                print url,id,ctx
+                print url, id, ctx
+
+        root_node = schema_nodes[root_ns]
 
         parser = etree.XMLParser()
         parser.resolvers.add(Resolver())
-        doc = etree.parse(StringIO(wsdl), parser)
-        ret = self.__root_schema(doc.getroot())
-        etree.XMLSchema(ret)
 
-    def __root_schema(self,elt): # FIXME: quick hack for testing functionality.
-        for e in elt:
-            if e.tag == "{%s}schema" % soaplib.ns_xsd:
-                if e.attrib['targetNamespace'] == self.get_tns():
-                    return e
-            else:
-                retval = self.__root_schema(e)
-                if retval != None:
-                    return retval
+        istr = etree.tostring(root_node, pretty_print=True)
+
+        reparse = etree.parse(StringIO(istr), parser)
+        etree.XMLSchema(reparse)
 
     def __add_schema(self, types, methods):
         '''
@@ -478,13 +470,13 @@ class ServiceBase(object):
         @param the list of methods.
         '''
 
+        schema_nodes = {}
         schema_entries = _SchemaEntries(self.get_tns())
+        _pref_tns = soaplib.get_namespace_prefix(self.get_tns())
 
         for method in methods:
             method.in_message.add_to_schema(schema_entries)
             method.out_message.add_to_schema(schema_entries)
-
-        schema_nodes = {}
 
         for ns in schema_entries.namespaces:
             if not (ns in schema_nodes):
@@ -506,6 +498,11 @@ class ServiceBase(object):
 
             for node in schema_entries.namespaces[ns].types.values():
                 schema.append(node)
+
+            if ns == _pref_tns:
+                root_ns = ns
+
+        self.__build_validator(root_ns, schema_nodes)
 
     def __add_messages_for_methods(self, root, methods):
         '''
