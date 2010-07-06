@@ -472,15 +472,15 @@ class ServiceBase(object):
             else:
                 schema = schema_nodes[ns]
 
+            for namespace in schema_entries.imports[ns]:
+                import_ = etree.SubElement(schema, "{%s}import" % _ns_xs)
+                import_.set("namespace", namespace)
+
             for node in schema_entries.namespaces[ns].elements.values():
                 schema.append(node)
 
             for node in schema_entries.namespaces[ns].types.values():
                 schema.append(node)
-
-            for namespace in schema_entries.imports[ns]:
-                import_ = etree.SubElement(schema, "{%s}import" % _ns_xs)
-                import_.set("namespace", namespace)
 
     def __add_messages_for_methods(self, root, methods):
         '''
