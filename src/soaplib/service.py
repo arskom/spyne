@@ -17,7 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from StringIO import StringIO
+import tempfile
+import shutil
 
 import soaplib
 from lxml import etree
@@ -213,6 +214,8 @@ class ServiceBase(object):
     def __init__(self):
         self._remote_methods = []
         self.__wsdl = None
+        self.validating_service = False
+        self.validation_schema = None
         self._remote_methods = self._get_remote_methods()
 
     @classmethod
@@ -324,7 +327,7 @@ class ServiceBase(object):
         has_callbacks = self._has_callbacks()
 
         types = etree.Element("{%s}types" % _ns_wsdl)
-        self.__add_schema(types, methods)
+        self.__add_schema(types, methods, for_validation=False)
 
         root = etree.Element("{%s}definitions" % _ns_wsdl, nsmap=soaplib.nsmap)
         root.append(types)
@@ -441,11 +444,14 @@ class ServiceBase(object):
 
         wsdl = etree.tostring(root, xml_declaration=True, encoding="UTF-8")
 
+        if self.validating_service:
+            self.validation_schema = self.__build_validation_schema(methods)
+
         #cache the wsdl for next time
         self.__wsdl = wsdl
         return self.__wsdl
 
-    def __add_schema(self, types, methods):
+    def __add_schema(self, types, methods, for_validation):
         '''
         A private method for adding the appropriate entries
         to the schema for the types in the specified methods.
@@ -464,7 +470,12 @@ class ServiceBase(object):
 
         for ns in schema_entries.namespaces:
             if not (ns in schema_nodes):
-                schema = etree.SubElement(types, "{%s}schema" % _ns_xs, nsmap=soaplib.nsmap)
+                if for_validation:
+                    schema = etree.Element("{%s}schema" % _ns_xs,
+                                                            nsmap=soaplib.nsmap)
+                else:
+                    schema = etree.SubElement(types, "{%s}schema" % _ns_xs)
+
                 schema.set("targetNamespace", soaplib.nsmap[ns])
                 schema.set("elementFormDefault", "qualified")
 
@@ -476,6 +487,9 @@ class ServiceBase(object):
             for namespace in schema_entries.imports[ns]:
                 import_ = etree.SubElement(schema, "{%s}import" % _ns_xs)
                 import_.set("namespace", namespace)
+                if for_validation:
+                    import_.set('schemaLocation', "%s.xsd" %
+                                        soaplib.get_namespace_prefix(namespace))
 
             for node in schema_entries.namespaces[ns].elements.values():
                 schema.append(node)
@@ -483,8 +497,27 @@ class ServiceBase(object):
             for node in schema_entries.namespaces[ns].types.values():
                 schema.append(node)
 
-            if ns == _pref_tns:
-                root_ns = ns
+        return schema_nodes
+
+    def __build_validation_schema(self, methods):
+        schema_nodes = self.__add_schema(None, methods, for_validation=True)
+
+        tmp_dir_name = tempfile.mkdtemp()
+
+        # serialize nodes to files
+        for k,v in schema_nodes.items():
+            f = open('%s/%s.xsd' % (tmp_dir_name, k),'w')
+            etree.ElementTree(v).write(f, pretty_print=True)
+            f.close()
+
+        f = open('%s/%s.xsd' % (tmp_dir_name, soaplib.get_namespace_prefix(self.get_tns())),'r')
+
+        retval = etree.XMLSchema(etree.parse(f))
+
+        f.close()
+        shutil.rmtree(tmp_dir_name)
+
+        return retval
 
     def __add_messages_for_methods(self, root, methods):
         '''

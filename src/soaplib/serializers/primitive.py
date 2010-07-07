@@ -207,16 +207,11 @@ class Integer(SimpleType):
     @nillable_element
     def from_xml(cls, element):
         i = element.text
-        if not i:
-            return None
 
         try:
             return int(i)
         except:
-            try:
-                return long(i)
-            except:
-                return None
+            return long(i)
 
     @classmethod
     @nillable_value

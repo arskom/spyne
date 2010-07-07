@@ -23,7 +23,6 @@ import soaplib
 
 _ns_xs = soaplib.nsmap['xs']
 
-from enum import EnumBase
 from soaplib.serializers import Base
 from soaplib.serializers import nillable_element
 from soaplib.serializers import nillable_value

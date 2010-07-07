@@ -212,6 +212,9 @@ class WSGIApp(object):
             descriptor = service.get_method(methodname)
             func = getattr(service, descriptor.name)
 
+            if self.validating_service:
+                self.validation_schema.assert_(request_payload)
+
             if request_payload is not None and len(request_payload) > 0:
                 params = descriptor.in_message.from_xml(*[request_payload])
             else:
@@ -332,3 +335,8 @@ class SimpleWSGIApp(WSGIApp, ServiceBase):
 
     def get_handler(self, environ):
         return self
+
+class ValidatingWSGISoapApp(SimpleWSGIApp):
+    def __init__(self):
+        SimpleWSGIApp.__init__(self)
+        self.validating_service = True

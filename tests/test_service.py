@@ -78,8 +78,14 @@ class TypeNS2(ClassSerializer):
 
 class MultipleNamespaceService(ServiceBase):
     @rpc(TypeNS1, TypeNS2)
-    def a(t1, t2):
+    def a(self, t1, t2):
         return "OK"
+
+class MultipleNamespaceValidatingService(MultipleNamespaceService):
+    def __init__(self):
+        MultipleNamespaceService.__init__(self)
+
+        self.validating_service = True
 
 class TestService(ServiceBase):
     @rpc(String, _returns=String)
@@ -153,7 +159,7 @@ class Test(unittest.TestCase):
 
         self.assertEquals(len(message._type_info), 3)
 
-        sent_xml = message.to_xml( ('a','b','c') )
+        sent_xml = message.to_xml( ('a','b','c'), service.get_tns() )
 
         print etree.tostring(sent_xml, pretty_print=True)
         response_data = message.from_xml(sent_xml)
