@@ -141,10 +141,11 @@ class WSGIApp(object):
             if ((http_request_env['QUERY_STRING'].endswith('wsdl') or
                  http_request_env['PATH_INFO'].endswith('wsdl')) and
                 http_request_env['REQUEST_METHOD'].lower() == 'get'):
-                # get the wsdl for the service
+
                 #
-                # Assume path_info matches pattern
-                # /stuff/stuff/stuff/serviceName.wsdl or ?WSDL
+                # Get the wsdl for the service. Assume path_info matches pattern:
+                # /stuff/stuff/stuff/serviceName.wsdl or
+                # /stuff/stuff/stuff/serviceName/?WSDL
                 #
                 serviceName = serviceName.split('.')[0]
                 if address_url:
