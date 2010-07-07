@@ -111,9 +111,6 @@ class TypeInfo(object):
         k, v = t
         self[k] = v
 
-    def get_key_from_index(self, idx):
-        return self.__list[idx]
-
 class ClassSerializerMeta(type):
     '''
     This is the metaclass that populates ClassSerializer instances with
