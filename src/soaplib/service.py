@@ -445,21 +445,6 @@ class ServiceBase(object):
         self.__wsdl = wsdl
         return self.__wsdl
 
-    def __build_validator(self, root_ns, schema_nodes):
-        class Resolver(etree.Resolver):
-            def resolve(self, url, id, ctx):
-                print url, id, ctx
-
-        root_node = schema_nodes[root_ns]
-
-        parser = etree.XMLParser()
-        parser.resolvers.add(Resolver())
-
-        istr = etree.tostring(root_node, pretty_print=True)
-
-        reparse = etree.parse(StringIO(istr), parser)
-        etree.XMLSchema(reparse)
-
     def __add_schema(self, types, methods):
         '''
         A private method for adding the appropriate entries
@@ -500,8 +485,6 @@ class ServiceBase(object):
 
             if ns == _pref_tns:
                 root_ns = ns
-
-        self.__build_validator(root_ns, schema_nodes)
 
     def __add_messages_for_methods(self, root, methods):
         '''
