@@ -134,7 +134,6 @@ def rpc(*params, **kparams):
 
     return explain
 
-
 class _SchemaInfo(object):
     def __init__(self):
         self.elements = {}
