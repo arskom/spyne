@@ -159,13 +159,13 @@ class WSGIApp(object):
 
                     # implementation hook
                     self.on_wsdl(http_request_env, wsdl_content)
-                except Exception, e:
 
+                except Exception, e:
                     # implementation hook
                     logging.error(traceback.format_exc())
 
                     fault_str = etree.tostring(make_soap_fault(str(e),
-                        detail=""), encoding=string_encoding)
+                           self.get_tns(), detail=""), encoding=string_encoding)
                     logging.debug(fault_str)
 
                     self.on_wsdl_exception(http_request_env, e, fault_str)
