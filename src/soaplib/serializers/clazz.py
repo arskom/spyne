@@ -185,7 +185,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
         return len(self._type_info)
 
     def __getitem__(self,i):
-        return getattr(self, self._type_info.get_key_from_index(i), None)
+        return getattr(self, self._type_info.keys()[i], None)
 
     @classmethod
     @nillable_value
