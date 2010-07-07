@@ -339,13 +339,18 @@ class Array(SimpleType):
 
     @classmethod
     def resolve_namespace(cls, default_ns):
-        cls.serializer.resolve_namespace(cls.get_namespace())
+        cls.serializer.resolve_namespace(default_ns)
 
         if cls.__namespace__ is None:
             if cls.serializer.get_namespace() != soaplib.nsmap['xs']:
                 cls.__namespace__ = cls.serializer.get_namespace()
             else:
                 cls.__namespace__ = default_ns
+
+        if cls.__namespace__.startswith('soaplib') or cls.__namespace__ == '__main__':
+            cls.__namespace__ = default_ns
+
+        cls.serializer.resolve_namespace(cls.get_namespace())
 
     @classmethod
     @nillable_value
