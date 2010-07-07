@@ -132,12 +132,23 @@ class WSGIApp(object):
         http_resp_headers = {'Content-Type': 'text/xml'}
         soap_response_headers = []
 
+        # cache the wsdl
+        service_name = http_request_env['PATH_INFO'].split('/')[-1]
+        service = self.get_handler(http_request_env)
+        if address_url:
+            url = address_url
+        else:
+            url = reconstruct_url(http_request_env).split('.wsdl')[0]
+
+        try:
+            wsdl_content = service.wsdl(url)
+        except:
+            pass
+
         try:
             # implementation hook
             self.on_call(http_request_env)
 
-            serviceName = http_request_env['PATH_INFO'].split('/')[-1]
-            service = self.get_handler(http_request_env)
             if ((http_request_env['QUERY_STRING'].endswith('wsdl') or
                  http_request_env['PATH_INFO'].endswith('wsdl')) and
                 http_request_env['REQUEST_METHOD'].lower() == 'get'):
@@ -147,11 +158,7 @@ class WSGIApp(object):
                 # /stuff/stuff/stuff/serviceName.wsdl or
                 # /stuff/stuff/stuff/serviceName/?WSDL
                 #
-                serviceName = serviceName.split('.')[0]
-                if address_url:
-                    url = address_url
-                else:
-                    url = reconstruct_url(http_request_env).split('.wsdl')[0]
+                service_name = service_name.split('.')[0]
 
                 start_response('200 OK', http_resp_headers.items())
                 try:
