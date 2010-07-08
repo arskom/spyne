@@ -242,7 +242,8 @@ class WSGIApp(object):
             # only expect a single element
             results_soap = None
             if not (descriptor.is_async or descriptor.is_callback):
-                results_soap = descriptor.out_message.to_xml(result_message, service.get_tns())
+                results_soap = descriptor.out_message.to_xml(result_message,
+                                                              service.get_tns())
 
             # implementation hook
             self.on_results(http_request_env, result_raw, results_soap,
@@ -321,7 +322,6 @@ class WSGIApp(object):
             # initiate the response
             start_response('500 Internal Server Error',http_resp_headers.items())
             return [fault_str]
-
 
 class SimpleWSGIApp(WSGIApp, ServiceBase):
     '''
