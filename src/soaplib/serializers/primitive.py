@@ -383,8 +383,6 @@ class Array(SimpleType):
             sequence = etree.SubElement(complex_type,'{%s}sequence' % _ns_xs)
 
             element = etree.SubElement(sequence, '{%s}element' % _ns_xs)
-            element.set('minOccurs', str(cls.min_occurs))
-            element.set('maxOccurs', str(cls.max_occurs))
             element.set('name', cls.serializer.get_type_name())
             element.set('type', cls.serializer.get_type_name_ns())
 
