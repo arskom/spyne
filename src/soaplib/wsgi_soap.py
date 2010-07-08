@@ -20,17 +20,15 @@
 import logging
 import traceback
 
-from soaplib.soap import apply_mtom
-from soaplib.soap import collapse_swa
-from soaplib.soap import from_soap
-
 from lxml import etree
 
 from soaplib.serializers.exception import Fault
 from soaplib.serializers.primitive import string_encoding
 from soaplib.service import ServiceBase
+
 from soaplib.soap import apply_mtom
 from soaplib.soap import collapse_swa
+from soaplib.soap import from_soap
 from soaplib.soap import make_soap_envelope
 from soaplib.soap import make_soap_fault
 from soaplib.util import reconstruct_url
