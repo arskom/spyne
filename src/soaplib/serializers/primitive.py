@@ -137,7 +137,7 @@ class AnyAsDict(Any):
 
 class String(SimpleType):
     min_len = 0
-    max_len = float('inf')
+    max_len = "unbounded"
     pattern = None
 
     def __new__(cls, *args, **kwargs):
@@ -175,12 +175,12 @@ class String(SimpleType):
                     min_length = etree.SubElement(restriction, '{%s}minLength' % _ns_xs)
                     min_length.set('value', str(cls.min_len))
 
-                if cls.max_len != String.min_len:
+                if cls.max_len != String.max_len:
                     max_length = etree.SubElement(restriction, '{%s}maxLength' % _ns_xs)
                     max_length.set('value', str(cls.max_len))
 
             # pattern
-            if cls.min_len != String.min_len:
+            if cls.pattern != String.pattern:
                 pattern = etree.SubElement(restriction, '{%s}pattern' % _ns_xs)
                 pattern.set('value', cls.pattern)
 
