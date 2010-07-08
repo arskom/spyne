@@ -64,10 +64,11 @@ class ExtensionClass(NestedClass):
 
 class NonNillableClass(ClassSerializer):
     nillable = False
+    min_occurs = 1
 
-    d = DateTime(nillable=False)
+    d = DateTime(min_occurs=1, nillable=False)
     i = Integer(nillable=False)
-    s = String(nillable=False)
+    s = String(min_len=1, nillable=False)
 
 DaysOfWeekEnum = Enum(
     'Monday',
@@ -173,7 +174,7 @@ class InteropService(ValidatingWsgiSoapApp):
         return "OK"
 
     @rpc(String, _returns=String,
-                        _public_name="http://sample.org/webservices/doSomething")
+                       _public_name="http://sample.org/webservices/doSomething")
     def do_something_else(self, s):
         return s
 

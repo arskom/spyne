@@ -19,7 +19,10 @@
 
 import unittest
 
+from datetime import datetime
+
 from suds.client import Client
+from suds import WebFault
 
 class TestSuds(unittest.TestCase):
     def setUp(self):
@@ -35,10 +38,14 @@ class TestSuds(unittest.TestCase):
 
     def test_validation(self):
         non_nillable_class = self.client.factory.create("NonNillableClass")
+        non_nillable_class.i = 6
+        non_nillable_class.s = None
 
-        ret = self.client.service.test_validation(non_nillable_class)
-
-        assert val == ret
+        try:
+            ret = self.client.service.non_nillable(non_nillable_class)
+            raise Exception("must fail")
+        except WebFault, e:
+            pass
 
 def suite():
     loader = unittest.TestLoader()
