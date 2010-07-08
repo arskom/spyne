@@ -21,14 +21,16 @@
 from soaplib.serializers.binary import Attachment
 from soaplib.serializers.clazz import ClassSerializer
 from soaplib.serializers.enum import Enum
+
 from soaplib.serializers.primitive import Array
 from soaplib.serializers.primitive import Boolean
 from soaplib.serializers.primitive import DateTime
 from soaplib.serializers.primitive import Float
 from soaplib.serializers.primitive import Integer
 from soaplib.serializers.primitive import String
+
 from soaplib.service import rpc
-from soaplib.wsgi_soap import SimpleWSGIApp
+from soaplib.wsgi import ValidatingSimpleWSGISoapApp
 
 class SimpleClass(ClassSerializer):
     i = Integer
@@ -51,6 +53,13 @@ class ExtensionClass(NestedClass):
     l = DateTime
     q = Integer
 
+class NonNillableClass(ClassSerializer):
+    nillable = False
+
+    d = DateTime(nillable=False)
+    i = Integer(nillable=False)
+    s = String(nillable=False)
+
 DaysOfWeekEnum = Enum(
     'Monday',
     'Tuesday',
@@ -61,98 +70,102 @@ DaysOfWeekEnum = Enum(
     type_name = 'DaysOfWeekEnum'
 )
 
-class InteropService(SimpleWSGIApp):
+class InteropService(ValidatingSimpleWSGISoapApp):
     @rpc(Integer, _returns=Integer)
-    def echoInteger(self, i):
+    def echo_integer(self, i):
         return i
 
     @rpc(String, _returns=String)
-    def echoString(self, s):
+    def echo_string(self, s):
         return s
 
     @rpc(DateTime, _returns=DateTime)
-    def echoDateTime(self, dt):
+    def echo_datetime(self, dt):
         return dt
 
     @rpc(Float, _returns=Float)
-    def echoFloat(self, f):
+    def echo_float(self, f):
         return f
 
     @rpc(Boolean, _returns=Boolean)
-    def echoBoolean(self, b):
+    def echo_boolean(self, b):
         return b
 
     @rpc(DaysOfWeekEnum, _returns=DaysOfWeekEnum)
-    def echoEnum(self, day):
+    def echo_enum(self, day):
         return day
 
     # lists of primitives
 
     @rpc(Array(Integer), _returns=Array(Integer))
-    def echoIntegerArray(self, ia):
+    def echo_integer_array(self, ia):
         return ia
 
     @rpc(Array(String), _returns=Array(String))
-    def echoStringArray(self, sa):
+    def echo_string_array(self, sa):
         return sa
 
     @rpc(Array(DateTime), _returns=Array(DateTime))
-    def echoDateTimeArray(self, dta):
+    def echo_date_time_array(self, dta):
         return dta
 
     @rpc(Array(Float), _returns=Array(Float))
-    def echoFloatArray(self, fa):
+    def echo_float_array(self, fa):
         return fa
 
     @rpc(Array(Boolean), _returns=Array(Boolean))
-    def echoBooleanArray(self, ba):
+    def echo_boolean_array(self, ba):
         return ba
 
     # classses
 
     @rpc(SimpleClass, _returns=SimpleClass)
-    def echoSimpleClass(self, sc):
+    def echo_simple_class(self, sc):
         return sc
 
     @rpc(Array(SimpleClass), _returns=Array(SimpleClass))
-    def echoSimpleClassArray(self, sca):
+    def echo_simple_class_array(self, sca):
         return sca
 
     @rpc(NestedClass, _returns=NestedClass)
-    def echoNestedClass(self, nc):
+    def echo_nested_class(self, nc):
         return nc
 
     @rpc(ExtensionClass, _returns=ExtensionClass)
-    def echoExtensionClass(self, nc):
+    def echo_extension_class(self, nc):
         return nc
 
     @rpc(Array(NestedClass), _returns=Array(NestedClass))
-    def echoNestedClassArray(self, nca):
+    def echo_nested_class_array(self, nca):
         return nca
 
     @rpc(Attachment, _returns=Attachment)
-    def echoAttachment(self, a):
+    def echo_attachment(self, a):
         return a
 
     @rpc(Array(Attachment), _returns=Array(Attachment))
-    def echoAttachmentArray(self, aa):
+    def echo_attachment_array(self, aa):
         return aa
 
     @rpc()
-    def testEmpty(self):
+    def test_empty(self):
         pass
 
     @rpc(String, Integer, DateTime)
-    def multiParam(self, s, i, dt):
+    def multi_param(self, s, i, dt):
         pass
 
     @rpc(_returns=String)
-    def returnOnly(self):
+    def return_only(self):
         return 'howdy'
+
+    @rpc(NonNillableClass, _returns=String)
+    def non_nillable(n):
+        return "OK"
 
     @rpc(String, _returns=String,
                         _public_name="http://sample.org/webservices/doSomething")
-    def doSomethingElse(self, s):
+    def do_something_else(self, s):
         return s
 
 if __name__ == '__main__':

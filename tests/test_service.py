@@ -32,7 +32,7 @@ from soaplib.serializers.primitive import String
 from soaplib.service import ServiceBase
 from soaplib.service import rpc
 
-from soaplib.wsgi_soap import SimpleWSGIApp
+from soaplib.wsgi import SimpleWSGIApp
 
 class Address(ClassSerializer):
     __namespace__ = "TestService"

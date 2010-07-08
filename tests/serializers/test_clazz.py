@@ -28,6 +28,8 @@ from soaplib.serializers.primitive import Float
 from soaplib.serializers.primitive import Integer
 from soaplib.serializers.primitive import String
 
+ns_test = 'test_namespace'
+
 class Address(ClassSerializer):
     street = String
     city = String
@@ -85,7 +87,7 @@ class TestClassSerializer(unittest.TestCase):
         a.lattitude = 4.3
         a.longitude = 88.0
 
-        element = Address.to_xml(a)
+        element = Address.to_xml(a, ns_test)
         self.assertEquals(6, len(element.getchildren()))
 
         r = Address.from_xml(element)
@@ -99,7 +101,7 @@ class TestClassSerializer(unittest.TestCase):
 
     def test_nested_class(self): # FIXME: this test is incomplete
         p = Person()
-        element = Person.to_xml(p)
+        element = Person.to_xml(p, ns_test)
 
         self.assertEquals(None, p.name)
         self.assertEquals(None, p.birthdate)
@@ -119,7 +121,7 @@ class TestClassSerializer(unittest.TestCase):
         serializer = Array(Person)
         serializer.resolve_namespace(__name__)
 
-        element = serializer.to_xml(peeps)
+        element = serializer.to_xml(peeps, ns_test)
 
         self.assertEquals(4, len(element.getchildren()))
 
@@ -149,7 +151,7 @@ class TestClassSerializer(unittest.TestCase):
 
         serializer = Array(Person)
         serializer.resolve_namespace(__name__)
-        element = serializer.to_xml(peeps)
+        element = serializer.to_xml(peeps, ns_test)
 
         self.assertEquals(4, len(element.getchildren()))
 
@@ -177,7 +179,7 @@ class TestClassSerializer(unittest.TestCase):
             a.arg1 = str(i)
             l.level4.append(a)
 
-        element = Level1.to_xml(l)
+        element = Level1.to_xml(l, ns_test)
         l1 = Level1.from_xml(element)
 
         self.assertEquals(l1.level2.arg1, l.level2.arg1)

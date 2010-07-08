@@ -29,7 +29,14 @@ class TestSuds(unittest.TestCase):
         DaysOfWeekEnum = self.client.factory.create("DaysOfWeekEnum")
 
         val = DaysOfWeekEnum.Monday
-        ret = self.client.service.echoEnum(val)
+        ret = self.client.service.echo_enum(val)
+
+        assert val == ret
+
+    def test_validation(self):
+        non_nillable_class = self.client.factory.create("NonNillableClass")
+
+        ret = self.client.service.test_validation(non_nillable_class)
 
         assert val == ret
 

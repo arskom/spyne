@@ -51,7 +51,7 @@ class TestEnum(unittest.TestCase):
     def test_serialize(self):
         mo = DaysOfWeekEnum.Monday
 
-        elt = DaysOfWeekEnum.to_xml(mo)
+        elt = DaysOfWeekEnum.to_xml(mo,'test_namespace')
 
         raise Exception("test something!")
 

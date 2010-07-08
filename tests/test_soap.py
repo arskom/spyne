@@ -56,14 +56,15 @@ class TestSoap(unittest.TestCase):
             type_name='myMessage',
             members={'s': String, 'i': Integer}
         )
-
+        m.resolve_namespace('test')
+        
         m_inst = m(s="a", i=43)
-        e = m.to_xml(m_inst)
+        e = m.to_xml(m_inst,m.get_namespace())
 
         self.assertEquals(e.tag, '{%s}myMessage' % m.get_namespace())
 
-        self.assertEquals(e.find('s').text, 'a')
-        self.assertEquals(e.find('i').text, '43')
+        self.assertEquals(e.find('{%s}s' % m.get_namespace()).text, 'a')
+        self.assertEquals(e.find('{%s}i' % m.get_namespace()).text, '43')
 
         values = m.from_xml(e)
 
@@ -113,7 +114,7 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
         mi = m()
         mi.s = 'a'
 
-        e = m.to_xml(mi)
+        e = m.to_xml(mi,m.get_namespace())
         self.assertEquals(e.tag, '{some_namespace}myMessage')
 
     def test_class_to_xml(self):
@@ -130,14 +131,14 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
         m.p.age = 2
         m.p.addresses = []
 
-        element = m.to_xml(m)
+        element = m.to_xml(m,m.get_namespace())
 
         self.assertEquals(element.tag, '{%s}myMessage' % m.get_namespace())
-        self.assertEquals(element.getchildren()[0].find('name').text,
+        self.assertEquals(element.getchildren()[0].find('{%s}name' % m.get_namespace()).text,
             'steve-o')
-        self.assertEquals(element.getchildren()[0].find('age').text, '2')
+        self.assertEquals(element.getchildren()[0].find('{%s}age' % m.get_namespace()).text, '2')
         self.assertEquals(
-            len(element.getchildren()[0].find('addresses').getchildren()), 0)
+            len(element.getchildren()[0].find('{%s}addresses' % m.get_namespace()).getchildren()), 0)
 
         p1 = m.from_xml(element)[0]
 
@@ -159,7 +160,7 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
         p.age = 2
         p.addresses = []
 
-        for i in range(0, 1000):
+        for i in range(0, 100):
             a = Address()
             a.street = '123 happy way'
             a.zip = i
@@ -169,13 +170,13 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
 
         m_inst = m(p=p)
 
-        element = m.to_xml(m_inst)
-
+        element = m.to_xml(m_inst,m.get_namespace())
+        print etree.tostring(element, pretty_print=True)
         self.assertEquals('{%s}myMessage' % m.get_namespace(), element.tag)
 
-        addresses = element.getchildren()[0].find('addresses').getchildren()
-        self.assertEquals(1000, len(addresses))
-        self.assertEquals('0', addresses[0].find('zip').text)
+        addresses = element.getchildren()[0].find('{%s}addresses' % m.get_namespace()).getchildren()
+        self.assertEquals(100, len(addresses))
+        self.assertEquals('0', addresses[0].find('{%s}zip' % m.get_namespace()).text)
 
     def test_soap_envelope(self):
         m = Message.produce(
@@ -183,7 +184,7 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
             type_name='myMessage',
             members={'p': Person}
         )
-        env = make_soap_envelope(m.to_xml(Person()))
+        env = make_soap_envelope(m.to_xml(Person(),m.get_namespace()))
 
         self.assertTrue(env.tag.endswith('Envelope'))
         self.assertTrue(env.getchildren()[0].tag.endswith('Body'))
@@ -193,7 +194,7 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
             type_name='myMessage',
             members={'p': Person}
         )
-        env = make_soap_envelope(m.to_xml(Person()),
+        env = make_soap_envelope(m.to_xml(Person(),m.get_namespace()),
             header_elements=[etree.Element('header1'), etree.Element('header2')])
 
         env = etree.fromstring(etree.tostring(env))
@@ -203,7 +204,9 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
         self.assertTrue(env.getchildren()[1].tag.endswith('Body'))
 
     def test_soap_fault(self):
-        fault = make_soap_fault('something happened')
+        ns_test = "test_namespace"
+        
+        fault = make_soap_fault(ns_test, 'something happened')
         fault = etree.fromstring(etree.tostring(fault))
 
         self.assertTrue(fault.getchildren()[0].tag.endswith, 'Body')
@@ -211,19 +214,18 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
             fault.getchildren()[0].getchildren()[0].tag.endswith('Fault'))
         f = fault.getchildren()[0].getchildren()[0]
 
-        self.assertEquals(f.find('faultstring').text, 'something happened')
-        self.assertEquals(f.find('faultcode').text, 'Server')
-        self.assertEquals(f.find('detail').text, None)
+        print etree.tostring(f,pretty_print=True)
 
-        fault = make_soap_fault('something happened', 'DatabaseError',
-            'error on line 12')
+        self.assertEquals(f.find('{%s}faultstring' % ns_test).text, 'something happened')
+        self.assertEquals(f.find('{%s}faultcode' % ns_test).text, 'Server')
+        self.assertEquals(f.find('{%s}detail' % ns_test).text, None)
 
-        fault = etree.fromstring(etree.tostring(fault))
+        fault = make_soap_fault(ns_test, 'something happened', 'DatabaseError', 'error on line 12')
 
         f = fault.getchildren()[0].getchildren()[0]
-        self.assertEquals(f.find('faultstring').text, 'something happened')
-        self.assertEquals(f.find('faultcode').text, 'DatabaseError')
-        self.assertEquals(f.find('detail').text, 'error on line 12')
+        self.assertEquals(f.find('{%s}faultstring' % ns_test).text, 'something happened')
+        self.assertEquals(f.find('{%s}faultcode' % ns_test).text, 'DatabaseError')
+        self.assertEquals(f.find('{%s}detail' % ns_test).text, 'error on line 12')
 
 def suite():
     loader = unittest.TestLoader()

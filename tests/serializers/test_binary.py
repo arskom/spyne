@@ -26,6 +26,8 @@ from tempfile import mkstemp
 import soaplib
 from soaplib.serializers.binary import Attachment
 
+ns_test = 'test_namespace'
+
 class TestBinary(unittest.TestCase):
     def setUp(self):
         os.mkdir('binaryDir')
@@ -47,7 +49,7 @@ class TestBinary(unittest.TestCase):
         f.close()
         a = Attachment()
         a.data = data
-        element = Attachment.to_xml(a)
+        element = Attachment.to_xml(a, ns_test)
         encoded_data = base64.encodestring(data)
         self.assertNotEquals(element.text, None)
         self.assertEquals(element.text, encoded_data)
@@ -58,7 +60,7 @@ class TestBinary(unittest.TestCase):
         f = open(self.tmpfile, 'rb')
         data = f.read()
         f.close()
-        element = Attachment.to_xml(a)
+        element = Attachment.to_xml(a, ns_test)
         encoded_data = base64.encodestring(data)
         self.assertNotEquals(element.text, None)
         self.assertEquals(element.text, encoded_data)
@@ -66,7 +68,7 @@ class TestBinary(unittest.TestCase):
     def test_to_from_xml_file(self):
         a = Attachment()
         a.file_name = self.tmpfile
-        element = Attachment.to_xml(a)
+        element = Attachment.to_xml(a, ns_test)
 
         data = Attachment.from_xml(element).data
 
@@ -78,7 +80,7 @@ class TestBinary(unittest.TestCase):
 
     def test_exception(self):
         try:
-            Attachment.to_xml(Attachment())
+            Attachment.to_xml(Attachment(), ns_test)
         except:
             self.assertTrue(True)
         else:
@@ -91,7 +93,7 @@ class TestBinary(unittest.TestCase):
 
         a = Attachment()
         a.data = data
-        element = Attachment.to_xml(a)
+        element = Attachment.to_xml(a, ns_test)
         a2 = Attachment.from_xml(element)
 
         self.assertEquals(data, a2.data)
