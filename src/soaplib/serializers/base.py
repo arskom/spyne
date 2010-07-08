@@ -32,7 +32,7 @@ def nillable_value(func):
 
 def nillable_element(func):
     def wrapper(cls, element):
-        if bool(element.get('{%s}nil' % _ns_xs)):
+        if bool(element.get('{%s}nil' % soaplib.ns_xsi)):
             #element.text is None and len(element.getchildren()) == 0:
             return None
         return func(cls, element)
@@ -44,7 +44,7 @@ def string_to_xml(cls, value, tns, name):
 
     retval = etree.Element("{%s}%s" % (tns,name))
 
-    retval.set('{%s}type' % soaplib.nsmap['xsi'], cls.get_type_name_ns())
+    retval.set('{%s}type' % soaplib.ns_xsi, cls.get_type_name_ns())
     retval.text = value
 
     return retval
@@ -129,7 +129,7 @@ class Null(Base):
     @classmethod
     def to_xml(cls, value, tns, name='retval'):
         element = etree.Element("{%s}%s" % (tns,name))
-        element.set('{%s}nil' % _ns_xs, '1')
+        element.set('{%s}nil' % soaplib.ns_xsi, '1')
         return element
 
     @classmethod
