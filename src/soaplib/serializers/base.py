@@ -32,8 +32,7 @@ def nillable_value(func):
 
 def nillable_element(func):
     def wrapper(cls, element):
-        if bool(element.get('{%s}nil' % soaplib.ns_xsi)):
-            #element.text is None and len(element.getchildren()) == 0:
+        if bool(element.get('{%s}nil' % soaplib.ns_xsi)): # or (element.text is None and len(element.getchildren()) == 0):
             return None
         return func(cls, element)
     return wrapper
