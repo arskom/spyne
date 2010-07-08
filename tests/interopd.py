@@ -160,7 +160,7 @@ class InteropService(ValidatingWsgiSoapApp):
         return 'howdy'
 
     @rpc(NonNillableClass, _returns=String)
-    def non_nillable(n):
+    def non_nillable(self, n):
         return "OK"
 
     @rpc(String, _returns=String,
