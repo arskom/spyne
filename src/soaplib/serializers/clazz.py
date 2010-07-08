@@ -278,7 +278,8 @@ class ClassSerializerBase(NonExtendingClass, Base):
 
                 member = etree.SubElement(sequence, '{%s}element' % _ns_xs)
                 member.set('name', k)
-                member.set('minOccurs', '0')
+                member.set('minOccurs', str(cls.min_occurs))
+                member.set('maxOccurs', str(cls.max_occurs))
                 member.set('type', v.get_type_name_ns())
                 if bool(v.nillable) == True:
                     member.set('nillable', 'true')

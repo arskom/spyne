@@ -53,6 +53,8 @@ class Base(object):
     __type_name__ = None
 
     nillable = True
+    min_occurs = 0
+    max_occurs = 1 # use "unbounded" for infinity
 
     class Empty(object):
         pass
