@@ -193,8 +193,7 @@ class _SchemaEntries(object):
         schema_info.elements[cls.get_type_name()] = node
 
     def add_simple_type(self, cls, node):
-        namespace_prefix = soaplib.get_namespace_prefix(self.tns)
-        schema_info = self.get_schema_info(namespace_prefix)
+        schema_info = self.get_schema_info(cls.get_namespace_prefix())
         schema_info.types[cls.get_type_name()] = node
 
     def add_complex_type(self, cls, node):
