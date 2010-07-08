@@ -54,7 +54,7 @@ class Base(object):
 
     nillable = True
     min_occurs = 0
-    max_occurs = 1 # use "unbounded" for infinity
+    max_occurs = 1
 
     class Empty(object):
         pass
