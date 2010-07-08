@@ -134,6 +134,7 @@ class Null(Base):
     def to_xml(cls, value, tns, name='retval'):
         element = etree.Element("{%s}%s" % (tns,name))
         element.set('{%s}nil' % soaplib.ns_xsi, 'true')
+
         return element
 
     @classmethod
