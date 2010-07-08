@@ -67,10 +67,11 @@ class WsgiApp(object):
         '''
         pass
 
-    def on_method_exec(self, environ, py_params, soap_params):
+    def on_method_exec(self, environ, method_name, py_params, soap_params):
         '''
         Called BEFORE the service implementing the functionality is called
         @param the wsgi environment
+        @param the method name
         @param the body element of the soap request
         @param the tuple of python params being passed to the method
         @param the soap elements for each params
@@ -126,7 +127,7 @@ class WsgiApp(object):
         @param a callable that begins the response message
         @returns the string representation of the soap call
         '''
-        methodname = ''
+        method_name = ''
         http_resp_headers = {'Content-Type': 'text/xml'}
         soap_response_headers = []
 
@@ -192,33 +193,35 @@ class WsgiApp(object):
             length = http_request_env.get("CONTENT_LENGTH")
             body = input.read(int(length))
 
-            methodname = http_request_env.get("HTTP_SOAPACTION")
-
-            if not (methodname is None):
-                logging.debug('\033[92m'+ methodname +'\033[0m')
-            logging.debug(body)
-
             body = collapse_swa(http_request_env.get("CONTENT_TYPE"), body)
 
             # deserialize the body of the message
             request_payload, request_header = from_soap(body)
 
             if request_payload is not None and len(request_payload) > 0:
-                methodname = request_payload.tag
+                method_name = request_payload.tag
             else:
                 # check HTTP_SOAPACTION
-                methodname = http_request_env.get("HTTP_SOAPACTION")
-                if methodname.startswith('"') and methodname.endswith('"'):
-                    methodname = methodname[1:-1]
-                if methodname.find('/') >0:
-                    methodname = methodname.split('/')[1]
+                method_name = http_request_env.get("HTTP_SOAPACTION")
+                if method_name.startswith('"') and method_name.endswith('"'):
+                    method_name = method_name[1:-1]
+                if method_name.find('/') >0:
+                    method_name = method_name.split('/')[1]
+
+            if not (method_name is None):
+                logger.debug('\033[92m'+ method_name +'\033[0m')
+            logger.debug(body)
 
             # retrieve the method descriptor
-            descriptor = service.get_method(methodname)
+            descriptor = service.get_method(method_name)
             func = getattr(service, descriptor.name)
 
             if self.validating_service:
-                self.validation_schema.assert_(request_payload)
+                ret = self.validation_schema.validate(request_payload)
+                logger.debug("validation result: %s" % str(ret))
+                if ret == False:
+                    raise Exception("Validation error: %s" %
+                                    self.validation_schema.error_log.last_error)
 
             if request_payload is not None and len(request_payload) > 0:
                 params = descriptor.in_message.from_xml(*[request_payload])
@@ -226,7 +229,7 @@ class WsgiApp(object):
                 params = ()
 
             # implementation hook
-            self.on_method_exec(http_request_env, params, body)
+            self.on_method_exec(http_request_env, method_name, params, body)
 
             # call the method
             result_raw = func(*params)
@@ -304,8 +307,8 @@ class WsgiApp(object):
 
             faultstring = str(e)
 
-            if methodname:
-                faultcode = '%sFault' % methodname
+            if method_name:
+                faultcode = '%sFault' % method_name
             else:
                 faultcode = 'Server'
 
