@@ -282,6 +282,8 @@ class ClassSerializerBase(NonExtendingClass, Base):
                 member.set('type', v.get_type_name_ns())
                 if bool(v.nillable) == True:
                     member.set('nillable', 'true')
+                else:
+                    member.set('nillable', 'false')
 
             schema_entries.add_complex_type(cls, complex_type)
 
