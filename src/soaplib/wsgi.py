@@ -33,7 +33,7 @@ from soaplib.soap import make_soap_envelope
 from soaplib.soap import make_soap_fault
 from soaplib.util import reconstruct_url
 
-class WSGIApp(object):
+class WsgiApp(object):
     '''
     This is the base object representing a soap web application, and conforms
     to the WSGI specification (PEP 333).  This object should be overridden
@@ -323,7 +323,7 @@ class WSGIApp(object):
             start_response('500 Internal Server Error',http_resp_headers.items())
             return [fault_str]
 
-class SimpleWSGIApp(WSGIApp, ServiceBase):
+class SimpleWsgiApp(WsgiApp, ServiceBase):
     '''
     This object is a VERY simple extention of the base WSGIApp.
     It subclasses both WSGIApp, and ServiceBase, so that
@@ -335,13 +335,13 @@ class SimpleWSGIApp(WSGIApp, ServiceBase):
     '''
 
     def __init__(self):
-        WSGIApp.__init__(self)
+        WsgiApp.__init__(self)
         ServiceBase.__init__(self)
 
     def get_handler(self, environ):
         return self
 
-class ValidatingWSGISoapApp(SimpleWSGIApp):
+class ValidatingWsgiSoapApp(SimpleWsgiApp):
     def __init__(self):
-        SimpleWSGIApp.__init__(self)
+        SimpleWsgiApp.__init__(self)
         self.validating_service = True

@@ -30,7 +30,7 @@ from soaplib.serializers.primitive import Integer
 from soaplib.serializers.primitive import String
 
 from soaplib.service import rpc
-from soaplib.wsgi import ValidatingSimpleWSGISoapApp
+from soaplib.wsgi import ValidatingWsgiSoapApp
 
 class SimpleClass(ClassSerializer):
     i = Integer
@@ -70,7 +70,7 @@ DaysOfWeekEnum = Enum(
     type_name = 'DaysOfWeekEnum'
 )
 
-class InteropService(ValidatingSimpleWSGISoapApp):
+class InteropService(ValidatingWsgiSoapApp):
     @rpc(Integer, _returns=Integer)
     def echo_integer(self, i):
         return i

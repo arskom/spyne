@@ -32,7 +32,7 @@ from soaplib.serializers.primitive import String
 from soaplib.service import ServiceBase
 from soaplib.service import rpc
 
-from soaplib.wsgi import SimpleWSGIApp
+from soaplib.wsgi import SimpleWsgiApp
 
 class Address(ClassSerializer):
     __namespace__ = "TestService"
@@ -120,7 +120,7 @@ class MultipleReturnService(ServiceBase):
     def multi(self, s):
         return s, 'a', 'b'
 
-class OverrideNamespaceService(SimpleWSGIApp):
+class OverrideNamespaceService(SimpleWsgiApp):
     __tns__ = "http://someservice.com/override"
 
     @rpc(String, _returns=String)
