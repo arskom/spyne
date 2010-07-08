@@ -52,6 +52,9 @@ def string_to_xml(cls, value, tns, name):
 class Base(object):
     __namespace__ = None
     __type_name__ = None
+
+    nillable = True
+
     class Empty(object):
         pass
 

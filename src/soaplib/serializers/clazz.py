@@ -280,6 +280,8 @@ class ClassSerializerBase(NonExtendingClass, Base):
                 member.set('name', k)
                 member.set('minOccurs', '0')
                 member.set('type', v.get_type_name_ns())
+                if bool(v.nillable) == True:
+                    member.set('nillable', 'true')
 
             schema_entries.add_complex_type(cls, complex_type)
 
