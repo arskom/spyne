@@ -20,7 +20,7 @@
 # namespace map
 
 ns_xsd = 'http://www.w3.org/2001/XMLSchema'
-ns_xsi = 'http://www.w3.org/1999/XMLSchema-instance'
+ns_xsi = 'http://www.w3.org/2001/XMLSchema-instance'
 ns_plink = 'http://schemas.xmlsoap.org/ws/2003/05/partner-link/'
 ns_soap = 'http://schemas.xmlsoap.org/wsdl/soap/'
 ns_wsdl = 'http://schemas.xmlsoap.org/wsdl/'
