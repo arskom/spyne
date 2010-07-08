@@ -319,16 +319,9 @@ class Array(SimpleType):
     def __new__(cls, serializer, **kwargs):
         retval = cls.customize(**kwargs)
 
-        retval.min_occurs = 0
-        retval.max_occurs = "unbounded"
         retval.serializer = serializer
 
         retval.__type_name__ = '%sArray' % retval.serializer.get_type_name()
-
-        if "min_occurs" in kwargs:
-            retval.min_occurs = kwargs['min_occurs']
-        if "max_occurs" in kwargs:
-            retval.min_occurs = kwargs['max_occurs']
 
         return retval
 
