@@ -176,7 +176,7 @@ class String(SimpleType):
                     min_length.set('value', str(cls.min_len))
 
                 if cls.max_len != String.min_len:
-                    max_length = etree.SubElement(restriction, '{%s}minLength' % _ns_xs)
+                    max_length = etree.SubElement(restriction, '{%s}maxLength' % _ns_xs)
                     max_length.set('value', str(cls.max_len))
 
             # pattern
