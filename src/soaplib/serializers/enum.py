@@ -13,6 +13,8 @@ _ns_xs = soaplib.nsmap['xs']
 # adapted from: http://code.activestate.com/recipes/413486/
 
 class EnumBase(SimpleType):
+    __namespace__ = None
+    
     @classmethod
     @nillable_value
     def to_xml(cls, value, tns, name=None):
