@@ -18,6 +18,8 @@
 #
 
 import logging
+logger = logging.getLogger('soaplib')
+
 import traceback
 
 from lxml import etree
@@ -168,11 +170,11 @@ class WsgiApp(object):
 
                 except Exception, e:
                     # implementation hook
-                    logging.error(traceback.format_exc())
+                    logger.error(traceback.format_exc())
 
                     fault_str = etree.tostring(make_soap_fault(str(e),
                            self.get_tns(), detail=""), encoding=string_encoding)
-                    logging.debug(fault_str)
+                    logger.debug(fault_str)
 
                     self.on_wsdl_exception(http_request_env, e, fault_str)
 
@@ -266,8 +268,8 @@ class WsgiApp(object):
             # initiate the response
             start_response('200 OK', http_resp_headers.items())
 
-            logging.debug('\033[91m'+ "Response" + '\033[0m')
-            logging.debug(etree.tostring(envelope, pretty_print=True))
+            logger.debug('\033[91m'+ "Response" + '\033[0m')
+            logger.debug(etree.tostring(envelope, pretty_print=True))
 
             # return the serialized results
             return [results_str]
@@ -284,7 +286,7 @@ class WsgiApp(object):
                 header_elements=soap_response_headers)
 
             fault_str = etree.tostring(fault, encoding=string_encoding)
-            logging.error(fault_str)
+            logger.error(fault_str)
 
             self.on_exception(http_request_env, http_resp_headers, e, fault_str)
 
@@ -313,12 +315,12 @@ class WsgiApp(object):
                 faultcode = 'Server'
 
             detail = ' '
-            logging.error(stacktrace)
+            logger.error(stacktrace)
 
             fault_str = etree.tostring(make_soap_fault(service.get_tns(),
                 faultstring,
                 faultcode, detail), encoding=string_encoding)
-            logging.debug(fault_str)
+            logger.debug(fault_str)
 
             self.on_exception(http_request_env, e, fault_str)
 
