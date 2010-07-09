@@ -242,6 +242,10 @@ class ClassSerializerBase(NonExtendingClass, Base):
 
     @classmethod
     def resolve_namespace(cls, default_ns):
+        if getattr(cls, '__extends__', None) != None:
+            cls.__extends__.resolve_namespace(default_ns)
+            default_ns = cls.get_namespace()
+
         if cls.__namespace__ is None:
             cls.__namespace__ = cls.__module__
 
