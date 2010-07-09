@@ -114,16 +114,7 @@ class Base(object):
     def customize(cls, **kwargs):
         """
         This function duplicates and customizes the class it belongs to. The
-        original class remains intact. The implementation seems to be a hack,
-        advice to better write this function is welcome.
-
-        An example where this is useful:
-            Array(String) normally creates an instance of Array class. This is
-            inconsistent with the rest of the type definitions (e.g. String)
-            being classes and not instances.
-
-            Thanks to this function, one will get a new Array class instead,
-            with its serializer set to String.
+        original class remains unchanged.
         """
 
         cls_dict = {}
