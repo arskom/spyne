@@ -23,8 +23,6 @@ import unittest
 from lxml import etree
 
 import soaplib
-_ns_xs = soaplib.nsmap['xs']
-_ns_xsi = soaplib.nsmap['xsi']
 
 from soaplib.serializers.primitive import Array
 from soaplib.serializers.primitive import Boolean
@@ -78,7 +76,7 @@ class TestPrimitive(unittest.TestCase):
         integer = Integer()
         element = Integer.to_xml(i, ns_test)
         self.assertEquals(element.text, '12')
-        self.assertEquals('xs:integer', element.get('{%s}type' % _ns_xsi))
+        self.assertEquals('xs:integer', element.get('{%s}type' % soaplib.ns_xsi))
         value = integer.from_xml(element)
         self.assertEquals(value, i)
 
@@ -87,7 +85,7 @@ class TestPrimitive(unittest.TestCase):
         integer = Integer()
         element = Integer.to_xml(i, ns_test)
         self.assertEquals(element.text, '128375873458473')
-        self.assertEquals('xs:integer', element.get('{%s}type' % _ns_xsi))
+        self.assertEquals('xs:integer', element.get('{%s}type' % soaplib.ns_xsi))
         value = integer.from_xml(element)
         self.assertEquals(value, i)
 
@@ -96,7 +94,7 @@ class TestPrimitive(unittest.TestCase):
 
         element = Float.to_xml(f, ns_test)
         self.assertEquals(element.text, '1.22255645')
-        self.assertEquals('xs:float', element.get('{%s}type' % _ns_xsi))
+        self.assertEquals('xs:float', element.get('{%s}type' % soaplib.ns_xsi))
 
         f2 = Float.from_xml(element)
         self.assertEquals(f2, f)
@@ -158,10 +156,10 @@ class TestPrimitive(unittest.TestCase):
         self.assertEquals(b, False)
 
         b = Boolean.to_xml(False, ns_test)
-        self.assertEquals('xs:boolean', b.get('{%s}type' % _ns_xsi))
+        self.assertEquals('xs:boolean', b.get('{%s}type' % soaplib.ns_xsi))
 
         b = Boolean.to_xml(None, ns_test)
-        self.assertEquals('true', b.get('{%s}nil' % _ns_xsi))
+        self.assertEquals('true', b.get('{%s}nil' % soaplib.ns_xsi))
 
         b = Boolean.from_xml(b)
         self.assertEquals(b, None)
