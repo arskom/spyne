@@ -187,6 +187,39 @@ class TestClassSerializer(unittest.TestCase):
         self.assertEquals(len(l1.level4), len(l.level4))
         self.assertEquals(100, len(l.level3))
 
+    def test_customize(self):
+        class Base(ClassSerializer):
+            prop1=3
+            prop2=6
+
+        Base2 = Base.customize(prop1=4)
+
+        self.assertNotEquals(Base.prop1, Base2.prop1)
+        self.assertEquals(Base.prop2, Base2.prop2)
+
+        class Derived(Base):
+            prop3 = 9
+            prop4 = 12
+
+        Derived2 = Derived.customize(prop1=5, prop3=12)
+
+        self.assertEquals(Base.prop1, 3)
+        self.assertEquals(Base2.prop1, 4)
+
+        self.assertEquals(Derived.prop1, 3)
+        self.assertEquals(Derived2.prop1, 5)
+
+        self.assertNotEquals(Derived.prop3, Derived2.prop3)
+        self.assertEquals(Derived.prop4, Derived2.prop4)
+
+        Derived3 = Derived.customize(prop3=12)
+        Base.prop1 = 4
+
+        # changes made to bases propagate, unless overridden
+        self.assertEquals(Derived.prop1, Base.prop1)
+        self.assertNotEquals(Derived2.prop1, Base.prop1)
+        self.assertEquals(Derived3.prop1, Base.prop1)
+
 def suite():
     loader = unittest.TestLoader()
     return loader.loadTestsFromTestCase(TestClassSerializer)

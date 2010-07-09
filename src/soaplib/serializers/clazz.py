@@ -113,7 +113,7 @@ class TypeInfo(object):
 class ClassSerializerMeta(type):
     '''
     This is the metaclass that populates ClassSerializer instances with
-    the appropriate datatypes for (de)serialization
+    the appropriate datatypes for (de)serialization.
     '''
 
     def __new__(cls, cls_name, cls_bases, cls_dict):
@@ -172,6 +172,11 @@ class NonExtendingClass(object):
         object.__setattr__(self,k,v)
 
 class ClassSerializerBase(NonExtendingClass, Base):
+    """
+    If you want to make a better class serializer, this is what you should
+    inherit from
+    """
+
     def __init__(self, **kwargs):
         cls = self.__class__
 
@@ -319,9 +324,9 @@ class ClassSerializerBase(NonExtendingClass, Base):
 
 class ClassSerializer(ClassSerializerBase):
     """
-    The general complexType factory. Attempts to instantiate this class will
-    result in *gasp* instances, contrary to primivites where a similar attempt
-    will result in customized duplicates of the original class definition.
+    The general complexType factory. The __call__ method of this class will
+    return instances, contrary to primivites where the same call will result in
+    customized duplicates of the original class definition.
     Those who'd like to customize the class should use the customize method.
     (see soaplib.serializers.base.Base)
     """
