@@ -316,6 +316,9 @@ class Array(SimpleType):
     serializer = None
     __namespace__ = None
 
+    child_min_occurs = 0
+    child_max_occurs = "unbounded"
+
     def __new__(cls, serializer, **kwargs):
         retval = cls.customize(**kwargs)
 
@@ -385,6 +388,8 @@ class Array(SimpleType):
             element = etree.SubElement(sequence, '{%s}element' % _ns_xs)
             element.set('name', cls.serializer.get_type_name())
             element.set('type', cls.serializer.get_type_name_ns())
+            element.set('minOccurs', str(cls.child_min_occurs))
+            element.set('maxOccurs', str(cls.child_max_occurs))
 
             schema_entries.add_complex_type(cls, complex_type)
 
