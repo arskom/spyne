@@ -114,7 +114,8 @@ class Base(object):
     def customize(cls, **kwargs):
         """
         This function duplicates and customizes the class it belongs to. The
-        original class remains intact.
+        original class remains intact. The implementation seems to be a hack,
+        advice to better write this function is welcome.
 
         An example where this is useful:
             Array(String) normally creates an instance of Array class. This is
@@ -125,7 +126,15 @@ class Base(object):
             with its serializer set to String.
         """
 
-        cls_dup = type(cls.__name__, (cls,), kwargs)
+        cls_dict = {}
+
+        for k in cls.__dict__:
+            if not (k in ("__dict__", "__module__", "__weakref__")):
+                cls_dict[k] = cls.__dict__[k]
+
+        cls_dict.update(kwargs)
+
+        cls_dup = type(cls.__name__, cls.__bases__, cls_dict)
 
         return cls_dup
 
