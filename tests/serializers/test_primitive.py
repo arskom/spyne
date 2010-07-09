@@ -161,7 +161,7 @@ class TestPrimitive(unittest.TestCase):
         self.assertEquals('xs:boolean', b.get('{%s}type' % _ns_xsi))
 
         b = Boolean.to_xml(None, ns_test)
-        self.assertEquals('1', b.get('{%s}nil' % _ns_xsi))
+        self.assertEquals('true', b.get('{%s}nil' % _ns_xsi))
 
         b = Boolean.from_xml(b)
         self.assertEquals(b, None)
