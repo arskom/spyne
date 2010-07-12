@@ -20,7 +20,6 @@
 from lxml import etree
 
 from base64 import b64encode
-from StringIO import StringIO
 from urllib import unquote
 
 # import email data format related stuff
@@ -142,7 +141,7 @@ def make_soap_envelope(message, tns='', header_elements=None):
 
     return envelope
 
-def join_attachment(id, envelope, payload, prefix=True):
+def join_attachment(href_id, envelope, payload, prefix=True):
     '''
     Helper function for swa_to_soap.
 
@@ -160,34 +159,35 @@ def join_attachment(id, envelope, payload, prefix=True):
     '''
 
     def replacing(parent, node, payload, numreplaces):
-        if node.tag.split('}')[-1] == 'Include':
+        if node.tag == '{%s}Include' % soaplib.ns_xop:
             attrib = node.attrib.get('href')
             if not attrib is None:
-                if unquote(attrib) == id:
+                if unquote(attrib) == href_id:
                     parent.remove(node)
                     parent.text = payload
                     numreplaces += 1
         else:
             for child in node:
                 numreplaces = replacing(node, child, payload, numreplaces)
+
         return numreplaces
 
     # grab the XML element of the message in the SOAP body
-    soapmsg = StringIO(envelope)
-    soaptree = etree.parse(soapmsg)
-    soapns = soaptree.getroot().tag.split('}')[0].strip('{')
-    soapbody = soaptree.getroot().find("{%s}Body" % soapns)
+    soaptree = etree.fromstring(envelope)
+    soapbody = soaptree.find("{%s}Body" % soaplib.ns_soap_env)
+
     message = None
     for child in list(soapbody):
-        if child.tag != "%sFault" % (soapns, ):
+        if child.tag != "{%s}Fault" % soaplib.ns_soap_env:
             message = child
             break
 
     numreplaces = 0
     idprefix = ''
+
     if prefix == True:
         idprefix = "cid:"
-    id = "%s%s" % (idprefix, id, )
+    href_id = "%s%s" % (idprefix, href_id, )
 
     # Make replacement.
     for param in message:
@@ -198,18 +198,12 @@ def join_attachment(id, envelope, payload, prefix=True):
         if numreplaces < 1:
             attrib = param.attrib.get('href')
             if not attrib is None:
-                if unquote(attrib) == id:
+                if unquote(attrib) == href_id:
                     del(param.attrib['href'])
                     param.text = payload
                     numreplaces += 1
 
-    soapmsg.close()
-    soapmsg = StringIO()
-    soaptree.write(soapmsg)
-    joinedmsg = soapmsg.getvalue()
-    soapmsg.close()
-
-    return (joinedmsg, numreplaces)
+    return (etree.tostring(soaptree), numreplaces)
 
 def collapse_swa(content_type, envelope):
     '''
@@ -233,11 +227,14 @@ def collapse_swa(content_type, envelope):
         return envelope
 
     # parse the body into an email.Message object
-    msgString = "MIME-Version: 1.0\r\n" \
-                "Content-Type: %s\r\n" % (
-                content_type, )
-    msgString += "\r\n" + envelope
-    msg = message_from_string(msgString) # our message
+    msg_string = [
+        "MIME-Version: 1.0",
+        "Content-Type: %s" % ( content_type, ),
+        "",
+        envelope
+    ]
+
+    msg = message_from_string('\r\n'.join(msg_string)) # our message
 
     soapmsg = None
     root = msg.get_param('start')
@@ -256,11 +253,13 @@ def collapse_swa(content_type, envelope):
 
         # binary packages
         cte = part.get("Content-Transfer-Encoding")
+
         payload = None
         if cte != 'base64':
             payload = b64encode(part.get_payload())
         else:
             payload = part.get_payload()
+
         cid = part.get("Content-ID").strip("<>")
         cloc = part.get("Content-Location")
         numreplaces = None
@@ -271,8 +270,7 @@ def collapse_swa(content_type, envelope):
 
         # Check for Content-Location and make replacement
         if cloc and not cid and not numreplaces:
-            soapmsg, numreplaces = join_attachment(cloc, soapmsg, payload,
-                False)
+            soapmsg, numreplaces = join_attachment(cloc, soapmsg, payload, False)
 
     return soapmsg
 
@@ -296,14 +294,12 @@ def apply_mtom(headers, envelope, params, paramvals):
     '''
 
     # grab the XML element of the message in the SOAP body
-    soapmsg = StringIO(envelope)
-    soaptree = etree.parse(soapmsg)
-    soapns = soaptree.getroot().tag.split('}')[0].strip('{')
-    soapbody = soaptree.getroot().find("{%s}Body" % soapns)
+    soaptree = etree.fromstring(soapmsg)
+    soapbody = soaptree.find("{%s}Body" % soaplib.ns_soap_env)
 
     message = None
     for child in list(soapbody):
-        if child.tag != "%sFault" % (soapns, ):
+        if child.tag != "%sFault" % (soaplib.ns_soap_env, ):
             message = child
             break
 
@@ -359,8 +355,7 @@ def apply_mtom(headers, envelope, params, paramvals):
             param = message[i]
             param.text = ""
 
-            incl = etree.SubElement(param,
-                               "{http://www.w3.org/2004/08/xop/include}Include")
+            incl = etree.SubElement(param, "{%s}Include" % soaplib.ns_xop)
             incl.attrib["href"] = "cid:%s" % id
 
             if paramvals[i].fileName and not paramvals[i].data:
@@ -383,11 +378,7 @@ def apply_mtom(headers, envelope, params, paramvals):
             mtompkg.attach(attachment)
 
     # Update SOAP envelope.
-    soapmsg.close()
-    soapmsg = StringIO()
-    soaptree.write(soapmsg)
-    rootpkg.set_payload(soapmsg.getvalue())
-    soapmsg.close()
+    rootpkg.set_payload(etree.tostring(soaptree))
 
     # extract body string from MIMEMultipart message
     bound = '--%s' % (mtompkg.get_boundary(), )
