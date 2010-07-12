@@ -1,6 +1,6 @@
 
 import unittest
-from urllib import urlquote
+from urllib import quote_plus
 
 from lxml import etree
 
@@ -37,7 +37,7 @@ class TestInclude(unittest.TestCase):
                     </DownloadPartFileResponse>
                 </s:Body>
             </s:Envelope>
-        ''' % urlquote(href_id)
+        ''' % quote_plus(href_id)
 
         (joinedmsg, numreplaces) = join_attachment(href_id, envelope, payload)
 
