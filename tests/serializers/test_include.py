@@ -26,7 +26,8 @@ class TestInclude(unittest.TestCase):
             <s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">
                 <s:Body>
                     <DownloadPartFileResponse xmlns="http://tempuri.org/">
-                        <DownloadPartFileResult xmlns:a="http://schemas.datacontract.org/2004/07/KlanApi.Common" xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
+                        <DownloadPartFileResult xmlns:a="http://schemas.datacontract.org/2004/07/KlanApi.Common"
+                                                xmlns:i="http://www.w3.org/2001/XMLSchema-instance">
                             <a:ErrorCode>0</a:ErrorCode>
                             <a:ErrorMessage i:nil="true"/>
                             <a:Data>
