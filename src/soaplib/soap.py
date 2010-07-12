@@ -44,10 +44,6 @@ from soaplib.serializers.clazz import ClassSerializer
 
 import soaplib
 
-_ns_xs = soaplib.nsmap['xs']
-_ns_soap_env = soaplib.nsmap['soap_env']
-_ns_soap_enc = soaplib.nsmap['soap_enc']
-
 class Message(ClassSerializer):
     pass
 
@@ -81,10 +77,10 @@ def from_soap(xml_string):
 
     # find the body and header elements
     for e in root.getchildren():
-        if e.tag == '{%s}Body' % soaplib.nsmap['soap_env']:
+        if e.tag == '{%s}Body' % soaplib.ns_soap_env:
             body = e
 
-        elif e.tag == '{%s}Header' % soaplib.nsmap['soap_env']:
+        elif e.tag == '{%s}Header' % soaplib.ns_soap_env:
             header = e
 
     payload = None
@@ -130,12 +126,12 @@ def make_soap_envelope(message, tns='', header_elements=None):
     @param any header elements to be included in the soap response
     @returns the envelope element
     '''
-    envelope = etree.Element('{%s}Envelope' % _ns_soap_env, nsmap=soaplib.nsmap)
+    envelope = etree.Element('{%s}Envelope' % soaplib.ns_soap_env, nsmap=soaplib.nsmap)
     if header_elements:
-        soap_header = etree.SubElement(envelope, '{%s}Header' % _ns_soap_env)
+        soap_header = etree.SubElement(envelope, '{%s}Header' % soaplib.ns_soap_env)
         for h in header_elements:
             soap_header.append(h)
-    body = etree.SubElement(envelope, '{%s}Body' % _ns_soap_env)
+    body = etree.SubElement(envelope, '{%s}Body' % soaplib.ns_soap_env)
 
     if type(message) == list:
         for m in message:
@@ -423,13 +419,13 @@ def make_soap_fault(tns, fault_string, fault_code = 'Server', detail = None,
     @param header_elements A list of XML elements to add to the fault header.
     @returns the element corresponding to the fault message
     '''
-    envelope = etree.Element('{%s}Envelope' % _ns_soap_env)
+    envelope = etree.Element('{%s}Envelope' % soaplib.ns_soap_env)
     if header_elements:
         header = etree.SubElement(
-            envelope, '{%s}Header' % _ns_soap_env)
+            envelope, '{%s}Header' % soaplib.ns_soap_env)
         for element in header_elements:
             header.append(element)
-    body = etree.SubElement(envelope, '{%s}Body'  % _ns_soap_env)
+    body = etree.SubElement(envelope, '{%s}Body'  % soaplib.ns_soap_env)
 
     f = Fault(fault_code, fault_string, detail)
     body.append(Fault.to_xml(f, tns, "Fault"))
