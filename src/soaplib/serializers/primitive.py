@@ -250,7 +250,7 @@ class Date(SimpleType):
 
 class DateTime(SimpleType):
     __type_name__ = 'dateTime'
-    
+
     @classmethod
     @nillable_value
     def to_xml(cls, value, tns, name='retval'):

@@ -196,7 +196,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
     def to_xml(cls, value, tns, name=None):
         if name is None:
             name = cls.get_type_name()
-        
+
         element = etree.Element("{%s}%s" % (tns, name))
 
         if isinstance(value, list) or isinstance(value, tuple):

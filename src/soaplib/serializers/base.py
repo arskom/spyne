@@ -109,7 +109,7 @@ class Base(object):
         Nothing needs to happen when the type is a standard schema element
         '''
         pass
-    
+
     @classmethod
     def customize(cls, **kwargs):
         """

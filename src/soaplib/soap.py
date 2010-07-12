@@ -359,7 +359,7 @@ def apply_mtom(headers, envelope, params, paramvals):
 
         if typ == Attachment:
             id = "soaplibAttachment_%s" % (len(mtompkg.get_payload()), )
-            
+
             param = message[i]
             param.text = ""
 
