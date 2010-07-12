@@ -61,7 +61,7 @@ def get_namespace_prefix(ns):
         nsmap[pref] = ns
 
         _ns_counter += 1
-        
+
     else:
         pref = prefmap[ns]
 
