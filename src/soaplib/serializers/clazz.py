@@ -135,7 +135,7 @@ class ClassSerializerMeta(type):
                 assert extends is None or cls_dict["__extends__"] is b, \
                                 "WSDL 1.1 does not support multiple inheritance"
 
-                if len(base_types) > 0:
+                if len(base_types) > 0 and issubclass(extends, Base):
                     cls_dict["__extends__"] = extends = b
 
         # populate soap members
