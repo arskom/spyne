@@ -18,6 +18,7 @@
 
 from base64 import b64encode
 from StringIO import StringIO
+from urllib import unquote
 
 # import email data format related stuff
 try:
@@ -89,7 +90,7 @@ class Message(object):
                 if c.tag.split('}')[-1] == name:
                     nodes.append(c)
             return nodes
-        
+
         for name, serializer in self.params:
             childnodes = findall(name)
             if len(childnodes) == 0:
@@ -144,7 +145,7 @@ def from_soap(xml_string):
     '''
     Parses the xml string into the header and payload
     '''
-    root, xmlids = ElementTree.XMLID(xml_string.encode()) 
+    root, xmlids = ElementTree.XMLID(xml_string.encode())
     if xmlids:
         resolve_hrefs(root, xmlids)
     body = None
@@ -230,6 +231,20 @@ def join_attachment(id, envelope, payload, prefix=True):
                         number of replacements made
     '''
 
+    def replacing(parent, node, payload, numreplaces):
+        if node.tag.split('}')[-1] == 'Include':
+            attrib = node.attrib.get('href')
+            if not attrib is None:
+                if unquote(attrib) == id:
+                    parent.remove(node)
+                    parent.text = payload
+                    numreplaces += 1
+        else:
+            for child in node:
+                numreplaces = replacing(node, child, payload, numreplaces)
+        return numreplaces
+
+
     # grab the XML element of the message in the SOAP body
     soapmsg = StringIO(envelope)
     soaptree = ElementTree.parse(soapmsg)
@@ -251,15 +266,15 @@ def join_attachment(id, envelope, payload, prefix=True):
     for param in message:
         # Look for Include subelement.
         for sub in param:
-            if sub.tag.split('}')[-1] == 'Include' and \
-               sub.attrib.get('href') == id:
-                param.remove(sub)
-                param.text = payload
-                numreplaces += 1
-        if numreplaces < 1 and param.attrib.get('href') == id:
-            del(param.attrib['href'])
-            param.text = payload
-            numreplaces += 1
+            numreplaces = replacing(param, sub, payload, numreplaces)
+
+        if numreplaces < 1:
+            attrib = param.attrib.get('href')
+            if not attrib is None:
+                if unquote(attrib) == id:
+                    del(param.attrib['href'])
+                    param.text = payload
+                    numreplaces += 1
 
     soapmsg.close()
     soapmsg = StringIO()
