@@ -136,17 +136,18 @@ class AnyAsDict(Any):
         return None
 
 class String(SimpleType):
-    min_len = 0
-    max_len = "unbounded"
-    pattern = None
+    class Attributes(SimpleType.Attributes):
+        min_len = 0
+        max_len = "unbounded"
+        pattern = None
 
     def __new__(cls, *args, **kwargs):
         assert len(args) <= 1
         retval = SimpleType.__new__(cls,**kwargs)
 
-        retval.min_len = kwargs.get("min_len", String.min_len)
-        retval.max_len = kwargs.get("max_len", String.max_len)
-        retval.pattern = kwargs.get("pattern", String.pattern)
+        retval.Attributes.min_len = kwargs.get("min_len", String.Attributes.min_len)
+        retval.Attributes.max_len = kwargs.get("max_len", String.Attributes.max_len)
+        retval.Attributes.pattern = kwargs.get("pattern", String.Attributes.pattern)
 
         if len(args) == 1:
             retval.max_len = args[0]
@@ -156,9 +157,9 @@ class String(SimpleType):
     @classmethod
     def is_default(cls):
         return (SimpleType.is_default()
-            and cls.min_len == String.min_len
-            and cls.max_len == String.max_len
-            and cls.pattern == String.pattern)
+            and cls.Attributes.min_len == String.Attributes.min_len
+            and cls.Attributes.max_len == String.Attributes.max_len
+            and cls.Attributes.pattern == String.Attributes.pattern)
 
     @classmethod
     def add_to_schema(cls, schema_entries):
@@ -166,23 +167,23 @@ class String(SimpleType):
             restriction = cls.get_restriction_tag(schema_entries)
 
             # length
-            if cls.min_len == cls.max_len:
+            if cls.Attributes.min_len == cls.Attributes.max_len:
                 length = etree.SubElement(restriction, '{%s}length' % _ns_xs)
-                length.set('value', str(cls.min_len))
+                length.set('value', str(cls.Attributes.min_len))
 
             else:
-                if cls.min_len != String.min_len:
+                if cls.Attributes.min_len != String.Attributes.min_len:
                     min_length = etree.SubElement(restriction, '{%s}minLength' % _ns_xs)
-                    min_length.set('value', str(cls.min_len))
+                    min_length.set('value', str(cls.Attributes.min_len))
 
-                if cls.max_len != String.max_len:
+                if cls.Attributes.max_len != String.Attributes.max_len:
                     max_length = etree.SubElement(restriction, '{%s}maxLength' % _ns_xs)
-                    max_length.set('value', str(cls.max_len))
+                    max_length.set('value', str(cls.Attributes.max_len))
 
             # pattern
-            if cls.pattern != String.pattern:
+            if cls.Attributes.pattern != String.Attributes.pattern:
                 pattern = etree.SubElement(restriction, '{%s}pattern' % _ns_xs)
-                pattern.set('value', cls.pattern)
+                pattern.set('value', cls.Attributes.pattern)
 
     @classmethod
     @nillable_value

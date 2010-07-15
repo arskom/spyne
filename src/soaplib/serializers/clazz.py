@@ -288,13 +288,13 @@ class ClassSerializerBase(NonExtendingClass, Base):
                 member = etree.SubElement(sequence, '{%s}element' % _ns_xs)
                 member.set('name', k)
 
-                if cls.min_occurs != 1:
-                    member.set('minOccurs', str(cls.min_occurs))
-                if cls.max_occurs != 1:
-                    member.set('maxOccurs', str(cls.max_occurs))
+                if v.Attributes.min_occurs != 1: # 1 is the default
+                    member.set('minOccurs', str(v.Attributes.min_occurs))
+                if v.Attributes.max_occurs != 1: # 1 is the default
+                    member.set('maxOccurs', str(v.Attributes.max_occurs))
 
                 member.set('type', v.get_type_name_ns())
-                if bool(v.nillable) == True:
+                if bool(v.Attributes.nillable) == True:
                     member.set('nillable', 'true')
                 else:
                     member.set('nillable', 'false')

@@ -52,9 +52,10 @@ class Base(object):
     __namespace__ = None
     __type_name__ = None
 
-    nillable = True
-    min_occurs = 0
-    max_occurs = 1
+    class Attributes(object):
+        nillable = True
+        min_occurs = 0
+        max_occurs = 1
 
     class Empty(object):
         pass
@@ -123,7 +124,13 @@ class Base(object):
             if not (k in ("__dict__", "__module__", "__weakref__")):
                 cls_dict[k] = cls.__dict__[k]
 
-        cls_dict.update(kwargs)
+        class Attributes(cls.Attributes):
+            pass
+
+        cls_dict['Attributes'] = Attributes
+
+        for k,v in kwargs.items():
+            setattr(Attributes,k,v)
 
         cls_dup = type(cls.__name__, cls.__bases__, cls_dict)
 
@@ -144,7 +151,9 @@ class Null(Base):
 class SimpleType(Base):
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
     __base_type__ = None
-    values = set()
+
+    class Attributes(Base.Attributes):
+        values = set()
 
     def __new__(cls, **kwargs):
         """
@@ -156,7 +165,7 @@ class SimpleType(Base):
 
         retval = cls.customize(**kwargs)
 
-        retval.values = kwargs.get("values", SimpleType.values)
+        retval.Attributes.values = kwargs.get("values", SimpleType.Attributes.values)
 
         if not retval.is_default():
             retval.__base_type__ = cls.get_type_name_ns()
@@ -166,7 +175,7 @@ class SimpleType(Base):
 
     @classmethod
     def is_default(cls):
-        return cls.values == SimpleType.values
+        return cls.Attributes.values == SimpleType.Attributes.values
 
     @classmethod
     def get_restriction_tag(cls, schema_entries):
@@ -177,7 +186,7 @@ class SimpleType(Base):
         restriction = etree.SubElement(simple_type, '{%s}restriction' % _ns_xs)
         restriction.set('base', cls.__base_type__)
 
-        for v in cls.values:
+        for v in cls.Attributes.values:
             enumeration = etree.SubElement(restriction, '{%s}enumeration' % _ns_xs)
             enumeration.set('value', v)
 
