@@ -21,8 +21,6 @@ import soaplib
 
 from lxml import etree
 
-_ns_xs = soaplib.nsmap['xs']
-
 def nillable_value(func):
     def wrapper(cls, value, tns, *args, **kwargs):
         if value is None:
@@ -179,16 +177,16 @@ class SimpleType(Base):
 
     @classmethod
     def get_restriction_tag(cls, schema_entries):
-        simple_type = etree.Element('{%s}simpleType' % _ns_xs)
+        simple_type = etree.Element('{%s}simpleType' % soaplib.ns_xsd)
         simple_type.set('name', cls.get_type_name())
         schema_entries.add_simple_type(cls, simple_type)
 
-        restriction = etree.SubElement(simple_type, '{%s}restriction' % _ns_xs)
+        restriction = etree.SubElement(simple_type, '{%s}restriction' % soaplib.ns_xsd)
         restriction.set('base', cls.__base_type__)
 
         for v in cls.Attributes.values:
-            enumeration = etree.SubElement(restriction, '{%s}enumeration' % _ns_xs)
-            enumeration.set('value', v)
+            enumeration = etree.SubElement(restriction, '{%s}enumeration' % soaplib.ns_xsd)
+            enumeration.set('value', str(v))
 
         return restriction
 
