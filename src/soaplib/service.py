@@ -1,4 +1,3 @@
-
 #
 # soaplib - Copyright (C) Soaplib contributors.
 #
@@ -188,6 +187,7 @@ class _SchemaEntries(object):
         schema_info.elements[cls.get_type_name()] = node
 
     def add_simple_type(self, cls, node):
+        self.__check_imports(cls, node)
         schema_info = self.get_schema_info(cls.get_namespace_prefix())
         schema_info.types[cls.get_type_name()] = node
 
