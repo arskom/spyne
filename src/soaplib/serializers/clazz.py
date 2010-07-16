@@ -21,9 +21,8 @@ from lxml import etree
 
 import soaplib
 
-_ns_xs = soaplib.nsmap['xs']
-
 from soaplib.serializers import Base
+from soaplib.serializers import SimpleType
 from soaplib.serializers import nillable_element
 from soaplib.serializers import nillable_value
 
@@ -249,7 +248,8 @@ class ClassSerializerBase(NonExtendingClass, Base):
     def resolve_namespace(cls, default_ns):
         if getattr(cls, '__extends__', None) != None:
             cls.__extends__.resolve_namespace(default_ns)
-            default_ns = cls.get_namespace()
+            if not (cls.get_namespace() in soaplib.const_prefmap):
+                default_ns = cls.get_namespace()
 
         if cls.__namespace__ is None:
             cls.__namespace__ = cls.__module__

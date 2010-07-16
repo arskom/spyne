@@ -143,11 +143,8 @@ class String(SimpleType):
 
     def __new__(cls, *args, **kwargs):
         assert len(args) <= 1
-        retval = SimpleType.__new__(cls,**kwargs)
 
-        retval.Attributes.min_len = kwargs.get("min_len", String.Attributes.min_len)
-        retval.Attributes.max_len = kwargs.get("max_len", String.Attributes.max_len)
-        retval.Attributes.pattern = kwargs.get("pattern", String.Attributes.pattern)
+        retval = SimpleType.__new__(cls,**kwargs)
 
         if len(args) == 1:
             retval.max_len = args[0]
@@ -399,3 +396,8 @@ class Array(SimpleType):
             top_level_element.set('type', cls.get_type_name_ns())
 
             schema_entries.add_element(cls, top_level_element)
+
+# a class that is really a namespace
+class Mandatory(object):
+    String = String(min_len=1, min_occurs=1, nillable=False)
+    Integer = Integer(min_occurs=1, nillable=False)

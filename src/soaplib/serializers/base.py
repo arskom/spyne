@@ -59,11 +59,14 @@ class Base(object):
         pass
 
     @classmethod
+    def is_default(cls):
+        return (cls.Attributes.nillable == Base.Attributes.nillable
+            and cls.Attributes.min_occurs == Base.Attributes.min_occurs
+            and cls.Attributes.max_occurs == Base.Attributes.max_occurs)
+
+    @classmethod
     def get_namespace_prefix(cls):
         ns = cls.get_namespace()
-
-        assert ns != "__main__", cls
-        assert ns != "soaplib.serializers.base", cls
 
         retval = soaplib.get_namespace_prefix(ns)
 
@@ -71,15 +74,13 @@ class Base(object):
 
     @classmethod
     def get_namespace(cls):
-        retval = cls.__namespace__
-
-        if retval is None:
-            retval = cls.__module__
-
-        return retval
+        return cls.__namespace__
 
     @classmethod
     def resolve_namespace(cls, default_ns):
+        if cls.__namespace__ in soaplib.const_prefmap and not cls.is_default():
+            cls.__namespace__ = None
+
         if cls.__namespace__ is None:
             cls.__namespace__ = cls.__module__
 
@@ -96,7 +97,8 @@ class Base(object):
 
     @classmethod
     def get_type_name_ns(cls):
-        return "%s:%s" % (cls.get_namespace_prefix(), cls.get_type_name())
+        if cls.get_namespace() != None:
+            return "%s:%s" % (cls.get_namespace_prefix(), cls.get_type_name())
 
     @classmethod
     def to_xml(cls, value, tns, name='retval'):
@@ -163,17 +165,24 @@ class SimpleType(Base):
 
         retval = cls.customize(**kwargs)
 
-        retval.Attributes.values = kwargs.get("values", SimpleType.Attributes.values)
-
         if not retval.is_default():
-            retval.__base_type__ = cls.get_type_name_ns()
-            retval.__type_name__ = kwargs.get("type_name", Base.Empty)
+            if retval.get_namespace() is None:
+                retval.__base_type__ = cls.__base_type__
+            else:
+                retval.__base_type__ = cls.get_type_name_ns()
+
+            if retval.get_namespace() in soaplib.const_prefmap:
+                retval.__namespace__ = None
+
+            if retval.__type_name__ is None:
+                retval.__type_name__ = kwargs.get("type_name", Base.Empty)
 
         return retval
 
     @classmethod
     def is_default(cls):
-        return cls.Attributes.values == SimpleType.Attributes.values
+        return (Base.is_default()
+            and cls.Attributes.values == SimpleType.Attributes.values)
 
     @classmethod
     def get_restriction_tag(cls, schema_entries):
