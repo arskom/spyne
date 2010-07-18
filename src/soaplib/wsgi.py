@@ -142,6 +142,9 @@ class WsgiApp(object):
         else:
             url = reconstruct_url(http_request_env).split('.wsdl')[0]
 
+        # create validation_schema object
+        # this is not so expensive because the result is cached in memory after
+        # the first call.
         try:
             wsdl_content = service.wsdl(url)
         except:
@@ -227,6 +230,7 @@ class WsgiApp(object):
             descriptor = service.get_method(method_name)
             func = getattr(service, descriptor.name)
 
+            # FIXME: this code should be inside ValidatingWsgiSoapApp class
             if self.validating_service:
                 ret = self.validation_schema.validate(request_payload)
                 logger.debug("validation result: %s" % str(ret))
@@ -356,6 +360,8 @@ class SimpleWsgiApp(WsgiApp, ServiceBase):
         return self
 
 class ValidatingWsgiSoapApp(SimpleWsgiApp):
+    # Are you by any chance looking for xml validation code?
+    # search this file for 'validating_service'
     def __init__(self):
         SimpleWsgiApp.__init__(self)
         self.validating_service = True
