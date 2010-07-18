@@ -67,7 +67,7 @@ def from_soap(xml_string):
     '''
     Parses the xml string into the header and payload
     '''
-    root, xmlids = etree.XMLID(xml_string.encode())
+    root, xmlids = etree.XMLID(xml_string)
     if xmlids:
         resolve_hrefs(root, xmlids)
 
@@ -216,20 +216,22 @@ def collapse_swa(content_type, envelope):
     MTOM    http://www.w3.org/TR/soap12-mtom/
             http://www.w3.org/Submission/soap11mtom10/
 
-    @param  content_type value of the Content-Type header field
+    @param  content_type value of the Content-Type header field, parsed by
+                         cgi.parse_header() function
     @param  envelope     body of the HTTP message, a soap envelope
     @return              appication/soap+xml version of the given HTTP body
     '''
 
     # convert multipart messages back to pure SOAP
-    mime_type = content_type.lower().split(';')
+    mime_type = content_type[0]
+    charset = content_type[1]['charset']
     if 'multipart/related' not in mime_type:
         return envelope
 
     # parse the body into an email.Message object
     msg_string = [
         "MIME-Version: 1.0",
-        "Content-Type: %s" % ( content_type, ),
+        "Content-Type: %s; charset=%s" % (mime_type, charset),
         "",
         envelope
     ]
@@ -294,7 +296,7 @@ def apply_mtom(headers, envelope, params, paramvals):
     '''
 
     # grab the XML element of the message in the SOAP body
-    soaptree = etree.fromstring(soapmsg)
+    soaptree = etree.fromstring(envelope)
     soapbody = soaptree.find("{%s}Body" % soaplib.ns_soap_env)
 
     message = None

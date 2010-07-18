@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import cgi
 import logging
 logger = logging.getLogger('soaplib')
 
@@ -194,8 +195,17 @@ class WsgiApp(object):
             input = http_request_env.get('wsgi.input')
             length = http_request_env.get("CONTENT_LENGTH")
             body = input.read(int(length))
+            logger.debug(body)
 
-            body = collapse_swa(http_request_env.get("CONTENT_TYPE"), body)
+            # decode body using information in the http header
+            content_type = cgi.parse_header(http_request_env.get("CONTENT_TYPE"))
+
+            # fyi, here's what the parse_header function returns:
+            # >>> import cgi; cgi.parse_header("text/xml; charset=utf-8")
+            # ('text/xml', {'charset': 'utf-8'})
+            body = body.decode(content_type[1]['charset'])
+
+            body = collapse_swa(content_type, body)
 
             # deserialize the body of the message
             request_payload, request_header = from_soap(body)
@@ -212,7 +222,6 @@ class WsgiApp(object):
 
             if not (method_name is None):
                 logger.debug('\033[92m'+ method_name +'\033[0m')
-            logger.debug(body)
 
             # retrieve the method descriptor
             descriptor = service.get_method(method_name)
