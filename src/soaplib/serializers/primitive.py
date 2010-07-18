@@ -354,7 +354,7 @@ class Array(SimpleType):
         # so that we see the variable name in the exception
         try:
             iter(values)
-        except TypeError, e:
+        except TypeError:
             raise TypeError(values, name)
 
         for value in values:
