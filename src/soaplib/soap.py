@@ -224,9 +224,13 @@ def collapse_swa(content_type, envelope):
 
     # convert multipart messages back to pure SOAP
     mime_type = content_type[0]
-    charset = content_type[1]['charset']
+
     if 'multipart/related' not in mime_type:
         return envelope
+
+    charset = content_type[1].get('charset', None)
+    if charset is None:
+        charset='ascii'
 
     # parse the body into an email.Message object
     msg_string = [

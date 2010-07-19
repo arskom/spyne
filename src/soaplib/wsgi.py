@@ -204,13 +204,19 @@ class WsgiApp(object):
             body = input.read(int(length))
             logger.debug(body)
 
+            #
             # decode body using information in the http header
-            content_type = cgi.parse_header(http_request_env.get("CONTENT_TYPE"))
-
+            #
             # fyi, here's what the parse_header function returns:
             # >>> import cgi; cgi.parse_header("text/xml; charset=utf-8")
             # ('text/xml', {'charset': 'utf-8'})
-            body = body.decode(content_type[1]['charset'])
+            #
+            content_type = cgi.parse_header(http_request_env.get("CONTENT_TYPE"))
+            charset = content_type[1].get('charset',None)
+            if charset is None:
+                charset = 'ascii'
+
+            body = body.decode(charset)
 
             body = collapse_swa(content_type, body)
 
