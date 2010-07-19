@@ -33,8 +33,8 @@ from soaplib.serializers import string_to_xml
 
 string_encoding = 'utf-8'
 
-_date_pattern =   r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})'
-_time_pattern =   r'(?P<hr>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})(?P<sec_frac>\.\d+)?'
+_date_pattern = r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})'
+_time_pattern = r'(?P<hr>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})(?P<sec_frac>\.\d+)?'
 _offset_pattern = r'(?P<tz_hr>[+-]\d{2}):(?P<tz_min>\d{2})'
 _datetime_pattern = _date_pattern + '[T ]' + _time_pattern
 
@@ -51,7 +51,7 @@ class Any(SimpleType):
     @classmethod
     @nillable_value
     def to_xml(cls, value, tns, name='retval'):
-        if isinstance(value,str) or isinstance(value,unicode):
+        if isinstance(value, str) or isinstance(value, unicode):
             value = etree.fromstring(value)
 
         e = etree.Element(name)
@@ -76,11 +76,11 @@ class AnyAsDict(Any):
         """the dict values are either dicts or iterables"""
 
         retval = []
-        for k,v in d.items():
+        for k, v in d.items():
             if v is None:
                 retval.append(etree.Element(k))
             else:
-                if isinstance(v,dict):
+                if isinstance(v, dict):
                     retval.append(etree.Element(cls._dict_to_etree(v)))
 
                 else:
@@ -90,7 +90,7 @@ class AnyAsDict(Any):
         return retval
 
     @classmethod
-    def _etree_to_dict(cls, elt,with_root=True):
+    def _etree_to_dict(cls, elt, with_root=True):
         r = {}
 
         if with_root:
@@ -100,7 +100,7 @@ class AnyAsDict(Any):
 
         for e in elt:
             if (e.text is None) or e.text.isspace():
-                r[e.tag] = cls._etree_to_dict(e,False)
+                r[e.tag] = cls._etree_to_dict(e, False)
 
             else:
                 if e.tag in r:
@@ -141,10 +141,10 @@ class String(SimpleType):
         max_len = "unbounded"
         pattern = None
 
-    def __new__(cls, *args, **kwargs):
+    def __new__(cls, * args, ** kwargs):
         assert len(args) <= 1
 
-        retval = SimpleType.__new__(cls,**kwargs)
+        retval = SimpleType.__new__(cls,  ** kwargs)
 
         if len(args) == 1:
             retval.max_len = args[0]
@@ -154,9 +154,9 @@ class String(SimpleType):
     @classmethod
     def is_default(cls):
         return (SimpleType.is_default()
-            and cls.Attributes.min_len == String.Attributes.min_len
-            and cls.Attributes.max_len == String.Attributes.max_len
-            and cls.Attributes.pattern == String.Attributes.pattern)
+                and cls.Attributes.min_len == String.Attributes.min_len
+                and cls.Attributes.max_len == String.Attributes.max_len
+                and cls.Attributes.pattern == String.Attributes.pattern)
 
     @classmethod
     def add_to_schema(cls, schema_entries):
@@ -170,12 +170,12 @@ class String(SimpleType):
 
             else:
                 if cls.Attributes.min_len != String.Attributes.min_len:
-                    min_length = etree.SubElement(restriction, '{%s}minLength' % _ns_xs)
-                    min_length.set('value', str(cls.Attributes.min_len))
+                    min_l = etree.SubElement(restriction, '{%s}minLength' % _ns_xs)
+                    min_l.set('value', str(cls.Attributes.min_len))
 
                 if cls.Attributes.max_len != String.Attributes.max_len:
-                    max_length = etree.SubElement(restriction, '{%s}maxLength' % _ns_xs)
-                    max_length.set('value', str(cls.Attributes.max_len))
+                    max_l = etree.SubElement(restriction, '{%s}maxLength' % _ns_xs)
+                    max_l.set('value', str(cls.Attributes.max_len))
 
             # pattern
             if cls.Attributes.pattern != String.Attributes.pattern:
@@ -185,7 +185,7 @@ class String(SimpleType):
     @classmethod
     @nillable_value
     def to_xml(cls, value, tns, name='retval'):
-        if not isinstance(value,unicode):
+        if not isinstance(value, unicode):
             value = unicode(value, string_encoding)
 
         return string_to_xml(cls, value, tns, name)
@@ -193,7 +193,7 @@ class String(SimpleType):
     @classmethod
     @nillable_element
     def from_xml(cls, element):
-        u=element.text or ""
+        u = element.text or ""
         try:
             u = str(u)
             return u.encode(string_encoding)
@@ -237,7 +237,7 @@ class Date(SimpleType):
         def parse_date(date_match):
             fields = date_match.groupdict(0)
             year, month, day = [int(fields[x]) for x in
-               ("year", "month", "day")]
+                ("year", "month", "day")]
             return datetime.date(year, month, day)
 
         match = _date_pattern.match(text)
@@ -263,11 +263,11 @@ class DateTime(SimpleType):
         def parse_date(date_match, tz=None):
             fields = date_match.groupdict(0)
             year, month, day, hr, min, sec = [int(fields[x]) for x in
-               ("year", "month", "day", "hr", "min", "sec")]
+                ("year", "month", "day", "hr", "min", "sec")]
             # use of decimal module here (rather than float) might be better
             # here, if willing to require python 2.4 or higher
-            microsec = int(float(fields.get("sec_frac", 0)) * 10**6)
-            return datetime.datetime(year, month, day, hr, min, sec, microsec,tz)
+            microsec = int(float(fields.get("sec_frac", 0)) * 10 ** 6)
+            return datetime.datetime(year, month, day, hr, min, sec, microsec, tz)
 
         match = _utc_re.match(text)
         if match:
@@ -276,7 +276,7 @@ class DateTime(SimpleType):
         match = _offset_re.match(text)
         if match:
             tz_hr, tz_min = [int(match.group(x)) for x in "tz_hr", "tz_min"]
-            return parse_date(match, tz=FixedOffset(tz_hr*60 + tz_min, {}))
+            return parse_date(match, tz=FixedOffset(tz_hr * 60 + tz_min, {}))
 
         match = _local_re.match(text)
         if not match:
@@ -317,8 +317,8 @@ class Array(SimpleType):
     child_min_occurs = 0
     child_max_occurs = "unbounded"
 
-    def __new__(cls, serializer, **kwargs):
-        retval = cls.customize(**kwargs)
+    def __new__(cls, serializer, ** kwargs):
+        retval = cls.customize( ** kwargs)
 
         retval.serializer = serializer
 
@@ -336,7 +336,8 @@ class Array(SimpleType):
             else:
                 cls.__namespace__ = default_ns
 
-        if cls.__namespace__.startswith('soaplib') or cls.__namespace__ == '__main__':
+        if (cls.__namespace__.startswith('soaplib') or
+                                            cls.__namespace__ == '__main__'):
             cls.__namespace__ = default_ns
 
         cls.serializer.resolve_namespace(cls.get_namespace())
@@ -344,7 +345,7 @@ class Array(SimpleType):
     @classmethod
     @nillable_value
     def to_xml(cls, values, tns, name='retval'):
-        retval = etree.Element("{%s}%s" % (tns,name))
+        retval = etree.Element("{%s}%s" % (tns, name))
 
         if values == None:
             values = []
@@ -359,7 +360,8 @@ class Array(SimpleType):
 
         for value in values:
             retval.append(
-                cls.serializer.to_xml(value, tns, cls.serializer.get_type_name()))
+                          cls.serializer.to_xml(value, tns,
+                                                cls.serializer.get_type_name()))
 
         return retval
 
@@ -381,7 +383,7 @@ class Array(SimpleType):
             complex_type = etree.Element('{%s}complexType' % _ns_xs)
             complex_type.set('name', cls.get_type_name())
 
-            sequence = etree.SubElement(complex_type,'{%s}sequence' % _ns_xs)
+            sequence = etree.SubElement(complex_type, '{%s}sequence' % _ns_xs)
 
             element = etree.SubElement(sequence, '{%s}element' % _ns_xs)
             element.set('name', cls.serializer.get_type_name())

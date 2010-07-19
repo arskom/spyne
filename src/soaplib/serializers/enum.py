@@ -85,11 +85,13 @@ def Enum(*values, **kwargs):
                 simple_type = etree.Element('{%s}simpleType' % _ns_xs)
                 simple_type.set('name', cls.get_type_name())
 
-                restriction = etree.SubElement(simple_type, '{%s}restriction' % _ns_xs)
+                restriction = etree.SubElement(simple_type,
+                                                    '{%s}restriction' % _ns_xs)
                 restriction.set('base', 'xs:string')
 
                 for v in values:
-                    enumeration = etree.SubElement(restriction, '{%s}enumeration' % _ns_xs)
+                    enumeration = etree.SubElement(restriction,
+                                                    '{%s}enumeration' % _ns_xs)
                     enumeration.set('value', v)
 
                 schema_entries.add_simple_type(cls, simple_type)

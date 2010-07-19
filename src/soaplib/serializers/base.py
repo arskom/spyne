@@ -84,7 +84,8 @@ class Base(object):
         if cls.__namespace__ is None:
             cls.__namespace__ = cls.__module__
 
-            if (cls.__namespace__.startswith("soaplib") or cls.__namespace__ == '__main__'):
+            if (cls.__namespace__.startswith("soaplib")
+                                            or cls.__namespace__ == '__main__'):
                 cls.__namespace__ = default_ns
 
     @classmethod
@@ -190,11 +191,13 @@ class SimpleType(Base):
         simple_type.set('name', cls.get_type_name())
         schema_entries.add_simple_type(cls, simple_type)
 
-        restriction = etree.SubElement(simple_type, '{%s}restriction' % soaplib.ns_xsd)
+        restriction = etree.SubElement(simple_type,
+                                            '{%s}restriction' % soaplib.ns_xsd)
         restriction.set('base', cls.__base_type__)
 
         for v in cls.Attributes.values:
-            enumeration = etree.SubElement(restriction, '{%s}enumeration' % soaplib.ns_xsd)
+            enumeration = etree.SubElement(restriction,
+                                            '{%s}enumeration' % soaplib.ns_xsd)
             enumeration.set('value', str(v))
 
         return restriction

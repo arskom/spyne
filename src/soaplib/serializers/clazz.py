@@ -22,7 +22,6 @@ from lxml import etree
 import soaplib
 
 from soaplib.serializers import Base
-from soaplib.serializers import SimpleType
 from soaplib.serializers import nillable_element
 from soaplib.serializers import nillable_value
 
@@ -62,7 +61,8 @@ class TypeInfo(object):
                 self.__list.append(key)
             self.__dict[key] = val
 
-        assert len(self.__list) == len(self.__dict), (repr(self.__list), repr(self.__dict))
+        assert len(self.__list) == len(self.__dict), (repr(self.__list),
+                                                              repr(self.__dict))
 
     def __contains__(self, what):
         return (what in self.__dict)
@@ -254,7 +254,8 @@ class ClassSerializerBase(NonExtendingClass, Base):
         if cls.__namespace__ is None:
             cls.__namespace__ = cls.__module__
 
-            if (cls.__namespace__.startswith("soaplib") or cls.__namespace__ == '__main__'):
+            if (cls.__namespace__.startswith("soaplib") or
+                                               cls.__namespace__ == '__main__'):
                 cls.__namespace__ = default_ns
 
         for k, v in cls._type_info.items():
@@ -275,17 +276,21 @@ class ClassSerializerBase(NonExtendingClass, Base):
             if not (getattr(cls, '__extends__', None) is None):
                 cls.__extends__.add_to_schema(schema_entries)
 
-                complex_content = etree.SubElement(complex_type, "{%s}complexContent" % soaplib.ns_xsd )
-                extension = etree.SubElement(complex_content, "{%s}extension" % soaplib.ns_xsd)
+                complex_content = etree.SubElement(complex_type,
+                                        "{%s}complexContent" % soaplib.ns_xsd )
+                extension = etree.SubElement(complex_content, "{%s}extension"
+                                                               % soaplib.ns_xsd)
                 extension.set('base', cls.__extends__.get_type_name_ns())
                 sequence_parent = extension
 
-            sequence = etree.SubElement(sequence_parent, '{%s}sequence'% soaplib.ns_xsd)
+            sequence = etree.SubElement(sequence_parent, '{%s}sequence' %
+                                                                soaplib.ns_xsd)
 
             for k, v in cls._type_info.items():
                 v.add_to_schema(schema_entries)
 
-                member = etree.SubElement(sequence, '{%s}element' % soaplib.ns_xsd)
+                member = etree.SubElement(sequence, '{%s}element' %
+                                                                soaplib.ns_xsd)
                 member.set('name', k)
 
                 if v.Attributes.min_occurs != 1: # 1 is the default
