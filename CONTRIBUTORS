@@ -1,13 +1,13 @@
 
 Contributors (chronological order):
 
-Aaron Bickell 
+Aaron Bickell
     Original Author
 
-Jamie Kirkpatrick 
+Jamie Kirkpatrick
     lxml migration
 
-Burak Arslan 
+Burak Arslan
     multiple <schema/> tags
     sqlalchemy support
     consistent class customization

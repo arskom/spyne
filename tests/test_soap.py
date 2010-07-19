@@ -57,7 +57,7 @@ class TestSoap(unittest.TestCase):
             members={'s': String, 'i': Integer}
         )
         m.resolve_namespace('test')
-        
+
         m_inst = m(s="a", i=43)
         e = m.to_xml(m_inst,m.get_namespace())
 
@@ -125,7 +125,7 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
         )
 
         m.resolve_namespace("punk")
-        
+
         m.p = Person()
         m.p.name = 'steve-o'
         m.p.age = 2
@@ -205,7 +205,7 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
 
     def test_soap_fault(self):
         ns_test = "test_namespace"
-        
+
         fault = make_soap_fault(ns_test, 'something happened')
         fault = etree.fromstring(etree.tostring(fault))
 
