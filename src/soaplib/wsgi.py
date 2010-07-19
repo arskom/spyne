@@ -142,12 +142,16 @@ class WsgiApp(object):
         else:
             url = reconstruct_url(http_request_env).split('.wsdl')[0]
 
-        # create validation_schema object
+        # generate wsdl in order to create the validation_schema object
         # this is not so expensive because the result is cached in memory after
-        # the first call.
+        # the first call. yes, this is a hack.
         try:
             wsdl_content = service.wsdl(url)
         except:
+            # the exception is ignored because if there's a problem with wsdl
+            # generation and this is a wsdl request, it'll pop up below. if this
+            # is not a wsdl request, the client doesn't care because, well,
+            # it's not a wsdl request anyway.
             pass
 
         try:
