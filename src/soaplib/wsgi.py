@@ -71,7 +71,7 @@ class AppBase(object):
 
         return retval
 
-    def __call__(self, http_request_env, start_response, wsgi_url=None):
+    def __call__(self, req_env, start_response, wsgi_url=None):
         '''
         This method conforms to the WSGI spec for callable wsgi applications
         (PEP 333). It looks in environ['wsgi.input'] for a fully formed soap
@@ -89,19 +89,19 @@ class AppBase(object):
         soap_response_headers = []
 
         # cache the wsdl
-        service_name = http_request_env['PATH_INFO'].split('/')[-1]
-        service = self.get_service(http_request_env)
+        service_name = req_env['PATH_INFO'].split('/')[-1]
+        service = self.get_service(req_env)
         url = wsgi_url
         if url is None:
-            url = reconstruct_url(http_request_env).split('.wsdl')[0]
+            url = reconstruct_url(req_env).split('.wsdl')[0]
 
         try:
             # implementation hook
-            service.on_call(http_request_env)
+            service.on_call(req_env)
 
-            if ((   http_request_env['QUERY_STRING'].endswith('wsdl')
-                 or http_request_env['PATH_INFO'].endswith('wsdl') )
-                and http_request_env['REQUEST_METHOD'].lower() == 'get'):
+            if ((   req_env['QUERY_STRING'].endswith('wsdl')
+                 or req_env['PATH_INFO'].endswith('wsdl') )
+                and req_env['REQUEST_METHOD'].lower() == 'get'):
 
                 # Get the wsdl for the service. Assume path_info matches pattern:
                 # /stuff/stuff/stuff/serviceName.wsdl or
@@ -113,7 +113,7 @@ class AppBase(object):
                     wsdl_content = self.__get_wsdl(service,url)
 
                     # implementation hook
-                    service.on_wsdl(http_request_env, wsdl_content)
+                    service.on_wsdl(req_env, wsdl_content)
 
                 except Exception, e:
                     # implementation hook
@@ -124,7 +124,7 @@ class AppBase(object):
                            xml_declaration=True, encoding=string_encoding)
                     logger.debug(fault_str)
 
-                    service.on_wsdl_exception(http_request_env, e, fault_str)
+                    service.on_wsdl_exception(req_env, e, fault_str)
 
                     # initiate the response
                     http_resp_headers['Content-length'] = str(len(fault_str))
@@ -135,12 +135,12 @@ class AppBase(object):
 
                 return [wsdl_content]
 
-            if http_request_env['REQUEST_METHOD'].lower() != 'post':
+            if req_env['REQUEST_METHOD'].lower() != 'post':
                 start_response('405 Method Not Allowed', [('Allow', 'POST')])
                 return ''
 
-            input = http_request_env.get('wsgi.input')
-            length = http_request_env.get("CONTENT_LENGTH")
+            input = req_env.get('wsgi.input')
+            length = req_env.get("CONTENT_LENGTH")
             body = input.read(int(length))
             logger.debug(body)
 
@@ -151,7 +151,7 @@ class AppBase(object):
             # >>> import cgi; cgi.parse_header("text/xml; charset=utf-8")
             # ('text/xml', {'charset': 'utf-8'})
             #
-            content_type = cgi.parse_header(http_request_env.get("CONTENT_TYPE"))
+            content_type = cgi.parse_header(req_env.get("CONTENT_TYPE"))
             charset = content_type[1].get('charset',None)
             if charset is None:
                 charset = 'ascii'
@@ -175,7 +175,7 @@ class AppBase(object):
                 method_name = request_payload.tag
             else:
                 # check HTTP_SOAPACTION
-                method_name = http_request_env.get("HTTP_SOAPACTION")
+                method_name = req_env.get("HTTP_SOAPACTION")
                 if method_name.startswith('"') and method_name.endswith('"'):
                     method_name = method_name[1:-1]
                 if method_name.find('/') >0:
@@ -194,7 +194,7 @@ class AppBase(object):
                 params = ()
 
             # implementation hook
-            service.on_method_exec(http_request_env, method_name, params, body)
+            service.on_method_exec(req_env, method_name, params, body)
 
             # call the method
             result_raw = func(*params)
@@ -214,7 +214,7 @@ class AppBase(object):
                                                               service.get_tns())
 
             # implementation hook
-            service.on_results(http_request_env, result_raw, results_soap,
+            service.on_results(req_env, result_raw, results_soap,
                                                           soap_response_headers)
 
             # construct the soap response, and serialize it
@@ -227,7 +227,7 @@ class AppBase(object):
                 http_resp_headers, results_str = apply_mtom(http_resp_headers,
                     results_str,descriptor.out_message._type_info,[result_raw])
 
-            service.on_return(http_request_env, http_resp_headers, results_str)
+            service.on_return(req_env, http_resp_headers, results_str)
 
             # initiate the response
             start_response('200 OK', http_resp_headers.items())
@@ -254,7 +254,7 @@ class AppBase(object):
                                                     encoding=string_encoding)
             logger.error(fault_str)
 
-            service.on_exception(http_request_env, http_resp_headers, e, fault_str)
+            service.on_exception(req_env, http_resp_headers, e, fault_str)
 
             # initiate the response
             start_response('500 Internal Server Error',http_resp_headers.items())
@@ -289,7 +289,7 @@ class AppBase(object):
                                                        encoding=string_encoding)
             logger.debug(fault_str)
 
-            service.on_exception(http_request_env, e, fault_str)
+            service.on_exception(req_env, e, fault_str)
 
             # initiate the response
             start_response('500 Internal Server Error',http_resp_headers.items())
