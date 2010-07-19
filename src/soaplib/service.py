@@ -166,6 +166,7 @@ class _SchemaEntries(object):
 
         return schema
 
+    # FIXME: this is an ugly hack. we need proper dependency management
     def __check_imports(self, cls, node):
         pref_tns = cls.get_namespace_prefix()
         if not (pref_tns in self.imports):
@@ -177,12 +178,20 @@ class _SchemaEntries(object):
             else:
                 seq = c
 
-            assert seq.tag == '{%s}sequence' % soaplib.ns_xsd, seq.tag
+            if seq.tag == '{%s}sequence' % soaplib.ns_xsd:
+                for e in seq:
+                    pref = e.attrib['type'].split(':')[0]
+                    if not ((pref in soaplib.const_prefmap) or (pref == pref_tns)):
+                        self.imports[pref_tns].add(soaplib.nsmap[pref])
 
-            for e in seq:
-                pref = e.attrib['type'].split(':')[0]
-                if not (pref in ('xs', pref_tns)):
+            elif seq.tag == '{%s}restriction' % soaplib.ns_xsd:
+                pref = seq.attrib['base'].split(':')[0]
+                if not ((pref in soaplib.const_prefmap) or (pref == pref_tns)):
                     self.imports[pref_tns].add(soaplib.nsmap[pref])
+
+            else:
+                raise Exception("i guess you need to hack some more")
+
 
     def add_element(self, cls, node):
         schema_info = self.get_schema_info(cls.get_namespace_prefix())
