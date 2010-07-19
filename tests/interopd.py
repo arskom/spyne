@@ -30,7 +30,8 @@ from soaplib.serializers.primitive import Integer
 from soaplib.serializers.primitive import String
 
 from soaplib.service import rpc
-from soaplib.wsgi import ValidatingWsgiSoapApp
+from soaplib.wsgi import AppBase
+from soaplib.service import ValidatingDefinition
 
 import logging
 logger = logging.getLogger('soaplib')
@@ -80,7 +81,7 @@ DaysOfWeekEnum = Enum(
     type_name = 'DaysOfWeekEnum'
 )
 
-class InteropService(ValidatingWsgiSoapApp):
+class InteropService(ValidatingDefinition):
     @rpc(Integer, _returns=Integer)
     def echo_integer(self, i):
         return i
@@ -181,7 +182,7 @@ class InteropService(ValidatingWsgiSoapApp):
 if __name__ == '__main__':
     try:
         from wsgiref.simple_server import make_server
-        server = make_server('127.0.0.1', 9753, InteropService())
+        server = make_server('127.0.0.1', 9753, AppBase(InteropService))
         print 'Starting interop server at -- %s:%s' % ('127.0.0.1', 9753)
         server.serve_forever()
 

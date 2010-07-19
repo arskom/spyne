@@ -27,7 +27,7 @@ from lxml import etree
 
 from soaplib.serializers.exception import Fault
 from soaplib.serializers.primitive import string_encoding
-from soaplib.service import ServiceBase
+from soaplib.service import Definition
 
 from soaplib.soap import apply_mtom
 from soaplib.soap import collapse_swa
@@ -36,155 +36,95 @@ from soaplib.soap import make_soap_envelope
 from soaplib.soap import make_soap_fault
 from soaplib.util import reconstruct_url
 
-class WsgiApp(object):
-    '''
-    This is the base object representing a soap web application, and conforms
-    to the WSGI specification (PEP 333).  This object should be overridden
-    and get_handler(environ) overridden to provide the object implementing
-    the specified functionality.  Hooks have been added so that the subclass
-    can react to various events that happen durring the execution of the
-    request.
-    '''
+class ValidationError(Exception):
+    pass
 
-    def on_call(self, environ):
+class AppBase(object):
+    def __init__(self, service):
         '''
-        This is the first method called when this WSGI app is invoked
-        @param the wsgi environment
+        @param A ServiceBase subclass that defines the exposed services.
         '''
-        pass
 
-    def on_wsdl(self, environ, wsdl):
-        '''
-        This is called when a wsdl is requested
-        @param the wsgi environment
-        @param the wsdl string
-        '''
-        pass
+        self.service = service
 
-    def on_wsdl_exception(self, environ, exc, resp):
-        '''
-        Called when an exception occurs durring wsdl generation
-        @param the wsgi environment
-        @param exc the exception
-        @param the fault response string
-        '''
-        pass
+        self.__wsdl = None
+        self.__schema = None
 
-    def on_method_exec(self, environ, method_name, py_params, soap_params):
-        '''
-        Called BEFORE the service implementing the functionality is called
-        @param the wsgi environment
-        @param the method name
-        @param the body element of the soap request
-        @param the tuple of python params being passed to the method
-        @param the soap elements for each params
-        '''
-        pass
+        self.__get_schema(self.get_service(None))
 
-    def on_results(self, environ, py_results, soap_results, soap_headers):
-        '''
-        Called AFTER the service implementing the functionality is called
-        @param the wsgi environment
-        @param the python results from the method
-        @param the xml serialized results of the method
-        @param soap headers as a list of lxml.etree._Element objects
-        '''
-        pass
+    def get_service(self, environment):
+        return self.service(environment)
 
-    def on_exception(self, environ, exc, resp):
-        '''
-        Called when an error occurs durring execution
-        @param the wsgi environment
-        @param the exception
-        @param the response string
-        '''
-        pass
+    def __get_wsdl(self, service, url):
+        retval = self.__wsdl
 
-    def on_return(self, environ, http_headers, return_str):
-        '''
-        Called before the application returns
-        @param the wsgi environment
-        @param http response headers as dict
-        @param return string of the soap request
-        '''
-        pass
+        if retval is None:
+            retval = self.__wsdl = service.get_wsdl(url)
 
-    def get_handler(self, environ):
-        '''
-        This method returns the object responsible for processing a given
-        request, and needs to be overridden by a subclass to handle
-        the application specific  mapping of the request to the appropriate
-        handler.
-        @param the wsgi environment
-        @returns the object to be called for the soap operation
-        '''
-        raise Exception("Not implemented")
+        return retval
 
-    def __call__(self, http_request_env, start_response, address_url=None):
+    def __get_schema(self, service):
+        retval = self.__schema
+
+        if retval is None:
+            retval = self.__schema = service.get_schema()
+
+        return retval
+
+    def __call__(self, http_request_env, start_response, wsgi_url=None):
         '''
         This method conforms to the WSGI spec for callable wsgi applications
         (PEP 333). It looks in environ['wsgi.input'] for a fully formed soap
         request envelope, will deserialize the request parameters and call the
         method on the object returned by the get_handler() method.
+
         @param the http environment
         @param a callable that begins the response message
+        @param the optional url
         @returns the string representation of the soap call
         '''
+
         method_name = ''
         http_resp_headers = {'Content-Type': 'text/xml'}
         soap_response_headers = []
 
         # cache the wsdl
         service_name = http_request_env['PATH_INFO'].split('/')[-1]
-        service = self.get_handler(http_request_env)
-        if address_url:
-            url = address_url
-        else:
+        service = self.get_service(http_request_env)
+        url = wsgi_url
+        if url is None:
             url = reconstruct_url(http_request_env).split('.wsdl')[0]
-
-        # generate wsdl in order to create the validation_schema object
-        # this is not so expensive because the result is cached in memory after
-        # the first call. yes, this is a hack.
-        try:
-            wsdl_content = service.wsdl(url)
-        except:
-            # the exception is ignored because if there's a problem with wsdl
-            # generation and this is a wsdl request, it'll pop up below. if this
-            # is not a wsdl request, the client doesn't care because, well,
-            # it's not a wsdl request anyway.
-            pass
 
         try:
             # implementation hook
-            self.on_call(http_request_env)
+            service.on_call(http_request_env)
 
-            if ((http_request_env['QUERY_STRING'].endswith('wsdl') or
-                 http_request_env['PATH_INFO'].endswith('wsdl')) and
-                http_request_env['REQUEST_METHOD'].lower() == 'get'):
+            if ((   http_request_env['QUERY_STRING'].endswith('wsdl')
+                 or http_request_env['PATH_INFO'].endswith('wsdl') )
+                and http_request_env['REQUEST_METHOD'].lower() == 'get'):
 
-                #
                 # Get the wsdl for the service. Assume path_info matches pattern:
                 # /stuff/stuff/stuff/serviceName.wsdl or
                 # /stuff/stuff/stuff/serviceName/?WSDL
-                #
                 service_name = service_name.split('.')[0]
 
                 start_response('200 OK', http_resp_headers.items())
                 try:
-                    wsdl_content = service.wsdl(url)
+                    wsdl_content = self.__get_wsdl(service,url)
 
                     # implementation hook
-                    self.on_wsdl(http_request_env, wsdl_content)
+                    service.on_wsdl(http_request_env, wsdl_content)
 
                 except Exception, e:
                     # implementation hook
                     logger.error(traceback.format_exc())
 
-                    fault_str = etree.tostring(make_soap_fault(str(e),
-                           self.get_tns(), detail=""), encoding=string_encoding)
+                    fault_xml = make_soap_fault(str(e), service.get_tns(), detail="")
+                    fault_str = etree.tostring(fault_xml,
+                           xml_declaration=True, encoding=string_encoding)
                     logger.debug(fault_str)
 
-                    self.on_wsdl_exception(http_request_env, e, fault_str)
+                    service.on_wsdl_exception(http_request_env, e, fault_str)
 
                     # initiate the response
                     http_resp_headers['Content-length'] = str(len(fault_str))
@@ -223,6 +163,14 @@ class WsgiApp(object):
             # deserialize the body of the message
             request_payload, request_header = from_soap(body)
 
+            # if there's a schema to validate against, validate the response
+            schema = self.__get_schema(service)
+            if schema != None:
+                ret = schema.validate(request_payload)
+                logger.debug("validation result: %s" % str(ret))
+                if ret == False:
+                    raise ValidationError(schema.error_log.last_error)
+
             if request_payload is not None and len(request_payload) > 0:
                 method_name = request_payload.tag
             else:
@@ -240,21 +188,13 @@ class WsgiApp(object):
             descriptor = service.get_method(method_name)
             func = getattr(service, descriptor.name)
 
-            # FIXME: this code should be inside ValidatingWsgiSoapApp class
-            if self.validating_service:
-                ret = self.validation_schema.validate(request_payload)
-                logger.debug("validation result: %s" % str(ret))
-                if ret == False:
-                    raise Exception("Validation error: %s" %
-                                    self.validation_schema.error_log.last_error)
-
             if request_payload is not None and len(request_payload) > 0:
                 params = descriptor.in_message.from_xml(*[request_payload])
             else:
                 params = ()
 
             # implementation hook
-            self.on_method_exec(http_request_env, method_name, params, body)
+            service.on_method_exec(http_request_env, method_name, params, body)
 
             # call the method
             result_raw = func(*params)
@@ -274,25 +214,27 @@ class WsgiApp(object):
                                                               service.get_tns())
 
             # implementation hook
-            self.on_results(http_request_env, result_raw, results_soap,
+            service.on_results(http_request_env, result_raw, results_soap,
                                                           soap_response_headers)
 
             # construct the soap response, and serialize it
             envelope = make_soap_envelope(results_soap, tns=service.get_tns(),
                                           header_elements=soap_response_headers)
-            results_str = etree.tostring(envelope, encoding=string_encoding)
+            results_str = etree.tostring(envelope, xml_declaration=True,
+                                                       encoding=string_encoding)
 
             if descriptor.mtom:
                 http_resp_headers, results_str = apply_mtom(http_resp_headers,
                     results_str,descriptor.out_message._type_info,[result_raw])
 
-            self.on_return(http_request_env, http_resp_headers, results_str)
+            service.on_return(http_request_env, http_resp_headers, results_str)
 
             # initiate the response
             start_response('200 OK', http_resp_headers.items())
 
             logger.debug('\033[91m'+ "Response" + '\033[0m')
-            logger.debug(etree.tostring(envelope, pretty_print=True))
+            logger.debug(etree.tostring(envelope, xml_declaration=True,
+                                                             pretty_print=True))
 
             # return the serialized results
             return [results_str]
@@ -301,17 +243,18 @@ class WsgiApp(object):
             # FIXME: There's no way to alter soap response headers for the user.
 
             # The user issued a Fault, so handle it just like an exception!
-            fault = make_soap_fault(
+            fault_xml = make_soap_fault(
                 service.get_tns(),
                 e.faultstring,
                 e.faultcode,
                 e.detail,
                 header_elements=soap_response_headers)
 
-            fault_str = etree.tostring(fault, encoding=string_encoding)
+            fault_str = etree.tostring(fault_xml, xml_declaration=True,
+                                                    encoding=string_encoding)
             logger.error(fault_str)
 
-            self.on_exception(http_request_env, http_resp_headers, e, fault_str)
+            service.on_exception(http_request_env, http_resp_headers, e, fault_str)
 
             # initiate the response
             start_response('500 Internal Server Error',http_resp_headers.items())
@@ -340,38 +283,14 @@ class WsgiApp(object):
             detail = ' '
             logger.error(stacktrace)
 
-            fault_str = etree.tostring(make_soap_fault(service.get_tns(),
-                faultstring,
-                faultcode, detail), encoding=string_encoding)
+            fault_xml = make_soap_fault(service.get_tns(), faultstring,
+                                                              faultcode, detail)
+            fault_str = etree.tostring(fault_xml, xml_declaration=True,
+                                                       encoding=string_encoding)
             logger.debug(fault_str)
 
-            self.on_exception(http_request_env, e, fault_str)
+            service.on_exception(http_request_env, e, fault_str)
 
             # initiate the response
             start_response('500 Internal Server Error',http_resp_headers.items())
             return [fault_str]
-
-class SimpleWsgiApp(WsgiApp, ServiceBase):
-    '''
-    This object is a VERY simple extention of the base WSGIApp.
-    It subclasses both WSGIApp, and ServiceBase, so that
-    an object can simply subclass this single object, and it will
-    be both a wsgi application and a soap service.  This is convenient
-    if you want to only expose some functionality, and dont need
-    complex handler mapping, and all of the functionality can be put
-    in a single class.
-    '''
-
-    def __init__(self):
-        WsgiApp.__init__(self)
-        ServiceBase.__init__(self)
-
-    def get_handler(self, environ):
-        return self
-
-class ValidatingWsgiSoapApp(SimpleWsgiApp):
-    # Are you by any chance looking for xml validation code?
-    # search this file for 'validating_service'
-    def __init__(self):
-        SimpleWsgiApp.__init__(self)
-        self.validating_service = True

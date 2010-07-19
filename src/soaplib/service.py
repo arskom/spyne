@@ -207,20 +207,80 @@ class _SchemaEntries(object):
         schema_info = self.get_schema_info(cls.get_namespace_prefix())
         schema_info.types[cls.get_type_name()] = node
 
-class ServiceBase(object):
+class Definition(object):
     '''
     This class serves as the base for all soap services.  Subclasses of this
     class will use the rpc decorator to flag methods to be exposed via soap.
-    This class is responsible for generating the wsdl for this object.
+    This class is responsible for generating the wsdl for this service
+    definition.
     '''
 
     __tns__ = None
 
-    def __init__(self):
-        self._remote_methods = []
-        self.__wsdl = None
-        self.validating_service = False
-        self.validation_schema = None
+    def on_call(self, environ):
+        '''
+        This is the first method called when this WSGI app is invoked
+        @param the wsgi environment
+        '''
+        pass
+
+    def on_wsdl(self, environ, wsdl):
+        '''
+        This is called when a wsdl is requested
+        @param the wsgi environment
+        @param the wsdl string
+        '''
+        pass
+
+    def on_wsdl_exception(self, environ, exc, resp):
+        '''
+        Called when an exception occurs durring wsdl generation
+        @param the wsgi environment
+        @param exc the exception
+        @param the fault response string
+        '''
+        pass
+
+    def on_method_exec(self, environ, method_name, py_params, soap_params):
+        '''
+        Called BEFORE the service implementing the functionality is called
+        @param the wsgi environment
+        @param the method name
+        @param the body element of the soap request
+        @param the tuple of python params being passed to the method
+        @param the soap elements for each params
+        '''
+        pass
+
+    def on_results(self, environ, py_results, soap_results, soap_headers):
+        '''
+        Called AFTER the service implementing the functionality is called
+        @param the wsgi environment
+        @param the python results from the method
+        @param the xml serialized results of the method
+        @param soap headers as a list of lxml.etree._Element objects
+        '''
+        pass
+
+    def on_exception(self, environ, exc, resp):
+        '''
+        Called when an error occurs durring execution
+        @param the wsgi environment
+        @param the exception
+        @param the response string
+        '''
+        pass
+
+    def on_return(self, environ, http_headers, return_str):
+        '''
+        Called before the application returns
+        @param the wsgi environment
+        @param http response headers as dict
+        @param return string of the soap request
+        '''
+        pass
+
+    def __init__(self, environ):
         self._remote_methods = self._get_remote_methods()
 
     @classmethod
@@ -302,7 +362,7 @@ class ServiceBase(object):
 
         return [service_name]
 
-    def wsdl(self, url):
+    def get_wsdl(self, url):
         '''
         This method generates and caches the wsdl for this object based
         on the soap methods designated by the rpc decorator.
@@ -313,10 +373,6 @@ class ServiceBase(object):
 
         @returns the string of the wsdl
         '''
-
-        if not self.__wsdl == None:
-            # return the cached __wsdl
-            return self.__wsdl
 
         url = url.replace('.wsdl', '')
 
@@ -338,7 +394,7 @@ class ServiceBase(object):
         has_callbacks = self._has_callbacks()
 
         types = etree.Element("{%s}types" % ns_wsdl)
-        self.__add_schema(types, methods, for_validation=False)
+        self.add_schema(types, methods, for_validation=False)
 
         root = etree.Element("{%s}definitions" % ns_wsdl, nsmap=soaplib.nsmap)
         root.append(types)
@@ -456,14 +512,10 @@ class ServiceBase(object):
 
         wsdl = etree.tostring(root, xml_declaration=True, encoding="UTF-8")
 
-        if self.validating_service:
-            self.validation_schema = self.__build_validation_schema(methods)
-
         #cache the wsdl for next time
-        self.__wsdl = wsdl
-        return self.__wsdl
+        return wsdl
 
-    def __add_schema(self, types, methods, for_validation):
+    def add_schema(self, types, methods, for_validation):
         '''
         A private method for adding the appropriate entries
         to the schema for the types in the specified methods.
@@ -510,27 +562,6 @@ class ServiceBase(object):
                 schema.append(node)
 
         return schema_nodes
-
-    def __build_validation_schema(self, methods):
-        schema_nodes = self.__add_schema(None, methods, for_validation=True)
-
-        tmp_dir_name = tempfile.mkdtemp()
-
-        # serialize nodes to files
-        for k,v in schema_nodes.items():
-            f = open('%s/%s.xsd' % (tmp_dir_name, k),'w')
-            etree.ElementTree(v).write(f, pretty_print=True)
-            f.close()
-
-        pref_tns = soaplib.get_namespace_prefix(self.get_tns())
-        f = open('%s/%s.xsd' % (tmp_dir_name, pref_tns, 'r'))
-
-        retval = etree.XMLSchema(etree.parse(f))
-
-        f.close()
-        shutil.rmtree(tmp_dir_name)
-
-        return retval
 
     def __add_messages_for_methods(self, root, methods):
         '''
@@ -635,3 +666,30 @@ class ServiceBase(object):
                     mid_header.set('use', 'literal')
 
                 binding.append(operation)
+
+    def get_schema(self):
+        pass
+
+class ValidatingDefinition(Definition):
+    def get_schema(self):
+        methods = self.methods()
+
+        schema_nodes = self.add_schema(None, methods, for_validation=True)
+
+        tmp_dir_name = tempfile.mkdtemp()
+
+        # serialize nodes to files
+        for k,v in schema_nodes.items():
+            f = open('%s/%s.xsd' % (tmp_dir_name, k), 'w')
+            etree.ElementTree(v).write(f, pretty_print=True)
+            f.close()
+
+        pref_tns = soaplib.get_namespace_prefix(self.get_tns())
+        f = open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r')
+
+        retval = etree.XMLSchema(etree.parse(f))
+
+        f.close()
+        shutil.rmtree(tmp_dir_name)
+
+        return retval
