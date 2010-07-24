@@ -603,7 +603,6 @@ class Array(BasePrimitive):
     def print_class(self):
         return "%s(%s)" % (type(self).__name__, self.serializer.print_class())
 
-
 class Repeating(BasePrimitive):
 
     def __init__(self, serializer, type_name=None, namespace_id='tns'):
@@ -668,5 +667,3 @@ class Optional(BasePrimitive):
 
     def print_class(self):
         return "%s(%s)" % (type(self).__name__, self.serializer.print_class())
-
-

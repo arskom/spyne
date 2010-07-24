@@ -33,20 +33,16 @@ try:
 except ImportError:
     raise Exception("UnitTests require Python >= 2.5")
 
-
 class Address(ClassSerializer):
-
     class types:
         street = String
         city = String
         zip = Integer
         since = DateTime
-        laditude = Float
+        latitude = Float
         longitude = Float
 
-
 class Person(ClassSerializer):
-
     class types:
         name = String
         birthdate = DateTime
@@ -54,22 +50,16 @@ class Person(ClassSerializer):
         addresses = Array(Address)
         titles = Array(String)
 
-
 class Request(ClassSerializer):
-
     class types:
         param1 = String
         param2 = Integer
 
-
 class Response(ClassSerializer):
-
     class types:
         param1 = Float
 
-
 class TestService(SimpleWSGISoapApp):
-
     @soapmethod(String, Integer, _returns=DateTime)
     def a(self, s, i):
         return datetime.datetime(1901, 12, 15)
@@ -79,7 +69,7 @@ class TestService(SimpleWSGISoapApp):
         a = Address()
         a.zip = 4444
         a.street = 'wsgi way'
-        a.laditude = 123.3
+        a.latitude = 123.3
 
         return a
 
@@ -95,9 +85,7 @@ class TestService(SimpleWSGISoapApp):
     def fault(self):
         raise Exception('Testing faults')
 
-
 class test(unittest.TestCase):
-
     def setUp(self):
         self.server = make_server('127.0.0.1', 9191, TestService())
         self.server.allow_reuse_address = True
@@ -109,7 +97,7 @@ class test(unittest.TestCase):
 
     def test_simple(self):
         inMessage = Message('a', [('s', String), ('i', Integer)])
-        outMessage = Message('aResponse', [('retval', DateTime)])
+        outMessage = Message('aResponse', [('aResult', DateTime)])
 
         desc = MethodDescriptor('a', 'a', inMessage, outMessage, '')
 
@@ -120,7 +108,7 @@ class test(unittest.TestCase):
     def test_nested(self):
         inMessage = Message('b',
             [('p', Person), ('s', String), ('i', Integer)])
-        outMessage = Message('bResponse', [('retval', Address)])
+        outMessage = Message('bResponse', [('bResult', Address)])
 
         desc = MethodDescriptor('b', 'b', inMessage, outMessage, '')
 
@@ -132,6 +120,7 @@ class test(unittest.TestCase):
             a = Address()
             a.zip = i
             p.addresses.append(a)
+
         res = client(p, 'abc', 123)
         self.assertEquals(res.longitude, None)
         self.assertEquals(res.zip, 4444)
@@ -204,13 +193,11 @@ class test(unittest.TestCase):
         r = client.e(p)
         self.assertEquals(r, None)
 
-
 def test_suite():
     #debug(True)
     loader = unittest.TestLoader()
     #log_debug(True)
     return loader.loadTestsFromTestCase(test)
-
 
 if __name__== '__main__':
     unittest.TextTestRunner().run(test_suite())
