@@ -29,7 +29,6 @@ that are python keywords like, from, to, import, return, etc.
 
 
 class EmailManager(SimpleWSGISoapApp):
-
     @soapmethod(String, String, String,
         _inVariableNames = {'_to': 'to', '_from': 'from',
             '_message': 'message'},
@@ -42,6 +41,7 @@ if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server
         server = make_server('localhost', 7789, EmailManager())
+        print "listening on 0.0.0.0:7889"
         server.serve_forever()
     except ImportError:
         print "Error: example server code requires Python >= 2.5"

@@ -31,16 +31,12 @@ dictionary to store the User objects.
 user_database = {}
 userid_seq = 1
 
-
 class Permission(ClassSerializer):
-
     class types:
         application = String
         feature = String
 
-
 class User(ClassSerializer):
-
     class types:
         userid = Integer
         username = String
@@ -48,9 +44,7 @@ class User(ClassSerializer):
         lastname = String
         permissions = Array(Permission)
 
-
 class UserManager(SimpleWSGISoapApp):
-
     @soapmethod(User, _returns=Integer)
     def add_user(self, user):
         global user_database
@@ -80,11 +74,11 @@ class UserManager(SimpleWSGISoapApp):
         global user_database
         return [v for k, v in user_database.items()]
 
-
 if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server
         server = make_server('localhost', 7789, UserManager())
+        print "listening on 0.0.0.0:7889"
         server.serve_forever()
     except ImportError:
         print "Error: example server code requires Python >= 2.5"

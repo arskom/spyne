@@ -50,7 +50,6 @@ to hold the data points for this request.
 
 
 class HelloWorldService(SimpleWSGISoapApp):
-
     @soapmethod(String, Integer, _returns=Array(String))
     def say_hello(self, name, times):
         results = []
@@ -77,7 +76,6 @@ class HelloWorldService(SimpleWSGISoapApp):
         print 'Method took [%s] - total execution time[%s]'% (
             method_end-method_start, call_end-call_start)
 
-
 def make_client():
     from soaplib.client import make_service_client
     client = make_service_client('http://localhost:7889/', HelloWorldService())
@@ -87,6 +85,7 @@ if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server
         server = make_server('localhost', 7889, HelloWorldService())
+        print "listening on 0.0.0.0:7889"
         server.serve_forever()
     except ImportError:
         print "Error: example server code requires Python >= 2.5"

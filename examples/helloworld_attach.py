@@ -22,9 +22,7 @@ from soaplib.serializers.primitive import String, Integer, Array
 from soaplib.serializers.binary import Attachment
 from soaplib.wsgi_soap import SimpleWSGISoapApp
 
-
 class HelloWorldService(SimpleWSGISoapApp):
-
     @soapmethod(Attachment, Integer, _returns=Array(String), _mtom=True)
     def say_hello(self, name, times):
         results = []
@@ -36,6 +34,7 @@ if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server
         server = make_server('localhost', 7789, HelloWorldService())
+        print "listening on 0.0.0.0:7889"
         server.serve_forever()
     except ImportError:
         print "Error: example server code requires Python >= 2.5"

@@ -26,7 +26,6 @@ from soaplib.serializers.primitive import String, Integer
 from soaplib.util import get_callback_info
 from soaplib.wsgi_soap import SimpleWSGISoapApp
 
-
 '''
 This is a very simple async service that sleeps for a specified
 number of seconds and then call back the caller with a message.
@@ -36,9 +35,7 @@ management or scheduling mechanism, the service is responsible for the
 execution of the async. process.
 '''
 
-
 class SleepingService(SimpleWSGISoapApp):
-
     @soapmethod(Integer, _isAsync=True)
     def sleep(self, seconds):
         msgid, replyto = get_callback_info()
@@ -59,6 +56,7 @@ if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server
         server = make_server('localhost', 7789, SleepingService())
+        print "listening on 0.0.0.0:7889"
         server.serve_forever()
     except ImportError:
         print "Error: example server code requires Python >= 2.5"

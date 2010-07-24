@@ -22,13 +22,10 @@ from soaplib.service import soapmethod
 from soaplib.serializers.primitive import String
 from soaplib.serializers.binary import Attachment
 
-
 from tempfile import mkstemp
 import os
 
-
 class DocumentArchiver(SimpleWSGISoapApp):
-
     @soapmethod(Attachment, _returns=String)
     def archive_document(self, document):
         '''
@@ -60,7 +57,6 @@ class DocumentArchiver(SimpleWSGISoapApp):
         #   document = Attachment(data=data_from_file)
         return document
 
-
 def make_client():
     from soaplib.client import make_service_client
     client = make_service_client('http://localhost:7889/', DocumentArchiver())
@@ -70,6 +66,7 @@ if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server
         server = make_server('localhost', 7889, DocumentArchiver())
+        print "listening on 0.0.0.0:7889"
         server.serve_forever()
     except ImportError:
         print "Error: example server code requires Python >= 2.5"
