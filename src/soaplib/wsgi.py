@@ -27,7 +27,6 @@ from lxml import etree
 
 from soaplib.serializers.exception import Fault
 from soaplib.serializers.primitive import string_encoding
-from soaplib.service import Definition
 
 from soaplib.soap import apply_mtom
 from soaplib.soap import collapse_swa
@@ -86,7 +85,7 @@ class AppBase(object):
 
         method_name = ''
         http_resp_headers = {'Content-Type': 'text/xml'}
-        soap_response_headers = []
+        soap_resp_headers = []
 
         # cache the wsdl
         service_name = req_env['PATH_INFO'].split('/')[-1]
@@ -99,13 +98,13 @@ class AppBase(object):
             # implementation hook
             service.on_call(req_env)
 
-            if ((   req_env['QUERY_STRING'].endswith('wsdl')
-                 or req_env['PATH_INFO'].endswith('wsdl') )
-                and req_env['REQUEST_METHOD'].lower() == 'get'):
+            if req_env['REQUEST_METHOD'].lower() == 'get' and (
+                    req_env['QUERY_STRING'].endswith('wsdl')
+                 or req_env['PATH_INFO'].endswith('wsdl') ):
 
                 # Get the wsdl for the service. Assume path_info matches pattern:
                 # /stuff/stuff/stuff/serviceName.wsdl or
-                # /stuff/stuff/stuff/serviceName/?WSDL
+                # /stuff/stuff/stuff/serviceName/?wsdl
                 service_name = service_name.split('.')[0]
 
                 start_response('200 OK', http_resp_headers.items())
@@ -157,22 +156,22 @@ class AppBase(object):
                 charset = 'ascii'
 
             body = body.decode(charset)
-
             body = collapse_swa(content_type, body)
 
             # deserialize the body of the message
-            request_payload, request_header = from_soap(body)
+            soap_req_payload, soap_req_header = from_soap(body)
+            service.soap_req_header = soap_req_header
 
             # if there's a schema to validate against, validate the response
             schema = self.__get_schema(service)
             if schema != None:
-                ret = schema.validate(request_payload)
+                ret = schema.validate(soap_req_payload)
                 logger.debug("validation result: %s" % str(ret))
                 if ret == False:
                     raise ValidationError(schema.error_log.last_error)
 
-            if request_payload is not None and len(request_payload) > 0:
-                method_name = request_payload.tag
+            if soap_req_payload is not None and len(soap_req_payload) > 0:
+                method_name = soap_req_payload.tag
             else:
                 # check HTTP_SOAPACTION
                 method_name = req_env.get("HTTP_SOAPACTION")
@@ -188,8 +187,8 @@ class AppBase(object):
             descriptor = service.get_method(method_name)
             func = getattr(service, descriptor.name)
 
-            if request_payload is not None and len(request_payload) > 0:
-                params = descriptor.in_message.from_xml(*[request_payload])
+            if soap_req_payload is not None and len(soap_req_payload) > 0:
+                params = descriptor.in_message.from_xml(*[soap_req_payload])
             else:
                 params = ()
 
@@ -215,11 +214,11 @@ class AppBase(object):
 
             # implementation hook
             service.on_results(req_env, result_raw, results_soap,
-                                                          soap_response_headers)
+                                                          soap_resp_headers)
 
             # construct the soap response, and serialize it
             envelope = make_soap_envelope(results_soap, tns=service.get_tns(),
-                                          header_elements=soap_response_headers)
+                                          header_elements=soap_resp_headers)
             results_str = etree.tostring(envelope, xml_declaration=True,
                                                        encoding=string_encoding)
 
@@ -248,7 +247,7 @@ class AppBase(object):
                 e.faultstring,
                 e.faultcode,
                 e.detail,
-                header_elements=soap_response_headers)
+                header_elements=soap_resp_headers)
 
             fault_str = etree.tostring(fault_xml, xml_declaration=True,
                                                     encoding=string_encoding)

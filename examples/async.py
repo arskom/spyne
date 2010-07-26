@@ -26,7 +26,6 @@ from soaplib.serializers.primitive import String, Integer
 from soaplib.util import get_callback_info
 from soaplib.wsgi_soap import SimpleWSGIApp
 
-
 '''
 This is a very simple async service that sleeps for a specified
 number of seconds and then call back the caller with a message.
@@ -35,7 +34,6 @@ for a real-world application.  Soaplib does not provide any thread
 management or scheduling mechanism, the service is responsible for the
 execution of the async. process.
 '''
-
 
 class SleepingService(SimpleWSGIApp):
     @rpc(Integer, _is_async=True)

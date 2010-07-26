@@ -217,6 +217,10 @@ class Definition(object):
 
     __tns__ = None
 
+    def __init__(self, environ):
+        self._remote_methods = self._get_remote_methods()
+        self.soap_req_header = None
+
     def on_call(self, environ):
         '''
         This is the first method called when this WSGI app is invoked
@@ -279,9 +283,6 @@ class Definition(object):
         @param return string of the soap request
         '''
         pass
-
-    def __init__(self, environ):
-        self._remote_methods = self._get_remote_methods()
 
     @classmethod
     def get_tns(cls):
@@ -668,7 +669,7 @@ class Definition(object):
                 binding.append(operation)
 
     def get_schema(self):
-        pass
+        return None
 
 class ValidatingDefinition(Definition):
     def get_schema(self):
