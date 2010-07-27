@@ -110,18 +110,18 @@ def reconstruct_url(environ):
             if environ['SERVER_PORT'] != '80':
                 url += ':' + environ['SERVER_PORT']
 
-    if (urllib.quote_plus(environ.get('SCRIPT_NAME', '')) == '/' and
-        urllib.quote_plus(environ.get('PATH_INFO', ''))[0:1] == '/'):
+    if (urllib.quote(environ.get('SCRIPT_NAME', '')) == '/' and
+        urllib.quote(environ.get('PATH_INFO', ''))[0:1] == '/'):
         #skip this if it is only a slash
         pass
 
-    elif urllib.quote_plus(environ.get('SCRIPT_NAME', ''))[0:2] == '//':
-        url += urllib.quote_plus(environ.get('SCRIPT_NAME', ''))[1:]
+    elif urllib.quote(environ.get('SCRIPT_NAME', ''))[0:2] == '//':
+        url += urllib.quote(environ.get('SCRIPT_NAME', ''))[1:]
 
     else:
-        url += urllib.quote_plus(environ.get('SCRIPT_NAME', ''))
+        url += urllib.quote(environ.get('SCRIPT_NAME', ''))
 
-    url += urllib.quote_plus(environ.get('PATH_INFO', ''))
+    url += urllib.quote(environ.get('PATH_INFO', ''))
     if environ.get('QUERY_STRING'):
         url += '?' + environ['QUERY_STRING']
 
