@@ -34,7 +34,7 @@ setup(
     author='Soaplib Contributors',
     author_email='soap@python.org',
     maintainer = 'Burak Arslan',
-    maintainer_email = 'burak@arskom.com.tr',
+    maintainer_email = 'burak-soaplib@arskom.com.tr',
     url='http://github.com/arskom/soaplib',
     license='LGPL',
     zip_safe=False,
