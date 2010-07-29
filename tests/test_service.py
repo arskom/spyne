@@ -29,10 +29,8 @@ from soaplib.serializers.primitive import Float
 from soaplib.serializers.primitive import Integer
 from soaplib.serializers.primitive import String
 
-from soaplib.service import ServiceBase
+from soaplib import service
 from soaplib.service import rpc
-
-from soaplib.wsgi import SimpleWsgiApp
 
 class Address(ClassSerializer):
     __namespace__ = "TestService"
@@ -76,7 +74,7 @@ class TypeNS2(ClassSerializer):
     d = DateTime
     f = Float
 
-class MultipleNamespaceService(ServiceBase):
+class MultipleNamespaceService(service.Definition):
     @rpc(TypeNS1, TypeNS2)
     def a(self, t1, t2):
         return "OK"
@@ -87,7 +85,7 @@ class MultipleNamespaceValidatingService(MultipleNamespaceService):
 
         self.validating_service = True
 
-class TestService(ServiceBase):
+class TestService(service.Definition):
     @rpc(String, _returns=String)
     def aa(self, s):
         return s
@@ -115,12 +113,12 @@ class TestService(ServiceBase):
     def f(self, _from, _self, _import):
         return '1234'
 
-class MultipleReturnService(ServiceBase):
+class MultipleReturnService(service.Definition):
     @rpc(String, _returns=(String, String, String))
     def multi(self, s):
         return s, 'a', 'b'
 
-class OverrideNamespaceService(SimpleWsgiApp):
+class OverrideNamespaceService(service.Definition):
     __tns__ = "http://someservice.com/override"
 
     @rpc(String, _returns=String)
@@ -134,7 +132,7 @@ class Test(unittest.TestCase):
 
     def setUp(self):
         self.service = TestService()
-        self._wsdl = self.service.wsdl('')
+        self._wsdl = self.service.get_wsdl('')
         self.wsdl = etree.fromstring(self._wsdl)
 
     def test_portypes(self):
@@ -143,7 +141,7 @@ class Test(unittest.TestCase):
             len(self.service._remote_methods), len(porttype.getchildren()))
 
     def test_override_default_names(self):
-        wsdl = etree.fromstring(OverrideNamespaceService().wsdl(''))
+        wsdl = etree.fromstring(OverrideNamespaceService().get_wsdl(''))
         self.assertEquals(wsdl.get('targetNamespace'),
             "http://someservice.com/override")
 
@@ -153,7 +151,7 @@ class Test(unittest.TestCase):
 
     def test_multiple_return(self):
         service = MultipleReturnService()
-        service.wsdl('')
+        service.get_wsdl('')
 
         message = service.methods()[0].out_message()
 
@@ -171,7 +169,7 @@ class Test(unittest.TestCase):
 
     def test_multiple_ns(self):
         svc = MultipleNamespaceService()
-        wsdl = svc.wsdl("URL")
+        wsdl = svc.get_wsdl("URL")
 
 def suite():
     loader = unittest.TestLoader()
