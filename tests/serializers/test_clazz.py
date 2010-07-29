@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python
 #
 # soaplib - Copyright (C) Soaplib contributors.
 #

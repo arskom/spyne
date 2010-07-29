@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python
 #
 # soaplib - Copyright (C) Soaplib contributors.
 #
@@ -18,8 +18,6 @@
 #
 
 import unittest
-
-from datetime import datetime
 
 from suds.client import Client
 from suds import WebFault
