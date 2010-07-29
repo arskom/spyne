@@ -217,7 +217,7 @@ class Definition(object):
 
     __tns__ = None
 
-    def __init__(self, environ):
+    def __init__(self, environ=None):
         self._remote_methods = self._get_remote_methods()
         self.soap_req_header = None
 
