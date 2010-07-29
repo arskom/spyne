@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import logging
+logger = logging.getLogger('soaplib')
 from lxml import etree
 
 from base64 import b64encode
@@ -63,11 +65,16 @@ class MethodDescriptor(object):
         self.is_async = is_async
         self.mtom = mtom
 
-def from_soap(xml_string):
+def from_soap(xml_string, http_charset):
     '''
     Parses the xml string into the header and payload
     '''
-    root, xmlids = etree.XMLID(xml_string)
+    try:
+        root, xmlids = etree.XMLID(xml_string.decode(http_charset))
+    except ValueError,e:
+        logger.debug('%s -- falling back to str decoding.' % (e))
+        root, xmlids = etree.XMLID(xml_string)
+
     if xmlids:
         resolve_hrefs(root, xmlids)
 

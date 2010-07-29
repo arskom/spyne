@@ -155,11 +155,10 @@ class AppBase(object):
             if charset is None:
                 charset = 'ascii'
 
-            body = body.decode(charset)
             body = collapse_swa(content_type, body)
 
             # deserialize the body of the message
-            soap_req_payload, soap_req_header = from_soap(body)
+            soap_req_payload, soap_req_header = from_soap(body, charset)
             service.soap_req_header = soap_req_header
 
             # if there's a schema to validate against, validate the response
