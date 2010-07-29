@@ -45,6 +45,12 @@ class TestSuds(unittest.TestCase):
         except WebFault, e:
             pass
 
+    def test_echo_string(self):
+        test_string = "OK"
+        ret = self.client.service.echo_string(test_string)
+
+        self.assertEquals(ret, test_string)
+
 def suite():
     loader = unittest.TestLoader()
     return loader.loadTestsFromTestCase(TestSuds)
