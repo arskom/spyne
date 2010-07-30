@@ -74,7 +74,7 @@ class TypeNS2(ClassSerializer):
     d = DateTime
     f = Float
 
-class MultipleNamespaceService(service.Definition):
+class MultipleNamespaceService(service.DefinitionBase):
     @rpc(TypeNS1, TypeNS2)
     def a(self, t1, t2):
         return "OK"
@@ -85,7 +85,7 @@ class MultipleNamespaceValidatingService(MultipleNamespaceService):
 
         self.validating_service = True
 
-class TestService(service.Definition):
+class TestService(service.DefinitionBase):
     @rpc(String, _returns=String)
     def aa(self, s):
         return s
@@ -113,12 +113,12 @@ class TestService(service.Definition):
     def f(self, _from, _self, _import):
         return '1234'
 
-class MultipleReturnService(service.Definition):
+class MultipleReturnService(service.DefinitionBase):
     @rpc(String, _returns=(String, String, String))
     def multi(self, s):
         return s, 'a', 'b'
 
-class OverrideNamespaceService(service.Definition):
+class OverrideNamespaceService(service.DefinitionBase):
     __tns__ = "http://someservice.com/override"
 
     @rpc(String, _returns=String)

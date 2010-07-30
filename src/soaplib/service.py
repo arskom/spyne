@@ -207,7 +207,7 @@ class _SchemaEntries(object):
         schema_info = self.get_schema_info(cls.get_namespace_prefix())
         schema_info.types[cls.get_type_name()] = node
 
-class Definition(object):
+class DefinitionBase(object):
     '''
     This class serves as the base for all soap services.  Subclasses of this
     class will use the rpc decorator to flag methods to be exposed via soap.
@@ -671,7 +671,7 @@ class Definition(object):
     def get_schema(self):
         return None
 
-class ValidatingDefinition(Definition):
+class ValidatingDefinitionBase(DefinitionBase):
     def get_schema(self):
         methods = self.methods()
 

@@ -79,7 +79,7 @@ DaysOfWeekEnum = Enum(
     type_name = 'DaysOfWeekEnum'
 )
 
-class InteropService(service.ValidatingDefinition):
+class InteropService(service.ValidatingDefinitionBase):
     @rpc(Integer, _returns=Integer)
     def echo_integer(self, i):
         return i
