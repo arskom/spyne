@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 
 #
 # soaplib - Copyright (C) Soaplib contributors.
@@ -29,9 +28,8 @@ from soaplib.serializers.primitive import Float
 from soaplib.serializers.primitive import Integer
 from soaplib.serializers.primitive import String
 
+from soaplib import service
 from soaplib.service import rpc
-from soaplib.wsgi import AppBase
-from soaplib.service import ValidatingDefinition
 
 import logging
 logger = logging.getLogger('soaplib')
@@ -81,7 +79,7 @@ DaysOfWeekEnum = Enum(
     type_name = 'DaysOfWeekEnum'
 )
 
-class InteropService(ValidatingDefinition):
+class InteropService(service.ValidatingDefinition):
     @rpc(Integer, _returns=Integer)
     def echo_integer(self, i):
         return i
@@ -179,12 +177,3 @@ class InteropService(ValidatingDefinition):
     def do_something_else(self, s):
         return s
 
-if __name__ == '__main__':
-    try:
-        from wsgiref.simple_server import make_server
-        server = make_server('127.0.0.1', 9753, AppBase(InteropService))
-        print 'Starting interop server at -- %s:%s' % ('127.0.0.1', 9753)
-        server.serve_forever()
-
-    except ImportError:
-        print "Error: example server code requires Python >= 2.5"

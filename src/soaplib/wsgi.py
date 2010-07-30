@@ -38,7 +38,7 @@ from soaplib.util import reconstruct_url
 class ValidationError(Exception):
     pass
 
-class AppBase(object):
+class Application(object):
     def __init__(self, service):
         '''
         @param A ServiceBase subclass that defines the exposed services.
