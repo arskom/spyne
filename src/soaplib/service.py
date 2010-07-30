@@ -284,6 +284,9 @@ class DefinitionBase(object):
         '''
         pass
 
+    def call_wrapper(self, call, params):
+        return call(*params)
+
     @classmethod
     def get_tns(cls):
         '''

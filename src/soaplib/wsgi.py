@@ -195,7 +195,7 @@ class Application(object):
             service.on_method_exec(req_env, method_name, params, body)
 
             # call the method
-            result_raw = func(*params)
+            result_raw = service.call_wrapper(func, params)
 
             # create result message
             assert len(descriptor.out_message._type_info) == 1
