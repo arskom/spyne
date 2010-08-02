@@ -32,7 +32,8 @@ Development Requirements
 * Twisted is required for `interop.server.static`
 
 Soaplib services can be deployed as WSGI applications, in any WSGI-compliant
-web server. Soaplib services have been successfully run on the following web
+web server. See the examples directory in the source distribution for deployment
+examples. Soaplib services have been successfully run on the following web
 servers:
 
 * CherryPy 2.2
