@@ -45,6 +45,11 @@ class TestSuds(unittest.TestCase):
         except WebFault, e:
             pass
 
+    def test_echo_integer_array(self):
+        ia = self.client.factory.create('integerArray')
+        ia.integer.extend([1,2,3,4,5])
+        self.client.service.echo_integer_array(ia)
+
     def test_echo_string(self):
         test_string = "OK"
         ret = self.client.service.echo_string(test_string)
