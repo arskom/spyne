@@ -189,36 +189,38 @@ class TestClassSerializer(unittest.TestCase):
 
     def test_customize(self):
         class Base(ClassSerializer):
-            prop1=3
-            prop2=6
+            class Attributes(ClassSerializer.Attributes):
+                prop1=3
+                prop2=6
 
         Base2 = Base.customize(prop1=4)
 
-        self.assertNotEquals(Base.prop1, Base2.prop1)
-        self.assertEquals(Base.prop2, Base2.prop2)
+        self.assertNotEquals(Base.Attributes.prop1, Base2.Attributes.prop1)
+        self.assertEquals(Base.Attributes.prop2, Base2.Attributes.prop2)
 
         class Derived(Base):
-            prop3 = 9
-            prop4 = 12
+            class Attributes(Base.Attributes):
+                prop3 = 9
+                prop4 = 12
 
         Derived2 = Derived.customize(prop1=5, prop3=12)
 
-        self.assertEquals(Base.prop1, 3)
-        self.assertEquals(Base2.prop1, 4)
+        self.assertEquals(Base.Attributes.prop1, 3)
+        self.assertEquals(Base2.Attributes.prop1, 4)
 
-        self.assertEquals(Derived.prop1, 3)
-        self.assertEquals(Derived2.prop1, 5)
+        self.assertEquals(Derived.Attributes.prop1, 3)
+        self.assertEquals(Derived2.Attributes.prop1, 5)
 
-        self.assertNotEquals(Derived.prop3, Derived2.prop3)
-        self.assertEquals(Derived.prop4, Derived2.prop4)
+        self.assertNotEquals(Derived.Attributes.prop3, Derived2.Attributes.prop3)
+        self.assertEquals(Derived.Attributes.prop4, Derived2.Attributes.prop4)
 
         Derived3 = Derived.customize(prop3=12)
         Base.prop1 = 4
 
         # changes made to bases propagate, unless overridden
-        self.assertEquals(Derived.prop1, Base.prop1)
-        self.assertNotEquals(Derived2.prop1, Base.prop1)
-        self.assertEquals(Derived3.prop1, Base.prop1)
+        self.assertEquals(Derived.Attributes.prop1, Base.Attributes.prop1)
+        self.assertNotEquals(Derived2.Attributes.prop1, Base.Attributes.prop1)
+        self.assertEquals(Derived3.Attributes.prop1, Base.Attributes.prop1)
 
 def suite():
     loader = unittest.TestLoader()
