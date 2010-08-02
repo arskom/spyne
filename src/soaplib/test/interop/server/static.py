@@ -36,7 +36,7 @@ static_dir = os.path.abspath(".")
 url = 'app'
 application = wsgi.Application(InteropService)
 
-if __name__ == '__main__':
+def main(argv):
     observer = log.PythonLoggingObserver('twisted')
     log.startLoggingWithObserver(observer.emit,setStdout=False)
 
@@ -51,4 +51,9 @@ if __name__ == '__main__':
 
     reactor.listenTCP(port, site)
     logging.info("listening on: 0.0.0.0:%d" % port)
-    reactor.run()
+    
+    return reactor.run()
+
+if __name__ == '__main__':
+    import sys
+    sys.exit(main(sys.argv))
