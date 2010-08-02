@@ -116,57 +116,60 @@ class Application(object):
 
         return schema_nodes
 
-    def __build_schema(self):
-        # populate call routes
-        for s in self.services:
-            inst = s()
+    def __build_schema(self, types=None):
+        if types is None:
+            # populate call routes
+            for s in self.services:
+                inst = s()
 
-            for method in inst.public_methods:
-                method_name = "{%s}%s" % (self.get_tns(), method.name)
+                for method in inst.public_methods:
+                    method_name = "{%s}%s" % (self.get_tns(), method.name)
 
-                if method_name in self.call_routes:
-                    cur_tns = s.get_tns()
-                    old_tns = self.call_routes[method_name].get_tns()
-                    raise Exception("%s.%s overwrites %s.%s" %
-                                                        (old_tns, method.name,
-                                                         cur_tns, method.name) )
+                    if method_name in self.call_routes:
+                        cur_tns = s.get_tns()
+                        old_tns = self.call_routes[method_name].get_tns()
+                        raise Exception("%s.%s overwrites %s.%s" %
+                                                            (old_tns, method.name,
+                                                             cur_tns, method.name) )
 
-                else:
-                    logger.debug('adding method %r' % method_name)
-                    self.call_routes[method_name] = s
+                    else:
+                        logger.debug('adding method %r' % method_name)
+                        self.call_routes[method_name] = s
 
         # populate types
         schema_entries = None
         for s in self.services:
             s.__tns__ = self.get_tns()
+
             inst = s()
-            schema_entries = inst.add_schema(None, schema_entries)
+            schema_entries = inst.add_schema(schema_entries)
 
-        schema_nodes = self.__build_schema_nodes(schema_entries)
+        schema_nodes = self.__build_schema_nodes(schema_entries,types)
 
-        logger.debug("generating schema")
-        tmp_dir_name = tempfile.mkdtemp()
+        if types is None:
+            logger.debug("generating schema...")
+            tmp_dir_name = tempfile.mkdtemp()
 
-        # serialize nodes to files
-        for k,v in schema_nodes.items():
-            file_name = '%s/%s.xsd' % (tmp_dir_name, k)
-            f = open(file_name, 'w')
-            etree.ElementTree(v).write(f, pretty_print=True)
+            # serialize nodes to files
+            for k,v in schema_nodes.items():
+                file_name = '%s/%s.xsd' % (tmp_dir_name, k)
+                f = open(file_name, 'w')
+                etree.ElementTree(v).write(f, pretty_print=True)
+                f.close()
+                logger.debug("writing %r for ns %s" % (file_name, soaplib.nsmap[k]))
+
+            pref_tns = soaplib.get_namespace_prefix(self.get_tns())
+            f = open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r')
+
+            logger.debug("building schema...")
+            self.__schema = etree.XMLSchema(etree.parse(f))
+
+            logger.debug("schema %r built, cleaning up..." % self.__schema)
             f.close()
-            logger.debug("writing %r for ns %s" % (file_name, soaplib.nsmap[k]))
+            shutil.rmtree(tmp_dir_name)
+            logger.debug("removed %r" % tmp_dir_name)
 
-        pref_tns = soaplib.get_namespace_prefix(self.get_tns())
-        f = open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r')
-
-        logger.debug("building schema...")
-        self.__schema = etree.XMLSchema(etree.parse(f))
-
-        logger.debug("schema %r built, cleaning up..." % self.__schema)
-        f.close()
-        shutil.rmtree(tmp_dir_name)
-        logger.debug("removed %r" % tmp_dir_name)
-
-        return self.__schema
+            return self.__schema
 
     def get_service(self, method_name, http_req_env):
         return self.call_routes[method_name](http_req_env)
@@ -219,6 +222,12 @@ class Application(object):
         # create types node
         types = etree.SubElement(root, "{%s}types" % ns_wsdl)
 
+        for s in self.services:
+            s=s()
+
+            self.__build_schema(types)
+            s.add_messages_for_methods(root, service_name, types, url)
+
         # create plink node
         plink = etree.SubElement(root, '{%s}partnerLinkType' % ns_plink)
         plink.set('name', service_name)
@@ -240,9 +249,6 @@ class Application(object):
 
         for s in self.services:
             s=s()
-
-            s.add_schema(types)
-            s.add_messages_for_methods(root, service_name, types, url)
             s.add_port_type(root, service_name, types, url, port_type)
             s.add_partner_link(root, service_name, types, url, plink)
             cb_binding = s.add_bindings_for_methods(root, service_name, types,

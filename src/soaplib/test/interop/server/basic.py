@@ -17,12 +17,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from soaplib.test.interop.server._service import application
-
 import logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('soaplib.wsgi')
 logger.setLevel(logging.DEBUG)
+
+from soaplib.test.interop.server._service import application
 
 if __name__ == '__main__':
     try:

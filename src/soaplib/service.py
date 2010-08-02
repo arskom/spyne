@@ -455,7 +455,7 @@ class DefinitionBase(object):
 
         return cb_port_type
 
-    def add_schema(self, types=None, schema_entries=None):
+    def add_schema(self, schema_entries=None):
         '''
         A private method for adding the appropriate entries
         to the schema for the types in the specified methods.
