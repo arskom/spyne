@@ -22,6 +22,8 @@ from soaplib import wsgi
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger('soaplib.wsgi')
+logger.setLevel(logging.DEBUG)
 
 if __name__ == '__main__':
     try:

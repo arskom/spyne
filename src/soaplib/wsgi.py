@@ -178,6 +178,21 @@ class Application(object):
             if ret == False:
                 raise ValidationError(schema.error_log.last_error)
 
+    def __get_method_name(self, http_req_env, soap_req_payload):
+        retval = None
+
+        if soap_req_payload is not None and len(soap_req_payload) > 0:
+            retval = soap_req_payload.tag
+        else:
+            # check HTTP_SOAPACTION
+            retval = http_req_env.get("HTTP_SOAPACTION")
+            if retval.startswith('"') and retval.endswith('"'):
+                retval = retval[1:-1]
+            if retval.find('/') >0:
+                retval = retval.split('/')[1]
+
+        return retval
+
     def __handle_soap_request(self, req_env, start_response, url):
         service = self.get_service(req_env)
 
@@ -198,32 +213,24 @@ class Application(object):
         body = input.read(int(length))
 
         try:
-            soap_req_payload = self.__decode_soap_request(req_env, service, body)
 
-            self.validate_request(service, soap_req_payload)
+            try:
+                soap_req_payload = self.__decode_soap_request(req_env, service, body)
+                self.validate_request(service, soap_req_payload)
+                method_name = self.__get_method_name(req_env, soap_req_payload)
 
-            if soap_req_payload is not None and len(soap_req_payload) > 0:
-                method_name = soap_req_payload.tag
-            else:
-                # check HTTP_SOAPACTION
-                method_name = req_env.get("HTTP_SOAPACTION")
-                if method_name.startswith('"') and method_name.endswith('"'):
-                    method_name = method_name[1:-1]
-                if method_name.find('/') >0:
-                    method_name = method_name.split('/')[1]
-
-            if not (method_name is None):
-                logger.debug('\033[92m'+ method_name +'\033[0m')
-                logger.debug(body)
-            else:
-                logger.debug(body)
+            finally:
+                if logger.level == logging.DEBUG:
+                    logger.debug('\033[92mMethod name: %r\033[0m' % method_name)
+                    logger.debug(etree.tostring(etree.fromstring(body), pretty_print=True))
 
             # retrieve the method descriptor
             descriptor = service.get_method(method_name)
             func = getattr(service, descriptor.name)
 
+            # decode method arguments
             if soap_req_payload is not None and len(soap_req_payload) > 0:
-                params = descriptor.in_message.from_xml(*[soap_req_payload])
+                params = descriptor.in_message.from_xml(soap_req_payload)
             else:
                 params = ()
 
@@ -234,9 +241,9 @@ class Application(object):
             result_raw = service.call_wrapper(func, params)
 
             # create result message
-            assert len(descriptor.out_message._type_info) == 1
-
             result_message = descriptor.out_message()
+
+            # assign raw result to its wrapper, result_message
             attr_name = descriptor.out_message._type_info.keys()[0]
             setattr(result_message, attr_name, result_raw)
 
@@ -266,8 +273,9 @@ class Application(object):
             # initiate the response
             start_response('200 OK', http_resp_headers.items())
 
-            logger.debug('\033[91m'+ "Response" + '\033[0m')
-            logger.debug(etree.tostring(envelope, xml_declaration=True,
+            if logger.level == logging.DEBUG:
+                logger.debug('\033[91m'+ "Response" + '\033[0m')
+                logger.debug(etree.tostring(envelope, xml_declaration=True,
                                                              pretty_print=True))
 
             # return the serialized results

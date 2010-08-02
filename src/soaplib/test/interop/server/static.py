@@ -19,6 +19,8 @@
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger('soaplib.wsgi')
+logger.setLevel(logging.DEBUG)
 
 import os
 
