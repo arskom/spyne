@@ -146,7 +146,7 @@ class _SchemaEntries(object):
         retval = False
         ns_prefix = cls.get_namespace_prefix()
 
-        if ns_prefix == 'xs':
+        if ns_prefix in soaplib.const_nsmap:
             retval = True
 
         else:
@@ -181,12 +181,12 @@ class _SchemaEntries(object):
             if seq.tag == '{%s}sequence' % soaplib.ns_xsd:
                 for e in seq:
                     pref = e.attrib['type'].split(':')[0]
-                    if not ((pref in soaplib.const_prefmap) or (pref == pref_tns)):
+                    if not ((pref in soaplib.const_nsmap) or (pref == pref_tns)):
                         self.imports[pref_tns].add(soaplib.nsmap[pref])
 
             elif seq.tag == '{%s}restriction' % soaplib.ns_xsd:
                 pref = seq.attrib['base'].split(':')[0]
-                if not ((pref in soaplib.const_prefmap) or (pref == pref_tns)):
+                if not ((pref in soaplib.const_nsmap) or (pref == pref_tns)):
                     self.imports[pref_tns].add(soaplib.nsmap[pref])
 
             else:
@@ -455,7 +455,7 @@ class DefinitionBase(object):
 
         return cb_port_type
 
-    def add_schema(self, types=None, schema_nodes=None):
+    def add_schema(self, types=None, schema_entries=None):
         '''
         A private method for adding the appropriate entries
         to the schema for the types in the specified methods.
@@ -466,45 +466,14 @@ class DefinitionBase(object):
                stored schema node
         '''
 
-        if schema_nodes is None:
-            schema_nodes = {}
-
-        schema_entries = _SchemaEntries(self.get_tns())
+        if schema_entries is None:
+            schema_entries = _SchemaEntries(self.get_tns())
 
         for method in self.public_methods:
             method.in_message.add_to_schema(schema_entries)
             method.out_message.add_to_schema(schema_entries)
 
-        for pref in schema_entries.namespaces:
-            if not (pref in schema_nodes):
-                if types is None:
-                    schema = etree.Element("{%s}schema" % soaplib.ns_xsd,
-                                                            nsmap=soaplib.nsmap)
-                else:
-                    schema = etree.SubElement(types, "{%s}schema" % soaplib.ns_xsd)
-
-                schema.set("targetNamespace", soaplib.nsmap[pref])
-                schema.set("elementFormDefault", "qualified")
-
-                schema_nodes[pref] = schema
-
-            else:
-                schema = schema_nodes[pref]
-
-            for namespace in schema_entries.imports[pref]:
-                import_ = etree.SubElement(schema, "{%s}import" % soaplib.ns_xsd)
-                import_.set("namespace", namespace)
-                if types is None:
-                    import_.set('schemaLocation', "%s.xsd" %
-                                        soaplib.get_namespace_prefix(namespace))
-
-            for node in schema_entries.namespaces[pref].elements.values():
-                schema.append(node)
-
-            for node in schema_entries.namespaces[pref].types.values():
-                schema.append(node)
-
-        return schema_nodes
+        return schema_entries
 
     def add_messages_for_methods(self, root, service_name, types, url):
         '''
@@ -603,9 +572,6 @@ class DefinitionBase(object):
                 binding.append(operation)
 
         return cb_binding
-    def get_schema_nodes(self):
-        return None
 
 class ValidatingDefinitionBase(DefinitionBase):
-    def get_schema_nodes(self):
-        return self.add_schema(None)
+    pass

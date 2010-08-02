@@ -30,13 +30,11 @@ from twisted.python import log
 from twisted.web.wsgi import WSGIResource
 from twisted.internet import reactor
 
-from soaplib.test.interop.server._service import InteropService
-from soaplib import wsgi
+from soaplib.test.interop.server._service import application
 
 port = 9754
 static_dir = os.path.abspath(".")
 url = 'app'
-application = wsgi.Application([InteropService])
 
 def main(argv):
     observer = log.PythonLoggingObserver('twisted')

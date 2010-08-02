@@ -32,6 +32,7 @@ import soaplib
 from soaplib.serializers.exception import Fault
 from soaplib.serializers.primitive import string_encoding
 
+from soaplib.service import _SchemaEntries
 from soaplib.soap import apply_mtom
 from soaplib.soap import collapse_swa
 from soaplib.soap import from_soap
@@ -43,9 +44,7 @@ class ValidationError(Exception):
     pass
 
 class Application(object):
-    __tns__ = None
-
-    def __init__(self, services):
+    def __init__(self, services, tns):
         '''
         @param A ServiceBase subclass that defines the exposed services.
         '''
@@ -55,53 +54,78 @@ class Application(object):
 
         self.__wsdl = None
         self.__schema = None
+        self.tns = tns
 
         self.__build_schema()
 
-    def on_call(self, environ):
-        '''
-        This is the first method called when this WSGI app is invoked
-        @param the wsgi environment
-        '''
-        pass
+    def get_tns(self):
+        if not (self.tns is None):
+            return self.tns
 
-    def on_wsdl(self, environ, wsdl):
-        '''
-        This is called when a wsdl is requested
-        @param the wsgi environment
-        @param the wsdl string
-        '''
-        pass
+        service_name = self.__class__.__name__.split('.')[-1]
 
-    def on_wsdl_exception(self, environ, exc, resp):
-        '''
-        Called when an exception occurs durring wsdl generation
-        @param the wsgi environment
-        @param exc the exception
-        @param the fault response string
-        '''
-        pass
+        retval = '.'.join((self.__class__.__module__, service_name))
+        if self.__class__.__module__ == '__main__':
+            retval = '.'.join((service_name, service_name))
 
-    def on_return(self, environ, http_headers, return_str):
-        '''
-        Called before the application returns
-        @param the wsgi environment
-        @param http response headers as dict
-        @param return string of the soap request
-        '''
-        pass
+        if retval.startswith('soaplib'):
+            retval = self.services[0].get_tns()
+
+        return retval
+
+    def __get_schema_node(self, pref, schema_nodes, types):
+        # create schema node
+        if not (pref in schema_nodes):
+            if types is None:
+                schema = etree.Element("{%s}schema" % soaplib.ns_xsd,
+                                                        nsmap=soaplib.nsmap)
+            else:
+                schema = etree.SubElement(types, "{%s}schema" % soaplib.ns_xsd)
+
+            schema.set("targetNamespace", soaplib.nsmap[pref])
+            schema.set("elementFormDefault", "qualified")
+
+            schema_nodes[pref] = schema
+
+        else:
+            schema = schema_nodes[pref]
+
+        return schema
+
+    def __build_schema_nodes(self, schema_entries, types=None):
+        schema_nodes = {}
+
+        for pref in schema_entries.namespaces:
+            schema = self.__get_schema_node(pref, schema_nodes, types)
+
+            # append import tags
+            for namespace in schema_entries.imports[pref]:
+                import_ = etree.SubElement(schema, "{%s}import" % soaplib.ns_xsd)
+                import_.set("namespace", namespace)
+                if types is None:
+                    import_.set('schemaLocation', "%s.xsd" %
+                                        soaplib.get_namespace_prefix(namespace))
+
+            # append element tags
+            for node in schema_entries.namespaces[pref].elements.values():
+                schema.append(node)
+
+            # append simpleType and complexType tags
+            for node in schema_entries.namespaces[pref].types.values():
+                schema.append(node)
+
+        return schema_nodes
 
     def __build_schema(self):
-        schema_nodes = {}
-        ns_tns = None
+        # populate call routes
         for s in self.services:
             inst = s()
 
             for method in inst.public_methods:
-                cur_tns = s.get_tns()
-                method_name = "{%s}%s" % (cur_tns, method.name)
+                method_name = "{%s}%s" % (self.get_tns(), method.name)
 
                 if method_name in self.call_routes:
+                    cur_tns = s.get_tns()
                     old_tns = self.call_routes[method_name].get_tns()
                     raise Exception("%s.%s overwrites %s.%s" %
                                                         (old_tns, method.name,
@@ -111,9 +135,14 @@ class Application(object):
                     logger.debug('adding method %r' % method_name)
                     self.call_routes[method_name] = s
 
-            inst.add_schema(None,schema_nodes)
-            if ns_tns is None:
-                ns_tns = s.get_tns()
+        # populate types
+        schema_entries = None
+        for s in self.services:
+            s.__tns__ = self.get_tns()
+            inst = s()
+            schema_entries = inst.add_schema(None, schema_entries)
+
+        schema_nodes = self.__build_schema_nodes(schema_entries)
 
         logger.debug("generating schema")
         tmp_dir_name = tempfile.mkdtemp()
@@ -124,9 +153,9 @@ class Application(object):
             f = open(file_name, 'w')
             etree.ElementTree(v).write(f, pretty_print=True)
             f.close()
-            logger.debug("writing %r" % file_name)
+            logger.debug("writing %r for ns %s" % (file_name, soaplib.nsmap[k]))
 
-        pref_tns = soaplib.get_namespace_prefix(ns_tns)
+        pref_tns = soaplib.get_namespace_prefix(self.get_tns())
         f = open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r')
 
         logger.debug("building schema...")
@@ -169,7 +198,7 @@ class Application(object):
 
     def __build_wsdl(self, url):
         ns_wsdl = soaplib.ns_wsdl
-        ns_tns = self.services[0].get_tns()
+        ns_tns = self.get_tns()
         ns_plink = soaplib.ns_plink
         pref_tns = soaplib.get_namespace_prefix(ns_tns)
 
@@ -240,7 +269,7 @@ class Application(object):
             # implementation hook
             logger.error(traceback.format_exc())
 
-            tns = self.services[0].get_tns()
+            tns = self.get_tns()
             fault_xml = make_soap_fault(str(e), tns, detail=" ")
             fault_str = etree.tostring(fault_xml,
                    xml_declaration=True, encoding=string_encoding)
@@ -359,14 +388,14 @@ class Application(object):
             results_soap = None
             if not (descriptor.is_async or descriptor.is_callback):
                 results_soap = descriptor.out_message.to_xml(result_message,
-                                                              service.get_tns())
+                                                              self.get_tns())
 
             # implementation hook
             service.on_method_return(req_env, result_raw, results_soap,
                                                             soap_resp_headers)
 
             # construct the soap response, and serialize it
-            envelope = make_soap_envelope(results_soap, tns=service.get_tns(),
+            envelope = make_soap_envelope(results_soap, tns=self.get_tns(),
                                           header_elements=soap_resp_headers)
             results_str = etree.tostring(envelope, xml_declaration=True,
                                                        encoding=string_encoding)
@@ -393,7 +422,7 @@ class Application(object):
 
             # The user issued a Fault, so handle it just like an exception!
             fault_xml = make_soap_fault(
-                service.get_tns(),
+                self.get_tns(),
                 e.faultstring,
                 e.faultcode,
                 e.detail,
@@ -430,7 +459,7 @@ class Application(object):
             logger.error(stacktrace)
 
 
-            fault_xml = make_soap_fault(self.services[0].get_tns(), faultstring,
+            fault_xml = make_soap_fault(self.get_tns(), faultstring,
                                                               faultcode, detail)
             fault_str = etree.tostring(fault_xml, xml_declaration=True,
                                                        encoding=string_encoding)
@@ -464,3 +493,36 @@ class Application(object):
             return self.__handle_wsdl_request(req_env, start_response, url)
         else:
             return self.__handle_soap_request(req_env, start_response, url)
+
+    def on_call(self, environ):
+        '''
+        This is the first method called when this WSGI app is invoked
+        @param the wsgi environment
+        '''
+        pass
+
+    def on_wsdl(self, environ, wsdl):
+        '''
+        This is called when a wsdl is requested
+        @param the wsgi environment
+        @param the wsdl string
+        '''
+        pass
+
+    def on_wsdl_exception(self, environ, exc, resp):
+        '''
+        Called when an exception occurs durring wsdl generation
+        @param the wsgi environment
+        @param exc the exception
+        @param the fault response string
+        '''
+        pass
+
+    def on_return(self, environ, http_headers, return_str):
+        '''
+        Called before the application returns
+        @param the wsgi environment
+        @param http response headers as dict
+        @param return string of the soap request
+        '''
+        pass

@@ -17,8 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from soaplib.test.interop.server._service import InteropService
-from soaplib import wsgi
+from soaplib.test.interop.server._service import application
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -28,7 +27,7 @@ logger.setLevel(logging.DEBUG)
 if __name__ == '__main__':
     try:
         from wsgiref.simple_server import make_server
-        server = make_server('127.0.0.1', 9753, wsgi.Application([InteropService]))
+        server = make_server('127.0.0.1', 9753, application)
         print 'Starting interop server at -- %s:%s' % ('127.0.0.1', 9753)
         server.serve_forever()
 

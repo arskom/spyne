@@ -31,6 +31,7 @@ from soaplib.serializers.primitive import Double
 
 from soaplib import service
 from soaplib.service import rpc
+from soaplib.wsgi import Application
 
 import logging
 logger = logging.getLogger(__name__)
@@ -74,7 +75,7 @@ DaysOfWeekEnum = Enum(
     type_name = 'DaysOfWeekEnum'
 )
 
-class InteropService(service.ValidatingDefinitionBase):
+class InteropPrimitive(service.ValidatingDefinitionBase):
     @rpc(Integer, _returns=Integer)
     def echo_integer(self, i):
         return i
@@ -103,8 +104,7 @@ class InteropService(service.ValidatingDefinitionBase):
     def echo_enum(self, day):
         return day
 
-    # lists of primitives
-
+class InteropArray(service.ValidatingDefinitionBase):
     @rpc(Array(Integer), _returns=Array(Integer))
     def echo_integer_array(self, ia):
         return ia
@@ -129,8 +129,7 @@ class InteropService(service.ValidatingDefinitionBase):
     def echo_boolean_array(self, ba):
         return ba
 
-    # classses
-
+class InteropClass(service.ValidatingDefinitionBase):
     @rpc(SimpleClass, _returns=SimpleClass)
     def echo_simple_class(self, sc):
         return sc
@@ -159,6 +158,7 @@ class InteropService(service.ValidatingDefinitionBase):
     def echo_attachment_array(self, aa):
         return aa
 
+class InteropMisc(service.ValidatingDefinitionBase):
     @rpc()
     def test_empty(self):
         pass
@@ -179,3 +179,12 @@ class InteropService(service.ValidatingDefinitionBase):
                        _public_name="http://sample.org/webservices/doSomething")
     def do_something_else(self, s):
         return s
+
+services = [
+    InteropPrimitive,
+    InteropArray,
+    InteropClass,
+    InteropMisc,
+]
+
+application = Application(services, tns=__name__)

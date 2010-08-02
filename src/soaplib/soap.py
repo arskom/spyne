@@ -155,14 +155,14 @@ def join_attachment(href_id, envelope, payload, prefix=True):
     Places the data from an attachment back into a SOAP message, replacing
     its xop:Include element or href.
 
-    @param  id          content-id or content-location of attachment
-    @param  prefix      Set this to true if id is content-id or false if
-                        it is content-location.  It prefixes a "cid:" to
-                        the href value.
-    @param  envelope    soap envelope string to be operated on
-    @param  payload     attachment data
-    @return             tuple of length 2 with the new message and the
-                        number of replacements made
+    @param  id        content-id or content-location of attachment
+    @param  prefix    Set this to true if id is content-id or false if it is
+                      content-location.  It prefixes a "cid:" to the href value.
+    @param  envelope  soap envelope string to be operated on
+    @param  payload   attachment data
+
+    @return           tuple of length 2 with the new message and the
+                      number of replacements made
     '''
 
     def replacing(parent, node, payload, numreplaces):
