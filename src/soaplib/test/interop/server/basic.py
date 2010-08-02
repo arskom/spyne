@@ -20,6 +20,9 @@
 from soaplib.test.interop.server._service import InteropService
 from soaplib import wsgi 
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 if __name__ == '__main__':
     try:
         from wsgiref.simple_server import make_server
