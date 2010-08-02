@@ -120,17 +120,17 @@ class Application(object):
         if types is None:
             # populate call routes
             for s in self.services:
+                s.__tns__ = self.get_tns()
                 inst = s()
 
                 for method in inst.public_methods:
                     method_name = "{%s}%s" % (self.get_tns(), method.name)
 
                     if method_name in self.call_routes:
-                        cur_tns = s.get_tns()
-                        old_tns = self.call_routes[method_name].get_tns()
-                        raise Exception("%s.%s overwrites %s.%s" %
-                                                            (old_tns, method.name,
-                                                             cur_tns, method.name) )
+                        o = self.call_routes[method_name]
+                        raise Exception("%s.%s.%s overwrites %s.%s.%s" %
+                                        (s.__module__, s.__name__, method.name,
+                                         o.__module__, o.__name__, method.name) )
 
                     else:
                         logger.debug('adding method %r' % method_name)
@@ -139,12 +139,10 @@ class Application(object):
         # populate types
         schema_entries = None
         for s in self.services:
-            s.__tns__ = self.get_tns()
-
             inst = s()
             schema_entries = inst.add_schema(schema_entries)
 
-        schema_nodes = self.__build_schema_nodes(schema_entries,types)
+        schema_nodes = self.__build_schema_nodes(schema_entries, types)
 
         if types is None:
             logger.debug("generating schema...")

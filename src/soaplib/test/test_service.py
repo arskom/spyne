@@ -119,20 +119,13 @@ class MultipleReturnService(service.DefinitionBase):
     def multi(self, s):
         return s, 'a', 'b'
 
-class OverrideNamespaceService(service.DefinitionBase):
-    __tns__ = "http://someservice.com/override"
-
-    @rpc(String, _returns=String)
-    def mymethod(self, s):
-        return s
-
 class Test(unittest.TestCase):
     '''
     Most of the service tests are excersized through the interop tests
     '''
 
     def setUp(self):
-        self.app = wsgi.Application([TestService])
+        self.app = wsgi.Application([TestService], 'tns')
         self.srv = TestService()
         self._wsdl = self.app.get_wsdl('')
         self.wsdl = etree.fromstring(self._wsdl)
@@ -142,17 +135,12 @@ class Test(unittest.TestCase):
         self.assertEquals(
             len(self.srv.public_methods), len(porttype.getchildren()))
 
-    def test_override_default_names(self):
-        wsdl = etree.fromstring(wsgi.Application([OverrideNamespaceService]).get_wsdl(''))
-        self.assertEquals(wsdl.get('targetNamespace'),
-            "http://someservice.com/override")
-
     def test_override_param_names(self):
         for n in ['self', 'import', 'return', 'from']:
             self.assertTrue(n in self._wsdl, '"%s" not in self._wsdl' % n)
 
     def test_multiple_return(self):
-        app = wsgi.Application([MultipleReturnService])
+        app = wsgi.Application([MultipleReturnService], 'tns')
         app.get_wsdl('')
         srv = MultipleReturnService()
         message = srv.public_methods[0].out_message()
@@ -170,7 +158,7 @@ class Test(unittest.TestCase):
         self.assertEqual(response_data[2], 'c')
 
     def test_multiple_ns(self):
-        svc = wsgi.Application([MultipleNamespaceService])
+        svc = wsgi.Application([MultipleNamespaceService], 'tns')
         wsdl = svc.get_wsdl("URL")
 
 def suite():
