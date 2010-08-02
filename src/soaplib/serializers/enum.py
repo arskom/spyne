@@ -17,7 +17,7 @@ class EnumBase(SimpleType):
 
     @classmethod
     @nillable_value
-    def to_xml(cls, value, tns, name=None):
+    def to_xml(cls, value, tns, name='retval'):
         if name is None:
             name = cls.get_type_name()
 
