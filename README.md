@@ -1,6 +1,4 @@
 
-NOTE: This fork of soaplib is experimental. Use at your own risk.
-
 Overview
 ========
 
