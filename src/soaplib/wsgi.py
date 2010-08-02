@@ -49,7 +49,7 @@ class Application(object):
         self.__wsdl = None
         self.__schema = None
 
-        self.__get_schema(self.get_service(None))
+        self.__build_schema()
 
     def on_call(self, environ):
         '''
@@ -84,7 +84,7 @@ class Application(object):
         '''
         pass
 
-    def get_service(self, environment):
+    def get_service(self, environment=None):
         return self.service(environment)
 
     def __get_wsdl(self, service, url):
@@ -95,7 +95,9 @@ class Application(object):
 
         return retval
 
-    def __get_schema(self, service):
+    def __build_schema(self):
+        service = self.get_service(None)
+
         retval = self.__schema
 
         if retval is None:
@@ -360,19 +362,3 @@ class Application(object):
             return self.__handle_wsdl_request(req_env, start_response, url)
         else:
             return self.__handle_soap_request(req_env, start_response, url)
-
-class SingleServiceApplication(Application):
-    pass
-
-class MultipleServiceApplication(Application):
-    def __init__(self, services):
-        '''
-        @param An iterable of ServiceBase subclasses that define the exposed
-        services.
-        '''
-
-        self.services = services
-
-        self.__wsdl = None
-        self.__schema = None
-        self.__get_schema(self.get_service(None))
