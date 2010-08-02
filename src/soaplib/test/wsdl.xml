@@ -1,10 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
-<wsdl:definitions xmlns:wsa="http://schemas.xmlsoap.org/ws/2003/03/addressing" xmlns:soap_env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:s0="InteropService.InteropService" xmlns:soap_enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:plink="http://schemas.xmlsoap.org/ws/2003/05/partner-link/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="InteropService.InteropService" name="InteropService">
+<wsdl:definitions xmlns:wsa="http://schemas.xmlsoap.org/ws/2003/03/addressing" xmlns:soap_env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:s0="InteropService.InteropService" xmlns:soap_enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:plink="http://schemas.xmlsoap.org/ws/2003/05/partner-link/" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="InteropService.InteropService" name="InteropService">
   <wsdl:types>
     <xs:schema targetNamespace="InteropService.InteropService" elementFormDefault="qualified">
+      <xs:import namespace="http://www.w3.org/2001/XMLSchema" />
       <xs:element name="echo_string_array" type="s0:echo_string_array" />
       <xs:element name="multi_paramResponse" type="s0:multi_paramResponse" />
-      <xs:element name="SimpleClassArray" type="s0:SimpleClassArray" />
+      <xs:element name="echo_enumResponse" type="s0:echo_enumResponse" />
       <xs:element name="echo_stringResponse" type="s0:echo_stringResponse" />
       <xs:element name="return_only" type="s0:return_only" />
       <xs:element name="echo_extension_classResponse" type="s0:echo_extension_classResponse" />
@@ -21,7 +22,7 @@
       <xs:element name="non_nillable" type="s0:non_nillable" />
       <xs:element name="echo_floatResponse" type="s0:echo_floatResponse" />
       <xs:element name="return_onlyResponse" type="s0:return_onlyResponse" />
-      <xs:element name="echo_enumResponse" type="s0:echo_enumResponse" />
+      <xs:element name="SimpleClassArray" type="s0:SimpleClassArray" />
       <xs:element name="test_empty" type="s0:test_empty" />
       <xs:element name="echo_nested_class" type="s0:echo_nested_class" />
       <xs:element name="echo_integer" type="s0:echo_integer" />
@@ -63,25 +64,25 @@
       <xs:element name="echo_integerResponse" type="s0:echo_integerResponse" />
       <xs:complexType name="echo_string_array">
         <xs:sequence>
-          <xs:element name="sa" minOccurs="0" maxOccurs="1" type="s0:stringArray" nillable="true" />
+          <xs:element name="sa" minOccurs="0" type="s0:stringArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_integer_arrayResponse">
         <xs:sequence>
-          <xs:element name="echo_integer_arrayResult" minOccurs="0" maxOccurs="1" type="s0:integerArray" nillable="true" />
+          <xs:element name="echo_integer_arrayResult" minOccurs="0" type="s0:integerArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="multi_paramResponse">
         <xs:sequence />
       </xs:complexType>
-      <xs:complexType name="SimpleClassArray">
+      <xs:complexType name="echo_enumResponse">
         <xs:sequence>
-          <xs:element minOccurs="0" maxOccurs="1" name="SimpleClass" type="s0:SimpleClass" />
+          <xs:element name="echo_enumResult" minOccurs="0" type="s0:DaysOfWeekEnum" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_stringResponse">
         <xs:sequence>
-          <xs:element name="echo_stringResult" minOccurs="0" maxOccurs="1" type="xs:string" nillable="true" />
+          <xs:element name="echo_stringResult" minOccurs="0" type="xs:string" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="return_only">
@@ -89,72 +90,72 @@
       </xs:complexType>
       <xs:complexType name="echo_extension_classResponse">
         <xs:sequence>
-          <xs:element name="echo_extension_classResult" minOccurs="0" maxOccurs="1" type="s0:ExtensionClass" nillable="true" />
+          <xs:element name="echo_extension_classResult" minOccurs="0" type="s0:ExtensionClass" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="non_nillableResponse">
         <xs:sequence>
-          <xs:element name="non_nillableResult" minOccurs="0" maxOccurs="1" type="xs:string" nillable="true" />
+          <xs:element name="non_nillableResult" minOccurs="0" type="xs:string" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="do_something_elseResponse">
         <xs:sequence>
-          <xs:element name="do_something_elseResult" minOccurs="0" maxOccurs="1" type="xs:string" nillable="true" />
+          <xs:element name="do_something_elseResult" minOccurs="0" type="xs:string" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_date_time_arrayResponse">
         <xs:sequence>
-          <xs:element name="echo_date_time_arrayResult" minOccurs="0" maxOccurs="1" type="s0:dateTimeArray" nillable="true" />
+          <xs:element name="echo_date_time_arrayResult" minOccurs="0" type="s0:dateTimeArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="base64BinaryArray">
         <xs:sequence>
-          <xs:element minOccurs="0" maxOccurs="1" name="base64Binary" type="xs:base64Binary" />
+          <xs:element name="base64Binary" type="xs:base64Binary" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_datetimeResponse">
         <xs:sequence>
-          <xs:element name="echo_datetimeResult" minOccurs="0" maxOccurs="1" type="xs:dateTime" nillable="true" />
+          <xs:element name="echo_datetimeResult" minOccurs="0" type="xs:dateTime" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_boolean">
         <xs:sequence>
-          <xs:element name="b" minOccurs="0" maxOccurs="1" type="xs:boolean" nillable="true" />
+          <xs:element name="b" minOccurs="0" type="xs:boolean" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_boolean_arrayResponse">
         <xs:sequence>
-          <xs:element name="echo_boolean_arrayResult" minOccurs="0" maxOccurs="1" type="s0:booleanArray" nillable="true" />
+          <xs:element name="echo_boolean_arrayResult" minOccurs="0" type="s0:booleanArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_simple_class_arrayResponse">
         <xs:sequence>
-          <xs:element name="echo_simple_class_arrayResult" minOccurs="0" maxOccurs="1" type="s0:SimpleClassArray" nillable="true" />
+          <xs:element name="echo_simple_class_arrayResult" minOccurs="0" type="s0:SimpleClassArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="do_something_else">
         <xs:sequence>
-          <xs:element name="s" minOccurs="0" maxOccurs="1" type="xs:string" nillable="true" />
+          <xs:element name="s" minOccurs="0" type="xs:string" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_integer_array">
         <xs:sequence>
-          <xs:element name="ia" minOccurs="0" maxOccurs="1" type="s0:integerArray" nillable="true" />
+          <xs:element name="ia" minOccurs="0" type="s0:integerArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="non_nillable">
         <xs:sequence>
-          <xs:element name="n" minOccurs="0" maxOccurs="1" type="s0:NonNillableClass" nillable="false" />
+          <xs:element name="n" minOccurs="0" type="s0:NonNillableClass" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_floatResponse">
         <xs:sequence>
-          <xs:element name="echo_floatResult" minOccurs="0" maxOccurs="1" type="xs:float" nillable="true" />
+          <xs:element name="echo_floatResult" minOccurs="0" type="xs:float" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="return_onlyResponse">
         <xs:sequence>
-          <xs:element name="return_onlyResult" minOccurs="0" maxOccurs="1" type="xs:string" nillable="true" />
+          <xs:element name="return_onlyResult" minOccurs="0" type="xs:string" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:simpleType name="NonNillableClass_sType">
@@ -162,9 +163,9 @@
           <xs:minLength value="1" />
         </xs:restriction>
       </xs:simpleType>
-      <xs:complexType name="echo_enumResponse">
+      <xs:complexType name="SimpleClassArray">
         <xs:sequence>
-          <xs:element name="echo_enumResult" minOccurs="0" maxOccurs="1" type="s0:DaysOfWeekEnum" nillable="true" />
+          <xs:element name="SimpleClass" type="s0:SimpleClass" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="test_empty">
@@ -172,28 +173,28 @@
       </xs:complexType>
       <xs:complexType name="echo_nested_class">
         <xs:sequence>
-          <xs:element name="nc" minOccurs="0" maxOccurs="1" type="s0:NestedClass" nillable="true" />
+          <xs:element name="nc" minOccurs="0" type="s0:NestedClass" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_integer">
         <xs:sequence>
-          <xs:element name="i" minOccurs="0" maxOccurs="1" type="xs:integer" nillable="true" />
+          <xs:element name="i" minOccurs="0" type="xs:integer" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_enum">
         <xs:sequence>
-          <xs:element name="day" minOccurs="0" maxOccurs="1" type="s0:DaysOfWeekEnum" nillable="true" />
+          <xs:element name="day" minOccurs="0" type="s0:DaysOfWeekEnum" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_nested_class_array">
         <xs:sequence>
-          <xs:element name="nca" minOccurs="0" maxOccurs="1" type="s0:NestedClassArray" nillable="true" />
+          <xs:element name="nca" minOccurs="0" type="s0:NestedClassArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="SimpleClass">
         <xs:sequence>
-          <xs:element name="i" minOccurs="0" maxOccurs="1" type="xs:integer" nillable="true" />
-          <xs:element name="s" minOccurs="0" maxOccurs="1" type="xs:string" nillable="true" />
+          <xs:element name="i" minOccurs="0" type="xs:integer" nillable="true" />
+          <xs:element name="s" minOccurs="0" type="xs:string" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="test_emptyResponse">
@@ -201,71 +202,71 @@
       </xs:complexType>
       <xs:complexType name="echo_extension_class">
         <xs:sequence>
-          <xs:element name="nc" minOccurs="0" maxOccurs="1" type="s0:ExtensionClass" nillable="true" />
+          <xs:element name="nc" minOccurs="0" type="s0:ExtensionClass" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_attachment_arrayResponse">
         <xs:sequence>
-          <xs:element name="echo_attachment_arrayResult" minOccurs="0" maxOccurs="1" type="s0:base64BinaryArray" nillable="true" />
+          <xs:element name="echo_attachment_arrayResult" minOccurs="0" type="s0:base64BinaryArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_attachment_array">
         <xs:sequence>
-          <xs:element name="aa" minOccurs="0" maxOccurs="1" type="s0:base64BinaryArray" nillable="true" />
+          <xs:element name="aa" minOccurs="0" type="s0:base64BinaryArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_string_arrayResponse">
         <xs:sequence>
-          <xs:element name="echo_string_arrayResult" minOccurs="0" maxOccurs="1" type="s0:stringArray" nillable="true" />
+          <xs:element name="echo_string_arrayResult" minOccurs="0" type="s0:stringArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_simple_classResponse">
         <xs:sequence>
-          <xs:element name="echo_simple_classResult" minOccurs="0" maxOccurs="1" type="s0:SimpleClass" nillable="true" />
+          <xs:element name="echo_simple_classResult" minOccurs="0" type="s0:SimpleClass" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_float_array">
         <xs:sequence>
-          <xs:element name="fa" minOccurs="0" maxOccurs="1" type="s0:floatArray" nillable="true" />
+          <xs:element name="fa" minOccurs="0" type="s0:floatArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_booleanResponse">
         <xs:sequence>
-          <xs:element name="echo_booleanResult" minOccurs="0" maxOccurs="1" type="xs:boolean" nillable="true" />
+          <xs:element name="echo_booleanResult" minOccurs="0" type="xs:boolean" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_simple_class_array">
         <xs:sequence>
-          <xs:element name="sca" minOccurs="0" maxOccurs="1" type="s0:SimpleClassArray" nillable="true" />
+          <xs:element name="sca" minOccurs="0" type="s0:SimpleClassArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_string">
         <xs:sequence>
-          <xs:element name="s" minOccurs="0" maxOccurs="1" type="xs:string" nillable="true" />
+          <xs:element name="s" minOccurs="0" type="xs:string" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_float_arrayResponse">
         <xs:sequence>
-          <xs:element name="echo_float_arrayResult" minOccurs="0" maxOccurs="1" type="s0:floatArray" nillable="true" />
+          <xs:element name="echo_float_arrayResult" minOccurs="0" type="s0:floatArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="OtherClass">
         <xs:sequence>
-          <xs:element name="b" minOccurs="0" maxOccurs="1" type="xs:boolean" nillable="true" />
-          <xs:element name="f" minOccurs="0" maxOccurs="1" type="xs:float" nillable="true" />
-          <xs:element name="dt" minOccurs="0" maxOccurs="1" type="xs:dateTime" nillable="true" />
+          <xs:element name="b" minOccurs="0" type="xs:boolean" nillable="true" />
+          <xs:element name="f" minOccurs="0" type="xs:float" nillable="true" />
+          <xs:element name="dt" minOccurs="0" type="xs:dateTime" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="NonNillableClass">
         <xs:sequence>
-          <xs:element name="d" minOccurs="1" maxOccurs="1" type="xs:dateTime" nillable="false" />
-          <xs:element name="i" minOccurs="1" maxOccurs="1" type="xs:integer" nillable="false" />
-          <xs:element name="s" minOccurs="1" maxOccurs="1" type="s0:NonNillableClass_sType" nillable="false" />
+          <xs:element name="d" type="xs:dateTime" nillable="false" />
+          <xs:element name="i" minOccurs="0" type="xs:integer" nillable="false" />
+          <xs:element name="s" minOccurs="0" type="s0:NonNillableClass_sType" nillable="false" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_boolean_array">
         <xs:sequence>
-          <xs:element name="ba" minOccurs="0" maxOccurs="1" type="s0:booleanArray" nillable="true" />
+          <xs:element name="ba" minOccurs="0" type="s0:booleanArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:simpleType name="DaysOfWeekEnum">
@@ -280,104 +281,100 @@
       </xs:simpleType>
       <xs:complexType name="echo_date_time_array">
         <xs:sequence>
-          <xs:element name="dta" minOccurs="0" maxOccurs="1" type="s0:dateTimeArray" nillable="true" />
+          <xs:element name="dta" minOccurs="0" type="s0:dateTimeArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_float">
         <xs:sequence>
-          <xs:element name="f" minOccurs="0" maxOccurs="1" type="xs:float" nillable="true" />
+          <xs:element name="f" minOccurs="0" type="xs:float" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_attachment">
         <xs:sequence>
-          <xs:element name="a" minOccurs="0" maxOccurs="1" type="xs:base64Binary" nillable="true" />
+          <xs:element name="a" minOccurs="0" type="xs:base64Binary" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="ExtensionClass">
-        <xs:complexContent>
-          <xs:extension base="s0:NestedClass">
-            <xs:sequence>
-              <xs:element name="l" minOccurs="0" maxOccurs="1" type="xs:dateTime" nillable="true" />
-              <xs:element name="q" minOccurs="0" maxOccurs="1" type="xs:integer" nillable="true" />
-              <xs:element name="p" minOccurs="0" maxOccurs="1" type="s0:OtherClass" nillable="true" />
-            </xs:sequence>
-          </xs:extension>
-        </xs:complexContent>
+        <xs:sequence>
+          <xs:element name="l" minOccurs="0" type="xs:dateTime" nillable="true" />
+          <xs:element name="q" minOccurs="0" type="xs:integer" nillable="true" />
+          <xs:element name="p" minOccurs="0" type="s0:OtherClass" nillable="true" />
+        </xs:sequence>
       </xs:complexType>
       <xs:complexType name="NestedClass">
         <xs:sequence>
-          <xs:element name="f" minOccurs="0" maxOccurs="1" type="xs:float" nillable="true" />
-          <xs:element name="simple" minOccurs="0" maxOccurs="1" type="s0:SimpleClassArray" nillable="true" />
-          <xs:element name="i" minOccurs="0" maxOccurs="1" type="xs:integer" nillable="true" />
-          <xs:element name="s" minOccurs="0" maxOccurs="1" type="xs:string" nillable="true" />
-          <xs:element name="other" minOccurs="0" maxOccurs="1" type="s0:OtherClass" nillable="true" />
+          <xs:element name="f" minOccurs="0" type="xs:float" nillable="true" />
+          <xs:element name="simple" minOccurs="0" type="s0:SimpleClassArray" nillable="true" />
+          <xs:element name="i" minOccurs="0" type="xs:integer" nillable="true" />
+          <xs:element name="s" minOccurs="0" type="xs:string" nillable="true" />
+          <xs:element name="other" minOccurs="0" type="s0:OtherClass" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="integerArray">
         <xs:sequence>
-          <xs:element minOccurs="0" maxOccurs="1" name="integer" type="xs:integer" />
+          <xs:element name="integer" type="xs:integer" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_attachmentResponse">
         <xs:sequence>
-          <xs:element name="echo_attachmentResult" minOccurs="0" maxOccurs="1" type="xs:base64Binary" nillable="true" />
+          <xs:element name="echo_attachmentResult" minOccurs="0" type="xs:base64Binary" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_nested_class_arrayResponse">
         <xs:sequence>
-          <xs:element name="echo_nested_class_arrayResult" minOccurs="0" maxOccurs="1" type="s0:NestedClassArray" nillable="true" />
+          <xs:element name="echo_nested_class_arrayResult" minOccurs="0" type="s0:NestedClassArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="multi_param">
         <xs:sequence>
-          <xs:element name="s" minOccurs="0" maxOccurs="1" type="xs:string" nillable="true" />
-          <xs:element name="i" minOccurs="0" maxOccurs="1" type="xs:integer" nillable="true" />
-          <xs:element name="dt" minOccurs="0" maxOccurs="1" type="xs:dateTime" nillable="true" />
+          <xs:element name="s" minOccurs="0" type="xs:string" nillable="true" />
+          <xs:element name="i" minOccurs="0" type="xs:integer" nillable="true" />
+          <xs:element name="dt" minOccurs="0" type="xs:dateTime" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="dateTimeArray">
         <xs:sequence>
-          <xs:element minOccurs="0" maxOccurs="1" name="dateTime" type="xs:dateTime" />
+          <xs:element name="dateTime" type="xs:dateTime" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_datetime">
         <xs:sequence>
-          <xs:element name="dt" minOccurs="0" maxOccurs="1" type="xs:dateTime" nillable="true" />
+          <xs:element name="dt" minOccurs="0" type="xs:dateTime" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_nested_classResponse">
         <xs:sequence>
-          <xs:element name="echo_nested_classResult" minOccurs="0" maxOccurs="1" type="s0:NestedClass" nillable="true" />
+          <xs:element name="echo_nested_classResult" minOccurs="0" type="s0:NestedClass" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="floatArray">
         <xs:sequence>
-          <xs:element minOccurs="0" maxOccurs="1" name="float" type="xs:float" />
+          <xs:element name="float" type="xs:float" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_simple_class">
         <xs:sequence>
-          <xs:element name="sc" minOccurs="0" maxOccurs="1" type="s0:SimpleClass" nillable="true" />
+          <xs:element name="sc" minOccurs="0" type="s0:SimpleClass" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="booleanArray">
         <xs:sequence>
-          <xs:element minOccurs="0" maxOccurs="1" name="boolean" type="xs:boolean" />
+          <xs:element name="boolean" type="xs:boolean" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="NestedClassArray">
         <xs:sequence>
-          <xs:element minOccurs="0" maxOccurs="1" name="NestedClass" type="s0:NestedClass" />
+          <xs:element name="NestedClass" type="s0:NestedClass" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="stringArray">
         <xs:sequence>
-          <xs:element minOccurs="0" maxOccurs="1" name="string" type="xs:string" />
+          <xs:element name="string" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_integerResponse">
         <xs:sequence>
-          <xs:element name="echo_integerResult" minOccurs="0" maxOccurs="1" type="xs:integer" nillable="true" />
+          <xs:element name="echo_integerResult" minOccurs="0" type="xs:integer" nillable="true" />
         </xs:sequence>
       </xs:complexType>
     </xs:schema>
@@ -831,7 +828,7 @@
   </wsdl:binding>
   <wsdl:service name="InteropService">
     <wsdl:port name="InteropService" binding="s0:InteropService">
-      <soap:address location="http://localhost:9753/?wsdl" />
+      <soap:address location="http://localhost:9753/cvs/?wsdl" />
     </wsdl:port>
   </wsdl:service>
 </wsdl:definitions>
