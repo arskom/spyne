@@ -19,11 +19,15 @@
 
 import cgi
 import logging
-logger = logging.getLogger(__name__)
-
+import shutil
+import tempfile
 import traceback
 
+logger = logging.getLogger(__name__)
+
 from lxml import etree
+
+import soaplib
 
 from soaplib.serializers.exception import Fault
 from soaplib.serializers.primitive import string_encoding
@@ -39,12 +43,14 @@ class ValidationError(Exception):
     pass
 
 class Application(object):
-    def __init__(self, service):
+    __tns__ = None
+
+    def __init__(self, services):
         '''
         @param A ServiceBase subclass that defines the exposed services.
         '''
 
-        self.service = service
+        self.services = services
 
         self.__wsdl = None
         self.__schema = None
@@ -84,9 +90,6 @@ class Application(object):
         '''
         pass
 
-    def get_service(self, environment=None):
-        return self.service(environment)
-
     def __get_wsdl(self, service, url):
         retval = self.__wsdl
 
@@ -96,14 +99,45 @@ class Application(object):
         return retval
 
     def __build_schema(self):
-        service = self.get_service(None)
+        if self.__schema is None:
+            schema_nodes = {}
+            ns_tns = None
+            for s in self.services:
+                s().add_schema(None,schema_nodes)
+                if ns_tns is None:
+                    ns_tns = s.get_tns()
 
-        retval = self.__schema
+            logger.debug("generating schema")
+            tmp_dir_name = tempfile.mkdtemp()
 
-        if retval is None:
-            retval = self.__schema = service.get_schema()
+            # serialize nodes to files
+            for k,v in schema_nodes.items():
+                file_name = '%s/%s.xsd' % (tmp_dir_name, k)
+                f = open(file_name, 'w')
+                etree.ElementTree(v).write(f, pretty_print=True)
+                f.close()
+                logger.debug("writing %r" % file_name)
 
-        return retval
+            pref_tns = soaplib.get_namespace_prefix(ns_tns)
+            f = open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r')
+
+            logger.debug("building schema...")
+            self.__schema = etree.XMLSchema(etree.parse(f))
+            logger.debug("schema %r built, cleaning up..." % self.__schema)
+            f.close()
+            shutil.rmtree(tmp_dir_name)
+            logger.debug("removed %r" % tmp_dir_name)
+
+        return self.__schema
+
+    def get_service(self, method_name, http_req_env):
+        return self.service_routes[method_name](http_req_env)
+
+    def get_schema(self):
+        if self.__schema is None:
+            return self.__build_schema()
+        else:
+            return self.__schema
 
     def __is_wsdl_request(self, req_env):
         # Get the wsdl for the service. Assume path_info matches pattern:
@@ -118,23 +152,85 @@ class Application(object):
             )
         )
 
+    def __build_wsdl(self, url):
+        ns_wsdl = soaplib.ns_wsdl
+        ns_tns = self.services[0].get_tns()
+        ns_plink = soaplib.ns_plink
+        pref_tns = soaplib.get_namespace_prefix(ns_tns)
+
+        # FIXME: doesn't look so robust
+        url = url.replace('.wsdl', '')
+
+        # TODO: we may want to customize service_name.
+        service_name = self.__class__.__name__.split('.')[-1]
+
+        # this needs to run before creating definitions tag in order to get
+        # soaplib.nsmap populated.
+        types = etree.Element("{%s}types" % ns_wsdl)
+
+        for s in self.services:
+            s=s()
+            s.add_schema(types)
+
+        # create wsdl root node
+        root = etree.Element("{%s}definitions" % ns_wsdl, nsmap=soaplib.nsmap)
+        root.set('targetNamespace', ns_tns)
+        root.set('name', service_name)
+
+        root.append(types)
+
+        # create plink node
+        plink = etree.SubElement(root, '{%s}partnerLinkType' % ns_plink)
+        plink.set('name', service_name)
+
+        # create service node
+        service = etree.SubElement(root, '{%s}service' % ns_wsdl)
+        service.set('name', service_name)
+
+        # create portType node
+        port_type = etree.SubElement(root, '{%s}portType' % ns_wsdl)
+        port_type.set('name', service_name)
+
+        # create binding nodes
+        binding = etree.SubElement(root, '{%s}binding' % ns_wsdl)
+        binding.set('name', service_name)
+        binding.set('type', '%s:%s'% (pref_tns, service_name))
+
+        cb_binding = None
+
+        for s in self.services:
+            s=s()
+
+            s.add_messages_for_methods(root, service_name, types, url)
+            s.add_port_type(root, service_name, types, url, port_type)
+            s.add_partner_link(root, service_name, types, url, plink)
+            cb_binding = s.add_bindings_for_methods(root, service_name, types,
+                                                       url, binding, cb_binding)
+            s.add_service(root, service_name, types, url, service)
+
+        wsdl = etree.tostring(root, xml_declaration=True, encoding="UTF-8")
+
+        #cache the wsdl for next time
+        return wsdl
+
     def __handle_wsdl_request(self, req_env, start_response, url):
-        service = self.get_service(req_env)
         retval = [None]
 
         http_resp_headers = {'Content-Type': 'text/xml'}
 
         start_response('200 OK', http_resp_headers.items())
         try:
-            wsdl_content = self.__get_wsdl(service, url)
+            wsdl_content = self.__build_wsdl(url)
             self.on_wsdl(req_env, wsdl_content) # implementation hook
+
             retval[0] = wsdl_content
 
         except Exception, e:
             # implementation hook
             logger.error(traceback.format_exc())
 
-            fault_xml = make_soap_fault(str(e), service.get_tns(), detail="")
+            tns = self.services[0].get_tns()
+            fault_xml = make_soap_fault(str(e), tns, detail=" ")
             fault_str = etree.tostring(fault_xml,
                    xml_declaration=True, encoding=string_encoding)
             logger.debug(fault_str)
@@ -194,8 +290,6 @@ class Application(object):
         return retval
 
     def __handle_soap_request(self, req_env, start_response, url):
-        service = self.get_service(req_env)
-
         http_resp_headers = {'Content-Type': 'text/xml'}
         soap_resp_headers = []
 

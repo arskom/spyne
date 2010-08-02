@@ -17,9 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import tempfile
-import shutil
-
 import soaplib
 from lxml import etree
 
@@ -195,7 +192,6 @@ class _SchemaEntries(object):
             else:
                 raise Exception("i guess you need to hack some more")
 
-
     def add_element(self, cls, node):
         schema_info = self.get_schema_info(cls.get_namespace_prefix())
         schema_info.elements[cls.get_type_name()] = node
@@ -226,6 +222,7 @@ class DefinitionBase(object):
     def __init__(self, environ=None):
         self.public_methods = self.__populate_public_methods()
         self.soap_req_header = None
+        self.service_routes = {}
 
     def on_method_call(self, environ, method_name, py_params, soap_params):
         '''
@@ -267,21 +264,16 @@ class DefinitionBase(object):
 
     @classmethod
     def get_tns(cls):
-        '''
-        Utility function to get the namespace of a given service class
-        @param the service in question
-        @return the namespace
-        '''
-
         if not (cls.__tns__ is None):
             return cls.__tns__
 
         service_name = cls.__name__.split('.')[-1]
 
+        retval = '.'.join((cls.__module__, service_name))
         if cls.__module__ == '__main__':
-            return '.'.join((service_name, service_name))
+            retval = '.'.join((service_name, service_name))
 
-        return '.'.join((cls.__module__, service_name))
+        return retval
 
     def __populate_public_methods(self):
         '''Returns a list of method descriptors for this object'''
@@ -337,59 +329,11 @@ class DefinitionBase(object):
 
         return [service_name]
 
-    def get_wsdl(self, url):
-        '''
-        This method generates and caches the wsdl for this object based
-        on the soap methods designated by the rpc decorator.
-
-        @param url the url that this service can be found at.  This must be
-        passed in by the caller because this object has no notion of the
-        server environment in which it runs.
-
-        @returns the string of the wsdl
-        '''
-
-        ns_wsdl = soaplib.ns_wsdl
-        ns_tns = self.get_tns()
-
-        # FIXME: doesn't look so robust
-        url = url.replace('.wsdl', '')
-
-        # TODO: we may want to customize service_name.
-        service_name = self.__class__.__name__.split('.')[-1]
-
-        # this needs to run before creating definitions tag in order to get
-        # soaplib.nsmap populated.
-        types = etree.Element("{%s}types" % ns_wsdl)
-        self.add_schema(types)
-
-        # create wsdl root node
-        root = etree.Element("{%s}definitions" % ns_wsdl, nsmap=soaplib.nsmap)
-        root.set('targetNamespace', ns_tns)
-        root.set('name', service_name)
-
-        root.append(types)
-
-        self.add_messages_for_methods(root, service_name, types, url)
-        self.add_port_type(root, service_name, types, url)
-        self.add_partner_link(root, service_name, types, url)
-        self.add_bindings_for_methods(root, service_name, types, url)
-        self.add_service(root, service_name, types, url)
-
-        wsdl = etree.tostring(root, xml_declaration=True, encoding="UTF-8")
-
-        #cache the wsdl for next time
-        return wsdl
-
-    def add_service(self, root, service_name, types, url, service=None):
+    def add_service(self, root, service_name, types, url, service):
         ns_wsdl = soaplib.ns_wsdl
         ns_soap = soaplib.ns_soap
         ns_tns = self.get_tns()
         pref_tns = soaplib.get_namespace_prefix(ns_tns)
-
-        if service is None:
-            service = etree.SubElement(root, '{%s}service' % ns_wsdl)
-            service.set('name', service_name)
 
         wsdl_port = etree.SubElement(service, '{%s}port' % ns_wsdl)
         wsdl_port.set('name', service_name)
@@ -398,14 +342,10 @@ class DefinitionBase(object):
         addr = etree.SubElement(wsdl_port, '{%s}address' % ns_soap)
         addr.set('location', url)
 
-    def add_partner_link(self, root, service_name, types, url, plink=None):
+    def add_partner_link(self, root, service_name, types, url, plink):
         ns_plink = soaplib.ns_plink
         ns_tns = self.get_tns()
         pref_tns = soaplib.get_namespace_prefix(ns_tns)
-
-        if plink is None:
-            plink = etree.SubElement(root, '{%s}partnerLinkType' % ns_plink)
-            plink.set('name', service_name)
 
         role = etree.SubElement(plink, '{%s}role' % ns_plink)
         role.set('name', service_name)
@@ -421,14 +361,10 @@ class DefinitionBase(object):
             plink_port_type.set('name', '%s:%sCallback' %
                                                        (pref_tns,service_name))
 
-    def add_port_type(self, root, service_name, types, url, port_type=None):
+    def add_port_type(self, root, service_name, types, url, port_type):
         ns_wsdl = soaplib.ns_wsdl
         ns_tns = self.get_tns()
         pref_tns = soaplib.get_namespace_prefix(ns_tns)
-
-        if port_type is None:
-            port_type = etree.SubElement(root, '{%s}portType' % ns_wsdl)
-            port_type.set('name', service_name)
 
         # FIXME: I don't think it is working.
         cb_port_type = self.__add_callbacks(root, types, service_name, url)
@@ -520,7 +456,7 @@ class DefinitionBase(object):
 
         return cb_port_type
 
-    def add_schema(self, types=None):
+    def add_schema(self, types=None, schema_nodes=None):
         '''
         A private method for adding the appropriate entries
         to the schema for the types in the specified methods.
@@ -529,7 +465,8 @@ class DefinitionBase(object):
                the schema nodes are returned inside a dictionary
         '''
 
-        schema_nodes = {}
+        if schema_nodes is None:
+            schema_nodes = {}
 
         schema_entries = _SchemaEntries(self.get_tns())
 
@@ -594,7 +531,7 @@ class DefinitionBase(object):
             out_part.set('element', '%s:%s' % (_pref_tns,
                                             method.out_message.get_type_name()))
 
-    def add_bindings_for_methods(self, root, service_name, types, url, binding=None, cb_binding=None):
+    def add_bindings_for_methods(self, root, service_name, types, url, binding, cb_binding=None):
         '''
         A private method for adding bindings to the wsdl
 
@@ -604,14 +541,7 @@ class DefinitionBase(object):
 
         ns_wsdl = soaplib.ns_wsdl
         ns_soap = soaplib.ns_soap
-
-        _pref_tns = soaplib.get_namespace_prefix(self.get_tns())
-
-        # make binding
-        if binding is None:
-            binding = etree.SubElement(root, '{%s}binding' % ns_wsdl)
-            binding.set('name', service_name)
-            binding.set('type', '%s:%s'% (_pref_tns, service_name))
+        pref_tns = soaplib.get_namespace_prefix(self.get_tns())
 
         soap_binding = etree.SubElement(binding, '{%s}binding' % ns_soap)
         soap_binding.set('style', 'document')
@@ -651,7 +581,7 @@ class DefinitionBase(object):
             if method.is_callback:
                 relates_to = etree.SubElement(input, '{%s}header' % ns_soap)
 
-                relates_to.set('message', '%s:RelatesToHeader' % _pref_tns)
+                relates_to.set('message', '%s:RelatesToHeader' % pref_tns)
                 relates_to.set('part', 'RelatesTo')
                 relates_to.set('use', 'literal')
 
@@ -660,42 +590,21 @@ class DefinitionBase(object):
             else:
                 if method.is_async:
                     rt_header = etree.SubElement(input,'{%s}header' % ns_soap)
-                    rt_header.set('message', '%s:ReplyToHeader' % _pref_tns)
+                    rt_header.set('message', '%s:ReplyToHeader' % pref_tns)
                     rt_header.set('part', 'ReplyTo')
                     rt_header.set('use', 'literal')
 
                     mid_header = etree.SubElement(input, '{%s}header'% ns_soap)
-                    mid_header.set('message', '%s:MessageIDHeader' % _pref_tns)
+                    mid_header.set('message', '%s:MessageIDHeader' % pref_tns)
                     mid_header.set('part', 'MessageID')
                     mid_header.set('use', 'literal')
 
                 binding.append(operation)
 
+        return cb_binding
     def get_schema(self):
         return None
 
 class ValidatingDefinitionBase(DefinitionBase):
-    def get_schema(self):
-        schema_nodes = self.add_schema(None)
-        logger.debug("generating schema")
-        tmp_dir_name = tempfile.mkdtemp()
-
-        # serialize nodes to files
-        for k,v in schema_nodes.items():
-            file_name = '%s/%s.xsd' % (tmp_dir_name, k)
-            f = open(file_name, 'w')
-            etree.ElementTree(v).write(f, pretty_print=True)
-            f.close()
-            logger.debug("writing %r" % file_name)
-
-        pref_tns = soaplib.get_namespace_prefix(self.get_tns())
-        f = open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r')
-
-        logger.debug("building schema...")
-        retval = etree.XMLSchema(etree.parse(f))
-        logger.debug("schema %r built, cleaning up..." % retval)
-        f.close()
-        shutil.rmtree(tmp_dir_name)
-        logger.debug("removed %r" % tmp_dir_name)
-
-        return retval
+    def get_schema_nodes(self):
+        return self.add_schema(None)

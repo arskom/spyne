@@ -28,7 +28,7 @@ logger.setLevel(logging.DEBUG)
 if __name__ == '__main__':
     try:
         from wsgiref.simple_server import make_server
-        server = make_server('127.0.0.1', 9753, wsgi.Application(InteropService))
+        server = make_server('127.0.0.1', 9753, wsgi.Application([InteropService]))
         print 'Starting interop server at -- %s:%s' % ('127.0.0.1', 9753)
         server.serve_forever()
 

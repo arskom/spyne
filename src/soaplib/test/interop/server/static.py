@@ -36,7 +36,7 @@ from soaplib import wsgi
 port = 9754
 static_dir = os.path.abspath(".")
 url = 'app'
-application = wsgi.Application(InteropService)
+application = wsgi.Application([InteropService])
 
 def main(argv):
     observer = log.PythonLoggingObserver('twisted')
