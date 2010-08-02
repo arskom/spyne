@@ -127,6 +127,10 @@ class InteropService(service.ValidatingDefinitionBase):
     def echo_float_array(self, fa):
         return fa
 
+    @rpc(Array(Double), _returns=Array(Double))
+    def echo_float_array(self, da):
+        return da
+
     @rpc(Array(Boolean), _returns=Array(Boolean))
     def echo_boolean_array(self, ba):
         return ba
