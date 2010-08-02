@@ -27,6 +27,9 @@ from soaplib.soap import Message
 from soaplib.soap import MethodDescriptor
 from soaplib.serializers.clazz import TypeInfo
 
+import logging
+logger = logging.getLogger(__name__)
+
 _pref_wsa = soaplib.prefmap[soaplib.ns_wsa]
 
 def rpc(*params, **kparams):
@@ -674,21 +677,25 @@ class DefinitionBase(object):
 class ValidatingDefinitionBase(DefinitionBase):
     def get_schema(self):
         schema_nodes = self.add_schema(None)
-
+        logger.debug("generating schema")
         tmp_dir_name = tempfile.mkdtemp()
 
         # serialize nodes to files
         for k,v in schema_nodes.items():
-            f = open('%s/%s.xsd' % (tmp_dir_name, k), 'w')
+            file_name = '%s/%s.xsd' % (tmp_dir_name, k)
+            f = open(file_name, 'w')
             etree.ElementTree(v).write(f, pretty_print=True)
             f.close()
+            logger.debug("writing %r" % file_name)
 
         pref_tns = soaplib.get_namespace_prefix(self.get_tns())
         f = open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r')
 
+        logger.debug("building schema...")
         retval = etree.XMLSchema(etree.parse(f))
-
+        logger.debug("schema %r built, cleaning up..." % retval)
         f.close()
         shutil.rmtree(tmp_dir_name)
+        logger.debug("removed %r" % tmp_dir_name)
 
         return retval

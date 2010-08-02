@@ -213,7 +213,6 @@ class Application(object):
         body = input.read(int(length))
 
         try:
-
             try:
                 soap_req_payload = self.__decode_soap_request(req_env, service,
                                                                           body)
