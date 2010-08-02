@@ -347,11 +347,7 @@ class DefinitionBase(object):
         '''
 
         ns_wsdl = soaplib.ns_wsdl
-        ns_soap = soaplib.ns_soap
-        ns_plink = soaplib.ns_plink
-
         ns_tns = self.get_tns()
-        pref_tns = soaplib.get_namespace_prefix(ns_tns)
 
         # FIXME: doesn't look so robust
         url = url.replace('.wsdl', '')
@@ -362,7 +358,7 @@ class DefinitionBase(object):
         # this needs to run before creating definitions tag in order to get
         # soaplib.nsmap populated.
         types = etree.Element("{%s}types" % ns_wsdl)
-        self.add_schema(types, for_validation=False)
+        self.add_schema(types)
 
         # create wsdl root node
         root = etree.Element("{%s}definitions" % ns_wsdl, nsmap=soaplib.nsmap)
@@ -371,12 +367,69 @@ class DefinitionBase(object):
 
         root.append(types)
 
-        self.__add_messages_for_methods(root)
+        self.add_messages_for_methods(root, service_name, types, url)
+        self.add_port_type(root, service_name, types, url)
+        self.add_partner_link(root, service_name, types, url)
+        self.add_bindings_for_methods(root, service_name, types, url)
+        self.add_service(root, service_name, types, url)
 
+        wsdl = etree.tostring(root, xml_declaration=True, encoding="UTF-8")
+
+        #cache the wsdl for next time
+        return wsdl
+
+    def add_service(self, root, service_name, types, url, service=None):
+        ns_wsdl = soaplib.ns_wsdl
+        ns_soap = soaplib.ns_soap
+        ns_tns = self.get_tns()
+        pref_tns = soaplib.get_namespace_prefix(ns_tns)
+
+        if service is None:
+            service = etree.SubElement(root, '{%s}service' % ns_wsdl)
+            service.set('name', service_name)
+
+        wsdl_port = etree.SubElement(service, '{%s}port' % ns_wsdl)
+        wsdl_port.set('name', service_name)
+        wsdl_port.set('binding', '%s:%s' % (pref_tns, service_name))
+
+        addr = etree.SubElement(wsdl_port, '{%s}address' % ns_soap)
+        addr.set('location', url)
+
+    def add_partner_link(self, root, service_name, types, url, plink=None):
+        ns_plink = soaplib.ns_plink
+        ns_tns = self.get_tns()
+        pref_tns = soaplib.get_namespace_prefix(ns_tns)
+
+        if plink is None:
+            plink = etree.SubElement(root, '{%s}partnerLinkType' % ns_plink)
+            plink.set('name', service_name)
+
+        role = etree.SubElement(plink, '{%s}role' % ns_plink)
+        role.set('name', service_name)
+
+        plink_port_type = etree.SubElement(role, '{%s}portType' % ns_plink)
+        plink_port_type.set('name', '%s:%s' % (pref_tns,service_name))
+
+        if self._has_callbacks():
+            role = etree.SubElement(plink, '{%s}role' % ns_plink)
+            role.set('name', '%sCallback' % service_name)
+
+            plink_port_type = etree.SubElement(role, '{%s}portType' % ns_plink)
+            plink_port_type.set('name', '%s:%sCallback' %
+                                                       (pref_tns,service_name))
+
+    def add_port_type(self, root, service_name, types, url, port_type=None):
+        ns_wsdl = soaplib.ns_wsdl
+        ns_tns = self.get_tns()
+        pref_tns = soaplib.get_namespace_prefix(ns_tns)
+
+        if port_type is None:
+            port_type = etree.SubElement(root, '{%s}portType' % ns_wsdl)
+            port_type.set('name', service_name)
+
+        # FIXME: I don't think it is working.
         cb_port_type = self.__add_callbacks(root, types, service_name, url)
 
-        port_type = etree.SubElement(root, '{%s}portType' % ns_wsdl)
-        port_type.set('name', service_name)
         for method in self.public_methods:
             if method.is_callback:
                 operation = etree.SubElement(cb_port_type, '{%s}operation'
@@ -403,41 +456,6 @@ class DefinitionBase(object):
                 op_output.set('name', method.out_message.get_type_name())
                 op_output.set('message', '%s:%s' % (pref_tns,
                                             method.out_message.get_type_name()))
-
-        # make partner link
-        plink = etree.SubElement(root, '{%s}partnerLinkType' % ns_plink)
-        plink.set('name', service_name)
-
-        role = etree.SubElement(plink, '{%s}role' % ns_plink)
-        role.set('name', service_name)
-
-        plink_port_type = etree.SubElement(role, '{%s}portType' % ns_plink)
-        plink_port_type.set('name', '%s:%s' % (pref_tns,service_name))
-
-        if self._has_callbacks():
-            role = etree.SubElement(plink, '{%s}role' % ns_plink)
-            role.set('name', '%sCallback' % service_name)
-
-            plink_port_type = etree.SubElement(role, '{%s}portType' % ns_plink)
-            plink_port_type.set('name', '%s:%sCallback' %
-                                                       (pref_tns,service_name))
-
-        self.__add_bindings_for_methods(root, service_name)
-
-        service = etree.SubElement(root, '{%s}service' % ns_wsdl)
-        service.set('name', service_name)
-
-        wsdl_port = etree.SubElement(service, '{%s}port' % ns_wsdl)
-        wsdl_port.set('name', service_name)
-        wsdl_port.set('binding', '%s:%s' % (pref_tns, service_name))
-
-        addr = etree.SubElement(wsdl_port, '{%s}address' % ns_soap)
-        addr.set('location', url)
-
-        wsdl = etree.tostring(root, xml_declaration=True, encoding="UTF-8")
-
-        #cache the wsdl for next time
-        return wsdl
 
     def __add_callbacks(self, root, types, service_name, url):
         ns_xsd = soaplib.ns_xsd
@@ -499,15 +517,17 @@ class DefinitionBase(object):
 
         return cb_port_type
 
-    def add_schema(self, types, for_validation):
+    def add_schema(self, types=None):
         '''
         A private method for adding the appropriate entries
         to the schema for the types in the specified methods.
 
-        @param the schema node to add the schema elements to
+        @param the schema node to add the schema elements to. if it is None,
+               the schema nodes are returned inside a dictionary
         '''
 
         schema_nodes = {}
+
         schema_entries = _SchemaEntries(self.get_tns())
 
         for method in self.public_methods:
@@ -516,7 +536,7 @@ class DefinitionBase(object):
 
         for pref in schema_entries.namespaces:
             if not (pref in schema_nodes):
-                if for_validation:
+                if types is None:
                     schema = etree.Element("{%s}schema" % soaplib.ns_xsd,
                                                             nsmap=soaplib.nsmap)
                 else:
@@ -533,7 +553,7 @@ class DefinitionBase(object):
             for namespace in schema_entries.imports[pref]:
                 import_ = etree.SubElement(schema, "{%s}import" % soaplib.ns_xsd)
                 import_.set("namespace", namespace)
-                if for_validation:
+                if types is None:
                     import_.set('schemaLocation', "%s.xsd" %
                                         soaplib.get_namespace_prefix(namespace))
 
@@ -545,7 +565,7 @@ class DefinitionBase(object):
 
         return schema_nodes
 
-    def __add_messages_for_methods(self, root):
+    def add_messages_for_methods(self, root, service_name, types, url):
         '''
         A private method for adding message elements to the wsdl
         @param the the root element of the wsdl
@@ -571,7 +591,7 @@ class DefinitionBase(object):
             out_part.set('element', '%s:%s' % (_pref_tns,
                                             method.out_message.get_type_name()))
 
-    def __add_bindings_for_methods(self, root, service_name):
+    def add_bindings_for_methods(self, root, service_name, types, url, binding=None, cb_binding=None):
         '''
         A private method for adding bindings to the wsdl
 
@@ -585,18 +605,20 @@ class DefinitionBase(object):
         _pref_tns = soaplib.get_namespace_prefix(self.get_tns())
 
         # make binding
-        binding = etree.SubElement(root, '{%s}binding' % ns_wsdl)
-        binding.set('name', service_name)
-        binding.set('type', '%s:%s'% (_pref_tns, service_name))
+        if binding is None:
+            binding = etree.SubElement(root, '{%s}binding' % ns_wsdl)
+            binding.set('name', service_name)
+            binding.set('type', '%s:%s'% (_pref_tns, service_name))
 
         soap_binding = etree.SubElement(binding, '{%s}binding' % ns_soap)
         soap_binding.set('style', 'document')
         soap_binding.set('transport', 'http://schemas.xmlsoap.org/soap/http')
 
         if self._has_callbacks():
-            cb_binding = etree.SubElement(root, '{%s}binding' % ns_wsdl)
-            cb_binding.set('name', '%sCallback' % service_name)
-            cb_binding.set('type', 'typens:%sCallback' % service_name)
+            if cb_binding is None:
+                cb_binding = etree.SubElement(root, '{%s}binding' % ns_wsdl)
+                cb_binding.set('name', '%sCallback' % service_name)
+                cb_binding.set('type', 'typens:%sCallback' % service_name)
 
             soap_binding = etree.SubElement(cb_binding, '{%s}binding' % ns_soap)
             soap_binding.set('transport', 'http://schemas.xmlsoap.org/soap/http')
@@ -651,7 +673,7 @@ class DefinitionBase(object):
 
 class ValidatingDefinitionBase(DefinitionBase):
     def get_schema(self):
-        schema_nodes = self.add_schema(None, for_validation=True)
+        schema_nodes = self.add_schema(None)
 
         tmp_dir_name = tempfile.mkdtemp()
 

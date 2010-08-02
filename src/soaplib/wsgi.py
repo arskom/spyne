@@ -151,13 +151,11 @@ class Application(object):
         return retval
 
     def __decode_soap_request(self, http_env, service, http_payload):
-        #
         # decode body using information in the http header
         #
         # fyi, here's what the parse_header function returns:
         # >>> import cgi; cgi.parse_header("text/xml; charset=utf-8")
         # ('text/xml', {'charset': 'utf-8'})
-        #
         content_type = cgi.parse_header(http_env.get("CONTENT_TYPE"))
         charset = content_type[1].get('charset',None)
         if charset is None:
@@ -173,7 +171,7 @@ class Application(object):
 
     def validate_request(self, service, payload):
         # if there's a schema to validate against, validate the response
-        schema = self.__get_schema(service)
+        schema = self.__schema
         if schema != None:
             ret = schema.validate(payload)
             logger.debug("validation result: %s" % str(ret))
