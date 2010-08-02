@@ -100,7 +100,7 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   </soap:Body>
 </soap:Envelope>'''
 
-        payload, header = from_soap(a)
+        payload, header = from_soap(a, 'utf8')
         # quick and dirty test href reconstruction
         self.assertEquals(len(payload.getchildren()[0].getchildren()), 2)
 
