@@ -19,7 +19,7 @@
 
 import cgi
 import logging
-logger = logging.getLogger('soaplib')
+logger = logging.getLogger(__name__)
 
 import traceback
 

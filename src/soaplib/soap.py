@@ -18,7 +18,7 @@
 #
 
 import logging
-logger = logging.getLogger('soaplib')
+logger = logging.getLogger(__name__)
 from lxml import etree
 
 from base64 import b64encode
