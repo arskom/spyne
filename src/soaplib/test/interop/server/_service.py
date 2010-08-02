@@ -185,4 +185,3 @@ class InteropService(service.ValidatingDefinitionBase):
                        _public_name="http://sample.org/webservices/doSomething")
     def do_something_else(self, s):
         return s
-

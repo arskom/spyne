@@ -18,7 +18,7 @@
 #
 
 from soaplib.test.interop.server._service import InteropService
-from soaplib import wsgi 
+from soaplib import wsgi
 
 import logging
 logging.basicConfig(level=logging.DEBUG)

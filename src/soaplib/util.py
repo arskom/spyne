@@ -60,14 +60,14 @@ def get_callback_info(request):
         for header in headers:
             if header.tag.lower().endswith("messageid"):
                 message_id = header.text
-                
+
             if header.tag.lower().find("replyto") != -1:
                 replyToElems = header.getchildren()
 
                 for replyTo in replyToElems:
                     if replyTo.tag.lower().endswith("address"):
                         reply_to_address = replyTo.text
-    
+
     return message_id, reply_to_address
 
 def get_relates_to_info(request):
