@@ -27,6 +27,7 @@ from soaplib.serializers.primitive import DateTime
 from soaplib.serializers.primitive import Float
 from soaplib.serializers.primitive import Integer
 from soaplib.serializers.primitive import String
+from soaplib.serializers.primitive import Double
 
 from soaplib import service
 from soaplib.service import rpc
@@ -94,6 +95,10 @@ class InteropService(service.ValidatingDefinitionBase):
 
     @rpc(Float, _returns=Float)
     def echo_float(self, f):
+        return f
+
+    @rpc(Double, _returns=Double)
+    def echo_double(self, f):
         return f
 
     @rpc(Boolean, _returns=Boolean)
