@@ -215,14 +215,18 @@ class Application(object):
         try:
 
             try:
-                soap_req_payload = self.__decode_soap_request(req_env, service, body)
+                soap_req_payload = self.__decode_soap_request(req_env, service,
+                                                                          body)
                 self.validate_request(service, soap_req_payload)
                 method_name = self.__get_method_name(req_env, soap_req_payload)
 
             finally:
+                # for performance reasons, we don't want the following to run
+                # in production even if we don't see the results.
                 if logger.level == logging.DEBUG:
                     logger.debug('\033[92mMethod name: %r\033[0m' % method_name)
-                    logger.debug(etree.tostring(etree.fromstring(body), pretty_print=True))
+                    logger.debug(etree.tostring(etree.fromstring(body),
+                                                             pretty_print=True))
 
             # retrieve the method descriptor
             descriptor = service.get_method(method_name)
@@ -363,7 +367,8 @@ class SingleServiceApplication(Application):
 class MultipleServiceApplication(Application):
     def __init__(self, services):
         '''
-        @param An iterable of ServiceBase subclasses that define the exposed services.
+        @param An iterable of ServiceBase subclasses that define the exposed
+        services.
         '''
 
         self.services = services
