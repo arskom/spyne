@@ -30,6 +30,7 @@ from soaplib.serializers.primitive import Integer
 from soaplib.serializers.primitive import String
 
 from soaplib import service
+from soaplib import wsgi
 from soaplib.service import rpc
 
 class Address(ClassSerializer):
@@ -131,17 +132,18 @@ class Test(unittest.TestCase):
     '''
 
     def setUp(self):
-        self.service = TestService()
-        self._wsdl = self.service.get_wsdl('')
+        self.app = wsgi.Application([TestService])
+        self.srv = TestService()
+        self._wsdl = self.app.get_wsdl('')
         self.wsdl = etree.fromstring(self._wsdl)
 
     def test_portypes(self):
         porttype = self.wsdl.find('{http://schemas.xmlsoap.org/wsdl/}portType')
         self.assertEquals(
-            len(self.service._remote_methods), len(porttype.getchildren()))
+            len(self.srv.public_methods), len(porttype.getchildren()))
 
     def test_override_default_names(self):
-        wsdl = etree.fromstring(OverrideNamespaceService().get_wsdl(''))
+        wsdl = etree.fromstring(wsgi.Application([OverrideNamespaceService]).get_wsdl(''))
         self.assertEquals(wsdl.get('targetNamespace'),
             "http://someservice.com/override")
 
@@ -150,14 +152,14 @@ class Test(unittest.TestCase):
             self.assertTrue(n in self._wsdl, '"%s" not in self._wsdl' % n)
 
     def test_multiple_return(self):
-        service = MultipleReturnService()
-        service.get_wsdl('')
-
-        message = service.methods()[0].out_message()
+        app = wsgi.Application([MultipleReturnService])
+        app.get_wsdl('')
+        srv = MultipleReturnService()
+        message = srv.public_methods[0].out_message()
 
         self.assertEquals(len(message._type_info), 3)
 
-        sent_xml = message.to_xml( ('a','b','c'), service.get_tns() )
+        sent_xml = message.to_xml( ('a','b','c'), srv.get_tns() )
 
         print etree.tostring(sent_xml, pretty_print=True)
         response_data = message.from_xml(sent_xml)
@@ -168,7 +170,7 @@ class Test(unittest.TestCase):
         self.assertEqual(response_data[2], 'c')
 
     def test_multiple_ns(self):
-        svc = MultipleNamespaceService()
+        svc = wsgi.Application([MultipleNamespaceService])
         wsdl = svc.get_wsdl("URL")
 
 def suite():
