@@ -213,6 +213,9 @@ class DefinitionBase(object):
     class will use the rpc decorator to flag methods to be exposed via soap.
     This class is responsible for generating the wsdl for this service
     definition.
+
+    It is a natural abstract base class, because it's of no use without any
+    method definitions, hence the 'Base' prefix in the name.
     '''
 
     __tns__ = None
@@ -221,31 +224,7 @@ class DefinitionBase(object):
         self._remote_methods = self._get_remote_methods()
         self.soap_req_header = None
 
-    def on_call(self, environ):
-        '''
-        This is the first method called when this WSGI app is invoked
-        @param the wsgi environment
-        '''
-        pass
-
-    def on_wsdl(self, environ, wsdl):
-        '''
-        This is called when a wsdl is requested
-        @param the wsgi environment
-        @param the wsdl string
-        '''
-        pass
-
-    def on_wsdl_exception(self, environ, exc, resp):
-        '''
-        Called when an exception occurs durring wsdl generation
-        @param the wsgi environment
-        @param exc the exception
-        @param the fault response string
-        '''
-        pass
-
-    def on_method_exec(self, environ, method_name, py_params, soap_params):
+    def on_method_call(self, environ, method_name, py_params, soap_params):
         '''
         Called BEFORE the service implementing the functionality is called
         @param the wsgi environment
@@ -256,7 +235,7 @@ class DefinitionBase(object):
         '''
         pass
 
-    def on_results(self, environ, py_results, soap_results, soap_headers):
+    def on_method_return(self, environ, py_results, soap_results, soap_headers):
         '''
         Called AFTER the service implementing the functionality is called
         @param the wsgi environment
@@ -266,7 +245,7 @@ class DefinitionBase(object):
         '''
         pass
 
-    def on_exception(self, environ, exc, resp):
+    def on_method_exception(self, environ, exc, resp):
         '''
         Called when an error occurs durring execution
         @param the wsgi environment
@@ -275,16 +254,12 @@ class DefinitionBase(object):
         '''
         pass
 
-    def on_return(self, environ, http_headers, return_str):
-        '''
-        Called before the application returns
-        @param the wsgi environment
-        @param http response headers as dict
-        @param return string of the soap request
-        '''
-        pass
-
     def call_wrapper(self, call, params):
+        '''
+        Called in place of the original method call.
+        @param the original method call
+        @param the arguments to the call
+        '''
         return call(*params)
 
     @classmethod

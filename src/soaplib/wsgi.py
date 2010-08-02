@@ -51,6 +51,39 @@ class Application(object):
 
         self.__get_schema(self.get_service(None))
 
+    def on_call(self, environ):
+        '''
+        This is the first method called when this WSGI app is invoked
+        @param the wsgi environment
+        '''
+        pass
+
+    def on_wsdl(self, environ, wsdl):
+        '''
+        This is called when a wsdl is requested
+        @param the wsgi environment
+        @param the wsdl string
+        '''
+        pass
+
+    def on_wsdl_exception(self, environ, exc, resp):
+        '''
+        Called when an exception occurs durring wsdl generation
+        @param the wsgi environment
+        @param exc the exception
+        @param the fault response string
+        '''
+        pass
+
+    def on_return(self, environ, http_headers, return_str):
+        '''
+        Called before the application returns
+        @param the wsgi environment
+        @param http response headers as dict
+        @param return string of the soap request
+        '''
+        pass
+
     def get_service(self, environment):
         return self.service(environment)
 
@@ -70,104 +103,104 @@ class Application(object):
 
         return retval
 
-    def __call__(self, req_env, start_response, wsgi_url=None):
-        '''
-        This method conforms to the WSGI spec for callable wsgi applications
-        (PEP 333). It looks in environ['wsgi.input'] for a fully formed soap
-        request envelope, will deserialize the request parameters and call the
-        method on the object returned by the get_handler() method.
+    def __is_wsdl_request(self, req_env):
+        # Get the wsdl for the service. Assume path_info matches pattern:
+        # /stuff/stuff/stuff/serviceName.wsdl or
+        # /stuff/stuff/stuff/serviceName/?wsdl
 
-        @param the http environment
-        @param a callable that begins the response message
-        @param the optional url
-        @returns the string representation of the soap call
-        '''
+        return (
+                req_env['REQUEST_METHOD'].lower() == 'get'
+            and (
+                   req_env['QUERY_STRING'].endswith('wsdl')
+                or req_env['PATH_INFO'].endswith('wsdl')
+            )
+        )
 
-        method_name = ''
+    def __handle_wsdl_request(self, req_env, start_response, url):
+        service = self.get_service(req_env)
+        retval = [None]
+
+        http_resp_headers = {'Content-Type': 'text/xml'}
+
+        start_response('200 OK', http_resp_headers.items())
+        try:
+            wsdl_content = self.__get_wsdl(service, url)
+            self.on_wsdl(req_env, wsdl_content) # implementation hook
+            retval[0] = wsdl_content
+
+        except Exception, e:
+            # implementation hook
+            logger.error(traceback.format_exc())
+
+            fault_xml = make_soap_fault(str(e), service.get_tns(), detail="")
+            fault_str = etree.tostring(fault_xml,
+                   xml_declaration=True, encoding=string_encoding)
+            logger.debug(fault_str)
+
+            self.on_wsdl_exception(req_env, e, fault_str)
+
+            # initiate the response
+            http_resp_headers['Content-length'] = str(len(fault_str))
+            start_response('500 Internal Server Error',
+                http_resp_headers.items())
+
+            retval[0] = fault_str
+
+        return retval
+
+    def __decode_soap_request(self, http_env, service, http_payload):
+        #
+        # decode body using information in the http header
+        #
+        # fyi, here's what the parse_header function returns:
+        # >>> import cgi; cgi.parse_header("text/xml; charset=utf-8")
+        # ('text/xml', {'charset': 'utf-8'})
+        #
+        content_type = cgi.parse_header(http_env.get("CONTENT_TYPE"))
+        charset = content_type[1].get('charset',None)
+        if charset is None:
+            charset = 'ascii'
+
+        http_payload = collapse_swa(content_type, http_payload)
+
+        # deserialize the body of the message
+        req_payload, req_header = from_soap(http_payload, charset)
+        service.soap_req_header = req_header
+
+        return req_payload
+
+    def validate_request(self, service, payload):
+        # if there's a schema to validate against, validate the response
+        schema = self.__get_schema(service)
+        if schema != None:
+            ret = schema.validate(payload)
+            logger.debug("validation result: %s" % str(ret))
+            if ret == False:
+                raise ValidationError(schema.error_log.last_error)
+
+    def __handle_soap_request(self, req_env, start_response, url):
+        service = self.get_service(req_env)
+
         http_resp_headers = {'Content-Type': 'text/xml'}
         soap_resp_headers = []
 
-        # cache the wsdl
-        service_name = req_env['PATH_INFO'].split('/')[-1]
-        service = self.get_service(req_env)
-        url = wsgi_url
-        if url is None:
-            url = reconstruct_url(req_env).split('.wsdl')[0]
+        method_name = None
+
+        # implementation hook
+        self.on_call(req_env)
+
+        if req_env['REQUEST_METHOD'].lower() != 'post':
+            start_response('405 Method Not Allowed', [('Allow', 'POST')])
+            return ''
+
+        input = req_env.get('wsgi.input')
+        length = req_env.get("CONTENT_LENGTH")
+        body = input.read(int(length))
 
         try:
-            # implementation hook
-            service.on_call(req_env)
+            soap_req_payload = self.__decode_soap_request(req_env, service, body)
 
-            if req_env['REQUEST_METHOD'].lower() == 'get' and (
-                    req_env['QUERY_STRING'].endswith('wsdl')
-                 or req_env['PATH_INFO'].endswith('wsdl') ):
-
-                # Get the wsdl for the service. Assume path_info matches pattern:
-                # /stuff/stuff/stuff/serviceName.wsdl or
-                # /stuff/stuff/stuff/serviceName/?wsdl
-                service_name = service_name.split('.')[0]
-
-                start_response('200 OK', http_resp_headers.items())
-                try:
-                    wsdl_content = self.__get_wsdl(service,url)
-
-                    # implementation hook
-                    service.on_wsdl(req_env, wsdl_content)
-
-                except Exception, e:
-                    # implementation hook
-                    logger.error(traceback.format_exc())
-
-                    fault_xml = make_soap_fault(str(e), service.get_tns(), detail="")
-                    fault_str = etree.tostring(fault_xml,
-                           xml_declaration=True, encoding=string_encoding)
-                    logger.debug(fault_str)
-
-                    service.on_wsdl_exception(req_env, e, fault_str)
-
-                    # initiate the response
-                    http_resp_headers['Content-length'] = str(len(fault_str))
-                    start_response('500 Internal Server Error',
-                        http_resp_headers.items())
-
-                    return [fault_str]
-
-                return [wsdl_content]
-
-            if req_env['REQUEST_METHOD'].lower() != 'post':
-                start_response('405 Method Not Allowed', [('Allow', 'POST')])
-                return ''
-
-            input = req_env.get('wsgi.input')
-            length = req_env.get("CONTENT_LENGTH")
-            body = input.read(int(length))
-            logger.debug(body)
-
-            #
-            # decode body using information in the http header
-            #
-            # fyi, here's what the parse_header function returns:
-            # >>> import cgi; cgi.parse_header("text/xml; charset=utf-8")
-            # ('text/xml', {'charset': 'utf-8'})
-            #
-            content_type = cgi.parse_header(req_env.get("CONTENT_TYPE"))
-            charset = content_type[1].get('charset',None)
-            if charset is None:
-                charset = 'ascii'
-
-            body = collapse_swa(content_type, body)
-
-            # deserialize the body of the message
-            soap_req_payload, soap_req_header = from_soap(body, charset)
-            service.soap_req_header = soap_req_header
-
-            # if there's a schema to validate against, validate the response
-            schema = self.__get_schema(service)
-            if schema != None:
-                ret = schema.validate(soap_req_payload)
-                logger.debug("validation result: %s" % str(ret))
-                if ret == False:
-                    raise ValidationError(schema.error_log.last_error)
+            self.validate_request(service, soap_req_payload)
 
             if soap_req_payload is not None and len(soap_req_payload) > 0:
                 method_name = soap_req_payload.tag
@@ -181,6 +214,9 @@ class Application(object):
 
             if not (method_name is None):
                 logger.debug('\033[92m'+ method_name +'\033[0m')
+                logger.debug(body)
+            else:
+                logger.debug(body)
 
             # retrieve the method descriptor
             descriptor = service.get_method(method_name)
@@ -192,7 +228,7 @@ class Application(object):
                 params = ()
 
             # implementation hook
-            service.on_method_exec(req_env, method_name, params, body)
+            service.on_method_call(req_env, method_name, params, body)
 
             # call the method
             result_raw = service.call_wrapper(func, params)
@@ -212,7 +248,7 @@ class Application(object):
                                                               service.get_tns())
 
             # implementation hook
-            service.on_results(req_env, result_raw, results_soap,
+            service.on_method_return(req_env, result_raw, results_soap,
                                                           soap_resp_headers)
 
             # construct the soap response, and serialize it
@@ -225,7 +261,7 @@ class Application(object):
                 http_resp_headers, results_str = apply_mtom(http_resp_headers,
                     results_str,descriptor.out_message._type_info,[result_raw])
 
-            service.on_return(req_env, http_resp_headers, results_str)
+            self.on_return(req_env, http_resp_headers, results_str)
 
             # initiate the response
             start_response('200 OK', http_resp_headers.items())
@@ -252,7 +288,7 @@ class Application(object):
                                                     encoding=string_encoding)
             logger.error(fault_str)
 
-            service.on_exception(req_env, http_resp_headers, e, fault_str)
+            service.on_method_exception(req_env, http_resp_headers, e, fault_str)
 
             # initiate the response
             start_response('500 Internal Server Error',http_resp_headers.items())
@@ -260,9 +296,6 @@ class Application(object):
             return [fault_str]
 
         except Exception, e:
-            # Dump the stack trace to a buffer to be sent
-            # back to the caller
-
             # capture stacktrace
             stacktrace=traceback.format_exc()
 
@@ -287,8 +320,46 @@ class Application(object):
                                                        encoding=string_encoding)
             logger.debug(fault_str)
 
-            service.on_exception(req_env, e, fault_str)
+            service.on_method_exception(req_env, e, fault_str)
 
             # initiate the response
             start_response('500 Internal Server Error',http_resp_headers.items())
+
             return [fault_str]
+
+    def __call__(self, req_env, start_response, wsgi_url=None):
+        '''
+        This method conforms to the WSGI spec for callable wsgi applications
+        (PEP 333). It looks in environ['wsgi.input'] for a fully formed soap
+        request envelope, will deserialize the request parameters and call the
+        method on the object returned by the get_handler() method.
+
+        @param the http environment
+        @param a callable that begins the response message
+        @param the optional url
+        @returns the string representation of the soap call
+        '''
+
+        url = wsgi_url
+        if url is None:
+            url = reconstruct_url(req_env).split('.wsdl')[0]
+
+        if self.__is_wsdl_request(req_env):
+            return self.__handle_wsdl_request(req_env, start_response, url)
+        else:
+            return self.__handle_soap_request(req_env, start_response, url)
+
+class SingleServiceApplication(Application):
+    pass
+
+class MultipleServiceApplication(Application):
+    def __init__(self, services):
+        '''
+        @param An iterable of ServiceBase subclasses that define the exposed services.
+        '''
+
+        self.services = services
+
+        self.__wsdl = None
+        self.__schema = None
+        self.__get_schema(self.get_service(None))
