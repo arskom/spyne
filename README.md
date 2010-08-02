@@ -21,13 +21,17 @@ Features
 * on-demand WSDL generation
 * doesn't get in your way!!!
 
-Requirements
-------------
-* Python 2.4 or greater (tested mainly on 2.4.3)
+Runtime Requirements
+--------------------
+* Python 2.4 or greater
 * [lxml](http://codespeak.net/lxml/) (available through easy_install)
 * a WSGI-compliant web server (CherryPy, WSGIUtils, Flup, etc.)
-* [pytz](http://pytz.sourceforge.net/)(available through easy_install)
-* [easy_install](http://peak.telecommunity.com/dist/ez_setup.py) (optional)
+* [pytz] (http://pytz.sourceforge.net/) (available through easy_install)
+
+Development Requirements
+------------------------
+* Most examples and tests require Python 2.5 or greater
+* Twisted is required for `interop.server.static`
 
 Soaplib services can be deployed as WSGI applications, in any WSGI-compliant
 web server. Soaplib services have been successfully run on the following web
