@@ -469,7 +469,7 @@ class Application(object):
                                                        encoding=string_encoding)
             logger.debug(fault_str)
 
-            service.on_method_exception(req_env, e, fault_str)
+            self.on_exception(req_env, e, fault_str)
 
             # initiate the response
             start_response('500 Internal Server Error',http_resp_headers.items())
@@ -528,5 +528,14 @@ class Application(object):
         @param the wsgi environment
         @param http response headers as dict
         @param return string of the soap request
+        '''
+        pass
+
+    def on_exception(self, environ, fault, fault_str):
+        '''
+        Called before the application returns
+        @param the wsgi environment
+        @param the fault
+        @param string of the fault
         '''
         pass
