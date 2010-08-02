@@ -222,7 +222,6 @@ class DefinitionBase(object):
     def __init__(self, environ=None):
         self.public_methods = self.__populate_public_methods()
         self.soap_req_header = None
-        self.service_routes = {}
 
     def on_method_call(self, environ, method_name, py_params, soap_params):
         '''
@@ -463,6 +462,8 @@ class DefinitionBase(object):
 
         @param the schema node to add the schema elements to. if it is None,
                the schema nodes are returned inside a dictionary
+        @param the schema node dictinary, where keys are prefixes of the schema
+               stored schema node
         '''
 
         if schema_nodes is None:
@@ -602,7 +603,7 @@ class DefinitionBase(object):
                 binding.append(operation)
 
         return cb_binding
-    def get_schema(self):
+    def get_schema_nodes(self):
         return None
 
 class ValidatingDefinitionBase(DefinitionBase):

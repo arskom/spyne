@@ -51,6 +51,7 @@ class Application(object):
         '''
 
         self.services = services
+        self.call_routes = {}
 
         self.__wsdl = None
         self.__schema = None
@@ -90,54 +91,68 @@ class Application(object):
         '''
         pass
 
-    def __get_wsdl(self, service, url):
-        retval = self.__wsdl
-
-        if retval is None:
-            retval = self.__wsdl = service.get_wsdl(url)
-
-        return retval
-
     def __build_schema(self):
-        if self.__schema is None:
-            schema_nodes = {}
-            ns_tns = None
-            for s in self.services:
-                s().add_schema(None,schema_nodes)
-                if ns_tns is None:
-                    ns_tns = s.get_tns()
+        schema_nodes = {}
+        ns_tns = None
+        for s in self.services:
+            inst = s()
 
-            logger.debug("generating schema")
-            tmp_dir_name = tempfile.mkdtemp()
+            for method in inst.public_methods:
+                cur_tns = s.get_tns()
+                method_name = "{%s}%s" % (cur_tns, method.name)
 
-            # serialize nodes to files
-            for k,v in schema_nodes.items():
-                file_name = '%s/%s.xsd' % (tmp_dir_name, k)
-                f = open(file_name, 'w')
-                etree.ElementTree(v).write(f, pretty_print=True)
-                f.close()
-                logger.debug("writing %r" % file_name)
+                if method_name in self.call_routes:
+                    old_tns = self.call_routes[method_name].get_tns()
+                    raise Exception("%s.%s overwrites %s.%s" %
+                                                        (old_tns, method.name,
+                                                         cur_tns, method.name) )
 
-            pref_tns = soaplib.get_namespace_prefix(ns_tns)
-            f = open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r')
+                else:
+                    logger.debug('adding method %r' % method_name)
+                    self.call_routes[method_name] = s
 
-            logger.debug("building schema...")
-            self.__schema = etree.XMLSchema(etree.parse(f))
-            logger.debug("schema %r built, cleaning up..." % self.__schema)
+            inst.add_schema(None,schema_nodes)
+            if ns_tns is None:
+                ns_tns = s.get_tns()
+
+        logger.debug("generating schema")
+        tmp_dir_name = tempfile.mkdtemp()
+
+        # serialize nodes to files
+        for k,v in schema_nodes.items():
+            file_name = '%s/%s.xsd' % (tmp_dir_name, k)
+            f = open(file_name, 'w')
+            etree.ElementTree(v).write(f, pretty_print=True)
             f.close()
-            shutil.rmtree(tmp_dir_name)
-            logger.debug("removed %r" % tmp_dir_name)
+            logger.debug("writing %r" % file_name)
+
+        pref_tns = soaplib.get_namespace_prefix(ns_tns)
+        f = open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r')
+
+        logger.debug("building schema...")
+        self.__schema = etree.XMLSchema(etree.parse(f))
+
+        logger.debug("schema %r built, cleaning up..." % self.__schema)
+        f.close()
+        shutil.rmtree(tmp_dir_name)
+        logger.debug("removed %r" % tmp_dir_name)
 
         return self.__schema
 
     def get_service(self, method_name, http_req_env):
-        return self.service_routes[method_name](http_req_env)
+        return self.call_routes[method_name](http_req_env)
 
     def get_schema(self):
         if self.__schema is None:
             return self.__build_schema()
         else:
             return self.__schema
+
+    def get_wsdl(self, url):
+        if self.__wsdl is None:
+            return self.__build_wsdl(url)
+        else:
+            return self.__wsdl
 
     def __is_wsdl_request(self, req_env):
         # Get the wsdl for the service. Assume path_info matches pattern:
@@ -166,18 +181,14 @@ class Application(object):
 
         # this needs to run before creating definitions tag in order to get
         # soaplib.nsmap populated.
-        types = etree.Element("{%s}types" % ns_wsdl)
-
-        for s in self.services:
-            s=s()
-            s.add_schema(types)
 
         # create wsdl root node
         root = etree.Element("{%s}definitions" % ns_wsdl, nsmap=soaplib.nsmap)
         root.set('targetNamespace', ns_tns)
         root.set('name', service_name)
 
-        root.append(types)
+        # create types node
+        types = etree.SubElement(root, "{%s}types" % ns_wsdl)
 
         # create plink node
         plink = etree.SubElement(root, '{%s}partnerLinkType' % ns_plink)
@@ -201,6 +212,7 @@ class Application(object):
         for s in self.services:
             s=s()
 
+            s.add_schema(types)
             s.add_messages_for_methods(root, service_name, types, url)
             s.add_port_type(root, service_name, types, url, port_type)
             s.add_partner_link(root, service_name, types, url, plink)
@@ -208,22 +220,21 @@ class Application(object):
                                                        url, binding, cb_binding)
             s.add_service(root, service_name, types, url, service)
 
-        wsdl = etree.tostring(root, xml_declaration=True, encoding="UTF-8")
+        self.__wsdl = etree.tostring(root, xml_declaration=True, encoding="UTF-8")
 
-        #cache the wsdl for next time
-        return wsdl
+        return self.__wsdl
 
     def __handle_wsdl_request(self, req_env, start_response, url):
-        retval = [None]
+        retval = ['']
 
         http_resp_headers = {'Content-Type': 'text/xml'}
 
         start_response('200 OK', http_resp_headers.items())
         try:
-            wsdl_content = self.__build_wsdl(url)
-            self.on_wsdl(req_env, wsdl_content) # implementation hook
+            self.get_wsdl(url)
+            self.on_wsdl(req_env, self.__wsdl) # implementation hook
 
-            retval[0] = wsdl_content
+            return [self.__wsdl]
 
         except Exception, e:
             # implementation hook
@@ -242,11 +253,9 @@ class Application(object):
             start_response('500 Internal Server Error',
                 http_resp_headers.items())
 
-            retval[0] = fault_str
+            return [fault_str]
 
-        return retval
-
-    def __decode_soap_request(self, http_env, service, http_payload):
+    def __decode_soap_request(self, http_env, http_payload):
         # decode body using information in the http header
         #
         # fyi, here's what the parse_header function returns:
@@ -261,9 +270,8 @@ class Application(object):
 
         # deserialize the body of the message
         req_payload, req_header = from_soap(http_payload, charset)
-        service.soap_req_header = req_header
 
-        return req_payload
+        return req_header, req_payload
 
     def validate_request(self, service, payload):
         # if there's a schema to validate against, validate the response
@@ -292,26 +300,28 @@ class Application(object):
     def __handle_soap_request(self, req_env, start_response, url):
         http_resp_headers = {'Content-Type': 'text/xml'}
         soap_resp_headers = []
-
         method_name = None
 
-        # implementation hook
-        self.on_call(req_env)
-
-        if req_env['REQUEST_METHOD'].lower() != 'post':
-            start_response('405 Method Not Allowed', [('Allow', 'POST')])
-            return ''
-
-        input = req_env.get('wsgi.input')
-        length = req_env.get("CONTENT_LENGTH")
-        body = input.read(int(length))
-
         try:
+            # implementation hook
+            self.on_call(req_env)
+
+            if req_env['REQUEST_METHOD'].lower() != 'post':
+                start_response('405 Method Not Allowed', [('Allow', 'POST')])
+                return ['']
+
+            input = req_env.get('wsgi.input')
+            length = req_env.get("CONTENT_LENGTH")
+            body = input.read(int(length))
+
             try:
-                soap_req_payload = self.__decode_soap_request(req_env, service,
-                                                                          body)
-                self.validate_request(service, soap_req_payload)
+                soap_req_header, soap_req_payload = self.__decode_soap_request(
+                                                                req_env, body)
                 method_name = self.__get_method_name(req_env, soap_req_payload)
+                service = self.get_service(method_name, req_env)
+                service.soap_req_header = soap_req_header
+
+                self.validate_request(service, soap_req_payload)
 
             finally:
                 # for performance reasons, we don't want the following to run
@@ -353,7 +363,7 @@ class Application(object):
 
             # implementation hook
             service.on_method_return(req_env, result_raw, results_soap,
-                                                          soap_resp_headers)
+                                                            soap_resp_headers)
 
             # construct the soap response, and serialize it
             envelope = make_soap_envelope(results_soap, tns=service.get_tns(),
@@ -419,7 +429,8 @@ class Application(object):
             detail = ' '
             logger.error(stacktrace)
 
-            fault_xml = make_soap_fault(service.get_tns(), faultstring,
+
+            fault_xml = make_soap_fault(self.services[0].get_tns(), faultstring,
                                                               faultcode, detail)
             fault_str = etree.tostring(fault_xml, xml_declaration=True,
                                                        encoding=string_encoding)
