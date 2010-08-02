@@ -22,10 +22,22 @@ import soaplib
 _ns_xs = soaplib.nsmap['xs']
 _ns_xsi = soaplib.nsmap['xsi']
 
-from soaplib.service import ServiceBase
+from soaplib.wsgi import Application
+from soaplib.service import DefinitionBase
 from soaplib.service import rpc
 
 from soaplib.serializers.enum import Enum
+
+from lxml import etree
+
+vals = [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+]
 
 DaysOfWeekEnum = Enum(
     'Monday',
@@ -37,23 +49,33 @@ DaysOfWeekEnum = Enum(
     type_name = 'DaysOfWeekEnum'
 )
 
-class TestService(ServiceBase):
+class TestService(DefinitionBase):
     @rpc(DaysOfWeekEnum, _returns=DaysOfWeekEnum)
     def remote_call(self, day):
         return DaysOfWeekEnum.Sunday
 
 class TestEnum(unittest.TestCase):
     def test_wsdl(self):
-        TestService().wsdl('punk')
+        wsdl = Application([TestService]).get_wsdl('punk')
+        elt = etree.fromstring(wsdl)
+        simple_type = elt.xpath('//xs:simpleType', namespaces=soaplib.nsmap)[0]
 
-        raise Exception("test something!")
+        print etree.tostring(elt, pretty_print=True)
+        print simple_type
+
+        self.assertEquals(simple_type.attrib['name'], 'DaysOfWeekEnum')
+        self.assertEquals(simple_type[0].tag, "{%s}restriction" % soaplib.ns_xsd)
+        self.assertEquals([e.attrib['value'] for e in simple_type[0]], vals)
 
     def test_serialize(self):
+        DaysOfWeekEnum.resolve_namespace('punk')
         mo = DaysOfWeekEnum.Monday
+        print repr(mo)
 
-        elt = DaysOfWeekEnum.to_xml(mo,'test_namespace')
+        elt = DaysOfWeekEnum.to_xml(mo, 'test_namespace')
+        ret = DaysOfWeekEnum.from_xml(elt)
 
-        raise Exception("test something!")
+        self.assertEquals(mo, ret)
 
 def suite():
     loader = unittest.TestLoader()
