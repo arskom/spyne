@@ -117,7 +117,10 @@ class AnyAsDict(Any):
                 retval[elt.tag] = []
             return retval
         else:
-            return retval if len(r) > 0 else []
+            if len(r) > 0:
+                return retval
+            else:
+                return []
 
     @classmethod
     @nillable_value
