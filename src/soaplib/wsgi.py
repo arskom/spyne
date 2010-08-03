@@ -39,7 +39,7 @@ from soaplib.soap import make_soap_envelope
 from soaplib.soap import make_soap_fault
 from soaplib.util import reconstruct_url
 
-class ValidationError(Exception):
+class ValidationError(Fault):
     pass
 
 class Application(object):
