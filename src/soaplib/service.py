@@ -214,7 +214,7 @@ class DefinitionBase(object):
     definition.
 
     It is a natural abstract base class, because it's of no use without any
-    method definitions, hence the 'Base' prefix in the name.
+    method definitions, hence the 'Base' suffix in the name.
     '''
 
     __tns__ = None
