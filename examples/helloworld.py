@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # soaplib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
 #
@@ -18,8 +19,9 @@
 #
 
 from soaplib.service import rpc
+from soaplib.service import DefinitionBase
 from soaplib.serializers.primitive import String, Integer, Array
-from soaplib.wsgi_soap import SimpleWSGIApp
+from soaplib.wsgi import Application
 
 '''
 This is a simple HelloWorld example to show the basics of writing
@@ -27,8 +29,7 @@ a webservice using soaplib, starting a server, and creating a service
 client.
 '''
 
-
-class HelloWorldService(SimpleWSGIApp):
+class HelloWorldService(DefinitionBase):
     @rpc(String, Integer, _returns=Array(String))
     def say_hello(self, name, times):
         '''
@@ -43,17 +44,10 @@ class HelloWorldService(SimpleWSGIApp):
             results.append('Hello, %s' % name)
         return results
 
-
-def make_client():
-    from soaplib.client import make_service_client
-    client = make_service_client('http://localhost:7889/', HelloWorldService())
-    return client
-
-
 if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server
-        server = make_server('localhost', 7889, HelloWorldService())
+        server = make_server('localhost', 7889, Application([HelloWorldService], 'tns'))
         server.serve_forever()
     except ImportError:
         print "Error: example server code requires Python >= 2.5"
