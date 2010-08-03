@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 #
 # soaplib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
 #
@@ -17,8 +18,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from soaplib.wsgi_soap import SimpleWSGIApp
+from soaplib.wsgi import Application
 from soaplib.service import rpc
+from soaplib.service import DefinitionBase
 from soaplib.serializers.primitive import String, Integer, Array
 from soaplib.serializers.clazz import ClassSerializer
 
@@ -43,7 +45,7 @@ class User(ClassSerializer):
     lastname = String
     permissions = Array(Permission)
 
-class UserManager(SimpleWSGIApp):
+class UserManager(DefinitionBase):
     @rpc(User, _returns=Integer)
     def add_user(self, user):
         global user_database
@@ -82,7 +84,7 @@ class UserManager(SimpleWSGIApp):
 if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server
-        server = make_server('localhost', 7789, UserManager())
+        server = make_server('localhost', 7789, Application([UserManager], 'tns'))
         server.serve_forever()
     except ImportError:
         print "Error: example server code requires Python >= 2.5"
