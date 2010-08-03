@@ -220,7 +220,7 @@ class DefinitionBase(object):
     __tns__ = None
 
     def __init__(self, environ=None):
-        self.public_methods = self.__populate_public_methods()
+        self.public_methods = self.build_public_methods()
         self.soap_req_header = None
 
     def on_method_call(self, environ, method_name, py_params, soap_params):
@@ -274,7 +274,7 @@ class DefinitionBase(object):
 
         return retval
 
-    def __populate_public_methods(self):
+    def build_public_methods(self):
         '''Returns a list of method descriptors for this object'''
         public_methods = []
 

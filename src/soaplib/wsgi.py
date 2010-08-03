@@ -52,6 +52,7 @@ class Application(object):
         self.call_routes = {}
 
         self.__wsdl = None
+        self.__public_methods = {}
         self.schema = None
         self.tns = tns
 
@@ -120,7 +121,7 @@ class Application(object):
             # populate call routes
             for s in self.services:
                 s.__tns__ = self.get_tns()
-                inst = self.get_service(s)
+                inst = self.__get_service(s)
 
                 for method in inst.public_methods:
                     method_name = "{%s}%s" % (self.get_tns(), method.name)
@@ -129,7 +130,7 @@ class Application(object):
                         o = self.call_routes[method_name]
                         raise Exception("%s.%s.%s overwrites %s.%s.%s" %
                                         (s.__module__, s.__name__, method.name,
-                                         o.__module__, o.__name__, method.name) )
+                                         o.__module__, o.__name__, method.name))
 
                     else:
                         logger.debug('adding method %r' % method_name)
@@ -138,17 +139,27 @@ class Application(object):
         # populate types
         schema_entries = None
         for s in self.services:
-            inst = self.get_service(s)
+            inst = self.__get_service(s)
             schema_entries = inst.add_schema(schema_entries)
 
         schema_nodes = self.__build_schema_nodes(schema_entries, types)
 
         return schema_nodes
 
+    def __get_service(self, service_class, env=None):
+        service = self.get_service(service_class, env)
+
+        if not (service_class in service.public_methods):
+            self.__public_methods[service_class] = service.build_public_methods()
+
+        service.public_methods = self.__public_methods[service_class]
+
+        return service
+
     def get_service_class(self, method_name):
         return self.call_routes[method_name]
 
-    def get_service(self, service, http_req_env=None):
+    def get_service(self, service, http_req_env):
         return service(http_req_env)
 
     def get_schema(self):
@@ -200,7 +211,7 @@ class Application(object):
         types = etree.SubElement(root, "{%s}types" % ns_wsdl)
 
         for s in self.services:
-            s=self.get_service(s,None)
+            s=self.__get_service(s,None)
 
             self.build_schema(types)
             s.add_messages_for_methods(root, service_name, types, url)
@@ -225,7 +236,7 @@ class Application(object):
         cb_binding = None
 
         for s in self.services:
-            s=self.get_service(s)
+            s=self.__get_service(s)
             s.add_port_type(root, service_name, types, url, port_type)
             s.add_partner_link(root, service_name, types, url, plink)
             cb_binding = s.add_bindings_for_methods(root, service_name, types,
@@ -323,7 +334,7 @@ class Application(object):
                                                                 req_env, body)
                 method_name = self.__get_method_name(req_env, soap_req_payload)
                 service_class = self.get_service_class(method_name)
-                service = self.get_service(service_class, req_env)
+                service = self.__get_service(service_class, req_env)
                 service.soap_req_header = soap_req_header
 
                 self.validate_request(service, soap_req_payload)
