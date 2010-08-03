@@ -17,24 +17,24 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import cStringIO
 import soaplib
 from lxml import etree
 from soaplib.serializers import Base
 
-_ns_xs = soaplib.nsmap['xs']
-_ns_xsi = soaplib.nsmap['xsi']
+_ns_xsi = soaplib.ns_xsi
 
 class Fault(Exception, Base):
-    def __init__(self, faultcode = 'Server', faultstring = None,
-                 detail = None, name = 'ExceptionFault'):
+    __type_name__ = "Fault"
+    
+    def __init__(self, faultcode='Server', faultstring="", detail=""):
         self.faultcode = faultcode
         self.faultstring = faultstring
         self.detail = detail
-        self.name = name
 
     @classmethod
-    def to_xml(cls, value, tns, name):
+    def to_xml(cls, value, tns, name=None):
+        if name is None:
+            name = cls.get_type_name()
         fault = etree.Element("{%s}%s" % (tns,name))
 
         etree.SubElement(fault, '{%s}faultcode' % tns).text = value.faultcode
@@ -60,7 +60,7 @@ class Fault(Exception, Base):
     @classmethod
     def add_to_schema(cls, schema_dict):
         complex_type = etree.Element('complexType')
-        complex_type.set('name', cls.get_datatype())
+        complex_type.set('name', cls.get_type_name())
         sequenceNode = etree.SubElement(complex_type, 'sequence')
 
         element = etree.SubElement(sequenceNode, 'element')
@@ -78,17 +78,3 @@ class Fault(Exception, Base):
         top_level_element.set('{%s}type' % _ns_xsi, cls.get_type_name_ns())
 
         schema_dict.add_element(cls, top_level_element)
-
-    def __str__(self):
-        io = cStringIO.StringIO()
-        io.write("*" * 80)
-        io.write("\r\n")
-        io.write(" Recieved soap fault \r\n")
-        io.write(" FaultCode            %s \r\n" % self.faultcode)
-        io.write(" FaultString          %s \r\n" % self.faultstring)
-        io.write(" FaultDetail          \r\n")
-
-        if self.detail is not None:
-            io.write(self.detail)
-
-        return io.getvalue()

@@ -244,7 +244,7 @@ class DefinitionBase(object):
         '''
         pass
 
-    def on_method_exception(self, environ, exc, resp):
+    def on_method_exception(self, environ, exc, fault_xml, fault_str):
         '''
         Called when an error occurs durring execution
         @param the wsgi environment

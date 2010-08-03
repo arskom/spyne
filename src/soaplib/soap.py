@@ -39,7 +39,6 @@ except ImportError:
 from email import message_from_string
 
 # import soaplib stuff
-from soaplib.serializers.exception import Fault
 from soaplib.serializers.binary import Attachment
 from soaplib.serializers.clazz import ClassSerializer
 
@@ -411,27 +410,3 @@ def apply_mtom(headers, envelope, params, paramvals):
         return (headers, envelope)
 
     return (mtomheaders, mtombody)
-
-def make_soap_fault(tns, fault_string, fault_code = 'Server', detail = None,
-        header_elements = None):
-    '''
-    This method populates a soap fault message with the provided
-    fault string and details.
-    @param faultString the short description of the error
-    @param detail the details of the exception, such as a stack trace
-    @param faultCode defaults to 'Server', but can be overridden
-    @param header_elements A list of XML elements to add to the fault header.
-    @returns the element corresponding to the fault message
-    '''
-    envelope = etree.Element('{%s}Envelope' % soaplib.ns_soap_env)
-    if header_elements:
-        header = etree.SubElement(
-            envelope, '{%s}Header' % soaplib.ns_soap_env)
-        for element in header_elements:
-            header.append(element)
-    body = etree.SubElement(envelope, '{%s}Body'  % soaplib.ns_soap_env)
-
-    f = Fault(fault_code, fault_string, detail)
-    body.append(Fault.to_xml(f, tns, "Fault"))
-
-    return envelope

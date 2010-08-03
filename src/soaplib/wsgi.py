@@ -36,7 +36,6 @@ from soaplib.soap import apply_mtom
 from soaplib.soap import collapse_swa
 from soaplib.soap import from_soap
 from soaplib.soap import make_soap_envelope
-from soaplib.soap import make_soap_fault
 from soaplib.util import reconstruct_url
 
 class ValidationError(Fault):
@@ -262,12 +261,12 @@ class Application(object):
             logger.error(traceback.format_exc())
 
             tns = self.get_tns()
-            fault_xml = make_soap_fault(str(e), tns, detail=" ")
+            fault_xml = Fault.to_xml(Fault(str(e)), tns)
             fault_str = etree.tostring(fault_xml,
                    xml_declaration=True, encoding=string_encoding)
             logger.debug(fault_str)
 
-            self.on_wsdl_exception(req_env, e, fault_str)
+            self.on_wsdl_exception(req_env, e, fault_xml)
 
             # initiate the response
             http_resp_headers['Content-length'] = str(len(fault_str))
@@ -408,18 +407,14 @@ class Application(object):
             # FIXME: There's no way to alter soap response headers for the user.
 
             # The user issued a Fault, so handle it just like an exception!
-            fault_xml = make_soap_fault(
-                self.get_tns(),
-                e.faultstring,
-                e.faultcode,
-                e.detail,
-                header_elements=soap_resp_headers)
+            fault_xml = make_soap_envelope(Fault.to_xml(e, self.get_tns()),
+                        tns=self.get_tns(), header_elements=soap_resp_headers)
 
             fault_str = etree.tostring(fault_xml, xml_declaration=True,
                                                     encoding=string_encoding)
             logger.error(fault_str)
 
-            service.on_method_exception(req_env, http_resp_headers, e, fault_str)
+            service.on_method_exception(req_env, e, fault_xml, fault_str)
 
             # initiate the response
             start_response('500 Internal Server Error',http_resp_headers.items())
@@ -446,8 +441,9 @@ class Application(object):
             logger.error(stacktrace)
 
 
-            fault_xml = make_soap_fault(self.get_tns(), faultstring,
-                                                              faultcode, detail)
+            fault = Fault(faultcode, faultstring, detail)
+            fault_xml = make_soap_envelope(Fault.to_xml(fault, self.get_tns()),
+                        tns=self.get_tns(), header_elements=soap_resp_headers)
             fault_str = etree.tostring(fault_xml, xml_declaration=True,
                                                        encoding=string_encoding)
             logger.debug(fault_str)
@@ -557,4 +553,4 @@ class ValidatingApplication(Application):
         ret = schema.validate(payload)
         logger.debug("validation result: %s" % str(ret))
         if ret == False:
-            raise ValidationError(schema.error_log.last_error)
+            raise ValidationError(schema.error_log.last_error.message)

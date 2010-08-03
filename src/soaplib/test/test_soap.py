@@ -23,6 +23,7 @@ from lxml import etree
 
 from soaplib.serializers.clazz import ClassSerializer
 
+from soaplib.serializers.exception import Fault
 from soaplib.serializers.primitive import Array
 from soaplib.serializers.primitive import DateTime
 from soaplib.serializers.primitive import Float
@@ -32,7 +33,6 @@ from soaplib.serializers.primitive import String
 from soaplib.soap import Message
 from soaplib.soap import from_soap
 from soaplib.soap import make_soap_envelope
-from soaplib.soap import make_soap_fault
 
 class Address(ClassSerializer):
     street = String
@@ -206,8 +206,10 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
     def test_soap_fault(self):
         ns_test = "test_namespace"
 
-        fault = make_soap_fault(ns_test, 'something happened')
-        fault = etree.fromstring(etree.tostring(fault))
+        fault = Fault("code", 'something happened', 'detail')
+        fault_str = etree.tostring(make_soap_envelope(Fault.to_xml(fault,ns_test)), pretty_print=True)
+        print fault_str
+        fault = etree.fromstring(fault_str)
 
         self.assertTrue(fault.getchildren()[0].tag.endswith, 'Body')
         self.assertTrue(
@@ -217,15 +219,8 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
         print etree.tostring(f,pretty_print=True)
 
         self.assertEquals(f.find('{%s}faultstring' % ns_test).text, 'something happened')
-        self.assertEquals(f.find('{%s}faultcode' % ns_test).text, 'Server')
-        self.assertEquals(f.find('{%s}detail' % ns_test).text, None)
-
-        fault = make_soap_fault(ns_test, 'something happened', 'DatabaseError', 'error on line 12')
-
-        f = fault.getchildren()[0].getchildren()[0]
-        self.assertEquals(f.find('{%s}faultstring' % ns_test).text, 'something happened')
-        self.assertEquals(f.find('{%s}faultcode' % ns_test).text, 'DatabaseError')
-        self.assertEquals(f.find('{%s}detail' % ns_test).text, 'error on line 12')
+        self.assertEquals(f.find('{%s}faultcode' % ns_test).text, 'code')
+        self.assertEquals(f.find('{%s}detail' % ns_test).text, 'detail')
 
 def suite():
     loader = unittest.TestLoader()
