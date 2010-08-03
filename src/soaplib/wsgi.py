@@ -148,7 +148,7 @@ class Application(object):
     def get_service_class(self, method_name):
         return self.call_routes[method_name]
 
-    def get_service(self, service, http_req_env):
+    def get_service(self, service, http_req_env=None):
         return service(http_req_env)
 
     def get_schema(self):
