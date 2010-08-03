@@ -143,30 +143,7 @@ class Application(object):
 
         schema_nodes = self.__build_schema_nodes(schema_entries, types)
 
-        if types is None:
-            logger.debug("generating schema...")
-            tmp_dir_name = tempfile.mkdtemp()
-
-            # serialize nodes to files
-            for k,v in schema_nodes.items():
-                file_name = '%s/%s.xsd' % (tmp_dir_name, k)
-                f = open(file_name, 'w')
-                etree.ElementTree(v).write(f, pretty_print=True)
-                f.close()
-                logger.debug("writing %r for ns %s" % (file_name, soaplib.nsmap[k]))
-
-            pref_tns = soaplib.get_namespace_prefix(self.get_tns())
-            f = open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r')
-
-            logger.debug("building schema...")
-            self.schema = etree.XMLSchema(etree.parse(f))
-
-            logger.debug("schema %r built, cleaning up..." % self.schema)
-            f.close()
-            shutil.rmtree(tmp_dir_name)
-            logger.debug("removed %r" % tmp_dir_name)
-
-            return self.schema
+        return schema_nodes
 
     def get_service_class(self, method_name):
         return self.call_routes[method_name]
@@ -307,13 +284,7 @@ class Application(object):
         return req_header, req_payload
 
     def validate_request(self, service, payload):
-        # if there's a schema to validate against, validate the response
-        schema = self.schema
-        if schema != None:
-            ret = schema.validate(payload)
-            logger.debug("validation result: %s" % str(ret))
-            if ret == False:
-                raise ValidationError(schema.error_log.last_error)
+        pass
 
     def __get_method_name(self, http_req_env, soap_req_payload):
         retval = None
@@ -542,4 +513,37 @@ class Application(object):
         pass
 
 class ValidatingApplication(Application):
-    pass
+    def build_schema(self, types=None):
+        schema_nodes = Application.build_schema(self, types)
+
+        if types is None:
+            logger.debug("generating schema...")
+            tmp_dir_name = tempfile.mkdtemp()
+
+            # serialize nodes to files
+            for k,v in schema_nodes.items():
+                file_name = '%s/%s.xsd' % (tmp_dir_name, k)
+                f = open(file_name, 'w')
+                etree.ElementTree(v).write(f, pretty_print=True)
+                f.close()
+                logger.debug("writing %r for ns %s" % (file_name, soaplib.nsmap[k]))
+
+            pref_tns = soaplib.get_namespace_prefix(self.get_tns())
+            f = open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r')
+
+            logger.debug("building schema...")
+            self.schema = etree.XMLSchema(etree.parse(f))
+
+            logger.debug("schema %r built, cleaning up..." % self.schema)
+            f.close()
+            shutil.rmtree(tmp_dir_name)
+            logger.debug("removed %r" % tmp_dir_name)
+
+        return self.schema
+
+    def validate_request(self, service, payload):
+        schema = self.schema
+        ret = schema.validate(payload)
+        logger.debug("validation result: %s" % str(ret))
+        if ret == False:
+            raise ValidationError(schema.error_log.last_error)
