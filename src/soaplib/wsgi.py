@@ -120,7 +120,7 @@ class Application(object):
             # populate call routes
             for s in self.services:
                 s.__tns__ = self.get_tns()
-                inst = s()
+                inst = self.get_service(s)
 
                 for method in inst.public_methods:
                     method_name = "{%s}%s" % (self.get_tns(), method.name)
@@ -138,7 +138,7 @@ class Application(object):
         # populate types
         schema_entries = None
         for s in self.services:
-            inst = s()
+            inst = self.get_service(s)
             schema_entries = inst.add_schema(schema_entries)
 
         schema_nodes = self.__build_schema_nodes(schema_entries, types)
@@ -200,7 +200,7 @@ class Application(object):
         types = etree.SubElement(root, "{%s}types" % ns_wsdl)
 
         for s in self.services:
-            s=s()
+            s=self.get_service(s,None)
 
             self.build_schema(types)
             s.add_messages_for_methods(root, service_name, types, url)
@@ -225,7 +225,7 @@ class Application(object):
         cb_binding = None
 
         for s in self.services:
-            s=s()
+            s=self.get_service(s)
             s.add_port_type(root, service_name, types, url, port_type)
             s.add_partner_link(root, service_name, types, url, plink)
             cb_binding = s.add_bindings_for_methods(root, service_name, types,
