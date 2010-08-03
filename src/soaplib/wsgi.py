@@ -52,10 +52,10 @@ class Application(object):
         self.call_routes = {}
 
         self.__wsdl = None
-        self.__schema = None
+        self.schema = None
         self.tns = tns
 
-        self.__build_schema()
+        self.build_schema()
 
     def get_tns(self):
         if not (self.tns is None):
@@ -115,7 +115,7 @@ class Application(object):
 
         return schema_nodes
 
-    def __build_schema(self, types=None):
+    def build_schema(self, types=None):
         if types is None:
             # populate call routes
             for s in self.services:
@@ -159,14 +159,14 @@ class Application(object):
             f = open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r')
 
             logger.debug("building schema...")
-            self.__schema = etree.XMLSchema(etree.parse(f))
+            self.schema = etree.XMLSchema(etree.parse(f))
 
-            logger.debug("schema %r built, cleaning up..." % self.__schema)
+            logger.debug("schema %r built, cleaning up..." % self.schema)
             f.close()
             shutil.rmtree(tmp_dir_name)
             logger.debug("removed %r" % tmp_dir_name)
 
-            return self.__schema
+            return self.schema
 
     def get_service_class(self, method_name):
         return self.call_routes[method_name]
@@ -175,10 +175,10 @@ class Application(object):
         return service(http_req_env)
 
     def get_schema(self):
-        if self.__schema is None:
-            return self.__build_schema()
+        if self.schema is None:
+            return self.build_schema()
         else:
-            return self.__schema
+            return self.schema
 
     def get_wsdl(self, url):
         if self.__wsdl is None:
@@ -225,7 +225,7 @@ class Application(object):
         for s in self.services:
             s=s()
 
-            self.__build_schema(types)
+            self.build_schema(types)
             s.add_messages_for_methods(root, service_name, types, url)
 
         # create plink node
@@ -308,7 +308,7 @@ class Application(object):
 
     def validate_request(self, service, payload):
         # if there's a schema to validate against, validate the response
-        schema = self.__schema
+        schema = self.schema
         if schema != None:
             ret = schema.validate(payload)
             logger.debug("validation result: %s" % str(ret))
@@ -540,3 +540,6 @@ class Application(object):
         @param string of the fault
         '''
         pass
+
+class ValidatingApplication(Application):
+    pass

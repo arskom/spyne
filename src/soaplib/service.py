@@ -572,6 +572,3 @@ class DefinitionBase(object):
                 binding.append(operation)
 
         return cb_binding
-
-class ValidatingDefinitionBase(DefinitionBase):
-    pass
