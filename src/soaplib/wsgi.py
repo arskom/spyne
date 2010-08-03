@@ -32,7 +32,6 @@ import soaplib
 from soaplib.serializers.exception import Fault
 from soaplib.serializers.primitive import string_encoding
 
-from soaplib.service import _SchemaEntries
 from soaplib.soap import apply_mtom
 from soaplib.soap import collapse_swa
 from soaplib.soap import from_soap
@@ -169,6 +168,9 @@ class Application(object):
 
             return self.__schema
 
+    def get_service_class(self, method_name):
+        return self.call_routes[method_name]
+
     def get_service(self, service, http_req_env):
         return service(http_req_env)
 
@@ -258,8 +260,6 @@ class Application(object):
         return self.__wsdl
 
     def __handle_wsdl_request(self, req_env, start_response, url):
-        retval = ['']
-
         http_resp_headers = {'Content-Type': 'text/xml'}
 
         start_response('200 OK', http_resp_headers.items())
@@ -351,11 +351,11 @@ class Application(object):
                 soap_req_header, soap_req_payload = self.__decode_soap_request(
                                                                 req_env, body)
                 method_name = self.__get_method_name(req_env, soap_req_payload)
-                service_class = self.call_routes[method_name]
-                s_inst = self.get_service(service_class, req_env)
-                s_inst.soap_req_header = soap_req_header
+                service_class = self.get_service_class(method_name)
+                service = self.get_service(service_class, req_env)
+                service.soap_req_header = soap_req_header
 
-                self.validate_request(s_inst, soap_req_payload)
+                self.validate_request(service, soap_req_payload)
 
             finally:
                 # for performance reasons, we don't want the following to run
@@ -366,8 +366,8 @@ class Application(object):
                                                              pretty_print=True))
 
             # retrieve the method descriptor
-            descriptor = s_inst.get_method(method_name)
-            func = getattr(s_inst, descriptor.name)
+            descriptor = service.get_method(method_name)
+            func = getattr(service, descriptor.name)
 
             # decode method arguments
             if soap_req_payload is not None and len(soap_req_payload) > 0:
@@ -376,10 +376,10 @@ class Application(object):
                 params = ()
 
             # implementation hook
-            s_inst.on_method_call(req_env, method_name, params, body)
+            service.on_method_call(req_env, method_name, params, body)
 
             # call the method
-            result_raw = s_inst.call_wrapper(func, params)
+            result_raw = service.call_wrapper(func, params)
 
             # create result message
             result_message = descriptor.out_message()
@@ -396,7 +396,7 @@ class Application(object):
                                                               self.get_tns())
 
             # implementation hook
-            s_inst.on_method_return(req_env, result_raw, results_soap,
+            service.on_method_return(req_env, result_raw, results_soap,
                                                             soap_resp_headers)
 
             # construct the soap response, and serialize it
@@ -437,7 +437,7 @@ class Application(object):
                                                     encoding=string_encoding)
             logger.error(fault_str)
 
-            s_inst.on_method_exception(req_env, http_resp_headers, e, fault_str)
+            service.on_method_exception(req_env, http_resp_headers, e, fault_str)
 
             # initiate the response
             start_response('500 Internal Server Error',http_resp_headers.items())
