@@ -407,6 +407,7 @@ class DefinitionBase(object):
                 op_output.set('message', '%s:%s' % (pref_tns,
                                             method.out_message.get_type_name()))
 
+    # FIXME: I don't think it is working.
     def __add_callbacks(self, root, types, service_name, url):
         ns_xsd = soaplib.ns_xsd
         ns_wsa = soaplib.ns_wsa
