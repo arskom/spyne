@@ -289,8 +289,10 @@ class Application(object):
     def __get_method_name(self, http_req_env, soap_req_payload):
         retval = None
 
-        if soap_req_payload is not None and len(soap_req_payload) > 0:
+
+        if soap_req_payload is not None:
             retval = soap_req_payload.tag
+            logger.debug("Method name from xml tag: %r" % retval)
         else:
             # check HTTP_SOAPACTION
             retval = http_req_env.get("HTTP_SOAPACTION")
