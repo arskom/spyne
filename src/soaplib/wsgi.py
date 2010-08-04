@@ -366,8 +366,10 @@ class Application(object):
             result_message = descriptor.out_message()
 
             # assign raw result to its wrapper, result_message
-            attr_name = descriptor.out_message._type_info.keys()[0]
-            setattr(result_message, attr_name, result_raw)
+            out_type = descriptor.out_message._type_info
+            if len(out_type) > 0:
+                attr_name = descriptor.out_message._type_info.keys()[0]
+                setattr(result_message, attr_name, result_raw)
 
             # transform the results into an element
             # only expect a single element
