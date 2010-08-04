@@ -21,10 +21,12 @@ import unittest
 
 from suds.client import Client
 from suds import WebFault
+from datetime import datetime
 
 class TestSuds(unittest.TestCase):
     def setUp(self):
         self.client = Client("http://localhost:9753/?wsdl", cache=None)
+        self.ns = "soaplib.test.interop.server._service"
 
     def test_enum(self):
         DaysOfWeekEnum = self.client.factory.create("DaysOfWeekEnum")
@@ -55,6 +57,49 @@ class TestSuds(unittest.TestCase):
         ret = self.client.service.echo_string(test_string)
 
         self.assertEquals(ret, test_string)
+
+    def test_echo_simple_class(self):
+        service_name = "echo_nested_class";
+        val = self.client.factory.create("{%s}NestedClass" % self.ns);
+
+        val.i = 45
+        val.s = "asd"
+        val.f = 12.34
+
+        val.simple = self.client.factory.create("{%s}SimpleClassArray" % self.ns)
+
+        val = self.client.factory.create("{%s}SimpleClass" % self.ns)
+
+        val.i = 45
+        val.s = "asd"
+
+        ret = self.client.service.echo_simple_class(val)
+
+    def test_echo_nested_class(self):
+        service_name = "echo_nested_class";
+        val = self.client.factory.create("{%s}NestedClass" % self.ns);
+
+        val.i = 45
+        val.s = "asd"
+        val.f = 12.34
+
+        val.simple = self.client.factory.create("{%s}SimpleClassArray" % self.ns)
+
+        val.simple.SimpleClass.append(self.client.factory.create("{%s}SimpleClass" % self.ns));
+        val.simple.SimpleClass.append(self.client.factory.create("{%s}SimpleClass" % self.ns));
+
+        val.simple.SimpleClass[0].i = 45
+        val.simple.SimpleClass[0].s = "asd"
+        val.simple.SimpleClass[1].i = 12
+        val.simple.SimpleClass[1].s = "qwe"
+
+        val.other = self.client.factory.create("{%s}OtherClass" % self.ns);
+        val.other.dt = datetime.now()
+        val.other.d = 123.456
+        val.other.b = True
+
+        ret = self.client.service.echo_nested_class(val)
+        # TODO: write asserts
 
 def suite():
     loader = unittest.TestLoader()
