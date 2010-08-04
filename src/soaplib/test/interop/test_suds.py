@@ -85,8 +85,10 @@ class TestSuds(unittest.TestCase):
 
         val.simple = self.client.factory.create("{%s}SimpleClassArray" % self.ns)
 
-        val.simple.SimpleClass.append(self.client.factory.create("{%s}SimpleClass" % self.ns));
-        val.simple.SimpleClass.append(self.client.factory.create("{%s}SimpleClass" % self.ns));
+        val.simple.SimpleClass.append(self.client.factory.create(
+                                                    "{%s}SimpleClass" % self.ns))
+        val.simple.SimpleClass.append(self.client.factory.create(
+                                                    "{%s}SimpleClass" % self.ns))
 
         val.simple.SimpleClass[0].i = 45
         val.simple.SimpleClass[0].s = "asd"

@@ -52,18 +52,18 @@ class NestedClass(ClassSerializer):
     f = Float
     other = OtherClass
 
-class ExtensionClass(NestedClass):
-    p = OtherClass
-    l = DateTime
-    q = Integer
-
 class NonNillableClass(ClassSerializer):
     nillable = False
     min_occurs = 1
 
-    d = DateTime(min_occurs=1, nillable=False)
+    dt = DateTime(min_occurs=1, nillable=False)
     i = Integer(nillable=False)
     s = String(min_len=1, nillable=False)
+
+class ExtensionClass(NestedClass):
+    p = NonNillableClass
+    l = DateTime
+    q = Integer
 
 DaysOfWeekEnum = Enum(
     'Monday',
