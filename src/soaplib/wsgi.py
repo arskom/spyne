@@ -339,8 +339,12 @@ class Application(object):
                 # in production even if we don't see the results.
                 if logger.level == logging.DEBUG:
                     logger.debug('\033[92mMethod name: %r\033[0m' % method_name)
-                    logger.debug(etree.tostring(etree.fromstring(body),
+                    try:
+                        logger.debug(etree.tostring(etree.fromstring(body),
                                                              pretty_print=True))
+                    except:
+                        logger.debug(body)
+                        raise
 
             # retrieve the method descriptor
             descriptor = service.get_method(method_name)
