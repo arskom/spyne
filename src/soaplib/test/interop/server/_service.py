@@ -175,8 +175,7 @@ class InteropMisc(service.DefinitionBase):
     def non_nillable(self, n):
         return "OK"
 
-    @rpc(String, _returns=String,
-                       _public_name="http://sample.org/webservices/doSomething")
+    @rpc(String, _returns=String, _public_name="do_something")
     def do_something_else(self, s):
         return s
 
