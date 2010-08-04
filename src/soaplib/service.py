@@ -206,6 +206,9 @@ class _SchemaEntries(object):
         schema_info = self.get_schema_info(cls.get_namespace_prefix())
         schema_info.types[cls.get_type_name()] = node
 
+
+_public_methods_cache = {}
+
 class DefinitionBase(object):
     '''
     This class serves as the base for all soap services.  Subclasses of this
@@ -220,8 +223,13 @@ class DefinitionBase(object):
     __tns__ = None
 
     def __init__(self, environ=None):
-        self.public_methods = self.build_public_methods()
         self.soap_req_header = None
+
+        cls = self.__class__
+        if not (cls in _public_methods_cache):
+            _public_methods_cache[cls] = self.build_public_methods()
+
+        self.public_methods = _public_methods_cache[cls]
 
     def on_method_call(self, environ, method_name, py_params, soap_params):
         '''
@@ -276,10 +284,14 @@ class DefinitionBase(object):
 
     def build_public_methods(self):
         '''Returns a list of method descriptors for this object'''
+
+        logger.debug('building public methods')
         public_methods = []
 
-        for funcName in dir(self):
-            func = getattr(self, funcName)
+        for func_name in dir(self):
+            if func_name == 'public_methods':
+                continue
+            func = getattr(self, func_name)
             if callable(func) and hasattr(func, '_is_rpc'):
                 descriptor = func(_method_descriptor=True, clazz=self.__class__)
                 public_methods.append(descriptor)
