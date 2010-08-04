@@ -44,7 +44,7 @@ def main(argv):
     root = twisted.web.static.File(static_dir)
 
     resource = WSGIResource(reactor, reactor.getThreadPool(), application)
-    logging.info("registering %r on /%s" % ( InteropService, url ))
+    logging.info("registering %r on /%s" % (application, url))
     root.putChild(url, resource)
 
     site = twisted.web.server.Site(root)
