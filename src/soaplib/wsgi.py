@@ -292,7 +292,7 @@ class Application(object):
 
         if soap_req_payload is not None:
             retval = soap_req_payload.tag
-            logger.debug("Method name from xml tag: %r" % retval)
+            logger.debug("\033[92mMethod name from xml tag: %r\033[0m" % retval)
         else:
             # check HTTP_SOAPACTION
             retval = http_req_env.get("HTTP_SOAPACTION")
@@ -303,7 +303,7 @@ class Application(object):
                 retvals = retval.split('/')
                 retval = '{%s}%s' % (retvals[0], retvals[1])
 
-            logger.debug("Method name from HTTP_SOAPACTION: %r" % retval)
+            logger.debug("\033[92mMethod name from HTTP_SOAPACTION: %r\033[0m" % retval)
 
         return retval
 
@@ -338,7 +338,6 @@ class Application(object):
                 # for performance reasons, we don't want the following to run
                 # in production even if we don't see the results.
                 if logger.level == logging.DEBUG:
-                    logger.debug('\033[92mMethod name: %r\033[0m' % method_name)
                     try:
                         logger.debug(etree.tostring(etree.fromstring(body),
                                                              pretty_print=True))
@@ -414,7 +413,7 @@ class Application(object):
 
             fault_str = etree.tostring(fault_xml, xml_declaration=True,
                                                     encoding=string_encoding)
-            logger.error(fault_str)
+            logger.debug(fault_str)
 
             service.on_method_exception(req_env, e, fault_xml, fault_str)
 
