@@ -122,7 +122,7 @@ class InteropArray(service.DefinitionBase):
         return fa
 
     @rpc(Array(Double), _returns=Array(Double))
-    def echo_float_array(self, da):
+    def echo_double_array(self, da):
         return da
 
     @rpc(Array(Boolean), _returns=Array(Boolean))
@@ -142,13 +142,13 @@ class InteropClass(service.DefinitionBase):
     def echo_nested_class(self, nc):
         return nc
 
-    @rpc(ExtensionClass, _returns=ExtensionClass)
-    def echo_extension_class(self, nc):
-        return nc
-
     @rpc(Array(NestedClass), _returns=Array(NestedClass))
     def echo_nested_class_array(self, nca):
         return nca
+
+    @rpc(ExtensionClass, _returns=ExtensionClass)
+    def echo_extension_class(self, nc):
+        return nc
 
     @rpc(Attachment, _returns=Attachment)
     def echo_attachment(self, a):
