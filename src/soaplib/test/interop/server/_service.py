@@ -42,7 +42,7 @@ class SimpleClass(ClassSerializer):
 
 class OtherClass(ClassSerializer):
     dt = DateTime
-    f = Float
+    d = Double
     b = Boolean
 
 class NestedClass(ClassSerializer):
@@ -128,6 +128,10 @@ class InteropArray(service.DefinitionBase):
     @rpc(Array(Boolean), _returns=Array(Boolean))
     def echo_boolean_array(self, ba):
         return ba
+
+    @rpc(Array(Boolean), _returns=Array(Array(Boolean)))
+    def echo_array_in_array(self, baa):
+        return baa
 
 class InteropClass(service.DefinitionBase):
     @rpc(SimpleClass, _returns=SimpleClass)
