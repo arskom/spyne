@@ -296,8 +296,12 @@ class Application(object):
             retval = http_req_env.get("HTTP_SOAPACTION")
             if retval.startswith('"') and retval.endswith('"'):
                 retval = retval[1:-1]
+
             if retval.find('/') >0:
-                retval = retval.split('/')[1]
+                retvals = retval.split('/')
+                retval = '{%s}%s' % (retvals[0], retvals[1])
+
+            logger.debug("Method name from HTTP_SOAPACTION: %r" % retval)
 
         return retval
 
