@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<wsdl:definitions xmlns:wsa="http://schemas.xmlsoap.org/ws/2003/03/addressing" xmlns:soap_env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:s0="soaplib.test.interop.server._service" xmlns:soap_enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:plink="http://schemas.xmlsoap.org/ws/2003/05/partner-link/" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="soaplib.test.interop.server._service" name="Application">
+<wsdl:definitions xmlns:wsa="http://schemas.xmlsoap.org/ws/2003/03/addressing" xmlns:soap_env="http://schemas.xmlsoap.org/soap/envelope/" xmlns:s0="soaplib.test.interop.server._service" xmlns:soap_enc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:plink="http://schemas.xmlsoap.org/ws/2003/05/partner-link/" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="soaplib.test.interop.server._service" name="ValidatingApplication">
   <wsdl:types>
     <xs:schema targetNamespace="soaplib.test.interop.server._service" elementFormDefault="qualified">
       <xs:element name="echo_simple_classResponse" type="s0:echo_simple_classResponse" />
@@ -11,6 +11,7 @@
       <xs:element name="echo_extension_classResponse" type="s0:echo_extension_classResponse" />
       <xs:element name="non_nillableResponse" type="s0:non_nillableResponse" />
       <xs:element name="echo_nested_class_arrayResponse" type="s0:echo_nested_class_arrayResponse" />
+      <xs:element name="echo_double_arrayResponse" type="s0:echo_double_arrayResponse" />
       <xs:element name="echo_integerResponse" type="s0:echo_integerResponse" />
       <xs:element name="base64BinaryArray" type="s0:base64BinaryArray" />
       <xs:element name="echo_datetimeResponse" type="s0:echo_datetimeResponse" />
@@ -31,6 +32,7 @@
       <xs:element name="echo_date_time_array" type="s0:echo_date_time_array" />
       <xs:element name="echo_nested_class_array" type="s0:echo_nested_class_array" />
       <xs:element name="SimpleClass" type="s0:SimpleClass" />
+      <xs:element name="echo_double_array" type="s0:echo_double_array" />
       <xs:element name="test_emptyResponse" type="s0:test_emptyResponse" />
       <xs:element name="echo_extension_class" type="s0:echo_extension_class" />
       <xs:element name="echo_string_arrayResponse" type="s0:echo_string_arrayResponse" />
@@ -53,13 +55,14 @@
       <xs:element name="integerArray" type="s0:integerArray" />
       <xs:element name="echo_attachmentResponse" type="s0:echo_attachmentResponse" />
       <xs:element name="do_something_elseResponse" type="s0:do_something_elseResponse" />
-      <xs:element name="multi_param" type="s0:multi_param" />
+      <xs:element name="floatArray" type="s0:floatArray" />
       <xs:element name="dateTimeArray" type="s0:dateTimeArray" />
       <xs:element name="echo_datetime" type="s0:echo_datetime" />
       <xs:element name="echo_nested_classResponse" type="s0:echo_nested_classResponse" />
       <xs:element name="echo_stringResponse" type="s0:echo_stringResponse" />
       <xs:element name="echo_simple_class" type="s0:echo_simple_class" />
       <xs:element name="booleanArray" type="s0:booleanArray" />
+      <xs:element name="multi_param" type="s0:multi_param" />
       <xs:element name="NestedClassArray" type="s0:NestedClassArray" />
       <xs:element name="stringArray" type="s0:stringArray" />
       <xs:element name="echo_date_time_arrayResponse" type="s0:echo_date_time_arrayResponse" />
@@ -107,6 +110,11 @@
       <xs:complexType name="echo_nested_class_arrayResponse">
         <xs:sequence>
           <xs:element name="echo_nested_class_arrayResult" minOccurs="0" type="s0:NestedClassArray" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_double_arrayResponse">
+        <xs:sequence>
+          <xs:element name="echo_double_arrayResult" minOccurs="0" type="s0:doubleArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_date_time_arrayResponse">
@@ -215,6 +223,11 @@
           <xs:element name="s" minOccurs="0" type="xs:string" nillable="true" />
         </xs:sequence>
       </xs:complexType>
+      <xs:complexType name="echo_double_array">
+        <xs:sequence>
+          <xs:element name="da" minOccurs="0" type="s0:doubleArray" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
       <xs:complexType name="test_emptyResponse">
         <xs:sequence />
       </xs:complexType>
@@ -240,7 +253,7 @@
       </xs:complexType>
       <xs:complexType name="echo_float_array">
         <xs:sequence>
-          <xs:element name="da" minOccurs="0" type="s0:doubleArray" nillable="true" />
+          <xs:element name="fa" minOccurs="0" type="s0:floatArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_booleanResponse">
@@ -260,7 +273,7 @@
       </xs:complexType>
       <xs:complexType name="echo_float_arrayResponse">
         <xs:sequence>
-          <xs:element name="echo_float_arrayResult" minOccurs="0" type="s0:doubleArray" nillable="true" />
+          <xs:element name="echo_float_arrayResult" minOccurs="0" type="s0:floatArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_integer_array">
@@ -336,11 +349,9 @@
           <xs:element name="do_something_elseResult" minOccurs="0" type="xs:string" nillable="true" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="multi_param">
+      <xs:complexType name="floatArray">
         <xs:sequence>
-          <xs:element name="s" minOccurs="0" type="xs:string" nillable="true" />
-          <xs:element name="i" minOccurs="0" type="xs:integer" nillable="true" />
-          <xs:element name="dt" minOccurs="0" type="xs:dateTime" nillable="true" />
+          <xs:element name="float" type="xs:float" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="dateTimeArray">
@@ -371,6 +382,13 @@
       <xs:complexType name="booleanArray">
         <xs:sequence>
           <xs:element name="boolean" type="xs:boolean" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="multi_param">
+        <xs:sequence>
+          <xs:element name="s" minOccurs="0" type="xs:string" nillable="true" />
+          <xs:element name="i" minOccurs="0" type="xs:integer" nillable="true" />
+          <xs:element name="dt" minOccurs="0" type="xs:dateTime" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="NestedClassArray">
@@ -399,6 +417,7 @@
       <xs:element name="echo_extension_classResponse" type="s0:echo_extension_classResponse" />
       <xs:element name="non_nillableResponse" type="s0:non_nillableResponse" />
       <xs:element name="echo_nested_class_arrayResponse" type="s0:echo_nested_class_arrayResponse" />
+      <xs:element name="echo_double_arrayResponse" type="s0:echo_double_arrayResponse" />
       <xs:element name="echo_integerResponse" type="s0:echo_integerResponse" />
       <xs:element name="base64BinaryArray" type="s0:base64BinaryArray" />
       <xs:element name="echo_datetimeResponse" type="s0:echo_datetimeResponse" />
@@ -419,6 +438,7 @@
       <xs:element name="echo_date_time_array" type="s0:echo_date_time_array" />
       <xs:element name="echo_nested_class_array" type="s0:echo_nested_class_array" />
       <xs:element name="SimpleClass" type="s0:SimpleClass" />
+      <xs:element name="echo_double_array" type="s0:echo_double_array" />
       <xs:element name="test_emptyResponse" type="s0:test_emptyResponse" />
       <xs:element name="echo_extension_class" type="s0:echo_extension_class" />
       <xs:element name="echo_string_arrayResponse" type="s0:echo_string_arrayResponse" />
@@ -441,13 +461,14 @@
       <xs:element name="integerArray" type="s0:integerArray" />
       <xs:element name="echo_attachmentResponse" type="s0:echo_attachmentResponse" />
       <xs:element name="do_something_elseResponse" type="s0:do_something_elseResponse" />
-      <xs:element name="multi_param" type="s0:multi_param" />
+      <xs:element name="floatArray" type="s0:floatArray" />
       <xs:element name="dateTimeArray" type="s0:dateTimeArray" />
       <xs:element name="echo_datetime" type="s0:echo_datetime" />
       <xs:element name="echo_nested_classResponse" type="s0:echo_nested_classResponse" />
       <xs:element name="echo_stringResponse" type="s0:echo_stringResponse" />
       <xs:element name="echo_simple_class" type="s0:echo_simple_class" />
       <xs:element name="booleanArray" type="s0:booleanArray" />
+      <xs:element name="multi_param" type="s0:multi_param" />
       <xs:element name="NestedClassArray" type="s0:NestedClassArray" />
       <xs:element name="stringArray" type="s0:stringArray" />
       <xs:element name="echo_date_time_arrayResponse" type="s0:echo_date_time_arrayResponse" />
@@ -495,6 +516,11 @@
       <xs:complexType name="echo_nested_class_arrayResponse">
         <xs:sequence>
           <xs:element name="echo_nested_class_arrayResult" minOccurs="0" type="s0:NestedClassArray" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_double_arrayResponse">
+        <xs:sequence>
+          <xs:element name="echo_double_arrayResult" minOccurs="0" type="s0:doubleArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_date_time_arrayResponse">
@@ -603,6 +629,11 @@
           <xs:element name="s" minOccurs="0" type="xs:string" nillable="true" />
         </xs:sequence>
       </xs:complexType>
+      <xs:complexType name="echo_double_array">
+        <xs:sequence>
+          <xs:element name="da" minOccurs="0" type="s0:doubleArray" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
       <xs:complexType name="test_emptyResponse">
         <xs:sequence />
       </xs:complexType>
@@ -628,7 +659,7 @@
       </xs:complexType>
       <xs:complexType name="echo_float_array">
         <xs:sequence>
-          <xs:element name="da" minOccurs="0" type="s0:doubleArray" nillable="true" />
+          <xs:element name="fa" minOccurs="0" type="s0:floatArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_booleanResponse">
@@ -648,7 +679,7 @@
       </xs:complexType>
       <xs:complexType name="echo_float_arrayResponse">
         <xs:sequence>
-          <xs:element name="echo_float_arrayResult" minOccurs="0" type="s0:doubleArray" nillable="true" />
+          <xs:element name="echo_float_arrayResult" minOccurs="0" type="s0:floatArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_integer_array">
@@ -724,11 +755,9 @@
           <xs:element name="do_something_elseResult" minOccurs="0" type="xs:string" nillable="true" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="multi_param">
+      <xs:complexType name="floatArray">
         <xs:sequence>
-          <xs:element name="s" minOccurs="0" type="xs:string" nillable="true" />
-          <xs:element name="i" minOccurs="0" type="xs:integer" nillable="true" />
-          <xs:element name="dt" minOccurs="0" type="xs:dateTime" nillable="true" />
+          <xs:element name="float" type="xs:float" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="dateTimeArray">
@@ -759,6 +788,13 @@
       <xs:complexType name="booleanArray">
         <xs:sequence>
           <xs:element name="boolean" type="xs:boolean" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="multi_param">
+        <xs:sequence>
+          <xs:element name="s" minOccurs="0" type="xs:string" nillable="true" />
+          <xs:element name="i" minOccurs="0" type="xs:integer" nillable="true" />
+          <xs:element name="dt" minOccurs="0" type="xs:dateTime" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="NestedClassArray">
@@ -787,6 +823,7 @@
       <xs:element name="echo_extension_classResponse" type="s0:echo_extension_classResponse" />
       <xs:element name="non_nillableResponse" type="s0:non_nillableResponse" />
       <xs:element name="echo_nested_class_arrayResponse" type="s0:echo_nested_class_arrayResponse" />
+      <xs:element name="echo_double_arrayResponse" type="s0:echo_double_arrayResponse" />
       <xs:element name="echo_integerResponse" type="s0:echo_integerResponse" />
       <xs:element name="base64BinaryArray" type="s0:base64BinaryArray" />
       <xs:element name="echo_datetimeResponse" type="s0:echo_datetimeResponse" />
@@ -807,6 +844,7 @@
       <xs:element name="echo_date_time_array" type="s0:echo_date_time_array" />
       <xs:element name="echo_nested_class_array" type="s0:echo_nested_class_array" />
       <xs:element name="SimpleClass" type="s0:SimpleClass" />
+      <xs:element name="echo_double_array" type="s0:echo_double_array" />
       <xs:element name="test_emptyResponse" type="s0:test_emptyResponse" />
       <xs:element name="echo_extension_class" type="s0:echo_extension_class" />
       <xs:element name="echo_string_arrayResponse" type="s0:echo_string_arrayResponse" />
@@ -829,13 +867,14 @@
       <xs:element name="integerArray" type="s0:integerArray" />
       <xs:element name="echo_attachmentResponse" type="s0:echo_attachmentResponse" />
       <xs:element name="do_something_elseResponse" type="s0:do_something_elseResponse" />
-      <xs:element name="multi_param" type="s0:multi_param" />
+      <xs:element name="floatArray" type="s0:floatArray" />
       <xs:element name="dateTimeArray" type="s0:dateTimeArray" />
       <xs:element name="echo_datetime" type="s0:echo_datetime" />
       <xs:element name="echo_nested_classResponse" type="s0:echo_nested_classResponse" />
       <xs:element name="echo_stringResponse" type="s0:echo_stringResponse" />
       <xs:element name="echo_simple_class" type="s0:echo_simple_class" />
       <xs:element name="booleanArray" type="s0:booleanArray" />
+      <xs:element name="multi_param" type="s0:multi_param" />
       <xs:element name="NestedClassArray" type="s0:NestedClassArray" />
       <xs:element name="stringArray" type="s0:stringArray" />
       <xs:element name="echo_date_time_arrayResponse" type="s0:echo_date_time_arrayResponse" />
@@ -883,6 +922,11 @@
       <xs:complexType name="echo_nested_class_arrayResponse">
         <xs:sequence>
           <xs:element name="echo_nested_class_arrayResult" minOccurs="0" type="s0:NestedClassArray" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_double_arrayResponse">
+        <xs:sequence>
+          <xs:element name="echo_double_arrayResult" minOccurs="0" type="s0:doubleArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_date_time_arrayResponse">
@@ -991,6 +1035,11 @@
           <xs:element name="s" minOccurs="0" type="xs:string" nillable="true" />
         </xs:sequence>
       </xs:complexType>
+      <xs:complexType name="echo_double_array">
+        <xs:sequence>
+          <xs:element name="da" minOccurs="0" type="s0:doubleArray" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
       <xs:complexType name="test_emptyResponse">
         <xs:sequence />
       </xs:complexType>
@@ -1016,7 +1065,7 @@
       </xs:complexType>
       <xs:complexType name="echo_float_array">
         <xs:sequence>
-          <xs:element name="da" minOccurs="0" type="s0:doubleArray" nillable="true" />
+          <xs:element name="fa" minOccurs="0" type="s0:floatArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_booleanResponse">
@@ -1036,7 +1085,7 @@
       </xs:complexType>
       <xs:complexType name="echo_float_arrayResponse">
         <xs:sequence>
-          <xs:element name="echo_float_arrayResult" minOccurs="0" type="s0:doubleArray" nillable="true" />
+          <xs:element name="echo_float_arrayResult" minOccurs="0" type="s0:floatArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_integer_array">
@@ -1112,11 +1161,9 @@
           <xs:element name="do_something_elseResult" minOccurs="0" type="xs:string" nillable="true" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="multi_param">
+      <xs:complexType name="floatArray">
         <xs:sequence>
-          <xs:element name="s" minOccurs="0" type="xs:string" nillable="true" />
-          <xs:element name="i" minOccurs="0" type="xs:integer" nillable="true" />
-          <xs:element name="dt" minOccurs="0" type="xs:dateTime" nillable="true" />
+          <xs:element name="float" type="xs:float" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="dateTimeArray">
@@ -1147,6 +1194,13 @@
       <xs:complexType name="booleanArray">
         <xs:sequence>
           <xs:element name="boolean" type="xs:boolean" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="multi_param">
+        <xs:sequence>
+          <xs:element name="s" minOccurs="0" type="xs:string" nillable="true" />
+          <xs:element name="i" minOccurs="0" type="xs:integer" nillable="true" />
+          <xs:element name="dt" minOccurs="0" type="xs:dateTime" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="NestedClassArray">
@@ -1175,6 +1229,7 @@
       <xs:element name="echo_extension_classResponse" type="s0:echo_extension_classResponse" />
       <xs:element name="non_nillableResponse" type="s0:non_nillableResponse" />
       <xs:element name="echo_nested_class_arrayResponse" type="s0:echo_nested_class_arrayResponse" />
+      <xs:element name="echo_double_arrayResponse" type="s0:echo_double_arrayResponse" />
       <xs:element name="echo_integerResponse" type="s0:echo_integerResponse" />
       <xs:element name="base64BinaryArray" type="s0:base64BinaryArray" />
       <xs:element name="echo_datetimeResponse" type="s0:echo_datetimeResponse" />
@@ -1195,6 +1250,7 @@
       <xs:element name="echo_date_time_array" type="s0:echo_date_time_array" />
       <xs:element name="echo_nested_class_array" type="s0:echo_nested_class_array" />
       <xs:element name="SimpleClass" type="s0:SimpleClass" />
+      <xs:element name="echo_double_array" type="s0:echo_double_array" />
       <xs:element name="test_emptyResponse" type="s0:test_emptyResponse" />
       <xs:element name="echo_extension_class" type="s0:echo_extension_class" />
       <xs:element name="echo_string_arrayResponse" type="s0:echo_string_arrayResponse" />
@@ -1217,13 +1273,14 @@
       <xs:element name="integerArray" type="s0:integerArray" />
       <xs:element name="echo_attachmentResponse" type="s0:echo_attachmentResponse" />
       <xs:element name="do_something_elseResponse" type="s0:do_something_elseResponse" />
-      <xs:element name="multi_param" type="s0:multi_param" />
+      <xs:element name="floatArray" type="s0:floatArray" />
       <xs:element name="dateTimeArray" type="s0:dateTimeArray" />
       <xs:element name="echo_datetime" type="s0:echo_datetime" />
       <xs:element name="echo_nested_classResponse" type="s0:echo_nested_classResponse" />
       <xs:element name="echo_stringResponse" type="s0:echo_stringResponse" />
       <xs:element name="echo_simple_class" type="s0:echo_simple_class" />
       <xs:element name="booleanArray" type="s0:booleanArray" />
+      <xs:element name="multi_param" type="s0:multi_param" />
       <xs:element name="NestedClassArray" type="s0:NestedClassArray" />
       <xs:element name="stringArray" type="s0:stringArray" />
       <xs:element name="echo_date_time_arrayResponse" type="s0:echo_date_time_arrayResponse" />
@@ -1271,6 +1328,11 @@
       <xs:complexType name="echo_nested_class_arrayResponse">
         <xs:sequence>
           <xs:element name="echo_nested_class_arrayResult" minOccurs="0" type="s0:NestedClassArray" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_double_arrayResponse">
+        <xs:sequence>
+          <xs:element name="echo_double_arrayResult" minOccurs="0" type="s0:doubleArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_date_time_arrayResponse">
@@ -1379,6 +1441,11 @@
           <xs:element name="s" minOccurs="0" type="xs:string" nillable="true" />
         </xs:sequence>
       </xs:complexType>
+      <xs:complexType name="echo_double_array">
+        <xs:sequence>
+          <xs:element name="da" minOccurs="0" type="s0:doubleArray" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
       <xs:complexType name="test_emptyResponse">
         <xs:sequence />
       </xs:complexType>
@@ -1404,7 +1471,7 @@
       </xs:complexType>
       <xs:complexType name="echo_float_array">
         <xs:sequence>
-          <xs:element name="da" minOccurs="0" type="s0:doubleArray" nillable="true" />
+          <xs:element name="fa" minOccurs="0" type="s0:floatArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_booleanResponse">
@@ -1424,7 +1491,7 @@
       </xs:complexType>
       <xs:complexType name="echo_float_arrayResponse">
         <xs:sequence>
-          <xs:element name="echo_float_arrayResult" minOccurs="0" type="s0:doubleArray" nillable="true" />
+          <xs:element name="echo_float_arrayResult" minOccurs="0" type="s0:floatArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_integer_array">
@@ -1500,11 +1567,9 @@
           <xs:element name="do_something_elseResult" minOccurs="0" type="xs:string" nillable="true" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="multi_param">
+      <xs:complexType name="floatArray">
         <xs:sequence>
-          <xs:element name="s" minOccurs="0" type="xs:string" nillable="true" />
-          <xs:element name="i" minOccurs="0" type="xs:integer" nillable="true" />
-          <xs:element name="dt" minOccurs="0" type="xs:dateTime" nillable="true" />
+          <xs:element name="float" type="xs:float" minOccurs="0" maxOccurs="unbounded" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="dateTimeArray">
@@ -1535,6 +1600,13 @@
       <xs:complexType name="booleanArray">
         <xs:sequence>
           <xs:element name="boolean" type="xs:boolean" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="multi_param">
+        <xs:sequence>
+          <xs:element name="s" minOccurs="0" type="xs:string" nillable="true" />
+          <xs:element name="i" minOccurs="0" type="xs:integer" nillable="true" />
+          <xs:element name="dt" minOccurs="0" type="xs:dateTime" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="NestedClassArray">
@@ -1607,6 +1679,12 @@
   </wsdl:message>
   <wsdl:message name="echo_date_time_arrayResponse">
     <wsdl:part name="echo_date_time_arrayResponse" element="s0:echo_date_time_arrayResponse" />
+  </wsdl:message>
+  <wsdl:message name="echo_double_array">
+    <wsdl:part name="echo_double_array" element="echo_double_array" />
+  </wsdl:message>
+  <wsdl:message name="echo_double_arrayResponse">
+    <wsdl:part name="echo_double_arrayResponse" element="s0:echo_double_arrayResponse" />
   </wsdl:message>
   <wsdl:message name="echo_float_array">
     <wsdl:part name="echo_float_array" element="echo_float_array" />
@@ -1698,35 +1776,35 @@
   <wsdl:message name="test_emptyResponse">
     <wsdl:part name="test_emptyResponse" element="s0:test_emptyResponse" />
   </wsdl:message>
-  <plink:partnerLinkType name="Application">
-    <plink:role name="Application">
-      <plink:portType name="s0:Application" />
+  <plink:partnerLinkType name="ValidatingApplication">
+    <plink:role name="ValidatingApplication">
+      <plink:portType name="s0:ValidatingApplication" />
     </plink:role>
-    <plink:role name="Application">
-      <plink:portType name="s0:Application" />
+    <plink:role name="ValidatingApplication">
+      <plink:portType name="s0:ValidatingApplication" />
     </plink:role>
-    <plink:role name="Application">
-      <plink:portType name="s0:Application" />
+    <plink:role name="ValidatingApplication">
+      <plink:portType name="s0:ValidatingApplication" />
     </plink:role>
-    <plink:role name="Application">
-      <plink:portType name="s0:Application" />
+    <plink:role name="ValidatingApplication">
+      <plink:portType name="s0:ValidatingApplication" />
     </plink:role>
   </plink:partnerLinkType>
-  <wsdl:service name="Application">
-    <wsdl:port name="Application" binding="s0:Application">
-      <soap:address location="http://localhost:9753/?wsdl" />
+  <wsdl:service name="ValidatingApplication">
+    <wsdl:port name="ValidatingApplication" binding="s0:ValidatingApplication">
+      <soap:address location="http://localhost:9754/app/?wsdl" />
     </wsdl:port>
-    <wsdl:port name="Application" binding="s0:Application">
-      <soap:address location="http://localhost:9753/?wsdl" />
+    <wsdl:port name="ValidatingApplication" binding="s0:ValidatingApplication">
+      <soap:address location="http://localhost:9754/app/?wsdl" />
     </wsdl:port>
-    <wsdl:port name="Application" binding="s0:Application">
-      <soap:address location="http://localhost:9753/?wsdl" />
+    <wsdl:port name="ValidatingApplication" binding="s0:ValidatingApplication">
+      <soap:address location="http://localhost:9754/app/?wsdl" />
     </wsdl:port>
-    <wsdl:port name="Application" binding="s0:Application">
-      <soap:address location="http://localhost:9753/?wsdl" />
+    <wsdl:port name="ValidatingApplication" binding="s0:ValidatingApplication">
+      <soap:address location="http://localhost:9754/app/?wsdl" />
     </wsdl:port>
   </wsdl:service>
-  <wsdl:portType name="Application">
+  <wsdl:portType name="ValidatingApplication">
     <wsdl:operation name="echo_boolean" parameterOrder="echo_boolean">
       <wsdl:input name="echo_boolean" message="s0:echo_boolean" />
       <wsdl:output name="echo_booleanResponse" message="s0:echo_booleanResponse" />
@@ -1762,6 +1840,10 @@
     <wsdl:operation name="echo_date_time_array" parameterOrder="echo_date_time_array">
       <wsdl:input name="echo_date_time_array" message="s0:echo_date_time_array" />
       <wsdl:output name="echo_date_time_arrayResponse" message="s0:echo_date_time_arrayResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_double_array" parameterOrder="echo_double_array">
+      <wsdl:input name="echo_double_array" message="s0:echo_double_array" />
+      <wsdl:output name="echo_double_arrayResponse" message="s0:echo_double_arrayResponse" />
     </wsdl:operation>
     <wsdl:operation name="echo_float_array" parameterOrder="echo_float_array">
       <wsdl:input name="echo_float_array" message="s0:echo_float_array" />
@@ -1824,7 +1906,7 @@
       <wsdl:output name="test_emptyResponse" message="s0:test_emptyResponse" />
     </wsdl:operation>
   </wsdl:portType>
-  <wsdl:binding name="Application" type="s0:Application">
+  <wsdl:binding name="ValidatingApplication" type="s0:ValidatingApplication">
     <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
     <wsdl:operation name="echo_boolean">
       <soap:operation soapAction="echo_boolean" style="document" />
@@ -1905,6 +1987,15 @@
         <soap:body use="literal" />
       </wsdl:input>
       <wsdl:output name="echo_date_time_arrayResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_double_array">
+      <soap:operation soapAction="echo_double_array" style="document" />
+      <wsdl:input name="echo_double_array">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_double_arrayResponse">
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
@@ -2001,7 +2092,7 @@
     </wsdl:operation>
     <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
     <wsdl:operation name="do_something_else">
-      <soap:operation soapAction="http://sample.org/webservices/doSomething" style="document" />
+      <soap:operation soapAction="do_something" style="document" />
       <wsdl:input name="do_something_else">
         <soap:body use="literal" />
       </wsdl:input>
