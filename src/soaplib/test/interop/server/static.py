@@ -41,9 +41,10 @@ def main(argv):
     log.startLoggingWithObserver(observer.emit,setStdout=False)
 
     logging.info("registering static folder %r on /" % static_dir)
+
     root = twisted.web.static.File(static_dir)
 
-    resource = WSGIResource(reactor, reactor.getThreadPool(), application)
+    resource = WSGIResource(reactor, reactor, application)
     logging.info("registering %r on /%s" % (application, url))
     root.putChild(url, resource)
 
@@ -51,6 +52,7 @@ def main(argv):
 
     reactor.listenTCP(port, site)
     logging.info("listening on: 0.0.0.0:%d" % port)
+    logging.info('WSDL is at: /app/?wsdl')
 
     return reactor.run()
 
