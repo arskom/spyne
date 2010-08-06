@@ -77,20 +77,16 @@ def from_soap(xml_string, http_charset):
     if xmlids:
         resolve_hrefs(root, xmlids)
 
-    body = None
-    header = None
+    for ns in (soaplib.ns_soap_env, soaplib.ns_soap_env_w3c):
+        header = root.xpath('e:Header', namespaces={'e': ns})
+        body = root.xpath('e:Body', namespaces={'e': ns})
+        
+        if len(header) > 0 or len(body) > 0:
+            break
 
-    # find the body and header elements
-    for e in root.getchildren():
-        if e.tag == '{%s}Body' % soaplib.ns_soap_env:
-            body = e
-
-        elif e.tag == '{%s}Header' % soaplib.ns_soap_env:
-            header = e
-
-    payload = None
-    if len(body.getchildren()):
-        payload = body.getchildren()[0]
+    payload=None
+    if len(body) > 0 and len(body[0]) > 0:
+        payload = body[0].getchildren()[0]
 
     return payload, header
 

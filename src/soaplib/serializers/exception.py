@@ -25,7 +25,7 @@ _ns_xsi = soaplib.ns_xsi
 
 class Fault(Exception, Base):
     __type_name__ = "Fault"
-    
+
     def __init__(self, faultcode='Server', faultstring="", detail=""):
         self.faultcode = faultcode
         self.faultstring = faultstring

@@ -29,7 +29,7 @@ if __name__ == '__main__':
         from wsgiref.simple_server import make_server
         server = make_server('0.0.0.0', 9753, application)
         print 'Starting interop server at -- %s:%s' % ('0.0.0.0', 9753),
-        print 'WSDL is at: /?wsdl' 
+        print 'WSDL is at: /?wsdl'
         server.serve_forever()
 
     except ImportError:

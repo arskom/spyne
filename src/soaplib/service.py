@@ -340,38 +340,6 @@ class DefinitionBase(object):
 
         return [service_name]
 
-    def add_service(self, root, service_name, types, url, service):
-        ns_wsdl = soaplib.ns_wsdl
-        ns_soap = soaplib.ns_soap
-        ns_tns = self.get_tns()
-        pref_tns = soaplib.get_namespace_prefix(ns_tns)
-
-        wsdl_port = etree.SubElement(service, '{%s}port' % ns_wsdl)
-        wsdl_port.set('name', service_name)
-        wsdl_port.set('binding', '%s:%s' % (pref_tns, service_name))
-
-        addr = etree.SubElement(wsdl_port, '{%s}address' % ns_soap)
-        addr.set('location', url)
-
-    def add_partner_link(self, root, service_name, types, url, plink):
-        ns_plink = soaplib.ns_plink
-        ns_tns = self.get_tns()
-        pref_tns = soaplib.get_namespace_prefix(ns_tns)
-
-        role = etree.SubElement(plink, '{%s}role' % ns_plink)
-        role.set('name', service_name)
-
-        plink_port_type = etree.SubElement(role, '{%s}portType' % ns_plink)
-        plink_port_type.set('name', '%s:%s' % (pref_tns,service_name))
-
-        if self._has_callbacks():
-            role = etree.SubElement(plink, '{%s}role' % ns_plink)
-            role.set('name', '%sCallback' % service_name)
-
-            plink_port_type = etree.SubElement(role, '{%s}portType' % ns_plink)
-            plink_port_type.set('name', '%s:%sCallback' %
-                                                       (pref_tns,service_name))
-
     def add_port_type(self, root, service_name, types, url, port_type):
         ns_wsdl = soaplib.ns_wsdl
         ns_tns = self.get_tns()

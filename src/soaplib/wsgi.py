@@ -208,10 +208,12 @@ class Application(object):
         # create plink node
         plink = etree.SubElement(root, '{%s}partnerLinkType' % ns_plink)
         plink.set('name', service_name)
+        self.add_partner_link(root, service_name, types, url, plink)
 
         # create service node
         service = etree.SubElement(root, '{%s}service' % ns_wsdl)
         service.set('name', service_name)
+        self.add_service(root, service_name, types, url, service)
 
         # create portType node
         port_type = etree.SubElement(root, '{%s}portType' % ns_wsdl)
@@ -227,14 +229,25 @@ class Application(object):
         for s in self.services:
             s=self.get_service(s)
             s.add_port_type(root, service_name, types, url, port_type)
-            s.add_partner_link(root, service_name, types, url, plink)
             cb_binding = s.add_bindings_for_methods(root, service_name, types,
                                                        url, binding, cb_binding)
-            s.add_service(root, service_name, types, url, service)
 
         self.__wsdl = etree.tostring(root, xml_declaration=True, encoding="UTF-8")
 
         return self.__wsdl
+
+    def add_service(self, root, service_name, types, url, service):
+        ns_wsdl = soaplib.ns_wsdl
+        ns_soap = soaplib.ns_soap
+        ns_tns = self.get_tns()
+        pref_tns = soaplib.get_namespace_prefix(ns_tns)
+
+        wsdl_port = etree.SubElement(service, '{%s}port' % ns_wsdl)
+        wsdl_port.set('name', service_name)
+        wsdl_port.set('binding', '%s:%s' % (pref_tns, service_name))
+
+        addr = etree.SubElement(wsdl_port, '{%s}address' % ns_soap)
+        addr.set('location', url)
 
     def __handle_wsdl_request(self, req_env, start_response, url):
         http_resp_headers = {'Content-Type': 'text/xml'}
@@ -296,14 +309,46 @@ class Application(object):
         else:
             # check HTTP_SOAPACTION
             retval = http_req_env.get("HTTP_SOAPACTION")
-            if retval.startswith('"') and retval.endswith('"'):
-                retval = retval[1:-1]
 
-            if retval.find('/') >0:
-                retvals = retval.split('/')
-                retval = '{%s}%s' % (retvals[0], retvals[1])
+            if retval is not None:
+                if retval.startswith('"') and retval.endswith('"'):
+                    retval = retval[1:-1]
 
-            logger.debug("\033[92mMethod name from HTTP_SOAPACTION: %r\033[0m" % retval)
+                if retval.find('/') >0:
+                    retvals = retval.split('/')
+                    retval = '{%s}%s' % (retvals[0], retvals[1])
+
+                logger.debug("\033[92m"
+                             "Method name from HTTP_SOAPACTION: %r"
+                             "\033[0m" % retval)
+
+        return retval
+
+    def add_partner_link(self, root, service_name, types, url, plink):
+        ns_plink = soaplib.ns_plink
+        ns_tns = self.get_tns()
+        pref_tns = soaplib.get_namespace_prefix(ns_tns)
+
+        role = etree.SubElement(plink, '{%s}role' % ns_plink)
+        role.set('name', service_name)
+
+        plink_port_type = etree.SubElement(role, '{%s}portType' % ns_plink)
+        plink_port_type.set('name', '%s:%s' % (pref_tns,service_name))
+
+        if self._has_callbacks():
+            role = etree.SubElement(plink, '{%s}role' % ns_plink)
+            role.set('name', '%sCallback' % service_name)
+
+            plink_port_type = etree.SubElement(role, '{%s}portType' % ns_plink)
+            plink_port_type.set('name', '%s:%sCallback' %
+                                                       (pref_tns,service_name))
+
+    def _has_callbacks(self):
+        retval = False
+
+        for s in self.services:
+            if self.get_service(s)._has_callbacks():
+                return True
 
         return retval
 
@@ -328,6 +373,12 @@ class Application(object):
                 soap_req_header, soap_req_payload = self.__decode_soap_request(
                                                                 req_env, body)
                 method_name = self.__get_method_name(req_env, soap_req_payload)
+                if method_name is None:
+                    # initiate the response
+                    start_response('200 OK', http_resp_headers.items())
+
+                    return [""]
+
                 service_class = self.get_service_class(method_name)
                 service = self.get_service(service_class, req_env)
                 service.soap_req_header = soap_req_header
