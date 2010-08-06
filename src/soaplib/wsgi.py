@@ -199,10 +199,11 @@ class Application(object):
         # create types node
         types = etree.SubElement(root, "{%s}types" % ns_wsdl)
 
+        self.build_schema(types)
+
         for s in self.services:
             s=self.get_service(s,None)
 
-            self.build_schema(types)
             s.add_messages_for_methods(root, service_name, types, url)
 
         # create plink node
