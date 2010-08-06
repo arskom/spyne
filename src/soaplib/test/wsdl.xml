@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<wsdl:definitions xmlns:plink="http://schemas.xmlsoap.org/ws/2003/05/partner-link/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:senvw="http://www.w3.org/2003/05/soap-envelope/" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsa="http://schemas.xmlsoap.org/ws/2003/03/addressing" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:senc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:s0="soaplib.test.interop.server._service" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="soaplib.test.interop.server._service" name="ValidatingApplication">
+<wsdl:definitions xmlns:plink="http://schemas.xmlsoap.org/ws/2003/05/partner-link/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsa="http://schemas.xmlsoap.org/ws/2003/03/addressing" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:senc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:s0="soaplib.test.interop.server._service" xmlns:s12env="http://www.w3.org/2003/05/soap-envelope/" xmlns:s12enc="http://www.w3.org/2003/05/soap-encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="soaplib.test.interop.server._service" name="ValidatingApplication">
   <wsdl:types>
     <xs:schema targetNamespace="soaplib.test.interop.server._service" elementFormDefault="qualified">
       <xs:element name="echo_simple_classResponse" type="s0:echo_simple_classResponse" />
@@ -427,157 +427,157 @@
     </xs:schema>
   </wsdl:types>
   <wsdl:message name="echo_boolean">
-    <wsdl:part name="echo_boolean" element="echo_boolean" />
+    <wsdl:part name="echo_boolean" element="s0:echo_boolean" />
   </wsdl:message>
   <wsdl:message name="echo_booleanResponse">
     <wsdl:part name="echo_booleanResponse" element="s0:echo_booleanResponse" />
   </wsdl:message>
   <wsdl:message name="echo_datetime">
-    <wsdl:part name="echo_datetime" element="echo_datetime" />
+    <wsdl:part name="echo_datetime" element="s0:echo_datetime" />
   </wsdl:message>
   <wsdl:message name="echo_datetimeResponse">
     <wsdl:part name="echo_datetimeResponse" element="s0:echo_datetimeResponse" />
   </wsdl:message>
   <wsdl:message name="echo_double">
-    <wsdl:part name="echo_double" element="echo_double" />
+    <wsdl:part name="echo_double" element="s0:echo_double" />
   </wsdl:message>
   <wsdl:message name="echo_doubleResponse">
     <wsdl:part name="echo_doubleResponse" element="s0:echo_doubleResponse" />
   </wsdl:message>
   <wsdl:message name="echo_enum">
-    <wsdl:part name="echo_enum" element="echo_enum" />
+    <wsdl:part name="echo_enum" element="s0:echo_enum" />
   </wsdl:message>
   <wsdl:message name="echo_enumResponse">
     <wsdl:part name="echo_enumResponse" element="s0:echo_enumResponse" />
   </wsdl:message>
   <wsdl:message name="echo_float">
-    <wsdl:part name="echo_float" element="echo_float" />
+    <wsdl:part name="echo_float" element="s0:echo_float" />
   </wsdl:message>
   <wsdl:message name="echo_floatResponse">
     <wsdl:part name="echo_floatResponse" element="s0:echo_floatResponse" />
   </wsdl:message>
   <wsdl:message name="echo_integer">
-    <wsdl:part name="echo_integer" element="echo_integer" />
+    <wsdl:part name="echo_integer" element="s0:echo_integer" />
   </wsdl:message>
   <wsdl:message name="echo_integerResponse">
     <wsdl:part name="echo_integerResponse" element="s0:echo_integerResponse" />
   </wsdl:message>
   <wsdl:message name="echo_string">
-    <wsdl:part name="echo_string" element="echo_string" />
+    <wsdl:part name="echo_string" element="s0:echo_string" />
   </wsdl:message>
   <wsdl:message name="echo_stringResponse">
     <wsdl:part name="echo_stringResponse" element="s0:echo_stringResponse" />
   </wsdl:message>
   <wsdl:message name="echo_array_in_array">
-    <wsdl:part name="echo_array_in_array" element="echo_array_in_array" />
+    <wsdl:part name="echo_array_in_array" element="s0:echo_array_in_array" />
   </wsdl:message>
   <wsdl:message name="echo_array_in_arrayResponse">
     <wsdl:part name="echo_array_in_arrayResponse" element="s0:echo_array_in_arrayResponse" />
   </wsdl:message>
   <wsdl:message name="echo_boolean_array">
-    <wsdl:part name="echo_boolean_array" element="echo_boolean_array" />
+    <wsdl:part name="echo_boolean_array" element="s0:echo_boolean_array" />
   </wsdl:message>
   <wsdl:message name="echo_boolean_arrayResponse">
     <wsdl:part name="echo_boolean_arrayResponse" element="s0:echo_boolean_arrayResponse" />
   </wsdl:message>
   <wsdl:message name="echo_date_time_array">
-    <wsdl:part name="echo_date_time_array" element="echo_date_time_array" />
+    <wsdl:part name="echo_date_time_array" element="s0:echo_date_time_array" />
   </wsdl:message>
   <wsdl:message name="echo_date_time_arrayResponse">
     <wsdl:part name="echo_date_time_arrayResponse" element="s0:echo_date_time_arrayResponse" />
   </wsdl:message>
   <wsdl:message name="echo_double_array">
-    <wsdl:part name="echo_double_array" element="echo_double_array" />
+    <wsdl:part name="echo_double_array" element="s0:echo_double_array" />
   </wsdl:message>
   <wsdl:message name="echo_double_arrayResponse">
     <wsdl:part name="echo_double_arrayResponse" element="s0:echo_double_arrayResponse" />
   </wsdl:message>
   <wsdl:message name="echo_float_array">
-    <wsdl:part name="echo_float_array" element="echo_float_array" />
+    <wsdl:part name="echo_float_array" element="s0:echo_float_array" />
   </wsdl:message>
   <wsdl:message name="echo_float_arrayResponse">
     <wsdl:part name="echo_float_arrayResponse" element="s0:echo_float_arrayResponse" />
   </wsdl:message>
   <wsdl:message name="echo_integer_array">
-    <wsdl:part name="echo_integer_array" element="echo_integer_array" />
+    <wsdl:part name="echo_integer_array" element="s0:echo_integer_array" />
   </wsdl:message>
   <wsdl:message name="echo_integer_arrayResponse">
     <wsdl:part name="echo_integer_arrayResponse" element="s0:echo_integer_arrayResponse" />
   </wsdl:message>
   <wsdl:message name="echo_string_array">
-    <wsdl:part name="echo_string_array" element="echo_string_array" />
+    <wsdl:part name="echo_string_array" element="s0:echo_string_array" />
   </wsdl:message>
   <wsdl:message name="echo_string_arrayResponse">
     <wsdl:part name="echo_string_arrayResponse" element="s0:echo_string_arrayResponse" />
   </wsdl:message>
   <wsdl:message name="echo_attachment">
-    <wsdl:part name="echo_attachment" element="echo_attachment" />
+    <wsdl:part name="echo_attachment" element="s0:echo_attachment" />
   </wsdl:message>
   <wsdl:message name="echo_attachmentResponse">
     <wsdl:part name="echo_attachmentResponse" element="s0:echo_attachmentResponse" />
   </wsdl:message>
   <wsdl:message name="echo_attachment_array">
-    <wsdl:part name="echo_attachment_array" element="echo_attachment_array" />
+    <wsdl:part name="echo_attachment_array" element="s0:echo_attachment_array" />
   </wsdl:message>
   <wsdl:message name="echo_attachment_arrayResponse">
     <wsdl:part name="echo_attachment_arrayResponse" element="s0:echo_attachment_arrayResponse" />
   </wsdl:message>
   <wsdl:message name="echo_extension_class">
-    <wsdl:part name="echo_extension_class" element="echo_extension_class" />
+    <wsdl:part name="echo_extension_class" element="s0:echo_extension_class" />
   </wsdl:message>
   <wsdl:message name="echo_extension_classResponse">
     <wsdl:part name="echo_extension_classResponse" element="s0:echo_extension_classResponse" />
   </wsdl:message>
   <wsdl:message name="echo_nested_class">
-    <wsdl:part name="echo_nested_class" element="echo_nested_class" />
+    <wsdl:part name="echo_nested_class" element="s0:echo_nested_class" />
   </wsdl:message>
   <wsdl:message name="echo_nested_classResponse">
     <wsdl:part name="echo_nested_classResponse" element="s0:echo_nested_classResponse" />
   </wsdl:message>
   <wsdl:message name="echo_nested_class_array">
-    <wsdl:part name="echo_nested_class_array" element="echo_nested_class_array" />
+    <wsdl:part name="echo_nested_class_array" element="s0:echo_nested_class_array" />
   </wsdl:message>
   <wsdl:message name="echo_nested_class_arrayResponse">
     <wsdl:part name="echo_nested_class_arrayResponse" element="s0:echo_nested_class_arrayResponse" />
   </wsdl:message>
   <wsdl:message name="echo_simple_class">
-    <wsdl:part name="echo_simple_class" element="echo_simple_class" />
+    <wsdl:part name="echo_simple_class" element="s0:echo_simple_class" />
   </wsdl:message>
   <wsdl:message name="echo_simple_classResponse">
     <wsdl:part name="echo_simple_classResponse" element="s0:echo_simple_classResponse" />
   </wsdl:message>
   <wsdl:message name="echo_simple_class_array">
-    <wsdl:part name="echo_simple_class_array" element="echo_simple_class_array" />
+    <wsdl:part name="echo_simple_class_array" element="s0:echo_simple_class_array" />
   </wsdl:message>
   <wsdl:message name="echo_simple_class_arrayResponse">
     <wsdl:part name="echo_simple_class_arrayResponse" element="s0:echo_simple_class_arrayResponse" />
   </wsdl:message>
   <wsdl:message name="do_something_else">
-    <wsdl:part name="do_something_else" element="do_something_else" />
+    <wsdl:part name="do_something_else" element="s0:do_something_else" />
   </wsdl:message>
   <wsdl:message name="do_something_elseResponse">
     <wsdl:part name="do_something_elseResponse" element="s0:do_something_elseResponse" />
   </wsdl:message>
   <wsdl:message name="multi_param">
-    <wsdl:part name="multi_param" element="multi_param" />
+    <wsdl:part name="multi_param" element="s0:multi_param" />
   </wsdl:message>
   <wsdl:message name="multi_paramResponse">
     <wsdl:part name="multi_paramResponse" element="s0:multi_paramResponse" />
   </wsdl:message>
   <wsdl:message name="non_nillable">
-    <wsdl:part name="non_nillable" element="non_nillable" />
+    <wsdl:part name="non_nillable" element="s0:non_nillable" />
   </wsdl:message>
   <wsdl:message name="non_nillableResponse">
     <wsdl:part name="non_nillableResponse" element="s0:non_nillableResponse" />
   </wsdl:message>
   <wsdl:message name="return_only">
-    <wsdl:part name="return_only" element="return_only" />
+    <wsdl:part name="return_only" element="s0:return_only" />
   </wsdl:message>
   <wsdl:message name="return_onlyResponse">
     <wsdl:part name="return_onlyResponse" element="s0:return_onlyResponse" />
   </wsdl:message>
   <wsdl:message name="test_empty">
-    <wsdl:part name="test_empty" element="test_empty" />
+    <wsdl:part name="test_empty" element="s0:test_empty" />
   </wsdl:message>
   <wsdl:message name="test_emptyResponse">
     <wsdl:part name="test_emptyResponse" element="s0:test_emptyResponse" />

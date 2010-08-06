@@ -472,15 +472,14 @@ class DefinitionBase(object):
 
             in_part = etree.SubElement(in_message, '{%s}part' % soaplib.ns_wsdl)
             in_part.set('name', method.in_message.get_type_name())
-            in_part.set('element', method.in_message.get_type_name())
+            in_part.set('element', method.in_message.get_type_name_ns())
 
             out_message = etree.SubElement(root, '{%s}message' % soaplib.ns_wsdl)
             out_message.set('name', method.out_message.get_type_name())
 
             out_part = etree.SubElement(out_message, '{%s}part' % soaplib.ns_wsdl)
             out_part.set('name', method.out_message.get_type_name())
-            out_part.set('element', '%s:%s' % (_pref_tns,
-                                            method.out_message.get_type_name()))
+            out_part.set('element', '%s' % (method.out_message.get_type_name_ns()))
 
     def add_bindings_for_methods(self, root, service_name, types, url, binding, cb_binding=None):
         '''
