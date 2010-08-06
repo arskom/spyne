@@ -77,10 +77,10 @@ def from_soap(xml_string, http_charset):
     if xmlids:
         resolve_hrefs(root, xmlids)
 
-    for ns in (soaplib.ns_soap_env, soaplib.ns_soap_env_w3c):
+    for ns in (soaplib.ns_soap_env, soaplib.ns_soap12_env):
         header = root.xpath('e:Header', namespaces={'e': ns})
         body = root.xpath('e:Body', namespaces={'e': ns})
-        
+
         if len(header) > 0 or len(body) > 0:
             break
 

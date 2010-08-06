@@ -26,7 +26,8 @@ ns_soap = 'http://schemas.xmlsoap.org/wsdl/soap/'
 ns_wsdl = 'http://schemas.xmlsoap.org/wsdl/'
 ns_soap_enc = 'http://schemas.xmlsoap.org/soap/encoding/'
 ns_soap_env = 'http://schemas.xmlsoap.org/soap/envelope/'
-ns_soap_env_w3c = 'http://www.w3.org/2003/05/soap-envelope/'
+ns_soap12_env = 'http://www.w3.org/2003/05/soap-envelope/'
+ns_soap12_enc = 'http://www.w3.org/2003/05/soap-encoding/'
 ns_wsa = 'http://schemas.xmlsoap.org/ws/2003/03/addressing'
 ns_xop = 'http://www.w3.org/2004/08/xop/include'
 
@@ -38,7 +39,8 @@ nsmap = {
     'wsdl': ns_wsdl,
     'senc': ns_soap_enc,
     'senv': ns_soap_env,
-    'senvw': ns_soap_env_w3c,
+    's12env': ns_soap12_env,
+    's12enc': ns_soap12_enc,
     'wsa': ns_wsa,
     'xop': ns_xop,
 }

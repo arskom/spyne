@@ -134,6 +134,7 @@ class Application(object):
                     else:
                         logger.debug('adding method %r' % method_name)
                         self.call_routes[method_name] = s
+                        self.call_routes[method.name] = s
 
         # populate types
         schema_entries = None
@@ -303,7 +304,6 @@ class Application(object):
     def __get_method_name(self, http_req_env, soap_req_payload):
         retval = None
 
-
         if soap_req_payload is not None:
             retval = soap_req_payload.tag
             logger.debug("\033[92mMethod name from xml tag: %r\033[0m" % retval)
@@ -371,20 +371,20 @@ class Application(object):
             body = input.read(int(length))
 
             try:
+                service = None
                 soap_req_header, soap_req_payload = self.__decode_soap_request(
                                                                 req_env, body)
+                self.validate_request(soap_req_payload)
+
                 method_name = self.__get_method_name(req_env, soap_req_payload)
                 if method_name is None:
                     # initiate the response
                     start_response('200 OK', http_resp_headers.items())
 
                     return [""]
-
                 service_class = self.get_service_class(method_name)
                 service = self.get_service(service_class, req_env)
                 service.soap_req_header = soap_req_header
-
-                self.validate_request(soap_req_payload)
 
             finally:
                 # for performance reasons, we don't want the following to run
@@ -467,7 +467,10 @@ class Application(object):
                                                     encoding=string_encoding)
             logger.debug(fault_str)
 
-            service.on_method_exception(req_env, e, fault_xml, fault_str)
+            if service is None:
+                self.on_exception(req_env,e,fault_str)
+            else:
+                service.on_method_exception(req_env, e, fault_xml, fault_str)
 
             # initiate the response
             start_response('500 Internal Server Error',http_resp_headers.items())
