@@ -462,8 +462,6 @@ class DefinitionBase(object):
         @param the the root element of the wsdl
         '''
 
-        _pref_tns = soaplib.get_namespace_prefix(self.get_tns())
-
         #make messages
         for method in self.public_methods:
             # making in part
