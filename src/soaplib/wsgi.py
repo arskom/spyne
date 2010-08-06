@@ -405,7 +405,7 @@ class Application(object):
             if soap_req_payload is not None and len(soap_req_payload) > 0:
                 params = descriptor.in_message.from_xml(soap_req_payload)
             else:
-                params = ()
+                params = [None] * len(descriptor.in_message._type_info)
 
             # implementation hook
             service.on_method_call(req_env, method_name, params, body)
