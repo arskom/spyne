@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+
 #
 # soaplib - Copyright (C) Soaplib contributors.
 #
@@ -17,25 +17,33 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import os
 import logging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger('soaplib.wsgi')
-logger.setLevel(logging.DEBUG)
+logger = logging.getLogger(__name__)
 
-from twisted.python import log
+import twisted.web.server
+import twisted.web.static
+from twisted.web.wsgi import WSGIResource
+from twisted.internet import reactor
 
-from soaplib.test.interop.server._service import application
-from soaplib.util.server import run_twisted 
+def run_twisted(apps, port):
+    """
+    takes a list of tuples containing application, url pairs, and a port to
+    to listen to.
+    """
 
-port = 9754
-url = 'app'
+    static_dir = os.path.abspath(".")
+    logging.info("registering static folder %r on /" % static_dir)
+    root = twisted.web.static.File(static_dir)
 
-def main(argv):
-    observer = log.PythonLoggingObserver('twisted')
-    log.startLoggingWithObserver(observer.emit,setStdout=False)
+    for app,url in apps:
+        resource = WSGIResource(reactor, reactor, app)
+        logging.info("registering %r on /%s" % (app, url))
+        root.putChild(url, resource)
 
-    return run_twisted( [ (application, url) ], port )
+    site = twisted.web.server.Site(root)
 
-if __name__ == '__main__':
-    import sys
-    sys.exit(main(sys.argv))
+    reactor.listenTCP(port, site)
+    logging.info("listening on: 0.0.0.0:%d" % port)
+
+    return reactor.run()
