@@ -1,4 +1,3 @@
-
 Overview
 ========
 
@@ -24,7 +23,7 @@ Runtime Requirements
 * Python 2.4 or greater
 * [lxml](http://codespeak.net/lxml/) (available through easy_install)
 * a WSGI-compliant web server (CherryPy, WSGIUtils, Flup, etc.)
-* [pytz] (http://pytz.sourceforge.net/) (available through easy_install)
+* [pytz](http://pytz.sourceforge.net/) (available through easy_install)
 
 Development Requirements
 ------------------------
