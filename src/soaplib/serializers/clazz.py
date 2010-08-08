@@ -120,11 +120,12 @@ class ClassSerializerBase(NonExtendingClass, Base):
 
     @classmethod
     @nillable_value
-    def to_xml(cls, value, tns, name=None):
+    def to_xml(cls, value, tns, name=None, element=None):
         if name is None:
             name = cls.get_type_name()
 
-        element = etree.Element("{%s}%s" % (tns, name))
+        if element is None:
+            element = etree.Element("{%s}%s" % (tns, name))
 
         if isinstance(value, list) or isinstance(value, tuple):
             assert len(value) <= len(cls._type_info)
@@ -151,6 +152,11 @@ class ClassSerializerBase(NonExtendingClass, Base):
             subelement = v.to_xml(subvalue, tns, k)
             element.append(subelement)
 
+        clz = getattr(cls,'__extends__', None)
+        while not (clz is None):
+            clz.to_xml(value, tns, name, element)
+            clz = getattr(clz,'__extends__', None)
+
         return element
 
     @classmethod
@@ -163,6 +169,11 @@ class ClassSerializerBase(NonExtendingClass, Base):
             key = c.tag.split('}')[-1]
 
             member = cls._type_info.get(key, None)
+            clz = getattr(cls,'__extends__', None)
+            while not (clz is None) and (member is None):
+                member = clz._type_info.get(key, None)
+                clz = getattr(clz,'__extends__', None)
+
             if member is None:
                 raise Exception('the %s object does not have a "%s" member' %
                                                              (cls.__name__,key))

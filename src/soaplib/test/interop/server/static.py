@@ -25,7 +25,7 @@ logger.setLevel(logging.DEBUG)
 from twisted.python import log
 
 from soaplib.test.interop.server._service import application
-from soaplib.util.server import run_twisted 
+from soaplib.util.server import run_twisted
 
 port = 9754
 url = 'app'
