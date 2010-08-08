@@ -134,8 +134,8 @@ def rpc(*params, **kparams):
 
 class _SchemaInfo(object):
     def __init__(self):
-        self.elements = {}
-        self.types = {}
+        self.elements = odict()
+        self.types = odict()
 
 class _SchemaEntries(object):
     def __init__(self, tns):

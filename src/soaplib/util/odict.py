@@ -67,6 +67,10 @@ class odict(object):
         for k,v in data:
             self[k] = v
 
+    def values(self):
+        for l in self.__list:
+            yield self.__dict[l]
+
     def get(self, key, default=Empty):
         if key in self.__dict:
             return self[key]

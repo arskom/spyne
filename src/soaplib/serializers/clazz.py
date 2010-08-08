@@ -196,7 +196,9 @@ class ClassSerializerBase(NonExtendingClass, Base):
     @classmethod
     def add_to_schema(cls, schema_entries):
         if not schema_entries.has_class(cls):
-            # complex node
+            if not (getattr(cls, '__extends__', None) is None):
+                cls.__extends__.add_to_schema(schema_entries)
+
             complex_type = etree.Element("{%s}complexType" % soaplib.ns_xsd)
             complex_type.set('name',cls.get_type_name())
 
@@ -205,7 +207,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
                 cls.__extends__.add_to_schema(schema_entries)
 
                 complex_content = etree.SubElement(complex_type,
-                                        "{%s}complexContent" % soaplib.ns_xsd )
+                                          "{%s}complexContent" % soaplib.ns_xsd)
                 extension = etree.SubElement(complex_content, "{%s}extension"
                                                                % soaplib.ns_xsd)
                 extension.set('base', cls.__extends__.get_type_name_ns())
