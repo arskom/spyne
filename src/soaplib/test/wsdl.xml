@@ -330,11 +330,15 @@
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="ExtensionClass">
-        <xs:sequence>
-          <xs:element name="l" minOccurs="0" type="xs:dateTime" nillable="true" />
-          <xs:element name="q" minOccurs="0" type="xs:integer" nillable="true" />
-          <xs:element name="p" minOccurs="0" type="s0:NonNillableClass" nillable="true" />
-        </xs:sequence>
+        <xs:complexContent>
+          <xs:extension base="s0:NestedClass">
+            <xs:sequence>
+              <xs:element name="l" minOccurs="0" type="xs:dateTime" nillable="true" />
+              <xs:element name="q" minOccurs="0" type="xs:integer" nillable="true" />
+              <xs:element name="p" minOccurs="0" type="s0:NonNillableClass" nillable="true" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
       </xs:complexType>
       <xs:complexType name="NestedClass">
         <xs:sequence>

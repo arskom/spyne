@@ -127,7 +127,10 @@ class ClassSerializerMeta(type):
 
         # get base class (if exists) and enforce single inheritance
         extends = cls_dict.get("__extends__", None)
-        if extends != None:
+        if cls_name == "ExtensionClass":
+            print cls_name, cls_bases
+
+        if extends is None:
             for b in cls_bases:
                 base_types = getattr(b, "_type_info", None)
 
@@ -136,7 +139,7 @@ class ClassSerializerMeta(type):
                                 "WSDL 1.1 does not support multiple inheritance"
 
                     try:
-                        if len(base_types) > 0 and issubclass(extends, Base):
+                        if len(base_types) > 0 and issubclass(b, Base):
                             cls_dict["__extends__"] = extends = b
                     except:
                         print extends
