@@ -23,6 +23,7 @@ from lxml import etree
 from soaplib.soap import Message
 from soaplib.soap import MethodDescriptor
 from soaplib.serializers.clazz import TypeInfo
+from soaplib.util.odict import odict
 
 import logging
 logger = logging.getLogger(__name__)
@@ -138,7 +139,7 @@ class _SchemaInfo(object):
 
 class _SchemaEntries(object):
     def __init__(self, tns):
-        self.namespaces = {}
+        self.namespaces = odict()
         self.imports = {}
         self.tns = tns
 
