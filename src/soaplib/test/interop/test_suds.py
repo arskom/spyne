@@ -101,6 +101,44 @@ class TestSuds(unittest.TestCase):
         val.other.b = True
 
         ret = self.client.service.echo_nested_class(val)
+        print ret
+        # TODO: write asserts
+
+    def test_echo_extension_class(self):
+        service_name = "echo_extension_class";
+        val = self.client.factory.create("{%s}ExtensionClass" % self.ns);
+
+        val.i = 45
+        val.s = "asd"
+        val.f = 12.34
+
+        val.simple = self.client.factory.create("{%s}SimpleClassArray" % self.ns)
+
+        val.simple.SimpleClass.append(self.client.factory.create(
+                                                    "{%s}SimpleClass" % self.ns))
+        val.simple.SimpleClass.append(self.client.factory.create(
+                                                    "{%s}SimpleClass" % self.ns))
+
+        val.simple.SimpleClass[0].i = 45
+        val.simple.SimpleClass[0].s = "asd"
+        val.simple.SimpleClass[1].i = 12
+        val.simple.SimpleClass[1].s = "qwe"
+
+        val.other = self.client.factory.create("{%s}OtherClass" % self.ns);
+        val.other.dt = datetime.now()
+        val.other.d = 123.456
+        val.other.b = True
+
+        val.p = self.client.factory.create("{%s}NonNillableClass" % self.ns);
+        val.p.dt = datetime(2010,06,02)
+        val.p.i = 123
+        val.p.s = "punk"
+
+        val.l = datetime(2010,07,02)
+        val.q = 5
+
+        ret = self.client.service.echo_extension_class(val)
+        print ret
         # TODO: write asserts
 
 def suite():
