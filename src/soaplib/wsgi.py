@@ -269,7 +269,8 @@ class Application(object):
             fault_xml = Fault.to_xml(Fault(str(e)), tns)
             fault_str = etree.tostring(fault_xml,
                    xml_declaration=True, encoding=string_encoding)
-            logger.debug(fault_str)
+            if logger.level == logging.DEBUG:
+                logger.debug(etree.tostring(etree.fromstring(fault_str),pretty_print=True))
 
             self.on_wsdl_exception(req_env, e, fault_xml)
 
@@ -465,7 +466,9 @@ class Application(object):
 
             fault_str = etree.tostring(fault_xml, xml_declaration=True,
                                                     encoding=string_encoding)
-            logger.debug(fault_str)
+            if logger.level == logging.DEBUG:
+                logger.debug(etree.tostring(etree.fromstring(fault_str),
+                                                            pretty_print=True))
 
             if service is None:
                 self.on_exception(req_env,e,fault_str)
@@ -502,7 +505,9 @@ class Application(object):
                         tns=self.get_tns(), header_elements=soap_resp_headers)
             fault_str = etree.tostring(fault_xml, xml_declaration=True,
                                                        encoding=string_encoding)
-            logger.debug(fault_str)
+            if logger.level == logging.DEBUG:
+                logger.debug(etree.tostring(etree.fromstring(fault_str),
+                                                            pretty_print=True))
 
             self.on_exception(req_env, e, fault_str)
 

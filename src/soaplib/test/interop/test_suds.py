@@ -102,6 +102,7 @@ class TestSuds(unittest.TestCase):
 
         ret = self.client.service.echo_nested_class(val)
         print ret
+        raise Exception("test something! :)")
         # TODO: write asserts
 
     def test_echo_extension_class(self):
@@ -139,6 +140,7 @@ class TestSuds(unittest.TestCase):
 
         ret = self.client.service.echo_extension_class(val)
         print ret
+        raise Exception("test something! :)")
         # TODO: write asserts
 
 def suite():
