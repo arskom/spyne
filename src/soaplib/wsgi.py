@@ -364,7 +364,9 @@ class Application(object):
             self.on_call(req_env)
 
             if req_env['REQUEST_METHOD'].lower() != 'post':
-                start_response('405 Method Not Allowed', [('Allow', 'POST')])
+                start_response('405 Method Not Allowed', [('Allow', 'POST'),
+                                               ('Content-Type', 'text/plain'),
+                                               ('Content-Length', 0)])
                 return ['']
 
             input = req_env.get('wsgi.input')
