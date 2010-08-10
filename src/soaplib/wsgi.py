@@ -522,7 +522,7 @@ class Application(object):
             self.on_exception(req_env, e, fault_str)
 
             # initiate the response
-            http_resp_headers['Content-Length'] = len(fault_str)
+            http_resp_headers['Content-Length'] = str(len(fault_str))
             start_response('500 Internal Server Error',http_resp_headers.items())
 
             return [fault_str]
