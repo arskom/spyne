@@ -89,7 +89,7 @@ class AnyAsDict(Any):
                     elt.text=str(e)
 
     @classmethod
-    def _etree_to_dict(cls, elt, with_root=True):
+    def _etree_to_dict(cls, elt, with_root=True,iterable=(list,list.append)):
         r = {}
 
         if with_root:
@@ -104,12 +104,12 @@ class AnyAsDict(Any):
             else:
                 if e.tag in r:
                     if not (e.text is None):
-                        r[e.tag].append(e.text)
+                        iterable[1](r[e.tag], e.text)
                 else:
                     if e.text is None:
-                        r[e.tag] = []
+                        r[e.tag] = iterable[0]()
                     else:
-                        r[e.tag] = [e.text]
+                        r[e.tag] = iterable[0]([e.text])
 
         if with_root:
             if len(r) == 0:
