@@ -27,7 +27,8 @@ from soaplib.test.interop.server._service import application
 if __name__ == '__main__':
     try:
         from wsgiref.simple_server import make_server
-        server = make_server('0.0.0.0', 9753, application)
+        from wsgiref.validate import validator
+        server = make_server('0.0.0.0', 9753, validator(application))
         print 'Starting interop server at -- %s:%s' % ('0.0.0.0', 9753),
         print 'WSDL is at: /?wsdl'
         server.serve_forever()
