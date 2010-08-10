@@ -22,6 +22,7 @@ import unittest
 from suds.client import Client
 from suds import WebFault
 from datetime import datetime
+from lxml import etree
 
 class TestSuds(unittest.TestCase):
     def setUp(self):
@@ -57,6 +58,29 @@ class TestSuds(unittest.TestCase):
         ret = self.client.service.echo_string(test_string)
 
         self.assertEquals(ret, test_string)
+
+    def __get_xml_test_val(self):
+        return {
+            "test_sub": {
+                "test_subsub1": {
+                    "test_subsubsub1" : ["subsubsub1 value"]
+                },
+                "test_subsub2": ["subsubsub2 value"],
+                "test_subsub3": ["subsubsub3 value"],
+            }
+        }
+
+    def test_any(self):
+        val=self.__get_xml_test_val()
+        ret = self.client.service.echo_any(val)
+
+        self.assertEquals(ret, val)
+
+    def test_any_as_dict(self):
+        val=self.__get_xml_test_val()
+        ret = self.client.service.echo_any_as_dict(val)
+
+        self.assertEquals(ret, val)
 
     def test_echo_simple_class(self):
         service_name = "echo_nested_class";
