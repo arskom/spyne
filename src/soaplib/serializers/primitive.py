@@ -54,7 +54,7 @@ class Any(SimpleType):
         if isinstance(value, str) or isinstance(value, unicode):
             value = etree.fromstring(value)
 
-        e = etree.Element(name)
+        e = etree.Element('{%s}%s' % (tns,name))
         e.append(value)
 
         return e
