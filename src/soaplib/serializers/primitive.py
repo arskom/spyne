@@ -72,22 +72,21 @@ class Any(SimpleType):
 
 class AnyAsDict(Any):
     @classmethod
-    def _dict_to_etree(cls, d):
+    def _dict_to_etree(cls, parent, d):
         """the dict values are either dicts or iterables"""
 
-        retval = []
         for k, v in d.items():
             if v is None:
-                retval.append(etree.Element(k))
+                etree.SubElement(parent,k)
+
+            elif isinstance(v, dict):
+                child = etree.SubElement(parent,k)
+                cls._dict_to_etree(child,v)
+
             else:
-                if isinstance(v, dict):
-                    retval.append(etree.Element(cls._dict_to_etree(v)))
-
-                else:
-                    for e in v:
-                        retval.append(etree.Element(str(e)))
-
-        return retval
+                for e in v:
+                    elt=etree.SubElement(parent,k)
+                    elt.text=str(e)
 
     @classmethod
     def _etree_to_dict(cls, elt, with_root=True):
@@ -125,8 +124,8 @@ class AnyAsDict(Any):
     @classmethod
     @nillable_value
     def to_xml(cls, value, tns, name='retval'):
-        e = etree.Element(name)
-        e.extend(cls._dict_to_etree(value))
+        e = etree.Element('{%s}%s' % (tns,name))
+        cls._dict_to_etree(e, value)
 
         return e
 
