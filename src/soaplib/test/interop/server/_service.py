@@ -174,6 +174,14 @@ class InteropClass(service.DefinitionBase):
 
 class InteropMisc(service.DefinitionBase):
     @rpc()
+    def huge_number(_returns=Integer):
+        return 2**int(1e5)
+
+    @rpc()
+    def long_string(_returns=String):
+        return len('0123456789abcdef' * 16384)
+
+    @rpc()
     def test_empty(self):
         pass
 
