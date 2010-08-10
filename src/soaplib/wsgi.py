@@ -254,10 +254,12 @@ class Application(object):
     def __handle_wsdl_request(self, req_env, start_response, url):
         http_resp_headers = {'Content-Type': 'text/xml'}
 
-        start_response('200 OK', http_resp_headers.items())
         try:
             self.get_wsdl(url)
             self.on_wsdl(req_env, self.__wsdl) # implementation hook
+
+            http_resp_headers['Content-Length'] = str(len(self.__wsdl))
+            start_response('200 OK', http_resp_headers.items())
 
             return [self.__wsdl]
 
@@ -274,7 +276,6 @@ class Application(object):
 
             self.on_wsdl_exception(req_env, e, fault_xml)
 
-            # initiate the response
             http_resp_headers['Content-length'] = str(len(fault_str))
             start_response('500 Internal Server Error',
                 http_resp_headers.items())
@@ -355,7 +356,10 @@ class Application(object):
         return retval
 
     def __handle_soap_request(self, req_env, start_response, url):
-        http_resp_headers = {'Content-Type': 'text/xml'}
+        http_resp_headers = {
+            'Content-Type': 'text/xml',
+            'Content-Length': 0,
+        }
         soap_resp_headers = []
         method_name = None
 
@@ -364,7 +368,9 @@ class Application(object):
             self.on_call(req_env)
 
             if req_env['REQUEST_METHOD'].lower() != 'post':
-                start_response('405 Method Not Allowed', [('Allow', 'POST')])
+                http_resp_headers['Allow'] = 'POST'
+                start_response('405 Method Not Allowed',
+                                                      http_resp_headers.items())
                 return ['']
 
             input = req_env.get('wsgi.input')
@@ -379,10 +385,12 @@ class Application(object):
 
                 method_name = self.__get_method_name(req_env, soap_req_payload)
                 if method_name is None:
-                    # initiate the response
-                    start_response('200 OK', http_resp_headers.items())
+                    resp = "Could not get method name!"
+                    http_resp_headers['Content-Length'] = str(len(resp))
+                    start_response('500 Internal Server Error',
+                                                      http_resp_headers.items())
+                    return [resp]
 
-                    return [""]
                 service_class = self.get_service_class(method_name)
                 service = self.get_service(service_class, req_env)
                 service.soap_req_header = soap_req_header
@@ -476,6 +484,7 @@ class Application(object):
                 service.on_method_exception(req_env, e, fault_xml, fault_str)
 
             # initiate the response
+            http_resp_headers['Content-Length'] = str(len(fault_str))
             start_response('500 Internal Server Error',http_resp_headers.items())
 
             return [fault_str]
@@ -512,6 +521,7 @@ class Application(object):
             self.on_exception(req_env, e, fault_str)
 
             # initiate the response
+            http_resp_headers['Content-Length'] = len(fault_str)
             start_response('500 Internal Server Error',http_resp_headers.items())
 
             return [fault_str]
