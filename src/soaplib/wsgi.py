@@ -455,6 +455,7 @@ class Application(object):
             self.on_return(req_env, http_resp_headers, results_str)
 
             # initiate the response
+            del http_resp_headers['Content-Length']
             start_response('200 OK', http_resp_headers.items())
 
             if logger.level == logging.DEBUG:
