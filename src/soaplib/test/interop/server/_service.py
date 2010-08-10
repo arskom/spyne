@@ -21,6 +21,8 @@ from soaplib.serializers.binary import Attachment
 from soaplib.serializers.clazz import ClassSerializer
 from soaplib.serializers.enum import Enum
 
+from soaplib.serializers.primitive import Any
+from soaplib.serializers.primitive import AnyAsDict
 from soaplib.serializers.primitive import Array
 from soaplib.serializers.primitive import Boolean
 from soaplib.serializers.primitive import DateTime
@@ -76,6 +78,14 @@ DaysOfWeekEnum = Enum(
 )
 
 class InteropPrimitive(service.DefinitionBase):
+    @rpc(Any, _returns=Any)
+    def echo_any(self, xml):
+        return xml
+
+    @rpc(AnyAsDict, _returns=AnyAsDict)
+    def echo_any_as_dict(self, xml_as_dict):
+        return xml_as_dict
+
     @rpc(Integer, _returns=Integer)
     def echo_integer(self, i):
         return i
