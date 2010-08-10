@@ -14,7 +14,7 @@ import os
 import string
 from lxml import etree
 
-CONFIG_FILE = 'config'
+CONFIG_FILE = 'config.xml'
 SOAPLIB_TEST_NS = 'soaplib.test.interop.server._service'
 SOAPLIB_TEST_SERVICE = 'ValidatingApplication'
 SOAPLIB_TEST_PORT = 'ValidatingApplication'
@@ -126,8 +126,7 @@ def analyze_wsdl(config_file):
                             print '\nFAILURE MSG\n'
                             print fail_det[0].text
 
-
-configure_env()
-create_config('http://localhost:9753/?wsdl', CONFIG_FILE)
-analyze_wsdl(CONFIG_FILE)
-
+if __name__ == '__main__':
+    configure_env()
+    create_config('http://localhost:9753/?wsdl', CONFIG_FILE)
+    analyze_wsdl(CONFIG_FILE)
