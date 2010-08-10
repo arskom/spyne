@@ -30,6 +30,7 @@ from soaplib.serializers import SimpleType
 from soaplib.serializers import nillable_element
 from soaplib.serializers import nillable_value
 from soaplib.serializers import string_to_xml
+from soaplib.util.odict import odict
 
 string_encoding = 'utf-8'
 
@@ -76,50 +77,39 @@ class AnyAsDict(Any):
         """the dict values are either dicts or iterables"""
 
         for k, v in d.items():
-            if v is None:
+            if len(v) == 0:
                 etree.SubElement(parent,k)
 
-            elif isinstance(v, dict):
+            elif isinstance(v, dict) or isinstance(v, odict):
                 child = etree.SubElement(parent,k)
                 cls._dict_to_etree(child,v)
 
             else:
                 for e in v:
-                    elt=etree.SubElement(parent,k)
-                    elt.text=str(e)
+                    child=etree.SubElement(parent,k)
+                    if isinstance(e, dict) or isinstance(e, odict):
+                        cls._dict_to_etree(child,e)
+                    else:
+                        child.text=str(e)
 
     @classmethod
-    def _etree_to_dict(cls, elt, with_root=True,iterable=(list,list.append)):
-        r = {}
+    def _etree_to_dict(cls, element, iterable=(list,list.append)):
+        if (element.text is None) or element.text.isspace():
+            retval = odict()
+            for elt in element:
+                if not (elt.tag in retval):
+                    retval[elt.tag] = iterable[0]()
+                iterable[1](retval[elt.tag], cls._etree_to_dict(elt, iterable))
 
-        if with_root:
-            retval = {elt.tag: r}
+            for k,v in retval.items():
+                if len(v) == 1:
+                    for a in v:
+                        if isinstance(a, dict) or isinstance(a, odict):
+                            retval[k] = a
         else:
-            retval = r
+            retval = element.text
 
-        for e in elt:
-            if (e.text is None) or e.text.isspace():
-                r[e.tag] = cls._etree_to_dict(e, False)
-
-            else:
-                if e.tag in r:
-                    if not (e.text is None):
-                        iterable[1](r[e.tag], e.text)
-                else:
-                    if e.text is None:
-                        r[e.tag] = iterable[0]()
-                    else:
-                        r[e.tag] = iterable[0]([e.text])
-
-        if with_root:
-            if len(r) == 0:
-                retval[elt.tag] = []
-            return retval
-        else:
-            if len(r) > 0:
-                return retval
-            else:
-                return []
+        return retval
 
     @classmethod
     @nillable_value
@@ -134,7 +124,11 @@ class AnyAsDict(Any):
     def from_xml(cls, element):
         children = element.getchildren()
         if children:
-            return cls._etree_to_dict(element.getchildren()[0])
+            ret = cls._etree_to_dict(element)
+            from pprint import pprint
+            pprint(ret)
+            return ret
+
         return None
 
 class String(SimpleType):
