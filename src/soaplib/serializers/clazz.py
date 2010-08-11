@@ -125,7 +125,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
             name = cls.get_type_name()
 
         if element is None:
-            element = etree.Element("{%s}%s" % (tns, name))
+            element = etree.Element("{%s}%s" % (cls.get_namespace(), name))
 
         if isinstance(value, list) or isinstance(value, tuple):
             assert len(value) <= len(cls._type_info)
