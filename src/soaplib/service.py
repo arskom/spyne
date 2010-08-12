@@ -243,13 +243,15 @@ class DefinitionBase(object):
         '''
         pass
 
-    def on_method_return(self, environ, py_results, soap_results, soap_headers):
+    def on_method_return(self, environ, py_results, soap_results,
+                                          soap_resp_headers, http_resp_headers):
         '''
         Called AFTER the service implementing the functionality is called
         @param the wsgi environment
         @param the python results from the method
         @param the xml serialized results of the method
-        @param soap headers as a list of lxml.etree._Element objects
+        @param soap response headers as a list of lxml.etree._Element objects
+        @param http response headers as a dict of strings
         '''
         pass
 
@@ -491,6 +493,7 @@ class DefinitionBase(object):
         ns_wsdl = soaplib.ns_wsdl
         ns_soap = soaplib.ns_soap
         pref_tns = soaplib.get_namespace_prefix(self.get_tns())
+        pref_xsd = soaplib.get_namespace_prefix(soaplib.ns_xsd)
 
         soap_binding = etree.SubElement(binding, '{%s}binding' % ns_soap)
         soap_binding.set('style', 'document')
@@ -520,12 +523,20 @@ class DefinitionBase(object):
             soap_body = etree.SubElement(input, '{%s}body' % ns_soap)
             soap_body.set('use', 'literal')
 
+            soap_header = etree.SubElement(input, '{%s}header' % ns_soap)
+            soap_header.set('use', 'literal')
+            soap_header.set('message', '%s:DefaultSoapHeader' % pref_tns)
+
             if (not method.is_async) and (not method.is_callback):
                 output = etree.SubElement(operation, '{%s}output' % ns_wsdl)
                 output.set('name', method.out_message.get_type_name())
 
                 soap_body = etree.SubElement(output, '{%s}body' % ns_soap)
                 soap_body.set('use', 'literal')
+
+                soap_header = etree.SubElement(output, '{%s}header' % ns_soap)
+                soap_header.set('use', 'literal')
+                soap_header.set('message', '%s:DefaultSoapHeader' % pref_tns)
 
             if method.is_callback:
                 relates_to = etree.SubElement(input, '{%s}header' % ns_soap)
