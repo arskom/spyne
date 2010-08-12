@@ -30,7 +30,8 @@ from soaplib.serializers import SimpleType
 from soaplib.serializers import nillable_element
 from soaplib.serializers import nillable_value
 from soaplib.serializers import string_to_xml
-from soaplib.util.odict import odict
+from soaplib.util.etreeconv import etree_to_dict
+from soaplib.util.etreeconv import dict_to_etree
 
 string_encoding = 'utf-8'
 
@@ -73,49 +74,10 @@ class Any(SimpleType):
 
 class AnyAsDict(Any):
     @classmethod
-    def _dict_to_etree(cls, parent, d):
-        """the dict values are either dicts or iterables"""
-
-        for k, v in d.items():
-            if len(v) == 0:
-                etree.SubElement(parent,k)
-
-            elif isinstance(v, dict) or isinstance(v, odict):
-                child = etree.SubElement(parent,k)
-                cls._dict_to_etree(child,v)
-
-            else:
-                for e in v:
-                    child=etree.SubElement(parent,k)
-                    if isinstance(e, dict) or isinstance(e, odict):
-                        cls._dict_to_etree(child,e)
-                    else:
-                        child.text=str(e)
-
-    @classmethod
-    def _etree_to_dict(cls, element, iterable=(list,list.append)):
-        if (element.text is None) or element.text.isspace():
-            retval = odict()
-            for elt in element:
-                if not (elt.tag in retval):
-                    retval[elt.tag] = iterable[0]()
-                iterable[1](retval[elt.tag], cls._etree_to_dict(elt, iterable))
-
-            for k,v in retval.items():
-                if len(v) == 1:
-                    for a in v:
-                        if isinstance(a, dict) or isinstance(a, odict):
-                            retval[k] = a
-        else:
-            retval = element.text
-
-        return retval
-
-    @classmethod
     @nillable_value
     def to_xml(cls, value, tns, name='retval'):
         e = etree.Element('{%s}%s' % (tns,name))
-        cls._dict_to_etree(e, value)
+        dict_to_etree(e, value)
 
         return e
 
@@ -124,7 +86,7 @@ class AnyAsDict(Any):
     def from_xml(cls, element):
         children = element.getchildren()
         if children:
-            ret = cls._etree_to_dict(element)
+            ret = etree_to_dict(element)
             from pprint import pprint
             pprint(ret)
             return ret
