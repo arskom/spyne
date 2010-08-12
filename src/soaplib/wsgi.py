@@ -37,6 +37,7 @@ from soaplib.soap import collapse_swa
 from soaplib.soap import from_soap
 from soaplib.soap import make_soap_envelope
 from soaplib.util import reconstruct_url
+from soaplib.util.etreeconv import etree_to_dict
 
 class ValidationError(Fault):
     pass
@@ -393,7 +394,9 @@ class Application(object):
 
                 service_class = self.get_service_class(method_name)
                 service = self.get_service(service_class, req_env)
-                service.soap_req_header = soap_req_header
+                service.soap_req_header = None
+                if len(soap_req_header) > 0:
+                    service.soap_req_header = etree_to_dict(soap_req_header[0])
 
             finally:
                 # for performance reasons, we don't want the following to run
@@ -440,7 +443,7 @@ class Application(object):
 
             # implementation hook
             service.on_method_return(req_env, result_raw, results_soap,
-                                                            soap_resp_headers)
+                                            soap_resp_headers, http_resp_headers)
 
             # construct the soap response, and serialize it
             envelope = make_soap_envelope(results_soap, tns=self.get_tns(),
