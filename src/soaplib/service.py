@@ -522,6 +522,7 @@ class DefinitionBase(object):
             soap_header = etree.SubElement(input, '{%s}header' % ns_soap)
             soap_header.set('use', 'literal')
             soap_header.set('message', '%s:DefaultSoapHeader' % pref_tns)
+            soap_header.set('part', 'DefaultSoap')
 
             if (not method.is_async) and (not method.is_callback):
                 output = etree.SubElement(operation, '{%s}output' % ns_wsdl)
@@ -533,6 +534,7 @@ class DefinitionBase(object):
                 soap_header = etree.SubElement(output, '{%s}header' % ns_soap)
                 soap_header.set('use', 'literal')
                 soap_header.set('message', '%s:DefaultSoapHeader' % pref_tns)
+                soap_header.set('part', 'DefaultSoap')
 
             if method.is_callback:
                 relates_to = etree.SubElement(input, '{%s}header' % ns_soap)
