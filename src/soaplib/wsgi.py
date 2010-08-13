@@ -181,6 +181,7 @@ class Application(object):
 
     def __build_wsdl(self, url):
         ns_wsdl = soaplib.ns_wsdl
+        ns_soap = soaplib.ns_soap
         ns_tns = self.get_tns()
         ns_plink = soaplib.ns_plink
         pref_tns = soaplib.get_namespace_prefix(ns_tns)
@@ -228,6 +229,10 @@ class Application(object):
         binding = etree.SubElement(root, '{%s}binding' % ns_wsdl)
         binding.set('name', service_name)
         binding.set('type', '%s:%s'% (pref_tns, service_name))
+
+        soap_binding = etree.SubElement(binding, '{%s}binding' % ns_soap)
+        soap_binding.set('style', 'document')
+        soap_binding.set('transport', 'http://schemas.xmlsoap.org/soap/http')
 
         cb_binding = None
 

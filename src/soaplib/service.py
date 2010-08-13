@@ -495,10 +495,6 @@ class DefinitionBase(object):
         pref_tns = soaplib.get_namespace_prefix(self.get_tns())
         pref_xsd = soaplib.get_namespace_prefix(soaplib.ns_xsd)
 
-        soap_binding = etree.SubElement(binding, '{%s}binding' % ns_soap)
-        soap_binding.set('style', 'document')
-        soap_binding.set('transport', 'http://schemas.xmlsoap.org/soap/http')
-
         if self._has_callbacks():
             if cb_binding is None:
                 cb_binding = etree.SubElement(root, '{%s}binding' % ns_wsdl)
