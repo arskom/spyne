@@ -43,7 +43,7 @@ class ValidationError(Fault):
     pass
 
 class Application(object):
-    def __init__(self, services, tns):
+    def __init__(self, services, tns, _with_partnerlink=False):
         '''
         @param A ServiceBase subclass that defines the exposed services.
         '''
@@ -55,6 +55,7 @@ class Application(object):
         self.__public_methods = {}
         self.schema = None
         self.tns = tns
+        self._with_plink = _with_partnerlink
 
         self.build_schema()
 
@@ -208,10 +209,11 @@ class Application(object):
 
             s.add_messages_for_methods(root, service_name, types, url)
 
-        # create plink node
-        plink = etree.SubElement(root, '{%s}partnerLinkType' % ns_plink)
-        plink.set('name', service_name)
-        self.add_partner_link(root, service_name, types, url, plink)
+        if self._with_plink:
+            # create plink node
+            plink = etree.SubElement(root, '{%s}partnerLinkType' % ns_plink)
+            plink.set('name', service_name)
+            self.add_partner_link(root, service_name, types, url, plink)
 
         # create service node
         service = etree.SubElement(root, '{%s}service' % ns_wsdl)
