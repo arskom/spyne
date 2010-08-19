@@ -1,4 +1,3 @@
-
 #
 # soaplib - Copyright (C) Soaplib contributors.
 #
@@ -523,20 +522,12 @@ class DefinitionBase(object):
             soap_body = etree.SubElement(input, '{%s}body' % ns_soap)
             soap_body.set('use', 'literal')
 
-            soap_header = etree.SubElement(input, '{%s}header' % ns_soap)
-            soap_header.set('use', 'literal')
-            soap_header.set('message', '%s:DefaultSoapHeader' % pref_tns)
-
             if (not method.is_async) and (not method.is_callback):
                 output = etree.SubElement(operation, '{%s}output' % ns_wsdl)
                 output.set('name', method.out_message.get_type_name())
 
                 soap_body = etree.SubElement(output, '{%s}body' % ns_soap)
                 soap_body.set('use', 'literal')
-
-                soap_header = etree.SubElement(output, '{%s}header' % ns_soap)
-                soap_header.set('use', 'literal')
-                soap_header.set('message', '%s:DefaultSoapHeader' % pref_tns)
 
             if method.is_callback:
                 relates_to = etree.SubElement(input, '{%s}header' % ns_soap)
