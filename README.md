@@ -37,6 +37,6 @@ servers:
 
 * CherryPy 2.2
 * Flup
-* Twisted.web2
+* twisted.web (8.2, 9.0)
 * WSGIUtils 0.9
 
