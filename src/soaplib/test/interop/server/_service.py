@@ -96,7 +96,7 @@ class InteropServiceWithHeader(service.DefinitionBase):
         return self.soap_in_header
 
     @rpc(_returns=OutHeader)
-    def send_out_header(self, xml):
+    def send_out_header(self):
         self.soap_out_header = OutHeader()
         self.soap_out_header.dt = datetime(year=2000, month=01, day=01)
         self.soap_out_header.f = 3.141592653
