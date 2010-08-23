@@ -54,7 +54,9 @@ class MethodDescriptor(object):
     '''
 
     def __init__(self, name, public_name, in_message, out_message, doc,
-                 is_callback=False, is_async=False, mtom=False):
+                 is_callback=False, is_async=False, mtom=False, in_header=None,
+                 out_header=None):
+
         self.name = name
         self.public_name = public_name
         self.in_message = in_message
@@ -63,6 +65,8 @@ class MethodDescriptor(object):
         self.is_callback = is_callback
         self.is_async = is_async
         self.mtom = mtom
+        self.in_header = in_header
+        self.out_header = out_header
 
 def from_soap(xml_string, http_charset):
     '''
@@ -77,18 +81,18 @@ def from_soap(xml_string, http_charset):
     if xmlids:
         resolve_hrefs(root, xmlids)
 
-    for ns in (soaplib.ns_soap_env, soaplib.ns_soap12_env):
-        header = root.xpath('e:Header', namespaces={'e': ns})
-        body = root.xpath('e:Body', namespaces={'e': ns})
+    header_envelope = root.xpath('e:Header', namespaces={'e': soaplib.ns_soap_env})
+    body_envelope = root.xpath('e:Body', namespaces={'e': soaplib.ns_soap_env})
 
-        if len(header) > 0 or len(body) > 0:
-            break
+    body=None
+    if len(body_envelope) > 0 and len(body_envelope[0]) > 0:
+        body = body_envelope[0].getchildren()[0]
 
-    payload=None
-    if len(body) > 0 and len(body[0]) > 0:
-        payload = body[0].getchildren()[0]
+    header=None
+    if len(header_envelope) > 0 and len(header_envelope[0]) > 0:
+        header = header_envelope[0].getchildren()[0]
 
-    return payload, header
+    return body, header
 
 # see http://www.w3.org/TR/2000/NOTE-SOAP-20000508/
 # section 5.2.1 for an example of how the id and href attributes are used.
@@ -117,7 +121,7 @@ def resolve_hrefs(element, xmlids):
 
     return element
 
-def make_soap_envelope(message, tns='', header_elements=None):
+def make_soap_envelope(header, body):
     '''
     This method takes the results from a soap method call, and wraps them
     in the appropriate soap envelope with any specified headers
@@ -128,18 +132,13 @@ def make_soap_envelope(message, tns='', header_elements=None):
     @returns the envelope element
     '''
     envelope = etree.Element('{%s}Envelope' % soaplib.ns_soap_env, nsmap=soaplib.nsmap)
-    if header_elements:
+    if not (header is None):
         soap_header = etree.SubElement(envelope, '{%s}Header' % soaplib.ns_soap_env)
-        for h in header_elements:
-            soap_header.append(h)
-    body = etree.SubElement(envelope, '{%s}Body' % soaplib.ns_soap_env)
+        soap_header.append(header)
 
-    if type(message) == list:
-        for m in message:
-            body.append(m)
-
-    elif message != None:
-        body.append(message)
+    soap_body = etree.SubElement(envelope, '{%s}Body' % soaplib.ns_soap_env)
+    if body != None:
+        soap_body.append(body)
 
     return envelope
 

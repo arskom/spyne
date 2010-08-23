@@ -2,6 +2,10 @@
 <wsdl:definitions xmlns:plink="http://schemas.xmlsoap.org/ws/2003/05/partner-link/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsa="http://schemas.xmlsoap.org/ws/2003/03/addressing" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:senc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:s0="soaplib.test.interop.server._service" xmlns:s12env="http://www.w3.org/2003/05/soap-envelope/" xmlns:s12enc="http://www.w3.org/2003/05/soap-encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="soaplib.test.interop.server._service" name="ValidatingApplication">
   <wsdl:types>
     <xs:schema targetNamespace="soaplib.test.interop.server._service" elementFormDefault="qualified">
+      <xs:element name="echo_any" type="s0:echo_any" />
+      <xs:element name="echo_anyResponse" type="s0:echo_anyResponse" />
+      <xs:element name="echo_any_as_dict" type="s0:echo_any_as_dict" />
+      <xs:element name="echo_any_as_dictResponse" type="s0:echo_any_as_dictResponse" />
       <xs:element name="echo_boolean" type="s0:echo_boolean" />
       <xs:element name="echo_booleanResponse" type="s0:echo_booleanResponse" />
       <xs:element name="echo_datetime" type="s0:echo_datetime" />
@@ -61,6 +65,10 @@
       <xs:element name="echo_simple_class_arrayResponse" type="s0:echo_simple_class_arrayResponse" />
       <xs:element name="do_something_else" type="s0:do_something_else" />
       <xs:element name="do_something_elseResponse" type="s0:do_something_elseResponse" />
+      <xs:element name="huge_number" type="s0:huge_number" />
+      <xs:element name="huge_numberResponse" type="s0:huge_numberResponse" />
+      <xs:element name="long_string" type="s0:long_string" />
+      <xs:element name="long_stringResponse" type="s0:long_stringResponse" />
       <xs:element name="multi_param" type="s0:multi_param" />
       <xs:element name="multi_paramResponse" type="s0:multi_paramResponse" />
       <xs:element name="non_nillable" type="s0:non_nillable" />
@@ -69,6 +77,32 @@
       <xs:element name="return_onlyResponse" type="s0:return_onlyResponse" />
       <xs:element name="test_empty" type="s0:test_empty" />
       <xs:element name="test_emptyResponse" type="s0:test_emptyResponse" />
+      <xs:element name="InHeader" type="s0:InHeader" />
+      <xs:element name="OutHeader" type="s0:OutHeader" />
+      <xs:element name="echo_in_header" type="s0:echo_in_header" />
+      <xs:element name="echo_in_headerResponse" type="s0:echo_in_headerResponse" />
+      <xs:element name="send_out_header" type="s0:send_out_header" />
+      <xs:element name="send_out_headerResponse" type="s0:send_out_headerResponse" />
+      <xs:complexType name="echo_any">
+        <xs:sequence>
+          <xs:element name="xml" minOccurs="0" type="xs:anyType" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_anyResponse">
+        <xs:sequence>
+          <xs:element name="echo_anyResult" minOccurs="0" type="xs:anyType" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_any_as_dict">
+        <xs:sequence>
+          <xs:element name="xml_as_dict" minOccurs="0" type="xs:anyType" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_any_as_dictResponse">
+        <xs:sequence>
+          <xs:element name="echo_any_as_dictResult" minOccurs="0" type="xs:anyType" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
       <xs:complexType name="echo_boolean">
         <xs:sequence>
           <xs:element name="b" minOccurs="0" type="xs:boolean" nillable="true" />
@@ -394,6 +428,18 @@
           <xs:element name="do_something_elseResult" minOccurs="0" type="xs:string" nillable="true" />
         </xs:sequence>
       </xs:complexType>
+      <xs:complexType name="huge_number">
+        <xs:sequence />
+      </xs:complexType>
+      <xs:complexType name="huge_numberResponse">
+        <xs:sequence />
+      </xs:complexType>
+      <xs:complexType name="long_string">
+        <xs:sequence />
+      </xs:complexType>
+      <xs:complexType name="long_stringResponse">
+        <xs:sequence />
+      </xs:complexType>
       <xs:complexType name="multi_param">
         <xs:sequence>
           <xs:element name="s" minOccurs="0" type="xs:string" nillable="true" />
@@ -428,8 +474,48 @@
       <xs:complexType name="test_emptyResponse">
         <xs:sequence />
       </xs:complexType>
+      <xs:complexType name="InHeader">
+        <xs:sequence>
+          <xs:element name="i" minOccurs="0" type="xs:integer" nillable="true" />
+          <xs:element name="s" minOccurs="0" type="xs:string" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="OutHeader">
+        <xs:sequence>
+          <xs:element name="dt" minOccurs="0" type="xs:dateTime" nillable="true" />
+          <xs:element name="f" minOccurs="0" type="xs:float" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_in_header">
+        <xs:sequence />
+      </xs:complexType>
+      <xs:complexType name="echo_in_headerResponse">
+        <xs:sequence>
+          <xs:element name="echo_in_headerResult" minOccurs="0" type="s0:InHeader" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="send_out_header">
+        <xs:sequence />
+      </xs:complexType>
+      <xs:complexType name="send_out_headerResponse">
+        <xs:sequence>
+          <xs:element name="send_out_headerResult" minOccurs="0" type="s0:OutHeader" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
     </xs:schema>
   </wsdl:types>
+  <wsdl:message name="echo_any">
+    <wsdl:part name="echo_any" element="s0:echo_any" />
+  </wsdl:message>
+  <wsdl:message name="echo_anyResponse">
+    <wsdl:part name="echo_anyResponse" element="s0:echo_anyResponse" />
+  </wsdl:message>
+  <wsdl:message name="echo_any_as_dict">
+    <wsdl:part name="echo_any_as_dict" element="s0:echo_any_as_dict" />
+  </wsdl:message>
+  <wsdl:message name="echo_any_as_dictResponse">
+    <wsdl:part name="echo_any_as_dictResponse" element="s0:echo_any_as_dictResponse" />
+  </wsdl:message>
   <wsdl:message name="echo_boolean">
     <wsdl:part name="echo_boolean" element="s0:echo_boolean" />
   </wsdl:message>
@@ -562,6 +648,18 @@
   <wsdl:message name="do_something_elseResponse">
     <wsdl:part name="do_something_elseResponse" element="s0:do_something_elseResponse" />
   </wsdl:message>
+  <wsdl:message name="huge_number">
+    <wsdl:part name="huge_number" element="s0:huge_number" />
+  </wsdl:message>
+  <wsdl:message name="huge_numberResponse">
+    <wsdl:part name="huge_numberResponse" element="s0:huge_numberResponse" />
+  </wsdl:message>
+  <wsdl:message name="long_string">
+    <wsdl:part name="long_string" element="s0:long_string" />
+  </wsdl:message>
+  <wsdl:message name="long_stringResponse">
+    <wsdl:part name="long_stringResponse" element="s0:long_stringResponse" />
+  </wsdl:message>
   <wsdl:message name="multi_param">
     <wsdl:part name="multi_param" element="s0:multi_param" />
   </wsdl:message>
@@ -586,17 +684,38 @@
   <wsdl:message name="test_emptyResponse">
     <wsdl:part name="test_emptyResponse" element="s0:test_emptyResponse" />
   </wsdl:message>
-  <plink:partnerLinkType name="ValidatingApplication">
-    <plink:role name="ValidatingApplication">
-      <plink:portType name="s0:ValidatingApplication" />
-    </plink:role>
-  </plink:partnerLinkType>
+  <wsdl:message name="InHeader">
+    <wsdl:part name="InHeader" element="s0:InHeader" />
+  </wsdl:message>
+  <wsdl:message name="OutHeader">
+    <wsdl:part name="OutHeader" element="s0:OutHeader" />
+  </wsdl:message>
+  <wsdl:message name="echo_in_header">
+    <wsdl:part name="echo_in_header" element="s0:echo_in_header" />
+  </wsdl:message>
+  <wsdl:message name="echo_in_headerResponse">
+    <wsdl:part name="echo_in_headerResponse" element="s0:echo_in_headerResponse" />
+  </wsdl:message>
+  <wsdl:message name="send_out_header">
+    <wsdl:part name="send_out_header" element="s0:send_out_header" />
+  </wsdl:message>
+  <wsdl:message name="send_out_headerResponse">
+    <wsdl:part name="send_out_headerResponse" element="s0:send_out_headerResponse" />
+  </wsdl:message>
   <wsdl:service name="ValidatingApplication">
     <wsdl:port name="ValidatingApplication" binding="s0:ValidatingApplication">
       <soap:address location="http://localhost:9753/?wsdl" />
     </wsdl:port>
   </wsdl:service>
   <wsdl:portType name="ValidatingApplication">
+    <wsdl:operation name="echo_any" parameterOrder="echo_any">
+      <wsdl:input name="echo_any" message="s0:echo_any" />
+      <wsdl:output name="echo_anyResponse" message="s0:echo_anyResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_any_as_dict" parameterOrder="echo_any_as_dict">
+      <wsdl:input name="echo_any_as_dict" message="s0:echo_any_as_dict" />
+      <wsdl:output name="echo_any_as_dictResponse" message="s0:echo_any_as_dictResponse" />
+    </wsdl:operation>
     <wsdl:operation name="echo_boolean" parameterOrder="echo_boolean">
       <wsdl:input name="echo_boolean" message="s0:echo_boolean" />
       <wsdl:output name="echo_booleanResponse" message="s0:echo_booleanResponse" />
@@ -685,6 +804,14 @@
       <wsdl:input name="do_something_else" message="s0:do_something_else" />
       <wsdl:output name="do_something_elseResponse" message="s0:do_something_elseResponse" />
     </wsdl:operation>
+    <wsdl:operation name="huge_number" parameterOrder="huge_number">
+      <wsdl:input name="huge_number" message="s0:huge_number" />
+      <wsdl:output name="huge_numberResponse" message="s0:huge_numberResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="long_string" parameterOrder="long_string">
+      <wsdl:input name="long_string" message="s0:long_string" />
+      <wsdl:output name="long_stringResponse" message="s0:long_stringResponse" />
+    </wsdl:operation>
     <wsdl:operation name="multi_param" parameterOrder="multi_param">
       <wsdl:input name="multi_param" message="s0:multi_param" />
       <wsdl:output name="multi_paramResponse" message="s0:multi_paramResponse" />
@@ -701,9 +828,35 @@
       <wsdl:input name="test_empty" message="s0:test_empty" />
       <wsdl:output name="test_emptyResponse" message="s0:test_emptyResponse" />
     </wsdl:operation>
+    <wsdl:operation name="echo_in_header" parameterOrder="echo_in_header">
+      <wsdl:input name="echo_in_header" message="s0:echo_in_header" />
+      <wsdl:output name="echo_in_headerResponse" message="s0:echo_in_headerResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="send_out_header" parameterOrder="send_out_header">
+      <wsdl:input name="send_out_header" message="s0:send_out_header" />
+      <wsdl:output name="send_out_headerResponse" message="s0:send_out_headerResponse" />
+    </wsdl:operation>
   </wsdl:portType>
   <wsdl:binding name="ValidatingApplication" type="s0:ValidatingApplication">
     <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="echo_any">
+      <soap:operation soapAction="echo_any" style="document" />
+      <wsdl:input name="echo_any">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_anyResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_any_as_dict">
+      <soap:operation soapAction="echo_any_as_dict" style="document" />
+      <wsdl:input name="echo_any_as_dict">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_any_as_dictResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
     <wsdl:operation name="echo_boolean">
       <soap:operation soapAction="echo_boolean" style="document" />
       <wsdl:input name="echo_boolean">
@@ -767,7 +920,6 @@
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
-    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
     <wsdl:operation name="echo_array_in_array">
       <soap:operation soapAction="echo_array_in_array" style="document" />
       <wsdl:input name="echo_array_in_array">
@@ -831,7 +983,6 @@
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
-    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
     <wsdl:operation name="echo_attachment">
       <soap:operation soapAction="echo_attachment" style="document" />
       <wsdl:input name="echo_attachment">
@@ -895,13 +1046,30 @@
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
-    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
     <wsdl:operation name="do_something_else">
       <soap:operation soapAction="do_something" style="document" />
       <wsdl:input name="do_something_else">
         <soap:body use="literal" />
       </wsdl:input>
       <wsdl:output name="do_something_elseResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="huge_number">
+      <soap:operation soapAction="huge_number" style="document" />
+      <wsdl:input name="huge_number">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="huge_numberResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="long_string">
+      <soap:operation soapAction="long_string" style="document" />
+      <wsdl:input name="long_string">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="long_stringResponse">
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
@@ -939,6 +1107,28 @@
       </wsdl:input>
       <wsdl:output name="test_emptyResponse">
         <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_in_header">
+      <soap:operation soapAction="echo_in_header" style="document" />
+      <wsdl:input name="echo_in_header">
+        <soap:body use="literal" />
+        <soap:header use="literal" message="s0:InHeader" part="InHeader" />
+      </wsdl:input>
+      <wsdl:output name="echo_in_headerResponse">
+        <soap:body use="literal" />
+        <soap:header use="literal" message="s0:InHeader" part="InHeader" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="send_out_header">
+      <soap:operation soapAction="send_out_header" style="document" />
+      <wsdl:input name="send_out_header">
+        <soap:body use="literal" />
+        <soap:header use="literal" message="s0:InHeader" part="InHeader" />
+      </wsdl:input>
+      <wsdl:output name="send_out_headerResponse">
+        <soap:body use="literal" />
+        <soap:header use="literal" message="s0:InHeader" part="InHeader" />
       </wsdl:output>
     </wsdl:operation>
   </wsdl:binding>

@@ -35,6 +35,8 @@ from soaplib import service
 from soaplib.service import rpc
 from soaplib.wsgi import ValidatingApplication
 
+from datetime import datetime
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -76,6 +78,30 @@ DaysOfWeekEnum = Enum(
     'Sunday',
     type_name = 'DaysOfWeekEnum'
 )
+
+class InHeader(ClassSerializer):
+    s=String
+    i=Integer
+
+class OutHeader(ClassSerializer):
+    dt=DateTime
+    f=Float
+
+class InteropServiceWithHeader(service.DefinitionBase):
+    __in_header__ = InHeader
+    __out_header__ = OutHeader
+
+    @rpc(_returns=InHeader)
+    def echo_in_header(self):
+        return self.soap_in_header
+
+    @rpc(_returns=OutHeader)
+    def send_out_header(self, xml):
+        self.soap_out_header = OutHeader()
+        self.soap_out_header.dt = datetime(year=2000, month=01, day=01)
+        self.soap_out_header.f = 3.141592653
+
+        return self.soap_out_header
 
 class InteropPrimitive(service.DefinitionBase):
     @rpc(Any, _returns=Any)
@@ -206,6 +232,7 @@ services = [
     InteropArray,
     InteropClass,
     InteropMisc,
+    InteropServiceWithHeader,
 ]
 
 application = ValidatingApplication(services, tns=__name__)

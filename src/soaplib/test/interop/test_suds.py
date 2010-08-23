@@ -53,6 +53,29 @@ class TestSuds(unittest.TestCase):
         ia.integer.extend([1,2,3,4,5])
         self.client.service.echo_integer_array(ia)
 
+    def test_echo_in_header(self):
+        in_header = self.client.factory.create('InHeader')
+        in_header.s = 'a'
+        in_header.i = 3
+
+        self.client.set_options(soapheaders=in_header)
+        ret = self.client.service.echo_in_header()
+        self.client.set_options(soapheaders=None)
+
+        print ret
+
+        self.assertEquals(in_header.s, ret.s)
+        self.assertEquals(in_header.i, ret.i)
+
+    def test_send_out_header(self):
+        #self.soap_out_header.dt = datetime(year=2000, month=01, day=01)
+        #self.soap_out_header.f = 3.141592653
+
+        ret = self.client.service.send_out_header()
+
+        print ret
+        raise Exception("test something!")
+
     def test_echo_string(self):
         test_string = "OK"
         ret = self.client.service.echo_string(test_string)
