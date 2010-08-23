@@ -196,9 +196,6 @@ class Application(object):
         # TODO: we may want to customize service_name.
         service_name = self.__class__.__name__.split('.')[-1]
 
-        # this needs to run before creating definitions tag in order to get
-        # soaplib.nsmap populated.
-
         # create wsdl root node
         root = etree.Element("{%s}definitions" % ns_wsdl, nsmap=soaplib.nsmap)
         root.set('targetNamespace', ns_tns)
