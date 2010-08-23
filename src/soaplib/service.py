@@ -350,10 +350,8 @@ class DefinitionBase(object):
 
     def add_port_type(self, root, service_name, types, url, port_type):
         ns_wsdl = soaplib.ns_wsdl
-        ns_tns = self.get_tns()
-        pref_tns = soaplib.get_namespace_prefix(ns_tns)
 
-        # FIXME: I don't think it is working.
+        # FIXME: I don't think this call is working.
         cb_port_type = self.__add_callbacks(root, types, service_name, url)
 
         for method in self.public_methods:
@@ -374,14 +372,12 @@ class DefinitionBase(object):
 
             op_input = etree.SubElement(operation, '{%s}input' % ns_wsdl)
             op_input.set('name', method.in_message.get_type_name())
-            op_input.set('message', '%s:%s' % (pref_tns,
-                                             method.in_message.get_type_name()))
+            op_input.set('message', method.in_message.get_type_name_ns())
 
             if (not method.is_callback) and (not method.is_async):
                 op_output = etree.SubElement(operation, '{%s}output' %  ns_wsdl)
                 op_output.set('name', method.out_message.get_type_name())
-                op_output.set('message', '%s:%s' % (pref_tns,
-                                            method.out_message.get_type_name()))
+                op_output.set('message', method.out_message.get_type_name_ns())
 
     # FIXME: I don't think this is working.
     def __add_callbacks(self, root, types, service_name, url):
@@ -444,7 +440,7 @@ class DefinitionBase(object):
 
         return cb_port_type
 
-    def add_schema(self, schema_entries=None):
+    def add_schema(self, schema_entries):
         '''
         A private method for adding the appropriate entries
         to the schema for the types in the specified methods.
@@ -513,7 +509,6 @@ class DefinitionBase(object):
         ns_wsdl = soaplib.ns_wsdl
         ns_soap = soaplib.ns_soap
         pref_tns = soaplib.get_namespace_prefix(self.get_tns())
-        pref_xsd = soaplib.get_namespace_prefix(soaplib.ns_xsd)
 
         if self._has_callbacks():
             if cb_binding is None:

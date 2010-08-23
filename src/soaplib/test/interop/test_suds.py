@@ -22,7 +22,6 @@ import unittest
 from suds.client import Client
 from suds import WebFault
 from datetime import datetime
-from lxml import etree
 
 class TestSuds(unittest.TestCase):
     def setUp(self):
