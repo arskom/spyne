@@ -149,7 +149,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
 
         for k, v in cls._type_info.items():
             subvalue = getattr(value, k, None)
-            subelement = v.to_xml(subvalue, tns, k)
+            subelement = v.to_xml(subvalue, cls.get_namespace(), k)
             element.append(subelement)
 
         clz = getattr(cls,'__extends__', None)
