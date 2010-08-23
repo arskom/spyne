@@ -117,6 +117,11 @@ def rpc(*params, **kparams):
                 in_message = get_input_message(ns)
                 out_message = get_output_message(ns)
 
+                if not (_in_header is None):
+                    _in_header.resolve_namespace(ns)
+                if not (_out_header is None):
+                    _out_header.resolve_namespace(ns)
+
                 doc = getattr(f, '__doc__')
                 descriptor = MethodDescriptor(f.func_name, _public_name,
                         in_message, out_message, doc, _is_callback, _is_async,
@@ -455,9 +460,11 @@ class DefinitionBase(object):
             schema_entries = _SchemaEntries(self.get_tns())
 
         if self.__in_header__ != None:
+            self.__in_header__.resolve_namespace(self.get_tns())
             self.__in_header__.add_to_schema(schema_entries)
 
         if self.__out_header__ != None:
+            self.__out_header__.resolve_namespace(self.get_tns())
             self.__out_header__.add_to_schema(schema_entries)
 
         for method in self.public_methods:
