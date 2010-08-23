@@ -208,11 +208,12 @@ class Application(object):
         types = etree.SubElement(root, "{%s}types" % ns_wsdl)
 
         self.build_schema(types)
+        messages = set()
 
         for s in self.services:
             s=self.get_service(s,None)
 
-            s.add_messages_for_methods(root, service_name, types, url)
+            s.add_messages_for_methods(root, messages)
 
         if self._with_plink:
             # create plink node
@@ -417,7 +418,6 @@ class Application(object):
             descriptor = service.get_method(method_name)
             func = getattr(service, descriptor.name)
 
-            print soap_req_header, len(soap_req_header)
             # decode header object
             if soap_req_header is not None and len(soap_req_header) > 0:
                 service.soap_in_header = descriptor.in_header.from_xml(soap_req_header)
@@ -453,9 +453,10 @@ class Application(object):
                 soap_resp_body = descriptor.out_message.to_xml(result_message,
                                                               self.get_tns())
             soap_resp_header = None
-            if not (descriptor.out_header is None):
+            if not (descriptor.out_header is None or service.soap_out_header is None):
                 soap_resp_header = descriptor.out_header.to_xml(
-                                       service.soap_out_header, self.get_tns())
+                                        service.soap_out_header, self.get_tns(),
+                                        descriptor.out_header.get_type_name())
 
             # implementation hook
             service.on_method_return(req_env, result_raw, soap_resp_body,

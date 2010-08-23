@@ -483,8 +483,10 @@ class DefinitionBase(object):
 
         return schema_entries
 
-    def __add_message_for_object(self, root, obj):
-        if obj != None:
+    def __add_message_for_object(self, root, messages, obj):
+        if obj != None and not (obj.get_type_name() in messages):
+            messages.add(obj.get_type_name())
+
             message = etree.SubElement(root, '{%s}message' % soaplib.ns_wsdl)
             message.set('name', obj.get_type_name())
 
@@ -492,18 +494,18 @@ class DefinitionBase(object):
             part.set('name', obj.get_type_name())
             part.set('element', obj.get_type_name_ns())
 
-    def add_messages_for_methods(self, root, service_name, types, url):
+    def add_messages_for_methods(self, root, messages):
         '''
         A private method for adding message elements to the wsdl
         @param the the root element of the wsdl
         '''
 
-        self.__add_message_for_object(root, self.__in_header__)
-        self.__add_message_for_object(root, self.__out_header__)
-
         for method in self.public_methods:
-            self.__add_message_for_object(root, method.in_message)
-            self.__add_message_for_object(root, method.out_message)
+            self.__add_message_for_object(root, messages, method.in_message)
+            self.__add_message_for_object(root, messages, method.out_message)
+            self.__add_message_for_object(root, messages, method.in_header)
+            self.__add_message_for_object(root, messages, method.out_header)
+
 
     def add_bindings_for_methods(self, root, service_name, types, url, binding, cb_binding=None):
         '''

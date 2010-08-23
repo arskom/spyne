@@ -684,17 +684,17 @@
   <wsdl:message name="test_emptyResponse">
     <wsdl:part name="test_emptyResponse" element="s0:test_emptyResponse" />
   </wsdl:message>
-  <wsdl:message name="InHeader">
-    <wsdl:part name="InHeader" element="s0:InHeader" />
-  </wsdl:message>
-  <wsdl:message name="OutHeader">
-    <wsdl:part name="OutHeader" element="s0:OutHeader" />
-  </wsdl:message>
   <wsdl:message name="echo_in_header">
     <wsdl:part name="echo_in_header" element="s0:echo_in_header" />
   </wsdl:message>
   <wsdl:message name="echo_in_headerResponse">
     <wsdl:part name="echo_in_headerResponse" element="s0:echo_in_headerResponse" />
+  </wsdl:message>
+  <wsdl:message name="InHeader">
+    <wsdl:part name="InHeader" element="s0:InHeader" />
+  </wsdl:message>
+  <wsdl:message name="OutHeader">
+    <wsdl:part name="OutHeader" element="s0:OutHeader" />
   </wsdl:message>
   <wsdl:message name="send_out_header">
     <wsdl:part name="send_out_header" element="s0:send_out_header" />
