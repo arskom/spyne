@@ -75,3 +75,13 @@ def get_namespace_prefix(ns):
         pref = prefmap[ns]
 
     return pref
+
+def set_namespace_prefix(ns, pref):
+    if pref in nsmap and nsmap[pref] != ns:
+        raise Exception("sorry, prefix %r already exists. try that earlier" % pref)
+
+    cpref = get_namespace_prefix(ns)
+    del nsmap[cpref]
+
+    prefmap[ns] = pref
+    nsmap[pref] = ns
