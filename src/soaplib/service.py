@@ -193,10 +193,8 @@ class _SchemaEntries(object):
                 seq = c.getchildren()[0].getchildren()[0] # FIXME: ugly, isn't it?
 
                 extension = c.getchildren()[0]
-                print extension.tag
                 if extension.tag == '{%s}extension' % soaplib.ns_xsd:
                     pref = extension.attrib['base'].split(':')[0]
-                    print '-e',pref
                     if is_valid_import(pref):
                         self.imports[pref_tns].add(soaplib.nsmap[pref])
             else:
@@ -205,13 +203,11 @@ class _SchemaEntries(object):
             if seq.tag == '{%s}sequence' % soaplib.ns_xsd:
                 for e in seq:
                     pref = e.attrib['type'].split(':')[0]
-                    print '-s', pref
                     if is_valid_import(pref):
                         self.imports[pref_tns].add(soaplib.nsmap[pref])
 
             elif seq.tag == '{%s}restriction' % soaplib.ns_xsd:
                 pref = seq.attrib['base'].split(':')[0]
-                print '-k',pref
                 if is_valid_import(pref):
                     self.imports[pref_tns].add(soaplib.nsmap[pref])
 
