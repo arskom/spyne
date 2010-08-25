@@ -21,6 +21,14 @@ from lxml import etree
 
 from soaplib.util.odict import odict
 
+def root_dict_to_etree(d):
+    assert len(d) == 1
+
+    retval = etree.Element(d.keys()[0])
+    dict_to_etree(retval, d.values()[0])
+
+    return retval
+
 def dict_to_etree(parent, d):
     """the dict values are either dicts or iterables"""
 
