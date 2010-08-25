@@ -177,24 +177,42 @@ class _SchemaEntries(object):
     # FIXME: this is an ugly hack. we need proper dependency management
     def __check_imports(self, cls, node):
         pref_tns = cls.get_namespace_prefix()
+        pref_own = soaplib.get_namespace_prefix(self.tns)
+
+        def is_valid_import(pref):
+            return not (
+                (pref in soaplib.const_nsmap) or
+                (pref in (pref_own, pref_tns))
+            )
+
         if not (pref_tns in self.imports):
             self.imports[pref_tns] = set()
 
         for c in node:
             if c.tag == "{%s}complexContent" % soaplib.ns_xsd:
                 seq = c.getchildren()[0].getchildren()[0] # FIXME: ugly, isn't it?
+
+                extension = c.getchildren()[0]
+                print extension.tag
+                if extension.tag == '{%s}extension' % soaplib.ns_xsd:
+                    pref = extension.attrib['base'].split(':')[0]
+                    print '-e',pref
+                    if is_valid_import(pref):
+                        self.imports[pref_tns].add(soaplib.nsmap[pref])
             else:
                 seq = c
 
             if seq.tag == '{%s}sequence' % soaplib.ns_xsd:
                 for e in seq:
                     pref = e.attrib['type'].split(':')[0]
-                    if not ((pref in soaplib.const_nsmap) or (pref == pref_tns)):
+                    print '-s', pref
+                    if is_valid_import(pref):
                         self.imports[pref_tns].add(soaplib.nsmap[pref])
 
             elif seq.tag == '{%s}restriction' % soaplib.ns_xsd:
                 pref = seq.attrib['base'].split(':')[0]
-                if not ((pref in soaplib.const_nsmap) or (pref == pref_tns)):
+                print '-k',pref
+                if is_valid_import(pref):
                     self.imports[pref_tns].add(soaplib.nsmap[pref])
 
             else:

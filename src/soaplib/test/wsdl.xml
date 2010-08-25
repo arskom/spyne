@@ -499,6 +499,7 @@
       </xs:complexType>
     </xs:schema>
     <xs:schema targetNamespace="bar" elementFormDefault="qualified">
+      <xs:import namespace="punk.tunk" />
       <xs:import namespace="hunk.sunk" />
       <xs:element name="ExtensionClass" type="s1:ExtensionClass" />
       <xs:complexType name="ExtensionClass">
