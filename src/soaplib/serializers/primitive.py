@@ -44,8 +44,8 @@ _local_re = re.compile(_datetime_pattern)
 _utc_re = re.compile(_datetime_pattern + 'Z')
 _offset_re = re.compile(_datetime_pattern + _offset_pattern)
 
-_ns_xs = soaplib.nsmap['xs']
-_ns_xsi = soaplib.nsmap['xsi']
+_ns_xs = soaplib.ns_xsd
+_ns_xsi = soaplib.ns_xsi
 
 class Any(SimpleType):
     __type_name__ = 'anyType'
@@ -289,7 +289,7 @@ class Array(SimpleType):
         cls.serializer.resolve_namespace(default_ns)
 
         if cls.__namespace__ is None:
-            if cls.serializer.get_namespace() != soaplib.nsmap['xs']:
+            if cls.serializer.get_namespace() != soaplib.ns_xsd:
                 cls.__namespace__ = cls.serializer.get_namespace()
             else:
                 cls.__namespace__ = default_ns

@@ -8,7 +8,7 @@ from base import string_to_xml
 
 import soaplib
 
-_ns_xs = soaplib.nsmap['xs']
+_ns_xs = soaplib.ns_xsd
 
 # adapted from: http://code.activestate.com/recipes/413486/
 
@@ -87,7 +87,8 @@ def Enum(*values, **kwargs):
 
                 restriction = etree.SubElement(simple_type,
                                                     '{%s}restriction' % _ns_xs)
-                restriction.set('base', 'xs:string')
+                restriction.set('base', '%s:string' %
+                                   soaplib.get_namespace_prefix(soaplib.ns_xsd))
 
                 for v in values:
                     enumeration = etree.SubElement(restriction,
