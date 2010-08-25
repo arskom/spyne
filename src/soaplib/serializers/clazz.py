@@ -166,6 +166,8 @@ class ClassSerializerBase(NonExtendingClass, Base):
         children = element.getchildren()
 
         for c in children:
+            if isinstance(c, etree._Comment):
+                continue
             key = c.tag.split('}')[-1]
 
             member = cls._type_info.get(key, None)
