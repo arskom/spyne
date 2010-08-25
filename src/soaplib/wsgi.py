@@ -369,7 +369,7 @@ class Application(object):
     def __handle_soap_request(self, req_env, start_response, url):
         http_resp_headers = {
             'Content-Type': 'text/xml',
-            'Content-Length': 0,
+            'Content-Length': '0',
         }
         method_name = None
 
