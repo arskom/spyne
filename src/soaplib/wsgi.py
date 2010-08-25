@@ -468,6 +468,7 @@ class Application(object):
                 http_resp_headers, results_str = apply_mtom(http_resp_headers,
                     results_str,descriptor.out_message._type_info,[result_raw])
 
+            # implementation hook
             self.on_return(req_env, http_resp_headers, results_str)
 
             # initiate the response
@@ -499,10 +500,10 @@ class Application(object):
                 logger.debug(etree.tostring(etree.fromstring(fault_str),
                                                             pretty_print=True))
 
-            if service is None:
-                self.on_exception(req_env,e,fault_str)
-            else:
+            # implementation hook
+            if not (service is None):
                 service.on_method_exception(req_env, e, fault_xml, fault_str)
+            self.on_exception(req_env,e,fault_str)
 
             # initiate the response
             http_resp_headers['Content-Length'] = str(len(fault_str))
@@ -541,7 +542,10 @@ class Application(object):
                 logger.debug(etree.tostring(etree.fromstring(fault_str),
                                                             pretty_print=True))
 
-            self.on_exception(req_env, e, fault_str)
+            # implementation hook
+            if not (service is None):
+                service.on_method_exception(req_env, e, fault_xml, fault_str)
+            self.on_exception(req_env,e,fault_str)
 
             # initiate the response
             http_resp_headers['Content-Length'] = str(len(fault_str))
@@ -581,6 +585,7 @@ class Application(object):
     def on_wsdl(self, environ, wsdl):
         '''
         This is called when a wsdl is requested
+
         @param the wsgi environment
         @param the wsdl string
         '''
@@ -589,6 +594,7 @@ class Application(object):
     def on_wsdl_exception(self, environ, exc, resp):
         '''
         Called when an exception occurs durring wsdl generation
+
         @param the wsgi environment
         @param exc the exception
         @param the fault response string
@@ -598,6 +604,7 @@ class Application(object):
     def on_return(self, environ, http_headers, return_str):
         '''
         Called before the application returns
+
         @param the wsgi environment
         @param http response headers as dict
         @param return string of the soap request
@@ -606,7 +613,9 @@ class Application(object):
 
     def on_exception(self, environ, fault, fault_str):
         '''
-        Called before the application returns
+        Called when the app throws an exception. (might be inside or outside the
+        service call.
+
         @param the wsgi environment
         @param the fault
         @param string of the fault
