@@ -1,7 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
-<wsdl:definitions xmlns:plink="http://schemas.xmlsoap.org/ws/2003/05/partner-link/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsa="http://schemas.xmlsoap.org/ws/2003/03/addressing" xmlns:tns="soaplib.test.interop.server._service" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:senc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:s12env="http://www.w3.org/2003/05/soap-envelope/" xmlns:s12enc="http://www.w3.org/2003/05/soap-encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="soaplib.test.interop.server._service" name="ValidatingApplication">
+<wsdl:definitions xmlns:plink="http://schemas.xmlsoap.org/ws/2003/05/partner-link/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsa="http://schemas.xmlsoap.org/ws/2003/03/addressing" xmlns:tns="soaplib.test.interop.server._service" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:s3="hunk.sunk" xmlns:senc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:s1="bar" xmlns:s12env="http://www.w3.org/2003/05/soap-envelope/" xmlns:s2="punk.tunk" xmlns:s12enc="http://www.w3.org/2003/05/soap-encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="soaplib.test.interop.server._service" name="ValidatingApplication">
   <wsdl:types>
     <xs:schema targetNamespace="soaplib.test.interop.server._service" elementFormDefault="qualified">
+      <xs:import namespace="punk.tunk" />
+      <xs:import namespace="bar" />
+      <xs:import namespace="hunk.sunk" />
       <xs:element name="echo_any" type="tns:echo_any" />
       <xs:element name="echo_anyResponse" type="tns:echo_anyResponse" />
       <xs:element name="echo_any_as_dict" type="tns:echo_any_as_dict" />
@@ -46,17 +49,10 @@
       <xs:element name="base64BinaryArray" type="tns:base64BinaryArray" />
       <xs:element name="echo_attachment_array" type="tns:echo_attachment_array" />
       <xs:element name="echo_attachment_arrayResponse" type="tns:echo_attachment_arrayResponse" />
-      <xs:element name="SimpleClass" type="tns:SimpleClass" />
-      <xs:element name="SimpleClassArray" type="tns:SimpleClassArray" />
-      <xs:element name="OtherClass" type="tns:OtherClass" />
-      <xs:element name="NestedClass" type="tns:NestedClass" />
-      <xs:element name="NonNillableClass" type="tns:NonNillableClass" />
-      <xs:element name="ExtensionClass" type="tns:ExtensionClass" />
       <xs:element name="echo_extension_class" type="tns:echo_extension_class" />
       <xs:element name="echo_extension_classResponse" type="tns:echo_extension_classResponse" />
       <xs:element name="echo_nested_class" type="tns:echo_nested_class" />
       <xs:element name="echo_nested_classResponse" type="tns:echo_nested_classResponse" />
-      <xs:element name="NestedClassArray" type="tns:NestedClassArray" />
       <xs:element name="echo_nested_class_array" type="tns:echo_nested_class_array" />
       <xs:element name="echo_nested_class_arrayResponse" type="tns:echo_nested_class_arrayResponse" />
       <xs:element name="echo_simple_class" type="tns:echo_simple_class" />
@@ -313,109 +309,54 @@
           <xs:element name="echo_attachment_arrayResult" minOccurs="0" type="tns:base64BinaryArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="SimpleClass">
-        <xs:sequence>
-          <xs:element name="i" minOccurs="0" type="xs:integer" nillable="true" />
-          <xs:element name="s" minOccurs="0" type="xs:string" nillable="true" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="SimpleClassArray">
-        <xs:sequence>
-          <xs:element name="SimpleClass" type="tns:SimpleClass" minOccurs="0" maxOccurs="unbounded" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="OtherClass">
-        <xs:sequence>
-          <xs:element name="b" minOccurs="0" type="xs:boolean" nillable="true" />
-          <xs:element name="d" minOccurs="0" type="xs:double" nillable="true" />
-          <xs:element name="dt" minOccurs="0" type="xs:dateTime" nillable="true" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="NestedClass">
-        <xs:sequence>
-          <xs:element name="f" minOccurs="0" type="xs:float" nillable="true" />
-          <xs:element name="simple" minOccurs="0" type="tns:SimpleClassArray" nillable="true" />
-          <xs:element name="i" minOccurs="0" type="xs:integer" nillable="true" />
-          <xs:element name="s" minOccurs="0" type="xs:string" nillable="true" />
-          <xs:element name="other" minOccurs="0" type="tns:OtherClass" nillable="true" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:simpleType name="NonNillableClass_sType">
-        <xs:restriction base="xs:string">
-          <xs:minLength value="1" />
-        </xs:restriction>
-      </xs:simpleType>
-      <xs:complexType name="NonNillableClass">
-        <xs:sequence>
-          <xs:element name="i" minOccurs="0" type="xs:integer" nillable="false" />
-          <xs:element name="s" minOccurs="0" type="tns:NonNillableClass_sType" nillable="false" />
-          <xs:element name="dt" type="xs:dateTime" nillable="false" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="ExtensionClass">
-        <xs:complexContent>
-          <xs:extension base="tns:NestedClass">
-            <xs:sequence>
-              <xs:element name="l" minOccurs="0" type="xs:dateTime" nillable="true" />
-              <xs:element name="q" minOccurs="0" type="xs:integer" nillable="true" />
-              <xs:element name="p" minOccurs="0" type="tns:NonNillableClass" nillable="true" />
-            </xs:sequence>
-          </xs:extension>
-        </xs:complexContent>
-      </xs:complexType>
       <xs:complexType name="echo_extension_class">
         <xs:sequence>
-          <xs:element name="nc" minOccurs="0" type="tns:ExtensionClass" nillable="true" />
+          <xs:element name="nc" minOccurs="0" type="s1:ExtensionClass" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_extension_classResponse">
         <xs:sequence>
-          <xs:element name="echo_extension_classResult" minOccurs="0" type="tns:ExtensionClass" nillable="true" />
+          <xs:element name="echo_extension_classResult" minOccurs="0" type="s1:ExtensionClass" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_nested_class">
         <xs:sequence>
-          <xs:element name="nc" minOccurs="0" type="tns:NestedClass" nillable="true" />
+          <xs:element name="nc" minOccurs="0" type="s2:NestedClass" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_nested_classResponse">
         <xs:sequence>
-          <xs:element name="echo_nested_classResult" minOccurs="0" type="tns:NestedClass" nillable="true" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="NestedClassArray">
-        <xs:sequence>
-          <xs:element name="NestedClass" type="tns:NestedClass" minOccurs="0" maxOccurs="unbounded" />
+          <xs:element name="echo_nested_classResult" minOccurs="0" type="s2:NestedClass" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_nested_class_array">
         <xs:sequence>
-          <xs:element name="nca" minOccurs="0" type="tns:NestedClassArray" nillable="true" />
+          <xs:element name="nca" minOccurs="0" type="s2:NestedClassArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_nested_class_arrayResponse">
         <xs:sequence>
-          <xs:element name="echo_nested_class_arrayResult" minOccurs="0" type="tns:NestedClassArray" nillable="true" />
+          <xs:element name="echo_nested_class_arrayResult" minOccurs="0" type="s2:NestedClassArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_simple_class">
         <xs:sequence>
-          <xs:element name="sc" minOccurs="0" type="tns:SimpleClass" nillable="true" />
+          <xs:element name="sc" minOccurs="0" type="s2:SimpleClass" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_simple_classResponse">
         <xs:sequence>
-          <xs:element name="echo_simple_classResult" minOccurs="0" type="tns:SimpleClass" nillable="true" />
+          <xs:element name="echo_simple_classResult" minOccurs="0" type="s2:SimpleClass" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_simple_class_array">
         <xs:sequence>
-          <xs:element name="sca" minOccurs="0" type="tns:SimpleClassArray" nillable="true" />
+          <xs:element name="sca" minOccurs="0" type="s2:SimpleClassArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_simple_class_arrayResponse">
         <xs:sequence>
-          <xs:element name="echo_simple_class_arrayResult" minOccurs="0" type="tns:SimpleClassArray" nillable="true" />
+          <xs:element name="echo_simple_class_arrayResult" minOccurs="0" type="s2:SimpleClassArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="do_something_else">
@@ -452,7 +393,7 @@
       </xs:complexType>
       <xs:complexType name="non_nillable">
         <xs:sequence>
-          <xs:element name="n" minOccurs="0" type="tns:NonNillableClass" nillable="true" />
+          <xs:element name="n" minOccurs="0" type="s3:NonNillableClass" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="non_nillableResponse">
@@ -501,6 +442,75 @@
         <xs:sequence>
           <xs:element name="send_out_headerResult" minOccurs="0" type="tns:OutHeader" nillable="true" />
         </xs:sequence>
+      </xs:complexType>
+    </xs:schema>
+    <xs:schema targetNamespace="punk.tunk" elementFormDefault="qualified">
+      <xs:element name="SimpleClass" type="s2:SimpleClass" />
+      <xs:element name="SimpleClassArray" type="s2:SimpleClassArray" />
+      <xs:element name="OtherClass" type="s2:OtherClass" />
+      <xs:element name="NestedClass" type="s2:NestedClass" />
+      <xs:element name="NestedClassArray" type="s2:NestedClassArray" />
+      <xs:complexType name="SimpleClass">
+        <xs:sequence>
+          <xs:element name="i" minOccurs="0" type="xs:integer" nillable="true" />
+          <xs:element name="s" minOccurs="0" type="xs:string" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="SimpleClassArray">
+        <xs:sequence>
+          <xs:element name="SimpleClass" type="s2:SimpleClass" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="OtherClass">
+        <xs:sequence>
+          <xs:element name="b" minOccurs="0" type="xs:boolean" nillable="true" />
+          <xs:element name="d" minOccurs="0" type="xs:double" nillable="true" />
+          <xs:element name="dt" minOccurs="0" type="xs:dateTime" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="NestedClass">
+        <xs:sequence>
+          <xs:element name="f" minOccurs="0" type="xs:float" nillable="true" />
+          <xs:element name="simple" minOccurs="0" type="s2:SimpleClassArray" nillable="true" />
+          <xs:element name="i" minOccurs="0" type="xs:integer" nillable="true" />
+          <xs:element name="s" minOccurs="0" type="xs:string" nillable="true" />
+          <xs:element name="other" minOccurs="0" type="s2:OtherClass" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="NestedClassArray">
+        <xs:sequence>
+          <xs:element name="NestedClass" type="s2:NestedClass" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+      </xs:complexType>
+    </xs:schema>
+    <xs:schema targetNamespace="hunk.sunk" elementFormDefault="qualified">
+      <xs:element name="NonNillableClass" type="s3:NonNillableClass" />
+      <xs:simpleType name="NonNillableClass_sType">
+        <xs:restriction base="xs:string">
+          <xs:minLength value="1" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:complexType name="NonNillableClass">
+        <xs:sequence>
+          <xs:element name="i" minOccurs="0" type="xs:integer" nillable="false" />
+          <xs:element name="s" minOccurs="0" type="s3:NonNillableClass_sType" nillable="false" />
+          <xs:element name="dt" type="xs:dateTime" nillable="false" />
+        </xs:sequence>
+      </xs:complexType>
+    </xs:schema>
+    <xs:schema targetNamespace="bar" elementFormDefault="qualified">
+      <xs:import namespace="hunk.sunk" />
+      <xs:element name="ExtensionClass" type="s1:ExtensionClass" />
+      <xs:complexType name="ExtensionClass">
+        <xs:complexContent>
+          <xs:extension base="s2:NestedClass">
+            <xs:sequence>
+              <xs:element name="l" minOccurs="0" type="xs:dateTime" nillable="true" />
+              <xs:element name="q" minOccurs="0" type="xs:integer" nillable="true" />
+              <xs:element name="p" minOccurs="0" type="s3:NonNillableClass" nillable="true" />
+            </xs:sequence>
+          </xs:extension>
+        </xs:complexContent>
       </xs:complexType>
     </xs:schema>
   </wsdl:types>

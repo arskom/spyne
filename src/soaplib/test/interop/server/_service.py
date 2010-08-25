@@ -50,6 +50,8 @@ class OtherClass(ClassSerializer):
     b = Boolean
 
 class NestedClass(ClassSerializer):
+    __namespace__ = "punk.tunk"
+
     simple = Array(SimpleClass)
     s = String
     i = Integer
@@ -57,6 +59,8 @@ class NestedClass(ClassSerializer):
     other = OtherClass
 
 class NonNillableClass(ClassSerializer):
+    __namespace__ = "hunk.sunk"
+
     nillable = False
     min_occurs = 1
 
@@ -65,6 +69,8 @@ class NonNillableClass(ClassSerializer):
     s = String(min_len=1, nillable=False)
 
 class ExtensionClass(NestedClass):
+    __namespace__ = "bar"
+
     p = NonNillableClass
     l = DateTime
     q = Integer
