@@ -246,7 +246,7 @@ class Application(object):
             cb_binding = s.add_bindings_for_methods(root, service_name, types,
                                                        url, binding, cb_binding)
 
-        self.__wsdl = etree.tostring(root, xml_declaration=True, encoding="UTF-8", pretty_print=True)
+        self.__wsdl = etree.tostring(root, xml_declaration=True, encoding="UTF-8")
 
         return self.__wsdl
 
