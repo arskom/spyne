@@ -47,7 +47,7 @@ class HelloWorldService(DefinitionBase):
 if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server
-        server = make_server('localhost', 7889, Application([HelloWorldService], 'tns'))
+        server = make_server('localhost', 7789, Application([HelloWorldService], 'tns'))
         server.serve_forever()
     except ImportError:
         print "Error: example server code requires Python >= 2.5"
