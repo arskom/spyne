@@ -204,7 +204,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
                 v.__namespace__ = cls.get_namespace()
                 v.__type_name__ = "%s_%sType" % (cls.get_type_name(), k)
 
-            v.resolve_namespace(cls.get_namespace())
+            v.resolve_namespace(default_ns)
 
     @classmethod
     def add_to_schema(cls, schema_entries):

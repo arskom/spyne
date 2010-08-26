@@ -37,7 +37,7 @@ class TestSuds(unittest.TestCase):
         assert val == ret
 
     def test_validation(self):
-        non_nillable_class = self.client.factory.create("NonNillableClass")
+        non_nillable_class = self.client.factory.create("{hunk.sunk}NonNillableClass")
         non_nillable_class.i = 6
         non_nillable_class.s = None
 
@@ -67,8 +67,9 @@ class TestSuds(unittest.TestCase):
         self.assertEquals(in_header.i, ret.i)
 
     def test_send_out_header(self):
-        #self.soap_out_header.dt = datetime(year=2000, month=01, day=01)
-        #self.soap_out_header.f = 3.141592653
+        out_header = self.client.factory.create('OutHeader')
+        out_header.dt = datetime(year=2000, month=01, day=01)
+        out_header.f = 3.141592653
 
         ret = self.client.service.send_out_header()
 
@@ -114,43 +115,39 @@ class TestSuds(unittest.TestCase):
         self.assertEquals(ret, val)
 
     def test_echo_simple_class(self):
-        service_name = "echo_nested_class";
-        val = self.client.factory.create("{%s}NestedClass" % self.ns);
+        val = self.client.factory.create("{punk.tunk}NestedClass");
 
         val.i = 45
         val.s = "asd"
         val.f = 12.34
 
-        val.simple = self.client.factory.create("{%s}SimpleClassArray" % self.ns)
+        val.simple = self.client.factory.create("{punk.tunk}SimpleClassArray")
 
-        val = self.client.factory.create("{%s}SimpleClass" % self.ns)
+        val = self.client.factory.create("SimpleClass")
 
         val.i = 45
         val.s = "asd"
 
-        ret = self.client.service.echo_simple_class(val)
+        self.client.service.echo_simple_class(val)
 
     def test_echo_nested_class(self):
-        service_name = "echo_nested_class";
-        val = self.client.factory.create("{%s}NestedClass" % self.ns);
+        val = self.client.factory.create("NestedClass");
 
         val.i = 45
         val.s = "asd"
         val.f = 12.34
 
-        val.simple = self.client.factory.create("{%s}SimpleClassArray" % self.ns)
+        val.simple = self.client.factory.create("SimpleClassArray")
 
-        val.simple.SimpleClass.append(self.client.factory.create(
-                                                    "{%s}SimpleClass" % self.ns))
-        val.simple.SimpleClass.append(self.client.factory.create(
-                                                    "{%s}SimpleClass" % self.ns))
+        val.simple.SimpleClass.append(self.client.factory.create("SimpleClass"))
+        val.simple.SimpleClass.append(self.client.factory.create("SimpleClass"))
 
         val.simple.SimpleClass[0].i = 45
         val.simple.SimpleClass[0].s = "asd"
         val.simple.SimpleClass[1].i = 12
         val.simple.SimpleClass[1].s = "qwe"
 
-        val.other = self.client.factory.create("{%s}OtherClass" % self.ns);
+        val.other = self.client.factory.create("OtherClass");
         val.other.dt = datetime.now()
         val.other.d = 123.456
         val.other.b = True
@@ -162,30 +159,28 @@ class TestSuds(unittest.TestCase):
 
     def test_echo_extension_class(self):
         service_name = "echo_extension_class";
-        val = self.client.factory.create("{%s}ExtensionClass" % self.ns);
+        val = self.client.factory.create("{bar}ExtensionClass");
 
         val.i = 45
         val.s = "asd"
         val.f = 12.34
 
-        val.simple = self.client.factory.create("{%s}SimpleClassArray" % self.ns)
+        val.simple = self.client.factory.create("SimpleClassArray")
 
-        val.simple.SimpleClass.append(self.client.factory.create(
-                                                    "{%s}SimpleClass" % self.ns))
-        val.simple.SimpleClass.append(self.client.factory.create(
-                                                    "{%s}SimpleClass" % self.ns))
+        val.simple.SimpleClass.append(self.client.factory.create("SimpleClass"))
+        val.simple.SimpleClass.append(self.client.factory.create("SimpleClass"))
 
         val.simple.SimpleClass[0].i = 45
         val.simple.SimpleClass[0].s = "asd"
         val.simple.SimpleClass[1].i = 12
         val.simple.SimpleClass[1].s = "qwe"
 
-        val.other = self.client.factory.create("{%s}OtherClass" % self.ns);
+        val.other = self.client.factory.create("OtherClass");
         val.other.dt = datetime.now()
         val.other.d = 123.456
         val.other.b = True
 
-        val.p = self.client.factory.create("{%s}NonNillableClass" % self.ns);
+        val.p = self.client.factory.create("{hunk.sunk}NonNillableClass");
         val.p.dt = datetime(2010,06,02)
         val.p.i = 123
         val.p.s = "punk"

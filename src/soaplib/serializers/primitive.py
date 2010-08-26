@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import logging
 import datetime
 import decimal
 import re
@@ -298,7 +299,7 @@ class Array(SimpleType):
                                             cls.__namespace__ == '__main__'):
             cls.__namespace__ = default_ns
 
-        cls.serializer.resolve_namespace(cls.get_namespace())
+        cls.serializer.resolve_namespace(default_ns)
 
     @classmethod
     @nillable_value

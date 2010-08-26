@@ -49,6 +49,9 @@
       <xs:element name="base64BinaryArray" type="tns:base64BinaryArray" />
       <xs:element name="echo_attachment_array" type="tns:echo_attachment_array" />
       <xs:element name="echo_attachment_arrayResponse" type="tns:echo_attachment_arrayResponse" />
+      <xs:element name="SimpleClass" type="tns:SimpleClass" />
+      <xs:element name="SimpleClassArray" type="tns:SimpleClassArray" />
+      <xs:element name="OtherClass" type="tns:OtherClass" />
       <xs:element name="echo_extension_class" type="tns:echo_extension_class" />
       <xs:element name="echo_extension_classResponse" type="tns:echo_extension_classResponse" />
       <xs:element name="echo_nested_class" type="tns:echo_nested_class" />
@@ -309,6 +312,24 @@
           <xs:element name="echo_attachment_arrayResult" minOccurs="0" type="tns:base64BinaryArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
+      <xs:complexType name="SimpleClass">
+        <xs:sequence>
+          <xs:element name="i" minOccurs="0" type="xs:integer" nillable="true" />
+          <xs:element name="s" minOccurs="0" type="xs:string" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="SimpleClassArray">
+        <xs:sequence>
+          <xs:element name="SimpleClass" type="tns:SimpleClass" minOccurs="0" maxOccurs="unbounded" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="OtherClass">
+        <xs:sequence>
+          <xs:element name="b" minOccurs="0" type="xs:boolean" nillable="true" />
+          <xs:element name="d" minOccurs="0" type="xs:double" nillable="true" />
+          <xs:element name="dt" minOccurs="0" type="xs:dateTime" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
       <xs:complexType name="echo_extension_class">
         <xs:sequence>
           <xs:element name="nc" minOccurs="0" type="s1:ExtensionClass" nillable="true" />
@@ -341,22 +362,22 @@
       </xs:complexType>
       <xs:complexType name="echo_simple_class">
         <xs:sequence>
-          <xs:element name="sc" minOccurs="0" type="s2:SimpleClass" nillable="true" />
+          <xs:element name="sc" minOccurs="0" type="tns:SimpleClass" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_simple_classResponse">
         <xs:sequence>
-          <xs:element name="echo_simple_classResult" minOccurs="0" type="s2:SimpleClass" nillable="true" />
+          <xs:element name="echo_simple_classResult" minOccurs="0" type="tns:SimpleClass" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_simple_class_array">
         <xs:sequence>
-          <xs:element name="sca" minOccurs="0" type="s2:SimpleClassArray" nillable="true" />
+          <xs:element name="sca" minOccurs="0" type="tns:SimpleClassArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_simple_class_arrayResponse">
         <xs:sequence>
-          <xs:element name="echo_simple_class_arrayResult" minOccurs="0" type="s2:SimpleClassArray" nillable="true" />
+          <xs:element name="echo_simple_class_arrayResult" minOccurs="0" type="tns:SimpleClassArray" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="do_something_else">
@@ -445,36 +466,16 @@
       </xs:complexType>
     </xs:schema>
     <xs:schema targetNamespace="punk.tunk" elementFormDefault="qualified">
-      <xs:element name="SimpleClass" type="s2:SimpleClass" />
-      <xs:element name="SimpleClassArray" type="s2:SimpleClassArray" />
-      <xs:element name="OtherClass" type="s2:OtherClass" />
+      <xs:import namespace="soaplib.test.interop.server._service" />
       <xs:element name="NestedClass" type="s2:NestedClass" />
       <xs:element name="NestedClassArray" type="s2:NestedClassArray" />
-      <xs:complexType name="SimpleClass">
-        <xs:sequence>
-          <xs:element name="i" minOccurs="0" type="xs:integer" nillable="true" />
-          <xs:element name="s" minOccurs="0" type="xs:string" nillable="true" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="SimpleClassArray">
-        <xs:sequence>
-          <xs:element name="SimpleClass" type="s2:SimpleClass" minOccurs="0" maxOccurs="unbounded" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="OtherClass">
-        <xs:sequence>
-          <xs:element name="b" minOccurs="0" type="xs:boolean" nillable="true" />
-          <xs:element name="d" minOccurs="0" type="xs:double" nillable="true" />
-          <xs:element name="dt" minOccurs="0" type="xs:dateTime" nillable="true" />
-        </xs:sequence>
-      </xs:complexType>
       <xs:complexType name="NestedClass">
         <xs:sequence>
           <xs:element name="f" minOccurs="0" type="xs:float" nillable="true" />
-          <xs:element name="simple" minOccurs="0" type="s2:SimpleClassArray" nillable="true" />
+          <xs:element name="simple" minOccurs="0" type="tns:SimpleClassArray" nillable="true" />
           <xs:element name="i" minOccurs="0" type="xs:integer" nillable="true" />
           <xs:element name="s" minOccurs="0" type="xs:string" nillable="true" />
-          <xs:element name="other" minOccurs="0" type="s2:OtherClass" nillable="true" />
+          <xs:element name="other" minOccurs="0" type="tns:OtherClass" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="NestedClassArray">

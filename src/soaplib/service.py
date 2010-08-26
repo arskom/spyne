@@ -177,12 +177,10 @@ class _SchemaEntries(object):
     # FIXME: this is an ugly hack. we need proper dependency management
     def __check_imports(self, cls, node):
         pref_tns = cls.get_namespace_prefix()
-        pref_own = soaplib.get_namespace_prefix(self.tns)
 
         def is_valid_import(pref):
             return not (
-                (pref in soaplib.const_nsmap) or
-                (pref in (pref_own, pref_tns))
+                (pref in soaplib.const_nsmap) or (pref == pref_tns)
             )
 
         if not (pref_tns in self.imports):
@@ -196,6 +194,7 @@ class _SchemaEntries(object):
                 if extension.tag == '{%s}extension' % soaplib.ns_xsd:
                     pref = extension.attrib['base'].split(':')[0]
                     if is_valid_import(pref):
+                        print "%r imported to %r" % (pref, pref_tns)
                         self.imports[pref_tns].add(soaplib.nsmap[pref])
             else:
                 seq = c
