@@ -71,6 +71,13 @@ class odict(object):
     def __iter__(self):
         return iter(self.__list)
 
+    def __delitem__(self, key):
+        if not isinstance(key, int):
+            key = self.__list.index(key) # ouch.
+
+        del self.__dict[self.__list[key]]
+        del self.__list[key]
+
     def items(self):
         for k in self.__list:
             yield k, self.__dict[k]
