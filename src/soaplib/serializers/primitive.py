@@ -87,8 +87,6 @@ class AnyAsDict(Any):
         children = element.getchildren()
         if children:
             ret = etree_to_dict(element)
-            from pprint import pprint
-            pprint(ret)
             return ret
 
         return None

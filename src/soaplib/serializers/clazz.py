@@ -47,8 +47,6 @@ class ClassSerializerMeta(type):
 
         # get base class (if exists) and enforce single inheritance
         extends = cls_dict.get("__extends__", None)
-        if cls_name == "ExtensionClass":
-            print cls_name, cls_bases
 
         if extends is None:
             for b in cls_bases:

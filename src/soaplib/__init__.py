@@ -78,17 +78,10 @@ def get_namespace_prefix(ns):
 
 def set_namespace_prefix(ns, pref):
     if pref in nsmap and nsmap[pref] != ns:
-        for k,v in nsmap.items():
-            print k,v
-        print
         ns_old = nsmap[pref]
         del prefmap[ns_old]
         get_namespace_prefix(ns_old)
 
-        for k,v in nsmap.items():
-            print k,v
-        print
-        print
     cpref = get_namespace_prefix(ns)
     del nsmap[cpref]
 

@@ -194,7 +194,6 @@ class _SchemaEntries(object):
                 if extension.tag == '{%s}extension' % soaplib.ns_xsd:
                     pref = extension.attrib['base'].split(':')[0]
                     if is_valid_import(pref):
-                        print "%r imported to %r" % (pref, pref_tns)
                         self.imports[pref_tns].add(soaplib.nsmap[pref])
             else:
                 seq = c
