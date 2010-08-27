@@ -115,27 +115,24 @@ class TestSuds(unittest.TestCase):
         self.assertEquals(ret, val)
 
     def test_echo_simple_class(self):
-        val = self.client.factory.create("{punk.tunk}NestedClass");
-
-        val.i = 45
-        val.s = "asd"
-        val.f = 12.34
-
-        val.simple = self.client.factory.create("{punk.tunk}SimpleClassArray")
-
         val = self.client.factory.create("SimpleClass")
 
         val.i = 45
         val.s = "asd"
 
-        self.client.service.echo_simple_class(val)
+        ret = self.client.service.echo_simple_class(val)
+
+        assert ret.i == val.i
+        assert ret.s == val.s
 
     def test_echo_nested_class(self):
-        val = self.client.factory.create("NestedClass");
+        val = self.client.factory.create("{punk.tunk}NestedClass");
 
         val.i = 45
         val.s = "asd"
         val.f = 12.34
+        val.ai = self.client.factory.create("integerArray")
+        val.ai.integer.extend([1,2,3,45,5,3,2,1,4])
 
         val.simple = self.client.factory.create("SimpleClassArray")
 
