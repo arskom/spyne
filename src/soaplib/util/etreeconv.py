@@ -55,6 +55,9 @@ def dict_to_etree(parent, d):
                 else:
                     child.text=str(e)
 
+def root_etree_to_dict(element, iterable=(list, list.append)):
+    return {element.tag: [etree_to_dict(element)]}
+
 def etree_to_dict(element, iterable=(list,list.append)):
     if (element.text is None) or element.text.isspace():
         retval = odict()
