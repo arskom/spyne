@@ -37,7 +37,6 @@ from soaplib.soap import collapse_swa
 from soaplib.soap import from_soap
 from soaplib.soap import make_soap_envelope
 from soaplib.util import reconstruct_url
-from soaplib.util.etreeconv import etree_to_dict
 
 HTTP_500 = '500 Internal server error'
 HTTP_200 = '200 OK'
