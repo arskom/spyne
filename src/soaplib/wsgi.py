@@ -188,8 +188,8 @@ class Application(object):
         ns_plink = soaplib.ns_plink
 
         ns_tns = self.get_tns()
-        pref_tns = 'tns'
-        soaplib.set_namespace_prefix(ns_tns, pref_tns)
+        pref_tns = soaplib.get_namespace_prefix(ns_tns) #'tns'
+        #soaplib.set_namespace_prefix(ns_tns, pref_tns)
 
         # FIXME: doesn't look so robust
         url = url.replace('.wsdl', '')
