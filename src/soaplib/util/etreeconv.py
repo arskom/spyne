@@ -31,8 +31,8 @@ def root_dict_to_etree(d):
     if isinstance(val, dict) or isinstance(val, odict):
         dict_to_etree(retval, val)
     else:
-        assert len(val) == 1
-        dict_to_etree(retval, val[0])
+        for a in val:
+            dict_to_etree(retval, a)
 
     return retval
 
