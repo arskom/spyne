@@ -97,7 +97,7 @@ class String(SimpleType):
         max_len = "unbounded"
         pattern = None
 
-    def __new__(cls, * args, ** kwargs):
+    def __new__(cls, *args, **kwargs):
         assert len(args) <= 1
 
         retval = SimpleType.__new__(cls,  ** kwargs)

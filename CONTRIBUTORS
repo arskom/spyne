@@ -8,7 +8,7 @@ Jamie Kirkpatrick
     lxml migration
 
 Burak Arslan
-    multiple <schema/> tags
+    multiple namespace and multiple-services-in-one-wsgi-app support
     sqlalchemy support
     consistent class customization
     general code cleaning
