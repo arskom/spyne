@@ -1,4 +1,3 @@
-
 #
 # soaplib - Copyright (C) Soaplib contributors.
 #
@@ -155,6 +154,9 @@ class String(SimpleType):
             return u.encode(string_encoding)
         except:
             return u
+
+class AnyUri(String):
+    __type_name__ = 'anyURI'
 
 class Integer(SimpleType):
     @classmethod
