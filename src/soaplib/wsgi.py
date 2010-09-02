@@ -427,7 +427,7 @@ class Application(object):
                 params = [None] * len(descriptor.in_message._type_info)
 
             # implementation hook
-            service.on_method_call(req_env, method_name, params, body)
+            service.on_method_call(req_env, method_name, params, soap_req_payload)
 
             # call the method
             result_raw = service.call_wrapper(func, params)
