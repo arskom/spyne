@@ -38,9 +38,10 @@ from zope.app.testing import ztapi
 
 # public sumbols
 __all__ = [
-    'SoapFolder', # to mix into your Zope Folders to make them into SOAP Service Points
-    'AccessDeniedSOAP', # exception object to signal a failed SOAP call
+    'SoapFolder',  # to mix into your Zope Folders to make them into SOAP Service Points
+    'AccessDeniedSOAP',  # exception object to signal a failed SOAP call
     ]
+
 
 class SoapFolder(SoapServiceBase):
     """Mix-In Class to Make a Folder into a SOAP Service Point
@@ -63,9 +64,9 @@ class SoapFolder(SoapServiceBase):
     def _get_soap_methods(self):
         """Returns a list of method descriptors for this object"""
         soap_methods = []
-        for funcName in dir(self):
-            if funcName != 'permissionMappingPossibleValues' and not funcName.startswith('_v_'):
-                func = getattr(self, funcName)
+        for func_name in dir(self):
+            if func_name != 'permissionMappingPossibleValues' and not func_name.startswith('_v_'):
+                func = getattr(self, func_name)
                 if callable(func) and hasattr(func, '_is_soap_method'):
                     descriptor = func(_soap_descriptor=True, klazz=self.__class__)
                     soap_methods.append(descriptor)
@@ -96,7 +97,7 @@ class SoapFolder(SoapServiceBase):
     def index_html(self, REQUEST, RESPONSE):
         """Handle an incoming SOAP request or a non-SOAP WSDL query."""
 
-        if REQUEST.get('SOAPXML', None) == None: # Not a SOAP Request, return WSDL
+        if REQUEST.get('SOAPXML', None) == None:  # Not a SOAP Request, return WSDL
             return self.service_description(REQUEST, RESPONSE)
 
         try:
@@ -110,7 +111,7 @@ class SoapFolder(SoapServiceBase):
                 func = getattr(self, methodname)
                 descriptor = func(_soap_descriptor=True)
             except AttributeError:
-                faultstring = 'No Such SOAP Method: %s' % `methodname`
+                faultstring = 'No Such SOAP Method: %s' % repr(methodname)
                 faultcode = 'Server'
 
                 fault = make_soap_fault(faultstring, faultcode, detail=None)
@@ -123,7 +124,7 @@ class SoapFolder(SoapServiceBase):
                 if "unexpected keyword argument '_soap_descriptor'" not in str(e):
                     raise
 
-                faultstring = 'Method %s Exists But Not SOAP-Callable' % `methodname`
+                faultstring = 'Method %s Exists But Not SOAP-Callable' % repr(methodname)
                 faultcode = 'Server'
 
                 fault = make_soap_fault(faultstring, faultcode, detail=None)
@@ -176,8 +177,10 @@ class SoapFolder(SoapServiceBase):
             RESPONSE.setHeader('Content-Type', 'text/xml')
             return resp
 
+
 class ISOAPException(IException):
     pass
+
 
 class SOAPException(Exception):
     """Base exception class for all derived exceptions for SOAP"""
@@ -191,8 +194,10 @@ class SOAPException(Exception):
     def __str__(self):
         return self.__class__.__name__
 
+
 class AccessDeniedSOAP(SOAPException):
     """An exception to raise in a SOAP method if access is being denied."""
+
 
 class SOAPExceptionView:
     """Adapts an (ISOAPException, IRequest) to a View
