@@ -30,7 +30,7 @@ from soaplib.service import SoapServiceBase, getTNS
 from soaplib.soap import make_soap_envelope, make_soap_fault, from_soap
 from soaplib.serializers.primitive import string_encoding
 
-import cElementTree as ElementTree
+from soaplib.xml import ElementTree
 
 from zope.interface import implements
 from zope.interface.common.interfaces import IException
