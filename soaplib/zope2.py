@@ -32,10 +32,14 @@ from soaplib.serializers.primitive import string_encoding
 
 import cElementTree as ElementTree
 
+from zope.interface import implements
+from zope.interface.common.interfaces import IException
+from zope.app.testing import ztapi
 
 # public sumbols
 __all__ = [
     'SoapFolder', # to mix into your Zope Folders to make them into SOAP Service Points
+    'AccessDeniedSOAP', # exception object to signal a failed SOAP call
     ]
 
 class SoapFolder(SoapServiceBase):
@@ -172,3 +176,57 @@ class SoapFolder(SoapServiceBase):
             RESPONSE.setHeader('Content-Type', 'text/xml')
             return resp
 
+class ISOAPException(IException):
+    pass
+
+class SOAPException(Exception):
+    """Base exception class for all derived exceptions for SOAP"""
+
+    implements(ISOAPException)
+
+    def __init__(self, request):
+        self.request = request
+        self.request['faultexc'] = self
+
+    def __str__(self):
+        return self.__class__.__name__
+
+class AccessDeniedSOAP(SOAPException):
+    """An exception to raise in a SOAP method if access is being denied."""
+
+class SOAPExceptionView:
+    """Adapts an (ISOAPException, IRequest) to a View
+
+       This view provides the XML representation of a SOAP fault that is
+       returned to a caller.  To use it, register this view with Zope at some
+       initialization point:
+
+           from zope.app.testing import ztapi
+           from dummy import ISOAPException, SOAPExceptionView
+           ztapi.browserView(ISOAPException, u'index.html', SOAPExceptionView)
+
+       and then within your SOAP logic raise a SOAP exception where needed:
+
+           from dummy import SOAPException
+           raise SOAPException(request)
+    """
+
+    def __init__(self, context, request):
+        self.context = context
+        self.request = request
+
+    def __call__(self):
+        faultstring = self.request['faultexc'].__class__.__name__
+        self.request.response.setStatus('InternalServerError', reason=faultstring)
+
+        faultcode = 'Server'
+        fault = make_soap_fault(faultstring, faultcode, detail=None)
+
+        self.request.response.setHeader('Content-Type', 'text/xml')
+        return ElementTree.tostring(fault, encoding=string_encoding)
+
+# The following registers 'SOAPExceptionView' as an adapter that knows how to
+# display (generate and return the XML source for a SOAP fault) for anything
+# that implements the 'ISOAPException' interface.
+
+ztapi.browserView(ISOAPException, u'index.html', SOAPExceptionView)
