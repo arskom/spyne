@@ -139,11 +139,8 @@ class ClassSerializerBase(NonExtendingClass, Base):
             map = value
             value = cls()
 
-            for k,v in map.items():
-                if k in cls._type_info:
-                    setattr(value, k, v)
-                else:
-                    raise KeyError(k)
+            for k in cls._type_info:
+                setattr(value, k, map.get(k,None))
 
         for k, v in cls._type_info.items():
             subvalue = getattr(value, k, None)
