@@ -278,19 +278,11 @@ class Application(object):
             # implementation hook
             logger.error(traceback.format_exc())
 
-            tns = self.get_tns()
-            fault_xml = Fault.to_xml(Fault(str(e)), tns)
-            fault_str = etree.tostring(fault_xml,
-                   xml_declaration=True, encoding=string_encoding)
-            if logger.level == logging.DEBUG:
-                logger.debug(etree.tostring(etree.fromstring(fault_str),pretty_print=True))
+            self.on_wsdl_exception(req_env, e)
 
-            self.on_wsdl_exception(req_env, e, fault_xml)
-
-            http_resp_headers['Content-length'] = str(len(fault_str))
             start_response(HTTP_500, http_resp_headers.items())
 
-            return [fault_str]
+            return [""]
 
     def __decode_soap_request(self, http_env, http_payload):
         # decode body using information in the http header
@@ -403,7 +395,7 @@ class Application(object):
 
             finally:
                 # for performance reasons, we don't want the following to run
-                # in production even if we don't see the results.
+                # in production even though we won't see the results.
                 if logger.level == logging.DEBUG:
                     try:
                         logger.debug(etree.tostring(etree.fromstring(body),
@@ -592,7 +584,7 @@ class Application(object):
         '''
         pass
 
-    def on_wsdl_exception(self, environ, exc, resp):
+    def on_wsdl_exception(self, environ, exc):
         '''
         Called when an exception occurs durring wsdl generation
 
