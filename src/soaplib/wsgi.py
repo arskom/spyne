@@ -35,7 +35,6 @@ from soaplib.serializers.primitive import string_encoding
 from soaplib.soap import apply_mtom
 from soaplib.soap import collapse_swa
 from soaplib.soap import from_soap
-from soaplib.soap import make_soap_envelope
 from soaplib.util import reconstruct_url
 
 HTTP_500 = '500 Internal server error'
@@ -410,7 +409,8 @@ class Application(object):
 
             # decode header object
             if soap_req_header is not None and len(soap_req_header) > 0:
-                service.soap_in_header = descriptor.in_header.from_xml(soap_req_header)
+                in_header = descriptor.in_header
+                service.soap_in_header = in_header.from_xml(soap_req_header)
 
             # decode method arguments
             if soap_req_payload is not None and len(soap_req_payload) > 0:
@@ -418,13 +418,45 @@ class Application(object):
             else:
                 params = [None] * len(descriptor.in_message._type_info)
 
+            print params
             # implementation hook
             service.on_method_call(req_env, method_name, params, soap_req_payload)
 
             # call the method
             result_raw = service.call_wrapper(func, params)
 
-            # create result message
+            # construct the soap response, and serialize it
+            envelope = etree.Element('{%s}Envelope' % soaplib.ns_soap_env,
+                                                            nsmap=soaplib.nsmap)
+
+            #
+            # header
+            #
+            soap_header_elt = etree.SubElement(envelope,
+                                             '{%s}Header' % soaplib.ns_soap_env)
+
+            if service.soap_out_header != None:
+                if descriptor.out_header is None:
+                    logger.warning("Skipping soap response header as %r method "
+                                   "is not published to have a soap response "
+                                   "header" % method_name)
+                else:
+                    descriptor.out_header.to_xml(
+                        service.soap_out_header,
+                        self.get_tns(),
+                        soap_header_elt,
+                        descriptor.out_header.get_type_name()
+                    )
+
+            if len(soap_header_elt) > 0:
+                envelope.append(soap_header_elt)
+
+            #
+            # body
+            #
+            soap_body = etree.SubElement(envelope, '{%s}Body' % soaplib.ns_soap_env)
+
+            # instantiate the result message
             result_message = descriptor.out_message()
 
             # assign raw result to its wrapper, result_message
@@ -432,34 +464,28 @@ class Application(object):
 
             if len(out_type) > 0:
                 assert len(out_type) == 1
-                
+
                 attr_name = descriptor.out_message._type_info.keys()[0]
                 setattr(result_message, attr_name, result_raw)
 
             # transform the results into an element
-            # only expect a single element
-            soap_resp_body = None
             if not (descriptor.is_async or descriptor.is_callback):
-                soap_resp_body = descriptor.out_message.to_xml(result_message,
-                                                              self.get_tns())
-            soap_resp_header = None
-            if not (descriptor.out_header is None or service.soap_out_header is None):
-                soap_resp_header = descriptor.out_header.to_xml(
-                                        service.soap_out_header, self.get_tns(),
-                                        descriptor.out_header.get_type_name())
+                descriptor.out_message.to_xml(result_message, self.get_tns(),
+                                                                      soap_body)
 
             # implementation hook
-            service.on_method_return(req_env, result_raw, soap_resp_body,
-                                                            http_resp_headers)
+            service.on_method_return(req_env, result_raw, soap_body,
+                                                              http_resp_headers)
 
-            # construct the soap response, and serialize it
-            envelope = make_soap_envelope(soap_resp_header, soap_resp_body)
+            #
+            # misc
+            #
             results_str = etree.tostring(envelope, xml_declaration=True,
                                                        encoding=string_encoding)
 
             if descriptor.mtom:
                 http_resp_headers, results_str = apply_mtom(http_resp_headers,
-                    results_str,descriptor.out_message._type_info,[result_raw])
+                    results_str, descriptor.out_message._type_info,[result_raw])
 
             # implementation hook
             self.on_return(req_env, http_resp_headers, results_str)
@@ -478,73 +504,47 @@ class Application(object):
 
         # The user issued a Fault, so handle it just like an exception!
         except Fault, e:
-            stacktrace=traceback.format_exc()
-            logger.error(stacktrace)
-            
-            # FIXME: There's no way to alter soap response headers for the user.
-
-            soap_resp_header = None
-            soap_resp_body = Fault.to_xml(e, self.get_tns())
-
-            fault_xml = make_soap_envelope(soap_resp_header, soap_resp_body)
-            fault_str = etree.tostring(fault_xml, xml_declaration=True,
-                                                    encoding=string_encoding)
-            if logger.level == logging.DEBUG:
-                logger.debug(etree.tostring(etree.fromstring(fault_str),
-                                                            pretty_print=True))
-
-            # implementation hook
-            if not (service is None):
-                service.on_method_exception(req_env, e, fault_xml, fault_str)
-            self.on_exception(req_env,e,fault_str)
-
-            # initiate the response
-            http_resp_headers['Content-Length'] = str(len(fault_str))
-            start_response(HTTP_500, http_resp_headers.items())
-
-            return [fault_str]
+            return self.__handle_fault(req_env, start_response,
+                                                http_resp_headers, service, e)
 
         except Exception, e:
-            # capture stacktrace
-            stacktrace=traceback.format_exc()
-
-            # psycopg specific
-            if hasattr(e,'statement') and hasattr(e,'params'):
-                e.statement=""
-                e.params={}
-
-            faultstring = str(e)
-
             if method_name:
-                faultcode = '%sFault' % method_name
+                fault_code = '%sFault' % method_name
             else:
-                faultcode = 'Server'
+                fault_code = 'Server'
 
-            detail = ' '
-            logger.error(stacktrace)
+            fault = Fault(fault_code, str(e), " ")
 
-            fault = Fault(faultcode, faultstring, detail)
+            return self.__handle_fault(req_env, start_response,
+                                              http_resp_headers, service, fault)
 
-            soap_resp_header = None
-            soap_resp_body = Fault.to_xml(fault, self.get_tns())
+    def __handle_fault(self, req_env, start_response, http_resp_headers, service, exc):
+        stacktrace=traceback.format_exc()
+        logger.error(stacktrace)
 
-            fault_xml = make_soap_envelope(soap_resp_header, soap_resp_body)
-            fault_str = etree.tostring(fault_xml, xml_declaration=True,
-                                                       encoding=string_encoding)
-            if logger.level == logging.DEBUG:
-                logger.debug(etree.tostring(etree.fromstring(fault_str),
-                                                            pretty_print=True))
+        # implementation hook
+        if not (service is None):
+            service.on_method_exception_object(req_env, exc)
+        self.on_exception_object(req_env, exc)
 
-            # implementation hook
-            if not (service is None):
-                service.on_method_exception(req_env, e, fault_xml, fault_str)
-            self.on_exception(req_env,e,fault_str)
+        # FIXME: There's no way to alter soap response headers for the user.
+        envelope = etree.Element('{%s}Envelope' % soaplib.ns_soap_env)
+        body = etree.SubElement(envelope, '{%s}Body' % soaplib.ns_soap_env)
+        Fault.to_xml(exc, self.get_tns(), body)
 
-            # initiate the response
-            http_resp_headers['Content-Length'] = str(len(fault_str))
-            start_response(HTTP_500, http_resp_headers.items())
+        if not (service is None):
+            service.on_method_exception_object(req_env, body)
+        self.on_exception_object(req_env, body)
 
-            return [fault_str]
+        if logger.level == logging.DEBUG:
+            logger.debug(etree.tostring(envelope, pretty_print=True))
+
+        # initiate the response
+        fault_str = etree.tostring(envelope)
+        http_resp_headers['Content-Length'] = str(len(fault_str))
+        start_response(HTTP_500, http_resp_headers.items())
+
+        return [fault_str]
 
     def __call__(self, req_env, start_response, wsgi_url=None):
         '''
@@ -604,14 +604,21 @@ class Application(object):
         '''
         pass
 
-    def on_exception(self, environ, fault, fault_str):
+    def on_exception_object(self, environ, exc):
         '''
         Called when the app throws an exception. (might be inside or outside the
         service call.
-
         @param the wsgi environment
-        @param the fault
-        @param string of the fault
+        @param the fault object
+        '''
+        pass
+
+    def on_exception_xml(self, environ, fault_xml):
+        '''
+        Called when the app throws an exception. (might be inside or outside the
+        service call.
+        @param the wsgi environment
+        @param the xml element containing the xml serialization of the fault
         '''
         pass
 

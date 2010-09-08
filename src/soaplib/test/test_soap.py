@@ -32,7 +32,6 @@ from soaplib.serializers.primitive import String
 
 from soaplib.soap import Message
 from soaplib.soap import from_soap
-from soaplib.soap import make_soap_envelope
 
 class Address(ClassSerializer):
     street = String
@@ -177,50 +176,6 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
         addresses = element.getchildren()[0].find('{%s}addresses' % m.get_namespace()).getchildren()
         self.assertEquals(100, len(addresses))
         self.assertEquals('0', addresses[0].find('{%s}zip' % m.get_namespace()).text)
-
-    def test_soap_envelope(self):
-        m = Message.produce(
-            namespace=None,
-            type_name='myMessage',
-            members={'p': Person}
-        )
-        env = make_soap_envelope(m.to_xml(Person(),m.get_namespace()))
-
-        self.assertTrue(env.tag.endswith('Envelope'))
-        self.assertTrue(env.getchildren()[0].tag.endswith('Body'))
-
-        m = Message.produce(
-            namespace=None,
-            type_name='myMessage',
-            members={'p': Person}
-        )
-        env = make_soap_envelope(m.to_xml(Person(),m.get_namespace()),
-            header_elements=[etree.Element('header1'), etree.Element('header2')])
-
-        env = etree.fromstring(etree.tostring(env))
-
-        self.assertTrue(env.getchildren()[0].tag.endswith('Header'))
-        self.assertEquals(len(env.getchildren()[0].getchildren()), 2)
-        self.assertTrue(env.getchildren()[1].tag.endswith('Body'))
-
-    def test_soap_fault(self):
-        ns_test = "test_namespace"
-
-        fault = Fault("code", 'something happened', 'detail')
-        fault_str = etree.tostring(make_soap_envelope(Fault.to_xml(fault,ns_test)), pretty_print=True)
-        print fault_str
-        fault = etree.fromstring(fault_str)
-
-        self.assertTrue(fault.getchildren()[0].tag.endswith, 'Body')
-        self.assertTrue(
-            fault.getchildren()[0].getchildren()[0].tag.endswith('Fault'))
-        f = fault.getchildren()[0].getchildren()[0]
-
-        print etree.tostring(f,pretty_print=True)
-
-        self.assertEquals(f.find('{%s}faultstring' % ns_test).text, 'something happened')
-        self.assertEquals(f.find('{%s}faultcode' % ns_test).text, 'code')
-        self.assertEquals(f.find('{%s}detail' % ns_test).text, 'detail')
 
 def suite():
     loader = unittest.TestLoader()

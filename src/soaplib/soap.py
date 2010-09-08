@@ -121,27 +121,6 @@ def resolve_hrefs(element, xmlids):
 
     return element
 
-def make_soap_envelope(header, body):
-    '''
-    This method takes the results from a soap method call, and wraps them
-    in the appropriate soap envelope with any specified headers
-
-    @param the message of the soap envelope, either an element or
-           a list of elements
-    @param any header elements to be included in the soap response
-    @returns the envelope element
-    '''
-    envelope = etree.Element('{%s}Envelope' % soaplib.ns_soap_env, nsmap=soaplib.nsmap)
-    if not (header is None):
-        soap_header = etree.SubElement(envelope, '{%s}Header' % soaplib.ns_soap_env)
-        soap_header.append(header)
-
-    soap_body = etree.SubElement(envelope, '{%s}Body' % soaplib.ns_soap_env)
-    if body != None:
-        soap_body.append(body)
-
-    return envelope
-
 def join_attachment(href_id, envelope, payload, prefix=True):
     '''
     Helper function for swa_to_soap.

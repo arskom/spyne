@@ -118,13 +118,18 @@ class ClassSerializerBase(NonExtendingClass, Base):
 
     @classmethod
     @nillable_value
-    def to_xml(cls, value, tns, name=None, element=None):
+    def to_xml(cls, value, tns, parent_elt, name=None):
         if name is None:
             name = cls.get_type_name()
 
-        if element is None:
-            element = etree.Element("{%s}%s" % (cls.get_namespace(), name))
+        element = etree.SubElement(parent_elt,
+                                         "{%s}%s" % (cls.get_namespace(), name))
 
+        # if the instance is a list, convert it to a cls instance.
+        # this is only useful when deserializing descriptor.in_message as it's
+        # the only time when the member order is not arbitrary (as the members
+        # are declared as sequences of arguments in function definitions, unlike
+        # dictionaries in a regular class definition).
         if isinstance(value, list) or isinstance(value, tuple):
             assert len(value) <= len(cls._type_info)
 
@@ -142,17 +147,13 @@ class ClassSerializerBase(NonExtendingClass, Base):
             for k in cls._type_info:
                 setattr(value, k, map.get(k,None))
 
+        parent_cls = getattr(cls,'__extends__', None)
+        if not (parent_cls is None):
+            parent_cls.to_xml(value, tns, parent_elt, name)
+
         for k, v in cls._type_info.items():
             subvalue = getattr(value, k, None)
-            subelement = v.to_xml(subvalue, cls.get_namespace(), k)
-            element.append(subelement)
-
-        clz = getattr(cls,'__extends__', None)
-        while not (clz is None):
-            clz.to_xml(value, tns, name, element)
-            clz = getattr(clz,'__extends__', None)
-
-        return element
+            v.to_xml(subvalue, cls.get_namespace(), element, k)
 
     @classmethod
     @nillable_element

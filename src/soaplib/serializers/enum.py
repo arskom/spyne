@@ -17,11 +17,11 @@ class EnumBase(SimpleType):
 
     @classmethod
     @nillable_value
-    def to_xml(cls, value, tns, name='retval'):
+    def to_xml(cls, value, tns, parent_elt, name='retval'):
         if name is None:
             name = cls.get_type_name()
 
-        return string_to_xml(cls, str(value), tns, name)
+        string_to_xml(cls, str(value), tns, parent_elt, name)
 
     @classmethod
     @nillable_element

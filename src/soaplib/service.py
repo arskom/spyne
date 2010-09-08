@@ -271,18 +271,27 @@ class DefinitionBase(object):
         Called AFTER the service implementing the functionality is called
         @param the wsgi environment
         @param the python results from the method
-        @param the xml serialized results of the method
-        @param soap response headers as a list of lxml.etree._Element objects
+        @param the xml element containing the return value(s) from the method
         @param http response headers as a dict of strings
         '''
         pass
 
-    def on_method_exception(self, environ, exc, fault_xml, fault_str):
+    def on_method_exception_object(self, environ, exc):
         '''
-        Called when an error occurs durring execution
+        Called BEFORE the exception is serialized, when an error occurs durring
+        execution
         @param the wsgi environment
-        @param the exception
-        @param the response string
+        @param the exception object
+        '''
+        pass
+
+    def on_method_exception_xml(self, environ, fault_xml):
+        '''
+        Called AFTER the exception is serialized, when an error occurs durring
+        execution
+        @param the wsgi environment
+        @param the xml element containing the exception object serialized to a
+        soap fault
         '''
         pass
 

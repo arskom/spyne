@@ -22,29 +22,29 @@ import soaplib
 from lxml import etree
 
 def nillable_value(func):
-    def wrapper(cls, value, tns, *args, **kwargs):
+    def wrapper(cls, value, tns, parent_elt, *args, **kwargs):
         if value is None:
-            return Null.to_xml(value, tns, *args, **kwargs)
-        return func(cls, value, tns, *args, **kwargs)
+            Null.to_xml(value, tns, parent_elt, *args, **kwargs)
+        else:
+            func(cls, value, tns, parent_elt, *args, **kwargs)
     return wrapper
 
 def nillable_element(func):
     def wrapper(cls, element):
         if bool(element.get('{%s}nil' % soaplib.ns_xsi)): # or (element.text is None and len(element.getchildren()) == 0):
             return None
-        return func(cls, element)
+        else:
+            return func(cls, element)
     return wrapper
 
-def string_to_xml(cls, value, tns, name):
+def string_to_xml(cls, value, tns, parent_elt, name):
     assert isinstance(value, str) or isinstance(value, unicode), "'value' must " \
                     "be string or unicode. it is instead '%s'" % repr(value)
 
-    retval = etree.Element("{%s}%s" % (tns,name))
+    element = etree.SubElement(parent_elt, "{%s}%s" % (tns,name))
 
-    retval.set('{%s}type' % soaplib.ns_xsi, cls.get_type_name_ns())
-    retval.text = value
-
-    return retval
+    element.set('{%s}type' % soaplib.ns_xsi, cls.get_type_name_ns())
+    element.text = value
 
 class Base(object):
     __namespace__ = None
@@ -102,8 +102,8 @@ class Base(object):
             return "%s:%s" % (cls.get_namespace_prefix(), cls.get_type_name())
 
     @classmethod
-    def to_xml(cls, value, tns, name='retval'):
-        return string_to_xml(cls, value, tns, name)
+    def to_xml(cls, value, tns, parent_elt, name='retval'):
+        string_to_xml(cls, value, tns, parent_elt, name)
 
     @classmethod
     def add_to_schema(cls, schema_entries):
@@ -139,11 +139,9 @@ class Base(object):
 
 class Null(Base):
     @classmethod
-    def to_xml(cls, value, tns, name='retval'):
-        element = etree.Element("{%s}%s" % (tns,name))
+    def to_xml(cls, value, tns, parent_elt, name='retval'):
+        element = etree.SubElement(parent_elt, "{%s}%s" % (tns,name))
         element.set('{%s}nil' % soaplib.ns_xsi, 'true')
-
-        return element
 
     @classmethod
     def from_xml(cls, element):

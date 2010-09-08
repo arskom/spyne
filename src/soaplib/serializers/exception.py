@@ -32,16 +32,14 @@ class Fault(Exception, Base):
         self.detail = detail
 
     @classmethod
-    def to_xml(cls, value, tns, name=None):
+    def to_xml(cls, value, tns, parent_elt, name=None):
         if name is None:
             name = cls.get_type_name()
-        fault = etree.Element("{%s}%s" % (tns,name))
+        element = etree.SubElement(parent_elt, "{%s}%s" % (tns,name))
 
-        etree.SubElement(fault, '{%s}faultcode' % tns).text = value.faultcode
-        etree.SubElement(fault, '{%s}faultstring' % tns).text = value.faultstring
-        etree.SubElement(fault, '{%s}detail' % tns).text = value.detail
-
-        return fault
+        etree.SubElement(element, '{%s}faultcode' % tns).text = value.faultcode
+        etree.SubElement(element, '{%s}faultstring' % tns).text = value.faultstring
+        etree.SubElement(element, '{%s}detail' % tns).text = value.detail
 
     @classmethod
     def from_xml(cls, element):
