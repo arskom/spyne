@@ -60,9 +60,7 @@ class Base(object):
 
     @classmethod
     def is_default(cls):
-        return (cls.Attributes.nillable == Base.Attributes.nillable
-            and cls.Attributes.min_occurs == Base.Attributes.min_occurs
-            and cls.Attributes.max_occurs == Base.Attributes.max_occurs)
+        return True 
 
     @classmethod
     def get_namespace_prefix(cls):
@@ -180,8 +178,7 @@ class SimpleType(Base):
 
     @classmethod
     def is_default(cls):
-        return (Base.is_default()
-            and cls.Attributes.values == SimpleType.Attributes.values)
+        return (cls.Attributes.values == SimpleType.Attributes.values)
 
     @classmethod
     def get_restriction_tag(cls, schema_entries):
