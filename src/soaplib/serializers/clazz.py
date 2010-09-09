@@ -193,7 +193,6 @@ class ClassSerializerBase(NonExtendingClass, Base):
 
             else:
                 setattr(inst, key, member.from_xml(c))
-                break
 
         return inst
 
