@@ -190,9 +190,5 @@ class TestSuds(unittest.TestCase):
         raise Exception("test something! :)")
         # TODO: write asserts
 
-def suite():
-    loader = unittest.TestLoader()
-    return loader.loadTestsFromTestCase(TestSuds)
-
-if __name__== '__main__':
-    unittest.TextTestRunner().run(suite())
+if __name__ == '__main__':
+    unittest.main()
