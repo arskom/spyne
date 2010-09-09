@@ -114,7 +114,8 @@ class Base(object):
     def customize(cls, **kwargs):
         """
         This function duplicates and customizes the class it belongs to. The
-        original class remains unchanged.
+        original class remains unchanged. This is an ugly hack. If you know
+        better, let us know.
         """
 
         cls_dict = {}

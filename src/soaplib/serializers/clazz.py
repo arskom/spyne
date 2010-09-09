@@ -232,9 +232,9 @@ class ClassSerializerBase(NonExtendingClass, Base):
                                                                 soaplib.ns_xsd)
                 member.set('name', k)
 
-                if v.Attributes.min_occurs != 1: # 1 is the default
+                if v.Attributes.min_occurs != 1: # 1 is the xml schema default
                     member.set('minOccurs', str(v.Attributes.min_occurs))
-                if v.Attributes.max_occurs != 1: # 1 is the default
+                if v.Attributes.max_occurs != 1: # 1 is the xml schema default
                     member.set('maxOccurs', str(v.Attributes.max_occurs))
 
                 member.set('type', v.get_type_name_ns())
