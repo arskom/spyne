@@ -529,11 +529,11 @@ class Application(object):
         # FIXME: There's no way to alter soap response headers for the user.
         envelope = etree.Element('{%s}Envelope' % soaplib.ns_soap_env)
         body = etree.SubElement(envelope, '{%s}Body' % soaplib.ns_soap_env)
-        Fault.to_xml(exc, self.get_tns(), body)
+        exc.__class__.to_xml(exc, self.get_tns(), body)
 
         if not (service is None):
-            service.on_method_exception_object(req_env, body)
-        self.on_exception_object(req_env, body)
+            service.on_method_exception_xml(req_env, body)
+        self.on_exception_xml(req_env, body)
 
         if logger.level == logging.DEBUG:
             logger.debug(etree.tostring(envelope, pretty_print=True))
