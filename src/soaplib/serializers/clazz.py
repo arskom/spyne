@@ -247,13 +247,13 @@ class ClassSerializerBase(NonExtendingClass, Base):
                 member = etree.SubElement(sequence, '{%s}element' %
                                                                 soaplib.ns_xsd)
                 member.set('name', k)
+                member.set('type', v.get_type_name_ns())
 
                 if v.Attributes.min_occurs != 1: # 1 is the xml schema default
                     member.set('minOccurs', str(v.Attributes.min_occurs))
                 if v.Attributes.max_occurs != 1: # 1 is the xml schema default
                     member.set('maxOccurs', str(v.Attributes.max_occurs))
 
-                member.set('type', v.get_type_name_ns())
                 if bool(v.Attributes.nillable) == True:
                     member.set('nillable', 'true')
                 else:
