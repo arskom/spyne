@@ -173,7 +173,6 @@ class InteropArray(service.DefinitionBase):
 
     @rpc(Boolean(max_occurs="unbounded"), _returns=Boolean(max_occurs="unbounded"))
     def echo_simple_boolean_array(self, ba):
-        print ba
         return ba
 
     @rpc(Array(Boolean), _returns=Array(Array(Boolean)))

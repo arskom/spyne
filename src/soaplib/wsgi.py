@@ -418,7 +418,6 @@ class Application(object):
             else:
                 params = [None] * len(descriptor.in_message._type_info)
 
-            print params
             # implementation hook
             service.on_method_call(req_env, method_name, params, soap_req_payload)
 

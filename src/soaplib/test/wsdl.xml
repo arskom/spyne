@@ -41,6 +41,8 @@
       <xs:element name="integerArray" type="s0:integerArray" />
       <xs:element name="echo_integer_array" type="s0:echo_integer_array" />
       <xs:element name="echo_integer_arrayResponse" type="s0:echo_integer_arrayResponse" />
+      <xs:element name="echo_simple_boolean_array" type="s0:echo_simple_boolean_array" />
+      <xs:element name="echo_simple_boolean_arrayResponse" type="s0:echo_simple_boolean_arrayResponse" />
       <xs:element name="stringArray" type="s0:stringArray" />
       <xs:element name="echo_string_array" type="s0:echo_string_array" />
       <xs:element name="echo_string_arrayResponse" type="s0:echo_string_arrayResponse" />
@@ -270,6 +272,16 @@
       <xs:complexType name="echo_integer_arrayResponse">
         <xs:sequence>
           <xs:element name="echo_integer_arrayResult" minOccurs="0" type="s0:integerArray" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_simple_boolean_array">
+        <xs:sequence>
+          <xs:element name="ba" minOccurs="0" maxOccurs="unbounded" type="xs:boolean" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_simple_boolean_arrayResponse">
+        <xs:sequence>
+          <xs:element name="echo_simple_boolean_arrayResult" minOccurs="0" maxOccurs="unbounded" type="xs:boolean" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="stringArray">
@@ -606,6 +618,12 @@
   <wsdl:message name="echo_integer_arrayResponse">
     <wsdl:part name="echo_integer_arrayResponse" element="s0:echo_integer_arrayResponse" />
   </wsdl:message>
+  <wsdl:message name="echo_simple_boolean_array">
+    <wsdl:part name="echo_simple_boolean_array" element="s0:echo_simple_boolean_array" />
+  </wsdl:message>
+  <wsdl:message name="echo_simple_boolean_arrayResponse">
+    <wsdl:part name="echo_simple_boolean_arrayResponse" element="s0:echo_simple_boolean_arrayResponse" />
+  </wsdl:message>
   <wsdl:message name="echo_string_array">
     <wsdl:part name="echo_string_array" element="s0:echo_string_array" />
   </wsdl:message>
@@ -779,6 +797,10 @@
     <wsdl:operation name="echo_integer_array" parameterOrder="echo_integer_array">
       <wsdl:input name="echo_integer_array" message="s0:echo_integer_array" />
       <wsdl:output name="echo_integer_arrayResponse" message="s0:echo_integer_arrayResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_simple_boolean_array" parameterOrder="echo_simple_boolean_array">
+      <wsdl:input name="echo_simple_boolean_array" message="s0:echo_simple_boolean_array" />
+      <wsdl:output name="echo_simple_boolean_arrayResponse" message="s0:echo_simple_boolean_arrayResponse" />
     </wsdl:operation>
     <wsdl:operation name="echo_string_array" parameterOrder="echo_string_array">
       <wsdl:input name="echo_string_array" message="s0:echo_string_array" />
@@ -983,6 +1005,15 @@
         <soap:body use="literal" />
       </wsdl:input>
       <wsdl:output name="echo_integer_arrayResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_simple_boolean_array">
+      <soap:operation soapAction="echo_simple_boolean_array" style="document" />
+      <wsdl:input name="echo_simple_boolean_array">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_simple_boolean_arrayResponse">
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>

@@ -147,23 +147,29 @@ class ClassSerializerBase(NonExtendingClass, Base):
             for k in cls._type_info:
                 setattr(value, k, map.get(k,None))
 
-        parent_cls = getattr(cls,'__extends__', None)
+        parent_cls = getattr(cls, '__extends__', None)
         if not (parent_cls is None):
             parent_cls.to_xml(value, tns, parent_elt, name)
 
         for k, v in cls._type_info.items():
+            mo=v.Attributes.max_occurs
             subvalue = getattr(value, k, None)
-            v.to_xml(subvalue, cls.get_namespace(), element, k)
+
+            if mo == 'unbounded' or mo > 1:
+                for sv in subvalue:
+                    v.to_xml(sv, cls.get_namespace(), element, k)
+            else:
+                v.to_xml(subvalue, cls.get_namespace(), element, k)
 
     @classmethod
     @nillable_element
     def from_xml(cls, element):
         inst = cls()
-        children = element.getchildren()
 
-        for c in children:
+        for c in element:
             if isinstance(c, etree._Comment):
                 continue
+
             key = c.tag.split('}')[-1]
 
             member = cls._type_info.get(key, None)
@@ -176,8 +182,18 @@ class ClassSerializerBase(NonExtendingClass, Base):
                 raise Exception('the %s object does not have a "%s" member' %
                                                              (cls.__name__,key))
 
-            value = member.from_xml(c)
-            setattr(inst, key, value)
+            mo = member.Attributes.max_occurs
+            if mo == 'unbounded' or mo > 1:
+                value=getattr(inst,key,[])
+                if value is None:
+                    value = []
+
+                value.append(member.from_xml(c))
+                setattr(inst, key, value)
+
+            else:
+                setattr(inst, key, member.from_xml(c))
+                break
 
         return inst
 
