@@ -171,6 +171,11 @@ class InteropArray(service.DefinitionBase):
     def echo_boolean_array(self, ba):
         return ba
 
+    @rpc(Boolean(max_occurs="unbounded"), _returns=Boolean(max_occurs="unbounded"))
+    def echo_simple_boolean_array(self, ba):
+        print ba
+        return ba
+
     @rpc(Array(Boolean), _returns=Array(Array(Boolean)))
     def echo_array_in_array(self, baa):
         return baa

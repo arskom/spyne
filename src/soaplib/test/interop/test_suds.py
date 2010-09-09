@@ -28,6 +28,12 @@ class TestSuds(unittest.TestCase):
         self.client = Client("http://localhost:9753/?wsdl", cache=None)
         self.ns = "soaplib.test.interop.server._service"
 
+    def test_echo_simple_boolean_array(self):
+        val = [True, False, False, True]
+        ret = self.client.service.echo_simple_boolean_array(val)
+
+        assert val == ret
+
     def test_enum(self):
         DaysOfWeekEnum = self.client.factory.create("DaysOfWeekEnum")
 
