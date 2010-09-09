@@ -324,6 +324,8 @@ class Array(SimpleType):
         for child in element.getchildren():
             retval.append(cls.serializer.from_xml(child))
 
+        return retval
+
     @classmethod
     def add_to_schema(cls, schema_entries):
         if not schema_entries.has_class(cls):
