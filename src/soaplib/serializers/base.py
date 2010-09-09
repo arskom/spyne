@@ -106,9 +106,9 @@ class Base(object):
     @classmethod
     def add_to_schema(cls, schema_entries):
         '''
-        Nothing needs to happen when the type is a standard schema element
+        Add this type to the wsdl.
         '''
-        pass
+        #Nothing needs to happen when the type is a standard schema element
 
     @classmethod
     def customize(cls, **kwargs):
