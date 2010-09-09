@@ -91,13 +91,13 @@ class TestSuds(unittest.TestCase):
                 "test_subsub2": ["subsub2 value 1", "subsub2 value 2"],
                 "test_subsub3": [
                     {
-                        "test_subsub3sub1": "subsub3sub1 value"
+                        "test_subsub3sub1": ["subsub3sub1 value"]
                     },
                     {
-                        "test_subsub3sub2": "subsub3sub2 value"
+                        "test_subsub3sub2": ["subsub3sub2 value"]
                     },
                 ],
-                "test_subsub4": None,
+                "test_subsub4": [],
                 "test_subsub5": ["x"],
             }
         }
