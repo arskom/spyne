@@ -18,6 +18,7 @@
 
 import datetime
 import decimal
+import logging
 import re
 import pytz
 
@@ -265,6 +266,8 @@ class Boolean(SimpleType):
         return (s and s.lower()[0] == 't')
 
 class Array(SimpleType):
+    logger = logging.getLogger('soaplib.serializers.primitive.Array')
+
     serializer = None
     __namespace__ = None
 
@@ -313,6 +316,7 @@ class Array(SimpleType):
             raise TypeError(values, name)
 
         for value in values:
+            cls.logger.debug("encoding array value: %r" % value)
             cls.serializer.to_xml(value, tns, element,
                                                  cls.serializer.get_type_name())
 
