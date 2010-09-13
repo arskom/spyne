@@ -196,10 +196,10 @@ class ClassSerializerBase(NonExtendingClass, Base):
 
         return inst
 
-    @classmethod
+    @staticmethod
     def resolve_namespace(cls, default_ns):
         if getattr(cls, '__extends__', None) != None:
-            cls.__extends__.resolve_namespace(default_ns)
+            cls.__extends__.resolve_namespace(cls.__extends__, default_ns)
             if not (cls.get_namespace() in soaplib.const_prefmap):
                 default_ns = cls.get_namespace()
 
@@ -215,7 +215,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
                 v.__namespace__ = cls.get_namespace()
                 v.__type_name__ = "%s_%sType" % (cls.get_type_name(), k)
 
-            v.resolve_namespace(default_ns)
+            v.resolve_namespace(v, default_ns)
 
     @classmethod
     def add_to_schema(cls, schema_entries):

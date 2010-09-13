@@ -58,7 +58,7 @@ class Base(object):
     class Empty(object):
         pass
 
-    @classmethod
+    @staticmethod
     def is_default(cls):
         return True 
 
@@ -74,9 +74,9 @@ class Base(object):
     def get_namespace(cls):
         return cls.__namespace__
 
-    @classmethod
+    @staticmethod
     def resolve_namespace(cls, default_ns):
-        if cls.__namespace__ in soaplib.const_prefmap and not cls.is_default():
+        if cls.__namespace__ in soaplib.const_prefmap and not cls.is_default(cls):
             cls.__namespace__ = None
 
         if cls.__namespace__ is None:
@@ -177,7 +177,7 @@ class SimpleType(Base):
 
         return retval
 
-    @classmethod
+    @staticmethod
     def is_default(cls):
         return (cls.Attributes.values == SimpleType.Attributes.values)
 
@@ -200,5 +200,5 @@ class SimpleType(Base):
 
     @classmethod
     def add_to_schema(cls, schema_entries):
-        if not schema_entries.has_class(cls) and not cls.is_default():
+        if not schema_entries.has_class(cls) and not cls.is_default(cls):
             cls.get_restriction_tag(schema_entries)

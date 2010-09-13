@@ -95,23 +95,23 @@ class String(SimpleType):
     def __new__(cls, *args, **kwargs):
         assert len(args) <= 1
 
-        retval = SimpleType.__new__(cls,  ** kwargs)
-
         if len(args) == 1:
-            retval.Attributes.max_len = args[0]
+            kwargs['max_len'] = args[0]
+
+        retval = SimpleType.__new__(cls,  ** kwargs)
 
         return retval
 
-    @classmethod
+    @staticmethod
     def is_default(cls):
-        return (    cls.Attributes.values == String.Attributes.values
+        return (    SimpleType.is_default(cls)
                 and cls.Attributes.min_len == String.Attributes.min_len
                 and cls.Attributes.max_len == String.Attributes.max_len
                 and cls.Attributes.pattern == String.Attributes.pattern)
 
     @classmethod
     def add_to_schema(cls, schema_entries):
-        if not schema_entries.has_class(cls) and not cls.is_default():
+        if not schema_entries.has_class(cls) and not cls.is_default(cls):
             restriction = cls.get_restriction_tag(schema_entries)
 
             # length
