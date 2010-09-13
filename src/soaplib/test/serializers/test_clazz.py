@@ -38,7 +38,7 @@ class Address(ClassSerializer):
     lattitude = Float
     longitude = Float
 
-Address.resolve_namespace(__name__)
+Address.resolve_namespace(Address,__name__)
 
 class Person(ClassSerializer):
     name = String
@@ -47,36 +47,36 @@ class Person(ClassSerializer):
     addresses = Array(Address)
     titles = Array(String)
 
-Person.resolve_namespace(__name__)
+Person.resolve_namespace(Person,__name__)
 
 class Employee(Person):
     employee_id = Integer
     salary = Float
 
-Employee.resolve_namespace(__name__)
+Employee.resolve_namespace(Employee,__name__)
 
 class Level2(ClassSerializer):
     arg1 = String
     arg2 = Float
 
-Level2.resolve_namespace(__name__)
+Level2.resolve_namespace(Level2, __name__)
 
 class Level3(ClassSerializer):
     arg1 = Integer
 
-Level3.resolve_namespace(__name__)
+Level3.resolve_namespace(Level3, __name__)
 
 class Level4(ClassSerializer):
     arg1 = String
 
-Level4.resolve_namespace(__name__)
+Level4.resolve_namespace(Level4, __name__)
 
 class Level1(ClassSerializer):
     level2 = Level2
     level3 = Array(Level3)
     level4 = Array(Level4)
 
-Level1.resolve_namespace(__name__)
+Level1.resolve_namespace(Level1, __name__)
 
 class TestClassSerializer(unittest.TestCase):
     def test_simple_class(self):

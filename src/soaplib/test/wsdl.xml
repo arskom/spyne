@@ -186,7 +186,7 @@
       </xs:complexType>
       <xs:complexType name="booleanArray">
         <xs:sequence>
-          <xs:element name="boolean" type="xs:boolean" minOccurs="0" maxOccurs="unbounded" />
+          <xs:element name="boolean" type="xs:boolean" minOccurs="0" maxOccurs="unbounded" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_array_in_array">
@@ -196,7 +196,7 @@
       </xs:complexType>
       <xs:complexType name="booleanArrayArray">
         <xs:sequence>
-          <xs:element name="booleanArray" type="s0:booleanArray" minOccurs="0" maxOccurs="unbounded" />
+          <xs:element name="booleanArray" type="s0:booleanArray" minOccurs="0" maxOccurs="unbounded" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_array_in_arrayResponse">
@@ -216,7 +216,7 @@
       </xs:complexType>
       <xs:complexType name="dateTimeArray">
         <xs:sequence>
-          <xs:element name="dateTime" type="xs:dateTime" minOccurs="0" maxOccurs="unbounded" />
+          <xs:element name="dateTime" type="xs:dateTime" minOccurs="0" maxOccurs="unbounded" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_date_time_array">
@@ -231,7 +231,7 @@
       </xs:complexType>
       <xs:complexType name="doubleArray">
         <xs:sequence>
-          <xs:element name="double" type="xs:double" minOccurs="0" maxOccurs="unbounded" />
+          <xs:element name="double" type="xs:double" minOccurs="0" maxOccurs="unbounded" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_double_array">
@@ -246,7 +246,7 @@
       </xs:complexType>
       <xs:complexType name="floatArray">
         <xs:sequence>
-          <xs:element name="float" type="xs:float" minOccurs="0" maxOccurs="unbounded" />
+          <xs:element name="float" type="xs:float" minOccurs="0" maxOccurs="unbounded" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_float_array">
@@ -261,7 +261,7 @@
       </xs:complexType>
       <xs:complexType name="integerArray">
         <xs:sequence>
-          <xs:element name="integer" type="xs:integer" minOccurs="0" maxOccurs="unbounded" />
+          <xs:element name="integer" type="xs:integer" minOccurs="0" maxOccurs="unbounded" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_integer_array">
@@ -286,7 +286,7 @@
       </xs:complexType>
       <xs:complexType name="stringArray">
         <xs:sequence>
-          <xs:element name="string" type="xs:string" minOccurs="0" maxOccurs="unbounded" />
+          <xs:element name="string" type="xs:string" minOccurs="0" maxOccurs="unbounded" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_string_array">
@@ -311,7 +311,7 @@
       </xs:complexType>
       <xs:complexType name="base64BinaryArray">
         <xs:sequence>
-          <xs:element name="base64Binary" type="xs:base64Binary" minOccurs="0" maxOccurs="unbounded" />
+          <xs:element name="base64Binary" type="xs:base64Binary" minOccurs="0" maxOccurs="unbounded" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_attachment_array">
@@ -332,7 +332,7 @@
       </xs:complexType>
       <xs:complexType name="SimpleClassArray">
         <xs:sequence>
-          <xs:element name="SimpleClass" type="s0:SimpleClass" minOccurs="0" maxOccurs="unbounded" />
+          <xs:element name="SimpleClass" type="s0:SimpleClass" minOccurs="0" maxOccurs="unbounded" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="OtherClass">
@@ -492,7 +492,7 @@
       </xs:complexType>
       <xs:complexType name="NestedClassArray">
         <xs:sequence>
-          <xs:element name="NestedClass" type="s2:NestedClass" minOccurs="0" maxOccurs="unbounded" />
+          <xs:element name="NestedClass" type="s2:NestedClass" minOccurs="0" maxOccurs="unbounded" nillable="true" />
         </xs:sequence>
       </xs:complexType>
     </xs:schema>
@@ -505,9 +505,9 @@
       </xs:simpleType>
       <xs:complexType name="NonNillableClass">
         <xs:sequence>
-          <xs:element name="i" type="xs:integer" minOccurs="0" nillable="false" />
-          <xs:element name="s" type="s3:NonNillableClass_sType" minOccurs="0" nillable="false" />
-          <xs:element name="dt" type="xs:dateTime" nillable="false" />
+          <xs:element name="i" type="xs:integer" minOccurs="0" />
+          <xs:element name="s" type="s3:NonNillableClass_sType" minOccurs="0" />
+          <xs:element name="dt" type="xs:dateTime" />
         </xs:sequence>
       </xs:complexType>
     </xs:schema>

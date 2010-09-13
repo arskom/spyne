@@ -15,6 +15,11 @@ _ns_xs = soaplib.ns_xsd
 class EnumBase(SimpleType):
     __namespace__ = None
 
+    @staticmethod
+    def resolve_namespace(cls, default_ns):
+        if cls.__namespace__ is None:
+            cls.__namespace__ = default_ns
+
     @classmethod
     @nillable_value
     def to_xml(cls, value, tns, parent_elt, name='retval'):

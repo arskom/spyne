@@ -130,7 +130,8 @@ class ClassSerializerBase(NonExtendingClass, Base):
         # dictionaries in a regular class definition).
         if (cls.__name__ == 'Array'):
             inst = ClassSerializer.__new__(Array)
-            member_name = cls._type_info.keys()[0]
+            for member_name in cls._type_info.keys():
+                break
 
             setattr(inst, member_name, value)
 
@@ -170,7 +171,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
     @classmethod
     @nillable_element
     def from_xml(cls, element):
-        inst = cls()
+        inst = ClassSerializer.__new__(cls)
 
         for c in element:
             if isinstance(c, etree._Comment):
@@ -219,7 +220,9 @@ class ClassSerializerBase(NonExtendingClass, Base):
     @classmethod
     def add_to_schema(cls, schema_entries):
         if cls.get_type_name() is Base.Empty:
-            cls.__type_name__ = '%sArray' % cls._type_info.values()[0].get_type_name()
+            for child in cls._type_info.values():
+                cls.__type_name__ = '%sArray' % child.get_type_name()
+                break
 
         if not schema_entries.has_class(cls):
             if not (getattr(cls, '__extends__', None) is None):
@@ -316,7 +319,8 @@ class Array(ClassSerializer):
 
     @staticmethod
     def resolve_namespace(cls, default_ns):
-        serializer = cls._type_info.values()[0]
+        for serializer in cls._type_info.values():
+            break
 
         serializer.resolve_namespace(serializer, default_ns)
 
