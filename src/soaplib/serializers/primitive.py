@@ -98,7 +98,7 @@ class String(SimpleType):
         retval = SimpleType.__new__(cls,  ** kwargs)
 
         if len(args) == 1:
-            retval.max_len = args[0]
+            retval.Attributes.max_len = args[0]
 
         return retval
 
