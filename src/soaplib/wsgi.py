@@ -528,7 +528,7 @@ class Application(object):
 
         # FIXME: There's no way to alter soap response headers for the user.
         envelope = etree.Element('{%s}Envelope' % soaplib.ns_soap_env)
-        body = etree.SubElement(envelope, '{%s}Body' % soaplib.ns_soap_env)
+        body = etree.SubElement(envelope, '{%s}Body' % soaplib.ns_soap_env, nsmap=soaplib.nsmap)
         exc.__class__.to_xml(exc, self.get_tns(), body)
 
         if not (service is None):
