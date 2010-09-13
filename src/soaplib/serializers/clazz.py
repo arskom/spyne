@@ -25,8 +25,6 @@ from soaplib.serializers import Base
 from soaplib.serializers import nillable_element
 from soaplib.serializers import nillable_value
 
-from soaplib.serializers.primitive import Array
-
 from soaplib.util.odict import odict as TypeInfo
 
 class ClassSerializerMeta(type):
@@ -130,34 +128,42 @@ class ClassSerializerBase(NonExtendingClass, Base):
         # the only time when the member order is not arbitrary (as the members
         # are declared and passed around as sequences of arguments, unlike
         # dictionaries in a regular class definition).
-        if isinstance(value, list) or isinstance(value, tuple):
+        if (cls.__name__ == 'Array'):
+            inst = ClassSerializer.__new__(Array)
+            member_name = cls._type_info.keys()[0]
+
+            setattr(inst, member_name, value)
+
+        elif isinstance(value, list) or isinstance(value, tuple):
             assert len(value) <= len(cls._type_info)
 
-            array = value
-            value = cls()
+            inst = cls()
 
             keys = cls._type_info.keys()
-            for i in range(len(array)):
-                setattr(value, keys[i], array[i])
+            for i in range(len(value)):
+                setattr(inst, keys[i], value[i])
 
         elif isinstance(value, dict):
-            map = value
-            value = cls()
+            inst = cls()
 
             for k in cls._type_info:
-                setattr(value, k, map.get(k,None))
+                setattr(inst, k, value.get(k,None))
+
+        else:
+            inst = value
 
         parent_cls = getattr(cls, '__extends__', None)
         if not (parent_cls is None):
-            parent_cls.to_xml(value, tns, parent_elt, name)
+            parent_cls.to_xml(inst, tns, parent_elt, name)
 
         for k, v in cls._type_info.items():
             mo=v.Attributes.max_occurs
-            subvalue = getattr(value, k, None)
+            subvalue = getattr(inst, k, None)
 
             if mo == 'unbounded' or mo > 1:
-                for sv in subvalue:
-                    v.to_xml(sv, cls.get_namespace(), element, k)
+                if subvalue != None:
+                    for sv in subvalue:
+                        v.to_xml(sv, cls.get_namespace(), element, k)
             else:
                 v.to_xml(subvalue, cls.get_namespace(), element, k)
 
@@ -184,7 +190,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
 
             mo = member.Attributes.max_occurs
             if mo == 'unbounded' or mo > 1:
-                value=getattr(inst,key,[])
+                value=getattr(inst,key,None)
                 if value is None:
                     value = []
 
@@ -200,15 +206,8 @@ class ClassSerializerBase(NonExtendingClass, Base):
     def resolve_namespace(cls, default_ns):
         if getattr(cls, '__extends__', None) != None:
             cls.__extends__.resolve_namespace(cls.__extends__, default_ns)
-            if not (cls.get_namespace() in soaplib.const_prefmap):
-                default_ns = cls.get_namespace()
 
-        if cls.__namespace__ is None:
-            cls.__namespace__ = cls.__module__
-
-            if (cls.__namespace__.startswith("soaplib") or
-                                               cls.__namespace__ == '__main__'):
-                cls.__namespace__ = default_ns
+        Base.resolve_namespace(cls, default_ns)
 
         for k, v in cls._type_info.items():
             if v.__type_name__ is Base.Empty:
@@ -219,6 +218,9 @@ class ClassSerializerBase(NonExtendingClass, Base):
 
     @classmethod
     def add_to_schema(cls, schema_entries):
+        if cls.get_type_name() is Base.Empty:
+            cls.__type_name__ = '%sArray' % cls._type_info.values()[0].get_type_name()
+
         if not schema_entries.has_class(cls):
             if not (getattr(cls, '__extends__', None) is None):
                 cls.__extends__.add_to_schema(schema_entries)
@@ -253,10 +255,8 @@ class ClassSerializerBase(NonExtendingClass, Base):
                 if v.Attributes.max_occurs != 1: # 1 is the xml schema default
                     member.set('maxOccurs', str(v.Attributes.max_occurs))
 
-                if bool(v.Attributes.nillable) == True:
+                if bool(v.Attributes.nillable) == True: # it's false by default.
                     member.set('nillable', 'true')
-                else:
-                    member.set('nillable', 'false')
 
             schema_entries.add_complex_type(cls, complex_type)
 
@@ -291,3 +291,43 @@ class ClassSerializer(ClassSerializerBase):
     """
 
     __metaclass__ = ClassSerializerMeta
+
+class Array(ClassSerializer):
+    def __new__(cls, serializer, ** kwargs):
+        retval = cls.customize(**kwargs)
+
+        if serializer.Attributes.max_occurs == 1:
+            serializer = serializer.customize(max_occurs='unbounded')
+
+        if serializer.get_type_name() is Base.Empty:
+            member_name = serializer.__base_type__.get_type_name()
+            if cls.__type_name__ is None:
+                cls.__type_name__ = Base.Empty
+
+        else:
+            member_name = serializer.get_type_name()
+            if cls.__type_name__ is None:
+                cls.__type_name__ = '%sArray' % serializer.get_type_name()
+
+        retval.__type_name__ = '%sArray' % member_name
+        retval._type_info = {member_name: serializer}
+
+        return retval
+
+    @staticmethod
+    def resolve_namespace(cls, default_ns):
+        serializer = cls._type_info.values()[0]
+
+        print serializer, serializer.get_namespace(), default_ns
+        serializer.resolve_namespace(serializer, default_ns)
+
+        if cls.__namespace__ is None:
+            cls.__namespace__ = serializer.get_namespace()
+
+        if cls.__namespace__ in soaplib.const_prefmap:
+            cls.__namespace__ = default_ns
+
+        ClassSerializer.resolve_namespace(cls, default_ns)
+
+import soaplib.serializers.primitive
+soaplib.serializers.primitive.Array = Array

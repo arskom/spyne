@@ -18,7 +18,6 @@
 
 import datetime
 import decimal
-import logging
 import re
 import pytz
 
@@ -264,95 +263,6 @@ class Boolean(SimpleType):
     def from_xml(cls, element):
         s = element.text
         return (s and s.lower()[0] == 't')
-
-class Array(SimpleType):
-    logger = logging.getLogger('soaplib.serializers.primitive.Array')
-
-    serializer = None
-    __namespace__ = None
-
-    child_min_occurs = 0
-    child_max_occurs = "unbounded"
-
-    def __new__(cls, serializer, ** kwargs):
-        retval = cls.customize( ** kwargs)
-
-        retval.serializer = serializer
-
-        retval.__type_name__ = '%sArray' % retval.serializer.get_type_name()
-
-        return retval
-
-    @classmethod
-    def resolve_namespace(cls, default_ns):
-        cls.serializer.resolve_namespace(default_ns)
-
-        if cls.__namespace__ is None:
-            if cls.serializer.get_namespace() != soaplib.ns_xsd:
-                cls.__namespace__ = cls.serializer.get_namespace()
-            else:
-                cls.__namespace__ = default_ns
-
-        if (cls.__namespace__.startswith('soaplib') or
-                                            cls.__namespace__ == '__main__'):
-            cls.__namespace__ = default_ns
-
-        cls.serializer.resolve_namespace(default_ns)
-
-    @classmethod
-    @nillable_value
-    def to_xml(cls, values, tns, parent_elt, name='retval'):
-        element = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
-
-        if values == None:
-            values = []
-
-        element.set('type', "%s" % cls.get_type_name_ns())
-
-        # so that we see the variable name in the exception
-        try:
-            iter(values)
-        except TypeError:
-            raise TypeError(values, name)
-
-        for value in values:
-            cls.logger.debug("encoding array value: %r" % value)
-            cls.serializer.to_xml(value, tns, element,
-                                                 cls.serializer.get_type_name())
-
-    @classmethod
-    @nillable_element
-    def from_xml(cls, element):
-        retval = []
-
-        for child in element.getchildren():
-            retval.append(cls.serializer.from_xml(child))
-
-        return retval
-
-    @classmethod
-    def add_to_schema(cls, schema_entries):
-        if not schema_entries.has_class(cls):
-            cls.serializer.add_to_schema(schema_entries)
-
-            complex_type = etree.Element('{%s}complexType' % _ns_xs)
-            complex_type.set('name', cls.get_type_name())
-
-            sequence = etree.SubElement(complex_type, '{%s}sequence' % _ns_xs)
-
-            element = etree.SubElement(sequence, '{%s}element' % _ns_xs)
-            element.set('name', cls.serializer.get_type_name())
-            element.set('type', cls.serializer.get_type_name_ns())
-            element.set('minOccurs', str(cls.child_min_occurs))
-            element.set('maxOccurs', str(cls.child_max_occurs))
-
-            schema_entries.add_complex_type(cls, complex_type)
-
-            top_level_element = etree.SubElement(element, '{%s}element' % _ns_xs)
-            top_level_element.set('name', cls.get_type_name())
-            top_level_element.set('type', cls.get_type_name_ns())
-
-            schema_entries.add_element(cls, top_level_element)
 
 # a class that is really a namespace
 class Mandatory(object):

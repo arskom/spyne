@@ -67,6 +67,7 @@ def rpc(*params, **kparams):
 
                     message=Message.produce(type_name=_in_message, namespace=ns,
                                                             members=in_params)
+                    message.__namespace__ = ns
                     message.resolve_namespace(message, ns)
                     return message
 
@@ -100,6 +101,7 @@ def rpc(*params, **kparams):
 
                     message=Message.produce(type_name=_out_message,namespace=ns,
                                                              members=out_params)
+                    message.__namespace__ = ns
                     message.resolve_namespace(message, ns)
                     return message
 
