@@ -115,27 +115,13 @@ class ClassSerializerBase(NonExtendingClass, Base):
         return getattr(self, self._type_info.keys()[i], None)
 
     @classmethod
-    @nillable_value
-    def to_xml(cls, value, tns, parent_elt, name=None):
-        if name is None:
-            name = cls.get_type_name()
-
-        element = etree.SubElement(parent_elt,
-                                         "{%s}%s" % (cls.get_namespace(), name))
-
+    def get_serialization_instance(cls, value):
         # if the instance is a list, convert it to a cls instance.
         # this is only useful when deserializing descriptor.in_message as it's
         # the only time when the member order is not arbitrary (as the members
         # are declared and passed around as sequences of arguments, unlike
         # dictionaries in a regular class definition).
-        if (cls.__name__ == 'Array'):
-            inst = ClassSerializer.__new__(Array)
-            for member_name in cls._type_info.keys():
-                break
-
-            setattr(inst, member_name, value)
-
-        elif isinstance(value, list) or isinstance(value, tuple):
+        if isinstance(value, list) or isinstance(value, tuple):
             assert len(value) <= len(cls._type_info)
 
             inst = cls()
@@ -153,25 +139,43 @@ class ClassSerializerBase(NonExtendingClass, Base):
         else:
             inst = value
 
+        return inst
+
+    @classmethod
+    def get_deserialization_instance(cls):
+        return ClassSerializer.__new__(cls)
+
+    @classmethod
+    @nillable_value
+    def to_xml(cls, value, tns, parent_elt, name=None):
+        if name is None:
+            name = cls.get_type_name()
+
+        element = etree.SubElement(parent_elt,
+                                         "{%s}%s" % (cls.get_namespace(), name))
+
+        inst = cls.get_serialization_instance(value)
+
         parent_cls = getattr(cls, '__extends__', None)
         if not (parent_cls is None):
             parent_cls.to_xml(inst, tns, parent_elt, name)
 
         for k, v in cls._type_info.items():
-            mo=v.Attributes.max_occurs
+            mo = v.Attributes.max_occurs
             subvalue = getattr(inst, k, None)
 
             if mo == 'unbounded' or mo > 1:
                 if subvalue != None:
                     for sv in subvalue:
                         v.to_xml(sv, cls.get_namespace(), element, k)
+
             else:
                 v.to_xml(subvalue, cls.get_namespace(), element, k)
 
     @classmethod
     @nillable_element
     def from_xml(cls, element):
-        inst = ClassSerializer.__new__(cls)
+        inst = cls.get_deserialization_instance()
 
         for c in element:
             if isinstance(c, etree._Comment):
@@ -191,7 +195,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
 
             mo = member.Attributes.max_occurs
             if mo == 'unbounded' or mo > 1:
-                value=getattr(inst,key,None)
+                value = getattr(inst, key, None)
                 if value is None:
                     value = []
 
@@ -299,13 +303,15 @@ class Array(ClassSerializer):
     def __new__(cls, serializer, ** kwargs):
         retval = cls.customize(**kwargs)
 
+        # hack to default to unbounded arrays when the user didn't specify
+        # max_occurs.
         if serializer.Attributes.max_occurs == 1:
             serializer = serializer.customize(max_occurs='unbounded')
 
         if serializer.get_type_name() is Base.Empty:
             member_name = serializer.__base_type__.get_type_name()
             if cls.__type_name__ is None:
-                cls.__type_name__ = Base.Empty
+                cls.__type_name__ = Base.Empty # to be resolved later
 
         else:
             member_name = serializer.get_type_name()
@@ -317,6 +323,8 @@ class Array(ClassSerializer):
 
         return retval
 
+
+    # the array belongs to its child's namespace, it doesn't have own namespace.
     @staticmethod
     def resolve_namespace(cls, default_ns):
         for serializer in cls._type_info.values():
@@ -331,6 +339,27 @@ class Array(ClassSerializer):
             cls.__namespace__ = default_ns
 
         ClassSerializer.resolve_namespace(cls, default_ns)
+
+    @classmethod
+    def get_serialization_instance(cls, value):
+        inst = ClassSerializer.__new__(Array)
+        for member_name in cls._type_info.keys():
+            setattr(inst, member_name, value)
+            print cls.get_type_name(),'.',member_name,' = ', value
+            assert isinstance(value,list)
+            return inst
+
+    @classmethod
+    @nillable_element
+    def from_xml(cls, element):
+        retval = []
+        for serializer in cls._type_info.values():
+            break
+
+        for child in element.getchildren():
+            retval.append(serializer.from_xml(child))
+
+        return retval
 
 import soaplib.serializers.primitive
 soaplib.serializers.primitive.Array = Array

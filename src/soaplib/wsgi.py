@@ -295,6 +295,7 @@ class Application(object):
             charset = 'ascii'
 
         http_payload = collapse_swa(content_type, http_payload)
+        print http_payload
 
         # deserialize the body of the message
         req_payload, req_header = from_soap(http_payload, charset)
