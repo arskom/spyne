@@ -104,7 +104,7 @@ class String(SimpleType):
 
     @classmethod
     def is_default(cls):
-        return (SimpleType.is_default()
+        return (    cls.Attributes.values == String.Attributes.values
                 and cls.Attributes.min_len == String.Attributes.min_len
                 and cls.Attributes.max_len == String.Attributes.max_len
                 and cls.Attributes.pattern == String.Attributes.pattern)
