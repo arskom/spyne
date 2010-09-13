@@ -345,8 +345,6 @@ class Array(ClassSerializer):
         inst = ClassSerializer.__new__(Array)
         for member_name in cls._type_info.keys():
             setattr(inst, member_name, value)
-            print cls.get_type_name(),'.',member_name,' = ', value
-            assert isinstance(value,list)
             return inst
 
     @classmethod
