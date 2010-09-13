@@ -318,7 +318,6 @@ class Array(ClassSerializer):
     def resolve_namespace(cls, default_ns):
         serializer = cls._type_info.values()[0]
 
-        print serializer, serializer.get_namespace(), default_ns
         serializer.resolve_namespace(serializer, default_ns)
 
         if cls.__namespace__ is None:
