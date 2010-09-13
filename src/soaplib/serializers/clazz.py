@@ -143,7 +143,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
 
     @classmethod
     def get_deserialization_instance(cls):
-        return ClassSerializer.__new__(cls)
+        return cls()
 
     @classmethod
     @nillable_value
