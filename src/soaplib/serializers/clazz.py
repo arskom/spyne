@@ -128,7 +128,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
         # if the instance is a list, convert it to a cls instance.
         # this is only useful when deserializing descriptor.in_message as it's
         # the only time when the member order is not arbitrary (as the members
-        # are declared as sequences of arguments in function definitions, unlike
+        # are declared and passed around as sequences of arguments, unlike
         # dictionaries in a regular class definition).
         if isinstance(value, list) or isinstance(value, tuple):
             assert len(value) <= len(cls._type_info)
