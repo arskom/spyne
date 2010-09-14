@@ -125,11 +125,13 @@ class Base(object):
 
         cls_dict['Attributes'] = Attributes
 
+        if not ('_is_clone_of' in cls_dict):
+            cls_dict['_is_clone_of'] = cls
+
         for k,v in kwargs.items():
             setattr(Attributes,k,v)
 
         cls_dup = type(cls.__name__, cls.__bases__, cls_dict)
-
         return cls_dup
 
 class Null(Base):
