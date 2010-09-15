@@ -38,4 +38,4 @@ servers:
 Development Requirements
 ------------------------
 * Most examples and tests require Python 2.5 or greater
-* Twisted is required for `interop.server.static`
+* Twisted is required for `soaplib.test.interop.server.basic` and `soaplib.test.interop.server.static`.
