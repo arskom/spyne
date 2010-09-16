@@ -18,19 +18,17 @@
 #
 
 from soaplib.service import rpc
+from soaplib.service import DefinitionBase
 from soaplib.serializers.primitive import String, Integer, Array
-from soaplib.wsgi_soap import SimpleWSGIApp
+from soaplib.wsgi import Application
+from soaplib.util.server import run_twisted
 
-from twisted.web.server import Site
-from twisted.web.resource import Resource
-from twisted.web.wsgi import WSGIResource
-from twisted.internet import reactor
 
 '''
 This is the HelloWorld example running in the twisted framework.
 '''
 
-class HelloWorldService(SimpleWSGIApp):
+class HelloWorldService(DefinitionBase):
     @rpc(String, Integer, _returns=Array(String))
     def say_hello(self, name, times):
         '''
@@ -47,11 +45,9 @@ class HelloWorldService(SimpleWSGIApp):
 
 
 if __name__=='__main__':
-    service = HelloWorldService()
-    resource = WSGIResource(reactor, reactor.getThreadPool(), service)
-    root = Resource()
-    root.putChild('SOAP', resource)
-    print "listening on 0.0.0.0:7889"
-    print "point your browser to: http://localhost:7889/SOAP/?wsdl"
-    reactor.listenTCP(7889, Site(root))
-    reactor.run()
+    app=Application([HelloWorldService], 'tns')
+    run_twisted(((app, 
+                  "SOAP"),
+                 ), 
+                7789)
+
