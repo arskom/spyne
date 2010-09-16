@@ -46,8 +46,6 @@ class HelloWorldService(DefinitionBase):
 
 if __name__=='__main__':
     app=Application([HelloWorldService], 'tns')
-    run_twisted(((app, 
-                  "SOAP"),
-                 ), 
-                7789)
-
+    print 'listening on 0.0.0.0:7789'
+    print 'wsdl is at: http://0.0.0.0:7789/SOAP/?wsdl'
+    run_twisted( ( (app, "SOAP"),), 7789)
