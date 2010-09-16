@@ -146,6 +146,24 @@ class ClassSerializerBase(NonExtendingClass, Base):
         return cls()
 
     @classmethod
+    def get_members(cls, inst, parent):
+        parent_cls = getattr(cls, '__extends__', None)
+        if not (parent_cls is None):
+            parent_cls.get_members(inst, parent)
+
+        for k, v in cls._type_info.items():
+            mo = v.Attributes.max_occurs
+            subvalue = getattr(inst, k, None)
+
+            if mo == 'unbounded' or mo > 1:
+                if subvalue != None:
+                    for sv in subvalue:
+                        v.to_xml(sv, cls.get_namespace(), parent, k)
+
+            else:
+                v.to_xml(subvalue, cls.get_namespace(), parent, k)
+
+    @classmethod
     @nillable_value
     def to_xml(cls, value, tns, parent_elt, name=None):
         if name is None:
@@ -156,21 +174,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
 
         inst = cls.get_serialization_instance(value)
 
-        parent_cls = getattr(cls, '__extends__', None)
-        if not (parent_cls is None):
-            parent_cls.to_xml(inst, tns, parent_elt, name)
-
-        for k, v in cls._type_info.items():
-            mo = v.Attributes.max_occurs
-            subvalue = getattr(inst, k, None)
-
-            if mo == 'unbounded' or mo > 1:
-                if subvalue != None:
-                    for sv in subvalue:
-                        v.to_xml(sv, cls.get_namespace(), element, k)
-
-            else:
-                v.to_xml(subvalue, cls.get_namespace(), element, k)
+        cls.get_members(inst, element)
 
     @classmethod
     @nillable_element
