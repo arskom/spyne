@@ -262,7 +262,7 @@ class Boolean(SimpleType):
     @nillable_element
     def from_xml(cls, element):
         s = element.text
-        return (s and s.lower()[0] == 't')
+        return (s and s.lower() in ['true', '1'])
 
 # a class that is really a namespace
 class Mandatory(object):
