@@ -27,7 +27,7 @@ from soaplib.serializers import nillable_value
 
 from soaplib.util.odict import odict as TypeInfo
 
-class ClassSerializerMeta(type):
+class ClassSerializerMeta(type(Base)):
     '''
     This is the metaclass that populates ClassSerializer instances with
     the appropriate datatypes for (de)serialization.

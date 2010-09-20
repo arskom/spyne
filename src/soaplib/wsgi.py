@@ -103,7 +103,7 @@ class Application(object):
 
             # append import tags
             for namespace in schema_entries.imports[pref]:
-                import_ = etree.SubElement(schema, "{%s}import" % soaplib.ns_xsd)
+                import_ = etree.SubElement(schema, "{%s}import"% soaplib.ns_xsd)
                 import_.set("namespace", namespace)
                 if types is None:
                     import_.set('schemaLocation', "%s.xsd" %
@@ -244,7 +244,8 @@ class Application(object):
             cb_binding = s.add_bindings_for_methods(root, service_name, types,
                                                        url, binding, cb_binding)
 
-        self.__wsdl = etree.tostring(root, xml_declaration=True, encoding="UTF-8")
+        self.__wsdl = etree.tostring(root, xml_declaration=True,
+                                                               encoding="UTF-8")
 
         return self.__wsdl
 
@@ -274,9 +275,9 @@ class Application(object):
             return [self.__wsdl]
 
         except Exception, e:
-            # implementation hook
             logger.error(traceback.format_exc())
 
+            # implementation hook
             self.on_wsdl_exception(req_env, e)
 
             start_response(HTTP_500, http_resp_headers.items())
@@ -419,7 +420,8 @@ class Application(object):
                 params = [None] * len(descriptor.in_message._type_info)
 
             # implementation hook
-            service.on_method_call(req_env, method_name, params, soap_req_payload)
+            service.on_method_call(req_env, method_name, params,
+                                                               soap_req_payload)
 
             # call the method
             result_raw = service.call_wrapper(func, params)
@@ -453,7 +455,8 @@ class Application(object):
             #
             # body
             #
-            soap_body = etree.SubElement(envelope, '{%s}Body' % soaplib.ns_soap_env)
+            soap_body = etree.SubElement(envelope,
+                                               '{%s}Body' % soaplib.ns_soap_env)
 
             # instantiate the result message
             result_message = descriptor.out_message()
@@ -517,7 +520,8 @@ class Application(object):
             return self.__handle_fault(req_env, start_response,
                                               http_resp_headers, service, fault)
 
-    def __handle_fault(self, req_env, start_response, http_resp_headers, service, exc):
+    def __handle_fault(self, req_env, start_response, http_resp_headers,
+                                                                  service, exc):
         stacktrace=traceback.format_exc()
         logger.error(stacktrace)
 
@@ -528,7 +532,8 @@ class Application(object):
 
         # FIXME: There's no way to alter soap response headers for the user.
         envelope = etree.Element('{%s}Envelope' % soaplib.ns_soap_env)
-        body = etree.SubElement(envelope, '{%s}Body' % soaplib.ns_soap_env, nsmap=soaplib.nsmap)
+        body = etree.SubElement(envelope, '{%s}Body' % soaplib.ns_soap_env,
+                                                            nsmap=soaplib.nsmap)
         exc.__class__.to_xml(exc, self.get_tns(), body)
 
         if not (service is None):
