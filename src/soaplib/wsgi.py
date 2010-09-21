@@ -45,34 +45,44 @@ class ValidationError(Fault):
     pass
 
 class Application(object):
-    def __init__(self, services, tns, _with_partnerlink=False):
+    def __init__(self, services, tns, name=None, _with_partnerlink=False):
         '''
         @param A ServiceBase subclass that defines the exposed services.
         '''
 
         self.services = services
-        self.call_routes = {}
+        self.tns = tns
+        self.name = name
+        self._with_plink = _with_partnerlink
 
+        self.call_routes = {}
         self.__wsdl = None
         self.__public_methods = {}
         self.schema = None
-        self.tns = tns
-        self._with_plink = _with_partnerlink
 
         self.build_schema()
 
+    def get_name(self):
+        retval = self.name
+
+        if retval is None:
+            retval = self.__class__.__name__.split('.')[-1]
+
+        return retval
+
     def get_tns(self):
-        if not (self.tns is None):
-            return self.tns
+        retval = self.tns
 
-        service_name = self.__class__.__name__.split('.')[-1]
+        if retval is None:
+            service_name = self.get_name()
 
-        retval = '.'.join((self.__class__.__module__, service_name))
-        if self.__class__.__module__ == '__main__':
-            retval = '.'.join((service_name, service_name))
+            if self.__class__.__module__ == '__main__':
+                retval = '.'.join((service_name, service_name))
+            else:
+                retval = '.'.join((self.__class__.__module__, service_name))
 
-        if retval.startswith('soaplib'):
-            retval = self.services[0].get_tns()
+            if retval.startswith('soaplib'):
+                retval = self.services[0].get_tns()
 
         return retval
 
@@ -188,13 +198,13 @@ class Application(object):
 
         ns_tns = self.get_tns()
         pref_tns = soaplib.get_namespace_prefix(ns_tns) #'tns'
+        # FIXME: this can be enabled when soaplib.nsmap is no longer global
         #soaplib.set_namespace_prefix(ns_tns, pref_tns)
 
         # FIXME: doesn't look so robust
         url = url.replace('.wsdl', '')
 
-        # TODO: we may want to customize service_name.
-        service_name = self.__class__.__name__.split('.')[-1]
+        service_name = self.get_name()
 
         # create wsdl root node
         root = etree.Element("{%s}definitions" % ns_wsdl, nsmap=soaplib.nsmap)
