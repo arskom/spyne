@@ -154,7 +154,18 @@ class String(SimpleType):
 class AnyUri(String):
     __type_name__ = 'anyURI'
 
-class Integer(SimpleType):
+class Decimal(SimpleType):
+    @classmethod
+    @nillable_value
+    def to_xml(cls, value, tns, parent_elt, name='retval'):
+        string_to_xml(cls, str(value), tns, parent_elt, name)
+
+    @classmethod
+    @nillable_element
+    def from_xml(cls, element):
+        return decimal.Decimal(element.text)
+
+class Integer(Decimal):
     @classmethod
     @nillable_element
     def from_xml(cls, element):
@@ -164,17 +175,6 @@ class Integer(SimpleType):
             return int(i)
         except:
             return long(i)
-
-    @classmethod
-    @nillable_value
-    def to_xml(cls, value, tns, parent_elt, name='retval'):
-        string_to_xml(cls, str(value), tns, parent_elt, name)
-
-class Decimal(SimpleType):
-    @classmethod
-    @nillable_element
-    def from_xml(cls, element):
-        return decimal.Decimal(element.text)
 
 class Date(SimpleType):
     @classmethod
