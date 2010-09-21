@@ -51,8 +51,8 @@ class Application(object):
         '''
 
         self.services = services
-        self.tns = tns
-        self.name = name
+        self.__tns = tns
+        self.__name = name
         self._with_plink = _with_partnerlink
 
         self.call_routes = {}
@@ -63,15 +63,17 @@ class Application(object):
         self.build_schema()
 
     def get_name(self):
-        retval = self.name
+        retval = self.__name
 
         if retval is None:
             retval = self.__class__.__name__.split('.')[-1]
 
         return retval
 
+    name = property(get_name)
+
     def get_tns(self):
-        retval = self.tns
+        retval = self.__tns
 
         if retval is None:
             service_name = self.get_name()
@@ -85,6 +87,8 @@ class Application(object):
                 retval = self.services[0].get_tns()
 
         return retval
+
+    tns = property(get_tns)
 
     def __get_schema_node(self, pref, schema_nodes, types):
         # create schema node
