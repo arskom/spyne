@@ -657,7 +657,8 @@ class ValidatingApplication(Application):
                 f = open(file_name, 'w')
                 etree.ElementTree(v).write(f, pretty_print=True)
                 f.close()
-                logger.debug("writing %r for ns %s" % (file_name, soaplib.nsmap[k]))
+                logger.debug("writing %r for ns %s" % (file_name,
+                                                            soaplib.nsmap[k]))
 
             f = open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r')
 
