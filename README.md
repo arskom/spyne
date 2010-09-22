@@ -7,12 +7,16 @@ What is soaplib?
 Soaplib is an easy to use python library for publishing soap web services
 using WSDL 1.1 standard, and answering SOAP 1.1 requests.
 With a very small amount of code, soaplib allows you to write
-a useful web service and deploy it as a WSGI application.
-
-WSGI is a python web standard for writing portable, extendable web
-applications in python. More information on WSGI can be found [here](http://wsgi.org/wsgi).
+a useful web service and deploy it as a [WSGI](http://wsgi.org/wsgi) application.
 
 The official soaplib discussion forum can be found [here](http://mail.python.org/mailman/listinfo/soap).
+
+The legacy versions of soaplib are also available in this repository.
+
+See [here](http://github.com/arskom/soaplib/tree/0_8) for the soaplib-0.8 branch.
+See [here](http://github.com/arskom/soaplib/tree/1_0) for the soaplib-1.0 branch.
+
+See the [downloads section](http://github.com/arskom/soaplib/downloads) for related downloads.
 
 Features
 --------
