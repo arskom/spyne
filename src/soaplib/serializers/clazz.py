@@ -363,6 +363,3 @@ class Array(ClassSerializer):
             retval.append(serializer.from_xml(child))
 
         return retval
-
-import soaplib.serializers.primitive
-soaplib.serializers.primitive.Array = Array
