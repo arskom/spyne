@@ -529,8 +529,8 @@ class DefinitionBase(object):
             self.__add_message_for_object(root, messages, method.in_header)
             self.__add_message_for_object(root, messages, method.out_header)
 
-
-    def add_bindings_for_methods(self, root, service_name, types, url, binding, cb_binding=None):
+    def add_bindings_for_methods(self, root, service_name, types, url, binding,
+                                                               cb_binding=None):
         '''
         A private method for adding bindings to the wsdl
 

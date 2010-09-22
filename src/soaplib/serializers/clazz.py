@@ -328,7 +328,8 @@ class Array(ClassSerializer):
         return retval
 
 
-    # the array belongs to its child's namespace, it doesn't have own namespace.
+    # the array belongs to its child's namespace, it doesn't have its own
+    # namespace.
     @staticmethod
     def resolve_namespace(cls, default_ns):
         for serializer in cls._type_info.values():
