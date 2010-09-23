@@ -17,6 +17,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""
+The soaplib.serializers.table module is EXPERIMENTAL. It does not support
+inheritance, it is supposedly buggy and possibly slow.
+"""
+
+print __doc__
+
+import logging
+logger = logging.getLogger(__name__)
+
 import sqlalchemy
 from sqlalchemy import Column
 
