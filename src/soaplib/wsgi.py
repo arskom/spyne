@@ -17,13 +17,13 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import cgi
 import logging
+logger = logging.getLogger(__name__)
+
+import cgi
 import shutil
 import tempfile
 import traceback
-
-logger = logging.getLogger(__name__)
 
 from lxml import etree
 
@@ -250,13 +250,10 @@ class Application(object):
         soap_binding.set('style', 'document')
         soap_binding.set('transport', 'http://schemas.xmlsoap.org/soap/http')
 
-        cb_binding = None
-
         for s in self.services:
-            s=self.get_service(s)
+            s = self.get_service(s)
             s.add_port_type(root, service_name, types, url, port_type)
-            cb_binding = s.add_bindings_for_methods(root, service_name, types,
-                                                       url, binding, cb_binding)
+            s.add_bindings_for_methods(root, service_name, types, url, binding)
 
         self.__wsdl = etree.tostring(root, xml_declaration=True,
                                                                encoding="UTF-8")
@@ -353,23 +350,6 @@ class Application(object):
 
         plink_port_type = etree.SubElement(role, '{%s}portType' % ns_plink)
         plink_port_type.set('name', '%s:%s' % (pref_tns, service_name))
-
-        if self._has_callbacks():
-            role = etree.SubElement(plink, '{%s}role' % ns_plink)
-            role.set('name', '%sCallback' % service_name)
-
-            plink_port_type = etree.SubElement(role, '{%s}portType' % ns_plink)
-            plink_port_type.set('name', '%s:%sCallback' %
-                                                       (pref_tns, service_name))
-
-    def _has_callbacks(self):
-        retval = False
-
-        for s in self.services:
-            if self.get_service(s)._has_callbacks():
-                return True
-
-        return retval
 
     def __handle_soap_request(self, req_env, start_response, url):
         http_resp_headers = {
@@ -485,8 +465,7 @@ class Application(object):
                 setattr(result_message, attr_name, result_raw)
 
             # transform the results into an element
-            if not (descriptor.is_async or descriptor.is_callback):
-                descriptor.out_message.to_xml(result_message, self.get_tns(),
+            descriptor.out_message.to_xml(result_message, self.get_tns(),
                                                                       soap_body)
 
             # implementation hook
