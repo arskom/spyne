@@ -52,7 +52,7 @@ class Base(object):
 
     class Attributes(object):
         nillable = True
-        min_occurs = 1
+        min_occurs = 0
         max_occurs = 1
 
     class Empty(object):
