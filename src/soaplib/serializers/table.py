@@ -33,22 +33,23 @@ from sqlalchemy import Column
 from sqlalchemy.ext.declarative import DeclarativeMeta
 from soaplib.serializers.clazz import TypeInfo
 from soaplib.serializers.clazz import ClassSerializerBase
-from soaplib.serializers import primitive as soap
+from soaplib.serializers import primitive
+from soaplib.serializers import clazz
 
 _type_map = {
-    sqlalchemy.Text: soap.String,
-    sqlalchemy.String: soap.String,
-    sqlalchemy.Unicode: soap.String,
-    sqlalchemy.UnicodeText: soap.String,
+    sqlalchemy.Text: primitive.String,
+    sqlalchemy.String: primitive.String,
+    sqlalchemy.Unicode: primitive.String,
+    sqlalchemy.UnicodeText: primitive.String,
 
-    sqlalchemy.Float: soap.Float,
-    sqlalchemy.Numeric: soap.Double,
-    sqlalchemy.Integer: soap.Integer,
-    sqlalchemy.SmallInteger: soap.Integer,
+    sqlalchemy.Float: primitive.Float,
+    sqlalchemy.Numeric: primitive.Double,
+    sqlalchemy.Integer: primitive.Integer,
+    sqlalchemy.SmallInteger: primitive.Integer,
 
-    sqlalchemy.Boolean: soap.Boolean,
-    sqlalchemy.DateTime: soap.DateTime,
-    sqlalchemy.orm.relation: soap.Array,
+    sqlalchemy.Boolean: primitive.Boolean,
+    sqlalchemy.DateTime: primitive.DateTime,
+    sqlalchemy.orm.relation: clazz.Array,
 }
 
 class TableSerializerMeta(DeclarativeMeta):

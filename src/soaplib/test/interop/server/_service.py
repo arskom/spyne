@@ -18,12 +18,12 @@
 #
 
 from soaplib.serializers.binary import Attachment
+from soaplib.serializers.clazz import Array
 from soaplib.serializers.clazz import ClassSerializer
 from soaplib.serializers.enum import Enum
 
 from soaplib.serializers.primitive import Any
 from soaplib.serializers.primitive import AnyAsDict
-from soaplib.serializers.primitive import Array
 from soaplib.serializers.primitive import Boolean
 from soaplib.serializers.primitive import DateTime
 from soaplib.serializers.primitive import Float
