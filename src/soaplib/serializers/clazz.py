@@ -223,7 +223,8 @@ class ClassSerializerBase(NonExtendingClass, Base):
                 v.__namespace__ = cls.get_namespace()
                 v.__type_name__ = "%s_%sType" % (cls.get_type_name(), k)
 
-            v.resolve_namespace(v, default_ns)
+            if v != cls:
+                v.resolve_namespace(v, default_ns)
 
     @classmethod
     def add_to_schema(cls, schema_entries):
@@ -254,7 +255,8 @@ class ClassSerializerBase(NonExtendingClass, Base):
                                                                 soaplib.ns_xsd)
 
             for k, v in cls._type_info.items():
-                v.add_to_schema(schema_entries)
+                if v != cls:
+                    v.add_to_schema(schema_entries)
 
                 member = etree.SubElement(sequence, '{%s}element' %
                                                                 soaplib.ns_xsd)
