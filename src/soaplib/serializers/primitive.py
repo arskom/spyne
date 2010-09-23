@@ -238,6 +238,20 @@ class DateTime(SimpleType):
 
         return parse_date(match)
 
+class Duration(SimpleType):
+    __type_name__ = 'duration'
+
+    @classmethod
+    @nillable_value
+    def to_xml(cls, value, tns, parent_elt, name='retval'):
+        string_to_xml(cls, str(value), tns, parent_elt, name)
+
+    @classmethod
+    @nillable_element
+    def from_xml(cls, element):
+        from soaplib.util.duration import duration
+        return duration.parse(element.text)
+
 class Double(SimpleType):
     @classmethod
     @nillable_element
