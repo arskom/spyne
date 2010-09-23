@@ -24,7 +24,7 @@ from lxml import etree
 from soaplib.serializers.clazz import ClassSerializer
 
 from soaplib.serializers.exception import Fault
-from soaplib.serializers.primitive import Array
+from soaplib.serializers.clazz import Array
 from soaplib.serializers.primitive import DateTime
 from soaplib.serializers.primitive import Float
 from soaplib.serializers.primitive import Integer

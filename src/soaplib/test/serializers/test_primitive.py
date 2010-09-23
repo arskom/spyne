@@ -24,7 +24,7 @@ from lxml import etree
 
 import soaplib
 
-from soaplib.serializers.primitive import Array
+from soaplib.serializers.clazz import Array
 from soaplib.serializers.primitive import Boolean
 from soaplib.serializers.primitive import DateTime
 from soaplib.serializers.primitive import Float
