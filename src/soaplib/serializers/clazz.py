@@ -266,7 +266,8 @@ class ClassSerializerBase(NonExtendingClass, Base):
                 if v.Attributes.max_occurs != 1: # 1 is the xml schema default
                     member.set('maxOccurs', str(v.Attributes.max_occurs))
 
-                if bool(v.Attributes.nillable) == True: # it's false by default.
+                # True is the xml schema default
+                if bool(v.Attributes.nillable) == True:
                     member.set('nillable', 'true')
 
             schema_entries.add_complex_type(cls, complex_type)
