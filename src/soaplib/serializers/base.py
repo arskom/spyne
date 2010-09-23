@@ -50,6 +50,9 @@ class Base(object):
     __namespace__ = None
     __type_name__ = None
 
+    # There are not the xml schema defaults. The xml schema defaults are
+    # considered in ClassSerializer's add_to_schema method. the defaults here
+    # are to reflect what people want most.
     class Attributes(object):
         nillable = True
         min_occurs = 0
