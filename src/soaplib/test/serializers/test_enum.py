@@ -68,11 +68,13 @@ class TestEnum(unittest.TestCase):
         self.assertEquals([e.attrib['value'] for e in simple_type[0]], vals)
 
     def test_serialize(self):
-        DaysOfWeekEnum.resolve_namespace('punk')
+        DaysOfWeekEnum.resolve_namespace(DaysOfWeekEnum, 'punk')
         mo = DaysOfWeekEnum.Monday
         print repr(mo)
 
-        elt = DaysOfWeekEnum.to_xml(mo, 'test_namespace')
+        elt = etree.Element('test')
+        DaysOfWeekEnum.to_xml(mo, 'test_namespace', elt)
+        elt = elt[0]
         ret = DaysOfWeekEnum.from_xml(elt)
 
         self.assertEquals(mo, ret)

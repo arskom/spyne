@@ -55,11 +55,14 @@ class TestSoap(unittest.TestCase):
             type_name='myMessage',
             members={'s': String, 'i': Integer}
         )
-        m.resolve_namespace('test')
+        m.resolve_namespace(m,'test')
 
         m_inst = m(s="a", i=43)
-        e = m.to_xml(m_inst,m.get_namespace())
 
+        e = etree.Element('test')
+        m.to_xml(m_inst,m.get_namespace(),e)
+        e=e[0]
+        
         self.assertEquals(e.tag, '{%s}myMessage' % m.get_namespace())
 
         self.assertEquals(e.find('{%s}s' % m.get_namespace()).text, 'a')
@@ -113,7 +116,10 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
         mi = m()
         mi.s = 'a'
 
-        e = m.to_xml(mi,m.get_namespace())
+        e = etree.Element('test')
+        m.to_xml(mi,m.get_namespace(),e)
+        e=e[0]
+
         self.assertEquals(e.tag, '{some_namespace}myMessage')
 
     def test_class_to_xml(self):
@@ -123,14 +129,17 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
             members={'p': Person}
         )
 
-        m.resolve_namespace("punk")
+        m.resolve_namespace(m,"punk")
 
-        m.p = Person()
-        m.p.name = 'steve-o'
-        m.p.age = 2
-        m.p.addresses = []
+        m_inst = m()
+        m_inst.p = Person()
+        m_inst.p.name = 'steve-o'
+        m_inst.p.age = 2
+        m_inst.p.addresses = []
 
-        element = m.to_xml(m,m.get_namespace())
+        element=etree.Element('test')
+        m.to_xml(m_inst,m.get_namespace(),element)
+        element=element[0]
 
         self.assertEquals(element.tag, '{%s}myMessage' % m.get_namespace())
         self.assertEquals(element.getchildren()[0].find('{%s}name' % m.get_namespace()).text,
@@ -141,8 +150,8 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
 
         p1 = m.from_xml(element)[0]
 
-        self.assertEquals(p1.name, m.p.name)
-        self.assertEquals(p1.age, m.p.age)
+        self.assertEquals(p1.name, m_inst.p.name)
+        self.assertEquals(p1.age, m_inst.p.age)
         self.assertEquals(p1.addresses, [])
 
     def test_to_xml_nested(self):
@@ -152,7 +161,7 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
             members={'p':Person}
         )
 
-        m.resolve_namespace("m")
+        m.resolve_namespace(m,"m")
 
         p = Person()
         p.name = 'steve-o'
@@ -169,8 +178,11 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
 
         m_inst = m(p=p)
 
-        element = m.to_xml(m_inst,m.get_namespace())
-        print etree.tostring(element, pretty_print=True)
+        element=etree.Element('test')
+        m.to_xml(m_inst,m.get_namespace(),element)
+        element=element[0]
+
+        #print etree.tostring(element, pretty_print=True)
         self.assertEquals('{%s}myMessage' % m.get_namespace(), element.tag)
 
         addresses = element.getchildren()[0].find('{%s}addresses' % m.get_namespace()).getchildren()
