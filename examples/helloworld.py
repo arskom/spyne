@@ -20,8 +20,10 @@
 
 from soaplib.service import rpc
 from soaplib.service import DefinitionBase
-from soaplib.serializers.primitive import String, Integer, Array
+from soaplib.serializers.primitive import String, Integer
+
 from soaplib.wsgi import Application
+from soaplib.serializers.clazz import Array
 
 '''
 This is a simple HelloWorld example to show the basics of writing
