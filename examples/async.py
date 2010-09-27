@@ -20,11 +20,12 @@
 import time
 from threading import Thread
 
-from soaplib.client import make_service_client
-from soaplib.service import rpc
+
+from soaplib.service import rpc, DefinitionBase
 from soaplib.serializers.primitive import String, Integer
 from soaplib.util import get_callback_info
-from soaplib.wsgi_soap import SimpleWSGIApp
+from soaplib.wsgi import Application
+
 
 '''
 This is a very simple async service that sleeps for a specified
@@ -35,7 +36,7 @@ management or scheduling mechanism, the service is responsible for the
 execution of the async. process.
 '''
 
-class SleepingService(SimpleWSGIApp):
+class SleepingService(DefinitionBase):
     @rpc(Integer, _is_async=True)
     def sleep(self, seconds):
         msgid, replyto = get_callback_info()
@@ -55,7 +56,7 @@ class SleepingService(SimpleWSGIApp):
 if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server
-        server = make_server('localhost', 7789, SleepingService())
+        server = make_server('localhost', 7789, Application([SleepingService], "tns"))
         server.serve_forever()
     except ImportError:
         print "Error: example server code requires Python >= 2.5"

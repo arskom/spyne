@@ -17,13 +17,14 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from soaplib.service import rpc
-from soaplib.serializers.primitive import String, Integer, Array
+from soaplib.service import rpc, DefinitionBase
+from soaplib.serializers.primitive import String, Integer
 from soaplib.serializers.binary import Attachment
-from soaplib.wsgi_soap import SimpleWSGIApp
+from soaplib.serializers.clazz import Array
+from soaplib.wsgi import Application
 
 
-class HelloWorldService(SimpleWSGIApp):
+class HelloWorldService(DefinitionBase):
     @rpc(Attachment, Integer, _returns=Array(String), _mtom=True)
     def say_hello(self, name, times):
         results = []
@@ -34,7 +35,7 @@ class HelloWorldService(SimpleWSGIApp):
 if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server
-        server = make_server('localhost', 7789, HelloWorldService())
+        server = make_server('localhost', 7789, Application([HelloWorldService], "tns"))
         server.serve_forever()
     except ImportError:
         print "Error: example server code requires Python >= 2.5"
