@@ -170,7 +170,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
             name = cls.get_type_name()
 
         element = etree.SubElement(parent_elt,
-                                         "{%s}%s" % (cls.get_namespace(), name))
+                                         "{%s}%s" % (tns, name))
 
         inst = cls.get_serialization_instance(value)
 
