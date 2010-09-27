@@ -22,6 +22,7 @@ import os
 import shutil
 import unittest
 from tempfile import mkstemp
+from lxml import etree
 
 import soaplib
 from soaplib.serializers.binary import Attachment
@@ -49,7 +50,9 @@ class TestBinary(unittest.TestCase):
         f.close()
         a = Attachment()
         a.data = data
-        element = Attachment.to_xml(a, ns_test)
+        element = etree.Element('test')
+        Attachment.to_xml(a, ns_test, element)
+        element = element[0]
         encoded_data = base64.encodestring(data)
         self.assertNotEquals(element.text, None)
         self.assertEquals(element.text, encoded_data)
@@ -60,7 +63,9 @@ class TestBinary(unittest.TestCase):
         f = open(self.tmpfile, 'rb')
         data = f.read()
         f.close()
-        element = Attachment.to_xml(a, ns_test)
+        element = etree.Element('test')
+        Attachment.to_xml(a, ns_test, element)
+        element = element[0]
         encoded_data = base64.encodestring(data)
         self.assertNotEquals(element.text, None)
         self.assertEquals(element.text, encoded_data)
@@ -68,7 +73,9 @@ class TestBinary(unittest.TestCase):
     def test_to_from_xml_file(self):
         a = Attachment()
         a.file_name = self.tmpfile
-        element = Attachment.to_xml(a, ns_test)
+        element = etree.Element('test')
+        Attachment.to_xml(a, ns_test, element)
+        element = element[0]
 
         data = Attachment.from_xml(element).data
 
@@ -93,7 +100,9 @@ class TestBinary(unittest.TestCase):
 
         a = Attachment()
         a.data = data
-        element = Attachment.to_xml(a, ns_test)
+        element = etree.Element('test')
+        Attachment.to_xml(a, ns_test, element)
+        element = element[0]
         a2 = Attachment.from_xml(element)
 
         self.assertEquals(data, a2.data)

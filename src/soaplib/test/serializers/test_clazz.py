@@ -28,6 +28,8 @@ from soaplib.serializers.primitive import Float
 from soaplib.serializers.primitive import Integer
 from soaplib.serializers.primitive import String
 
+from lxml import etree
+
 ns_test = 'test_namespace'
 
 class Address(ClassSerializer):
@@ -87,7 +89,9 @@ class TestClassSerializer(unittest.TestCase):
         a.lattitude = 4.3
         a.longitude = 88.0
 
-        element = Address.to_xml(a, ns_test)
+        element = etree.Element('test')
+        Address.to_xml(a, ns_test, element)
+        element = element[0]
         self.assertEquals(6, len(element.getchildren()))
 
         r = Address.from_xml(element)
@@ -101,7 +105,9 @@ class TestClassSerializer(unittest.TestCase):
 
     def test_nested_class(self): # FIXME: this test is incomplete
         p = Person()
-        element = Person.to_xml(p, ns_test)
+        element = etree.Element('test')
+        Person.to_xml(p, ns_test, element)
+        element = element[0]
 
         self.assertEquals(None, p.name)
         self.assertEquals(None, p.birthdate)
@@ -119,9 +125,11 @@ class TestClassSerializer(unittest.TestCase):
             peeps.append(a)
 
         serializer = Array(Person)
-        serializer.resolve_namespace(__name__)
+        serializer.resolve_namespace(serializer,__name__)
 
-        element = serializer.to_xml(peeps, ns_test)
+        element = etree.Element('test')
+        serializer.to_xml(peeps, ns_test, element)
+        element = element[0]
 
         self.assertEquals(4, len(element.getchildren()))
 
@@ -150,8 +158,10 @@ class TestClassSerializer(unittest.TestCase):
             peeps.append(a)
 
         serializer = Array(Person)
-        serializer.resolve_namespace(__name__)
-        element = serializer.to_xml(peeps, ns_test)
+        serializer.resolve_namespace(serializer,__name__)
+        element = etree.Element('test')
+        serializer.to_xml(peeps, ns_test, element)
+        element = element[0]
 
         self.assertEquals(4, len(element.getchildren()))
 
@@ -179,7 +189,9 @@ class TestClassSerializer(unittest.TestCase):
             a.arg1 = str(i)
             l.level4.append(a)
 
-        element = Level1.to_xml(l, ns_test)
+        element = etree.Element('test')
+        Level1.to_xml(l, ns_test, element)
+        element = element[0]
         l1 = Level1.from_xml(element)
 
         self.assertEquals(l1.level2.arg1, l.level2.arg1)
