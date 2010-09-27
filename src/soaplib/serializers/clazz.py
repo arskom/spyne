@@ -229,9 +229,8 @@ class ClassSerializerBase(NonExtendingClass, Base):
     @classmethod
     def add_to_schema(cls, schema_entries):
         if cls.get_type_name() is Base.Empty:
-            for child in cls._type_info.values():
-                cls.__type_name__ = '%sArray' % child.get_type_name()
-                break
+            (child,) = cls._type_info.values()
+            cls.__type_name__ = '%sArray' % child.get_type_name()
 
         if not schema_entries.has_class(cls):
             if not (getattr(cls, '__extends__', None) is None):
@@ -335,8 +334,7 @@ class Array(ClassSerializer):
     # namespace.
     @staticmethod
     def resolve_namespace(cls, default_ns):
-        for serializer in cls._type_info.values():
-            break
+        (serializer,) = cls._type_info.values()
 
         serializer.resolve_namespace(serializer, default_ns)
 
@@ -359,8 +357,7 @@ class Array(ClassSerializer):
     @nillable_element
     def from_xml(cls, element):
         retval = []
-        for serializer in cls._type_info.values():
-            break
+        (serializer,) = cls._type_info.values()
 
         for child in element.getchildren():
             retval.append(serializer.from_xml(child))
