@@ -17,9 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from soaplib.service import rpc
+from soaplib.service import rpc, DefinitionBase
 from soaplib.serializers.primitive import String
-from soaplib.wsgi_soap import SimpleWSGIApp
+from soaplib.wsgi import Application
+
 
 '''
 This example shows how to override the variable names for fun and profit.
@@ -28,7 +29,7 @@ that are python keywords like, from, to, import, return, etc.
 '''
 
 
-class EmailManager(SimpleWSGIApp):
+class EmailManager(DefinitionBase):
 
     @rpc(String, String, String,
         _in_variable_names = {'_to': 'to', '_from': 'from',
@@ -41,7 +42,7 @@ class EmailManager(SimpleWSGIApp):
 if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server
-        server = make_server('localhost', 7789, EmailManager())
+        server = make_server('localhost', 7789, Application([EmailManager], "tns"))
         server.serve_forever()
     except ImportError:
         print "Error: example server code requires Python >= 2.5"
