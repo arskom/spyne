@@ -44,6 +44,33 @@ HTTP_405 = '405 Method Not Allowed'
 class ValidationError(Fault):
     pass
 
+def get_schema_node(pref, schema_nodes, types):
+    """
+    Return schema node for the given namespace prefix.
+    types == None means the call is for creating a standalone xml schema file
+                  for one single namespace.
+    tyoes != None means the call is for creating the wsdl file.
+    """
+
+    # create schema node
+    if not (pref in schema_nodes):
+        if types is None:
+            schema = etree.Element("{%s}schema" % soaplib.ns_xsd,
+                                                    nsmap=soaplib.nsmap)
+        else:
+            schema = etree.SubElement(types, "{%s}schema" % soaplib.ns_xsd)
+
+        schema.set("targetNamespace", soaplib.nsmap[pref])
+        schema.set("elementFormDefault", "qualified")
+
+        schema_nodes[pref] = schema
+
+    else:
+        schema = schema_nodes[pref]
+
+    return schema
+
+
 class Application(object):
     def __init__(self, services, tns, name=None, _with_partnerlink=False):
         '''
@@ -63,6 +90,10 @@ class Application(object):
         self.build_schema()
 
     def get_name(self):
+        """
+        Returns service name that is seen in the name attribute of the
+        definitions tag.
+        """
         retval = self.__name
 
         if retval is None:
@@ -73,6 +104,10 @@ class Application(object):
     name = property(get_name)
 
     def get_tns(self):
+        """
+        Returns default namespace that is seen in the targetNamespace attribute
+        of the definitions tag.
+        """
         retval = self.__tns
 
         if retval is None:
@@ -90,30 +125,16 @@ class Application(object):
 
     tns = property(get_tns)
 
-    def __get_schema_node(self, pref, schema_nodes, types):
-        # create schema node
-        if not (pref in schema_nodes):
-            if types is None:
-                schema = etree.Element("{%s}schema" % soaplib.ns_xsd,
-                                                        nsmap=soaplib.nsmap)
-            else:
-                schema = etree.SubElement(types, "{%s}schema" % soaplib.ns_xsd)
-
-            schema.set("targetNamespace", soaplib.nsmap[pref])
-            schema.set("elementFormDefault", "qualified")
-
-            schema_nodes[pref] = schema
-
-        else:
-            schema = schema_nodes[pref]
-
-        return schema
-
     def __build_schema_nodes(self, schema_entries, types=None):
+        """
+        Fill individual <schema> nodes for every service that are part of this
+        app.
+        """
+
         schema_nodes = {}
 
         for pref in schema_entries.namespaces:
-            schema = self.__get_schema_node(pref, schema_nodes, types)
+            schema = get_schema_node(pref, schema_nodes, types)
 
             # append import tags
             for namespace in schema_entries.imports[pref]:
@@ -134,6 +155,10 @@ class Application(object):
         return schema_nodes
 
     def build_schema(self, types=None):
+        """
+        Unify the <schema> nodes required for this app.
+        """
+
         if types is None:
             # populate call routes
             for s in self.services:
@@ -165,18 +190,36 @@ class Application(object):
         return schema_nodes
 
     def get_service_class(self, method_name):
+        """
+        This call maps method names to the services that will handle them.
+        Override this function to alter the method mappings. Just try not to get
+        too crazy with regular expressions :)
+        """
         return self.call_routes[method_name]
 
     def get_service(self, service, http_req_env=None):
+        """
+        The function that maps service classes to service instances. Overriding
+        this function is useful in case e.g. you need to pass additional
+        parameters to service constructors.
+        """
         return service(http_req_env)
 
     def get_schema(self):
+        """
+        Simple accessor method that caches application's xml schema, once
+        generated.
+        """
         if self.schema is None:
             return self.build_schema()
         else:
             return self.schema
 
     def get_wsdl(self, url):
+        """
+        Simple accessor method that caches the wsdl of the application, once
+        generated.
+        """
         if self.__wsdl is None:
             return self.__build_wsdl(url)
         else:
@@ -196,6 +239,9 @@ class Application(object):
         )
 
     def __build_wsdl(self, url):
+        """
+        Build the wsdl for the application.
+        """
         ns_wsdl = soaplib.ns_wsdl
         ns_soap = soaplib.ns_soap
         ns_plink = soaplib.ns_plink
@@ -260,17 +306,30 @@ class Application(object):
 
         return self.__wsdl
 
-    def add_service(self, root, service_name, types, url, service):
-        ns_wsdl = soaplib.ns_wsdl
-        ns_soap = soaplib.ns_soap
-        ns_tns = self.get_tns()
-        pref_tns = soaplib.get_namespace_prefix(ns_tns)
+    def add_partner_link(self, root, service_name, types, url, plink):
+        """
+        Add the partnerLinkType node to the wsdl.
+        """
+        ns_plink = soaplib.ns_plink
+        pref_tns = soaplib.get_namespace_prefix(self.get_tns())
 
-        wsdl_port = etree.SubElement(service, '{%s}port' % ns_wsdl)
+        role = etree.SubElement(plink, '{%s}role' % ns_plink)
+        role.set('name', service_name)
+
+        plink_port_type = etree.SubElement(role, '{%s}portType' % ns_plink)
+        plink_port_type.set('name', '%s:%s' % (pref_tns, service_name))
+
+    def add_service(self, root, service_name, types, url, service):
+        """
+        Add service node to the wsdl.
+        """
+        pref_tns = soaplib.get_namespace_prefix(self.get_tns())
+
+        wsdl_port = etree.SubElement(service, '{%s}port' % soaplib.ns_wsdl)
         wsdl_port.set('name', service_name)
         wsdl_port.set('binding', '%s:%s' % (pref_tns, service_name))
 
-        addr = etree.SubElement(wsdl_port, '{%s}address' % ns_soap)
+        addr = etree.SubElement(wsdl_port, '{%s}address' % soaplib.ns_soap)
         addr.set('location', url)
 
     def __handle_wsdl_request(self, req_env, start_response, url):
@@ -296,8 +355,10 @@ class Application(object):
             return [""]
 
     def __decode_soap_request(self, http_env, http_payload):
-        # decode body using information in the http header
-        #
+        """
+        Decode http payload using information in the http header
+        """
+
         # fyi, here's what the parse_header function returns:
         # >>> import cgi; cgi.parse_header("text/xml; charset=utf-8")
         # ('text/xml', {'charset': 'utf-8'})
@@ -314,9 +375,15 @@ class Application(object):
         return req_header, req_payload
 
     def validate_request(self, payload):
+        """
+        Method to be overriden to perform any sort of custom input validation.
+        """
         pass
 
     def __get_method_name(self, http_req_env, soap_req_payload):
+        """
+        Guess method name basing on various information in the request.
+        """
         retval = None
 
         if soap_req_payload is not None:
@@ -340,18 +407,11 @@ class Application(object):
 
         return retval
 
-    def add_partner_link(self, root, service_name, types, url, plink):
-        ns_plink = soaplib.ns_plink
-        ns_tns = self.get_tns()
-        pref_tns = soaplib.get_namespace_prefix(ns_tns)
-
-        role = etree.SubElement(plink, '{%s}role' % ns_plink)
-        role.set('name', service_name)
-
-        plink_port_type = etree.SubElement(role, '{%s}portType' % ns_plink)
-        plink_port_type.set('name', '%s:%s' % (pref_tns, service_name))
-
     def __handle_soap_request(self, req_env, start_response, url):
+        """
+        This function is too big.
+        """
+
         http_resp_headers = {
             'Content-Type': 'text/xml',
             'Content-Length': '0',
@@ -379,7 +439,7 @@ class Application(object):
 
                 method_name = self.__get_method_name(req_env, soap_req_payload)
                 if method_name is None:
-                    resp = "Could not get method name!"
+                    resp = "Could not extract method name from the request!"
                     http_resp_headers['Content-Length'] = str(len(resp))
                     start_response(HTTP_500, http_resp_headers.items())
                     return [resp]
@@ -621,6 +681,9 @@ class Application(object):
 
 class ValidatingApplication(Application):
     def build_schema(self, types=None):
+        """
+        Build application schema specifically for xml validation purposes.
+        """
         schema_nodes = Application.build_schema(self, types)
 
         if types is None:
