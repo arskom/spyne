@@ -1,0 +1,103 @@
+
+To run all of the tests, you must
+1) launch the interop.server.basic
+2) get wsi-interop-tools and unpack it next to test_wsi.py. Here's the
+directory tree from a working setup:
+
+|-- README.md
+|-- __init__.py
+|-- interop
+|   |-- __init__.py
+|   |-- config.xml
+|   |-- server
+|   |   |-- __init__.py
+|   |   |-- _service.py
+|   |   |-- basic.py
+|   |   `-- static.py
+|   |-- test_rpc.rb
+|   |-- test_suds.py
+|   |-- test_wsi.py
+|   |-- wsi-report-soaplib.xml
+|   `-- wsi-test-tools
+|       |-- License.htm
+|       |-- README.txt
+|       |-- common
+|       |   |-- docs
+|       |   |   |-- AnalyzerSpecification.pdf
+|       |   |   |-- MonitorSpecification.pdf
+|       |   |   `-- UserGuide.pdf
+|       |   |-- profiles
+|       |   |   |-- BasicProfileTestAssertions.xml
+|       |   |   |-- BasicProfile_1.1_TAD.xml
+|       |   |   `-- SSBP10_BP11_TAD.xml
+|       |   |-- schemas
+|       |   |   |-- XMLSchema.xsd
+|       |   |   |-- analyzerConfig.xsd
+|       |   |   |-- assertions.xsd
+|       |   |   |-- claim.xsd
+|       |   |   |-- common.xsd
+|       |   |   |-- log.xsd
+|       |   |   |-- monitorConfig.xsd
+|       |   |   |-- report.xsd
+|       |   |   |-- soapEncoding.xsd
+|       |   |   |-- soapEnvelope.xsd
+|       |   |   |-- wsdl11.xsd
+|       |   |   |-- wsdlSoap.xsd
+|       |   |   `-- xml.xsd
+|       |   `-- xsl
+|       |       |-- assertions.xsl
+|       |       |-- assertionsBigFont.xsl
+|       |       |-- common.xsl
+|       |       |-- log.xsl
+|       |       |-- logBigFont.xsl
+|       |       |-- monitorConfig.xsl
+|       |       |-- report.xsl
+|       |       `-- reportBigFont.xsl
+|       `-- java
+|           |-- ReleaseNotes.txt
+|           |-- about.html
+|           |-- bin
+|           |   |-- Analyzer.bat
+|           |   |-- Analyzer.sh
+|           |   |-- Monitor.bat
+|           |   |-- Monitor.sh
+|           |   |-- setenv.bat
+|           |   `-- setenv.sh
+|           |-- lib
+|           |   |-- axis.jar
+|           |   |-- comments.xml
+|           |   |-- commons-discovery.jar
+|           |   |-- commons-logging.jar
+|           |   |-- jaxrpc.jar
+|           |   |-- saaj.jar
+|           |   |-- uddi4j.jar
+|           |   |-- wsdl4j.jar
+|           |   |-- wsi-test-tools.jar
+|           |   |-- xercesImpl.jar
+|           |   `-- xmlParserAPIs.jar
+|           |-- licenses
+|           |   |-- axis-LICENSE.txt
+|           |   |-- eclipse-LICENSE.txt
+|           |   |-- uddi4j-LICENSE.html
+|           |   |-- wsdl4j-license.html
+|           |   `-- xerces-LICENSE.txt
+|           `-- samples
+|               |-- RetailerService.wsdl
+|               |-- analyzerConfig.xml
+|               |-- analyzerConfigServiceLocation.xml
+|               |-- analyzerConfigUDDI.xml
+|               |-- log.xml
+|               |-- monitorConfig.xml
+|               `-- report.xml
+|-- serializers
+|   |-- __init__.py
+|   |-- test_binary.py
+|   |-- test_clazz.py
+|   |-- test_enum.py
+|   |-- test_include.py
+|   |-- test_primitive.py
+|   `-- test_table.py
+|-- test_service.py
+|-- test_soap.py
+`-- wsdl.xml
+
