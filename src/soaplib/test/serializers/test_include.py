@@ -68,9 +68,5 @@ class TestInclude(unittest.TestCase):
 
         self.assertEquals(payload, r.Data)
 
-def suite():
-    loader = unittest.TestLoader()
-    return loader.loadTestsFromTestCase(TestInclude)
-
-if __name__== '__main__':
-    unittest.TextTestRunner().run(suite())
+if __name__ == '__main__':
+    unittest.main()

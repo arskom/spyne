@@ -163,9 +163,5 @@ class Test(unittest.TestCase):
         svc = wsgi.Application([MultipleNamespaceService], 'tns')
         wsdl = svc.get_wsdl("URL")
 
-def suite():
-    loader = unittest.TestLoader()
-    return loader.loadTestsFromTestCase(Test)
-
-if __name__== '__main__':
-    unittest.TextTestRunner().run(suite())
+if __name__ == '__main__':
+    unittest.main()
