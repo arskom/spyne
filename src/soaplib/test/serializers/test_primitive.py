@@ -205,9 +205,5 @@ class TestPrimitive(unittest.TestCase):
         b = Boolean.from_xml(b)
         self.assertEquals(b, None)
 
-def suite():
-    loader = unittest.TestLoader()
-    return loader.loadTestsFromTestCase(TestPrimitive)
-
-if __name__== '__main__':
-    unittest.TextTestRunner().run(suite())
+if __name__ == '__main__':
+    unittest.main()

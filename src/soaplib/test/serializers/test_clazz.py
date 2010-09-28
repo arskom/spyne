@@ -234,9 +234,5 @@ class TestClassSerializer(unittest.TestCase):
         self.assertNotEquals(Derived2.Attributes.prop1, Base.Attributes.prop1)
         self.assertEquals(Derived3.Attributes.prop1, Base.Attributes.prop1)
 
-def suite():
-    loader = unittest.TestLoader()
-    return loader.loadTestsFromTestCase(TestClassSerializer)
-
-if __name__== '__main__':
-    unittest.TextTestRunner().run(suite())
+if __name__ == '__main__':
+    unittest.main()
