@@ -1,8 +1,14 @@
 
+Some tests are standalone, but some are not.
+
 To run all of the tests, you must
 1) launch the interop.server.basic
-2) get wsi-interop-tools and unpack it next to test_wsi.py. Here's the
-directory tree from a working setup:
+2) get wsi-interop-tools and unpack it next to test_wsi.py.
+Here are the relevant links. see also test_wsi.py for more info.
+http://www.ws-i.org/deliverables/workinggroup.aspx?wg=testingtools
+http://www.ws-i.org/Testing/Tools/2005/06/WSI_Test_Java_Final_1.1.zip
+
+Here's the directory tree from a working setup:
 
 |-- README.md
 |-- __init__.py
