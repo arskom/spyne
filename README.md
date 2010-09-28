@@ -1,3 +1,5 @@
+Warning! This is soaplib's unstable development branch. The latest stable branch is [here](http://github.com/arskom/soaplib/tree/1_0). The legacy soaplib-0.8 branch is [here](http://github.com/arskom/soaplib/tree/0_8).
+
 Overview
 ========
 
@@ -11,27 +13,25 @@ a useful web service and deploy it as a [WSGI](http://wsgi.org/wsgi) application
 
 The official soaplib discussion forum can be found [here](http://mail.python.org/mailman/listinfo/soap).
 
-The legacy versions of soaplib are also available in this repository.
-
-See [here](http://github.com/arskom/soaplib/tree/0_8) for the stable soaplib-0.8 branch.
+The legacy versions of soaplib are also available in this repository. 
+See [here](http://github.com/arskom/soaplib/tree/0_8) for the stable soaplib-0.8 branch. 
 See [here](http://github.com/arskom/soaplib/tree/1_0) for the stable soaplib-1.0 branch.
 
 See the [downloads section](http://github.com/arskom/soaplib/downloads) for related downloads.
 
-This is the unstable development branch
-
 Features
 --------
-* deploy services as WSGI applications
-* handles all xml (de)serialization
-* on-demand WSDL generation
-* doesn't get in your way!!!
+* Deploy services as WSGI applications
+* Handles all xml (de)serialization
+* On-demand WSDL generation
+* Powerful customization features to support most use-cases
+* Doesn't get in your way!!!
 
 Runtime Requirements
 --------------------
 * Python 2.4 or greater
+* A WSGI-compliant web server (CherryPy, WSGIUtils, Twisted, etc.)
 * [lxml](http://codespeak.net/lxml/) (available through easy_install)
-* a WSGI-compliant web server (CherryPy, WSGIUtils, Flup, etc.)
 * [pytz](http://pytz.sourceforge.net/) (available through easy_install)
 
 Soaplib services can be deployed as WSGI applications, in any WSGI-compliant
