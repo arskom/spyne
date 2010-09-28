@@ -189,9 +189,5 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
         self.assertEquals(100, len(addresses))
         self.assertEquals('0', addresses[0].find('{%s}zip' % m.get_namespace()).text)
 
-def suite():
-    loader = unittest.TestLoader()
-    return loader.loadTestsFromTestCase(TestSoap)
-
-if __name__== '__main__':
-    unittest.TextTestRunner().run(suite())
+if __name__ == '__main__':
+    unittest.main()

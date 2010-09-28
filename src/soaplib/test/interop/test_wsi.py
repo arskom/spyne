@@ -3,10 +3,10 @@
 # WS-I interoperability test http://www.ws-i.org/deliverables/workinggroup.aspx?wg=testingtools
 # latest download: http://www.ws-i.org/Testing/Tools/2005/06/WSI_Test_Java_Final_1.1.zip
 #
-# before launching it, you should download the zip file and unpack it in this directory
-# this should create the wsi-test-tools directory
+# Before launching this test, you should download the zip file and unpack it in this
+# directory this should create the wsi-test-tools directory.
 #
-# adapted from http://thestewscope.wordpress.com/2008/08/19/ruby-wrapper-for-ws-i-analyzer-tools/
+# Adapted from http://thestewscope.wordpress.com/2008/08/19/ruby-wrapper-for-ws-i-analyzer-tools/
 # from Luca Dariz  <luca.dariz@unife.it>
 #
 

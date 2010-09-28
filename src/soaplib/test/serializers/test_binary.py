@@ -119,9 +119,5 @@ class TestBinary(unittest.TestCase):
         dt = Attachment.get_namespace()
         assert soaplib.nsmap['xs'] == dt
 
-def suite():
-    loader = unittest.TestLoader()
-    return loader.loadTestsFromTestCase(TestBinary)
-
-if __name__== '__main__':
-    unittest.TextTestRunner().run(suite())
+if __name__ == '__main__':
+    unittest.main()

@@ -79,9 +79,5 @@ class TestEnum(unittest.TestCase):
 
         self.assertEquals(mo, ret)
 
-def suite():
-    loader = unittest.TestLoader()
-    return loader.loadTestsFromTestCase(TestEnum)
-
-if __name__== '__main__':
-    unittest.TextTestRunner().run(suite())
+if __name__ == '__main__':
+    unittest.main()
