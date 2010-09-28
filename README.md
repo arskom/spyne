@@ -24,7 +24,7 @@ Features
 * Deploy services as WSGI applications
 * Handles all xml (de)serialization
 * On-demand WSDL generation
-* Powerful customization features to support most use-cases
+* Powerful customization features to support many use-cases
 * Doesn't get in your way!!!
 
 Runtime Requirements
