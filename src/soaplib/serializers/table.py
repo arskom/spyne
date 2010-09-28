@@ -50,26 +50,29 @@ _type_map = {
     sqlalchemy.orm.relation: clazz.Array,
 }
 
+def parse_cls_dict(cls_dict):
+    cls_dict["_type_info"] = _type_info = TypeInfo()
+
+    for k, v in cls_dict.items():
+        if not k.startswith('__'):
+            if isinstance(v, Column):
+                if v.type in _type_map:
+                    rpc_type = _type_map[v.type]
+                elif type(v.type) in _type_map:
+                    rpc_type = _type_map[type(v.type)]
+                else:
+                    raise Exception("soap_type was not found. maybe "
+                                    "_type_map needs a new entry.")
+
+                _type_info[k]=rpc_type
+
 class TableSerializerMeta(DeclarativeMeta):
     def __new__(cls, cls_name, cls_bases, cls_dict):
         if cls_dict.get("__type_name__", None) is None:
             cls_dict["__type_name__"] = cls_name
 
         if cls_dict.get("_type_info", None) is None:
-            cls_dict["_type_info"] = _type_info = TypeInfo()
-
-            for k, v in cls_dict.items():
-                if not k.startswith('__'):
-                    if isinstance(v, Column):
-                        if v.type in _type_map:
-                            rpc_type = _type_map[v.type]
-                        elif type(v.type) in _type_map:
-                            rpc_type = _type_map[type(v.type)]
-                        else:
-                            raise Exception("soap_type was not found. maybe "
-                                            "_type_map needs a new entry.")
-
-                        _type_info[k]=rpc_type
+            parse_cls_dict(cls_dict)
 
         return DeclarativeMeta.__new__(cls, cls_name, cls_bases, cls_dict)
 
