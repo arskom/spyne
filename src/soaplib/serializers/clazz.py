@@ -51,8 +51,9 @@ class ClassSerializerMeta(type(Base)):
                 base_types = getattr(b, "_type_info", None)
 
                 if not (base_types is None):
-                    assert extends is None or cls_dict["__extends__"] is b, \
-                                "WSDL 1.1 does not support multiple inheritance"
+                    if not (extends is None or cls_dict["__extends__"] is b):
+                        raise Exception("WSDL 1.1 does not support multiple "
+                                        "inheritance")
 
                     try:
                         if len(base_types) > 0 and issubclass(b, Base):
