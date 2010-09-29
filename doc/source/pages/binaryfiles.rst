@@ -8,34 +8,35 @@ decoding of the binary data, and provieds some useful methods for dealing with
 both in-memory and on-disk binary data. ::
 
     >>> from soaplib.serializers.binary import Attachment
-    >>> import cElementTree as et
+    >>> from lxml import etree as et
     >>> a = Attachment(data="this is my binary data")
     >>> print et.tostring(Attachment.to_xml(a))
-    <retval xmlns="">dGhpcyBpcyBteSBiaW5hcnkgZGF0YQ==
-    </retval>
+    <ns0:retval xmlns:ns0="tns">bXkgYmluYXJ5IGRhdGE=
+    </ns0:retval>
     >>>
 
 If you want to return file with binary data, simply::
 
     >>> from soaplib.serializers.binary import Attachment
-    >>> import cElementTree as et
+    >>> from lxml import etree as et
     >>> a = Attachment(fileName="mydata")
     >>> print et.tostring(Attachment.to_xml(a))
-    <retval xmlns="">dGhpcyBpcyBteSBiaW5hcnkgZGF0YQ==
-    </retval>
+    <ns0:retval xmlns="">dGhpcyBpcyBteSBiaW5hcnkgZGF0YQ==
+    </ns0:retval>
     >>>
 
 An example service for archiving documents::
 
-    from soaplib.wsgi_soap import SimpleWSGISoapApp
-    from soaplib.service import rpc
-    from soaplib.serializers.primitive import String, Integer, Array
+    from soaplib.service import rpc, DefinitionBase
+    from soaplib.serializers.primitive import String, Integer
+    from soaplib.serializers.clazz import Array
     from soaplib.serializers.binary import Attachment
+    from soaplib.wsgi import Application
 
     from tempfile import mkstemp
     import os
 
-    class DocumentArchiver(SimpleWSGISoapApp):
+    class DocumentArchiver(DefinitionBase):
 
         @rpc(Attachment,_returns=String)
         def archive_document(self,document):
@@ -69,12 +70,8 @@ An example service for archiving documents::
             return document
 
 
-    def make_client():
-        from soaplib.client import make_service_client
-        client = make_service_client('http://localhost:7889/',DocumentArchiver())
-        return client
 
     if __name__=='__main__':
-        from cherrypy._cpwsgiserver import CherryPyWSGIServer
-        server = CherryPyWSGIServer(('localhost',7889),DocumentArchiver())
-        server.start()
+        from wsgiref.simple_server import make_server
+        server = make_server('localhost', 7789, Application([DocumentArchiver], 'tns'))
+        server.serve_forever()

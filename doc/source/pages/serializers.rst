@@ -13,33 +13,40 @@ Primitives
 The basic primitive types are String, Integer, DateTime, Null, Float, Boolean.
 These are some of the most basic blocks within soaplib. ::
 
-    >>> from soaplib.serializers.primitive import *
-    >>> import cElementTree as et
-    >>> element = String.to_xml('abcd','nodename')
-    >>> print et.tostring(element)
-    <nodename xsi:type="xs:string">abcd</nodename>
-    >>> print String.from_xml(element)
+    >>> from soaplib.serialiers.primitive import *
+    >>> from lxml import etree
+    >>> parent = etree.Element("parent")
+    >>> String.to_xml("abcd", "tns", parent)
+    >>> string_element = parent.getchildren()[0]
+    >>> print etree.tostring(string_element)
+    <ns0:retval xmlns:ns0="tns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">abcd</ns0:retval>
+    >>> print String.from_xml(string_element)
     abcd
-    >>> String.get_datatype()
+    >>> String.get_type_name()
     'string'
-    >>> String.get_datatype(True)
+    >>> String.get_type_name_ns()
     'xs:string'
 
-Collections
+Arrays
 -----------
 
-The two collections available in soaplib are Arrays and Maps. Unlike the
-primitive serializers, both of these serializers need to be instantiated with
-the proper internal type so it can properly (de)serialize the data. All Arrays
-and Maps are homogeneous, meaning that the data they hold are all of the same
+The lone collection type available in soaplib is Arrays. Unlike the
+primitive serializers, Arrays need to be instantiated with
+the proper internal type so it can properly (de)serialize the data. Arrays
+are homogeneous, meaning that the data they hold are all of the same
 type. For mixed typing or more dynamic data, use the Any type. ::
 
-    >>> from soaplib.serializers.primitive import *
-    >>> import cElementTree as et
+    >>> from soaplib.serializers.clazz import *
+    >>> from soaplib.serialixers.primitives import String
+    >>> from lxml import etree
+    >>> parent = etree.Element("parent")
     >>> array_serializer = Array(String)
-    >>> element = array_serializer.to_xml(['a','b','c','d'],'myarray')
-    >>> print et.tostring(element)
-    <myarray xmlns=""><string xmlns="" xsi:type="xs:string">a</string><string xmlns="" xsi:type="xs:string">b</string><string xmlns="" xsi:type="xs:string">c</string><string xmlns="" xsi:type="xs:string">d</string></myarray>
+    >>> array_serializer.to_xml(['a','b','c','d'], 'tns', parent)
+    >>> print etree.tostring(element)
+    <ns0:stringArray xmlns:ns0="tns"><ns1:string xmlns:ns1="None" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">a</ns1:string>
+    <ns2:string xmlns:ns2="None" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">b</ns2:string>
+    <ns3:string xmlns:ns3="None" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">c</ns3:string>
+    <ns4:string xmlns:ns4="None" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">d</ns4:string></ns0:stringArray>
     >>> print array_serializer.from_xml(element)
     ['a', 'b', 'c', 'd']
 
@@ -48,8 +55,8 @@ Class
 The `ClassSerializer` is used to define and serialize complex, nested structures.
 
 	>>> from soaplib.serializers.primitive import *
-	>>> import cElementTree as et
 	>>> from soaplib.serializers.clazz import *
+	>>> from lxml import etree
 	>>> class Permission(ClassSerializer):
 	...		application = String
 	...		feature = String
@@ -68,9 +75,16 @@ The `ClassSerializer` is used to define and serialize complex, nested structures
 	>>> p.application = 'email'
 	>>> p.feature = 'send'
 	>>> u.permissions.append(p)
-	>>> element = User.to_xml(u)
-	>>> et.tostring(element)
-	'<xsd:retval><username xsi:type="xs:string">bill</username><lastname xsi:nil="1" /><userid xsi:nil="1" /><firstname xsi:nil="1" /><permissions SOAP-ENC:arrayType="typens:Permission[1]"><Permission><application xsi:type="xs:string">email</application><feature xsi:type="xs:string">send</feature></Permission></permissions></xsd:retval>'
+	>>> parent = etree.Element('parenet')
+	>>> User.to_xml(u, 'tns', parent)
+	>>> element = parent[0]
+	>>> etree.tostring(element)
+	'<ns0:User xmlns:ns0="tns">
+	<ns1:username xmlns:ns1="None" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">bill</ns1:username>
+	<ns2:firstname xmlns:ns2="None" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+	<ns3:lastname xmlns:ns3="None" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+	<ns4:userid xmlns:ns4="None" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:nil="true"/>
+	<ns5:permissions xmlns:ns5="None"><ns5:Permission><ns5:application xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">email</ns5:application>
 	>>> User.from_xml(element).username
 	'bill'
 	>>>
@@ -84,12 +98,14 @@ All encoding of the binary data is done just prior to the data being sent, and
 decoding immediately upon receipt of the Attachment. ::
 
     >>> from soaplib.serializers.binary import Attachment
-    >>> import cElementTree as et
+    >>> from lxml import etree
     >>> a = Attachment(data='my binary data')
-    >>> element = Attachment.to_xml(a)
-    >>> print et.tostring(element)
-    <xsd:retval>bXkgYmluYXJ5IGRhdGE=
-    </xsd:retval>
+    >>> parent = etree.Element('parent')
+    >>> Attachment.to_xml(a)
+    >>> element = parent[0]
+    >>> print etree.tostring(element)
+    <ns0:retval xmlns:ns0="tns">bXkgYmluYXJ5IGRhdGE=
+    </ns0:retval>
     >>> print Attachment.from_xml(element)
     <soaplib.serializers.binary.Attachment object at 0x5c6d90>
     >>> print Attachment.from_xml(element).data
@@ -114,19 +130,19 @@ Custom
 ------
 Soaplib provides a very simple interface for writing custom serializers. Just
 inherit from soaplib.serializers.base.Base and override from_xml and to_xml and
-add_to_schema functions.
+add_to_schema functions.::
 
-	from soaplib.serializers.base import Base
+    from soaplib.serializers.base import Base
 
-	class MySerializer(Base):
-		@classmethod
-		def to_xml(self,value,name='retval'):
-			pass
+    class MySerializer(Base):
+        @classmethod
+        def to_xml(self,value,name='retval'):
+            pass
 
-		@classmethod
-		def from_xml(self,element):
-			pass
+        @classmethod
+        def from_xml(self,element):
+            pass
 
-		@classmethod
-		def add_to_schema(self,added_params):
-			pass
+        @classmethod
+        def add_to_schema(self,added_params):
+            pass
