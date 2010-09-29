@@ -97,5 +97,5 @@ Calling this service ::
      }
 
 
-suds is a separate project for building lightweigh soap clients in python to learn more
+suds is a separate project for building lightweight soap clients in python to learn more
 visit the project's page https://fedorahosted.org/suds/
