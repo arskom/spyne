@@ -3,12 +3,13 @@ User Manager
 ------------
 
 Lets try a more complicated example than just strings and integers!
-The following is an extremely simple example using complex, nested data.
+The following is an extremely simple example using complex, nested data.::
 
-	from soaplib.wsgi_soap import SimpleWSGISoapApp
+	from soaplib.wsgi import Application
 	from soaplib.service import rpc
-	from soaplib.serializers.primitive import String, Integer, Array
-	from soaplib.serializers.clazz import ClassSerializer
+	from soaplib.service import DefinitionBase
+	from soaplib.serializers.primitive import String, Integer
+	from soaplib.serializers.clazz import ClassSerializer, Array
 
 	user_database = {}
 	userid_seq = 1
@@ -24,7 +25,7 @@ The following is an extremely simple example using complex, nested data.
 		lastname = String
 		permissions = Array(Permission)
 
-	class UserManager(SimpleWSGISoapApp):
+	class UserManager(DefinitionBase):
 		@rpc(User,_returns=Integer)
 		def add_user(self,user):
 			global user_database
@@ -56,10 +57,10 @@ The following is an extremely simple example using complex, nested data.
 
 	if __name__=='__main__':
 		from wsgiref.simple_server import make_server
-		server = make_server('localhost', 7789, UserManager())
+		server = make_server('localhost', 7789, Application([UserManager], 'tns'))
 		server.serve_forever()
 
-Jumping into what's new:
+Jumping into what's new.::
 
 	class Permission(ClassSerializer):
 		application = String
@@ -73,4 +74,5 @@ Jumping into what's new:
 		permissions = Array(Permission)
 
 The `Permission` and `User` structures in the example are standard python
-objects that extend `ClassSerializer`.
+objects that extend `ClassSerializer`.  Soaplib uses `ClassSerializer` as a general type that when
+extended will produce complex serializable types that can be used in a soap service.

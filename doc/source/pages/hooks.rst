@@ -20,15 +20,19 @@ and deserialization. The available hooks are:
 
         Called after an exception was thrown when generating the wsdl (shouldn't happen very much)
 
-    * on_method_exec
+    * on_method_call
 
         Called right before the service method is executed
 
-    * on_results
+    * on_method_return
 
         Called right after the service method is executed
 
-    * on_exception
+    * on_method_exception_object
+
+        Called when an exception occurred in a service method before the exception is serialized.
+
+    * on_method_exception_xml
 
         Called after an exception occurred in either the service method or in serialization
 
@@ -42,14 +46,13 @@ logging and measuring performance. This example also employs the threadlocal
 request (soaplib.wsgi_soap.request) object to hold the data points for this
 request. ::
 
-    from soaplib.wsgi_soap import SimpleWSGISoapApp
-    from soaplib.service import rpc
-    from soaplib.serializers.primitive import String, Integer, Array
+    from soaplib.service import rpc, DefinitionBase
+    from soaplib.serializers.primitive import String, Integer
+    from soaplib.serializers.clazz import Array
 
-    from soaplib.wsgi_soap import request
     from time import time
 
-    class HelloWorldService(SimpleWSGISoapApp):
+    class HelloWorldService(DefinitionBase):
 
         @rpc(String,Integer,_returns=Array(String))
         def say_hello(self,name,times):
@@ -76,15 +79,10 @@ request. ::
             print 'Method took [%s] - total execution time[%s]'%(method_end-method_start,call_end-call_start)
 
 
-    def make_client():
-        from soaplib.client import make_service_client
-        clent = make_service_client('http://localhost:7889/',HelloWorldService())
-        return client
-
     if __name__=='__main__':
-        from cherrypy._cpwsgiserver import CherryPyWSGIServer
-        server = CherryPyWSGIServer(('localhost',7889),HelloWorldService())
-        server.start()
+        from wsgiref.simple_server import make_server
+        server = make_server('localhost', 7789, Application([HelloWorldService]))
+        server.serve_forever()
 
 
 Running this produces:
