@@ -330,7 +330,6 @@ class Array(ClassSerializer):
 
         return retval
 
-
     # the array belongs to its child's namespace, it doesn't have its own
     # namespace.
     @staticmethod
