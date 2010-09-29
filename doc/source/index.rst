@@ -19,6 +19,11 @@ Contents:
    pages/message_api
    pages/hooks
    pages/apache_axis
+   pages/serializer_api
+   pages/soap
+   pages/wsgi
+   pages/service
+
    pages/indices_and_tables
 
 
