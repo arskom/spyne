@@ -12,7 +12,6 @@ Contents:
    :maxdepth: 2
 
    pages/helloworld
-   pages/client
    pages/usermanager
    pages/serializers
    pages/binaryfiles
