@@ -42,6 +42,7 @@ _datetime_pattern = _date_pattern + '[T ]' + _time_pattern
 _local_re = re.compile(_datetime_pattern)
 _utc_re = re.compile(_datetime_pattern + 'Z')
 _offset_re = re.compile(_datetime_pattern + _offset_pattern)
+_date_re = re.compile(_date_pattern)
 
 _ns_xs = soaplib.ns_xsd
 _ns_xsi = soaplib.ns_xsi
@@ -194,7 +195,7 @@ class Date(SimpleType):
                 ("year", "month", "day")]
             return datetime.date(year, month, day)
 
-        match = _date_pattern.match(text)
+        match = _date_re.match(text)
         if not match:
             raise Exception("Date [%s] not in known format" % text)
 
