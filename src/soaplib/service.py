@@ -470,7 +470,7 @@ class DefinitionBase(object):
 
     def add_schema(self, schema_entries):
         '''
-        A private method for adding the appropriate entries
+        A method for adding the appropriate entries
         to the schema for the types in the specified methods.
 
         @param the schema node to add the schema elements to. if it is None,
