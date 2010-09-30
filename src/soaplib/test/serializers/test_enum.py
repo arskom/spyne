@@ -19,8 +19,8 @@
 
 import unittest
 import soaplib
-_ns_xs = soaplib.nsmap['xs']
-_ns_xsi = soaplib.nsmap['xsi']
+_ns_xs = soaplib.ns_xsd
+_ns_xsi = soaplib.ns_xsi
 
 from soaplib.wsgi import Application
 from soaplib.service import DefinitionBase
