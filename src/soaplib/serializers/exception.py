@@ -36,7 +36,7 @@ class Fault(Exception, Base):
     def to_xml(cls, value, tns, parent_elt, name=None):
         if name is None:
             name = cls.get_type_name()
-        element = etree.SubElement(parent_elt, "{%s}%s" % (tns,name))
+        element = etree.SubElement(parent_elt, "{%s}%s" % (soaplib.ns_soap_env,name))
 
         etree.SubElement(element, 'faultcode').text = value.faultcode
         etree.SubElement(element, 'faultstring').text = value.faultstring
