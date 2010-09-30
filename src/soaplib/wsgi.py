@@ -466,7 +466,8 @@ class Application(object):
                 service = None
                 soap_req_header, soap_req_payload = self.__decode_soap_request(
                                                                 req_env, body)
-                self.validate_request(soap_req_payload)
+                if not (soap_req_payload is None):
+                    self.validate_request(soap_req_payload)
 
                 method_name = self.__get_method_name(req_env, soap_req_payload)
                 if method_name is None:
