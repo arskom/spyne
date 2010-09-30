@@ -92,15 +92,16 @@ def from_soap(xml_string, http_charset):
 
     if len(header_envelope) == 0 and len(body_envelope) == 0:
         raise Fault('Client.SoapError', 'Soap envelope is empty!' % soaplib.ns_soap_env)
-    body=None
-    if len(body_envelope) > 0 and len(body_envelope[0]) > 0:
-        body = body_envelope[0].getchildren()[0]
 
     header=None
     if len(header_envelope) > 0 and len(header_envelope[0]) > 0:
         header = header_envelope[0].getchildren()[0]
 
-    return body, header
+    body=None
+    if len(body_envelope) > 0 and len(body_envelope[0]) > 0:
+        body = body_envelope[0].getchildren()[0]
+
+    return header, body
 
 # see http://www.w3.org/TR/2000/NOTE-SOAP-20000508/
 # section 5.2.1 for an example of how the id and href attributes are used.

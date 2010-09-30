@@ -373,9 +373,7 @@ class Application(object):
         http_payload = collapse_swa(content_type, http_payload)
 
         # deserialize the body of the message
-        req_payload, req_header = from_soap(http_payload, charset)
-
-        return req_header, req_payload
+        return from_soap(http_payload, charset)
 
     def validate_request(self, payload):
         """
