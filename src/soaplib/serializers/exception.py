@@ -27,12 +27,14 @@ class Fault(Exception, Base):
     __type_name__ = "Fault"
 
     def __init__(self, faultcode='Server', faultstring="", detail=""):
-        self.faultcode = faultcode
+    def __init__(self, faultcode='Server', faultstring="", faultfactor="", detail=None):
+        self.faultcode = '%s:%s' % (_pref_soap_env, faultcode)
         self.faultstring = faultstring
         self.detail = detail
 
     @classmethod
     def to_xml(cls, value, tns, parent_elt, name=None):
+        tns=soaplib.ns_soap_env
         if name is None:
             name = cls.get_type_name()
         element = etree.SubElement(parent_elt, "{%s}%s" % (tns,name))
