@@ -22,6 +22,7 @@ from lxml import etree
 from soaplib.serializers import Base
 
 _ns_xsi = soaplib.ns_xsi
+_pref_soap_env = soaplib.prefmap[soaplib.ns_soap_env]
 
 class Fault(Exception, Base):
     __type_name__ = "Fault"
