@@ -28,7 +28,6 @@ class Fault(Exception, Base):
     __type_name__ = "Fault"
 
     def __init__(self, faultcode='Server', faultstring="", detail=""):
-    def __init__(self, faultcode='Server', faultstring="", faultfactor="", detail=None):
         self.faultcode = '%s:%s' % (_pref_soap_env, faultcode)
         self.faultstring = faultstring
         self.detail = detail
