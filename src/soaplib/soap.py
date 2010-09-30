@@ -47,6 +47,9 @@ import soaplib
 class Message(ClassSerializer):
     pass
 
+
+from soaplib.serializers.exception import Fault
+
 class MethodDescriptor(object):
     '''
     This class represents the method signature of a soap method,
@@ -81,9 +84,14 @@ def from_soap(xml_string, http_charset):
     if xmlids:
         resolve_hrefs(root, xmlids)
 
+    if root.tag != '{%s}Envelope' % soaplib.ns_soap_env:
+        raise Fault('Client.SoapError', 'No {%s}Envelope element was found!' % soaplib.ns_soap_env)
+
     header_envelope = root.xpath('e:Header', namespaces={'e': soaplib.ns_soap_env})
     body_envelope = root.xpath('e:Body', namespaces={'e': soaplib.ns_soap_env})
 
+    if len(header_envelope) == 0 and len(body_envelope) == 0:
+        raise Fault('Client.SoapError', 'Soap envelope is empty!' % soaplib.ns_soap_env)
     body=None
     if len(body_envelope) > 0 and len(body_envelope[0]) > 0:
         body = body_envelope[0].getchildren()[0]
