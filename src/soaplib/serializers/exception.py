@@ -27,10 +27,10 @@ _pref_soap_env = soaplib.prefmap[soaplib.ns_soap_env]
 class Fault(Exception, Base):
     __type_name__ = "Fault"
 
-    def __init__(self, faultcode='Server', faultstring="", detail=""):
     def __init__(self, faultcode='Server', faultstring="", faultfactor="", detail=None):
         self.faultcode = '%s:%s' % (_pref_soap_env, faultcode)
         self.faultstring = faultstring
+        self.faultfactor = faultfactor
         self.detail = detail
 
     @classmethod
@@ -42,12 +42,15 @@ class Fault(Exception, Base):
 
         etree.SubElement(element, '{%s}faultcode' % tns).text = value.faultcode
         etree.SubElement(element, '{%s}faultstring' % tns).text = value.faultstring
-        etree.SubElement(element, '{%s}detail' % tns).text = value.detail
+        etree.SubElement(element, '{%s}faultfactor' % tns).text = value.faultfactor
+        if value.detail != None:
+            etree.SubElement(element, '{%s}detail' % tns).append(value.detail)
 
     @classmethod
     def from_xml(cls, element):
         code = element.find('faultcode').text
         string = element.find('faultstring').text
+        factor = element.find('faultfactor').text
         detail_element = element.find('detail')
         if detail_element is not None:
             if len(detail_element.getchildren()):
@@ -56,7 +59,7 @@ class Fault(Exception, Base):
                 detail = element.find('detail').text
         else:
             detail = ''
-        return Fault(faultcode=code, faultstring=string, detail=detail)
+        return cls(faultcode=code, faultstring=string, faultfactor=factor, detail=detail)
 
     @classmethod
     def add_to_schema(cls, schema_dict):
