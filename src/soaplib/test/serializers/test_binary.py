@@ -117,7 +117,7 @@ class TestBinary(unittest.TestCase):
         self.assertEquals('base64Binary', dt)
 
         dt = Attachment.get_namespace()
-        assert soaplib.nsmap['xs'] == dt
+        assert dt == soaplib.ns_xsd
 
 if __name__ == '__main__':
     unittest.main()
