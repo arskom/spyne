@@ -56,9 +56,10 @@ class TestService(DefinitionBase):
 
 class TestEnum(unittest.TestCase):
     def test_wsdl(self):
-        wsdl = Application([TestService],'tns').get_wsdl('punk')
+        app = Application([TestService],'tns')
+        wsdl = app.get_wsdl('punk')
         elt = etree.fromstring(wsdl)
-        simple_type = elt.xpath('//xs:simpleType', namespaces=soaplib.nsmap)[0]
+        simple_type = elt.xpath('//xs:simpleType', namespaces=app.nsmap)[0]
 
         print etree.tostring(elt, pretty_print=True)
         print simple_type

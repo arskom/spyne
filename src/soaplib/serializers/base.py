@@ -66,10 +66,10 @@ class Base(object):
         return True
 
     @classmethod
-    def get_namespace_prefix(cls):
+    def get_namespace_prefix(cls,app):
         ns = cls.get_namespace()
 
-        retval = soaplib.get_namespace_prefix(ns)
+        retval = app.get_namespace_prefix(ns)
 
         return retval
 
@@ -94,9 +94,9 @@ class Base(object):
         return retval
 
     @classmethod
-    def get_type_name_ns(cls):
+    def get_type_name_ns(cls,app):
         if cls.get_namespace() != None:
-            return "%s:%s" % (cls.get_namespace_prefix(), cls.get_type_name())
+            return "%s:%s" % (cls.get_namespace_prefix(app), cls.get_type_name())
 
     @classmethod
     def to_xml(cls, value, tns, parent_elt, name='retval'):
@@ -183,7 +183,7 @@ class SimpleType(Base):
 
         restriction = etree.SubElement(simple_type,
                                             '{%s}restriction' % soaplib.ns_xsd)
-        restriction.set('base', cls.__base_type__.get_type_name_ns())
+        restriction.set('base', cls.__base_type__.get_type_name_ns(schema_entries.app))
 
         for v in cls.Attributes.values:
             enumeration = etree.SubElement(restriction,

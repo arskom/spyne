@@ -261,7 +261,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
                 member = etree.SubElement(sequence, '{%s}element' %
                                                                 soaplib.ns_xsd)
                 member.set('name', k)
-                member.set('type', v.get_type_name_ns())
+                member.set('type', v.get_type_name_ns(schema_entries.app))
 
                 if v.Attributes.min_occurs != 1: # 1 is the xml schema default
                     member.set('minOccurs', str(v.Attributes.min_occurs))
@@ -277,7 +277,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
             # simple node
             element = etree.Element('{%s}element' % soaplib.ns_xsd)
             element.set('name',cls.get_type_name())
-            element.set('type',cls.get_type_name_ns())
+            element.set('type',cls.get_type_name_ns(schema_entries.app))
 
             schema_entries.add_element(cls, element)
 

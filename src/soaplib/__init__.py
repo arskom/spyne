@@ -31,7 +31,7 @@ ns_soap12_enc = 'http://www.w3.org/2003/05/soap-encoding/'
 ns_wsa = 'http://schemas.xmlsoap.org/ws/2003/03/addressing'
 ns_xop = 'http://www.w3.org/2004/08/xop/include'
 
-nsmap = {
+const_nsmap = {
     'xs': ns_xsd,
     'xsi': ns_xsi,
     'plink': ns_plink,
@@ -45,45 +45,4 @@ nsmap = {
     'xop': ns_xop,
 }
 
-# prefix map
-prefmap = dict([(b,a) for a,b in nsmap.items()])
-
-const_prefmap = dict(prefmap)
-const_nsmap = dict(nsmap)
-
-_ns_counter = 0
-def get_namespace_prefix(ns):
-    global _ns_counter
-
-    assert ns != "__main__"
-    assert ns != "soaplib.serializers.base"
-
-    assert (isinstance(ns, str) or isinstance(ns, unicode)), ns
-
-    if not (ns in prefmap):
-        pref = "s%d" % _ns_counter
-        while pref in nsmap:
-            _ns_counter += 1
-            pref = "s%d" % _ns_counter
-
-        prefmap[ns] = pref
-        nsmap[pref] = ns
-
-        _ns_counter += 1
-
-    else:
-        pref = prefmap[ns]
-
-    return pref
-
-def set_namespace_prefix(ns, pref):
-    if pref in nsmap and nsmap[pref] != ns:
-        ns_old = nsmap[pref]
-        del prefmap[ns_old]
-        get_namespace_prefix(ns_old)
-
-    cpref = get_namespace_prefix(ns)
-    del nsmap[cpref]
-
-    prefmap[ns] = pref
-    nsmap[pref] = ns
+const_prefmap = dict([(b,a) for a,b in const_nsmap.items()])

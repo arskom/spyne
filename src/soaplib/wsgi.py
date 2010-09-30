@@ -36,6 +36,7 @@ from soaplib.soap import apply_mtom
 from soaplib.soap import collapse_swa
 from soaplib.soap import from_soap
 from soaplib.util import reconstruct_url
+from soaplib.util.odict import odict
 
 HTTP_500 = '500 Internal server error'
 HTTP_200 = '200 OK'
@@ -44,32 +45,93 @@ HTTP_405 = '405 Method Not Allowed'
 class ValidationError(Fault):
     pass
 
-def get_schema_node(pref, schema_nodes, types):
-    """
-    Return schema node for the given namespace prefix.
-    types == None means the call is for creating a standalone xml schema file
-                  for one single namespace.
-    tyoes != None means the call is for creating the wsdl file.
-    """
+class _SchemaInfo(object):
+    def __init__(self):
+        self.elements = odict()
+        self.types = odict()
 
-    # create schema node
-    if not (pref in schema_nodes):
-        if types is None:
-            schema = etree.Element("{%s}schema" % soaplib.ns_xsd,
-                                                    nsmap=soaplib.nsmap)
+class _SchemaEntries(object):
+    def __init__(self, tns, app):
+        self.namespaces = odict()
+        self.imports = {}
+        self.tns = tns
+        self.app = app
+
+    def has_class(self, cls):
+        retval = False
+        ns_prefix = cls.get_namespace_prefix(self.app)
+
+        if ns_prefix in soaplib.const_nsmap:
+            retval = True
+
         else:
-            schema = etree.SubElement(types, "{%s}schema" % soaplib.ns_xsd)
+            type_name = cls.get_type_name()
 
-        schema.set("targetNamespace", soaplib.nsmap[pref])
-        schema.set("elementFormDefault", "qualified")
+            if (ns_prefix in self.namespaces) and \
+                              (type_name in self.namespaces[ns_prefix].types):
+                retval = True
 
-        schema_nodes[pref] = schema
+        return retval
 
-    else:
-        schema = schema_nodes[pref]
+    def get_schema_info(self, prefix):
+        if prefix in self.namespaces:
+            schema = self.namespaces[prefix]
+        else:
+            schema = self.namespaces[prefix] = _SchemaInfo()
 
-    return schema
+        return schema
 
+    # FIXME: this is an ugly hack. we need proper dependency management
+    def __check_imports(self, cls, node):
+        pref_tns = cls.get_namespace_prefix(self.app)
+
+        def is_valid_import(pref):
+            return not (
+                (pref in soaplib.const_nsmap) or (pref == pref_tns)
+            )
+
+        if not (pref_tns in self.imports):
+            self.imports[pref_tns] = set()
+
+        for c in node:
+            if c.tag == "{%s}complexContent" % soaplib.ns_xsd:
+                seq = c.getchildren()[0].getchildren()[0] # FIXME: ugly, isn't it?
+
+                extension = c.getchildren()[0]
+                if extension.tag == '{%s}extension' % soaplib.ns_xsd:
+                    pref = extension.attrib['base'].split(':')[0]
+                    if is_valid_import(pref):
+                        self.imports[pref_tns].add(self.app.nsmap[pref])
+            else:
+                seq = c
+
+            if seq.tag == '{%s}sequence' % soaplib.ns_xsd:
+                for e in seq:
+                    pref = e.attrib['type'].split(':')[0]
+                    if is_valid_import(pref):
+                        self.imports[pref_tns].add(self.app.nsmap[pref])
+
+            elif seq.tag == '{%s}restriction' % soaplib.ns_xsd:
+                pref = seq.attrib['base'].split(':')[0]
+                if is_valid_import(pref):
+                    self.imports[pref_tns].add(self.app.nsmap[pref])
+
+            else:
+                raise Exception("i guess you need to hack some more")
+
+    def add_element(self, cls, node):
+        schema_info = self.get_schema_info(cls.get_namespace_prefix(self.app))
+        schema_info.elements[cls.get_type_name()] = node
+
+    def add_simple_type(self, cls, node):
+        self.__check_imports(cls, node)
+        schema_info = self.get_schema_info(cls.get_namespace_prefix(self.app))
+        schema_info.types[cls.get_type_name()] = node
+
+    def add_complex_type(self, cls, node):
+        self.__check_imports(cls, node)
+        schema_info = self.get_schema_info(cls.get_namespace_prefix(self.app))
+        schema_info.types[cls.get_type_name()] = node
 
 class Application(object):
     def __init__(self, services, tns, name=None, _with_partnerlink=False):
@@ -87,7 +149,46 @@ class Application(object):
         self.__public_methods = {}
         self.schema = None
 
+        self.__ns_counter = 0
+
+        self.nsmap = dict(soaplib.const_nsmap)
+        self.prefmap = dict(soaplib.const_prefmap)
+
         self.build_schema()
+
+    def get_namespace_prefix(self, ns):
+        assert ns != "__main__"
+        assert ns != "soaplib.serializers.base"
+
+        assert (isinstance(ns, str) or isinstance(ns, unicode)), ns
+
+        if not (ns in self.prefmap):
+            pref = "s%d" % self.__ns_counter
+            while pref in self.nsmap:
+                self.__ns_counter += 1
+                pref = "s%d" % self.__ns_counter
+
+            self.prefmap[ns] = pref
+            self.nsmap[pref] = ns
+
+            self.__ns_counter += 1
+
+        else:
+            pref = self.prefmap[ns]
+
+        return pref
+
+    def set_namespace_prefix(self, ns, pref):
+        if pref in self.nsmap and self.nsmap[pref] != ns:
+            ns_old = self.nsmap[pref]
+            del self.prefmap[ns_old]
+            self.get_namespace_prefix(ns_old)
+
+        cpref = self.get_namespace_prefix(ns)
+        del self.nsmap[cpref]
+
+        self.prefmap[ns] = pref
+        self.nsmap[pref] = ns
 
     def get_name(self):
         """
@@ -134,7 +235,7 @@ class Application(object):
         schema_nodes = {}
 
         for pref in schema_entries.namespaces:
-            schema = get_schema_node(pref, schema_nodes, types)
+            schema = self.get_schema_node(pref, schema_nodes, types)
 
             # append import tags
             for namespace in schema_entries.imports[pref]:
@@ -142,7 +243,7 @@ class Application(object):
                 import_.set("namespace", namespace)
                 if types is None:
                     import_.set('schemaLocation', "%s.xsd" %
-                                        soaplib.get_namespace_prefix(namespace))
+                                        self.get_namespace_prefix(namespace))
 
             # append element tags
             for node in schema_entries.namespaces[pref].elements.values():
@@ -180,7 +281,7 @@ class Application(object):
                         self.call_routes[method.name] = s
 
         # populate types
-        schema_entries = None
+        schema_entries = _SchemaEntries(self.get_tns(), self)
         for s in self.services:
             inst = self.get_service(s)
             schema_entries = inst.add_schema(schema_entries)
@@ -225,6 +326,32 @@ class Application(object):
         else:
             return self.__wsdl
 
+    def get_schema_node(self, pref, schema_nodes, types):
+        """
+        Return schema node for the given namespace prefix.
+        types == None means the call is for creating a standalone xml schema file
+                      for one single namespace.
+        tyoes != None means the call is for creating the wsdl file.
+        """
+
+        # create schema node
+        if not (pref in schema_nodes):
+            if types is None:
+                schema = etree.Element("{%s}schema" % soaplib.ns_xsd,
+                                                        nsmap=self.nsmap)
+            else:
+                schema = etree.SubElement(types, "{%s}schema" % soaplib.ns_xsd)
+
+            schema.set("targetNamespace", self.nsmap[pref])
+            schema.set("elementFormDefault", "qualified")
+
+            schema_nodes[pref] = schema
+
+        else:
+            schema = schema_nodes[pref]
+
+        return schema
+
     def __is_wsdl_request(self, req_env):
         # Get the wsdl for the service. Assume path_info matches pattern:
         # /stuff/stuff/stuff/serviceName.wsdl or
@@ -247,9 +374,8 @@ class Application(object):
         ns_plink = soaplib.ns_plink
 
         ns_tns = self.get_tns()
-        pref_tns = soaplib.get_namespace_prefix(ns_tns) #'tns'
-        # FIXME: this can be enabled when soaplib.nsmap is no longer global
-        #soaplib.set_namespace_prefix(ns_tns, pref_tns)
+        pref_tns = 'tns'
+        self.set_namespace_prefix(ns_tns, pref_tns)
 
         # FIXME: doesn't look so robust
         url = url.replace('.wsdl', '')
@@ -257,7 +383,7 @@ class Application(object):
         service_name = self.get_name()
 
         # create wsdl root node
-        root = etree.Element("{%s}definitions" % ns_wsdl, nsmap=soaplib.nsmap)
+        root = etree.Element("{%s}definitions" % ns_wsdl, nsmap=self.nsmap)
         root.set('targetNamespace', ns_tns)
         root.set('name', service_name)
 
@@ -270,7 +396,7 @@ class Application(object):
         for s in self.services:
             s=self.get_service(s,None)
 
-            s.add_messages_for_methods(root, messages)
+            s.add_messages_for_methods(self, root, messages)
 
         if self._with_plink:
             # create plink node
@@ -300,9 +426,9 @@ class Application(object):
 
         for s in self.services:
             s=self.get_service(s)
-            s.add_port_type(root, service_name, types, url, port_type)
-            cb_binding = s.add_bindings_for_methods(root, service_name, types,
-                                                       url, binding, cb_binding)
+            s.add_port_type(self, root, service_name, types, url, port_type)
+            cb_binding = s.add_bindings_for_methods(self, root, service_name, 
+                                                types, url, binding, cb_binding)
 
         self.__wsdl = etree.tostring(root, xml_declaration=True,
                                                                encoding="UTF-8")
@@ -314,7 +440,7 @@ class Application(object):
         Add the partnerLinkType node to the wsdl.
         """
         ns_plink = soaplib.ns_plink
-        pref_tns = soaplib.get_namespace_prefix(self.get_tns())
+        pref_tns = self.get_namespace_prefix(self.get_tns())
 
         role = etree.SubElement(plink, '{%s}role' % ns_plink)
         role.set('name', service_name)
@@ -326,7 +452,7 @@ class Application(object):
         """
         Add service node to the wsdl.
         """
-        pref_tns = soaplib.get_namespace_prefix(self.get_tns())
+        pref_tns = self.get_namespace_prefix(self.get_tns())
 
         wsdl_port = etree.SubElement(service, '{%s}port' % soaplib.ns_wsdl)
         wsdl_port.set('name', service_name)
@@ -411,7 +537,7 @@ class Application(object):
     def add_partner_link(self, root, service_name, types, url, plink):
         ns_plink = soaplib.ns_plink
         ns_tns = self.get_tns()
-        pref_tns = soaplib.get_namespace_prefix(ns_tns)
+        pref_tns = self.get_namespace_prefix(ns_tns)
 
         role = etree.SubElement(plink, '{%s}role' % ns_plink)
         role.set('name', service_name)
@@ -513,7 +639,7 @@ class Application(object):
 
             # construct the soap response, and serialize it
             envelope = etree.Element('{%s}Envelope' % soaplib.ns_soap_env,
-                                                            nsmap=soaplib.nsmap)
+                                                            nsmap=self.nsmap)
 
             #
             # header
@@ -613,7 +739,7 @@ class Application(object):
         # FIXME: There's no way to alter soap response headers for the user.
         envelope = etree.Element('{%s}Envelope' % soaplib.ns_soap_env)
         body = etree.SubElement(envelope, '{%s}Body' % soaplib.ns_soap_env,
-                                                            nsmap=soaplib.nsmap)
+                                                            nsmap=self.nsmap)
         exc.__class__.to_xml(exc, self.get_tns(), body)
 
         if not (service is None):
@@ -714,7 +840,7 @@ class ValidatingApplication(Application):
         schema_nodes = Application.build_schema(self, types)
 
         if types is None:
-            pref_tns = soaplib.get_namespace_prefix(self.get_tns())
+            pref_tns = self.get_namespace_prefix(self.get_tns())
             logger.debug("generating schema for targetNamespace=%r, prefix: %r"
                                                    % (self.get_tns(), pref_tns))
 
@@ -727,7 +853,7 @@ class ValidatingApplication(Application):
                 etree.ElementTree(v).write(f, pretty_print=True)
                 f.close()
                 logger.debug("writing %r for ns %s" % (file_name,
-                                                            soaplib.nsmap[k]))
+                                                            self.nsmap[k]))
 
             f = open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r')
 

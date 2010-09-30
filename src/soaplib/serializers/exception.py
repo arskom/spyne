@@ -22,7 +22,7 @@ from lxml import etree
 from soaplib.serializers import Base
 
 _ns_xsi = soaplib.ns_xsi
-_pref_soap_env = soaplib.prefmap[soaplib.ns_soap_env]
+_pref_soap_env = soaplib.const_prefmap[soaplib.ns_soap_env]
 
 class Fault(Exception, Base):
     __type_name__ = "Fault"
@@ -41,7 +41,7 @@ class Fault(Exception, Base):
 
         etree.SubElement(element, 'faultcode').text = value.faultcode
         etree.SubElement(element, 'faultstring').text = value.faultstring
-        etree.SubElement(element, 'faultfactor').text = value.faultfactor
+        etree.SubElement(element, 'faultActor').text = value.faultfactor
         if value.detail != None:
             etree.SubElement(element, 'detail').append(value.detail)
 

@@ -93,7 +93,7 @@ def Enum(*values, **kwargs):
                 restriction = etree.SubElement(simple_type,
                                                     '{%s}restriction' % _ns_xs)
                 restriction.set('base', '%s:string' %
-                                   soaplib.get_namespace_prefix(soaplib.ns_xsd))
+                        schema_entries.app.get_namespace_prefix(soaplib.ns_xsd))
 
                 for v in values:
                     enumeration = etree.SubElement(restriction,
