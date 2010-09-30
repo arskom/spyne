@@ -454,9 +454,10 @@ class Application(object):
                     try:
                         logger.debug(etree.tostring(etree.fromstring(body),
                                                              pretty_print=True))
-                    except:
+                    except etree.XMLSyntaxError,e:
                         logger.debug(body)
-                        raise
+                        raise Fault('Client.XMLSyntax', 'Error at line: %d, col: %d'
+                                                                    % e.position)
 
             # retrieve the method descriptor
             descriptor = service.get_method(method_name)
@@ -563,12 +564,7 @@ class Application(object):
                                                 http_resp_headers, service, e)
 
         except Exception, e:
-            if method_name:
-                fault_code = '%sFault' % method_name
-            else:
-                fault_code = 'Server'
-
-            fault = Fault(fault_code, str(e), " ")
+            fault = Fault('Server', str(e))
 
             return self.__handle_fault(req_env, start_response,
                                               http_resp_headers, service, fault)
@@ -719,8 +715,9 @@ class ValidatingApplication(Application):
         ret = schema.validate(payload)
 
         logger.debug("validation result: %s" % str(ret))
-
         if ret == False:
             err = schema.error_log.last_error
-            raise ValidationError(u"Error %d: %s" % (err.type, err.type_name),
-                                                          err.message, str(err))
+
+            fault_code = 'Client.SchemaValidation'
+
+            raise ValidationError(fault_code, faultstring=str(err))
