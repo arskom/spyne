@@ -49,15 +49,9 @@ class Fault(Exception, Base):
     def from_xml(cls, element):
         code = element.find('faultcode').text
         string = element.find('faultstring').text
-        factor = element.find('faultfactor').text
-        detail_element = element.find('detail')
-        if detail_element is not None:
-            if len(detail_element.getchildren()):
-                detail = etree.tostring(detail_element)
-            else:
-                detail = element.find('detail').text
-        else:
-            detail = ''
+        factor = element.find('faultactor').text
+        detail = element.find('detail')
+
         return cls(faultcode=code, faultstring=string, faultfactor=factor, detail=detail)
 
     @classmethod
