@@ -37,15 +37,6 @@ def nillable_element(func):
             return func(cls, element)
     return wrapper
 
-def string_to_xml(cls, value, tns, parent_elt, name):
-    assert isinstance(value, str) or isinstance(value, unicode), "'value' must " \
-                    "be string or unicode. it is instead '%s'" % repr(value)
-
-    element = etree.SubElement(parent_elt, "{%s}%s" % (tns,name))
-
-    element.set('{%s}type' % soaplib.ns_xsi, cls.get_type_name_ns())
-    element.text = value
-
 class Base(object):
     __namespace__ = None
     __type_name__ = None
@@ -100,7 +91,10 @@ class Base(object):
 
     @classmethod
     def to_xml(cls, value, tns, parent_elt, name='retval'):
-        string_to_xml(cls, value, tns, parent_elt, name)
+        assert isinstance(value, str) or isinstance(value, unicode), \
+            "'value' must be string or unicode. it is instead %r" % value
+
+        etree.SubElement(parent_elt, "{%s}%s" % (tns,name)).text = value
 
     @classmethod
     def add_to_schema(cls, schema_entries):

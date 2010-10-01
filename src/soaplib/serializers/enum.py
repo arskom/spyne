@@ -4,7 +4,6 @@ from lxml import etree
 from base import SimpleType
 from base import nillable_element
 from base import nillable_value
-from base import string_to_xml
 
 import soaplib
 
@@ -26,7 +25,7 @@ class EnumBase(SimpleType):
         if name is None:
             name = cls.get_type_name()
 
-        string_to_xml(cls, str(value), tns, parent_elt, name)
+        SimpleType.to_xml(cls, str(value), tns, parent_elt, name)
 
     @classmethod
     @nillable_element
