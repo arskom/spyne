@@ -46,3 +46,5 @@ const_nsmap = {
 }
 
 const_prefmap = dict([(b,a) for a,b in const_nsmap.items()])
+
+from _base import *

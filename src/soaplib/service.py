@@ -20,7 +20,7 @@
 import soaplib
 from lxml import etree
 
-from soaplib.soap import Message
+from soaplib.serializers.clazz import ClassSerializer as Message
 from soaplib.soap import MethodDescriptor
 from soaplib.serializers.clazz import TypeInfo
 

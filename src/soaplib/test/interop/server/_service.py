@@ -32,8 +32,8 @@ from soaplib.serializers.primitive import String
 from soaplib.serializers.primitive import Double
 
 from soaplib import service
+from soaplib import ValidatingApplication
 from soaplib.service import rpc
-from soaplib.wsgi import ValidatingApplication
 
 from datetime import datetime
 
