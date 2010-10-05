@@ -59,7 +59,7 @@ class ClassSerializerMeta(type(Base)):
                         if len(base_types) > 0 and issubclass(b, Base):
                             cls_dict["__extends__"] = extends = b
                     except:
-                        print extends
+                        logger.error(repr(extends))
                         raise
 
         # populate soap members
