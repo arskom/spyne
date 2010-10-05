@@ -55,7 +55,7 @@ def _reconstruct_soap_request(http_env):
     if charset is None:
         charset = 'ascii'
 
-    return collapse_swa(content_type, http_payload)
+    return collapse_swa(content_type, http_payload), charset
 
 class Application(soaplib.Application):
     def __call__(self, req_env, start_response, wsgi_url=None):
@@ -120,33 +120,6 @@ class Application(soaplib.Application):
 
             return [""]
 
-    def __get_method_name(self, http_req_env, soap_req_payload):
-        """
-        Guess method name basing on various information in the request.
-        """
-        retval = None
-
-        if soap_req_payload is not None:
-            retval = soap_req_payload.tag
-            logger.debug("\033[92mMethod name from xml tag: %r\033[0m" % retval)
-        else:
-            # check HTTP_SOAPACTION
-            retval = http_req_env.get("HTTP_SOAPACTION")
-
-            if retval is not None:
-                if retval.startswith('"') and retval.endswith('"'):
-                    retval = retval[1:-1]
-
-                if retval.find('/') >0:
-                    retvals = retval.split('/')
-                    retval = '{%s}%s' % (retvals[0], retvals[1])
-
-                logger.debug("\033[92m"
-                             "Method name from HTTP_SOAPACTION: %r"
-                             "\033[0m" % retval)
-
-        return retval
-
     def __handle_soap_request(self, req_env, start_response):
         http_resp_headers = {
             'Content-Type': 'text/xml',
@@ -157,33 +130,38 @@ class Application(soaplib.Application):
         # implementation hook
         self.on_call(req_env)
 
-        http_payload = _reconstruct_soap_request(req_env)
+        http_payload, charset = _reconstruct_soap_request(req_env)
 
-        service, params = self.deserialize(http_payload)
+        service, params = self.deserialize(http_payload, charset)
 
-        # implementation hook
-        service.on_method_call(req_env, method_name, params, service.body_xml)
+        if service is None:
+            result_str = self.serialize(service, params)
 
-        result_raw = self.process_request(service, params)
+        else:
+            # implementation hook
+            service.on_method_call(req_env, method_name, params, service.body_xml)
 
-        result_str = self.serialize(service, result_raw)
+            result_raw = self.process_request(service, params)
 
-        # implementation hook
-        service.on_method_return(req_env, result_raw, service.soap_body,
+            # implementation hook
+            service.on_method_return(req_env, result_raw, service.body_xml,
                                                               http_resp_headers)
+
+            result_str = self.serialize(service, result_raw)
+
+            # implementation hook
+            self.on_return(req_env, http_resp_headers, result_str)
+
 
         if service.descriptor.mtom:
             http_resp_headers, result_str = apply_mtom(http_resp_headers,
-                result_str, service.descriptor.out_message._type_info,[result_raw])
-
-        # implementation hook
-        self.on_return(req_env, http_resp_headers, result_str)
+                    result_str, service.descriptor.out_message._type_info,
+                    [result_raw])
 
         # initiate the response
         http_resp_headers['Content-Length'] = str(len(result_str))
         start_response(HTTP_200, http_resp_headers.items())
 
-        # return the serialized results
         return [result_str]
 
     def on_call(self, environ):
@@ -217,3 +195,6 @@ class Application(soaplib.Application):
         @param return string of the soap request
         '''
         pass
+
+class ValidatingApplication(Application, soaplib.ValidatingApplication):
+    pass

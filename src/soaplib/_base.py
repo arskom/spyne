@@ -18,7 +18,7 @@
 #
 
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("soaplib._base")
 
 import shutil
 import tempfile
@@ -163,16 +163,12 @@ class Application(object):
             try:
                 self.validate_request(body)
 
-            except Fault, e:
-                return self.__serialize_fault(service_ctx, e)
-
             finally:
                 # for performance reasons, we don't want the following to run
                 # in production even though we won't see the results.
                 if logger.level == logging.DEBUG:
                     try:
-                        logger.debug(etree.tostring(etree.fromstring(body),
-                                                             pretty_print=True))
+                        logger.debug(etree.tostring(body, pretty_print=True))
                     except etree.XMLSyntaxError,e:
                         logger.debug(body)
                         raise Fault('Client.XMLSyntax', 'Error at line: %d, '
@@ -194,15 +190,18 @@ class Application(object):
 
         return service_ctx
 
-    def deserialize(self,envelope_string):
+    def deserialize(self, envelope_string, charset=None):
         """Takes a string containing ONE soap message.
         Returns the corresponding native python object.
         """
 
-        ctx = self.__decompose_request(envelope_string)
+        try:
+            ctx = self.__decompose_request(envelope_string, charset)
+        except ValidationError, e:
+            return None, self.__serialize_fault(None, e)
 
         # retrieve the method descriptor
-        descriptor = ctx.method_descriptor = ctx.get_method(ctx.method_name)
+        descriptor = ctx.descriptor = ctx.get_method(ctx.method_name)
 
         # decode header object
         if ctx.header_xml is not None and len(ctx.header_xml) > 0:
@@ -224,7 +223,7 @@ class Application(object):
 
         try:
             # retrieve the method
-            func = getattr(ctx, ctx.method_descriptor.name)
+            func = getattr(ctx, ctx.descriptor.name)
 
             # call the method
             return ctx.call_wrapper(func, req_obj)
@@ -263,7 +262,7 @@ class Application(object):
         # header
         #
         if ctx.soap_out_header != None:
-            if ctx.method_descriptor.out_header is None:
+            if ctx.descriptor.out_header is None:
                 logger.warning(
                     "Skipping soap response header as %r method is not "
                     "published to have a soap response header" %
@@ -271,11 +270,11 @@ class Application(object):
             else:
                 soap_header_elt = etree.SubElement(envelope,
                                          '{%s}Header' % soaplib.ns_soap_env)
-                ctx.method_descriptor.out_header.to_xml(
+                ctx.descriptor.out_header.to_xml(
                     ctx.soap_out_header,
                     self.get_tns(),
                     soap_header_elt,
-                    ctx.method_descriptor.out_header.get_type_name()
+                    ctx.descriptor.out_header.get_type_name()
                 )
 
         #
@@ -285,19 +284,19 @@ class Application(object):
                                            '{%s}Body' % soaplib.ns_soap_env)
 
         # instantiate the result message
-        result_message = ctx.method_descriptor.out_message()
+        result_message = ctx.descriptor.out_message()
 
         # assign raw result to its wrapper, result_message
-        out_type = ctx.method_descriptor.out_message._type_info
+        out_type = ctx.descriptor.out_message._type_info
 
         if len(out_type) > 0:
             assert len(out_type) == 1
 
-            attr_name = ctx.method_descriptor.out_message._type_info.keys()[0]
+            attr_name = ctx.descriptor.out_message._type_info.keys()[0]
             setattr(result_message, attr_name, native_obj)
 
         # transform the results into an element
-        ctx.method_descriptor.out_message.to_xml(
+        ctx.descriptor.out_message.to_xml(
                                   result_message, self.get_tns(), soap_body)
 
         if logger.level == logging.DEBUG:

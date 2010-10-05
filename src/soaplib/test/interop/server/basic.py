@@ -19,7 +19,7 @@
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger('soaplib.wsgi')
+logger = logging.getLogger('soaplib._base')
 logger.setLevel(logging.DEBUG)
 
 from soaplib.test.interop.server._service import application

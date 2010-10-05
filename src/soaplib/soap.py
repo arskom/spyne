@@ -50,6 +50,8 @@ def from_soap(xml_string, charset):
     '''
     Parses the xml string into the header and payload
     '''
+
+    print xml_string
     try:
         root, xmlids = etree.XMLID(xml_string.decode(charset))
     except ValueError,e:
