@@ -70,7 +70,6 @@ def get_schema_node(pref, schema_nodes, types):
 
     return schema
 
-
 class Application(object):
     def __init__(self, services, tns, name=None, _with_partnerlink=False):
         '''
