@@ -21,6 +21,7 @@ from soaplib.serializers.binary import Attachment
 from soaplib.serializers.clazz import Array
 from soaplib.serializers.clazz import ClassSerializer
 from soaplib.serializers.enum import Enum
+from soaplib.serializers.exception import Fault
 
 from soaplib.serializers.primitive import Any
 from soaplib.serializers.primitive import AnyAsDict
@@ -208,6 +209,15 @@ class InteropClass(service.DefinitionBase):
     def echo_attachment_array(self, aa):
         return aa
 
+class InteropException(service.DefinitionBase):
+    @rpc()
+    def python_exception(self):
+        raise Exception("i was like")
+
+    @rpc()
+    def soap_exception(self):
+        raise Fault("i was like")
+
 class InteropMisc(service.DefinitionBase):
     @rpc()
     def huge_number(_returns=Integer):
@@ -243,6 +253,7 @@ services = [
     InteropClass,
     InteropMisc,
     InteropServiceWithHeader,
+    InteropException,
 ]
 
 application = ValidatingApplication(services, tns=__name__)

@@ -136,6 +136,8 @@ class Application(soaplib.Application):
 
         if service is None:
             result_str = self.serialize(service, params)
+            http_resp_headers['Content-Length'] = str(len(result_str))
+            start_response(HTTP_500, http_resp_headers.items())
 
         else:
             # implementation hook
@@ -152,15 +154,14 @@ class Application(soaplib.Application):
             # implementation hook
             self.on_return(req_env, http_resp_headers, result_str)
 
+            if service.descriptor.mtom:
+                http_resp_headers, result_str = apply_mtom(http_resp_headers,
+                        result_str, service.descriptor.out_message._type_info,
+                        [result_raw])
 
-        if service.descriptor.mtom:
-            http_resp_headers, result_str = apply_mtom(http_resp_headers,
-                    result_str, service.descriptor.out_message._type_info,
-                    [result_raw])
-
-        # initiate the response
-        http_resp_headers['Content-Length'] = str(len(result_str))
-        start_response(HTTP_200, http_resp_headers.items())
+            # initiate the response
+            http_resp_headers['Content-Length'] = str(len(result_str))
+            start_response(HTTP_200, http_resp_headers.items())
 
         return [result_str]
 

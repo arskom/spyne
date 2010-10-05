@@ -198,7 +198,7 @@ class Application(object):
         try:
             ctx = self.__decompose_request(envelope_string, charset)
         except ValidationError, e:
-            return None, self.__serialize_fault(None, e)
+            return None, e
 
         # retrieve the method descriptor
         descriptor = ctx.descriptor = ctx.get_method(ctx.method_name)
@@ -244,8 +244,8 @@ class Application(object):
         retval = self.__serialize_fault(ctx, e)
 
         if not (ctx is None):
-            ctx.on_method_exception_xml(req_env, body)
-        self.on_exception_xml(body)
+            ctx.on_method_exception_xml(retval)
+        self.on_exception_xml(retval)
 
         return retval
 
@@ -257,6 +257,9 @@ class Application(object):
         # construct the soap response, and serialize it
         envelope = etree.Element('{%s}Envelope' % soaplib.ns_soap_env,
                                                                nsmap=self.nsmap)
+
+        if ctx is None:
+            return self.__serialize_fault(ctx, native_obj)
 
         #
         # header
@@ -436,6 +439,7 @@ class Application(object):
     def build_schema(self, types=None):
         """
         Unify the <schema> nodes required for this app.
+        This is a protected method.
         """
 
         if types is None: # FIXME: what is this if good for? what if it's removed?
@@ -634,12 +638,6 @@ class Application(object):
         addr = etree.SubElement(wsdl_port, '{%s}address' % soaplib.ns_soap)
         addr.set('location', url)
 
-    def validate_request(self, payload):
-        """
-        Method to be overriden to perform any sort of custom input validation.
-        """
-        pass
-
     def _has_callbacks(self):
         retval = False
 
@@ -648,6 +646,30 @@ class Application(object):
                 return True
 
         return retval
+
+    def validate_request(self, payload):
+        """
+        Method to be overriden to perform any sort of custom input validation.
+        """
+        pass
+
+    def on_exception_object(self, exc):
+        '''
+        Called when the app throws an exception. (might be inside or outside the
+        service call.
+        @param the wsgi environment
+        @param the fault object
+        '''
+        pass
+
+    def on_exception_xml(self, fault_xml):
+        '''
+        Called when the app throws an exception. (might be inside or outside the
+        service call.
+        @param the wsgi environment
+        @param the xml element containing the xml serialization of the fault
+        '''
+        pass
 
 class ValidatingApplication(Application):
     def build_schema(self, types=None):
@@ -695,21 +717,3 @@ class ValidatingApplication(Application):
             fault_code = 'Client.SchemaValidation'
 
             raise ValidationError(fault_code, faultstring=str(err))
-
-    def on_exception_object(self, exc):
-        '''
-        Called when the app throws an exception. (might be inside or outside the
-        service call.
-        @param the wsgi environment
-        @param the fault object
-        '''
-        pass
-
-    def on_exception_xml(self, fault_xml):
-        '''
-        Called when the app throws an exception. (might be inside or outside the
-        service call.
-        @param the wsgi environment
-        @param the xml element containing the xml serialization of the fault
-        '''
-        pass
