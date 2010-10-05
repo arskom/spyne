@@ -190,9 +190,11 @@ class Application(object):
 
         return service_ctx
 
-    def deserialize(self, envelope_string, charset=None):
+    def deserialize_soap(self, envelope_string, charset=None):
         """Takes a string containing ONE soap message.
         Returns the corresponding native python object.
+
+        Not meant to be overridden.
         """
 
         try:
@@ -218,7 +220,9 @@ class Application(object):
 
     def process_request(self,ctx,req_obj):
         """Takes the native request object.
-        Returns the response to the request as a native python object
+        Returns the response to the request as a native python object.
+
+        Not meant to be overridden.
         """
 
         try:
@@ -229,113 +233,95 @@ class Application(object):
             return ctx.call_wrapper(func, req_obj)
 
         except Fault, e:
-            return self.fault_wrapper(ctx, e)
+            return e
 
         except Exception, e:
             fault = Fault('Server', str(e))
 
-            return self.fault_wrapper(ctx, fault)
+            return fault
 
-    def fault_wrapper(self,ctx,e):
-        if not (ctx is None):
-            ctx.on_method_exception_object(e)
-        self.on_exception_object(e)
-
-        retval = self.__serialize_fault(ctx, e)
-
-        if not (ctx is None):
-            ctx.on_method_exception_xml(retval)
-        self.on_exception_xml(retval)
-
-        return retval
-
-    def serialize(self, ctx, native_obj):
+    def serialize_soap(self, ctx, native_obj):
         """Pushes the native python object to the output stream as a soap
         response
+
+        Not meant to be overridden.
         """
 
         # construct the soap response, and serialize it
         envelope = etree.Element('{%s}Envelope' % soaplib.ns_soap_env,
                                                                nsmap=self.nsmap)
 
-        if ctx is None:
-            return self.__serialize_fault(ctx, native_obj)
+        if ctx is None or isinstance(native_obj, Exception):
+            stacktrace=traceback.format_exc()
+            logger.error(stacktrace)
 
-        #
-        # header
-        #
-        if ctx.soap_out_header != None:
-            if ctx.descriptor.out_header is None:
-                logger.warning(
-                    "Skipping soap response header as %r method is not "
-                    "published to have a soap response header" %
+            # implementation hook
+            if not (ctx is None):
+                ctx.on_method_exception_object(native_obj)
+            self.on_exception_object(native_obj)
+
+            # FIXME: There's no way to alter soap response headers for the user.
+            ctx.soap_body = soap_body = etree.SubElement(envelope,
+                            '{%s}Body' % soaplib.ns_soap_env, nsmap=self.nsmap)
+            native_obj.__class__.to_xml(native_obj, self.get_tns(), soap_body)
+
+            # implementation hook
+            if not (ctx is None):
+                ctx.on_method_exception_xml(soap_body)
+            self.on_exception_xml(soap_body)
+
+            if logger.level == logging.DEBUG:
+                logger.debug(etree.tostring(envelope, pretty_print=True))
+
+        else:
+            #
+            # header
+            #
+            if ctx.soap_out_header != None:
+                if ctx.descriptor.out_header is None:
+                    logger.warning(
+                        "Skipping soap response header as %r method is not "
+                        "published to have a soap response header" %
                                 native_obj.get_type_name()[:-len('Response')])
-            else:
-                soap_header_elt = etree.SubElement(envelope,
-                                         '{%s}Header' % soaplib.ns_soap_env)
-                ctx.descriptor.out_header.to_xml(
-                    ctx.soap_out_header,
-                    self.get_tns(),
-                    soap_header_elt,
-                    ctx.descriptor.out_header.get_type_name()
-                )
+                else:
+                    soap_header_elt = etree.SubElement(envelope,
+                                             '{%s}Header' % soaplib.ns_soap_env)
+                    ctx.descriptor.out_header.to_xml(
+                        ctx.soap_out_header,
+                        self.get_tns(),
+                        soap_header_elt,
+                        ctx.descriptor.out_header.get_type_name()
+                    )
 
-        #
-        # body
-        #
-        ctx.soap_body = soap_body = etree.SubElement(envelope,
-                                           '{%s}Body' % soaplib.ns_soap_env)
+            #
+            # body
+            #
+            ctx.soap_body = soap_body = etree.SubElement(envelope,
+                                               '{%s}Body' % soaplib.ns_soap_env)
 
-        # instantiate the result message
-        result_message = ctx.descriptor.out_message()
+            # instantiate the result message
+            result_message = ctx.descriptor.out_message()
 
-        # assign raw result to its wrapper, result_message
-        out_type = ctx.descriptor.out_message._type_info
+            # assign raw result to its wrapper, result_message
+            out_type = ctx.descriptor.out_message._type_info
 
-        if len(out_type) > 0:
-            assert len(out_type) == 1
+            if len(out_type) > 0:
+                assert len(out_type) == 1
 
-            attr_name = ctx.descriptor.out_message._type_info.keys()[0]
-            setattr(result_message, attr_name, native_obj)
+                attr_name = ctx.descriptor.out_message._type_info.keys()[0]
+                setattr(result_message, attr_name, native_obj)
 
-        # transform the results into an element
-        ctx.descriptor.out_message.to_xml(
-                                  result_message, self.get_tns(), soap_body)
+            # transform the results into an element
+            ctx.descriptor.out_message.to_xml(
+                                      result_message, self.get_tns(), soap_body)
 
-        if logger.level == logging.DEBUG:
-            logger.debug('\033[91m'+ "Response" + '\033[0m')
-            logger.debug(etree.tostring(envelope, xml_declaration=True,
-                                                         pretty_print=True))
+            if logger.level == logging.DEBUG:
+                logger.debug('\033[91m'+ "Response" + '\033[0m')
+                logger.debug(etree.tostring(envelope, xml_declaration=True,
+                                                             pretty_print=True))
 
-        results_str = etree.tostring(envelope, xml_declaration=True,
+        return etree.tostring(envelope, xml_declaration=True,
                                                        encoding=string_encoding)
-
-        return results_str
-
-    def __serialize_fault(self, ctx, exc):
-        stacktrace=traceback.format_exc()
-        logger.error(stacktrace)
-
-        # implementation hook
-        if not (ctx is None):
-            ctx.on_method_exception_object(exc)
-        self.on_exception_object(exc)
-
-        # FIXME: There's no way to alter soap response headers for the user.
-        envelope = etree.Element('{%s}Envelope' % soaplib.ns_soap_env)
-        body = etree.SubElement(envelope, '{%s}Body' % soaplib.ns_soap_env,
-                                                            nsmap=self.nsmap)
-        exc.__class__.to_xml(exc, self.get_tns(), body)
-
-        if not (ctx is None):
-            ctx.on_method_exception_xml(body)
-        self.on_exception_xml(body)
-
-        if logger.level == logging.DEBUG:
-            logger.debug(etree.tostring(envelope, pretty_print=True))
-
-        # initiate the response
-        return etree.tostring(envelope)
 
     def get_namespace_prefix(self, ns):
         assert ns != "__main__"

@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from lxml import etree
+
 from soaplib.serializers.binary import Attachment
 from soaplib.serializers.clazz import Array
 from soaplib.serializers.clazz import ClassSerializer
@@ -212,11 +214,12 @@ class InteropClass(service.DefinitionBase):
 class InteropException(service.DefinitionBase):
     @rpc()
     def python_exception(self):
-        raise Exception("i was like")
+        raise Exception("Possible")
 
     @rpc()
     def soap_exception(self):
-        raise Fault("i was like")
+        raise Fault("Plausible", "A plausible fault", 'Fault actor',
+                                            detail=etree.Element('something'))
 
 class InteropMisc(service.DefinitionBase):
     @rpc()

@@ -17,15 +17,15 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import logging
+logger = logging.getLogger(__name__)
+
 import soaplib
 from lxml import etree
 
 from soaplib.serializers.clazz import ClassSerializer as Message
 from soaplib.soap import MethodDescriptor
 from soaplib.serializers.clazz import TypeInfo
-
-import logging
-logger = logging.getLogger(__name__)
 
 _pref_wsa = soaplib.const_prefmap[soaplib.ns_wsa]
 
@@ -189,7 +189,7 @@ class DefinitionBase(object):
         '''
         pass
 
-    def on_method_exception_object(self, environ, exc):
+    def on_method_exception_object(self, exc):
         '''
         Called BEFORE the exception is serialized, when an error occurs durring
         execution
@@ -198,7 +198,7 @@ class DefinitionBase(object):
         '''
         pass
 
-    def on_method_exception_xml(self, environ, fault_xml):
+    def on_method_exception_xml(self, fault_xml):
         '''
         Called AFTER the exception is serialized, when an error occurs durring
         execution

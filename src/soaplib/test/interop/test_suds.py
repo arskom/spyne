@@ -198,9 +198,11 @@ class TestSuds(unittest.TestCase):
 
     def test_python_exception(self):
         self.client.service.python_exception()
+        raise Exception("must fail")
 
     def test_soap_exception(self):
         self.client.service.soap_exception()
+        raise Exception("must fail")
 
 if __name__ == '__main__':
     unittest.main()

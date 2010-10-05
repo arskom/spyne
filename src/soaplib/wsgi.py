@@ -125,6 +125,7 @@ class Application(soaplib.Application):
             'Content-Type': 'text/xml',
             'Content-Length': '0',
         }
+        return_code = HTTP_200
         method_name = None
 
         # implementation hook
@@ -132,12 +133,11 @@ class Application(soaplib.Application):
 
         http_payload, charset = _reconstruct_soap_request(req_env)
 
-        service, params = self.deserialize(http_payload, charset)
+        service, params = self.deserialize_soap(http_payload, charset)
 
         if service is None:
-            result_str = self.serialize(service, params)
-            http_resp_headers['Content-Length'] = str(len(result_str))
-            start_response(HTTP_500, http_resp_headers.items())
+            result_str = self.serialize_soap(service, params)
+            return_code = HTTP_500
 
         else:
             # implementation hook
@@ -145,11 +145,14 @@ class Application(soaplib.Application):
 
             result_raw = self.process_request(service, params)
 
+            if isinstance(result_raw, Exception):
+                return_code = HTTP_500
+
             # implementation hook
             service.on_method_return(req_env, result_raw, service.body_xml,
                                                               http_resp_headers)
 
-            result_str = self.serialize(service, result_raw)
+            result_str = self.serialize_soap(service, result_raw)
 
             # implementation hook
             self.on_return(req_env, http_resp_headers, result_str)
@@ -160,8 +163,8 @@ class Application(soaplib.Application):
                         [result_raw])
 
             # initiate the response
-            http_resp_headers['Content-Length'] = str(len(result_str))
-            start_response(HTTP_200, http_resp_headers.items())
+        http_resp_headers['Content-Length'] = str(len(result_str))
+        start_response(return_code, http_resp_headers.items())
 
         return [result_str]
 
