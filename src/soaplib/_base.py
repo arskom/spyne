@@ -175,8 +175,8 @@ class Application(object):
                                                              pretty_print=True))
                     except etree.XMLSyntaxError,e:
                         logger.debug(body)
-                        raise Fault('Client.XMLSyntax', 'Error at line: %d, col: %d'
-                                                                    % e.position)
+                        raise Fault('Client.XMLSyntax', 'Error at line: %d, '
+                                    'col: %d' % e.position)
 
             if not (body is None):
                 method_name = body.tag
@@ -188,26 +188,30 @@ class Application(object):
         service_class = self.get_service_class(method_name)
         service_ctx = self.get_service(service_class)
 
-        return service_ctx, method_name, header, body
+        service_ctx.header_xml = header
+        service_ctx.body_xml = body
+        service_ctx.method_name = method_name
+
+        return service_ctx
 
     def deserialize(self,envelope_string):
         """Takes a string containing ONE soap message.
         Returns the corresponding native python object.
         """
 
-        ctx, method_name, header_xml, body_xml = self.__decompose_request(envelope_string)
+        ctx = self.__decompose_request(envelope_string)
 
         # retrieve the method descriptor
-        descriptor = ctx.method_descriptor = ctx.get_method(method_name)
+        descriptor = ctx.method_descriptor = ctx.get_method(ctx.method_name)
 
         # decode header object
-        if header_xml is not None and len(header_xml) > 0:
+        if ctx.header_xml is not None and len(ctx.header_xml) > 0:
             in_header = descriptor.in_header
-            ctx.soap_in_header = in_header.from_xml(header_xml)
+            ctx.soap_in_header = in_header.from_xml(ctx.header_xml)
 
         # decode method arguments
-        if body_xml is not None and len(body_xml) > 0:
-            params = descriptor.in_message.from_xml(body_xml)
+        if ctx.body_xml is not None and len(ctx.body_xml) > 0:
+            params = descriptor.in_message.from_xml(ctx.body_xml)
         else:
             params = [None] * len(descriptor.in_message._type_info)
 
@@ -217,38 +221,47 @@ class Application(object):
         """Takes the native request object.
         Returns the response to the request as a native python object
         """
+
         try:
             # retrieve the method
             func = getattr(ctx, ctx.method_descriptor.name)
 
             # call the method
-            result_raw = ctx.call_wrapper(func, req_obj)
-
-            return result_raw
+            return ctx.call_wrapper(func, req_obj)
 
         except Fault, e:
-            return self.__serialize_fault(ctx, e)
+            return self.fault_wrapper(ctx, e)
 
         except Exception, e:
             fault = Fault('Server', str(e))
 
-            return self.__serialize_fault(ctx, fault)
+            return self.fault_wrapper(ctx, fault)
+
+    def fault_wrapper(self,ctx,e):
+        if not (ctx is None):
+            ctx.on_method_exception_object(e)
+        self.on_exception_object(e)
+
+        retval = self.__serialize_fault(ctx, e)
+
+        if not (ctx is None):
+            ctx.on_method_exception_xml(req_env, body)
+        self.on_exception_xml(body)
+
+        return retval
 
     def serialize(self, ctx, native_obj):
-        """Pushes the native python object to the output stream as a
-        soap response
+        """Pushes the native python object to the output stream as a soap
+        response
         """
 
         # construct the soap response, and serialize it
         envelope = etree.Element('{%s}Envelope' % soaplib.ns_soap_env,
-                                                        nsmap=self.nsmap)
+                                                               nsmap=self.nsmap)
 
         #
         # header
         #
-        soap_header_elt = etree.SubElement(envelope,
-                                         '{%s}Header' % soaplib.ns_soap_env)
-
         if ctx.soap_out_header != None:
             if ctx.method_descriptor.out_header is None:
                 logger.warning(
@@ -256,6 +269,8 @@ class Application(object):
                     "published to have a soap response header" %
                                 native_obj.get_type_name()[:-len('Response')])
             else:
+                soap_header_elt = etree.SubElement(envelope,
+                                         '{%s}Header' % soaplib.ns_soap_env)
                 ctx.method_descriptor.out_header.to_xml(
                     ctx.soap_out_header,
                     self.get_tns(),
@@ -263,13 +278,10 @@ class Application(object):
                     ctx.method_descriptor.out_header.get_type_name()
                 )
 
-        if len(soap_header_elt) > 0:
-            envelope.append(soap_header_elt)
-
         #
         # body
         #
-        soap_body = etree.SubElement(envelope,
+        ctx.soap_body = soap_body = etree.SubElement(envelope,
                                            '{%s}Body' % soaplib.ns_soap_env)
 
         # instantiate the result message
@@ -288,17 +300,13 @@ class Application(object):
         ctx.method_descriptor.out_message.to_xml(
                                   result_message, self.get_tns(), soap_body)
 
-        # implementation hook
-        ctx.on_method_return(soap_body)
+        if logger.level == logging.DEBUG:
+            logger.debug('\033[91m'+ "Response" + '\033[0m')
+            logger.debug(etree.tostring(envelope, xml_declaration=True,
+                                                         pretty_print=True))
 
-        #
-        # misc
-        #
         results_str = etree.tostring(envelope, xml_declaration=True,
-                                                   encoding=string_encoding)
-
-        # implementation hook
-        self.on_return(results_str)
+                                                       encoding=string_encoding)
 
         return results_str
 
@@ -523,19 +531,6 @@ class Application(object):
 
         return schema
 
-    def __is_wsdl_request(self, req_env):
-        # Get the wsdl for the service. Assume path_info matches pattern:
-        # /stuff/stuff/stuff/serviceName.wsdl or
-        # /stuff/stuff/stuff/serviceName/?wsdl
-
-        return (
-                req_env['REQUEST_METHOD'].lower() == 'get'
-            and (
-                   req_env['QUERY_STRING'].endswith('wsdl')
-                or req_env['PATH_INFO'].endswith('wsdl')
-            )
-        )
-
     def __build_wsdl(self, url):
         """
         Build the wsdl for the application.
@@ -646,33 +641,6 @@ class Application(object):
         """
         pass
 
-    def __get_method_name(self, http_req_env, soap_req_payload):
-        """
-        Guess method name basing on various information in the request.
-        """
-        retval = None
-
-        if soap_req_payload is not None:
-            retval = soap_req_payload.tag
-            logger.debug("\033[92mMethod name from xml tag: %r\033[0m" % retval)
-        else:
-            # check HTTP_SOAPACTION
-            retval = http_req_env.get("HTTP_SOAPACTION")
-
-            if retval is not None:
-                if retval.startswith('"') and retval.endswith('"'):
-                    retval = retval[1:-1]
-
-                if retval.find('/') >0:
-                    retvals = retval.split('/')
-                    retval = '{%s}%s' % (retvals[0], retvals[1])
-
-                logger.debug("\033[92m"
-                             "Method name from HTTP_SOAPACTION: %r"
-                             "\033[0m" % retval)
-
-        return retval
-
     def _has_callbacks(self):
         retval = False
 
@@ -728,3 +696,21 @@ class ValidatingApplication(Application):
             fault_code = 'Client.SchemaValidation'
 
             raise ValidationError(fault_code, faultstring=str(err))
+
+    def on_exception_object(self, exc):
+        '''
+        Called when the app throws an exception. (might be inside or outside the
+        service call.
+        @param the wsgi environment
+        @param the fault object
+        '''
+        pass
+
+    def on_exception_xml(self, fault_xml):
+        '''
+        Called when the app throws an exception. (might be inside or outside the
+        service call.
+        @param the wsgi environment
+        @param the xml element containing the xml serialization of the fault
+        '''
+        pass
