@@ -25,7 +25,7 @@ class EnumBase(SimpleType):
         if name is None:
             name = cls.get_type_name()
 
-        SimpleType.to_xml(cls, str(value), tns, parent_elt, name)
+        SimpleType.to_xml(str(value), tns, parent_elt, name)
 
     @classmethod
     @nillable_element
