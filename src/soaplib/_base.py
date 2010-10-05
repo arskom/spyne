@@ -261,13 +261,14 @@ class Application(object):
             self.on_exception_object(native_obj)
 
             # FIXME: There's no way to alter soap response headers for the user.
-            ctx.soap_body = soap_body = etree.SubElement(envelope,
+            soap_body = etree.SubElement(envelope,
                             '{%s}Body' % soaplib.ns_soap_env, nsmap=self.nsmap)
             native_obj.__class__.to_xml(native_obj, self.get_tns(), soap_body)
 
             # implementation hook
             if not (ctx is None):
                 ctx.on_method_exception_xml(soap_body)
+                ctx.soap_body = soap_body
             self.on_exception_xml(soap_body)
 
             if logger.level == logging.DEBUG:
