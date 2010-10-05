@@ -71,12 +71,12 @@ class MethodDescriptor(object):
         self.in_header = in_header
         self.out_header = out_header
 
-def from_soap(xml_string, http_charset):
+def from_soap(xml_string, charset):
     '''
     Parses the xml string into the header and payload
     '''
     try:
-        root, xmlids = etree.XMLID(xml_string.decode(http_charset))
+        root, xmlids = etree.XMLID(xml_string.decode(charset))
     except ValueError,e:
         logger.debug('%s -- falling back to str decoding.' % (e))
         root, xmlids = etree.XMLID(xml_string)

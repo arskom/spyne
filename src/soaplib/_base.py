@@ -17,13 +17,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import cgi
 import logging
+logger = logging.getLogger(__name__)
+
 import shutil
 import tempfile
 import traceback
-
-logger = logging.getLogger(__name__)
 
 from lxml import etree
 
@@ -31,12 +30,9 @@ import soaplib
 
 from soaplib.serializers.exception import Fault
 from soaplib.serializers.primitive import string_encoding
-
-from soaplib.soap import apply_mtom
-from soaplib.soap import collapse_swa
-from soaplib.soap import from_soap
-from soaplib.util import reconstruct_url
 from soaplib.util.odict import odict
+
+from soaplib.soap import from_soap
 
 HTTP_500 = '500 Internal server error'
 HTTP_200 = '200 OK'
@@ -156,6 +152,181 @@ class Application(object):
 
         self.build_schema()
 
+    def __decompose_request(self, envelope_string, charset=None):
+        service_ctx = None
+        method_name = None
+
+        # deserialize the body of the message
+        header, body = from_soap(envelope_string, charset)
+
+        if not (body is None):
+            try:
+                self.validate_request(body)
+
+            except Fault, e:
+                return self.__serialize_fault(service_ctx, e)
+
+            finally:
+                # for performance reasons, we don't want the following to run
+                # in production even though we won't see the results.
+                if logger.level == logging.DEBUG:
+                    try:
+                        logger.debug(etree.tostring(etree.fromstring(body),
+                                                             pretty_print=True))
+                    except etree.XMLSyntaxError,e:
+                        logger.debug(body)
+                        raise Fault('Client.XMLSyntax', 'Error at line: %d, col: %d'
+                                                                    % e.position)
+
+            if not (body is None):
+                method_name = body.tag
+                logger.debug("\033[92mMethod name: %r\033[0m" % method_name)
+
+        if method_name is None:
+            raise Exception("Could not extract method name from the request!")
+
+        service_class = self.get_service_class(method_name)
+        service_ctx = self.get_service(service_class)
+
+        return service_ctx, method_name, header, body
+
+    def deserialize(self,envelope_string):
+        """Takes a string containing ONE soap message.
+        Returns the corresponding native python object.
+        """
+
+        ctx, method_name, header_xml, body_xml = self.__decompose_request(envelope_string)
+
+        # retrieve the method descriptor
+        descriptor = ctx.method_descriptor = ctx.get_method(method_name)
+
+        # decode header object
+        if header_xml is not None and len(header_xml) > 0:
+            in_header = descriptor.in_header
+            ctx.soap_in_header = in_header.from_xml(header_xml)
+
+        # decode method arguments
+        if body_xml is not None and len(body_xml) > 0:
+            params = descriptor.in_message.from_xml(body_xml)
+        else:
+            params = [None] * len(descriptor.in_message._type_info)
+
+        return ctx, params
+
+    def process_request(self,ctx,req_obj):
+        """Takes the native request object.
+        Returns the response to the request as a native python object
+        """
+        try:
+            # retrieve the method
+            func = getattr(ctx, ctx.method_descriptor.name)
+
+            # call the method
+            result_raw = ctx.call_wrapper(func, req_obj)
+
+            return result_raw
+
+        except Fault, e:
+            return self.__serialize_fault(ctx, e)
+
+        except Exception, e:
+            fault = Fault('Server', str(e))
+
+            return self.__serialize_fault(ctx, fault)
+
+    def serialize(self, ctx, native_obj):
+        """Pushes the native python object to the output stream as a
+        soap response
+        """
+
+        # construct the soap response, and serialize it
+        envelope = etree.Element('{%s}Envelope' % soaplib.ns_soap_env,
+                                                        nsmap=self.nsmap)
+
+        #
+        # header
+        #
+        soap_header_elt = etree.SubElement(envelope,
+                                         '{%s}Header' % soaplib.ns_soap_env)
+
+        if ctx.soap_out_header != None:
+            if ctx.method_descriptor.out_header is None:
+                logger.warning(
+                    "Skipping soap response header as %r method is not "
+                    "published to have a soap response header" %
+                                native_obj.get_type_name()[:-len('Response')])
+            else:
+                ctx.method_descriptor.out_header.to_xml(
+                    ctx.soap_out_header,
+                    self.get_tns(),
+                    soap_header_elt,
+                    ctx.method_descriptor.out_header.get_type_name()
+                )
+
+        if len(soap_header_elt) > 0:
+            envelope.append(soap_header_elt)
+
+        #
+        # body
+        #
+        soap_body = etree.SubElement(envelope,
+                                           '{%s}Body' % soaplib.ns_soap_env)
+
+        # instantiate the result message
+        result_message = ctx.method_descriptor.out_message()
+
+        # assign raw result to its wrapper, result_message
+        out_type = ctx.method_descriptor.out_message._type_info
+
+        if len(out_type) > 0:
+            assert len(out_type) == 1
+
+            attr_name = ctx.method_descriptor.out_message._type_info.keys()[0]
+            setattr(result_message, attr_name, native_obj)
+
+        # transform the results into an element
+        ctx.method_descriptor.out_message.to_xml(
+                                  result_message, self.get_tns(), soap_body)
+
+        # implementation hook
+        ctx.on_method_return(soap_body)
+
+        #
+        # misc
+        #
+        results_str = etree.tostring(envelope, xml_declaration=True,
+                                                   encoding=string_encoding)
+
+        # implementation hook
+        self.on_return(results_str)
+
+        return results_str
+
+    def __serialize_fault(self, ctx, exc):
+        stacktrace=traceback.format_exc()
+        logger.error(stacktrace)
+
+        # implementation hook
+        if not (ctx is None):
+            ctx.on_method_exception_object(exc)
+        self.on_exception_object(exc)
+
+        # FIXME: There's no way to alter soap response headers for the user.
+        envelope = etree.Element('{%s}Envelope' % soaplib.ns_soap_env)
+        body = etree.SubElement(envelope, '{%s}Body' % soaplib.ns_soap_env,
+                                                            nsmap=self.nsmap)
+        exc.__class__.to_xml(exc, self.get_tns(), body)
+
+        if not (ctx is None):
+            ctx.on_method_exception_xml(body)
+        self.on_exception_xml(body)
+
+        if logger.level == logging.DEBUG:
+            logger.debug(etree.tostring(envelope, pretty_print=True))
+
+        # initiate the response
+        return etree.tostring(envelope)
+
     def get_namespace_prefix(self, ns):
         assert ns != "__main__"
         assert ns != "soaplib.serializers.base"
@@ -260,7 +431,7 @@ class Application(object):
         Unify the <schema> nodes required for this app.
         """
 
-        if types is None:
+        if types is None: # FIXME: what is this if good for? what if it's removed?
             # populate call routes
             for s in self.services:
                 s.__tns__ = self.get_tns()
@@ -402,12 +573,12 @@ class Application(object):
             # create plink node
             plink = etree.SubElement(root, '{%s}partnerLinkType' % ns_plink)
             plink.set('name', service_name)
-            self.add_partner_link(root, service_name, types, url, plink)
+            self.__add_partner_link(root, service_name, types, url, plink)
 
         # create service node
         service = etree.SubElement(root, '{%s}service' % ns_wsdl)
         service.set('name', service_name)
-        self.add_service(root, service_name, types, url, service)
+        self.__add_service(root, service_name, types, url, service)
 
         # create portType node
         port_type = etree.SubElement(root, '{%s}portType' % ns_wsdl)
@@ -427,7 +598,7 @@ class Application(object):
         for s in self.services:
             s=self.get_service(s)
             s.add_port_type(self, root, service_name, types, url, port_type)
-            cb_binding = s.add_bindings_for_methods(self, root, service_name, 
+            cb_binding = s.add_bindings_for_methods(self, root, service_name,
                                                 types, url, binding, cb_binding)
 
         self.__wsdl = etree.tostring(root, xml_declaration=True,
@@ -435,12 +606,13 @@ class Application(object):
 
         return self.__wsdl
 
-    def add_partner_link(self, root, service_name, types, url, plink):
+    def __add_partner_link(self, root, service_name, types, url, plink):
         """
         Add the partnerLinkType node to the wsdl.
         """
         ns_plink = soaplib.ns_plink
-        pref_tns = self.get_namespace_prefix(self.get_tns())
+        ns_tns = self.get_tns()
+        pref_tns = self.get_namespace_prefix(ns_tns)
 
         role = etree.SubElement(plink, '{%s}role' % ns_plink)
         role.set('name', service_name)
@@ -448,7 +620,14 @@ class Application(object):
         plink_port_type = etree.SubElement(role, '{%s}portType' % ns_plink)
         plink_port_type.set('name', '%s:%s' % (pref_tns, service_name))
 
-    def add_service(self, root, service_name, types, url, service):
+        if self._has_callbacks():
+            role = etree.SubElement(plink, '{%s}role' % ns_plink)
+            role.set('name', '%sCallback' % service_name)
+
+            plink_port_type = etree.SubElement(role, '{%s}portType' % ns_plink)
+            plink_port_type.set('name', '%s:%sCallback' %
+                                                       (pref_tns, service_name))
+    def __add_service(self, root, service_name, types, url, service):
         """
         Add service node to the wsdl.
         """
@@ -460,45 +639,6 @@ class Application(object):
 
         addr = etree.SubElement(wsdl_port, '{%s}address' % soaplib.ns_soap)
         addr.set('location', url)
-
-    def __handle_wsdl_request(self, req_env, start_response, url):
-        http_resp_headers = {'Content-Type': 'text/xml'}
-
-        try:
-            self.get_wsdl(url)
-            self.on_wsdl(req_env, self.__wsdl) # implementation hook
-
-            http_resp_headers['Content-Length'] = str(len(self.__wsdl))
-            start_response(HTTP_200, http_resp_headers.items())
-
-            return [self.__wsdl]
-
-        except Exception, e:
-            logger.error(traceback.format_exc())
-
-            # implementation hook
-            self.on_wsdl_exception(req_env, e)
-
-            start_response(HTTP_500, http_resp_headers.items())
-
-            return [""]
-
-    def __decode_soap_request(self, http_env, http_payload):
-        """
-        Decode http payload using information in the http header
-        """
-
-        # fyi, here's what the parse_header function returns:
-        # >>> import cgi; cgi.parse_header("text/xml; charset=utf-8")
-        # ('text/xml', {'charset': 'utf-8'})
-        content_type = cgi.parse_header(http_env.get("CONTENT_TYPE"))
-        charset = content_type[1].get('charset',None)
-        if charset is None:
-            charset = 'ascii'
-
-        http_payload = collapse_swa(content_type, http_payload)
-
-        return from_soap(http_payload, charset)
 
     def validate_request(self, payload):
         """
@@ -533,25 +673,6 @@ class Application(object):
 
         return retval
 
-    def add_partner_link(self, root, service_name, types, url, plink):
-        ns_plink = soaplib.ns_plink
-        ns_tns = self.get_tns()
-        pref_tns = self.get_namespace_prefix(ns_tns)
-
-        role = etree.SubElement(plink, '{%s}role' % ns_plink)
-        role.set('name', service_name)
-
-        plink_port_type = etree.SubElement(role, '{%s}portType' % ns_plink)
-        plink_port_type.set('name', '%s:%s' % (pref_tns, service_name))
-
-        if self._has_callbacks():
-            role = etree.SubElement(plink, '{%s}role' % ns_plink)
-            role.set('name', '%sCallback' % service_name)
-
-            plink_port_type = etree.SubElement(role, '{%s}portType' % ns_plink)
-            plink_port_type.set('name', '%s:%sCallback' %
-                                                       (pref_tns, service_name))
-
     def _has_callbacks(self):
         retval = False
 
@@ -560,276 +681,6 @@ class Application(object):
                 return True
 
         return retval
-
-    def __handle_soap_request(self, req_env, start_response, url):
-        """
-        This function is too big.
-        """
-
-        http_resp_headers = {
-            'Content-Type': 'text/xml',
-            'Content-Length': '0',
-        }
-        method_name = None
-
-        try:
-            # implementation hook
-            self.on_call(req_env)
-
-            if req_env['REQUEST_METHOD'].lower() != 'post':
-                http_resp_headers['Allow'] = 'POST'
-                start_response(HTTP_405, http_resp_headers.items())
-                return ['']
-
-            input = req_env.get('wsgi.input')
-            length = req_env.get("CONTENT_LENGTH")
-            body = input.read(int(length))
-
-            try:
-                service = None
-                soap_req_header, soap_req_payload = self.__decode_soap_request(
-                                                                req_env, body)
-                if not (soap_req_payload is None):
-                    self.validate_request(soap_req_payload)
-
-                method_name = self.__get_method_name(req_env, soap_req_payload)
-                if method_name is None:
-                    resp = "Could not extract method name from the request!"
-                    http_resp_headers['Content-Length'] = str(len(resp))
-                    start_response(HTTP_500, http_resp_headers.items())
-                    return [resp]
-
-                service_class = self.get_service_class(method_name)
-                service = self.get_service(service_class, req_env)
-
-            finally:
-                # for performance reasons, we don't want the following to run
-                # in production even though we won't see the results.
-                if logger.level == logging.DEBUG:
-                    try:
-                        logger.debug(etree.tostring(etree.fromstring(body),
-                                                             pretty_print=True))
-                    except etree.XMLSyntaxError,e:
-                        logger.debug(body)
-                        raise Fault('Client.XMLSyntax', 'Error at line: %d, col: %d'
-                                                                    % e.position)
-
-            # retrieve the method descriptor
-            descriptor = service.get_method(method_name)
-            func = getattr(service, descriptor.name)
-
-            # decode header object
-            if soap_req_header is not None and len(soap_req_header) > 0:
-                in_header = descriptor.in_header
-                service.soap_in_header = in_header.from_xml(soap_req_header)
-
-            # decode method arguments
-            if soap_req_payload is not None and len(soap_req_payload) > 0:
-                params = descriptor.in_message.from_xml(soap_req_payload)
-            else:
-                params = [None] * len(descriptor.in_message._type_info)
-
-            # implementation hook
-            service.on_method_call(req_env, method_name, params,
-                                                               soap_req_payload)
-
-            # call the method
-            result_raw = service.call_wrapper(func, params)
-
-            # construct the soap response, and serialize it
-            envelope = etree.Element('{%s}Envelope' % soaplib.ns_soap_env,
-                                                            nsmap=self.nsmap)
-
-            #
-            # header
-            #
-            soap_header_elt = etree.SubElement(envelope,
-                                             '{%s}Header' % soaplib.ns_soap_env)
-
-            if service.soap_out_header != None:
-                if descriptor.out_header is None:
-                    logger.warning("Skipping soap response header as %r method "
-                                   "is not published to have a soap response "
-                                   "header" % method_name)
-                else:
-                    descriptor.out_header.to_xml(
-                        service.soap_out_header,
-                        self.get_tns(),
-                        soap_header_elt,
-                        descriptor.out_header.get_type_name()
-                    )
-
-            if len(soap_header_elt) > 0:
-                envelope.append(soap_header_elt)
-
-            #
-            # body
-            #
-            soap_body = etree.SubElement(envelope,
-                                               '{%s}Body' % soaplib.ns_soap_env)
-
-            # instantiate the result message
-            result_message = descriptor.out_message()
-
-            # assign raw result to its wrapper, result_message
-            out_type = descriptor.out_message._type_info
-
-            if len(out_type) > 0:
-                assert len(out_type) == 1
-
-                attr_name = descriptor.out_message._type_info.keys()[0]
-                setattr(result_message, attr_name, result_raw)
-
-            # transform the results into an element
-            if not (descriptor.is_async or descriptor.is_callback):
-                descriptor.out_message.to_xml(result_message, self.get_tns(),
-                                                                      soap_body)
-
-            # implementation hook
-            service.on_method_return(req_env, result_raw, soap_body,
-                                                              http_resp_headers)
-
-            #
-            # misc
-            #
-            results_str = etree.tostring(envelope, xml_declaration=True,
-                                                       encoding=string_encoding)
-
-            if descriptor.mtom:
-                http_resp_headers, results_str = apply_mtom(http_resp_headers,
-                    results_str, descriptor.out_message._type_info,[result_raw])
-
-            # implementation hook
-            self.on_return(req_env, http_resp_headers, results_str)
-
-            # initiate the response
-            http_resp_headers['Content-Length'] = str(len(results_str))
-            start_response(HTTP_200, http_resp_headers.items())
-
-            if logger.level == logging.DEBUG:
-                logger.debug('\033[91m'+ "Response" + '\033[0m')
-                logger.debug(etree.tostring(envelope, xml_declaration=True,
-                                                             pretty_print=True))
-
-            # return the serialized results
-            return [results_str]
-
-        # The user issued a Fault, so handle it just like an exception!
-        except Fault, e:
-            return self.__handle_fault(req_env, start_response,
-                                                http_resp_headers, service, e)
-
-        except Exception, e:
-            fault = Fault('Server', str(e))
-
-            return self.__handle_fault(req_env, start_response,
-                                              http_resp_headers, service, fault)
-
-    def __handle_fault(self, req_env, start_response, http_resp_headers,
-                                                                  service, exc):
-        stacktrace=traceback.format_exc()
-        logger.error(stacktrace)
-
-        # implementation hook
-        if not (service is None):
-            service.on_method_exception_object(req_env, exc)
-        self.on_exception_object(req_env, exc)
-
-        # FIXME: There's no way to alter soap response headers for the user.
-        envelope = etree.Element('{%s}Envelope' % soaplib.ns_soap_env)
-        body = etree.SubElement(envelope, '{%s}Body' % soaplib.ns_soap_env,
-                                                            nsmap=self.nsmap)
-        exc.__class__.to_xml(exc, self.get_tns(), body)
-
-        if not (service is None):
-            service.on_method_exception_xml(req_env, body)
-        self.on_exception_xml(req_env, body)
-
-        if logger.level == logging.DEBUG:
-            logger.debug(etree.tostring(envelope, pretty_print=True))
-
-        # initiate the response
-        fault_str = etree.tostring(envelope)
-        http_resp_headers['Content-Length'] = str(len(fault_str))
-        start_response(HTTP_500, http_resp_headers.items())
-
-        return [fault_str]
-
-    def __call__(self, req_env, start_response, wsgi_url=None):
-        '''
-        This method conforms to the WSGI spec for callable wsgi applications
-        (PEP 333). It looks in environ['wsgi.input'] for a fully formed soap
-        request envelope, will deserialize the request parameters and call the
-        method on the object returned by the get_handler() method.
-
-        @param the http environment
-        @param a callable that begins the response message
-        @param the optional url
-        @returns the string representation of the soap call
-        '''
-
-        url = wsgi_url
-        if url is None:
-            url = reconstruct_url(req_env).split('.wsdl')[0]
-
-        if self.__is_wsdl_request(req_env):
-            return self.__handle_wsdl_request(req_env, start_response, url)
-        else:
-            return self.__handle_soap_request(req_env, start_response, url)
-
-    def on_call(self, environ):
-        '''
-        This is the first method called when this WSGI app is invoked
-        @param the wsgi environment
-        '''
-        pass
-
-    def on_wsdl(self, environ, wsdl):
-        '''
-        This is called when a wsdl is requested
-
-        @param the wsgi environment
-        @param the wsdl string
-        '''
-        pass
-
-    def on_wsdl_exception(self, environ, exc):
-        '''
-        Called when an exception occurs durring wsdl generation
-
-        @param the wsgi environment
-        @param exc the exception
-        @param the fault response string
-        '''
-        pass
-
-    def on_return(self, environ, http_headers, return_str):
-        '''
-        Called before the application returns
-
-        @param the wsgi environment
-        @param http response headers as dict
-        @param return string of the soap request
-        '''
-        pass
-
-    def on_exception_object(self, environ, exc):
-        '''
-        Called when the app throws an exception. (might be inside or outside the
-        service call.
-        @param the wsgi environment
-        @param the fault object
-        '''
-        pass
-
-    def on_exception_xml(self, environ, fault_xml):
-        '''
-        Called when the app throws an exception. (might be inside or outside the
-        service call.
-        @param the wsgi environment
-        @param the xml element containing the xml serialization of the fault
-        '''
-        pass
 
 class ValidatingApplication(Application):
     def build_schema(self, types=None):
