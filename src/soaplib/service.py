@@ -298,7 +298,7 @@ class DefinitionBase(object):
                 operation = etree.SubElement(cb_port_type, '{%s}operation'
                                                             % ns_wsdl)
             else:
-                operation = etree.SubElement(port_type,'{%s}operation' % ns_wsdl)
+                operation = etree.SubElement(port_type,'{%s}operation'% ns_wsdl)
 
             operation.set('name', method.name)
 
@@ -316,7 +316,8 @@ class DefinitionBase(object):
             if (not method.is_callback) and (not method.is_async):
                 op_output = etree.SubElement(operation, '{%s}output' %  ns_wsdl)
                 op_output.set('name', method.out_message.get_type_name())
-                op_output.set('message', method.out_message.get_type_name_ns(app))
+                op_output.set('message', method.out_message.get_type_name_ns(
+                                                                           app))
 
     # FIXME: I don't think this is working.
     def __add_callbacks(self, root, types, service_name, url):
@@ -391,11 +392,13 @@ class DefinitionBase(object):
         '''
 
         if self.__in_header__ != None:
-            self.__in_header__.resolve_namespace(self.__in_header__, self.get_tns())
+            self.__in_header__.resolve_namespace(self.__in_header__,
+                                                                self.get_tns())
             self.__in_header__.add_to_schema(schema_entries)
 
         if self.__out_header__ != None:
-            self.__out_header__.resolve_namespace(self.__out_header__, self.get_tns())
+            self.__out_header__.resolve_namespace(self.__out_header__,
+                                                                self.get_tns())
             self.__out_header__.add_to_schema(schema_entries)
 
         for method in self.public_methods:
@@ -432,13 +435,13 @@ class DefinitionBase(object):
         '''
 
         for method in self.public_methods:
-            self.__add_message_for_object(app, root, messages, method.in_message)
-            self.__add_message_for_object(app, root, messages, method.out_message)
-            self.__add_message_for_object(app, root, messages, method.in_header)
-            self.__add_message_for_object(app, root, messages, method.out_header)
+            self.__add_message_for_object(app,root,messages,method.in_message)
+            self.__add_message_for_object(app,root,messages,method.out_message)
+            self.__add_message_for_object(app,root,messages,method.in_header)
+            self.__add_message_for_object(app,root,messages,method.out_header)
 
     def add_bindings_for_methods(self, app, root, service_name, types, url,
-                                                      binding, cb_binding=None):
+                                        binding, transport, cb_binding=None):
         '''
         A private method for adding bindings to the wsdl
 
@@ -499,7 +502,8 @@ class DefinitionBase(object):
                     out_header = self.__in_header__
 
                 if not (out_header is None):
-                    soap_header = etree.SubElement(output, '{%s}header' % ns_soap)
+                    soap_header = etree.SubElement(output, '{%s}header' %
+                                                                        ns_soap)
                     soap_header.set('use', 'literal')
                     soap_header.set('message', out_header.get_type_name_ns(app))
                     soap_header.set('part', out_header.get_type_name())

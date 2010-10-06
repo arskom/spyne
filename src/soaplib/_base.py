@@ -387,8 +387,8 @@ class Application(object):
     name = property(get_name)
 
     def get_tns(self):
-        """Returns default namespace that is seen in the targetNamespace attribute
-        of the definitions tag.
+        """Returns default namespace that is seen in the targetNamespace 
+        attribute of the definitions tag.
 
         Not meant to be overridden.
         """
@@ -443,7 +443,7 @@ class Application(object):
         This is a protected method.
         """
 
-        if types is None: # FIXME: what is this if good for? what if it's removed?
+        if types is None:
             # populate call routes
             for s in self.services:
                 s.__tns__ = self.get_tns()
@@ -513,8 +513,8 @@ class Application(object):
     def __get_schema_node(self, pref, schema_nodes, types):
         """Return schema node for the given namespace prefix.
 
-        types == None means the call is for creating a standalone xml schema file
-                      for one single namespace.
+        types == None means the call is for creating a standalone xml schema
+                      file for one single namespace.
         types != None means the call is for creating the wsdl file.
         """
 
@@ -647,7 +647,8 @@ class Application(object):
         return retval
 
     def validate_request(self, payload):
-        """Method to be overriden to perform any sort of custom input validation.
+        """Method to be overriden to perform any sort of custom input
+        validation.
         """
 
     def on_exception_object(self, exc):
@@ -659,8 +660,8 @@ class Application(object):
         '''
 
     def on_exception_xml(self, fault_xml):
-        '''Called when the app throws an exception. (might be inside or outside the
-        service call.
+        '''Called when the app throws an exception. (might be inside or outside
+        the service call.
 
         @param the wsgi environment
         @param the xml element containing the xml serialization of the fault

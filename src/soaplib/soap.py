@@ -61,13 +61,16 @@ def from_soap(xml_string, charset):
         resolve_hrefs(root, xmlids)
 
     if root.tag != '{%s}Envelope' % soaplib.ns_soap_env:
-        raise Fault('Client.SoapError', 'No {%s}Envelope element was found!' % soaplib.ns_soap_env)
+        raise Fault('Client.SoapError', 'No {%s}Envelope element was found!' %
+                                                            soaplib.ns_soap_env)
 
-    header_envelope = root.xpath('e:Header', namespaces={'e': soaplib.ns_soap_env})
+    header_envelope = root.xpath('e:Header',
+                                         namespaces={'e': soaplib.ns_soap_env})
     body_envelope = root.xpath('e:Body', namespaces={'e': soaplib.ns_soap_env})
 
     if len(header_envelope) == 0 and len(body_envelope) == 0:
-        raise Fault('Client.SoapError', 'Soap envelope is empty!' % soaplib.ns_soap_env)
+        raise Fault('Client.SoapError', 'Soap envelope is empty!' %
+                                                            soaplib.ns_soap_env)
 
     header=None
     if len(header_envelope) > 0 and len(header_envelope[0]) > 0:
