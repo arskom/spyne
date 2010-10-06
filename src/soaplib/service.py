@@ -460,7 +460,7 @@ class DefinitionBase(object):
                 cb_binding.set('type', 'typens:%sCallback' % service_name)
 
             soap_binding = etree.SubElement(cb_binding, '{%s}binding' % ns_soap)
-            soap_binding.set('transport', 'http://schemas.xmlsoap.org/soap/http')
+            soap_binding.set('transport', transport)
 
         for method in self.public_methods:
             operation = etree.Element('{%s}operation' % ns_wsdl)

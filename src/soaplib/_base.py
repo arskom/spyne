@@ -130,6 +130,8 @@ class _SchemaEntries(object):
         schema_info.types[cls.get_type_name()] = node
 
 class Application(object):
+    transport = None
+
     def __init__(self, services, tns, name=None, _with_partnerlink=False):
         '''
         @param A ServiceBase subclass that defines the exposed services.
@@ -590,7 +592,10 @@ class Application(object):
 
         soap_binding = etree.SubElement(binding, '{%s}binding' % ns_soap)
         soap_binding.set('style', 'document')
-        soap_binding.set('transport', 'http://schemas.xmlsoap.org/soap/http')
+
+        if self.transport is None:
+            raise Exception("You must set the class variable 'transport'")
+        soap_binding.set('transport', self.transport)
 
         cb_binding = None
 

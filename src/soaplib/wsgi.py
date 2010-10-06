@@ -58,6 +58,8 @@ def _reconstruct_soap_request(http_env):
     return collapse_swa(content_type, http_payload), charset
 
 class Application(soaplib.Application):
+    transport = 'http://schemas.xmlsoap.org/soap/http'
+
     def __call__(self, req_env, start_response, wsgi_url=None):
         '''
         This method conforms to the WSGI spec for callable wsgi applications
@@ -141,7 +143,7 @@ class Application(soaplib.Application):
 
         else:
             # implementation hook
-            service.on_method_call(req_env, method_name, params, service.body_xml)
+            service.on_method_call(req_env,method_name,params,service.body_xml)
 
             result_raw = self.process_request(service, params)
 
