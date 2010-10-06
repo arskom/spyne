@@ -37,15 +37,6 @@ def nillable_element(func):
             return func(cls, element)
     return wrapper
 
-def string_to_xml(cls, value, tns, parent_elt, name):
-    assert isinstance(value, str) or isinstance(value, unicode), "'value' must " \
-                    "be string or unicode. it is instead '%s'" % repr(value)
-
-    element = etree.SubElement(parent_elt, "{%s}%s" % (tns,name))
-
-    element.set('{%s}type' % soaplib.ns_xsi, cls.get_type_name_ns())
-    element.text = value
-
 class Base(object):
     __namespace__ = None
     __type_name__ = None
@@ -66,10 +57,10 @@ class Base(object):
         return True
 
     @classmethod
-    def get_namespace_prefix(cls):
+    def get_namespace_prefix(cls,app):
         ns = cls.get_namespace()
 
-        retval = soaplib.get_namespace_prefix(ns)
+        retval = app.get_namespace_prefix(ns)
 
         return retval
 
@@ -94,13 +85,16 @@ class Base(object):
         return retval
 
     @classmethod
-    def get_type_name_ns(cls):
+    def get_type_name_ns(cls,app):
         if cls.get_namespace() != None:
-            return "%s:%s" % (cls.get_namespace_prefix(), cls.get_type_name())
+            return "%s:%s" % (cls.get_namespace_prefix(app), cls.get_type_name())
 
     @classmethod
     def to_xml(cls, value, tns, parent_elt, name='retval'):
-        string_to_xml(cls, value, tns, parent_elt, name)
+        assert isinstance(value, str) or isinstance(value, unicode), \
+            "'value' must be string or unicode. it is instead %r" % value
+
+        etree.SubElement(parent_elt, "{%s}%s" % (tns,name)).text = value
 
     @classmethod
     def add_to_schema(cls, schema_entries):
@@ -183,7 +177,7 @@ class SimpleType(Base):
 
         restriction = etree.SubElement(simple_type,
                                             '{%s}restriction' % soaplib.ns_xsd)
-        restriction.set('base', cls.__base_type__.get_type_name_ns())
+        restriction.set('base', cls.__base_type__.get_type_name_ns(schema_entries.app))
 
         for v in cls.Attributes.values:
             enumeration = etree.SubElement(restriction,

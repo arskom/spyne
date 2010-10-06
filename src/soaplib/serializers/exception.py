@@ -22,38 +22,37 @@ from lxml import etree
 from soaplib.serializers import Base
 
 _ns_xsi = soaplib.ns_xsi
+_pref_soap_env = soaplib.const_prefmap[soaplib.ns_soap_env]
 
 class Fault(Exception, Base):
     __type_name__ = "Fault"
 
-    def __init__(self, faultcode='Server', faultstring="", detail=""):
-        self.faultcode = faultcode
+    def __init__(self, faultcode='Server', faultstring="", faultactor="", detail=None):
+        self.faultcode = '%s:%s' % (_pref_soap_env, faultcode)
         self.faultstring = faultstring
+        self.faultactor = faultactor
         self.detail = detail
 
     @classmethod
     def to_xml(cls, value, tns, parent_elt, name=None):
         if name is None:
             name = cls.get_type_name()
-        element = etree.SubElement(parent_elt, "{%s}%s" % (tns,name))
+        element = etree.SubElement(parent_elt, "{%s}%s" % (soaplib.ns_soap_env,name))
 
-        etree.SubElement(element, '{%s}faultcode' % tns).text = value.faultcode
-        etree.SubElement(element, '{%s}faultstring' % tns).text = value.faultstring
-        etree.SubElement(element, '{%s}detail' % tns).text = value.detail
+        etree.SubElement(element, 'faultcode').text = value.faultcode
+        etree.SubElement(element, 'faultstring').text = value.faultstring
+        etree.SubElement(element, 'faultactor').text = value.faultactor
+        if value.detail != None:
+            etree.SubElement(element, 'detail').append(value.detail)
 
     @classmethod
     def from_xml(cls, element):
         code = element.find('faultcode').text
         string = element.find('faultstring').text
-        detail_element = element.find('detail')
-        if detail_element is not None:
-            if len(detail_element.getchildren()):
-                detail = etree.tostring(detail_element)
-            else:
-                detail = element.find('detail').text
-        else:
-            detail = ''
-        return Fault(faultcode=code, faultstring=string, detail=detail)
+        factor = element.find('faultactor').text
+        detail = element.find('detail')
+
+        return cls(faultcode=code, faultstring=string, faultactor=factor, detail=detail)
 
     @classmethod
     def add_to_schema(cls, schema_dict):

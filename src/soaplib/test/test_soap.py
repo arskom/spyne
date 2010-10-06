@@ -30,7 +30,7 @@ from soaplib.serializers.primitive import Float
 from soaplib.serializers.primitive import Integer
 from soaplib.serializers.primitive import String
 
-from soaplib.soap import Message
+from soaplib.serializers.clazz import ClassSerializer as Message
 from soaplib.soap import from_soap
 
 class Address(ClassSerializer):

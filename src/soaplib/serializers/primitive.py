@@ -28,7 +28,6 @@ import soaplib
 from soaplib.serializers import SimpleType
 from soaplib.serializers import nillable_element
 from soaplib.serializers import nillable_value
-from soaplib.serializers import string_to_xml
 from soaplib.util.etreeconv import etree_to_dict
 from soaplib.util.etreeconv import dict_to_etree
 
@@ -139,7 +138,7 @@ class String(SimpleType):
         if not isinstance(value, unicode):
             value = unicode(value, string_encoding)
 
-        string_to_xml(cls, value, tns, parent_elt, name)
+        SimpleType.to_xml(value, tns, parent_elt, name)
 
     @classmethod
     @nillable_element
@@ -159,7 +158,7 @@ class Decimal(SimpleType):
     @classmethod
     @nillable_value
     def to_xml(cls, value, tns, parent_elt, name='retval'):
-        string_to_xml(cls, str(value), tns, parent_elt, name)
+        SimpleType.to_xml(str(value), tns, parent_elt, name)
 
     @classmethod
     @nillable_element
@@ -181,7 +180,7 @@ class Date(SimpleType):
     @classmethod
     @nillable_value
     def to_xml(cls, value, tns, parent_elt, name='retval'):
-        string_to_xml(cls, value.isoformat(), tns, parent_elt, name)
+        SimpleType.to_xml(value.isoformat(), tns, parent_elt, name)
 
     @classmethod
     @nillable_element
@@ -207,7 +206,7 @@ class DateTime(SimpleType):
     @classmethod
     @nillable_value
     def to_xml(cls, value, tns, parent_elt, name='retval'):
-        string_to_xml(cls, value.isoformat('T'), tns, parent_elt, name)
+        SimpleType.to_xml(value.isoformat('T'), tns, parent_elt, name)
 
     @classmethod
     @nillable_element
@@ -245,7 +244,7 @@ class Duration(SimpleType):
     @classmethod
     @nillable_value
     def to_xml(cls, value, tns, parent_elt, name='retval'):
-        string_to_xml(cls, str(value), tns, parent_elt, name)
+        SimpleType.to_xml(str(value), tns, parent_elt, name)
 
     @classmethod
     @nillable_element
@@ -262,7 +261,7 @@ class Double(SimpleType):
     @classmethod
     @nillable_value
     def to_xml(cls, value, tns, parent_elt, name='retval'):
-        string_to_xml(cls, str(value), tns, parent_elt, name)
+        SimpleType.to_xml(str(value), tns, parent_elt, name)
 
 class Float(Double):
     pass
@@ -271,7 +270,7 @@ class Boolean(SimpleType):
     @classmethod
     @nillable_value
     def to_xml(cls, value, tns, parent_elt, name='retval'):
-        string_to_xml(cls, str(bool(value)).lower(), tns, parent_elt, name)
+        SimpleType.to_xml(str(bool(value)).lower(), tns, parent_elt, name)
 
     @classmethod
     @nillable_element

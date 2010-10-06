@@ -59,7 +59,7 @@ class ClassSerializerMeta(type(Base)):
                         if len(base_types) > 0 and issubclass(b, Base):
                             cls_dict["__extends__"] = extends = b
                     except:
-                        print extends
+                        logger.error(repr(extends))
                         raise
 
         # populate soap members
@@ -102,10 +102,13 @@ class ClassSerializerBase(NonExtendingClass, Base):
     """
 
     def __init__(self, **kwargs):
-        cls = self.__class__
+        #print self.__class__
+        super(ClassSerializerBase,self).__init__(**kwargs)
 
+        cls = self.__class__
         for k in cls._type_info.keys():
             setattr(self, k, kwargs.get(k, None))
+            #print k
 
         self.__NO_EXTENSION=True
 
@@ -248,7 +251,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
                                           "{%s}complexContent" % soaplib.ns_xsd)
                 extension = etree.SubElement(complex_content, "{%s}extension"
                                                                % soaplib.ns_xsd)
-                extension.set('base', cls.__extends__.get_type_name_ns())
+                extension.set('base', cls.__extends__.get_type_name_ns(schema_entries.app))
                 sequence_parent = extension
 
             sequence = etree.SubElement(sequence_parent, '{%s}sequence' %
@@ -261,7 +264,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
                 member = etree.SubElement(sequence, '{%s}element' %
                                                                 soaplib.ns_xsd)
                 member.set('name', k)
-                member.set('type', v.get_type_name_ns())
+                member.set('type', v.get_type_name_ns(schema_entries.app))
 
                 if v.Attributes.min_occurs != 1: # 1 is the xml schema default
                     member.set('minOccurs', str(v.Attributes.min_occurs))
@@ -277,7 +280,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
             # simple node
             element = etree.Element('{%s}element' % soaplib.ns_xsd)
             element.set('name',cls.get_type_name())
-            element.set('type',cls.get_type_name_ns())
+            element.set('type',cls.get_type_name_ns(schema_entries.app))
 
             schema_entries.add_element(cls, element)
 

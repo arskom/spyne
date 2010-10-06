@@ -196,5 +196,19 @@ class TestSuds(unittest.TestCase):
         raise Exception("test something! :)")
         # TODO: write asserts
 
+    def test_python_exception(self):
+        try:
+            self.client.service.python_exception()
+            raise Exception("must fail")
+        except WebFault, e:
+            pass
+
+    def test_soap_exception(self):
+        try:
+            self.client.service.soap_exception()
+            raise Exception("must fail")
+        except WebFault, e:
+            pass
+
 if __name__ == '__main__':
     unittest.main()
