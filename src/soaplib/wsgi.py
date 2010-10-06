@@ -162,7 +162,7 @@ class Application(soaplib.Application):
                         result_str, service.descriptor.out_message._type_info,
                         [result_raw])
 
-            # initiate the response
+        # initiate the response
         http_resp_headers['Content-Length'] = str(len(result_str))
         start_response(return_code, http_resp_headers.items())
 
