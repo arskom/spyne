@@ -192,7 +192,8 @@ class Application(object):
 
     def deserialize_soap(self, envelope_string, charset=None):
         """Takes a string containing ONE soap message.
-        Returns the corresponding native python object.
+        Returns the corresponding native python object, along with the request
+        context
 
         Not meant to be overridden.
         """
@@ -325,6 +326,12 @@ class Application(object):
                                                        encoding=string_encoding)
 
     def get_namespace_prefix(self, ns):
+        """Returns the namespace prefix for the given namespace. Creates a new
+        one automatically if it doesn't exist
+
+        Not meant to be overridden.
+        """
+
         assert ns != "__main__"
         assert ns != "soaplib.serializers.base"
 
@@ -347,6 +354,12 @@ class Application(object):
         return pref
 
     def set_namespace_prefix(self, ns, pref):
+        """Forces a namespace prefix on a namespace by either creating it or
+        moving the existing namespace to a new prefix
+
+        Not meant to be overridden.
+        """
+
         if pref in self.nsmap and self.nsmap[pref] != ns:
             ns_old = self.nsmap[pref]
             del self.prefmap[ns_old]
@@ -359,9 +372,10 @@ class Application(object):
         self.nsmap[pref] = ns
 
     def get_name(self):
-        """
-        Returns service name that is seen in the name attribute of the
+        """Returns service name that is seen in the name attribute of the
         definitions tag.
+
+        Not meant to be overridden.
         """
         retval = self.__name
 
@@ -373,9 +387,10 @@ class Application(object):
     name = property(get_name)
 
     def get_tns(self):
-        """
-        Returns default namespace that is seen in the targetNamespace attribute
+        """Returns default namespace that is seen in the targetNamespace attribute
         of the definitions tag.
+
+        Not meant to be overridden.
         """
         retval = self.__tns
 
@@ -395,15 +410,14 @@ class Application(object):
     tns = property(get_tns)
 
     def __build_schema_nodes(self, schema_entries, types=None):
-        """
-        Fill individual <schema> nodes for every service that are part of this
+        """Fill individual <schema> nodes for every service that are part of this
         app.
         """
 
         schema_nodes = {}
 
         for pref in schema_entries.namespaces:
-            schema = self.get_schema_node(pref, schema_nodes, types)
+            schema = self.__get_schema_node(pref, schema_nodes, types)
 
             # append import tags
             for namespace in schema_entries.imports[pref]:
@@ -424,8 +438,8 @@ class Application(object):
         return schema_nodes
 
     def build_schema(self, types=None):
-        """
-        Unify the <schema> nodes required for this app.
+        """Unify the <schema> nodes required for this app.
+
         This is a protected method.
         """
 
@@ -460,25 +474,25 @@ class Application(object):
         return schema_nodes
 
     def get_service_class(self, method_name):
-        """
-        This call maps method names to the services that will handle them.
+        """This call maps method names to the services that will handle them.
+
         Override this function to alter the method mappings. Just try not to get
         too crazy with regular expressions :)
         """
         return self.call_routes[method_name]
 
     def get_service(self, service, http_req_env=None):
-        """
-        The function that maps service classes to service instances. Overriding
-        this function is useful in case e.g. you need to pass additional
-        parameters to service constructors.
+        """The function that maps service classes to service instances.
+        Overriding this function is useful in case e.g. you need to pass
+        additional parameters to service constructors.
         """
         return service(http_req_env)
 
     def get_schema(self):
-        """
-        Simple accessor method that caches application's xml schema, once
+        """Simple accessor method that caches application's xml schema, once
         generated.
+
+        Not meant to be overridden.
         """
         if self.schema is None:
             return self.build_schema()
@@ -486,21 +500,22 @@ class Application(object):
             return self.schema
 
     def get_wsdl(self, url):
-        """
-        Simple accessor method that caches the wsdl of the application, once
+        """Simple accessor method that caches the wsdl of the application, once
         generated.
+
+        Not meant to be overridden.
         """
         if self.__wsdl is None:
             return self.__build_wsdl(url)
         else:
             return self.__wsdl
 
-    def get_schema_node(self, pref, schema_nodes, types):
-        """
-        Return schema node for the given namespace prefix.
+    def __get_schema_node(self, pref, schema_nodes, types):
+        """Return schema node for the given namespace prefix.
+
         types == None means the call is for creating a standalone xml schema file
                       for one single namespace.
-        tyoes != None means the call is for creating the wsdl file.
+        types != None means the call is for creating the wsdl file.
         """
 
         # create schema node
@@ -522,8 +537,7 @@ class Application(object):
         return schema
 
     def __build_wsdl(self, url):
-        """
-        Build the wsdl for the application.
+        """Build the wsdl for the application.
         """
         ns_wsdl = soaplib.ns_wsdl
         ns_soap = soaplib.ns_soap
@@ -592,8 +606,7 @@ class Application(object):
         return self.__wsdl
 
     def __add_partner_link(self, root, service_name, types, url, plink):
-        """
-        Add the partnerLinkType node to the wsdl.
+        """Add the partnerLinkType node to the wsdl.
         """
         ns_plink = soaplib.ns_plink
         ns_tns = self.get_tns()
@@ -613,8 +626,7 @@ class Application(object):
             plink_port_type.set('name', '%s:%sCallback' %
                                                        (pref_tns, service_name))
     def __add_service(self, root, service_name, types, url, service):
-        """
-        Add service node to the wsdl.
+        """Add service node to the wsdl.
         """
         pref_tns = self.get_namespace_prefix(self.get_tns())
 
@@ -635,33 +647,28 @@ class Application(object):
         return retval
 
     def validate_request(self, payload):
+        """Method to be overriden to perform any sort of custom input validation.
         """
-        Method to be overriden to perform any sort of custom input validation.
-        """
-        pass
 
     def on_exception_object(self, exc):
-        '''
-        Called when the app throws an exception. (might be inside or outside the
-        service call.
+        '''Called when the app throws an exception. (might be inside or outside
+        the service call.
+
         @param the wsgi environment
         @param the fault object
         '''
-        pass
 
     def on_exception_xml(self, fault_xml):
-        '''
-        Called when the app throws an exception. (might be inside or outside the
+        '''Called when the app throws an exception. (might be inside or outside the
         service call.
+
         @param the wsgi environment
         @param the xml element containing the xml serialization of the fault
         '''
-        pass
 
 class ValidatingApplication(Application):
     def build_schema(self, types=None):
-        """
-        Build application schema specifically for xml validation purposes.
+        """Build application schema specifically for xml validation purposes.
         """
         schema_nodes = Application.build_schema(self, types)
 
