@@ -520,10 +520,13 @@ class Application(object):
             out_type = descriptor.out_message._type_info
 
             if len(out_type) > 0:
-                assert len(out_type) == 1
-
-                attr_name = descriptor.out_message._type_info.keys()[0]
-                setattr(result_message, attr_name, result_raw)
+                if len(out_type) == 1:
+                    attr_name = descriptor.out_message._type_info.keys()[0]
+                    setattr(result_message, attr_name, result_raw)
+                else:
+                    for i in range(len(out_type)):
+                        attr_name = descriptor.out_message._type_info.keys()[i]
+                        setattr(result_message, attr_name, result_raw[i])
 
             # transform the results into an element
             descriptor.out_message.to_xml(result_message, self.get_tns(),
