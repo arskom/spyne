@@ -102,8 +102,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
     """
 
     def __init__(self, **kwargs):
-        #print self.__class__
-        super(ClassSerializerBase,self).__init__(**kwargs)
+        super(ClassSerializerBase,self).__init__()
 
         cls = self.__class__
         for k in cls._type_info.keys():
