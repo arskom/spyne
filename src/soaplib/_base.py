@@ -310,10 +310,13 @@ class Application(object):
             out_type = ctx.descriptor.out_message._type_info
 
             if len(out_type) > 0:
-                assert len(out_type) == 1
-
-                attr_name = ctx.descriptor.out_message._type_info.keys()[0]
-                setattr(result_message, attr_name, native_obj)
+                 if len(out_type) == 1:
+                     attr_name = ctx.descriptor.out_message._type_info.keys()[0]
+                     setattr(result_message, attr_name, native_obj)
+                 else:
+                     for i in range(len(out_type)):
+                         attr_name = ctx.descriptor.out_message._type_info.keys()[i]
+                         setattr(result_message, attr_name, native_obj[i])
 
             # transform the results into an element
             ctx.descriptor.out_message.to_xml(
