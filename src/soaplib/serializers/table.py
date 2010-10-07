@@ -47,6 +47,7 @@ _type_map = {
 
     sqlalchemy.Boolean: primitive.Boolean,
     sqlalchemy.DateTime: primitive.DateTime,
+    sqlalchemy.Numeric: primitive.Decimal,
     sqlalchemy.orm.relation: clazz.Array,
 }
 
