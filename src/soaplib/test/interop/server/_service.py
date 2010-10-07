@@ -223,10 +223,20 @@ class InteropException(service.DefinitionBase):
                                             detail=etree.Element('something'))
 
 class InteropMisc(service.DefinitionBase):
-    @rpc(_returns=[Integer, String, Integer,
-            Array(Enum("MEMBER", type_name="role"))],
-         _out_variable_names=['resultCode','resultDescription','transactionId',
-            'roles' ])
+    @rpc(
+        _returns=[
+            Integer,
+            String,
+            Integer,
+            Array(Enum("MEMBER", type_name="role"))
+        ],
+        _out_variable_names=[
+            'resultCode',
+            'resultDescription',
+            'transactionId',
+            'roles'
+        ]
+    )
     def complex_return(self):
         return [1, "Test", 123, ["MEMBER"]]
 
