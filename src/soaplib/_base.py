@@ -164,21 +164,21 @@ class Application(object):
         if not (body is None):
             try:
                 self.validate_request(body)
+                if not (body is None):
+                    method_name = body.tag
+                    logger.debug("\033[92mMethod name: %r\033[0m" % method_name)
 
             finally:
                 # for performance reasons, we don't want the following to run
                 # in production even though we won't see the results.
                 if logger.level == logging.DEBUG:
                     try:
-                        logger.debug(etree.tostring(body, pretty_print=True))
+                        logger.debug(etree.tostring(
+                           etree.fromstring(envelope_string),pretty_print=True))
                     except etree.XMLSyntaxError,e:
                         logger.debug(body)
                         raise Fault('Client.XMLSyntax', 'Error at line: %d, '
                                     'col: %d' % e.position)
-
-            if not (body is None):
-                method_name = body.tag
-                logger.debug("\033[92mMethod name: %r\033[0m" % method_name)
 
         if method_name is None:
             raise Exception("Could not extract method name from the request!")
@@ -310,10 +310,13 @@ class Application(object):
             out_type = ctx.descriptor.out_message._type_info
 
             if len(out_type) > 0:
-                assert len(out_type) == 1
-
-                attr_name = ctx.descriptor.out_message._type_info.keys()[0]
-                setattr(result_message, attr_name, native_obj)
+                 if len(out_type) == 1:
+                     attr_name = ctx.descriptor.out_message._type_info.keys()[0]
+                     setattr(result_message, attr_name, native_obj)
+                 else:
+                     for i in range(len(out_type)):
+                         attr_name = ctx.descriptor.out_message._type_info.keys()[i]
+                         setattr(result_message, attr_name, native_obj[i])
 
             # transform the results into an element
             ctx.descriptor.out_message.to_xml(
