@@ -87,15 +87,7 @@ class ClassSerializerMeta(type(Base)):
 
         return type.__new__(cls, cls_name, cls_bases, cls_dict)
 
-class NonExtendingClass(object):
-    def __setattr__(self, k, v):
-        if not hasattr(self,k) and getattr(self, '__NO_EXTENSION', False):
-            raise Exception("'%s' object is not extendable at this point in "
-                            "code.\nInvalid member '%s'" %
-                                                  (self.__class__.__name__, k) )
-        object.__setattr__(self,k,v)
-
-class ClassSerializerBase(NonExtendingClass, Base):
+class ClassSerializerBase(Base):
     """
     If you want to make a better class serializer, this is what you should
     inherit from
@@ -107,9 +99,6 @@ class ClassSerializerBase(NonExtendingClass, Base):
         cls = self.__class__
         for k in cls._type_info.keys():
             setattr(self, k, kwargs.get(k, None))
-            #print k
-
-        self.__NO_EXTENSION=True
 
     def __len__(self):
         return len(self._type_info)
@@ -314,7 +303,7 @@ class Array(ClassSerializer):
 
         # hack to default to unbounded arrays when the user didn't specify
         # max_occurs.
-        if serializer.Attributes.max_occurs == 1:
+        if serializer.Attributes.max_occurs == 1: #FIXME: we should find a better way.
             serializer = serializer.customize(max_occurs='unbounded')
 
         if serializer.get_type_name() is Base.Empty:
