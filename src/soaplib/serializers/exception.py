@@ -27,7 +27,8 @@ _pref_soap_env = soaplib.const_prefmap[soaplib.ns_soap_env]
 class Fault(Exception, Base):
     __type_name__ = "Fault"
 
-    def __init__(self, faultcode='Server', faultstring="", faultactor="", detail=None):
+    def __init__(self, faultcode='Server', faultstring="", faultactor="",
+                                                                detail=None):
         self.faultcode = '%s:%s' % (_pref_soap_env, faultcode)
         self.faultstring = faultstring
         self.faultactor = faultactor
@@ -37,7 +38,8 @@ class Fault(Exception, Base):
     def to_xml(cls, value, tns, parent_elt, name=None):
         if name is None:
             name = cls.get_type_name()
-        element = etree.SubElement(parent_elt, "{%s}%s" % (soaplib.ns_soap_env,name))
+        element = etree.SubElement(parent_elt, "{%s}%s" %
+                                                    (soaplib.ns_soap_env,name))
 
         etree.SubElement(element, 'faultcode').text = value.faultcode
         etree.SubElement(element, 'faultstring').text = value.faultstring
@@ -52,7 +54,8 @@ class Fault(Exception, Base):
         factor = element.find('faultactor').text
         detail = element.find('detail')
 
-        return cls(faultcode=code, faultstring=string, faultactor=factor, detail=detail)
+        return cls(faultcode=code, faultstring=string, faultactor=factor,
+                                                                detail=detail)
 
     @classmethod
     def add_to_schema(cls, schema_dict):

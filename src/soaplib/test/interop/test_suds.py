@@ -43,7 +43,8 @@ class TestSuds(unittest.TestCase):
         assert val == ret
 
     def test_validation(self):
-        non_nillable_class = self.client.factory.create("{hunk.sunk}NonNillableClass")
+        non_nillable_class = self.client.factory.create(
+                                                "{hunk.sunk}NonNillableClass")
         non_nillable_class.i = 6
         non_nillable_class.s = None
 
