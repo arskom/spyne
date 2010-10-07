@@ -196,5 +196,13 @@ class TestSuds(unittest.TestCase):
         raise Exception("test something! :)")
         # TODO: write asserts
 
+    def test_complex_return(self):
+        ret = self.client.service.complex_return()
+
+        self.assertEquals(ret.resultCode, 1)
+        self.assertEquals(ret.resultDescription, "Test")
+        self.assertEquals(ret.transactionId, 123)
+        self.assertEquals(ret.roles.role[0], "MEMBER")
+
 if __name__ == '__main__':
     unittest.main()
