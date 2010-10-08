@@ -58,10 +58,12 @@ The `ClassSerializer` is used to define and serialize complex, nested structures
 	>>> from soaplib.serializers.clazz import *
 	>>> from lxml import etree
 	>>> class Permission(ClassSerializer):
+	...	    __namespace__ = "permission"
 	...		application = String
 	...		feature = String
 	>>>
 	>>> class User(ClassSerializer):
+	...     __namespace__ = "user"
 	...		userid = Integer
 	...		username = String
 	...		firstname = String

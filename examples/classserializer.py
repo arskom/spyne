@@ -36,10 +36,12 @@ userid_seq = 1
 
 
 class Permission(ClassSerializer):
+    __namespace__ = "permission"
     application = String
     feature = String
 
 class User(ClassSerializer):
+    __namespace__ = "user"
     userid = Integer
     username = String
     firstname = String
