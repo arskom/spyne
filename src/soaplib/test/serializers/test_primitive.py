@@ -87,7 +87,6 @@ class TestPrimitive(unittest.TestCase):
         element = element[0]
 
         self.assertEquals(element.text, '12')
-        self.assertEquals('xs:integer', element.get('{%s}type' % soaplib.ns_xsi))
         value = integer.from_xml(element)
         self.assertEquals(value, i)
 
@@ -100,7 +99,6 @@ class TestPrimitive(unittest.TestCase):
         element = element[0]
 
         self.assertEquals(element.text, '128375873458473')
-        self.assertEquals('xs:integer', element.get('{%s}type' % soaplib.ns_xsi))
         value = integer.from_xml(element)
         self.assertEquals(value, i)
 
@@ -113,7 +111,6 @@ class TestPrimitive(unittest.TestCase):
         element = element[0]
 
         self.assertEquals(element.text, '1.22255645')
-        self.assertEquals('xs:float', element.get('{%s}type' % soaplib.ns_xsi))
 
         f2 = Float.from_xml(element)
         self.assertEquals(f2, f)
@@ -191,11 +188,6 @@ class TestPrimitive(unittest.TestCase):
 
         b = Boolean.from_xml(b)
         self.assertEquals(b, False)
-
-        b = etree.Element('test')
-        Boolean.to_xml(False, ns_test, b)
-        b = b[0]
-        self.assertEquals('xs:boolean', b.get('{%s}type' % soaplib.ns_xsi))
 
         b = etree.Element('test')
         Boolean.to_xml(None, ns_test, b)

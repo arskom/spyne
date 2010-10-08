@@ -27,7 +27,7 @@ import soaplib
 from soaplib.serializers.clazz import ClassSerializer
 from soaplib.serializers.primitive import Integer
 from soaplib.serializers.primitive import String
-from soaplib.soap import join_attachment
+from soaplib.mime import join_attachment
 
 # Service Classes
 class DownloadPartFileResult(ClassSerializer):
