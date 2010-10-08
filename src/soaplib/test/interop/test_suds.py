@@ -80,8 +80,9 @@ class TestSuds(unittest.TestCase):
 
         ret = self.client.service.send_out_header()
 
-        print ret
-        raise Exception("test something!")
+        self.assertTrue(isinstance(ret,type(out_header)))
+        self.assertEquals(ret.dt, out_header.dt)
+        self.assertEquals(ret.f, out_header.f)
 
     def test_echo_string(self):
         test_string = "OK"
@@ -157,9 +158,14 @@ class TestSuds(unittest.TestCase):
         val.other.b = True
 
         ret = self.client.service.echo_nested_class(val)
-        print ret
-        raise Exception("test something! :)")
-        # TODO: write asserts
+
+
+
+        self.assertEquals(ret.i, val.i)
+        self.assertEqual(ret.ai[0], val.ai[0])
+        self.assertEquals(ret.simple.SimpleClass[0].s, val.simple.SimpleClass[0].s)
+        self.assertEqual(ret.other.dt, val.other.dt)
+
 
     def test_echo_extension_class(self):
         service_name = "echo_extension_class";
@@ -194,8 +200,14 @@ class TestSuds(unittest.TestCase):
 
         ret = self.client.service.echo_extension_class(val)
         print ret
-        raise Exception("test something! :)")
-        # TODO: write asserts
+
+        self.assertEquals(ret.i, val.i)
+        self.assertEquals(ret.s, val.s)
+        self.assertEquals(ret.f, val.f)
+        self.assertEquals(ret.simple.SimpleClass[0].i, val.simple.SimpleClass[0].i)
+        self.assertEquals(ret.other.dt, val.other.dt)
+        self.assertEquals(ret.p.s, val.p.s)
+
 
     def test_python_exception(self):
         try:
