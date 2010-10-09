@@ -158,8 +158,8 @@ class DefinitionBase(object):
     __out_header__ = None
 
     def __init__(self, environ=None):
-        self.soap_in_header = None
-        self.soap_out_header = None
+        self.in_header = None
+        self.out_header = None
 
         cls = self.__class__
         if not (cls in _public_methods_cache):
