@@ -166,7 +166,7 @@ class Application(object):
 
         self.build_schema()
 
-    def __decompose_request(self, ctx, envelope_string, charset):
+    def __decompose_incoming_envelope(self, ctx, envelope_string, charset):
         header, body = from_soap(envelope_string, charset)
 
         print header,body
@@ -197,15 +197,15 @@ class Application(object):
         ctx.in_body_xml = body
 
     def deserialize_soap(self, ctx, envelope_string, charset=None):
-        """Takes a string containing ONE soap message.
-        Returns the corresponding native python object, along with the request
-        context
+        """Takes a MethodContext instance and a string containing ONE soap
+        message.
+        Returns the corresponding native python object
 
         Not meant to be overridden.
         """
 
         try:
-            self.__decompose_request(ctx, envelope_string, charset)
+            self.__decompose_incoming_envelope(ctx, envelope_string, charset)
         except ValidationError, e:
             return e
 
@@ -229,7 +229,7 @@ class Application(object):
         return params
 
     def process_request(self, ctx, req_obj):
-        """Takes the native request object.
+        """Takes a MethodContext instance and the native request object.
         Returns the response to the request as a native python object.
 
         Not meant to be overridden.
@@ -256,8 +256,9 @@ class Application(object):
             return fault
 
     def serialize_soap(self, ctx, native_obj):
-        """Pushes the native python object to the output stream as a soap
-        response
+        """Takes a MethodContext instance and the object to be serialied.
+        Returns the corresponding xml structure as an lxml.etree._Element
+        instance.
 
         Not meant to be overridden.
         """
@@ -341,7 +342,7 @@ class Application(object):
 
     def get_namespace_prefix(self, ns):
         """Returns the namespace prefix for the given namespace. Creates a new
-        one automatically if it doesn't exist
+        one automatically if it doesn't exist.
 
         Not meant to be overridden.
         """
@@ -369,7 +370,7 @@ class Application(object):
 
     def set_namespace_prefix(self, ns, pref):
         """Forces a namespace prefix on a namespace by either creating it or
-        moving the existing namespace to a new prefix
+        moving the existing namespace to a new prefix.
 
         Not meant to be overridden.
         """
@@ -424,8 +425,8 @@ class Application(object):
     tns = property(get_tns)
 
     def __build_schema_nodes(self, schema_entries, types=None):
-        """Fill individual <schema> nodes for every service that are part of this
-        app.
+        """Fill individual <schema> nodes for every service that are part of
+        this app.
         """
 
         schema_nodes = {}
