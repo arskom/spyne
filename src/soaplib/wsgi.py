@@ -42,8 +42,7 @@ class ValidationError(Fault):
     pass
 
 def _reconstruct_soap_request(http_env):
-    """
-    Reconstruct http payload using information in the http header
+    """Reconstruct http payload using information in the http header
     """
 
     input = http_env.get('wsgi.input')
@@ -64,8 +63,7 @@ class Application(soaplib.Application):
     transport = 'http://schemas.xmlsoap.org/soap/http'
 
     def __call__(self, req_env, start_response, wsgi_url=None):
-        '''
-        This method conforms to the WSGI spec for callable wsgi applications
+        '''This method conforms to the WSGI spec for callable wsgi applications
         (PEP 333). It looks in environ['wsgi.input'] for a fully formed soap
         request envelope, will deserialize the request parameters and call the
         method on the object returned by the get_handler() method.
