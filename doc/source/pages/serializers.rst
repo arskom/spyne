@@ -2,9 +2,9 @@
 Serializers
 ===========
 
-In soaplib, the serializers are the components responsible for converting
+In soaplib, the type are the components responsible for converting
 indivdual parameters to and from xml, as well as supply the information
-necessary to build the wsdl. Soaplib has many built-in serializers that give you
+necessary to build the wsdl. Soaplib has many built-in type that give you
 most of the common datatypes generally needed.
 
 Primitives
@@ -31,12 +31,12 @@ Arrays
 -----------
 
 The lone collection type available in soaplib is Arrays. Unlike the
-primitive serializers, Arrays need to be instantiated with
+primitive type, Arrays need to be instantiated with
 the proper internal type so it can properly (de)serialize the data. Arrays
 are homogeneous, meaning that the data they hold are all of the same
 type. For mixed typing or more dynamic data, use the Any type. ::
 
-    >>> from soaplib.serializers.clazz import *
+    >>> from soaplib.type.clazz import *
     >>> from soaplib.serialixers.primitives import String
     >>> from lxml import etree
     >>> parent = etree.Element("parent")
@@ -54,8 +54,8 @@ Class
 -----
 The `ClassSerializer` is used to define and serialize complex, nested structures.
 
-	>>> from soaplib.serializers.primitive import *
-	>>> from soaplib.serializers.clazz import *
+	>>> from soaplib.type.primitive import *
+	>>> from soaplib.type.clazz import *
 	>>> from lxml import etree
 	>>> class Permission(ClassSerializer):
 	...	    __namespace__ = "permission"
@@ -99,7 +99,7 @@ strings. Data in Attachment objects can be loaded manually, or read from file.
 All encoding of the binary data is done just prior to the data being sent, and
 decoding immediately upon receipt of the Attachment. ::
 
-    >>> from soaplib.serializers.binary import Attachment
+    >>> from soaplib.type.binary import Attachment
     >>> from lxml import etree
     >>> a = Attachment(data='my binary data')
     >>> parent = etree.Element('parent')
@@ -109,7 +109,7 @@ decoding immediately upon receipt of the Attachment. ::
     <ns0:retval xmlns:ns0="tns">bXkgYmluYXJ5IGRhdGE=
     </ns0:retval>
     >>> print Attachment.from_xml(element)
-    <soaplib.serializers.binary.Attachment object at 0x5c6d90>
+    <soaplib.type.binary.Attachment object at 0x5c6d90>
     >>> print Attachment.from_xml(element).data
     my binary data
     >>> a2 = Attachment(fileName='test.data') # load from file
@@ -130,11 +130,11 @@ to/from dicts with lists instead of raw lxml.etree._Element objects.
 
 Custom
 ------
-Soaplib provides a very simple interface for writing custom serializers. Just
-inherit from soaplib.serializers.base.Base and override from_xml and to_xml and
+Soaplib provides a very simple interface for writing custom type. Just
+inherit from soaplib.type.base.Base and override from_xml and to_xml and
 add_to_schema functions.::
 
-    from soaplib.serializers.base import Base
+    from soaplib.type.base import Base
 
     class MySerializer(Base):
         @classmethod

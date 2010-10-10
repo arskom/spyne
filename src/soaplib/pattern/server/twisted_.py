@@ -27,8 +27,7 @@ from twisted.web.wsgi import WSGIResource
 from twisted.internet import reactor
 
 def run_twisted(apps, port):
-    """
-    takes a list of tuples containing application, url pairs, and a port to
+    """Takes a list of tuples containing application, url pairs, and a port to
     to listen to.
     """
 

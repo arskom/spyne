@@ -5,11 +5,11 @@ User Manager
 Lets try a more complicated example than just strings and integers!
 The following is an extremely simple example using complex, nested data.::
 
-	from soaplib.wsgi import Application
+	from soaplib.pattern.server.wsgi import Application
 	from soaplib.service import rpc
 	from soaplib.service import DefinitionBase
-	from soaplib.serializers.primitive import String, Integer
-	from soaplib.serializers.clazz import ClassSerializer, Array
+	from soaplib.type.primitive import String, Integer
+	from soaplib.type.clazz import ClassSerializer, Array
 
 	user_database = {}
 	userid_seq = 1

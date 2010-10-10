@@ -17,12 +17,13 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from soaplib.service import rpc
+from soaplib.pattern.server.twisted_ import run_twisted
+from soaplib.pattern.server.wsgi import Application
 from soaplib.service import DefinitionBase
-from soaplib.serializers.primitive import String, Integer, Array
-from soaplib.wsgi import Application
-from soaplib.util.server import run_twisted
-
+from soaplib.service import rpc
+from soaplib.type.clazz import Array
+from soaplib.type.primitive import Integer
+from soaplib.type.primitive import String
 
 '''
 This is the HelloWorld example running in the twisted framework.

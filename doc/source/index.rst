@@ -14,7 +14,7 @@ Contents:
    pages/helloworld
    pages/client
    pages/usermanager
-   pages/serializers
+   pages/type
    pages/binaryfiles
    pages/message_api
    pages/hooks

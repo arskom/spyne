@@ -1,13 +1,13 @@
 Serializer API
 ==============
-In soaplib, the serializers are the components responsible for converting indivdual parameters to and from xml, as well
-as supply the information necessary to build the wsdl. Soaplib has many built-in serializers that give you most of the
+In soaplib, the type are the components responsible for converting indivdual parameters to and from xml, as well
+as supply the information necessary to build the wsdl. Soaplib has many built-in type that give you most of the
 common datatypes generally needed.
 
 
 Base
 ----
-.. automodule:: soaplib.serializers.base
+.. automodule:: soaplib.type.base
     :members:
     :undoc-members:
     :inherited-members:
@@ -15,7 +15,7 @@ Base
 
 Binary
 ------
-.. automodule:: soaplib.serializers.binary
+.. automodule:: soaplib.type.binary
     :members:
     :undoc-members:
     :inherited-members:
@@ -23,7 +23,7 @@ Binary
 
 Clazz
 ------
-.. automodule:: soaplib.serializers.clazz
+.. automodule:: soaplib.type.clazz
     :members:
     :undoc-members:
     :inherited-members:
@@ -31,7 +31,7 @@ Clazz
 
 Enum
 -----
-.. automodule:: soaplib.serializers.enum
+.. automodule:: soaplib.type.enum
     :members:
     :undoc-members:
     :inherited-members:
@@ -40,7 +40,7 @@ Enum
 
 Exception
 ---------
-.. automodule:: soaplib.serializers.exception
+.. automodule:: soaplib.type.exception
     :members:
     :undoc-members:
     :inherited-members:
@@ -49,7 +49,7 @@ Exception
 
 Primitive
 ---------
-.. automodule:: soaplib.serializers.primitive
+.. automodule:: soaplib.type.primitive
     :members:
     :undoc-members:
     :inherited-members:
@@ -58,7 +58,7 @@ Primitive
 
 Table
 ------
-.. automodule:: soaplib.serializers.table
+.. automodule:: soaplib.type.table
     :members:
     :undoc-members:
     :inherited-members:

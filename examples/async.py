@@ -22,9 +22,9 @@ from threading import Thread
 
 
 from soaplib.service import rpc, DefinitionBase
-from soaplib.serializers.primitive import String, Integer
+from soaplib.type.primitive import String, Integer
 from soaplib.util import get_callback_info
-from soaplib.wsgi import Application
+from soaplib.pattern.server.wsgi import Application
 
 
 '''

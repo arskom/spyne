@@ -18,8 +18,8 @@
 #
 
 from soaplib.service import rpc, DefinitionBase
-from soaplib.serializers.primitive import String
-from soaplib.wsgi import Application
+from soaplib.type.primitive import String
+from soaplib.pattern.server.wsgi import Application
 
 
 '''

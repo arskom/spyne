@@ -18,10 +18,10 @@
 #
 
 from soaplib.service import rpc, DefinitionBase
-from soaplib.serializers.primitive import String, Integer
-from soaplib.serializers.binary import Attachment
-from soaplib.serializers.clazz import Array
-from soaplib.wsgi import Application
+from soaplib.type.primitive import String, Integer
+from soaplib.type.binary import Attachment
+from soaplib.type.clazz import Array
+from soaplib.pattern.server.wsgi import Application
 
 
 class HelloWorldService(DefinitionBase):

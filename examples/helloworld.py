@@ -20,10 +20,10 @@
 
 from soaplib.service import rpc
 from soaplib.service import DefinitionBase
-from soaplib.serializers.primitive import String, Integer
+from soaplib.type.primitive import String, Integer
 
-from soaplib.wsgi import Application
-from soaplib.serializers.clazz import Array
+from soaplib.pattern.server.wsgi import Application
+from soaplib.type.clazz import Array
 
 '''
 This is a simple HelloWorld example to show the basics of writing
@@ -50,6 +50,8 @@ if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server
         server = make_server('localhost', 7789, Application([HelloWorldService], 'tns'))
+        print "listening to http://0.0.0.0:7789"
+        print "wsdl is at: http://127.0.0.1:7789/?wsdl"
         server.serve_forever()
     except ImportError:
         print "Error: example server code requires Python >= 2.5"
