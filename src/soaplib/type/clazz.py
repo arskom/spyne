@@ -77,7 +77,7 @@ class ClassSerializerMeta(type(Base)):
 
                     if subc:
                         _type_info[k] = v
-                        if issubclass(v, Array) and v.type is None:
+                        if issubclass(v, Array) and v.serializer is None:
                             raise Exception("%s.%s is an array of what?" %
                                                                   (cls_name, k))
         else:
@@ -303,26 +303,26 @@ class ClassSerializer(ClassSerializerBase):
     __metaclass__ = ClassSerializerMeta
 
 class Array(ClassSerializer):
-    def __new__(cls, type, ** kwargs):
+    def __new__(cls, serializer, ** kwargs):
         retval = cls.customize(**kwargs)
 
         # hack to default to unbounded arrays when the user didn't specify
         # max_occurs.
-        if type.Attributes.max_occurs == 1: #FIXME: we should find a better way.
-            type = type.customize(max_occurs='unbounded')
+        if serializer.Attributes.max_occurs == 1: #FIXME: we should find a better way.
+            serializer = serializer.customize(max_occurs='unbounded')
 
-        if type.get_type_name() is Base.Empty:
-            member_name = type.__base_type__.get_type_name()
+        if serializer.get_type_name() is Base.Empty:
+            member_name = serializer.__base_type__.get_type_name()
             if cls.__type_name__ is None:
                 cls.__type_name__ = Base.Empty # to be resolved later
 
         else:
-            member_name = type.get_type_name()
+            member_name = serializer.get_type_name()
             if cls.__type_name__ is None:
-                cls.__type_name__ = '%sArray' % type.get_type_name()
+                cls.__type_name__ = '%sArray' % serializer.get_type_name()
 
         retval.__type_name__ = '%sArray' % member_name
-        retval._type_info = {member_name: type}
+        retval._type_info = {member_name: serializer}
 
         return retval
 
@@ -330,12 +330,12 @@ class Array(ClassSerializer):
     # namespace.
     @staticmethod
     def resolve_namespace(cls, default_ns):
-        (type,) = cls._type_info.values()
+        (serializer,) = cls._type_info.values()
 
-        type.resolve_namespace(type, default_ns)
+        serializer.resolve_namespace(serializer, default_ns)
 
         if cls.__namespace__ is None:
-            cls.__namespace__ = type.get_namespace()
+            cls.__namespace__ = serializer.get_namespace()
 
         if cls.__namespace__ in soaplib.const_prefmap:
             cls.__namespace__ = default_ns
@@ -355,9 +355,9 @@ class Array(ClassSerializer):
     @nillable_element
     def from_xml(cls, element):
         retval = []
-        (type,) = cls._type_info.values()
+        (serializer,) = cls._type_info.values()
 
         for child in element.getchildren():
-            retval.append(type.from_xml(child))
+            retval.append(serializer.from_xml(child))
 
         return retval
