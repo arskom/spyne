@@ -251,8 +251,6 @@ class Application(object):
     def __decompose_incoming_envelope(self, ctx, envelope_string, charset):
         header, body = from_soap(envelope_string, charset)
 
-        print header,body
-
         if not (body is None):
             try:
                 self.validate_request(body)

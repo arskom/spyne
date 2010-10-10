@@ -185,9 +185,6 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
         m.to_xml(m_inst,m.get_namespace(),element)
         element=element[0]
 
-        print etree.tostring(element, pretty_print=True)
-        print Address.get_namespace()
-        #print etree.tostring(element, pretty_print=True)
         self.assertEquals('{%s}myMessage' % m.get_namespace(), element.tag)
 
         addresses = element[0].find('{%s}addresses' % Person.get_namespace())
