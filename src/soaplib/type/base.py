@@ -153,7 +153,7 @@ class SimpleType(Base):
         Overriden so that any attempt to instantiate a primitive will return a
         customized class instead of an instance.
 
-        See serializers.base.Base for more information.
+        See type.base.Base for more information.
         """
 
         retval = cls.customize(**kwargs)

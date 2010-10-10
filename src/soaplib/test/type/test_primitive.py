@@ -24,13 +24,13 @@ from lxml import etree
 
 import soaplib
 
-from soaplib.serializers.clazz import Array
-from soaplib.serializers.primitive import Boolean
-from soaplib.serializers.primitive import DateTime
-from soaplib.serializers.primitive import Float
-from soaplib.serializers.primitive import Integer
-from soaplib.serializers.base import Null
-from soaplib.serializers.primitive import String
+from soaplib.type.clazz import Array
+from soaplib.type.primitive import Boolean
+from soaplib.type.primitive import DateTime
+from soaplib.type.primitive import Float
+from soaplib.type.primitive import Integer
+from soaplib.type.base import Null
+from soaplib.type.primitive import String
 
 ns_test = 'test_namespace'
 
@@ -116,33 +116,33 @@ class TestPrimitive(unittest.TestCase):
         self.assertEquals(f2, f)
 
     def test_array(self):
-        serializer = Array(String)
-        serializer.resolve_namespace(serializer,"zbank")
+        type = Array(String)
+        type.resolve_namespace(type,"zbank")
 
         values = ['a', 'b', 'c', 'd', 'e', 'f']
 
         element = etree.Element('test')
-        serializer.to_xml(values, ns_test, element)
+        type.to_xml(values, ns_test, element)
         element = element[0]
 
         self.assertEquals(len(values), len(element.getchildren()))
 
-        values2 = serializer.from_xml(element)
+        values2 = type.from_xml(element)
         self.assertEquals(values[3], values2[3])
 
     def test_array_empty(self):
-        serializer = Array(String)
-        serializer.resolve_namespace(serializer,"zbank")
+        type = Array(String)
+        type.resolve_namespace(type,"zbank")
 
         values = []
 
         element = etree.Element('test')
-        serializer.to_xml(values, ns_test, element)
+        type.to_xml(values, ns_test, element)
         element = element[0]
 
         self.assertEquals(len(values), len(element.getchildren()))
 
-        values2 = serializer.from_xml(element)
+        values2 = type.from_xml(element)
         self.assertEquals(len(values2), 0)
 
     def test_unicode(self):

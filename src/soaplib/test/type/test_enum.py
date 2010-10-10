@@ -22,11 +22,11 @@ import soaplib
 _ns_xs = soaplib.ns_xsd
 _ns_xsi = soaplib.ns_xsi
 
-from soaplib.wsgi import Application
+from soaplib.pattern.server.wsgi import Application
 from soaplib.service import DefinitionBase
 from soaplib.service import rpc
 
-from soaplib.serializers.enum import Enum
+from soaplib.type.enum import Enum
 
 from lxml import etree
 

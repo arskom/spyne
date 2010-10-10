@@ -23,9 +23,9 @@ logger = logging.getLogger(__name__)
 import soaplib
 from lxml import etree
 
-from soaplib.serializers.clazz import ClassSerializer as Message
-from soaplib.soap import MethodDescriptor
-from soaplib.serializers.clazz import TypeInfo
+from soaplib.type.clazz import ClassSerializer as Message
+from soaplib import MethodDescriptor
+from soaplib.type.clazz import TypeInfo
 
 _pref_wsa = soaplib.const_prefmap[soaplib.ns_wsa]
 

@@ -20,13 +20,13 @@
 import datetime
 import unittest
 
-from soaplib.serializers.clazz import ClassSerializer
-from soaplib.serializers.clazz import Array
+from soaplib.type.clazz import ClassSerializer
+from soaplib.type.clazz import Array
 
-from soaplib.serializers.primitive import DateTime
-from soaplib.serializers.primitive import Float
-from soaplib.serializers.primitive import Integer
-from soaplib.serializers.primitive import String
+from soaplib.type.primitive import DateTime
+from soaplib.type.primitive import Float
+from soaplib.type.primitive import Integer
+from soaplib.type.primitive import String
 
 from lxml import etree
 
@@ -124,16 +124,16 @@ class TestClassSerializer(unittest.TestCase):
             a.age = 27
             peeps.append(a)
 
-        serializer = Array(Person)
-        serializer.resolve_namespace(serializer,__name__)
+        type = Array(Person)
+        type.resolve_namespace(type,__name__)
 
         element = etree.Element('test')
-        serializer.to_xml(peeps, ns_test, element)
+        type.to_xml(peeps, ns_test, element)
         element = element[0]
 
         self.assertEquals(4, len(element.getchildren()))
 
-        peeps2 = serializer.from_xml(element)
+        peeps2 = type.from_xml(element)
         for i in range(0, 4):
             self.assertEquals(peeps2[i].name, names[i])
             self.assertEquals(peeps2[i].birthdate,
@@ -157,15 +157,15 @@ class TestClassSerializer(unittest.TestCase):
                 a.addresses.append(addr)
             peeps.append(a)
 
-        serializer = Array(Person)
-        serializer.resolve_namespace(serializer,__name__)
+        type = Array(Person)
+        type.resolve_namespace(type,__name__)
         element = etree.Element('test')
-        serializer.to_xml(peeps, ns_test, element)
+        type.to_xml(peeps, ns_test, element)
         element = element[0]
 
         self.assertEquals(4, len(element.getchildren()))
 
-        peeps2 = serializer.from_xml(element)
+        peeps2 = type.from_xml(element)
         for peep in peeps2:
             self.assertEquals(27, peep.age)
             self.assertEquals(25, len(peep.addresses))

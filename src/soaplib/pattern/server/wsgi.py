@@ -27,8 +27,8 @@ import traceback
 
 import soaplib
 
-from soaplib.serializers.exception import Fault
-from soaplib.serializers.primitive import string_encoding
+from soaplib.type.exception import Fault
+from soaplib.type.primitive import string_encoding
 
 from soaplib.mime import apply_mtom
 from soaplib.mime import collapse_swa
@@ -140,7 +140,9 @@ class Application(soaplib.Application):
         params = self.deserialize_soap(ctx, http_payload, charset)
 
         if ctx.service is None:
-            envelope_str = self.serialize_soap(ctx, params)
+            envelope_xml = self.serialize_soap(ctx, params)
+            envelope_str = etree.tostring(envelope_xml, xml_declaration=True,
+                                                       encoding=string_encoding)
             return_code = HTTP_500
 
         else:

@@ -19,12 +19,12 @@
 
 import unittest
 
-import serializers
+import type
 import test_soap
 import test_service
 
 def suite():
-    suite = serializers.suite()
+    suite = type.suite()
     suite.addTests(test_soap.suite())
     suite.addTests(test_service.suite())
 

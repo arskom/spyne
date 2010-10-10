@@ -105,7 +105,7 @@ Here's the directory tree from a working setup:
 |               |-- log.xml
 |               |-- monitorConfig.xml
 |               `-- report.xml
-|-- serializers
+|-- type
 |   |-- __init__.py
 |   |-- test_binary.py
 |   |-- test_clazz.py

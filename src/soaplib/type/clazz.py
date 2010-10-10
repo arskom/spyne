@@ -21,9 +21,9 @@ from lxml import etree
 
 import soaplib
 
-from soaplib.serializers import Base
-from soaplib.serializers import nillable_element
-from soaplib.serializers import nillable_value
+from soaplib.type import Base
+from soaplib.type import nillable_element
+from soaplib.type import nillable_value
 
 from soaplib.util.odict import odict as TypeInfo
 
@@ -77,7 +77,7 @@ class ClassSerializerMeta(type(Base)):
 
                     if subc:
                         _type_info[k] = v
-                        if issubclass(v, Array) and v.serializer is None:
+                        if issubclass(v, Array) and v.type is None:
                             raise Exception("%s.%s is an array of what?" %
                                                                   (cls_name, k))
         else:
@@ -89,7 +89,7 @@ class ClassSerializerMeta(type(Base)):
 
 class ClassSerializerBase(Base):
     """
-    If you want to make a better class serializer, this is what you should
+    If you want to make a better class type, this is what you should
     inherit from
     """
 
@@ -297,32 +297,32 @@ class ClassSerializer(ClassSerializerBase):
     return instances, contrary to primivites where the same call will result in
     customized duplicates of the original class definition.
     Those who'd like to customize the class should use the customize method.
-    (see soaplib.serializers.base.Base)
+    (see soaplib.type.base.Base)
     """
 
     __metaclass__ = ClassSerializerMeta
 
 class Array(ClassSerializer):
-    def __new__(cls, serializer, ** kwargs):
+    def __new__(cls, type, ** kwargs):
         retval = cls.customize(**kwargs)
 
         # hack to default to unbounded arrays when the user didn't specify
         # max_occurs.
-        if serializer.Attributes.max_occurs == 1: #FIXME: we should find a better way.
-            serializer = serializer.customize(max_occurs='unbounded')
+        if type.Attributes.max_occurs == 1: #FIXME: we should find a better way.
+            type = type.customize(max_occurs='unbounded')
 
-        if serializer.get_type_name() is Base.Empty:
-            member_name = serializer.__base_type__.get_type_name()
+        if type.get_type_name() is Base.Empty:
+            member_name = type.__base_type__.get_type_name()
             if cls.__type_name__ is None:
                 cls.__type_name__ = Base.Empty # to be resolved later
 
         else:
-            member_name = serializer.get_type_name()
+            member_name = type.get_type_name()
             if cls.__type_name__ is None:
-                cls.__type_name__ = '%sArray' % serializer.get_type_name()
+                cls.__type_name__ = '%sArray' % type.get_type_name()
 
         retval.__type_name__ = '%sArray' % member_name
-        retval._type_info = {member_name: serializer}
+        retval._type_info = {member_name: type}
 
         return retval
 
@@ -330,12 +330,12 @@ class Array(ClassSerializer):
     # namespace.
     @staticmethod
     def resolve_namespace(cls, default_ns):
-        (serializer,) = cls._type_info.values()
+        (type,) = cls._type_info.values()
 
-        serializer.resolve_namespace(serializer, default_ns)
+        type.resolve_namespace(type, default_ns)
 
         if cls.__namespace__ is None:
-            cls.__namespace__ = serializer.get_namespace()
+            cls.__namespace__ = type.get_namespace()
 
         if cls.__namespace__ in soaplib.const_prefmap:
             cls.__namespace__ = default_ns
@@ -355,9 +355,9 @@ class Array(ClassSerializer):
     @nillable_element
     def from_xml(cls, element):
         retval = []
-        (serializer,) = cls._type_info.values()
+        (type,) = cls._type_info.values()
 
         for child in element.getchildren():
-            retval.append(serializer.from_xml(child))
+            retval.append(type.from_xml(child))
 
         return retval

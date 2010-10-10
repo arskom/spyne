@@ -19,23 +19,23 @@
 
 from lxml import etree
 
-from soaplib.serializers.binary import Attachment
-from soaplib.serializers.clazz import Array
-from soaplib.serializers.clazz import ClassSerializer
-from soaplib.serializers.enum import Enum
-from soaplib.serializers.exception import Fault
+from soaplib.type.binary import Attachment
+from soaplib.type.clazz import Array
+from soaplib.type.clazz import ClassSerializer
+from soaplib.type.enum import Enum
+from soaplib.type.exception import Fault
 
-from soaplib.serializers.primitive import Any
-from soaplib.serializers.primitive import AnyAsDict
-from soaplib.serializers.primitive import Boolean
-from soaplib.serializers.primitive import DateTime
-from soaplib.serializers.primitive import Float
-from soaplib.serializers.primitive import Integer
-from soaplib.serializers.primitive import String
-from soaplib.serializers.primitive import Double
+from soaplib.type.primitive import Any
+from soaplib.type.primitive import AnyAsDict
+from soaplib.type.primitive import Boolean
+from soaplib.type.primitive import DateTime
+from soaplib.type.primitive import Float
+from soaplib.type.primitive import Integer
+from soaplib.type.primitive import String
+from soaplib.type.primitive import Double
 
 from soaplib import service
-from soaplib.wsgi import ValidatingApplication
+from soaplib.pattern.server.wsgi import ValidatingApplication
 from soaplib.service import rpc
 
 from datetime import datetime
@@ -103,15 +103,15 @@ class InteropServiceWithHeader(service.DefinitionBase):
 
     @rpc(_returns=InHeader)
     def echo_in_header(self):
-        return self.soap_in_header
+        return self.in_header
 
     @rpc(_returns=OutHeader)
     def send_out_header(self):
-        self.soap_out_header = OutHeader()
-        self.soap_out_header.dt = datetime(year=2000, month=01, day=01)
-        self.soap_out_header.f = 3.141592653
+        self.out_header = OutHeader()
+        self.out_header.dt = datetime(year=2000, month=01, day=01)
+        self.out_header.f = 3.141592653
 
-        return self.soap_out_header
+        return self.out_header
 
 class InteropPrimitive(service.DefinitionBase):
     @rpc(Any, _returns=Any)

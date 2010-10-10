@@ -22,15 +22,15 @@ import unittest
 
 from lxml import etree
 
-from soaplib.serializers.clazz import ClassSerializer
-from soaplib.serializers.clazz import Array
-from soaplib.serializers.primitive import DateTime
-from soaplib.serializers.primitive import Float
-from soaplib.serializers.primitive import Integer
-from soaplib.serializers.primitive import String
+from soaplib.type.clazz import ClassSerializer
+from soaplib.type.clazz import Array
+from soaplib.type.primitive import DateTime
+from soaplib.type.primitive import Float
+from soaplib.type.primitive import Integer
+from soaplib.type.primitive import String
 
 from soaplib import service
-from soaplib import wsgi
+from soaplib.pattern.server import wsgi
 from soaplib.service import rpc
 
 class Address(ClassSerializer):
@@ -120,9 +120,7 @@ class MultipleReturnService(service.DefinitionBase):
         return s, 'a', 'b'
 
 class Test(unittest.TestCase):
-    '''
-    Most of the service tests are excersized through the interop tests
-    '''
+    '''Most of the service tests are performed through the interop tests.'''
 
     def setUp(self):
         self.app = wsgi.Application([TestService], 'tns')
