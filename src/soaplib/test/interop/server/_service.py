@@ -57,6 +57,7 @@ class NestedClass(ClassSerializer):
     i = Integer
     f = Float
     other = OtherClass
+    ai = Array(Integer)
 
 class NonNillableClass(ClassSerializer):
     __namespace__ = "hunk.sunk"

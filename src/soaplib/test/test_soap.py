@@ -41,12 +41,16 @@ class Address(ClassSerializer):
     laditude = Float
     longitude = Float
 
+Address.resolve_namespace(Address,"punk")
+
 class Person(ClassSerializer):
     name = String
     birthdate = DateTime
     age = Integer
     addresses = Array(Address)
     titles = Array(String)
+
+Person.resolve_namespace(Person,"punk")
 
 class TestSoap(unittest.TestCase):
     def test_simple_message(self):
@@ -142,11 +146,11 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
         element=element[0]
 
         self.assertEquals(element.tag, '{%s}myMessage' % m.get_namespace())
-        self.assertEquals(element.getchildren()[0].find('{%s}name' % m.get_namespace()).text,
+        self.assertEquals(element.getchildren()[0].find('{%s}name' % Person.get_namespace()).text,
             'steve-o')
-        self.assertEquals(element.getchildren()[0].find('{%s}age' % m.get_namespace()).text, '2')
+        self.assertEquals(element.getchildren()[0].find('{%s}age' % Person.get_namespace()).text, '2')
         self.assertEquals(
-            len(element.getchildren()[0].find('{%s}addresses' % m.get_namespace()).getchildren()), 0)
+            len(element.getchildren()[0].find('{%s}addresses' % Person.get_namespace()).getchildren()), 0)
 
         p1 = m.from_xml(element)[0]
 
@@ -185,9 +189,9 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
         #print etree.tostring(element, pretty_print=True)
         self.assertEquals('{%s}myMessage' % m.get_namespace(), element.tag)
 
-        addresses = element.getchildren()[0].find('{%s}addresses' % m.get_namespace()).getchildren()
+        addresses = element.getchildren()[0].find('{%s}addresses' % Person.get_namespace()).getchildren()
         self.assertEquals(100, len(addresses))
-        self.assertEquals('0', addresses[0].find('{%s}zip' % m.get_namespace()).text)
+        self.assertEquals('0', addresses[0].find('{%s}zip' % Address.get_namespace()).text)
 
 if __name__ == '__main__':
     unittest.main()

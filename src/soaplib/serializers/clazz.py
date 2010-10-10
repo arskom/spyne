@@ -102,12 +102,16 @@ class ClassSerializerBase(NonExtendingClass, Base):
     """
 
     def __init__(self, **kwargs):
-        cls = self.__class__
+        super(ClassSerializerBase,self).__init__()
+        self.__reset_members(self.__class__, kwargs)
+
+    def __reset_members(self, cls, kwargs):
+        extends = getattr(cls, "__extends__", None)
+        if not (extends is None):
+            self.__reset_members(extends, kwargs)
 
         for k in cls._type_info.keys():
             setattr(self, k, kwargs.get(k, None))
-
-        self.__NO_EXTENSION=True
 
     def __len__(self):
         return len(self._type_info)
@@ -170,8 +174,7 @@ class ClassSerializerBase(NonExtendingClass, Base):
         if name is None:
             name = cls.get_type_name()
 
-        element = etree.SubElement(parent_elt,
-                                         "{%s}%s" % (tns, name))
+        element = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
 
         inst = cls.get_serialization_instance(value)
 
@@ -349,9 +352,11 @@ class Array(ClassSerializer):
     @classmethod
     def get_serialization_instance(cls, value):
         inst = ClassSerializer.__new__(Array)
-        for member_name in cls._type_info.keys():
-            setattr(inst, member_name, value)
-            return inst
+
+        (member_name,) = cls._type_info.keys()
+        setattr(inst, member_name, value)
+
+        return inst
 
     @classmethod
     @nillable_element
