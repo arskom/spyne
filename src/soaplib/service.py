@@ -176,13 +176,15 @@ class DefinitionBase(object):
         '''
 
     def on_method_return_object(self, py_results):
-        '''Called AFTER the service implementing the functionality is called
+        '''Called AFTER the service implementing the functionality is called,
+        with native return object as argument
 
         @param the python results from the method
         '''
 
     def on_method_return_xml(self, soap_results):
-        '''Called AFTER the service implementing the functionality is called
+        '''Called AFTER the service implementing the functionality is called,
+        with native return object serialized to Element objects as argument.
 
         @param the xml element containing the return value(s) from the method
         '''
