@@ -315,25 +315,36 @@ class Application(object):
         Not meant to be overridden.
         """
 
+        # implementation hook
+        ctx.service.on_method_call(ctx.method_name,ctx.params,ctx.in_body_xml)
+
         try:
             # retrieve the method
             func = getattr(ctx.service, ctx.descriptor.name)
 
             # call the method
-            return ctx.service.call_wrapper(func, req_obj)
+            retval = ctx.service.call_wrapper(func, req_obj)
 
         except Fault, e:
             stacktrace=traceback.format_exc()
             logger.error(stacktrace)
-            return e
+
+            retval = e
 
         except Exception, e:
             stacktrace=traceback.format_exc()
             logger.error(stacktrace)
 
-            fault = Fault('Server', str(e))
+            retval = Fault('Server', str(e))
 
-            return fault
+        # implementation hook
+        if isinstance(retval, Fault):
+            ctx.service.on_method_exception_object(retval)
+            self.on_exception_object(retval)
+        else:
+            ctx.service.on_method_return_object(retval)
+
+        return retval
 
     def serialize_soap(self, ctx, native_obj):
         """Takes a MethodContext instance and the object to be serialied.
@@ -348,20 +359,14 @@ class Application(object):
                                                                nsmap=self.nsmap)
 
         if isinstance(native_obj, Exception):
-            # implementation hook
-            if not (ctx.service is None):
-                ctx.service.on_method_exception_object(native_obj)
-            self.on_exception_object(native_obj)
-
             # FIXME: There's no way to alter soap response headers for the user.
-            out_body_xml = etree.SubElement(envelope,
+            ctx.out_body_xml = out_body_xml = etree.SubElement(envelope,
                             '{%s}Body' % soaplib.ns_soap_env, nsmap=self.nsmap)
-            native_obj.__class__.to_xml(native_obj, self.get_tns(), out_body_xml)
+            native_obj.__class__.to_xml(native_obj,self.get_tns(), out_body_xml)
 
             # implementation hook
             if not (ctx.service is None):
                 ctx.service.on_method_exception_xml(out_body_xml)
-                ctx.out_body_xml = out_body_xml
             self.on_exception_xml(out_body_xml)
 
             if logger.level == logging.DEBUG:
@@ -414,6 +419,10 @@ class Application(object):
                 logger.debug('\033[91m'+ "Response" + '\033[0m')
                 logger.debug(etree.tostring(envelope, xml_declaration=True,
                                                              pretty_print=True))
+
+            #implementation hook
+            if not (ctx.service is None):
+                ctx.service.on_method_return_xml(envelope)
 
         return envelope
 

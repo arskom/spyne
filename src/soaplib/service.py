@@ -178,10 +178,15 @@ class DefinitionBase(object):
         @param the soap elements for each argument
         '''
 
-    def on_method_return(self, py_results, soap_results):
+    def on_method_return_objecct(self, py_results):
         '''Called AFTER the service implementing the functionality is called
 
         @param the python results from the method
+        '''
+
+    def on_method_return_xml(self, soap_results):
+        '''Called AFTER the service implementing the functionality is called
+
         @param the xml element containing the return value(s) from the method
         '''
 

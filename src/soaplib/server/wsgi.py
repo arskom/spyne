@@ -146,17 +146,10 @@ class Application(soaplib.Application):
             return_code = HTTP_500
 
         else:
-            # implementation hook
-            ctx.service.on_method_call(req_env,method_name,params,ctx.in_body_xml)
-
             result_raw = self.process_request(ctx, params)
 
             if isinstance(result_raw, Exception):
                 return_code = HTTP_500
-
-            # implementation hook
-            ctx.service.on_method_return(req_env, result_raw, ctx.in_body_xml,
-                                                              http_resp_headers)
 
             envelope_xml = self.serialize_soap(ctx, result_raw)
             envelope_str = etree.tostring(envelope_xml, xml_declaration=True,
@@ -177,13 +170,14 @@ class Application(soaplib.Application):
         return [envelope_str]
 
     def on_call(self, environ):
-        '''This is the first method called when this WSGI app is invoked
+        '''This is the first method called when this WSGI app is invoked.
+
         @param the wsgi environment
         '''
         pass
 
     def on_wsdl(self, environ, wsdl):
-        '''This is called when a wsdl is requested
+        '''This is called when a wsdl is requested.
 
         @param the wsgi environment
         @param the wsdl string
@@ -191,7 +185,7 @@ class Application(soaplib.Application):
         pass
 
     def on_wsdl_exception(self, environ, exc):
-        '''Called when an exception occurs durring wsdl generation
+        '''Called when an exception occurs durring wsdl generation.
 
         @param the wsgi environment
         @param exc the exception
@@ -200,7 +194,7 @@ class Application(soaplib.Application):
         pass
 
     def on_return(self, environ, http_headers, return_str):
-        '''Called before the application returns
+        '''Called before the application returns.
 
         @param the wsgi environment
         @param http response headers as dict
