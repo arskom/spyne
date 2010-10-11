@@ -178,7 +178,7 @@ class DefinitionBase(object):
         @param the soap elements for each argument
         '''
 
-    def on_method_return_objecct(self, py_results):
+    def on_method_return_object(self, py_results):
         '''Called AFTER the service implementing the functionality is called
 
         @param the python results from the method
