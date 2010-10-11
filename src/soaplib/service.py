@@ -170,50 +170,39 @@ class DefinitionBase(object):
 
         self.public_methods = _public_methods_cache[cls]
 
-    def on_method_call(self, environ, method_name, py_params, soap_params):
-        '''
-        Called BEFORE the service implementing the functionality is called
-        @param the wsgi environment
-        @param the method name
-        @param the body element of the soap request
-        @param the tuple of python params being passed to the method
-        @param the soap elements for each params
-        '''
-        pass
+    def on_method_call(self, method_name, py_params, soap_params):
+        '''Called BEFORE the service implementing the functionality is called
 
-    def on_method_return(self, environ, py_results, soap_results,
-                                                             http_resp_headers):
+        @param the method name
+        @param the tuple of python params being passed to the method
+        @param the soap elements for each argument
         '''
-        Called AFTER the service implementing the functionality is called
-        @param the wsgi environment
+
+    def on_method_return(self, py_results, soap_results):
+        '''Called AFTER the service implementing the functionality is called
+
         @param the python results from the method
         @param the xml element containing the return value(s) from the method
-        @param http response headers as a dict of strings
         '''
-        pass
 
     def on_method_exception_object(self, exc):
-        '''
-        Called BEFORE the exception is serialized, when an error occurs durring
-        execution
-        @param the wsgi environment
+        '''Called BEFORE the exception is serialized, when an error occurs
+        during execution.
+
         @param the exception object
         '''
-        pass
 
     def on_method_exception_xml(self, fault_xml):
-        '''
-        Called AFTER the exception is serialized, when an error occurs durring
-        execution
-        @param the wsgi environment
+        '''Called AFTER the exception is serialized, when an error occurs
+        during execution.
+
         @param the xml element containing the exception object serialized to a
         soap fault
         '''
-        pass
 
     def call_wrapper(self, call, params):
-        '''
-        Called in place of the original method call.
+        '''Called in place of the original method call.
+
         @param the original method call
         @param the arguments to the call
         '''
