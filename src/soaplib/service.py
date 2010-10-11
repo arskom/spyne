@@ -41,7 +41,12 @@ def rpc(*params, **kparams):
 
     def explain(f):
         def explain_method(*args, **kwargs):
-            if '_method_descriptor' in kwargs:
+            retval = None
+
+            if not ('_method_descriptor' in kwargs):
+                retval = f(*args, **kwargs)
+
+            else:
                 # input message
                 def get_input_message(ns):
                     _in_message = kparams.get('_in_message', f.func_name)
@@ -124,13 +129,11 @@ def rpc(*params, **kparams):
                     _out_header.resolve_namespace(_out_header, ns)
 
                 doc = getattr(f, '__doc__')
-                descriptor = MethodDescriptor(f.func_name, _public_name,
+                retval = MethodDescriptor(f.func_name, _public_name,
                         in_message, out_message, doc, _is_callback, _is_async,
                         _mtom, _in_header, _out_header)
 
-                return descriptor
-
-            return f(*args, **kwargs)
+            return retval
 
         explain_method.__doc__ = f.__doc__
         explain_method._is_rpc = True
