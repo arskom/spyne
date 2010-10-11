@@ -18,6 +18,8 @@
 #
 
 import logging
+import warnings
+
 logger = logging.getLogger("soaplib._base")
 
 import shutil
@@ -434,7 +436,9 @@ class Application(object):
         Not meant to be overridden.
         """
 
-        assert ns != "__main__"
+        if ns == "__main__":
+            warnings.warn("Namespace is '__main__'", Warning )
+
         assert ns != "soaplib.type.base"
 
         assert (isinstance(ns, str) or isinstance(ns, unicode)), ns
