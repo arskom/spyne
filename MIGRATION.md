@@ -4,7 +4,7 @@ From 1.0
 
 - Go to your source dirs and run the following commands, by replacing `.svn` with your preferred scm metadata dir:
       egrep -r 'soaplib.serializers' --exclude-dir=.svn . -l | xargs -n1 sed -i 's/soaplib.serializers/soaplib.type/g'
-      egrep -r 'soaplib.wsgi' --exclude-dir=.svn . -l | xargs -n1 sed -i 's/soaplib.wsgi/soaplib.pattern.server.wsgi/g'
+      egrep -r 'soaplib.wsgi' --exclude-dir=.svn . -l | xargs -n1 sed -i 's/soaplib.wsgi/soaplib.server.wsgi/g'
 
 From 0.8
 ========
