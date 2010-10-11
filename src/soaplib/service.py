@@ -29,6 +29,65 @@ from soaplib.type.clazz import TypeInfo
 
 _pref_wsa = soaplib.const_prefmap[soaplib.ns_wsa]
 
+def _produce_input_message(ns, f, params, kparams):
+    _in_message = kparams.get('_in_message', f.func_name)
+    _in_variable_names = kparams.get('_in_variable_names', {})
+
+    arg_count = f.func_code.co_argcount
+    param_names = f.func_code.co_varnames[1:arg_count]
+
+    try:
+        in_params = TypeInfo()
+
+        for i in range(len(params)):
+            e0 = _in_variable_names.get(param_names[i], param_names[i])
+            e1 = params[i]
+
+            in_params[e0] = e1
+
+    except IndexError, e:
+        raise Exception("%s has parameter numbers mismatching" % f.func_name)
+
+    message=Message.produce(type_name=_in_message, namespace=ns,
+                                            members=in_params)
+    message.__namespace__ = ns
+    message.resolve_namespace(message, ns)
+    return message
+
+def _produce_output_message(ns, f, params, kparams):
+    _returns = kparams.get('_returns')
+
+    _out_message = kparams.get('_out_message', '%sResponse' % f.func_name)
+
+    kparams.get('_out_variable_name')
+    out_params = TypeInfo()
+
+    if _returns:
+        if isinstance(_returns, (list, tuple)):
+            default_names = ['%sResult%d' % (f.func_name, i) for i in
+                                                           range(len(_returns))]
+
+            _out_variable_names = kparams.get('_out_variable_names',
+                                                                default_names)
+
+            assert (len(_returns) == len(_out_variable_names))
+
+            var_pair = zip(_out_variable_names,_returns)
+            out_params = TypeInfo(var_pair)
+
+        else:
+            _out_variable_name = kparams.get('_out_variable_name',
+                                                       '%sResult' % f.func_name)
+
+            out_params[_out_variable_name] = _returns
+
+    message=Message.produce(type_name=_out_message, namespace=ns,
+                                                             members=out_params)
+    message.__namespace__ = ns
+    message.resolve_namespace(message, ns)
+
+    return message
+
 def rpc(*params, **kparams):
     '''
     This is a method decorator to flag a method as a remote procedure call.  It
@@ -47,68 +106,6 @@ def rpc(*params, **kparams):
                 retval = f(*args, **kwargs)
 
             else:
-                # input message
-                def get_input_message(ns):
-                    _in_message = kparams.get('_in_message', f.func_name)
-                    _in_variable_names = kparams.get('_in_variable_names', {})
-
-                    arg_count = f.func_code.co_argcount
-                    param_names = f.func_code.co_varnames[1:arg_count]
-
-                    try:
-                        in_params = TypeInfo()
-
-                        for i in range(len(params)):
-                            e0 = _in_variable_names.get(param_names[i],
-                                                                 param_names[i])
-                            e1 = params[i]
-
-                            in_params[e0] = e1
-
-                    except IndexError, e:
-                        raise Exception("%s has parameter numbers mismatching" %
-                                                                    f.func_name)
-
-                    message=Message.produce(type_name=_in_message, namespace=ns,
-                                                            members=in_params)
-                    message.__namespace__ = ns
-                    message.resolve_namespace(message, ns)
-                    return message
-
-                def get_output_message(ns):
-                    _returns = kparams.get('_returns')
-
-                    _out_message = kparams.get('_out_message', '%sResponse' %
-                                                                    f.func_name)
-
-                    kparams.get('_out_variable_name')
-                    out_params = TypeInfo()
-
-                    if _returns:
-                        if isinstance(_returns, (list, tuple)):
-                            default_names = ['%sResult%d' % (f.func_name, i)
-                                                  for i in range(len(_returns))]
-
-                            _out_variable_names = kparams.get(
-                                        '_out_variable_names', default_names)
-
-                            assert (len(_returns) == len(_out_variable_names))
-
-                            var_pair = zip(_out_variable_names,_returns)
-                            out_params = TypeInfo(var_pair)
-
-                        else:
-                            _out_variable_name = kparams.get(
-                                 '_out_variable_name', '%sResult' % f.func_name)
-
-                            out_params[_out_variable_name] = _returns
-
-                    message=Message.produce(type_name=_out_message,namespace=ns,
-                                                             members=out_params)
-                    message.__namespace__ = ns
-                    message.resolve_namespace(message, ns)
-                    return message
-
                 _is_callback = kparams.get('_is_callback', False)
                 _public_name = kparams.get('_public_name', f.func_name)
                 _is_async = kparams.get('_is_async', False)
@@ -120,8 +117,8 @@ def rpc(*params, **kparams):
                 # class and needs to be passed in
                 ns = kwargs['clazz'].get_tns()
 
-                in_message = get_input_message(ns)
-                out_message = get_output_message(ns)
+                in_message = _produce_input_message(ns, f, params, kparams)
+                out_message = _produce_output_message(ns, f, params, kparams)
 
                 if not (_in_header is None):
                     _in_header.resolve_namespace(_in_header, ns)
