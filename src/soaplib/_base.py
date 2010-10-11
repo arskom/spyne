@@ -46,11 +46,12 @@ class _SchemaInfo(object):
         self.types = odict()
 
 class _SchemaEntries(object):
-    def __init__(self, tns, app):
+    def __init__(self, app):
         self.namespaces = odict()
         self.imports = {}
-        self.tns = tns
+        self.tns = app.get_tns()
         self.app = app
+        self.__classes = {}
 
     def has_class(self, cls):
         retval = False
@@ -124,9 +125,23 @@ class _SchemaEntries(object):
         schema_info.types[cls.get_type_name()] = node
 
     def add_complex_type(self, cls, node):
+        ns = cls.get_namespace()
+        tn = cls.get_type_name()
+        pref = cls.get_namespace_prefix(self.app)
+
         self.__check_imports(cls, node)
-        schema_info = self.get_schema_info(cls.get_namespace_prefix(self.app))
-        schema_info.types[cls.get_type_name()] = node
+        schema_info = self.get_schema_info(pref)
+        schema_info.types[tn] = node
+
+        self.__classes['{%s}%s' % (ns,tn)] = cls
+        if ns == self.app.get_tns():
+            self.__classes[tn] = cls
+
+    def get_class(self, key):
+        return self.__classes[key]
+
+    def get_class_instance(self, key):
+        return self.__classes[key]()
 
 class MethodContext(object):
     def __init__(self):
@@ -570,7 +585,7 @@ class Application(object):
                         self.call_routes[method.name] = s
 
         # populate types
-        schema_entries = _SchemaEntries(self.get_tns(), self)
+        schema_entries = _SchemaEntries(self)
         for s in self.services:
             inst = self.get_service(s)
             schema_entries = inst.add_schema(schema_entries)
