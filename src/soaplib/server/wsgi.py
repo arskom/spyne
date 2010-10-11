@@ -129,10 +129,9 @@ class Application(soaplib.Application):
             'Content-Length': '0',
         }
         return_code = HTTP_200
-        method_name = None
 
         # implementation hook
-        self.on_call(req_env)
+        self.on_wsgi_call(req_env)
 
         http_payload, charset = _reconstruct_soap_request(req_env)
 
@@ -156,7 +155,7 @@ class Application(soaplib.Application):
                                                        encoding=string_encoding)
 
             # implementation hook
-            self.on_return(req_env, http_resp_headers, envelope_str)
+            self.on_wsgi_return(req_env, http_resp_headers, envelope_str)
 
             if ctx.descriptor.mtom:
                 http_resp_headers, envelope_str = apply_mtom(http_resp_headers,
@@ -169,7 +168,7 @@ class Application(soaplib.Application):
 
         return [envelope_str]
 
-    def on_call(self, environ):
+    def on_wsgi_call(self, environ):
         '''This is the first method called when this WSGI app is invoked.
 
         @param the wsgi environment
@@ -193,7 +192,7 @@ class Application(soaplib.Application):
         '''
         pass
 
-    def on_return(self, environ, http_headers, return_str):
+    def on_wsgi_return(self, environ, http_headers, return_str):
         '''Called before the application returns.
 
         @param the wsgi environment

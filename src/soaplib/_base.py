@@ -341,6 +341,7 @@ class Application(object):
         if isinstance(retval, Fault):
             ctx.service.on_method_exception_object(retval)
             self.on_exception_object(retval)
+
         else:
             ctx.service.on_method_return_object(retval)
 
