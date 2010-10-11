@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""A soap server that uses http as transport, and wsgi as bridge protocol"""
+
 from lxml import etree
 
 import logging
