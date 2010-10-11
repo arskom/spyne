@@ -316,7 +316,7 @@ class Application(object):
         """
 
         # implementation hook
-        ctx.service.on_method_call(ctx.method_name,ctx.params,ctx.in_body_xml)
+        ctx.service.on_method_call(ctx.method_name,req_obj,ctx.in_body_xml)
 
         try:
             # retrieve the method
