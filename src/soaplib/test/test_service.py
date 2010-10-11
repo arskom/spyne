@@ -30,7 +30,7 @@ from soaplib.type.primitive import Integer
 from soaplib.type.primitive import String
 
 from soaplib import service
-from soaplib.pattern.server import wsgi
+from soaplib.server import wsgi
 from soaplib.service import rpc
 
 class Address(ClassSerializer):
