@@ -281,7 +281,7 @@ class Application(object):
         if not (body is None):
             try:
                 self.validate(body)
-                if not (body is None):
+                if (not (body is None)) and (ctx.method_name is None):
                     ctx.method_name = body.tag
                     logger.debug("\033[92mMethod name: %r\033[0m" % ctx.method_name)
 
@@ -292,12 +292,18 @@ class Application(object):
                     try:
                         logger.debug(etree.tostring(
                            etree.fromstring(envelope_string),pretty_print=True))
-                    except etree.XMLSyntaxError,e:
+                    except etree.XMLSyntaxError, e:
                         logger.debug(body)
                         raise Fault('Client.XMLSyntax', 'Error at line: %d, '
                                     'col: %d' % e.position)
+        try:
+            if ctx.service_class is None: # i.e. if it's a server
+                ctx.service_class = self.get_service_class(ctx.method_name)
 
-        ctx.service_class = self.get_service_class(ctx.method_name)
+        except Exception,e:
+            logger.debug(traceback.format_exc())
+            raise ValidationError('Client', 'Method not found: %r' % ctx.method_name)
+
         ctx.service = self.get_service(ctx.service_class)
 
         ctx.in_header_xml = header
@@ -321,7 +327,12 @@ class Application(object):
         if ctx.method_name is None:
             raise Exception("Could not extract method name from the request!")
         else:
-            descriptor = ctx.descriptor = ctx.service.get_method(ctx.method_name)
+            if ctx.descriptor is None:
+                descriptor = ctx.descriptor = ctx.service.get_method(
+                                                                ctx.method_name)
+            else:
+                descriptor = ctx.descriptor
+
         if wrapper is Application.IN_WRAPPER:
             in_header_message_class = descriptor.in_header
             in_body_message_class = descriptor.in_message
