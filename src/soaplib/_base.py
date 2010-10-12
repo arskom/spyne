@@ -184,6 +184,9 @@ def from_soap(xml_string, charset):
     '''
 
     try:
+        if charset is None: # hack
+            raise ValueError(charset)
+
         root, xmlids = etree.XMLID(xml_string.decode(charset))
     except ValueError,e:
         logger.debug('%s -- falling back to str decoding.' % (e))
