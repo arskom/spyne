@@ -37,7 +37,7 @@ class TestSoaplibClient(unittest.TestCase):
         self.assertEquals(val,ret)
 
     def test_echo_simple_boolean_array(self):
-        val = [True, False, False, True]
+        val = [False, False, False, True]
         ret = self.client.service.echo_simple_boolean_array(val)
 
         assert val == ret
