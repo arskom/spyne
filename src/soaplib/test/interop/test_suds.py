@@ -34,6 +34,12 @@ class TestSuds(unittest.TestCase):
 
         assert val == ret
 
+    def test_echo_boolean(self):
+        val = True
+        ret = self.client.service.echo_boolean(val)
+
+        self.assertEquals(val,ret)
+
     def test_enum(self):
         DaysOfWeekEnum = self.client.factory.create("DaysOfWeekEnum")
 

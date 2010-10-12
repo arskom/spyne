@@ -30,6 +30,12 @@ class TestSoaplibClient(unittest.TestCase):
         self.client = Client('http://localhost:9753/', application)
         self.ns = "soaplib.test.interop.server._service"
 
+    def test_echo_boolean(self):
+        val = True
+        ret = self.client.service.echo_boolean(val)
+
+        self.assertEquals(val,ret)
+
     def test_echo_simple_boolean_array(self):
         val = [True, False, False, True]
         ret = self.client.service.echo_simple_boolean_array(val)
