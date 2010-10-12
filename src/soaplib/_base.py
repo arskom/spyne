@@ -51,7 +51,7 @@ class _SchemaEntries(object):
         self.imports = {}
         self.tns = app.get_tns()
         self.app = app
-        self.__classes = {}
+        self.classes = {}
 
     def has_class(self, cls):
         retval = False
@@ -133,15 +133,15 @@ class _SchemaEntries(object):
         schema_info = self.get_schema_info(pref)
         schema_info.types[tn] = node
 
-        self.__classes['{%s}%s' % (ns,tn)] = cls
+        self.classes['{%s}%s' % (ns,tn)] = cls
         if ns == self.app.get_tns():
-            self.__classes[tn] = cls
+            self.classes[tn] = cls
 
     def get_class(self, key):
-        return self.__classes[key]
+        return self.classes[key]
 
     def get_class_instance(self, key):
-        return self.__classes[key]()
+        return self.classes[key]()
 
 class MethodContext(object):
     def __init__(self):
@@ -256,6 +256,7 @@ class Application(object):
         self.call_routes = {}
         self.__wsdl = None
         self.__public_methods = {}
+        self.__classes = {}
         self.schema = None
 
         self.__ns_counter = 0
@@ -588,9 +589,11 @@ class Application(object):
         schema_entries = _SchemaEntries(self)
         for s in self.services:
             inst = self.get_service(s)
-            schema_entries = inst.add_schema(schema_entries)
+            inst.add_schema(schema_entries)
 
         schema_nodes = self.__build_schema_nodes(schema_entries, types)
+
+        self.__classes = schema_entries.classes
 
         return schema_nodes
 

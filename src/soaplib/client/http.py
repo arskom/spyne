@@ -25,24 +25,26 @@ class _Factory(object):
     def __init__(self, app):
         self.__app = app
 
-    def create(object_name):
-        return
+    def create(self, object_name):
+        return self.__app
 
 class _Service(object):
-    def __init__(self, app):
+    def __init__(self, url, app):
         self.__app = app
+        self.__url = url
 
     def __getattr__(self, key):
-        return
+        return _RemoteProcedureCall(self.__url, key)
 
 class _RemoteProcedureCall(object):
-    def __init__(self, name):
+    def __init__(self, url, name):
         self.name = name
+        self.url = url
 
     def __call__(self, *args, **kwargs):
         request_str = "" # TODO: fill this using args and kwargs
 
-        request = urllib2.Request('http://localhost:8888/log/', request_str)
+        request = urllib2.Request(self.url, request_str)
         response = urllib2.urlopen(request)
 
         response_str = response.read()
@@ -50,6 +52,6 @@ class _RemoteProcedureCall(object):
         return "punk" # TODO: return the above serialized
 
 class Client(object):
-    def __init__(self, app):
-        self.service = _Service(app)
+    def __init__(self, url, app):
+        self.service = _Service(url, app)
         self.factory = _Factory(app)

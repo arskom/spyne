@@ -411,8 +411,6 @@ class DefinitionBase(object):
             else:
                 method.out_header.add_to_schema(schema_entries)
 
-        return schema_entries
-
     def __add_message_for_object(self, app, root, messages, obj):
         if obj != None and not (obj.get_type_name() in messages):
             messages.add(obj.get_type_name())

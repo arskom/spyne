@@ -244,7 +244,8 @@ class ClassSerializerBase(Base):
                                           "{%s}complexContent" % soaplib.ns_xsd)
                 extension = etree.SubElement(complex_content, "{%s}extension"
                                                                % soaplib.ns_xsd)
-                extension.set('base', cls.__extends__.get_type_name_ns(schema_entries.app))
+                extension.set('base', cls.__extends__.get_type_name_ns(
+                                                            schema_entries.app))
                 sequence_parent = extension
 
             sequence = etree.SubElement(sequence_parent, '{%s}sequence' %
