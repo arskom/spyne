@@ -247,6 +247,11 @@ def resolve_hrefs(element, xmlids):
 class Application(object):
     transport = None
 
+    class IN_WRAPPER:
+        pass
+    class OUT_WRAPPER:
+        pass
+
     def __init__(self, services, tns, name=None, _with_partnerlink=False):
         '''
         @param A ServiceBase subclass that defines the exposed services.
@@ -298,7 +303,7 @@ class Application(object):
         ctx.in_header_xml = header
         ctx.in_body_xml = body
 
-    def deserialize_soap(self, ctx, envelope_string, charset=None):
+    def deserialize_soap(self, ctx, envelope_string, wrapper, charset=None):
         """Takes a MethodContext instance and a string containing ONE soap
         message.
         Returns the corresponding native python object
@@ -306,6 +311,7 @@ class Application(object):
         Not meant to be overridden.
         """
 
+        assert wrapper in (Application.IN_WRAPPER, Application.OUT_WRAPPER)
         try:
             self.__decompose_incoming_envelope(ctx, envelope_string, charset)
         except ValidationError, e:
@@ -316,19 +322,25 @@ class Application(object):
             raise Exception("Could not extract method name from the request!")
         else:
             descriptor = ctx.descriptor = ctx.service.get_method(ctx.method_name)
+        if wrapper is Application.IN_WRAPPER:
+            in_header_message_class = descriptor.in_header
+            in_body_message_class = descriptor.in_message
+        else:
+            in_header_message_class = descriptor.out_header
+            in_body_message_class = descriptor.out_message
 
         # decode header object
         if ctx.in_header_xml is not None and len(ctx.in_header_xml) > 0:
-            in_header = descriptor.in_header
-            ctx.service.in_header = in_header.from_xml(ctx.in_header_xml)
+            ctx.service.in_header = in_header_message_class.from_xml(
+                                                              ctx.in_header_xml)
 
         # decode method arguments
         if ctx.in_body_xml is not None and len(ctx.in_body_xml) > 0:
-            params = descriptor.in_message.from_xml(ctx.in_body_xml)
+            in_body = in_body_message_class.from_xml(ctx.in_body_xml)
         else:
-            params = [None] * len(descriptor.in_message._type_info)
+            in_body = [None] * len(in_body_message_class._type_info)
 
-        return params
+        return in_body
 
     def process_request(self, ctx, req_obj):
         """Takes a MethodContext instance and the native request object.
@@ -369,13 +381,15 @@ class Application(object):
 
         return retval
 
-    def serialize_soap(self, ctx, native_obj):
+    def serialize_soap(self, ctx, native_obj, wrapper):
         """Takes a MethodContext instance and the object to be serialied.
         Returns the corresponding xml structure as an lxml.etree._Element
         instance.
 
         Not meant to be overridden.
         """
+
+        assert wrapper in (Application.IN_WRAPPER, Application.OUT_WRAPPER)
 
         # construct the soap response, and serialize it
         envelope = etree.Element('{%s}Envelope' % soaplib.ns_soap_env,
@@ -420,23 +434,27 @@ class Application(object):
                                                '{%s}Body' % soaplib.ns_soap_env)
 
             # instantiate the result message
-            result_message = ctx.descriptor.out_message()
+            if wrapper is Application.IN_WRAPPER:
+                result_message_class = ctx.descriptor.in_message
+            else:
+                result_message_class = ctx.descriptor.out_message
+            result_message = result_message_class()
 
             # assign raw result to its wrapper, result_message
-            out_type_info = ctx.descriptor.out_message._type_info
+            out_type_info = result_message_class._type_info
 
             if len(out_type_info) > 0:
                  if len(out_type_info) == 1:
-                     attr_name = ctx.descriptor.out_message._type_info.keys()[0]
+                     attr_name = result_message_class._type_info.keys()[0]
                      setattr(result_message, attr_name, native_obj)
 
                  else:
                      for i in range(len(out_type_info)):
-                         attr_name = ctx.descriptor.out_message._type_info.keys()[i]
+                         attr_name = result_message_class._type_info.keys()[i]
                          setattr(result_message, attr_name, native_obj[i])
 
             # transform the results into an element
-            ctx.descriptor.out_message.to_xml(
+            result_message_class.to_xml(
                                   result_message, self.get_tns(), out_body_xml)
 
             if logger.level == logging.DEBUG:
