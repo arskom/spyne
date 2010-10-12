@@ -280,7 +280,7 @@ class Application(object):
 
         if not (body is None):
             try:
-                self.validate_request(body)
+                self.validate(body)
                 if not (body is None):
                     ctx.method_name = body.tag
                     logger.debug("\033[92mMethod name: %r\033[0m" % ctx.method_name)
@@ -796,7 +796,7 @@ class Application(object):
 
         return retval
 
-    def validate_request(self, payload):
+    def validate(self, payload):
         """Method to be overriden to perform any sort of custom input
         validation.
         """
@@ -851,7 +851,7 @@ class ValidatingApplication(Application):
 
         return self.schema
 
-    def validate_request(self, payload):
+    def validate(self, payload):
         schema = self.schema
         ret = schema.validate(payload)
 
