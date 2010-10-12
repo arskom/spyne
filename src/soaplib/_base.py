@@ -275,7 +275,7 @@ class Application(object):
 
         self.build_schema()
 
-    def __decompose_incoming_envelope(self, ctx, envelope_string, charset):
+    def decompose_incoming_envelope(self, ctx, envelope_string, charset=None):
         header, body = from_soap(envelope_string, charset)
 
         if not (body is None):
@@ -313,7 +313,7 @@ class Application(object):
 
         assert wrapper in (Application.IN_WRAPPER, Application.OUT_WRAPPER)
         try:
-            self.__decompose_incoming_envelope(ctx, envelope_string, charset)
+            self.decompose_incoming_envelope(ctx, envelope_string, charset)
         except ValidationError, e:
             return e
 
