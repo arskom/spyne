@@ -53,8 +53,7 @@ class _RemoteProcedureCall(object):
         self.ctx.descriptor = self.ctx.service.get_method(self.ctx.method_name)
 
     def __call__(self, *args, **kwargs):
-        request_wrapper_class = self.ctx.descriptor.in_message
-        request_raw_class = request_wrapper_class #._type_info[0]
+        request_raw_class = self.ctx.descriptor.in_message
         request_type_info = request_raw_class._type_info
         request_raw = request_raw_class()
 
