@@ -419,14 +419,15 @@ class Application(object):
             result_message = ctx.descriptor.out_message()
 
             # assign raw result to its wrapper, result_message
-            out_type = ctx.descriptor.out_message._type_info
+            out_type_info = ctx.descriptor.out_message._type_info
 
-            if len(out_type) > 0:
-                 if len(out_type) == 1:
+            if len(out_type_info) > 0:
+                 if len(out_type_info) == 1:
                      attr_name = ctx.descriptor.out_message._type_info.keys()[0]
                      setattr(result_message, attr_name, native_obj)
+
                  else:
-                     for i in range(len(out_type)):
+                     for i in range(len(out_type_info)):
                          attr_name = ctx.descriptor.out_message._type_info.keys()[i]
                          setattr(result_message, attr_name, native_obj[i])
 
