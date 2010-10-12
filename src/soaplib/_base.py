@@ -334,22 +334,21 @@ class Application(object):
                 descriptor = ctx.descriptor
 
         if wrapper is Application.IN_WRAPPER:
-            in_header_message_class = descriptor.in_header
-            in_body_message_class = descriptor.in_message
+            header_class = descriptor.in_header
+            body_class = descriptor.in_message
         else:
-            in_header_message_class = descriptor.out_header
-            in_body_message_class = descriptor.out_message
+            header_class = descriptor.out_header
+            body_class = descriptor.out_message
 
         # decode header object
         if ctx.in_header_xml is not None and len(ctx.in_header_xml) > 0:
-            ctx.service.in_header = in_header_message_class.from_xml(
-                                                              ctx.in_header_xml)
+            ctx.service.in_header = header_class.from_xml(ctx.in_header_xml)
 
         # decode method arguments
         if ctx.in_body_xml is not None and len(ctx.in_body_xml) > 0:
-            in_body = in_body_message_class.from_xml(ctx.in_body_xml)
+            in_body = body_class.from_xml(ctx.in_body_xml)
         else:
-            in_body = [None] * len(in_body_message_class._type_info)
+            in_body = [None] * len(body_class._type_info)
 
         return in_body
 
