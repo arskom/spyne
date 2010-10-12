@@ -155,6 +155,7 @@ class MethodContext(object):
         self.out_body_xml = None
 
         self.method_name = None
+        self.descriptor = None
         
 class MethodDescriptor(object):
     '''
