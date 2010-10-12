@@ -283,7 +283,8 @@ class Application(object):
                 self.validate(body)
                 if (not (body is None)) and (ctx.method_name is None):
                     ctx.method_name = body.tag
-                    logger.debug("\033[92mMethod name: %r\033[0m" % ctx.method_name)
+                    logger.debug("\033[92mMethod name: %r\033[0m" %
+                                                                ctx.method_name)
 
             finally:
                 # for performance reasons, we don't want the following to run
@@ -302,7 +303,8 @@ class Application(object):
 
         except Exception,e:
             logger.debug(traceback.format_exc())
-            raise ValidationError('Client', 'Method not found: %r' % ctx.method_name)
+            raise ValidationError('Client', 'Method not found: %r' %
+                                                                ctx.method_name)
 
         ctx.service = self.get_service(ctx.service_class)
 
