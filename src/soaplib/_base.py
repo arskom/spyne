@@ -270,7 +270,6 @@ class Application(object):
         self.__wsdl = None
         self.__public_methods = {}
         self.__classes = {}
-        self.schema = None
 
         self.__ns_counter = 0
 
