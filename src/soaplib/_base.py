@@ -249,6 +249,8 @@ def resolve_hrefs(element, xmlids):
 class Application(object):
     transport = None
 
+    class NO_WRAPPER:
+        pass
     class IN_WRAPPER:
         pass
     class OUT_WRAPPER:
@@ -409,7 +411,8 @@ class Application(object):
         Not meant to be overridden.
         """
 
-        assert wrapper in (Application.IN_WRAPPER, Application.OUT_WRAPPER)
+        assert wrapper in (Application.IN_WRAPPER, Application.OUT_WRAPPER,
+                                                 Application.NO_WRAPPER),wrapper
 
         # construct the soap response, and serialize it
         envelope = etree.Element('{%s}Envelope' % soaplib.ns_soap_env,
@@ -454,24 +457,30 @@ class Application(object):
                                                '{%s}Body' % soaplib.ns_soap_env)
 
             # instantiate the result message
-            if wrapper is Application.IN_WRAPPER:
-                result_message_class = ctx.descriptor.in_message
+            if wrapper is Application.NO_WRAPPER:
+                result_message_class = native_obj.__class__
+                result_message = native_obj
+
             else:
-                result_message_class = ctx.descriptor.out_message
-            result_message = result_message_class()
+                if wrapper is Application.IN_WRAPPER:
+                    result_message_class = ctx.descriptor.in_message
+                elif wrapper is Application.OUT_WRAPPER:
+                    result_message_class = ctx.descriptor.out_message
 
-            # assign raw result to its wrapper, result_message
-            out_type_info = result_message_class._type_info
+                result_message = result_message_class()
 
-            if len(out_type_info) > 0:
-                 if len(out_type_info) == 1:
-                     attr_name = result_message_class._type_info.keys()[0]
-                     setattr(result_message, attr_name, native_obj)
+                # assign raw result to its wrapper, result_message
+                out_type_info = result_message_class._type_info
 
-                 else:
-                     for i in range(len(out_type_info)):
-                         attr_name = result_message_class._type_info.keys()[i]
-                         setattr(result_message, attr_name, native_obj[i])
+                if len(out_type_info) > 0:
+                     if len(out_type_info) == 1:
+                         attr_name = result_message_class._type_info.keys()[0]
+                         setattr(result_message, attr_name, native_obj)
+
+                     else:
+                         for i in range(len(out_type_info)):
+                             attr_name=result_message_class._type_info.keys()[i]
+                             setattr(result_message, attr_name, native_obj[i])
 
             # transform the results into an element
             result_message_class.to_xml(
