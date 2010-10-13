@@ -18,9 +18,9 @@
 #
 
 import logging
-import warnings
-
 logger = logging.getLogger("soaplib._base")
+
+import warnings
 
 import shutil
 import tempfile
