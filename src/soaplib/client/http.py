@@ -68,7 +68,7 @@ class _RemoteProcedureCall(object):
                 setattr(request_raw, k, kwargs[k])
 
         request_xml = self.app.serialize_soap(self.ctx, request_raw,
-                                                            self.app.IN_WRAPPER)
+                                                            self.app.NO_WRAPPER)
         request_str = etree.tostring(request_xml,
             xml_declaration=True,
             encoding=string_encoding
