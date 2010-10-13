@@ -120,9 +120,17 @@ class _SchemaEntries(object):
         schema_info.elements[cls.get_type_name()] = node
 
     def add_simple_type(self, cls, node):
+        ns = cls.get_namespace()
+        tn = cls.get_type_name()
+        pref = cls.get_namespace_prefix(self.app)
+
         self.__check_imports(cls, node)
-        schema_info = self.get_schema_info(cls.get_namespace_prefix(self.app))
-        schema_info.types[cls.get_type_name()] = node
+        schema_info = self.get_schema_info(pref)
+        schema_info.types[tn] = node
+
+        self.classes['{%s}%s' % (ns,tn)] = cls
+        if ns == self.app.get_tns():
+            self.classes[tn] = cls
 
     def add_complex_type(self, cls, node):
         ns = cls.get_namespace()
