@@ -244,7 +244,8 @@ class ClassSerializerBase(Base):
                                           "{%s}complexContent" % soaplib.ns_xsd)
                 extension = etree.SubElement(complex_content, "{%s}extension"
                                                                % soaplib.ns_xsd)
-                extension.set('base', cls.__extends__.get_type_name_ns(schema_entries.app))
+                extension.set('base', cls.__extends__.get_type_name_ns(
+                                                            schema_entries.app))
                 sequence_parent = extension
 
             sequence = etree.SubElement(sequence_parent, '{%s}sequence' %
@@ -307,8 +308,8 @@ class Array(ClassSerializer):
         retval = cls.customize(**kwargs)
 
         # hack to default to unbounded arrays when the user didn't specify
-        # max_occurs.
-        if serializer.Attributes.max_occurs == 1: #FIXME: we should find a better way.
+        # max_occurs. We should find a better way.
+        if serializer.Attributes.max_occurs == 1:
             serializer = serializer.customize(max_occurs='unbounded')
 
         if serializer.get_type_name() is Base.Empty:

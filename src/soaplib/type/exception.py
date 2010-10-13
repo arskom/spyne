@@ -34,6 +34,9 @@ class Fault(Exception, Base):
         self.faultactor = faultactor
         self.detail = detail
 
+    def __repr__(self):
+        return "%s: %r" % (self.faultcode, self.faultstring)
+
     @classmethod
     def to_xml(cls, value, tns, parent_elt, name=None):
         if name is None:

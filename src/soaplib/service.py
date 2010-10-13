@@ -242,9 +242,7 @@ class DefinitionBase(object):
         return public_methods
 
     def get_method(self, name):
-        '''
-        Returns the metod descriptor based on element name or soap action
-        '''
+        '''Returns the metod descriptor based on element name or soap action.'''
 
         for method in self.public_methods:
             type_name = method.in_message.get_type_name()
@@ -258,7 +256,7 @@ class DefinitionBase(object):
         raise Exception('Method "%s" not found' % name)
 
     def _has_callbacks(self):
-        '''Determines if this object has callback methods or not'''
+        '''Determines if this object has callback methods or not.'''
 
         for method in self.public_methods:
             if method.is_callback:
@@ -270,10 +268,9 @@ class DefinitionBase(object):
         return []
 
     def get_service_names(self):
-        '''
-        Returns the service name(s) for this service. If this
+        '''Returns the service name(s) for this service. If this
         object has callbacks, then a second service is declared in
-        the wsdl for those callbacks
+        the wsdl for those callbacks.
         '''
 
         service_name = self.__class__.__name__.split('.')[-1]
@@ -410,8 +407,6 @@ class DefinitionBase(object):
                 method.out_header = self.__out_header__
             else:
                 method.out_header.add_to_schema(schema_entries)
-
-        return schema_entries
 
     def __add_message_for_object(self, app, root, messages, obj):
         if obj != None and not (obj.get_type_name() in messages):

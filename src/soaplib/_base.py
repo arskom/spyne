@@ -18,9 +18,9 @@
 #
 
 import logging
-import warnings
-
 logger = logging.getLogger("soaplib._base")
+
+import warnings
 
 import shutil
 import tempfile
@@ -51,7 +51,7 @@ class _SchemaEntries(object):
         self.imports = {}
         self.tns = app.get_tns()
         self.app = app
-        self.__classes = {}
+        self.classes = {}
 
     def has_class(self, cls):
         retval = False
@@ -120,9 +120,17 @@ class _SchemaEntries(object):
         schema_info.elements[cls.get_type_name()] = node
 
     def add_simple_type(self, cls, node):
+        ns = cls.get_namespace()
+        tn = cls.get_type_name()
+        pref = cls.get_namespace_prefix(self.app)
+
         self.__check_imports(cls, node)
-        schema_info = self.get_schema_info(cls.get_namespace_prefix(self.app))
-        schema_info.types[cls.get_type_name()] = node
+        schema_info = self.get_schema_info(pref)
+        schema_info.types[tn] = node
+
+        self.classes['{%s}%s' % (ns,tn)] = cls
+        if ns == self.app.get_tns():
+            self.classes[tn] = cls
 
     def add_complex_type(self, cls, node):
         ns = cls.get_namespace()
@@ -133,15 +141,9 @@ class _SchemaEntries(object):
         schema_info = self.get_schema_info(pref)
         schema_info.types[tn] = node
 
-        self.__classes['{%s}%s' % (ns,tn)] = cls
+        self.classes['{%s}%s' % (ns,tn)] = cls
         if ns == self.app.get_tns():
-            self.__classes[tn] = cls
-
-    def get_class(self, key):
-        return self.__classes[key]
-
-    def get_class_instance(self, key):
-        return self.__classes[key]()
+            self.classes[tn] = cls
 
 class MethodContext(object):
     def __init__(self):
@@ -155,6 +157,7 @@ class MethodContext(object):
         self.out_body_xml = None
 
         self.method_name = None
+        self.descriptor = None
         
 class MethodDescriptor(object):
     '''
@@ -183,6 +186,9 @@ def from_soap(xml_string, charset):
     '''
 
     try:
+        if charset is None: # hack
+            raise ValueError(charset)
+
         root, xmlids = etree.XMLID(xml_string.decode(charset))
     except ValueError,e:
         logger.debug('%s -- falling back to str decoding.' % (e))
@@ -243,6 +249,13 @@ def resolve_hrefs(element, xmlids):
 class Application(object):
     transport = None
 
+    class NO_WRAPPER:
+        pass
+    class IN_WRAPPER:
+        pass
+    class OUT_WRAPPER:
+        pass
+
     def __init__(self, services, tns, name=None, _with_partnerlink=False):
         '''
         @param A ServiceBase subclass that defines the exposed services.
@@ -256,6 +269,7 @@ class Application(object):
         self.call_routes = {}
         self.__wsdl = None
         self.__public_methods = {}
+        self.__classes = {}
         self.schema = None
 
         self.__ns_counter = 0
@@ -265,15 +279,28 @@ class Application(object):
 
         self.schema =  self.build_schema()
 
-    def __decompose_incoming_envelope(self, ctx, envelope_string, charset):
+    def get_class(self, key):
+        return self.__classes[key]
+
+    def get_class_instance(self, key):
+        return self.__classes[key]()
+
+    def decompose_incoming_envelope(self, ctx, envelope_string, charset=None):
         header, body = from_soap(envelope_string, charset)
 
-        if not (body is None):
+        # FIXME: find a way to include soap env schema with soaplib package and
+        # properly and always validate the whole request.
+
+        if len(body) > 0 and body.tag == '{%s}Fault' % soaplib.ns_soap_env:
+            ctx.in_body_xml = body
+
+        elif not (body is None):
             try:
-                self.validate_request(body)
-                if not (body is None):
+                self.validate(body)
+                if (not (body is None)) and (ctx.method_name is None):
                     ctx.method_name = body.tag
-                    logger.debug("\033[92mMethod name: %r\033[0m" % ctx.method_name)
+                    logger.debug("\033[92mMethod name: %r\033[0m" %
+                                                                ctx.method_name)
 
             finally:
                 # for performance reasons, we don't want the following to run
@@ -282,18 +309,25 @@ class Application(object):
                     try:
                         logger.debug(etree.tostring(
                            etree.fromstring(envelope_string),pretty_print=True))
-                    except etree.XMLSyntaxError,e:
+                    except etree.XMLSyntaxError, e:
                         logger.debug(body)
-                        raise Fault('Client.XMLSyntax', 'Error at line: %d, '
+                        raise Fault('Client.Xml', 'Error at line: %d, '
                                     'col: %d' % e.position)
+            try:
+                if ctx.service_class is None: # i.e. if it's a server
+                    ctx.service_class = self.get_service_class(ctx.method_name)
 
-        ctx.service_class = self.get_service_class(ctx.method_name)
-        ctx.service = self.get_service(ctx.service_class)
+            except Exception,e:
+                logger.debug(traceback.format_exc())
+                raise ValidationError('Client', 'Method not found: %r' %
+                                                                ctx.method_name)
 
-        ctx.in_header_xml = header
-        ctx.in_body_xml = body
+            ctx.service = self.get_service(ctx.service_class)
 
-    def deserialize_soap(self, ctx, envelope_string, charset=None):
+            ctx.in_header_xml = header
+            ctx.in_body_xml = body
+
+    def deserialize_soap(self, ctx, envelope_string, wrapper, charset=None):
         """Takes a MethodContext instance and a string containing ONE soap
         message.
         Returns the corresponding native python object
@@ -301,29 +335,46 @@ class Application(object):
         Not meant to be overridden.
         """
 
+        assert wrapper in (Application.IN_WRAPPER,
+                                                Application.OUT_WRAPPER),wrapper
+
         try:
-            self.__decompose_incoming_envelope(ctx, envelope_string, charset)
+            self.decompose_incoming_envelope(ctx, envelope_string, charset)
         except ValidationError, e:
             return e
 
-        # retrieve the method descriptor
-        if ctx.method_name is None:
-            raise Exception("Could not extract method name from the request!")
+        if ctx.in_body_xml.tag == "{%s}Fault" % soaplib.ns_soap_env:
+            in_body = Fault.from_xml(ctx.in_body_xml)
+
         else:
-            descriptor = ctx.descriptor = ctx.service.get_method(ctx.method_name)
+            # retrieve the method descriptor
+            if ctx.method_name is None:
+                raise Exception("Could not extract method name from the request!")
+            else:
+                if ctx.descriptor is None:
+                    descriptor = ctx.descriptor = ctx.service.get_method(
+                                                                    ctx.method_name)
+                else:
+                    descriptor = ctx.descriptor
 
-        # decode header object
-        if ctx.in_header_xml is not None and len(ctx.in_header_xml) > 0:
-            in_header = descriptor.in_header
-            ctx.service.in_header = in_header.from_xml(ctx.in_header_xml)
+            if wrapper is Application.IN_WRAPPER:
+                header_class = descriptor.in_header
+                body_class = descriptor.in_message
+            else:
+                header_class = descriptor.out_header
+                body_class = descriptor.out_message
 
-        # decode method arguments
-        if ctx.in_body_xml is not None and len(ctx.in_body_xml) > 0:
-            params = descriptor.in_message.from_xml(ctx.in_body_xml)
-        else:
-            params = [None] * len(descriptor.in_message._type_info)
+            # decode header object
+            if ctx.in_header_xml is not None and len(ctx.in_header_xml) > 0:
+                ctx.service.in_header = header_class.from_xml(ctx.in_header_xml)
 
-        return params
+            # decode method arguments
+            if ctx.in_body_xml is not None and len(ctx.in_body_xml) > 0:
+                in_body = body_class.from_xml(ctx.in_body_xml)
+            else:
+                in_body = [None] * len(body_class._type_info)
+
+        return in_body
 
     def process_request(self, ctx, req_obj):
         """Takes a MethodContext instance and the native request object.
@@ -364,13 +415,16 @@ class Application(object):
 
         return retval
 
-    def serialize_soap(self, ctx, native_obj):
+    def serialize_soap(self, ctx, native_obj, wrapper):
         """Takes a MethodContext instance and the object to be serialied.
         Returns the corresponding xml structure as an lxml.etree._Element
         instance.
 
         Not meant to be overridden.
         """
+
+        assert wrapper in (Application.IN_WRAPPER, Application.OUT_WRAPPER,
+                                                 Application.NO_WRAPPER),wrapper
 
         # construct the soap response, and serialize it
         envelope = etree.Element('{%s}Envelope' % soaplib.ns_soap_env,
@@ -415,22 +469,33 @@ class Application(object):
                                                '{%s}Body' % soaplib.ns_soap_env)
 
             # instantiate the result message
-            result_message = ctx.descriptor.out_message()
+            if wrapper is Application.NO_WRAPPER:
+                result_message_class = native_obj.__class__
+                result_message = native_obj
 
-            # assign raw result to its wrapper, result_message
-            out_type = ctx.descriptor.out_message._type_info
+            else:
+                if wrapper is Application.IN_WRAPPER:
+                    result_message_class = ctx.descriptor.in_message
+                elif wrapper is Application.OUT_WRAPPER:
+                    result_message_class = ctx.descriptor.out_message
 
-            if len(out_type) > 0:
-                 if len(out_type) == 1:
-                     attr_name = ctx.descriptor.out_message._type_info.keys()[0]
-                     setattr(result_message, attr_name, native_obj)
-                 else:
-                     for i in range(len(out_type)):
-                         attr_name = ctx.descriptor.out_message._type_info.keys()[i]
-                         setattr(result_message, attr_name, native_obj[i])
+                result_message = result_message_class()
+
+                # assign raw result to its wrapper, result_message
+                out_type_info = result_message_class._type_info
+
+                if len(out_type_info) > 0:
+                     if len(out_type_info) == 1:
+                         attr_name = result_message_class._type_info.keys()[0]
+                         setattr(result_message, attr_name, native_obj)
+
+                     else:
+                         for i in range(len(out_type_info)):
+                             attr_name=result_message_class._type_info.keys()[i]
+                             setattr(result_message, attr_name, native_obj[i])
 
             # transform the results into an element
-            ctx.descriptor.out_message.to_xml(
+            result_message_class.to_xml(
                                   result_message, self.get_tns(), out_body_xml)
 
             if logger.level == logging.DEBUG:
@@ -588,9 +653,11 @@ class Application(object):
         schema_entries = _SchemaEntries(self)
         for s in self.services:
             inst = self.get_service(s)
-            schema_entries = inst.add_schema(schema_entries)
+            inst.add_schema(schema_entries)
 
         schema_nodes = self.__build_schema_nodes(schema_entries, types)
+
+        self.__classes = schema_entries.classes
 
         return schema_nodes
 
@@ -770,7 +837,7 @@ class Application(object):
 
         return retval
 
-    def validate_request(self, payload):
+    def validate(self, payload):
         """Method to be overriden to perform any sort of custom input
         validation.
         """
@@ -825,7 +892,7 @@ class ValidatingApplication(Application):
 
         return self.schema
 
-    def validate_request(self, payload):
+    def validate(self, payload):
         schema = self.schema
         ret = schema.validate(payload)
 
