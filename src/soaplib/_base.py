@@ -556,8 +556,6 @@ class Application(object):
             for node in schema_entries.namespaces[pref].types.values():
                 schema.append(node)
 
-
-
         return schema_nodes
 
     def build_schema(self, types=None):
@@ -617,7 +615,6 @@ class Application(object):
 
         Not meant to be overridden.
         """
-#        from pdb import set_trace; set_trace()
         if self.schema is None:
             return self.build_schema()
         else:
