@@ -71,8 +71,13 @@ class TestSoaplibClient(unittest.TestCase):
         try:
             ret = self.client.service.non_nillable(non_nillable_class)
             raise Exception("must fail")
+
         except Fault, e:
-            pass
+            assert e.faultcode=='senv:Client.SchemaValidation'
+            assert e.faultstring == (
+                "<string>:2:0:ERROR:SCHEMASV:SCHEMAV_CVC_DATATYPE_VALID_1_2_1: "
+                "Element '{hunk.sunk}dt': '' is not a valid value of the atomic"
+                " type 'xs:dateTime'.")
 
     def test_echo_in_header(self):
         in_header = self.client.factory.create('InHeader')
@@ -82,8 +87,6 @@ class TestSoaplibClient(unittest.TestCase):
         self.client.set_options(soapheaders=in_header)
         ret = self.client.service.echo_in_header()
         self.client.set_options(soapheaders=None)
-
-        print ret
 
         self.assertEquals(in_header.s, ret.s)
         self.assertEquals(in_header.i, ret.i)
