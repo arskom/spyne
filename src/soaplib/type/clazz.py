@@ -191,7 +191,7 @@ class ClassSerializerBase(Base):
                 clz = getattr(clz,'__extends__', None)
 
             if member is None:
-                raise Exception('the %s object does not have a "%s" member' %
+                raise Fault('Client', 'the %s object does not have a "%s" member' %
                                                              (cls.__name__,key))
 
             mo = member.Attributes.max_occurs
@@ -362,3 +362,5 @@ class Array(ClassSerializer):
             retval.append(serializer.from_xml(child))
 
         return retval
+
+from soaplib.type.exception import Fault
