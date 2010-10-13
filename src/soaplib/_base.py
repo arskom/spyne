@@ -145,12 +145,6 @@ class _SchemaEntries(object):
         if ns == self.app.get_tns():
             self.classes[tn] = cls
 
-    def get_class(self, key):
-        return self.classes[key]
-
-    def get_class_instance(self, key):
-        return self.classes[key]()
-
 class MethodContext(object):
     def __init__(self):
         self.service = None
@@ -282,6 +276,12 @@ class Application(object):
         self.prefmap = dict(soaplib.const_prefmap)
 
         self.build_schema()
+
+    def get_class(self, key):
+        return self.__classes[key]
+
+    def get_class_instance(self, key):
+        return self.__classes[key]()
 
     def decompose_incoming_envelope(self, ctx, envelope_string, charset=None):
         header, body = from_soap(envelope_string, charset)
