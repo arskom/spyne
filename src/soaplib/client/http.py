@@ -95,6 +95,7 @@ class _RemoteProcedureCall(object):
 
         else:
             type_info = self.ctx.descriptor.out_message._type_info
+
             if len(self.ctx.descriptor.out_message._type_info) == 1:
                 wrapper_attribute = type_info.keys()[0]
                 response_raw = getattr(wrapped_response, wrapper_attribute, None)
