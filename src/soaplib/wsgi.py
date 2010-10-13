@@ -84,9 +84,7 @@ class Application(object):
         self.call_routes = {}
         self.__wsdl = None
         self.__public_methods = {}
-        self.schema = None
-
-        self.build_schema()
+        self.schema = self.build_schema()
 
     def get_name(self):
         """
