@@ -31,7 +31,7 @@ class _Factory(object):
         self.__app = app
 
     def create(self, object_name):
-        return self.__app
+        return self.__app.get_class_instance(object_name)
 
 class _Service(object):
     def __init__(self, url, app):
