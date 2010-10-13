@@ -329,7 +329,8 @@ class Application(object):
         Not meant to be overridden.
         """
 
-        assert wrapper in (Application.IN_WRAPPER, Application.OUT_WRAPPER)
+        assert wrapper in (Application.IN_WRAPPER,
+                                                Application.OUT_WRAPPER),wrapper
         try:
             self.decompose_incoming_envelope(ctx, envelope_string, charset)
         except ValidationError, e:
