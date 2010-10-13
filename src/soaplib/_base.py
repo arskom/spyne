@@ -288,7 +288,13 @@ class Application(object):
     def decompose_incoming_envelope(self, ctx, envelope_string, charset=None):
         header, body = from_soap(envelope_string, charset)
 
-        if not (body is None):
+        # FIXME: find a way to include soap env schema with soaplib package and
+        # properly and always validate the whole request.
+
+        if len(body) > 0 and body.tag == '{%s}Fault' % soaplib.ns_soap_env:
+            ctx.in_body_xml = body
+
+        elif not (body is None):
             try:
                 self.validate(body)
                 if (not (body is None)) and (ctx.method_name is None):
@@ -305,21 +311,21 @@ class Application(object):
                            etree.fromstring(envelope_string),pretty_print=True))
                     except etree.XMLSyntaxError, e:
                         logger.debug(body)
-                        raise Fault('Client.XMLSyntax', 'Error at line: %d, '
+                        raise Fault('Client.Xml', 'Error at line: %d, '
                                     'col: %d' % e.position)
-        try:
-            if ctx.service_class is None: # i.e. if it's a server
-                ctx.service_class = self.get_service_class(ctx.method_name)
+            try:
+                if ctx.service_class is None: # i.e. if it's a server
+                    ctx.service_class = self.get_service_class(ctx.method_name)
 
-        except Exception,e:
-            logger.debug(traceback.format_exc())
-            raise ValidationError('Client', 'Method not found: %r' %
+            except Exception,e:
+                logger.debug(traceback.format_exc())
+                raise ValidationError('Client', 'Method not found: %r' %
                                                                 ctx.method_name)
 
-        ctx.service = self.get_service(ctx.service_class)
+            ctx.service = self.get_service(ctx.service_class)
 
-        ctx.in_header_xml = header
-        ctx.in_body_xml = body
+            ctx.in_header_xml = header
+            ctx.in_body_xml = body
 
     def deserialize_soap(self, ctx, envelope_string, wrapper, charset=None):
         """Takes a MethodContext instance and a string containing ONE soap
@@ -331,37 +337,42 @@ class Application(object):
 
         assert wrapper in (Application.IN_WRAPPER,
                                                 Application.OUT_WRAPPER),wrapper
+
         try:
             self.decompose_incoming_envelope(ctx, envelope_string, charset)
         except ValidationError, e:
             return e
 
-        # retrieve the method descriptor
-        if ctx.method_name is None:
-            raise Exception("Could not extract method name from the request!")
+        if ctx.in_body_xml.tag == "{%s}Fault" % soaplib.ns_soap_env:
+            in_body = Fault.from_xml(ctx.in_body_xml)
+
         else:
-            if ctx.descriptor is None:
-                descriptor = ctx.descriptor = ctx.service.get_method(
-                                                                ctx.method_name)
+            # retrieve the method descriptor
+            if ctx.method_name is None:
+                raise Exception("Could not extract method name from the request!")
             else:
-                descriptor = ctx.descriptor
+                if ctx.descriptor is None:
+                    descriptor = ctx.descriptor = ctx.service.get_method(
+                                                                    ctx.method_name)
+                else:
+                    descriptor = ctx.descriptor
 
-        if wrapper is Application.IN_WRAPPER:
-            header_class = descriptor.in_header
-            body_class = descriptor.in_message
-        else:
-            header_class = descriptor.out_header
-            body_class = descriptor.out_message
+            if wrapper is Application.IN_WRAPPER:
+                header_class = descriptor.in_header
+                body_class = descriptor.in_message
+            else:
+                header_class = descriptor.out_header
+                body_class = descriptor.out_message
 
-        # decode header object
-        if ctx.in_header_xml is not None and len(ctx.in_header_xml) > 0:
-            ctx.service.in_header = header_class.from_xml(ctx.in_header_xml)
+            # decode header object
+            if ctx.in_header_xml is not None and len(ctx.in_header_xml) > 0:
+                ctx.service.in_header = header_class.from_xml(ctx.in_header_xml)
 
-        # decode method arguments
-        if ctx.in_body_xml is not None and len(ctx.in_body_xml) > 0:
-            in_body = body_class.from_xml(ctx.in_body_xml)
-        else:
-            in_body = [None] * len(body_class._type_info)
+            # decode method arguments
+            if ctx.in_body_xml is not None and len(ctx.in_body_xml) > 0:
+                in_body = body_class.from_xml(ctx.in_body_xml)
+            else:
+                in_body = [None] * len(body_class._type_info)
 
         return in_body
 

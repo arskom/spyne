@@ -75,17 +75,26 @@ class _RemoteProcedureCall(object):
         )
 
         request = urllib2.Request(self.url, request_str)
-        response = urllib2.urlopen(request)
+        code=200
+        try:
+            response = urllib2.urlopen(request)
+            response_str = response.read()
 
-        response_str = response.read()
+        except urllib2.HTTPError,e:
+            code=e.code
+            response_str = e.read()
+
         #response_xml = self.decompose_incoming_envelope(self.ctx, response_str)
         wrapped_response = self.app.deserialize_soap(self.ctx, response_str,
                                                            self.app.OUT_WRAPPER)
 
-        wrapper_attribute = self.ctx.descriptor.out_message._type_info.keys()[0]
-        response_raw = getattr(wrapped_response, wrapper_attribute, None)
-
-        return response_raw
+        if code == 500:
+            print repr(wrapped_response)
+            raise wrapped_response
+        else:
+            wrapper_attribute = self.ctx.descriptor.out_message._type_info.keys()[0]
+            response_raw = getattr(wrapped_response, wrapper_attribute, None)
+            return response_raw
 
 class Client(object):
     def __init__(self, url, app):

@@ -308,8 +308,8 @@ class Array(ClassSerializer):
         retval = cls.customize(**kwargs)
 
         # hack to default to unbounded arrays when the user didn't specify
-        # max_occurs.
-        if serializer.Attributes.max_occurs == 1: #FIXME: we should find a better way.
+        # max_occurs. We should find a better way.
+        if serializer.Attributes.max_occurs == 1:
             serializer = serializer.customize(max_occurs='unbounded')
 
         if serializer.get_type_name() is Base.Empty:

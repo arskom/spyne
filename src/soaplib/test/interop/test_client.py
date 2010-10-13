@@ -173,7 +173,6 @@ class TestSoaplibClient(unittest.TestCase):
         self.assertEqual(ret.other.dt, val.other.dt)
 
     def test_echo_extension_class(self):
-        service_name = "echo_extension_class";
         val = self.client.factory.create("{bar}ExtensionClass");
 
         val.i = 45
