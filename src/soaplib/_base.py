@@ -277,7 +277,7 @@ class Application(object):
         self.nsmap = dict(soaplib.const_nsmap)
         self.prefmap = dict(soaplib.const_prefmap)
 
-        self.build_schema()
+        self.schema = self.build_schema()
 
     def get_class(self, key):
         return self.__classes[key]
