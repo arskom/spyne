@@ -277,7 +277,9 @@ class Application(object):
         self.nsmap = dict(soaplib.const_nsmap)
         self.prefmap = dict(soaplib.const_prefmap)
 
+
         self.schema =  self.build_schema()
+
 
     def get_class(self, key):
         return self.__classes[key]
@@ -447,6 +449,11 @@ class Application(object):
         else:
             # header
             if ctx.service.out_header != None:
+                if wrapper in (Application.NO_WRAPPER, Application.OUT_WRAPPER):
+                    header_message_class = ctx.descriptor.in_header
+                else:
+                    header_message_class = ctx.descriptor.out_header
+
                 if ctx.descriptor.out_header is None:
                     logger.warning(
                         "Skipping soap response header as %r method is not "
@@ -457,11 +464,11 @@ class Application(object):
                     ctx.out_header_xml = soap_header_elt = etree.SubElement(
                                    envelope, '{%s}Header' % soaplib.ns_soap_env)
 
-                    ctx.descriptor.out_header.to_xml(
+                    header_message_class.to_xml(
                         ctx.service.out_header,
                         self.get_tns(),
                         soap_header_elt,
-                        ctx.descriptor.out_header.get_type_name()
+                        header_message_class.get_type_name()
                     )
 
             # body
@@ -470,7 +477,7 @@ class Application(object):
 
             # instantiate the result message
             if wrapper is Application.NO_WRAPPER:
-                result_message_class = native_obj.__class__
+                result_message_class = ctx.descriptor.in_message
                 result_message = native_obj
 
             else:

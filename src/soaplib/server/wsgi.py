@@ -138,8 +138,13 @@ class Application(soaplib.Application):
         http_payload, charset = _reconstruct_soap_request(req_env)
 
         ctx = soaplib.MethodContext()
-        params = self.deserialize_soap(ctx, http_payload, self.IN_WRAPPER,
+
+        result_raw = None
+        try:
+            params = self.deserialize_soap(ctx, http_payload, self.IN_WRAPPER,
                                                                         charset)
+        except Fault,e:
+            result_raw = e
 
         if ctx.service is None:
             envelope_xml = self.serialize_soap(ctx, params, self.OUT_WRAPPER)
@@ -148,7 +153,8 @@ class Application(soaplib.Application):
             return_code = HTTP_500
 
         else:
-            result_raw = self.process_request(ctx, params)
+            if result_raw is None:
+                result_raw = self.process_request(ctx, params)
 
             if isinstance(result_raw, Exception):
                 return_code = HTTP_500

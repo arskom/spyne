@@ -29,7 +29,11 @@ class Fault(Exception, Base):
 
     def __init__(self, faultcode='Server', faultstring="", faultactor="",
                                                                 detail=None):
-        self.faultcode = '%s:%s' % (_pref_soap_env, faultcode)
+        if faultcode.startswith('%s:' % _pref_soap_env):
+            self.faultcode = faultcode
+        else:
+            self.faultcode = '%s:%s' % (_pref_soap_env, faultcode)
+
         self.faultstring = faultstring
         self.faultactor = faultactor
         self.detail = detail

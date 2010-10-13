@@ -37,12 +37,13 @@ class _Service(object):
     def __init__(self, url, app):
         self.__app = app
         self.__url = url
+        self.out_header = None
 
     def __getattr__(self, key):
-        return _RemoteProcedureCall(self.__url, self.__app, key)
+        return _RemoteProcedureCall(self.__url, self.__app, key, self.out_header)
 
 class _RemoteProcedureCall(object):
-    def __init__(self, url, app, name):
+    def __init__(self, url, app, name, out_header):
         self.url = url
         self.app = app
 
@@ -50,6 +51,7 @@ class _RemoteProcedureCall(object):
         self.ctx.method_name = name
         self.ctx.service_class = self.app.get_service_class(name)
         self.ctx.service = self.app.get_service(self.ctx.service_class)
+        self.ctx.service.out_header = out_header
         self.ctx.descriptor = self.ctx.service.get_method(self.ctx.method_name)
 
     def __call__(self, *args, **kwargs):
@@ -89,14 +91,18 @@ class _RemoteProcedureCall(object):
                                                            self.app.OUT_WRAPPER)
 
         if code == 500:
-            print repr(wrapped_response)
             raise wrapped_response
+
         else:
             wrapper_attribute = self.ctx.descriptor.out_message._type_info.keys()[0]
             response_raw = getattr(wrapped_response, wrapper_attribute, None)
+
             return response_raw
 
 class Client(object):
     def __init__(self, url, app):
         self.service = _Service(url, app)
         self.factory = _Factory(app)
+
+    def set_options(self, **kwargs):
+        self.service.out_header = kwargs.get('soapheaders', None)
