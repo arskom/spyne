@@ -94,10 +94,14 @@ class _RemoteProcedureCall(object):
             raise wrapped_response
 
         else:
-            wrapper_attribute = self.ctx.descriptor.out_message._type_info.keys()[0]
-            response_raw = getattr(wrapped_response, wrapper_attribute, None)
+            type_info = self.ctx.descriptor.out_message._type_info
+            if len(self.ctx.descriptor.out_message._type_info) == 1:
+                wrapper_attribute = type_info.keys()[0]
+                response_raw = getattr(wrapped_response, wrapper_attribute, None)
 
-            return response_raw
+                return response_raw
+            else:
+                return wrapped_response
 
 class Client(object):
     def __init__(self, url, app):
