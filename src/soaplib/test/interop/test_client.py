@@ -42,6 +42,18 @@ class TestSoaplibClient(unittest.TestCase):
 
         assert val == ret
 
+    def test_echo_integer_array(self):
+        val = [1,2,3,4,5]
+        ret = self.client.service.echo_integer_array([1,2,3,4,5])
+
+        self.assertEquals(val,ret)
+
+    def test_echo_string(self):
+        val = "OK"
+        ret = self.client.service.echo_string(val)
+
+        self.assertEquals(ret, val)
+
     def test_enum(self):
         DaysOfWeekEnum = self.client.factory.create("DaysOfWeekEnum")
 
@@ -61,11 +73,6 @@ class TestSoaplibClient(unittest.TestCase):
             raise Exception("must fail")
         except Fault, e:
             pass
-
-    def test_echo_integer_array(self):
-        ia = self.client.factory.create('integerArray')
-        ia.integer.extend([1,2,3,4,5])
-        self.client.service.echo_integer_array(ia)
 
     def test_echo_in_header(self):
         in_header = self.client.factory.create('InHeader')
@@ -92,12 +99,6 @@ class TestSoaplibClient(unittest.TestCase):
         self.assertEquals(ret.dt, out_header.dt)
         self.assertEquals(ret.f, out_header.f)
 
-    def test_echo_string(self):
-        test_string = "OK"
-        ret = self.client.service.echo_string(test_string)
-
-        self.assertEquals(ret, test_string)
-
     def __get_xml_test_val(self):
         return {
             "test_sub": {
@@ -119,7 +120,7 @@ class TestSoaplibClient(unittest.TestCase):
         }
 
     def test_any(self):
-        val=self.__get_xml_test_val()
+        val = self.__get_xml_test_val()
         ret = self.client.service.echo_any(val)
 
         self.assertEquals(ret, val)
@@ -147,18 +148,17 @@ class TestSoaplibClient(unittest.TestCase):
         val.i = 45
         val.s = "asd"
         val.f = 12.34
-        val.ai = self.client.factory.create("integerArray")
-        val.ai.integer.extend([1,2,3,45,5,3,2,1,4])
+        val.ai = [1,2,3,45,5,3,2,1,4]
 
-        val.simple = self.client.factory.create("SimpleClassArray")
+        val.simple = [
+            self.client.factory.create("SimpleClass"),
+            self.client.factory.create("SimpleClass"),
+        ]
 
-        val.simple.SimpleClass.append(self.client.factory.create("SimpleClass"))
-        val.simple.SimpleClass.append(self.client.factory.create("SimpleClass"))
-
-        val.simple.SimpleClass[0].i = 45
-        val.simple.SimpleClass[0].s = "asd"
-        val.simple.SimpleClass[1].i = 12
-        val.simple.SimpleClass[1].s = "qwe"
+        val.simple[0].i = 45
+        val.simple[0].s = "asd"
+        val.simple[1].i = 12
+        val.simple[1].s = "qwe"
 
         val.other = self.client.factory.create("OtherClass");
         val.other.dt = datetime.now()
@@ -167,13 +167,10 @@ class TestSoaplibClient(unittest.TestCase):
 
         ret = self.client.service.echo_nested_class(val)
 
-
-
         self.assertEquals(ret.i, val.i)
         self.assertEqual(ret.ai[0], val.ai[0])
-        self.assertEquals(ret.simple.SimpleClass[0].s, val.simple.SimpleClass[0].s)
+        self.assertEquals(ret.simple[0].s, val.simple[0].s)
         self.assertEqual(ret.other.dt, val.other.dt)
-
 
     def test_echo_extension_class(self):
         service_name = "echo_extension_class";
@@ -183,15 +180,15 @@ class TestSoaplibClient(unittest.TestCase):
         val.s = "asd"
         val.f = 12.34
 
-        val.simple = self.client.factory.create("SimpleClassArray")
+        val.simple = [
+            self.client.factory.create("SimpleClass"),
+            self.client.factory.create("SimpleClass"),
+        ]
 
-        val.simple.SimpleClass.append(self.client.factory.create("SimpleClass"))
-        val.simple.SimpleClass.append(self.client.factory.create("SimpleClass"))
-
-        val.simple.SimpleClass[0].i = 45
-        val.simple.SimpleClass[0].s = "asd"
-        val.simple.SimpleClass[1].i = 12
-        val.simple.SimpleClass[1].s = "qwe"
+        val.simple[0].i = 45
+        val.simple[0].s = "asd"
+        val.simple[1].i = 12
+        val.simple[1].s = "qwe"
 
         val.other = self.client.factory.create("OtherClass");
         val.other.dt = datetime.now()
@@ -212,7 +209,7 @@ class TestSoaplibClient(unittest.TestCase):
         self.assertEquals(ret.i, val.i)
         self.assertEquals(ret.s, val.s)
         self.assertEquals(ret.f, val.f)
-        self.assertEquals(ret.simple.SimpleClass[0].i, val.simple.SimpleClass[0].i)
+        self.assertEquals(ret.simple[0].i, val.simple[0].i)
         self.assertEquals(ret.other.dt, val.other.dt)
         self.assertEquals(ret.p.s, val.p.s)
 
