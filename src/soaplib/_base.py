@@ -263,7 +263,7 @@ class Application(object):
         self.nsmap = dict(soaplib.const_nsmap)
         self.prefmap = dict(soaplib.const_prefmap)
 
-        self.build_schema()
+        self.schema =  self.build_schema()
 
     def __decompose_incoming_envelope(self, ctx, envelope_string, charset):
         header, body = from_soap(envelope_string, charset)
@@ -556,6 +556,8 @@ class Application(object):
             for node in schema_entries.namespaces[pref].types.values():
                 schema.append(node)
 
+
+
         return schema_nodes
 
     def build_schema(self, types=None):
@@ -615,6 +617,7 @@ class Application(object):
 
         Not meant to be overridden.
         """
+#        from pdb import set_trace; set_trace()
         if self.schema is None:
             return self.build_schema()
         else:
