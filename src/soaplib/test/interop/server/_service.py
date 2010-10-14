@@ -35,7 +35,7 @@ from soaplib.type.primitive import String
 from soaplib.type.primitive import Double
 
 from soaplib import service
-from soaplib.server.wsgi import ValidatingApplication
+from soaplib import ValidatingApplication
 from soaplib.service import rpc
 
 from datetime import datetime
