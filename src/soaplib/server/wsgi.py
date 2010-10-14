@@ -156,8 +156,10 @@ class Application(soaplib.Application):
             if out_object is None:
                 out_object = self.process_request(ctx, in_object)
 
-            if isinstance(out_object, Exception):
+            if isinstance(out_object, Fault):
                 return_code = HTTP_500
+            else:
+                assert not isinstance(out_object, Exception)
 
             out_xml = self.serialize_soap(ctx, out_object,
                                                         Application.OUT_WRAPPER)
