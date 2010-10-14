@@ -96,7 +96,7 @@ class Application(soaplib.Application):
         # /stuff/stuff/stuff/serviceName/?wsdl
 
         return (
-                req_env['REQUEST_METHOD'].lower() == 'get'
+            req_env['REQUEST_METHOD'].lower() == 'get'
             and (
                    req_env['QUERY_STRING'].endswith('wsdl')
                 or req_env['PATH_INFO'].endswith('wsdl')
