@@ -126,6 +126,8 @@ class Application(soaplib.Application):
             return [""]
 
     def __handle_soap_request(self, req_env, start_response):
+        ctx = soaplib.MethodContext()
+
         http_resp_headers = {
             'Content-Type': 'text/xml',
             'Content-Length': '0',
@@ -136,8 +138,6 @@ class Application(soaplib.Application):
         self.on_wsgi_call(req_env)
 
         in_string, in_charset = _reconstruct_soap_request(req_env)
-
-        ctx = soaplib.MethodContext()
 
         out_object = None
         try:
