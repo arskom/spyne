@@ -135,48 +135,48 @@ class Application(soaplib.Application):
         # implementation hook
         self.on_wsgi_call(req_env)
 
-        http_payload, charset = _reconstruct_soap_request(req_env)
+        in_string, in_charset = _reconstruct_soap_request(req_env)
 
         ctx = soaplib.MethodContext()
 
-        result_raw = None
+        out_object = None
         try:
-            params = self.deserialize_soap(ctx, http_payload, self.IN_WRAPPER,
-                                                                        charset)
+            in_object = self.deserialize_soap(ctx, in_string, self.IN_WRAPPER,
+                                                                    in_charset)
         except Fault,e:
-            result_raw = e
+            out_object = e
 
         if ctx.service is None:
-            envelope_xml = self.serialize_soap(ctx, params, self.OUT_WRAPPER)
-            envelope_str = etree.tostring(envelope_xml, xml_declaration=True,
+            out_xml = self.serialize_soap(ctx, in_object, self.OUT_WRAPPER)
+            out_string = etree.tostring(out_xml, xml_declaration=True,
                                                        encoding=string_encoding)
             return_code = HTTP_500
 
         else:
-            if result_raw is None:
-                result_raw = self.process_request(ctx, params)
+            if out_object is None:
+                out_object = self.process_request(ctx, in_object)
 
-            if isinstance(result_raw, Exception):
+            if isinstance(out_object, Exception):
                 return_code = HTTP_500
 
-            envelope_xml = self.serialize_soap(ctx, result_raw,
+            out_xml = self.serialize_soap(ctx, out_object,
                                                         Application.OUT_WRAPPER)
-            envelope_str = etree.tostring(envelope_xml, xml_declaration=True,
+            out_string = etree.tostring(out_xml, xml_declaration=True,
                                                        encoding=string_encoding)
 
             # implementation hook
-            self.on_wsgi_return(req_env, http_resp_headers, envelope_str)
+            self.on_wsgi_return(req_env, http_resp_headers, out_string)
 
             if ctx.descriptor.mtom:
-                http_resp_headers, envelope_str = apply_mtom(http_resp_headers,
-                        envelope_str, ctx.descriptor.out_message._type_info,
-                        [result_raw])
+                http_resp_headers, out_string = apply_mtom(http_resp_headers,
+                        out_string, ctx.descriptor.out_message._type_info,
+                        [out_object])
 
         # initiate the response
-        http_resp_headers['Content-Length'] = str(len(envelope_str))
+        http_resp_headers['Content-Length'] = str(len(out_string))
         start_response(return_code, http_resp_headers.items())
 
-        return [envelope_str]
+        return [out_string]
 
     def on_wsgi_call(self, environ):
         '''This is the first method called when this WSGI app is invoked.
