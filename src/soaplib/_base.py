@@ -339,10 +339,8 @@ class Application(object):
         assert wrapper in (Application.IN_WRAPPER,
                                                 Application.OUT_WRAPPER),wrapper
 
-        try:
-            self.decompose_incoming_envelope(ctx, envelope_string, charset)
-        except ValidationError, e:
-            return e
+        # this sets the ctx.in_body_xml and ctx.in_header_xml properties
+        self.decompose_incoming_envelope(ctx, envelope_string, charset)
 
         if ctx.in_body_xml.tag == "{%s}Fault" % soaplib.ns_soap_env:
             in_body = Fault.from_xml(ctx.in_body_xml)
