@@ -150,8 +150,11 @@ class MethodContext(object):
         self.service = None
         self.service_class = None
 
+        self.in_error = None
         self.in_header_xml = None
         self.in_body_xml = None
+
+        self.out_error = None
         self.out_header_xml = None
         self.out_body_xml = None
 

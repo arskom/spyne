@@ -128,23 +128,23 @@ class Application(soaplib.Application):
     def __handle_soap_request(self, req_env, start_response):
         ctx = soaplib.MethodContext()
 
-        http_resp_headers = {
-            'Content-Type': 'text/xml',
-            'Content-Length': '0',
-        }
-        return_code = HTTP_200
-
         # implementation hook
         self.on_wsgi_call(req_env)
 
-        in_string, in_charset = _reconstruct_soap_request(req_env)
+        in_string, in_string_charset = _reconstruct_soap_request(req_env)
 
         out_object = None
         try:
             in_object = self.deserialize_soap(ctx, in_string, self.IN_WRAPPER,
-                                                                    in_charset)
+                                                            in_string_charset)
         except Fault,e:
             out_object = e
+
+        return_code = HTTP_200
+        http_resp_headers = {
+            'Content-Type': 'text/xml',
+            'Content-Length': '0',
+        }
 
         if ctx.service is None:
             out_xml = self.serialize_soap(ctx, in_object, self.OUT_WRAPPER)

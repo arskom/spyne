@@ -199,6 +199,7 @@ def apply_mtom(headers, envelope, params, paramvals):
         if n.lower() == 'content-type':
             ctarray = v.split(';')
             break
+
     roottype = ctarray[0].strip()
     rootparams = {}
     for ctparam in ctarray[1:]:
@@ -206,11 +207,11 @@ def apply_mtom(headers, envelope, params, paramvals):
         rootparams[n] = v.strip("\"'")
 
     # Set up initial MIME parts.
-    mtompkg = MIMEMultipart('related',
-        boundary='?//<><>soaplib_MIME_boundary<>')
+    mtompkg = MIMEMultipart('related',boundary='?//<><>soaplib_MIME_boundary<>')
     rootpkg = None
     try:
         rootpkg = MIMEApplication(envelope, 'xop+xml', encode_7or8bit)
+
     except NameError:
         rootpkg = MIMENonMultipart("application", "xop+xml")
         rootpkg.set_payload(envelope)
