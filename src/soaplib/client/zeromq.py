@@ -32,7 +32,6 @@ class _RemoteProcedure(RemoteProcedureBase):
         out_object = self.get_out_object(args, kwargs)
         out_string = self.get_out_string(out_object)
 
-        print self.url
         socket = context.socket(zmq.REQ)
         socket.connect(self.url)
         socket.send(out_string)
