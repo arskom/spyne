@@ -177,7 +177,8 @@ class SimpleType(Base):
 
         restriction = etree.SubElement(simple_type,
                                             '{%s}restriction' % soaplib.ns_xsd)
-        restriction.set('base', cls.__base_type__.get_type_name_ns(schema_entries.app))
+        restriction.set('base', cls.__base_type__.get_type_name_ns(
+                                                            schema_entries.app))
 
         for v in cls.Attributes.values:
             enumeration = etree.SubElement(restriction,
