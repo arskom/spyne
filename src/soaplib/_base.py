@@ -787,7 +787,7 @@ class Application(object):
         soap_binding.set('style', 'document')
 
         if self.transport is None:
-            raise Exception("You must set the class variable 'transport'")
+            raise Exception("You must set the 'transport' property")
         soap_binding.set('transport', self.transport)
 
         cb_binding = None
