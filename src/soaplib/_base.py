@@ -429,7 +429,7 @@ class Application(object):
         envelope = etree.Element('{%s}Envelope' % soaplib.ns_soap_env,
                                                                nsmap=self.nsmap)
 
-        if isinstance(native_obj, Exception):
+        if isinstance(native_obj, Fault):
             # FIXME: There's no way to alter soap response headers for the user.
             ctx.out_body_xml = out_body_xml = etree.SubElement(envelope,
                             '{%s}Body' % soaplib.ns_soap_env, nsmap=self.nsmap)
@@ -442,6 +442,9 @@ class Application(object):
 
             if logger.level == logging.DEBUG:
                 logger.debug(etree.tostring(envelope, pretty_print=True))
+
+        elif isinstance(native_obj, Exception):
+            raise Exception("Can't serialize native python exceptions")
 
         else:
             # header
