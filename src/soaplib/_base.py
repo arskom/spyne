@@ -457,7 +457,7 @@ class Application(object):
                 if ctx.descriptor.out_header is None:
                     logger.warning(
                         "Skipping soap response header as %r method is not "
-                        "published to have a soap response header" %
+                        "published to have one." %
                                 native_obj.get_type_name()[:-len('Response')])
 
                 else:
