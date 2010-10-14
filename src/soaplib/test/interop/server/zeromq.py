@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python
 #
 # soaplib - Copyright (C) Soaplib contributors.
 #
@@ -17,32 +17,22 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""A soap client that uses zeromq (zmq.REQ) as transport"""
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger('soaplib._base')
+logger.setLevel(logging.DEBUG)
 
-import zmq
+from soaplib.test.interop.server._service import application
+from soaplib.server.zeromq import Server
 
-from soaplib.client import Service
-from soaplib.client import RemoteProcedureBase
-from soaplib.client import Base
+if __name__ == '__main__':
+    url = "tcp://*:5555"
+    server = Server(application, url)
+    logging.info("************************")
+    logging.info("Use Ctrl+\\ to exit.")
+    logging.info("See the 'I can't Ctrl-C my Python/Ruby application. Help!' "
+                 "question in http://www.zeromq.org/area:faq for more info.")
+    logging.info("listening on %r" % url)
+    logging.info("************************")
 
-context = zmq.Context()
-
-class _RemoteProcedure(RemoteProcedureBase):
-    def __call__(self, *args, **kwargs):
-        out_object = self.get_out_object(args, kwargs)
-        out_string = self.get_out_string(out_object)
-
-        print self.url
-        socket = context.socket(zmq.REQ)
-        socket.connect(self.url)
-        socket.send(out_string)
-    
-        in_str = socket.recv()
-
-        return self.get_in_object(in_str)
-
-class Client(Base):
-    def __init__(self, url, app):
-        Base.__init__(self, url, app)
-
-        self.service = Service(_RemoteProcedure, url, app)
+    server.serve_forever()

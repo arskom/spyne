@@ -26,15 +26,16 @@ from twisted.python import log
 
 from soaplib.test.interop.server._service import application
 from soaplib.util.server import run_twisted
+from soaplib.server.wsgi import Server
 
 port = 9754
 url = 'app'
 
 def main(argv):
     observer = log.PythonLoggingObserver('twisted')
-    log.startLoggingWithObserver(observer.emit,setStdout=False)
+    log.startLoggingWithObserver(observer.emit, setStdout=False)
 
-    return run_twisted( [ (application, url) ], port )
+    return run_twisted( [ (Server(application), url) ], port )
 
 if __name__ == '__main__':
     import sys

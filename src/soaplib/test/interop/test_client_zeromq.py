@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python
 #
 # soaplib - Copyright (C) Soaplib contributors.
 #
@@ -17,32 +17,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""A soap client that uses zeromq (zmq.REQ) as transport"""
+import unittest
 
-import zmq
+from _test_client_base import SoaplibClientTestBase
+from soaplib.client.zeromq import Client
+from soaplib.test.interop.server._service import application
 
-from soaplib.client import Service
-from soaplib.client import RemoteProcedureBase
-from soaplib.client import Base
+class TestSoaplibZmqClient(SoaplibClientTestBase,unittest.TestCase):
+    def setUp(self):
+        self.client = Client('tcp://localhost:5555', application)
+        self.ns = "soaplib.test.interop.server._service"
 
-context = zmq.Context()
-
-class _RemoteProcedure(RemoteProcedureBase):
-    def __call__(self, *args, **kwargs):
-        out_object = self.get_out_object(args, kwargs)
-        out_string = self.get_out_string(out_object)
-
-        print self.url
-        socket = context.socket(zmq.REQ)
-        socket.connect(self.url)
-        socket.send(out_string)
-    
-        in_str = socket.recv()
-
-        return self.get_in_object(in_str)
-
-class Client(Base):
-    def __init__(self, url, app):
-        Base.__init__(self, url, app)
-
-        self.service = Service(_RemoteProcedure, url, app)
+if __name__ == '__main__':
+    unittest.main()
