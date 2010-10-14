@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""A Convenience module for wsgi wrapper libraries"""
+
 import os
 import logging
 logger = logging.getLogger(__name__)
@@ -27,7 +29,9 @@ from twisted.web.wsgi import WSGIResource
 from twisted.internet import reactor
 
 def run_twisted(apps, port):
-    """Takes a list of tuples containing application, url pairs, and a port to
+    """Twisted wrapper for the soaplib.server.wsgi.Application
+
+    Takes a list of tuples containing application, url pairs, and a port to
     to listen to.
     """
 

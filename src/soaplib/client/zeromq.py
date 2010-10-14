@@ -17,31 +17,28 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""A soap client that uses http (urllib2) as transport"""
+"""A soap client that uses zeromq (zmq.REQ) as transport"""
 
-import urllib2
+import zmq
 
 from soaplib.client import Service
-from soaplib.client import ClientBase
 from soaplib.client import RemoteProcedureBase
+
+context = zmq.Context()
 
 class _RemoteProcedure(RemoteProcedureBase):
     def __call__(self, *args, **kwargs):
         out_str = self.get_out_string(args, kwargs)
 
-        request = urllib2.Request(self.url, out_str)
-        code=200
-        try:
-            response = urllib2.urlopen(request)
-            in_str = response.read()
+        socket = context.socket(zmq.REQ)
+        socket.connect (self.url)
+        socket.send (out_str)
+    
+        in_str = socket.recv()
 
-        except urllib2.HTTPError,e:
-            code=e.code
-            in_str = e.read()
+        return self.get_in_object(in_str)
 
-        return self.get_in_object(in_str, is_error=(code == 500))
-
-class Client(ClientBase):
+class Client(object):
     def __init__(self, url, app):
         super(Client, self).__init__(url, app)
 

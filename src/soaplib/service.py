@@ -52,6 +52,7 @@ def _produce_input_message(ns, f, params, kparams):
                                             members=in_params)
     message.__namespace__ = ns
     message.resolve_namespace(message, ns)
+
     return message
 
 def _produce_output_message(ns, f, params, kparams):

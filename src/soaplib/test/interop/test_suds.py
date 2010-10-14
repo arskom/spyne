@@ -235,7 +235,7 @@ class TestSuds(unittest.TestCase):
         self.assertEquals(ret.resultCode, 1)
         self.assertEquals(ret.resultDescription, "Test")
         self.assertEquals(ret.transactionId, 123)
-        self.assertEquals(ret.roles.role[0], "MEMBER")
+        self.assertEquals(ret.roles.RoleEnum[0], "MEMBER")
 
 if __name__ == '__main__':
     unittest.main()

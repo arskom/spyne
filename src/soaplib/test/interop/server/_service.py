@@ -228,7 +228,7 @@ class InteropMisc(service.DefinitionBase):
             Integer,
             String,
             Integer,
-            Array(Enum("MEMBER", type_name="role"))
+            Array(Enum("MEMBER", type_name="RoleEnum"))
         ],
         _out_variable_names=[
             'resultCode',

@@ -150,9 +150,11 @@ class MethodContext(object):
         self.service = None
         self.service_class = None
 
+        self.in_error = None
         self.in_header_xml = None
         self.in_body_xml = None
-        self.out_body = None
+
+        self.out_error = None
         self.out_header_xml = None
         self.out_body_xml = None
 
@@ -270,7 +272,6 @@ class Application(object):
         self.__wsdl = None
         self.__public_methods = {}
         self.__classes = {}
-        self.schema = None
 
         self.__ns_counter = 0
 
@@ -362,7 +363,7 @@ class Application(object):
             if wrapper is Application.IN_WRAPPER:
                 header_class = descriptor.in_header
                 body_class = descriptor.in_message
-            else:
+            elif wrapper is Application.OUT_WRAPPER:
                 header_class = descriptor.out_header
                 body_class = descriptor.out_message
 
@@ -385,10 +386,10 @@ class Application(object):
         Not meant to be overridden.
         """
 
-        # implementation hook
-        ctx.service.on_method_call(ctx.method_name,req_obj,ctx.in_body_xml)
-
         try:
+            # implementation hook
+            ctx.service.on_method_call(ctx.method_name,req_obj,ctx.in_body_xml)
+
             # retrieve the method
             func = getattr(ctx.service, ctx.descriptor.name)
 
@@ -432,7 +433,7 @@ class Application(object):
         envelope = etree.Element('{%s}Envelope' % soaplib.ns_soap_env,
                                                                nsmap=self.nsmap)
 
-        if isinstance(native_obj, Exception):
+        if isinstance(native_obj, Fault):
             # FIXME: There's no way to alter soap response headers for the user.
             ctx.out_body_xml = out_body_xml = etree.SubElement(envelope,
                             '{%s}Body' % soaplib.ns_soap_env, nsmap=self.nsmap)
@@ -446,6 +447,9 @@ class Application(object):
             if logger.level == logging.DEBUG:
                 logger.debug(etree.tostring(envelope, pretty_print=True))
 
+        elif isinstance(native_obj, Exception):
+            raise Exception("Can't serialize native python exceptions")
+
         else:
             # header
             if ctx.service.out_header != None:
@@ -457,7 +461,7 @@ class Application(object):
                 if ctx.descriptor.out_header is None:
                     logger.warning(
                         "Skipping soap response header as %r method is not "
-                        "published to have a soap response header" %
+                        "published to have one." %
                                 native_obj.get_type_name()[:-len('Response')])
 
                 else:
