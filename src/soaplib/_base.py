@@ -382,10 +382,10 @@ class Application(object):
         Not meant to be overridden.
         """
 
-        # implementation hook
-        ctx.service.on_method_call(ctx.method_name,req_obj,ctx.in_body_xml)
-
         try:
+            # implementation hook
+            ctx.service.on_method_call(ctx.method_name,req_obj,ctx.in_body_xml)
+
             # retrieve the method
             func = getattr(ctx.service, ctx.descriptor.name)
 
