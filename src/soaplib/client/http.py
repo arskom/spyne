@@ -27,9 +27,10 @@ from soaplib.client import RemoteProcedureBase
 
 class _RemoteProcedure(RemoteProcedureBase):
     def __call__(self, *args, **kwargs):
-        out_str = self.get_out_string(args, kwargs)
+        out_object = self.get_out_object(args, kwargs)
+        out_string = self.get_out_string(out_object)
 
-        request = urllib2.Request(self.url, out_str)
+        request = urllib2.Request(self.url, out_string)
         code=200
         try:
             response = urllib2.urlopen(request)
