@@ -169,10 +169,18 @@ class Application(soaplib.Application):
             # implementation hook
             self.on_wsgi_return(req_env, http_resp_headers, out_string)
 
-            if ctx.descriptor.mtom:
-                http_resp_headers, out_string = apply_mtom(http_resp_headers,
-                        out_string, ctx.descriptor.out_message._type_info,
-                        [out_object])
+        if ctx.descriptor.mtom:
+            # when there are more than one return type, the result is 
+            # encapsulated inside a list. when there's just one, the result
+            # is returned unencapsulated. the apply_mtom always expects the
+            # objects to be inside an iterable, hence the following test.
+            out_type_info = ctx.descriptor.out_message._type_info
+            if len(out_type_info) == 1:
+                out_object = [out_object]
+
+            http_resp_headers, out_string = apply_mtom(http_resp_headers,
+                    out_string, ctx.descriptor.out_message._type_info.values(),
+                    out_object)
 
         # initiate the response
         http_resp_headers['Content-Length'] = str(len(out_string))
