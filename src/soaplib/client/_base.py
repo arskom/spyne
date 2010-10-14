@@ -81,3 +81,11 @@ class RemoteProcedureBase(object):
                 return response_raw
             else:
                 return wrapped_response
+
+class ClientBase(object):
+    def __init__(self, url, app):
+        """ Must be overridden to initialize the service properly"""
+        self.factory = Factory(app)
+
+    def set_options(self, **kwargs):
+        self.service.out_header = kwargs.get('soapheaders', None)

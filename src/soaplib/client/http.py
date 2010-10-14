@@ -21,8 +21,8 @@
 
 import urllib2
 
-from soaplib.client import Factory
 from soaplib.client import Service
+from soaplib.client import ClientBase
 from soaplib.client import RemoteProcedureBase
 
 class _RemoteProcedure(RemoteProcedureBase):
@@ -41,10 +41,8 @@ class _RemoteProcedure(RemoteProcedureBase):
 
         return self.get_in_object(in_str, is_error=(code == 500))
 
-class Client(object):
+class Client(ClientBase):
     def __init__(self, url, app):
-        self.service = Service(_RemoteProcedure, url, app)
-        self.factory = Factory(app)
+        super(Client, self).__init__(url, app)
 
-    def set_options(self, **kwargs):
-        self.service.out_header = kwargs.get('soapheaders', None)
+        self.service = Service(_RemoteProcedure, url, app)
