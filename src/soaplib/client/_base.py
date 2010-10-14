@@ -82,7 +82,7 @@ class RemoteProcedureBase(object):
             else:
                 return wrapped_response
 
-class ClientBase(object):
+class Base(object):
     def __init__(self, url, app):
         """ Must be overridden to initialize the service properly"""
         self.factory = Factory(app)

@@ -22,7 +22,7 @@
 import urllib2
 
 from soaplib.client import Service
-from soaplib.client import ClientBase
+from soaplib.client import Base
 from soaplib.client import RemoteProcedureBase
 
 class _RemoteProcedure(RemoteProcedureBase):
@@ -41,7 +41,7 @@ class _RemoteProcedure(RemoteProcedureBase):
 
         return self.get_in_object(in_str, is_error=(code == 500))
 
-class Client(ClientBase):
+class Client(Base):
     def __init__(self, url, app):
         super(Client, self).__init__(url, app)
 
