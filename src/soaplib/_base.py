@@ -152,7 +152,6 @@ class MethodContext(object):
 
         self.in_header_xml = None
         self.in_body_xml = None
-        self.out_body = None
         self.out_header_xml = None
         self.out_body_xml = None
 
