@@ -359,7 +359,7 @@ class Application(object):
             if wrapper is Application.IN_WRAPPER:
                 header_class = descriptor.in_header
                 body_class = descriptor.in_message
-            else:
+            elif wrapper is Application.OUT_WRAPPER:
                 header_class = descriptor.out_header
                 body_class = descriptor.out_message
 
