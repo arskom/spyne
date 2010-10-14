@@ -189,7 +189,9 @@ def apply_mtom(headers, envelope, params, paramvals):
 
     message = None
     for child in list(soapbody):
-        if child.tag != "%sFault" % (soaplib.ns_soap_env, ):
+        if child.tag == ("{%s}Fault" % soaplib.ns_soap_env):
+            return (headers, envelope)
+        else:
             message = child
             break
 
