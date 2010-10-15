@@ -260,7 +260,11 @@ class Application(object):
 
     def __init__(self, services, tns, name=None, _with_partnerlink=False):
         '''
-        @param A ServiceBase subclass that defines the exposed services.
+        @param An iterable of ServiceBase subclasses that define the exposed
+               services.
+        @param The targetNamespace attribute of the exposed service.
+        @param The name attribute of the exposed service.
+        @param Flag to indicate whether to generate partnerlink node in wsdl.
         '''
 
         self.services = services
