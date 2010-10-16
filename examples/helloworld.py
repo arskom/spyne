@@ -18,11 +18,13 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import soaplib
+
 from soaplib.service import rpc
 from soaplib.service import DefinitionBase
 from soaplib.type.primitive import String, Integer
 
-from soaplib.pattern.server.wsgi import Application
+from soaplib.pattern.server import wsgi
 from soaplib.type.clazz import Array
 
 '''
@@ -49,9 +51,14 @@ class HelloWorldService(DefinitionBase):
 if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server
-        server = make_server('localhost', 7789, Application([HelloWorldService], 'tns'))
+        soap_application = soaplib.Application([HelloWorldService], 'tns')
+        wsgi_application = wsgi.Application(soap_application)
+
         print "listening to http://0.0.0.0:7789"
         print "wsdl is at: http://127.0.0.1:7789/?wsdl"
+
+        server = make_server('localhost', 7789, wsgi_application)
         server.serve_forever()
+
     except ImportError:
         print "Error: example server code requires Python >= 2.5"

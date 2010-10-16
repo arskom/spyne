@@ -26,7 +26,7 @@ from twisted.python import log
 
 from soaplib.test.interop.server._service import application
 from soaplib.util.server import run_twisted
-from soaplib.server.wsgi import Server
+from soaplib.server import wsgi
 
 port = 9754
 url = 'app'
@@ -35,7 +35,9 @@ def main(argv):
     observer = log.PythonLoggingObserver('twisted')
     log.startLoggingWithObserver(observer.emit, setStdout=False)
 
-    return run_twisted( [ (Server(application), url) ], port )
+    wsgi_application = wsgi.Application(application)
+
+    return run_twisted( [ (wsgi_application, url) ], port )
 
 if __name__ == '__main__':
     import sys

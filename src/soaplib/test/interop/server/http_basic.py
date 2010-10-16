@@ -23,13 +23,16 @@ logger = logging.getLogger('soaplib._base')
 logger.setLevel(logging.DEBUG)
 
 from soaplib.test.interop.server._service import application
-from soaplib.server.wsgi import Server
+from soaplib.server import wsgi
 
 if __name__ == '__main__':
     try:
         from wsgiref.simple_server import make_server
         from wsgiref.validate import validator
-        server = make_server('0.0.0.0', 9753, validator(Server(application)))
+
+        wsgi_application = wsgi.Application(application)
+        server = make_server('0.0.0.0', 9753, validator(wsgi_application))
+
         logger.info('Starting interop server at %s:%s.' % ('0.0.0.0', 9753))
         logger.info('WSDL is at: /?wsdl')
         server.serve_forever()

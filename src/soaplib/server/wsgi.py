@@ -62,7 +62,7 @@ def _reconstruct_soap_request(http_env):
 
     return collapse_swa(content_type, http_payload), charset
 
-class Server(Base):
+class Application(Base):
     transport = 'http://schemas.xmlsoap.org/soap/http'
 
     def __call__(self, req_env, start_response, wsgi_url=None):
