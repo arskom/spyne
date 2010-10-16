@@ -34,8 +34,7 @@ This is the HelloWorld example running in the twisted framework.
 class HelloWorldService(DefinitionBase):
     @rpc(String, Integer, _returns=Array(String))
     def say_hello(self, name, times):
-        '''Docstrings for service methods appear as documentation in the wsdl
-        <b>what fun</b>
+        '''Docstrings for service methods appear as documentation in the wsdl.
 
         @param name the name to say hello to
         @param the number of times to say hello
@@ -44,8 +43,8 @@ class HelloWorldService(DefinitionBase):
         results = []
         for i in range(0, times):
             results.append('Hello, %s' % name)
-        return results
 
+        return results
 
 if __name__=='__main__':
     soap_app=soaplib.Application([HelloWorldService], 'tns')
@@ -53,4 +52,5 @@ if __name__=='__main__':
 
     print 'listening on 0.0.0.0:7789'
     print 'wsdl is at: http://0.0.0.0:7789/SOAP/?wsdl'
+
     run_twisted( ( (wsgi_app, "SOAP"),), 7789)
