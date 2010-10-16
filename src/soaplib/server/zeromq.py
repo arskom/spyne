@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""A soap server that uses zeromq (zmq.REP) as transport"""
+"""A soap server that uses ZeroMQ (zmq.REP) as transport"""
 
 import zmq
 
@@ -56,5 +56,4 @@ class Server(Base):
 
             out_string = self.get_out_string(ctx, out_object)
 
-            # Send reply back to client
             self.soap_socket.send(out_string)
