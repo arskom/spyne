@@ -37,6 +37,14 @@ def nillable_element(func):
             return func(cls, element)
     return wrapper
 
+def nillable_string(func):
+    def wrapper(cls, string):
+        if string is None:
+            return None
+        else:
+            return func(cls, string)
+    return wrapper
+
 class Base(object):
     __namespace__ = None
     __type_name__ = None
