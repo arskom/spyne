@@ -87,7 +87,7 @@ class Base(object):
     @classmethod
     def get_type_name_ns(cls,app):
         if cls.get_namespace() != None:
-            return "%s:%s" % (cls.get_namespace_prefix(app), cls.get_type_name())
+            return "%s:%s" % (cls.get_namespace_prefix(app),cls.get_type_name())
 
     @classmethod
     def to_xml(cls, value, tns, parent_elt, name='retval'):
