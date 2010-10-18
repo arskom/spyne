@@ -27,7 +27,10 @@ class SoaplibClientTestBase(object):
     def test_echo_boolean(self):
         val = True
         ret = self.client.service.echo_boolean(val)
+        self.assertEquals(val,ret)
 
+        val = False
+        ret = self.client.service.echo_boolean(val)
         self.assertEquals(val,ret)
 
     def test_echo_simple_boolean_array(self):
