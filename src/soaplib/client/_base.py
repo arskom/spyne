@@ -51,10 +51,8 @@ class RemoteProcedureBase(object):
 
         return request_raw
 
-    def get_out_string(self, args, kwargs):
-        request_raw = self.get_out_object(args, kwargs)
-
-        request_xml = self.app.serialize_soap(self.ctx, request_raw,
+    def get_out_string(self, out_object):
+        request_xml = self.app.serialize_soap(self.ctx, out_object,
                                                             self.app.NO_WRAPPER)
         request_str = etree.tostring(request_xml,
             xml_declaration=True,
@@ -82,7 +80,7 @@ class RemoteProcedureBase(object):
             else:
                 return wrapped_response
 
-class ClientBase(object):
+class Base(object):
     def __init__(self, url, app):
         """ Must be overridden to initialize the service properly"""
         self.factory = Factory(app)

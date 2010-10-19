@@ -260,7 +260,11 @@ class Application(object):
 
     def __init__(self, services, tns, name=None, _with_partnerlink=False):
         '''
-        @param A ServiceBase subclass that defines the exposed services.
+        @param An iterable of ServiceBase subclasses that define the exposed
+               services.
+        @param The targetNamespace attribute of the exposed service.
+        @param The name attribute of the exposed service.
+        @param Flag to indicate whether to generate partnerlink node in wsdl.
         '''
 
         self.services = services
@@ -341,10 +345,8 @@ class Application(object):
         assert wrapper in (Application.IN_WRAPPER,
                                                 Application.OUT_WRAPPER),wrapper
 
-        try:
-            self.decompose_incoming_envelope(ctx, envelope_string, charset)
-        except ValidationError, e:
-            return e
+        # this sets the ctx.in_body_xml and ctx.in_header_xml properties
+        self.decompose_incoming_envelope(ctx, envelope_string, charset)
 
         if ctx.in_body_xml.tag == "{%s}Fault" % soaplib.ns_soap_env:
             in_body = Fault.from_xml(ctx.in_body_xml)
@@ -791,7 +793,7 @@ class Application(object):
         soap_binding.set('style', 'document')
 
         if self.transport is None:
-            raise Exception("You must set the class variable 'transport'")
+            raise Exception("You must set the 'transport' property")
         soap_binding.set('transport', self.transport)
 
         cb_binding = None

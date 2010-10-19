@@ -35,6 +35,7 @@ from soaplib.type.primitive import string_encoding
 from soaplib.mime import apply_mtom
 from soaplib.mime import collapse_swa
 from soaplib.util import reconstruct_url
+from soaplib.server import Base
 
 HTTP_500 = '500 Internal server error'
 HTTP_200 = '200 OK'
@@ -61,7 +62,7 @@ def _reconstruct_soap_request(http_env):
 
     return collapse_swa(content_type, http_payload), charset
 
-class Application(soaplib.Application):
+class Application(Base):
     transport = 'http://schemas.xmlsoap.org/soap/http'
 
     def __call__(self, req_env, start_response, wsgi_url=None):
@@ -107,13 +108,13 @@ class Application(soaplib.Application):
         http_resp_headers = {'Content-Type': 'text/xml'}
 
         try:
-            self.get_wsdl(url)
-            self.on_wsdl(req_env, self.__wsdl) # implementation hook
+            wsdl = self.app.get_wsdl(url)
+            self.on_wsdl(req_env, wsdl) # implementation hook
 
-            http_resp_headers['Content-Length'] = str(len(self.__wsdl))
+            http_resp_headers['Content-Length'] = str(len(wsdl))
             start_response(HTTP_200, http_resp_headers.items())
 
-            return [self.__wsdl]
+            return [wsdl]
 
         except Exception, e:
             logger.error(traceback.format_exc())
@@ -133,43 +134,30 @@ class Application(soaplib.Application):
 
         in_string, in_string_charset = _reconstruct_soap_request(req_env)
 
-        out_object = None
-        try:
-            in_object = self.deserialize_soap(ctx, in_string, self.IN_WRAPPER,
-                                                            in_string_charset)
-        except Fault,e:
-            out_object = e
+        in_object = self.get_in_object(ctx, in_string, in_string_charset)
 
         return_code = HTTP_200
+        if ctx.in_error:
+            out_object = ctx.in_error
+            return_code = HTTP_500
+        else:
+            assert ctx.service != None
+            out_object = self.get_out_object(ctx, in_object)
+            if ctx.out_error:
+                out_object = ctx.out_error
+                return_code = HTTP_500
+
+        out_string = self.get_out_string(ctx, out_object)
+
         http_resp_headers = {
             'Content-Type': 'text/xml',
             'Content-Length': '0',
         }
 
-        if ctx.service is None:
-            out_xml = self.serialize_soap(ctx, in_object, self.OUT_WRAPPER)
-            out_string = etree.tostring(out_xml, xml_declaration=True,
-                                                       encoding=string_encoding)
-            return_code = HTTP_500
+        # implementation hook
+        self.on_wsgi_return(req_env, http_resp_headers, out_string)
 
-        else:
-            if out_object is None:
-                out_object = self.process_request(ctx, in_object)
-
-            if isinstance(out_object, Fault):
-                return_code = HTTP_500
-            else:
-                assert not isinstance(out_object, Exception)
-
-            out_xml = self.serialize_soap(ctx, out_object,
-                                                        Application.OUT_WRAPPER)
-            out_string = etree.tostring(out_xml, xml_declaration=True,
-                                                       encoding=string_encoding)
-
-            # implementation hook
-            self.on_wsgi_return(req_env, http_resp_headers, out_string)
-
-        if ctx.descriptor.mtom:
+        if ctx.descriptor and ctx.descriptor.mtom:
             # when there are more than one return type, the result is 
             # encapsulated inside a list. when there's just one, the result
             # is returned unencapsulated. the apply_mtom always expects the
@@ -220,6 +208,3 @@ class Application(soaplib.Application):
         @param return string of the soap request
         '''
         pass
-
-class ValidatingApplication(Application, soaplib.ValidatingApplication):
-    pass

@@ -1,3 +1,4 @@
+
 #
 # soaplib - Copyright (C) Soaplib contributors.
 #
@@ -27,6 +28,7 @@ from pytz import FixedOffset
 import soaplib
 from soaplib.type import SimpleType
 from soaplib.type import nillable_element
+from soaplib.type import nillable_string
 from soaplib.type import nillable_value
 from soaplib.util.etreeconv import etree_to_dict
 from soaplib.util.etreeconv import dict_to_etree
@@ -69,6 +71,11 @@ class Any(SimpleType):
 
         return retval
 
+    @classmethod
+    @nillable_string
+    def from_string(cls, string):
+        return etree.fromstring(string)
+
 class AnyAsDict(Any):
     @classmethod
     @nillable_value
@@ -84,6 +91,11 @@ class AnyAsDict(Any):
             return etree_to_dict(element)
 
         return None
+
+    @classmethod
+    @nillable_string
+    def from_string(cls, string):
+        return etree_to_dict(etree.fromstring(string))
 
 class String(SimpleType):
     class Attributes(SimpleType.Attributes):
@@ -144,12 +156,17 @@ class String(SimpleType):
     @nillable_element
     def from_xml(cls, element):
         u = element.text or ""
+        return cls.from_string(u)
+
+    @classmethod
+    @nillable_string
+    def from_string(cls, string):
         try:
-            u = str(u)
-            return u.encode(string_encoding)
+            string = str(string)
+            return string.encode(string_encoding)
 
         except:
-            return u
+            return string
 
 class AnyUri(String):
     __type_name__ = 'anyURI'
@@ -163,18 +180,26 @@ class Decimal(SimpleType):
     @classmethod
     @nillable_element
     def from_xml(cls, element):
-        return decimal.Decimal(element.text)
+        return cls.from_string(element.text)
+
+    @classmethod
+    @nillable_string
+    def from_string(cls, string):
+        return decimal.Decimal(string)
 
 class Integer(Decimal):
     @classmethod
     @nillable_element
     def from_xml(cls, element):
-        i = element.text
+        return cls.from_string(element.text)
 
+    @classmethod
+    @nillable_string
+    def from_string(cls, string):
         try:
-            return int(i)
+            return int(string)
         except:
-            return long(i)
+            return long(string)
 
 class Date(SimpleType):
     @classmethod
@@ -186,17 +211,20 @@ class Date(SimpleType):
     @nillable_element
     def from_xml(cls, element):
         """expect ISO formatted dates"""
-        text = element.text
+        return cls.from_string(element.text)
 
+    @classmethod
+    @nillable_string
+    def from_string(cls, string):
         def parse_date(date_match):
             fields = date_match.groupdict(0)
             year, month, day = [int(fields[x]) for x in
                 ("year", "month", "day")]
             return datetime.date(year, month, day)
 
-        match = _date_re.match(text)
+        match = _date_re.match(string)
         if not match:
-            raise Exception("Date [%s] not in known format" % text)
+            raise Exception("Date [%s] not in known format" % string)
 
         return parse_date(match)
 
@@ -212,29 +240,34 @@ class DateTime(SimpleType):
     @nillable_element
     def from_xml(cls, element):
         """expect ISO formatted dates"""
+        return cls.from_string(element.text)
 
-        text = element.text
+    @classmethod
+    @nillable_string
+    def from_string(cls, string):
         def parse_date(date_match, tz=None):
             fields = date_match.groupdict(0)
-            year, month, day, hr, min, sec = [int(fields[x]) for x in
+            year, month, day, hour, min, sec = [int(fields[x]) for x in
                 ("year", "month", "day", "hr", "min", "sec")]
+
             # use of decimal module here (rather than float) might be better
             # here, if willing to require python 2.4 or higher
             microsec = int(float(fields.get("sec_frac", 0)) * 10 ** 6)
-            return datetime.datetime(year, month, day, hr, min, sec, microsec, tz)
 
-        match = _utc_re.match(text)
+            return datetime.datetime(year,month,day, hour,min,sec, microsec, tz)
+
+        match = _utc_re.match(string)
         if match:
             return parse_date(match, tz=pytz.utc)
 
-        match = _offset_re.match(text)
+        match = _offset_re.match(string)
         if match:
             tz_hr, tz_min = [int(match.group(x)) for x in "tz_hr", "tz_min"]
             return parse_date(match, tz=FixedOffset(tz_hr * 60 + tz_min, {}))
 
-        match = _local_re.match(text)
+        match = _local_re.match(string)
         if not match:
-            raise Exception("DateTime [%s] not in known format" % text)
+            raise Exception("DateTime [%s] not in known format" % string)
 
         return parse_date(match)
 
@@ -249,19 +282,29 @@ class Duration(SimpleType):
     @classmethod
     @nillable_element
     def from_xml(cls, element):
+        return cls.from_string(element.text)
+
+    @classmethod
+    @nillable_string
+    def from_string(cls, string):
         from soaplib.util.duration import duration
-        return duration.parse(element.text)
+        return duration.parse(string)
 
 class Double(SimpleType):
-    @classmethod
-    @nillable_element
-    def from_xml(cls, element):
-        return float(element.text)
-
     @classmethod
     @nillable_value
     def to_xml(cls, value, tns, parent_elt, name='retval'):
         SimpleType.to_xml(str(value), tns, parent_elt, name)
+
+    @classmethod
+    @nillable_element
+    def from_xml(cls, element):
+        return cls.from_string(element.text)
+
+    @classmethod
+    @nillable_string
+    def from_string(cls, string):
+        return float(string)
 
 class Float(Double):
     pass
@@ -275,8 +318,12 @@ class Boolean(SimpleType):
     @classmethod
     @nillable_element
     def from_xml(cls, element):
-        s = element.text
-        return (s and s.lower() in ['true', '1'])
+        return cls.from_string(element.text)
+
+    @classmethod
+    @nillable_string
+    def from_string(cls, string):
+        return (string.lower() in ['true', '1'])
 
 # a class that is really a namespace
 class Mandatory(object):

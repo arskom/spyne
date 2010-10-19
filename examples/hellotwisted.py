@@ -17,8 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import soaplib
+
 from soaplib.util.wsgi_wrapper import run_twisted
-from soaplib.server.wsgi import Application
+from soaplib.server import wsgi
 from soaplib.service import DefinitionBase
 from soaplib.service import rpc
 from soaplib.type.clazz import Array
@@ -32,8 +34,7 @@ This is the HelloWorld example running in the twisted framework.
 class HelloWorldService(DefinitionBase):
     @rpc(String, Integer, _returns=Array(String))
     def say_hello(self, name, times):
-        '''Docstrings for service methods appear as documentation in the wsdl
-        <b>what fun</b>
+        '''Docstrings for service methods appear as documentation in the wsdl.
 
         @param name the name to say hello to
         @param the number of times to say hello
@@ -42,11 +43,14 @@ class HelloWorldService(DefinitionBase):
         results = []
         for i in range(0, times):
             results.append('Hello, %s' % name)
+
         return results
 
-
 if __name__=='__main__':
-    app=Application([HelloWorldService], 'tns')
+    soap_app=soaplib.Application([HelloWorldService], 'tns')
+    wsgi_app=wsgi.Application(soap_app)
+
     print 'listening on 0.0.0.0:7789'
     print 'wsdl is at: http://0.0.0.0:7789/SOAP/?wsdl'
-    run_twisted( ( (app, "SOAP"),), 7789)
+
+    run_twisted( ( (wsgi_app, "SOAP"),), 7789)

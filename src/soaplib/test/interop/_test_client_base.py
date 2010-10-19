@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+
 #
 # soaplib - Copyright (C) Soaplib contributors.
 #
@@ -20,20 +20,17 @@
 import unittest
 
 from soaplib.type.exception import Fault
-from soaplib.client.http import Client
-from soaplib.test.interop.server._service import application
 
 from datetime import datetime
 
-class TestSoaplibClient(unittest.TestCase):
-    def setUp(self):
-        self.client = Client('http://localhost:9753/', application)
-        self.ns = "soaplib.test.interop.server._service"
-
+class SoaplibClientTestBase(object):
     def test_echo_boolean(self):
         val = True
         ret = self.client.service.echo_boolean(val)
+        self.assertEquals(val,ret)
 
+        val = False
+        ret = self.client.service.echo_boolean(val)
         self.assertEquals(val,ret)
 
     def test_echo_simple_boolean_array(self):

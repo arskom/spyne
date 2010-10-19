@@ -21,7 +21,8 @@ class duration(object):
     __seq1 = [("Y", "years"), ("M", "months"), ("D", "days")]
     __seq2 = [("H", "hours"), ("M", "minutes"), ("S", "seconds")]
 
-    def __init__(self, years = 0, months = 0, days = 0, hours = 0, minutes = 0, seconds = 0, negative = False):
+    def __init__(self, years=0, months=0, days=0, hours=0, minutes=0, seconds=0,
+                                                                negative=False):
         self.years = years
         self.months = months
         self.days = days
@@ -38,6 +39,7 @@ class duration(object):
                 assert n >= 0 and (n == round(n) or attr == "seconds")
                 if n:
                     str += (n == round(n) and "%i%s" or "%s%s") % (n, s)
+
             return str
 
         s1 = tostr(self.__seq1)
@@ -48,15 +50,19 @@ class duration(object):
             ret = "P%s" % s1
         else:
             ret = "PT0S"
+
         if self.negative:
             ret = "-" + ret
+
         return ret
 
     def __repr__(self):
-        return "%s(%s, %s, %s, %s, %s, %s, %s)" % (self.__class__.__name__,
-                self.years, self.months, self.days,
-                self.hours, self.minutes, self.seconds,
-                self.negative)
+        return "%s(%s, %s, %s, %s, %s, %s, %s)" % (
+            self.__class__.__name__,
+            self.years, self.months, self.days,
+            self.hours, self.minutes, self.seconds,
+            self.negative
+        )
 
     @classmethod
     def parse(cls, str):
@@ -65,17 +71,20 @@ class duration(object):
 
         def parse_token(str):
             n = "0"
+
             for i in range(len(str)):
                 if str[i].isdigit() or str[i] == ".":
                     n += str[i]
                 else:
                     break
-            return (float(n), str[i], str[i+1:])
+
+            return (float(n), str[i], str[i + 1:])
 
         def parse_seq(str, seq):
             i = 0
             while str:
                 n, s, str = parse_token(str)
+
                 while i < len(seq):
                     s1, attr = seq[i]
                     i += 1
@@ -92,16 +101,19 @@ class duration(object):
             if str.startswith("-"):
                 ret.negative = True
                 str = str[1:]
+
             if str.startswith("P"):
                 str = str[1:]
             else:
                 raise Exception
+
             str1, _, str2 = str.partition("T")
             if not (str1 or str2):
                 raise Exception
             parse_seq(str1, cls.__seq1)
             parse_seq(str2, cls.__seq2)
+
         except:
-            raise ValueError("Duration [%s] not in correct format" % orig_str)
+            raise ValueError("Duration %r not in correct format" % orig_str)
 
         return ret
