@@ -19,7 +19,7 @@
 
 import soaplib
 from lxml import etree
-from soaplib.type import Base
+from soaplib.model import Base
 
 _ns_xsi = soaplib.ns_xsi
 _pref_soap_env = soaplib.const_prefmap[soaplib.ns_soap_env]

@@ -22,12 +22,12 @@ import unittest
 
 from lxml import etree
 
-from soaplib.type.clazz import ClassSerializer
-from soaplib.type.clazz import Array
-from soaplib.type.primitive import DateTime
-from soaplib.type.primitive import Float
-from soaplib.type.primitive import Integer
-from soaplib.type.primitive import String
+from soaplib.model.clazz import ClassSerializer
+from soaplib.model.clazz import Array
+from soaplib.model.primitive import DateTime
+from soaplib.model.primitive import Float
+from soaplib.model.primitive import Integer
+from soaplib.model.primitive import String
 
 from soaplib import service
 from soaplib.server import wsgi

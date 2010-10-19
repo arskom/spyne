@@ -10,8 +10,8 @@ Declaring a Soaplib Service
 
     from soaplib.service import DefinitionBase
     from soaplib.service import rpc,
-    from soaplib.type.primitive import String, Integer
-    from soaplib.type.clazz import Array
+    from soaplib.model.primitive import String, Integer
+    from soaplib.model.clazz import Array
     from soaplib.pattern.server.wsgi import Application
 
 
@@ -42,8 +42,8 @@ data types it accepts and returns. ::
 
 Import the type for this method (more on type later)::
 
-    from soaplib.type.primitive import String, Integer
-    from soaplib.type.clazz import Array
+    from soaplib.model.primitive import String, Integer
+    from soaplib.model.clazz import Array
 
 Extending DefinitionBase is an easy way to create a soap service that can
 be deployed as a WSGI application.::

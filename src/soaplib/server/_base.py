@@ -24,8 +24,8 @@ from lxml import etree
 import logging
 logger = logging.getLogger(__name__)
 
-from soaplib.type.exception import Fault
-from soaplib.type.primitive import string_encoding
+from soaplib.model.exception import Fault
+from soaplib.model.primitive import string_encoding
 
 HTTP_500 = '500 Internal server error'
 HTTP_200 = '200 OK'

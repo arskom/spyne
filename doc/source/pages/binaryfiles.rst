@@ -7,7 +7,7 @@ string. Soaplib uses the 'Attachment' serializer to handle all encoding and
 decoding of the binary data, and provieds some useful methods for dealing with
 both in-memory and on-disk binary data. ::
 
-    >>> from soaplib.type.binary import Attachment
+    >>> from soaplib.model.binary import Attachment
     >>> from lxml import etree as et
     >>> a = Attachment(data="this is my binary data")
     >>> print et.tostring(Attachment.to_xml(a))
@@ -17,7 +17,7 @@ both in-memory and on-disk binary data. ::
 
 If you want to return file with binary data, simply::
 
-    >>> from soaplib.type.binary import Attachment
+    >>> from soaplib.model.binary import Attachment
     >>> from lxml import etree as et
     >>> a = Attachment(fileName="mydata")
     >>> print et.tostring(Attachment.to_xml(a))
@@ -28,9 +28,9 @@ If you want to return file with binary data, simply::
 An example service for archiving documents::
 
     from soaplib.service import rpc, DefinitionBase
-    from soaplib.type.primitive import String, Integer
-    from soaplib.type.clazz import Array
-    from soaplib.type.binary import Attachment
+    from soaplib.model.primitive import String, Integer
+    from soaplib.model.clazz import Array
+    from soaplib.model.binary import Attachment
     from soaplib.pattern.server.wsgi import Application
 
     from tempfile import mkstemp

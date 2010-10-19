@@ -24,13 +24,13 @@ from lxml import etree
 
 import soaplib
 
-from soaplib.type.clazz import Array
-from soaplib.type.primitive import Boolean
-from soaplib.type.primitive import DateTime
-from soaplib.type.primitive import Float
-from soaplib.type.primitive import Integer
-from soaplib.type.base import Null
-from soaplib.type.primitive import String
+from soaplib.model.clazz import Array
+from soaplib.model.primitive import Boolean
+from soaplib.model.primitive import DateTime
+from soaplib.model.primitive import Float
+from soaplib.model.primitive import Integer
+from soaplib.model.base import Null
+from soaplib.model.primitive import String
 
 ns_test = 'test_namespace'
 

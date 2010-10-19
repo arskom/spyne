@@ -21,9 +21,9 @@
 from soaplib.pattern.server.wsgi import Application
 from soaplib.service import rpc
 from soaplib.service import DefinitionBase
-from soaplib.type.primitive import String, Integer
+from soaplib.model.primitive import String, Integer
 
-from soaplib.type.clazz import ClassSerializer, Array
+from soaplib.model.clazz import ClassSerializer, Array
 
 '''
 This example shows how to define and use complex structures

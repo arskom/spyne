@@ -26,7 +26,7 @@ from soaplib.pattern.server.wsgi import Application
 from soaplib.service import DefinitionBase
 from soaplib.service import rpc
 
-from soaplib.type.enum import Enum
+from soaplib.model.enum import Enum
 
 from lxml import etree
 

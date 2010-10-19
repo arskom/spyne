@@ -47,8 +47,8 @@ request (soaplib.wsgi_soap.request) object to hold the data points for this
 request. ::
 
     from soaplib.service import rpc, DefinitionBase
-    from soaplib.type.primitive import String, Integer
-    from soaplib.type.clazz import Array
+    from soaplib.model.primitive import String, Integer
+    from soaplib.model.clazz import Array
 
     from time import time
 
