@@ -22,10 +22,10 @@ import soaplib
 
 from soaplib.service import rpc
 from soaplib.service import DefinitionBase
-from soaplib.type.primitive import String, Integer
+from soaplib.model.primitive import String, Integer
 
-from soaplib.pattern.server import wsgi
-from soaplib.type.clazz import Array
+from soaplib.server import wsgi
+from soaplib.model.clazz import Array
 
 '''
 This is a simple HelloWorld example to show the basics of writing

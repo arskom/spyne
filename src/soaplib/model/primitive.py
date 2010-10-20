@@ -26,10 +26,9 @@ from lxml import etree
 from pytz import FixedOffset
 
 import soaplib
-from soaplib.type import SimpleType
-from soaplib.type import nillable_element
-from soaplib.type import nillable_string
-from soaplib.type import nillable_value
+from soaplib.model import SimpleType
+from soaplib.model import nillable_element
+from soaplib.model import nillable_value
 from soaplib.util.etreeconv import etree_to_dict
 from soaplib.util.etreeconv import dict_to_etree
 

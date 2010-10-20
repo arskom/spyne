@@ -18,7 +18,7 @@
 #
 
 """
-The soaplib.type.table module is EXPERIMENTAL. It does not support
+The soaplib.model.table module is EXPERIMENTAL. It does not support
 inheritance, it is supposedly buggy and possibly slow.
 """
 
@@ -29,10 +29,10 @@ import sqlalchemy
 from sqlalchemy import Column
 
 from sqlalchemy.ext.declarative import DeclarativeMeta
-from soaplib.type.clazz import TypeInfo
-from soaplib.type.clazz import ClassSerializerBase
-from soaplib.type import primitive
-from soaplib.type import clazz
+from soaplib.model.clazz import TypeInfo
+from soaplib.model.clazz import ClassSerializerBase
+from soaplib.model import primitive
+from soaplib.model import clazz
 
 _type_map = {
     sqlalchemy.Text: primitive.String,

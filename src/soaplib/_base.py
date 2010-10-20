@@ -30,7 +30,7 @@ from lxml import etree
 
 import soaplib
 
-from soaplib.type.exception import Fault
+from soaplib.model.exception import Fault
 from soaplib.util.odict import odict
 
 HTTP_500 = '500 Internal server error'
@@ -530,7 +530,7 @@ class Application(object):
         if ns == "__main__":
             warnings.warn("Namespace is '__main__'", Warning )
 
-        assert ns != "soaplib.type.base"
+        assert ns != "soaplib.model.base"
 
         assert (isinstance(ns, str) or isinstance(ns, unicode)), ns
 

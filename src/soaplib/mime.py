@@ -21,7 +21,7 @@ except ImportError:
 from email import message_from_string
 
 # import soaplib stuff
-from soaplib.type.binary import Attachment
+from soaplib.model.binary import Attachment
 
 import soaplib
 
