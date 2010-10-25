@@ -247,7 +247,7 @@ class WSGISoapApp(object):
                 payload = None
                 header = None
 
-            if payload is not None and len(payload) > 0:
+            if payload is not None:
                 methodname = payload.tag
             else:
                 # check HTTP_SOAPACTION
