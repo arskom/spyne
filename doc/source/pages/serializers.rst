@@ -36,7 +36,7 @@ the proper internal type so it can properly (de)serialize the data. Arrays
 are homogeneous, meaning that the data they hold are all of the same
 type. For mixed typing or more dynamic data, use the Any type. ::
 
-    >>> from soaplib.type.clazz import *
+    >>> from soaplib.model.clazz import *
     >>> from soaplib.serialixers.primitives import String
     >>> from lxml import etree
     >>> parent = etree.Element("parent")
@@ -54,8 +54,8 @@ Class
 -----
 The `ClassSerializer` is used to define and serialize complex, nested structures.
 
-	>>> from soaplib.type.primitive import *
-	>>> from soaplib.type.clazz import *
+	>>> from soaplib.model.primitive import *
+	>>> from soaplib.model.clazz import *
 	>>> from lxml import etree
 	>>> class Permission(ClassSerializer):
 	...	    __namespace__ = "permission"
@@ -99,7 +99,7 @@ strings. Data in Attachment objects can be loaded manually, or read from file.
 All encoding of the binary data is done just prior to the data being sent, and
 decoding immediately upon receipt of the Attachment. ::
 
-    >>> from soaplib.type.binary import Attachment
+    >>> from soaplib.model.binary import Attachment
     >>> from lxml import etree
     >>> a = Attachment(data='my binary data')
     >>> parent = etree.Element('parent')
@@ -109,7 +109,7 @@ decoding immediately upon receipt of the Attachment. ::
     <ns0:retval xmlns:ns0="tns">bXkgYmluYXJ5IGRhdGE=
     </ns0:retval>
     >>> print Attachment.from_xml(element)
-    <soaplib.type.binary.Attachment object at 0x5c6d90>
+    <soaplib.model.binary.Attachment object at 0x5c6d90>
     >>> print Attachment.from_xml(element).data
     my binary data
     >>> a2 = Attachment(fileName='test.data') # load from file
@@ -131,10 +131,10 @@ to/from dicts with lists instead of raw lxml.etree._Element objects.
 Custom
 ------
 Soaplib provides a very simple interface for writing custom type. Just
-inherit from soaplib.type.base.Base and override from_xml and to_xml and
+inherit from soaplib.model.base.Base and override from_xml and to_xml and
 add_to_schema functions.::
 
-    from soaplib.type.base import Base
+    from soaplib.model.base import Base
 
     class MySerializer(Base):
         @classmethod

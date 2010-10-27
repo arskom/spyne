@@ -7,7 +7,7 @@ common datatypes generally needed.
 
 Base
 ----
-.. automodule:: soaplib.type.base
+.. automodule:: soaplib.model.base
     :members:
     :undoc-members:
     :inherited-members:
@@ -15,7 +15,7 @@ Base
 
 Binary
 ------
-.. automodule:: soaplib.type.binary
+.. automodule:: soaplib.model.binary
     :members:
     :undoc-members:
     :inherited-members:
@@ -23,7 +23,7 @@ Binary
 
 Clazz
 ------
-.. automodule:: soaplib.type.clazz
+.. automodule:: soaplib.model.clazz
     :members:
     :undoc-members:
     :inherited-members:
@@ -31,7 +31,7 @@ Clazz
 
 Enum
 -----
-.. automodule:: soaplib.type.enum
+.. automodule:: soaplib.model.enum
     :members:
     :undoc-members:
     :inherited-members:
@@ -40,7 +40,7 @@ Enum
 
 Exception
 ---------
-.. automodule:: soaplib.type.exception
+.. automodule:: soaplib.model.exception
     :members:
     :undoc-members:
     :inherited-members:
@@ -49,7 +49,7 @@ Exception
 
 Primitive
 ---------
-.. automodule:: soaplib.type.primitive
+.. automodule:: soaplib.model.primitive
     :members:
     :undoc-members:
     :inherited-members:
@@ -58,7 +58,7 @@ Primitive
 
 Table
 ------
-.. automodule:: soaplib.type.table
+.. automodule:: soaplib.model.table
     :members:
     :undoc-members:
     :inherited-members:

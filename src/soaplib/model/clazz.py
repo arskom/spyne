@@ -21,9 +21,9 @@ from lxml import etree
 
 import soaplib
 
-from soaplib.type import Base
-from soaplib.type import nillable_element
-from soaplib.type import nillable_value
+from soaplib.model import Base
+from soaplib.model import nillable_element
+from soaplib.model import nillable_value
 
 from soaplib.util.odict import odict as TypeInfo
 
@@ -297,7 +297,7 @@ class ClassSerializer(ClassSerializerBase):
     return instances, contrary to primivites where the same call will result in
     customized duplicates of the original class definition.
     Those who'd like to customize the class should use the customize method.
-    (see soaplib.type.base.Base)
+    (see soaplib.model.base.Base)
     """
 
     __metaclass__ = ClassSerializerMeta
@@ -362,4 +362,4 @@ class Array(ClassSerializer):
 
         return retval
 
-from soaplib.type.exception import Fault
+from soaplib.model.exception import Fault

@@ -25,7 +25,7 @@ from tempfile import mkstemp
 from lxml import etree
 
 import soaplib
-from soaplib.type.binary import Attachment
+from soaplib.model.binary import Attachment
 
 ns_test = 'test_namespace'
 

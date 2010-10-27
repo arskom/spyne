@@ -24,9 +24,9 @@ from lxml import etree
 
 import soaplib
 
-from soaplib.type.clazz import ClassSerializer
-from soaplib.type.primitive import Integer
-from soaplib.type.primitive import String
+from soaplib.model.clazz import ClassSerializer
+from soaplib.model.primitive import Integer
+from soaplib.model.primitive import String
 from soaplib.mime import join_attachment
 
 # Service Classes

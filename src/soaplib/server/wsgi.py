@@ -28,6 +28,7 @@ import traceback
 import soaplib
 
 from soaplib.type.exception import Fault
+from soaplib.model.exception import Fault
 
 from soaplib.mime import apply_mtom
 from soaplib.mime import collapse_swa

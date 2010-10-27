@@ -19,13 +19,13 @@
 
 
 from soaplib.service import rpc, DefinitionBase
-from soaplib.type.primitive import String
-from soaplib.type.binary import Attachment
+from soaplib.model.primitive import String
+from soaplib.model.binary import Attachment
 
 
 from tempfile import mkstemp
 import os
-from soaplib.pattern.server.wsgi import Application
+from soaplib.server.wsgi import Application
 
 
 class DocumentArchiver(DefinitionBase):

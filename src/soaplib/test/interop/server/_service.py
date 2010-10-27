@@ -19,20 +19,20 @@
 
 from lxml import etree
 
-from soaplib.type.binary import Attachment
-from soaplib.type.clazz import Array
-from soaplib.type.clazz import ClassSerializer
-from soaplib.type.enum import Enum
-from soaplib.type.exception import Fault
+from soaplib.model.binary import Attachment
+from soaplib.model.clazz import Array
+from soaplib.model.clazz import ClassSerializer
+from soaplib.model.enum import Enum
+from soaplib.model.exception import Fault
 
-from soaplib.type.primitive import Any
-from soaplib.type.primitive import AnyAsDict
-from soaplib.type.primitive import Boolean
-from soaplib.type.primitive import DateTime
-from soaplib.type.primitive import Float
-from soaplib.type.primitive import Integer
-from soaplib.type.primitive import String
-from soaplib.type.primitive import Double
+from soaplib.model.primitive import Any
+from soaplib.model.primitive import AnyAsDict
+from soaplib.model.primitive import Boolean
+from soaplib.model.primitive import DateTime
+from soaplib.model.primitive import Float
+from soaplib.model.primitive import Integer
+from soaplib.model.primitive import String
+from soaplib.model.primitive import Double
 
 from soaplib import service
 from soaplib import ValidatingApplication

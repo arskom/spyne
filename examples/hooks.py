@@ -20,9 +20,9 @@
 from time import time
 
 from soaplib.service import rpc
-from soaplib.type.primitive import String, Integer, Array
-from soaplib.pattern.server.wsgi_soap import request
-from soaplib.pattern.server.wsgi_soap import SimpleWSGIApp
+from soaplib.model.primitive import String, Integer, Array
+from soaplib.server.wsgi_soap import request
+from soaplib.server.wsgi_soap import SimpleWSGIApp
 
 '''
 This example is an enhanced version of the HelloWorld example that

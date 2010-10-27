@@ -20,8 +20,8 @@
 import base64
 import cStringIO
 
-from soaplib.type.base import Base
-from soaplib.type import nillable_value, nillable_element
+from soaplib.model.base import Base
+from soaplib.model import nillable_value, nillable_element
 
 from lxml import etree
 
