@@ -182,30 +182,22 @@ class MethodDescriptor(object):
         self.in_header = in_header
         self.out_header = out_header
 
-def from_soap(xml_string, charset):
+def from_soap(in_envelope_xml, xmlids=None):
     '''
     Parses the xml string into the header and payload
     '''
 
-    try:
-        if charset is None: # hack
-            raise ValueError(charset)
-
-        root, xmlids = etree.XMLID(xml_string.decode(charset))
-    except ValueError,e:
-        logger.debug('%s -- falling back to str decoding.' % (e))
-        root, xmlids = etree.XMLID(xml_string)
-
     if xmlids:
-        resolve_hrefs(root, xmlids)
+        resolve_hrefs(in_envelope_xml, xmlids)
 
-    if root.tag != '{%s}Envelope' % soaplib.ns_soap_env:
+    if in_envelope_xml.tag != '{%s}Envelope' % soaplib.ns_soap_env:
         raise Fault('Client.SoapError', 'No {%s}Envelope element was found!' %
                                                             soaplib.ns_soap_env)
 
-    header_envelope = root.xpath('e:Header',
-                                         namespaces={'e': soaplib.ns_soap_env})
-    body_envelope = root.xpath('e:Body', namespaces={'e': soaplib.ns_soap_env})
+    header_envelope = in_envelope_xml.xpath('e:Header',
+                                          namespaces={'e': soaplib.ns_soap_env})
+    body_envelope = in_envelope_xml.xpath('e:Body',
+                                          namespaces={'e': soaplib.ns_soap_env})
 
     if len(header_envelope) == 0 and len(body_envelope) == 0:
         raise Fault('Client.SoapError', 'Soap envelope is empty!' %
@@ -290,11 +282,24 @@ class Application(object):
     def get_class_instance(self, key):
         return self.__classes[key]()
 
-    def decompose_incoming_envelope(self, ctx, envelope_string, charset=None):
-        header, body = from_soap(envelope_string, charset)
+    def parse_xml_string(self, xml_string, charset=None):
+        try:
+            if charset is None: # hack
+                raise ValueError(charset)
+
+            root, xmlids = etree.XMLID(xml_string.decode(charset))
+
+        except ValueError,e:
+            logger.debug('%s -- falling back to str decoding.' % (e))
+            root, xmlids = etree.XMLID(xml_string)
+
+        return root, xmlids
+
+    def decompose_incoming_envelope(self, ctx, envelope_xml, xmlids=None):
+        header, body = from_soap(envelope_xml, xmlids)
 
         # FIXME: find a way to include soap env schema with soaplib package and
-        # properly and always validate the whole request.
+        # properly validate the whole request.
 
         if len(body) > 0 and body.tag == '{%s}Fault' % soaplib.ns_soap_env:
             ctx.in_body_xml = body
@@ -312,8 +317,8 @@ class Application(object):
                 # in production even though we won't see the results.
                 if logger.level == logging.DEBUG:
                     try:
-                        logger.debug(etree.tostring(
-                           etree.fromstring(envelope_string),pretty_print=True))
+                        logger.debug(etree.tostring(envelope_xml,
+                                                             pretty_print=True))
                     except etree.XMLSyntaxError, e:
                         logger.debug(body)
                         raise Fault('Client.Xml', 'Error at line: %d, '
@@ -332,7 +337,7 @@ class Application(object):
             ctx.in_header_xml = header
             ctx.in_body_xml = body
 
-    def deserialize_soap(self, ctx, envelope_string, wrapper, charset=None):
+    def deserialize_soap(self, ctx, wrapper, envelope_xml, xmlids=None):
         """Takes a MethodContext instance and a string containing ONE soap
         message.
         Returns the corresponding native python object
@@ -344,7 +349,7 @@ class Application(object):
                                                 Application.OUT_WRAPPER),wrapper
 
         # this sets the ctx.in_body_xml and ctx.in_header_xml properties
-        self.decompose_incoming_envelope(ctx, envelope_string, charset)
+        self.decompose_incoming_envelope(ctx, envelope_xml, xmlids)
 
         if ctx.in_body_xml.tag == "{%s}Fault" % soaplib.ns_soap_env:
             in_body = Fault.from_xml(ctx.in_body_xml)

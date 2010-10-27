@@ -19,8 +19,6 @@
 
 """A soap server that uses http as transport, and wsgi as bridge api"""
 
-from lxml import etree
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -30,7 +28,6 @@ import traceback
 import soaplib
 
 from soaplib.type.exception import Fault
-from soaplib.type.primitive import string_encoding
 
 from soaplib.mime import apply_mtom
 from soaplib.mime import collapse_swa

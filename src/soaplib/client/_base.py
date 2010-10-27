@@ -62,9 +62,9 @@ class RemoteProcedureBase(object):
         return request_str
 
     def get_in_object(self, response_str, is_error=False):
-        #response_xml = self.decompose_incoming_envelope(self.ctx, response_str)
-        wrapped_response = self.app.deserialize_soap(self.ctx, response_str,
-                                                           self.app.OUT_WRAPPER)
+        root, xmlids = self.app.parse_xml_string(response_str)
+        wrapped_response = self.app.deserialize_soap(self.ctx,
+                                             self.app.OUT_WRAPPER, root, xmlids)
 
         if isinstance(wrapped_response, Fault) or is_error:
             raise wrapped_response

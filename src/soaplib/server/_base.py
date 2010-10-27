@@ -43,9 +43,11 @@ class Base(object):
 
     def get_in_object(self, ctx, in_string, in_string_charset=None):
         in_object = None
+        root, xmlids = self.app.parse_xml_string(in_string, in_string_charset)
+
         try:
-            in_object = self.app.deserialize_soap(ctx, in_string,
-                                        self.app.IN_WRAPPER, in_string_charset)
+            in_object = self.app.deserialize_soap(ctx, self.app.IN_WRAPPER,
+                                                                   root, xmlids)
         except Fault,e:
             ctx.in_error = e
 
