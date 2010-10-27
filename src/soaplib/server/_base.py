@@ -64,7 +64,7 @@ class Base(object):
         return out_object
 
     def get_out_string(self, ctx, out_object):
-        out_xml = self.app.serialize_soap(ctx, out_object, self.app.OUT_WRAPPER)
+        out_xml = self.app.serialize_soap(ctx, self.app.OUT_WRAPPER, out_object)
         out_string = etree.tostring(out_xml, xml_declaration=True,
                                                        encoding=string_encoding)
         return out_string

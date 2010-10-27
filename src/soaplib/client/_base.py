@@ -52,12 +52,10 @@ class RemoteProcedureBase(object):
         return request_raw
 
     def get_out_string(self, out_object):
-        request_xml = self.app.serialize_soap(self.ctx, out_object,
-                                                            self.app.NO_WRAPPER)
+        request_xml = self.app.serialize_soap(self.ctx, self.app.NO_WRAPPER,
+                                                                     out_object)
         request_str = etree.tostring(request_xml,
-            xml_declaration=True,
-            encoding=string_encoding
-        )
+                                 xml_declaration=True, encoding=string_encoding)
 
         return request_str
 

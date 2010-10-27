@@ -423,7 +423,7 @@ class Application(object):
 
         return retval
 
-    def serialize_soap(self, ctx, native_obj, wrapper):
+    def serialize_soap(self, ctx, wrapper, out_object):
         """Takes a MethodContext instance and the object to be serialied.
         Returns the corresponding xml structure as an lxml.etree._Element
         instance.
@@ -438,11 +438,11 @@ class Application(object):
         envelope = etree.Element('{%s}Envelope' % soaplib.ns_soap_env,
                                                                nsmap=self.nsmap)
 
-        if isinstance(native_obj, Fault):
+        if isinstance(out_object, Fault):
             # FIXME: There's no way to alter soap response headers for the user.
             ctx.out_body_xml = out_body_xml = etree.SubElement(envelope,
                             '{%s}Body' % soaplib.ns_soap_env, nsmap=self.nsmap)
-            native_obj.__class__.to_xml(native_obj,self.get_tns(), out_body_xml)
+            out_object.__class__.to_xml(out_object,self.get_tns(), out_body_xml)
 
             # implementation hook
             if not (ctx.service is None):
@@ -452,7 +452,7 @@ class Application(object):
             if logger.level == logging.DEBUG:
                 logger.debug(etree.tostring(envelope, pretty_print=True))
 
-        elif isinstance(native_obj, Exception):
+        elif isinstance(out_object, Exception):
             raise Exception("Can't serialize native python exceptions")
 
         else:
@@ -467,7 +467,7 @@ class Application(object):
                     logger.warning(
                         "Skipping soap response header as %r method is not "
                         "published to have one." %
-                                native_obj.get_type_name()[:-len('Response')])
+                                out_object.get_type_name()[:-len('Response')])
 
                 else:
                     ctx.out_header_xml = soap_header_elt = etree.SubElement(
@@ -487,7 +487,7 @@ class Application(object):
             # instantiate the result message
             if wrapper is Application.NO_WRAPPER:
                 result_message_class = ctx.descriptor.in_message
-                result_message = native_obj
+                result_message = out_object
 
             else:
                 if wrapper is Application.IN_WRAPPER:
@@ -503,12 +503,12 @@ class Application(object):
                 if len(out_type_info) > 0:
                      if len(out_type_info) == 1:
                          attr_name = result_message_class._type_info.keys()[0]
-                         setattr(result_message, attr_name, native_obj)
+                         setattr(result_message, attr_name, out_object)
 
                      else:
                          for i in range(len(out_type_info)):
                              attr_name=result_message_class._type_info.keys()[i]
-                             setattr(result_message, attr_name, native_obj[i])
+                             setattr(result_message, attr_name, out_object[i])
 
             # transform the results into an element
             result_message_class.to_xml(
