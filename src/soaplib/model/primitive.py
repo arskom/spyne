@@ -177,21 +177,11 @@ class Decimal(SimpleType):
         SimpleType.to_xml(str(value), tns, parent_elt, name)
 
     @classmethod
-    @nillable_element
-    def from_xml(cls, element):
-        return cls.from_string(element.text)
-
-    @classmethod
     @nillable_string
     def from_string(cls, string):
         return decimal.Decimal(string)
 
 class Integer(Decimal):
-    @classmethod
-    @nillable_element
-    def from_xml(cls, element):
-        return cls.from_string(element.text)
-
     @classmethod
     @nillable_string
     def from_string(cls, string):
@@ -207,14 +197,9 @@ class Date(SimpleType):
         SimpleType.to_xml(value.isoformat(), tns, parent_elt, name)
 
     @classmethod
-    @nillable_element
-    def from_xml(cls, element):
-        """expect ISO formatted dates"""
-        return cls.from_string(element.text)
-
-    @classmethod
     @nillable_string
     def from_string(cls, string):
+        """expect ISO formatted dates"""
         def parse_date(date_match):
             fields = date_match.groupdict(0)
             year, month, day = [int(fields[x]) for x in
@@ -236,14 +221,9 @@ class DateTime(SimpleType):
         SimpleType.to_xml(value.isoformat('T'), tns, parent_elt, name)
 
     @classmethod
-    @nillable_element
-    def from_xml(cls, element):
-        """expect ISO formatted dates"""
-        return cls.from_string(element.text)
-
-    @classmethod
     @nillable_string
     def from_string(cls, string):
+        """expect ISO formatted dates"""
         def parse_date(date_match, tz=None):
             fields = date_match.groupdict(0)
             year, month, day, hour, min, sec = [int(fields[x]) for x in
@@ -279,11 +259,6 @@ class Duration(SimpleType):
         SimpleType.to_xml(str(value), tns, parent_elt, name)
 
     @classmethod
-    @nillable_element
-    def from_xml(cls, element):
-        return cls.from_string(element.text)
-
-    @classmethod
     @nillable_string
     def from_string(cls, string):
         from soaplib.util.duration import duration
@@ -294,11 +269,6 @@ class Double(SimpleType):
     @nillable_value
     def to_xml(cls, value, tns, parent_elt, name='retval'):
         SimpleType.to_xml(str(value), tns, parent_elt, name)
-
-    @classmethod
-    @nillable_element
-    def from_xml(cls, element):
-        return cls.from_string(element.text)
 
     @classmethod
     @nillable_string
@@ -313,11 +283,6 @@ class Boolean(SimpleType):
     @nillable_value
     def to_xml(cls, value, tns, parent_elt, name='retval'):
         SimpleType.to_xml(str(bool(value)).lower(), tns, parent_elt, name)
-
-    @classmethod
-    @nillable_element
-    def from_xml(cls, element):
-        return cls.from_string(element.text)
 
     @classmethod
     @nillable_string

@@ -361,7 +361,7 @@ class Application(object):
             else:
                 if ctx.descriptor is None:
                     descriptor = ctx.descriptor = ctx.service.get_method(
-                                                                    ctx.method_name)
+                                                                ctx.method_name)
                 else:
                     descriptor = ctx.descriptor
 

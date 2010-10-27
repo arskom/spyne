@@ -98,6 +98,12 @@ class Base(object):
             return "%s:%s" % (cls.get_namespace_prefix(app),cls.get_type_name())
 
     @classmethod
+    @nillable_element
+    def from_xml(cls, element):
+        return cls.from_string(element.text)
+
+    @classmethod
+    @nillable_value
     def to_xml(cls, value, tns, parent_elt, name='retval'):
         assert isinstance(value, str) or isinstance(value, unicode), \
             "'value' must be string or unicode. it is instead %r" % value
