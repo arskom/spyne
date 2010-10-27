@@ -108,6 +108,7 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
 
         root, xmlids = _parse_xml_string(envelope_string, 'utf8')
         header,payload = _from_soap(root, xmlids)
+
         # quick and dirty test href reconstruction
         self.assertEquals(len(payload[0]), 2)
 
