@@ -268,6 +268,11 @@ class ClassSerializerBase(Base):
                 if bool(v.Attributes.nillable) == True:
                     member.set('nillable', 'true')
 
+                if v.Annotations.doc != '' :
+                    annotation = etree.SubElement(member, "annotation")
+                    doc = etree.SubElement(annotation, "documentation")
+                    doc.text = v.Annotations.doc
+
             schema_entries.add_complex_type(cls, complex_type)
 
             # simple node

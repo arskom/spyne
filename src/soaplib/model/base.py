@@ -57,6 +57,9 @@ class Base(object):
         min_occurs = 0
         max_occurs = 1
 
+    class Annotations(object):
+        doc = ""
+
     class Empty(object):
         pass
 
@@ -136,11 +139,19 @@ class Base(object):
 
         cls_dict['Attributes'] = Attributes
 
+        class Annotations(cls.Annotations):
+            pass
+
+        cls_dict['Annotations'] = Annotations
+
         if not ('_is_clone_of' in cls_dict):
             cls_dict['_is_clone_of'] = cls
 
         for k,v in kwargs.items():
-            setattr(Attributes,k,v)
+            if k != "doc" :
+                setattr(Attributes,k,v)
+            else :
+                setattr(Annotations, k, v)
 
         cls_dup = type(cls.__name__, cls.__bases__, cls_dict)
         return cls_dup
