@@ -30,7 +30,8 @@ from soaplib.model.primitive import Integer
 from soaplib.model.primitive import String
 
 from soaplib.model.clazz import ClassSerializer as Message
-from soaplib import from_soap
+from soaplib._base import _from_soap
+from soaplib._base import _parse_xml_string
 
 class Address(ClassSerializer):
     street = String
@@ -79,7 +80,7 @@ class TestSoap(unittest.TestCase):
     def test_href(self):
         # the template. Start at pos 0, some servers complain if
         # xml tag is not in the first line.
-        a = '''<?xml version="1.0" encoding="utf-8"?>
+        envelope_string = '''<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 xmlns:xsd="http://www.w3.org/2001/XMLSchema"
 xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
@@ -105,7 +106,8 @@ xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   </soap:Body>
 </soap:Envelope>'''
 
-        header,payload = from_soap(a, 'utf8')
+        root, xmlids = _parse_xml_string(envelope_string, 'utf8')
+        header,payload = _from_soap(root, xmlids)
         # quick and dirty test href reconstruction
         self.assertEquals(len(payload[0]), 2)
 

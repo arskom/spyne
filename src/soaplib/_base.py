@@ -182,7 +182,7 @@ class MethodDescriptor(object):
         self.in_header = in_header
         self.out_header = out_header
 
-def from_soap(in_envelope_xml, xmlids=None):
+def _from_soap(in_envelope_xml, xmlids=None):
     '''
     Parses the xml string into the header and payload
     '''
@@ -212,6 +212,19 @@ def from_soap(in_envelope_xml, xmlids=None):
         body = body_envelope[0].getchildren()[0]
 
     return header, body
+
+def _parse_xml_string(xml_string, charset=None):
+    try:
+        if charset is None: # hack
+            raise ValueError(charset)
+
+        root, xmlids = etree.XMLID(xml_string.decode(charset))
+
+    except ValueError,e:
+        logger.debug('%s -- falling back to str decoding.' % (e))
+        root, xmlids = etree.XMLID(xml_string)
+
+    return root, xmlids
 
 # see http://www.w3.org/TR/2000/NOTE-SOAP-20000508/
 # section 5.2.1 for an example of how the id and href attributes are used.
@@ -283,20 +296,10 @@ class Application(object):
         return self.__classes[key]()
 
     def parse_xml_string(self, xml_string, charset=None):
-        try:
-            if charset is None: # hack
-                raise ValueError(charset)
-
-            root, xmlids = etree.XMLID(xml_string.decode(charset))
-
-        except ValueError,e:
-            logger.debug('%s -- falling back to str decoding.' % (e))
-            root, xmlids = etree.XMLID(xml_string)
-
-        return root, xmlids
+        return _parse_xml_string(xml_string, charset)
 
     def decompose_incoming_envelope(self, ctx, envelope_xml, xmlids=None):
-        header, body = from_soap(envelope_xml, xmlids)
+        header, body = _from_soap(envelope_xml, xmlids)
 
         # FIXME: find a way to include soap env schema with soaplib package and
         # properly validate the whole request.

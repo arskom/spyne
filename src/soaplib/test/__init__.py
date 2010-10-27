@@ -16,19 +16,3 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
-
-import unittest
-
-import type
-import test_soap
-import test_service
-
-def suite():
-    suite = type.suite()
-    suite.addTests(test_soap.suite())
-    suite.addTests(test_service.suite())
-
-    return suite
-
-if __name__== '__main__':
-    unittest.TextTestRunner().run(suite())

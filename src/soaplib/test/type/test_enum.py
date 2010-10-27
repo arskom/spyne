@@ -22,7 +22,9 @@ import soaplib
 _ns_xs = soaplib.ns_xsd
 _ns_xsi = soaplib.ns_xsi
 
-from soaplib.server.wsgi import Application
+from soaplib import Application
+Application.transport = 'test'
+
 from soaplib.service import DefinitionBase
 from soaplib.service import rpc
 

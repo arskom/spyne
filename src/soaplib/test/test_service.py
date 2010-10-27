@@ -30,7 +30,9 @@ from soaplib.model.primitive import Integer
 from soaplib.model.primitive import String
 
 from soaplib import service
-from soaplib.server import wsgi
+from soaplib import Application
+Application.transport = 'test'
+
 from soaplib.service import rpc
 
 class Address(ClassSerializer):
@@ -123,7 +125,7 @@ class Test(unittest.TestCase):
     '''Most of the service tests are performed through the interop tests.'''
 
     def setUp(self):
-        self.app = wsgi.Application([TestService], 'tns')
+        self.app = Application([TestService], 'tns')
         self.srv = TestService()
         self._wsdl = self.app.get_wsdl('')
         self.wsdl = etree.fromstring(self._wsdl)
@@ -138,7 +140,7 @@ class Test(unittest.TestCase):
             self.assertTrue(n in self._wsdl, '"%s" not in self._wsdl' % n)
 
     def test_multiple_return(self):
-        app = wsgi.Application([MultipleReturnService], 'tns')
+        app = Application([MultipleReturnService], 'tns')
         app.get_wsdl('')
         srv = MultipleReturnService()
         message = srv.public_methods[0].out_message()
@@ -158,7 +160,7 @@ class Test(unittest.TestCase):
         self.assertEqual(response_data[2], 'c')
 
     def test_multiple_ns(self):
-        svc = wsgi.Application([MultipleNamespaceService], 'tns')
+        svc = Application([MultipleNamespaceService], 'tns')
         wsdl = svc.get_wsdl("URL")
 
 if __name__ == '__main__':

@@ -29,6 +29,7 @@ import soaplib
 from soaplib.model import SimpleType
 from soaplib.model import nillable_element
 from soaplib.model import nillable_value
+from soaplib.model import nillable_string
 from soaplib.util.etreeconv import etree_to_dict
 from soaplib.util.etreeconv import dict_to_etree
 
