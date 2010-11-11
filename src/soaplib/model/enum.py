@@ -1,9 +1,9 @@
 
 from lxml import etree
 
-from base import SimpleType
-from base import nillable_element
-from base import nillable_value
+from soaplib.model.base import SimpleType
+from soaplib.model.base import nillable_element
+from soaplib.model.base import nillable_value
 
 import soaplib
 
