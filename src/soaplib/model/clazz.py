@@ -190,7 +190,7 @@ class ClassSerializerBase(Base):
 
         # FIXME: the result of this method should be cached when build_wsdl is
         #        called (thus _type_info becomes immutable, by definition).
-        flat_type_info = get_flat_type_info(cls)
+        flat_type_info = ClassSerializerBase.get_flat_type_info(cls)
 
         # initialize instance
         for k in flat_type_info:
