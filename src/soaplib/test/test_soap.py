@@ -82,11 +82,11 @@ class TestSoap(unittest.TestCase):
         # xml tag is not in the first line.
         envelope_string = '''<?xml version="1.0" encoding="utf-8"?>
 <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
-xmlns:tns="http://tempuri.org/"
-xmlns:types="http://example.com/encodedTypes"
-xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+               xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+               xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
+               xmlns:tns="http://tempuri.org/"
+               xmlns:types="http://example.com/encodedTypes"
+               xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Body soap:encodingStyle="http://schemas.xmlsoap.org/soap/encoding/">
     <tns:myResponse xsi:type="tns:myResponse">
       <myResult href="#id1" />
