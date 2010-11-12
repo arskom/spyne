@@ -354,12 +354,9 @@ class Array(ClassSerializer):
     @classmethod
     @nillable_element
     def from_xml(cls, element):
-        retval = []
         (serializer,) = cls._type_info.values()
 
         for child in element.getchildren():
-            retval.append(serializer.from_xml(child))
-
-        return retval
+            yield retval.append(serializer.from_xml(child))
 
 from soaplib.model.exception import Fault
