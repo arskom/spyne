@@ -173,23 +173,33 @@ class ClassSerializerBase(Base):
 
         cls.get_members(inst, element)
 
+    @staticmethod
+    def get_flat_type_info(clz, retval={}):
+        parent = getattr(clz, '__extends__', None)
+        if parent != None:
+            get_flat_type_info(parent, retval)
+
+        retval.update(clz._type_info)
+
+        return retval
+
     @classmethod
     @nillable_element
     def from_xml(cls, element):
         inst = cls.get_deserialization_instance()
 
+        # FIXME: the result of this method should be cached when build_wsdl is
+        #        called (thus _type_info becomes immutable, by definition).
+        flat_type_info = get_flat_type_info(cls)
+
+        # parse input to set incoming data to related attributes.
         for c in element:
             if isinstance(c, etree._Comment):
                 continue
 
             key = c.tag.split('}')[-1]
 
-            member = cls._type_info.get(key, None)
-            clz = getattr(cls,'__extends__', None)
-            while not (clz is None) and (member is None):
-                member = clz._type_info.get(key, None)
-                clz = getattr(clz,'__extends__', None)
-
+            member = flat_type_info.get(key, None)
             if member is None:
                 continue
 
