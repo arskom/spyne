@@ -192,6 +192,10 @@ class ClassSerializerBase(Base):
         #        called (thus _type_info becomes immutable, by definition).
         flat_type_info = get_flat_type_info(cls)
 
+        # initialize instance
+        for k in flat_type_info:
+            setattr(inst, k, None)
+
         # parse input to set incoming data to related attributes.
         for c in element:
             if isinstance(c, etree._Comment):
