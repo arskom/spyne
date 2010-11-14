@@ -376,4 +376,13 @@ class Array(ClassSerializer):
 
         return retval
 
+class Iterable(Array):
+    @classmethod
+    @nillable_element
+    def from_xml(cls, element):
+        (serializer,) = cls._type_info.values()
+
+        for child in element.getchildren():
+            yield serializer.from_xml(child)
+
 from soaplib.model.exception import Fault
