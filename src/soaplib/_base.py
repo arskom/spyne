@@ -163,11 +163,11 @@ class MethodContext(object):
 
         self.method_name = None
         self.descriptor = None
-        
+
 class MethodDescriptor(object):
     '''
     This class represents the method signature of a soap method,
-    and is returned by the soapdocument, or rpc decorators.
+    and is returned by the rpc decorator.
     '''
 
     def __init__(self, name, public_name, in_message, out_message, doc,
@@ -267,7 +267,8 @@ class Application(object):
         pass
 
     def __init__(self, services, tns, name=None, _with_partnerlink=False):
-        '''
+        '''Constructor.
+
         @param An iterable of ServiceBase subclasses that define the exposed
                services.
         @param The targetNamespace attribute of the exposed service.
