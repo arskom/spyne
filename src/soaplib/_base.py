@@ -45,6 +45,9 @@ class _SchemaInfo(object):
         self.elements = odict()
         self.types = odict()
 
+class FuckingException(Exception):
+    """An exception you definitely need to get rid of."""
+
 class _SchemaEntries(object):
     def __init__(self, app):
         self.namespaces = odict()
@@ -113,7 +116,7 @@ class _SchemaEntries(object):
                     self.imports[pref_tns].add(self.app.nsmap[pref])
 
             else:
-                raise Exception("i guess you need to hack some more")
+                raise FuckingException("i guess you need to hack some more")
 
     def add_element(self, cls, node):
         schema_info = self.get_schema_info(cls.get_namespace_prefix(self.app))
