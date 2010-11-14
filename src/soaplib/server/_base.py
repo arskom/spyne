@@ -65,6 +65,6 @@ class Base(object):
 
     def get_out_string(self, ctx, out_object):
         out_xml = self.app.serialize(ctx, self.app.OUT_WRAPPER, out_object)
-        out_string = etree.tostring(out_xml, xml_declaration=True,
+        out_string = etree.tostring(out_doc, xml_declaration=True,
                                                        encoding=string_encoding)
         return out_string

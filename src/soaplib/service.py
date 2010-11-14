@@ -183,7 +183,7 @@ class DefinitionBase(object):
         @param the python results from the method
         '''
 
-    def on_method_return_xml(self, soap_results):
+    def on_method_return_doc(self, soap_results):
         '''Called AFTER the service implementing the functionality is called,
         with native return object serialized to Element objects as argument.
 
@@ -197,7 +197,7 @@ class DefinitionBase(object):
         @param the exception object
         '''
 
-    def on_method_exception_xml(self, fault_xml):
+    def on_method_exception_doc(self, fault_doc):
         '''Called AFTER the exception is serialized, when an error occurs
         during execution.
 

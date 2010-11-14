@@ -154,12 +154,12 @@ class MethodContext(object):
         self.service_class = None
 
         self.in_error = None
-        self.in_header_xml = None
-        self.in_body_xml = None
+        self.in_header_doc = None
+        self.in_body_doc = None
 
         self.out_error = None
-        self.out_header_xml = None
-        self.out_body_xml = None
+        self.out_header_doc = None
+        self.out_body_doc = None
 
         self.method_name = None
         self.descriptor = None
@@ -309,7 +309,7 @@ class Application(object):
         # properly validate the whole request.
 
         if len(body) > 0 and body.tag == '{%s}Fault' % soaplib.ns_soap_env:
-            ctx.in_body_xml = body
+            ctx.in_body_doc = body
 
         elif not (body is None):
             try:
@@ -341,8 +341,8 @@ class Application(object):
 
             ctx.service = self.get_service(ctx.service_class)
 
-            ctx.in_header_xml = header
-            ctx.in_body_xml = body
+            ctx.in_header_doc = header
+            ctx.in_body_doc = body
 
     def deserialize(self, ctx, wrapper, envelope_xml, xmlids=None):
         """Takes a MethodContext instance and a string containing ONE soap
@@ -355,11 +355,11 @@ class Application(object):
         assert wrapper in (Application.IN_WRAPPER,
                                                 Application.OUT_WRAPPER),wrapper
 
-        # this sets the ctx.in_body_xml and ctx.in_header_xml properties
+        # this sets the ctx.in_body_doc and ctx.in_header_doc properties
         self.decompose_incoming_envelope(ctx, envelope_xml, xmlids)
 
-        if ctx.in_body_xml.tag == "{%s}Fault" % soaplib.ns_soap_env:
-            in_body = Fault.from_xml(ctx.in_body_xml)
+        if ctx.in_body_doc.tag == "{%s}Fault" % soaplib.ns_soap_env:
+            in_body = Fault.from_xml(ctx.in_body_doc)
 
         else:
             # retrieve the method descriptor
@@ -380,12 +380,12 @@ class Application(object):
                 body_class = descriptor.out_message
 
             # decode header object
-            if ctx.in_header_xml is not None and len(ctx.in_header_xml) > 0:
-                ctx.service.in_header = header_class.from_xml(ctx.in_header_xml)
+            if ctx.in_header_doc is not None and len(ctx.in_header_doc) > 0:
+                ctx.service.in_header = header_class.from_xml(ctx.in_header_doc)
 
             # decode method arguments
-            if ctx.in_body_xml is not None and len(ctx.in_body_xml) > 0:
-                in_body = body_class.from_xml(ctx.in_body_xml)
+            if ctx.in_body_doc is not None and len(ctx.in_body_doc) > 0:
+                in_body = body_class.from_xml(ctx.in_body_doc)
             else:
                 in_body = [None] * len(body_class._type_info)
 
@@ -400,7 +400,7 @@ class Application(object):
 
         try:
             # implementation hook
-            ctx.service.on_method_call(ctx.method_name,req_obj,ctx.in_body_xml)
+            ctx.service.on_method_call(ctx.method_name,req_obj,ctx.in_body_doc)
 
             # retrieve the method
             func = getattr(ctx.service, ctx.descriptor.name)
@@ -447,14 +447,14 @@ class Application(object):
 
         if isinstance(out_object, Fault):
             # FIXME: There's no way to alter soap response headers for the user.
-            ctx.out_body_xml = out_body_xml = etree.SubElement(envelope,
+            ctx.out_body_doc = out_body_doc = etree.SubElement(envelope,
                             '{%s}Body' % soaplib.ns_soap_env, nsmap=self.nsmap)
-            out_object.__class__.to_xml(out_object,self.get_tns(), out_body_xml)
+            out_object.__class__.to_xml(out_object,self.get_tns(), out_body_doc)
 
             # implementation hook
             if not (ctx.service is None):
-                ctx.service.on_method_exception_xml(out_body_xml)
-            self.on_exception_xml(out_body_xml)
+                ctx.service.on_method_exception_doc(out_body_doc)
+            self.on_exception_doc(out_body_doc)
 
             if logger.level == logging.DEBUG:
                 logger.debug(etree.tostring(envelope, pretty_print=True))
@@ -477,7 +477,7 @@ class Application(object):
                                 out_object.get_type_name()[:-len('Response')])
 
                 else:
-                    ctx.out_header_xml = soap_header_elt = etree.SubElement(
+                    ctx.out_header_doc = soap_header_elt = etree.SubElement(
                                    envelope, '{%s}Header' % soaplib.ns_soap_env)
 
                     header_message_class.to_xml(
@@ -488,7 +488,7 @@ class Application(object):
                     )
 
             # body
-            ctx.out_body_xml = out_body_xml = etree.SubElement(envelope,
+            ctx.out_body_doc = out_body_doc = etree.SubElement(envelope,
                                                '{%s}Body' % soaplib.ns_soap_env)
 
             # instantiate the result message
@@ -519,7 +519,7 @@ class Application(object):
 
             # transform the results into an element
             result_message_class.to_xml(
-                                  result_message, self.get_tns(), out_body_xml)
+                                  result_message, self.get_tns(), out_body_doc)
 
             if logger.level == logging.DEBUG:
                 logger.debug('\033[91m'+ "Response" + '\033[0m')
@@ -528,7 +528,7 @@ class Application(object):
 
             #implementation hook
             if not (ctx.service is None):
-                ctx.service.on_method_return_xml(envelope)
+                ctx.service.on_method_return_doc(envelope)
 
         return envelope
 
@@ -873,7 +873,7 @@ class Application(object):
         @param the fault object
         '''
 
-    def on_exception_xml(self, fault_xml):
+    def on_exception_doc(self, fault_doc):
         '''Called when the app throws an exception. (might be inside or outside
         the service call.
 
