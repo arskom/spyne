@@ -343,7 +343,7 @@ class Application(object):
             ctx.in_header_xml = header
             ctx.in_body_xml = body
 
-    def deserialize_soap(self, ctx, wrapper, envelope_xml, xmlids=None):
+    def deserialize(self, ctx, wrapper, envelope_xml, xmlids=None):
         """Takes a MethodContext instance and a string containing ONE soap
         message.
         Returns the corresponding native python object
@@ -429,7 +429,7 @@ class Application(object):
 
         return retval
 
-    def serialize_soap(self, ctx, wrapper, out_object):
+    def serialize(self, ctx, wrapper, out_object):
         """Takes a MethodContext instance and the object to be serialied.
         Returns the corresponding xml structure as an lxml.etree._Element
         instance.

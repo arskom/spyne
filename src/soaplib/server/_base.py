@@ -46,7 +46,7 @@ class Base(object):
         root, xmlids = self.app.parse_xml_string(in_string, in_string_charset)
 
         try:
-            in_object = self.app.deserialize_soap(ctx, self.app.IN_WRAPPER,
+            in_object = self.app.deserialize(ctx, self.app.IN_WRAPPER,
                                                                    root, xmlids)
         except Fault,e:
             ctx.in_error = e
@@ -64,7 +64,7 @@ class Base(object):
         return out_object
 
     def get_out_string(self, ctx, out_object):
-        out_xml = self.app.serialize_soap(ctx, self.app.OUT_WRAPPER, out_object)
+        out_xml = self.app.serialize(ctx, self.app.OUT_WRAPPER, out_object)
         out_string = etree.tostring(out_xml, xml_declaration=True,
                                                        encoding=string_encoding)
         return out_string
