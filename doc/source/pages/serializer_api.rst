@@ -1,13 +1,13 @@
 Serializer API
 ==============
-In soaplib, the type are the components responsible for converting indivdual parameters to and from xml, as well
-as supply the information necessary to build the wsdl. Soaplib has many built-in type that give you most of the
+In rpclib, the type are the components responsible for converting indivdual parameters to and from xml, as well
+as supply the information necessary to build the wsdl. Rpclib has many built-in type that give you most of the
 common datatypes generally needed.
 
 
 Base
 ----
-.. automodule:: soaplib.model.base
+.. automodule:: rpclib.model.base
     :members:
     :undoc-members:
     :inherited-members:
@@ -15,7 +15,7 @@ Base
 
 Binary
 ------
-.. automodule:: soaplib.model.binary
+.. automodule:: rpclib.model.binary
     :members:
     :undoc-members:
     :inherited-members:
@@ -23,7 +23,7 @@ Binary
 
 Clazz
 ------
-.. automodule:: soaplib.model.clazz
+.. automodule:: rpclib.model.clazz
     :members:
     :undoc-members:
     :inherited-members:
@@ -31,7 +31,7 @@ Clazz
 
 Enum
 -----
-.. automodule:: soaplib.model.enum
+.. automodule:: rpclib.model.enum
     :members:
     :undoc-members:
     :inherited-members:
@@ -40,7 +40,7 @@ Enum
 
 Exception
 ---------
-.. automodule:: soaplib.model.exception
+.. automodule:: rpclib.model.exception
     :members:
     :undoc-members:
     :inherited-members:
@@ -49,7 +49,7 @@ Exception
 
 Primitive
 ---------
-.. automodule:: soaplib.model.primitive
+.. automodule:: rpclib.model.primitive
     :members:
     :undoc-members:
     :inherited-members:
@@ -58,7 +58,7 @@ Primitive
 
 Table
 ------
-.. automodule:: soaplib.model.table
+.. automodule:: rpclib.model.table
     :members:
     :undoc-members:
     :inherited-members:

@@ -18,7 +18,7 @@ SHORT_DESC="A transport and architecture agnostic soap (de)serialization " \
            "library that focuses on making small, rpc-like messaging work."
 
 setup(
-    name='soaplib',
+    name='rpclib',
     packages=find_packages('src'),
     package_dir={'':'src'},
 
@@ -34,11 +34,11 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
     keywords=('soap', 'wsdl', 'wsgi'),
-    author='Soaplib Contributors',
+    author='Rpclib Contributors',
     author_email='soap@python.org',
     maintainer = 'Burak Arslan',
-    maintainer_email = 'burak-soaplib@arskom.com.tr',
-    url='http://github.com/arskom/soaplib',
+    maintainer_email = 'burak-rpclib@arskom.com.tr',
+    url='http://github.com/arskom/rpclib',
     license='LGPL',
     zip_safe=False,
     install_requires=[

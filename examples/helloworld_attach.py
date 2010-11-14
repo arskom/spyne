@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# soaplib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
+# rpclib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -17,11 +17,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from soaplib.service import rpc, DefinitionBase
-from soaplib.model.primitive import String, Integer
-from soaplib.model.binary import Attachment
-from soaplib.model.clazz import Array
-from soaplib.server.wsgi import Application
+from rpclib.service import rpc, DefinitionBase
+from rpclib.model.primitive import String, Integer
+from rpclib.model.binary import Attachment
+from rpclib.model.clazz import Array
+from rpclib.server.wsgi import Application
 
 
 class HelloWorldService(DefinitionBase):

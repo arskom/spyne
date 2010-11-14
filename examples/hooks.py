@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# soaplib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
+# rpclib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -19,10 +19,10 @@
 
 from time import time
 
-from soaplib.service import rpc
-from soaplib.model.primitive import String, Integer, Array
-from soaplib.server.wsgi_soap import request
-from soaplib.server.wsgi_soap import SimpleWSGIApp
+from rpclib.service import rpc
+from rpclib.model.primitive import String, Integer, Array
+from rpclib.server.wsgi_soap import request
+from rpclib.server.wsgi_soap import SimpleWSGIApp
 
 '''
 This example is an enhanced version of the HelloWorld example that
@@ -43,7 +43,7 @@ available hooks are:
 These method can be used to easily apply cross-cutting functionality
 accross all methods in the service to do things like database transaction
 management, logging and measuring performance.  This example also
-employs the threadlocal request (soaplib.wsgi_soap.request) object
+employs the threadlocal request (rpclib.wsgi_soap.request) object
 to hold the data points for this request.
 '''
 
@@ -78,7 +78,7 @@ class HelloWorldService(SimpleWSGIApp):
 
 
 def make_client():
-    from soaplib.client import make_service_client
+    from rpclib.client import make_service_client
     client = make_service_client('http://localhost:7889/', HelloWorldService())
     return client
 

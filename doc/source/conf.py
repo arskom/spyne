@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# soaplib documentation build configuration file, created by
+# rpclib documentation build configuration file, created by
 # sphinx-quickstart on Sat May  8 09:26:12 2010.
 #
 # This file is execfile()d with the current directory set to its containing dir.
@@ -37,7 +37,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'soaplib'
+project = u'rpclib'
 copyright = u'2010, Aaron Bickell'
 
 # The version info for the project you're documenting, acts as replacement for
@@ -158,7 +158,7 @@ html_static_path = ['_static']
 #html_file_suffix = ''
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'soaplibdoc'
+htmlhelp_basename = 'rpclibdoc'
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -172,7 +172,7 @@ htmlhelp_basename = 'soaplibdoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'soaplib.tex', u'soaplib Documentation',
+  ('index', 'rpclib.tex', u'rpclib Documentation',
    u'Aaron Bickell', 'manual'),
 ]
 

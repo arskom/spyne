@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# soaplib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
+# rpclib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -18,18 +18,18 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import soaplib
+import rpclib
 
-from soaplib.service import rpc
-from soaplib.service import DefinitionBase
-from soaplib.model.primitive import String, Integer
+from rpclib.service import rpc
+from rpclib.service import DefinitionBase
+from rpclib.model.primitive import String, Integer
 
-from soaplib.server import wsgi
-from soaplib.model.clazz import Array
+from rpclib.server import wsgi
+from rpclib.model.clazz import Array
 
 '''
 This is a simple HelloWorld example to show the basics of writing
-a webservice using soaplib, starting a server, and creating a service
+a webservice using rpclib, starting a server, and creating a service
 client.
 '''
 
@@ -51,7 +51,7 @@ class HelloWorldService(DefinitionBase):
 if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server
-        soap_application = soaplib.Application([HelloWorldService], 'tns')
+        soap_application = rpclib.Application([HelloWorldService], 'tns')
         wsgi_application = wsgi.Application(soap_application)
 
         print "listening to http://0.0.0.0:7789"
