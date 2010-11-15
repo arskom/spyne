@@ -35,7 +35,6 @@ from rpclib.model.primitive import String
 from rpclib.model.primitive import Double
 
 from rpclib import service
-from rpclib import ValidatingApplication
 from rpclib.service import rpc
 
 from datetime import datetime
@@ -277,4 +276,8 @@ services = [
     InteropException,
 ]
 
-application = ValidatingApplication(services, tns=__name__)
+from rpclib import Application
+from rpclib.protocol.soap import Soap11
+from rpclib.interface.wsdl import Wsdl11Strict
+
+application = Application(services, Soap11, Wsdl11Strict, tns=__name__)
