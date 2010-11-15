@@ -185,7 +185,7 @@ class Wsdl11(Base):
             # populate call routes
             for s in self.services:
                 s.__tns__ = self.get_tns()
-                inst = self.get_service(s)
+                inst = self.parent.get_service(s)
 
                 for method in inst.public_methods:
                     method_name = "{%s}%s" % (self.get_tns(), method.name)
@@ -204,7 +204,7 @@ class Wsdl11(Base):
         # populate types
         schema_entries = SchemaEntries(self)
         for s in self.services:
-            inst = self.get_service(s)
+            inst = self.parent.get_service(s)
             inst.add_schema(schema_entries)
 
         schema_nodes = self.__build_schema_nodes(schema_entries, types)
