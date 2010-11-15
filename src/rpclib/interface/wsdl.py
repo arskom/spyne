@@ -234,6 +234,7 @@ class Wsdl11(Base):
             return self.__build_wsdl(url)
         else:
             return self.__wsdl
+    get_wsdl = get_interface_document
 
     def __get_schema_node(self, pref, schema_nodes, types):
         """Return schema node for the given namespace prefix.
@@ -289,7 +290,7 @@ class Wsdl11(Base):
         messages = set()
 
         for s in self.services:
-            s=self.get_service(s,None)
+            s=self.parent.get_service(s,None)
 
             s.add_messages_for_methods(self, root, messages)
 
@@ -316,14 +317,14 @@ class Wsdl11(Base):
         soap_binding = etree.SubElement(binding, '{%s}binding' % ns_soap)
         soap_binding.set('style', 'document')
 
-        if self.transport is None:
+        if self.parent.transport is None:
             raise Exception("You must set the 'transport' property")
-        soap_binding.set('transport', self.transport)
+        soap_binding.set('transport', self.parent.transport)
 
         cb_binding = None
 
         for s in self.services:
-            s=self.get_service(s)
+            s=self.parent.get_service(s)
             s.add_port_type(self, root, service_name, types, url, port_type)
             cb_binding = s.add_bindings_for_methods(self, root, service_name,
                                                 types, url, binding, cb_binding)
