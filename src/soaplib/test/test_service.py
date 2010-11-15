@@ -148,7 +148,7 @@ class Test(unittest.TestCase):
         self.assertEquals(len(message._type_info), 3)
 
         sent_xml = etree.Element('test')
-        message.to_xml( ('a','b','c'), srv.get_tns(), sent_xml )
+        message.to_parent_element( ('a','b','c'), srv.get_tns(), sent_xml )
         sent_xml = sent_xml[0]
 
         print etree.tostring(sent_xml, pretty_print=True)

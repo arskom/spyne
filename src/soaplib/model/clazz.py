@@ -156,14 +156,14 @@ class ClassSerializerBase(Base):
             if mo == 'unbounded' or mo > 1:
                 if subvalue != None:
                     for sv in subvalue:
-                        v.to_xml(sv, cls.get_namespace(), parent, k)
+                        v.to_parent_element(sv, cls.get_namespace(), parent, k)
 
             else:
-                v.to_xml(subvalue, cls.get_namespace(), parent, k)
+                v.to_parent_element(subvalue, cls.get_namespace(), parent, k)
 
     @classmethod
     @nillable_value
-    def to_xml(cls, value, tns, parent_elt, name=None):
+    def to_parent_element(cls, value, tns, parent_elt, name=None):
         if name is None:
             name = cls.get_type_name()
 

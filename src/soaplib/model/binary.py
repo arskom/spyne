@@ -65,7 +65,7 @@ class Attachment(Base):
 
     @classmethod
     @nillable_value
-    def to_xml(cls, value, tns, parent_elt, name='retval'):
+    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
         '''
         This class method takes the data from the attachment and
         base64 encodes it as the text of an Element. An attachment can

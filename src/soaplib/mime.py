@@ -178,7 +178,7 @@ def apply_mtom(headers, envelope, params, paramvals):
                      originally be sent.
     @param envelope  SOAP envelope string that would have originally been sent.
     @param params    params attribute from the Message object used for the SOAP
-    @param paramvals values of the params, passed to Message.to_xml
+    @param paramvals values of the params, passed to Message.to_parent_element
     @return          tuple of length 2 with dictionary of headers and
                      string of body that can be sent with HTTPConnection
     '''
