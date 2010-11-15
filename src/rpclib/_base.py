@@ -84,9 +84,9 @@ class Application(object):
         self.interface = interface_class(self, services, *args, **kwargs)
         self.services = services
 
-        self.call_routes = {}
         self.__public_methods = {}
         self.__classes = {}
+
 
     def get_class(self, key):
         return self.__classes[key]
@@ -194,7 +194,7 @@ class Application(object):
         Override this function to alter the method mappings. Just try not to get
         too crazy with regular expressions :)
         """
-        return self.call_routes[method_name]
+        return self.interface.call_routes[method_name]
 
     def get_service(self, service, http_req_env=None):
         """The function that maps service classes to service instances.

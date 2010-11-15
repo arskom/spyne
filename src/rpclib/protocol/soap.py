@@ -23,8 +23,9 @@ logger = logging.getLogger("rpclib._base")
 import traceback
 from lxml import etree
 import rpclib
-
+from rpclib.protocol.base import Base
 from rpclib.model.exception import Fault
+from rpclib.model.primitive import string_encoding
 
 class ValidationError(Fault):
     pass
@@ -100,9 +101,18 @@ def resolve_hrefs(element, xmlids):
 
     return element
 
-class Soap11(object):
+class Soap11(Base):
     def __init__(self, parent):
         self.parent = parent
+
+    @staticmethod
+    def create_document_structure(in_string, in_string_encoding):
+        return _parse_xml_string(in_string, in_string_encoding)
+
+    @staticmethod
+    def create_document_string(out_doc):
+        return etree.tostring(out_doc, xml_declaration=True,
+                                                       encoding=string_encoding)
 
     def decompose_incoming_envelope(self, ctx, envelope_xml, xmlids=None):
         header, body = _from_soap(envelope_xml, xmlids)
@@ -134,14 +144,14 @@ class Soap11(object):
                                     'col: %d' % e.position)
             try:
                 if ctx.service_class is None: # i.e. if it's a server
-                    ctx.service_class = self.get_service_class(ctx.method_name)
+                    ctx.service_class = self.parent.get_service_class(ctx.method_name)
 
             except Exception,e:
                 logger.debug(traceback.format_exc())
                 raise ValidationError('Client', 'Method not found: %r' %
                                                                 ctx.method_name)
 
-            ctx.service = self.get_service(ctx.service_class)
+            ctx.service = self.parent.get_service(ctx.service_class)
 
             ctx.in_header_doc = header
             ctx.in_body_doc = body
@@ -154,7 +164,7 @@ class Soap11(object):
         Not meant to be overridden.
         """
 
-        assert wrapper in (Soap11.IN_WRAPPER, Soap11.OUT_WRAPPER),wrapper
+        assert wrapper in (self.parent.IN_WRAPPER, self.parent.OUT_WRAPPER),wrapper
 
         # this sets the ctx.in_body_doc and ctx.in_header_doc properties
         self.decompose_incoming_envelope(ctx, envelope_xml, xmlids)
@@ -173,11 +183,11 @@ class Soap11(object):
                 else:
                     descriptor = ctx.descriptor
 
-            if wrapper is Soap11.IN_WRAPPER:
+            if wrapper is self.parent.IN_WRAPPER:
                 header_class = descriptor.in_header
                 body_class = descriptor.in_message
 
-            elif wrapper is Soap11.OUT_WRAPPER:
+            elif wrapper is self.parent.OUT_WRAPPER:
                 header_class = descriptor.out_header
                 body_class = descriptor.out_message
 
@@ -201,18 +211,18 @@ class Soap11(object):
         Not meant to be overridden.
         """
 
-        assert wrapper in (Soap11.IN_WRAPPER, Soap11.OUT_WRAPPER,
-                                                Soap11.NO_WRAPPER), wrapper
+        assert wrapper in (self.parent.IN_WRAPPER, self.parent.OUT_WRAPPER,
+                                                self.parent.NO_WRAPPER), wrapper
 
         # construct the soap response, and serialize it
-        envelope = etree.Element('{%s}Envelope' % rpclib.ns_soap_env,
-                                                               nsmap=self.nsmap)
+        nsmap = self.parent.interface.nsmap
+        envelope = etree.Element('{%s}Envelope'% rpclib.ns_soap_env,nsmap=nsmap)
 
         if isinstance(out_object, Fault):
             # FIXME: There's no way to alter soap response headers for the user.
             ctx.out_body_doc = out_body_doc = etree.SubElement(envelope,
-                            '{%s}Body' % rpclib.ns_soap_env, nsmap=self.nsmap)
-            out_object.__class__.to_xml(out_object,self.get_tns(), out_body_doc)
+                            '{%s}Body' % rpclib.ns_soap_env, nsmap=nsmap)
+            out_object.__class__.to_xml(out_object,self.parent.interface.get_tns(), out_body_doc)
 
             # implementation hook
             if not (ctx.service is None):
@@ -228,7 +238,7 @@ class Soap11(object):
         else:
             # header
             if ctx.service.out_header != None:
-                if wrapper in (Soap11.NO_WRAPPER, Soap11.OUT_WRAPPER):
+                if wrapper in (self.parent.NO_WRAPPER, self.parent.OUT_WRAPPER):
                     header_message_class = ctx.descriptor.in_header
                 else:
                     header_message_class = ctx.descriptor.out_header
@@ -245,7 +255,7 @@ class Soap11(object):
 
                     header_message_class.to_xml(
                         ctx.service.out_header,
-                        self.get_tns(),
+                        self.parent.interface.get_tns(),
                         soap_header_elt,
                         header_message_class.get_type_name()
                     )
@@ -255,14 +265,14 @@ class Soap11(object):
                                                '{%s}Body' % rpclib.ns_soap_env)
 
             # instantiate the result message
-            if wrapper is Soap11.NO_WRAPPER:
+            if wrapper is self.parent.NO_WRAPPER:
                 result_message_class = ctx.descriptor.in_message
                 result_message = out_object
 
             else:
-                if wrapper is Soap11.IN_WRAPPER:
+                if wrapper is self.parent.IN_WRAPPER:
                     result_message_class = ctx.descriptor.in_message
-                elif wrapper is Soap11.OUT_WRAPPER:
+                elif wrapper is self.parent.OUT_WRAPPER:
                     result_message_class = ctx.descriptor.out_message
 
                 result_message = result_message_class()
@@ -282,7 +292,7 @@ class Soap11(object):
 
             # transform the results into an element
             result_message_class.to_xml(
-                                  result_message, self.get_tns(), out_body_doc)
+                                  result_message, self.parent.interface.get_tns(), out_body_doc)
 
             if logger.level == logging.DEBUG:
                 logger.debug('\033[91m'+ "Response" + '\033[0m')

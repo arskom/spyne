@@ -25,7 +25,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 from rpclib.model.exception import Fault
-from rpclib.model.primitive import string_encoding
 
 HTTP_500 = '500 Internal server error'
 HTTP_200 = '200 OK'
@@ -43,10 +42,11 @@ class Base(object):
 
     def get_in_object(self, ctx, in_string, in_string_charset=None):
         in_object = None
-        root, xmlids = self.app.parse_xml_string(in_string, in_string_charset)
+        root, xmlids = self.app.protocol.create_document_structure(in_string,
+                                                              in_string_charset)
 
         try:
-            in_object = self.app.deserialize(ctx, self.app.IN_WRAPPER,
+            in_object = self.app.protocol.deserialize(ctx, self.app.IN_WRAPPER,
                                                                    root, xmlids)
         except Fault,e:
             ctx.in_error = e
@@ -64,7 +64,8 @@ class Base(object):
         return out_object
 
     def get_out_string(self, ctx, out_object):
-        out_xml = self.app.serialize(ctx, self.app.OUT_WRAPPER, out_object)
-        out_string = etree.tostring(out_doc, xml_declaration=True,
-                                                       encoding=string_encoding)
+        out_doc = self.app.protocol.serialize(ctx, self.app.OUT_WRAPPER,
+                                                                     out_object)
+        out_string = self.app.protocol.create_document_string(out_doc)
+
         return out_string

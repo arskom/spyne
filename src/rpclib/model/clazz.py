@@ -177,7 +177,7 @@ class ClassSerializerBase(Base):
     def get_flat_type_info(clz, retval={}):
         parent = getattr(clz, '__extends__', None)
         if parent != None:
-            get_flat_type_info(parent, retval)
+            clz.get_flat_type_info(parent, retval)
 
         retval.update(clz._type_info)
 
