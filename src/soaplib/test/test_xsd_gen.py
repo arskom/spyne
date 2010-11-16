@@ -97,20 +97,19 @@ class TestXsdGen(unittest.TestCase):
         )
 
 
-    def test_xsd_family(self):
-
-        result = self.xsd_gen.get_full_xsd(DoubleNestedModel)
-        xsd = etree.XML(result)
-        complex_types = [ ct for ct in xsd.iterfind('{http://www.w3.org/2001/XMLSchema}element') ]
-        self.assertEquals(len(complex_types), 3)
-
-
     def test_xsd_file(self):
 
         file_name = self.xsd_gen.write_model_xsd_file(SimpleModel, '.')
-        self.assertTrue(os.path.exists(file_name))
+        self.assertTrue(os.path.isfile(file_name))
 
 
-    def test_full_xsd_file(self):
-        file_name = self.xsd_gen.write_full_xsd(DoubleNestedModel, '.')
-        self.assertTrue(os.path.exists(file_name))
+    def test_get_all_models(self):
+        ret_list = self.xsd_gen.get_all_models_xsd(DoubleNestedModel, pretty_print=True)
+
+        self.assertEquals(len(ret_list), 3)
+
+    def test_write_all_models(self):
+        ret_list = self.xsd_gen.write_all_models(DoubleNestedModel, '.')
+        self.assertEquals(len(ret_list), 3)
+        for file in ret_list:
+            self.assertTrue(os.path.isfile(file))
