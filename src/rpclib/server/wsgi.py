@@ -84,7 +84,7 @@ class Application(Base):
             return self.__handle_wsdl_request(req_env, start_response, url)
 
         elif req_env['REQUEST_METHOD'].lower() != 'post':
-            start_response(HTTP_405, [('Allow', 'POST')])
+            start_response(HTTP_405, [('Content-type', ''), ('Allow', 'POST')])
             return ['']
 
         else:
@@ -105,7 +105,6 @@ class Application(Base):
 
     def __handle_wsdl_request(self, req_env, start_response, url):
         http_resp_headers = {'Content-Type': 'text/xml'}
-
         try:
             wsdl = self.app.interface.get_wsdl(url)
             self.on_wsdl(req_env, wsdl) # implementation hook
