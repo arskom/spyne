@@ -76,7 +76,7 @@ class TestEnum(unittest.TestCase):
         print repr(mo)
 
         elt = etree.Element('test')
-        DaysOfWeekEnum.to_xml(mo, 'test_namespace', elt)
+        DaysOfWeekEnum.to_parent_element(mo, 'test_namespace', elt)
         elt = elt[0]
         ret = DaysOfWeekEnum.from_xml(elt)
 

@@ -4,14 +4,14 @@ Message API
 
 In addition to the WSGI Service API, soaplib provides a general purpose Message
 API, which allows you to create the xml portions of SOAP message
-programatically. The Message object follows the to_xml/from_xml usage pattern as
+programatically. The Message object follows the to_parent_element/from_xml usage pattern as
 the type. ::
 
     >>> from soaplib.soap import Message
     >>> from soaplib.model.primitive import *
     >>> import cElementTree as et
     >>> message = Message('myFunction',[('a',String),('b',Integer),('c',Float)])
-    >>> print et.tostring(message.to_xml('a',13,3.14))
+    >>> print et.tostring(message.to_parent_element('a',13,3.14))
     <myFunction><a xmlns="" xsi:type="xs:string">a</a><b xmlns="" xsi:type="xs:int">13</b><c xmlns="" xsi:type="xs:float">3.14</c></myFunction>
     >>>
 

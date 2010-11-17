@@ -24,7 +24,7 @@ from lxml import etree
 def nillable_value(func):
     def wrapper(cls, value, tns, parent_elt, *args, **kwargs):
         if value is None:
-            Null.to_xml(value, tns, parent_elt, *args, **kwargs)
+            Null.to_parent_element(value, tns, parent_elt, *args, **kwargs)
         else:
             func(cls, value, tns, parent_elt, *args, **kwargs)
     return wrapper
@@ -56,6 +56,9 @@ class Base(object):
         nillable = True
         min_occurs = 0
         max_occurs = 1
+
+    class Annotations(object):
+        doc = ""
 
     class Empty(object):
         pass
@@ -104,7 +107,17 @@ class Base(object):
 
     @classmethod
     @nillable_value
-    def to_xml(cls, value, tns, parent_elt, name='retval'):
+    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
+        '''
+        Creates a lxml.etree SubElement as a child of a 'parent' Element
+        @param The value to be set for the 'text' element of the newly created
+        SubElement
+        @param The target namespace of the new SubElement, used with 'name' to
+        set the tag.  
+        @param The parent Element to which the new child will be appended.
+        @param The new tag name of new SubElement.
+        '''
+
         assert isinstance(value, str) or isinstance(value, unicode), \
             "'value' must be string or unicode. it is instead %r" % value
 
@@ -136,18 +149,26 @@ class Base(object):
 
         cls_dict['Attributes'] = Attributes
 
+        class Annotations(cls.Annotations):
+            pass
+
+        cls_dict['Annotations'] = Annotations
+
         if not ('_is_clone_of' in cls_dict):
             cls_dict['_is_clone_of'] = cls
 
         for k,v in kwargs.items():
-            setattr(Attributes,k,v)
+            if k != "doc" :
+                setattr(Attributes,k,v)
+            else :
+                setattr(Annotations, k, v)
 
         cls_dup = type(cls.__name__, cls.__bases__, cls_dict)
         return cls_dup
 
 class Null(Base):
     @classmethod
-    def to_xml(cls, value, tns, parent_elt, name='retval'):
+    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
         element = etree.SubElement(parent_elt, "{%s}%s" % (tns,name))
         element.set('{%s}nil' % soaplib.ns_xsi, 'true')
 

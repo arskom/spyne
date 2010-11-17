@@ -10,7 +10,7 @@ both in-memory and on-disk binary data. ::
     >>> from soaplib.model.binary import Attachment
     >>> from lxml import etree as et
     >>> a = Attachment(data="this is my binary data")
-    >>> print et.tostring(Attachment.to_xml(a))
+    >>> print et.tostring(Attachment.to_parent_element(a))
     <ns0:retval xmlns:ns0="tns">bXkgYmluYXJ5IGRhdGE=
     </ns0:retval>
     >>>
@@ -20,7 +20,7 @@ If you want to return file with binary data, simply::
     >>> from soaplib.model.binary import Attachment
     >>> from lxml import etree as et
     >>> a = Attachment(fileName="mydata")
-    >>> print et.tostring(Attachment.to_xml(a))
+    >>> print et.tostring(Attachment.to_parent_element(a))
     <ns0:retval xmlns="">dGhpcyBpcyBteSBiaW5hcnkgZGF0YQ==
     </ns0:retval>
     >>>

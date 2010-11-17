@@ -20,7 +20,6 @@
 import sys
 import urllib
 import soaplib
-import urllib
 
 from lxml import etree
 

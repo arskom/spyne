@@ -1,9 +1,9 @@
 
 from lxml import etree
 
-from base import SimpleType
-from base import nillable_element
-from base import nillable_value
+from soaplib.model.base import SimpleType
+from soaplib.model.base import nillable_element
+from soaplib.model.base import nillable_value
 
 import soaplib
 
@@ -21,11 +21,11 @@ class EnumBase(SimpleType):
 
     @classmethod
     @nillable_value
-    def to_xml(cls, value, tns, parent_elt, name='retval'):
+    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
         if name is None:
             name = cls.get_type_name()
 
-        SimpleType.to_xml(str(value), tns, parent_elt, name)
+        SimpleType.to_parent_element(str(value), tns, parent_elt, name)
 
     @classmethod
     @nillable_element
