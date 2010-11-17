@@ -23,9 +23,9 @@ import unittest
 
 from lxml import etree
 
-from soaplib.model.clazz import ClassSerializer
-from soaplib.model.primitive import String
-from soaplib.util.xsd_gen import XSDGenerator
+from rpclib.model.clazz import ClassSerializer
+from rpclib.model.primitive import String
+from rpclib.util.xsd_gen import XSDGenerator
 
 
 class SimpleModel(ClassSerializer):

@@ -21,31 +21,31 @@ import os.path
 
 from lxml import etree
 
-import soaplib
-from soaplib import Application
-from soaplib.service import rpc, DefinitionBase
+import rpclib
+from rpclib import Application
+from rpclib.service import rpc, DefinitionBase
 
 class XSDGenerator():
-    '''Class to support xsd generation for soaplib models.'''
+    '''Class to support xsd generation for rpclib models.'''
 
     # Simplified schema mapping used for building standalone XSDs without SOAP
     # specific namespace imports
     model_schema_nsmap = {
-        'xs': soaplib.ns_xsd,
-        'xsi': soaplib.ns_xsi,
-        'xop': soaplib.ns_xop,
+        'xs': rpclib.ns_xsd,
+        'xsi': rpclib.ns_xsi,
+        'xop': rpclib.ns_xop,
     }
 
-    __ct_string = '{%s}complexType' % soaplib.ns_xsd
-    __el_string = '{%s}element' % soaplib.ns_xsd
-    __imp_string = '{%s}import' % soaplib.ns_xsd
+    __ct_string = '{%s}complexType' % rpclib.ns_xsd
+    __el_string = '{%s}element' % rpclib.ns_xsd
+    __imp_string = '{%s}import' % rpclib.ns_xsd
 
     def __get_binding_service(self, model):
         '''A factory method to create a simple service class.
 
-        Builds a class based on DefinitionBase to bind an arbritary soaplib
-        class serilizer model to an instance of a soaplib application.
-        @param A soaplib ClassSerializer model
+        Builds a class based on DefinitionBase to bind an arbritary rpclib
+        class serilizer model to an instance of a rpclib application.
+        @param A rpclib ClassSerializer model
         '''
 
         class BindingService(DefinitionBase):
@@ -56,7 +56,7 @@ class XSDGenerator():
         return BindingService
 
     def __get_binding_application(self, binding_service):
-        '''Builds an instance of soaplib.Application
+        '''Builds an instance of rpclib.Application
 
         The Application built is populated with an instance of a Service Class
         based on DefinitionBase
@@ -79,7 +79,7 @@ class XSDGenerator():
     def __get_nodes(self, model):
         '''Builds and returns the scheame nodes as a python dictionary
 
-        @param A soaplib ClassSerializer model
+        @param A rpclib ClassSerializer model
         '''
 
         binding_service = self.__get_binding_service(model)
@@ -156,7 +156,7 @@ class XSDGenerator():
     def get_model_xsd(self, model, encoding='utf-8', pretty_print=False):
         '''Returns a string representation of an XSD for the specified model.
 
-        @param  A soaplib.model class that will be represented in the schema.
+        @param  A rpclib.model class that will be represented in the schema.
         @param  The model's encoding.
         @param Boolean value to control if pretty printing should be used when
         returning the xsd as string.
