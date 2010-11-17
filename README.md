@@ -1,4 +1,5 @@
-Warning! This is rpclib's unstable development branch. 
+Warning! This is rpclib's unstable development branch. Not only that, but rpclib
+project is experimental. You have been warned.
 
 Overview
 ========
