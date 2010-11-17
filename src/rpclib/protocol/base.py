@@ -18,7 +18,7 @@
 #
 
 class Base(object):
-    def create_document_structure(self, in_string, in_string_encoding):
+    def create_document_structure(self, in_string, in_string_encoding=None):
         pass
 
     def decompose_incoming_envelope(self, ctx, envelope_xml):

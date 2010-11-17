@@ -87,12 +87,11 @@ class Application(object):
         self.__public_methods = {}
         self.__classes = {}
 
-
     def get_class(self, key):
-        return self.__classes[key]
+        return self.interface.get_class(key)
 
     def get_class_instance(self, key):
-        return self.__classes[key]()
+        return self.interface.get_class_instance(key)
 
     def process_request(self, ctx, req_obj):
         """Takes a MethodContext instance and the native request object.

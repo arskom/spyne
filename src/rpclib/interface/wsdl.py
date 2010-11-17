@@ -294,7 +294,7 @@ class Wsdl11(Base):
 
         self.call_routes = {}
         self.__wsdl = None
-        self.__classes = {}
+        self.classes = {}
 
         self.__ns_counter = 0
 
@@ -451,7 +451,7 @@ class Wsdl11(Base):
 
         schema_nodes = self.__build_schema_nodes(schema_entries, types)
 
-        self.__classes = schema_entries.classes
+        self.classes = schema_entries.classes
 
         return schema_nodes
 

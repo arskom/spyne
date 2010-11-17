@@ -106,7 +106,7 @@ class Soap11(Base):
         self.parent = parent
 
     @staticmethod
-    def create_document_structure(in_string, in_string_encoding):
+    def create_document_structure(in_string, in_string_encoding=None):
         return _parse_xml_string(in_string, in_string_encoding)
 
     @staticmethod

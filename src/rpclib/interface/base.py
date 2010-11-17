@@ -133,4 +133,8 @@ class SchemaEntries(object):
             self.classes[tn] = cls
 
 class Base(object):
-    pass
+    def get_class(self, key):
+        return self.classes[key]
+
+    def get_class_instance(self, key):
+        return self.classes[key]()
