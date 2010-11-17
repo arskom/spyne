@@ -53,7 +53,7 @@ class Any(SimpleType):
 
     @classmethod
     @nillable_value
-    def to_xml(cls, value, tns, parent_elt, name='retval'):
+    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
         if isinstance(value, str) or isinstance(value, unicode):
             value = etree.fromstring(value)
 
@@ -79,7 +79,7 @@ class Any(SimpleType):
 class AnyAsDict(Any):
     @classmethod
     @nillable_value
-    def to_xml(cls, value, tns, parent_elt, name='retval'):
+    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
         e = etree.SubElement(parent_elt, '{%s}%s' % (tns,name))
         dict_to_etree(e, value)
 
@@ -146,11 +146,11 @@ class String(SimpleType):
 
     @classmethod
     @nillable_value
-    def to_xml(cls, value, tns, parent_elt, name='retval'):
+    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
         if not isinstance(value, unicode):
             value = unicode(value, string_encoding)
 
-        SimpleType.to_xml(value, tns, parent_elt, name)
+        SimpleType.to_parent_element(value, tns, parent_elt, name)
 
     @classmethod
     @nillable_element
@@ -174,8 +174,8 @@ class AnyUri(String):
 class Decimal(SimpleType):
     @classmethod
     @nillable_value
-    def to_xml(cls, value, tns, parent_elt, name='retval'):
-        SimpleType.to_xml(str(value), tns, parent_elt, name)
+    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
+        SimpleType.to_parent_element(str(value), tns, parent_elt, name)
 
     @classmethod
     @nillable_string
@@ -194,8 +194,8 @@ class Integer(Decimal):
 class Date(SimpleType):
     @classmethod
     @nillable_value
-    def to_xml(cls, value, tns, parent_elt, name='retval'):
-        SimpleType.to_xml(value.isoformat(), tns, parent_elt, name)
+    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
+        SimpleType.to_parent_element(value.isoformat(), tns, parent_elt, name)
 
     @classmethod
     @nillable_string
@@ -218,8 +218,8 @@ class DateTime(SimpleType):
 
     @classmethod
     @nillable_value
-    def to_xml(cls, value, tns, parent_elt, name='retval'):
-        SimpleType.to_xml(value.isoformat('T'), tns, parent_elt, name)
+    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
+        SimpleType.to_parent_element(value.isoformat('T'), tns, parent_elt, name)
 
     @classmethod
     @nillable_string
@@ -256,8 +256,8 @@ class Duration(SimpleType):
 
     @classmethod
     @nillable_value
-    def to_xml(cls, value, tns, parent_elt, name='retval'):
-        SimpleType.to_xml(str(value), tns, parent_elt, name)
+    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
+        SimpleType.to_parent_element(str(value), tns, parent_elt, name)
 
     @classmethod
     @nillable_string
@@ -268,8 +268,8 @@ class Duration(SimpleType):
 class Double(SimpleType):
     @classmethod
     @nillable_value
-    def to_xml(cls, value, tns, parent_elt, name='retval'):
-        SimpleType.to_xml(str(value), tns, parent_elt, name)
+    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
+        SimpleType.to_parent_element(str(value), tns, parent_elt, name)
 
     @classmethod
     @nillable_string
@@ -282,8 +282,8 @@ class Float(Double):
 class Boolean(SimpleType):
     @classmethod
     @nillable_value
-    def to_xml(cls, value, tns, parent_elt, name='retval'):
-        SimpleType.to_xml(str(bool(value)).lower(), tns, parent_elt, name)
+    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
+        SimpleType.to_parent_element(str(bool(value)).lower(), tns, parent_elt, name)
 
     @classmethod
     @nillable_string

@@ -17,7 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""A soap server that uses http as transport, and wsgi as bridge api"""
+"""An rpc server that uses http as transport, and wsgi as bridge api"""
+
+# FIXME: this is still too soap-centric.
 
 import logging
 logger = logging.getLogger(__name__)
@@ -64,14 +66,14 @@ class Application(Base):
 
     def __call__(self, req_env, start_response, wsgi_url=None):
         '''This method conforms to the WSGI spec for callable wsgi applications
-        (PEP 333). It looks in environ['wsgi.input'] for a fully formed soap
-        request envelope, will deserialize the request parameters and call the
+        (PEP 333). It looks in environ['wsgi.input'] for a fully formed rpc
+        message envelope, will deserialize the request parameters and call the
         method on the object returned by the get_handler() method.
 
         @param the http environment
         @param a callable that begins the response message
         @param the optional url
-        @returns the string representation of the soap call
+        @returns the string representation of the rpc message
         '''
 
         url = wsgi_url
@@ -202,6 +204,6 @@ class Application(Base):
 
         @param the wsgi environment
         @param http response headers as dict
-        @param return string of the soap request
+        @param return string of the rpc message
         '''
         pass

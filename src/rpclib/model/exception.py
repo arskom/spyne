@@ -42,7 +42,7 @@ class Fault(Exception, Base):
         return "%s: %r" % (self.faultcode, self.faultstring)
 
     @classmethod
-    def to_xml(cls, value, tns, parent_elt, name=None):
+    def to_parent_element(cls, value, tns, parent_elt, name=None):
         if name is None:
             name = cls.get_type_name()
         element = etree.SubElement(parent_elt, "{%s}%s" %

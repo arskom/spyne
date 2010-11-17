@@ -16,7 +16,7 @@ These are some of the most basic blocks within rpclib. ::
     >>> from rpclib.serialiers.primitive import *
     >>> from lxml import etree
     >>> parent = etree.Element("parent")
-    >>> String.to_xml("abcd", "tns", parent)
+    >>> String.to_parent_element("abcd", "tns", parent)
     >>> string_element = parent.getchildren()[0]
     >>> print etree.tostring(string_element)
     <ns0:retval xmlns:ns0="tns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">abcd</ns0:retval>
@@ -41,7 +41,7 @@ type. For mixed typing or more dynamic data, use the Any type. ::
     >>> from lxml import etree
     >>> parent = etree.Element("parent")
     >>> array_serializer = Array(String)
-    >>> array_serializer.to_xml(['a','b','c','d'], 'tns', parent)
+    >>> array_serializer.to_parent_element(['a','b','c','d'], 'tns', parent)
     >>> print etree.tostring(element)
     <ns0:stringArray xmlns:ns0="tns"><ns1:string xmlns:ns1="None" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">a</ns1:string>
     <ns2:string xmlns:ns2="None" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:type="xs:string">b</ns2:string>
@@ -78,7 +78,7 @@ The `ClassSerializer` is used to define and serialize complex, nested structures
 	>>> p.feature = 'send'
 	>>> u.permissions.append(p)
 	>>> parent = etree.Element('parenet')
-	>>> User.to_xml(u, 'tns', parent)
+	>>> User.to_parent_element(u, 'tns', parent)
 	>>> element = parent[0]
 	>>> etree.tostring(element)
 	'<ns0:User xmlns:ns0="tns">
@@ -103,7 +103,7 @@ decoding immediately upon receipt of the Attachment. ::
     >>> from lxml import etree
     >>> a = Attachment(data='my binary data')
     >>> parent = etree.Element('parent')
-    >>> Attachment.to_xml(a)
+    >>> Attachment.to_parent_element(a)
     >>> element = parent[0]
     >>> print etree.tostring(element)
     <ns0:retval xmlns:ns0="tns">bXkgYmluYXJ5IGRhdGE=
@@ -131,14 +131,14 @@ to/from dicts with lists instead of raw lxml.etree._Element objects.
 Custom
 ------
 Rpclib provides a very simple interface for writing custom type. Just
-inherit from rpclib.model.base.Base and override from_xml and to_xml and
+inherit from rpclib.model.base.Base and override from_xml and to_parent_element and
 add_to_schema functions.::
 
     from rpclib.model.base import Base
 
     class MySerializer(Base):
         @classmethod
-        def to_xml(self,value,name='retval'):
+        def to_parent_element(self,value,name='retval'):
             pass
 
         @classmethod

@@ -38,7 +38,7 @@ class TestPrimitive(unittest.TestCase):
     def test_string(self):
         s = String()
         element = etree.Element('test')
-        String.to_xml('value', ns_test, element)
+        String.to_parent_element('value', ns_test, element)
         element=element[0]
         
         self.assertEquals(element.text, 'value')
@@ -50,7 +50,7 @@ class TestPrimitive(unittest.TestCase):
         n = datetime.datetime.now()
 
         element = etree.Element('test')
-        DateTime.to_xml(n, ns_test, element)
+        DateTime.to_parent_element(n, ns_test, element)
         element = element[0]
 
         self.assertEquals(element.text, n.isoformat())
@@ -83,7 +83,7 @@ class TestPrimitive(unittest.TestCase):
         integer = Integer()
 
         element = etree.Element('test')
-        Integer.to_xml(i, ns_test, element)
+        Integer.to_parent_element(i, ns_test, element)
         element = element[0]
 
         self.assertEquals(element.text, '12')
@@ -95,7 +95,7 @@ class TestPrimitive(unittest.TestCase):
         integer = Integer()
 
         element = etree.Element('test')
-        Integer.to_xml(i, ns_test, element)
+        Integer.to_parent_element(i, ns_test, element)
         element = element[0]
 
         self.assertEquals(element.text, '128375873458473')
@@ -107,7 +107,7 @@ class TestPrimitive(unittest.TestCase):
 
 
         element = etree.Element('test')
-        Float.to_xml(f, ns_test, element)
+        Float.to_parent_element(f, ns_test, element)
         element = element[0]
 
         self.assertEquals(element.text, '1.22255645')
@@ -122,7 +122,7 @@ class TestPrimitive(unittest.TestCase):
         values = ['a', 'b', 'c', 'd', 'e', 'f']
 
         element = etree.Element('test')
-        type.to_xml(values, ns_test, element)
+        type.to_parent_element(values, ns_test, element)
         element = element[0]
 
         self.assertEquals(len(values), len(element.getchildren()))
@@ -137,7 +137,7 @@ class TestPrimitive(unittest.TestCase):
         values = []
 
         element = etree.Element('test')
-        type.to_xml(values, ns_test, element)
+        type.to_parent_element(values, ns_test, element)
         element = element[0]
 
         self.assertEquals(len(values), len(element.getchildren()))
@@ -149,14 +149,14 @@ class TestPrimitive(unittest.TestCase):
         s = u'\x34\x55\x65\x34'
         self.assertEquals(4, len(s))
         element = etree.Element('test')
-        String.to_xml(s, 'test_ns', element)
+        String.to_parent_element(s, 'test_ns', element)
         element = element[0]
         value = String.from_xml(element)
         self.assertEquals(value, s)
 
     def test_null(self):
         element = etree.Element('test')
-        Null.to_xml('doesnt matter', ns_test, element)
+        Null.to_parent_element('doesnt matter', ns_test, element)
         element = element[0]
         self.assertTrue( bool(element.get('{%s}nil' % rpclib.ns_xsi)) )
         value = Null.from_xml(element)
@@ -164,17 +164,17 @@ class TestPrimitive(unittest.TestCase):
 
     def test_boolean(self):
         b = etree.Element('test')
-        Boolean.to_xml(True, ns_test, b)
+        Boolean.to_parent_element(True, ns_test, b)
         b = b[0]
         self.assertEquals('true', b.text)
 
         b = etree.Element('test')
-        Boolean.to_xml(0, ns_test, b)
+        Boolean.to_parent_element(0, ns_test, b)
         b = b[0]
         self.assertEquals('false', b.text)
 
         b = etree.Element('test')
-        Boolean.to_xml(1, ns_test, b)
+        Boolean.to_parent_element(1, ns_test, b)
         b = b[0]
         self.assertEquals('true', b.text)
 
@@ -182,7 +182,7 @@ class TestPrimitive(unittest.TestCase):
         self.assertEquals(b, True)
 
         b = etree.Element('test')
-        Boolean.to_xml(False, ns_test, b)
+        Boolean.to_parent_element(False, ns_test, b)
         b = b[0]
         self.assertEquals('false', b.text)
 
@@ -190,7 +190,7 @@ class TestPrimitive(unittest.TestCase):
         self.assertEquals(b, False)
 
         b = etree.Element('test')
-        Boolean.to_xml(None, ns_test, b)
+        Boolean.to_parent_element(None, ns_test, b)
         b = b[0]
         self.assertEquals('true', b.get('{%s}nil' % rpclib.ns_xsi))
 

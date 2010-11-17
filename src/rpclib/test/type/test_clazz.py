@@ -90,7 +90,7 @@ class TestClassSerializer(unittest.TestCase):
         a.longitude = 88.0
 
         element = etree.Element('test')
-        Address.to_xml(a, ns_test, element)
+        Address.to_parent_element(a, ns_test, element)
         element = element[0]
         self.assertEquals(6, len(element.getchildren()))
 
@@ -106,7 +106,7 @@ class TestClassSerializer(unittest.TestCase):
     def test_nested_class(self): # FIXME: this test is incomplete
         p = Person()
         element = etree.Element('test')
-        Person.to_xml(p, ns_test, element)
+        Person.to_parent_element(p, ns_test, element)
         element = element[0]
 
         self.assertEquals(None, p.name)
@@ -128,7 +128,7 @@ class TestClassSerializer(unittest.TestCase):
         type.resolve_namespace(type,__name__)
 
         element = etree.Element('test')
-        type.to_xml(peeps, ns_test, element)
+        type.to_parent_element(peeps, ns_test, element)
         element = element[0]
 
         self.assertEquals(4, len(element.getchildren()))
@@ -160,7 +160,7 @@ class TestClassSerializer(unittest.TestCase):
         type = Array(Person)
         type.resolve_namespace(type,__name__)
         element = etree.Element('test')
-        type.to_xml(peeps, ns_test, element)
+        type.to_parent_element(peeps, ns_test, element)
         element = element[0]
 
         self.assertEquals(4, len(element.getchildren()))
@@ -190,7 +190,7 @@ class TestClassSerializer(unittest.TestCase):
             l.level4.append(a)
 
         element = etree.Element('test')
-        Level1.to_xml(l, ns_test, element)
+        Level1.to_parent_element(l, ns_test, element)
         element = element[0]
         l1 = Level1.from_xml(element)
 

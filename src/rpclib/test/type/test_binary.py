@@ -44,27 +44,27 @@ class TestBinary(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree('binaryDir')
 
-    def test_to_xml_data(self):
+    def test_to_parent_element_data(self):
         f = open(self.tmpfile)
         data = f.read()
         f.close()
         a = Attachment()
         a.data = data
         element = etree.Element('test')
-        Attachment.to_xml(a, ns_test, element)
+        Attachment.to_parent_element(a, ns_test, element)
         element = element[0]
         encoded_data = base64.encodestring(data)
         self.assertNotEquals(element.text, None)
         self.assertEquals(element.text, encoded_data)
 
-    def test_to_xml_file(self):
+    def test_to_parent_element_file(self):
         a = Attachment()
         a.file_name = self.tmpfile
         f = open(self.tmpfile, 'rb')
         data = f.read()
         f.close()
         element = etree.Element('test')
-        Attachment.to_xml(a, ns_test, element)
+        Attachment.to_parent_element(a, ns_test, element)
         element = element[0]
         encoded_data = base64.encodestring(data)
         self.assertNotEquals(element.text, None)
@@ -74,7 +74,7 @@ class TestBinary(unittest.TestCase):
         a = Attachment()
         a.file_name = self.tmpfile
         element = etree.Element('test')
-        Attachment.to_xml(a, ns_test, element)
+        Attachment.to_parent_element(a, ns_test, element)
         element = element[0]
 
         data = Attachment.from_xml(element).data
@@ -87,7 +87,7 @@ class TestBinary(unittest.TestCase):
 
     def test_exception(self):
         try:
-            Attachment.to_xml(Attachment(), ns_test)
+            Attachment.to_parent_element(Attachment(), ns_test)
         except:
             self.assertTrue(True)
         else:
@@ -101,7 +101,7 @@ class TestBinary(unittest.TestCase):
         a = Attachment()
         a.data = data
         element = etree.Element('test')
-        Attachment.to_xml(a, ns_test, element)
+        Attachment.to_parent_element(a, ns_test, element)
         element = element[0]
         a2 = Attachment.from_xml(element)
 
