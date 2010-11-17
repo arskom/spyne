@@ -1,3 +1,22 @@
+
+#
+# soaplib - Copyright (C) Soaplib contributors.
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
+#
+
 import os.path
 
 from lxml import etree
@@ -8,7 +27,6 @@ from soaplib.service import rpc, DefinitionBase
 
 
 class XSDGenerator():
-
     '''Class to support xsd generation for soaplib models.'''
 
     # Simplified schema mapping used for building standalone XSDs without SOAP
@@ -22,7 +40,6 @@ class XSDGenerator():
     __ct_string = '{%s}complexType' % soaplib.ns_xsd
     __el_string = '{%s}element' % soaplib.ns_xsd
     __imp_string = '{%s}import' % soaplib.ns_xsd
-
 
     def __get_binding_service(self, model):
         '''A factory method to create a simple service class.
@@ -39,7 +56,6 @@ class XSDGenerator():
                 pass
 
         return BindingService
-
 
     def __get_binding_application(self, binding_service):
         '''Builds an instance of soaplib.Application
@@ -62,7 +78,6 @@ class XSDGenerator():
 
         return binding_application
 
-
     def __get_nodes(self, model):
         '''Builds and returns the scheame nodes as a python dictionary
 
@@ -72,8 +87,8 @@ class XSDGenerator():
         binding_service = self.__get_binding_service(model)
         app = self.__get_binding_application(binding_service)
         nodes = app.build_schema(types=None)
-        return nodes
 
+        return nodes
 
     def __get_model_node(self, model, nodes):
         '''Iterate over a dict of Elements to locate the correct type'''
@@ -94,7 +109,6 @@ class XSDGenerator():
 
         return xsd_out
 
-
     def __get_xsd_file_name(self, model, model_node):
         '''Returns the correct xsd name for a single model.'''
 
@@ -111,7 +125,6 @@ class XSDGenerator():
             raise ValueError('Unable to set the file prefix')
 
         return '{0:>s}.xsd'.format(file_prefix)
-
 
     def __write_xsd(self, encoding, file_path, xsd_out_node):
         '''Writes the supplied schema node to file
@@ -132,7 +145,6 @@ class XSDGenerator():
 
         f.close()
 
-
     def __clean_soap_nodes(self, element_dict):
         '''Strips soap specific elements and returns a list of elements.'''
 
@@ -142,7 +154,6 @@ class XSDGenerator():
                 out_elements.append(element)
 
         return out_elements
-
 
     def get_model_xsd(self, model, encoding='utf-8', pretty_print=False):
         '''Returns a string representation of an XSD for the specified model.
@@ -157,12 +168,11 @@ class XSDGenerator():
         xsd_out = self.__get_model_node(model, nodes)
 
         return etree.tostring(
-                xsd_out,
-                pretty_print=pretty_print,
-                encoding=encoding,
-                xml_declaration=True
-                )
-
+            xsd_out,
+            pretty_print=pretty_print,
+            encoding=encoding,
+            xml_declaration=True
+        )
 
     def get_all_models_xsd(self, model, encoding='utf-8', pretty_print=False):
         '''Returns all related models as a list of strings
@@ -179,8 +189,8 @@ class XSDGenerator():
         string_elements = []
         for el in elements:
             string_elements.append(
-                    etree.tostring(el, encoding=encoding, pretty_print=pretty_print)
-                    )
+                etree.tostring(el, encoding=encoding, pretty_print=pretty_print)
+            )
 
         return string_elements
 
