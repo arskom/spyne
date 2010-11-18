@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# soaplib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
+# rpclib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -18,14 +18,14 @@
 #
 
 
-from soaplib.service import rpc, DefinitionBase
-from soaplib.model.primitive import String
-from soaplib.model.binary import Attachment
+from rpclib.service import rpc, DefinitionBase
+from rpclib.model.primitive import String
+from rpclib.model.binary import Attachment
 
 
 from tempfile import mkstemp
 import os
-from soaplib.server.wsgi import Application
+from rpclib.server.wsgi import Application
 
 
 class DocumentArchiver(DefinitionBase):

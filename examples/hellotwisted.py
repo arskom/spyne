@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# soaplib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
+# rpclib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -17,15 +17,15 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import soaplib
+import rpclib
 
-from soaplib.util.wsgi_wrapper import run_twisted
-from soaplib.server import wsgi
-from soaplib.service import DefinitionBase
-from soaplib.service import rpc
-from soaplib.model.clazz import Array
-from soaplib.model.primitive import Integer
-from soaplib.model.primitive import String
+from rpclib.util.wsgi_wrapper import run_twisted
+from rpclib.server import wsgi
+from rpclib.service import DefinitionBase
+from rpclib.service import rpc
+from rpclib.model.clazz import Array
+from rpclib.model.primitive import Integer
+from rpclib.model.primitive import String
 
 '''
 This is the HelloWorld example running in the twisted framework.
@@ -47,7 +47,7 @@ class HelloWorldService(DefinitionBase):
         return results
 
 if __name__=='__main__':
-    soap_app=soaplib.Application([HelloWorldService], 'tns')
+    soap_app=rpclib.Application([HelloWorldService], 'tns')
     wsgi_app=wsgi.Application(soap_app)
 
     print 'listening on 0.0.0.0:7789'

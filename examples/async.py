@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# soaplib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
+# rpclib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -21,17 +21,17 @@ import time
 from threading import Thread
 
 
-from soaplib.service import rpc, DefinitionBase
-from soaplib.model.primitive import String, Integer
-from soaplib.util import get_callback_info
-from soaplib.server.wsgi import Application
+from rpclib.service import rpc, DefinitionBase
+from rpclib.model.primitive import String, Integer
+from rpclib.util import get_callback_info
+from rpclib.server.wsgi import Application
 
 
 '''
 This is a very simple async service that sleeps for a specified
 number of seconds and then call back the caller with a message.
 This kicks off a new Thread for each request, which is not recommended
-for a real-world application.  Soaplib does not provide any thread
+for a real-world application.  Rpclib does not provide any thread
 management or scheduling mechanism, the service is responsible for the
 execution of the async. process.
 '''

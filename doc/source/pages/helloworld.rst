@@ -1,18 +1,18 @@
 
 Hello World
 ===========
-This example uses the simple wsgi webserver included with soaplib to deploy this service.
+This example uses the simple wsgi webserver included with rpclib to deploy this service.
 
-Declaring a Soaplib Service
+Declaring a Rpclib Service
 ---------------------------
 
 ::
 
-    from soaplib.service import DefinitionBase
-    from soaplib.service import rpc,
-    from soaplib.model.primitive import String, Integer
-    from soaplib.model.clazz import Array
-    from soaplib.server.wsgi import Application
+    from rpclib.service import DefinitionBase
+    from rpclib.service import rpc,
+    from rpclib.model.primitive import String, Integer
+    from rpclib.model.clazz import Array
+    from rpclib.server.wsgi import Application
 
 
     class HelloWorldService(SimpleWSGISoapApp):
@@ -33,17 +33,17 @@ Declaring a Soaplib Service
 
 Dissecting this example: DefinitionBase is the base class for all soap services. ::
 
-    from soaplib.service import DefinitionBase
+    from rpclib.service import DefinitionBase
 
 The rpc decorator exposes methods as soap method and declares the
 data types it accepts and returns. ::
 
-    from soaplib.service import rpc
+    from rpclib.service import rpc
 
 Import the type for this method (more on type later)::
 
-    from soaplib.model.primitive import String, Integer
-    from soaplib.model.clazz import Array
+    from rpclib.model.primitive import String, Integer
+    from rpclib.model.clazz import Array
 
 Extending DefinitionBase is an easy way to create a soap service that can
 be deployed as a WSGI application.::
@@ -69,7 +69,7 @@ variables and return types are standard python objects::
 Deploying the service
 ---------------------
 
-soaplib has been tested with several other web servers, This example uses the
+rpclib has been tested with several other web servers, This example uses the
 simple wsgi web server; any WSGI-compliant server *should* work.::
 
     if __name__=='__main__':

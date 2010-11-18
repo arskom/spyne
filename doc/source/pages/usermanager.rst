@@ -5,11 +5,11 @@ User Manager
 Lets try a more complicated example than just strings and integers!
 The following is an extremely simple example using complex, nested data.::
 
-	from soaplib.server.wsgi import Application
-	from soaplib.service import rpc
-	from soaplib.service import DefinitionBase
-	from soaplib.model.primitive import String, Integer
-	from soaplib.model.clazz import ClassSerializer, Array
+	from rpclib.server.wsgi import Application
+	from rpclib.service import rpc
+	from rpclib.service import DefinitionBase
+	from rpclib.model.primitive import String, Integer
+	from rpclib.model.clazz import ClassSerializer, Array
 
 	user_database = {}
 	userid_seq = 1
@@ -74,5 +74,5 @@ Jumping into what's new.::
 		permissions = Array(Permission)
 
 The `Permission` and `User` structures in the example are standard python
-objects that extend `ClassSerializer`.  Soaplib uses `ClassSerializer` as a general type that when
+objects that extend `ClassSerializer`.  Rpclib uses `ClassSerializer` as a general type that when
 extended will produce complex serializable types that can be used in a soap service.

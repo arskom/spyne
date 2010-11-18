@@ -1,9 +1,9 @@
-.. soaplib documentation master file, created by
+.. rpclib documentation master file, created by
    sphinx-quickstart on Sat May  8 09:26:12 2010.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to soaplib's documentation!
+Welcome to rpclib's documentation!
 ===================================
 
 Contents:

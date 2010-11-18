@@ -2,18 +2,18 @@
 Serializers
 ===========
 
-In soaplib, the type are the components responsible for converting
+In rpclib, the type are the components responsible for converting
 indivdual parameters to and from xml, as well as supply the information
-necessary to build the wsdl. Soaplib has many built-in type that give you
+necessary to build the wsdl. Rpclib has many built-in type that give you
 most of the common datatypes generally needed.
 
 Primitives
 ----------
 
 The basic primitive types are String, Integer, DateTime, Null, Float, Boolean.
-These are some of the most basic blocks within soaplib. ::
+These are some of the most basic blocks within rpclib. ::
 
-    >>> from soaplib.serialiers.primitive import *
+    >>> from rpclib.serialiers.primitive import *
     >>> from lxml import etree
     >>> parent = etree.Element("parent")
     >>> String.to_parent_element("abcd", "tns", parent)
@@ -30,14 +30,14 @@ These are some of the most basic blocks within soaplib. ::
 Arrays
 -----------
 
-The lone collection type available in soaplib is Arrays. Unlike the
+The lone collection type available in rpclib is Arrays. Unlike the
 primitive type, Arrays need to be instantiated with
 the proper internal type so it can properly (de)serialize the data. Arrays
 are homogeneous, meaning that the data they hold are all of the same
 type. For mixed typing or more dynamic data, use the Any type. ::
 
-    >>> from soaplib.model.clazz import *
-    >>> from soaplib.serialixers.primitives import String
+    >>> from rpclib.model.clazz import *
+    >>> from rpclib.serialixers.primitives import String
     >>> from lxml import etree
     >>> parent = etree.Element("parent")
     >>> array_serializer = Array(String)
@@ -54,8 +54,8 @@ Class
 -----
 The `ClassSerializer` is used to define and serialize complex, nested structures.
 
-	>>> from soaplib.model.primitive import *
-	>>> from soaplib.model.clazz import *
+	>>> from rpclib.model.primitive import *
+	>>> from rpclib.model.clazz import *
 	>>> from lxml import etree
 	>>> class Permission(ClassSerializer):
 	...	    __namespace__ = "permission"
@@ -99,7 +99,7 @@ strings. Data in Attachment objects can be loaded manually, or read from file.
 All encoding of the binary data is done just prior to the data being sent, and
 decoding immediately upon receipt of the Attachment. ::
 
-    >>> from soaplib.model.binary import Attachment
+    >>> from rpclib.model.binary import Attachment
     >>> from lxml import etree
     >>> a = Attachment(data='my binary data')
     >>> parent = etree.Element('parent')
@@ -109,7 +109,7 @@ decoding immediately upon receipt of the Attachment. ::
     <ns0:retval xmlns:ns0="tns">bXkgYmluYXJ5IGRhdGE=
     </ns0:retval>
     >>> print Attachment.from_xml(element)
-    <soaplib.model.binary.Attachment object at 0x5c6d90>
+    <rpclib.model.binary.Attachment object at 0x5c6d90>
     >>> print Attachment.from_xml(element).data
     my binary data
     >>> a2 = Attachment(fileName='test.data') # load from file
@@ -119,7 +119,7 @@ Any
 
 The Any type is a serializer used to transmit unstructured xml data. Any types
 are very useful for handling dynamic data, and provides a very pythonic way for
-passing data using soaplib. The Any serializer does not perform any useful task
+passing data using rpclib. The Any serializer does not perform any useful task
 because the data passed in and returned are Element objects. The Any type's main
 purpose is to declare its presence in the wsdl.
 
@@ -130,11 +130,12 @@ to/from dicts with lists instead of raw lxml.etree._Element objects.
 
 Custom
 ------
-Soaplib provides a very simple interface for writing custom type. Just
-inherit from soaplib.model.base.Base and override from_xml and to_parent_element and
+Rpclib provides a very simple interface for writing custom type. Just
+inherit from rpclib.model.base.Base and override from_xml and to_parent_element and
+
 add_to_schema functions.::
 
-    from soaplib.model.base import Base
+    from rpclib.model.base import Base
 
     class MySerializer(Base):
         @classmethod

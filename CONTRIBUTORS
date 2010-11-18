@@ -1,8 +1,8 @@
-
+B
 Contributors (chronological order):
 
 Aaron Bickell
-    Original Author
+    Original Soaplib Author
 
 Jamie Kirkpatrick
     lxml migration
@@ -12,7 +12,8 @@ Burak Arslan
     sqlalchemy support
     consistent class customization
     general code cleaning
+    support for multiple protocols and transports
 
 <add yourself as you see fit.>
 
-Also see here for a complete list: http://github.com/arskom/soaplib/contributors
+Also see here: http://github.com/arskom/rpclib/contributors

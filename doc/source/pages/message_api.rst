@@ -2,13 +2,13 @@
 Message API
 ===========
 
-In addition to the WSGI Service API, soaplib provides a general purpose Message
+In addition to the WSGI Service API, rpclib provides a general purpose Message
 API, which allows you to create the xml portions of SOAP message
 programatically. The Message object follows the to_parent_element/from_xml usage pattern as
 the type. ::
 
-    >>> from soaplib.soap import Message
-    >>> from soaplib.model.primitive import *
+    >>> from rpclib.soap import Message
+    >>> from rpclib.model.primitive import *
     >>> import cElementTree as et
     >>> message = Message('myFunction',[('a',String),('b',Integer),('c',Float)])
     >>> print et.tostring(message.to_parent_element('a',13,3.14))

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# soaplib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
+# rpclib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -18,16 +18,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from soaplib.server.wsgi import Application
-from soaplib.service import rpc
-from soaplib.service import DefinitionBase
-from soaplib.model.primitive import String, Integer
+from rpclib.server.wsgi import Application
+from rpclib.service import rpc
+from rpclib.service import DefinitionBase
+from rpclib.model.primitive import String, Integer
 
-from soaplib.model.clazz import ClassSerializer, Array
+from rpclib.model.clazz import ClassSerializer, Array
 
 '''
 This example shows how to define and use complex structures
-in soaplib.  This example uses an extremely simple in-memory
+in rpclib.  This example uses an extremely simple in-memory
 dictionary to store the User objects.
 '''
 

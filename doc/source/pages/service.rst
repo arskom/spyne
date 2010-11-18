@@ -5,7 +5,7 @@ The service module provides the methods and classes for producing the soap servi
 
 service
 -------
-.. automodule:: soaplib.service
+.. automodule:: rpclib.service
     :members:
     :undoc-members:
     :inherited-members:
