@@ -8,7 +8,7 @@ programatically. The Message object follows the to_parent_element/from_xml usage
 the type. ::
 
     >>> from soaplib.soap import Message
-    >>> from soaplib.model.primitive import *
+    >>> from soaplib.model.primitive import String, Integer, Float
     >>> import cElementTree as et
     >>> message = Message('myFunction',[('a',String),('b',Integer),('c',Float)])
     >>> print et.tostring(message.to_parent_element('a',13,3.14))

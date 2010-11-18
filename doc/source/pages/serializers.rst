@@ -10,10 +10,11 @@ most of the common datatypes generally needed.
 Primitives
 ----------
 
-The basic primitive types are String, Integer, DateTime, Null, Float, Boolean.
+The basic primitive types are :class:`String`, :class:`Integer`,
+:class:`DateTime`, :class:`Null`, :class:`Float`, :class:`Boolean`.
 These are some of the most basic blocks within soaplib. ::
 
-    >>> from soaplib.serialiers.primitive import *
+    >>> from soaplib.model.primitive import String
     >>> from lxml import etree
     >>> parent = etree.Element("parent")
     >>> String.to_parent_element("abcd", "tns", parent)
@@ -28,16 +29,16 @@ These are some of the most basic blocks within soaplib. ::
     'xs:string'
 
 Arrays
------------
+------
 
-The lone collection type available in soaplib is Arrays. Unlike the
-primitive type, Arrays need to be instantiated with
-the proper internal type so it can properly (de)serialize the data. Arrays
+The lone collection type available in soaplib is the :class:`Array` type.
+Unlike the primitive type, Arrays need to be instantiated with
+the proper internal type so they can properly (de)serialize the data. Arrays
 are homogeneous, meaning that the data they hold are all of the same
 type. For mixed typing or more dynamic data, use the Any type. ::
 
-    >>> from soaplib.model.clazz import *
-    >>> from soaplib.serialixers.primitives import String
+    >>> from soaplib.model.clazz import Array
+    >>> from soaplib.model.primitive import String
     >>> from lxml import etree
     >>> parent = etree.Element("parent")
     >>> array_serializer = Array(String)
@@ -52,10 +53,12 @@ type. For mixed typing or more dynamic data, use the Any type. ::
 
 Class
 -----
-The `ClassSerializer` is used to define and serialize complex, nested structures.
 
-	>>> from soaplib.model.primitive import *
-	>>> from soaplib.model.clazz import *
+The :class:`ClassSerializer` type is used to define and serialize complex,
+nested structures. ::
+
+	>>> from soaplib.model.primitive import String, Integer
+	>>> from soaplib.model.clazz import ClassSerializer
 	>>> from lxml import etree
 	>>> class Permission(ClassSerializer):
 	...	    __namespace__ = "permission"
@@ -94,10 +97,10 @@ The `ClassSerializer` is used to define and serialize complex, nested structures
 Attachment
 ----------
 
-The Attachment serializer is used for transmitting binary data as base64 encoded
-strings. Data in Attachment objects can be loaded manually, or read from file.
-All encoding of the binary data is done just prior to the data being sent, and
-decoding immediately upon receipt of the Attachment. ::
+The :class:`Attachment` serializer is used for transmitting binary data as
+base64 encoded strings. Data in Attachment objects can be loaded manually,
+or read from file.  All encoding of the binary data is done just prior to the
+data being sent, and decoding immediately upon receipt of the Attachment. ::
 
     >>> from soaplib.model.binary import Attachment
     >>> from lxml import etree
@@ -117,22 +120,27 @@ decoding immediately upon receipt of the Attachment. ::
 Any
 ---
 
-The Any type is a serializer used to transmit unstructured xml data. Any types
-are very useful for handling dynamic data, and provides a very pythonic way for
-passing data using soaplib. The Any serializer does not perform any useful task
-because the data passed in and returned are Element objects. The Any type's main
-purpose is to declare its presence in the wsdl.
+The :class:`Any` type is a serializer used to transmit unstructured XML data.
+Any types are very useful for handling dynamic data, and provide a very
+Pythonic way for passing data using soaplib. The Any serializer does not
+perform any useful task because the data passed in and returned are Element
+objects. The Any type's main purpose is to declare its presence in the WSDL.
 
 AnyAsDict
 ---------
-`AnyAsDict` type does the same thing as the `Any` type, except it serializes
-to/from dicts with lists instead of raw lxml.etree._Element objects.
+
+The :class:`AnyAsDict` type does the same thing as the :class:`Any` type,
+except it serializes to/from dicts with lists instead of raw
+:class:`lxml.etree._Element` objects.
 
 Custom
 ------
+
 Soaplib provides a very simple interface for writing custom type. Just
-inherit from soaplib.model.base.Base and override from_xml and to_parent_element and
-add_to_schema functions.::
+inherit from soaplib.model.base.Base and override the :meth:`from_xml`,
+:meth:`to_parent_element` and :meth:`add_to_schema` classmethods.:
+
+.. code-block:: python
 
     from soaplib.model.base import Base
 
