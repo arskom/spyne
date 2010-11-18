@@ -8,7 +8,7 @@ programatically. The Message object follows the to_parent_element/from_xml usage
 the type. ::
 
     >>> from rpclib.soap import Message
-    >>> from rpclib.model.primitive import *
+    >>> from rpclib.model.primitive import String, Integer, Float
     >>> import cElementTree as et
     >>> message = Message('myFunction',[('a',String),('b',Integer),('c',Float)])
     >>> print et.tostring(message.to_parent_element('a',13,3.14))
