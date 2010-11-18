@@ -257,13 +257,12 @@ class Wsdl11(Base):
         
         self._with_plink = _with_partnerlink
         self.__wsdl = None
-        self.schema_nodes = {}
 
-        self.populate_interface()
-
-    def build_schema(self, types=None):
+    def build_schema_nodes(self, types=None):
+        retval = {}
+        
         for pref in self.namespaces:
-            schema = self.get_schema_node(pref, types)
+            schema = self.get_schema_node(pref, types, retval)
 
             # append import tags
             for namespace in self.imports[pref]:
@@ -280,6 +279,8 @@ class Wsdl11(Base):
             # append simpleType and complexType tags
             for node in self.namespaces[pref].types.values():
                 schema.append(node)
+
+        return retval
 
     def get_schema_document(self):
         """Simple accessor method that caches application's xml schema, once
@@ -304,7 +305,7 @@ class Wsdl11(Base):
             return self.__wsdl
     get_wsdl = get_interface_document
 
-    def get_schema_node(self, pref, types):
+    def get_schema_node(self, pref, types, schema_nodes):
         """Return schema node for the given namespace prefix.
 
         types == None means the call is for creating a standalone xml schema
@@ -313,7 +314,7 @@ class Wsdl11(Base):
         """
 
         # create schema node
-        if not (pref in self.schema_nodes):
+        if not (pref in schema_nodes):
             if types is None:
                 schema = etree.Element("{%s}schema" % rpclib.ns_xsd,
                                                         nsmap=self.nsmap)
@@ -323,10 +324,10 @@ class Wsdl11(Base):
             schema.set("targetNamespace", self.nsmap[pref])
             schema.set("elementFormDefault", "qualified")
 
-            self.schema_nodes[pref] = schema
+            schema_nodes[pref] = schema
 
         else:
-            schema = self.schema_nodes[pref]
+            schema = schema_nodes[pref]
 
         return schema
 
@@ -350,7 +351,7 @@ class Wsdl11(Base):
 
         # create types node
         types = etree.SubElement(root, "{%s}types" % ns_wsdl)
-        self.build_schema(types)
+        self.build_schema_nodes(types)
 
         messages = set()
         for s in self.services:
@@ -461,36 +462,38 @@ class Wsdl11(Base):
         '''
 
 class Wsdl11Strict(Wsdl11):
-    def build_schema(self, types=None):
+    def __init__(self, parent, services, tns, name=None, _with_partnerlink=False):
+        Wsdl11.__init__(self, parent, services, tns, name)
+        self.build_schema()
+
+    def build_schema(self):
         """Build application schema specifically for xml validation purposes."""
-        retval = Wsdl11.build_schema(self, types)
-        if types is None:
-            pref_tns = self.get_namespace_prefix(self.get_tns())
-            logger.debug("generating schema for targetNamespace=%r, prefix: %r"
-                                                   % (self.get_tns(), pref_tns))
+        schema_nodes = self.build_schema_nodes()
 
-            tmp_dir_name = tempfile.mkdtemp()
+        pref_tns = self.get_namespace_prefix(self.get_tns())
+        logger.debug("generating schema for targetNamespace=%r, prefix: %r"
+                                               % (self.get_tns(), pref_tns))
 
-            # serialize nodes to files
-            for k,v in self.schema_nodes.items():
-                file_name = '%s/%s.xsd' % (tmp_dir_name, k)
-                f = open(file_name, 'w')
-                etree.ElementTree(v).write(f, pretty_print=True)
-                f.close()
-                logger.debug("writing %r for ns %s" % (file_name,
-                                                            self.nsmap[k]))
+        tmp_dir_name = tempfile.mkdtemp()
 
-            f = open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r')
-
-            logger.debug("building schema...")
-            self.schema = etree.XMLSchema(etree.parse(f))
-
-            logger.debug("schema %r built, cleaning up..." % self.schema)
+        # serialize nodes to files
+        for k,v in schema_nodes.items():
+            file_name = '%s/%s.xsd' % (tmp_dir_name, k)
+            f = open(file_name, 'w')
+            etree.ElementTree(v).write(f, pretty_print=True)
             f.close()
-            shutil.rmtree(tmp_dir_name)
-            logger.debug("removed %r" % tmp_dir_name)
+            logger.debug("writing %r for ns %s" % (file_name,
+                                                        self.nsmap[k]))
 
-        return retval
+        f = open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r')
+
+        logger.debug("building schema...")
+        self.schema = etree.XMLSchema(etree.parse(f))
+
+        logger.debug("schema %r built, cleaning up..." % self.schema)
+        f.close()
+        shutil.rmtree(tmp_dir_name)
+        logger.debug("removed %r" % tmp_dir_name)
 
     def validate(self, payload):
         schema = self.schema

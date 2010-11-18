@@ -99,7 +99,7 @@ class RpclibClientTestBase(object):
         self.assertEquals(ret.dt, out_header.dt)
         self.assertEquals(ret.f, out_header.f)
 
-    def __get_xml_test_val(self):
+    def _get_xml_test_val(self):
         return {
             "test_sub": {
                 "test_subsub1": {
@@ -120,7 +120,7 @@ class RpclibClientTestBase(object):
         }
 
     def test_any(self):
-        val = self.__get_xml_test_val()
+        val = self._get_xml_test_val()
         ret = self.client.service.echo_any(val)
 
         self.assertEquals(ret, val)

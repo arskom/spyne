@@ -56,6 +56,8 @@ class Base(object):
         self.nsmap['tns']=tns
         self.prefmap[tns]='tns'
 
+        self.populate_interface()
+
     def has_class(self, cls):
         retval = False
         ns_prefix = cls.get_namespace_prefix(self)
