@@ -141,52 +141,6 @@ class Application(object):
         """
         return self.protocol.serialize(ctx, wrapper, out_object)
 
-    def get_namespace_prefix(self, ns):
-        """Returns the namespace prefix for the given namespace. Creates a new
-        one automatically if it doesn't exist.
-
-        Not meant to be overridden.
-        """
-
-        if ns == "__main__":
-            warnings.warn("Namespace is '__main__'", Warning )
-
-        assert (isinstance(ns, str) or isinstance(ns, unicode)), ns
-
-        if not (ns in self.prefmap):
-            pref = "s%d" % self.__ns_counter
-            while pref in self.nsmap:
-                self.__ns_counter += 1
-                pref = "s%d" % self.__ns_counter
-
-            self.prefmap[ns] = pref
-            self.nsmap[pref] = ns
-
-            self.__ns_counter += 1
-
-        else:
-            pref = self.prefmap[ns]
-
-        return pref
-
-    def set_namespace_prefix(self, ns, pref):
-        """Forces a namespace prefix on a namespace by either creating it or
-        moving the existing namespace to a new prefix.
-
-        Not meant to be overridden.
-        """
-
-        if pref in self.nsmap and self.nsmap[pref] != ns:
-            ns_old = self.nsmap[pref]
-            del self.prefmap[ns_old]
-            self.get_namespace_prefix(ns_old)
-
-        cpref = self.get_namespace_prefix(ns)
-        del self.nsmap[cpref]
-
-        self.prefmap[ns] = pref
-        self.nsmap[pref] = ns
-
     def get_service_class(self, method_name):
         """This call maps method names to the services that will handle them.
 

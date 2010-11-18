@@ -29,12 +29,11 @@ from lxml import etree
 import rpclib
 from rpclib.model.exception import Fault
 from rpclib.interface.base import Base
-from rpclib.interface.base import SchemaEntries
 
 class ValidationError(Fault):
     pass
 
-def add_port_type(service, app, root, service_name, types, url, port_type):
+def add_port_type(service, interface, root, service_name, types, url, port_type):
     ns_wsdl = rpclib.ns_wsdl
 
     # FIXME: I don't think this call is working.
@@ -58,22 +57,23 @@ def add_port_type(service, app, root, service_name, types, url, port_type):
 
         op_input = etree.SubElement(operation, '{%s}input' % ns_wsdl)
         op_input.set('name', method.in_message.get_type_name())
-        op_input.set('message', method.in_message.get_type_name_ns(app))
+        op_input.set('message', method.in_message.get_type_name_ns(interface))
 
         if (not method.is_callback) and (not method.is_async):
             op_output = etree.SubElement(operation, '{%s}output' %  ns_wsdl)
             op_output.set('name', method.out_message.get_type_name())
-            op_output.set('message', method.out_message.get_type_name_ns(
-                                                                       app))
+            op_output.set('message', method.out_message.get_type_name_ns(interface))
 
 # FIXME: I don't think this is working.
-def _add_callbacks(self, root, types, service_name, url):
+def _add_callbacks(service, root, types, service_name, url):
     ns_xsd = rpclib.ns_xsd
     ns_wsa = rpclib.ns_wsa
+    pref_wsa = rpclib.const_prefmap[rpclib.ns_wsa]
+
     ns_wsdl = rpclib.ns_wsdl
     ns_soap = rpclib.ns_soap
 
-    ns_tns = self.get_tns()
+    ns_tns = service.get_tns()
     pref_tns = 'tns'
 
     cb_port_type = None
@@ -81,7 +81,7 @@ def _add_callbacks(self, root, types, service_name, url):
     # add necessary async headers
     # WS-Addressing -> RelatesTo ReplyTo MessageID
     # callback porttype
-    if self._has_callbacks():
+    if service._has_callbacks():
         wsa_schema = etree.SubElement(types, "{%s}schema" % ns_xsd)
         wsa_schema.set("targetNamespace", '%sCallback'  % ns_tns)
         wsa_schema.set("elementFormDefault", "qualified")
@@ -94,19 +94,19 @@ def _add_callbacks(self, root, types, service_name, url):
         relt_message.set('name', 'RelatesToHeader')
         relt_part = etree.SubElement(relt_message, '{%s}part' % ns_wsdl)
         relt_part.set('name', 'RelatesTo')
-        relt_part.set('element', '%s:RelatesTo' % _pref_wsa)
+        relt_part.set('element', '%s:RelatesTo' % pref_wsa)
 
         reply_message = etree.SubElement(root, '{%s}message' % ns_wsdl)
         reply_message.set('name', 'ReplyToHeader')
         reply_part = etree.SubElement(reply_message, '{%s}part' % ns_wsdl)
         reply_part.set('name', 'ReplyTo')
-        reply_part.set('element', '%s:ReplyTo' % _pref_wsa)
+        reply_part.set('element', '%s:ReplyTo' % pref_wsa)
 
         id_header = etree.SubElement(root, '{%s}message' % ns_wsdl)
         id_header.set('name', 'MessageIDHeader')
         id_part = etree.SubElement(id_header, '{%s}part' % ns_wsdl)
         id_part.set('name', 'MessageID')
-        id_part.set('element', '%s:MessageID' % _pref_wsa)
+        id_part.set('element', '%s:MessageID' % pref_wsa)
 
         # make portTypes
         cb_port_type = etree.SubElement(root, '{%s}portType' % ns_wsdl)
@@ -126,40 +126,6 @@ def _add_callbacks(self, root, types, service_name, url):
         cb_address.set('location', url)
 
     return cb_port_type
-
-def add_schema(self, schema_entries):
-    '''Adds the appropriate entries to the schema for the types in the specified
-    methods.
-
-    @param the schema node to add the schema elements to. if it is None,
-           the schema nodes are returned inside a dictionary
-    @param the schema node dictinary, where keys are prefixes of the schema
-           stored schema node
-    '''
-
-    if self.__in_header__ != None:
-        self.__in_header__.resolve_namespace(self.__in_header__,
-                                                            self.get_tns())
-        self.__in_header__.add_to_schema(schema_entries)
-
-    if self.__out_header__ != None:
-        self.__out_header__.resolve_namespace(self.__out_header__,
-                                                            self.get_tns())
-        self.__out_header__.add_to_schema(schema_entries)
-
-    for method in self.public_methods:
-        method.in_message.add_to_schema(schema_entries)
-        method.out_message.add_to_schema(schema_entries)
-
-        if method.in_header is None:
-            method.in_header = self.__in_header__
-        else:
-            method.in_header.add_to_schema(schema_entries)
-
-        if method.out_header is None:
-            method.out_header = self.__out_header__
-        else:
-            method.out_header.add_to_schema(schema_entries)
 
 def _add_message_for_object(self, app, root, messages, obj):
     if obj != None and not (obj.get_type_name() in messages):
@@ -286,174 +252,34 @@ class Wsdl11(Base):
         @param The name attribute of the exposed service.
         @param Flag to indicate whether to generate partnerlink node in wsdl.
         '''
-        self.parent = parent
-        self.services = services
-        self.__tns = tns
-        self.__name = name
+
+        Base.__init__(self, parent, services, tns, name)
+        
         self._with_plink = _with_partnerlink
-
-        self.call_routes = {}
         self.__wsdl = None
-        self.classes = {}
+        self.schema_nodes = {}
 
-        self.__ns_counter = 0
+        self.populate_interface()
 
-        self.nsmap = dict(rpclib.const_nsmap)
-        self.prefmap = dict(rpclib.const_prefmap)
-
-        self.schema = self.build_schema()
-
-    def get_namespace_prefix(self, ns):
-        """Returns the namespace prefix for the given namespace. Creates a new
-        one automatically if it doesn't exist.
-
-        Not meant to be overridden.
-        """
-
-        if ns == "__main__":
-            warnings.warn("Namespace is '__main__'", Warning )
-
-        assert ns != "rpclib.model.base"
-
-        assert (isinstance(ns, str) or isinstance(ns, unicode)), ns
-
-        if not (ns in self.prefmap):
-            pref = "s%d" % self.__ns_counter
-            while pref in self.nsmap:
-                self.__ns_counter += 1
-                pref = "s%d" % self.__ns_counter
-
-            self.prefmap[ns] = pref
-            self.nsmap[pref] = ns
-
-            self.__ns_counter += 1
-
-        else:
-            pref = self.prefmap[ns]
-
-        return pref
-
-    def set_namespace_prefix(self, ns, pref):
-        """Forces a namespace prefix on a namespace by either creating it or
-        moving the existing namespace to a new prefix.
-
-        Not meant to be overridden.
-        """
-
-        if pref in self.nsmap and self.nsmap[pref] != ns:
-            ns_old = self.nsmap[pref]
-            del self.prefmap[ns_old]
-            self.get_namespace_prefix(ns_old)
-
-        cpref = self.get_namespace_prefix(ns)
-        del self.nsmap[cpref]
-
-        self.prefmap[ns] = pref
-        self.nsmap[pref] = ns
-
-    def get_name(self):
-        """Returns service name that is seen in the name attribute of the
-        definitions tag.
-
-        Not meant to be overridden.
-        """
-        retval = self.__name
-
-        if retval is None:
-            retval = self.__class__.__name__.split('.')[-1]
-
-        return retval
-
-    name = property(get_name)
-
-    def get_tns(self):
-        """Returns default namespace that is seen in the targetNamespace 
-        attribute of the definitions tag.
-
-        Not meant to be overridden.
-        """
-        retval = self.__tns
-
-        if retval is None:
-            service_name = self.get_name()
-
-            if self.__class__.__module__ == '__main__':
-                retval = '.'.join((service_name, service_name))
-            else:
-                retval = '.'.join((self.__class__.__module__, service_name))
-
-            if retval.startswith('rpclib'):
-                retval = self.services[0].get_tns()
-
-        return retval
-
-    tns = property(get_tns)
-
-    def __build_schema_nodes(self, schema_entries, types=None):
-        """Fill individual <schema> nodes for every service that are part of
-        this app.
-        """
-
-        schema_nodes = {}
-
-        for pref in schema_entries.namespaces:
-            schema = self.__get_schema_node(pref, schema_nodes, types)
+    def build_schema(self, types=None):
+        for pref in self.namespaces:
+            schema = self.get_schema_node(pref, types)
 
             # append import tags
-            for namespace in schema_entries.imports[pref]:
-                import_ = etree.SubElement(schema, "{%s}import"% rpclib.ns_xsd)
+            for namespace in self.imports[pref]:
+                import_ = etree.SubElement(schema, "{%s}import" % rpclib.ns_xsd)
                 import_.set("namespace", namespace)
                 if types is None:
                     import_.set('schemaLocation', "%s.xsd" %
-                                        self.get_namespace_prefix(namespace))
+                                           self.get_namespace_prefix(namespace))
 
             # append element tags
-            for node in schema_entries.namespaces[pref].elements.values():
+            for node in self.namespaces[pref].elements.values():
                 schema.append(node)
 
             # append simpleType and complexType tags
-            for node in schema_entries.namespaces[pref].types.values():
+            for node in self.namespaces[pref].types.values():
                 schema.append(node)
-
-        return schema_nodes
-
-    def build_schema(self, types=None):
-        """Unify the <schema> nodes required for this app.
-
-        This is a protected method.
-        """
-
-        if types is None:
-            # populate call routes
-            for s in self.services:
-                s.__tns__ = self.get_tns()
-                inst = self.parent.get_service(s)
-
-                for method in inst.public_methods:
-                    method_name = "{%s}%s" % (self.get_tns(), method.name)
-
-                    if method_name in self.call_routes:
-                        o = self.call_routes[method_name]
-                        raise Exception("%s.%s.%s overwrites %s.%s.%s" %
-                                        (s.__module__, s.__name__, method.name,
-                                         o.__module__, o.__name__, method.name))
-
-                    else:
-                        logger.debug('adding method %r' % method_name)
-                        self.call_routes[method_name] = s
-                        self.call_routes[method.name] = s
-
-        # populate types
-        schema_entries = SchemaEntries(self)
-        for s in self.services:
-            inst = self.parent.get_service(s)
-            add_schema(inst, schema_entries)
-
-        schema_nodes = self.__build_schema_nodes(schema_entries, types)
-
-        self.classes = schema_entries.classes
-
-        return schema_nodes
 
     def get_schema_document(self):
         """Simple accessor method that caches application's xml schema, once
@@ -462,7 +288,7 @@ class Wsdl11(Base):
         Not meant to be overridden.
         """
         if self.schema is None:
-            return self.build_schema()
+            return self.populate_interface()
         else:
             return self.schema
 
@@ -478,7 +304,7 @@ class Wsdl11(Base):
             return self.__wsdl
     get_wsdl = get_interface_document
 
-    def __get_schema_node(self, pref, schema_nodes, types):
+    def get_schema_node(self, pref, types):
         """Return schema node for the given namespace prefix.
 
         types == None means the call is for creating a standalone xml schema
@@ -487,7 +313,7 @@ class Wsdl11(Base):
         """
 
         # create schema node
-        if not (pref in schema_nodes):
+        if not (pref in self.schema_nodes):
             if types is None:
                 schema = etree.Element("{%s}schema" % rpclib.ns_xsd,
                                                         nsmap=self.nsmap)
@@ -497,10 +323,10 @@ class Wsdl11(Base):
             schema.set("targetNamespace", self.nsmap[pref])
             schema.set("elementFormDefault", "qualified")
 
-            schema_nodes[pref] = schema
+            self.schema_nodes[pref] = schema
 
         else:
-            schema = schema_nodes[pref]
+            schema = self.schema_nodes[pref]
 
         return schema
 
@@ -510,10 +336,7 @@ class Wsdl11(Base):
         ns_wsdl = rpclib.ns_wsdl
         ns_soap = rpclib.ns_soap
         ns_plink = rpclib.ns_plink
-
-        ns_tns = self.get_tns()
-        pref_tns = 'tns'
-        self.set_namespace_prefix(ns_tns, pref_tns)
+        pref_tns = self.get_namespace_prefix(self.tns)
 
         # FIXME: doesn't look so robust
         url = url.replace('.wsdl', '')
@@ -522,15 +345,14 @@ class Wsdl11(Base):
 
         # create wsdl root node
         root = etree.Element("{%s}definitions" % ns_wsdl, nsmap=self.nsmap)
-        root.set('targetNamespace', ns_tns)
+        root.set('targetNamespace', self.tns)
         root.set('name', service_name)
 
         # create types node
         types = etree.SubElement(root, "{%s}types" % ns_wsdl)
-
         self.build_schema(types)
-        messages = set()
 
+        messages = set()
         for s in self.services:
             s=self.parent.get_service(s,None)
 
@@ -540,12 +362,12 @@ class Wsdl11(Base):
             # create plink node
             plink = etree.SubElement(root, '{%s}partnerLinkType' % ns_plink)
             plink.set('name', service_name)
-            self.__add_partner_link(root, service_name, types, url, plink)
+            self.__add_partner_link(service_name, plink)
 
         # create service node
         service = etree.SubElement(root, '{%s}service' % ns_wsdl)
         service.set('name', service_name)
-        self.__add_service(root, service_name, types, url, service)
+        self.__add_service(service_name, url, service)
 
         # create portType node
         port_type = etree.SubElement(root, '{%s}portType' % ns_wsdl)
@@ -576,7 +398,7 @@ class Wsdl11(Base):
 
         return self.__wsdl
 
-    def __add_partner_link(self, root, service_name, types, url, plink):
+    def __add_partner_link(self, service_name, plink):
         """Add the partnerLinkType node to the wsdl.
         """
         ns_plink = rpclib.ns_plink
@@ -596,7 +418,7 @@ class Wsdl11(Base):
             plink_port_type = etree.SubElement(role, '{%s}portType' % ns_plink)
             plink_port_type.set('name', '%s:%sCallback' %
                                                        (pref_tns, service_name))
-    def __add_service(self, root, service_name, types, url, service):
+    def __add_service(self, service_name, url, service):
         """Add service node to the wsdl.
         """
         pref_tns = self.get_namespace_prefix(self.get_tns())
@@ -640,10 +462,8 @@ class Wsdl11(Base):
 
 class Wsdl11Strict(Wsdl11):
     def build_schema(self, types=None):
-        """Build application schema specifically for xml validation purposes.
-        """
-        schema_nodes = Wsdl11.build_schema(self, types)
-
+        """Build application schema specifically for xml validation purposes."""
+        retval = Wsdl11.build_schema(self, types)
         if types is None:
             pref_tns = self.get_namespace_prefix(self.get_tns())
             logger.debug("generating schema for targetNamespace=%r, prefix: %r"
@@ -652,7 +472,7 @@ class Wsdl11Strict(Wsdl11):
             tmp_dir_name = tempfile.mkdtemp()
 
             # serialize nodes to files
-            for k,v in schema_nodes.items():
+            for k,v in self.schema_nodes.items():
                 file_name = '%s/%s.xsd' % (tmp_dir_name, k)
                 f = open(file_name, 'w')
                 etree.ElementTree(v).write(f, pretty_print=True)
@@ -670,7 +490,7 @@ class Wsdl11Strict(Wsdl11):
             shutil.rmtree(tmp_dir_name)
             logger.debug("removed %r" % tmp_dir_name)
 
-        return self.schema
+        return retval
 
     def validate(self, payload):
         schema = self.schema

@@ -65,10 +65,10 @@ class Base(object):
         return True
 
     @classmethod
-    def get_namespace_prefix(cls,app):
+    def get_namespace_prefix(cls,interface):
         ns = cls.get_namespace()
 
-        retval = app.get_namespace_prefix(ns)
+        retval = interface.get_namespace_prefix(ns)
 
         return retval
 
@@ -184,15 +184,14 @@ class SimpleType(Base):
         return (cls.Attributes.values == SimpleType.Attributes.values)
 
     @classmethod
-    def get_restriction_tag(cls, schema_entries):
+    def get_restriction_tag(cls, interface):
         simple_type = etree.Element('{%s}simpleType' % rpclib.ns_xsd)
         simple_type.set('name', cls.get_type_name())
-        schema_entries.add_simple_type(cls, simple_type)
+        interface.add_simple_type(cls, simple_type)
 
-        restriction = etree.SubElement(simple_type,
-                                            '{%s}restriction' % rpclib.ns_xsd)
-        restriction.set('base', cls.__base_type__.get_type_name_ns(
-                                                            schema_entries.app))
+        restriction = etree.SubElement(simple_type, '{%s}restriction' %
+                                                                  rpclib.ns_xsd)
+        restriction.set('base', cls.__base_type__.get_type_name_ns(interface))
 
         for v in cls.Attributes.values:
             enumeration = etree.SubElement(restriction,

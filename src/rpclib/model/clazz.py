@@ -237,59 +237,59 @@ class ClassSerializerBase(Base):
                 v.resolve_namespace(v, default_ns)
 
     @classmethod
-    def add_to_schema(cls, schema_entries):
+    def add_to_schema(cls, interface):
         if cls.get_type_name() is Base.Empty:
             (child,) = cls._type_info.values()
             cls.__type_name__ = '%sArray' % child.get_type_name()
 
-        if not schema_entries.has_class(cls):
+        if not interface.has_class(cls):
             if not (getattr(cls, '__extends__', None) is None):
-                cls.__extends__.add_to_schema(schema_entries)
+                cls.__extends__.add_to_schema(interface)
 
             complex_type = etree.Element("{%s}complexType" % rpclib.ns_xsd)
             complex_type.set('name',cls.get_type_name())
 
             sequence_parent = complex_type
-            if not (getattr(cls, '__extends__', None) is None):
-                cls.__extends__.add_to_schema(schema_entries)
+            if getattr(cls, '__extends__', None) != None:
+                cls.__extends__.add_to_schema(interface)
 
                 complex_content = etree.SubElement(complex_type,
                                           "{%s}complexContent" % rpclib.ns_xsd)
                 extension = etree.SubElement(complex_content, "{%s}extension"
                                                                % rpclib.ns_xsd)
                 extension.set('base', cls.__extends__.get_type_name_ns(
-                                                            schema_entries.app))
+                                                                     interface))
                 sequence_parent = extension
 
             sequence = etree.SubElement(sequence_parent, '{%s}sequence' %
-                                                                rpclib.ns_xsd)
+                                                                  rpclib.ns_xsd)
 
             for k, v in cls._type_info.items():
                 if v != cls:
-                    v.add_to_schema(schema_entries)
+                    v.add_to_schema(interface)
 
-                member = etree.SubElement(sequence, '{%s}element' %
-                                                                rpclib.ns_xsd)
+                member = etree.SubElement(sequence,'{%s}element'% rpclib.ns_xsd)
                 member.set('name', k)
-                member.set('type', v.get_type_name_ns(schema_entries.app))
+                member.set('type', v.get_type_name_ns(interface))
 
                 if v.Attributes.min_occurs != 1: # 1 is the xml schema default
                     member.set('minOccurs', str(v.Attributes.min_occurs))
                 if v.Attributes.max_occurs != 1: # 1 is the xml schema default
                     member.set('maxOccurs', str(v.Attributes.max_occurs))
 
-                # True is the xml schema default
                 if bool(v.Attributes.nillable) == True:
                     member.set('nillable', 'true')
+                #else:
+                #    member.set('nillable', 'false')
 
-            schema_entries.add_complex_type(cls, complex_type)
+            interface.add_complex_type(cls, complex_type)
 
             # simple node
             element = etree.Element('{%s}element' % rpclib.ns_xsd)
             element.set('name',cls.get_type_name())
-            element.set('type',cls.get_type_name_ns(schema_entries.app))
+            element.set('type',cls.get_type_name_ns(interface))
 
-            schema_entries.add_element(cls, element)
+            interface.add_element(cls, element)
 
     @staticmethod
     def produce(namespace, type_name, members):

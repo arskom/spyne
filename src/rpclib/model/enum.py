@@ -84,22 +84,22 @@ def Enum(*values, **kwargs):
             return 'enum ' + str(values)
 
         @classmethod
-        def add_to_schema(cls, schema_entries):
-            if not schema_entries.has_class(cls):
+        def add_to_schema(cls, interface):
+            if not interface.has_class(cls):
                 simple_type = etree.Element('{%s}simpleType' % _ns_xs)
                 simple_type.set('name', cls.get_type_name())
 
                 restriction = etree.SubElement(simple_type,
                                                     '{%s}restriction' % _ns_xs)
                 restriction.set('base', '%s:string' %
-                        schema_entries.app.get_namespace_prefix(rpclib.ns_xsd))
+                                  interface.get_namespace_prefix(rpclib.ns_xsd))
 
                 for v in values:
                     enumeration = etree.SubElement(restriction,
                                                     '{%s}enumeration' % _ns_xs)
                     enumeration.set('value', v)
 
-                schema_entries.add_simple_type(cls, simple_type)
+                interface.add_simple_type(cls, simple_type)
 
     for i,v in enumerate(values):
         setattr(EnumType, v, EnumValue(i))
