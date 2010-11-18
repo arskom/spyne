@@ -21,7 +21,8 @@ import os.path
 
 from lxml import etree
 
-import rpclib
+import rpclib.protocol.soap
+import rpclib.interface.wsdl
 from rpclib import Application
 from rpclib.service import rpc, DefinitionBase
 
@@ -64,6 +65,8 @@ class XSDGenerator():
         '''
 
         binding_application = Application([binding_service],
+                                          rpclib.protocol.soap.Soap11,
+                                          rpclib.interface.wsdl.Wsdl11,
                                           'binding_application')
 
         # The lxml Element nsmap is being overridden to remove the unneeded
@@ -84,7 +87,7 @@ class XSDGenerator():
 
         binding_service = self.__get_binding_service(model)
         app = self.__get_binding_application(binding_service)
-        nodes = app.build_schema(types=None)
+        nodes = app.interface.build_schema_nodes(types=None)
         return nodes
 
     def __get_model_node(self, model, nodes):

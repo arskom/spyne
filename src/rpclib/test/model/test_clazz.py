@@ -234,5 +234,42 @@ class TestClassSerializer(unittest.TestCase):
         self.assertNotEquals(Derived2.Attributes.prop1, Base.Attributes.prop1)
         self.assertEquals(Derived3.Attributes.prop1, Base.Attributes.prop1)
 
+
+class X(ClassSerializer):
+    __namespace__='tns'
+    x = Integer(nillable=True,max_occurs='unbounded')
+
+class Y(X):
+    __namespace__='tns'
+    y = Integer
+
+class TestIncompleteInput(unittest.TestCase):
+    def test_x(self):
+        x = X()
+        x.x = [1,2]
+        element = etree.Element('test')
+        X.to_parent_element(x, 'tns', element)
+        msg = element[0]
+        r = X.from_xml(msg)
+        self.assertEqual(r.x, [1,2])
+
+    def test_y_fromxml(self):
+        x = X()
+        x.x = [1,2]
+        element = etree.Element('test')
+        X.to_parent_element(x, 'tns', element)
+        msg = element[0]
+        r = Y.from_xml(msg)
+        self.assertEqual(r.x, [1,2])
+
+    def test_y_toxml(self):
+        y = Y()
+        y.x = [1,2]
+        y.y = 38
+        element = etree.Element('test')
+        Y.to_parent_element(y, 'tns', element)
+        msg = element[0]
+        r = Y.from_xml(msg)
+
 if __name__ == '__main__':
     unittest.main()

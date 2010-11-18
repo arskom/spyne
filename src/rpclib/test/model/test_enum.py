@@ -19,6 +19,8 @@
 
 import unittest
 import rpclib
+import rpclib.protocol.soap
+import rpclib.interface.wsdl
 _ns_xs = rpclib.ns_xsd
 _ns_xsi = rpclib.ns_xsi
 
@@ -58,10 +60,10 @@ class TestService(DefinitionBase):
 
 class TestEnum(unittest.TestCase):
     def test_wsdl(self):
-        app = Application([TestService],'tns')
-        wsdl = app.get_wsdl('punk')
+        app = Application([TestService],rpclib.protocol.soap.Soap11, rpclib.interface.wsdl.Wsdl11,'tns')
+        wsdl = app.interface.get_wsdl('punk')
         elt = etree.fromstring(wsdl)
-        simple_type = elt.xpath('//xs:simpleType', namespaces=app.nsmap)[0]
+        simple_type = elt.xpath('//xs:simpleType', namespaces=app.interface.nsmap)[0]
 
         print etree.tostring(elt, pretty_print=True)
         print simple_type

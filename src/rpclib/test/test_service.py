@@ -21,6 +21,8 @@ import datetime
 import unittest
 
 from lxml import etree
+import rpclib.protocol.soap
+import rpclib.interface.wsdl
 
 from rpclib.model.clazz import ClassSerializer
 from rpclib.model.clazz import Array
@@ -125,9 +127,10 @@ class Test(unittest.TestCase):
     '''Most of the service tests are performed through the interop tests.'''
 
     def setUp(self):
-        self.app = Application([TestService], 'tns')
+        self.app = Application([TestService], rpclib.protocol.soap.Soap11,
+                                            rpclib.interface.wsdl.Wsdl11, 'tns')
         self.srv = TestService()
-        self._wsdl = self.app.get_wsdl('')
+        self._wsdl = self.app.interface.get_wsdl('')
         self.wsdl = etree.fromstring(self._wsdl)
 
     def test_portypes(self):
@@ -140,8 +143,9 @@ class Test(unittest.TestCase):
             self.assertTrue(n in self._wsdl, '"%s" not in self._wsdl' % n)
 
     def test_multiple_return(self):
-        app = Application([MultipleReturnService], 'tns')
-        app.get_wsdl('')
+        app = Application([MultipleReturnService], rpclib.protocol.soap.Soap11,
+                                            rpclib.interface.wsdl.Wsdl11, 'tns')
+        app.interface.get_wsdl('')
         srv = MultipleReturnService()
         message = srv.public_methods[0].out_message()
 
@@ -160,8 +164,9 @@ class Test(unittest.TestCase):
         self.assertEqual(response_data[2], 'c')
 
     def test_multiple_ns(self):
-        svc = Application([MultipleNamespaceService], 'tns')
-        wsdl = svc.get_wsdl("URL")
+        svc = Application([MultipleNamespaceService],rpclib.protocol.soap.Soap11,
+                                            rpclib.interface.wsdl.Wsdl11,'tns')
+        wsdl = svc.interface.get_wsdl("URL")
 
 if __name__ == '__main__':
     unittest.main()
