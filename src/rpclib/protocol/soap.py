@@ -109,14 +109,11 @@ class Soap11(Base):
     class OUT_WRAPPER:
         pass
 
-    def __init__(self, parent, in_wrapper=IN_WRAPPER, out_wrapper=OUT_WRAPPER):
+    def __init__(self, parent):
         Base.__init__(self, parent)
 
-        self.in_wrapper = in_wrapper
-        self.out_wrapper = out_wrapper
-
-        assert self.in_wrapper in (self.IN_WRAPPER, self.OUT_WRAPPER, self.NO_WRAPPER),self.in_wrapper
-        assert self.out_wrapper in (self.IN_WRAPPER, self.OUT_WRAPPER, self.NO_WRAPPER), self.out_wrapper
+        self.in_wrapper = Soap11.IN_WRAPPER
+        self.out_wrapper = Soap11.OUT_WRAPPER
 
     @staticmethod
     def create_document_structure(in_string, in_string_encoding=None):
@@ -169,7 +166,7 @@ class Soap11(Base):
             ctx.in_header_doc = header
             ctx.in_body_doc = body
 
-    def deserialize(self, ctx, doc_struct, wrapper):
+    def deserialize(self, ctx, doc_struct):
         """Takes a MethodContext instance and a string containing ONE soap
         message.
         Returns the corresponding native python object
@@ -178,8 +175,6 @@ class Soap11(Base):
         """
 
         envelope_xml, xmlids = doc_struct
-
-        assert wrapper in (self.IN_WRAPPER, self.OUT_WRAPPER),wrapper
 
         # this sets the ctx.in_body_doc and ctx.in_header_doc properties
         self.decompose_incoming_envelope(ctx, envelope_xml, xmlids)
@@ -198,11 +193,11 @@ class Soap11(Base):
                 else:
                     descriptor = ctx.descriptor
 
-            if wrapper is self.IN_WRAPPER:
+            if self.in_wrapper is self.IN_WRAPPER:
                 header_class = descriptor.in_header
                 body_class = descriptor.in_message
 
-            elif wrapper is self.OUT_WRAPPER:
+            elif self.in_wrapper is self.OUT_WRAPPER:
                 header_class = descriptor.out_header
                 body_class = descriptor.out_message
 
@@ -218,16 +213,13 @@ class Soap11(Base):
 
         return in_body
 
-    def serialize(self, ctx, out_object, wrapper):
+    def serialize(self, ctx, out_object):
         """Takes a MethodContext instance and the object to be serialized.
         Returns the corresponding xml structure as an lxml.etree._Element
         instance.
 
         Not meant to be overridden.
         """
-
-        assert wrapper in (self.IN_WRAPPER, self.OUT_WRAPPER,
-                                                self.NO_WRAPPER), wrapper
 
         # construct the soap response, and serialize it
         nsmap = self.parent.interface.nsmap
@@ -253,7 +245,7 @@ class Soap11(Base):
         else:
             # header
             if ctx.service.out_header != None:
-                if wrapper in (self.NO_WRAPPER, self.OUT_WRAPPER):
+                if self.out_wrapper in (self.NO_WRAPPER, self.OUT_WRAPPER):
                     header_message_class = ctx.descriptor.in_header
                 else:
                     header_message_class = ctx.descriptor.out_header
@@ -280,14 +272,14 @@ class Soap11(Base):
                                                '{%s}Body' % rpclib.ns_soap_env)
 
             # instantiate the result message
-            if wrapper is self.NO_WRAPPER:
+            if self.out_wrapper is self.NO_WRAPPER:
                 result_message_class = ctx.descriptor.in_message
                 result_message = out_object
 
             else:
-                if wrapper is self.IN_WRAPPER:
+                if self.out_wrapper is self.IN_WRAPPER:
                     result_message_class = ctx.descriptor.in_message
-                elif wrapper is self.OUT_WRAPPER:
+                elif self.out_wrapper is self.OUT_WRAPPER:
                     result_message_class = ctx.descriptor.out_message
 
                 result_message = result_message_class()
@@ -307,7 +299,7 @@ class Soap11(Base):
 
             # transform the results into an element
             result_message_class.to_parent_element(
-                                  result_message, self.parent.interface.get_tns(), out_body_doc)
+                  result_message, self.parent.interface.get_tns(), out_body_doc)
 
             if logger.level == logging.DEBUG:
                 logger.debug('\033[91m'+ "Response" + '\033[0m')

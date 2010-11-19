@@ -21,8 +21,6 @@
 
 # FIXME: this is still too soap-centric.
 
-from pprint import pprint
-
 import logging
 logger = logging.getLogger(__name__)
 

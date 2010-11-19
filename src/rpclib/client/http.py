@@ -46,4 +46,9 @@ class Client(Base):
     def __init__(self, url, app):
         super(Client, self).__init__(url, app)
 
+        # FIXME: these two lines should be explained...
+        app.protocol.in_wrapper = app.protocol.OUT_WRAPPER
+        app.protocol.out_wrapper = app.protocol.NO_WRAPPER
+
         self.service = Service(_RemoteProcedure, url, app)
+
