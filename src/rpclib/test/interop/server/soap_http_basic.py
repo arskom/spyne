@@ -19,7 +19,7 @@
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger('rpclib._base')
+logger = logging.getLogger('rpclib.protocol.soap')
 logger.setLevel(logging.DEBUG)
 
 from rpclib.test.interop.server._service import application

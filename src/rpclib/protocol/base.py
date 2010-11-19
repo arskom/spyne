@@ -25,6 +25,9 @@ class Base(object):
     def create_document_structure(self, in_string, in_string_encoding=None):
         pass
 
+    def create_document_string(self, out_doc):
+        pass
+
     def decompose_incoming_envelope(self, ctx, envelope_xml):
         """Sets the ctx.in_body_doc, ctx.in_header_doc and ctx.service
         properties of the ctx object.
