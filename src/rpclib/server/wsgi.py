@@ -73,6 +73,7 @@ class Application(Base):
         @param the http environment
         @param a callable that begins the response message
         @param the optional url
+
         @returns the string representation of the rpc message
         '''
 
@@ -88,7 +89,7 @@ class Application(Base):
             return ['']
 
         else:
-            return self.__handle_soap_request(req_env, start_response)
+            return self.__handle_rpc(req_env, start_response)
 
     def __is_wsdl_request(self, req_env):
         # Get the wsdl for the service. Assume path_info matches pattern:
@@ -105,6 +106,7 @@ class Application(Base):
 
     def __handle_wsdl_request(self, req_env, start_response, url):
         http_resp_headers = {'Content-Type': 'text/xml'}
+
         try:
             wsdl = self.app.interface.get_interface_document(url)
             self.on_wsdl(req_env, wsdl) # implementation hook
@@ -124,20 +126,20 @@ class Application(Base):
 
             return [""]
 
-    def __handle_soap_request(self, req_env, start_response):
+    def __handle_rpc(self, req_env, start_response):
         ctx = rpclib.MethodContext()
 
         # implementation hook
         self.on_wsgi_call(req_env)
 
         in_string, in_string_charset = _reconstruct_soap_request(req_env)
-
-        in_object = self.get_in_object(ctx, in_string, in_string_charset)
+        in_object = self.get_in_object(ctx,in_string,in_string_charset)
 
         return_code = HTTP_200
         if ctx.in_error:
             out_object = ctx.in_error
             return_code = HTTP_500
+
         else:
             assert ctx.service != None
             out_object = self.get_out_object(ctx, in_object)
