@@ -269,7 +269,7 @@ class Double(SimpleType):
     @classmethod
     @nillable_value
     def to_parent_element(cls, value, tns, parent_elt, name='retval'):
-        SimpleType.to_parent_element(str(value), tns, parent_elt, name)
+        SimpleType.to_parent_element(repr(value), tns, parent_elt, name)
 
     @classmethod
     @nillable_string
