@@ -302,7 +302,6 @@ class Wsdl11(Base):
             return self.__build_wsdl(url)
         else:
             return self.__wsdl
-    get_wsdl = get_interface_document
 
     def get_schema_node(self, pref, types, schema_nodes):
         """Return schema node for the given namespace prefix.
@@ -463,6 +462,7 @@ class Wsdl11(Base):
 class Wsdl11Strict(Wsdl11):
     def __init__(self, parent, services, tns, name=None, _with_partnerlink=False):
         Wsdl11.__init__(self, parent, services, tns, name, _with_partnerlink)
+
         self.build_schema()
 
     def build_schema(self):

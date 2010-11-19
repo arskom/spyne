@@ -108,7 +108,7 @@ class Application(Base):
     def __handle_wsdl_request(self, req_env, start_response, url):
         http_resp_headers = {'Content-Type': 'text/xml'}
         try:
-            wsdl = self.app.interface.get_wsdl(url)
+            wsdl = self.app.interface.get_interface_document(url)
             self.on_wsdl(req_env, wsdl) # implementation hook
 
             http_resp_headers['Content-Length'] = str(len(wsdl))

@@ -131,7 +131,7 @@ class Test(unittest.TestCase):
         self.app = Application([TestService], rpclib.protocol.soap.Soap11,
                                             rpclib.interface.wsdl.Wsdl11, 'tns')
         self.srv = TestService()
-        self._wsdl = self.app.interface.get_wsdl('')
+        self._wsdl = self.app.interface.get_interface_document('')
         self.wsdl = etree.fromstring(self._wsdl)
 
     def test_portypes(self):
@@ -146,7 +146,7 @@ class Test(unittest.TestCase):
     def test_multiple_return(self):
         app = Application([MultipleReturnService], rpclib.protocol.soap.Soap11,
                                             rpclib.interface.wsdl.Wsdl11, 'tns')
-        app.interface.get_wsdl('')
+        app.interface.get_interface_document('')
         srv = MultipleReturnService()
         message = srv.public_methods[0].out_message()
 
@@ -167,7 +167,7 @@ class Test(unittest.TestCase):
     def test_multiple_ns(self):
         svc = Application([MultipleNamespaceService],rpclib.protocol.soap.Soap11,
                                             rpclib.interface.wsdl.Wsdl11,'tns')
-        wsdl = svc.interface.get_wsdl("URL")
+        wsdl = svc.interface.get_interface_document("URL")
 
 if __name__ == '__main__':
     unittest.main()

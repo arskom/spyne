@@ -38,7 +38,7 @@ class Server(Base):
         self.soap_socket.bind(app_url)
 
     def __handle_wsdl_request(self):
-        return self.app.get_wsdl(self.url)
+        return self.app.get_interface_document(self.url)
 
     def serve_forever(self):
         while True:
