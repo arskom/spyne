@@ -20,7 +20,6 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import warnings
 import shutil
 import tempfile
 
@@ -463,7 +462,7 @@ class Wsdl11(Base):
 
 class Wsdl11Strict(Wsdl11):
     def __init__(self, parent, services, tns, name=None, _with_partnerlink=False):
-        Wsdl11.__init__(self, parent, services, tns, name)
+        Wsdl11.__init__(self, parent, services, tns, name, _with_partnerlink)
         self.build_schema()
 
     def build_schema(self):
