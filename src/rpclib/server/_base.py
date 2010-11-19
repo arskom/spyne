@@ -46,7 +46,7 @@ class Base(object):
                                                               in_string_charset)
 
         try:
-            in_object = self.app.protocol.deserialize(ctx, self.app.IN_WRAPPER,
+            in_object = self.app.protocol.deserialize(ctx, self.app.protocol.IN_WRAPPER,
                                                                    root, xmlids)
         except Fault,e:
             ctx.in_error = e
@@ -64,7 +64,7 @@ class Base(object):
         return out_object
 
     def get_out_string(self, ctx, out_object):
-        out_doc = self.app.protocol.serialize(ctx, self.app.OUT_WRAPPER,
+        out_doc = self.app.protocol.serialize(ctx, self.app.protocol.OUT_WRAPPER,
                                                                      out_object)
         out_string = self.app.protocol.create_document_string(out_doc)
 

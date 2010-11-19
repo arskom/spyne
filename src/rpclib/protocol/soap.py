@@ -102,8 +102,21 @@ def resolve_hrefs(element, xmlids):
     return element
 
 class Soap11(Base):
-    def __init__(self, parent):
-        self.parent = parent
+    class NO_WRAPPER:
+        pass
+    class IN_WRAPPER:
+        pass
+    class OUT_WRAPPER:
+        pass
+
+    def __init__(self, parent, in_wrapper=IN_WRAPPER, out_wrapper=OUT_WRAPPER):
+        Base.__init__(self, parent)
+
+        self.in_wrapper = in_wrapper
+        self.out_wrapper = out_wrapper
+
+        assert self.in_wrapper in (self.IN_WRAPPER, self.OUT_WRAPPER, self.NO_WRAPPER),self.in_wrapper
+        assert self.out_wrapper in (self.IN_WRAPPER, self.OUT_WRAPPER, self.NO_WRAPPER), self.out_wrapper
 
     @staticmethod
     def create_document_structure(in_string, in_string_encoding=None):
@@ -164,7 +177,7 @@ class Soap11(Base):
         Not meant to be overridden.
         """
 
-        assert wrapper in (self.parent.IN_WRAPPER, self.parent.OUT_WRAPPER),wrapper
+        assert wrapper in (self.IN_WRAPPER, self.OUT_WRAPPER),wrapper
 
         # this sets the ctx.in_body_doc and ctx.in_header_doc properties
         self.decompose_incoming_envelope(ctx, envelope_xml, xmlids)
@@ -183,11 +196,11 @@ class Soap11(Base):
                 else:
                     descriptor = ctx.descriptor
 
-            if wrapper is self.parent.IN_WRAPPER:
+            if wrapper is self.IN_WRAPPER:
                 header_class = descriptor.in_header
                 body_class = descriptor.in_message
 
-            elif wrapper is self.parent.OUT_WRAPPER:
+            elif wrapper is self.OUT_WRAPPER:
                 header_class = descriptor.out_header
                 body_class = descriptor.out_message
 
@@ -211,8 +224,8 @@ class Soap11(Base):
         Not meant to be overridden.
         """
 
-        assert wrapper in (self.parent.IN_WRAPPER, self.parent.OUT_WRAPPER,
-                                                self.parent.NO_WRAPPER), wrapper
+        assert wrapper in (self.IN_WRAPPER, self.OUT_WRAPPER,
+                                                self.NO_WRAPPER), wrapper
 
         # construct the soap response, and serialize it
         nsmap = self.parent.interface.nsmap
@@ -238,7 +251,7 @@ class Soap11(Base):
         else:
             # header
             if ctx.service.out_header != None:
-                if wrapper in (self.parent.NO_WRAPPER, self.parent.OUT_WRAPPER):
+                if wrapper in (self.NO_WRAPPER, self.OUT_WRAPPER):
                     header_message_class = ctx.descriptor.in_header
                 else:
                     header_message_class = ctx.descriptor.out_header
@@ -265,14 +278,14 @@ class Soap11(Base):
                                                '{%s}Body' % rpclib.ns_soap_env)
 
             # instantiate the result message
-            if wrapper is self.parent.NO_WRAPPER:
+            if wrapper is self.NO_WRAPPER:
                 result_message_class = ctx.descriptor.in_message
                 result_message = out_object
 
             else:
-                if wrapper is self.parent.IN_WRAPPER:
+                if wrapper is self.IN_WRAPPER:
                     result_message_class = ctx.descriptor.in_message
-                elif wrapper is self.parent.OUT_WRAPPER:
+                elif wrapper is self.OUT_WRAPPER:
                     result_message_class = ctx.descriptor.out_message
 
                 result_message = result_message_class()

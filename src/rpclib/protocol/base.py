@@ -18,6 +18,9 @@
 #
 
 class Base(object):
+    def __init__(self, parent):
+        self.parent = parent
+
     def create_document_structure(self, in_string, in_string_encoding=None):
         pass
 

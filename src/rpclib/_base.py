@@ -63,13 +63,6 @@ class MethodDescriptor(object):
 class Application(object):
     transport = None
 
-    class NO_WRAPPER:
-        pass
-    class IN_WRAPPER:
-        pass
-    class OUT_WRAPPER:
-        pass
-
     def __init__(self, services, protocol_class, interface_class, *args, **kwargs):
         '''Constructor.
 
@@ -137,6 +130,7 @@ class Application(object):
         Override this function to alter the method mappings. Just try not to get
         too crazy with regular expressions :)
         """
+
         return self.interface.call_routes[method_name]
 
     def get_service(self, service, http_req_env=None):
@@ -145,6 +139,7 @@ class Application(object):
         Override this function to e.g. pass additional parameters to service
         constructors.
         """
+
         return service(http_req_env)
 
     def _has_callbacks(self):
