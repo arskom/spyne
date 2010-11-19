@@ -60,7 +60,12 @@ class TestService(DefinitionBase):
 
 class TestEnum(unittest.TestCase):
     def test_wsdl(self):
-        app = Application([TestService],rpclib.protocol.soap.Soap11, rpclib.interface.wsdl.Wsdl11,'tns')
+        app = Application([TestService],
+            rpclib.interface.wsdl.Wsdl11,
+            rpclib.protocol.soap.Soap11,
+            tns='tns'
+        )
+
         wsdl = app.interface.get_interface_document('punk')
         elt = etree.fromstring(wsdl)
         simple_type = elt.xpath('//xs:simpleType', namespaces=app.interface.nsmap)[0]

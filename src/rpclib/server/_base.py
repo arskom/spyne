@@ -40,11 +40,11 @@ class Base(object):
 
     def get_in_object(self, ctx, in_string, in_string_charset=None):
         in_object = None
-        struct = self.app.protocol.create_document_structure(in_string,
+        struct = self.app.in_protocol.create_document_structure(in_string,
                                                               in_string_charset)
 
         try:
-            in_object = self.app.protocol.deserialize(ctx, struct)
+            in_object = self.app.in_protocol.deserialize(ctx, struct)
         except Fault,e:
             ctx.in_error = e
 
@@ -61,7 +61,7 @@ class Base(object):
         return out_object
 
     def get_out_string(self, ctx, out_object):
-        out_doc = self.app.protocol.serialize(ctx, out_object)
-        out_string = self.app.protocol.create_document_string(out_doc)
+        out_doc = self.app.out_protocol.serialize(ctx, out_object)
+        out_string = self.app.out_protocol.create_document_string(out_doc)
 
         return out_string

@@ -22,6 +22,8 @@ logger = logging.getLogger(__name__)
 
 import traceback
 
+import rpclib.interface.base
+import rpclib.protocol.base
 from rpclib.model.exception import Fault
 
 class MethodContext(object):
@@ -43,7 +45,7 @@ class MethodContext(object):
 class Application(object):
     transport = None
 
-    def __init__(self, services, protocol_class, interface_class, *args, **kwargs):
+    def __init__(self, services, interface_class, in_protocol_class, out_protocol_class=None, *args, **kwargs):
         '''Constructor.
 
         @param An iterable of ServiceBase subclasses that define the exposed
@@ -52,8 +54,16 @@ class Application(object):
         @param The name attribute of the exposed service.
         '''
 
-        self.protocol = protocol_class(self)
+        if out_protocol_class is None:
+            out_protocol_class = in_protocol_class
+
+        assert issubclass(interface_class, rpclib.interface.base.Base), interface_class
+        assert issubclass(in_protocol_class, rpclib.protocol.base.Base), in_protocol_class
+        assert issubclass(out_protocol_class, rpclib.protocol.base.Base), out_protocol_class
+
         self.interface = interface_class(self, services, *args, **kwargs)
+        self.in_protocol = in_protocol_class(self)
+        self.out_protocol = out_protocol_class(self)
         self.services = services
 
         self.__public_methods = {}

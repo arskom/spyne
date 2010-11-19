@@ -280,4 +280,4 @@ from rpclib import Application
 from rpclib.protocol.soap import Soap11
 from rpclib.interface.wsdl import Wsdl11Strict
 
-application = Application(services, Soap11, Wsdl11Strict, tns=__name__)
+application = Application(services, Wsdl11Strict, Soap11, tns=__name__)

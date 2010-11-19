@@ -19,12 +19,14 @@
 
 import os.path
 
+import rpclib.interface.wsdl
+import rpclib.protocol.soap
+
 from lxml import etree
 
-import rpclib.protocol.soap
-import rpclib.interface.wsdl
 from rpclib import Application
-from rpclib.service import rpc, DefinitionBase
+from rpclib.service import DefinitionBase
+from rpclib.service import rpc
 
 class XSDGenerator():
     '''Class to support xsd generation for rpclib models.'''
@@ -65,9 +67,9 @@ class XSDGenerator():
         '''
 
         binding_application = Application([binding_service],
-                                          rpclib.protocol.soap.Soap11,
                                           rpclib.interface.wsdl.Wsdl11,
-                                          'binding_application')
+                                          rpclib.protocol.soap.Soap11,
+                                          tns='binding_application')
 
         # The lxml Element nsmap is being overridden to remove the unneeded
         # namespaces

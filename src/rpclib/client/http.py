@@ -25,6 +25,8 @@ from rpclib.client import Service
 from rpclib.client import Base
 from rpclib.client import RemoteProcedureBase
 
+import rpclib.protocol.soap
+
 class _RemoteProcedure(RemoteProcedureBase):
     def __call__(self, *args, **kwargs):
         out_object = self.get_out_object(args, kwargs)
@@ -46,8 +48,10 @@ class Client(Base):
     def __init__(self, url, app):
         super(Client, self).__init__(url, app)
 
-        # FIXME: these two lines should be explained...
-        app.protocol.in_wrapper = app.protocol.OUT_WRAPPER
-        app.protocol.out_wrapper = app.protocol.NO_WRAPPER
+        # FIXME: this four-line block should be explained...
+        if isinstance(app.in_protocol,rpclib.protocol.soap.Soap11):
+            app.in_protocol.in_wrapper = rpclib.protocol.soap.Soap11.OUT_WRAPPER
+        if isinstance(app.out_protocol,rpclib.protocol.soap.Soap11):
+            app.out_protocol.out_wrapper= rpclib.protocol.soap.Soap11.NO_WRAPPER
 
         self.service = Service(_RemoteProcedure, url, app)

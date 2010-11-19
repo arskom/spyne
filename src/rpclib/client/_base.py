@@ -52,15 +52,15 @@ class RemoteProcedureBase(object):
         return request_raw
 
     def get_out_string(self, out_object):
-        request_xml = self.app.protocol.serialize(self.ctx, out_object)
+        request_xml = self.app.out_protocol.serialize(self.ctx, out_object)
         request_str = etree.tostring(request_xml, xml_declaration=True,
                                                        encoding=string_encoding)
 
         return request_str
 
     def get_in_object(self, response_str, is_error=False):
-        doc_struct = self.app.protocol.create_document_structure(response_str)
-        wrapped_response = self.app.protocol.deserialize(self.ctx, doc_struct)
+        doc_struct = self.app.in_protocol.create_document_structure(response_str)
+        wrapped_response = self.app.in_protocol.deserialize(self.ctx, doc_struct)
 
         if isinstance(wrapped_response, Fault) or is_error:
             raise wrapped_response
@@ -68,7 +68,7 @@ class RemoteProcedureBase(object):
         else:
             type_info = self.ctx.descriptor.out_message._type_info
 
-            if self.app.protocol.in_wrapper != self.app.protocol.NO_WRAPPER:
+            if self.app.in_protocol.in_wrapper != self.app.in_protocol.NO_WRAPPER:
                 assert len(self.ctx.descriptor.out_message._type_info) == 1
                 wrapper_attribute = type_info.keys()[0]
                 response_raw = getattr(wrapped_response, wrapper_attribute, None)

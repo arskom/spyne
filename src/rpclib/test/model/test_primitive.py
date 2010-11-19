@@ -105,12 +105,11 @@ class TestPrimitive(unittest.TestCase):
     def test_float(self):
         f = 1.22255645
 
-
         element = etree.Element('test')
         Float.to_parent_element(f, ns_test, element)
         element = element[0]
 
-        self.assertEquals(element.text, '1.22255645')
+        self.assertEquals(element.text, repr(f))
 
         f2 = Float.from_xml(element)
         self.assertEquals(f2, f)
