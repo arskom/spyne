@@ -18,7 +18,7 @@
 #
 
 import logging
-logger = logging.getLogger("rpclib._base")
+logger = logging.getLogger(__name__)
 
 import traceback
 from lxml import etree

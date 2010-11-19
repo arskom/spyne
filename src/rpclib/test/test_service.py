@@ -20,19 +20,20 @@
 import datetime
 import unittest
 
-from lxml import etree
-import rpclib.protocol.soap
 import rpclib.interface.wsdl
+import rpclib.protocol.soap
 
-from rpclib.model.clazz import ClassSerializer
+from lxml import etree
+
+from rpclib import Application
+from rpclib import service
 from rpclib.model.clazz import Array
+from rpclib.model.clazz import ClassSerializer
 from rpclib.model.primitive import DateTime
 from rpclib.model.primitive import Float
 from rpclib.model.primitive import Integer
 from rpclib.model.primitive import String
 
-from rpclib import service
-from rpclib import Application
 Application.transport = 'test'
 
 from rpclib.service import rpc
