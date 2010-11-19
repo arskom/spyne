@@ -40,26 +40,6 @@ class MethodContext(object):
         self.method_name = None
         self.descriptor = None
 
-class MethodDescriptor(object):
-    '''This class represents the method signature of a soap method,
-    and is returned by the rpc decorator.
-    '''
-
-    def __init__(self, name, public_name, in_message, out_message, doc,
-                 is_callback=False, is_async=False, mtom=False, in_header=None,
-                 out_header=None):
-
-        self.name = name
-        self.public_name = public_name
-        self.in_message = in_message
-        self.out_message = out_message
-        self.doc = doc
-        self.is_callback = is_callback
-        self.is_async = is_async
-        self.mtom = mtom
-        self.in_header = in_header
-        self.out_header = out_header
-
 class Application(object):
     transport = None
 

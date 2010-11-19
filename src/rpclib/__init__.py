@@ -47,6 +47,5 @@ const_nsmap = {
 
 const_prefmap = dict([(b,a) for a,b in const_nsmap.items()])
 
-from _base import Application
-from _base import MethodContext
-from _base import MethodDescriptor
+from rpclib._base import Application
+from rpclib._base import MethodContext
