@@ -169,13 +169,15 @@ class Soap11(Base):
             ctx.in_header_doc = header
             ctx.in_body_doc = body
 
-    def deserialize(self, ctx, envelope_xml, wrapper, xmlids=None):
+    def deserialize(self, ctx, doc_struct, wrapper):
         """Takes a MethodContext instance and a string containing ONE soap
         message.
         Returns the corresponding native python object
 
         Not meant to be overridden.
         """
+
+        envelope_xml, xmlids = doc_struct
 
         assert wrapper in (self.IN_WRAPPER, self.OUT_WRAPPER),wrapper
 

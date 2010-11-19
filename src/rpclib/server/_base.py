@@ -40,12 +40,12 @@ class Base(object):
 
     def get_in_object(self, ctx, in_string, in_string_charset=None):
         in_object = None
-        root, xmlids = self.app.protocol.create_document_structure(in_string,
+        struct = self.app.protocol.create_document_structure(in_string,
                                                               in_string_charset)
 
         try:
-            in_object = self.app.protocol.deserialize(ctx, root,
-                                           self.app.protocol.IN_WRAPPER, xmlids)
+            in_object = self.app.protocol.deserialize(ctx, struct,
+                                                   self.app.protocol.IN_WRAPPER)
         except Fault,e:
             ctx.in_error = e
 
