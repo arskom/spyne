@@ -61,6 +61,17 @@ def _reconstruct_soap_request(http_env):
 
     return collapse_swa(content_type, http_payload), charset
 
+class WsgiMethodContext(rpclib.MethodContext):
+    def __init__(self, req_env):
+        rpclib.MethodContext.__init__(self)
+
+        self.http_req_env = req_env
+        self.http_resp_headers = {
+            'Content-Type': 'text/xml',
+            'Content-Length': '0',
+        }
+
+
 class Application(Base):
     transport = 'http://schemas.xmlsoap.org/soap/http'
 
@@ -127,7 +138,7 @@ class Application(Base):
             return [""]
 
     def __handle_rpc(self, req_env, start_response):
-        ctx = rpclib.MethodContext()
+        ctx = WsgiMethodContext(req_env)
 
         # implementation hook
         self.on_wsgi_call(req_env)
@@ -149,13 +160,8 @@ class Application(Base):
 
         out_string = self.get_out_string(ctx, out_object)
 
-        http_resp_headers = {
-            'Content-Type': 'text/xml',
-            'Content-Length': '0',
-        }
-
         # implementation hook
-        self.on_wsgi_return(req_env, http_resp_headers, out_string)
+        self.on_wsgi_return(req_env, ctx.http_resp_headers, out_string)
 
         if ctx.descriptor and ctx.descriptor.mtom:
             # when there are more than one return type, the result is 
@@ -166,13 +172,13 @@ class Application(Base):
             if len(out_type_info) == 1:
                 out_object = [out_object]
 
-            http_resp_headers, out_string = apply_mtom(http_resp_headers,
+            ctx.http_resp_headers, out_string = apply_mtom(ctx.http_resp_headers,
                     out_string, ctx.descriptor.out_message._type_info.values(),
                     out_object)
 
         # initiate the response
-        http_resp_headers['Content-Length'] = str(len(out_string))
-        start_response(return_code, http_resp_headers.items())
+        ctx.http_resp_headers['Content-Length'] = str(len(out_string))
+        start_response(return_code, ctx.http_resp_headers.items())
 
         return [out_string]
 
