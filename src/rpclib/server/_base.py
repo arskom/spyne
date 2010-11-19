@@ -19,8 +19,6 @@
 
 """A soap server that uses http as transport, and wsgi as bridge api"""
 
-from lxml import etree
-
 import logging
 logger = logging.getLogger(__name__)
 
