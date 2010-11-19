@@ -68,8 +68,8 @@ class RemoteProcedureBase(object):
         else:
             type_info = self.ctx.descriptor.out_message._type_info
 
-            if self.app.in_protocol.in_wrapper != self.app.in_protocol.NO_WRAPPER:
-                assert len(self.ctx.descriptor.out_message._type_info) == 1
+            if (self.app.in_protocol.in_wrapper != self.app.in_protocol.NO_WRAPPER
+                      and len(self.ctx.descriptor.out_message._type_info) == 1):
                 wrapper_attribute = type_info.keys()[0]
                 response_raw = getattr(wrapped_response, wrapper_attribute, None)
 
