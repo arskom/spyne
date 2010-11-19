@@ -169,7 +169,7 @@ class Soap11(Base):
             ctx.in_header_doc = header
             ctx.in_body_doc = body
 
-    def deserialize(self, ctx, wrapper, envelope_xml, xmlids=None):
+    def deserialize(self, ctx, envelope_xml, wrapper, xmlids=None):
         """Takes a MethodContext instance and a string containing ONE soap
         message.
         Returns the corresponding native python object
@@ -216,7 +216,7 @@ class Soap11(Base):
 
         return in_body
 
-    def serialize(self, ctx, wrapper, out_object):
+    def serialize(self, ctx, out_object, wrapper):
         """Takes a MethodContext instance and the object to be serialized.
         Returns the corresponding xml structure as an lxml.etree._Element
         instance.
