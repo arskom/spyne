@@ -18,7 +18,7 @@
 #
 
 import logging
-logger = logging.getLogger("rpclib._base")
+logger = logging.getLogger(__name__)
 
 import traceback
 
@@ -156,4 +156,11 @@ class Application(object):
         the service call).
 
         @param The exception object
+        '''
+
+    def on_exception_doc(self, fault_doc):
+        '''Called when the app throws an exception. (might be inside or outside
+        the service call.
+
+        @param The document root containing the serialized form of the exception.
         '''

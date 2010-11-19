@@ -292,5 +292,5 @@ class Boolean(SimpleType):
 
 # a class that is really a namespace
 class Mandatory(object):
-    String = String(min_len=1, min_occurs=1, nillable=False)
+    String = String(min_occurs=1, nillable=False, min_len=1)
     Integer = Integer(min_occurs=1, nillable=False)

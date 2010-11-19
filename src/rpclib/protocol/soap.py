@@ -234,7 +234,7 @@ class Soap11(Base):
             # implementation hook
             if not (ctx.service is None):
                 ctx.service.on_method_exception_doc(out_body_doc)
-            self.on_exception_doc(out_body_doc)
+            self.parent.on_exception_doc(out_body_doc)
 
             if logger.level == logging.DEBUG:
                 logger.debug(etree.tostring(envelope, pretty_print=True))
@@ -311,10 +311,3 @@ class Soap11(Base):
                 ctx.service.on_method_return_doc(envelope)
 
         return envelope
-
-    def on_exception_doc(self, fault_doc):
-        '''Called when the app throws an exception. (might be inside or outside
-        the service call.
-
-        @param The document root containing the serialized form of the exception.
-        '''
