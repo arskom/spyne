@@ -20,7 +20,6 @@
 import logging
 logger = logging.getLogger("rpclib._base")
 
-import warnings
 import traceback
 
 from rpclib.model.exception import Fault
@@ -131,15 +130,6 @@ class Application(object):
             ctx.service.on_method_return_object(retval)
 
         return retval
-
-    def serialize(self, ctx, wrapper, out_object):
-        """Takes a MethodContext instance and the object to be serialied.
-        Returns the corresponding xml structure as an lxml.etree._Element
-        instance.
-
-        Not meant to be overridden.
-        """
-        return self.protocol.serialize(ctx, wrapper, out_object)
 
     def get_service_class(self, method_name):
         """This call maps method names to the services that will handle them.
