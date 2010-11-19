@@ -20,12 +20,8 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import rpclib
-
 from rpclib.model.clazz import ClassSerializer as Message
 from rpclib.model.clazz import TypeInfo
-
-_pref_wsa = rpclib.const_prefmap[rpclib.ns_wsa]
 
 class MethodDescriptor(object):
     '''This class represents the method signature of a soap method,
