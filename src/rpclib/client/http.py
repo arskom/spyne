@@ -51,4 +51,3 @@ class Client(Base):
         app.protocol.out_wrapper = app.protocol.NO_WRAPPER
 
         self.service = Service(_RemoteProcedure, url, app)
-
