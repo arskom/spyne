@@ -18,7 +18,6 @@
 #
 
 class Base(object):
-    options = {}
     def __init__(self, parent):
         self.parent = parent
 
@@ -45,10 +44,3 @@ class Base(object):
 
         Returns the corresponding document structure.
         """
-    def create_document_string():
-        pass
-
-    def set_options(self, **kwargs):
-        for k in kwargs:
-            assert k in Base.options
-            self.options[k] = kwargs[k]
