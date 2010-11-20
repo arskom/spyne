@@ -56,4 +56,4 @@ class Server(Base):
 
             out_string = self.get_out_string(ctx, out_object)
 
-            self.soap_socket.send(out_string)
+            self.soap_socket.send(''.join(out_string))

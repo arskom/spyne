@@ -71,31 +71,9 @@ class Attachment(Base):
         from the file
         '''
 
-        assert isinstance(value, cls)
-
         element = etree.SubElement(parent_elt, '{%s}%s' % (tns,name))
-        if value.data:
-            # the data has already been loaded, just encode
-            # and return the element
-            element.text = base64.encodestring(value.data)
-
-        elif value.file_name:
-            # the data hasn't been loaded, but a file has been
-            # specified
-            data_string = StringIO()
-
-            file_name = value.file_name
-            file = open(file_name, 'rb')
-            base64.encode(file, data_string)
-            file.close()
-
-            # go back to the begining of the data
-            data_string.seek(0)
-            element.text = str(data_string.read())
-
-        else:
-            raise Exception("Neither data nor a file_name has been specified")
-
+        element.text = cls.to_string(value)
+        
     @classmethod
     @nillable_element
     def from_xml(cls, element):
@@ -109,9 +87,29 @@ class Attachment(Base):
     @classmethod
     @nillable_string
     def from_string(cls, value):
-        return value
+        return Attachment(data=value)
 
     @classmethod
     @nillable_string
     def to_string(cls, value):
-        return value
+        if value.data:
+            # the data has already been loaded, just encode
+            # and return the element
+            return base64.encodestring(value.data)
+
+        elif value.file_name:
+            # the data hasn't been loaded, but a file has been
+            # specified
+            data_string = StringIO()
+
+            file_name = value.file_name
+            file = open(file_name, 'rb')
+            base64.encode(file, data_string)
+            file.close()
+
+            # go back to the begining of the data
+            data_string.seek(0)
+            return data_string.read()
+
+        else:
+            raise Exception("Neither data nor a file_name has been specified")

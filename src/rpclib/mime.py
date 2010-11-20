@@ -165,8 +165,7 @@ def collapse_swa(content_type, envelope):
     return soapmsg
 
 def apply_mtom(headers, envelope, params, paramvals):
-    '''
-    Apply MTOM to a SOAP envelope, separating attachments into a
+    '''Apply MTOM to a SOAP envelope, separating attachments into a
     MIME multipart message.
 
     References:
@@ -176,7 +175,8 @@ def apply_mtom(headers, envelope, params, paramvals):
 
     @param headers   Headers dictionary of the SOAP message that would
                      originally be sent.
-    @param envelope  SOAP envelope string that would have originally been sent.
+    @param envelope  Iterable containing SOAP envelope string that would have
+                     originally been sent.
     @param params    params attribute from the Message object used for the SOAP
     @param paramvals values of the params, passed to Message.to_parent_element
     @return          tuple of length 2 with dictionary of headers and
@@ -184,6 +184,8 @@ def apply_mtom(headers, envelope, params, paramvals):
     '''
 
     # grab the XML element of the message in the SOAP body
+    envelope = ''.join(envelope)
+
     soaptree = etree.fromstring(envelope)
     soapbody = soaptree.find("{%s}Body" % rpclib.ns_soap_env)
 
@@ -290,4 +292,4 @@ def apply_mtom(headers, envelope, params, paramvals):
     if len(mtompkg.get_payload()) <= 1:
         return (headers, envelope)
 
-    return (mtomheaders, mtombody)
+    return (mtomheaders, [mtombody])

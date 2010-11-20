@@ -124,8 +124,9 @@ class Soap11(Base):
         return _parse_xml_string(in_string, in_string_encoding)
 
     def create_document_string(self, ctx, out_doc):
-        return etree.tostring(out_doc, xml_declaration=True,
-                                                       encoding=string_encoding)
+        """Returns an iterable of string fragments"""
+        return [etree.tostring(out_doc, xml_declaration=True,
+                                                      encoding=string_encoding)]
 
     def reconstruct_wsgi_request(self, http_env):
         http_payload, charset = Base.reconstruct_wsgi_request(self, http_env)
