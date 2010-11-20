@@ -26,6 +26,8 @@ import rpclib.interface.base
 import rpclib.protocol.base
 from rpclib.model.exception import Fault
 
+from collections import deque
+
 class MethodContext(object):
     def __init__(self):
         self.service = None
@@ -41,6 +43,13 @@ class MethodContext(object):
 
         self.method_name = None
         self.descriptor = None
+
+    def __repr__(self):
+        retval = deque()
+        for k,v in self.__dict__.items():
+            retval.append("\n%30s=%r" % (k,v))
+        retval.append('\n)')
+        return ''.join((self.__class__.__name__, '(', ', '.join(retval), ')'))
 
 class Application(object):
     transport = None
