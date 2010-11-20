@@ -47,7 +47,18 @@ class MethodContext(object):
     def __repr__(self):
         retval = deque()
         for k,v in self.__dict__.items():
-            retval.append("\n%30s=%r" % (k,v))
+            if isinstance(v,dict):
+                ret = deque(['{'])
+                items = v.items()
+                items.sort()
+                for k2,v2 in items:
+                    ret.append('\t\t%r: %r,' % (k2, v2))
+                ret.append('\t}')
+                ret='\n'.join(ret)
+                retval.append("\n\t%s=%s" % (k,ret))
+            else:
+                retval.append("\n\t%s=%r" % (k,v))
+
         retval.append('\n)')
         return ''.join((self.__class__.__name__, '(', ', '.join(retval), ')'))
 

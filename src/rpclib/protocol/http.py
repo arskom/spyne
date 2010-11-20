@@ -22,20 +22,37 @@ logger = logging.getLogger(__name__)
 
 from rpclib.protocol import Base
 
+counter = 0
 # this is not exactly rest, because it ignores http verbs.
 class HttpRpc(Base):
     def create_document_structure(self, ctx, in_string, in_string_encoding=None):
+        assert hasattr(ctx, 'http_req_env')
         print ctx
-        print in_string
+        global counter
+        print counter
+        counter+=1
 
     def decompose_incoming_envelope(self, ctx, envelope_doc, xmlids=None):
-        print ctx
+        assert hasattr(ctx, 'http_req_env')
+        global counter
+        print counter
+        counter+=1
+
 
     def deserialize(self, ctx, doc_struct):
-        print ctx
+        global counter
+        print counter
+        counter+=1
+
 
     def serialize(self, ctx, out_object):
-        print ctx
-    
+        global counter
+        print counter
+        counter+=1
+
+
     def create_document_string(self, ctx, out_doc):
-        print ctx
+        global counter
+        print counter
+        counter+=1
+
