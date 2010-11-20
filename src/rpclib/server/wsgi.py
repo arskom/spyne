@@ -52,9 +52,13 @@ class WsgiMethodContext(rpclib.MethodContext):
             'Content-Length': '0',
         }
 
-
 class Application(Base):
     transport = 'http://schemas.xmlsoap.org/soap/http'
+
+    def __init__(self, app):
+        Base.__init__(self, app)
+
+        self._allowed_http_verbs = app.in_protocol.allowed_http_verbs
 
     def __call__(self, req_env, start_response, wsgi_url=None):
         '''This method conforms to the WSGI spec for callable wsgi applications
@@ -76,8 +80,11 @@ class Application(Base):
         if self.__is_wsdl_request(req_env):
             return self.__handle_wsdl_request(req_env, start_response, url)
 
-        elif req_env['REQUEST_METHOD'].lower() != 'post':
-            start_response(HTTP_405, [('Content-type', ''), ('Allow', 'POST')])
+        elif not (req_env['REQUEST_METHOD'].upper() in self._allowed_http_verbs):
+            start_response(HTTP_405, [
+                ('Content-type', ''),
+                ('Allow', ', '.join(self._allowed_http_verbs)),
+            ])
             return ['']
 
         else:
