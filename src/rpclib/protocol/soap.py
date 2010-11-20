@@ -113,6 +113,7 @@ class Soap11(Base):
         pass
 
     allowed_http_verbs = ['POST']
+    mime_type = 'application/soap+xml'
 
     def __init__(self, parent):
         Base.__init__(self, parent)

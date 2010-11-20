@@ -21,6 +21,7 @@ import cgi
 
 class Base(object):
     allowed_http_verbs = ['GET','POST']
+    mime_type = 'application/octet-stream'
 
     def __init__(self, parent):
         self.parent = parent

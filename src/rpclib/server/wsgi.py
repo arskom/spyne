@@ -43,12 +43,12 @@ class ValidationError(Fault):
     pass
 
 class WsgiMethodContext(rpclib.MethodContext):
-    def __init__(self, req_env):
+    def __init__(self, req_env, content_type):
         rpclib.MethodContext.__init__(self)
 
         self.http_req_env = req_env
         self.http_resp_headers = {
-            'Content-Type': 'text/xml',
+            'Content-Type': content_type,
             'Content-Length': '0',
         }
 
@@ -126,7 +126,7 @@ class Application(Base):
             return [""]
 
     def __handle_rpc(self, req_env, start_response):
-        ctx = WsgiMethodContext(req_env)
+        ctx = WsgiMethodContext(req_env, self.protocol.mime_type)
 
         # implementation hook
         self.on_wsgi_call(req_env)
