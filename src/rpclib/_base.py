@@ -77,10 +77,6 @@ class Application(object):
         if out_protocol_class is None:
             out_protocol_class = in_protocol_class
 
-        assert issubclass(interface_class, rpclib.interface.base.Base), interface_class
-        assert issubclass(in_protocol_class, rpclib.protocol.base.Base), in_protocol_class
-        assert issubclass(out_protocol_class, rpclib.protocol.base.Base), out_protocol_class
-
         self.interface = interface_class(self, services, *args, **kwargs)
         self.in_protocol = in_protocol_class(self)
         self.out_protocol = out_protocol_class(self)
