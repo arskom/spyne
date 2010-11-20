@@ -205,6 +205,7 @@ class InteropClass(service.DefinitionBase):
 
     @rpc(Attachment, _returns=Attachment)
     def echo_attachment(self, a):
+        assert isinstance(a,Attachment)
         return a
 
     @rpc(Array(Attachment), _returns=Array(Attachment))

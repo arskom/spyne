@@ -64,6 +64,4 @@ class Base(object):
         out_doc = self.app.out_protocol.serialize(ctx, out_object)
         out_string = self.app.out_protocol.create_document_string(ctx, out_doc)
 
-        assert out_string != None
-
         return out_string

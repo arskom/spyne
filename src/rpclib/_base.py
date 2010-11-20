@@ -65,7 +65,8 @@ class MethodContext(object):
 class Application(object):
     transport = None
 
-    def __init__(self, services, interface_class, in_protocol_class, out_protocol_class=None, *args, **kwargs):
+    def __init__(self, services, interface_class, in_protocol_class,
+                                      out_protocol_class=None, *args, **kwargs):
         '''Constructor.
 
         @param An iterable of ServiceBase subclasses that define the exposed

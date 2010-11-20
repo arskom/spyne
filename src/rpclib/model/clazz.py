@@ -25,6 +25,7 @@ from rpclib.model import Base
 from rpclib.model import nillable_element
 from rpclib.model import nillable_value
 from rpclib.model import nillable_dict
+from rpclib.model import nillable_string
 
 from rpclib.util.odict import odict as TypeInfo
 
@@ -175,10 +176,11 @@ class ClassSerializerBase(Base):
         cls.get_members_etree(inst, element)
 
     @classmethod
-    def get_members_dict(cls, inst, retval):
+    def get_members_pairs(cls, inst):
         parent_cls = getattr(cls, '__extends__', None)
         if not (parent_cls is None):
-            parent_cls.get_members_dict(inst, parent)
+            for r in parent_cls.get_members_pairs(inst, parent):
+                yield r
 
         for k, v in cls._type_info.items():
             mo = v.Attributes.max_occurs
@@ -186,20 +188,28 @@ class ClassSerializerBase(Base):
 
             if mo == 'unbounded' or mo > 1:
                 if subvalue != None:
-                    retval[k] = []
-                    for sv in subvalue:
-                        retval[k].append(v.to_string(sv))
+                    yield (k, [v.to_string(sv) for sv in subvalue])
 
             else:
-                retval[k] = v.to_string(subvalue)
+                yield k, v.to_string(subvalue)
 
     @classmethod
     @nillable_dict
     def to_dict(cls, value):
         inst = cls.get_serialization_instance(value)
         retval = {}
-        cls.get_members_dict(inst, retval)
+
+        for k,v in cls.get_members_dict(inst, retval):
+            retval[k]=v
+
         return retval
+
+    @classmethod
+    @nillable_dict
+    def to_pairs(cls, value):
+        inst = cls.get_serialization_instance(value)
+
+        return cls.get_members_dict(inst, retval)
 
     @staticmethod
     def get_flat_type_info(clz, retval={}):
@@ -216,6 +226,7 @@ class ClassSerializerBase(Base):
     def from_dict(cls, in_dict):
         inst = cls.get_deserialization_instance()
         flat_type_info = ClassSerializerBase.get_flat_type_info(cls)
+
         # initialize instance
         for k in flat_type_info:
             setattr(inst, k, None)
@@ -231,8 +242,10 @@ class ClassSerializerBase(Base):
                 value = getattr(inst, key, None)
                 if value is None:
                     value = []
+
                 for v2 in v:
                     value.append(member.from_string(v))
+
                 setattr(inst, k, value)
 
             else:
@@ -247,7 +260,7 @@ class ClassSerializerBase(Base):
         inst = cls.get_deserialization_instance()
 
         # FIXME: the result of this method should be cached when build_wsdl is
-        #        called (thus _type_info becomes immutable, by definition).
+        #        called (i.e. when _type_info becomes by definition immutable).
         flat_type_info = ClassSerializerBase.get_flat_type_info(cls)
 
         # initialize instance
@@ -356,9 +369,7 @@ class ClassSerializerBase(Base):
 
     @staticmethod
     def produce(namespace, type_name, members):
-        """
-        Lets you create a class programmatically.
-        """
+        """Lets you create a class programmatically."""
 
         cls_dict = {}
 
@@ -438,6 +449,11 @@ class Array(ClassSerializer):
             retval.append(serializer.from_xml(child))
 
         return retval
+
+    @classmethod
+    @nillable_string
+    def to_csv(cls, value):
+        pass
 
 class Iterable(Array):
     @classmethod

@@ -69,8 +69,6 @@ class HttpRpc(Base):
                      setattr(result_message, attr_name, out_object[i])
 
         wrapped_result = ctx.descriptor.out_message.to_dict(result_message)
-        result, = wrapped_result.values()
-        return result
+        result, = wrapped_result.itervalues()
 
-    def create_document_string(self, ctx, out_doc):
-        return out_doc
+        return result
