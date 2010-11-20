@@ -1,5 +1,5 @@
 
-from _base import Factory
-from _base import Service
-from _base import Base
-from _base import RemoteProcedureBase
+from rpclib.client._base import Factory
+from rpclib.client._base import Service
+from rpclib.client._base import Base
+from rpclib.client._base import RemoteProcedureBase
