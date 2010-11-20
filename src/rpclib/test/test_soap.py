@@ -30,8 +30,8 @@ from rpclib.model.primitive import Integer
 from rpclib.model.primitive import String
 
 from rpclib.model.clazz import ClassSerializer as Message
-from rpclib._base import _from_soap
-from rpclib._base import _parse_xml_string
+from rpclib.protocol.soap import _from_soap
+from rpclib.protocol.soap import _parse_xml_string
 
 class Address(ClassSerializer):
     street = String
@@ -107,7 +107,7 @@ class TestSoap(unittest.TestCase):
 </soap:Envelope>'''
 
         root, xmlids = _parse_xml_string(envelope_string, 'utf8')
-        header,payload = _from_soap(root, xmlids)
+        header, payload = _from_soap(root, xmlids)
 
         # quick and dirty test href reconstruction
         self.assertEquals(len(payload[0]), 2)

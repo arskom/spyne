@@ -128,8 +128,8 @@ class Test(unittest.TestCase):
     '''Most of the service tests are performed through the interop tests.'''
 
     def setUp(self):
-        self.app = Application([TestService], rpclib.protocol.soap.Soap11,
-                                            rpclib.interface.wsdl.Wsdl11, 'tns')
+        self.app = Application([TestService], rpclib.interface.wsdl.Wsdl11,
+                                        rpclib.protocol.soap.Soap11, tns='tns')
         self.srv = TestService()
         self._wsdl = self.app.interface.get_interface_document('')
         self.wsdl = etree.fromstring(self._wsdl)
@@ -144,8 +144,8 @@ class Test(unittest.TestCase):
             self.assertTrue(n in self._wsdl, '"%s" not in self._wsdl' % n)
 
     def test_multiple_return(self):
-        app = Application([MultipleReturnService], rpclib.protocol.soap.Soap11,
-                                            rpclib.interface.wsdl.Wsdl11, 'tns')
+        app = Application([MultipleReturnService], rpclib.interface.wsdl.Wsdl11,
+                                        rpclib.protocol.soap.Soap11, tns='tns')
         app.interface.get_interface_document('')
         srv = MultipleReturnService()
         message = srv.public_methods[0].out_message()
@@ -165,8 +165,8 @@ class Test(unittest.TestCase):
         self.assertEqual(response_data[2], 'c')
 
     def test_multiple_ns(self):
-        svc = Application([MultipleNamespaceService],rpclib.protocol.soap.Soap11,
-                                            rpclib.interface.wsdl.Wsdl11,'tns')
+        svc = Application([MultipleNamespaceService],rpclib.interface.wsdl.Wsdl11,
+                                         rpclib.protocol.soap.Soap11,tns='tns')
         wsdl = svc.interface.get_interface_document("URL")
 
 if __name__ == '__main__':
