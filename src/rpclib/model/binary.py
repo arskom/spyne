@@ -35,8 +35,7 @@ class Attachment(Base):
         self.file_name = file_name
 
     def save_to_file(self):
-        '''
-        This method writes the data to the specified file.  This method
+        '''This method writes the data to the specified file.  This method
         assumes that the file_name is the full path to the file to be written.
         This method also assumes that self.data is the base64 decoded data,
         and will do no additional transformations on it, simply write it to
@@ -54,8 +53,7 @@ class Attachment(Base):
         f.close()
 
     def load_from_file(self):
-        '''
-        This method loads the data from the specified file, and does
+        '''This method loads the data from the specified file, and does
         no encoding/decoding of the data
         '''
         if not self.file_name:
@@ -67,8 +65,7 @@ class Attachment(Base):
     @classmethod
     @nillable_value
     def to_parent_element(cls, value, tns, parent_elt, name='retval'):
-        '''
-        This class method takes the data from the attachment and
+        '''This class method takes the data from the attachment and
         base64 encodes it as the text of an Element. An attachment can
         specify a file_name and if no data is given, it will read the data
         from the file
@@ -102,8 +99,7 @@ class Attachment(Base):
     @classmethod
     @nillable_element
     def from_xml(cls, element):
-        '''
-        This method returns an Attachment object that contains
+        '''This method returns an Attachment object that contains
         the base64 decoded string of the text of the given element
         '''
         data = base64.decodestring(element.text)
