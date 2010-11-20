@@ -29,6 +29,7 @@ class HttpRpc(Base):
     def create_document_structure(self, ctx, in_string, in_string_encoding=None):
         assert hasattr(ctx, 'http_req_env')
         ctx.method_name = ctx.http_req_env['PATH_INFO'].split('/')[-1]
+        logger.debug("\033[92mMethod name: %r\033[0m" % ctx.method_name)
 
         service_class = self.parent.get_service_class(ctx.method_name)
         ctx.service = self.parent.get_service(service_class)
@@ -39,6 +40,7 @@ class HttpRpc(Base):
         ctx.in_header_doc = None
         ctx.in_body_doc = urlparse.parse_qs(ctx.http_req_env['QUERY_STRING'])
 
+        logger.debug(repr(ctx.in_body_doc))
         return ctx.in_body_doc
 
     def deserialize(self, ctx, doc_struct):
