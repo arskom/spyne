@@ -7,7 +7,6 @@ updates or additions would be greatly appreciated
 
 2.0 
 * Serializers renamed to Models 
-* ValidiatingApplication added. 
 * Annotations added for primitive types 
 * Client added. 
 * 0mq support added. 
@@ -17,6 +16,7 @@ updates or additions would be greatly appreciated
 1.0
 
 0.9
+* ValidiatingApplication added.
 
 0.8
 
