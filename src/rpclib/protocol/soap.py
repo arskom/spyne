@@ -120,10 +120,10 @@ class Soap11(Base):
         self.in_wrapper = Soap11.IN_WRAPPER
         self.out_wrapper = Soap11.OUT_WRAPPER
 
-    def create_document_structure(self, in_string, in_string_encoding=None):
+    def create_document_structure(self, ctx, in_string, in_string_encoding=None):
         return _parse_xml_string(in_string, in_string_encoding)
 
-    def create_document_string(self, out_doc):
+    def create_document_string(self, ctx, out_doc):
         return etree.tostring(out_doc, xml_declaration=True,
                                                        encoding=string_encoding)
 

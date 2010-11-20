@@ -123,7 +123,9 @@ class Application(Base):
         # implementation hook
         self.on_wsgi_call(req_env)
 
-        in_string, in_string_charset = _reconstruct_soap_request(req_env)
+        ret = self.app.in_protocol.reconstruct_wsgi_request(req_env)
+        in_string, in_string_charset = ret
+
         in_object = self.get_in_object(ctx,in_string,in_string_charset)
 
         return_code = HTTP_200
