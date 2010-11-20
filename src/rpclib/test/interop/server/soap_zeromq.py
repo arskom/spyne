@@ -22,12 +22,14 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('rpclib._base')
 logger.setLevel(logging.DEBUG)
 
-from rpclib.test.interop.server._service import application
+from rpclib.test.interop.server.soap_http_basic import soap_application
+
+
 from rpclib.server.zeromq import Server
 
 if __name__ == '__main__':
     url = "tcp://*:5555"
-    server = Server(application, url)
+    server = Server(soap_application, url)
     logging.info("************************")
     logging.info("Use Ctrl+\\ to exit.")
     logging.info("See the 'I can't Ctrl-C my Python/Ruby application. Help!' "

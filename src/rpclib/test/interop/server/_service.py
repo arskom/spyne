@@ -278,6 +278,8 @@ services = [
 
 from rpclib import Application
 from rpclib.protocol.soap import Soap11
+from rpclib.protocol.http import HttpRpc
 from rpclib.interface.wsdl import Wsdl11Strict
 
-application = Application(services, Wsdl11Strict, Soap11, tns=__name__)
+soap_application = Application(services, Wsdl11Strict, Soap11, tns=__name__)
+httprpc_application = Application(services, Wsdl11Strict, HttpRpc, tns=__name__)

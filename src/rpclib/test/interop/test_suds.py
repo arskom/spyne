@@ -23,6 +23,10 @@ from suds.client import Client
 from suds import WebFault
 from datetime import datetime
 
+import logging
+suds_logger = logging.getLogger('suds')
+suds_logger.setLevel(logging.INFO)
+
 class TestSuds(unittest.TestCase):
     def setUp(self):
         self.client = Client("http://localhost:9753/?wsdl", cache=None)

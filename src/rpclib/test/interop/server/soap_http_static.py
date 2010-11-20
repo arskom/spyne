@@ -24,7 +24,10 @@ logger.setLevel(logging.DEBUG)
 
 from twisted.python import log
 
-from rpclib.test.interop.server._service import application
+from rpclib.server import wsgi
+
+from rpclib.test.interop.server._service import soap_application
+
 from rpclib.util.server import run_twisted
 from rpclib.server import wsgi
 
@@ -35,7 +38,7 @@ def main(argv):
     observer = log.PythonLoggingObserver('twisted')
     log.startLoggingWithObserver(observer.emit, setStdout=False)
 
-    wsgi_application = wsgi.Application(application)
+    wsgi_application = wsgi.Application(soap_application)
 
     return run_twisted( [ (wsgi_application, url) ], port )
 
