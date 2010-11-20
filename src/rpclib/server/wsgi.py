@@ -36,6 +36,7 @@ from rpclib.server import Base
 
 HTTP_500 = '500 Internal server error'
 HTTP_200 = '200 OK'
+HTTP_404 = '404 Method Not Found'
 HTTP_405 = '405 Method Not Allowed'
 
 class ValidationError(Fault):
@@ -134,7 +135,10 @@ class Application(Base):
             return_code = HTTP_500
 
         else:
-            assert ctx.service != None
+            if ctx.service == None:
+                start_response(HTTP_404, ctx.http_resp_headers.items())
+                return ['']
+
             out_object = self.get_out_object(ctx, in_object)
             if ctx.out_error:
                 out_object = ctx.out_error
