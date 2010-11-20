@@ -20,6 +20,9 @@
 import logging
 logger = logging.getLogger(__name__)
 
+import cgi
+from rpclib.mime import collapse_swa
+
 import traceback
 from lxml import etree
 import rpclib
@@ -109,6 +112,8 @@ class Soap11(Base):
     class OUT_WRAPPER:
         pass
 
+    allowed_http_verbs = ['POST']
+
     def __init__(self, parent):
         Base.__init__(self, parent)
 
@@ -121,6 +126,13 @@ class Soap11(Base):
     def create_document_string(self, out_doc):
         return etree.tostring(out_doc, xml_declaration=True,
                                                        encoding=string_encoding)
+
+    def reconstruct_wsgi_request(self, http_env):
+        http_payload, charset = Base.reconstruct_wsgi_request(self, http_env)
+
+        content_type = cgi.parse_header(http_env.get("CONTENT_TYPE"))
+
+        return collapse_swa(content_type, http_payload), charset
 
     def decompose_incoming_envelope(self, ctx, envelope_xml, xmlids=None):
         header, body = _from_soap(envelope_xml, xmlids)

@@ -24,7 +24,6 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import cgi
 import traceback
 
 import rpclib
@@ -32,7 +31,6 @@ import rpclib
 from rpclib.model.exception import Fault
 
 from rpclib.mime import apply_mtom
-from rpclib.mime import collapse_swa
 from rpclib.util import reconstruct_url
 from rpclib.server import Base
 
@@ -42,24 +40,6 @@ HTTP_405 = '405 Method Not Allowed'
 
 class ValidationError(Fault):
     pass
-
-def _reconstruct_soap_request(http_env):
-    """Reconstruct http payload using information in the http header
-    """
-
-    input = http_env.get('wsgi.input')
-    length = http_env.get("CONTENT_LENGTH")
-    http_payload = input.read(int(length))
-
-    # fyi, here's what the parse_header function returns:
-    # >>> import cgi; cgi.parse_header("text/xml; charset=utf-8")
-    # ('text/xml', {'charset': 'utf-8'})
-    content_type = cgi.parse_header(http_env.get("CONTENT_TYPE"))
-    charset = content_type[1].get('charset',None)
-    if charset is None:
-        charset = 'ascii'
-
-    return collapse_swa(content_type, http_payload), charset
 
 class WsgiMethodContext(rpclib.MethodContext):
     def __init__(self, req_env):
