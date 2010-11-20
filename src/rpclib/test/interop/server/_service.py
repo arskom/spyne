@@ -283,4 +283,4 @@ from rpclib.interface.wsdl import Wsdl11
 from rpclib.interface.wsdl import Wsdl11Strict
 
 soap_application = Application(services, Wsdl11Strict, Soap11, tns=__name__)
-httprpc_application = Application(services, Wsdl11, HttpRpc, tns=__name__)
+httprpc_application = Application(services, Wsdl11, HttpRpc, Soap11, tns=__name__)

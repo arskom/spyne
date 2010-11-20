@@ -24,6 +24,7 @@ import rpclib
 from rpclib.model import Base
 from rpclib.model import nillable_element
 from rpclib.model import nillable_value
+from rpclib.model import nillable_dict
 
 from rpclib.util.odict import odict as TypeInfo
 
@@ -144,10 +145,10 @@ class ClassSerializerBase(Base):
         return cls()
 
     @classmethod
-    def get_members(cls, inst, parent):
+    def get_members_etree(cls, inst, parent):
         parent_cls = getattr(cls, '__extends__', None)
         if not (parent_cls is None):
-            parent_cls.get_members(inst, parent)
+            parent_cls.get_members_etree(inst, parent)
 
         for k, v in cls._type_info.items():
             mo = v.Attributes.max_occurs
@@ -171,7 +172,34 @@ class ClassSerializerBase(Base):
 
         inst = cls.get_serialization_instance(value)
 
-        cls.get_members(inst, element)
+        cls.get_members_etree(inst, element)
+
+    @classmethod
+    def get_members_dict(cls, inst, retval):
+        parent_cls = getattr(cls, '__extends__', None)
+        if not (parent_cls is None):
+            parent_cls.get_members_dict(inst, parent)
+
+        for k, v in cls._type_info.items():
+            mo = v.Attributes.max_occurs
+            subvalue = getattr(inst, k, None)
+
+            if mo == 'unbounded' or mo > 1:
+                if subvalue != None:
+                    retval[k] = []
+                    for sv in subvalue:
+                        retval[k].append(v.to_string(sv))
+
+            else:
+                retval[k] = v.to_string(subvalue)
+
+    @classmethod
+    @nillable_dict
+    def to_dict(cls, value):
+        inst = cls.get_serialization_instance(value)
+        retval = {}
+        cls.get_members_dict(inst, retval)
+        return retval
 
     @staticmethod
     def get_flat_type_info(clz, retval={}):
@@ -182,6 +210,36 @@ class ClassSerializerBase(Base):
         retval.update(clz._type_info)
 
         return retval
+
+    @classmethod
+    @nillable_dict
+    def from_dict(cls, in_dict):
+        inst = cls.get_deserialization_instance()
+        flat_type_info = ClassSerializerBase.get_flat_type_info(cls)
+        # initialize instance
+        for k in flat_type_info:
+            setattr(inst, k, None)
+
+        # initialize instance
+        for k,v in in_dict.items():
+            member = flat_type_info.get(k, None)
+            if member is None:
+                continue
+
+            mo = member.Attributes.max_occurs
+            if mo == 'unbounded' or mo > 1:
+                value = getattr(inst, key, None)
+                if value is None:
+                    value = []
+                for v2 in v:
+                    value.append(member.from_string(v))
+                setattr(inst, k, value)
+
+            else:
+                v,=v
+                setattr(inst, k, member.from_string(v))
+
+        return inst
 
     @classmethod
     @nillable_element

@@ -37,6 +37,14 @@ def nillable_element(func):
             return func(cls, element)
     return wrapper
 
+def nillable_dict(func):
+    def wrapper(cls, element):
+        if element is None:
+            return {}
+        else:
+            return func(cls, element)
+    return wrapper
+
 def nillable_string(func):
     def wrapper(cls, string):
         if string is None:
@@ -106,6 +114,11 @@ class Base(object):
         return cls.from_string(element.text)
 
     @classmethod
+    @nillable_string
+    def to_string(cls, value):
+        return str(value)
+
+    @classmethod
     @nillable_value
     def to_parent_element(cls, value, tns, parent_elt, name='retval'):
         '''
@@ -118,10 +131,7 @@ class Base(object):
         @param The new tag name of new SubElement.
         '''
 
-        assert isinstance(value, str) or isinstance(value, unicode), \
-            "'value' must be string or unicode. it is instead %r" % value
-
-        etree.SubElement(parent_elt, "{%s}%s" % (tns,name)).text = value
+        etree.SubElement(parent_elt, "{%s}%s" % (tns,name)).text = cls.to_string(value)
 
     @classmethod
     def add_to_schema(cls, schema_entries):
@@ -171,6 +181,14 @@ class Null(Base):
     def to_parent_element(cls, value, tns, parent_elt, name='retval'):
         element = etree.SubElement(parent_elt, "{%s}%s" % (tns,name))
         element.set('{%s}nil' % rpclib.ns_xsi, 'true')
+
+    @classmethod
+    def to_string(cls, value):
+        return ""
+
+    @classmethod
+    def from_string(cls, value):
+        return None
 
     @classmethod
     def from_xml(cls, element):

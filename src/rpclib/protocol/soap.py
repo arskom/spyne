@@ -134,7 +134,8 @@ class Soap11(Base):
 
         return collapse_swa(content_type, http_payload), charset
 
-    def decompose_incoming_envelope(self, ctx, envelope_xml, xmlids=None):
+    def decompose_incoming_envelope(self, ctx, envelope_doc):
+        envelope_xml, xmlids = envelope_doc
         header, body = _from_soap(envelope_xml, xmlids)
 
         # FIXME: find a way to include soap env schema with rpclib package and
@@ -184,10 +185,8 @@ class Soap11(Base):
         Not meant to be overridden.
         """
 
-        envelope_xml, xmlids = doc_struct
-
         # this sets the ctx.in_body_doc and ctx.in_header_doc properties
-        self.decompose_incoming_envelope(ctx, envelope_xml, xmlids)
+        self.decompose_incoming_envelope(ctx, doc_struct)
 
         if ctx.in_body_doc.tag == "{%s}Fault" % rpclib.ns_soap_env:
             in_body = Fault.from_xml(ctx.in_body_doc)
@@ -239,7 +238,8 @@ class Soap11(Base):
             # FIXME: There's no way to alter soap response headers for the user.
             ctx.out_body_doc = out_body_doc = etree.SubElement(envelope,
                             '{%s}Body' % rpclib.ns_soap_env, nsmap=nsmap)
-            out_object.__class__.to_parent_element(out_object,self.parent.interface.get_tns(), out_body_doc)
+            out_object.__class__.to_parent_element(out_object,
+                                  self.parent.interface.get_tns(), out_body_doc)
 
             # implementation hook
             if not (ctx.service is None):
@@ -250,7 +250,8 @@ class Soap11(Base):
                 logger.debug(etree.tostring(envelope, pretty_print=True))
 
         elif isinstance(out_object, Exception):
-            raise Exception("Can't serialize native python exceptions")
+            raise Exception("Can't serialize native python exceptions.",
+                                                                     out_object)
 
         else:
             # header
@@ -268,7 +269,7 @@ class Soap11(Base):
 
                 else:
                     ctx.out_header_doc = soap_header_elt = etree.SubElement(
-                                   envelope, '{%s}Header' % rpclib.ns_soap_env)
+                                    envelope, '{%s}Header' % rpclib.ns_soap_env)
 
                     header_message_class.to_parent_element(
                         ctx.service.out_header,

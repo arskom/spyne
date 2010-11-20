@@ -134,7 +134,7 @@ class Application(Base):
         ret = self.app.in_protocol.reconstruct_wsgi_request(req_env)
         in_string, in_string_charset = ret
 
-        in_object = self.get_in_object(ctx,in_string,in_string_charset)
+        in_object = self.get_in_object(ctx, in_string, in_string_charset)
 
         return_code = HTTP_200
         if ctx.in_error:

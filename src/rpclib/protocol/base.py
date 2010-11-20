@@ -31,10 +31,11 @@ class Base(object):
     def create_document_string(self, out_doc):
         pass
 
-    def decompose_incoming_envelope(self, ctx, envelope_xml):
+    def decompose_incoming_envelope(self, ctx, envelope_doc):
         """Sets the ctx.in_body_doc, ctx.in_header_doc and ctx.service
         properties of the ctx object.
         """
+        return envelope_doc
 
     def deserialize(self, ctx, wrapper, envelope_xml):
         """Takes a MethodContext instance and a string containing ONE document

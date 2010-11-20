@@ -52,6 +52,11 @@ class Any(SimpleType):
     __type_name__ = 'anyType'
 
     @classmethod
+    @nillable_string
+    def to_string(cls, value):
+        return etree.tostring(value)
+
+    @classmethod
     @nillable_value
     def to_parent_element(cls, value, tns, parent_elt, name='retval'):
         if isinstance(value, str) or isinstance(value, unicode):
@@ -145,12 +150,11 @@ class String(SimpleType):
                 pattern.set('value', cls.Attributes.pattern)
 
     @classmethod
-    @nillable_value
-    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
+    @nillable_string
+    def to_string(cls, value):
         if not isinstance(value, unicode):
             value = unicode(value, string_encoding)
-
-        SimpleType.to_parent_element(value, tns, parent_elt, name)
+        return value
 
     @classmethod
     @nillable_element
@@ -173,11 +177,6 @@ class AnyUri(String):
 
 class Decimal(SimpleType):
     @classmethod
-    @nillable_value
-    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
-        SimpleType.to_parent_element(str(value), tns, parent_elt, name)
-
-    @classmethod
     @nillable_string
     def from_string(cls, string):
         return decimal.Decimal(string)
@@ -193,9 +192,9 @@ class Integer(Decimal):
 
 class Date(SimpleType):
     @classmethod
-    @nillable_value
-    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
-        SimpleType.to_parent_element(value.isoformat(), tns, parent_elt, name)
+    @nillable_string
+    def to_string(cls, value):
+        return value.isoformat()
 
     @classmethod
     @nillable_string
@@ -217,9 +216,9 @@ class DateTime(SimpleType):
     __type_name__ = 'dateTime'
 
     @classmethod
-    @nillable_value
-    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
-        SimpleType.to_parent_element(value.isoformat('T'), tns, parent_elt, name)
+    @nillable_string
+    def to_string(cls, value):
+        return value.isoformat('T')
 
     @classmethod
     @nillable_string
@@ -255,11 +254,6 @@ class Duration(SimpleType):
     __type_name__ = 'duration'
 
     @classmethod
-    @nillable_value
-    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
-        SimpleType.to_parent_element(str(value), tns, parent_elt, name)
-
-    @classmethod
     @nillable_string
     def from_string(cls, string):
         from rpclib.util.duration import duration
@@ -267,9 +261,9 @@ class Duration(SimpleType):
 
 class Double(SimpleType):
     @classmethod
-    @nillable_value
-    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
-        SimpleType.to_parent_element(repr(value), tns, parent_elt, name)
+    @nillable_string
+    def to_string(cls, value):
+        return repr(value)
 
     @classmethod
     @nillable_string
@@ -281,9 +275,9 @@ class Float(Double):
 
 class Boolean(SimpleType):
     @classmethod
-    @nillable_value
-    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
-        SimpleType.to_parent_element(str(bool(value)).lower(), tns, parent_elt, name)
+    @nillable_string
+    def to_string(cls, value):
+        return str(bool(value)).lower()
 
     @classmethod
     @nillable_string

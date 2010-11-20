@@ -21,38 +21,53 @@ import logging
 logger = logging.getLogger(__name__)
 
 from rpclib.protocol import Base
+import urlparse
+import urllib
 
-counter = 0
 # this is not exactly rest, because it ignores http verbs.
 class HttpRpc(Base):
     def create_document_structure(self, ctx, in_string, in_string_encoding=None):
         assert hasattr(ctx, 'http_req_env')
-        print ctx
-        global counter
-        print counter
-        counter+=1
+        ctx.method_name = ctx.http_req_env['PATH_INFO'].split('/')[-1]
 
-    def decompose_incoming_envelope(self, ctx, envelope_doc, xmlids=None):
-        assert hasattr(ctx, 'http_req_env')
-        global counter
-        print counter
-        counter+=1
+        service_class = self.parent.get_service_class(ctx.method_name)
+        ctx.service = self.parent.get_service(service_class)
 
+        if ctx.descriptor is None:
+            ctx.descriptor = ctx.service.get_method(ctx.method_name)
+        
+        ctx.in_header_doc = None
+        ctx.in_body_doc = urlparse.parse_qs(ctx.http_req_env['QUERY_STRING'])
+
+        return ctx.in_body_doc
 
     def deserialize(self, ctx, doc_struct):
-        global counter
-        print counter
-        counter+=1
+        body_class = ctx.descriptor.in_message
+        if ctx.in_body_doc is not None and len(ctx.in_body_doc) > 0:
+            in_body = body_class.from_dict(ctx.in_body_doc)
+        else:
+            in_body = [None] * len(body_class._type_info)
 
+        return in_body
 
     def serialize(self, ctx, out_object):
-        global counter
-        print counter
-        counter+=1
+        result_message_class = ctx.descriptor.out_message
+        result_message = result_message_class()
 
+        # assign raw result to its wrapper, result_message
+        out_type_info = result_message_class._type_info
+        if len(out_type_info) > 0:
+             if len(out_type_info) == 1:
+                 attr_name = result_message_class._type_info.keys()[0]
+                 setattr(result_message, attr_name, out_object)
+
+             else:
+                 for i in range(len(out_type_info)):
+                     attr_name=result_message_class._type_info.keys()[i]
+                     setattr(result_message, attr_name, out_object[i])
+
+        ret = ctx.descriptor.out_message.to_dict(result_message)
+        return urllib.urlencode(ret)
 
     def create_document_string(self, ctx, out_doc):
-        global counter
-        print counter
-        counter+=1
-
+        return out_doc
