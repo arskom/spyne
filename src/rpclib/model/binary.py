@@ -18,12 +18,13 @@
 #
 
 import base64
-import cStringIO
 
-from rpclib.model.base import Base
-from rpclib.model import nillable_value, nillable_element
-
+from cStringIO import StringIO
 from lxml import etree
+from rpclib.model import nillable_element
+from rpclib.model import nillable_value
+from rpclib.model import nillable_string
+from rpclib.model import Base
 
 class Attachment(Base):
     __type_name__ = 'base64Binary'
@@ -84,7 +85,7 @@ class Attachment(Base):
         elif value.file_name:
             # the data hasn't been loaded, but a file has been
             # specified
-            data_string = cStringIO.StringIO()
+            data_string = StringIO()
 
             file_name = value.file_name
             file = open(file_name, 'rb')
@@ -108,3 +109,13 @@ class Attachment(Base):
         data = base64.decodestring(element.text)
         a = Attachment(data=data)
         return a
+
+    @classmethod
+    @nillable_string
+    def from_string(cls, value):
+        return value
+
+    @classmethod
+    @nillable_string
+    def to_string(cls, value):
+        return value

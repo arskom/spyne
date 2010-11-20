@@ -68,8 +68,9 @@ class HttpRpc(Base):
                      attr_name=result_message_class._type_info.keys()[i]
                      setattr(result_message, attr_name, out_object[i])
 
-        ret = ctx.descriptor.out_message.to_dict(result_message)
-        return urllib.urlencode(ret)
+        wrapped_result = ctx.descriptor.out_message.to_dict(result_message)
+        result, = wrapped_result.values()
+        return result
 
     def create_document_string(self, ctx, out_doc):
         return out_doc
