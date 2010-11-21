@@ -93,6 +93,12 @@ class odict(object):
             self[k] = v
 
     def values(self):
+        retval = []
+        for l in self.__list:
+            retval.append( self.__dict[l] )
+        return retval
+
+    def itervalues(self):
         for l in self.__list:
             yield self.__dict[l]
 
