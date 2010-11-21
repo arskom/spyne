@@ -126,7 +126,7 @@ class Application(Base):
             return [""]
 
     def __handle_rpc(self, req_env, start_response):
-        ctx = WsgiMethodContext(req_env, self.protocol.mime_type)
+        ctx = WsgiMethodContext(req_env, self.app.out_protocol.mime_type)
 
         # implementation hook
         self.on_wsgi_call(req_env)

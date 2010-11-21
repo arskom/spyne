@@ -17,6 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import csv
+import cStringIO
+
 from lxml import etree
 
 import rpclib
@@ -197,12 +200,8 @@ class ClassSerializerBase(Base):
     @nillable_dict
     def to_dict(cls, value):
         inst = cls.get_serialization_instance(value)
-        retval = {}
 
-        for k,v in cls.get_members_dict(inst, retval):
-            retval[k]=v
-
-        return retval
+        return dict(cls.get_members_pairs(inst))
 
     @classmethod
     @nillable_dict
@@ -239,12 +238,12 @@ class ClassSerializerBase(Base):
 
             mo = member.Attributes.max_occurs
             if mo == 'unbounded' or mo > 1:
-                value = getattr(inst, key, None)
+                value = getattr(inst, k, None)
                 if value is None:
                     value = []
 
                 for v2 in v:
-                    value.append(member.from_string(v))
+                    value.append(member.from_string(v2))
 
                 setattr(inst, k, value)
 
@@ -452,8 +451,24 @@ class Array(ClassSerializer):
 
     @classmethod
     @nillable_string
-    def to_csv(cls, value):
-        pass
+    def to_csv(cls, values):
+        queue = cStringIO.StringIO()
+        writer = csv.writer(queue, dialect=csv.excel)
+
+        serializer, = cls._type_info.values()
+
+        print cls.__dict__
+        type_info = getattr(serializer, '_type_info', {
+            serializer.get_type_name(): serializer
+        })
+
+        keys = type_info.keys()
+        keys.sort()
+        for v in values:
+            d = serializer.to_dict(v)
+            writer.writerow([d.get(k,None) for k in keys])
+            yield queue.getvalue()
+            queue.truncate(0)
 
 class Iterable(Array):
     @classmethod

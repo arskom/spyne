@@ -268,6 +268,11 @@ class InteropMisc(service.DefinitionBase):
     def do_something_else(self, s):
         return s
 
+    @rpc(Integer, _returns=Array(OtherClass))
+    def other_class_array(self,num):
+        for i in xrange(num):
+            yield OtherClass(dt=datetime(2010,12,06), d=3.0, b=True)
+            
 services = [
     InteropPrimitive,
     InteropArray,
@@ -279,9 +284,6 @@ services = [
 
 from rpclib import Application
 from rpclib.protocol.soap import Soap11
-from rpclib.protocol.http import HttpRpc
-from rpclib.interface.wsdl import Wsdl11
 from rpclib.interface.wsdl import Wsdl11Strict
 
 soap_application = Application(services, Wsdl11Strict, Soap11, tns=__name__)
-httprpc_application = Application(services, Wsdl11, HttpRpc, Soap11, tns=__name__)
