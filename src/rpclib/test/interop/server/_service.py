@@ -269,10 +269,14 @@ class InteropMisc(service.DefinitionBase):
         return s
 
     @rpc(Integer, _returns=Array(OtherClass))
-    def other_class_array(self,num):
+    def return_other_class_array(self,num):
         for i in xrange(num):
             yield OtherClass(dt=datetime(2010,12,06), d=3.0, b=True)
-            
+
+    @rpc(_returns=Attachment)
+    def return_binary_data(self):
+        return Attachment(data=''.join([chr(i) for i in xrange(256)]))
+
 services = [
     InteropPrimitive,
     InteropArray,

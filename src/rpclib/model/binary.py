@@ -72,7 +72,7 @@ class Attachment(Base):
         '''
 
         element = etree.SubElement(parent_elt, '{%s}%s' % (tns,name))
-        element.text = cls.to_string(value)
+        element.text = base64.encodestring(cls.to_string(value))
         
     @classmethod
     @nillable_element
@@ -95,7 +95,7 @@ class Attachment(Base):
         if value.data:
             # the data has already been loaded, just encode
             # and return the element
-            return base64.encodestring(value.data)
+            return value.data
 
         elif value.file_name:
             # the data hasn't been loaded, but a file has been
