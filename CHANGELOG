@@ -3,9 +3,13 @@ Change Log
 
 soaplib-3 -> rpclib-1
 * Soaplib is now also protocol agnostic. As it now supports protocols (like 
-Rest-minus-the-verbs HttpRpc) other than soap, it's renamed to Rpclib.
+Rest-minus-the-verbs HttpRpc) other than soap, it's renamed to Rpclib. This also
+means soaplib can support multiple soap and wsdl versions.
 * Mention of xml and soap removed from public api where it's not directly
-related to soap or xml.
+related to soap or xml. (e.g. a hook rename: on_method_exception_xml ->
+on_method_exception_doc)
+* Protocol serializers now return iterables instead of complete messages. This
+lets return values of arbitrary length possible via the use of generators.
 
 soaplib-2
 * This release transformed soaplib from a soap server that exclusively supported
