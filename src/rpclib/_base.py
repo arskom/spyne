@@ -22,7 +22,6 @@ logger = logging.getLogger(__name__)
 
 import traceback
 
-import rpclib.interface.base
 import rpclib.protocol.base
 from rpclib.model.exception import Fault
 
