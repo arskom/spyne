@@ -464,6 +464,11 @@ class Array(ClassSerializer):
 
         keys = type_info.keys()
         keys.sort()
+
+        writer.writerow(keys)
+        yield queue.getvalue()
+        queue.truncate(0)
+
         for v in values:
             d = serializer.to_dict(v)
             writer.writerow([d.get(k,None) for k in keys])
