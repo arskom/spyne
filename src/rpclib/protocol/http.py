@@ -26,9 +26,11 @@ import urlparse
 # this is not exactly rest, because it ignores http verbs.
 class HttpRpc(Base):
     def create_document_structure(self, ctx, in_string, in_string_encoding=None):
-        ctx.method_name = ctx.http_req_env['PATH_INFO'].split('/')[-1]
         assert hasattr(ctx, 'http_req_env'), ("This protocol only works with a"
                                               "wsgi transport.")
+
+        ctx.method_name = '{%s}%s' % (self.parent.interface.get_tns(),
+                                   ctx.http_req_env['PATH_INFO'].split('/')[-1])
         logger.debug("\033[92mMethod name: %r\033[0m" % ctx.method_name)
 
         service_class = self.parent.get_service_class(ctx.method_name)
