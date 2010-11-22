@@ -138,17 +138,13 @@ def _add_message_for_object(self, app, root, messages, obj):
         part.set('element', obj.get_type_name_ns(app))
 
 def add_messages_for_methods(service, app, root, messages):
-    '''Adds message elements to the wsdl
-    @param the the root element of the wsdl
-    '''
-
     for method in service.public_methods:
-        _add_message_for_object(service, app,root,messages,method.in_message)
-        _add_message_for_object(service, app,root,messages,method.out_message)
-        _add_message_for_object(service, app,root,messages,method.in_header)
-        _add_message_for_object(service, app,root,messages,method.out_header)
+        _add_message_for_object(service, app, root, messages,method.in_message)
+        _add_message_for_object(service, app, root, messages,method.out_message)
+        _add_message_for_object(service, app, root, messages,method.in_header)
+        _add_message_for_object(service, app, root, messages,method.out_header)
 
-def add_bindings_for_methods(service, app, root, service_name, types, url,
+def add_bindings_for_methods(service, app, root, service_name,
                                     binding, transport, cb_binding=None):
     '''Adds bindings to the wsdl
 
@@ -390,7 +386,7 @@ class Wsdl11(Base):
             s=self.parent.get_service(s)
             add_port_type(s, self, root, service_name, types, url, port_type)
             cb_binding = add_bindings_for_methods(s, self, root, service_name,
-                                                types, url, binding, cb_binding)
+                                                  binding, cb_binding)
 
         self.__wsdl = etree.tostring(root, xml_declaration=True,
                                                                encoding="UTF-8")
@@ -463,7 +459,7 @@ class Wsdl11Strict(Wsdl11):
     def __init__(self, parent, services, tns, name=None, _with_partnerlink=False):
         Wsdl11.__init__(self, parent, services, tns, name, _with_partnerlink)
 
-        self.build_schema()
+        self.schema = self.build_schema()
 
     def build_schema(self):
         """Build application schema specifically for xml validation purposes."""
@@ -487,12 +483,13 @@ class Wsdl11Strict(Wsdl11):
         f = open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r')
 
         logger.debug("building schema...")
-        self.schema = etree.XMLSchema(etree.parse(f))
-
-        logger.debug("schema %r built, cleaning up..." % self.schema)
+        schema = etree.XMLSchema(etree.parse(f))
+        logger.debug("schema %r built, cleaning up..." % schema)
         f.close()
         shutil.rmtree(tmp_dir_name)
         logger.debug("removed %r" % tmp_dir_name)
+
+        return schema
 
     def validate(self, payload):
         schema = self.schema

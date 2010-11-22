@@ -167,7 +167,7 @@ class Base(object):
         retval = self.__name
 
         if retval is None:
-            retval = self.__class__.__name__.split('.')[-1]
+            retval = self.parent.__class__.__name__.split('.')[-1]
 
         return retval
 
