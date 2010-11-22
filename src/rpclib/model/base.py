@@ -149,7 +149,7 @@ class Base(object):
                 yield queue.getvalue()
                 queue.truncate(0)
         else:
-            d = cls.to_dict(v)
+            d = cls.to_dict(values)
             writer.writerow([d.get(k,None) for k in keys])
             yield queue.getvalue()
 
