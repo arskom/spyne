@@ -1,23 +1,54 @@
+
 Change Log
-# Curently the changelog is missing some gaps in the history of soaplib.  Any 
-updates or additions would be greatly appreciated
 
-3.0 
-* renamed -> rpclib
+soaplib-3 -> rpclib-1
+* Soaplib is now also protocol agnostic. As it now supports protocols (like 
+Rest-minus-the-verbs HttpRpc) other than soap, it's renamed to Rpclib.
+* Mention of xml and soap removed from public api where it's not directly
+related to soap or xml.
 
-2.0 
+soaplib-2
+* This release transformed soaplib from a soap server that exclusively supported
+http to a soap serialization/deserialization library that is architecture and
+transport agnostic.
 * Serializers renamed to Models 
 * Annotations added for primitive types 
-* Client added. 
+* Soap client is back.
 * 0mq support added. 
-* Hard dependency on WSGI removed 
+* Twisted supported via WSGI wrappers.
+* Hard dependency on WSGI removed.
 * Per model stand alone XSD generation added
 
-1.0
+soaplib-1.0
+* Standards-compliant Soap Faults
+* Allow multiplre return values and return types
 
-0.9
-* ValidiatingApplication added.
+soaplib-0.9.4
+* pritimitive.Array -> clazz.Array
+* Support for SimpleType restrictions (pattern, length, etc.)
 
-0.8
+soaplib-0.9.3
+* Soap header support
+* Tried the WS-I Test first time. Many bug fixes.
 
-0.7
+soaplib-0.9.2
+* Support for inheritance.
+
+soaplib-0.9.1
+* Support for publishing multiple service classes.
+
+soaplib-0.9
+* Soap server logic almost completely rewritten.
+* Soap client removed in favor of suds.
+* Object definition api no longer needs a class types: under class definition.
+* XML Schema validation is supported.
+* Support for publishing multiple namespaces. (multiple <schema> tags in the wsdl)
+* Support for enumerations.
+* Application and Service Definition are separated. Application is instantiated 
+on server start, and Service Definition is instantiated for each new request.
+* @soapmethod -> @rpc
+
+soaplib-0.8
+* Switched to lxml for proper xml namespace support.
+* In this version, soaplib is a stable soap server not without its glitches
+and quirks
