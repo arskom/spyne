@@ -457,7 +457,6 @@ class Array(ClassSerializer):
 
         serializer, = cls._type_info.values()
 
-        print cls.__dict__
         type_info = getattr(serializer, '_type_info', {
             serializer.get_type_name(): serializer
         })

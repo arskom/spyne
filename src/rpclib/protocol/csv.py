@@ -41,7 +41,6 @@ class OutCsv(Base):
 
         retval = out_type.to_csv(out_object)
 
-        print retval
         return retval
 
     def create_document_string(self, ctx, out_doc):
