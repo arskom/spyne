@@ -72,4 +72,6 @@ class HttpRpc(Base):
 
         wrapped_result = ctx.descriptor.out_message.to_dict(result_message)
 
-        return wrapped_result.itervalues()
+        retval, = wrapped_result.itervalues()
+
+        return retval
