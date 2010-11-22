@@ -22,7 +22,6 @@ logger = logging.getLogger(__name__)
 
 from rpclib.protocol import Base
 import urlparse
-import urllib
 
 # this is not exactly rest, because it ignores http verbs.
 class HttpRpc(Base):
