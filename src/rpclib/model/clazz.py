@@ -18,7 +18,10 @@
 #
 
 import csv
-import cStringIO
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from StringIO import StringIO
 
 from lxml import etree
 
@@ -452,7 +455,7 @@ class Array(ClassSerializer):
     @classmethod
     @nillable_string
     def to_csv(cls, values):
-        queue = cStringIO.StringIO()
+        queue = StringIO()
         writer = csv.writer(queue, dialect=csv.excel)
 
         serializer, = cls._type_info.values()
