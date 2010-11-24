@@ -13,10 +13,10 @@ a useful web service and deploy it as a [WSGI](http://wsgi.org/wsgi) application
 The official soaplib discussion forum can be found [here](http://mail.python.org/mailman/listinfo/soap).
 
 The legacy versions of soaplib are also available in this repository. 
-See [here](http://github.com/arskom/soaplib/tree/0_8) for the stable soaplib-0.8 branch. 
-See [here](http://github.com/arskom/soaplib/tree/1_0) for the stable soaplib-1.0 branch.
+See [here](http://github.com/arskom/rpclib/tree/soaplib-0_8) for the stable soaplib-0.8 branch.
+See [here](http://github.com/arskom/rpclib/tree/soaplib-1_0) for the stable soaplib-1.0 branch.
 
-See the [downloads section](http://github.com/arskom/soaplib/downloads) for related downloads.
+See the [downloads section](http://github.com/arskom/rpclib/downloads) for related downloads.
 
 Features
 --------
