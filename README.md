@@ -18,6 +18,12 @@ The official rpclib discussion forum can be found [here](http://mail.python.org/
 
 See the [downloads section](http://github.com/arskom/rpclib/downloads) for related downloads.
 
+Rpclib is a generalized version of a soap processing library known as soaplib.
+The legacy versions of soaplib are also available in this repository. 
+See [here](http://github.com/arskom/soaplib/tree/soaplib-0_8) for the stable soaplib-0.8 branch. 
+See [here](http://github.com/arskom/soaplib/tree/soaplib-1_0) for the stable soaplib-1.0 branch.
+See [here](http://github.com/arskom/soaplib/tree/soaplib-2_0) for the stable soaplib-2.0 branch.
+
 Features
 --------
 * Deploy services as WSGI applications
