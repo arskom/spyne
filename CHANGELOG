@@ -15,13 +15,15 @@ soaplib-2
 * This release transformed soaplib from a soap server that exclusively supported
 http to a soap serialization/deserialization library that is architecture and
 transport agnostic.
+* Sphinx docs with working examples: http://arskom.github.com/soaplib/2_0/
 * Serializers renamed to Models 
-* Annotations added for primitive types 
-* Soap client is back.
+* Standalone xsd generation for ClassSerializer objects has been added. This allows soaplib to be used to define generic XML schemas, without SOAP artifacts.
+* Annotation Tags for primitive Models has been added.
+* The soaplib client has been re-written after having been dropped from recent releases. It follows the suds API but is based on lxml for better performance. WARNING: the soaplib client is not well-tested and future support is tentative dependent on community response.
 * 0mq support added. 
 * Twisted supported via WSGI wrappers.
 * Hard dependency on WSGI removed.
-* Per model stand alone XSD generation added
+* Increased test coverage for soaplib and supported servers
 
 soaplib-1.0
 * Standards-compliant Soap Faults
