@@ -11,7 +11,7 @@ a useful web service and deploy it as a [WSGI](http://wsgi.org/wsgi) application
 
 The official soaplib discussion forum can be found [here](http://mail.python.org/mailman/listinfo/soap).
 
-The legacy 0.8.x version of soaplib is also available in [this](http://github.com/arskom/soaplib/tree/0_8) github repository.
+The legacy 0.8.x version of soaplib is also available in [this](http://github.com/arskom/soaplib/tree/soaplib-0_8) github repository.
 
 See the [downloads section](http://github.com/arskom/soaplib/downloads) for related downloads.
 
