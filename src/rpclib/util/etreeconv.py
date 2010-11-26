@@ -75,7 +75,7 @@ def etree_strip_namespaces(element):
     retval = etree.Element(element.tag.rpartition('}')[-1])
     retval.text = element.text
     for a in element.attrib:
-        retval.attrib[a] = element.attrib[a]
+        retval.attrib[a.rpartition('}')[-1]] = element.attrib[a]
 
     for e in element:
         retval.append(etree_strip_namespaces(e))
