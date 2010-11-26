@@ -70,3 +70,14 @@ def etree_to_dict(element, iterable=(list,list.append)):
         retval = element.text
 
     return retval
+
+def etree_strip_namespaces(element):
+    retval = etree.Element(element.tag.rpartition('}')[-1])
+    retval.text = element.text
+    for a in element.attrib:
+        retval.attrib[a] = element.attrib[a]
+
+    for e in element:
+        retval.append(etree_strip_namespaces(e))
+
+    return retval
