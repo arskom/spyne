@@ -1,5 +1,5 @@
 
-Serializers
+Models
 ===========
 
 In soaplib, the type are the components responsible for converting

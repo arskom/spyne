@@ -17,9 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from soaplib import Application
 from soaplib.service import rpc, DefinitionBase
 from soaplib.model.primitive import String
-from soaplib.server.wsgi import Application
+from soaplib.server import wsgi
 
 
 '''
@@ -42,7 +43,9 @@ class EmailManager(DefinitionBase):
 if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server
-        server = make_server('localhost', 7789, Application([EmailManager], "tns"))
+        app = Application([EmailManager], 'tns')
+        wsgi_app = wsgi.Application(app)
+        server = make_server('localhost', 7789, wsgi_app)
         server.serve_forever()
     except ImportError:
         print "Error: example server code requires Python >= 2.5"

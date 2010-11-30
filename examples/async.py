@@ -24,7 +24,8 @@ from threading import Thread
 from soaplib.service import rpc, DefinitionBase
 from soaplib.model.primitive import String, Integer
 from soaplib.util import get_callback_info
-from soaplib.server.wsgi import Application
+from soaplib.server import wsgi
+from soaplib import Application
 
 
 '''
@@ -56,7 +57,9 @@ class SleepingService(DefinitionBase):
 if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server
-        server = make_server('localhost', 7789, Application([SleepingService], "tns"))
+        soap_app = Application([SleepingService],'tns')
+        wsgi_app = wsgi.Application(soap_app)
+        server = make_server('localhost', 7789, wsgi_app)
         server.serve_forever()
     except ImportError:
         print "Error: example server code requires Python >= 2.5"

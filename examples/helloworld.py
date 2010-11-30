@@ -48,6 +48,7 @@ class HelloWorldService(DefinitionBase):
             results.append('Hello, %s' % name)
         return results
 
+
 if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server

@@ -18,7 +18,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from soaplib.server.wsgi import Application
+from soaplib import Application
+from soaplib.server import wsgi
 from soaplib.service import rpc
 from soaplib.service import DefinitionBase
 from soaplib.model.primitive import String, Integer
@@ -87,7 +88,9 @@ class UserManager(DefinitionBase):
 if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server
-        server = make_server('localhost', 7789, Application([UserManager], 'tns'))
+        soap_app = Application([UserManager], 'tns')
+        wsgi_app = wsgi.Application(soap_app)
+        server = make_server('localhost', 7789, wsgi_app)
         server.serve_forever()
     except ImportError:
         print "Error: example server code requires Python >= 2.5"

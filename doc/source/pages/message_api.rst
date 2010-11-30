@@ -9,7 +9,7 @@ the type. ::
 
     >>> from soaplib.soap import Message
     >>> from soaplib.model.primitive import String, Integer, Float
-    >>> import cElementTree as et
+    >>> import lxml.etree as et
     >>> message = Message('myFunction',[('a',String),('b',Integer),('c',Float)])
     >>> print et.tostring(message.to_parent_element('a',13,3.14))
     <myFunction><a xmlns="" xsi:type="xs:string">a</a><b xmlns="" xsi:type="xs:int">13</b><c xmlns="" xsi:type="xs:float">3.14</c></myFunction>

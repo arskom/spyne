@@ -18,6 +18,8 @@
 #
 
 
+from soaplib import Application
+from soaplib.server import wsgi
 from soaplib.service import rpc, DefinitionBase
 from soaplib.model.primitive import String
 from soaplib.model.binary import Attachment
@@ -25,7 +27,7 @@ from soaplib.model.binary import Attachment
 
 from tempfile import mkstemp
 import os
-from soaplib.server.wsgi import Application
+
 
 
 class DocumentArchiver(DefinitionBase):
@@ -64,7 +66,9 @@ class DocumentArchiver(DefinitionBase):
 if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server
-        server = make_server('localhost', 7889, Application([DocumentArchiver], "tns"))
+        soap_app = Application([DocumentArchiver], 'tns')
+        wsgi_app = wsgi.Application(soap_app)
+        server = make_server('localhost', 7889, wsgi_app)
         server.serve_forever()
     except ImportError:
         print "Error: example server code requires Python >= 2.5"

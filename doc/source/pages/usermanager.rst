@@ -5,7 +5,8 @@ User Manager
 Lets try a more complicated example than just strings and integers!
 The following is an extremely simple example using complex, nested data.::
 
-	from soaplib.server.wsgi import Application
+	from soaplib import Application
+	from soaplib.server import wsgi
 	from soaplib.service import rpc
 	from soaplib.service import DefinitionBase
 	from soaplib.model.primitive import String, Integer
@@ -57,7 +58,10 @@ The following is an extremely simple example using complex, nested data.::
 
 	if __name__=='__main__':
 		from wsgiref.simple_server import make_server
-		server = make_server('localhost', 7789, Application([UserManager], 'tns'))
+		soap_app = Application([UserManager], 'tns')
+		wsgi_app = wsgi.Application(soap_app)
+
+		server = make_server('localhost', 7789, wsgi_app)
 		server.serve_forever()
 
 Jumping into what's new.::

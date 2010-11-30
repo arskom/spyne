@@ -1,4 +1,4 @@
-Serializer API
+Model API
 ==============
 In soaplib, the type are the components responsible for converting indivdual parameters to and from xml, as well
 as supply the information necessary to build the wsdl. Soaplib has many built-in type that give you most of the

@@ -31,7 +31,7 @@ An example service for archiving documents::
     from soaplib.model.primitive import String, Integer
     from soaplib.model.clazz import Array
     from soaplib.model.binary import Attachment
-    from soaplib.server.wsgi import Application
+    from soaplib.server import wsgi
 
     from tempfile import mkstemp
     import os
@@ -73,5 +73,7 @@ An example service for archiving documents::
 
     if __name__=='__main__':
         from wsgiref.simple_server import make_server
-        server = make_server('localhost', 7789, Application([DocumentArchiver], 'tns'))
+        soap_app = soaplib.Application([DocumentArchiver], 'tns')
+        wsgi_app = wsgi.Application(soap_app)
+        server = make_server('localhost', 7789, wsgi_app)
         server.serve_forever()
