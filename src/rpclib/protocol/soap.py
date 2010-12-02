@@ -213,7 +213,8 @@ class Soap11(Base):
                 body_class = descriptor.out_message
 
             # decode header object
-            if ctx.in_header_doc is not None and len(ctx.in_header_doc) > 0:
+            if (ctx.in_header_doc is not None and len(ctx.in_header_doc) > 0 and
+                  header_class is not None):
                 ctx.service.in_header = header_class.from_xml(ctx.in_header_doc)
 
             # decode method arguments
