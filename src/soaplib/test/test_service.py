@@ -151,7 +151,8 @@ class Test(unittest.TestCase):
         message.to_parent_element( ('a','b','c'), srv.get_tns(), sent_xml )
         sent_xml = sent_xml[0]
 
-        print etree.tostring(sent_xml, pretty_print=True)
+        # Avoid printing debug output during test runs.
+        #print etree.tostring(sent_xml, pretty_print=True)
         response_data = message.from_xml(sent_xml)
 
         self.assertEquals(len(response_data), 3)

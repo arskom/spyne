@@ -63,8 +63,9 @@ class TestEnum(unittest.TestCase):
         elt = etree.fromstring(wsdl)
         simple_type = elt.xpath('//xs:simpleType', namespaces=app.nsmap)[0]
 
-        print etree.tostring(elt, pretty_print=True)
-        print simple_type
+        # Avoid printing debug output during test runs.
+        #print etree.tostring(elt, pretty_print=True)
+        #print simple_type
 
         self.assertEquals(simple_type.attrib['name'], 'DaysOfWeekEnum')
         self.assertEquals(simple_type[0].tag, "{%s}restriction" % soaplib.ns_xsd)
@@ -73,7 +74,8 @@ class TestEnum(unittest.TestCase):
     def test_serialize(self):
         DaysOfWeekEnum.resolve_namespace(DaysOfWeekEnum, 'punk')
         mo = DaysOfWeekEnum.Monday
-        print repr(mo)
+        # Avoid printing debug output during test runs.
+        #print repr(mo)
 
         elt = etree.Element('test')
         DaysOfWeekEnum.to_parent_element(mo, 'test_namespace', elt)
