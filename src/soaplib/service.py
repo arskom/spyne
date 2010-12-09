@@ -120,6 +120,7 @@ def rpc(*params, **kparams):
 
                 in_message = _produce_input_message(ns, f, params, kparams)
                 out_message = _produce_output_message(ns, f, params, kparams)
+                _faults = kparams.get('_faults', [])
 
                 if not (_in_header is None):
                     _in_header.resolve_namespace(_in_header, ns)
@@ -127,10 +128,18 @@ def rpc(*params, **kparams):
                     _out_header.resolve_namespace(_out_header, ns)
 
                 doc = getattr(f, '__doc__')
-                retval = MethodDescriptor(f.func_name, _public_name,
-                        in_message, out_message, doc, _is_callback, _is_async,
-                        _mtom, _in_header, _out_header)
-
+                retval = MethodDescriptor(f.func_name,
+                                          _public_name,
+                                          in_message,
+                                          out_message,
+                                          doc,
+                                          _is_callback,
+                                          _is_async,
+                                          _mtom,
+                                          _in_header,
+                                          _out_header,
+                                          _faults,
+                                         )
             return retval
 
         explain_method.__doc__ = f.__doc__

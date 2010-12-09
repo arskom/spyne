@@ -167,9 +167,19 @@ class MethodDescriptor(object):
     and is returned by the soapdocument, or rpc decorators.
     '''
 
-    def __init__(self, name, public_name, in_message, out_message, doc,
-                 is_callback=False, is_async=False, mtom=False, in_header=None,
-                 out_header=None):
+    def __init__(self,
+                 name,
+                 public_name,
+                 in_message,
+                 out_message,
+                 doc,
+                 is_callback=False,
+                 is_async=False,
+                 mtom=False,
+                 in_header=None,
+                 out_header=None,
+                 faults=()
+                ):
 
         self.name = name
         self.public_name = public_name
@@ -181,6 +191,7 @@ class MethodDescriptor(object):
         self.mtom = mtom
         self.in_header = in_header
         self.out_header = out_header
+        self.faults = faults
 
 def _from_soap(in_envelope_xml, xmlids=None):
     '''
