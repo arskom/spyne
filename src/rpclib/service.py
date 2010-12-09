@@ -30,7 +30,7 @@ class MethodDescriptor(object):
 
     def __init__(self, name, public_name, in_message, out_message, doc,
                  is_callback=False, is_async=False, mtom=False, in_header=None,
-                 out_header=None):
+                 out_header=None, faults=()):
 
         self.name = name
         self.public_name = public_name
@@ -42,6 +42,7 @@ class MethodDescriptor(object):
         self.mtom = mtom
         self.in_header = in_header
         self.out_header = out_header
+        self.faults = faults
 
 def _produce_input_message(ns, f, params, kparams):
     _in_message = kparams.get('_in_message', f.func_name)
@@ -134,6 +135,7 @@ def rpc(*params, **kparams):
 
                 in_message = _produce_input_message(ns, f, params, kparams)
                 out_message = _produce_output_message(ns, f, params, kparams)
+                _faults = kparams.get('_faults', [])
 
                 if not (_in_header is None):
                     _in_header.resolve_namespace(_in_header, ns)
