@@ -1,5 +1,8 @@
 #!/usr/bin/env python
 
+from unittest import TestLoader
+from pkg_resources import resource_exists
+from pkg_resources import resource_listdir
 from setuptools import setup, find_packages
 
 VERSION = '1.1.1'
@@ -16,6 +19,39 @@ This project uses lxml as it's XML API, providing full namespace support.
 
 SHORT_DESC="A transport and architecture agnostic rpc (de)serialization " \
            "library that focuses on making small, rpc-oriented messaging work."
+
+
+class NoInteropLoader(TestLoader):
+
+    def loadTestsFromModule(self, module):
+        """Load unit test (skip 'interop' package).
+        
+        Hacked from the version in 'setuptools.command.test.ScanningLoader'.
+        """
+        tests = []
+        tests.append(TestLoader.loadTestsFromModule(self,module))
+
+        if hasattr(module, '__path__'):
+
+            for file in resource_listdir(module.__name__, ''):
+
+                if file == 'interop':
+                    # These tests require installing a bunch of extra
+                    # code:  see 'src/soaplib/test/README'.
+                    continue
+
+                if file.endswith('.py') and file != '__init__.py':
+                    submodule = module.__name__ + '.' + file[:-3]
+                else:
+                    if resource_exists(
+                        module.__name__, file + '/__init__.py'
+                    ):
+                        submodule = module.__name__ + '.' + file
+                    else:
+                        continue
+                tests.append(self.loadTestsFromName(submodule))
+
+        return self.suiteClass(tests)
 
 setup(
     name='rpclib',
@@ -45,5 +81,6 @@ setup(
       'pytz',
       'lxml>=2.2.1',
     ],
-    test_suite='tests.test_suite',
+    test_suite='soaplib.test',
+    test_loader='__main__:NoInteropLoader',
 )
