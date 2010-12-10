@@ -458,7 +458,7 @@ class Application(object):
             # FIXME: There's no way to alter soap response headers for the user.
             ctx.out_body_xml = out_body_xml = etree.SubElement(envelope,
                             '{%s}Body' % soaplib.ns_soap_env, nsmap=self.nsmap)
-            out_object.__class__.to_parent_element(out_object,self.get_tns(), out_body_xml)
+            out_object.add_to_parent_element(self.get_tns(), out_body_xml)
 
             # implementation hook
             if not (ctx.service is None):
