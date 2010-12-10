@@ -393,7 +393,7 @@ class ClassSerializerBase(Base):
 
         cls_dict['__namespace__'] = namespace
         cls_dict['__type_name__'] = type_name
-        cls_dict['_type_info'] = target._type_info
+        cls_dict['_type_info'] = getattr(target, '_type_info', ())
         cls_dict['_target'] = target
 
         return ClassSerializerMeta(type_name, (ClassAlias,), cls_dict)
