@@ -96,13 +96,17 @@ class Base(object):
 
         for c in node:
             if c.tag == "{%s}complexContent" % rpclib.ns_xsd:
-                seq = c.getchildren()[0].getchildren()[0] # FIXME: ugly, isn't it?
-
                 extension = c.getchildren()[0]
+
                 if extension.tag == '{%s}extension' % rpclib.ns_xsd:
                     pref = extension.attrib['base'].split(':')[0]
                     if is_valid_import(pref):
                         self.imports[pref_tns].add(self.nsmap[pref])
+                    seq = extension.getchildren()[0]
+
+                else:
+                    seq = c.getchildren()[0]
+
             else:
                 seq = c
 

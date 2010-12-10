@@ -74,16 +74,13 @@ class Fault(Exception, Base):
 
         complex_content = etree.SubElement(complex_type,
                                            '{%s}complexContent' % _ns_xsd)
-        extension = etree.SubElement(complex_content,
-                                     '{%s}extension' % _ns_xsd)
-        extension.set('base', '%s:Fault'
-                                % cls.get_namespace_prefix(app))
-        seq = etree.SubElement(extension, '{%s}sequence' % _ns_xsd)
+        seq = etree.SubElement(complex_content, '{%s}sequence' % _ns_xsd)
 
         schema_dict.add_complex_type(cls, complex_type)
 
-        top_level_element = etree.Element('element')
+        top_level_element = etree.Element('{%s}element' % _ns_xsd)
         top_level_element.set('name', cls.get_type_name())
-        top_level_element.set('{%s}type' % _ns_xsi, cls.get_type_name_ns(app))
+        top_level_element.set('{%s}type' % _ns_xsi,
+                              '%sFault' % cls.get_type_name_ns(app))
 
         schema_dict.add_element(cls, top_level_element)

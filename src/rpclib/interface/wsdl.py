@@ -66,7 +66,7 @@ def add_port_type(service, interface, root, service_name, types, url, port_type)
             for f in method.faults:
                 fault = etree.SubElement(operation, '{%s}fault' %  ns_wsdl)
                 fault.set('name', f.get_type_name())
-                fault.set('message', f.get_type_name_ns(interface))
+                fault.set('message', f.get_type_name(interface))
 
 # FIXME: I don't think this is working.
 def _add_callbacks(service, root, types, service_name, url):
@@ -221,7 +221,7 @@ def add_bindings_for_methods(service, app, root, service_name,
 
                 for f in method.faults:
                     fault = etree.SubElement(operation, '{%s}fault' % ns_wsdl)
-                    fault.set('name', f.get_type_name_ns(app))
+                    fault.set('name', f.get_type_name(app))
 
                     soap_fault = etree.SubElement(fault, '{%s}fault' % ns_soap)
                     soap_fault.set('use', 'literal')
