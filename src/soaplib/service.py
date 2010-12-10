@@ -322,6 +322,11 @@ class DefinitionBase(object):
                 op_output.set('message', method.out_message.get_type_name_ns(
                                                                            app))
 
+                for f in method.faults:
+                    fault = etree.SubElement(operation, '{%s}fault' %  ns_wsdl)
+                    fault.set('name', f.get_type_name())
+                    fault.set('message', f.get_type_name_ns(app))
+
     # FIXME: I don't think this is working.
     def __add_callbacks(self, root, types, service_name, url):
         ns_xsd = soaplib.ns_xsd
@@ -408,6 +413,9 @@ class DefinitionBase(object):
             method.in_message.add_to_schema(schema_entries)
             method.out_message.add_to_schema(schema_entries)
 
+            for fault in method.faults:
+                fault.add_to_schema(schema_entries)
+
             if method.in_header is None:
                 method.in_header = self.__in_header__
             else:
@@ -440,6 +448,8 @@ class DefinitionBase(object):
             self.__add_message_for_object(app,root,messages,method.out_message)
             self.__add_message_for_object(app,root,messages,method.in_header)
             self.__add_message_for_object(app,root,messages,method.out_header)
+            for fault in method.faults:
+                self.__add_message_for_object(app,root,messages,fault)
 
     def add_bindings_for_methods(self, app, root, service_name, types, url,
                                         binding, transport, cb_binding=None):
@@ -509,6 +519,12 @@ class DefinitionBase(object):
                     soap_header.set('message', out_header.get_type_name_ns(app))
                     soap_header.set('part', out_header.get_type_name())
 
+                for f in method.faults:
+                    fault = etree.SubElement(operation, '{%s}fault' % ns_wsdl)
+                    fault.set('name', f.get_type_name_ns(app))
+
+                    soap_fault = etree.SubElement(fault, '{%s}fault' % ns_soap)
+                    soap_fault.set('use', 'literal')
 
             if method.is_callback:
                 relates_to = etree.SubElement(input, '{%s}header' % ns_soap)
