@@ -22,19 +22,20 @@ from lxml import etree
 from soaplib.model import Base
 
 _ns_xsi = soaplib.ns_xsi
+_ns_xsd = soaplib.ns_xsd
 _pref_soap_env = soaplib.const_prefmap[soaplib.ns_soap_env]
 
 class Fault(Exception, Base):
     __type_name__ = "Fault"
 
-    def __init__(self, faultcode='Server', faultstring="", faultactor="",
-                                                                detail=None):
+    def __init__(self, faultcode='Server', faultstring="",
+                 faultactor="", detail=None):
         if faultcode.startswith('%s:' % _pref_soap_env):
             self.faultcode = faultcode
         else:
             self.faultcode = '%s:%s' % (_pref_soap_env, faultcode)
 
-        self.faultstring = faultstring
+        self.faultstring = faultstring or self.get_type_name()
         self.faultactor = faultactor
         self.detail = detail
 
@@ -43,16 +44,18 @@ class Fault(Exception, Base):
 
     @classmethod
     def to_parent_element(cls, value, tns, parent_elt, name=None):
-        if name is None:
-            name = cls.get_type_name()
-        element = etree.SubElement(parent_elt, "{%s}%s" %
-                                                    (soaplib.ns_soap_env,name))
+        assert name is None
+        element = etree.SubElement(parent_elt,
+                                   "{%s}Fault" % soaplib.ns_soap_env)
 
         etree.SubElement(element, 'faultcode').text = value.faultcode
         etree.SubElement(element, 'faultstring').text = value.faultstring
         etree.SubElement(element, 'faultactor').text = value.faultactor
         if value.detail != None:
             etree.SubElement(element, 'detail').append(value.detail)
+
+    def add_to_parent_element(self, tns, parent):
+        self.__class__.to_parent_element(self, tns, parent, name=None)
 
     @classmethod
     def from_xml(cls, element):
@@ -61,27 +64,27 @@ class Fault(Exception, Base):
         factor = element.find('faultactor').text
         detail = element.find('detail')
 
-        return cls(faultcode=code, faultstring=string, faultactor=factor,
-                                                                detail=detail)
+        return cls(faultcode=code, faultstring=string,
+                   faultactor=factor, detail=detail)
 
     @classmethod
     def add_to_schema(cls, schema_dict):
-        complex_type = etree.Element('complexType')
-        complex_type.set('name', cls.get_type_name())
-        sequenceNode = etree.SubElement(complex_type, 'sequence')
+        app = schema_dict.app
+        complex_type = etree.Element('{%s}complexType' % _ns_xsd)
+        complex_type.set('name', '%sFault' % cls.get_type_name())
 
-        element = etree.SubElement(sequenceNode, 'element')
-        element.set('name', 'detail')
-        element.set('{%s}type' % _ns_xsi, 'xs:string')
-
-        element = etree.SubElement(sequenceNode, 'element')
-        element.set('name', 'message')
-        element.set('{%s}type' % _ns_xsi, 'xs:string')
+        complex_content = etree.SubElement(complex_type,
+                                           '{%s}complexContent' % _ns_xsd)
+        extension = etree.SubElement(complex_content,
+                                     '{%s}extension' % _ns_xsd)
+        extension.set('base', '%s:Fault'
+                                % cls.get_namespace_prefix(app))
+        seq = etree.SubElement(extension, '{%s}sequence' % _ns_xsd)
 
         schema_dict.add_complex_type(cls, complex_type)
 
         top_level_element = etree.Element('element')
-        top_level_element.set('name', 'ExceptionFaultType')
-        top_level_element.set('{%s}type' % _ns_xsi, cls.get_type_name_ns())
+        top_level_element.set('name', cls.get_type_name())
+        top_level_element.set('{%s}type' % _ns_xsi, cls.get_type_name_ns(app))
 
         schema_dict.add_element(cls, top_level_element)
