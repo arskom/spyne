@@ -181,7 +181,8 @@ class MethodDescriptor(object):
                  mtom=False,
                  in_header=None,
                  out_header=None,
-                 faults=()
+                 faults=(),
+                 body_style='rpc', # backward compatibility
                 ):
 
         self.name = name
@@ -195,6 +196,7 @@ class MethodDescriptor(object):
         self.in_header = in_header
         self.out_header = out_header
         self.faults = faults
+        self.body_style = body_style
 
 def _from_soap(in_envelope_xml, xmlids=None):
     '''
