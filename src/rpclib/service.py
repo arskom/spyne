@@ -21,7 +21,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 from rpclib.model.clazz import ClassSerializer as Message
+from rpclib.model.clazz import ClassSerializerMeta as MessageMeta
 from rpclib.model.clazz import TypeInfo
+from rpclib.model.primitive import Any
 
 class MethodDescriptor(object):
     '''This class represents the method signature of a soap method,
@@ -30,7 +32,7 @@ class MethodDescriptor(object):
 
     def __init__(self, name, public_name, in_message, out_message, doc,
                  is_callback=False, is_async=False, mtom=False, in_header=None,
-                 out_header=None, faults=()):
+                 out_header=None, faults=(), body_style='rpc'):
 
         self.name = name
         self.public_name = public_name
@@ -43,6 +45,7 @@ class MethodDescriptor(object):
         self.in_header = in_header
         self.out_header = out_header
         self.faults = faults
+        self.body_style = body_style
 
 def _produce_input_message(ns, f, params, kparams):
     _in_message = kparams.get('_in_message', f.func_name)
@@ -70,12 +73,10 @@ def _produce_input_message(ns, f, params, kparams):
 
     return message
 
-def _produce_output_message(ns, f, params, kparams):
+def _produce_rpc_output_message(ns, f, params, kparams):
     _returns = kparams.get('_returns')
 
     _out_message = kparams.get('_out_message', '%sResponse' % f.func_name)
-
-    kparams.get('_out_variable_name')
     out_params = TypeInfo()
 
     if _returns:
@@ -134,7 +135,7 @@ def rpc(*params, **kparams):
                 ns = kwargs['clazz'].get_tns()
 
                 in_message = _produce_input_message(ns, f, params, kparams)
-                out_message = _produce_output_message(ns, f, params, kparams)
+                out_message = _produce_rpc_output_message(ns, f, params, kparams)
                 _faults = kparams.get('_faults', [])
 
                 if not (_in_header is None):
@@ -147,6 +148,113 @@ def rpc(*params, **kparams):
                         in_message, out_message, doc, _is_callback, _is_async,
                         _mtom, _in_header, _out_header)
 
+            return retval
+
+        explain_method.__doc__ = f.__doc__
+        explain_method._is_rpc = True
+        explain_method.func_name = f.func_name
+
+        return explain_method
+
+    return explain
+
+class Alias(Message):
+    """New type_name, same type_info.
+"""
+    @classmethod
+    def add_to_schema(cls, schema_dict):
+        if not schema_dict.has_class(cls._target):
+            cls._target.add_to_schema(schema_dict)
+        element = etree.Element('{%s}element' % soaplib.ns_xsd)
+        element.set('name',cls.get_type_name())
+        element.set('type',cls._target.get_type_name_ns(schema_dict.app))
+
+        schema_dict.add_element(cls, element)
+
+def _makeAlias(type_name, namespace, target):
+    """ Return an alias class for the given target class.
+
+This function is a variation on 'ClassSerializer.produce'.
+
+The alias will borrow the target's typeinfo.
+"""
+    cls_dict = {}
+
+    cls_dict['__namespace__'] = namespace
+    cls_dict['__type_name__'] = type_name
+    cls_dict['_type_info'] = target._type_info
+    cls_dict['_target'] = target
+
+    return MessageMeta(type_name, (Alias,), cls_dict)
+
+def _produce_document_output_message(ns, f, params, kparams):
+    """Generate an output message for "document"-style API methods.
+
+    This message is just an alias for the declared return type.
+    """
+
+    _returns = kparams.get('_returns', Any)
+    _out_message = kparams.get('_out_message', '%sResponse' % f.func_name)
+
+    message = _makeAlias(_out_message, ns, _returns)
+    message.resolve_namespace(message, ns)
+
+    return message
+
+def document(*params, **kparams):
+    """Method decorator to flag a method as a document-style operation.
+
+It will behave like a normal python method on a class, and will only
+behave differently when the keyword '_method_descriptor' is passed in,
+returning a 'MethodDescriptor' object.
+This decorator does none of the soap/xml serialization, only flags a
+method as a soap method. This decorator should only be used on member
+methods of an instance of a class derived from 'ServiceBase'.
+"""
+
+    def explain(f):
+        def explain_method(*args, **kwargs):
+            retval = None
+
+            if not ('_method_descriptor' in kwargs):
+                retval = f(*args, **kwargs)
+
+            else:
+                _is_callback = kparams.get('_is_callback', False)
+                _public_name = kparams.get('_public_name', f.func_name)
+                _is_async = kparams.get('_is_async', False)
+                _mtom = kparams.get('_mtom', False)
+                _in_header = kparams.get('_in_header', None)
+                _out_header = kparams.get('_out_header', None)
+
+                # the decorator function does not have a reference to the
+                # class and needs to be passed in
+                ns = kwargs['clazz'].get_tns()
+
+                in_message = _produce_input_message(ns, f, params, kparams)
+                out_message = _produce_document_output_message(ns, f,
+                                                               params, kparams)
+                _faults = kparams.get('_faults', [])
+
+                if not (_in_header is None):
+                    _in_header.resolve_namespace(_in_header, ns)
+                if not (_out_header is None):
+                    _out_header.resolve_namespace(_out_header, ns)
+
+                doc = getattr(f, '__doc__')
+                retval = MethodDescriptor(f.func_name,
+                                          _public_name,
+                                          in_message,
+                                          out_message,
+                                          doc,
+                                          _is_callback,
+                                          _is_async,
+                                          _mtom,
+                                          _in_header,
+                                          _out_header,
+                                          _faults,
+                                          'document',
+                                         )
             return retval
 
         explain_method.__doc__ = f.__doc__
