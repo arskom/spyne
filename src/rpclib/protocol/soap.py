@@ -241,8 +241,8 @@ class Soap11(Base):
             # FIXME: There's no way to alter soap response headers for the user.
             ctx.out_body_doc = out_body_doc = etree.SubElement(envelope,
                             '{%s}Body' % rpclib.ns_soap_env, nsmap=nsmap)
-            out_object.__class__.to_parent_element(out_object,
-                                  self.parent.interface.get_tns(), out_body_doc)
+            out_object.add_to_parent_element(self.parent.interface.get_tns(),
+                                                                   out_body_doc)
 
             # implementation hook
             if not (ctx.service is None):
