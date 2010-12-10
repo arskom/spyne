@@ -63,6 +63,11 @@ def add_port_type(service, interface, root, service_name, types, url, port_type)
             op_output.set('name', method.out_message.get_type_name())
             op_output.set('message', method.out_message.get_type_name_ns(interface))
 
+            for f in method.faults:
+                fault = etree.SubElement(operation, '{%s}fault' %  ns_wsdl)
+                fault.set('name', f.get_type_name())
+                fault.set('message', f.get_type_name_ns(interface))
+
 # FIXME: I don't think this is working.
 def _add_callbacks(service, root, types, service_name, url):
     ns_xsd = rpclib.ns_xsd
@@ -144,6 +149,9 @@ def add_messages_for_methods(service, app, root, messages):
         _add_message_for_object(service, app, root, messages,method.in_header)
         _add_message_for_object(service, app, root, messages,method.out_header)
 
+        for fault in method.faults:
+            _add_message_for_object(service, app, root, messages, fault)
+
 def add_bindings_for_methods(service, app, root, service_name,
                                     binding, transport, cb_binding=None):
     '''Adds bindings to the wsdl
@@ -211,6 +219,12 @@ def add_bindings_for_methods(service, app, root, service_name,
                 soap_header.set('message', out_header.get_type_name_ns(app))
                 soap_header.set('part', out_header.get_type_name())
 
+                for f in method.faults:
+                    fault = etree.SubElement(operation, '{%s}fault' % ns_wsdl)
+                    fault.set('name', f.get_type_name_ns(app))
+
+                    soap_fault = etree.SubElement(fault, '{%s}fault' % ns_soap)
+                    soap_fault.set('use', 'literal')
 
         if method.is_callback:
             relates_to = etree.SubElement(input, '{%s}header' % ns_soap)

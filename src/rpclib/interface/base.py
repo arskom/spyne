@@ -233,6 +233,9 @@ class Base(object):
                 method.in_message.add_to_schema(self)
                 method.out_message.add_to_schema(self)
 
+                for fault in method.faults:
+                    fault.add_to_schema(self)
+
                 if method.in_header is None:
                     method.in_header = inst.__in_header__
                 else:
