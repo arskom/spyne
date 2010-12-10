@@ -325,7 +325,7 @@ class DefinitionBase(object):
                 for f in method.faults:
                     fault = etree.SubElement(operation, '{%s}fault' %  ns_wsdl)
                     fault.set('name', f.get_type_name())
-                    fault.set('message', f.get_type_name_ns(app))
+                    fault.set('message', f.get_type_name())
 
     # FIXME: I don't think this is working.
     def __add_callbacks(self, root, types, service_name, url):
@@ -521,7 +521,7 @@ class DefinitionBase(object):
 
                 for f in method.faults:
                     fault = etree.SubElement(operation, '{%s}fault' % ns_wsdl)
-                    fault.set('name', f.get_type_name_ns(app))
+                    fault.set('name', f.get_type_name())
 
                     soap_fault = etree.SubElement(fault, '{%s}fault' % ns_soap)
                     soap_fault.set('use', 'literal')
