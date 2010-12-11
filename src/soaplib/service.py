@@ -634,6 +634,7 @@ class DefinitionBase(object):
                     fault.set('name', f.get_type_name())
 
                     soap_fault = etree.SubElement(fault, '{%s}fault' % ns_soap)
+                    soap_fault.set('name', f.get_type_name())
                     soap_fault.set('use', 'literal')
 
             if method.is_callback:
