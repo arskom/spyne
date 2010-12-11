@@ -282,12 +282,12 @@ class Wsdl11(Base):
                     import_.set('schemaLocation', "%s.xsd" %
                                            self.get_namespace_prefix(namespace))
 
-            # append element tags
-            for node in self.namespaces[pref].elements.values():
-                schema.append(node)
-
             # append simpleType and complexType tags
             for node in self.namespaces[pref].types.values():
+                schema.append(node)
+
+            # append element tags
+            for node in self.namespaces[pref].elements.values():
                 schema.append(node)
 
         return retval
