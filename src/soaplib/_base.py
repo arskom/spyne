@@ -650,12 +650,12 @@ class Application(object):
                     import_.set('schemaLocation', "%s.xsd" %
                                         self.get_namespace_prefix(namespace))
 
-            # append element tags
-            for node in schema_entries.namespaces[pref].elements.values():
-                schema.append(node)
-
             # append simpleType and complexType tags
             for node in schema_entries.namespaces[pref].types.values():
+                schema.append(node)
+
+            # append element tags
+            for node in schema_entries.namespaces[pref].elements.values():
                 schema.append(node)
 
         return schema_nodes
