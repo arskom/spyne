@@ -34,6 +34,36 @@ from rpclib.model import nillable_string
 from rpclib.util.odict import odict as TypeInfo
 from rpclib.namespace import soap as namespace
 
+
+class XMLAttribute(Base):
+    """Items which are marshalled as attributes of the parent element."""
+
+    def __init__(self, typ, use=None):
+        self._typ = typ
+        self._use = use
+
+    def marshall(self, name, value, parent_elt):
+        if value is not None:
+            parent_elt.set(name, value)
+
+    def describe(self, name, element):
+        element.set('name', name)
+        element.set('type', self._typ)
+        if self._use:
+            element.set('use', self._use)
+
+class XMLAttributeRef(XMLAttribute):
+    """Reference to stock XML attribute."""
+
+    def __init__(self, ref, use=None):
+        self._ref = ref
+        self._use = use
+
+    def describe(self, name, element):
+        element.set('ref', self._ref)
+        if self._use:
+            element.set('use', self._use)
+
 class ClassSerializerMeta(type(Base)):
     '''
     This is the metaclass that populates ClassSerializer instances with
@@ -75,18 +105,20 @@ class ClassSerializerMeta(type(Base)):
 
             for k,v in cls_dict.items():
                 if not k.startswith('__'):
-                    subc = False
+                    attr = isinstance(v, XMLAttribute)
                     try:
-                        if issubclass(v,Base):
-                            subc = True
+                        subc = issubclass(v,Base)
                     except:
-                        pass
+                        subc = False
 
                     if subc:
                         _type_info[k] = v
                         if issubclass(v, Array) and v.serializer is None:
                             raise Exception("%s.%s is an array of what?" %
                                                                   (cls_name, k))
+                    elif attr:
+                        _type_info[k] = v
+
         else:
             _type_info = cls_dict['_type_info']
             if not isinstance(_type_info, TypeInfo):
@@ -157,9 +189,13 @@ class ClassSerializerBase(Base):
             parent_cls.get_members_etree(inst, parent)
 
         for k, v in cls._type_info.items():
-            mo = v.Attributes.max_occurs
             subvalue = getattr(inst, k, None)
 
+            if isinstance(v, XMLAttribute):
+                v.marshall(k, subvalue, parent)
+                continue
+
+            mo = v.Attributes.max_occurs
             if mo == 'unbounded' or mo > 1:
                 if subvalue != None:
                     for sv in subvalue:
@@ -335,6 +371,12 @@ class ClassSerializerBase(Base):
                                                                   namespace.xsd)
 
             for k, v in cls._type_info.items():
+                if isinstance(v, XMLAttribute):
+                    attribute = etree.SubElement(complex_type,
+                                            '{%s}attribute' % namespace.ns_xsd)
+                    v.describe(k, attribute)
+                    continue
+
                 if v != cls:
                     v.add_to_schema(interface)
 

@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+xml = 'http://www.w3.org/XML/1998/namespace'
 xsd = 'http://www.w3.org/2001/XMLSchema'
 xsi = 'http://www.w3.org/2001/XMLSchema-instance'
 plink = 'http://schemas.xmlsoap.org/ws/2003/05/partner-link/'
@@ -30,6 +31,7 @@ wsa = 'http://schemas.xmlsoap.org/ws/2003/03/addressing'
 xop = 'http://www.w3.org/2004/08/xop/include'
 
 const_nsmap = {
+    'xml': xml,
     'xs': xsd,
     'xsi': xsi,
     'plink': plink,
