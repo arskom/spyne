@@ -19,6 +19,7 @@
 
 # namespace map
 
+ns_xml = 'http://www.w3.org/XML/1998/namespace'
 ns_xsd = 'http://www.w3.org/2001/XMLSchema'
 ns_xsi = 'http://www.w3.org/2001/XMLSchema-instance'
 ns_plink = 'http://schemas.xmlsoap.org/ws/2003/05/partner-link/'
@@ -32,6 +33,7 @@ ns_wsa = 'http://schemas.xmlsoap.org/ws/2003/03/addressing'
 ns_xop = 'http://www.w3.org/2004/08/xop/include'
 
 const_nsmap = {
+    'xml': ns_xml,
     'xs': ns_xsd,
     'xsi': ns_xsi,
     'plink': ns_plink,

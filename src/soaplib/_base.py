@@ -82,9 +82,7 @@ class _SchemaEntries(object):
         pref_tns = cls.get_namespace_prefix(self.app)
 
         def is_valid_import(pref):
-            return not (
-                (pref in soaplib.const_nsmap) or (pref == pref_tns)
-            )
+            return pref != pref_tns
 
         if not (pref_tns in self.imports):
             self.imports[pref_tns] = set()
@@ -114,6 +112,16 @@ class _SchemaEntries(object):
                 pref = seq.attrib['base'].split(':')[0]
                 if is_valid_import(pref):
                     self.imports[pref_tns].add(self.app.nsmap[pref])
+
+            elif seq.tag == '{%s}attribute' % soaplib.ns_xsd:
+                typ = seq.get('type', '')
+                t_pref = typ.split(':')[0]
+                if t_pref and is_valid_import(t_pref):
+                    self.imports[pref_tns].add(self.app.nsmap[t_pref])
+                ref = seq.get('ref', '')
+                r_pref = ref.split(':')[0]
+                if r_pref and is_valid_import(r_pref):
+                    self.imports[pref_tns].add(self.app.nsmap[r_pref])
 
             else:
                 raise Exception("i guess you need to hack some more")
