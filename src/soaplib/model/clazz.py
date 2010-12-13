@@ -230,17 +230,19 @@ class ClassSerializerBase(Base):
             if member is None:
                 continue
 
-            mo = member.Attributes.max_occurs
-            if mo == 'unbounded' or mo > 1:
-                value = getattr(inst, key, None)
-                if value is None:
-                    value = []
-
-                value.append(member.from_xml(c))
-                setattr(inst, key, value)
-
+            if isinstance(member, XMLAttribute):
+                value = element.get(key)
             else:
-                setattr(inst, key, member.from_xml(c))
+                mo = member.Attributes.max_occurs
+                if mo == 'unbounded' or mo > 1:
+                    value = getattr(inst, key, None)
+                    if value is None:
+                        value = []
+                    value.append(member.from_xml(c))
+                else:
+                    value = member.from_xml(c)
+
+            setattr(inst, key, value)
 
         return inst
 
