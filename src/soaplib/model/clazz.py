@@ -229,21 +229,20 @@ class ClassSerializerBase(Base):
             cls.__type_name__ = '%sArray' % child.get_type_name()
 
         if not schema_entries.has_class(cls):
-            if not (getattr(cls, '__extends__', None) is None):
-                cls.__extends__.add_to_schema(schema_entries)
+            extends = getattr(cls, '__extends__', None)
+            if extends is not None:
+                extends.add_to_schema(schema_entries)
 
             complex_type = etree.Element("{%s}complexType" % soaplib.ns_xsd)
-            complex_type.set('name',cls.get_type_name())
+            complex_type.set('name', cls.get_type_name())
 
             sequence_parent = complex_type
-            if not (getattr(cls, '__extends__', None) is None):
-                cls.__extends__.add_to_schema(schema_entries)
-
+            if extends is not None:
                 complex_content = etree.SubElement(complex_type,
                                           "{%s}complexContent" % soaplib.ns_xsd)
                 extension = etree.SubElement(complex_content, "{%s}extension"
                                                                % soaplib.ns_xsd)
-                extension.set('base', cls.__extends__.get_type_name_ns(
+                extension.set('base', extends.get_type_name_ns(
                                                             schema_entries.app))
                 sequence_parent = extension
 
