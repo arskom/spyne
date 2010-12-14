@@ -21,7 +21,6 @@ import soaplib
 from lxml import etree
 from soaplib.model import Base
 
-_ns_xsi = soaplib.ns_xsi
 _ns_xsd = soaplib.ns_xsd
 _pref_soap_env = soaplib.const_prefmap[soaplib.ns_soap_env]
 
@@ -90,7 +89,7 @@ class Fault(Exception, Base):
 
         top_level_element = etree.Element('{%s}element' % _ns_xsd)
         top_level_element.set('name', cls.get_type_name())
-        top_level_element.set('{%s}type' % _ns_xsi,
+        top_level_element.set('{%s}type' % _ns_xsd,
                               '%sFault' % cls.get_type_name_ns(app))
 
         schema_dict.add_element(cls, top_level_element)
