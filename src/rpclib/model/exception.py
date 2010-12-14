@@ -22,7 +22,6 @@ from rpclib.model import Base
 
 import rpclib.namespace.soap
 
-_ns_xsi = rpclib.namespace.soap.xsi
 _ns_xsd = rpclib.namespace.soap.xsd
 _ns_soap_env = rpclib.namespace.soap.soap_env
 
@@ -92,7 +91,7 @@ class Fault(Exception, Base):
 
         top_level_element = etree.Element('{%s}element' % _ns_xsd)
         top_level_element.set('name', cls.get_type_name())
-        top_level_element.set('{%s}type' % _ns_xsi,
+        top_level_element.set('{%s}type' % _ns_xsd,
                               '%sFault' % cls.get_type_name_ns(app))
 
         schema_dict.add_element(cls, top_level_element)
