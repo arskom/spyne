@@ -157,6 +157,7 @@ def rpc(*params, **kparams):
                 _mtom = kparams.get('_mtom', False)
                 _in_header = kparams.get('_in_header', None)
                 _out_header = kparams.get('_out_header', None)
+                _port_type = kparams.get('_port_type', None)
 
                 # the decorator function does not have a reference to the
                 # class and needs to be passed in
@@ -184,6 +185,7 @@ def rpc(*params, **kparams):
                                           _out_header,
                                           _faults,
                                           'rpc',
+                                          _port_type,
                                          )
             return retval
 
@@ -221,6 +223,7 @@ def document(*params, **kparams):
                 _mtom = kparams.get('_mtom', False)
                 _in_header = kparams.get('_in_header', None)
                 _out_header = kparams.get('_out_header', None)
+                _port_type = kparams.get('_port_type', None)
 
                 # the decorator function does not have a reference to the
                 # class and needs to be passed in
@@ -249,6 +252,7 @@ def document(*params, **kparams):
                                           _out_header,
                                           _faults,
                                           'document',
+                                          _port_type,
                                          )
             return retval
 
@@ -276,6 +280,8 @@ class DefinitionBase(object):
     __tns__ = None
     __in_header__ = None
     __out_header__ = None
+    __service_interface__ = None
+    __port_types__ = []
 
     def __init__(self, environ=None):
         self.in_header = None
@@ -286,6 +292,24 @@ class DefinitionBase(object):
             _public_methods_cache[cls] = self.build_public_methods()
 
         self.public_methods = _public_methods_cache[cls]
+        self.service_interface = cls.__service_interface__
+        self.port_types = cls.__port_types__
+
+
+    @classmethod
+    def get_service_class_name(cls):
+        return cls.__name__
+
+
+    @classmethod
+    def get_service_interface(cls):
+        return cls.__service_interface__
+
+
+    @classmethod
+    def get_port_types(cls):
+        return cls.__port_types__
+
 
     def on_method_call(self, method_name, py_params, soap_params):
         '''Called BEFORE the service implementing the functionality is called
@@ -406,7 +430,16 @@ class DefinitionBase(object):
         # FIXME: I don't think this call is working.
         cb_port_type = self.__add_callbacks(root, types, service_name, url)
 
+        port_name = port_type.get('name')
+        method_port_type = None
+
         for method in self.public_methods:
+
+            if len(self.port_types) is 0 and method_port_type is None:
+                method_port_type = port_name
+            else:
+                method_port_type = method.port_type
+
             if method.is_callback:
                 operation = etree.SubElement(cb_port_type, '{%s}operation'
                                                             % ns_wsdl)
@@ -558,8 +591,38 @@ class DefinitionBase(object):
             self.__add_message_for_object(app,root,messages,method.out_message)
             self.__add_message_for_object(app,root,messages,method.in_header)
             self.__add_message_for_object(app,root,messages,method.out_header)
-            for fault in method.faults:
-                self.__add_message_for_object(app,root,messages,fault)
+
+
+    def check_method_port(self, method):
+        
+        if len(self.port_types) != 0 and method.port_type is None:
+            raise ValueError(
+                """
+                A port must be declared in the RPC decorator if the service
+                class declares a list of ports
+                """
+            )
+
+        if (not method.port_type is None) and len(self.port_types) == 0:
+            raise ValueError(
+                """
+                The rpc decorator has decared a port while the service class
+                has not.  Remove the port declaration from the rpc decorator
+                or add a list of ports to the service class
+                """
+            )
+        try:
+            if (not method.port_type is None):
+                index = self.port_types.index(method.port_type)
+        except ValueError, e:
+            raise ValueError(
+                """
+                The port specified in the rpc decorator does not match any of
+                the ports defined by the service class
+                """
+            )
+
+
 
     def add_bindings_for_methods(self, app, root, service_name, types, url,
                                         binding, transport, cb_binding=None):
@@ -584,6 +647,9 @@ class DefinitionBase(object):
             soap_binding.set('transport', transport)
 
         for method in self.public_methods:
+
+            self.check_method_port(method)
+
             operation = etree.Element('{%s}operation' % ns_wsdl)
             operation.set('name', method.name)
 

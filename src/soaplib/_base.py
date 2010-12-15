@@ -32,6 +32,7 @@ import soaplib
 
 from soaplib.model.exception import Fault
 from soaplib.util.odict import odict
+from soaplib.wsdl import WSDL
 
 HTTP_500 = '500 Internal server error'
 HTTP_200 = '200 OK'
@@ -191,6 +192,7 @@ class MethodDescriptor(object):
                  out_header=None,
                  faults=(),
                  body_style='rpc', # backward compatibility
+                 port_type=None, #added to support multiple portTypes
                 ):
 
         self.name = name
@@ -205,6 +207,7 @@ class MethodDescriptor(object):
         self.out_header = out_header
         self.faults = faults
         self.body_style = body_style
+        self.port_type = port_type
 
 def _from_soap(in_envelope_xml, xmlids=None):
     '''
@@ -302,7 +305,7 @@ class Application(object):
         self._with_plink = _with_partnerlink
 
         self.call_routes = {}
-        self.__wsdl = None
+        self.wsdl = None
         self.__public_methods = {}
         self.__classes = {}
 
@@ -738,10 +741,14 @@ class Application(object):
 
         Not meant to be overridden.
         """
-        if self.__wsdl is None:
-            return self.__build_wsdl(url)
-        else:
-            return self.__wsdl
+
+        if self.wsdl is None:
+
+            self.wsdl = WSDL(self, self.get_tns(), url, self._with_plink)
+            self.wsdl.build_wsdl()
+
+        return self.wsdl.to_string(xml_declaration=True, encoding="UTF-8")
+
 
     def __get_schema_node(self, pref, schema_nodes, types):
         """Return schema node for the given namespace prefix.
@@ -836,10 +843,10 @@ class Application(object):
             cb_binding = s.add_bindings_for_methods(self, root, service_name,
                                                 types, url, binding, cb_binding)
 
-        self.__wsdl = etree.tostring(root, xml_declaration=True,
+        self.wsdl = etree.tostring(root, xml_declaration=True,
                                                                encoding="UTF-8")
 
-        return self.__wsdl
+        return self.wsdl
 
     def __add_partner_link(self, root, service_name, types, url, plink):
         """Add the partnerLinkType node to the wsdl.
