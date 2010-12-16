@@ -29,7 +29,7 @@ Features
 
 Runtime Requirements
 --------------------
-* Python 2.4 or greater
+* Python 2.4 through 2.7 (looking for volunteers to test Python 3.x)
 * A WSGI-compliant web server (CherryPy, WSGIUtils, Twisted, etc.)
 * [lxml](http://codespeak.net/lxml/) (available through easy_install)
 * [pytz](http://pytz.sourceforge.net/) (available through easy_install)
@@ -48,3 +48,5 @@ Development Requirements
 ------------------------
 * Most examples and tests require Python 2.5 or greater
 * Twisted is required for `soaplib.test.interop.server.basic` and `soaplib.test.interop.server.static`.
+* To run automated tests, see instructions under test/README
+
