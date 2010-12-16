@@ -12,7 +12,24 @@ Burak Arslan
     sqlalchemy support
     consistent class customization
     general code cleaning
+    1.0 release
+    contributed to some changes in 2.0 (see CHANGELOG)
+
+Tres Seaver
+    Added document style encoding for 2.0
+
+Chris Austin
+    contributed to some changes in 2.0 (see CHANGELOG)
+    Sphinx docs for 1.0 and 2.0
+    took over maintenance and releases starting with 2.0
+    
+Brad Allen
+    facilitated work sponsored by ZeOmega
+    code review and coordination with community
+
+ZeOmega.com
+    sponsored contributions by Chris Austin, Brad Allen, and Tres Seaver
 
 <add yourself as you see fit.>
 
-Also see here for a complete list: http://github.com/arskom/soaplib/contributors
+Also see here for a complete list: http://github.com/soaplib/soaplib/contributors
