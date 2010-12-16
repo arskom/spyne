@@ -23,23 +23,23 @@ import unittest
 
 from lxml import etree
 
-from soaplib.model.clazz import ClassSerializer
+from soaplib.model.clazz import ClassModel
 from soaplib.model.primitive import String
 from soaplib.util.xsd_gen import XSDGenerator
 
 
-class SimpleModel(ClassSerializer):
+class SimpleModel(ClassModel):
     __namespace__ = "SimpleModel"
 
     text = String
 
-class NestedModel(ClassSerializer):
+class NestedModel(ClassModel):
     __namespace__ = "NestedModel"
 
     text = String
     simple_model = SimpleModel
 
-class DoubleNestedModel(ClassSerializer):
+class DoubleNestedModel(ClassModel):
     __namespace__ = "DoubleNestedModel"
 
     some_text = String

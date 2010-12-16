@@ -21,7 +21,7 @@ import unittest
 
 from lxml import etree
 
-from soaplib.model.clazz import ClassSerializer
+from soaplib.model.clazz import ClassModel
 
 from soaplib.model.clazz import Array
 from soaplib.model.primitive import DateTime
@@ -29,11 +29,11 @@ from soaplib.model.primitive import Float
 from soaplib.model.primitive import Integer
 from soaplib.model.primitive import String
 
-from soaplib.model.clazz import ClassSerializer as Message
+from soaplib.model.clazz import ClassModel as Message
 from soaplib._base import _from_soap
 from soaplib._base import _parse_xml_string
 
-class Address(ClassSerializer):
+class Address(ClassModel):
     street = String
     city = String
     zip = Integer
@@ -43,7 +43,7 @@ class Address(ClassSerializer):
 
 Address.resolve_namespace(Address, "punk")
 
-class Person(ClassSerializer):
+class Person(ClassModel):
     name = String
     birthdate = DateTime
     age = Integer

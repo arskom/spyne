@@ -22,7 +22,7 @@ import unittest
 
 from lxml import etree
 
-from soaplib.model.clazz import ClassSerializer
+from soaplib.model.clazz import ClassModel
 from soaplib.model.clazz import Array
 from soaplib.model.primitive import DateTime
 from soaplib.model.primitive import Float
@@ -35,7 +35,7 @@ Application.transport = 'test'
 
 from soaplib.service import soap
 
-class Address(ClassSerializer):
+class Address(ClassModel):
     __namespace__ = "TestService"
 
     street = String
@@ -45,7 +45,7 @@ class Address(ClassSerializer):
     laditude = Float
     longitude = Float
 
-class Person(ClassSerializer):
+class Person(ClassModel):
     __namespace__ = "TestService"
 
     name = String
@@ -54,24 +54,24 @@ class Person(ClassSerializer):
     addresses = Array(Address)
     titles = Array(String)
 
-class Request(ClassSerializer):
+class Request(ClassModel):
     __namespace__ = "TestService"
 
     param1 = String
     param2 = Integer
 
-class Response(ClassSerializer):
+class Response(ClassModel):
     __namespace__ = "TestService"
 
     param1 = Float
 
-class TypeNS1(ClassSerializer):
+class TypeNS1(ClassModel):
     __namespace__ = "TestService.NS1"
 
     s = String
     i = Integer
 
-class TypeNS2(ClassSerializer):
+class TypeNS2(ClassModel):
     __namespace__ = "TestService.NS2"
 
     d = DateTime

@@ -21,7 +21,7 @@ from lxml import etree
 
 from soaplib.model.binary import Attachment
 from soaplib.model.clazz import Array
-from soaplib.model.clazz import ClassSerializer
+from soaplib.model.clazz import ClassModel
 from soaplib.model.enum import Enum
 from soaplib.model.exception import Fault
 
@@ -43,16 +43,16 @@ from datetime import datetime
 import logging
 logger = logging.getLogger(__name__)
 
-class SimpleClass(ClassSerializer):
+class SimpleClass(ClassModel):
     i = Integer
     s = String
 
-class OtherClass(ClassSerializer):
+class OtherClass(ClassModel):
     dt = DateTime
     d = Double
     b = Boolean
 
-class NestedClass(ClassSerializer):
+class NestedClass(ClassModel):
     __namespace__ = "punk.tunk"
 
     simple = Array(SimpleClass)
@@ -62,7 +62,7 @@ class NestedClass(ClassSerializer):
     other = OtherClass
     ai = Array(Integer)
 
-class NonNillableClass(ClassSerializer):
+class NonNillableClass(ClassModel):
     __namespace__ = "hunk.sunk"
 
     nillable = False
@@ -89,11 +89,11 @@ DaysOfWeekEnum = Enum(
     type_name = 'DaysOfWeekEnum'
 )
 
-class InHeader(ClassSerializer):
+class InHeader(ClassModel):
     s=String
     i=Integer
 
-class OutHeader(ClassSerializer):
+class OutHeader(ClassModel):
     dt=DateTime
     f=Float
 

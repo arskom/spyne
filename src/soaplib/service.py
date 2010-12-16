@@ -24,8 +24,8 @@ import soaplib
 from lxml import etree
 
 from soaplib import MethodDescriptor
-from soaplib.model.clazz import ClassSerializer as Message
-from soaplib.model.clazz import ClassSerializerMeta as MessageMeta
+from soaplib.model.clazz import ClassModel as Message
+from soaplib.model.clazz import ClassModelMeta as MessageMeta
 from soaplib.model.clazz import TypeInfo
 from soaplib.model.primitive import Any
 
@@ -107,7 +107,7 @@ class Alias(Message):
 def _makeAlias(type_name, namespace, target):
     """ Return an alias class for the given target class.
 
-    This function is a variation on 'ClassSerializer.produce'.
+    This function is a variation on 'ClassModel.produce'.
 
     The alias will borrow the target's typeinfo.
     """

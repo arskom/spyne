@@ -10,16 +10,16 @@ The following is an extremely simple example using complex, nested data.::
 	from soaplib.service import rpc
 	from soaplib.service import DefinitionBase
 	from soaplib.model.primitive import String, Integer
-	from soaplib.model.clazz import ClassSerializer, Array
+	from soaplib.model.clazz import ClassModel, Array
 
 	user_database = {}
 	userid_seq = 1
 
-	class Permission(ClassSerializer):
+	class Permission(ClassModel):
 		application = String
 		feature = String
 
-	class User(ClassSerializer):
+	class User(ClassModel):
 		userid = Integer
 		username = String
 		firstname = String
@@ -66,11 +66,11 @@ The following is an extremely simple example using complex, nested data.::
 
 Jumping into what's new.::
 
-	class Permission(ClassSerializer):
+	class Permission(ClassModel):
 		application = String
 		feature = String
 
-	class User(ClassSerializer):
+	class User(ClassModel):
 		userid = Integer
 		username = String
 		firstname = String
@@ -78,5 +78,5 @@ Jumping into what's new.::
 		permissions = Array(Permission)
 
 The `Permission` and `User` structures in the example are standard python
-objects that extend `ClassSerializer`.  Soaplib uses `ClassSerializer` as a general type that when
+objects that extend `ClassModel`.  Soaplib uses `ClassModel` as a general type that when
 extended will produce complex serializable types that can be used in a soap service.

@@ -50,7 +50,7 @@ class Base(object):
     __type_name__ = None
 
     # There are not the xml schema defaults. The xml schema defaults are
-    # considered in ClassSerializer's add_to_schema method. the defaults here
+    # considered in ClassModel's add_to_schema method. the defaults here
     # are to reflect what people want most.
     class Attributes(object):
         nillable = True

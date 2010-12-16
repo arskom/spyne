@@ -20,7 +20,7 @@
 import datetime
 import unittest
 
-from soaplib.model.clazz import ClassSerializer
+from soaplib.model.clazz import ClassModel
 from soaplib.model.clazz import Array
 
 from soaplib.model.primitive import DateTime
@@ -32,7 +32,7 @@ from lxml import etree
 
 ns_test = 'test_namespace'
 
-class Address(ClassSerializer):
+class Address(ClassModel):
     street = String
     city = String
     zip = Integer
@@ -42,7 +42,7 @@ class Address(ClassSerializer):
 
 Address.resolve_namespace(Address,__name__)
 
-class Person(ClassSerializer):
+class Person(ClassModel):
     name = String
     birthdate = DateTime
     age = Integer
@@ -57,30 +57,30 @@ class Employee(Person):
 
 Employee.resolve_namespace(Employee,__name__)
 
-class Level2(ClassSerializer):
+class Level2(ClassModel):
     arg1 = String
     arg2 = Float
 
 Level2.resolve_namespace(Level2, __name__)
 
-class Level3(ClassSerializer):
+class Level3(ClassModel):
     arg1 = Integer
 
 Level3.resolve_namespace(Level3, __name__)
 
-class Level4(ClassSerializer):
+class Level4(ClassModel):
     arg1 = String
 
 Level4.resolve_namespace(Level4, __name__)
 
-class Level1(ClassSerializer):
+class Level1(ClassModel):
     level2 = Level2
     level3 = Array(Level3)
     level4 = Array(Level4)
 
 Level1.resolve_namespace(Level1, __name__)
 
-class TestClassSerializer(unittest.TestCase):
+class TestClassModel(unittest.TestCase):
     def test_simple_class(self):
         a = Address()
         a.street = '123 happy way'
@@ -200,8 +200,8 @@ class TestClassSerializer(unittest.TestCase):
         self.assertEquals(100, len(l.level3))
 
     def test_customize(self):
-        class Base(ClassSerializer):
-            class Attributes(ClassSerializer.Attributes):
+        class Base(ClassModel):
+            class Attributes(ClassModel.Attributes):
                 prop1=3
                 prop2=6
 

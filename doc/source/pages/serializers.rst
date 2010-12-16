@@ -54,18 +54,18 @@ type. For mixed typing or more dynamic data, use the Any type. ::
 Class
 -----
 
-The :class:`ClassSerializer` type is used to define and serialize complex,
+The :class:`ClassModel` type is used to define and serialize complex,
 nested structures. ::
 
 	>>> from soaplib.model.primitive import String, Integer
-	>>> from soaplib.model.clazz import ClassSerializer
+	>>> from soaplib.model.clazz import ClassModel
 	>>> from lxml import etree
-	>>> class Permission(ClassSerializer):
+	>>> class Permission(ClassModel):
 	...	    __namespace__ = "permission"
 	...		application = String
 	...		feature = String
 	>>>
-	>>> class User(ClassSerializer):
+	>>> class User(ClassModel):
 	...     __namespace__ = "user"
 	...		userid = Integer
 	...		username = String

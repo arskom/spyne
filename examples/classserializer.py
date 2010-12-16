@@ -24,7 +24,7 @@ from soaplib.service import soap
 from soaplib.service import DefinitionBase
 from soaplib.model.primitive import String, Integer
 
-from soaplib.model.clazz import ClassSerializer, Array
+from soaplib.model.clazz import ClassModel, Array
 
 '''
 This example shows how to define and use complex structures
@@ -36,12 +36,12 @@ user_database = {}
 userid_seq = 1
 
 
-class Permission(ClassSerializer):
+class Permission(ClassModel):
     __namespace__ = "permission"
     application = String
     feature = String
 
-class User(ClassSerializer):
+class User(ClassModel):
     __namespace__ = "user"
     userid = Integer
     username = String

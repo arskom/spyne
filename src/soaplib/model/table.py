@@ -30,7 +30,7 @@ from sqlalchemy import Column
 
 from sqlalchemy.ext.declarative import DeclarativeMeta
 from soaplib.model.clazz import TypeInfo
-from soaplib.model.clazz import ClassSerializerBase
+from soaplib.model.clazz import ClassModelBase
 from soaplib.model import primitive
 from soaplib.model import clazz
 
@@ -77,6 +77,6 @@ class TableSerializerMeta(DeclarativeMeta):
 
         return DeclarativeMeta.__new__(cls, cls_name, cls_bases, cls_dict)
 
-class TableSerializer(ClassSerializerBase):
+class TableSerializer(ClassModelBase):
     __metaclass__ = TableSerializerMeta
     _decl_class_registry={}

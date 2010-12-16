@@ -24,13 +24,13 @@ from lxml import etree
 
 import soaplib
 
-from soaplib.model.clazz import ClassSerializer
+from soaplib.model.clazz import ClassModel
 from soaplib.model.primitive import Integer
 from soaplib.model.primitive import String
 from soaplib.mime import join_attachment
 
 # Service Classes
-class DownloadPartFileResult(ClassSerializer):
+class DownloadPartFileResult(ClassModel):
     ErrorCode = Integer
     ErrorMessage = String
     Data = String

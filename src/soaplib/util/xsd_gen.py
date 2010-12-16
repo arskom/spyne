@@ -46,7 +46,7 @@ class XSDGenerator():
 
         Builds a class based on DefinitionBase to bind an arbritary soaplib
         class serilizer model to an instance of a soaplib application.
-        @param A soaplib ClassSerializer model
+        @param A soaplib ClassModel model
         '''
 
         class BindingService(DefinitionBase):
@@ -81,7 +81,7 @@ class XSDGenerator():
     def __get_nodes(self, model):
         '''Builds and returns the scheame nodes as a python dictionary
 
-        @param A soaplib ClassSerializer model
+        @param A soaplib ClassModel model
         '''
 
         binding_service = self.__get_binding_service(model)

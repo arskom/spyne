@@ -58,9 +58,9 @@ class XMLAttributeRef(XMLAttribute):
             element.set('use', self._use)
 
 
-class ClassSerializerMeta(type(Base)):
+class ClassModelMeta(type(Base)):
     '''
-    This is the metaclass that populates ClassSerializer instances with
+    This is the metaclass that populates ClassModel instances with
     the appropriate datatypes for (de)serialization.
     '''
 
@@ -118,14 +118,14 @@ class ClassSerializerMeta(type(Base)):
 
         return type.__new__(cls, cls_name, cls_bases, cls_dict)
 
-class ClassSerializerBase(Base):
+class ClassModelBase(Base):
     """
     If you want to make a better class type, this is what you should
     inherit from
     """
 
     def __init__(self, **kwargs):
-        super(ClassSerializerBase,self).__init__()
+        super(ClassModelBase,self).__init__()
 
         self.__reset_members(self.__class__, kwargs)
 
@@ -339,9 +339,9 @@ class ClassSerializerBase(Base):
         cls_dict['__type_name__'] = type_name
         cls_dict['_type_info'] = TypeInfo(members)
 
-        return ClassSerializerMeta(type_name, (ClassSerializer,), cls_dict)
+        return ClassModelMeta(type_name, (ClassModel,), cls_dict)
 
-class ClassSerializer(ClassSerializerBase):
+class ClassModel(ClassModelBase):
     """
     The general complexType factory. The __call__ method of this class will
     return instances, contrary to primivites where the same call will result in
@@ -350,9 +350,9 @@ class ClassSerializer(ClassSerializerBase):
     (see soaplib.model.base.Base)
     """
 
-    __metaclass__ = ClassSerializerMeta
+    __metaclass__ = ClassModelMeta
 
-class Array(ClassSerializer):
+class Array(ClassModel):
     def __new__(cls, serializer, ** kwargs):
         retval = cls.customize(**kwargs)
 
@@ -390,11 +390,11 @@ class Array(ClassSerializer):
         if cls.__namespace__ in soaplib.const_prefmap:
             cls.__namespace__ = default_ns
 
-        ClassSerializer.resolve_namespace(cls, default_ns)
+        ClassModel.resolve_namespace(cls, default_ns)
 
     @classmethod
     def get_serialization_instance(cls, value):
-        inst = ClassSerializer.__new__(Array)
+        inst = ClassModel.__new__(Array)
 
         (member_name,) = cls._type_info.keys()
         setattr(inst, member_name, value)
