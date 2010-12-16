@@ -17,6 +17,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""
+Module for soaplib model base classes (Base, SimpleType, and Null),
+along with several helper functions.
+"""
+
+
 import soaplib
 
 from lxml import etree
@@ -46,6 +52,9 @@ def nillable_string(func):
     return wrapper
 
 class Base(object):
+    """
+    Base class for all soaplib models.
+    """
     __namespace__ = None
     __type_name__ = None
 
