@@ -22,7 +22,7 @@ import soaplib
 from soaplib.util.wsgi_wrapper import run_twisted
 from soaplib.server import wsgi
 from soaplib.service import DefinitionBase
-from soaplib.service import rpc
+from soaplib.service import soap
 from soaplib.model.clazz import Array
 from soaplib.model.primitive import Integer
 from soaplib.model.primitive import String
@@ -32,7 +32,7 @@ This is the HelloWorld example running in the twisted framework.
 '''
 
 class HelloWorldService(DefinitionBase):
-    @rpc(String, Integer, _returns=Array(String))
+    @soap(String, Integer, _returns=Array(String))
     def say_hello(self, name, times):
         '''Docstrings for service methods appear as documentation in the wsdl.
 

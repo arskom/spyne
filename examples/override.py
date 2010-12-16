@@ -18,7 +18,7 @@
 #
 
 from soaplib import Application
-from soaplib.service import rpc, DefinitionBase
+from soaplib.service import soap, DefinitionBase
 from soaplib.model.primitive import String
 from soaplib.server import wsgi
 
@@ -32,7 +32,7 @@ that are python keywords like, from, to, import, return, etc.
 
 class EmailManager(DefinitionBase):
 
-    @rpc(String, String, String,
+    @soap(String, String, String,
         _in_variable_names = {'_to': 'to', '_from': 'from',
             '_message': 'message'},
         _out_variable_name = 'return')

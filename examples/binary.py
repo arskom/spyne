@@ -20,7 +20,7 @@
 
 from soaplib import Application
 from soaplib.server import wsgi
-from soaplib.service import rpc, DefinitionBase
+from soaplib.service import soap, DefinitionBase
 from soaplib.model.primitive import String
 from soaplib.model.binary import Attachment
 
@@ -31,7 +31,7 @@ import os
 
 
 class DocumentArchiver(DefinitionBase):
-    @rpc(Attachment, _returns=String)
+    @soap(Attachment, _returns=String)
     def archive_document(self, document):
         '''
         This method accepts an Attachment object, and returns
@@ -45,7 +45,7 @@ class DocumentArchiver(DefinitionBase):
 
         return fname
 
-    @rpc(String, _returns=Attachment)
+    @soap(String, _returns=Attachment)
     def get_archived_document(self, file_path):
         '''
         This method loads a document from the specified file path

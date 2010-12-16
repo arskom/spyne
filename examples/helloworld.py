@@ -20,7 +20,7 @@
 
 import soaplib
 
-from soaplib.service import rpc
+from soaplib.service import soap
 from soaplib.service import DefinitionBase
 from soaplib.model.primitive import String, Integer
 
@@ -34,7 +34,7 @@ client.
 '''
 
 class HelloWorldService(DefinitionBase):
-    @rpc(String, Integer, _returns=Array(String))
+    @soap(String, Integer, _returns=Array(String))
     def say_hello(self, name, times):
         '''
         Docstrings for service methods appear as documentation in the wsdl

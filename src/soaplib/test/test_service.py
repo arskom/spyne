@@ -33,7 +33,7 @@ from soaplib import service
 from soaplib import Application
 Application.transport = 'test'
 
-from soaplib.service import rpc
+from soaplib.service import soap
 
 class Address(ClassSerializer):
     __namespace__ = "TestService"
@@ -78,7 +78,7 @@ class TypeNS2(ClassSerializer):
     f = Float
 
 class MultipleNamespaceService(service.DefinitionBase):
-    @rpc(TypeNS1, TypeNS2)
+    @soap(TypeNS1, TypeNS2)
     def a(self, t1, t2):
         return "OK"
 
@@ -89,27 +89,27 @@ class MultipleNamespaceValidatingService(MultipleNamespaceService):
         self.validating_service = True
 
 class TestService(service.DefinitionBase):
-    @rpc(String, _returns=String)
+    @soap(String, _returns=String)
     def aa(self, s):
         return s
 
-    @rpc(String, Integer, _returns=DateTime)
+    @soap(String, Integer, _returns=DateTime)
     def a(self, s, i):
         return datetime.datetime.now()
 
-    @rpc(Person, String, Address, _returns=Address)
+    @soap(Person, String, Address, _returns=Address)
     def b(self, p, s, a):
         return Address()
 
-    @rpc(Person, isAsync=True)
+    @soap(Person, isAsync=True)
     def d(self, Person):
         pass
 
-    @rpc(Person, isCallback=True)
+    @soap(Person, isCallback=True)
     def e(self, Person):
         pass
 
-    @rpc(String, String, String, _returns=String,
+    @soap(String, String, String, _returns=String,
         _in_variable_names={'_from': 'from', '_self': 'self',
             '_import': 'import'},
         _out_variable_name="return")
@@ -117,7 +117,7 @@ class TestService(service.DefinitionBase):
         return '1234'
 
 class MultipleReturnService(service.DefinitionBase):
-    @rpc(String, _returns=(String, String, String))
+    @soap(String, _returns=(String, String, String))
     def multi(self, s):
         return s, 'a', 'b'
 

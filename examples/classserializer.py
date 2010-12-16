@@ -20,7 +20,7 @@
 
 from soaplib import Application
 from soaplib.server import wsgi
-from soaplib.service import rpc
+from soaplib.service import soap
 from soaplib.service import DefinitionBase
 from soaplib.model.primitive import String, Integer
 
@@ -50,7 +50,7 @@ class User(ClassSerializer):
     permissions = Array(Permission)
 
 class UserManager(DefinitionBase):
-    @rpc(User, _returns=Integer)
+    @soap(User, _returns=Integer)
     def add_user(self, user):
         global user_database
         global userid_seq
@@ -61,25 +61,25 @@ class UserManager(DefinitionBase):
 
         return user.userid
 
-    @rpc(Integer, _returns=User)
+    @soap(Integer, _returns=User)
     def get_user(self, userid):
         global user_database
 
         return user_database[userid]
 
-    @rpc(User)
+    @soap(User)
     def modify_user(self, user):
         global user_database
 
         user_database[user.userid] = user
 
-    @rpc(Integer)
+    @soap(Integer)
     def delete_user(self, userid):
         global user_database
 
         del user_database[userid]
 
-    @rpc(_returns=Array(User))
+    @soap(_returns=Array(User))
     def list_users(self):
         global user_database
 

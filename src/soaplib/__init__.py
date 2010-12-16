@@ -17,6 +17,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+# wsdl/soap style constants
+RPC_STYLE = 'rpc'
+DOC_STYLE = 'document'
+
+
+
 # namespace map
 
 ns_xml = 'http://www.w3.org/XML/1998/namespace'

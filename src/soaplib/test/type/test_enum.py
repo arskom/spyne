@@ -26,7 +26,7 @@ from soaplib import Application
 Application.transport = 'test'
 
 from soaplib.service import DefinitionBase
-from soaplib.service import rpc
+from soaplib.service import soap
 
 from soaplib.model.enum import Enum
 
@@ -52,7 +52,7 @@ DaysOfWeekEnum = Enum(
 )
 
 class TestService(DefinitionBase):
-    @rpc(DaysOfWeekEnum, _returns=DaysOfWeekEnum)
+    @soap(DaysOfWeekEnum, _returns=DaysOfWeekEnum)
     def remote_call(self, day):
         return DaysOfWeekEnum.Sunday
 

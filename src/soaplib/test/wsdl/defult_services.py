@@ -17,26 +17,26 @@
 #
 
 from soaplib.model.primitive import String
-from soaplib.service import DefinitionBase, rpc
+from soaplib.service import DefinitionBase, soap
 
 class DefaultPortService(DefinitionBase):
 
-    @rpc(String, _returns=String)
+    @soap(String, _returns=String)
     def echo_default_port_service(self, string):
         return string
 
 
 class DefaultPortServiceMultipleMethods(DefinitionBase):
 
-    @rpc(String, _returns=String)
+    @soap(String, _returns=String)
     def echo_one(self, string):
         return string
 
-    @rpc(String, _returns=String)
+    @soap(String, _returns=String)
     def echo_two(self, string):
         return string
 
-    @rpc(String, _returns=String)
+    @soap(String, _returns=String)
     def echo_three(self, string):
         return string
   

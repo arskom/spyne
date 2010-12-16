@@ -21,7 +21,7 @@ import time
 from threading import Thread
 
 
-from soaplib.service import rpc, DefinitionBase
+from soaplib.service import soap, DefinitionBase
 from soaplib.model.primitive import String, Integer
 from soaplib.util import get_callback_info
 from soaplib.server import wsgi
@@ -38,7 +38,7 @@ execution of the async. process.
 '''
 
 class SleepingService(DefinitionBase):
-    @rpc(Integer, _is_async=True)
+    @soap(Integer, _is_async=True)
     def sleep(self, seconds):
         msgid, replyto = get_callback_info()
 
@@ -50,7 +50,7 @@ class SleepingService(DefinitionBase):
 
         Thread(target=run).start()
 
-    @rpc(String, _is_callback=True)
+    @soap(String, _is_callback=True)
     def woke_up(self, message):
         pass
 

@@ -17,13 +17,13 @@
 #
 
 from soaplib.model.primitive import String
-from soaplib.service import rpc, DefinitionBase
+from soaplib.service import soap, DefinitionBase
 
 class S1(DefinitionBase):
     name = 'S1Fools'
     __namespace__ = 'Hippity'
 
-    @rpc(String, _returns=String)
+    @soap(String, _returns=String)
     def echo_string_s1(self, string):
         return string
 
@@ -32,7 +32,7 @@ class S2(DefinitionBase):
     name = 'S2Fools'
     __namespace__ = 'Hoppity'
 
-    @rpc(String, _returns=String)
+    @soap(String, _returns=String)
     def bobs(self, string):
         return string 
 
@@ -45,11 +45,11 @@ class S3(DefinitionBase):
     __port_types__ = ['bobhope', 'larry']
 
 
-    @rpc(String, _returns=String)
+    @soap(String, _returns=String)
     def echo(self, string):
         return string
 
-    @rpc(String, _port_type='bobhope', _returns=String)
+    @soap(String, _port_type='bobhope', _returns=String)
     def echo_bob_hope(self,  string):
         return 'Bob Hope'
 
@@ -62,7 +62,7 @@ class MissingRPCPortService(DefinitionBase):
     __service_interface__ = 'MissingRPCPortService'
     __port_types__ = ['existing']
 
-    @rpc(String, _returns=String)
+    @soap(String, _returns=String)
     def raise_exception(self, string):
         return string
 
@@ -72,7 +72,7 @@ class BadRPCPortService(DefinitionBase):
     __service_interface__ = 'MissingRPCPortService'
     __port_types__ = ['existing']
 
-    @rpc(String,_port_type='existingss', _returns=String)
+    @soap(String,_port_type='existingss', _returns=String)
     def raise_exception(self, string):
         return string
 
@@ -83,7 +83,7 @@ class MissingServicePortService(DefinitionBase):
     __service_interface__ = 'MissingRPCPortService'
     __port_types__ = ['existing']
 
-    @rpc(String,_port_type='existingss', _returns=String)
+    @soap(String,_port_type='existingss', _returns=String)
     def raise_exception(self, string):
         return string
 
@@ -94,7 +94,7 @@ class SinglePortService(DefinitionBase):
     __namespace__ = 'SinglePortNS'
     __port_types__ = ['FirstPortType']
 
-    @rpc(String, _port_type='FirstPortType', _returns=String)
+    @soap(String, _port_type='FirstPortType', _returns=String)
     def echo_default_port_service(self, string):
         return string
 
@@ -105,10 +105,10 @@ class DoublePortService(DefinitionBase):
     __namespace__ = 'DoublePort'
     __port_types__ = ['FirstPort', 'SecondPort']
 
-    @rpc(String, _port_type='FirstPort', _returns=String)
+    @soap(String, _port_type='FirstPort', _returns=String)
     def echo_first_port(self, string):
         return string
 
-    @rpc(String,_port_type='SecondPort', _returns=String)
+    @soap(String,_port_type='SecondPort', _returns=String)
     def echo_second_port(self, string):
         return string

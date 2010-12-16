@@ -133,7 +133,7 @@ def _produce_document_output_message(ns, f, params, kparams):
 
     return message
 
-def rpc(*params, **kparams):
+def soap(*params, **kparams):
     '''
     This is a method decorator to flag a method as a remote procedure call.  It
     will behave like a normal python method on a class, and will only behave
@@ -158,13 +158,36 @@ def rpc(*params, **kparams):
                 _in_header = kparams.get('_in_header', None)
                 _out_header = kparams.get('_out_header', None)
                 _port_type = kparams.get('_port_type', None)
+                _style = kparams.get('_style', soaplib.RPC_STYLE)
 
                 # the decorator function does not have a reference to the
                 # class and needs to be passed in
                 ns = kwargs['clazz'].get_tns()
 
+
                 in_message = _produce_input_message(ns, f, params, kparams)
-                out_message = _produce_rpc_output_message(ns, f, params, kparams)
+
+                if _style == soaplib.RPC_STYLE or _style is None:
+                    out_message = _produce_rpc_output_message(
+                            ns,
+                            f,
+                            params,
+                            kparams
+                    )
+
+                elif _style == soaplib.DOC_STYLE:
+                    out_message = _produce_document_output_message(ns, f, params, kparams)
+
+                else:
+                    raise ValueError(
+                        """Invalid style: valid values are
+                        soaplib.RPC_STYLE or soaplib.DOC_STYLE
+                        """
+                    )
+
+
+
+
                 _faults = kparams.get('_faults', [])
 
                 if not (_in_header is None):
@@ -184,7 +207,7 @@ def rpc(*params, **kparams):
                                           _in_header,
                                           _out_header,
                                           _faults,
-                                          'rpc',
+                                          _style,
                                           _port_type,
                                          )
             return retval

@@ -36,7 +36,7 @@ from soaplib.model.primitive import Double
 
 from soaplib import service
 from soaplib import ValidatingApplication
-from soaplib.service import rpc
+from soaplib.service import soap
 
 from datetime import datetime
 
@@ -101,11 +101,11 @@ class InteropServiceWithHeader(service.DefinitionBase):
     __in_header__ = InHeader
     __out_header__ = OutHeader
 
-    @rpc(_returns=InHeader)
+    @soap(_returns=InHeader)
     def echo_in_header(self):
         return self.in_header
 
-    @rpc(_returns=OutHeader)
+    @soap(_returns=OutHeader)
     def send_out_header(self):
         self.out_header = OutHeader()
         self.out_header.dt = datetime(year=2000, month=01, day=01)
@@ -114,116 +114,116 @@ class InteropServiceWithHeader(service.DefinitionBase):
         return self.out_header
 
 class InteropPrimitive(service.DefinitionBase):
-    @rpc(Any, _returns=Any)
+    @soap(Any, _returns=Any)
     def echo_any(self, xml):
         return xml
 
-    @rpc(AnyAsDict, _returns=AnyAsDict)
+    @soap(AnyAsDict, _returns=AnyAsDict)
     def echo_any_as_dict(self, xml_as_dict):
         return xml_as_dict
 
-    @rpc(Integer, _returns=Integer)
+    @soap(Integer, _returns=Integer)
     def echo_integer(self, i):
         return i
 
-    @rpc(String, _returns=String)
+    @soap(String, _returns=String)
     def echo_string(self, s):
         return s
 
-    @rpc(DateTime, _returns=DateTime)
+    @soap(DateTime, _returns=DateTime)
     def echo_datetime(self, dt):
         return dt
 
-    @rpc(Float, _returns=Float)
+    @soap(Float, _returns=Float)
     def echo_float(self, f):
         return f
 
-    @rpc(Double, _returns=Double)
+    @soap(Double, _returns=Double)
     def echo_double(self, f):
         return f
 
-    @rpc(Boolean, _returns=Boolean)
+    @soap(Boolean, _returns=Boolean)
     def echo_boolean(self, b):
         return b
 
-    @rpc(DaysOfWeekEnum, _returns=DaysOfWeekEnum)
+    @soap(DaysOfWeekEnum, _returns=DaysOfWeekEnum)
     def echo_enum(self, day):
         return day
 
 class InteropArray(service.DefinitionBase):
-    @rpc(Array(Integer), _returns=Array(Integer))
+    @soap(Array(Integer), _returns=Array(Integer))
     def echo_integer_array(self, ia):
         return ia
 
-    @rpc(Array(String), _returns=Array(String))
+    @soap(Array(String), _returns=Array(String))
     def echo_string_array(self, sa):
         return sa
 
-    @rpc(Array(DateTime), _returns=Array(DateTime))
+    @soap(Array(DateTime), _returns=Array(DateTime))
     def echo_date_time_array(self, dta):
         return dta
 
-    @rpc(Array(Float), _returns=Array(Float))
+    @soap(Array(Float), _returns=Array(Float))
     def echo_float_array(self, fa):
         return fa
 
-    @rpc(Array(Double), _returns=Array(Double))
+    @soap(Array(Double), _returns=Array(Double))
     def echo_double_array(self, da):
         return da
 
-    @rpc(Array(Boolean), _returns=Array(Boolean))
+    @soap(Array(Boolean), _returns=Array(Boolean))
     def echo_boolean_array(self, ba):
         return ba
 
-    @rpc(Boolean(max_occurs="unbounded"), _returns=Boolean(max_occurs="unbounded"))
+    @soap(Boolean(max_occurs="unbounded"), _returns=Boolean(max_occurs="unbounded"))
     def echo_simple_boolean_array(self, ba):
         return ba
 
-    @rpc(Array(Boolean), _returns=Array(Array(Boolean)))
+    @soap(Array(Boolean), _returns=Array(Array(Boolean)))
     def echo_array_in_array(self, baa):
         return baa
 
 class InteropClass(service.DefinitionBase):
-    @rpc(SimpleClass, _returns=SimpleClass)
+    @soap(SimpleClass, _returns=SimpleClass)
     def echo_simple_class(self, sc):
         return sc
 
-    @rpc(Array(SimpleClass), _returns=Array(SimpleClass))
+    @soap(Array(SimpleClass), _returns=Array(SimpleClass))
     def echo_simple_class_array(self, sca):
         return sca
 
-    @rpc(NestedClass, _returns=NestedClass)
+    @soap(NestedClass, _returns=NestedClass)
     def echo_nested_class(self, nc):
         return nc
 
-    @rpc(Array(NestedClass), _returns=Array(NestedClass))
+    @soap(Array(NestedClass), _returns=Array(NestedClass))
     def echo_nested_class_array(self, nca):
         return nca
 
-    @rpc(ExtensionClass, _returns=ExtensionClass)
+    @soap(ExtensionClass, _returns=ExtensionClass)
     def echo_extension_class(self, nc):
         return nc
 
-    @rpc(Attachment, _returns=Attachment)
+    @soap(Attachment, _returns=Attachment)
     def echo_attachment(self, a):
         return a
 
-    @rpc(Array(Attachment), _returns=Array(Attachment))
+    @soap(Array(Attachment), _returns=Array(Attachment))
     def echo_attachment_array(self, aa):
         return aa
 
 class InteropException(service.DefinitionBase):
-    @rpc()
+    @soap()
     def python_exception(self):
         raise Exception("Possible")
 
-    @rpc()
+    @soap()
     def soap_exception(self):
         raise Fault("Plausible", "A plausible fault", 'Fault actor',
                                             detail=etree.Element('something'))
 
 class InteropMisc(service.DefinitionBase):
-    @rpc(
+    @soap(
         _returns=[
             Integer,
             String,
@@ -240,31 +240,31 @@ class InteropMisc(service.DefinitionBase):
     def complex_return(self):
         return [1, "Test", 123, ["MEMBER"]]
 
-    @rpc()
+    @soap()
     def huge_number(_returns=Integer):
         return 2**int(1e5)
 
-    @rpc()
+    @soap()
     def long_string(_returns=String):
         return len('0123456789abcdef' * 16384)
 
-    @rpc()
+    @soap()
     def test_empty(self):
         pass
 
-    @rpc(String, Integer, DateTime)
+    @soap(String, Integer, DateTime)
     def multi_param(self, s, i, dt):
         pass
 
-    @rpc(_returns=String)
+    @soap(_returns=String)
     def return_only(self):
         return 'howdy'
 
-    @rpc(NonNillableClass, _returns=String)
+    @soap(NonNillableClass, _returns=String)
     def non_nillable(self, n):
         return "OK"
 
-    @rpc(String, _returns=String, _public_name="do_something")
+    @soap(String, _returns=String, _public_name="do_something")
     def do_something_else(self, s):
         return s
 

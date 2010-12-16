@@ -54,7 +54,7 @@ request. ::
 
     class HelloWorldService(DefinitionBase):
 
-        @rpc(String,Integer,_returns=Array(String))
+        @soap(String,Integer,_returns=Array(String))
         def say_hello(self,name,times):
             results = []
             for i in range(0,times):

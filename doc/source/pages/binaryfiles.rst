@@ -38,7 +38,7 @@ An example service for archiving documents::
 
     class DocumentArchiver(DefinitionBase):
 
-        @rpc(Attachment,_returns=String)
+        @soap(Attachment,_returns=String)
         def archive_document(self,document):
             '''
             This method accepts an Attachment object, and returns the filename of the
@@ -52,7 +52,7 @@ An example service for archiving documents::
 
             return fname
 
-        @rpc(String,_returns=Attachment)
+        @soap(String,_returns=Attachment)
         def get_archived_document(self,file_path):
             '''
             This method loads a document from the specified file path

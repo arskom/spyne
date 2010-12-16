@@ -19,7 +19,7 @@
 
 from time import time
 
-from soaplib.service import rpc
+from soaplib.service import soap
 from soaplib.model.primitive import String, Integer, Array
 from soaplib.server.wsgi_soap import request
 from soaplib.server.wsgi_soap import SimpleWSGIApp
@@ -50,7 +50,7 @@ to hold the data points for this request.
 
 class HelloWorldService(SimpleWSGIApp):
 
-    @rpc(String, Integer, _returns=Array(String))
+    @soap(String, Integer, _returns=Array(String))
     def say_hello(self, name, times):
         results = []
         raise Exception("this is some crazy crap")

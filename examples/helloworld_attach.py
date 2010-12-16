@@ -18,7 +18,7 @@
 #
 
 from soaplib import Application
-from soaplib.service import rpc, DefinitionBase
+from soaplib.service import soap, DefinitionBase
 from soaplib.model.primitive import String, Integer
 from soaplib.model.binary import Attachment
 from soaplib.model.clazz import Array
@@ -26,7 +26,7 @@ from soaplib.server import wsgi
 
 
 class HelloWorldService(DefinitionBase):
-    @rpc(Attachment, Integer, _returns=Array(String), _mtom=True)
+    @soap(Attachment, Integer, _returns=Array(String), _mtom=True)
     def say_hello(self, name, times):
         results = []
         for i in range(0, times):

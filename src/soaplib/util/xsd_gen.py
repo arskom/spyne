@@ -23,7 +23,7 @@ from lxml import etree
 
 import soaplib
 from soaplib import Application
-from soaplib.service import rpc, DefinitionBase
+from soaplib.service import soap, DefinitionBase
 
 
 class XSDGenerator():
@@ -51,7 +51,7 @@ class XSDGenerator():
 
         class BindingService(DefinitionBase):
 
-            @rpc(model)
+            @soap(model)
             def binding_method(self, model):
                 pass
 
