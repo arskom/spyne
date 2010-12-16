@@ -5,7 +5,7 @@ from pkg_resources import resource_exists
 from pkg_resources import resource_listdir
 from setuptools import setup, find_packages
 
-VERSION = '2.1.0'
+VERSION = '2.0.0'
 LONG_DESC = """\
 This is a simple, easily extendible soap library that provides several useful
 tools for creating and publishing soap web services in python.  This package
@@ -72,9 +72,9 @@ setup(
     keywords=('soap', 'wsdl', 'wsgi'),
     author='Soaplib Contributors',
     author_email='soap@python.org',
-    maintainer = 'Burak Arslan',
-    maintainer_email = 'burak-soaplib@arskom.com.tr',
-    url='http://github.com/arskom/soaplib',
+    maintainer = 'Chris Austin',
+    maintainer_email = 'chris@sydneysys.com',
+    url='http://github.com/soaplib/soaplib',
     license='LGPL',
     zip_safe=False,
     install_requires=[
