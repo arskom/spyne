@@ -27,6 +27,9 @@ import soaplib
 
 from lxml import etree
 
+__all__ = ('nillable_value','nillable_element','nillable_string','Base','Null',
+           'SimpleType')
+
 def nillable_value(func):
     def wrapper(cls, value, tns, parent_elt, *args, **kwargs):
         if value is None:
