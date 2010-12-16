@@ -21,7 +21,7 @@ from soaplib.service import soap, DefinitionBase
 
 class S1(DefinitionBase):
     name = 'S1Fools'
-    __namespace__ = 'Hippity'
+    namespace = 'Hippity'
 
     @soap(String, _returns=String)
     def echo_string_s1(self, string):
@@ -30,7 +30,7 @@ class S1(DefinitionBase):
 
 class S2(DefinitionBase):
     name = 'S2Fools'
-    __namespace__ = 'Hoppity'
+    namespace = 'Hoppity'
 
     @soap(String, _returns=String)
     def bobs(self, string):
@@ -40,9 +40,9 @@ class S2(DefinitionBase):
 class S3(DefinitionBase):
 
     name = 'S3Fools'
-    __namespace__ = 'Hoppity'
-    __service_interface__ = 'BLAHHHHAHHHAHHHHA'
-    __port_types__ = ['bobhope', 'larry']
+    namespace = 'Hoppity'
+    service_interface = 'BLAHHHHAHHHAHHHHA'
+    port_types = ['bobhope', 'larry']
 
 
     @soap(String, _returns=String)
@@ -58,9 +58,9 @@ class S3(DefinitionBase):
 class MissingRPCPortService(DefinitionBase):
 
     name = 'MissingRPCPortService'
-    __namespace__ = 'MissingRPCPortService'
-    __service_interface__ = 'MissingRPCPortService'
-    __port_types__ = ['existing']
+    namespace = 'MissingRPCPortService'
+    service_interface = 'MissingRPCPortService'
+    port_types = ['existing']
 
     @soap(String, _returns=String)
     def raise_exception(self, string):
@@ -68,9 +68,9 @@ class MissingRPCPortService(DefinitionBase):
 
 class BadRPCPortService(DefinitionBase):
     name = 'MissingRPCPortService'
-    __namespace__ = 'MissingRPCPortService'
-    __service_interface__ = 'MissingRPCPortService'
-    __port_types__ = ['existing']
+    namespace = 'MissingRPCPortService'
+    service_interface = 'MissingRPCPortService'
+    port_types = ['existing']
 
     @soap(String,_port_type='existingss', _returns=String)
     def raise_exception(self, string):
@@ -79,9 +79,9 @@ class BadRPCPortService(DefinitionBase):
 #MissingServicePortService
 class MissingServicePortService(DefinitionBase):
     name = 'MissingRPCPortService'
-    __namespace__ = 'MissingRPCPortService'
-    __service_interface__ = 'MissingRPCPortService'
-    __port_types__ = ['existing']
+    namespace = 'MissingRPCPortService'
+    service_interface = 'MissingRPCPortService'
+    port_types = ['existing']
 
     @soap(String,_port_type='existingss', _returns=String)
     def raise_exception(self, string):
@@ -90,9 +90,9 @@ class MissingServicePortService(DefinitionBase):
 
 class SinglePortService(DefinitionBase):
     name = 'SinglePort'
-    __service_interface__ = 'SinglePortService_ServiceInterface'
-    __namespace__ = 'SinglePortNS'
-    __port_types__ = ['FirstPortType']
+    service_interface = 'SinglePortService_ServiceInterface'
+    namespace = 'SinglePortNS'
+    port_types = ['FirstPortType']
 
     @soap(String, _port_type='FirstPortType', _returns=String)
     def echo_default_port_service(self, string):
@@ -102,8 +102,8 @@ class SinglePortService(DefinitionBase):
 class DoublePortService(DefinitionBase):
 
     name = 'DoublePort'
-    __namespace__ = 'DoublePort'
-    __port_types__ = ['FirstPort', 'SecondPort']
+    namespace = 'DoublePort'
+    port_types = ['FirstPort', 'SecondPort']
 
     @soap(String, _port_type='FirstPort', _returns=String)
     def echo_first_port(self, string):

@@ -680,7 +680,7 @@ class Application(object):
         if types is None:
             # populate call routes
             for s in self.services:
-                s.__tns__ = self.get_tns()
+                s.tns = self.get_tns()
                 inst = self.get_service(s)
 
                 for method in inst.public_methods:
