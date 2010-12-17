@@ -654,7 +654,7 @@ class Application(object):
             schema = self.__get_schema_node(pref, schema_nodes, types)
 
             # append import tags
-            for namespace in schema_entries.imports[pref]:
+            for namespace in schema_entries.imports.get(pref, ()):
                 import_ = etree.SubElement(schema, "{%s}import"% soaplib.ns_xsd)
                 import_.set("namespace", namespace)
                 if types is None:
