@@ -52,7 +52,7 @@ def _produce_input_message(ns, f, params, kparams):
 
     message=Message.produce(type_name=_in_message, namespace=ns,
                                             members=in_params)
-    message.namespace = ns
+    message.__namespace__ = ns
     message.resolve_namespace(message, ns)
 
     return message
@@ -85,7 +85,7 @@ def _produce_rpc_output_message(ns, f, params, kparams):
 
     message=Message.produce(type_name=_out_message, namespace=ns,
                                                              members=out_params)
-    message.namespace = ns
+    message.__namespace__ = ns
     message.resolve_namespace(message, ns)
 
     return message
@@ -113,7 +113,7 @@ def _makeAlias(type_name, namespace, target):
     """
     cls_dict = {}
 
-    cls_dict['namespace'] = namespace
+    cls_dict['__namespace__'] = namespace
     cls_dict['__type_name__'] = type_name
     cls_dict['_type_info'] = getattr(target, '_type_info', ())
     cls_dict['_target'] = target
@@ -300,11 +300,11 @@ class DefinitionBase(object):
     method definitions, hence the 'Base' suffix in the name.
     '''
 
-    tns = None
-    in_header = None
-    out_header = None
-    service_interface = None
-    port_types = []
+    __tns__ = None
+    __in_header__ = None
+    __out_header__ = None
+    __service_interface__ = None
+    __port_types__ = []
 
     def __init__(self, environ=None):
         self.in_header = None
@@ -315,8 +315,8 @@ class DefinitionBase(object):
             _public_methods_cache[cls] = self.build_public_methods()
 
         self.public_methods = _public_methods_cache[cls]
-        self.service_interface = cls.service_interface
-        self.port_types = cls.port_types
+        self.service_interface = cls.__service_interface__
+        self.port_types = cls.__port_types__
 
 
     @classmethod
@@ -326,12 +326,12 @@ class DefinitionBase(object):
 
     @classmethod
     def get_service_interface(cls):
-        return cls.service_interface
+        return cls.__service_interface__
 
 
     @classmethod
     def get_port_types(cls):
-        return cls.port_types
+        return cls.__port_types__
 
 
     def on_method_call(self, method_name, py_params, soap_params):
@@ -381,8 +381,8 @@ class DefinitionBase(object):
 
     @classmethod
     def get_tns(cls):
-        if not (cls.tns is None):
-            return cls.tns
+        if not (cls.__tns__ is None):
+            return cls.__tns__
 
         service_name = cls.__name__.split('.')[-1]
 
@@ -565,15 +565,15 @@ class DefinitionBase(object):
                stored schema node
         '''
 
-        if self.in_header != None:
-            self.in_header.resolve_namespace(self.in_header,
+        if self.__in_header__ != None:
+            self.__in_header__.resolve_namespace(self.__in_header__,
                                                                 self.get_tns())
-            self.in_header.add_to_schema(schema_entries)
+            self.__in_header__.add_to_schema(schema_entries)
 
-        if self.out_header != None:
-            self.out_header.resolve_namespace(self.out_header,
+        if self.__out_header__ != None:
+            self.__out_header__.resolve_namespace(self.__out_header__,
                                                                 self.get_tns())
-            self.out_header.add_to_schema(schema_entries)
+            self.__out_header__.add_to_schema(schema_entries)
 
         for method in self.public_methods:
             method.in_message.add_to_schema(schema_entries)
@@ -583,12 +583,12 @@ class DefinitionBase(object):
                 fault.add_to_schema(schema_entries)
 
             if method.in_header is None:
-                method.in_header = self.in_header
+                method.in_header = self.__in_header__
             else:
                 method.in_header.add_to_schema(schema_entries)
 
             if method.out_header is None:
-                method.out_header = self.out_header
+                method.out_header = self.__out_header__
             else:
                 method.out_header.add_to_schema(schema_entries)
 
@@ -691,7 +691,7 @@ class DefinitionBase(object):
             # get input soap header
             in_header = method.in_header
             if in_header is None:
-                in_header = self.in_header
+                in_header = self.__in_header__
 
             if not (in_header is None):
                 soap_header = etree.SubElement(input, '{%s}header' % ns_soap)
@@ -709,7 +709,7 @@ class DefinitionBase(object):
                 # get input soap header
                 out_header = method.in_header
                 if out_header is None:
-                    out_header = self.in_header
+                    out_header = self.__in_header__
 
                 if not (out_header is None):
                     soap_header = etree.SubElement(output, '{%s}header' %

@@ -98,8 +98,8 @@ class OutHeader(ClassModel):
     f=Float
 
 class InteropServiceWithHeader(service.DefinitionBase):
-    in_header = InHeader
-    out_header = OutHeader
+    __in_header__ = InHeader
+    __out_header__ = OutHeader
 
     @soap(_returns=InHeader)
     def echo_in_header(self):
