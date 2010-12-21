@@ -66,6 +66,13 @@ Model API
    pages/model_api
 
 
+WSGI Reprensation
+-------------------
+.. toctree::
+    :maxdepth: 2
+
+    pages/wsdl
+
 Server
 --------
 .. toctree::

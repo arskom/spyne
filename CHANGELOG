@@ -1,6 +1,4 @@
 Change Log
-# Curently the changelog is missing some gaps in the history of soaplib.  Any 
-updates or additions would be greatly appreciated
 
 soaplib-2.0
 * Serializers renamed to Models 
