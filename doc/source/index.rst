@@ -66,7 +66,7 @@ Model API
    pages/model_api
 
 
-WSGI Reprensation
+WSDL Reprensation
 -------------------
 .. toctree::
     :maxdepth: 2
