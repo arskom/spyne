@@ -220,6 +220,30 @@ def soap(*params, **kparams):
 
     return explain
 
+
+def rpc(*params, **kparams):
+    """This is a method decorator to flag a method as a remote procedure call.
+    It will behave like a normal python method on a class, and will only behave
+    differently when the keyword '_method_descriptor' is passed in, returning a
+    'MethodDescriptor' object.  This decorator does none of the soap/xml
+    serialization, only flags a method as a soap method.  This decorator should
+    only be used on member methods of an instance of ServiceBase.
+
+    Moving forward, this method is being depricated in favor of @soap
+    Presently it simply calls @soap after checking for the _style keyword
+    argument.  If the _style argument is not supplied it defaults to
+    soaplib.RPC_STYLE
+    """
+
+    if not kparams.has_key("_style"):
+        kparams["_style"] = soaplib.RPC_STYLE
+
+    return soap(*params, **kparams)
+
+
+
+
+
 def document(*params, **kparams):
     """Method decorator to flag a method as a document-style operation.
 
@@ -230,62 +254,17 @@ def document(*params, **kparams):
     This decorator does none of the soap/xml serialization, only flags a
     method as a soap method.  This decorator should only be used on member
     methods of an instance of a class derived from 'ServiceBase'.
+
+    Moving forward, this method is being depricated in favor of @soap
+    Presently it simply calls @soap after setting _style keyword
+    argument to  soaplib.DOC_STYLE
     """
 
-    def explain(f):
-        def explain_method(*args, **kwargs):
-            retval = None
+    kparams["_style"] = soaplib.DOC_STYLE
 
-            if not ('_method_descriptor' in kwargs):
-                retval = f(*args, **kwargs)
+    return soap(*params, **kparams)
 
-            else:
-                _is_callback = kparams.get('_is_callback', False)
-                _public_name = kparams.get('_public_name', f.func_name)
-                _is_async = kparams.get('_is_async', False)
-                _mtom = kparams.get('_mtom', False)
-                _in_header = kparams.get('_in_header', None)
-                _out_header = kparams.get('_out_header', None)
-                _port_type = kparams.get('_port_type', None)
 
-                # the decorator function does not have a reference to the
-                # class and needs to be passed in
-                ns = kwargs['clazz'].get_tns()
-
-                in_message = _produce_input_message(ns, f, params, kparams)
-                out_message = _produce_document_output_message(ns, f,
-                                                               params, kparams)
-                _faults = kparams.get('_faults', [])
-
-                if not (_in_header is None):
-                    _in_header.resolve_namespace(_in_header, ns)
-                if not (_out_header is None):
-                    _out_header.resolve_namespace(_out_header, ns)
-
-                doc = getattr(f, '__doc__')
-                retval = MethodDescriptor(f.func_name,
-                                          _public_name,
-                                          in_message,
-                                          out_message,
-                                          doc,
-                                          _is_callback,
-                                          _is_async,
-                                          _mtom,
-                                          _in_header,
-                                          _out_header,
-                                          _faults,
-                                          'document',
-                                          _port_type,
-                                         )
-            return retval
-
-        explain_method.__doc__ = f.__doc__
-        explain_method._is_rpc = True
-        explain_method.func_name = f.func_name
-
-        return explain_method
-
-    return explain
 
 _public_methods_cache = {}
 
