@@ -593,6 +593,8 @@ class DefinitionBase(object):
             self.__add_message_for_object(app,root,messages,method.out_message)
             self.__add_message_for_object(app,root,messages,method.in_header)
             self.__add_message_for_object(app,root,messages,method.out_header)
+            for fault in method.faults:
+                self.__add_message_for_object(app,root,messages,fault)
 
 
     def check_method_port(self, method):
