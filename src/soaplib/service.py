@@ -602,7 +602,9 @@ class DefinitionBase(object):
                 """
                 A port must be declared in the RPC decorator if the service
                 class declares a list of ports
-                """
+
+                Method:    %r
+                """ % method.name
             )
 
         if (not method.port_type is None) and len(self.port_types) == 0:
