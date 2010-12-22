@@ -735,6 +735,9 @@ class Application(object):
         else:
             return self.schema
 
+    def _WSDL_factory(self):
+        return WSDL
+
     def get_wsdl(self, url):
         """Simple accessor method that caches the wsdl of the application, once
         generated.
@@ -744,7 +747,8 @@ class Application(object):
 
         if self.wsdl is None:
 
-            self.wsdl = WSDL(self, self.get_tns(), url, self._with_plink)
+            factory = self._WSDL_factory()
+            self.wsdl = factory(self, self.get_tns(), url, self._with_plink)
             self.wsdl.build_wsdl()
 
         return self.wsdl.to_string(xml_declaration=True, encoding="UTF-8")
