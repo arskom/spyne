@@ -131,17 +131,16 @@ class WSDL():
         if not self.service_node_dict.has_key(service_name):
 
             ser = etree.SubElement(self.root, '{%s}service' % soaplib.ns_wsdl)
-            ser.set('name', service_name)            
+            ser.set('name', service_name)
             self.service_node_dict[service_name] = ser
 
         else:
             ser = self.service_node_dict[service_name]
-           
+
         return ser
 
 
-    def _add_port_to_service(self, service, port_name, pt_name):
-
+    def _add_port_to_service(self, service, port_name, binding_name):
         """ Builds a wsdl:port for a service and binding"""
 
         pref_tns = self.application.get_namespace_prefix(
@@ -150,17 +149,17 @@ class WSDL():
 
         wsdl_port = etree.SubElement(service, '{%s}port' % soaplib.ns_wsdl)
         wsdl_port.set('name', port_name)
-        wsdl_port.set('binding', '%s:%s' % (pref_tns, pt_name))
+        wsdl_port.set('binding', '%s:%s' % (pref_tns, binding_name))
 
         addr = etree.SubElement(wsdl_port, '{%s}address' % soaplib.ns_soap)
         addr.set('location', self.application.url)
 
-    
+
     def _get_or_create_port_type(self, pt_name):
         """ Creates a wsdl:portType element. """
 
         pt = None
-        
+
         if not self.port_type_dict.has_key(pt_name):
 
             pt = etree.SubElement(self.root, '{%s}portType' % soaplib.ns_wsdl)
@@ -170,7 +169,6 @@ class WSDL():
             pt = self.port_type_dict[pt_name]
 
         return pt
-
 
     def _get_or_create_binding(self, binding_name, port_type_name):
         ''' Creates a wsdl:binding element for a portType. '''
@@ -189,7 +187,6 @@ class WSDL():
             binding = self.bindings_dict[binding_name]
 
         return binding
-    
 
     def _get_or_create_soap_binding(self, binding):
         """ Creates a soap:binding element for a binding. """
@@ -210,6 +207,11 @@ class WSDL():
 
         return soap_binding
 
+    def _get_port_name(self, port_type_name):
+        return port_type_name # subclasses override to control port names.
+
+    def _get_binding_name(self, port_type_name):
+        return port_type_name # subclasses override to control port names.
 
     def _build_entry_points(self):
         """ Iterates over the soaplib service objects in the application and
@@ -218,6 +220,7 @@ class WSDL():
 
         default_service_name = self.application.get_name()
         applied_service_name = None
+        port_binding_names = []
         for service in self.application.services:
             ser = None
             cb_binding = None
@@ -229,8 +232,6 @@ class WSDL():
             else:
                 applied_service_name = service.get_service_interface()
 
-            ser = self._get_or_create_service_node(applied_service_name)
-
             port_type_list = service.get_port_types()
             if len(port_type_list) != 0:
 
@@ -239,15 +240,17 @@ class WSDL():
 
                     pt = self._get_or_create_port_type(port_type)
                     pt_name = pt.get('name')
-                    self._add_port_to_service(ser, pt_name, pt_name)
-                    binding = self._get_or_create_binding(pt_name, pt_name)
+                    binding_name = self._get_binding_name(pt_name)
+                    port_name = self._get_port_name(pt_name)
+                    port_binding_names.append((port_name, binding_name))
+                    binding = self._get_or_create_binding(binding_name, pt_name)
                     soap_binding = self._get_or_create_soap_binding(binding)
 
                     s=self.application.get_service(service)
                     s.add_port_type(
                         self.application,
                         self.root,
-                        ser.get('name'),
+                        applied_service_name,
                         self.application.types,
                         self.application.url,
                         pt
@@ -267,8 +270,10 @@ class WSDL():
 
                 pt = self._get_or_create_port_type(applied_service_name)
                 pt_name = pt.get('name')
-                self._add_port_to_service(ser, pt_name, pt_name )
-                binding = self._get_or_create_binding(pt_name, pt_name)
+                port_name = self._get_port_name(pt_name)
+                binding_name = self._get_binding_name(pt_name)
+                port_binding_names.append((port_name, binding_name))
+                binding = self._get_or_create_binding(binding_name, pt_name)
                 soap_binding = self._get_or_create_soap_binding(binding)
                 s=self.application.get_service(service)
                 s.add_port_type(
@@ -289,6 +294,10 @@ class WSDL():
                     binding,
                     cb_binding
                 )
+
+        ser = self._get_or_create_service_node(applied_service_name)
+        for port_name, binding_name in port_binding_names:
+            self._add_port_to_service(ser, port_name, binding_name)
 
 
     def build_wsdl(self):
