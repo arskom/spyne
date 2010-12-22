@@ -46,7 +46,9 @@ def check_method_port(service, method):
         raise ValueError("""
             A port must be declared in the RPC decorator if the service
             class declares a list of ports
-            """)
+
+            Method: %r
+            """ % method.name)
 
     if (not method.port_type is None) and len(service.port_types) == 0:
         raise ValueError("""
