@@ -283,7 +283,7 @@ class DefinitionBase(object):
     __in_header__ = None
     __out_header__ = None
     __service_interface__ = None
-    __port_types__ = []
+    __port_types__ = ()
 
     def __init__(self, environ=None):
         self.in_header = None
