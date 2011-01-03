@@ -279,7 +279,7 @@ class WSDL():
                 s.add_port_type(
                     self.application,
                     self.root,
-                    ser.get('name'),
+                    applied_service_name,
                     self.application.types,
                     self.application.url,
                     pt
