@@ -1,9 +1,9 @@
 
-from soaplib.model.exception import Fault
+from soaplib.core.model.exception import Fault
 
 from lxml import etree
 from soaplib import MethodContext
-from soaplib.model.primitive import string_encoding
+from soaplib.core.model.primitive import string_encoding
 
 class Factory(object):
     def __init__(self, app):

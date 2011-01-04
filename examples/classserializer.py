@@ -20,11 +20,11 @@
 
 from soaplib import Application
 from soaplib.server import wsgi
-from soaplib.service import soap
-from soaplib.service import DefinitionBase
-from soaplib.model.primitive import String, Integer
+from soaplib.core.service import soap
+from soaplib.core.service import DefinitionBase
+from soaplib.core.model.primitive import String, Integer
 
-from soaplib.model.clazz import ClassModel, Array
+from soaplib.core.model.clazz import ClassModel, Array
 
 '''
 This example shows how to define and use complex structures

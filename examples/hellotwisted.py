@@ -21,11 +21,11 @@ import soaplib
 
 from soaplib.util.wsgi_wrapper import run_twisted
 from soaplib.server import wsgi
-from soaplib.service import DefinitionBase
-from soaplib.service import soap
-from soaplib.model.clazz import Array
-from soaplib.model.primitive import Integer
-from soaplib.model.primitive import String
+from soaplib.core.service import DefinitionBase
+from soaplib.core.service import soap
+from soaplib.core.model.clazz import Array
+from soaplib.core.model.primitive import Integer
+from soaplib.core.model.primitive import String
 
 '''
 This is the HelloWorld example running in the twisted framework.

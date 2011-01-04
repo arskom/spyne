@@ -1,4 +1,3 @@
-
 #
 # soaplib - Copyright (C) Soaplib contributors.
 #
@@ -17,9 +16,27 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-try:
-    # Declare this a namespace package if pkg_resources is available.
-    import pkg_resources
-    pkg_resources.declare_namespace('soaplib')
-except ImportError:
-    pass
+from soaplib.core.model.primitive import String
+from soaplib.core.service import DefinitionBase, soap
+
+class DefaultPortService(DefinitionBase):
+
+    @soap(String, _returns=String)
+    def echo_default_port_service(self, string):
+        return string
+
+
+class DefaultPortServiceMultipleMethods(DefinitionBase):
+
+    @soap(String, _returns=String)
+    def echo_one(self, string):
+        return string
+
+    @soap(String, _returns=String)
+    def echo_two(self, string):
+        return string
+
+    @soap(String, _returns=String)
+    def echo_three(self, string):
+        return string
+  

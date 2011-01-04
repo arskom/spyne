@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# soaplib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
+# soaplib - Copyright (C) Soaplib contributors.
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -17,28 +17,25 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from soaplib import Application
-from soaplib.core.service import soap, DefinitionBase
-from soaplib.core.model.primitive import String, Integer
-from soaplib.core.model.binary import Attachment
-from soaplib.core.model.clazz import Array
-from soaplib.server import wsgi
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger('soaplib._base')
+logger.setLevel(logging.DEBUG)
 
+from soaplib.core.test.interop.server._service import application
+from soaplib.core.server import wsgi
 
-class HelloWorldService(DefinitionBase):
-    @soap(Attachment, Integer, _returns=Array(String), _mtom=True)
-    def say_hello(self, name, times):
-        results = []
-        for i in range(0, times):
-            results.append('Hello, %s' % name.data)
-        return results
-
-if __name__=='__main__':
+if __name__ == '__main__':
     try:
         from wsgiref.simple_server import make_server
-        app = Application([HelloWorldService], "tns")
-        wsgi_app = wsgi.Application(app)
-        server = make_server('localhost', 7789, wsgi_app)
+        from wsgiref.validate import validator
+
+        wsgi_application = wsgi.Application(application)
+        server = make_server('0.0.0.0', 9753, validator(wsgi_application))
+
+        logger.info('Starting interop server at %s:%s.' % ('0.0.0.0', 9753))
+        logger.info('WSDL is at: /?wsdl')
         server.serve_forever()
+
     except ImportError:
         print "Error: example server code requires Python >= 2.5"

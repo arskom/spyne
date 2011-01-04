@@ -20,9 +20,9 @@
 
 from soaplib import Application
 from soaplib.server import wsgi
-from soaplib.service import soap, DefinitionBase
-from soaplib.model.primitive import String
-from soaplib.model.binary import Attachment
+from soaplib.core.service import soap, DefinitionBase
+from soaplib.core.model.primitive import String
+from soaplib.core.model.binary import Attachment
 
 
 from tempfile import mkstemp

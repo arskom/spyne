@@ -21,8 +21,8 @@ import time
 from threading import Thread
 
 
-from soaplib.service import soap, DefinitionBase
-from soaplib.model.primitive import String, Integer
+from soaplib.core.service import soap, DefinitionBase
+from soaplib.core.model.primitive import String, Integer
 from soaplib.util import get_callback_info
 from soaplib.server import wsgi
 from soaplib import Application

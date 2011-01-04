@@ -18,8 +18,8 @@
 #
 
 from soaplib import Application
-from soaplib.service import soap, DefinitionBase
-from soaplib.model.primitive import String
+from soaplib.core.service import soap, DefinitionBase
+from soaplib.core.model.primitive import String
 from soaplib.server import wsgi
 
 

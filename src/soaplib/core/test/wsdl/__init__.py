@@ -1,4 +1,3 @@
-
 #
 # soaplib - Copyright (C) Soaplib contributors.
 #
@@ -17,9 +16,3 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-try:
-    # Declare this a namespace package if pkg_resources is available.
-    import pkg_resources
-    pkg_resources.declare_namespace('soaplib')
-except ImportError:
-    pass

@@ -19,8 +19,8 @@
 
 from time import time
 
-from soaplib.service import soap
-from soaplib.model.primitive import String, Integer, Array
+from soaplib.core.service import soap
+from soaplib.core.model.primitive import String, Integer, Array
 from soaplib.server.wsgi_soap import request
 from soaplib.server.wsgi_soap import SimpleWSGIApp
 

@@ -81,6 +81,7 @@ setup(
       'pytz',
       'lxml>=2.2.1',
     ],
-    test_suite='soaplib.test',
+    test_suite='soaplib.core.test',
     test_loader='__main__:NoInteropLoader',
+    namespace_packages=["soaplib"]
 )
