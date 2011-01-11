@@ -24,7 +24,7 @@ from soaplib.core.service import soap
 from soaplib.core.service import DefinitionBase
 from soaplib.core.model.primitive import String, Integer
 
-from soaplib.server import wsgi
+from soaplib.core.server import wsgi
 from soaplib.core.model.clazz import Array
 
 '''
@@ -52,7 +52,7 @@ class HelloWorldService(DefinitionBase):
 if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server
-        soap_application = soaplib.Application([HelloWorldService], 'tns')
+        soap_application = soaplib.core.Application([HelloWorldService], 'tns')
         wsgi_application = wsgi.Application(soap_application)
 
         print "listening to http://0.0.0.0:7789"
