@@ -78,6 +78,7 @@ setup(
     license='LGPL',
     zip_safe=False,
     install_requires=[
+      'setuptools',
       'pytz',
       'lxml>=2.2.1',
     ],
