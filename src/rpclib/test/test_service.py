@@ -134,6 +134,11 @@ class Test(unittest.TestCase):
         self._wsdl = self.app.interface.get_interface_document('')
         self.wsdl = etree.fromstring(self._wsdl)
 
+    def test_ctor_saves_environ(self):
+        environ = {}
+        service = TestService(environ)
+        self.failUnless(service.environ is environ)
+
     def test_portypes(self):
         self._set_up()
 
