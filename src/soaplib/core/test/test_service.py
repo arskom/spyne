@@ -124,20 +124,20 @@ class MultipleReturnService(service.DefinitionBase):
 class Test(unittest.TestCase):
     '''Most of the service tests are performed through the interop tests.'''
 
-    def setUp(self):
-        self.app = Application([TestService], 'tns')
-        self.srv = TestService()
-        self._wsdl = self.app.get_wsdl('')
-        self.wsdl = etree.fromstring(self._wsdl)
-
     def test_portypes(self):
-        porttype = self.wsdl.find('{http://schemas.xmlsoap.org/wsdl/}portType')
+        app = Application([TestService], 'tns')
+        _wsdl = app.get_wsdl('')
+        wsdl = etree.fromstring(_wsdl)
+        porttype = wsdl.find('{http://schemas.xmlsoap.org/wsdl/}portType')
+        srv = TestService()
         self.assertEquals(
-            len(self.srv.public_methods), len(porttype.getchildren()))
+            len(srv.public_methods), len(porttype.getchildren()))
 
     def test_override_param_names(self):
+        app = Application([TestService], 'tns')
+        _wsdl = app.get_wsdl('')
         for n in ['self', 'import', 'return', 'from']:
-            self.assertTrue(n in self._wsdl, '"%s" not in self._wsdl' % n)
+            self.assertTrue(n in _wsdl, '"%s" not in _wsdl' % n)
 
     def test_multiple_return(self):
         app = Application([MultipleReturnService], 'tns')
@@ -151,8 +151,6 @@ class Test(unittest.TestCase):
         message.to_parent_element( ('a','b','c'), srv.get_tns(), sent_xml )
         sent_xml = sent_xml[0]
 
-        # Avoid printing debug output during test runs.
-        #print etree.tostring(sent_xml, pretty_print=True)
         response_data = message.from_xml(sent_xml)
 
         self.assertEquals(len(response_data), 3)
