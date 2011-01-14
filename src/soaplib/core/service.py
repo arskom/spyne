@@ -252,7 +252,7 @@ def document(*params, **kparams):
     It will behave like a normal python method on a class, and will only
     behave differently when the keyword '_method_descriptor' is passed in,
     returning a 'MethodDescriptor' object.
-    
+
     This decorator does none of the soap/xml serialization, only flags a
     method as a soap method.  This decorator should only be used on member
     methods of an instance of a class derived from 'ServiceBase'.
@@ -298,22 +298,19 @@ class DefinitionBase(object):
         self.public_methods = _public_methods_cache[cls]
         self.service_interface = cls.__service_interface__
         self.port_types = cls.__port_types__
-
+        self.environ = environ
 
     @classmethod
     def get_service_class_name(cls):
         return cls.__name__
 
-
     @classmethod
     def get_service_interface(cls):
         return cls.__service_interface__
 
-
     @classmethod
     def get_port_types(cls):
         return cls.__port_types__
-
 
     def on_method_call(self, method_name, py_params, soap_params):
         '''Called BEFORE the service implementing the functionality is called
@@ -600,7 +597,7 @@ class DefinitionBase(object):
 
 
     def check_method_port(self, method):
-        
+
         if len(self.port_types) != 0 and method.port_type is None:
             raise ValueError(
                 """

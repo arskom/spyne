@@ -124,6 +124,11 @@ class MultipleReturnService(service.DefinitionBase):
 class Test(unittest.TestCase):
     '''Most of the service tests are performed through the interop tests.'''
 
+    def test_ctor_saves_environ(self):
+        environ = {}
+        service = TestService(environ)
+        self.failUnless(service.environ is environ)
+
     def test_portypes(self):
         app = Application([TestService], 'tns')
         _wsdl = app.get_wsdl('')
