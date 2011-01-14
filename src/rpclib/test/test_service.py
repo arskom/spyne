@@ -127,7 +127,7 @@ class MultipleReturnService(service.DefinitionBase):
 class Test(unittest.TestCase):
     '''Most of the service tests are performed through the interop tests.'''
 
-    def setUp(self):
+    def _set_up(self):
         self.app = Application([TestService], rpclib.interface.wsdl.Wsdl11,
                                         rpclib.protocol.soap.Soap11, tns='tns')
         self.srv = TestService()
@@ -135,11 +135,15 @@ class Test(unittest.TestCase):
         self.wsdl = etree.fromstring(self._wsdl)
 
     def test_portypes(self):
+        self._set_up()
+
         porttype = self.wsdl.find('{http://schemas.xmlsoap.org/wsdl/}portType')
         self.assertEquals(
             len(self.srv.public_methods), len(porttype.getchildren()))
 
     def test_override_param_names(self):
+        self._set_up()
+
         for n in ['self', 'import', 'return', 'from']:
             self.assertTrue(n in self._wsdl, '"%s" not in self._wsdl' % n)
 
