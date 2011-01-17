@@ -34,6 +34,7 @@ class EnumBase(SimpleType):
 
 def Enum(*values, **kwargs):
     type_name = kwargs.get('type_name', None)
+    docstr = kwargs.get('__doc__', '')
     if type_name is None:
         raise ValueError("Please specify 'type_name' as a keyword argument")
 
@@ -66,6 +67,7 @@ def Enum(*values, **kwargs):
             return str(values[self.__value])
 
     class EnumType(EnumBase):
+        __doc__ = docstr
         __type_name__ = type_name
 
         def __iter__(self):
