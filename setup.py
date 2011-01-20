@@ -74,7 +74,7 @@ setup(
     author_email='soap@python.org',
     maintainer = 'Chris Austin',
     maintainer_email = 'chris@sydneysys.com',
-    url='http://github.com/soaplib/soaplib',
+    url='http://soaplib.github.com/soaplib/2_0/',
     license='LGPL',
     zip_safe=False,
     install_requires=[
