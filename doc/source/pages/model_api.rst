@@ -9,15 +9,16 @@ common data-types generally needed.
 
 Base
 ----
-.. automodule:: soaplib.model.base
+.. automodule:: soaplib.core.model.base
     :members:
     :undoc-members:
-
+    :inherited-members:
+    :show-inheritance:
 
 
 Binary
 ------
-.. automodule:: soaplib.model.binary
+.. automodule:: soaplib.core.model.binary
     :members:
     :undoc-members:
     :inherited-members:
@@ -25,7 +26,7 @@ Binary
 
 Clazz
 ------
-.. automodule:: soaplib.model.clazz
+.. automodule:: soaplib.core.model.clazz
     :members:
     :undoc-members:
     :inherited-members:
