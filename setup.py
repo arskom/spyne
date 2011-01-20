@@ -65,7 +65,7 @@ setup(
         'Programming Language :: Python',
         'Operating System :: OS Independent',
         'Natural Language :: English',
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
