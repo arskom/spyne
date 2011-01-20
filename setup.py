@@ -5,7 +5,7 @@ from pkg_resources import resource_exists
 from pkg_resources import resource_listdir
 from setuptools import setup, find_packages
 
-VERSION = '2.0.0'
+VERSION = '2.0.0b1'
 LONG_DESC = """\
 This is a simple, easily extendible soap library that provides several useful
 tools for creating and publishing soap web services in python.  This package
