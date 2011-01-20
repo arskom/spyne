@@ -43,12 +43,12 @@ and deserialization. The available hooks are:
 These method can be used to easily apply cross-cutting functionality accross all
 methods in the service to do things like database transaction management,
 logging and measuring performance. This example also employs the threadlocal
-request (soaplib.wsgi_soap.request) object to hold the data points for this
+request (soaplib.core.wsgi_soap.request) object to hold the data points for this
 request. ::
 
-    from soaplib.service import rpc, DefinitionBase
-    from soaplib.model.primitive import String, Integer
-    from soaplib.model.clazz import Array
+    from soaplib.core.service import rpc, DefinitionBase
+    from soaplib.core.model.primitive import String, Integer
+    from soaplib.core.model.clazz import Array
 
     from time import time
 

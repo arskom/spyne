@@ -33,7 +33,7 @@ Clazz
 
 Enum
 -----
-.. automodule:: soaplib.model.enum
+.. automodule:: soaplib.core.model.enum
     :members:
     :undoc-members:
     :inherited-members:
@@ -42,7 +42,7 @@ Enum
 
 Exception
 ---------
-.. automodule:: soaplib.model.exception
+.. automodule:: soaplib.core.model.exception
     :members:
     :undoc-members:
     :inherited-members:
@@ -51,7 +51,7 @@ Exception
 
 Primitive
 ---------
-.. automodule:: soaplib.model.primitive
+.. automodule:: soaplib.core.model.primitive
     :members:
     :undoc-members:
     :inherited-members:
@@ -60,7 +60,7 @@ Primitive
 
 Table
 ------
-.. automodule:: soaplib.model.table
+.. automodule:: soaplib.core.model.table
     :members:
     :undoc-members:
     :inherited-members:

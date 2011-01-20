@@ -9,10 +9,10 @@ Declaring a Soaplib Service
 ::
 
     import soaplib
-    from soaplib.service import rpc, DefinitionBase
-    from soaplib.model.primitive import String, Integer
-    from soaplib.server import wsgi
-    from soaplib.model.clazz import Array
+    from soaplib.core.service import rpc, DefinitionBase
+    from soaplib.core.model.primitive import String, Integer
+    from soaplib.core.server import wsgi
+    from soaplib.core.model.clazz import Array
 
 
     class HelloWorldService(DefinitionBase):
@@ -26,7 +26,7 @@ Declaring a Soaplib Service
     if __name__=='__main__':
         try:
             from wsgiref.simple_server import make_server
-            soap_application = soaplib.Application([HelloWorldService], 'tns')
+            soap_application = soaplib.core.Application([HelloWorldService], 'tns')
             wsgi_application = wsgi.Application(soap_application)
             server = make_server('localhost', 7789, wsgi_application)
             server.serve_forever()
@@ -35,17 +35,17 @@ Declaring a Soaplib Service
 
 Dissecting this example: DefinitionBase is the base class for all soap services. ::
 
-    from soaplib.service import DefinitionBase
+    from soaplib.core.service import DefinitionBase
 
 The rpc decorator exposes methods as soap method and declares the
 data types it accepts and returns. ::
 
-    from soaplib.service import rpc
+    from soaplib.core.service import rpc
 
 Import the model for this method (more on models later)::
 
-    from soaplib.model.primitive import String, Integer
-    from soaplib.model.clazz import Array
+    from soaplib.core.model.primitive import String, Integer
+    from soaplib.core.model.clazz import Array
 
 Extending DefinitionBase is an easy way to create a soap service that can
 be deployed as a WSGI application.::
@@ -77,7 +77,7 @@ simple wsgi web server; any WSGI-compliant server *should* work.::
     if __name__=='__main__':
         try:
             from wsgiref.simple_server import make_server
-            soap_application = soaplib.Application([HelloWorldService], 'tns')
+            soap_application = soaplib.core.Application([HelloWorldService], 'tns')
             wsgi_application = wsgi.Application(soap_application)
             server = make_server('localhost', 7789, wsgi_application)
             server.serve_forever()

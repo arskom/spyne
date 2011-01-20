@@ -12,9 +12,9 @@ Primitives
 
 The basic primitive types are :class:`String`, :class:`Integer`,
 :class:`DateTime`, :class:`Null`, :class:`Float`, :class:`Boolean`.
-These are some of the most basic blocks within soaplib. ::
+These are some of the most basic blocks within soaplib.core. ::
 
-    >>> from soaplib.model.primitive import String
+    >>> from soaplib.core.model.primitive import String
     >>> from lxml import etree
     >>> parent = etree.Element("parent")
     >>> String.to_parent_element("abcd", "tns", parent)
@@ -37,8 +37,8 @@ the proper internal type so they can properly (de)serialize the data. Arrays
 are homogeneous, meaning that the data they hold are all of the same
 type. For mixed typing or more dynamic data, use the Any type. ::
 
-    >>> from soaplib.model.clazz import Array
-    >>> from soaplib.model.primitive import String
+    >>> from soaplib.core.model.clazz import Array
+    >>> from soaplib.core.model.primitive import String
     >>> from lxml import etree
     >>> parent = etree.Element("parent")
     >>> array_serializer = Array(String)
@@ -57,8 +57,8 @@ Class
 The :class:`ClassModel` type is used to define and serialize complex,
 nested structures. ::
 
-	>>> from soaplib.model.primitive import String, Integer
-	>>> from soaplib.model.clazz import ClassModel
+	>>> from soaplib.core.model.primitive import String, Integer
+	>>> from soaplib.core.model.clazz import ClassModel
 	>>> from lxml import etree
 	>>> class Permission(ClassModel):
 	...	    __namespace__ = "permission"
@@ -102,7 +102,7 @@ base64 encoded strings. Data in Attachment objects can be loaded manually,
 or read from file.  All encoding of the binary data is done just prior to the
 data being sent, and decoding immediately upon receipt of the Attachment. ::
 
-    >>> from soaplib.model.binary import Attachment
+    >>> from soaplib.core.model.binary import Attachment
     >>> from lxml import etree
     >>> a = Attachment(data='my binary data')
     >>> parent = etree.Element('parent')
@@ -112,7 +112,7 @@ data being sent, and decoding immediately upon receipt of the Attachment. ::
     <ns0:retval xmlns:ns0="tns">bXkgYmluYXJ5IGRhdGE=
     </ns0:retval>
     >>> print Attachment.from_xml(element)
-    <soaplib.model.binary.Attachment object at 0x5c6d90>
+    <soaplib.core.model.binary.Attachment object at 0x5c6d90>
     >>> print Attachment.from_xml(element).data
     my binary data
     >>> a2 = Attachment(fileName='test.data') # load from file
@@ -122,7 +122,7 @@ Any
 
 The :class:`Any` type is a serializer used to transmit unstructured XML data.
 Any types are very useful for handling dynamic data, and provide a very
-Pythonic way for passing data using soaplib. The Any serializer does not
+Pythonic way for passing data using soaplib.core. The Any serializer does not
 perform any useful task because the data passed in and returned are Element
 objects. The Any type's main purpose is to declare its presence in the WSDL.
 
@@ -137,12 +137,12 @@ Custom
 ------
 
 Soaplib provides a very simple interface for writing custom type. Just
-inherit from soaplib.model.base.Base and override the :meth:`from_xml`,
+inherit from soaplib.core.model.base.Base and override the :meth:`from_xml`,
 :meth:`to_parent_element` and :meth:`add_to_schema` classmethods.:
 
 .. code-block:: python
 
-    from soaplib.model.base import Base
+    from soaplib.core.model.base import Base
 
     class MySerializer(Base):
         @classmethod

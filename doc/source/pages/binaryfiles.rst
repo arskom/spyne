@@ -7,7 +7,7 @@ string. Soaplib uses the 'Attachment' serializer to handle all encoding and
 decoding of the binary data, and provieds some useful methods for dealing with
 both in-memory and on-disk binary data. ::
 
-    >>> from soaplib.model.binary import Attachment
+    >>> from soaplib.core.model.binary import Attachment
     >>> from lxml import etree as et
     >>> a = Attachment(data="this is my binary data")
     >>> print et.tostring(Attachment.to_parent_element(a))
@@ -17,7 +17,7 @@ both in-memory and on-disk binary data. ::
 
 If you want to return file with binary data, simply::
 
-    >>> from soaplib.model.binary import Attachment
+    >>> from soaplib.core.model.binary import Attachment
     >>> from lxml import etree as et
     >>> a = Attachment(fileName="mydata")
     >>> print et.tostring(Attachment.to_parent_element(a))
@@ -27,11 +27,11 @@ If you want to return file with binary data, simply::
 
 An example service for archiving documents::
 
-    from soaplib.service import rpc, DefinitionBase
-    from soaplib.model.primitive import String, Integer
-    from soaplib.model.clazz import Array
-    from soaplib.model.binary import Attachment
-    from soaplib.server import wsgi
+    from soaplib.core.service import rpc, DefinitionBase
+    from soaplib.core.model.primitive import String, Integer
+    from soaplib.core.model.clazz import Array
+    from soaplib.core.model.binary import Attachment
+    from soaplib.core.server import wsgi
 
     from tempfile import mkstemp
     import os
@@ -73,7 +73,7 @@ An example service for archiving documents::
 
     if __name__=='__main__':
         from wsgiref.simple_server import make_server
-        soap_app = soaplib.Application([DocumentArchiver], 'tns')
+        soap_app = soaplib.core.Application([DocumentArchiver], 'tns')
         wsgi_app = wsgi.Application(soap_app)
         server = make_server('localhost', 7789, wsgi_app)
         server.serve_forever()

@@ -5,12 +5,12 @@ User Manager
 Lets try a more complicated example than just strings and integers!
 The following is an extremely simple example using complex, nested data.::
 
-	from soaplib import Application
-	from soaplib.server import wsgi
-	from soaplib.service import rpc
-	from soaplib.service import DefinitionBase
-	from soaplib.model.primitive import String, Integer
-	from soaplib.model.clazz import ClassModel, Array
+	from soaplib.core import Application
+	from soaplib.core.server import wsgi
+	from soaplib.core.service import rpc
+	from soaplib.core.service import DefinitionBase
+	from soaplib.core.model.primitive import String, Integer
+	from soaplib.core.model.clazz import ClassModel, Array
 
 	user_database = {}
 	userid_seq = 1

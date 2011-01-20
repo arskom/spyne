@@ -7,8 +7,8 @@ API, which allows you to create the xml portions of SOAP message
 programatically. The Message object follows the to_parent_element/from_xml usage pattern as
 the type. ::
 
-    >>> from soaplib.soap import Message
-    >>> from soaplib.model.primitive import String, Integer, Float
+    >>> from soaplib.core.soap import Message
+    >>> from soaplib.core.model.primitive import String, Integer, Float
     >>> import lxml.etree as et
     >>> message = Message('myFunction',[('a',String),('b',Integer),('c',Float)])
     >>> print et.tostring(message.to_parent_element('a',13,3.14))
