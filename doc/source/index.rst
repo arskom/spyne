@@ -13,7 +13,7 @@ application.
 The official soaplib discussion forum/mailing list
 is `here <http://mail.python.org/mailman/listinfo/soap/>`_
 
-The source code is `here <https://github.com/soaplib/soaplib>`_
+The source code is `here <https://github.com/soaplib/soaplib>`_.
 
 The legacy versions of soaplib are also available in this repository.
 
@@ -27,6 +27,7 @@ Installing
 To install soaplib, you can use git to clone from github or install from pypi.
 
 git clone git://github.com/soaplib/soaplib.git
+
 cd soaplib
 
 python setup.py install
@@ -53,7 +54,7 @@ increasing test coverage, so new tests are especially welcome!
 Please follow the `PEP 8 <http://www.python.org/dev/peps/pep-0008/>`_
 style guidelines for both source code and docstrings.
 
-We can also use help with the docs, which are built from reStructureText
+We could also use help with the docs, which are built from reStructureText
 using Sphinx. It's easy to learn, and if you need help getting started,
 contact us on the `mailing list <http://mail.python.org/mailman/listinfo/soap/>`_
 and we'll help.
@@ -61,7 +62,8 @@ and we'll help.
 Regular contributors may be invited to join the soaplib organization on GitHub.
 This provides a way for multiple contributors to commit to the same repository,
 with no need for pull requests. It also provides stable home for the soaplib
-repository, though any future changes in maintenance team.
+repository, despite any "changing of the guard" as team members join and
+leave the project.
 
 
 History
@@ -99,7 +101,7 @@ produce generic XSD for non-SOAP applications.
    pages/model_api
 
 
-WSDL Reprensation
+WSDL Representation
 -------------------
 .. toctree::
     :maxdepth: 2
