@@ -7,7 +7,6 @@ soaplib-2.0
 * Enum factory can be passed a '__doc__' keyword argument.
 * Serializers renamed to Models.
 * Annotations added for primitive types.
-* Client added.
 * 0mq support added.
 * Hard dependency on WSGI removed
 * Per model stand alone XSD generation added
