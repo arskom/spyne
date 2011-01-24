@@ -5,13 +5,13 @@
 
 About
 --------
-Soaplib is an easy to use python library for publishing soap web services using
+Soaplib is an easy to use Python library for publishing SOAP web services using
 WSDL 1.1 standard, and answering SOAP 1.1 requests. With a very small amount of
 code, soaplib allows you to write a useful web service and deploy it as a WSGI
-application.
+application. (Non-WSGI scenarios are also supported.)
 
-The official soaplib discussion forum/mailing list
-is `here <http://mail.python.org/mailman/listinfo/soap/>`_
+Public discussion about soaplib can be found on the `Python general SOAP mailing
+list <http://mail.python.org/mailman/listinfo/soap/>`_.
 
 The source code is `here <https://github.com/soaplib/soaplib>`_.
 
