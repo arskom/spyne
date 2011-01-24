@@ -89,6 +89,10 @@ Examples
 
 Model API
 ------------
+The soaplib.model API provides an elegant way of declaring within Python classes
+the XML Schema (W3C) elements which make up a WSDL. This can also be used to
+produce generic XSD for non-SOAP applications.
+
 .. toctree::
    :maxdepth: 2
 
