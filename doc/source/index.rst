@@ -41,10 +41,26 @@ python setup.py develop
 
 Contributing
 --------------
-If you wish to contribute to soaplib's development simply create a personal fork
-on github.  When you are ready to push to the repo simply submit a pull request.
-For code changes make sure the existing test pass; if you are adding new
-features please have accompanying test.
+If you wish to contribute to soaplib's development, create a personal fork
+on GitHub.  When you are ready to push to the repo, submit a pull request,
+and one of the core committers will review and respond.
+
+For code changes make sure the existing tests pass; if you are adding new
+features please have accompanying test. Of course, we're also interested in
+increasing test coverage, so new tests are especially welcome!
+
+Please follow the `PEP 8 <http://www.python.org/dev/peps/pep-0008/>`_
+style guidelines for both source code and docstrings.
+
+We can also use help with the docs, which are built from reStructureText
+using Sphinx. It's easy to learn, and if you need help getting started,
+contact us on the `mailing list <http://mail.python.org/mailman/listinfo/soap/>`_
+and we'll help.
+
+Regular contributors may be invited to join the soaplib organization on GitHub.
+This provides a way for multiple contributors to commit to the same repository,
+with no need for pull requests. It also provides stable home for the soaplib
+repository, though any future changes in maintenance team.
 
 
 History
