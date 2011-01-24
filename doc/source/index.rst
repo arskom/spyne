@@ -13,6 +13,7 @@ application.
 The official soaplib discussion forum/mailing list
 is `here <http://mail.python.org/mailman/listinfo/soap/>`_
 
+The source code is `here <https://github.com/soaplib/soaplib>`_
 
 The legacy versions of soaplib are also available in this repository.
 
