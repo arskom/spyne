@@ -73,6 +73,12 @@ History
 
    pages/changelog
 
+FAQ
+----
+.. toctree::
+   :maxdepth: 2
+
+   pages/faq
 
 Examples
 ----------
