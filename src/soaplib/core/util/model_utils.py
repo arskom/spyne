@@ -20,6 +20,10 @@ class ClassModelConverter():
         """
         @param An instance of a soaplib.core.model.clazz.ClassModel
         @parma The target namespace of the model instance.
+        @param Indicates if a parent element should be returned as the root
+        element of the xml representation.  If true, a root element will be included with
+        the tag "parent_tag"
+        @param The tag used for the creation of a root/parent element.
         """
 
         self.instance = model_instance
@@ -30,12 +34,6 @@ class ClassModelConverter():
     def to_etree(self):
         """Returns a lxml.etree.Element from a soaplib.core.model.clazz.ClassModel
         instance.
-
-        @param Indicates if a parent element should be returned as the root
-        element of the document.  If true, a root element will be included with
-        the tag "parent_tag"
-
-        @param The tag used for the creation of a root/parent element.
         """
 
         root_element = etree.Element(self.parent_tag)
@@ -49,12 +47,6 @@ class ClassModelConverter():
 
     def to_xml(self):
         """Returns a xml string from a soaplib.core.model.clazz.ClassModel instance.
-
-        @param Indicates if a parent element should be returned as the root
-        element of the document.  If true, a root element will be included with
-        the tag "parent_tag"
-
-        @param The tag used for the creation of a root/parent element.
         """
 
         el = self.to_etree()
@@ -71,12 +63,6 @@ class ClassModelConverter():
         """Writes a model instance to a XML document
 
         @param The output file path for the xml file
-
-        @param Indicates if a parent element should be returned as the root
-        element of the document.  If true, a root element will be included with
-        the tag "parent_tag"
-
-        @param The tag used for the creation of a root/parent element.
         """
 
         el = self.to_etree()
