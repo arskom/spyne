@@ -112,7 +112,6 @@ class ModelAsRootTestCase(BaseCase):
 class AddedRootElementTestCase(BaseCase):
     def setUp(self):
         self.file_path = "instance.xml"
-#         model_instance, tns, include_parent=False, parent_tag="root"
         self.converter = ClassModelConverter(
                 simple_factory(),"tns",include_parent=True, parent_tag="foo")
 
