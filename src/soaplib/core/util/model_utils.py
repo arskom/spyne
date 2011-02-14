@@ -3,6 +3,7 @@ soaplib.core.model.ClassModel instances
 """
 
 import os
+import re
 from lxml import etree
 
 class ClassModelConverter():
@@ -16,7 +17,7 @@ class ClassModelConverter():
     ClassModel API.
     """
 
-    def __init__(self, model_instance, tns, include_parent=False, parent_tag="root"):
+    def __init__(self, model_instance, tns, include_parent=False, parent_tag="root", include_ns=True):
         """
         @param An instance of a soaplib.core.model.clazz.ClassModel
         @parma The target namespace of the model instance.
@@ -26,23 +27,71 @@ class ClassModelConverter():
         @param The tag used for the creation of a root/parent element.
         """
 
+        assert tns or tns !="" , "'tns' should not be None or an empty string"
+
+
         self.instance = model_instance
         self.tns = tns
         self.include_parent= include_parent
         self.parent_tag = parent_tag
+        self.include_ns = include_ns
+
+
+    def __get_ns_free_element(self, element):
+        """ """
+
+        new_el = None
+        m = re.search('(?<=})\w+', element.tag)
+
+        if m:
+            new_el = etree.Element(m.group(0))
+        else:
+            new_el = etree.Element(element.tag)
+
+        new_el.text = element.text
+
+
+        for k in element.attrib.keys():
+            new_el.attrib[k] = element.attrib[k]
+
+        for child in element.iterchildren():
+            new_child = self.__get_ns_free_element(child)
+            new_el.append(new_child)
+
+        return new_el
+
+
+    def __get_etree(self):
+        root_element = etree.Element(self.parent_tag)
+        self.instance.to_parent_element(self.instance, self.tns, root_element)
+
+        rt_el = None
+        if not self.include_parent:
+            rt_el = root_element[0]
+        else:
+           rt_el = root_element
+
+        if not self.include_ns:
+            rt_el = self.__get_ns_free_element(rt_el)
+
+        return rt_el
+
 
     def to_etree(self):
         """Returns a lxml.etree.Element from a soaplib.core.model.clazz.ClassModel
         instance.
         """
 
-        root_element = etree.Element(self.parent_tag)
-        self.instance.to_parent_element(self.instance, self.tns, root_element)
+        return self.__get_etree()
 
-        if not self.include_parent:
-            return root_element[0]
-        else:
-           return root_element
+#        root_element = etree.Element(self.parent_tag)
+#        self.instance.to_parent_element(self.instance, self.tns, root_element)
+#
+#        if not self.include_parent:
+#            return root_element[0]
+#        else:
+#           return root_element
+
 
 
     def to_xml(self):

@@ -87,7 +87,14 @@ class BaseCase(unittest.TestCase):
                   (self.converter.tns, self.converter.instance.__type_name__)
         self.assertEquals(element.tag, tns_tag)
 
-    
+    def remove_ns(self):
+        self.converter.include_ns = False
+        element = self.converter.to_etree()
+        self.assertFalse(element.nsmap)
+
+    def empty_ns(self):
+        self.assertRaises(AssertionError, ClassModelConverter, simple_factory(), "")
+
 
 class ModelAsRootTestCase(BaseCase):
 
@@ -108,6 +115,12 @@ class ModelAsRootTestCase(BaseCase):
 
     def test_complex_element(self):
         self.element()
+        
+    def test_strip_ns(self):
+        self.remove_ns()
+
+    def test_empty_ns(self):
+        self.empty_ns()
 
 class AddedRootElementTestCase(BaseCase):
     def setUp(self):
@@ -137,4 +150,7 @@ class AddedRootElementTestCase(BaseCase):
 
     def test_complex_element(self):
         self.element()
+
+    def test_strip_ns(self):
+        self.remove_ns()
 
