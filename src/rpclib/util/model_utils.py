@@ -102,16 +102,6 @@ class ClassSerializerConverter():
 
         return self.__get_etree()
 
-#        root_element = etree.Element(self.parent_tag)
-#        self.instance.to_parent_element(self.instance, self.tns, root_element)
-#
-#        if not self.include_parent:
-#            return root_element[0]
-#        else:
-#           return root_element
-
-
-
     def to_xml(self):
         """Returns a xml string from a rpclib.model.clazz.ClassSerializer instance.
         """
