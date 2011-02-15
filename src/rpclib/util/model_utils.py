@@ -70,10 +70,7 @@ class ClassSerializerConverter():
 
         for k in element.attrib.keys():
             if k not in ["{http://www.w3.org/2001/XMLSchema-instance}nil"]:
-                key = k
-                val = element.attrib[k]
                 new_el.attrib[k] = element.attrib[k]
-                foo = "A"
 
         for child in element.iterchildren():
             new_child = self.__get_ns_free_element(child)
