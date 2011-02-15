@@ -52,7 +52,8 @@ class ClassModelConverter():
 
 
         for k in element.attrib.keys():
-            new_el.attrib[k] = element.attrib[k]
+            if k not in ["xmlns:xs", "xsi:nil"]:
+                new_el.attrib[k] = element.attrib[k]
 
         for child in element.iterchildren():
             new_child = self.__get_ns_free_element(child)
