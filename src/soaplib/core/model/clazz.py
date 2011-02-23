@@ -246,6 +246,11 @@ class ClassModelBase(Base):
 
         return inst
 
+    @classmethod
+    def from_string(cls, xml_string):
+        inst = cls.from_xml(etree.fromstring(xml_string))
+        return inst
+
     @staticmethod
     def resolve_namespace(cls, default_ns):
         if getattr(cls, '__extends__', None) != None:

@@ -45,3 +45,6 @@ nbproject
 # wsi-test-tools
 /src/soaplib/test/interop/wsi-test-tools
 /src/soaplib/test/interop/config.xml
+
+# pycharm cruft
+.idea/

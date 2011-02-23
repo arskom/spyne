@@ -80,6 +80,36 @@ class Level1(ClassModel):
 
 Level1.resolve_namespace(Level1, __name__)
 
+
+class SisMsg(ClassModel):
+    """
+    Container with metadata for Jiva integration messages
+    carried in the MQ payload.
+    """
+    data_source = String(nillable=False, min_occurs=1, max_occurs=1, max_len=50)
+    direction = String(nillable=False, min_occurs=1, max_occurs=1, max_len=50)
+    interface_name = String(nillable=False, min_occurs=1, max_occurs=1, max_len=50)
+    crt_dt = DateTime(nillable=False)
+
+class EncExtractXs (ClassModel):
+    __min_occurs__ = 1
+    __max_occurs__ = 1
+    mbr_idn = Integer(nillable=False, min_occurs=1, max_occurs=1, max_len=18)
+    enc_idn = Integer(nillable=False, min_occurs=1, max_occurs=1, max_len=18)
+    hist_idn = Integer(nillable=False, min_occurs=1, max_occurs=1, max_len=18)
+
+
+class EncExtractSisMsg (SisMsg):
+    """
+    Message indicating a Jiva episode needs to be extracted.
+
+    Desirable API: Will it work?
+    >>> msg = EncExtractSisMsg.from_xml(raw_xml)
+    >>> msg.body.mbr_idn
+    """
+    body = EncExtractXs
+
+
 class TestClassModel(unittest.TestCase):
     def test_simple_class(self):
         a = Address()
@@ -233,6 +263,72 @@ class TestClassModel(unittest.TestCase):
         self.assertEquals(Derived.Attributes.prop1, Base.Attributes.prop1)
         self.assertNotEquals(Derived2.Attributes.prop1, Base.Attributes.prop1)
         self.assertEquals(Derived3.Attributes.prop1, Base.Attributes.prop1)
+
+    def test_from_string(self):
+
+        from soaplib.core.util.model_utils import ClassModelConverter
+
+        class Simple(ClassModel):
+            number = Integer
+            text = String
+
+        class NotSoSimple(ClassModel):
+
+            number_1 = Integer
+            number_2 = Integer
+            body = Simple
+
+
+        nss = NotSoSimple()
+        nss.number_1 = 100
+        nss.number_2 = 1000
+
+        nss.body = Simple()
+        nss.body.number = 1
+        nss.body.text = "Some Text"
+
+        cmc = ClassModelConverter(nss, "testfromstring", include_ns=False)
+        element = cmc.to_etree()
+
+        assert nss.body.number == 1
+        assert nss.number_1 == 100
+
+        nss_from_xml = NotSoSimple.from_string(cmc.to_xml())
+
+        assert nss_from_xml.body.number == 1
+        assert nss_from_xml.body.text == "Some Text"
+        assert nss_from_xml.number_1 == 100
+        assert nss_from_xml.number_2 == 1000
+
+#
+#
+#        encounter_extract_sis_message = EncExtractSisMsg()
+#        encounter_extract_sis_message.body = EncExtractXs()
+#        encounter_extract_sis_message.body.mbr_idn = 1
+#        encounter_extract_sis_message.body.enc_idn = 2
+#        encounter_extract_sis_message.body.hist_idn = 3
+#        encounter_extract_sis_message.data_source = "Foo"
+#        encounter_extract_sis_message.direction = "Outbound"
+#        encounter_extract_sis_message.interface_name = "CID"
+#
+#        from datetime import datetime
+#        encounter_extract_sis_message.crt_dt = datetime(2011,02,14, 12,1,29)
+#
+#        cmc = ClassModelConverter(encounter_extract_sis_message, encounter_extract_sis_message.get_namespace())
+#        xml = cmc.to_xml()
+#
+#        print xml
+#
+#        element = etree.fromstring(xml)
+#
+#
+#        parsed_in = EncExtractSisMsg.from_xml(element)
+#        cmc = ClassModelConverter(parsed_in, parsed_in.get_namespace(), include_ns=False)
+#        i_xml = cmc.to_xml()
+#        print i_xml
+#
+#        assert True
+
 
 if __name__ == '__main__':
     unittest.main()
