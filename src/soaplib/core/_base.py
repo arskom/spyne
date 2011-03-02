@@ -85,7 +85,7 @@ class _SchemaEntries(object):
         def is_valid_import(pref):
             return pref != pref_tns
 
-        if not (pref_tns in self.imports):
+        if pref_tns not in self.imports:
             self.imports[pref_tns] = set()
 
         for c in node:
@@ -479,7 +479,7 @@ class Application(object):
             out_object.add_to_parent_element(self.get_tns(), out_body_xml)
 
             # implementation hook
-            if not (ctx.service is None):
+            if ctx.service :
                 ctx.service.on_method_exception_xml(out_body_xml)
             self.on_exception_xml(out_body_xml)
 
@@ -554,7 +554,7 @@ class Application(object):
                                                              pretty_print=True))
 
             #implementation hook
-            if not (ctx.service is None):
+            if ctx.service :
                 ctx.service.on_method_return_xml(envelope)
 
         return envelope
@@ -573,7 +573,7 @@ class Application(object):
 
         assert (isinstance(ns, str) or isinstance(ns, unicode)), ns
 
-        if not (ns in self.prefmap):
+        if ns not in self.prefmap:
             pref = "s%d" % self.__ns_counter
             while pref in self.nsmap:
                 self.__ns_counter += 1
@@ -765,7 +765,7 @@ class Application(object):
         """
 
         # create schema node
-        if not (pref in schema_nodes):
+        if pref not in schema_nodes:
             if types is None:
                 schema = etree.Element("{%s}schema" % namespaces.ns_xsd,
                                                         nsmap=self.nsmap)

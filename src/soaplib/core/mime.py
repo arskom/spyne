@@ -45,7 +45,7 @@ def join_attachment(href_id, envelope, payload, prefix=True):
     def replacing(parent, node, payload, numreplaces):
         if node.tag == '{%s}Include' % namespaces.ns_xop:
             attrib = node.attrib.get('href')
-            if not attrib is None:
+            if attrib:
                 if unquote(attrib) == href_id:
                     parent.remove(node)
                     parent.text = payload
@@ -81,7 +81,7 @@ def join_attachment(href_id, envelope, payload, prefix=True):
 
         if numreplaces < 1:
             attrib = param.attrib.get('href')
-            if not attrib is None:
+            if attrib :
                 if unquote(attrib) == href_id:
                     del(param.attrib['href'])
                     param.text = payload

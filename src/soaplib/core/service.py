@@ -148,7 +148,7 @@ def soap(*params, **kparams):
         def explain_method(*args, **kwargs):
             retval = None
 
-            if not ('_method_descriptor' in kwargs):
+            if '_method_descriptor' not in kwargs :
                 retval = f(*args, **kwargs)
 
             else:
@@ -192,9 +192,9 @@ def soap(*params, **kparams):
 
                 _faults = kparams.get('_faults', [])
 
-                if not (_in_header is None):
+                if _in_header :
                     _in_header.resolve_namespace(_in_header, ns)
-                if not (_out_header is None):
+                if _out_header :
                     _out_header.resolve_namespace(_out_header, ns)
 
                 doc = getattr(f, '__doc__')
@@ -359,7 +359,7 @@ class DefinitionBase(object):
 
     @classmethod
     def get_tns(cls):
-        if not (cls.__tns__ is None):
+        if cls.__tns__ :
             return cls.__tns__
 
         service_name = cls.__name__.split('.')[-1]
@@ -675,7 +675,7 @@ class DefinitionBase(object):
             if in_header is None:
                 in_header = self.__in_header__
 
-            if not (in_header is None):
+            if in_header :
                 soap_header = etree.SubElement(input, '{%s}header' % ns_soap)
                 soap_header.set('use', 'literal')
                 soap_header.set('message', in_header.get_type_name_ns(app))
@@ -693,7 +693,7 @@ class DefinitionBase(object):
                 if out_header is None:
                     out_header = self.__in_header__
 
-                if not (out_header is None):
+                if out_header:
                     soap_header = etree.SubElement(output, '{%s}header' %
                                                                         ns_soap)
                     soap_header.set('use', 'literal')

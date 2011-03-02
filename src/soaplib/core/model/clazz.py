@@ -80,8 +80,7 @@ class ClassModelMeta(type(Base)):
         if extends is None:
             for b in cls_bases:
                 base_types = getattr(b, "_type_info", None)
-
-                if not (base_types is None):
+                if base_types :
                     if not (extends is None or cls_dict["__extends__"] is b):
                         raise Exception("WSDL 1.1 does not support multiple "
                                         "inheritance")
@@ -131,7 +130,7 @@ class ClassModelBase(Base):
 
     def __reset_members(self, cls, kwargs):
         extends = getattr(cls, "__extends__", None)
-        if not (extends is None):
+        if extends :
             self.__reset_members(extends, kwargs)
 
         for k in cls._type_info.keys():
@@ -177,7 +176,7 @@ class ClassModelBase(Base):
     @classmethod
     def get_members(cls, inst, parent):
         parent_cls = getattr(cls, '__extends__', None)
-        if not (parent_cls is None):
+        if parent_cls :
             parent_cls.get_members(inst, parent)
 
         for k, v in cls._type_info.items():
