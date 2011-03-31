@@ -1,0 +1,28 @@
+<configure xmlns="http://namespaces.zope.org/browser">
+
+    <soaplib
+            name="w2"
+            for="*"
+            service_definitions=".soap.SoapService"
+            app_namespace="Test">
+
+    </soaplib>
+
+
+</configure>
+
+<!--
+<configure
+    xmlns="http://namespaces.zope.org/zope"
+    xmlns:browser="http://namespaces.zope.org/browser"
+    >
+
+
+    <browser:page
+            name="wsdl_view"
+            class=".soap.WSDLView"
+            for="*"
+            permission="zope.Public"
+            />
+</configure>
+-->

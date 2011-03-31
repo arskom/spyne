@@ -1,0 +1,4 @@
+This is the core of a ZTK component for soaplib.
+
+Currently, the directives haven't been fully tested.
+Please see soaplib.wsrplib.zope.producer for a working example.

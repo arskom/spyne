@@ -1,0 +1,30 @@
+<configure
+        xmlns="http://namespaces.zope.org/meta">
+
+    <directives namespace="http://namespaces.zope.org/browser">
+
+        <directive
+            name="soaplib"
+            schema=".metadirectives.ISoaplibHandlerDirective"
+            handler=".metaconfigure.handle_soaplib_req"
+        />
+    
+    </directives>
+
+</configure>
+        
+
+<!--
+<configure xmlns="http://namespaces.zope.org/browser">
+
+    <soaplib
+            name="w2"
+            for="*"
+            service_definitions="AService"
+            app_namespace="Test">
+
+    </soaplib>
+
+
+</configure>
+-->
