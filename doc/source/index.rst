@@ -80,7 +80,7 @@ FAQ
 
    pages/faq
 
-Examples
+Quick Start Examples
 ----------
 
 .. toctree::
@@ -93,6 +93,7 @@ Examples
    pages/message_api
    pages/hooks
    pages/apache_axis
+
 
 
 Model API
@@ -137,6 +138,13 @@ Application
     :maxdepth: 2
 
     pages/application
+
+Multiple Service Classes
+-------------------------
+.. toctree::
+    :maxdepth: 2
+
+    pages/multiple_services
 
 
 Indices and tables

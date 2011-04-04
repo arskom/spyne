@@ -7,7 +7,7 @@ The following is an extremely simple example using complex, nested data.::
 
 	from soaplib.core import Application
 	from soaplib.core.server import wsgi
-	from soaplib.core.service import rpc
+	from soaplib.core.service import soap
 	from soaplib.core.service import DefinitionBase
 	from soaplib.core.model.primitive import String, Integer
 	from soaplib.core.model.clazz import ClassModel, Array
