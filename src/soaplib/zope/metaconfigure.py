@@ -54,11 +54,14 @@ class SoaplibHandler(object):
             self.request.response['Content-Type'] = "text/xml; charset=utf-8"
 
             return resp_comp.xml_response
+
         except TypeError as te:
-             te_fault = Fault(
-                 faultcode="Client",
-                 faultstring=te.message,
-                 faultactor="Client")
+            fault = Fault(
+                faultcode="Client",
+                faultstring=te.message,
+                faultactor="Client"
+            )
+            return fault
 
 
 
