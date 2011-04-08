@@ -218,16 +218,19 @@ class WSDL():
         """
 
         default_service_name = self.application.get_name()
-        applied_service_name = None
-        port_binding_names = []
         for service in self.application.services:
+            applied_service_name = None
+            port_binding_names = []
             ser = None
             cb_binding = None
 
             if service.get_service_interface() is None:
                 # This is the default behavior. i.e. no service interface is
                 # defined in the service heading
-                applied_service_name = default_service_name
+                if len(self.application.services) == 1:
+                    applied_service_name = default_service_name
+                else:
+                    applied_service_name = service.get_service_class_name()
             else:
                 applied_service_name = service.get_service_interface()
 
@@ -295,9 +298,9 @@ class WSDL():
                     cb_binding
                 )
 
-        ser = self._get_or_create_service_node(applied_service_name)
-        for port_name, binding_name in port_binding_names:
-            self._add_port_to_service(ser, port_name, binding_name)
+            ser = self._get_or_create_service_node(applied_service_name)
+            for port_name, binding_name in port_binding_names:
+                self._add_port_to_service(ser, port_name, binding_name)
 
 
     def build_wsdl(self):
