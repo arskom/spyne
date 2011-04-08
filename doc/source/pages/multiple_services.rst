@@ -75,19 +75,19 @@ method decoratorthe service classes.
 
 For example modifying the UserManager service class as follows ::
 
+
     class UserManager(DefinitionBase):
+        __service_interface__ = "UserService"
+        __port_types__ = ["user_services"]
 
-		__service_interface__ = "UserService"
-		__port_types__ = ["user_services"]
-
-		@soap(User,_returns=Integer, _port_type="user_services")
-		def add_user(self,user):
-			global user_database
-			global userid_seq
-			user.userid = userid_seq
-			userid_seq = userid_seq + 1
-			user_database[user.userid] = user
-			return user.userid
+        @soap(User,_returns=Integer, _port_type="user_services")
+        def add_user(self,user):
+            global user_database
+            global userid_seq
+            user.userid = userid_seq
+            userid_seq = userid_seq + 1
+            user_database[user.userid] = user
+            return user.userid
 
 
 When this class is passed to a soaplib Application, the generated WSDL will now
