@@ -18,8 +18,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from soaplib import Application
-from soaplib.server import wsgi
+from soaplib.core import Application
+from soaplib.core.server import wsgi
 from soaplib.core.service import soap
 from soaplib.core.service import DefinitionBase
 from soaplib.core.model.primitive import String, Integer

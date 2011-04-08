@@ -30,22 +30,50 @@ services as needed. ::
         server.server_forever()
 
 
-The WSDL that results from this code is as follows. ::
 
-    <wsdl></wsdl>
+Default Service and PortType behaviour
+---------------------------------------
 
-Notice the tags for service and portType.  Currently, the default behaviour in
-soaplib is to place all service definitions into the same service and to bind
-all methods into the default portType.  The default behaviour remains in place
-to prevent breaking backward compatibility.  In future release this may change.
+The WSDL bindings for portType and Service that results from the last example
+are as follows. ::
 
-The service binding can be overridden by explicitly setting the
+    <wsdl:portType name="Application">
+        <wsdl:operation name="add_computer" parameterOrder="add_computer">
+            <wsdl:input name="add_computer" message="tns:add_computer"/>
+            <wsdl:output name="add_computerResponse" message="tns:add_computerResponse"/>
+        </wsdl:operation>
+        <wsdl:operation name="add_user" parameterOrder="add_user">
+            <wsdl:input name="add_user" message="tns:add_user"/>
+            <wsdl:output name="add_userResponse" message="tns:add_userResponse"/>
+        </wsdl:operation>
+        ....
+        ....
+    </wsdl:portType>
+
+
+    <wsdl:service name="Application">
+        ....
+    </wsdl:service>
+
+
+This is likely far from what one would expect..i.e services and/or portTypes
+being used to group services and functionality.  Soaplib does support
+multiple service and portType bindings however it was added well into 2.0
+development cycle.  So, the decision was made to maintain the default behaviour
+in order to prevent breaking backward compatibility outright.  However, in
+future release this may change based on user feedback.
+
+
+Custom Service and PortType bindings
+-------------------------------------
+The Service binding can be overridden by explicitly setting the
 __service_interface__ attribute in service class.
 
-Additionaly, defining explicit portType bindings is accomplished by setting the
-__port_types__ attributes and supplying the _port_type paramater to the @soap
-method decorator
-the service classes.  To ::
+Additionally, defining explicit portType bindings is accomplished by setting the
+__port_types__ attributes and supplying the _port_type parameter to the @soap
+method decoratorthe service classes.
+
+For example modifying the UserManager service class as follows ::
 
     class UserManager(DefinitionBase):
 
@@ -61,3 +89,10 @@ the service classes.  To ::
 			user_database[user.userid] = user
 			return user.userid
 
+
+When this class is passed to a soaplib Application, the generated WSDL will now
+include bindings for a Service named "UserService" as well as portType bindings
+for "user_services".
+
+For a more complete example please see the "service_portType_binding.py" example
+include with soaplib.
