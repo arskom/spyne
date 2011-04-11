@@ -21,7 +21,7 @@ If you want to return file with binary data, simply::
 
     >>> from soaplib.core.model.binary import Attachment
     >>> from lxml import etree as et
-    >>> a = Attachment(fileName="mydata")
+    >>> a = Attachment(file_name="mydata")
     >>> parent = etree.Element("parent")
     >>> Attachment.to_parent_element(a, "tns", parent)
     >>> print et.tostring(parent)
