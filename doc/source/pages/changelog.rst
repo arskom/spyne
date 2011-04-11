@@ -7,13 +7,14 @@ soaplib-2.0
 * Enum factory can be passed a '__doc__' keyword argument.
 * Serializers renamed to Models.
 * Annotations added for primitive types.
-* 0mq support added.
 * Hard dependency on WSGI removed
 * Per model stand alone XSD generation added
 * @soap() added to be more SOAP specific.
 * @doc() added to support document literal style/use.
 * @rpc() modified to default to rpc literal style/use.
 * Standalone WSDL added.
+* Support for multiple services and portType bindings added.
+* Utilities added for exporting Model instances as XML.
 
 
 soaplib-1.0
