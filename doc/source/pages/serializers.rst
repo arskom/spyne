@@ -106,7 +106,7 @@ data being sent, and decoding immediately upon receipt of the Attachment. ::
     >>> from lxml import etree
     >>> a = Attachment(data='my binary data')
     >>> parent = etree.Element('parent')
-    >>> Attachment.to_parent_element(a)
+    >>> Attachment.to_parent_element(a, "tns", parent )
     >>> element = parent[0]
     >>> print etree.tostring(element)
     <ns0:retval xmlns:ns0="tns">bXkgYmluYXJ5IGRhdGE=
