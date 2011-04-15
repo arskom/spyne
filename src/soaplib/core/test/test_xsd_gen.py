@@ -24,7 +24,7 @@ import unittest
 from lxml import etree
 
 from soaplib.core.model.clazz import ClassModel
-from soaplib.core.model.primitive import String
+from soaplib.core.model.primitive import String, Date, Integer
 from soaplib.core.util.xsd_gen import XSDGenerator
 
 
@@ -103,6 +103,22 @@ class TestXsdGen(unittest.TestCase):
             tree.attrib['targetNamespace'],
             DoubleNestedModel.get_namespace()
         )
+
+    def test_customized_xms(self):
+
+        class Complex(ClassModel):
+            simple = SimpleModel.customize(min_occurs=11, max_occurs="unbounded", nillable=False)
+            bobby = Integer(nillable=False, min_occurs=10,max_occurs=20002)
+#            simple = MySimple(min_occurs=1, max_occurs="unbounded", nillable=False)
+
+        xsd = self.xsd_gen.get_model_xsd(Complex, pretty_print=True)
+
+        class ExtraComplex(ClassModel):
+            cp = Complex.customize(min_occurs=8, max_occurs=1010, nillable=False, foo="bar")
+
+        xsd = self.xsd_gen.get_model_xsd(ExtraComplex, pretty_print=True)
+        assert xsd
+
 
     def test_xsd_file(self):
         file_name = self.xsd_gen.write_model_xsd_file(SimpleModel, '.')
