@@ -25,6 +25,7 @@ from lxml import etree
 
 from rpclib.model.clazz import ClassSerializer
 from rpclib.model.primitive import String
+from rpclib.model.primitive import Integer
 from rpclib.util.xsd_gen import XSDGenerator
 
 
@@ -118,6 +119,20 @@ class TestXsdGen(unittest.TestCase):
         self.assertEquals(len(ret_list), 3)
         for file in ret_list:
             self.assertTrue(os.path.isfile(file))
+
+    def test_customized_xms(self):
+        class Complex(ClassSerializer):
+            simple = SimpleModel.customize(min_occurs=11, max_occurs="unbounded", nillable=False)
+            bobby = Integer(nillable=False, min_occurs=10,max_occurs=20002)
+            #simple = MySimple(min_occurs=1, max_occurs="unbounded", nillable=False)
+
+        xsd = self.xsd_gen.get_model_xsd(Complex, pretty_print=True)
+
+        class ExtraComplex(ClassSerializer):
+            cp = Complex.customize(min_occurs=8, max_occurs=1010, nillable=False, foo="bar")
+
+        xsd = self.xsd_gen.get_model_xsd(ExtraComplex, pretty_print=True)
+        assert xsd
 
 if __name__ == '__main__':
     unittest.main()
