@@ -147,6 +147,13 @@ Multiple Service Classes
     pages/multiple_services
 
 
+Utilities
+------------
+.. toctree::
+    :maxdepth: 2
+
+    pages/utilities
+
 Indices and tables
 ==================
 

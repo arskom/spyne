@@ -19,12 +19,12 @@ class ClassModelConverter():
 
     def __init__(self, model_instance, tns, include_parent=False, parent_tag="root", include_ns=True):
         """
-        @param An instance of a soaplib.core.model.clazz.ClassModel
-        @parma The target namespace of the model instance.
-        @param Indicates if a parent element should be returned as the root
+        @param model_instance: An instance of a soaplib.core.model.clazz.ClassModel
+        @parma tns:The target namespace of the model instance.
+        @param include_parent: Indicates if a parent element should be returned as the root
         element of the xml representation.  If true, a root element will be included with
         the tag "parent_tag"
-        @param The tag used for the creation of a root/parent element.
+        @param parent_tag: The tag used for the creation of a root/parent element.
         """
 
         assert tns or tns !="" , "'tns' should not be None or an empty string"

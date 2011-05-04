@@ -109,9 +109,6 @@ class TestXsdGen(unittest.TestCase):
         class Complex(ClassModel):
             simple = SimpleModel.customize(min_occurs=11, max_occurs="unbounded", nillable=False)
             bobby = Integer(nillable=False, min_occurs=10,max_occurs=20002)
-#            simple = MySimple(min_occurs=1, max_occurs="unbounded", nillable=False)
-
-        xsd = self.xsd_gen.get_model_xsd(Complex, pretty_print=True)
 
         class ExtraComplex(ClassModel):
             cp = Complex.customize(min_occurs=8, max_occurs=1010, nillable=False, foo="bar")
