@@ -1,15 +1,16 @@
 Multiple Services
 ------------------
 
-Soaplib supports supplying multiple service classes (DefinitionBase) to a
-single soap Application.  This allows you to group functionality and deploy the
-services as needed. ::
+Soaplib supports supplying multiple service classes
+(:obj:`~soaplib.core.service.DefinitionBase`) to a single soap Application.
+This allows you to group functionality and deploy the services as needed. ::
 
 
     from wsgiref.simple_server import make_server
     from soaplib.core import Application
     from soaplib.core.server import wsgi
 
+    # UserManager and ComputerManager are both instances of DefinitionBase
     from mysoapservices.user import UserManager
     from mysoapservices.it import ComputerManager
 
@@ -67,11 +68,12 @@ future release this may change based on user feedback.
 Custom Service and PortType bindings
 -------------------------------------
 The Service binding can be overridden by explicitly setting the
-__service_interface__ attribute in service class.
+:attr:`~soaplib.core.service.Service.__service_interface__` attribute in
+:obj:`~soaplib.core.service.Service` class.
 
 Additionally, defining explicit portType bindings is accomplished by setting the
-__port_types__ attributes and supplying the _port_type parameter to the @soap
-method decoratorthe service classes.
+:attr:`~soaplib.core.service.DefinitionBase.__port_types__` attribute and supplying
+the ``_port_type`` parameter to the @:func:`~soaplib.core.service.soap` method decorator.
 
 For example modifying the UserManager service class as follows ::
 
@@ -90,9 +92,9 @@ For example modifying the UserManager service class as follows ::
             return user.userid
 
 
-When this class is passed to a soaplib Application, the generated WSDL will now
-include bindings for a Service named "UserService" as well as portType bindings
-for "user_services".
+When this class is passed to a soaplib :obj:`~soaplib.core.server.Application`,
+the generated WSDL will now include bindings for a Service named "UserService"
+as well as portType bindings for "user_services".
 
 For a more complete example please see the "service_portType_binding.py" example
-include with soaplib.
+included with soaplib.

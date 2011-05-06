@@ -63,4 +63,4 @@ soaplib-0.8
 
 * Switched to lxml for proper xml namespace support.
 * In this version, soaplib is a stable soap server not without its glitches
-and quirks
+  and quirks

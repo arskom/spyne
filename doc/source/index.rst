@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 About
---------
+-----
 Soaplib is an easy to use Python library for publishing SOAP web services using
 WSDL 1.1 standard, and answering SOAP 1.1 requests. With a very small amount of
 code, soaplib allows you to write a useful web service and deploy it as a WSGI
@@ -15,34 +15,29 @@ list <http://mail.python.org/mailman/listinfo/soap/>`_.
 
 The source code is `here <https://github.com/soaplib/soaplib>`_.
 
-The legacy versions of soaplib are also available in this repository.
+The legacy versions of soaplib are also available in this repository:
 
-See `here <https://github.com/soaplib/soaplib/tree/0_8>`_ for the soaplib-0.8 branch.
-
-See `here <https://github.com/soaplib/soaplib/tree/1_0>`_ for the soaplib-1.0 branch.
+* soaplib-0.8 branch: https://github.com/soaplib/soaplib/tree/0_8
+* soaplib-1.0 branch: https://github.com/soaplib/soaplib/tree/1_0
 
 
 Installing
--------------
-To install soaplib, you can use git to clone from github or install from pypi.
+----------
+To install soaplib, you can use git to clone from github or install from pypi::
 
-git clone git://github.com/soaplib/soaplib.git
+    git clone git://github.com/soaplib/soaplib.git
+    cd soaplib
+    python setup.py install
 
-cd soaplib
+    # to run the non-interop tests use:
+    python setup.py test
 
-python setup.py install
-
-# to run the non-interop tests use:
-
-python setup.py test
-
-# if you want to make any changes to the soaplib code, use:
-
-python setup.py develop
+    # if you want to make any changes to the soaplib code, use:
+    python setup.py develop
 
 
 Contributing
---------------
+------------
 If you wish to contribute to soaplib's development, create a personal fork
 on GitHub.  When you are ready to push to the repo, submit a pull request,
 and one of the core committers will review and respond.
@@ -51,12 +46,12 @@ For code changes make sure the existing tests pass; if you are adding new
 features please have accompanying test. Of course, we're also interested in
 increasing test coverage, so new tests are especially welcome!
 
-Please follow the `PEP 8 <http://www.python.org/dev/peps/pep-0008/>`_
+Please follow the `PEP 8 <http://www.python.org/dev/peps/pep-0008/>`
 style guidelines for both source code and docstrings.
 
 We could also use help with the docs, which are built from reStructureText
 using Sphinx. It's easy to learn, and if you need help getting started,
-contact us on the `mailing list <http://mail.python.org/mailman/listinfo/soap/>`_
+contact us on the `mailing list <http://mail.python.org/mailman/listinfo/soap/>`
 and we'll help.
 
 Regular contributors may be invited to join the soaplib organization on GitHub.
@@ -67,25 +62,25 @@ leave the project.
 
 
 History
------------
+-------
 .. toctree::
    :maxdepth: 2
 
    pages/changelog
 
 FAQ
-----
+---
 .. toctree::
    :maxdepth: 2
 
    pages/faq
 
 Quick Start Examples
-----------
+--------------------
 
 .. toctree::
    :maxdepth: 2
-   
+
    pages/helloworld
    pages/usermanager
    pages/serializers
@@ -93,11 +88,13 @@ Quick Start Examples
    pages/message_api
    pages/hooks
    pages/apache_axis
+   pages/customize
+   pages/faults
 
 
 
 Model API
-------------
+---------
 The soaplib.model API provides an elegant way of declaring within Python classes
 the XML Schema (W3C) elements which make up a WSDL. This can also be used to
 produce generic XSD for non-SOAP applications.
@@ -116,7 +113,7 @@ WSDL Representation
     pages/wsdl
 
 Server
---------
+------
 .. toctree::
    :maxdepth: 2
 
@@ -124,7 +121,7 @@ Server
 
 
 Service
----------
+-------
 
 .. toctree::
    :maxdepth: 2
@@ -133,14 +130,14 @@ Service
 
 
 Application
--------------
+-----------
 .. toctree::
     :maxdepth: 2
 
     pages/application
 
 Multiple Service Classes
--------------------------
+------------------------
 .. toctree::
     :maxdepth: 2
 
@@ -148,7 +145,7 @@ Multiple Service Classes
 
 
 Utilities
-------------
+---------
 .. toctree::
     :maxdepth: 2
 

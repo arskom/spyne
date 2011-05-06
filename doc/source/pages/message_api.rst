@@ -18,7 +18,7 @@ the type. ::
 Messages can be combined with the MethodDescriptor object to represent both
 input and output messages of a SOAP method call. The method descriptor does not
 do much more than simply hold the method name, input and output messages, but it
-can be used with the SimpleSoapClient? to make remote SOAP service calls. The
+can be used with the SimpleSoapClient to make remote SOAP service calls. The
 Axis stock quote Client example can be written::
 
     in_message = Message('getPrice',[('symbol',String)],ns='http://quickstart.samples/xsd')
@@ -29,6 +29,6 @@ Axis stock quote Client example can be written::
     print client('IBM')
 
 
-Message names can also be specified in the ElementTree? QName syntax (ex
+Message names can also be specified in the ElementTree QName syntax (ex
 "{http://quickstart.samples/xsd}getPrice"), and an optional 'typ' keyword can be
 specified for the message, which is used durring wsdl generation.
