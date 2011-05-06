@@ -8,10 +8,8 @@ soaplib Models and their schema directly.
 XSDGenerator
 -------------
 
-The XSDGenerator allows direct XSD generation from a ClassModel.  The basic use
-is
-
-::
+The :class:`~soaplib.core.util.xsd.XSDGenerator` allows direct XSD generation from a
+:class:`soaplib.core.clazz.ClassModel`.  The basic use is::
 
     class SimpleModel(ClassModel):
         __namespace__ = "SimpleModel"
@@ -22,8 +20,8 @@ is
 
     print simple_xsd
 
-Which returns
-::
+Which returns::
+
     <?xml version='1.0' encoding='utf-8'?>
     <xs:schema xmlns:s3="SimpleModel" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:s2="binding_application" targetNamespace="SimpleModel" elementFormDefault="qualified">
       <xs:import namespace="http://www.w3.org/2001/XMLSchema" schemaLocation="xs.xsd"/>
@@ -38,11 +36,9 @@ Which returns
 
 ClassModelConverter
 ---------------------
-The ClassModelConverter is a utility that provides methods for
-exporting a ClassModel instance as an etree.Element,
-xml string or, xml_file.  Basic use is:
-
-::
+The :class:`soaplib.core.util.ClassModelConverter` is a utility that provides methods
+for exporting a :class:`soaplib.core.util.ClassModel` instance as an etree.Element,
+xml string or, xml_file.  Basic use is::
 
     from datetime import datetime
     from lxml import etree

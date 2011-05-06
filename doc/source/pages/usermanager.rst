@@ -78,5 +78,5 @@ Jumping into what's new.::
 		permissions = Array(Permission)
 
 The `Permission` and `User` structures in the example are standard python
-objects that extend `ClassModel`.  Soaplib uses `ClassModel` as a general type that when
+objects that extend :class:`~soaplib.core.clazz.ClassModel`.  Soaplib uses :class:`~soaplib.core.clazz.ClassModel` as a general type that when
 extended will produce complex serializable types that can be used in a soap service.

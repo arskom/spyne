@@ -8,35 +8,35 @@ service hooks are used to gather performance information on both the method
 execution as well as the duration of the entire call, including serialization
 and deserialization. The available hooks are:
 
-    * on_call
+    * :py:meth:`~soaplib.core.service.DefinitionBase.on_call`
 
         This is the first thing called in the service
 
-    * on_wsdl
+    * :py:meth:`soaplib.core.service.DefinitionBase.on_wsdl`
 
         Called before the wsdl is requested
 
-    * on_wsdl_exception
+    * :py:meth:`~soaplib.core.service.DefinitionBase.on_wsdl_exception`
 
         Called after an exception was thrown when generating the wsdl (shouldn't happen very much)
 
-    * on_method_call
+    * :py:meth:`~soaplib.core.service.DefinitionBase.on_method_call`
 
         Called right before the service method is executed
 
-    * on_method_return
+    * :py:meth:`~soaplib.core.service.DefinitionBase.on_method_return`
 
         Called right after the service method is executed
 
-    * on_method_exception_object
+    * :py:meth:`~soaplib.core.service.DefinitionBase.on_method_exception_object`
 
         Called when an exception occurred in a service method before the exception is serialized.
 
-    * on_method_exception_xml
+    * :py:meth:`~soaplib.core.service.DefinitionBase.on_method_exception_xml`
 
         Called after an exception occurred in either the service method or in serialization
 
-    * on_return
+    * :py:meth:`~soaplib.core.service.DefinitionBase.on_return`
 
         This is the very last thing called before the wsgi app exits
 
@@ -85,17 +85,17 @@ request. ::
         server.serve_forever()
 
 
-Running this produces:
+Running this produces::
 
-Method took [0.000195980072021] - total execution time[0.00652194023132]
-Method took [0.000250101089478] - total execution time[0.00567507743835]
-Method took [0.000144004821777] - total execution time[0.00521206855774]
-Method took [0.000141859054565] - total execution time[0.00512409210205]
-Method took [0.00377607345581] - total execution time[0.00511980056763]
-Method took [0.00118803977966] - total execution time[0.00673604011536]
-Method took [0.000146150588989] - total execution time[0.00157499313354]
-Method took [0.0231170654297] - total execution time[0.0245010852814]
-Method took [0.000166893005371] - total execution time[0.01802110672]
+    Method took [0.000195980072021] - total execution time[0.00652194023132]
+    Method took [0.000250101089478] - total execution time[0.00567507743835]
+    Method took [0.000144004821777] - total execution time[0.00521206855774]
+    Method took [0.000141859054565] - total execution time[0.00512409210205]
+    Method took [0.00377607345581] - total execution time[0.00511980056763]
+    Method took [0.00118803977966] - total execution time[0.00673604011536]
+    Method took [0.000146150588989] - total execution time[0.00157499313354]
+    Method took [0.0231170654297] - total execution time[0.0245010852814]
+    Method took [0.000166893005371] - total execution time[0.01802110672]
 
 
 These may be helpful in finding bottlenecks in process, but this technique can

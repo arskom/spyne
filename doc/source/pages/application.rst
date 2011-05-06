@@ -14,7 +14,7 @@ The ValidatingApplication validates XML messages and types against an
 auto-generated schema.
 
 
-..autoclass:: soaplib.core._base.ValidatingApplication
+.. autoclass:: soaplib.core._base.ValidatingApplication
     :members:
     :undoc-members:
     :inherited-members:
