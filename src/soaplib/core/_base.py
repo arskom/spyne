@@ -535,14 +535,14 @@ class Application(object):
                 out_type_info = result_message_class._type_info
 
                 if len(out_type_info) > 0:
-                     if len(out_type_info) == 1:
-                         attr_name = result_message_class._type_info.keys()[0]
-                         setattr(result_message, attr_name, out_object)
+                    if len(out_type_info) == 1:
+                        attr_name = result_message_class._type_info.keys()[0]
+                        setattr(result_message, attr_name, out_object)
 
-                     else:
-                         for i in range(len(out_type_info)):
-                             attr_name=result_message_class._type_info.keys()[i]
-                             setattr(result_message, attr_name, out_object[i])
+                    else:
+                        for i in range(len(out_type_info)):
+                            attr_name=result_message_class._type_info.keys()[i]
+                            setattr(result_message, attr_name, out_object[i])
 
             # transform the results into an element
             result_message_class.to_parent_element(
