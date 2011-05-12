@@ -9,14 +9,14 @@ Declaring a Soaplib Service
 ::
 
     import soaplib
-    from soaplib.core.service import rpc, DefinitionBase
+    from soaplib.core.service import soap, DefinitionBase
     from soaplib.core.model.primitive import String, Integer
     from soaplib.core.server import wsgi
     from soaplib.core.model.clazz import Array
 
 
     class HelloWorldService(DefinitionBase):
-        @rpc(String,Integer,_returns=Array(String))
+        @soap(String,Integer,_returns=Array(String))
         def say_hello(self,name,times):
             results = []
             for i in range(0,times):
@@ -40,7 +40,7 @@ Dissecting this example: DefinitionBase is the base class for all soap services.
 The rpc decorator exposes methods as soap method and declares the
 data types it accepts and returns. ::
 
-    from soaplib.core.service import rpc
+    from soaplib.core.service import soap
 
 Import the model for this method (more on models later)::
 
@@ -57,7 +57,7 @@ the types and order of the soap parameters, as well as the return value.
 This method takes in a String, an Integer and returns an
 Array of Strings -> Array(String).::
 
-    @rpc(String,Integer,_returns=Array(String))
+    @soap(String,Integer,_returns=Array(String))
 
 The method itself has nothing special about it whatsoever. All input
 variables and return types are standard python objects::
