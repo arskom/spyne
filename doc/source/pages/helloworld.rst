@@ -16,7 +16,7 @@ Declaring a Soaplib Service
 
 
     class HelloWorldService(DefinitionBase):
-        @soap(String,Integer,_returns=Array(String))
+        @rpc(String,Integer,_returns=Array(String))
         def say_hello(self,name,times):
             results = []
             for i in range(0,times):
@@ -57,7 +57,7 @@ the types and order of the soap parameters, as well as the return value.
 This method takes in a String, an Integer and returns an
 Array of Strings -> Array(String).::
 
-    @soap(String,Integer,_returns=Array(String))
+    @rpc(String,Integer,_returns=Array(String))
 
 The method itself has nothing special about it whatsoever. All input
 variables and return types are standard python objects::
