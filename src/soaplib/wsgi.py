@@ -275,11 +275,6 @@ class Application(object):
             plink.set('name', service_name)
             self.add_partner_link(root, service_name, types, url, plink)
 
-        # create service node
-        service = etree.SubElement(root, '{%s}service' % ns_wsdl)
-        service.set('name', service_name)
-        self.add_service(root, service_name, types, url, service)
-
         # create portType node
         port_type = etree.SubElement(root, '{%s}portType' % ns_wsdl)
         port_type.set('name', service_name)
@@ -292,6 +287,11 @@ class Application(object):
         soap_binding = etree.SubElement(binding, '{%s}binding' % ns_soap)
         soap_binding.set('style', 'document')
         soap_binding.set('transport', 'http://schemas.xmlsoap.org/soap/http')
+
+        # create service node
+        service = etree.SubElement(root, '{%s}service' % ns_wsdl)
+        service.set('name', service_name)
+        self.add_service(root, service_name, types, url, service)
 
         for s in self.services:
             s = self.get_service(s)
