@@ -29,6 +29,7 @@ from rpclib.model import SimpleType
 from rpclib.model import nillable_element
 from rpclib.model import nillable_value
 from rpclib.model import nillable_string
+from rpclib.util.duration import XmlDuration
 from rpclib.util.etreeconv import etree_to_dict
 from rpclib.util.etreeconv import dict_to_etree
 import rpclib.namespace.soap
@@ -254,10 +255,15 @@ class Duration(SimpleType):
     __type_name__ = 'duration'
 
     @classmethod
+    @nillable_value
+    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
+        duration = XmlDuration.parse(value)
+        SimpleType.to_parent_element(str(duration), tns, parent_elt, name)
+
+    @classmethod
     @nillable_string
     def from_string(cls, string):
-        from rpclib.util.duration import duration
-        return duration.parse(string)
+        return XmlDuration.from_string(string).as_timedelta()
 
 class Double(SimpleType):
     @classmethod
