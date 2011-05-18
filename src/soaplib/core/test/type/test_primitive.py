@@ -32,6 +32,7 @@ from soaplib.core.model.primitive import Float
 from soaplib.core.model.primitive import Integer
 from soaplib.core.model.base import Null
 from soaplib.core.model.primitive import String
+from soaplib.core.util.duration import XmlDuration
 
 ns_test = 'test_namespace'
 
@@ -58,8 +59,7 @@ class TestPrimitive(unittest.TestCase):
         dt = DateTime.from_xml(element)
         self.assertEquals(n, dt)
 
-    def test_duration(self):
-        d = Duration()
+    def test_duration_timedelta(self):
         delta = datetime.timedelta(days=2, seconds=3)
 
         element = etree.Element('test')
@@ -69,6 +69,17 @@ class TestPrimitive(unittest.TestCase):
         self.assertEquals(element.text, 'P2DT3S')
         du = Duration.from_xml(element)
         self.assertEquals(delta, du)
+
+    def test_duration_xmlduration(self):
+        dur = XmlDuration(days=2, seconds=3)
+
+        element = etree.Element('test')
+        Duration.to_parent_element(dur, ns_test, element)
+        element = element[0]
+
+        self.assertEquals(element.text, 'P2DT3S')
+        du = Duration.from_xml(element)
+        self.assertEquals(dur.as_timedelta(), du)
 
     def test_utcdatetime(self):
         datestring = '2007-05-15T13:40:44Z'

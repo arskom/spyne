@@ -82,8 +82,14 @@ class XmlDuration(object):
 
     @classmethod
     def parse(cls, value):
+        """Convert a value to a XmlDuration object.
+
+        Valid types are timedelta, XmlDuration and string.
+        """
         if isinstance(value, datetime.timedelta):
             return cls.from_timedelta(value)
+        elif isinstance(value, cls):
+            return value
         else:
             return cls.from_string(str(value))
 
