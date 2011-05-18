@@ -27,6 +27,7 @@ from soaplib.core import namespaces
 from soaplib.core.model.clazz import Array
 from soaplib.core.model.primitive import Boolean
 from soaplib.core.model.primitive import DateTime
+from soaplib.core.model.primitive import Duration
 from soaplib.core.model.primitive import Float
 from soaplib.core.model.primitive import Integer
 from soaplib.core.model.base import Null
@@ -40,7 +41,7 @@ class TestPrimitive(unittest.TestCase):
         element = etree.Element('test')
         String.to_parent_element('value', ns_test, element)
         element=element[0]
-        
+
         self.assertEquals(element.text, 'value')
         value = String.from_xml(element)
         self.assertEquals(value, 'value')
@@ -56,6 +57,18 @@ class TestPrimitive(unittest.TestCase):
         self.assertEquals(element.text, n.isoformat())
         dt = DateTime.from_xml(element)
         self.assertEquals(n, dt)
+
+    def test_duration(self):
+        d = Duration()
+        delta = datetime.timedelta(days=2, seconds=3)
+
+        element = etree.Element('test')
+        Duration.to_parent_element(delta, ns_test, element)
+        element = element[0]
+
+        self.assertEquals(element.text, 'P2DT3S')
+        du = Duration.from_xml(element)
+        self.assertEquals(delta, du)
 
     def test_utcdatetime(self):
         datestring = '2007-05-15T13:40:44Z'

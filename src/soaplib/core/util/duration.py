@@ -17,7 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-class duration(object):
+import datetime
+
+class XmlDuration(object):
+    """Handles the conversion between soap duration and python timedelta."""
     __seq1 = [("Y", "years"), ("M", "months"), ("D", "days")]
     __seq2 = [("H", "hours"), ("M", "minutes"), ("S", "seconds")]
 
@@ -30,6 +33,19 @@ class duration(object):
         self.minutes = minutes
         self.seconds = seconds
         self.negative = negative
+
+    def as_timedelta(self):
+        seconds = int(self.seconds)
+        microseconds = 1000000 * (self.seconds - seconds)
+        days = self.days + self.months * 30 + self.years * 365
+        res = datetime.timedelta(days=self.days,
+                                 hours=self.hours,
+                                 minutes=self.minutes,
+                                 seconds=seconds,
+                                 microseconds=microseconds)
+        if self.negative:
+            res = -res
+        return res
 
     def __str__(self):
         def tostr(seq):
@@ -65,25 +81,42 @@ class duration(object):
         )
 
     @classmethod
-    def parse(cls, str):
-        orig_str = str
+    def parse(cls, value):
+        if isinstance(value, datetime.timedelta):
+            return cls.from_timedelta(value)
+        else:
+            return cls.from_string(str(value))
+
+    @classmethod
+    def from_timedelta(cls, timedelta):
+        if timedelta.days < 0:
+            timedelta = -timedelta
+            negative = True
+        else:
+            negative = False
+        seconds = float(timedelta.seconds) + timedelta.microseconds / 1000000
+        return cls(days=timedelta.days, seconds=seconds, negative=negative)
+
+    @classmethod
+    def from_string(cls, string):
+        orig_str = string
         ret = cls()
 
-        def parse_token(str):
+        def parse_token(string):
             n = "0"
 
-            for i in range(len(str)):
-                if str[i].isdigit() or str[i] == ".":
-                    n += str[i]
+            for i in range(len(string)):
+                if string[i].isdigit() or string[i] == ".":
+                    n += string[i]
                 else:
                     break
 
-            return (float(n), str[i], str[i + 1:])
+            return (float(n), string[i], string[i + 1:])
 
-        def parse_seq(str, seq):
+        def parse_seq(string, seq):
             i = 0
-            while str:
-                n, s, str = parse_token(str)
+            while string:
+                n, s, string = parse_token(string)
 
                 while i < len(seq):
                     s1, attr = seq[i]
@@ -98,16 +131,16 @@ class duration(object):
                     raise Exception
 
         try:
-            if str.startswith("-"):
+            if string.startswith("-"):
                 ret.negative = True
-                str = str[1:]
+                string = string[1:]
 
-            if str.startswith("P"):
-                str = str[1:]
+            if string.startswith("P"):
+                string = string[1:]
             else:
                 raise Exception
 
-            str1, _, str2 = str.partition("T")
+            str1, _, str2 = string.partition("T")
             if not (str1 or str2):
                 raise Exception
             parse_seq(str1, cls.__seq1)
