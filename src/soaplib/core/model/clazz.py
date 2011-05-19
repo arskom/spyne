@@ -194,7 +194,8 @@ class ClassModelBase(Base):
                     for sv in subvalue:
                         v.to_parent_element(sv, cls.get_namespace(), parent, k)
 
-            else:
+            # Don't include empty values for non-nillable optional attributes.
+            elif subvalue is not None or v.Attributes.nillable or v.Attributes.min_occurs > 0:
                 v.to_parent_element(subvalue, cls.get_namespace(), parent, k)
 
     @classmethod
