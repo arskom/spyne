@@ -9,7 +9,7 @@ Declaring a Soaplib Service
 ::
 
     import soaplib
-    from soaplib.core.service import rpc, DefinitionBase
+    from soaplib.core.service import soap, DefinitionBase
     from soaplib.core.model.primitive import String, Integer
     from soaplib.core.server import wsgi
     from soaplib.core.model.clazz import Array
@@ -40,7 +40,7 @@ Dissecting this example: DefinitionBase is the base class for all soap services.
 The rpc decorator exposes methods as soap method and declares the
 data types it accepts and returns. ::
 
-    from soaplib.core.service import rpc
+    from soaplib.core.service import soap
 
 Import the model for this method (more on models later)::
 
