@@ -221,6 +221,7 @@ def add_bindings_for_methods(service, app, root, service_name,
                     fault.set('name', f.get_type_name(app))
 
                     soap_fault = etree.SubElement(fault, '{%s}fault' % _ns_soap)
+                    soap_fault.set('name', f.get_type_name())
                     soap_fault.set('use', 'literal')
 
         if method.is_callback:
@@ -278,12 +279,12 @@ class Wsdl11(Base):
                     import_.set('schemaLocation', "%s.xsd" %
                                            self.get_namespace_prefix(namespace))
 
-            # append element tags
-            for node in self.namespaces[pref].elements.values():
-                schema.append(node)
-
             # append simpleType and complexType tags
             for node in self.namespaces[pref].types.values():
+                schema.append(node)
+
+            # append element tags
+            for node in self.namespaces[pref].elements.values():
                 schema.append(node)
 
         return retval

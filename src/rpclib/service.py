@@ -30,7 +30,18 @@ class MethodDescriptor(object):
 
     def __init__(self, name, public_name, in_message, out_message, doc,
                  is_callback=False, is_async=False, mtom=False, in_header=None,
-                 out_header=None, faults=()):
+                 out_header=None, faults=(), body_style=None, soap_body_style=None):
+
+        if body_style is None:
+            body_style = 'wrapped'
+        elif not (body_style in ('wrapped', 'bare')):
+            raise ValueError("body_style must be one of ('wrapped', 'bare')")
+        elif soap_body_style == 'document':
+            body_style = 'bare'
+        elif soap_body_style == 'rpc':
+            body_style = 'wrapped'
+        else:
+            raise ValueError("soap_body_style must be one of ('rpc', 'document')")
 
         self.name = name
         self.public_name = public_name
@@ -43,6 +54,7 @@ class MethodDescriptor(object):
         self.in_header = in_header
         self.out_header = out_header
         self.faults = faults
+        self.body_style = body_style
 
 def _produce_input_message(ns, f, params, kparams):
     _in_message = kparams.get('_in_message', f.func_name)
@@ -71,20 +83,26 @@ def _produce_input_message(ns, f, params, kparams):
     return message
 
 def _produce_output_message(ns, f, params, kparams):
+    """Generate an output message for "rpc"-style API methods.
+
+    This message is a wrapper to the declared return type.
+    """
+
     _returns = kparams.get('_returns')
 
-    _out_message = kparams.get('_out_message', '%sResponse' % f.func_name)
+    _body_style = kparams.get('_body_style')
+    assert _body_style in ('wrapped','bare')
 
-    kparams.get('_out_variable_name')
+    _out_message = kparams.get('_out_message', '%sResponse' % f.func_name)
     out_params = TypeInfo()
 
-    if _returns:
+    if _returns and _body_style == 'wrapped':
         if isinstance(_returns, (list, tuple)):
             default_names = ['%sResult%d' % (f.func_name, i) for i in
                                                            range(len(_returns))]
 
             _out_variable_names = kparams.get('_out_variable_names',
-                                                                default_names)
+                                                                  default_names)
 
             assert (len(_returns) == len(_out_variable_names))
 
@@ -97,15 +115,22 @@ def _produce_output_message(ns, f, params, kparams):
 
             out_params[_out_variable_name] = _returns
 
-    message=Message.produce(type_name=_out_message, namespace=ns,
+    if _body_style == 'wrapped':
+        message = Message.produce(type_name=_out_message, namespace=ns,
                                                              members=out_params)
-    message.__namespace__ = ns
+        message.__namespace__ = ns # FIXME: is this necessary?
+
+    else:
+        message = Message.alias(_out_message, ns, _returns)
+
     message.resolve_namespace(message, ns)
 
     return message
 
 def rpc(*params, **kparams):
-    '''This is a method decorator to flag a method as a remote procedure call.  It
+    '''Method decorator to flag a method as a rpc-style operation.
+
+    This is a method decorator to flag a method as a remote procedure call.  It
     will behave like a normal python method on a class, and will only behave
     differently when the keyword '_method_descriptor' is passed in, returning a
     'MethodDescriptor' object.  This decorator does none of the rpc
@@ -145,7 +170,7 @@ def rpc(*params, **kparams):
                 doc = getattr(f, '__doc__')
                 retval = MethodDescriptor(f.func_name, _public_name,
                         in_message, out_message, doc, _is_callback, _is_async,
-                        _mtom, _in_header, _out_header)
+                        _mtom, _in_header, _out_header, _faults)
 
             return retval
 
