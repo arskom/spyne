@@ -66,14 +66,14 @@ class TestPrimitive(unittest.TestCase):
         Duration.to_parent_element(delta, ns_test, element)
         element = element[0]
 
-        self.assertEquals(element.text, 'P400DT3672S')
+        self.assertEquals(element.text, 'P1Y1M5DT1H1M12S')
         du = Duration.from_xml(element)
         self.assertEquals(delta, du)
 
     def test_duration_xml_duration(self):
         dur = XmlDuration(years=1, months=1, days=5,
                           hours=1, minutes=1, seconds=12.0)
-        dur2 = XmlDuration.from_string('P1Y1M5DT1H1M12S')
+        dur2 = XmlDuration.from_string('P400DT3672S')
         self.assertEquals(dur.as_timedelta(), dur2.as_timedelta())
 
         element = etree.Element('test')

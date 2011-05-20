@@ -38,7 +38,7 @@ class XmlDuration(object):
         seconds = int(self.seconds)
         microseconds = 1000000 * (self.seconds - seconds)
         days = self.days + self.months * 30 + self.years * 365
-        res = datetime.timedelta(days=self.days,
+        res = datetime.timedelta(days=days,
                                  hours=self.hours,
                                  minutes=self.minutes,
                                  seconds=seconds,
@@ -100,8 +100,16 @@ class XmlDuration(object):
             negative = True
         else:
             negative = False
-        seconds = float(timedelta.seconds) + timedelta.microseconds / 1000000
-        return cls(days=timedelta.days, seconds=seconds, negative=negative)
+        seconds = timedelta.seconds % 60
+        minutes = timedelta.seconds / 60
+        hours = minutes / 60
+        minutes = minutes % 60
+        seconds = float(seconds) + timedelta.microseconds / 1000000
+        years = timedelta.days / 365
+        months = (timedelta.days - 365 * years) / 30
+        days = timedelta.days - 365 * years - 30 * months
+        return cls(years=years, months=months, days=days,
+                   hours=hours, minutes=minutes, seconds=seconds, negative=negative)
 
     @classmethod
     def from_string(cls, string):
