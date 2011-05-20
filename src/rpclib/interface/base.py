@@ -33,9 +33,6 @@ class SchemaInfo(object):
         self.elements = odict()
         self.types = odict()
 
-class FuckingException(Exception):
-    """An exception you definitely need to get rid of."""
-
 class Base(object):
     def __init__(self, parent, services, tns, name=None):
         self.__ns_counter = 0
@@ -122,7 +119,7 @@ class Base(object):
                     self.imports[pref_tns].add(self.nsmap[pref])
 
             else:
-                raise FuckingException("i guess you need to hack some more")
+                raise Exception("i guess you need to hack some more")
 
     def add_element(self, cls, node):
         pref = cls.get_namespace_prefix(self)
