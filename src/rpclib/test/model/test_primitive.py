@@ -60,13 +60,13 @@ class TestPrimitive(unittest.TestCase):
         self.assertEquals(n, dt)
     
     def test_duration_timedelta(self):
-        delta = datetime.timedelta(days=2, seconds=3)
+        delta = datetime.timedelta(days=2, seconds=3672)
 
         element = etree.Element('test')
         Duration.to_parent_element(delta, ns_test, element)
         element = element[0]
 
-        self.assertEquals(element.text, 'P2DT3S')
+        self.assertEquals(element.text, 'P2DT1H1M12S')
         du = Duration.from_xml(element)
         self.assertEquals(delta, du)
 
