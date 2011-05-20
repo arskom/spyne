@@ -73,6 +73,11 @@ def _produce_input_message(ns, f, params, kparams):
     return message
 
 def _produce_rpc_output_message(ns, f, params, kparams):
+    """Generate an output message for "rpc"-style API methods.
+
+    This message is a wrapper to the declared return type.
+    """
+
     _returns = kparams.get('_returns')
 
     _out_message = kparams.get('_out_message', '%sResponse' % f.func_name)
@@ -105,7 +110,9 @@ def _produce_rpc_output_message(ns, f, params, kparams):
     return message
 
 def rpc(*params, **kparams):
-    '''This is a method decorator to flag a method as a remote procedure call.  It
+    '''Method decorator to flag a method as a rpc-style operation.
+
+    This is a method decorator to flag a method as a remote procedure call.  It
     will behave like a normal python method on a class, and will only behave
     differently when the keyword '_method_descriptor' is passed in, returning a
     'MethodDescriptor' object.  This decorator does none of the rpc
