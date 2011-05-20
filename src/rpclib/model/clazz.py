@@ -315,22 +315,20 @@ class ClassSerializerBase(Base):
             cls.__type_name__ = '%sArray' % child.get_type_name()
 
         if not interface.has_class(cls):
-            if not (getattr(cls, '__extends__', None) is None):
-                cls.__extends__.add_to_schema(interface)
+            extends = getattr(cls, '__extends__', None)
+            if not (extends is None):
+                extends.add_to_schema(interface)
 
             complex_type = etree.Element("{%s}complexType" % namespace.xsd)
             complex_type.set('name',cls.get_type_name())
 
             sequence_parent = complex_type
-            if getattr(cls, '__extends__', None) != None:
-                cls.__extends__.add_to_schema(interface)
-
+            if not (extends is None):
                 complex_content = etree.SubElement(complex_type,
                                           "{%s}complexContent" % namespace.xsd)
                 extension = etree.SubElement(complex_content, "{%s}extension"
-                                                               % namespace.xsd)
-                extension.set('base', cls.__extends__.get_type_name_ns(
-                                                                     interface))
+                                                               % rpclib.ns_xsd)
+                extension.set('base', extends.get_type_name_ns(interface))
                 sequence_parent = extension
 
             sequence = etree.SubElement(sequence_parent, '{%s}sequence' %
@@ -514,6 +512,3 @@ class ClassAlias(Message):
         element.set('type',cls._target.get_type_name_ns(schema_dict.app))
 
         schema_dict.add_element(cls, element)
-
-from rpclib.model.exception import Fault
-
