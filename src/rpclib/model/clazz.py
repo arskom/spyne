@@ -381,6 +381,23 @@ class ClassSerializerBase(Base):
 
         return ClassSerializerMeta(type_name, (ClassSerializer,), cls_dict)
 
+    @staticmethod
+    def alias(type_name, namespace, target):
+        """Return an alias class for the given target class.
+
+        This function is a variation on 'ClassSerializer.produce'. The alias will
+        borrow the target's typeinfo.
+        """
+
+        cls_dict = {}
+
+        cls_dict['__namespace__'] = namespace
+        cls_dict['__type_name__'] = type_name
+        cls_dict['_type_info'] = target._type_info
+        cls_dict['_target'] = target
+
+        return ClassSerializerMeta(type_name, (ClassAlias,), cls_dict)
+
 class ClassSerializer(ClassSerializerBase):
     """
     The general complexType factory. The __call__ method of this class will
@@ -486,4 +503,18 @@ class Iterable(Array):
         for child in element.getchildren():
             yield serializer.from_xml(child)
 
+class ClassAlias(Message):
+    """New type_name, same type_info.
+    """
+    @classmethod
+    def add_to_schema(cls, schema_dict):
+        if not schema_dict.has_class(cls._target):
+            cls._target.add_to_schema(schema_dict)
+        element = etree.Element('{%s}element' % soaplib.ns_xsd)
+        element.set('name',cls.get_type_name())
+        element.set('type',cls._target.get_type_name_ns(schema_dict.app))
+
+        schema_dict.add_element(cls, element)
+
 from rpclib.model.exception import Fault
+

@@ -21,7 +21,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 from rpclib.model.clazz import ClassSerializer as Message
-from rpclib.model.clazz import ClassSerializerMeta as MessageMeta
 from rpclib.model.clazz import TypeInfo
 from rpclib.model.primitive import Any
 
@@ -158,35 +157,6 @@ def rpc(*params, **kparams):
 
     return explain
 
-class Alias(Message):
-    """New type_name, same type_info.
-"""
-    @classmethod
-    def add_to_schema(cls, schema_dict):
-        if not schema_dict.has_class(cls._target):
-            cls._target.add_to_schema(schema_dict)
-        element = etree.Element('{%s}element' % soaplib.ns_xsd)
-        element.set('name',cls.get_type_name())
-        element.set('type',cls._target.get_type_name_ns(schema_dict.app))
-
-        schema_dict.add_element(cls, element)
-
-def _makeAlias(type_name, namespace, target):
-    """ Return an alias class for the given target class.
-
-This function is a variation on 'ClassSerializer.produce'.
-
-The alias will borrow the target's typeinfo.
-"""
-    cls_dict = {}
-
-    cls_dict['__namespace__'] = namespace
-    cls_dict['__type_name__'] = type_name
-    cls_dict['_type_info'] = target._type_info
-    cls_dict['_target'] = target
-
-    return MessageMeta(type_name, (Alias,), cls_dict)
-
 def _produce_document_output_message(ns, f, params, kparams):
     """Generate an output message for "document"-style API methods.
 
@@ -196,7 +166,7 @@ def _produce_document_output_message(ns, f, params, kparams):
     _returns = kparams.get('_returns', Any)
     _out_message = kparams.get('_out_message', '%sResponse' % f.func_name)
 
-    message = _makeAlias(_out_message, ns, _returns)
+    message = Message.alias(_out_message, ns, _returns)
     message.resolve_namespace(message, ns)
 
     return message
