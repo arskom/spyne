@@ -22,12 +22,11 @@ from urllib import quote_plus
 
 from lxml import etree
 
-import rpclib
-
 from rpclib.model.clazz import ClassSerializer
 from rpclib.model.primitive import Integer
 from rpclib.model.primitive import String
 from rpclib.mime import join_attachment
+from rpclib.protocol.soap import namespace as ns
 
 # Service Classes
 class DownloadPartFileResult(ClassSerializer):
@@ -61,7 +60,7 @@ class TestInclude(unittest.TestCase):
 
         soaptree = etree.fromstring(joinedmsg)
 
-        body = soaptree.find("{%s}Body" % rpclib.ns_soap_env)
+        body = soaptree.find("{%s}Body" % ns.soap_env)
         response = body.getchildren()[0]
         result = response.getchildren()[0]
         r = DownloadPartFileResult.from_xml(result)

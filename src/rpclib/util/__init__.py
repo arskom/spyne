@@ -19,14 +19,14 @@
 
 import sys
 import urllib
-import rpclib
+from rpclib.namespace import soap as ns
 
 from lxml import etree
 
 def create_relates_to_header(relatesTo, attrs={}):
     '''Creates a 'relatesTo' header for async callbacks'''
     relatesToElement = etree.Element(
-        '{%s}RelatesTo' % rpclib.ns_wsa)
+        '{%s}RelatesTo' % ns.wsa)
     for k, v in attrs.items():
         relatesToElement.set(k, v)
     relatesToElement.text = relatesTo
@@ -36,11 +36,11 @@ def create_relates_to_header(relatesTo, attrs={}):
 def create_callback_info_headers(message_id, reply_to):
     '''Creates MessageId and ReplyTo headers for initiating an
     async function'''
-    message_id = etree.Element('{%s}MessageID' % rpclib.ns_wsa)
+    message_id = etree.Element('{%s}MessageID' % ns.wsa)
     message_id.text = message_id
 
-    reply_to = etree.Element('{%s}ReplyTo' % rpclib.ns_wsa)
-    address = etree.SubElement(reply_to, '{%s}Address' % rpclib.ns_wsa)
+    reply_to = etree.Element('{%s}ReplyTo' % ns.wsa)
+    address = etree.SubElement(reply_to, '{%s}Address' % ns.wsa)
     address.text = reply_to
 
     return message_id, reply_to

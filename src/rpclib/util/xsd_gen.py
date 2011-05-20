@@ -27,6 +27,7 @@ from lxml import etree
 from rpclib import Application
 from rpclib.service import DefinitionBase
 from rpclib.service import rpc
+from rpclib.protocol.soap import namespace as ns
 
 class XSDGenerator():
     '''Class to support xsd generation for rpclib models.'''
@@ -34,14 +35,14 @@ class XSDGenerator():
     # Simplified schema mapping used for building standalone XSDs without SOAP
     # specific namespace imports
     model_schema_nsmap = {
-        'xs': rpclib.ns_xsd,
-        'xsi': rpclib.ns_xsi,
-        'xop': rpclib.ns_xop,
+        'xs': ns.xsd,
+        'xsi': ns.xsi,
+        'xop': ns.xop,
     }
 
-    __ct_string = '{%s}complexType' % rpclib.ns_xsd
-    __el_string = '{%s}element' % rpclib.ns_xsd
-    __imp_string = '{%s}import' % rpclib.ns_xsd
+    __ct_string = '{%s}complexType' % ns.xsd
+    __el_string = '{%s}element' % ns.xsd
+    __imp_string = '{%s}import' % ns.xsd
 
     def __get_binding_service(self, model):
         '''A factory method to create a simple service class.

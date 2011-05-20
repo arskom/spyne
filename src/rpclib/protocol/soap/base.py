@@ -21,14 +21,15 @@ import logging
 logger = logging.getLogger(__name__)
 
 import cgi
-from rpclib.mime import collapse_swa
+from rpclib.protocol.soap.mime import collapse_swa
 
 import traceback
 from lxml import etree
-import rpclib
+
 from rpclib.protocol.base import Base
 from rpclib.model.exception import Fault
 from rpclib.model.primitive import string_encoding
+import rpclib.namespace.soap as ns
 
 class ValidationError(Fault):
     pass
@@ -41,18 +42,18 @@ def _from_soap(in_envelope_xml, xmlids=None):
     if xmlids:
         resolve_hrefs(in_envelope_xml, xmlids)
 
-    if in_envelope_xml.tag != '{%s}Envelope' % rpclib.ns_soap_env:
+    if in_envelope_xml.tag != '{%s}Envelope' % ns.soap_env:
         raise Fault('Client.SoapError', 'No {%s}Envelope element was found!' %
-                                                            rpclib.ns_soap_env)
+                                                            ns.soap_env)
 
     header_envelope = in_envelope_xml.xpath('e:Header',
-                                          namespaces={'e': rpclib.ns_soap_env})
+                                          namespaces={'e': ns.soap_env})
     body_envelope = in_envelope_xml.xpath('e:Body',
-                                          namespaces={'e': rpclib.ns_soap_env})
+                                          namespaces={'e': ns.soap_env})
 
     if len(header_envelope) == 0 and len(body_envelope) == 0:
         raise Fault('Client.SoapError', 'Soap envelope is empty!' %
-                                                            rpclib.ns_soap_env)
+                                                            ns.soap_env)
 
     header=None
     if len(header_envelope) > 0 and len(header_envelope[0]) > 0:
@@ -143,7 +144,7 @@ class Soap11(Base):
         # FIXME: find a way to include soap env schema with rpclib package and
         # properly validate the whole request.
 
-        if len(body) > 0 and body.tag == '{%s}Fault' % rpclib.ns_soap_env:
+        if len(body) > 0 and body.tag == '{%s}Fault' % ns.soap_env:
             ctx.in_body_doc = body
 
         elif not (body is None):
@@ -190,7 +191,7 @@ class Soap11(Base):
         # this sets the ctx.in_body_doc and ctx.in_header_doc properties
         self.decompose_incoming_envelope(ctx, doc_struct)
 
-        if ctx.in_body_doc.tag == "{%s}Fault" % rpclib.ns_soap_env:
+        if ctx.in_body_doc.tag == "{%s}Fault" % ns.soap_env:
             in_body = Fault.from_xml(ctx.in_body_doc)
 
         else:
@@ -235,12 +236,12 @@ class Soap11(Base):
 
         # construct the soap response, and serialize it
         nsmap = self.parent.interface.nsmap
-        envelope = etree.Element('{%s}Envelope'% rpclib.ns_soap_env,nsmap=nsmap)
+        envelope = etree.Element('{%s}Envelope'% ns.soap_env,nsmap=nsmap)
 
         if isinstance(out_object, Fault):
             # FIXME: There's no way to alter soap response headers for the user.
             ctx.out_body_doc = out_body_doc = etree.SubElement(envelope,
-                            '{%s}Body' % rpclib.ns_soap_env, nsmap=nsmap)
+                            '{%s}Body' % ns.soap_env, nsmap=nsmap)
             out_object.add_to_parent_element(self.parent.interface.get_tns(),
                                                                    out_body_doc)
 
@@ -272,7 +273,7 @@ class Soap11(Base):
 
                 else:
                     ctx.out_header_doc = soap_header_elt = etree.SubElement(
-                                    envelope, '{%s}Header' % rpclib.ns_soap_env)
+                                    envelope, '{%s}Header' % ns.soap_env)
 
                     header_message_class.to_parent_element(
                         ctx.service.out_header,
@@ -283,7 +284,7 @@ class Soap11(Base):
 
             # body
             ctx.out_body_doc = out_body_doc = etree.SubElement(envelope,
-                                               '{%s}Body' % rpclib.ns_soap_env)
+                                               '{%s}Body' % ns.soap_env)
 
             # instantiate the result message
             if self.out_wrapper is self.NO_WRAPPER:
@@ -325,4 +326,3 @@ class Soap11(Base):
                 ctx.service.on_method_return_doc(envelope)
 
         return envelope
-

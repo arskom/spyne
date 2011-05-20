@@ -25,8 +25,6 @@ except ImportError:
 
 from lxml import etree
 
-import rpclib
-
 from rpclib.model import Base
 from rpclib.model import nillable_element
 from rpclib.model import nillable_value
@@ -34,6 +32,7 @@ from rpclib.model import nillable_dict
 from rpclib.model import nillable_string
 
 from rpclib.util.odict import odict as TypeInfo
+from rpclib.namespace import soap as namespace
 
 class ClassSerializerMeta(type(Base)):
     '''
@@ -319,7 +318,7 @@ class ClassSerializerBase(Base):
             if not (getattr(cls, '__extends__', None) is None):
                 cls.__extends__.add_to_schema(interface)
 
-            complex_type = etree.Element("{%s}complexType" % rpclib.ns_xsd)
+            complex_type = etree.Element("{%s}complexType" % namespace.xsd)
             complex_type.set('name',cls.get_type_name())
 
             sequence_parent = complex_type
@@ -327,21 +326,21 @@ class ClassSerializerBase(Base):
                 cls.__extends__.add_to_schema(interface)
 
                 complex_content = etree.SubElement(complex_type,
-                                          "{%s}complexContent" % rpclib.ns_xsd)
+                                          "{%s}complexContent" % namespace.xsd)
                 extension = etree.SubElement(complex_content, "{%s}extension"
-                                                               % rpclib.ns_xsd)
+                                                               % namespace.xsd)
                 extension.set('base', cls.__extends__.get_type_name_ns(
                                                                      interface))
                 sequence_parent = extension
 
             sequence = etree.SubElement(sequence_parent, '{%s}sequence' %
-                                                                  rpclib.ns_xsd)
+                                                                  namespace.xsd)
 
             for k, v in cls._type_info.items():
                 if v != cls:
                     v.add_to_schema(interface)
 
-                member = etree.SubElement(sequence,'{%s}element'% rpclib.ns_xsd)
+                member = etree.SubElement(sequence,'{%s}element'% namespace.xsd)
                 member.set('name', k)
                 member.set('type', v.get_type_name_ns(interface))
 
@@ -363,7 +362,7 @@ class ClassSerializerBase(Base):
             interface.add_complex_type(cls, complex_type)
 
             # simple node
-            element = etree.Element('{%s}element' % rpclib.ns_xsd)
+            element = etree.Element('{%s}element' % namespace.xsd)
             element.set('name',cls.get_type_name())
             element.set('type',cls.get_type_name_ns(interface))
 

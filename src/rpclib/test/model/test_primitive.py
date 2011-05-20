@@ -22,8 +22,6 @@ import unittest
 
 from lxml import etree
 
-import rpclib
-
 from rpclib.model.clazz import Array
 from rpclib.model.primitive import Boolean
 from rpclib.model.primitive import DateTime
@@ -31,6 +29,7 @@ from rpclib.model.primitive import Float
 from rpclib.model.primitive import Integer
 from rpclib.model.base import Null
 from rpclib.model.primitive import String
+from rpclib.protocol.soap import namespace as ns
 
 ns_test = 'test_namespace'
 
@@ -157,7 +156,7 @@ class TestPrimitive(unittest.TestCase):
         element = etree.Element('test')
         Null.to_parent_element('doesnt matter', ns_test, element)
         element = element[0]
-        self.assertTrue( bool(element.get('{%s}nil' % rpclib.ns_xsi)) )
+        self.assertTrue( bool(element.get('{%s}nil' % ns.xsi)) )
         value = Null.from_xml(element)
         self.assertEquals(None, value)
 
@@ -191,7 +190,7 @@ class TestPrimitive(unittest.TestCase):
         b = etree.Element('test')
         Boolean.to_parent_element(None, ns_test, b)
         b = b[0]
-        self.assertEquals('true', b.get('{%s}nil' % rpclib.ns_xsi))
+        self.assertEquals('true', b.get('{%s}nil' % ns.xsi))
 
         b = Boolean.from_xml(b)
         self.assertEquals(b, None)

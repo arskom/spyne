@@ -21,9 +21,10 @@ except ImportError:
 from email import message_from_string
 
 # import rpclib stuff
-from rpclib.model.binary import Attachment
+import rpclib.namespace.soap
 
-import rpclib
+_ns_xop = rpclib.namespace.soap.xop
+_ns_soap_env = rpclib.namespace.soap.soap_env
 
 def join_attachment(href_id, envelope, payload, prefix=True):
     '''
@@ -43,7 +44,7 @@ def join_attachment(href_id, envelope, payload, prefix=True):
     '''
 
     def replacing(parent, node, payload, numreplaces):
-        if node.tag == '{%s}Include' % rpclib.ns_xop:
+        if node.tag == '{%s}Include' % _ns_xop:
             attrib = node.attrib.get('href')
             if not attrib is None:
                 if unquote(attrib) == href_id:
@@ -58,11 +59,11 @@ def join_attachment(href_id, envelope, payload, prefix=True):
 
     # grab the XML element of the message in the SOAP body
     soaptree = etree.fromstring(envelope)
-    soapbody = soaptree.find("{%s}Body" % rpclib.ns_soap_env)
+    soapbody = soaptree.find("{%s}Body" % _ns_soap_env)
 
     message = None
     for child in list(soapbody):
-        if child.tag != "{%s}Fault" % rpclib.ns_soap_env:
+        if child.tag != "{%s}Fault" % _ns_soap_env:
             message = child
             break
 
@@ -187,11 +188,11 @@ def apply_mtom(headers, envelope, params, paramvals):
     envelope = ''.join(envelope)
 
     soaptree = etree.fromstring(envelope)
-    soapbody = soaptree.find("{%s}Body" % rpclib.ns_soap_env)
+    soapbody = soaptree.find("{%s}Body" % _ns_soap_env)
 
     message = None
     for child in list(soapbody):
-        if child.tag == ("{%s}Fault" % rpclib.ns_soap_env):
+        if child.tag == ("{%s}Fault" % _ns_soap_env):
             return (headers, envelope)
         else:
             message = child
@@ -250,7 +251,7 @@ def apply_mtom(headers, envelope, params, paramvals):
             param = message[i]
             param.text = ""
 
-            incl = etree.SubElement(param, "{%s}Include" % rpclib.ns_xop)
+            incl = etree.SubElement(param, "{%s}Include" % _ns_xop)
             incl.attrib["href"] = "cid:%s" % id
 
             if paramvals[i].fileName and not paramvals[i].data:
@@ -293,3 +294,5 @@ def apply_mtom(headers, envelope, params, paramvals):
         return (headers, envelope)
 
     return (mtomheaders, [mtombody])
+
+from rpclib.model.binary import Attachment

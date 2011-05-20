@@ -30,7 +30,7 @@ import rpclib
 
 from rpclib.model.exception import Fault
 
-from rpclib.mime import apply_mtom
+from rpclib.protocol.soap.mime import apply_mtom
 from rpclib.util import reconstruct_url
 from rpclib.server import Base
 

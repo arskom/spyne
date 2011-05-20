@@ -18,11 +18,11 @@
 #
 
 import unittest
-import rpclib
 import rpclib.protocol.soap
 import rpclib.interface.wsdl
-_ns_xs = rpclib.ns_xsd
-_ns_xsi = rpclib.ns_xsi
+_ns_xs = rpclib.namespace.soap.xsd
+_ns_xsi = rpclib.namespace.soap.xsi
+_ns_xsd = rpclib.namespace.soap.xsd
 
 from rpclib import Application
 Application.transport = 'test'
@@ -74,7 +74,7 @@ class TestEnum(unittest.TestCase):
         print simple_type
 
         self.assertEquals(simple_type.attrib['name'], 'DaysOfWeekEnum')
-        self.assertEquals(simple_type[0].tag, "{%s}restriction" % rpclib.ns_xsd)
+        self.assertEquals(simple_type[0].tag, "{%s}restriction" % _ns_xsd)
         self.assertEquals([e.attrib['value'] for e in simple_type[0]], vals)
 
     def test_serialize(self):

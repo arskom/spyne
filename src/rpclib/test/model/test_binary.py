@@ -24,9 +24,10 @@ import unittest
 from tempfile import mkstemp
 from lxml import etree
 
-import rpclib
 from rpclib.model.binary import Attachment
+import rpclib.namespace.soap
 
+ns_xsd = rpclib.namespace.soap.xsd
 ns_test = 'test_namespace'
 
 class TestBinary(unittest.TestCase):
@@ -117,7 +118,7 @@ class TestBinary(unittest.TestCase):
         self.assertEquals('base64Binary', dt)
 
         dt = Attachment.get_namespace()
-        assert dt == rpclib.ns_xsd
+        assert dt == ns_xsd
 
 if __name__ == '__main__':
     unittest.main()

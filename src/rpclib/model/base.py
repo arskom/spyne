@@ -17,11 +17,15 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import rpclib
 import cStringIO
 import csv
 
 from lxml import etree
+
+import rpclib.namespace.soap
+
+_ns_xsi = rpclib.namespace.soap.xsi
+_ns_xsd = rpclib.namespace.soap.xsd
 
 def nillable_value(func):
     def wrapper(cls, value, tns, parent_elt, *args, **kwargs):
@@ -33,7 +37,7 @@ def nillable_value(func):
 
 def nillable_element(func):
     def wrapper(cls, element):
-        if bool(element.get('{%s}nil' % rpclib.ns_xsi)):
+        if bool(element.get('{%s}nil' % _ns_xsi)):
             return None
         else:
             return func(cls, element)
@@ -91,7 +95,8 @@ class Base(object):
 
     @staticmethod
     def resolve_namespace(cls, default_ns):
-        if cls.__namespace__ in rpclib.const_prefmap and not cls.is_default(cls):
+        if (cls.__namespace__ in rpclib.namespace.soap.const_prefmap and
+                                                        not cls.is_default(cls)):
             cls.__namespace__ = default_ns
 
         if cls.__namespace__ is None:
@@ -215,7 +220,7 @@ class Null(Base):
     @classmethod
     def to_parent_element(cls, value, tns, parent_elt, name='retval'):
         element = etree.SubElement(parent_elt, "{%s}%s" % (tns,name))
-        element.set('{%s}nil' % rpclib.ns_xsi, 'true')
+        element.set('{%s}nil' % _ns_xsi, 'true')
 
     @classmethod
     def to_string(cls, value):
@@ -259,17 +264,17 @@ class SimpleType(Base):
 
     @classmethod
     def get_restriction_tag(cls, interface):
-        simple_type = etree.Element('{%s}simpleType' % rpclib.ns_xsd)
+        simple_type = etree.Element('{%s}simpleType' % _ns_xsd)
         simple_type.set('name', cls.get_type_name())
         interface.add_simple_type(cls, simple_type)
 
         restriction = etree.SubElement(simple_type, '{%s}restriction' %
-                                                                  rpclib.ns_xsd)
+                                                                  _ns_xsd)
         restriction.set('base', cls.__base_type__.get_type_name_ns(interface))
 
         for v in cls.Attributes.values:
             enumeration = etree.SubElement(restriction,
-                                            '{%s}enumeration' % rpclib.ns_xsd)
+                                            '{%s}enumeration' % _ns_xsd)
             enumeration.set('value', str(v))
 
         return restriction

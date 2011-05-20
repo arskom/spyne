@@ -25,13 +25,13 @@ import pytz
 from lxml import etree
 from pytz import FixedOffset
 
-import rpclib
 from rpclib.model import SimpleType
 from rpclib.model import nillable_element
 from rpclib.model import nillable_value
 from rpclib.model import nillable_string
 from rpclib.util.etreeconv import etree_to_dict
 from rpclib.util.etreeconv import dict_to_etree
+import rpclib.namespace.soap
 
 string_encoding = 'utf-8'
 
@@ -45,8 +45,8 @@ _utc_re = re.compile(_datetime_pattern + 'Z')
 _offset_re = re.compile(_datetime_pattern + _offset_pattern)
 _date_re = re.compile(_date_pattern)
 
-_ns_xs = rpclib.ns_xsd
-_ns_xsi = rpclib.ns_xsi
+_ns_xs = rpclib.namespace.soap.xsd
+_ns_xsi = rpclib.namespace.soap.xsi
 
 class Any(SimpleType):
     __type_name__ = 'anyType'

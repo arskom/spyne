@@ -21,9 +21,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 import warnings
-import rpclib
 from rpclib.model.exception import Fault
 from rpclib.util.odict import odict
+
+import rpclib.namespace.soap
+_ns_xsd = rpclib.namespace.soap.xsd
 
 class ValidationError(Fault):
     pass
@@ -47,8 +49,8 @@ class Base(object):
         self.classes = {}
         self.imports = {}
 
-        self.nsmap = dict(rpclib.const_nsmap)
-        self.prefmap = dict(rpclib.const_prefmap)
+        self.nsmap = dict(rpclib.namespace.soap.const_nsmap)
+        self.prefmap = dict(rpclib.namespace.soap.const_prefmap)
 
         self.nsmap['tns']=tns
         self.prefmap[tns]='tns'
@@ -59,7 +61,7 @@ class Base(object):
         retval = False
         ns_prefix = cls.get_namespace_prefix(self)
 
-        if ns_prefix in rpclib.const_nsmap:
+        if ns_prefix in rpclib.namespace.soap.const_nsmap:
             retval = True
 
         else:
@@ -85,17 +87,18 @@ class Base(object):
 
         def is_valid_import(pref):
             return not (
-                (pref in rpclib.const_nsmap) or (pref == pref_tns)
+                (pref in rpclib.namespace.soap.const_nsmap) or
+                (pref == pref_tns)
             )
 
         if not (pref_tns in self.imports):
             self.imports[pref_tns] = set()
 
         for c in node:
-            if c.tag == "{%s}complexContent" % rpclib.ns_xsd:
+            if c.tag == "{%s}complexContent" % _ns_xsd:
                 extension = c.getchildren()[0]
 
-                if extension.tag == '{%s}extension' % rpclib.ns_xsd:
+                if extension.tag == '{%s}extension' % _ns_xsd:
                     pref = extension.attrib['base'].split(':')[0]
                     if is_valid_import(pref):
                         self.imports[pref_tns].add(self.nsmap[pref])
@@ -107,13 +110,13 @@ class Base(object):
             else:
                 seq = c
 
-            if seq.tag == '{%s}sequence' % rpclib.ns_xsd:
+            if seq.tag == '{%s}sequence' % _ns_xsd:
                 for e in seq:
                     pref = e.attrib['type'].split(':')[0]
                     if is_valid_import(pref):
                         self.imports[pref_tns].add(self.nsmap[pref])
 
-            elif seq.tag == '{%s}restriction' % rpclib.ns_xsd:
+            elif seq.tag == '{%s}restriction' % _ns_xsd:
                 pref = seq.attrib['base'].split(':')[0]
                 if is_valid_import(pref):
                     self.imports[pref_tns].add(self.nsmap[pref])

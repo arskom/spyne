@@ -17,13 +17,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import rpclib
 from lxml import etree
 from rpclib.model import Base
 
-_ns_xsi = rpclib.ns_xsi
-_ns_xsi = rpclib.ns_xsd
-_pref_soap_env = rpclib.const_prefmap[rpclib.ns_soap_env]
+import rpclib.namespace.soap
+
+_ns_xsi = rpclib.namespace.soap.xsi
+_ns_xsd = rpclib.namespace.soap.xsd
+_ns_soap_env = rpclib.namespace.soap.soap_env
+
+_pref_soap_env = rpclib.namespace.soap.const_prefmap[_ns_soap_env]
 
 class Fault(Exception, Base):
     __type_name__ = "Fault"
@@ -45,7 +48,7 @@ class Fault(Exception, Base):
     @classmethod
     def to_parent_element(cls, value, tns, parent_elt, name=None):
         assert name is None
-        element = etree.SubElement(parent_elt, "{%s}Fault" % rpclib.ns_soap_env)
+        element = etree.SubElement(parent_elt, "{%s}Fault" % _ns_soap_env)
 
         etree.SubElement(element, 'faultcode').text = value.faultcode
         etree.SubElement(element, 'faultstring').text = value.faultstring

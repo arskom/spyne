@@ -5,9 +5,9 @@ from rpclib.model.base import SimpleType
 from rpclib.model.base import nillable_element
 from rpclib.model.base import nillable_value
 
-import rpclib
+import rpclib.namespace.soap
 
-_ns_xs = rpclib.ns_xsd
+_ns_xsd = rpclib.namespace.soap.ns_xsd
 
 # adapted from: http://code.activestate.com/recipes/413486/
 
@@ -86,17 +86,17 @@ def Enum(*values, **kwargs):
         @classmethod
         def add_to_schema(cls, interface):
             if not interface.has_class(cls):
-                simple_type = etree.Element('{%s}simpleType' % _ns_xs)
+                simple_type = etree.Element('{%s}simpleType' % _ns_xsd)
                 simple_type.set('name', cls.get_type_name())
 
                 restriction = etree.SubElement(simple_type,
-                                                    '{%s}restriction' % _ns_xs)
+                                                    '{%s}restriction' % _ns_xsd)
                 restriction.set('base', '%s:string' %
-                                  interface.get_namespace_prefix(rpclib.ns_xsd))
+                                        interface.get_namespace_prefix(_ns_xsd))
 
                 for v in values:
                     enumeration = etree.SubElement(restriction,
-                                                    '{%s}enumeration' % _ns_xs)
+                                                    '{%s}enumeration' % _ns_xsd)
                     enumeration.set('value', v)
 
                 interface.add_simple_type(cls, simple_type)
