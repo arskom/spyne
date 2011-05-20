@@ -22,7 +22,6 @@ logger = logging.getLogger(__name__)
 
 from rpclib.model.clazz import ClassSerializer as Message
 from rpclib.model.clazz import TypeInfo
-from rpclib.model.primitive import Any
 
 class MethodDescriptor(object):
     '''This class represents the method signature of a soap method,
@@ -31,7 +30,18 @@ class MethodDescriptor(object):
 
     def __init__(self, name, public_name, in_message, out_message, doc,
                  is_callback=False, is_async=False, mtom=False, in_header=None,
-                 out_header=None, faults=(), body_style='rpc'):
+                 out_header=None, faults=(), body_style=None, soap_body_style=None):
+
+        if body_style is None:
+            body_style = 'wrapped'
+        elif not (body_style in ('wrapped', 'bare')):
+            raise ValueError("body_style must be one of ('wrapped', 'bare')")
+        elif soap_body_style == 'document':
+            body_style = 'bare'
+        elif soap_body_style == 'rpc':
+            body_style = 'wrapped'
+        else:
+            raise ValueError("soap_body_style must be one of ('rpc', 'document')")
 
         self.name = name
         self.public_name = public_name
@@ -72,7 +82,7 @@ def _produce_input_message(ns, f, params, kparams):
 
     return message
 
-def _produce_rpc_output_message(ns, f, params, kparams):
+def _produce_output_message(ns, f, params, kparams):
     """Generate an output message for "rpc"-style API methods.
 
     This message is a wrapper to the declared return type.
@@ -80,16 +90,19 @@ def _produce_rpc_output_message(ns, f, params, kparams):
 
     _returns = kparams.get('_returns')
 
+    _body_style = kparams.get('_body_style')
+    assert _body_style in ('wrapped','bare')
+
     _out_message = kparams.get('_out_message', '%sResponse' % f.func_name)
     out_params = TypeInfo()
 
-    if _returns:
+    if _returns and _body_style == 'wrapped':
         if isinstance(_returns, (list, tuple)):
             default_names = ['%sResult%d' % (f.func_name, i) for i in
                                                            range(len(_returns))]
 
             _out_variable_names = kparams.get('_out_variable_names',
-                                                                default_names)
+                                                                  default_names)
 
             assert (len(_returns) == len(_out_variable_names))
 
@@ -102,9 +115,14 @@ def _produce_rpc_output_message(ns, f, params, kparams):
 
             out_params[_out_variable_name] = _returns
 
-    message=Message.produce(type_name=_out_message, namespace=ns,
+    if _body_style == 'wrapped':
+        message = Message.produce(type_name=_out_message, namespace=ns,
                                                              members=out_params)
-    message.__namespace__ = ns
+        message.__namespace__ = ns # FIXME: is this necessary?
+
+    else:
+        message = Message.alias(_out_message, ns, _returns)
+
     message.resolve_namespace(message, ns)
 
     return message
@@ -141,7 +159,7 @@ def rpc(*params, **kparams):
                 ns = kwargs['clazz'].get_tns()
 
                 in_message = _produce_input_message(ns, f, params, kparams)
-                out_message = _produce_rpc_output_message(ns, f, params, kparams)
+                out_message = _produce_output_message(ns, f, params, kparams)
                 _faults = kparams.get('_faults', [])
 
                 if not (_in_header is None):
@@ -152,86 +170,8 @@ def rpc(*params, **kparams):
                 doc = getattr(f, '__doc__')
                 retval = MethodDescriptor(f.func_name, _public_name,
                         in_message, out_message, doc, _is_callback, _is_async,
-                        _mtom, _in_header, _out_header)
+                        _mtom, _in_header, _out_header, _faults)
 
-            return retval
-
-        explain_method.__doc__ = f.__doc__
-        explain_method._is_rpc = True
-        explain_method.func_name = f.func_name
-
-        return explain_method
-
-    return explain
-
-def _produce_document_output_message(ns, f, params, kparams):
-    """Generate an output message for "document"-style API methods.
-
-    This message is just an alias for the declared return type.
-    """
-
-    _returns = kparams.get('_returns', Any)
-    _out_message = kparams.get('_out_message', '%sResponse' % f.func_name)
-
-    message = Message.alias(_out_message, ns, _returns)
-    message.resolve_namespace(message, ns)
-
-    return message
-
-def document(*params, **kparams):
-    """Method decorator to flag a method as a document-style operation.
-
-It will behave like a normal python method on a class, and will only
-behave differently when the keyword '_method_descriptor' is passed in,
-returning a 'MethodDescriptor' object.
-This decorator does none of the soap/xml serialization, only flags a
-method as a soap method. This decorator should only be used on member
-methods of an instance of a class derived from 'ServiceBase'.
-"""
-
-    def explain(f):
-        def explain_method(*args, **kwargs):
-            retval = None
-
-            if not ('_method_descriptor' in kwargs):
-                retval = f(*args, **kwargs)
-
-            else:
-                _is_callback = kparams.get('_is_callback', False)
-                _public_name = kparams.get('_public_name', f.func_name)
-                _is_async = kparams.get('_is_async', False)
-                _mtom = kparams.get('_mtom', False)
-                _in_header = kparams.get('_in_header', None)
-                _out_header = kparams.get('_out_header', None)
-
-                # the decorator function does not have a reference to the
-                # class and needs to be passed in
-                ns = kwargs['clazz'].get_tns()
-
-                in_message = _produce_input_message(ns, f, params, kparams)
-                out_message = _produce_document_output_message(ns, f,
-                                                               params, kparams)
-                _faults = kparams.get('_faults', [])
-
-                if not (_in_header is None):
-                    _in_header.resolve_namespace(_in_header, ns)
-                if not (_out_header is None):
-                    _out_header.resolve_namespace(_out_header, ns)
-
-                doc = getattr(f, '__doc__')
-                retval = MethodDescriptor(f.func_name,
-                                          _public_name,
-                                          in_message,
-                                          out_message,
-                                          doc,
-                                          _is_callback,
-                                          _is_async,
-                                          _mtom,
-                                          _in_header,
-                                          _out_header,
-                                          _faults,
-                                          'document',
-                                         )
             return retval
 
         explain_method.__doc__ = f.__doc__
