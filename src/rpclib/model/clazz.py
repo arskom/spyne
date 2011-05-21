@@ -322,10 +322,11 @@ class ClassSerializerBase(Base):
                     value = []
 
                 value.append(member.from_xml(c))
-                setattr(inst, key, value)
 
             else:
-                setattr(inst, key, member.from_xml(c))
+                value = member.from_xml(c)
+
+            setattr(inst, key, value)
 
         return inst
 
