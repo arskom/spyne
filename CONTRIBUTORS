@@ -14,6 +14,20 @@ Burak Arslan
     general code cleaning
     support for multiple protocols and transports
 
+Tres Seaver
+    Added soap document style encoding
+
+Chris Austin
+    Misc. patches (see CHANGELOG)
+    Sphinx docs
+    
+Brad Allen
+    facilitated work sponsored by ZeOmega
+    code review and coordination with community
+
+ZeOmega.com
+    sponsored contributions by Chris Austin, Brad Allen, and Tres Seaver
+
 <add yourself as you see fit.>
 
-Also see here: http://github.com/arskom/rpclib/contributors
+Also see here for a complete list: https://github.com/arskom/rpclib/blob/master/CONTRIBUTORS
