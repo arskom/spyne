@@ -1,10 +1,6 @@
 Warning! This is rpclib's unstable development branch. Not only that, but rpclib
 project is experimental. You have been warned.
 
-Warning! The soaplib project has been forked! The new address is: [https://github.com/soaplib/soaplib](https://github.com/soaplib/soaplib)
-
-Warning! Even though the original author of rpclib has grand plans for it, he's afk until further notice. Feel free to hack it while he's away!
-
 Overview
 ========
 
