@@ -306,35 +306,6 @@ class TestIncompleteInput(unittest.TestCase):
         assert nss_from_xml.number_1 == 100
         assert nss_from_xml.number_2 == 1000
 
-#
-#
-#        encounter_extract_sis_message = EncExtractSisMsg()
-#        encounter_extract_sis_message.body = EncExtractXs()
-#        encounter_extract_sis_message.body.mbr_idn = 1
-#        encounter_extract_sis_message.body.enc_idn = 2
-#        encounter_extract_sis_message.body.hist_idn = 3
-#        encounter_extract_sis_message.data_source = "Foo"
-#        encounter_extract_sis_message.direction = "Outbound"
-#        encounter_extract_sis_message.interface_name = "CID"
-#
-#        from datetime import datetime
-#        encounter_extract_sis_message.crt_dt = datetime(2011,02,14, 12,1,29)
-#
-#        cmc = ClassModelConverter(encounter_extract_sis_message, encounter_extract_sis_message.get_namespace())
-#        xml = cmc.to_xml()
-#
-#        print xml
-#
-#        element = etree.fromstring(xml)
-#
-#
-#        parsed_in = EncExtractSisMsg.from_xml(element)
-#        cmc = ClassModelConverter(parsed_in, parsed_in.get_namespace(), include_ns=False)
-#        i_xml = cmc.to_xml()
-#        print i_xml
-#
-#        assert True
-
 class SisMsg(ClassSerializer):
     """Container with metadata for Jiva integration messages
     carried in the MQ payload.
@@ -360,7 +331,6 @@ class EncExtractSisMsg(SisMsg):
     >>> msg.body.mbr_idn
     """
     body = EncExtractXs
-
 
 if __name__ == '__main__':
     unittest.main()
