@@ -30,18 +30,9 @@ class MethodDescriptor(object):
 
     def __init__(self, name, public_name, in_message, out_message, doc,
                  is_callback=False, is_async=False, mtom=False, in_header=None,
-                 out_header=None, faults=(), body_style=None, soap_body_style=None):
-
-        if body_style is None:
-            body_style = 'wrapped'
-        elif not (body_style in ('wrapped', 'bare')):
-            raise ValueError("body_style must be one of ('wrapped', 'bare')")
-        elif soap_body_style == 'document':
-            body_style = 'bare'
-        elif soap_body_style == 'rpc':
-            body_style = 'wrapped'
-        else:
-            raise ValueError("soap_body_style must be one of ('rpc', 'document')")
+                 out_header=None, faults=(),
+                 port_type=None, #added to support multiple portTypes
+                ):
 
         self.name = name
         self.public_name = public_name
@@ -54,7 +45,7 @@ class MethodDescriptor(object):
         self.in_header = in_header
         self.out_header = out_header
         self.faults = faults
-        self.body_style = body_style
+        self.port_type = port_type
 
 def _produce_input_message(ns, f, params, kparams):
     _in_message = kparams.get('_in_message', f.func_name)
@@ -82,6 +73,24 @@ def _produce_input_message(ns, f, params, kparams):
 
     return message
 
+def _validate_body_style(kparams):
+    _body_style = kparams.get('_body_style')
+    _soap_body_style = kparams.get('_soap_body_style')
+
+    if _body_style is None:
+        _body_style = 'wrapped'
+    elif not (_body_style in ('wrapped', 'bare')):
+        raise ValueError("body_style must be one of ('wrapped', 'bare')")
+    elif _soap_body_style == 'document':
+        _body_style = 'bare'
+    elif _soap_body_style == 'rpc':
+        _body_style = 'wrapped'
+    else:
+        raise ValueError("soap_body_style must be one of ('rpc', 'document')")
+    assert _body_style in ('wrapped','bare')
+
+    return _body_style
+
 def _produce_output_message(ns, f, params, kparams):
     """Generate an output message for "rpc"-style API methods.
 
@@ -89,9 +98,7 @@ def _produce_output_message(ns, f, params, kparams):
     """
 
     _returns = kparams.get('_returns')
-
-    _body_style = kparams.get('_body_style')
-    assert _body_style in ('wrapped','bare')
+    _body_style = _validate_body_style(kparams)
 
     _out_message = kparams.get('_out_message', '%sResponse' % f.func_name)
     out_params = TypeInfo()
@@ -153,6 +160,7 @@ def rpc(*params, **kparams):
                 _mtom = kparams.get('_mtom', False)
                 _in_header = kparams.get('_in_header', None)
                 _out_header = kparams.get('_out_header', None)
+                _port_type = kparams.get('_soap_port_type', None)
 
                 # the decorator function does not have a reference to the
                 # class and needs to be passed in
@@ -170,7 +178,8 @@ def rpc(*params, **kparams):
                 doc = getattr(f, '__doc__')
                 retval = MethodDescriptor(f.func_name, _public_name,
                         in_message, out_message, doc, _is_callback, _is_async,
-                        _mtom, _in_header, _out_header, _faults)
+                        _mtom, _in_header, _out_header, _faults,
+                        port_type=_port_type)
 
             return retval
 
@@ -197,6 +206,20 @@ class DefinitionBase(object):
     __tns__ = None
     __in_header__ = None
     __out_header__ = None
+    __service_interface__ = None
+    __port_types__ = ()
+
+    @classmethod
+    def get_service_class_name(cls):
+        return cls.__name__
+
+    @classmethod
+    def get_service_interface(cls):
+        return cls.__service_interface__
+
+    @classmethod
+    def get_port_types(cls):
+        return cls.__port_types__
 
     def __init__(self, environ=None):
         self.in_header = None
@@ -258,7 +281,7 @@ class DefinitionBase(object):
         if not (cls.__tns__ is None):
             return cls.__tns__
 
-        service_name = cls.__name__.split('.')[-1]
+        service_name = cls.get_service_class_name().split('.')[-1]
 
         retval = '.'.join((cls.__module__, service_name))
         if cls.__module__ == '__main__':
@@ -283,7 +306,7 @@ class DefinitionBase(object):
         return public_methods
 
     def get_method(self, name):
-        '''Returns the metod descriptor based on element name.'''
+        '''Returns the method descriptor based on element name.'''
 
         for method in self.public_methods:
             type_name = method.in_message.get_type_name()

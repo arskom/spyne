@@ -41,11 +41,45 @@ _ns_soap = rpclib.namespace.soap.soap
 class ValidationError(Fault):
     pass
 
+def check_method_port(service, method):
+    if len(service.port_types) != 0 and method.port_type is None:
+        raise ValueError("""
+            A port must be declared in the RPC decorator if the service
+            class declares a list of ports
+            """)
+
+    if (not method.port_type is None) and len(service.port_types) == 0:
+        raise ValueError("""
+            The rpc decorator has declared a port while the service class
+            has not.  Remove the port declaration from the rpc decorator
+            or add a list of ports to the service class
+            """)
+    try:
+        if (not method.port_type is None):
+            index = service.port_types.index(method.port_type)
+
+    except ValueError, e:
+        raise ValueError("""
+            The port specified in the rpc decorator does not match any of
+            the ports defined by the service class
+            """)
+
 def add_port_type(service, interface, root, service_name, types, url, port_type):
     # FIXME: I don't think this call is working.
     cb_port_type = _add_callbacks(service, root, types, service_name, url)
 
+    port_name = port_type.get('name')
+    method_port_type = None
+
     for method in service.public_methods:
+        check_method_port(service, method)
+
+        if len(service.port_types) is 0 and method_port_type is None:
+            method_port_type = port_name
+        else:
+            method_port_type = method.port_type
+
+
         if method.is_callback:
             operation = etree.SubElement(cb_port_type, '{%s}operation'
                                                         % _ns_wsdl)
