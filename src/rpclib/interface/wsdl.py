@@ -26,7 +26,7 @@ import tempfile
 from lxml import etree
 
 from rpclib.model.exception import Fault
-from rpclib.interface.base import Base
+from rpclib.interface import Base
 
 import rpclib.namespace.soap
 
