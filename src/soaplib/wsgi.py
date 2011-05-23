@@ -462,7 +462,7 @@ class Application(object):
             func = getattr(service, descriptor.name)
 
             # decode header object
-            if soap_req_header is not None and len(soap_req_header) > 0:
+            if soap_req_header is not None and len(soap_req_header) > 0 and descriptor.in_header is not None:
                 in_header = descriptor.in_header
                 service.soap_in_header = in_header.from_xml(soap_req_header)
 
