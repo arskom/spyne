@@ -7,7 +7,7 @@ from rpclib.model.base import nillable_value
 
 import rpclib.namespace.soap
 
-_ns_xsd = rpclib.namespace.soap.ns_xsd
+_ns_xsd = rpclib.namespace.soap.xsd
 
 # adapted from: http://code.activestate.com/recipes/413486/
 

@@ -374,7 +374,7 @@ class ClassSerializerBase(Base):
                 complex_content = etree.SubElement(complex_type,
                                           "{%s}complexContent" % namespace.xsd)
                 extension = etree.SubElement(complex_content, "{%s}extension"
-                                                               % rpclib.ns_xsd)
+                                                               % namespace.xsd)
                 extension.set('base', extends.get_type_name_ns(interface))
                 sequence_parent = extension
 
@@ -494,7 +494,7 @@ class Array(ClassSerializer):
         if cls.__namespace__ is None:
             cls.__namespace__ = serializer.get_namespace()
 
-        if cls.__namespace__ in rpclib.const_prefmap:
+        if cls.__namespace__ in namespace.const_prefmap:
             cls.__namespace__ = default_ns
 
         ClassSerializer.resolve_namespace(cls, default_ns)
