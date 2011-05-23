@@ -42,7 +42,7 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
     def test_tns(self):
         sa = build_app([SinglePortService], 'SinglePort','TestServiceName')
         sa.interface.get_interface_document(self.url)
-        sa_el = sa.interface.root_element
+        sa_el = sa.interface.root_elt
         tns = sa_el.get('targetNamespace')
         self.assertEqual('SinglePort', tns)
 
@@ -53,12 +53,11 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
         )
 
         sa.interface.get_interface_document(self.url)
-        tns = sa.interface.root_element.get('targetNamespace')
+        tns = sa.interface.root_elt.get('targetNamespace')
 
         self.assertEqual(tns, 'MultiServiceTns')
 
     def test_raise_missing_port(self):
-
         # Test that an exception is raised when a port is declared in the service class
         # but the rpc method does not declare a port.
 
@@ -126,8 +125,8 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
 
     def test_service_name(self):
         sa = build_app([SinglePortService], 'SinglePort', 'TestServiceName')
-        sa_wsdl = sa.interface.get_interface_document(self.url)
-        sa_el = sa.interface.root_element
+        sa.interface.get_interface_document(self.url)
+        sa_el = sa.interface.root_elt
 
         sl = [s for s in sa_el.iterfind(self.service_string)]
         name = sl[0].get('name')
@@ -137,7 +136,6 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
 
 
     def test_service_contains_ports(self):
-
         # Check that the element for the service has the correct number of ports
         # Check that the element for the service has the correct port names
 
@@ -158,22 +156,22 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
         port = ports[0]
 
         self.assertEquals('FirstPortType', port.get('name'))
-
-
         
     def test_port_name(self):
         sa = build_app([SinglePortService], 'tns', name='SinglePortApp')
-        sa_wsdl_string = sa.get_wsdl(self.url)
-        sa_wsdl_el = sa.wsdl.elements
+        sa.interface.get_interface_document(self.url)
+        sa_wsdl_el = sa.interface.root_elt
 
-        pl = [el for el in sa_wsdl_el.iterfind(self.port_type_string)]
+        pl = sa_wsdl_el.findall(self.port_type_string)
+        print '\n', pl, pl[0].attrib
         self.assertEqual('FirstPortType', pl[0].get('name'))
 
         da = build_app([DoublePortService], 'tns', name='DoublePortApp')
-        da_wsdl_string = da.get_wsdl(self.url)
-        da_wsdl_el = da.wsdl.elements
 
-        pl2 = [el for el in da_wsdl_el.iterfind(self.port_type_string)]
+        da.interface.get_interface_document(self.url)
+        da_wsdl_el = da.interface.root_elt
+
+        pl2 = da_wsdl_el.findall(self.port_type_string)
         self.assertEqual('FirstPort', pl2[0].get('name'))
         self.assertEqual('SecondPort', pl2[1].get('name'))
 
@@ -181,15 +179,15 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
     def test_port_count(self):
         sa = build_app([SinglePortService], 'tns', name='SinglePortApp')
         sa.interface.get_interface_document(self.url)
-        sa_wsdl_el = sa.interface.root_element
+        sa_wsdl_el = sa.interface.root_elt
 
-        self.assertEquals(1, len(sa_wsdl_el.find(self.port_type_string)))
-        pl = sa_wsdl_el.find(self.port_type_string)
+        self.assertEquals(1, len(sa_wsdl_el.findall(self.port_type_string)))
+        pl = sa_wsdl_el.findall(self.port_type_string)
         self.assertEqual(1, len(pl))
 
 
         da = build_app([DoublePortService], 'tns', name='DoublePortApp')
         da_wsdl_string = da.interface.get_interface_document(self.url)
-        da_wsdl_el = da.interface.root_element
+        da_wsdl_el = da.interface.root_elt
 
-        self.assertEquals(2, len(da_wsdl_el.find(self.port_type_string)))
+        self.assertEquals(2, len(da_wsdl_el.findall(self.port_type_string)))

@@ -66,21 +66,43 @@ def check_method_port(service, method):
             the ports defined by the service class
             """)
 
-def add_port_type(service, interface, root, service_name, types, url, port_type):
+def add_port_type(service, interface, root, service_name, types, url):
     # FIXME: I don't think this call is working.
     cb_port_type = _add_callbacks(service, root, types, service_name, url)
 
+    port_binding_names = []
+
+    if service.get_service_interface() is None:
+        # This is the default behavior. i.e. no service interface is
+        # defined in the service heading
+        if len(interface.parent.services) == 1:
+            applied_service_name = interface.get_name()
+        else:
+            applied_service_name = service.get_service_class_name()
+    else:
+        applied_service_name = service.get_service_interface()
+
+    port_type_list = service.get_port_types()
+    if len(port_type_list) > 0:
+        for port_type_name in port_type_list:
+            port_type = interface._get_or_create_port_type(port_type_name)
+            port_type.set('name', port_type_name)
+
+            binding_name = interface._get_binding_name(port_type_name)
+            port_binding_names.append((port_type_name, binding_name))
+
+    else:
+        port_type = interface._get_or_create_port_type(service_name)
+        port_type.set('name', service_name)
+
+        binding_name = interface._get_binding_name(service_name)
+        port_binding_names.append((service_name, binding_name))
+
     port_name = port_type.get('name')
     print "pn", port_name
-    method_port_type = None
 
     for method in service.public_methods:
         check_method_port(service, method)
-
-        if len(service.__port_types__) == 0 and method_port_type is None:
-            method_port_type = port_name
-        else:
-            method_port_type = method.port_type
 
         if method.is_callback:
             operation = etree.SubElement(cb_port_type, '{%s}operation'
@@ -110,6 +132,11 @@ def add_port_type(service, interface, root, service_name, types, url, port_type)
                 fault = etree.SubElement(operation, '{%s}fault' %  _ns_wsdl)
                 fault.set('name', f.get_type_name())
                 fault.set('message', f.get_type_name(interface))
+
+    ser = interface._get_or_create_service_node(applied_service_name)
+    for port_name, binding_name in port_binding_names:
+        interface._add_port_to_service(ser, port_name, binding_name)
+
 
 # FIXME: I don't think this is working.
 def _add_callbacks(service, root, types, service_name, url):
@@ -300,6 +327,43 @@ class Wsdl11(Base):
         
         self._with_plink = _with_partnerlink
         self.__wsdl = None
+        self.port_type_dict = {}
+        self.service_elt_dict = {}
+        self.root_elt = None
+        self.service_elt = None
+
+    def _get_binding_name(self, port_type_name):
+        return port_type_name # subclasses override to control port names.
+
+    def _get_or_create_port_type(self, pt_name):
+        """ Creates a wsdl:portType element. """
+
+        pt = None
+
+        if not self.port_type_dict.has_key(pt_name):
+            pt = etree.SubElement(self.root_elt, '{%s}portType' % _ns_wsdl)
+            pt.set('name', pt_name)
+            self.port_type_dict[pt_name] = pt
+
+        else:
+            pt = self.port_type_dict[pt_name]
+
+        return pt
+
+    def _get_or_create_service_node(self, service_name):
+        ''' Builds a wsdl:service element. '''
+
+        ser = None
+        if not self.service_elt_dict.has_key(service_name):
+
+            ser = etree.SubElement(self.root_elt, '{%s}service' % _ns_wsdl)
+            ser.set('name', service_name)
+            self.service_elt_dict[service_name] = ser
+
+        else:
+            ser = self.service_elt_dict[service_name]
+
+        return ser
 
     def build_schema_nodes(self, types=None):
         retval = {}
@@ -377,12 +441,13 @@ class Wsdl11(Base):
         """Build the wsdl for the application."""
         pref_tns = self.get_namespace_prefix(self.tns)
 
-        url = url.replace('.wsdl', '') # FIXME: doesn't look so robust
+        self.url = url = url.replace('.wsdl', '') # FIXME: doesn't look so robust
 
         service_name = self.get_name()
 
         # create wsdl root node
-        root = etree.Element("{%s}definitions" % _ns_wsdl, nsmap=self.nsmap)
+        self.root_elt = root = etree.Element("{%s}definitions" % _ns_wsdl,
+                                                               nsmap=self.nsmap)
         root.set('targetNamespace', self.tns)
         root.set('name', service_name)
 
@@ -397,15 +462,9 @@ class Wsdl11(Base):
             add_messages_for_methods(s, self, root, messages)
 
         if self._with_plink:
-            # create plink node
             plink = etree.SubElement(root, '{%s}partnerLinkType' % _ns_plink)
             plink.set('name', service_name)
             self.__add_partner_link(service_name, plink)
-
-        # create service node
-        service = etree.SubElement(root, '{%s}service' % _ns_wsdl)
-        service.set('name', service_name)
-        self.__add_service(service_name, url, service)
 
         # create binding nodes
         binding = etree.SubElement(root, '{%s}binding' % _ns_wsdl)
@@ -416,24 +475,20 @@ class Wsdl11(Base):
         soap_binding.set('style', 'document')
 
         if self.parent.transport is None:
-            raise Exception("You must set the 'transport' property")
+            raise Exception("You must set the 'transport' property of the "
+                            "parent 'Application' instance")
         soap_binding.set('transport', self.parent.transport)
 
         cb_binding = None
 
-        # create portType node
-        port_type = etree.SubElement(root, '{%s}portType' % _ns_wsdl)
-        port_type.set('name', service_name)
-
         for s in self.services:
-            s=self.parent.get_service(s)
-            add_port_type(s, self, root, service_name, types, url, port_type)
+            s = self.parent.get_service(s)
+            add_port_type(s, self, root, service_name, types, url)
             cb_binding = add_bindings_for_methods(s, self, root, service_name,
-                                                  binding, cb_binding)
+                                                            binding, cb_binding)
 
         self.__wsdl = etree.tostring(root, xml_declaration=True,
                                                                encoding="UTF-8")
-        self.root_element = root
         return self.__wsdl
 
     def __add_partner_link(self, service_name, plink):
@@ -455,17 +510,22 @@ class Wsdl11(Base):
             plink_port_type = etree.SubElement(role, '{%s}portType' % _ns_plink)
             plink_port_type.set('name', '%s:%sCallback' %
                                                        (pref_tns, service_name))
-    def __add_service(self, service_name, url, service):
-        """Add service node to the wsdl.
-        """
-        pref_tns = self.get_namespace_prefix(self.get_tns())
+
+    def _add_port_to_service(self, service, port_name, binding_name):
+        """ Builds a wsdl:port for a service and binding"""
+
+        pref_tns = self.get_namespace_prefix(
+            self.get_tns()
+        )
 
         wsdl_port = etree.SubElement(service, '{%s}port' % _ns_wsdl)
-        wsdl_port.set('name', service_name)
-        wsdl_port.set('binding', '%s:%s' % (pref_tns, service_name))
+        wsdl_port.set('name', port_name)
+        wsdl_port.set('binding', '%s:%s' % (pref_tns, binding_name))
 
         addr = etree.SubElement(wsdl_port, '{%s}address' % _ns_soap)
-        addr.set('location', url)
+        addr.set('location', self.url)
+
+
 
     def _has_callbacks(self):
         retval = False
