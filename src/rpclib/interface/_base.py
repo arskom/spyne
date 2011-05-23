@@ -206,7 +206,8 @@ class Base(object):
         return retval
 
     def populate_interface(self, types=None):
-        # FIXME: should also somehow freeze child classes' _type_info dictionaries.
+        # FIXME: should also somehow freeze child classes' _type_info
+        #        dictionaries.
 
         # populate call routes
         for s in self.services:
@@ -225,7 +226,6 @@ class Base(object):
                 else:
                     logger.debug('adding method %r' % method_name)
                     self.call_routes[method_name] = s
-                    self.call_routes[method.name] = s
 
         # populate types
         for s in self.services:

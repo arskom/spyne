@@ -52,6 +52,7 @@ class RemoteProcedureBase(object):
     where the args and kwargs are serialized using the protocol and sent to the
     remote side using the transport the child implements.
     """
+
     def __init__(self, url, app, name, out_header):
         self.url = url
         self.app = app

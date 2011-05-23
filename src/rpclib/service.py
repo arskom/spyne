@@ -141,9 +141,9 @@ def rpc(*params, **kparams):
     will behave like a normal python method on a class, and will only behave
     differently when the keyword '_method_descriptor' is passed in, returning a
     'MethodDescriptor' object.  This decorator does none of the rpc
-    serialization, only flags a method as a remotely callable procedure.  This
+    serialization, only flags a method as a remotely callable procedure. This
     decorator should only be used on member methods of an instance of
-    ServiceBase.
+    rpclib.service.DefinitionBase.
     '''
 
     def explain(f):

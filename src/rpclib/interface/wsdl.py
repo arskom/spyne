@@ -528,8 +528,6 @@ class Wsdl11(Base):
         addr = etree.SubElement(wsdl_port, '{%s}address' % _ns_soap)
         addr.set('location', self.url)
 
-
-
     def _has_callbacks(self):
         retval = False
 

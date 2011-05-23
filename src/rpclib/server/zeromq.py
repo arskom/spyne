@@ -31,6 +31,7 @@ class Server(Base):
 
     def __init__(self, app, app_url, wsdl_url=None):
         Base.__init__(self, app)
+
         self.app_url = app_url
         self.wsdl_url = wsdl_url
 
