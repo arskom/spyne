@@ -28,7 +28,7 @@ from rpclib.server import wsgi
 
 from rpclib.test.interop.server._service import soap_application
 
-from rpclib.util.server import run_twisted
+from rpclib.util.wsgi_wrapper import run_twisted
 from rpclib.server import wsgi
 
 port = 9754

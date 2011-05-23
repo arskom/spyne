@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<wsdl:definitions xmlns:wsa="http://schemas.xmlsoap.org/ws/2003/03/addressing" xmlns:tns="rpclib.test.interop.server._service" xmlns:plink="http://schemas.xmlsoap.org/ws/2003/05/partner-link/" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:senc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:s1="punk.tunk" xmlns:s0="bar" xmlns:s12env="http://www.w3.org/2003/05/soap-envelope/" xmlns:s2="hunk.sunk" xmlns:s12enc="http://www.w3.org/2003/05/soap-encoding/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="rpclib.test.interop.server._service" name="Wsdl11Strict">
+<wsdl:definitions xmlns:wsa="http://schemas.xmlsoap.org/ws/2003/03/addressing" xmlns:tns="rpclib.test.interop.server._service" xmlns:plink="http://schemas.xmlsoap.org/ws/2003/05/partner-link/" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:senc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:s1="punk.tunk" xmlns:s0="bar" xmlns:s12env="http://www.w3.org/2003/05/soap-envelope/" xmlns:s2="hunk.sunk" xmlns:s12enc="http://www.w3.org/2003/05/soap-encoding/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="rpclib.test.interop.server._service" name="Application">
   <wsdl:types>
     <xs:schema targetNamespace="rpclib.test.interop.server._service" elementFormDefault="qualified">
       <xs:import namespace="punk.tunk" />
@@ -77,8 +77,13 @@
       <xs:element name="multi_paramResponse" type="tns:multi_paramResponse" />
       <xs:element name="non_nillable" type="tns:non_nillable" />
       <xs:element name="non_nillableResponse" type="tns:non_nillableResponse" />
+      <xs:element name="return_binary_data" type="tns:return_binary_data" />
+      <xs:element name="return_binary_dataResponse" type="tns:return_binary_dataResponse" />
       <xs:element name="return_only" type="tns:return_only" />
       <xs:element name="return_onlyResponse" type="tns:return_onlyResponse" />
+      <xs:element name="return_other_class_array" type="tns:return_other_class_array" />
+      <xs:element name="OtherClassArray" type="tns:OtherClassArray" />
+      <xs:element name="return_other_class_arrayResponse" type="tns:return_other_class_arrayResponse" />
       <xs:element name="test_empty" type="tns:test_empty" />
       <xs:element name="test_emptyResponse" type="tns:test_emptyResponse" />
       <xs:element name="InHeader" type="tns:InHeader" />
@@ -462,12 +467,35 @@
           <xs:element name="non_nillableResult" type="xs:string" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
+      <xs:complexType name="return_binary_data">
+        <xs:sequence />
+      </xs:complexType>
+      <xs:complexType name="return_binary_dataResponse">
+        <xs:sequence>
+          <xs:element name="return_binary_dataResult" type="xs:base64Binary" minOccurs="0" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
       <xs:complexType name="return_only">
         <xs:sequence />
       </xs:complexType>
       <xs:complexType name="return_onlyResponse">
         <xs:sequence>
           <xs:element name="return_onlyResult" type="xs:string" minOccurs="0" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="return_other_class_array">
+        <xs:sequence>
+          <xs:element name="num" type="xs:integer" minOccurs="0" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="OtherClassArray">
+        <xs:sequence>
+          <xs:element name="OtherClass" type="tns:OtherClass" minOccurs="0" maxOccurs="unbounded" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="return_other_class_arrayResponse">
+        <xs:sequence>
+          <xs:element name="return_other_class_arrayResult" type="tns:OtherClassArray" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="test_empty">
@@ -749,11 +777,23 @@
   <wsdl:message name="non_nillableResponse">
     <wsdl:part name="non_nillableResponse" element="tns:non_nillableResponse" />
   </wsdl:message>
+  <wsdl:message name="return_binary_data">
+    <wsdl:part name="return_binary_data" element="tns:return_binary_data" />
+  </wsdl:message>
+  <wsdl:message name="return_binary_dataResponse">
+    <wsdl:part name="return_binary_dataResponse" element="tns:return_binary_dataResponse" />
+  </wsdl:message>
   <wsdl:message name="return_only">
     <wsdl:part name="return_only" element="tns:return_only" />
   </wsdl:message>
   <wsdl:message name="return_onlyResponse">
     <wsdl:part name="return_onlyResponse" element="tns:return_onlyResponse" />
+  </wsdl:message>
+  <wsdl:message name="return_other_class_array">
+    <wsdl:part name="return_other_class_array" element="tns:return_other_class_array" />
+  </wsdl:message>
+  <wsdl:message name="return_other_class_arrayResponse">
+    <wsdl:part name="return_other_class_arrayResponse" element="tns:return_other_class_arrayResponse" />
   </wsdl:message>
   <wsdl:message name="test_empty">
     <wsdl:part name="test_empty" element="tns:test_empty" />
@@ -791,12 +831,12 @@
   <wsdl:message name="soap_exceptionResponse">
     <wsdl:part name="soap_exceptionResponse" element="tns:soap_exceptionResponse" />
   </wsdl:message>
-  <wsdl:service name="Wsdl11Strict">
-    <wsdl:port name="Wsdl11Strict" binding="tns:Wsdl11Strict">
+  <wsdl:service name="Application">
+    <wsdl:port name="Application" binding="tns:Application">
       <soap:address location="http://localhost:9753/?wsdl" />
     </wsdl:port>
   </wsdl:service>
-  <wsdl:portType name="Wsdl11Strict">
+  <wsdl:portType name="Application">
     <wsdl:operation name="echo_any" parameterOrder="echo_any">
       <wsdl:input name="echo_any" message="tns:echo_any" />
       <wsdl:output name="echo_anyResponse" message="tns:echo_anyResponse" />
@@ -917,9 +957,17 @@
       <wsdl:input name="non_nillable" message="tns:non_nillable" />
       <wsdl:output name="non_nillableResponse" message="tns:non_nillableResponse" />
     </wsdl:operation>
+    <wsdl:operation name="return_binary_data" parameterOrder="return_binary_data">
+      <wsdl:input name="return_binary_data" message="tns:return_binary_data" />
+      <wsdl:output name="return_binary_dataResponse" message="tns:return_binary_dataResponse" />
+    </wsdl:operation>
     <wsdl:operation name="return_only" parameterOrder="return_only">
       <wsdl:input name="return_only" message="tns:return_only" />
       <wsdl:output name="return_onlyResponse" message="tns:return_onlyResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="return_other_class_array" parameterOrder="return_other_class_array">
+      <wsdl:input name="return_other_class_array" message="tns:return_other_class_array" />
+      <wsdl:output name="return_other_class_arrayResponse" message="tns:return_other_class_arrayResponse" />
     </wsdl:operation>
     <wsdl:operation name="test_empty" parameterOrder="test_empty">
       <wsdl:input name="test_empty" message="tns:test_empty" />
@@ -942,7 +990,7 @@
       <wsdl:output name="soap_exceptionResponse" message="tns:soap_exceptionResponse" />
     </wsdl:operation>
   </wsdl:portType>
-  <wsdl:binding name="Wsdl11Strict" type="tns:Wsdl11Strict">
+  <wsdl:binding name="Application" type="tns:Application">
     <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
     <wsdl:operation name="echo_any">
       <soap:operation soapAction="echo_any" style="document" />
@@ -1214,12 +1262,30 @@
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
+    <wsdl:operation name="return_binary_data">
+      <soap:operation soapAction="return_binary_data" style="document" />
+      <wsdl:input name="return_binary_data">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="return_binary_dataResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
     <wsdl:operation name="return_only">
       <soap:operation soapAction="return_only" style="document" />
       <wsdl:input name="return_only">
         <soap:body use="literal" />
       </wsdl:input>
       <wsdl:output name="return_onlyResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="return_other_class_array">
+      <soap:operation soapAction="return_other_class_array" style="document" />
+      <wsdl:input name="return_other_class_array">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="return_other_class_arrayResponse">
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
