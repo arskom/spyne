@@ -1,5 +1,6 @@
+
 #
-# soaplib - Copyright (C) Soaplib contributors.
+# rpclib - Copyright (C) rpclib contributors.
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -16,18 +17,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from soaplib.model.primitive import String
-from soaplib.service import DefinitionBase, rpc
+from rpclib.model.primitive import String
+from rpclib.service import DefinitionBase
+from rpclib.service import rpc
 
 class DefaultPortService(DefinitionBase):
-
     @rpc(String, _returns=String)
     def echo_default_port_service(self, string):
         return string
 
-
 class DefaultPortServiceMultipleMethods(DefinitionBase):
-
     @rpc(String, _returns=String)
     def echo_one(self, string):
         return string
@@ -39,4 +38,3 @@ class DefaultPortServiceMultipleMethods(DefinitionBase):
     @rpc(String, _returns=String)
     def echo_three(self, string):
         return string
-  

@@ -1,5 +1,6 @@
+
 #
-# soaplib - Copyright (C) Soaplib contributors.
+# rpclib - Copyright (C) rpclib contributors.
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -16,8 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from soaplib.model.primitive import String
-from soaplib.service import rpc, DefinitionBase
+from rpclib.model.primitive import String
+from rpclib.service import DefinitionBase
+from rpclib.service import rpc
 
 class S1(DefinitionBase):
     name = 'S1Fools'
@@ -27,7 +29,6 @@ class S1(DefinitionBase):
     def echo_string_s1(self, string):
         return string
 
-
 class S2(DefinitionBase):
     name = 'S2Fools'
     __namespace__ = 'Hoppity'
@@ -36,9 +37,7 @@ class S2(DefinitionBase):
     def bobs(self, string):
         return string 
 
-
 class S3(DefinitionBase):
-
     name = 'S3Fools'
     __namespace__ = 'Hoppity'
     __service_interface__ = 'BLAHHHHAHHHAHHHHA'
@@ -53,10 +52,7 @@ class S3(DefinitionBase):
     def echo_bob_hope(self,  string):
         return 'Bob Hope'
 
-
-
 class MissingRPCPortService(DefinitionBase):
-
     name = 'MissingRPCPortService'
     __namespace__ = 'MissingRPCPortService'
     __service_interface__ = 'MissingRPCPortService'
@@ -87,7 +83,6 @@ class MissingServicePortService(DefinitionBase):
     def raise_exception(self, string):
         return string
 
-
 class SinglePortService(DefinitionBase):
     name = 'SinglePort'
     __service_interface__ = 'SinglePortService_ServiceInterface'
@@ -98,9 +93,7 @@ class SinglePortService(DefinitionBase):
     def echo_default_port_service(self, string):
         return string
 
-
 class DoublePortService(DefinitionBase):
-
     name = 'DoublePort'
     __namespace__ = 'DoublePort'
     __port_types__ = ['FirstPort', 'SecondPort']

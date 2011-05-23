@@ -1,5 +1,6 @@
+#!/usr/bin/env python
 #
-# soaplib - Copyright (C) Soaplib contributors.
+# rpclib - Copyright (C) rpclib contributors.
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -18,34 +19,25 @@
 
 import unittest
 
-import soaplib
-
-from soaplib import Application
-from soaplib.test.wsdl import build_app, AppTestWrapper
-
-from soaplib.test.wsdl.port_service_services import (S1, S2, S3, \
-        SinglePortService, MissingRPCPortService, DoublePortService, \
-        BadRPCPortService, MissingServicePortService)
-
+from rpclib.test.wsdl import AppTestWrapper
+from rpclib.test.wsdl import build_app
+from rpclib.test.wsdl.port_service_services import BadRPCPortService
+from rpclib.test.wsdl.port_service_services import DoublePortService
+from rpclib.test.wsdl.port_service_services import MissingRPCPortService
+from rpclib.test.wsdl.port_service_services import MissingServicePortService
+from rpclib.test.wsdl.port_service_services import SinglePortService
 
 class TestWSDLPortServiceBehavior(unittest.TestCase):
-
     def setUp(self):
         self.transport = 'http://schemas.xmlsoap.org/soap/http'
         self.url = 'http:/localhost:7789/wsdl'
-        self.port_type_string = '{%s}portType' % soaplib.ns_wsdl
-        self.service_string = '{%s}service' % soaplib.ns_wsdl
-        self.binding_string = '{%s}binding' % soaplib.ns_wsdl
-        self.operation_string = '{%s}operation' % soaplib.ns_wsdl
-        self.port_string = '{%s}port' % soaplib.ns_wsdl
+        self.port_type_string = '{%s}portType' % rpclib.ns_wsdl
+        self.service_string = '{%s}service' % rpclib.ns_wsdl
+        self.binding_string = '{%s}binding' % rpclib.ns_wsdl
+        self.operation_string = '{%s}operation' % rpclib.ns_wsdl
+        self.port_string = '{%s}port' % rpclib.ns_wsdl
 
-    def tearDown(self):
-        pass
-
-
-    
     def test_tns(self):
-
         sa = build_app([SinglePortService], 'SinglePort', 'TestServiceName')
         sa.get_wsdl(self.url)
         sa_el = sa.wsdl.elements

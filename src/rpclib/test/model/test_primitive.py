@@ -84,7 +84,6 @@ class TestPrimitive(unittest.TestCase):
         du = Duration.from_xml(element)
         self.assertEquals(dur.as_timedelta(), du)
 
-
     def test_utcdatetime(self):
         datestring = '2007-05-15T13:40:44Z'
         e = etree.Element('test')

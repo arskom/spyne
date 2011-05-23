@@ -1,5 +1,6 @@
+#!/usr/bin/env python
 #
-# soaplib - Copyright (C) Soaplib contributors.
+# rpclib - Copyright (C) rpclib contributors.
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -18,22 +19,12 @@
 
 import unittest
 
-
-from soaplib.test.wsdl import AppTestWrapper, build_app
-from soaplib.test.wsdl.defult_services import (DefaultPortService, \
-    DefaultPortServiceMultipleMethods)
-
+from rpclib.test.wsdl import AppTestWrapper
+from rpclib.test.wsdl import build_app
+from rpclib.test.wsdl.defult_services import DefaultPortService
+from rpclib.test.wsdl.defult_services import DefaultPortServiceMultipleMethods
 
 class TestDefaultWSDLBehavior(unittest.TestCase):
-
-    def setUp(self):
-        pass
-
-
-    def tearDown(self):
-        pass
-
-
     def _default_service(self, app_wrapper, service_name):
         self.assertEquals(1, len(app_wrapper.get_service_list()))
 
