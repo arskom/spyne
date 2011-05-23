@@ -42,28 +42,24 @@ class AppTestWrapper():
         self.wsdl = self.app.interface.get_interface_document(self.url)
 
     def get_service_list(self):
-        return [
-            s for s in self.app.interface.root_element.iterfind(self.service_string)
-        ]
+        return self.app.interface.root_elt.findall(self.service_string)
 
     def get_port_list(self, service):
-        return [p for p in service.iterfind(self.port_string)]
+        from lxml import etree
+        print etree.tostring(service, pretty_print=True)
+        return service.findall(self.port_string)
 
     def get_soap_bindings(self, binding):
-        return [sb for sb in binding.iterfind(self.soap_binding_string)]
+        return binding.findall(self.soap_binding_string)
 
     def get_port_types(self):
-        return [
-            el for el in self.app.interface.root_element.iterfind(self.port_type_string)
-        ]
+        return self.app.interface.root_elt.findall(self.port_type_string)
 
     def get_port_operations(self, port_type):
-        return [o for o in port_type.iterfind(self.operation_string)]
+        return port_type.findall(self.operation_string)
 
     def get_bindings(self):
-        return [
-            el for el in self.app.interface.root_element.iterfind(self.binding_string)
-        ]
+        return self.app.interface.root_elt.findall(self.binding_string)
 
     def get_binding_operations(self, binding):
         return [o for o in binding.iterfind(self.operation_string)]
