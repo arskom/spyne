@@ -21,14 +21,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 import warnings
-from rpclib.model.exception import Fault
 from rpclib.util.odict import odict
 
 import rpclib.namespace.soap
 _ns_xsd = rpclib.namespace.soap.xsd
-
-class ValidationError(Fault):
-    pass
 
 class SchemaInfo(object):
     def __init__(self):

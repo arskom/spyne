@@ -26,7 +26,7 @@ from rpclib.protocol.soap.mime import collapse_swa
 import traceback
 from lxml import etree
 
-from rpclib.protocol.base import Base
+from rpclib.protocol import Base
 from rpclib.model.exception import Fault
 from rpclib.model.primitive import string_encoding
 import rpclib.namespace.soap as ns
