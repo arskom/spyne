@@ -92,12 +92,12 @@ class Attachment(Base):
     @classmethod
     @nillable_string
     def to_string(cls, value):
-        if value.data:
+        if not (value.data is None):
             # the data has already been loaded, just encode
             # and return the element
             return value.data
 
-        elif value.file_name:
+        elif not (value.file_name is None):
             # the data hasn't been loaded, but a file has been
             # specified
             data_string = StringIO()
