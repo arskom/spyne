@@ -48,7 +48,7 @@ class S3(DefinitionBase):
     def echo(self, string):
         return string
 
-    @rpc(String, _port_type='bobhope', _returns=String)
+    @rpc(String, _soap_port_type='bobhope', _returns=String)
     def echo_bob_hope(self,  string):
         return 'Bob Hope'
 
@@ -68,7 +68,7 @@ class BadRPCPortService(DefinitionBase):
     __service_interface__ = 'MissingRPCPortService'
     __port_types__ = ['existing']
 
-    @rpc(String,_port_type='existingss', _returns=String)
+    @rpc(String, _soap_port_type='existingss', _returns=String)
     def raise_exception(self, string):
         return string
 
@@ -79,7 +79,7 @@ class MissingServicePortService(DefinitionBase):
     __service_interface__ = 'MissingRPCPortService'
     __port_types__ = ['existing']
 
-    @rpc(String,_port_type='existingss', _returns=String)
+    @rpc(String, _soap_port_type='existingss', _returns=String)
     def raise_exception(self, string):
         return string
 
@@ -89,7 +89,7 @@ class SinglePortService(DefinitionBase):
     __namespace__ = 'SinglePortNS'
     __port_types__ = ['FirstPortType']
 
-    @rpc(String, _port_type='FirstPortType', _returns=String)
+    @rpc(String, _soap_port_type='FirstPortType', _returns=String)
     def echo_default_port_service(self, string):
         return string
 
@@ -98,10 +98,10 @@ class DoublePortService(DefinitionBase):
     __namespace__ = 'DoublePort'
     __port_types__ = ['FirstPort', 'SecondPort']
 
-    @rpc(String, _port_type='FirstPort', _returns=String)
+    @rpc(String, _soap_port_type='FirstPort', _returns=String)
     def echo_first_port(self, string):
         return string
 
-    @rpc(String,_port_type='SecondPort', _returns=String)
+    @rpc(String,_soap_port_type='SecondPort', _returns=String)
     def echo_second_port(self, string):
         return string
