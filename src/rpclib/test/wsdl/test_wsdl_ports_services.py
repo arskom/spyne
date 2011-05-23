@@ -171,23 +171,17 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
 
         
     def test_port_count(self):
-
         sa = build_app([SinglePortService], 'tns', name='SinglePortApp')
-        sa_wsdl_string = sa.get_wsdl(self.url)
-        sa_wsdl_el = sa.wsdl.elements
-        sa_wsdl_type = sa.wsdl
+        sa.interface.get_interface_document(self.url)
+        sa_wsdl_el = sa.interface.root_element
 
-        self.assertEquals(1, len(sa_wsdl_type.port_type_dict.keys()))
-        pl = [el for el in sa_wsdl_el.iterfind(self.port_type_string)]
+        self.assertEquals(1, len(sa_wsdl_el.find(self.port_type_string)))
+        pl = sa_wsdl_el.find(self.port_type_string)
         self.assertEqual(1, len(pl))
 
 
         da = build_app([DoublePortService], 'tns', name='DoublePortApp')
-        da_wsdl_string = da.get_wsdl(self.url)
-        da_wsdl_el = da.wsdl.elements
-        da_wsdl_type = da.wsdl
+        da_wsdl_string = da.interface.get_interface_document(self.url)
+        da_wsdl_el = da.interface.root_element
 
-        self.assertEquals(2, len(da_wsdl_type.port_type_dict.keys()))
-        pl2 = [el for el in da_wsdl_el.iterfind(self.port_type_string)]
-
-        self.assertEqual(2, len(pl2))
+        self.assertEquals(2, len(da_wsdl_el.find(self.port_type_string)))
