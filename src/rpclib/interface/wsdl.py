@@ -58,7 +58,7 @@ def check_method_port(service, method):
             """)
     try:
         if (not method.port_type is None):
-            index = service.port_types.index(method.port_type)
+            index = service.__port_types__.index(method.port_type)
 
     except ValueError, e:
         raise ValueError("""
@@ -71,20 +71,20 @@ def add_port_type(service, interface, root, service_name, types, url, port_type)
     cb_port_type = _add_callbacks(service, root, types, service_name, url)
 
     port_name = port_type.get('name')
+    print "pn", port_name
     method_port_type = None
 
     for method in service.public_methods:
         check_method_port(service, method)
 
-        if len(service.__port_types__) is 0 and method_port_type is None:
+        if len(service.__port_types__) == 0 and method_port_type is None:
             method_port_type = port_name
         else:
             method_port_type = method.port_type
 
-
         if method.is_callback:
             operation = etree.SubElement(cb_port_type, '{%s}operation'
-                                                        % _ns_wsdl)
+                                                                    % _ns_wsdl)
         else:
             operation = etree.SubElement(port_type,'{%s}operation'% _ns_wsdl)
 
@@ -407,10 +407,6 @@ class Wsdl11(Base):
         service.set('name', service_name)
         self.__add_service(service_name, url, service)
 
-        # create portType node
-        port_type = etree.SubElement(root, '{%s}portType' % _ns_wsdl)
-        port_type.set('name', service_name)
-
         # create binding nodes
         binding = etree.SubElement(root, '{%s}binding' % _ns_wsdl)
         binding.set('name', service_name)
@@ -424,6 +420,10 @@ class Wsdl11(Base):
         soap_binding.set('transport', self.parent.transport)
 
         cb_binding = None
+
+        # create portType node
+        port_type = etree.SubElement(root, '{%s}portType' % _ns_wsdl)
+        port_type.set('name', service_name)
 
         for s in self.services:
             s=self.parent.get_service(s)
