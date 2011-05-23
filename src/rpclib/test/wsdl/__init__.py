@@ -43,7 +43,7 @@ class AppTestWrapper():
 
     def get_service_list(self):
         return [
-            s for s in self.app.interface.elements.iterfind(self.service_string)
+            s for s in self.app.interface.root_element.iterfind(self.service_string)
         ]
 
     def get_port_list(self, service):
@@ -54,7 +54,7 @@ class AppTestWrapper():
 
     def get_port_types(self):
         return [
-            el for el in self.app.interface.elements.iterfind(self.port_type_string)
+            el for el in self.app.interface.root_element.iterfind(self.port_type_string)
         ]
 
     def get_port_operations(self, port_type):
@@ -62,7 +62,7 @@ class AppTestWrapper():
 
     def get_bindings(self):
         return [
-            el for el in self.app.interface.elements.iterfind(self.binding_string)
+            el for el in self.app.interface.root_element.iterfind(self.binding_string)
         ]
 
     def get_binding_operations(self, binding):
