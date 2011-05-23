@@ -99,7 +99,6 @@ def add_port_type(service, interface, root, service_name, types, url):
         port_binding_names.append((service_name, binding_name))
 
     port_name = port_type.get('name')
-    print "pn", port_name
 
     for method in service.public_methods:
         check_method_port(service, method)
