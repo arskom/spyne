@@ -41,6 +41,17 @@ class Service(object):
         return self.rpc_class(self.__url, self.__app, key, self.out_header)
 
 class RemoteProcedureBase(object):
+    """Abstract base class for the callable that gets the request from the
+    python caller and forwards it to the remote side.
+
+    Child classes that implement transports should override the __call__
+    function like so:
+
+    def __call__(self, *args, **kwargs)
+
+    where the args and kwargs are serialized using the protocol and sent to the
+    remote side using the transport the child implements.
+    """
     def __init__(self, url, app, name, out_header):
         self.url = url
         self.app = app
