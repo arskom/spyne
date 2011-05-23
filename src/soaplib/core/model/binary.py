@@ -76,12 +76,12 @@ class Attachment(Base):
         assert isinstance(value, cls)
 
         element = etree.SubElement(parent_elt, '{%s}%s' % (tns,name))
-        if value.data:
+        if not (value.data is None):
             # the data has already been loaded, just encode
             # and return the element
             element.text = base64.encodestring(value.data)
 
-        elif value.file_name:
+        elif not (value.file_name is None):
             # the data hasn't been loaded, but a file has been
             # specified
             data_string = cStringIO.StringIO()
