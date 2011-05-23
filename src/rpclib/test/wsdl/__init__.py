@@ -23,7 +23,7 @@ from rpclib.protocol.soap import Soap11
 import rpclib.namespace.soap as ns
 
 def build_app(service_list, tns, name):
-    app = Application(service_list, tns, name)
+    app = Application(service_list, Wsdl11, Soap11, tns=tns, name=name)
     app.transport = 'http://schemas.xmlsoap.org/soap/http'
     return app
 
