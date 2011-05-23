@@ -40,7 +40,7 @@ class S2(DefinitionBase):
 class S3(DefinitionBase):
     name = 'S3Fools'
     __namespace__ = 'Hoppity'
-    __service_interface__ = 'BLAHHHHAHHHAHHHHA'
+    __service_name__ = 'BLAHHHHAHHHAHHHHA'
     __port_types__ = ['bobhope', 'larry']
 
 
@@ -55,7 +55,7 @@ class S3(DefinitionBase):
 class MissingRPCPortService(DefinitionBase):
     name = 'MissingRPCPortService'
     __namespace__ = 'MissingRPCPortService'
-    __service_interface__ = 'MissingRPCPortService'
+    __service_name__ = 'MissingRPCPortService'
     __port_types__ = ['existing']
 
     @rpc(String, _returns=String)
@@ -65,7 +65,7 @@ class MissingRPCPortService(DefinitionBase):
 class BadRPCPortService(DefinitionBase):
     name = 'MissingRPCPortService'
     __namespace__ = 'MissingRPCPortService'
-    __service_interface__ = 'MissingRPCPortService'
+    __service_name__ = 'MissingRPCPortService'
     __port_types__ = ['existing']
 
     @rpc(String, _soap_port_type='existingss', _returns=String)
@@ -75,7 +75,7 @@ class BadRPCPortService(DefinitionBase):
 class MissingServicePortService(DefinitionBase):
     name = 'MissingRPCPortService'
     __namespace__ = 'MissingRPCPortService'
-    __service_interface__ = 'MissingRPCPortService'
+    __service_name__ = 'MissingRPCPortService'
     __port_types__ = ['existing']
 
     @rpc(String, _soap_port_type='existingss', _returns=String)
@@ -84,7 +84,7 @@ class MissingServicePortService(DefinitionBase):
 
 class SinglePortService(DefinitionBase):
     name = 'SinglePort'
-    __service_interface__ = 'SinglePortService_ServiceInterface'
+    __service_name__ = 'SinglePortService_ServiceInterface'
     __namespace__ = 'SinglePortNS'
     __port_types__ = ['FirstPortType']
 

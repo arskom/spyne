@@ -206,7 +206,7 @@ class DefinitionBase(object):
     __tns__ = None
     __in_header__ = None
     __out_header__ = None
-    __service_interface__ = None
+    __service_name__ = None
     __port_types__ = ()
 
     @classmethod
@@ -215,7 +215,7 @@ class DefinitionBase(object):
 
     @classmethod
     def get_service_interface(cls):
-        return cls.__service_interface__
+        return cls.__service_name__
 
     @classmethod
     def get_port_types(cls):
