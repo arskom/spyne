@@ -42,7 +42,7 @@ class ValidationError(Fault):
     pass
 
 def check_method_port(service, method):
-    if len(service.port_types) != 0 and method.port_type is None:
+    if len(service.__port_types__) != 0 and method.port_type is None:
         raise ValueError("""
             A port must be declared in the RPC decorator if the service
             class declares a list of ports
@@ -50,7 +50,7 @@ def check_method_port(service, method):
             Method: %r
             """ % method.name)
 
-    if (not method.port_type is None) and len(service.port_types) == 0:
+    if (not method.port_type is None) and len(service.__port_types__) == 0:
         raise ValueError("""
             The rpc decorator has declared a port while the service class
             has not.  Remove the port declaration from the rpc decorator
@@ -76,7 +76,7 @@ def add_port_type(service, interface, root, service_name, types, url, port_type)
     for method in service.public_methods:
         check_method_port(service, method)
 
-        if len(service.port_types) is 0 and method_port_type is None:
+        if len(service.__port_types__) is 0 and method_port_type is None:
             method_port_type = port_name
         else:
             method_port_type = method.port_type
