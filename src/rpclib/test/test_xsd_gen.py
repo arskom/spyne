@@ -28,7 +28,6 @@ from rpclib.model.primitive import String
 from rpclib.model.primitive import Integer
 from rpclib.util.xsd_gen import XSDGenerator
 
-
 class SimpleModel(ClassSerializer):
     __namespace__ = "SimpleModel"
 
