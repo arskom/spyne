@@ -88,7 +88,8 @@ class RemoteProcedureBase(object):
         return request_str
 
     def get_in_object(self, response_str, is_error=False):
-        doc_struct = self.app.in_protocol.create_document_structure(self.ctx, response_str)
+        doc_struct = self.app.in_protocol.create_document_structure(self.ctx,
+                                                                   response_str)
         wrapped_response = self.app.in_protocol.deserialize(self.ctx, doc_struct)
 
         if isinstance(wrapped_response, Fault) or is_error:
