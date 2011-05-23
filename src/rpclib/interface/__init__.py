@@ -18,4 +18,3 @@
 #
 
 from _base import Base
-from _base import ValidationError

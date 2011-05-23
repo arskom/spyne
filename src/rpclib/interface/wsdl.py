@@ -334,6 +334,8 @@ class Wsdl11(Base):
         self.root_elt = None
         self.service_elt = None
 
+        self.validation_schema = None
+
     def _get_binding_name(self, port_type_name):
         return port_type_name # subclasses override to control port names.
 
@@ -402,16 +404,16 @@ class Wsdl11(Base):
         else:
             return self.schema
 
-    def get_interface_document(self, url):
+    def build_interface_document(self, url):
         """Simple accessor method that caches the wsdl of the application, once
         generated.
 
         Not meant to be overridden.
         """
-        if self.__wsdl is None:
-            return self.__build_wsdl(url)
-        else:
-            return self.__wsdl
+        self.__build_wsdl(url)
+
+    def get_interface_document(self):
+        return self.__wsdl
 
     def get_schema_node(self, pref, types, schema_nodes):
         """Return schema node for the given namespace prefix.
@@ -491,7 +493,6 @@ class Wsdl11(Base):
 
         self.__wsdl = etree.tostring(root, xml_declaration=True,
                                                                encoding="UTF-8")
-        return self.__wsdl
 
     def __add_partner_link(self, service_name, plink):
         """Add the partnerLinkType node to the wsdl.
@@ -538,11 +539,6 @@ class Wsdl11(Base):
 
         return retval
 
-    def validate(self, payload):
-        """Method to be overriden to perform any sort of custom input
-        validation.
-        """
-
     def on_exception_object(self, exc):
         '''Called when the app throws an exception. (might be inside or outside
         the service call.
@@ -559,19 +555,18 @@ class Wsdl11(Base):
         @param the xml element containing the xml serialization of the fault
         '''
 
-class Wsdl11Strict(Wsdl11):
-    def __init__(self, parent, services, tns, name=None, _with_partnerlink=False):
-        Wsdl11.__init__(self, parent, services, tns, name, _with_partnerlink)
+    def build_validation_schema(self):
+        """Build application schema specifically for xml validation purposes.
 
-        self.schema = self.build_schema()
+        It's called from ctors of protocols with a 'Strict' suffix. (i.e.
+        rpclib.protocol.soap.Soap11Strict)
+        """
 
-    def build_schema(self):
-        """Build application schema specifically for xml validation purposes."""
         schema_nodes = self.build_schema_nodes()
 
         pref_tns = self.get_namespace_prefix(self.get_tns())
         logger.debug("generating schema for targetNamespace=%r, prefix: %r"
-                                               % (self.get_tns(), pref_tns))
+                                                   % (self.get_tns(), pref_tns))
 
         tmp_dir_name = tempfile.mkdtemp()
 
@@ -587,22 +582,8 @@ class Wsdl11Strict(Wsdl11):
         f = open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r')
 
         logger.debug("building schema...")
-        schema = etree.XMLSchema(etree.parse(f))
-        logger.debug("schema %r built, cleaning up..." % schema)
+        self.validation_schema = etree.XMLSchema(etree.parse(f))
+        logger.debug("schema %r built, cleaning up..." % self.validation_schema)
         f.close()
         shutil.rmtree(tmp_dir_name)
         logger.debug("removed %r" % tmp_dir_name)
-
-        return schema
-
-    def validate(self, payload):
-        schema = self.schema
-        ret = schema.validate(payload)
-
-        logger.debug("validation result: %s" % str(ret))
-        if ret == False:
-            err = schema.error_log.last_error
-
-            fault_code = 'Client.SchemaValidation'
-
-            raise ValidationError(fault_code, faultstring=str(err))

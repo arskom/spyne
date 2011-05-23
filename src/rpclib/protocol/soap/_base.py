@@ -149,7 +149,7 @@ class Soap11(Base):
 
         elif not (body is None):
             try:
-                self.parent.interface.validate(body)
+                self.validate(body)
                 if (not (body is None)) and (ctx.method_name is None):
                     ctx.method_name = body.tag
                     logger.debug("\033[92mMethod name: %r\033[0m" %
@@ -326,3 +326,21 @@ class Soap11(Base):
                 ctx.service.on_method_return_doc(envelope)
 
         return envelope
+
+class Soap11Strict(Soap11):
+    def __init__(self, parent):
+        Soap11.__init__(self, parent)
+
+        parent.interface.build_validation_schema()
+
+    def validate(self, payload):
+        schema = self.parent.interface.validation_schema
+        ret = schema.validate(payload)
+
+        logger.debug("validation result: %s" % str(ret))
+        if ret == False:
+            err = schema.error_log.last_error
+
+            fault_code = 'Client.SchemaValidation'
+
+            raise ValidationError(fault_code, faultstring=str(err))

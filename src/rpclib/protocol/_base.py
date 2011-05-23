@@ -18,6 +18,10 @@
 #
 
 import cgi
+from rpclib.model.exception import Fault
+
+class ValidationError(Fault):
+    pass
 
 class Base(object):
     allowed_http_verbs = ['GET','POST']
@@ -54,6 +58,7 @@ class Base(object):
     def reconstruct_wsgi_request(self, http_env):
         """Reconstruct http payload using information in the http header
         """
+
         input = http_env.get('wsgi.input')
         try:
             length = int(http_env.get("CONTENT_LENGTH"))
@@ -69,3 +74,8 @@ class Base(object):
             charset = 'ascii'
 
         return input.read(length), charset
+
+    def validate(self, payload):
+        """Method to be overriden to perform any sort of custom input
+        validation.
+        """

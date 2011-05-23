@@ -287,7 +287,7 @@ services = [
 ]
 
 from rpclib import Application
-from rpclib.protocol.soap import Soap11
-from rpclib.interface.wsdl import Wsdl11Strict
+from rpclib.protocol.soap import Soap11Strict
+from rpclib.interface.wsdl import Wsdl11
 
-soap_application = Application(services, Wsdl11Strict, Soap11, tns=__name__)
+soap_application = Application(services, Wsdl11, Soap11Strict, tns=__name__)
