@@ -29,7 +29,7 @@ from rpclib.service import DefinitionBase
 from rpclib.service import rpc
 from rpclib.namespace import soap as ns
 
-class XSDGenerator():
+class XSDGenerator(object):
     '''Class to support xsd generation for rpclib models.'''
 
     # Simplified schema mapping used for building standalone XSDs without SOAP
