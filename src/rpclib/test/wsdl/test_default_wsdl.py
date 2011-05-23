@@ -42,7 +42,6 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
 
 
     def _default_port_type(self, app_wrapper, portType_name, op_count):
-
         # Verify the portType Count
         portTypes = app_wrapper.get_port_types()
 
@@ -59,9 +58,7 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
         ops = app_wrapper.get_port_operations(portType)
         self.assertEquals(op_count, len(ops))
 
-
     def _default_binding(self, wrapper, binding_name, opp_count):
-
         # the default behavior is only single binding
         bindings = wrapper.get_bindings()
         self.assertEquals(1, len(bindings))
@@ -79,10 +76,7 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
         ops = wrapper.get_binding_operations(binding)
         self.assertEquals(opp_count, len(ops))
 
-
     def _default_binding_methods(self, wrapper, op_count, op_names):
-
-
         binding = wrapper.get_bindings()[0]
         operations = wrapper.get_binding_operations(binding)
 
@@ -93,9 +87,7 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
         for op in operations:
             self.assertTrue(op.get('name') in op_names)
 
-
     def test_default_service(self):
-
         single_app = build_app(
                 [DefaultPortService],
                 'DefaultServiceTns',
@@ -104,8 +96,6 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
 
         single_wrapper = AppTestWrapper(single_app)
         self._default_service(single_wrapper, "DefaultPortServiceApp")
-
-
 
     def test_default_service_multiple_methods(self):
         triple_app = build_app(
@@ -117,11 +107,9 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
         triple_wrapper = AppTestWrapper(triple_app)
         self._default_service(triple_wrapper, "DefaultPortServiceApp")
 
-
     def test_default_port_type(self):
-
-    # Test the default port is created
-    # Test the default port has the correct name
+        # Test the default port is created
+        # Test the default port has the correct name
 
         app = build_app(
                 [DefaultPortService],
@@ -132,9 +120,7 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
         wrapper = AppTestWrapper(app)
         self._default_port_type(wrapper, 'DefaultPortName', 1)
 
-
     def test_default_port_type_multiple(self):
-
         app = build_app(
                 [DefaultPortServiceMultipleMethods],
                 'DefaultServiceTns',
@@ -146,7 +132,6 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
         self._default_port_type(wrapper, "MultipleDefaultPortServiceApp", 3)
 
     def test_default_binding(self):
-
         app = build_app(
                 [DefaultPortService],
                 'DefaultPortTest',
@@ -159,7 +144,6 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
 
 
     def test_default_binding_multiple(self):
-
         app = build_app(
                 [DefaultPortServiceMultipleMethods],
                 'DefaultPortTest',
@@ -170,10 +154,7 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
 
         self._default_binding(wrapper, 'MultipleDefaultBindingNameApp', 3)
 
-
-
     def test_default_binding_methods(self):
-
         app = build_app(
             [DefaultPortService],
             'DefaultPortTest',
@@ -188,15 +169,12 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
             ['echo_default_port_service']
         )
 
-
-
     def test_default_binding_methods_multiple(self):
         app = build_app(
                 [DefaultPortServiceMultipleMethods],
                 'DefaultBindingMethodsTns',
                 'MultipleDefaultBindMethodsApp'
         )
-
 
         wrapper = AppTestWrapper(app)
 
