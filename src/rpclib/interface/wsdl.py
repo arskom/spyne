@@ -374,12 +374,10 @@ class Wsdl11(Base):
         return schema
 
     def __build_wsdl(self, url):
-        """Build the wsdl for the application.
-        """
+        """Build the wsdl for the application."""
         pref_tns = self.get_namespace_prefix(self.tns)
 
-        # FIXME: doesn't look so robust
-        url = url.replace('.wsdl', '')
+        url = url.replace('.wsdl', '') # FIXME: doesn't look so robust
 
         service_name = self.get_name()
 
@@ -435,7 +433,7 @@ class Wsdl11(Base):
 
         self.__wsdl = etree.tostring(root, xml_declaration=True,
                                                                encoding="UTF-8")
-
+        self.root_element = root
         return self.__wsdl
 
     def __add_partner_link(self, service_name, plink):
