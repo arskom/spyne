@@ -48,6 +48,9 @@ class DoubleNestedModel(ClassModel):
 class TestXsdGen(unittest.TestCase):
     def setUp(self):
         self.xsd_gen = XSDGenerator()
+        self.xsd_gen.model_schema_nsmap["DoubleNestedModel"] = "DoubleNestedModel"
+        self.xsd_gen.model_schema_nsmap["NestedModel"] = "NestedModel"
+        self.xsd_gen.model_schema_nsmap["SimpleModel"] = "SimpleModel"
 
     def tearDown(self):
         for f in glob('*.xsd'):
@@ -94,7 +97,7 @@ class TestXsdGen(unittest.TestCase):
     def test_double_nested_xsd(self):
         double_xsd = self.xsd_gen.get_model_xsd(
                 DoubleNestedModel,
-                pretty_print=False
+                pretty_print=True
         )
 
         tree = etree.XML(double_xsd)

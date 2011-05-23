@@ -130,8 +130,6 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
 
         sl = [s for s in sa_el.iterfind(self.service_string)]
         name = sl[0].get('name')
-        print len(sl)
-
         self.assertEqual('SinglePortService_ServiceInterface', name)
 
 

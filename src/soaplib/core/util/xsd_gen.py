@@ -156,6 +156,13 @@ class XSDGenerator():
 
         return out_elements
 
+    def update_prefix_map(self, prefix, namespace):
+        """
+        Allows custom NS Prefix Mapping
+        """
+        self.model_schema_nsmap[namespace] = prefix
+
+
     def get_model_xsd(self, model, encoding='utf-8', pretty_print=False):
         '''Returns a string representation of an XSD for the specified model.
 

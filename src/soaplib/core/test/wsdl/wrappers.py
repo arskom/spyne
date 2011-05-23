@@ -25,6 +25,13 @@ def build_app(service_list, tns, name):
 
     app = Application(service_list, tns, name)
     app.transport = 'http://schemas.xmlsoap.org/soap/http'
+    app.update_pref_map("Hippity", "Hippity")
+    app.update_pref_map("Hoppity","Hoppity")
+    app.update_pref_map("MissingRPCPortService","MissingRPCPortService")
+    app.update_pref_map("SinglePortNS","SinglePortNS")
+    app.update_pref_map("DoublePort","DoublePort")
+
+
     return app
 
 

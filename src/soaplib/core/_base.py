@@ -316,6 +316,11 @@ class Application(object):
 
         self.schema = self.build_schema()
 
+
+    def update_pref_map(self, ns_prefix, namespace):
+        """Updates the NS Prefix Mapping for custom Prefix Mapping"""
+        self.prefmap[namespace] = ns_prefix
+
     def get_class(self, key):
         return self.__classes[key]
 
