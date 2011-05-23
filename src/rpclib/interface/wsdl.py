@@ -320,15 +320,17 @@ class Wsdl11(Base):
                services.
         @param The targetNamespace attribute of the exposed service.
         @param The name attribute of the exposed service.
-        @param Flag to indicate whether to generate partnerlink node in wsdl.
+        @param Flag to indicate whether to generate partnerlink node.
         '''
 
         Base.__init__(self, parent, services, tns, name)
         
         self._with_plink = _with_partnerlink
         self.__wsdl = None
+
         self.port_type_dict = {}
         self.service_elt_dict = {}
+
         self.root_elt = None
         self.service_elt = None
 
