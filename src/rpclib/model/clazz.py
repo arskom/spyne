@@ -553,7 +553,7 @@ class Iterable(Array):
         for child in element.getchildren():
             yield serializer.from_xml(child)
 
-class ClassAlias(Message):
+class ClassAlias(ClassSerializer):
     """New type_name, same type_info.
     """
     @classmethod
