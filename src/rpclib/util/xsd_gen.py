@@ -27,7 +27,7 @@ from lxml import etree
 from rpclib import Application
 from rpclib.service import DefinitionBase
 from rpclib.service import rpc
-from rpclib.protocol.soap import namespace as ns
+from rpclib.namespace import soap as ns
 
 class XSDGenerator():
     '''Class to support xsd generation for rpclib models.'''
