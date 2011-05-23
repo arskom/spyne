@@ -43,6 +43,7 @@ class Base(object):
         self.services = services
         self.__tns = tns
         self.__name = name
+        self.url = None
 
         self.call_routes = {}
         self.namespaces = odict()

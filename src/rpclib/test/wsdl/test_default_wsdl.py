@@ -142,7 +142,6 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
 
         self._default_binding(wrapper, "DefaultBindingName", 1)
 
-
     def test_default_binding_multiple(self):
         app = build_app(
                 [DefaultPortServiceMultipleMethods],

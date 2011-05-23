@@ -72,7 +72,6 @@ class BadRPCPortService(DefinitionBase):
     def raise_exception(self, string):
         return string
 
-#MissingServicePortService
 class MissingServicePortService(DefinitionBase):
     name = 'MissingRPCPortService'
     __namespace__ = 'MissingRPCPortService'
