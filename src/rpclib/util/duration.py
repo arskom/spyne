@@ -100,12 +100,8 @@ class XmlDuration(object):
             negative = True
         else:
             negative = False
-        seconds = timedelta.seconds % 60
-        minutes = timedelta.seconds / 60
-        hours = minutes / 60
-        minutes = minutes % 60
-        seconds = float(seconds) + timedelta.microseconds / 1000000
-        return cls(days=timedelta.days, hours=hours, minutes=minutes, seconds=seconds, negative=negative)
+        seconds = float(timedelta.seconds) + timedelta.microseconds / 1000000
+        return cls(days=timedelta.days, seconds=seconds, negative=negative)
 
     @classmethod
     def from_string(cls, string):

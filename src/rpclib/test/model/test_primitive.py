@@ -60,24 +60,27 @@ class TestPrimitive(unittest.TestCase):
         self.assertEquals(n, dt)
     
     def test_duration_timedelta(self):
-        delta = datetime.timedelta(days=2, seconds=3672)
+        delta = datetime.timedelta(days=400, seconds=3672)
 
         element = etree.Element('test')
         Duration.to_parent_element(delta, ns_test, element)
         element = element[0]
 
-        self.assertEquals(element.text, 'P2DT1H1M12S')
+        self.assertEquals(element.text, 'P400DT3672S')
         du = Duration.from_xml(element)
         self.assertEquals(delta, du)
 
     def test_duration_xml_duration(self):
-        dur = XmlDuration(days=2, seconds=3)
+        dur = XmlDuration(years=1, months=1, days=5,
+                          hours=1, minutes=1, seconds=12.0)
+        dur2 = XmlDuration.from_string('P1Y1M5DT1H1M12S')
+        self.assertEquals(dur.as_timedelta(), dur2.as_timedelta())
 
         element = etree.Element('test')
         Duration.to_parent_element(dur, ns_test, element)
         element = element[0]
 
-        self.assertEquals(element.text, 'P2DT3S')
+        self.assertEquals(element.text, 'P1Y1M5DT1H1M12S')
         du = Duration.from_xml(element)
         self.assertEquals(dur.as_timedelta(), du)
 
