@@ -1,89 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
-<wsdl:definitions xmlns:plink="http://schemas.xmlsoap.org/ws/2003/05/partner-link/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:wsa="http://schemas.xmlsoap.org/ws/2003/03/addressing" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:s3="hunk.sunk" xmlns:senc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:s1="bar" xmlns:s0="soaplib.test.interop.server._service" xmlns:s12env="http://www.w3.org/2003/05/soap-envelope/" xmlns:s2="punk.tunk" xmlns:s12enc="http://www.w3.org/2003/05/soap-encoding/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="soaplib.test.interop.server._service" name="ValidatingApplication">
+<wsdl:definitions xmlns:wsa="http://schemas.xmlsoap.org/ws/2003/03/addressing" xmlns:tns="soaplib.core.test.interop.server._service" xmlns:plink="http://schemas.xmlsoap.org/ws/2003/05/partner-link/" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:s3="hunk.sunk" xmlns:senc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:s1="bar" xmlns:s12env="http://www.w3.org/2003/05/soap-envelope/" xmlns:s2="punk.tunk" xmlns:s12enc="http://www.w3.org/2003/05/soap-encoding/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="soaplib.core.test.interop.server._service" name="ValidatingApplication">
   <wsdl:types>
-    <xs:schema targetNamespace="soaplib.test.interop.server._service" elementFormDefault="qualified">
+    <xs:schema targetNamespace="soaplib.core.test.interop.server._service" elementFormDefault="qualified">
       <xs:import namespace="punk.tunk" />
       <xs:import namespace="bar" />
       <xs:import namespace="hunk.sunk" />
-      <xs:element name="echo_any" type="s0:echo_any" />
-      <xs:element name="echo_anyResponse" type="s0:echo_anyResponse" />
-      <xs:element name="echo_any_as_dict" type="s0:echo_any_as_dict" />
-      <xs:element name="echo_any_as_dictResponse" type="s0:echo_any_as_dictResponse" />
-      <xs:element name="echo_boolean" type="s0:echo_boolean" />
-      <xs:element name="echo_booleanResponse" type="s0:echo_booleanResponse" />
-      <xs:element name="echo_datetime" type="s0:echo_datetime" />
-      <xs:element name="echo_datetimeResponse" type="s0:echo_datetimeResponse" />
-      <xs:element name="echo_double" type="s0:echo_double" />
-      <xs:element name="echo_doubleResponse" type="s0:echo_doubleResponse" />
-      <xs:element name="echo_enum" type="s0:echo_enum" />
-      <xs:element name="echo_enumResponse" type="s0:echo_enumResponse" />
-      <xs:element name="echo_float" type="s0:echo_float" />
-      <xs:element name="echo_floatResponse" type="s0:echo_floatResponse" />
-      <xs:element name="echo_integer" type="s0:echo_integer" />
-      <xs:element name="echo_integerResponse" type="s0:echo_integerResponse" />
-      <xs:element name="echo_string" type="s0:echo_string" />
-      <xs:element name="echo_stringResponse" type="s0:echo_stringResponse" />
-      <xs:element name="booleanArray" type="s0:booleanArray" />
-      <xs:element name="echo_array_in_array" type="s0:echo_array_in_array" />
-      <xs:element name="booleanArrayArray" type="s0:booleanArrayArray" />
-      <xs:element name="echo_array_in_arrayResponse" type="s0:echo_array_in_arrayResponse" />
-      <xs:element name="echo_boolean_array" type="s0:echo_boolean_array" />
-      <xs:element name="echo_boolean_arrayResponse" type="s0:echo_boolean_arrayResponse" />
-      <xs:element name="dateTimeArray" type="s0:dateTimeArray" />
-      <xs:element name="echo_date_time_array" type="s0:echo_date_time_array" />
-      <xs:element name="echo_date_time_arrayResponse" type="s0:echo_date_time_arrayResponse" />
-      <xs:element name="doubleArray" type="s0:doubleArray" />
-      <xs:element name="echo_double_array" type="s0:echo_double_array" />
-      <xs:element name="echo_double_arrayResponse" type="s0:echo_double_arrayResponse" />
-      <xs:element name="floatArray" type="s0:floatArray" />
-      <xs:element name="echo_float_array" type="s0:echo_float_array" />
-      <xs:element name="echo_float_arrayResponse" type="s0:echo_float_arrayResponse" />
-      <xs:element name="integerArray" type="s0:integerArray" />
-      <xs:element name="echo_integer_array" type="s0:echo_integer_array" />
-      <xs:element name="echo_integer_arrayResponse" type="s0:echo_integer_arrayResponse" />
-      <xs:element name="echo_simple_boolean_array" type="s0:echo_simple_boolean_array" />
-      <xs:element name="echo_simple_boolean_arrayResponse" type="s0:echo_simple_boolean_arrayResponse" />
-      <xs:element name="stringArray" type="s0:stringArray" />
-      <xs:element name="echo_string_array" type="s0:echo_string_array" />
-      <xs:element name="echo_string_arrayResponse" type="s0:echo_string_arrayResponse" />
-      <xs:element name="echo_attachment" type="s0:echo_attachment" />
-      <xs:element name="echo_attachmentResponse" type="s0:echo_attachmentResponse" />
-      <xs:element name="base64BinaryArray" type="s0:base64BinaryArray" />
-      <xs:element name="echo_attachment_array" type="s0:echo_attachment_array" />
-      <xs:element name="echo_attachment_arrayResponse" type="s0:echo_attachment_arrayResponse" />
-      <xs:element name="SimpleClass" type="s0:SimpleClass" />
-      <xs:element name="SimpleClassArray" type="s0:SimpleClassArray" />
-      <xs:element name="OtherClass" type="s0:OtherClass" />
-      <xs:element name="echo_extension_class" type="s0:echo_extension_class" />
-      <xs:element name="echo_extension_classResponse" type="s0:echo_extension_classResponse" />
-      <xs:element name="echo_nested_class" type="s0:echo_nested_class" />
-      <xs:element name="echo_nested_classResponse" type="s0:echo_nested_classResponse" />
-      <xs:element name="echo_nested_class_array" type="s0:echo_nested_class_array" />
-      <xs:element name="echo_nested_class_arrayResponse" type="s0:echo_nested_class_arrayResponse" />
-      <xs:element name="echo_simple_class" type="s0:echo_simple_class" />
-      <xs:element name="echo_simple_classResponse" type="s0:echo_simple_classResponse" />
-      <xs:element name="echo_simple_class_array" type="s0:echo_simple_class_array" />
-      <xs:element name="echo_simple_class_arrayResponse" type="s0:echo_simple_class_arrayResponse" />
-      <xs:element name="do_something_else" type="s0:do_something_else" />
-      <xs:element name="do_something_elseResponse" type="s0:do_something_elseResponse" />
-      <xs:element name="huge_number" type="s0:huge_number" />
-      <xs:element name="huge_numberResponse" type="s0:huge_numberResponse" />
-      <xs:element name="long_string" type="s0:long_string" />
-      <xs:element name="long_stringResponse" type="s0:long_stringResponse" />
-      <xs:element name="multi_param" type="s0:multi_param" />
-      <xs:element name="multi_paramResponse" type="s0:multi_paramResponse" />
-      <xs:element name="non_nillable" type="s0:non_nillable" />
-      <xs:element name="non_nillableResponse" type="s0:non_nillableResponse" />
-      <xs:element name="return_only" type="s0:return_only" />
-      <xs:element name="return_onlyResponse" type="s0:return_onlyResponse" />
-      <xs:element name="test_empty" type="s0:test_empty" />
-      <xs:element name="test_emptyResponse" type="s0:test_emptyResponse" />
-      <xs:element name="InHeader" type="s0:InHeader" />
-      <xs:element name="OutHeader" type="s0:OutHeader" />
-      <xs:element name="echo_in_header" type="s0:echo_in_header" />
-      <xs:element name="echo_in_headerResponse" type="s0:echo_in_headerResponse" />
-      <xs:element name="send_out_header" type="s0:send_out_header" />
-      <xs:element name="send_out_headerResponse" type="s0:send_out_headerResponse" />
+      <xs:import namespace="http://www.w3.org/2001/XMLSchema" />
       <xs:complexType name="echo_any">
         <xs:sequence>
           <xs:element name="xml" type="xs:anyType" minOccurs="0" nillable="true" />
@@ -146,12 +68,12 @@
       </xs:simpleType>
       <xs:complexType name="echo_enum">
         <xs:sequence>
-          <xs:element name="day" type="s0:DaysOfWeekEnum" minOccurs="0" nillable="true" />
+          <xs:element name="day" type="tns:DaysOfWeekEnum" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_enumResponse">
         <xs:sequence>
-          <xs:element name="echo_enumResult" type="s0:DaysOfWeekEnum" minOccurs="0" nillable="true" />
+          <xs:element name="echo_enumResult" type="tns:DaysOfWeekEnum" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_float">
@@ -191,27 +113,27 @@
       </xs:complexType>
       <xs:complexType name="echo_array_in_array">
         <xs:sequence>
-          <xs:element name="baa" type="s0:booleanArray" minOccurs="0" nillable="true" />
+          <xs:element name="baa" type="tns:booleanArray" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="booleanArrayArray">
         <xs:sequence>
-          <xs:element name="booleanArray" type="s0:booleanArray" minOccurs="0" maxOccurs="unbounded" nillable="true" />
+          <xs:element name="booleanArray" type="tns:booleanArray" minOccurs="0" maxOccurs="unbounded" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_array_in_arrayResponse">
         <xs:sequence>
-          <xs:element name="echo_array_in_arrayResult" type="s0:booleanArrayArray" minOccurs="0" nillable="true" />
+          <xs:element name="echo_array_in_arrayResult" type="tns:booleanArrayArray" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_boolean_array">
         <xs:sequence>
-          <xs:element name="ba" type="s0:booleanArray" minOccurs="0" nillable="true" />
+          <xs:element name="ba" type="tns:booleanArray" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_boolean_arrayResponse">
         <xs:sequence>
-          <xs:element name="echo_boolean_arrayResult" type="s0:booleanArray" minOccurs="0" nillable="true" />
+          <xs:element name="echo_boolean_arrayResult" type="tns:booleanArray" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="dateTimeArray">
@@ -221,12 +143,12 @@
       </xs:complexType>
       <xs:complexType name="echo_date_time_array">
         <xs:sequence>
-          <xs:element name="dta" type="s0:dateTimeArray" minOccurs="0" nillable="true" />
+          <xs:element name="dta" type="tns:dateTimeArray" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_date_time_arrayResponse">
         <xs:sequence>
-          <xs:element name="echo_date_time_arrayResult" type="s0:dateTimeArray" minOccurs="0" nillable="true" />
+          <xs:element name="echo_date_time_arrayResult" type="tns:dateTimeArray" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="doubleArray">
@@ -236,12 +158,12 @@
       </xs:complexType>
       <xs:complexType name="echo_double_array">
         <xs:sequence>
-          <xs:element name="da" type="s0:doubleArray" minOccurs="0" nillable="true" />
+          <xs:element name="da" type="tns:doubleArray" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_double_arrayResponse">
         <xs:sequence>
-          <xs:element name="echo_double_arrayResult" type="s0:doubleArray" minOccurs="0" nillable="true" />
+          <xs:element name="echo_double_arrayResult" type="tns:doubleArray" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="floatArray">
@@ -251,12 +173,12 @@
       </xs:complexType>
       <xs:complexType name="echo_float_array">
         <xs:sequence>
-          <xs:element name="fa" type="s0:floatArray" minOccurs="0" nillable="true" />
+          <xs:element name="fa" type="tns:floatArray" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_float_arrayResponse">
         <xs:sequence>
-          <xs:element name="echo_float_arrayResult" type="s0:floatArray" minOccurs="0" nillable="true" />
+          <xs:element name="echo_float_arrayResult" type="tns:floatArray" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="integerArray">
@@ -266,12 +188,12 @@
       </xs:complexType>
       <xs:complexType name="echo_integer_array">
         <xs:sequence>
-          <xs:element name="ia" type="s0:integerArray" minOccurs="0" nillable="true" />
+          <xs:element name="ia" type="tns:integerArray" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_integer_arrayResponse">
         <xs:sequence>
-          <xs:element name="echo_integer_arrayResult" type="s0:integerArray" minOccurs="0" nillable="true" />
+          <xs:element name="echo_integer_arrayResult" type="tns:integerArray" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_simple_boolean_array">
@@ -291,12 +213,12 @@
       </xs:complexType>
       <xs:complexType name="echo_string_array">
         <xs:sequence>
-          <xs:element name="sa" type="s0:stringArray" minOccurs="0" nillable="true" />
+          <xs:element name="sa" type="tns:stringArray" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_string_arrayResponse">
         <xs:sequence>
-          <xs:element name="echo_string_arrayResult" type="s0:stringArray" minOccurs="0" nillable="true" />
+          <xs:element name="echo_string_arrayResult" type="tns:stringArray" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_attachment">
@@ -316,12 +238,12 @@
       </xs:complexType>
       <xs:complexType name="echo_attachment_array">
         <xs:sequence>
-          <xs:element name="aa" type="s0:base64BinaryArray" minOccurs="0" nillable="true" />
+          <xs:element name="aa" type="tns:base64BinaryArray" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_attachment_arrayResponse">
         <xs:sequence>
-          <xs:element name="echo_attachment_arrayResult" type="s0:base64BinaryArray" minOccurs="0" nillable="true" />
+          <xs:element name="echo_attachment_arrayResult" type="tns:base64BinaryArray" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="SimpleClass">
@@ -332,7 +254,7 @@
       </xs:complexType>
       <xs:complexType name="SimpleClassArray">
         <xs:sequence>
-          <xs:element name="SimpleClass" type="s0:SimpleClass" minOccurs="0" maxOccurs="unbounded" nillable="true" />
+          <xs:element name="SimpleClass" type="tns:SimpleClass" minOccurs="0" maxOccurs="unbounded" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="OtherClass">
@@ -374,22 +296,43 @@
       </xs:complexType>
       <xs:complexType name="echo_simple_class">
         <xs:sequence>
-          <xs:element name="sc" type="s0:SimpleClass" minOccurs="0" nillable="true" />
+          <xs:element name="sc" type="tns:SimpleClass" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_simple_classResponse">
         <xs:sequence>
-          <xs:element name="echo_simple_classResult" type="s0:SimpleClass" minOccurs="0" nillable="true" />
+          <xs:element name="echo_simple_classResult" type="tns:SimpleClass" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_simple_class_array">
         <xs:sequence>
-          <xs:element name="sca" type="s0:SimpleClassArray" minOccurs="0" nillable="true" />
+          <xs:element name="sca" type="tns:SimpleClassArray" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_simple_class_arrayResponse">
         <xs:sequence>
-          <xs:element name="echo_simple_class_arrayResult" type="s0:SimpleClassArray" minOccurs="0" nillable="true" />
+          <xs:element name="echo_simple_class_arrayResult" type="tns:SimpleClassArray" minOccurs="0" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="complex_return">
+        <xs:sequence />
+      </xs:complexType>
+      <xs:simpleType name="RoleEnum">
+        <xs:restriction base="xs:string">
+          <xs:enumeration value="MEMBER" />
+        </xs:restriction>
+      </xs:simpleType>
+      <xs:complexType name="RoleEnumArray">
+        <xs:sequence>
+          <xs:element name="RoleEnum" type="tns:RoleEnum" minOccurs="0" maxOccurs="unbounded" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="complex_returnResponse">
+        <xs:sequence>
+          <xs:element name="resultCode" type="xs:integer" minOccurs="0" nillable="true" />
+          <xs:element name="resultDescription" type="xs:string" minOccurs="0" nillable="true" />
+          <xs:element name="transactionId" type="xs:integer" minOccurs="0" nillable="true" />
+          <xs:element name="roles" type="tns:RoleEnumArray" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="do_something_else">
@@ -465,7 +408,7 @@
       </xs:complexType>
       <xs:complexType name="echo_in_headerResponse">
         <xs:sequence>
-          <xs:element name="echo_in_headerResult" type="s0:InHeader" minOccurs="0" nillable="true" />
+          <xs:element name="echo_in_headerResult" type="tns:InHeader" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="send_out_header">
@@ -473,21 +416,119 @@
       </xs:complexType>
       <xs:complexType name="send_out_headerResponse">
         <xs:sequence>
-          <xs:element name="send_out_headerResult" type="s0:OutHeader" minOccurs="0" nillable="true" />
+          <xs:element name="send_out_headerResult" type="tns:OutHeader" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
+      <xs:complexType name="python_exception">
+        <xs:sequence />
+      </xs:complexType>
+      <xs:complexType name="python_exceptionResponse">
+        <xs:sequence />
+      </xs:complexType>
+      <xs:complexType name="soap_exception">
+        <xs:sequence />
+      </xs:complexType>
+      <xs:complexType name="soap_exceptionResponse">
+        <xs:sequence />
+      </xs:complexType>
+      <xs:element name="echo_any" type="tns:echo_any" />
+      <xs:element name="echo_anyResponse" type="tns:echo_anyResponse" />
+      <xs:element name="echo_any_as_dict" type="tns:echo_any_as_dict" />
+      <xs:element name="echo_any_as_dictResponse" type="tns:echo_any_as_dictResponse" />
+      <xs:element name="echo_boolean" type="tns:echo_boolean" />
+      <xs:element name="echo_booleanResponse" type="tns:echo_booleanResponse" />
+      <xs:element name="echo_datetime" type="tns:echo_datetime" />
+      <xs:element name="echo_datetimeResponse" type="tns:echo_datetimeResponse" />
+      <xs:element name="echo_double" type="tns:echo_double" />
+      <xs:element name="echo_doubleResponse" type="tns:echo_doubleResponse" />
+      <xs:element name="echo_enum" type="tns:echo_enum" />
+      <xs:element name="echo_enumResponse" type="tns:echo_enumResponse" />
+      <xs:element name="echo_float" type="tns:echo_float" />
+      <xs:element name="echo_floatResponse" type="tns:echo_floatResponse" />
+      <xs:element name="echo_integer" type="tns:echo_integer" />
+      <xs:element name="echo_integerResponse" type="tns:echo_integerResponse" />
+      <xs:element name="echo_string" type="tns:echo_string" />
+      <xs:element name="echo_stringResponse" type="tns:echo_stringResponse" />
+      <xs:element name="booleanArray" type="tns:booleanArray" />
+      <xs:element name="echo_array_in_array" type="tns:echo_array_in_array" />
+      <xs:element name="booleanArrayArray" type="tns:booleanArrayArray" />
+      <xs:element name="echo_array_in_arrayResponse" type="tns:echo_array_in_arrayResponse" />
+      <xs:element name="echo_boolean_array" type="tns:echo_boolean_array" />
+      <xs:element name="echo_boolean_arrayResponse" type="tns:echo_boolean_arrayResponse" />
+      <xs:element name="dateTimeArray" type="tns:dateTimeArray" />
+      <xs:element name="echo_date_time_array" type="tns:echo_date_time_array" />
+      <xs:element name="echo_date_time_arrayResponse" type="tns:echo_date_time_arrayResponse" />
+      <xs:element name="doubleArray" type="tns:doubleArray" />
+      <xs:element name="echo_double_array" type="tns:echo_double_array" />
+      <xs:element name="echo_double_arrayResponse" type="tns:echo_double_arrayResponse" />
+      <xs:element name="floatArray" type="tns:floatArray" />
+      <xs:element name="echo_float_array" type="tns:echo_float_array" />
+      <xs:element name="echo_float_arrayResponse" type="tns:echo_float_arrayResponse" />
+      <xs:element name="integerArray" type="tns:integerArray" />
+      <xs:element name="echo_integer_array" type="tns:echo_integer_array" />
+      <xs:element name="echo_integer_arrayResponse" type="tns:echo_integer_arrayResponse" />
+      <xs:element name="echo_simple_boolean_array" type="tns:echo_simple_boolean_array" />
+      <xs:element name="echo_simple_boolean_arrayResponse" type="tns:echo_simple_boolean_arrayResponse" />
+      <xs:element name="stringArray" type="tns:stringArray" />
+      <xs:element name="echo_string_array" type="tns:echo_string_array" />
+      <xs:element name="echo_string_arrayResponse" type="tns:echo_string_arrayResponse" />
+      <xs:element name="echo_attachment" type="tns:echo_attachment" />
+      <xs:element name="echo_attachmentResponse" type="tns:echo_attachmentResponse" />
+      <xs:element name="base64BinaryArray" type="tns:base64BinaryArray" />
+      <xs:element name="echo_attachment_array" type="tns:echo_attachment_array" />
+      <xs:element name="echo_attachment_arrayResponse" type="tns:echo_attachment_arrayResponse" />
+      <xs:element name="SimpleClass" type="tns:SimpleClass" />
+      <xs:element name="SimpleClassArray" type="tns:SimpleClassArray" />
+      <xs:element name="OtherClass" type="tns:OtherClass" />
+      <xs:element name="echo_extension_class" type="tns:echo_extension_class" />
+      <xs:element name="echo_extension_classResponse" type="tns:echo_extension_classResponse" />
+      <xs:element name="echo_nested_class" type="tns:echo_nested_class" />
+      <xs:element name="echo_nested_classResponse" type="tns:echo_nested_classResponse" />
+      <xs:element name="echo_nested_class_array" type="tns:echo_nested_class_array" />
+      <xs:element name="echo_nested_class_arrayResponse" type="tns:echo_nested_class_arrayResponse" />
+      <xs:element name="echo_simple_class" type="tns:echo_simple_class" />
+      <xs:element name="echo_simple_classResponse" type="tns:echo_simple_classResponse" />
+      <xs:element name="echo_simple_class_array" type="tns:echo_simple_class_array" />
+      <xs:element name="echo_simple_class_arrayResponse" type="tns:echo_simple_class_arrayResponse" />
+      <xs:element name="complex_return" type="tns:complex_return" />
+      <xs:element name="RoleEnumArray" type="tns:RoleEnumArray" />
+      <xs:element name="complex_returnResponse" type="tns:complex_returnResponse" />
+      <xs:element name="do_something_else" type="tns:do_something_else" />
+      <xs:element name="do_something_elseResponse" type="tns:do_something_elseResponse" />
+      <xs:element name="huge_number" type="tns:huge_number" />
+      <xs:element name="huge_numberResponse" type="tns:huge_numberResponse" />
+      <xs:element name="long_string" type="tns:long_string" />
+      <xs:element name="long_stringResponse" type="tns:long_stringResponse" />
+      <xs:element name="multi_param" type="tns:multi_param" />
+      <xs:element name="multi_paramResponse" type="tns:multi_paramResponse" />
+      <xs:element name="non_nillable" type="tns:non_nillable" />
+      <xs:element name="non_nillableResponse" type="tns:non_nillableResponse" />
+      <xs:element name="return_only" type="tns:return_only" />
+      <xs:element name="return_onlyResponse" type="tns:return_onlyResponse" />
+      <xs:element name="test_empty" type="tns:test_empty" />
+      <xs:element name="test_emptyResponse" type="tns:test_emptyResponse" />
+      <xs:element name="InHeader" type="tns:InHeader" />
+      <xs:element name="OutHeader" type="tns:OutHeader" />
+      <xs:element name="echo_in_header" type="tns:echo_in_header" />
+      <xs:element name="echo_in_headerResponse" type="tns:echo_in_headerResponse" />
+      <xs:element name="send_out_header" type="tns:send_out_header" />
+      <xs:element name="send_out_headerResponse" type="tns:send_out_headerResponse" />
+      <xs:element name="python_exception" type="tns:python_exception" />
+      <xs:element name="python_exceptionResponse" type="tns:python_exceptionResponse" />
+      <xs:element name="soap_exception" type="tns:soap_exception" />
+      <xs:element name="soap_exceptionResponse" type="tns:soap_exceptionResponse" />
     </xs:schema>
     <xs:schema targetNamespace="punk.tunk" elementFormDefault="qualified">
-      <xs:import namespace="soaplib.test.interop.server._service" />
-      <xs:element name="NestedClass" type="s2:NestedClass" />
-      <xs:element name="NestedClassArray" type="s2:NestedClassArray" />
+      <xs:import namespace="soaplib.core.test.interop.server._service" />
+      <xs:import namespace="http://www.w3.org/2001/XMLSchema" />
       <xs:complexType name="NestedClass">
         <xs:sequence>
           <xs:element name="f" type="xs:float" minOccurs="0" nillable="true" />
-          <xs:element name="simple" type="s0:SimpleClassArray" minOccurs="0" nillable="true" />
+          <xs:element name="simple" type="tns:SimpleClassArray" minOccurs="0" nillable="true" />
           <xs:element name="i" type="xs:integer" minOccurs="0" nillable="true" />
           <xs:element name="s" type="xs:string" minOccurs="0" nillable="true" />
-          <xs:element name="other" type="s0:OtherClass" minOccurs="0" nillable="true" />
+          <xs:element name="other" type="tns:OtherClass" minOccurs="0" nillable="true" />
+          <xs:element name="ai" type="tns:integerArray" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="NestedClassArray">
@@ -495,9 +536,11 @@
           <xs:element name="NestedClass" type="s2:NestedClass" minOccurs="0" maxOccurs="unbounded" nillable="true" />
         </xs:sequence>
       </xs:complexType>
+      <xs:element name="NestedClass" type="s2:NestedClass" />
+      <xs:element name="NestedClassArray" type="s2:NestedClassArray" />
     </xs:schema>
     <xs:schema targetNamespace="hunk.sunk" elementFormDefault="qualified">
-      <xs:element name="NonNillableClass" type="s3:NonNillableClass" />
+      <xs:import namespace="http://www.w3.org/2001/XMLSchema" />
       <xs:simpleType name="NonNillableClass_sType">
         <xs:restriction base="xs:string">
           <xs:minLength value="1" />
@@ -510,11 +553,12 @@
           <xs:element name="dt" type="xs:dateTime" />
         </xs:sequence>
       </xs:complexType>
+      <xs:element name="NonNillableClass" type="s3:NonNillableClass" />
     </xs:schema>
     <xs:schema targetNamespace="bar" elementFormDefault="qualified">
       <xs:import namespace="punk.tunk" />
       <xs:import namespace="hunk.sunk" />
-      <xs:element name="ExtensionClass" type="s1:ExtensionClass" />
+      <xs:import namespace="http://www.w3.org/2001/XMLSchema" />
       <xs:complexType name="ExtensionClass">
         <xs:complexContent>
           <xs:extension base="s2:NestedClass">
@@ -526,352 +570,270 @@
           </xs:extension>
         </xs:complexContent>
       </xs:complexType>
+      <xs:element name="ExtensionClass" type="s1:ExtensionClass" />
     </xs:schema>
   </wsdl:types>
   <wsdl:message name="echo_any">
-    <wsdl:part name="echo_any" element="s0:echo_any" />
+    <wsdl:part name="echo_any" element="tns:echo_any" />
   </wsdl:message>
   <wsdl:message name="echo_anyResponse">
-    <wsdl:part name="echo_anyResponse" element="s0:echo_anyResponse" />
+    <wsdl:part name="echo_anyResponse" element="tns:echo_anyResponse" />
   </wsdl:message>
   <wsdl:message name="echo_any_as_dict">
-    <wsdl:part name="echo_any_as_dict" element="s0:echo_any_as_dict" />
+    <wsdl:part name="echo_any_as_dict" element="tns:echo_any_as_dict" />
   </wsdl:message>
   <wsdl:message name="echo_any_as_dictResponse">
-    <wsdl:part name="echo_any_as_dictResponse" element="s0:echo_any_as_dictResponse" />
+    <wsdl:part name="echo_any_as_dictResponse" element="tns:echo_any_as_dictResponse" />
   </wsdl:message>
   <wsdl:message name="echo_boolean">
-    <wsdl:part name="echo_boolean" element="s0:echo_boolean" />
+    <wsdl:part name="echo_boolean" element="tns:echo_boolean" />
   </wsdl:message>
   <wsdl:message name="echo_booleanResponse">
-    <wsdl:part name="echo_booleanResponse" element="s0:echo_booleanResponse" />
+    <wsdl:part name="echo_booleanResponse" element="tns:echo_booleanResponse" />
   </wsdl:message>
   <wsdl:message name="echo_datetime">
-    <wsdl:part name="echo_datetime" element="s0:echo_datetime" />
+    <wsdl:part name="echo_datetime" element="tns:echo_datetime" />
   </wsdl:message>
   <wsdl:message name="echo_datetimeResponse">
-    <wsdl:part name="echo_datetimeResponse" element="s0:echo_datetimeResponse" />
+    <wsdl:part name="echo_datetimeResponse" element="tns:echo_datetimeResponse" />
   </wsdl:message>
   <wsdl:message name="echo_double">
-    <wsdl:part name="echo_double" element="s0:echo_double" />
+    <wsdl:part name="echo_double" element="tns:echo_double" />
   </wsdl:message>
   <wsdl:message name="echo_doubleResponse">
-    <wsdl:part name="echo_doubleResponse" element="s0:echo_doubleResponse" />
+    <wsdl:part name="echo_doubleResponse" element="tns:echo_doubleResponse" />
   </wsdl:message>
   <wsdl:message name="echo_enum">
-    <wsdl:part name="echo_enum" element="s0:echo_enum" />
+    <wsdl:part name="echo_enum" element="tns:echo_enum" />
   </wsdl:message>
   <wsdl:message name="echo_enumResponse">
-    <wsdl:part name="echo_enumResponse" element="s0:echo_enumResponse" />
+    <wsdl:part name="echo_enumResponse" element="tns:echo_enumResponse" />
   </wsdl:message>
   <wsdl:message name="echo_float">
-    <wsdl:part name="echo_float" element="s0:echo_float" />
+    <wsdl:part name="echo_float" element="tns:echo_float" />
   </wsdl:message>
   <wsdl:message name="echo_floatResponse">
-    <wsdl:part name="echo_floatResponse" element="s0:echo_floatResponse" />
+    <wsdl:part name="echo_floatResponse" element="tns:echo_floatResponse" />
   </wsdl:message>
   <wsdl:message name="echo_integer">
-    <wsdl:part name="echo_integer" element="s0:echo_integer" />
+    <wsdl:part name="echo_integer" element="tns:echo_integer" />
   </wsdl:message>
   <wsdl:message name="echo_integerResponse">
-    <wsdl:part name="echo_integerResponse" element="s0:echo_integerResponse" />
+    <wsdl:part name="echo_integerResponse" element="tns:echo_integerResponse" />
   </wsdl:message>
   <wsdl:message name="echo_string">
-    <wsdl:part name="echo_string" element="s0:echo_string" />
+    <wsdl:part name="echo_string" element="tns:echo_string" />
   </wsdl:message>
   <wsdl:message name="echo_stringResponse">
-    <wsdl:part name="echo_stringResponse" element="s0:echo_stringResponse" />
+    <wsdl:part name="echo_stringResponse" element="tns:echo_stringResponse" />
   </wsdl:message>
   <wsdl:message name="echo_array_in_array">
-    <wsdl:part name="echo_array_in_array" element="s0:echo_array_in_array" />
+    <wsdl:part name="echo_array_in_array" element="tns:echo_array_in_array" />
   </wsdl:message>
   <wsdl:message name="echo_array_in_arrayResponse">
-    <wsdl:part name="echo_array_in_arrayResponse" element="s0:echo_array_in_arrayResponse" />
+    <wsdl:part name="echo_array_in_arrayResponse" element="tns:echo_array_in_arrayResponse" />
   </wsdl:message>
   <wsdl:message name="echo_boolean_array">
-    <wsdl:part name="echo_boolean_array" element="s0:echo_boolean_array" />
+    <wsdl:part name="echo_boolean_array" element="tns:echo_boolean_array" />
   </wsdl:message>
   <wsdl:message name="echo_boolean_arrayResponse">
-    <wsdl:part name="echo_boolean_arrayResponse" element="s0:echo_boolean_arrayResponse" />
+    <wsdl:part name="echo_boolean_arrayResponse" element="tns:echo_boolean_arrayResponse" />
   </wsdl:message>
   <wsdl:message name="echo_date_time_array">
-    <wsdl:part name="echo_date_time_array" element="s0:echo_date_time_array" />
+    <wsdl:part name="echo_date_time_array" element="tns:echo_date_time_array" />
   </wsdl:message>
   <wsdl:message name="echo_date_time_arrayResponse">
-    <wsdl:part name="echo_date_time_arrayResponse" element="s0:echo_date_time_arrayResponse" />
+    <wsdl:part name="echo_date_time_arrayResponse" element="tns:echo_date_time_arrayResponse" />
   </wsdl:message>
   <wsdl:message name="echo_double_array">
-    <wsdl:part name="echo_double_array" element="s0:echo_double_array" />
+    <wsdl:part name="echo_double_array" element="tns:echo_double_array" />
   </wsdl:message>
   <wsdl:message name="echo_double_arrayResponse">
-    <wsdl:part name="echo_double_arrayResponse" element="s0:echo_double_arrayResponse" />
+    <wsdl:part name="echo_double_arrayResponse" element="tns:echo_double_arrayResponse" />
   </wsdl:message>
   <wsdl:message name="echo_float_array">
-    <wsdl:part name="echo_float_array" element="s0:echo_float_array" />
+    <wsdl:part name="echo_float_array" element="tns:echo_float_array" />
   </wsdl:message>
   <wsdl:message name="echo_float_arrayResponse">
-    <wsdl:part name="echo_float_arrayResponse" element="s0:echo_float_arrayResponse" />
+    <wsdl:part name="echo_float_arrayResponse" element="tns:echo_float_arrayResponse" />
   </wsdl:message>
   <wsdl:message name="echo_integer_array">
-    <wsdl:part name="echo_integer_array" element="s0:echo_integer_array" />
+    <wsdl:part name="echo_integer_array" element="tns:echo_integer_array" />
   </wsdl:message>
   <wsdl:message name="echo_integer_arrayResponse">
-    <wsdl:part name="echo_integer_arrayResponse" element="s0:echo_integer_arrayResponse" />
+    <wsdl:part name="echo_integer_arrayResponse" element="tns:echo_integer_arrayResponse" />
   </wsdl:message>
   <wsdl:message name="echo_simple_boolean_array">
-    <wsdl:part name="echo_simple_boolean_array" element="s0:echo_simple_boolean_array" />
+    <wsdl:part name="echo_simple_boolean_array" element="tns:echo_simple_boolean_array" />
   </wsdl:message>
   <wsdl:message name="echo_simple_boolean_arrayResponse">
-    <wsdl:part name="echo_simple_boolean_arrayResponse" element="s0:echo_simple_boolean_arrayResponse" />
+    <wsdl:part name="echo_simple_boolean_arrayResponse" element="tns:echo_simple_boolean_arrayResponse" />
   </wsdl:message>
   <wsdl:message name="echo_string_array">
-    <wsdl:part name="echo_string_array" element="s0:echo_string_array" />
+    <wsdl:part name="echo_string_array" element="tns:echo_string_array" />
   </wsdl:message>
   <wsdl:message name="echo_string_arrayResponse">
-    <wsdl:part name="echo_string_arrayResponse" element="s0:echo_string_arrayResponse" />
+    <wsdl:part name="echo_string_arrayResponse" element="tns:echo_string_arrayResponse" />
   </wsdl:message>
   <wsdl:message name="echo_attachment">
-    <wsdl:part name="echo_attachment" element="s0:echo_attachment" />
+    <wsdl:part name="echo_attachment" element="tns:echo_attachment" />
   </wsdl:message>
   <wsdl:message name="echo_attachmentResponse">
-    <wsdl:part name="echo_attachmentResponse" element="s0:echo_attachmentResponse" />
+    <wsdl:part name="echo_attachmentResponse" element="tns:echo_attachmentResponse" />
   </wsdl:message>
   <wsdl:message name="echo_attachment_array">
-    <wsdl:part name="echo_attachment_array" element="s0:echo_attachment_array" />
+    <wsdl:part name="echo_attachment_array" element="tns:echo_attachment_array" />
   </wsdl:message>
   <wsdl:message name="echo_attachment_arrayResponse">
-    <wsdl:part name="echo_attachment_arrayResponse" element="s0:echo_attachment_arrayResponse" />
+    <wsdl:part name="echo_attachment_arrayResponse" element="tns:echo_attachment_arrayResponse" />
   </wsdl:message>
   <wsdl:message name="echo_extension_class">
-    <wsdl:part name="echo_extension_class" element="s0:echo_extension_class" />
+    <wsdl:part name="echo_extension_class" element="tns:echo_extension_class" />
   </wsdl:message>
   <wsdl:message name="echo_extension_classResponse">
-    <wsdl:part name="echo_extension_classResponse" element="s0:echo_extension_classResponse" />
+    <wsdl:part name="echo_extension_classResponse" element="tns:echo_extension_classResponse" />
   </wsdl:message>
   <wsdl:message name="echo_nested_class">
-    <wsdl:part name="echo_nested_class" element="s0:echo_nested_class" />
+    <wsdl:part name="echo_nested_class" element="tns:echo_nested_class" />
   </wsdl:message>
   <wsdl:message name="echo_nested_classResponse">
-    <wsdl:part name="echo_nested_classResponse" element="s0:echo_nested_classResponse" />
+    <wsdl:part name="echo_nested_classResponse" element="tns:echo_nested_classResponse" />
   </wsdl:message>
   <wsdl:message name="echo_nested_class_array">
-    <wsdl:part name="echo_nested_class_array" element="s0:echo_nested_class_array" />
+    <wsdl:part name="echo_nested_class_array" element="tns:echo_nested_class_array" />
   </wsdl:message>
   <wsdl:message name="echo_nested_class_arrayResponse">
-    <wsdl:part name="echo_nested_class_arrayResponse" element="s0:echo_nested_class_arrayResponse" />
+    <wsdl:part name="echo_nested_class_arrayResponse" element="tns:echo_nested_class_arrayResponse" />
   </wsdl:message>
   <wsdl:message name="echo_simple_class">
-    <wsdl:part name="echo_simple_class" element="s0:echo_simple_class" />
+    <wsdl:part name="echo_simple_class" element="tns:echo_simple_class" />
   </wsdl:message>
   <wsdl:message name="echo_simple_classResponse">
-    <wsdl:part name="echo_simple_classResponse" element="s0:echo_simple_classResponse" />
+    <wsdl:part name="echo_simple_classResponse" element="tns:echo_simple_classResponse" />
   </wsdl:message>
   <wsdl:message name="echo_simple_class_array">
-    <wsdl:part name="echo_simple_class_array" element="s0:echo_simple_class_array" />
+    <wsdl:part name="echo_simple_class_array" element="tns:echo_simple_class_array" />
   </wsdl:message>
   <wsdl:message name="echo_simple_class_arrayResponse">
-    <wsdl:part name="echo_simple_class_arrayResponse" element="s0:echo_simple_class_arrayResponse" />
+    <wsdl:part name="echo_simple_class_arrayResponse" element="tns:echo_simple_class_arrayResponse" />
+  </wsdl:message>
+  <wsdl:message name="complex_return">
+    <wsdl:part name="complex_return" element="tns:complex_return" />
+  </wsdl:message>
+  <wsdl:message name="complex_returnResponse">
+    <wsdl:part name="complex_returnResponse" element="tns:complex_returnResponse" />
   </wsdl:message>
   <wsdl:message name="do_something_else">
-    <wsdl:part name="do_something_else" element="s0:do_something_else" />
+    <wsdl:part name="do_something_else" element="tns:do_something_else" />
   </wsdl:message>
   <wsdl:message name="do_something_elseResponse">
-    <wsdl:part name="do_something_elseResponse" element="s0:do_something_elseResponse" />
+    <wsdl:part name="do_something_elseResponse" element="tns:do_something_elseResponse" />
   </wsdl:message>
   <wsdl:message name="huge_number">
-    <wsdl:part name="huge_number" element="s0:huge_number" />
+    <wsdl:part name="huge_number" element="tns:huge_number" />
   </wsdl:message>
   <wsdl:message name="huge_numberResponse">
-    <wsdl:part name="huge_numberResponse" element="s0:huge_numberResponse" />
+    <wsdl:part name="huge_numberResponse" element="tns:huge_numberResponse" />
   </wsdl:message>
   <wsdl:message name="long_string">
-    <wsdl:part name="long_string" element="s0:long_string" />
+    <wsdl:part name="long_string" element="tns:long_string" />
   </wsdl:message>
   <wsdl:message name="long_stringResponse">
-    <wsdl:part name="long_stringResponse" element="s0:long_stringResponse" />
+    <wsdl:part name="long_stringResponse" element="tns:long_stringResponse" />
   </wsdl:message>
   <wsdl:message name="multi_param">
-    <wsdl:part name="multi_param" element="s0:multi_param" />
+    <wsdl:part name="multi_param" element="tns:multi_param" />
   </wsdl:message>
   <wsdl:message name="multi_paramResponse">
-    <wsdl:part name="multi_paramResponse" element="s0:multi_paramResponse" />
+    <wsdl:part name="multi_paramResponse" element="tns:multi_paramResponse" />
   </wsdl:message>
   <wsdl:message name="non_nillable">
-    <wsdl:part name="non_nillable" element="s0:non_nillable" />
+    <wsdl:part name="non_nillable" element="tns:non_nillable" />
   </wsdl:message>
   <wsdl:message name="non_nillableResponse">
-    <wsdl:part name="non_nillableResponse" element="s0:non_nillableResponse" />
+    <wsdl:part name="non_nillableResponse" element="tns:non_nillableResponse" />
   </wsdl:message>
   <wsdl:message name="return_only">
-    <wsdl:part name="return_only" element="s0:return_only" />
+    <wsdl:part name="return_only" element="tns:return_only" />
   </wsdl:message>
   <wsdl:message name="return_onlyResponse">
-    <wsdl:part name="return_onlyResponse" element="s0:return_onlyResponse" />
+    <wsdl:part name="return_onlyResponse" element="tns:return_onlyResponse" />
   </wsdl:message>
   <wsdl:message name="test_empty">
-    <wsdl:part name="test_empty" element="s0:test_empty" />
+    <wsdl:part name="test_empty" element="tns:test_empty" />
   </wsdl:message>
   <wsdl:message name="test_emptyResponse">
-    <wsdl:part name="test_emptyResponse" element="s0:test_emptyResponse" />
+    <wsdl:part name="test_emptyResponse" element="tns:test_emptyResponse" />
   </wsdl:message>
   <wsdl:message name="echo_in_header">
-    <wsdl:part name="echo_in_header" element="s0:echo_in_header" />
+    <wsdl:part name="echo_in_header" element="tns:echo_in_header" />
   </wsdl:message>
   <wsdl:message name="echo_in_headerResponse">
-    <wsdl:part name="echo_in_headerResponse" element="s0:echo_in_headerResponse" />
+    <wsdl:part name="echo_in_headerResponse" element="tns:echo_in_headerResponse" />
   </wsdl:message>
   <wsdl:message name="InHeader">
-    <wsdl:part name="InHeader" element="s0:InHeader" />
+    <wsdl:part name="InHeader" element="tns:InHeader" />
   </wsdl:message>
   <wsdl:message name="OutHeader">
-    <wsdl:part name="OutHeader" element="s0:OutHeader" />
+    <wsdl:part name="OutHeader" element="tns:OutHeader" />
   </wsdl:message>
   <wsdl:message name="send_out_header">
-    <wsdl:part name="send_out_header" element="s0:send_out_header" />
+    <wsdl:part name="send_out_header" element="tns:send_out_header" />
   </wsdl:message>
   <wsdl:message name="send_out_headerResponse">
-    <wsdl:part name="send_out_headerResponse" element="s0:send_out_headerResponse" />
+    <wsdl:part name="send_out_headerResponse" element="tns:send_out_headerResponse" />
   </wsdl:message>
-  <wsdl:service name="ValidatingApplication">
-    <wsdl:port name="ValidatingApplication" binding="s0:ValidatingApplication">
-      <soap:address location="http://localhost:9753/?wsdl" />
-    </wsdl:port>
-  </wsdl:service>
-  <wsdl:portType name="ValidatingApplication">
+  <wsdl:message name="python_exception">
+    <wsdl:part name="python_exception" element="tns:python_exception" />
+  </wsdl:message>
+  <wsdl:message name="python_exceptionResponse">
+    <wsdl:part name="python_exceptionResponse" element="tns:python_exceptionResponse" />
+  </wsdl:message>
+  <wsdl:message name="soap_exception">
+    <wsdl:part name="soap_exception" element="tns:soap_exception" />
+  </wsdl:message>
+  <wsdl:message name="soap_exceptionResponse">
+    <wsdl:part name="soap_exceptionResponse" element="tns:soap_exceptionResponse" />
+  </wsdl:message>
+  <wsdl:portType name="InteropPrimitive">
     <wsdl:operation name="echo_any" parameterOrder="echo_any">
-      <wsdl:input name="echo_any" message="s0:echo_any" />
-      <wsdl:output name="echo_anyResponse" message="s0:echo_anyResponse" />
+      <wsdl:input name="echo_any" message="tns:echo_any" />
+      <wsdl:output name="echo_anyResponse" message="tns:echo_anyResponse" />
     </wsdl:operation>
     <wsdl:operation name="echo_any_as_dict" parameterOrder="echo_any_as_dict">
-      <wsdl:input name="echo_any_as_dict" message="s0:echo_any_as_dict" />
-      <wsdl:output name="echo_any_as_dictResponse" message="s0:echo_any_as_dictResponse" />
+      <wsdl:input name="echo_any_as_dict" message="tns:echo_any_as_dict" />
+      <wsdl:output name="echo_any_as_dictResponse" message="tns:echo_any_as_dictResponse" />
     </wsdl:operation>
     <wsdl:operation name="echo_boolean" parameterOrder="echo_boolean">
-      <wsdl:input name="echo_boolean" message="s0:echo_boolean" />
-      <wsdl:output name="echo_booleanResponse" message="s0:echo_booleanResponse" />
+      <wsdl:input name="echo_boolean" message="tns:echo_boolean" />
+      <wsdl:output name="echo_booleanResponse" message="tns:echo_booleanResponse" />
     </wsdl:operation>
     <wsdl:operation name="echo_datetime" parameterOrder="echo_datetime">
-      <wsdl:input name="echo_datetime" message="s0:echo_datetime" />
-      <wsdl:output name="echo_datetimeResponse" message="s0:echo_datetimeResponse" />
+      <wsdl:input name="echo_datetime" message="tns:echo_datetime" />
+      <wsdl:output name="echo_datetimeResponse" message="tns:echo_datetimeResponse" />
     </wsdl:operation>
     <wsdl:operation name="echo_double" parameterOrder="echo_double">
-      <wsdl:input name="echo_double" message="s0:echo_double" />
-      <wsdl:output name="echo_doubleResponse" message="s0:echo_doubleResponse" />
+      <wsdl:input name="echo_double" message="tns:echo_double" />
+      <wsdl:output name="echo_doubleResponse" message="tns:echo_doubleResponse" />
     </wsdl:operation>
     <wsdl:operation name="echo_enum" parameterOrder="echo_enum">
-      <wsdl:input name="echo_enum" message="s0:echo_enum" />
-      <wsdl:output name="echo_enumResponse" message="s0:echo_enumResponse" />
+      <wsdl:input name="echo_enum" message="tns:echo_enum" />
+      <wsdl:output name="echo_enumResponse" message="tns:echo_enumResponse" />
     </wsdl:operation>
     <wsdl:operation name="echo_float" parameterOrder="echo_float">
-      <wsdl:input name="echo_float" message="s0:echo_float" />
-      <wsdl:output name="echo_floatResponse" message="s0:echo_floatResponse" />
+      <wsdl:input name="echo_float" message="tns:echo_float" />
+      <wsdl:output name="echo_floatResponse" message="tns:echo_floatResponse" />
     </wsdl:operation>
     <wsdl:operation name="echo_integer" parameterOrder="echo_integer">
-      <wsdl:input name="echo_integer" message="s0:echo_integer" />
-      <wsdl:output name="echo_integerResponse" message="s0:echo_integerResponse" />
+      <wsdl:input name="echo_integer" message="tns:echo_integer" />
+      <wsdl:output name="echo_integerResponse" message="tns:echo_integerResponse" />
     </wsdl:operation>
     <wsdl:operation name="echo_string" parameterOrder="echo_string">
-      <wsdl:input name="echo_string" message="s0:echo_string" />
-      <wsdl:output name="echo_stringResponse" message="s0:echo_stringResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_array_in_array" parameterOrder="echo_array_in_array">
-      <wsdl:input name="echo_array_in_array" message="s0:echo_array_in_array" />
-      <wsdl:output name="echo_array_in_arrayResponse" message="s0:echo_array_in_arrayResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_boolean_array" parameterOrder="echo_boolean_array">
-      <wsdl:input name="echo_boolean_array" message="s0:echo_boolean_array" />
-      <wsdl:output name="echo_boolean_arrayResponse" message="s0:echo_boolean_arrayResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_date_time_array" parameterOrder="echo_date_time_array">
-      <wsdl:input name="echo_date_time_array" message="s0:echo_date_time_array" />
-      <wsdl:output name="echo_date_time_arrayResponse" message="s0:echo_date_time_arrayResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_double_array" parameterOrder="echo_double_array">
-      <wsdl:input name="echo_double_array" message="s0:echo_double_array" />
-      <wsdl:output name="echo_double_arrayResponse" message="s0:echo_double_arrayResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_float_array" parameterOrder="echo_float_array">
-      <wsdl:input name="echo_float_array" message="s0:echo_float_array" />
-      <wsdl:output name="echo_float_arrayResponse" message="s0:echo_float_arrayResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_integer_array" parameterOrder="echo_integer_array">
-      <wsdl:input name="echo_integer_array" message="s0:echo_integer_array" />
-      <wsdl:output name="echo_integer_arrayResponse" message="s0:echo_integer_arrayResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_simple_boolean_array" parameterOrder="echo_simple_boolean_array">
-      <wsdl:input name="echo_simple_boolean_array" message="s0:echo_simple_boolean_array" />
-      <wsdl:output name="echo_simple_boolean_arrayResponse" message="s0:echo_simple_boolean_arrayResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_string_array" parameterOrder="echo_string_array">
-      <wsdl:input name="echo_string_array" message="s0:echo_string_array" />
-      <wsdl:output name="echo_string_arrayResponse" message="s0:echo_string_arrayResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_attachment" parameterOrder="echo_attachment">
-      <wsdl:input name="echo_attachment" message="s0:echo_attachment" />
-      <wsdl:output name="echo_attachmentResponse" message="s0:echo_attachmentResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_attachment_array" parameterOrder="echo_attachment_array">
-      <wsdl:input name="echo_attachment_array" message="s0:echo_attachment_array" />
-      <wsdl:output name="echo_attachment_arrayResponse" message="s0:echo_attachment_arrayResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_extension_class" parameterOrder="echo_extension_class">
-      <wsdl:input name="echo_extension_class" message="s0:echo_extension_class" />
-      <wsdl:output name="echo_extension_classResponse" message="s0:echo_extension_classResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_nested_class" parameterOrder="echo_nested_class">
-      <wsdl:input name="echo_nested_class" message="s0:echo_nested_class" />
-      <wsdl:output name="echo_nested_classResponse" message="s0:echo_nested_classResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_nested_class_array" parameterOrder="echo_nested_class_array">
-      <wsdl:input name="echo_nested_class_array" message="s0:echo_nested_class_array" />
-      <wsdl:output name="echo_nested_class_arrayResponse" message="s0:echo_nested_class_arrayResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_simple_class" parameterOrder="echo_simple_class">
-      <wsdl:input name="echo_simple_class" message="s0:echo_simple_class" />
-      <wsdl:output name="echo_simple_classResponse" message="s0:echo_simple_classResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_simple_class_array" parameterOrder="echo_simple_class_array">
-      <wsdl:input name="echo_simple_class_array" message="s0:echo_simple_class_array" />
-      <wsdl:output name="echo_simple_class_arrayResponse" message="s0:echo_simple_class_arrayResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="do_something_else" parameterOrder="do_something_else">
-      <wsdl:input name="do_something_else" message="s0:do_something_else" />
-      <wsdl:output name="do_something_elseResponse" message="s0:do_something_elseResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="huge_number" parameterOrder="huge_number">
-      <wsdl:input name="huge_number" message="s0:huge_number" />
-      <wsdl:output name="huge_numberResponse" message="s0:huge_numberResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="long_string" parameterOrder="long_string">
-      <wsdl:input name="long_string" message="s0:long_string" />
-      <wsdl:output name="long_stringResponse" message="s0:long_stringResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="multi_param" parameterOrder="multi_param">
-      <wsdl:input name="multi_param" message="s0:multi_param" />
-      <wsdl:output name="multi_paramResponse" message="s0:multi_paramResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="non_nillable" parameterOrder="non_nillable">
-      <wsdl:input name="non_nillable" message="s0:non_nillable" />
-      <wsdl:output name="non_nillableResponse" message="s0:non_nillableResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="return_only" parameterOrder="return_only">
-      <wsdl:input name="return_only" message="s0:return_only" />
-      <wsdl:output name="return_onlyResponse" message="s0:return_onlyResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="test_empty" parameterOrder="test_empty">
-      <wsdl:input name="test_empty" message="s0:test_empty" />
-      <wsdl:output name="test_emptyResponse" message="s0:test_emptyResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_in_header" parameterOrder="echo_in_header">
-      <wsdl:input name="echo_in_header" message="s0:echo_in_header" />
-      <wsdl:output name="echo_in_headerResponse" message="s0:echo_in_headerResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="send_out_header" parameterOrder="send_out_header">
-      <wsdl:input name="send_out_header" message="s0:send_out_header" />
-      <wsdl:output name="send_out_headerResponse" message="s0:send_out_headerResponse" />
+      <wsdl:input name="echo_string" message="tns:echo_string" />
+      <wsdl:output name="echo_stringResponse" message="tns:echo_stringResponse" />
     </wsdl:operation>
   </wsdl:portType>
-  <wsdl:binding name="ValidatingApplication" type="s0:ValidatingApplication">
+  <wsdl:binding name="InteropPrimitive" type="tns:InteropPrimitive">
     <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
     <wsdl:operation name="echo_any">
       <soap:operation soapAction="echo_any" style="document" />
@@ -954,6 +916,48 @@
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="InteropPrimitive">
+    <wsdl:port name="InteropPrimitive" binding="tns:InteropPrimitive">
+      <soap:address location="http://localhost:9753/?wsdl" />
+    </wsdl:port>
+  </wsdl:service>
+  <wsdl:portType name="InteropArray">
+    <wsdl:operation name="echo_array_in_array" parameterOrder="echo_array_in_array">
+      <wsdl:input name="echo_array_in_array" message="tns:echo_array_in_array" />
+      <wsdl:output name="echo_array_in_arrayResponse" message="tns:echo_array_in_arrayResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_boolean_array" parameterOrder="echo_boolean_array">
+      <wsdl:input name="echo_boolean_array" message="tns:echo_boolean_array" />
+      <wsdl:output name="echo_boolean_arrayResponse" message="tns:echo_boolean_arrayResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_date_time_array" parameterOrder="echo_date_time_array">
+      <wsdl:input name="echo_date_time_array" message="tns:echo_date_time_array" />
+      <wsdl:output name="echo_date_time_arrayResponse" message="tns:echo_date_time_arrayResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_double_array" parameterOrder="echo_double_array">
+      <wsdl:input name="echo_double_array" message="tns:echo_double_array" />
+      <wsdl:output name="echo_double_arrayResponse" message="tns:echo_double_arrayResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_float_array" parameterOrder="echo_float_array">
+      <wsdl:input name="echo_float_array" message="tns:echo_float_array" />
+      <wsdl:output name="echo_float_arrayResponse" message="tns:echo_float_arrayResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_integer_array" parameterOrder="echo_integer_array">
+      <wsdl:input name="echo_integer_array" message="tns:echo_integer_array" />
+      <wsdl:output name="echo_integer_arrayResponse" message="tns:echo_integer_arrayResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_simple_boolean_array" parameterOrder="echo_simple_boolean_array">
+      <wsdl:input name="echo_simple_boolean_array" message="tns:echo_simple_boolean_array" />
+      <wsdl:output name="echo_simple_boolean_arrayResponse" message="tns:echo_simple_boolean_arrayResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_string_array" parameterOrder="echo_string_array">
+      <wsdl:input name="echo_string_array" message="tns:echo_string_array" />
+      <wsdl:output name="echo_string_arrayResponse" message="tns:echo_string_arrayResponse" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="InteropArray" type="tns:InteropArray">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
     <wsdl:operation name="echo_array_in_array">
       <soap:operation soapAction="echo_array_in_array" style="document" />
       <wsdl:input name="echo_array_in_array">
@@ -1026,6 +1030,44 @@
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="InteropArray">
+    <wsdl:port name="InteropArray" binding="tns:InteropArray">
+      <soap:address location="http://localhost:9753/?wsdl" />
+    </wsdl:port>
+  </wsdl:service>
+  <wsdl:portType name="InteropClass">
+    <wsdl:operation name="echo_attachment" parameterOrder="echo_attachment">
+      <wsdl:input name="echo_attachment" message="tns:echo_attachment" />
+      <wsdl:output name="echo_attachmentResponse" message="tns:echo_attachmentResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_attachment_array" parameterOrder="echo_attachment_array">
+      <wsdl:input name="echo_attachment_array" message="tns:echo_attachment_array" />
+      <wsdl:output name="echo_attachment_arrayResponse" message="tns:echo_attachment_arrayResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_extension_class" parameterOrder="echo_extension_class">
+      <wsdl:input name="echo_extension_class" message="tns:echo_extension_class" />
+      <wsdl:output name="echo_extension_classResponse" message="tns:echo_extension_classResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_nested_class" parameterOrder="echo_nested_class">
+      <wsdl:input name="echo_nested_class" message="tns:echo_nested_class" />
+      <wsdl:output name="echo_nested_classResponse" message="tns:echo_nested_classResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_nested_class_array" parameterOrder="echo_nested_class_array">
+      <wsdl:input name="echo_nested_class_array" message="tns:echo_nested_class_array" />
+      <wsdl:output name="echo_nested_class_arrayResponse" message="tns:echo_nested_class_arrayResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_simple_class" parameterOrder="echo_simple_class">
+      <wsdl:input name="echo_simple_class" message="tns:echo_simple_class" />
+      <wsdl:output name="echo_simple_classResponse" message="tns:echo_simple_classResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_simple_class_array" parameterOrder="echo_simple_class_array">
+      <wsdl:input name="echo_simple_class_array" message="tns:echo_simple_class_array" />
+      <wsdl:output name="echo_simple_class_arrayResponse" message="tns:echo_simple_class_arrayResponse" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="InteropClass" type="tns:InteropClass">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
     <wsdl:operation name="echo_attachment">
       <soap:operation soapAction="echo_attachment" style="document" />
       <wsdl:input name="echo_attachment">
@@ -1086,6 +1128,57 @@
         <soap:body use="literal" />
       </wsdl:input>
       <wsdl:output name="echo_simple_class_arrayResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="InteropClass">
+    <wsdl:port name="InteropClass" binding="tns:InteropClass">
+      <soap:address location="http://localhost:9753/?wsdl" />
+    </wsdl:port>
+  </wsdl:service>
+  <wsdl:portType name="InteropMisc">
+    <wsdl:operation name="complex_return" parameterOrder="complex_return">
+      <wsdl:input name="complex_return" message="tns:complex_return" />
+      <wsdl:output name="complex_returnResponse" message="tns:complex_returnResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="do_something_else" parameterOrder="do_something_else">
+      <wsdl:input name="do_something_else" message="tns:do_something_else" />
+      <wsdl:output name="do_something_elseResponse" message="tns:do_something_elseResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="huge_number" parameterOrder="huge_number">
+      <wsdl:input name="huge_number" message="tns:huge_number" />
+      <wsdl:output name="huge_numberResponse" message="tns:huge_numberResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="long_string" parameterOrder="long_string">
+      <wsdl:input name="long_string" message="tns:long_string" />
+      <wsdl:output name="long_stringResponse" message="tns:long_stringResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="multi_param" parameterOrder="multi_param">
+      <wsdl:input name="multi_param" message="tns:multi_param" />
+      <wsdl:output name="multi_paramResponse" message="tns:multi_paramResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="non_nillable" parameterOrder="non_nillable">
+      <wsdl:input name="non_nillable" message="tns:non_nillable" />
+      <wsdl:output name="non_nillableResponse" message="tns:non_nillableResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="return_only" parameterOrder="return_only">
+      <wsdl:input name="return_only" message="tns:return_only" />
+      <wsdl:output name="return_onlyResponse" message="tns:return_onlyResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="test_empty" parameterOrder="test_empty">
+      <wsdl:input name="test_empty" message="tns:test_empty" />
+      <wsdl:output name="test_emptyResponse" message="tns:test_emptyResponse" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="InteropMisc" type="tns:InteropMisc">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="complex_return">
+      <soap:operation soapAction="complex_return" style="document" />
+      <wsdl:input name="complex_return">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="complex_returnResponse">
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
@@ -1152,27 +1245,86 @@
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="InteropMisc">
+    <wsdl:port name="InteropMisc" binding="tns:InteropMisc">
+      <soap:address location="http://localhost:9753/?wsdl" />
+    </wsdl:port>
+  </wsdl:service>
+  <wsdl:portType name="InteropServiceWithHeader">
+    <wsdl:operation name="echo_in_header" parameterOrder="echo_in_header">
+      <wsdl:input name="echo_in_header" message="tns:echo_in_header" />
+      <wsdl:output name="echo_in_headerResponse" message="tns:echo_in_headerResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="send_out_header" parameterOrder="send_out_header">
+      <wsdl:input name="send_out_header" message="tns:send_out_header" />
+      <wsdl:output name="send_out_headerResponse" message="tns:send_out_headerResponse" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="InteropServiceWithHeader" type="tns:InteropServiceWithHeader">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
     <wsdl:operation name="echo_in_header">
       <soap:operation soapAction="echo_in_header" style="document" />
       <wsdl:input name="echo_in_header">
         <soap:body use="literal" />
-        <soap:header use="literal" message="s0:InHeader" part="InHeader" />
+        <soap:header use="literal" message="tns:InHeader" part="InHeader" />
       </wsdl:input>
       <wsdl:output name="echo_in_headerResponse">
         <soap:body use="literal" />
-        <soap:header use="literal" message="s0:InHeader" part="InHeader" />
+        <soap:header use="literal" message="tns:InHeader" part="InHeader" />
       </wsdl:output>
     </wsdl:operation>
     <wsdl:operation name="send_out_header">
       <soap:operation soapAction="send_out_header" style="document" />
       <wsdl:input name="send_out_header">
         <soap:body use="literal" />
-        <soap:header use="literal" message="s0:InHeader" part="InHeader" />
+        <soap:header use="literal" message="tns:InHeader" part="InHeader" />
       </wsdl:input>
       <wsdl:output name="send_out_headerResponse">
         <soap:body use="literal" />
-        <soap:header use="literal" message="s0:InHeader" part="InHeader" />
+        <soap:header use="literal" message="tns:InHeader" part="InHeader" />
       </wsdl:output>
     </wsdl:operation>
   </wsdl:binding>
+  <wsdl:service name="InteropServiceWithHeader">
+    <wsdl:port name="InteropServiceWithHeader" binding="tns:InteropServiceWithHeader">
+      <soap:address location="http://localhost:9753/?wsdl" />
+    </wsdl:port>
+  </wsdl:service>
+  <wsdl:portType name="InteropException">
+    <wsdl:operation name="python_exception" parameterOrder="python_exception">
+      <wsdl:input name="python_exception" message="tns:python_exception" />
+      <wsdl:output name="python_exceptionResponse" message="tns:python_exceptionResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="soap_exception" parameterOrder="soap_exception">
+      <wsdl:input name="soap_exception" message="tns:soap_exception" />
+      <wsdl:output name="soap_exceptionResponse" message="tns:soap_exceptionResponse" />
+    </wsdl:operation>
+  </wsdl:portType>
+  <wsdl:binding name="InteropException" type="tns:InteropException">
+    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+    <wsdl:operation name="python_exception">
+      <soap:operation soapAction="python_exception" style="document" />
+      <wsdl:input name="python_exception">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="python_exceptionResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="soap_exception">
+      <soap:operation soapAction="soap_exception" style="document" />
+      <wsdl:input name="soap_exception">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="soap_exceptionResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:service name="InteropException">
+    <wsdl:port name="InteropException" binding="tns:InteropException">
+      <soap:address location="http://localhost:9753/?wsdl" />
+    </wsdl:port>
+  </wsdl:service>
 </wsdl:definitions>
