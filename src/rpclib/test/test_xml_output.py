@@ -20,7 +20,6 @@
 import unittest
 import os
 from datetime import datetime
-from lxml import etree
 
 from rpclib.model.clazz import ClassSerializer
 from rpclib.model.primitive import Integer, String, DateTime
@@ -92,7 +91,7 @@ class BaseCase(unittest.TestCase):
         self.assertFalse(element.nsmap)
 
     def empty_ns(self):
-        self.assertRaises(AssertionError, ClassModelConverter, simple_factory(), "")
+        self.assertRaises(AssertionError, ClassSerializerConverter, simple_factory(), "")
 
 
 class ModelAsRootTestCase(BaseCase):
