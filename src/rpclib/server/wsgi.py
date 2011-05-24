@@ -147,7 +147,7 @@ class Application(Base):
             return_code = HTTP_500
 
         else:
-            if ctx.service == None:
+            if ctx.service_class == None:
                 start_response(HTTP_404, ctx.http_resp_headers.items())
                 return ['']
 

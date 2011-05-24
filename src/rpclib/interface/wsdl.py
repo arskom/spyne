@@ -452,8 +452,6 @@ class Wsdl11(Base):
 
         messages = set()
         for s in self.services:
-            s=self.parent.get_service(s,None)
-
             add_messages_for_methods(s, self, root, messages)
 
         if self._with_plink:
@@ -477,7 +475,6 @@ class Wsdl11(Base):
         cb_binding = None
 
         for s in self.services:
-            s = self.parent.get_service(s)
             add_port_type(s, self, root, service_name, types, url)
             cb_binding = add_bindings_for_methods(s, self, root, service_name,
                                                             binding, cb_binding)

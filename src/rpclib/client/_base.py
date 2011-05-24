@@ -60,9 +60,8 @@ class RemoteProcedureBase(object):
         self.ctx = MethodContext()
         self.ctx.method_name = name
         self.ctx.service_class = self.app.get_service_class(name)
-        self.ctx.service = self.app.get_service(self.ctx.service_class)
-        self.ctx.service.out_header = out_header
-        self.ctx.descriptor = self.ctx.service.get_method(self.ctx.method_name)
+        self.ctx.out_header = out_header
+        self.ctx.descriptor = self.ctx.service_class.get_method(self.ctx.method_name)
 
     def get_out_object(self, args, kwargs):
         request_raw_class = self.ctx.descriptor.in_message

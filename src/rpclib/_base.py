@@ -28,14 +28,15 @@ from collections import deque
 
 class MethodContext(object):
     def __init__(self):
-        self.service = None
         self.service_class = None
 
         self.in_error = None
+        self.in_header = None
         self.in_header_doc = None
         self.in_body_doc = None
 
         self.out_error = None
+        self.out_header = None
         self.out_header_doc = None
         self.out_body_doc = None
 

@@ -175,8 +175,6 @@ class Soap11(Base):
                 raise ValidationError('Client', 'Method not found: %r' %
                                                                 ctx.method_name)
 
-            ctx.service = self.parent.get_service(ctx.service_class)
-
             ctx.in_header_doc = header
             ctx.in_body_doc = body
 
@@ -200,7 +198,7 @@ class Soap11(Base):
                 raise Exception("Could not extract method name from the request!")
             else:
                 if ctx.descriptor is None:
-                    descriptor = ctx.descriptor = ctx.service.get_method(
+                    descriptor = ctx.descriptor = ctx.service_class.get_method(
                                                                 ctx.method_name)
                 else:
                     descriptor = ctx.descriptor
@@ -216,7 +214,7 @@ class Soap11(Base):
             # decode header object
             if (ctx.in_header_doc is not None and len(ctx.in_header_doc) > 0 and
                   header_class is not None):
-                ctx.service.in_header = header_class.from_xml(ctx.in_header_doc)
+                ctx.in_header = header_class.from_xml(ctx.in_header_doc)
 
             # decode method arguments
             if ctx.in_body_doc is not None and len(ctx.in_body_doc) > 0:
@@ -259,7 +257,7 @@ class Soap11(Base):
 
         else:
             # header
-            if ctx.service.out_header != None:
+            if ctx.out_header != None:
                 if self.out_wrapper in (self.NO_WRAPPER, self.OUT_WRAPPER):
                     header_message_class = ctx.descriptor.in_header
                 else:
@@ -276,7 +274,7 @@ class Soap11(Base):
                                     envelope, '{%s}Header' % ns.soap_env)
 
                     header_message_class.to_parent_element(
-                        ctx.service.out_header,
+                        ctx.out_header,
                         self.parent.interface.get_tns(),
                         soap_header_elt,
                         header_message_class.get_type_name()

@@ -212,9 +212,8 @@ class Base(object):
         # populate call routes
         for s in self.services:
             s.__tns__ = self.get_tns()
-            inst = self.parent.get_service(s)
-
-            for method in inst.public_methods:
+            logger.debug("populating %r" % s.__name__)
+            for method in s.public_methods:
                 method_name = "{%s}%s" % (self.get_tns(), method.name)
 
                 if method_name in self.call_routes:
@@ -230,18 +229,17 @@ class Base(object):
 
         # populate types
         for s in self.services:
-            inst = self.parent.get_service(s)
-            if inst.__in_header__ != None:
-                inst.__in_header__.resolve_namespace(inst.__in_header__,
-                                                                inst.get_tns())
-                inst.__in_header__.add_to_schema(self)
+            if s.__in_header__ != None:
+                s.__in_header__.resolve_namespace(s.__in_header__,
+                                                                s.get_tns())
+                s.__in_header__.add_to_schema(self)
 
-            if inst.__out_header__ != None:
-                inst.__out_header__.resolve_namespace(inst.__out_header__,
-                                                                inst.get_tns())
-                inst.__out_header__.add_to_schema(self)
+            if s.__out_header__ != None:
+                s.__out_header__.resolve_namespace(s.__out_header__,
+                                                                s.get_tns())
+                s.__out_header__.add_to_schema(self)
 
-            for method in inst.public_methods:
+            for method in s.public_methods:
                 method.in_message.add_to_schema(self)
                 method.out_message.add_to_schema(self)
 
@@ -249,12 +247,12 @@ class Base(object):
                     fault.add_to_schema(self)
 
                 if method.in_header is None:
-                    method.in_header = inst.__in_header__
+                    method.in_header = s.__in_header__
                 else:
                     method.in_header.add_to_schema(self)
 
                 if method.out_header is None:
-                    method.out_header = inst.__out_header__
+                    method.out_header = s.__out_header__
                 else:
                     method.out_header.add_to_schema(self)
 
