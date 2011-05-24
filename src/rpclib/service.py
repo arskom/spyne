@@ -187,7 +187,7 @@ def rpc(*params, **kparams):
         explain_method._is_rpc = True
         explain_method.func_name = f.func_name
 
-        return explain_method
+        return staticmethod(explain_method)
 
     return explain
 
