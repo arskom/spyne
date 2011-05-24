@@ -403,14 +403,6 @@ class Wsdl11(Base):
         else:
             return self.schema
 
-    def build_interface_document(self, url):
-        """Simple accessor method that caches the wsdl of the application, once
-        generated.
-
-        Not meant to be overridden.
-        """
-        self.__build_wsdl(url)
-
     def get_interface_document(self):
         return self.__wsdl
 
@@ -440,7 +432,7 @@ class Wsdl11(Base):
 
         return schema
 
-    def __build_wsdl(self, url):
+    def build_interface_document(self, url):
         """Build the wsdl for the application."""
         pref_tns = self.get_namespace_prefix(self.tns)
 
