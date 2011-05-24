@@ -326,19 +326,3 @@ class DefinitionBase(object):
                 return True
 
         return False
-
-    def header_objects(self):
-        return []
-
-    def get_service_names(self):
-        '''Returns the service name(s) for this service. If this object has
-        callbacks, then a second service is declared in the wsdl for those
-        callbacks.
-        '''
-
-        service_name = self.__class__.__name__.split('.')[-1]
-
-        if self._hasCallbacks():
-            return [service_name, '%sCallback' % service_name]
-
-        return [service_name]
