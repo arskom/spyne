@@ -191,7 +191,20 @@ def rpc(*params, **kparams):
 
     return explain
 
-_public_methods_cache = {}
+class DefinitionBaseMeta(type):
+    def __init__(self, cls_name, cls_bases, cls_dict):
+        super(DefinitionBaseMeta, self).__init__(cls_name, cls_bases, cls_dict)
+
+        logger.debug('building public methods')
+        self.public_methods = []
+
+        for func_name, func in cls_dict.iteritems():
+            if func_name == 'public_methods':
+                continue
+
+            if callable(func) and hasattr(func, '_is_rpc'):
+                descriptor = func(_method_descriptor=True, clazz=self.__class__)
+                self.public_methods.append(descriptor)
 
 class DefinitionBase(object):
     '''This class serves as the base for all service definitions.  Subclasses of
@@ -200,6 +213,7 @@ class DefinitionBase(object):
     It is a natural abstract base class, because it's of no use without any
     method definitions, hence the 'Base' suffix in the name.
     '''
+    __metaclass__ = DefinitionBaseMeta
 
     __tns__ = None
     __in_header__ = None
@@ -220,15 +234,11 @@ class DefinitionBase(object):
         return cls.__port_types__
 
     def __init__(self, environ=None):
+        raise Exception("don't")
+
         self.in_header = None
         self.out_header = None
         self.environ = environ
-
-        cls = self.__class__
-        if not (cls in _public_methods_cache):
-            _public_methods_cache[cls] = self.build_public_methods()
-
-        self.public_methods = _public_methods_cache[cls]
 
     def on_method_call(self, method_name, py_params, doc_params):
         '''Called BEFORE the service implementing the functionality is called
@@ -287,22 +297,6 @@ class DefinitionBase(object):
             retval = '.'.join((service_name, service_name))
 
         return retval
-
-    def build_public_methods(self):
-        '''Returns a list of method descriptors for this object'''
-
-        logger.debug('building public methods')
-        public_methods = []
-
-        for func_name in dir(self):
-            if func_name == 'public_methods':
-                continue
-            func = getattr(self, func_name)
-            if callable(func) and hasattr(func, '_is_rpc'):
-                descriptor = func(_method_descriptor=True, clazz=self.__class__)
-                public_methods.append(descriptor)
-
-        return public_methods
 
     def get_method(self, name):
         '''Returns the method descriptor based on element name.'''
