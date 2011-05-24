@@ -187,8 +187,7 @@ def rpc(*params, **kparams):
         explain_method._is_rpc = True
         explain_method.func_name = f.func_name
 
-        return staticmethod(explain_method)
-
+        return explain_method
     return explain
 
 class DefinitionBaseMeta(type):
@@ -201,6 +200,8 @@ class DefinitionBaseMeta(type):
             if callable(func) and hasattr(func, '_is_rpc'):
                 descriptor = func(_method_descriptor=True, clazz=self)
                 self.public_methods.append(descriptor)
+
+                setattr(self, func_name, staticmethod(func))
 
 class DefinitionBase(object):
     '''This class serves as the base for all service definitions.  Subclasses of
