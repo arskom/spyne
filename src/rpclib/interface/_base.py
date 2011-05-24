@@ -226,6 +226,7 @@ class Base(object):
                 else:
                     logger.debug('adding method %r' % method_name)
                     self.call_routes[method_name] = s
+                    self.call_routes[method.name] = s
 
         # populate types
         for s in self.services:
