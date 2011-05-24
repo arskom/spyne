@@ -195,15 +195,11 @@ class DefinitionBaseMeta(type):
     def __init__(self, cls_name, cls_bases, cls_dict):
         super(DefinitionBaseMeta, self).__init__(cls_name, cls_bases, cls_dict)
 
-        logger.debug('building public methods')
         self.public_methods = []
 
         for func_name, func in cls_dict.iteritems():
-            if func_name == 'public_methods':
-                continue
-
             if callable(func) and hasattr(func, '_is_rpc'):
-                descriptor = func(_method_descriptor=True, clazz=self.__class__)
+                descriptor = func(_method_descriptor=True, clazz=self)
                 self.public_methods.append(descriptor)
 
 class DefinitionBase(object):
