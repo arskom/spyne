@@ -212,7 +212,7 @@ class DefinitionBase(object):
         return cls.__name__
 
     @classmethod
-    def get_service_interface(cls):
+    def get_service_name(cls):
         return cls.__service_name__
 
     @classmethod

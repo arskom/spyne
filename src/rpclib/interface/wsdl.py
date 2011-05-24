@@ -72,7 +72,7 @@ def add_port_type(service, interface, root, service_name, types, url):
 
     port_binding_names = []
 
-    if service.get_service_interface() is None:
+    if service.get_service_name() is None:
         # This is the default behavior. i.e. no service interface is
         # defined in the service heading
         if len(interface.parent.services) == 1:
@@ -80,7 +80,7 @@ def add_port_type(service, interface, root, service_name, types, url):
         else:
             applied_service_name = service.get_service_class_name()
     else:
-        applied_service_name = service.get_service_interface()
+        applied_service_name = service.get_service_name()
 
     port_type_list = service.get_port_types()
     if len(port_type_list) > 0:
