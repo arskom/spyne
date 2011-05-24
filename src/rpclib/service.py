@@ -289,7 +289,7 @@ class DefinitionBase(object):
 
         service_name = cls.get_service_class_name().split('.')[-1]
 
-        retval = '.'.join((cls.__module__, service_name))
+        retval = cls.__module__
         if cls.__module__ == '__main__':
             retval = '.'.join((service_name, service_name))
 
