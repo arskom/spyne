@@ -196,8 +196,6 @@ _public_methods_cache = {}
 class DefinitionBase(object):
     '''This class serves as the base for all service definitions.  Subclasses of
     this class will use the rpc decorator to flag methods to be exposed via soap.
-    This class is responsible for generating the wsdl for this service
-    definition.
 
     It is a natural abstract base class, because it's of no use without any
     method definitions, hence the 'Base' suffix in the name.
