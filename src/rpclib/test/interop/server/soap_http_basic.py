@@ -19,7 +19,7 @@
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger('rpclib.protocol.soap')
+logger = logging.getLogger('rpclib.protocol.soap._base')
 logger.setLevel(logging.DEBUG)
 
 from rpclib.server import wsgi
