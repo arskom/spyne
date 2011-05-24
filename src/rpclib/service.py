@@ -52,7 +52,7 @@ def _produce_input_message(ns, f, params, kparams):
     _in_variable_names = kparams.get('_in_variable_names', {})
 
     arg_count = f.func_code.co_argcount
-    param_names = f.func_code.co_varnames[1:arg_count]
+    param_names = f.func_code.co_varnames
 
     try:
         in_params = TypeInfo()
