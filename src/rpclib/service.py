@@ -298,24 +298,26 @@ class DefinitionBase(object):
 
         return retval
 
-    def get_method(self, name):
+    @classmethod
+    def get_method(cls, name):
         '''Returns the method descriptor based on element name.'''
 
-        for method in self.public_methods:
+        for method in cls.public_methods:
             type_name = method.in_message.get_type_name()
-            if '{%s}%s' % (self.get_tns(), type_name) == name:
+            if '{%s}%s' % (cls.get_tns(), type_name) == name:
                 return method
 
-        for method in self.public_methods:
+        for method in cls.public_methods:
             if method.public_name == name:
                 return method
 
         raise Exception('Method "%s" not found' % name)
 
-    def _has_callbacks(self):
+    @classmethod
+    def _has_callbacks(cls):
         '''Determines if this object has callback methods or not.'''
 
-        for method in self.public_methods:
+        for method in cls.public_methods:
             if method.is_callback:
                 return True
 
