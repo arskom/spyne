@@ -62,8 +62,6 @@ def _produce_input_message(ns, f, params, kparams, no_ctx):
 
     in_params = TypeInfo()
 
-    print param_names
-    print params
     try:
         for i in range(len(param_names)):
             e0 = _in_variable_names.get(param_names[i], param_names[i])
