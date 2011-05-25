@@ -31,7 +31,7 @@ class MethodDescriptor(object):
     def __init__(self, name, public_name, in_message, out_message, doc,
                  is_callback=False, is_async=False, mtom=False, in_header=None,
                  out_header=None, faults=(),
-                 port_type=None, #added to support multiple portTypes
+                 port_type=None, no_ctx=False
                 ):
 
         self.name = name
@@ -46,18 +46,26 @@ class MethodDescriptor(object):
         self.out_header = out_header
         self.faults = faults
         self.port_type = port_type
+        self.no_ctx = no_ctx
 
-def _produce_input_message(ns, f, params, kparams):
+def _produce_input_message(ns, f, params, kparams, no_ctx):
+    if no_ctx is True:
+        arg_start=0
+    else:
+        arg_start=1
+
     _in_message = kparams.get('_in_message', f.func_name)
     _in_variable_names = kparams.get('_in_variable_names', {})
 
-    arg_count = f.func_code.co_argcount
-    param_names = f.func_code.co_varnames
+    argcount = f.func_code.co_argcount
+    param_names = f.func_code.co_varnames[arg_start:argcount]
 
+    in_params = TypeInfo()
+
+    print param_names
+    print params
     try:
-        in_params = TypeInfo()
-
-        for i in range(len(params)):
+        for i in range(len(param_names)):
             e0 = _in_variable_names.get(param_names[i], param_names[i])
             e1 = params[i]
 
@@ -134,6 +142,10 @@ def _produce_output_message(ns, f, params, kparams):
 
     return message
 
+def srpc(*params, **kparams):
+    kparams["_no_ctx"] = True
+    return rpc(*params, **kparams)
+
 def rpc(*params, **kparams):
     '''Method decorator to flag a method as a rpc-style operation.
 
@@ -145,7 +157,6 @@ def rpc(*params, **kparams):
     decorator should only be used on member methods of an instance of
     rpclib.service.DefinitionBase.
     '''
-
     def explain(f):
         def explain_method(*args, **kwargs):
             retval = None
@@ -161,12 +172,13 @@ def rpc(*params, **kparams):
                 _in_header = kparams.get('_in_header', None)
                 _out_header = kparams.get('_out_header', None)
                 _port_type = kparams.get('_soap_port_type', None)
+                _no_ctx = kparams.get('_no_ctx', False)
 
                 # the decorator function does not have a reference to the
                 # class and needs to be passed in
                 ns = kwargs['clazz'].get_tns()
 
-                in_message = _produce_input_message(ns, f, params, kparams)
+                in_message = _produce_input_message(ns, f, params, kparams, _no_ctx)
                 out_message = _produce_output_message(ns, f, params, kparams)
                 _faults = kparams.get('_faults', [])
 
@@ -179,7 +191,7 @@ def rpc(*params, **kparams):
                 retval = MethodDescriptor(f.func_name, _public_name,
                         in_message, out_message, doc, _is_callback, _is_async,
                         _mtom, _in_header, _out_header, _faults,
-                        port_type=_port_type)
+                        port_type=_port_type, no_ctx=_no_ctx)
 
             return retval
 

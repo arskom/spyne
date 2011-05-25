@@ -36,6 +36,7 @@ from rpclib.model.primitive import Double
 
 from rpclib import service
 from rpclib.service import rpc
+from rpclib.service import srpc
 
 from datetime import datetime
 
@@ -101,129 +102,129 @@ class InteropServiceWithHeader(service.DefinitionBase):
     __out_header__ = OutHeader
 
     @rpc(_returns=InHeader)
-    def echo_in_header(self):
-        return self.in_header
+    def echo_in_header(ctx):
+        return ctx.in_header
 
     @rpc(_returns=OutHeader)
-    def send_out_header(self):
-        self.out_header = OutHeader()
-        self.out_header.dt = datetime(year=2000, month=01, day=01)
-        self.out_header.f = 3.141592653
+    def send_out_header(ctx):
+        ctx.out_header = OutHeader()
+        ctx.out_header.dt = datetime(year=2000, month=01, day=01)
+        ctx.out_header.f = 3.141592653
 
-        return self.out_header
+        return ctx.out_header
 
 class InteropPrimitive(service.DefinitionBase):
-    @rpc(Any, _returns=Any)
-    def echo_any(self, xml):
+    @srpc(Any, _returns=Any)
+    def echo_any(xml):
         return xml
 
-    @rpc(AnyAsDict, _returns=AnyAsDict)
-    def echo_any_as_dict(self, xml_as_dict):
+    @srpc(AnyAsDict, _returns=AnyAsDict)
+    def echo_any_as_dict(xml_as_dict):
         return xml_as_dict
 
-    @rpc(Integer, _returns=Integer)
-    def echo_integer(self, i):
+    @srpc(Integer, _returns=Integer)
+    def echo_integer(i):
         return i
 
-    @rpc(String, _returns=String)
-    def echo_string(self, s):
+    @srpc(String, _returns=String)
+    def echo_string(s):
         return s
 
-    @rpc(DateTime, _returns=DateTime)
-    def echo_datetime(self, dt):
+    @srpc(DateTime, _returns=DateTime)
+    def echo_datetime(dt):
         return dt
 
-    @rpc(Float, _returns=Float)
-    def echo_float(self, f):
+    @srpc(Float, _returns=Float)
+    def echo_float(f):
         return f
 
-    @rpc(Double, _returns=Double)
-    def echo_double(self, f):
+    @srpc(Double, _returns=Double)
+    def echo_double(f):
         return f
 
-    @rpc(Boolean, _returns=Boolean)
-    def echo_boolean(self, b):
+    @srpc(Boolean, _returns=Boolean)
+    def echo_boolean(b):
         return b
 
-    @rpc(DaysOfWeekEnum, _returns=DaysOfWeekEnum)
-    def echo_enum(self, day):
+    @srpc(DaysOfWeekEnum, _returns=DaysOfWeekEnum)
+    def echo_enum(day):
         return day
 
 class InteropArray(service.DefinitionBase):
-    @rpc(Array(Integer), _returns=Array(Integer))
-    def echo_integer_array(self, ia):
+    @srpc(Array(Integer), _returns=Array(Integer))
+    def echo_integer_array(ia):
         return ia
 
-    @rpc(Array(String), _returns=Array(String))
-    def echo_string_array(self, sa):
+    @srpc(Array(String), _returns=Array(String))
+    def echo_string_array(sa):
         return sa
 
-    @rpc(Array(DateTime), _returns=Array(DateTime))
-    def echo_date_time_array(self, dta):
+    @srpc(Array(DateTime), _returns=Array(DateTime))
+    def echo_date_time_array(dta):
         return dta
 
-    @rpc(Array(Float), _returns=Array(Float))
-    def echo_float_array(self, fa):
+    @srpc(Array(Float), _returns=Array(Float))
+    def echo_float_array(fa):
         return fa
 
-    @rpc(Array(Double), _returns=Array(Double))
-    def echo_double_array(self, da):
+    @srpc(Array(Double), _returns=Array(Double))
+    def echo_double_array(da):
         return da
 
-    @rpc(Array(Boolean), _returns=Array(Boolean))
-    def echo_boolean_array(self, ba):
+    @srpc(Array(Boolean), _returns=Array(Boolean))
+    def echo_boolean_array(ba):
         return ba
 
-    @rpc(Boolean(max_occurs="unbounded"), _returns=Boolean(max_occurs="unbounded"))
-    def echo_simple_boolean_array(self, ba):
+    @srpc(Boolean(max_occurs="unbounded"), _returns=Boolean(max_occurs="unbounded"))
+    def echo_simple_boolean_array(ba):
         return ba
 
-    @rpc(Array(Boolean), _returns=Array(Array(Boolean)))
-    def echo_array_in_array(self, baa):
+    @srpc(Array(Boolean), _returns=Array(Array(Boolean)))
+    def echo_array_in_array(baa):
         return baa
 
 class InteropClass(service.DefinitionBase):
-    @rpc(SimpleClass, _returns=SimpleClass)
-    def echo_simple_class(self, sc):
+    @srpc(SimpleClass, _returns=SimpleClass)
+    def echo_simple_class(sc):
         return sc
 
-    @rpc(Array(SimpleClass), _returns=Array(SimpleClass))
-    def echo_simple_class_array(self, sca):
+    @srpc(Array(SimpleClass), _returns=Array(SimpleClass))
+    def echo_simple_class_array(sca):
         return sca
 
-    @rpc(NestedClass, _returns=NestedClass)
-    def echo_nested_class(self, nc):
+    @srpc(NestedClass, _returns=NestedClass)
+    def echo_nested_class(nc):
         return nc
 
-    @rpc(Array(NestedClass), _returns=Array(NestedClass))
-    def echo_nested_class_array(self, nca):
+    @srpc(Array(NestedClass), _returns=Array(NestedClass))
+    def echo_nested_class_array(nca):
         return nca
 
-    @rpc(ExtensionClass, _returns=ExtensionClass)
-    def echo_extension_class(self, nc):
+    @srpc(ExtensionClass, _returns=ExtensionClass)
+    def echo_extension_class(nc):
         return nc
 
-    @rpc(Attachment, _returns=Attachment)
-    def echo_attachment(self, a):
+    @srpc(Attachment, _returns=Attachment)
+    def echo_attachment(a):
         assert isinstance(a,Attachment)
         return a
 
-    @rpc(Array(Attachment), _returns=Array(Attachment))
-    def echo_attachment_array(self, aa):
+    @srpc(Array(Attachment), _returns=Array(Attachment))
+    def echo_attachment_array(aa):
         return aa
 
 class InteropException(service.DefinitionBase):
-    @rpc()
-    def python_exception(self):
+    @srpc()
+    def python_exception():
         raise Exception("Possible")
 
-    @rpc()
-    def soap_exception(self):
+    @srpc()
+    def soap_exception():
         raise Fault("Plausible", "A plausible fault", 'Fault actor',
                                             detail=etree.Element('something'))
 
 class InteropMisc(service.DefinitionBase):
-    @rpc(
+    @srpc(
         _returns=[
             Integer,
             String,
@@ -237,44 +238,44 @@ class InteropMisc(service.DefinitionBase):
             'roles'
         ]
     )
-    def complex_return(self):
+    def complex_return():
         return [1, "Test", 123, ["MEMBER"]]
 
-    @rpc()
-    def huge_number(_returns=Integer):
+    @srpc(_returns=Integer)
+    def huge_number():
         return 2**int(1e5)
 
-    @rpc()
-    def long_string(_returns=String):
+    @srpc(_returns=String)
+    def long_string():
         return len('0123456789abcdef' * 16384)
 
-    @rpc()
-    def test_empty(self):
+    @srpc()
+    def test_empty():
         pass
 
-    @rpc(String, Integer, DateTime)
-    def multi_param(self, s, i, dt):
+    @srpc(String, Integer, DateTime)
+    def multi_param(s, i, dt):
         pass
 
-    @rpc(_returns=String)
-    def return_only(self):
+    @srpc(_returns=String)
+    def return_only():
         return 'howdy'
 
-    @rpc(NonNillableClass, _returns=String)
-    def non_nillable(self, n):
+    @srpc(NonNillableClass, _returns=String)
+    def non_nillable(n):
         return "OK"
 
-    @rpc(String, _returns=String, _public_name="do_something")
-    def do_something_else(self, s):
+    @srpc(String, _returns=String, _public_name="do_something")
+    def do_something_else(s):
         return s
 
-    @rpc(Integer, _returns=Array(OtherClass))
-    def return_other_class_array(self,num):
+    @srpc(Integer, _returns=Array(OtherClass))
+    def return_other_class_array(num):
         for i in xrange(num):
             yield OtherClass(dt=datetime(2010,12,06), d=3.0, b=True)
 
-    @rpc(_returns=Attachment)
-    def return_binary_data(self):
+    @srpc(_returns=Attachment)
+    def return_binary_data():
         return Attachment(data=''.join([chr(i) for i in xrange(256)]))
 
 services = [
