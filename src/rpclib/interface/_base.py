@@ -212,7 +212,7 @@ class Base(object):
         # populate call routes
         for s in self.services:
             s.__tns__ = self.get_tns()
-            logger.debug("populating %r" % s.__name__)
+            logger.debug("populating '%s.%s'" % (s.__module__, s.__name__))
             for method in s.public_methods:
                 method_name = "{%s}%s" % (self.get_tns(), method.name)
 
@@ -223,7 +223,7 @@ class Base(object):
                                      o.__module__, o.__name__, method.name))
 
                 else:
-                    logger.debug('adding method %r' % method_name)
+                    logger.debug('\tadding method %r' % method_name)
                     self.call_routes[method_name] = s
                     self.call_routes[method.name] = s
 
