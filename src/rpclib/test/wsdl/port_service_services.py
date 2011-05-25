@@ -40,7 +40,7 @@ class S2(DefinitionBase):
 class S3(DefinitionBase):
     name = 'S3Fools'
     __namespace__ = 'Hoppity'
-    __service_name__ = 'BLAHHHHAHHHAHHHHA'
+    __service_name__ = 'BlahService'
     __port_types__ = ['bobhope', 'larry']
 
 
