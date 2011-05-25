@@ -27,7 +27,9 @@ from rpclib.model.exception import Fault
 from collections import deque
 
 class MethodContext(object):
-    def __init__(self):
+    def __init__(self, app):
+        self.app = app
+
         self.service_class = None
 
         self.in_error = None
@@ -87,12 +89,6 @@ class Application(object):
         self.__public_methods = {}
         self.__classes = {}
 
-    def get_class(self, key):
-        return self.interface.get_class(key)
-
-    def get_class_instance(self, key):
-        return self.interface.get_class_instance(key)
-
     def process_request(self, ctx, req_obj):
         """Takes a MethodContext instance and the native request object.
         Returns the response to the request as a native python object.
@@ -140,19 +136,6 @@ class Application(object):
         """
 
         return self.interface.call_routes[method_name]
-
-    def get_service_context(self, service_class, http_req_env=None):
-        """The function that maps service classes to service instances.
-
-        Override this function to e.g. pass additional parameters to service
-        constructors.
-        """
-
-        retval = MethodContext()
-        retval.service_class = service_class
-        retval.http_req_env = http_req_env
-
-        return retval
 
     def _has_callbacks(self):
         retval = False

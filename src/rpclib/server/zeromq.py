@@ -44,7 +44,7 @@ class Server(Base):
     def serve_forever(self):
         while True:
             in_string = self.soap_socket.recv()
-            ctx = MethodContext()
+            ctx = MethodContext(self.app)
 
             in_object = self.get_in_object(ctx, in_string)
 

@@ -28,7 +28,7 @@ class Factory(object):
         self.__app = app
 
     def create(self, object_name):
-        return self.__app.get_class_instance(object_name)
+        return self.__app.interface.get_class_instance(object_name)
 
 class Service(object):
     def __init__(self, rpc_class, url, app):
@@ -57,7 +57,7 @@ class RemoteProcedureBase(object):
         self.url = url
         self.app = app
 
-        self.ctx = MethodContext()
+        self.ctx = MethodContext(app)
         self.ctx.method_name = name
         self.ctx.service_class = self.app.get_service_class(name)
         self.ctx.out_header = out_header
