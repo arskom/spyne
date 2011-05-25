@@ -230,58 +230,6 @@ class DefinitionBase(object):
     def get_port_types(cls):
         return cls.__port_types__
 
-    def __init__(self, environ=None):
-        raise Exception("don't")
-
-        self.in_header = None
-        self.out_header = None
-        self.environ = environ
-
-    def on_method_call(self, method_name, py_params, doc_params):
-        '''Called BEFORE the service implementing the functionality is called
-
-        @param the method name
-        @param the tuple of python params being passed to the method
-        @param the document structures of each argument
-        '''
-
-    def on_method_return_object(self, py_results):
-        '''Called AFTER the service implementing the functionality is called,
-        with native return object as argument
-
-        @param the python results from the method
-        '''
-
-    def on_method_return_doc(self, doc_results):
-        '''Called AFTER the service implementing the functionality is called,
-        with native return object serialized to Element objects as argument.
-
-        @param the xml element containing the return value(s) from the method
-        '''
-
-    def on_method_exception_object(self, exc):
-        '''Called BEFORE the exception is serialized, when an error occurs
-        during execution.
-
-        @param the exception object
-        '''
-
-    def on_method_exception_doc(self, fault_doc):
-        '''Called AFTER the exception is serialized, when an error occurs
-        during execution.
-
-        @param the xml element containing the exception object serialized to a
-        fault
-        '''
-
-    def call_wrapper(self, call, params):
-        '''Called in place of the original method call.
-
-        @param the original method call
-        @param the arguments to the call
-        '''
-        return call(*params)
-
     @classmethod
     def get_tns(cls):
         if not (cls.__tns__ is None):
@@ -319,3 +267,56 @@ class DefinitionBase(object):
                 return True
 
         return False
+
+    @staticmethod
+    def call_wrapper(ctx, call, params):
+        '''Called in place of the original method call.
+
+        @param the original method call
+        @param the arguments to the call
+        '''
+        if ctx.descriptor.no_ctx:
+            return call(*params)
+        else:
+            return call(ctx, *params)
+
+    @staticmethod
+    def on_method_call(ctx, py_params):
+        '''Called BEFORE the service implementing the functionality is called
+
+        @param the method name
+        @param the tuple of python params being passed to the method
+        '''
+
+    @staticmethod
+    def on_method_return_object(ctx, py_results):
+        '''Called AFTER the service implementing the functionality is called,
+        with native return object as argument
+
+        @param the python results from the method
+        '''
+
+    @staticmethod
+    def on_method_return_doc(ctx, doc_results):
+        '''Called AFTER the service implementing the functionality is called,
+        with native return object serialized to Element objects as argument.
+
+        @param the xml element containing the return value(s) from the method
+        '''
+
+    @staticmethod
+    def on_method_exception_object(ctx, exc):
+        '''Called BEFORE the exception is serialized, when an error occurs
+        during execution.
+
+        @param the exception object
+        '''
+
+    @staticmethod
+    def on_method_exception_doc(ctx, fault_doc):
+        '''Called AFTER the exception is serialized, when an error occurs
+        during execution.
+
+        @param the xml element containing the exception object serialized to a
+        fault
+        '''

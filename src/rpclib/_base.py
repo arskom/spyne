@@ -102,13 +102,13 @@ class Application(object):
 
         try:
             # implementation hook
-            ctx.service.on_method_call(ctx.method_name,req_obj,ctx.in_body_doc)
+            ctx.service_class.on_method_call(ctx, req_obj)
 
             # retrieve the method
-            func = getattr(ctx.service, ctx.descriptor.name)
+            func = getattr(ctx.service_class, ctx.descriptor.name)
 
             # call the method
-            retval = ctx.service.call_wrapper(func, req_obj)
+            retval = ctx.service_class.call_wrapper(ctx, func, req_obj)
 
         except Fault, e:
             stacktrace=traceback.format_exc()
@@ -124,11 +124,11 @@ class Application(object):
 
         # implementation hook
         if isinstance(retval, Fault):
-            ctx.service.on_method_exception_object(retval)
-            self.on_exception_object(retval)
+            ctx.service_class.on_method_exception_object(ctx, retval)
+            self.on_exception_object(ctx, retval)
 
         else:
-            ctx.service.on_method_return_object(retval)
+            ctx.service_class.on_method_return_object(ctx, retval)
 
         return retval
 
@@ -141,14 +141,18 @@ class Application(object):
 
         return self.interface.call_routes[method_name]
 
-    def get_service(self, service, http_req_env=None):
+    def get_service_context(self, service_class, http_req_env=None):
         """The function that maps service classes to service instances.
 
         Override this function to e.g. pass additional parameters to service
         constructors.
         """
 
-        return service(http_req_env)
+        retval = MethodContext()
+        retval.service_class = service_class
+        retval.http_req_env = http_req_env
+
+        return retval
 
     def _has_callbacks(self):
         retval = False
@@ -159,14 +163,15 @@ class Application(object):
 
         return retval
 
-    def on_exception_object(self, exc):
+    @staticmethod
+    def on_exception_object(ctx, exc):
         '''Called when the app throws an exception. (might be inside or outside
         the service call).
 
         @param The exception object
         '''
-
-    def on_exception_doc(self, fault_doc):
+    @staticmethod
+    def on_exception_doc(ctx, fault_doc):
         '''Called when the app throws an exception. (might be inside or outside
         the service call.
 

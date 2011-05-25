@@ -244,9 +244,9 @@ class Soap11(Base):
                                                                    out_body_doc)
 
             # implementation hook
-            if not (ctx.service is None):
-                ctx.service.on_method_exception_doc(out_body_doc)
-            self.parent.on_exception_doc(out_body_doc)
+            if not (ctx.service_class is None):
+                ctx.service_class.on_method_exception_doc(ctx, out_body_doc)
+            self.parent.on_exception_doc(ctx, out_body_doc)
 
             if logger.level == logging.DEBUG:
                 logger.debug(etree.tostring(envelope, pretty_print=True))
@@ -319,9 +319,9 @@ class Soap11(Base):
                 logger.debug(etree.tostring(envelope, xml_declaration=True,
                                                              pretty_print=True))
 
-            #implementation hook
-            if not (ctx.service is None):
-                ctx.service.on_method_return_doc(envelope)
+            # implementation hook
+            if not (ctx.service_class is None):
+                ctx.service_class.on_method_return_doc(ctx, envelope)
 
         return envelope
 
