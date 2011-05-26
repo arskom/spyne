@@ -146,15 +146,14 @@ class Application(object):
 
         return retval
 
-    @staticmethod
-    def on_exception_object(ctx, exc):
+    def on_exception_object(self, ctx, exc):
         '''Called when the app throws an exception. (might be inside or outside
         the service call).
 
         @param The exception object
         '''
-    @staticmethod
-    def on_exception_doc(ctx, fault_doc):
+
+    def on_exception_doc(self, ctx, fault_doc):
         '''Called when the app throws an exception. (might be inside or outside
         the service call.
 

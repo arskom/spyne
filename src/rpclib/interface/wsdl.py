@@ -525,22 +525,6 @@ class Wsdl11(Base):
 
         return retval
 
-    def on_exception_object(self, exc):
-        '''Called when the app throws an exception. (might be inside or outside
-        the service call.
-
-        @param the wsgi environment
-        @param the fault object
-        '''
-
-    def on_exception_doc(self, fault_doc):
-        '''Called when the app throws an exception. (might be inside or outside
-        the service call.
-
-        @param the wsgi environment
-        @param the xml element containing the xml serialization of the fault
-        '''
-
     def build_validation_schema(self):
         """Build application schema specifically for xml validation purposes.
 

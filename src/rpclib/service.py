@@ -278,8 +278,8 @@ class DefinitionBase(object):
 
         return False
 
-    @staticmethod
-    def call_wrapper(ctx, call, params):
+    @classmethod
+    def call_wrapper(cls, ctx, call, params):
         '''Called in place of the original method call.
 
         @param the original method call
@@ -290,40 +290,40 @@ class DefinitionBase(object):
         else:
             return call(ctx, *params)
 
-    @staticmethod
-    def on_method_call(ctx, py_params):
+    @classmethod
+    def on_method_call(cls, ctx, py_params):
         '''Called BEFORE the service implementing the functionality is called
 
         @param the method name
         @param the tuple of python params being passed to the method
         '''
 
-    @staticmethod
-    def on_method_return_object(ctx, py_results):
+    @classmethod
+    def on_method_return_object(cls, ctx, py_results):
         '''Called AFTER the service implementing the functionality is called,
         with native return object as argument
 
         @param the python results from the method
         '''
 
-    @staticmethod
-    def on_method_return_doc(ctx, doc_results):
+    @classmethod
+    def on_method_return_doc(cls, ctx, doc_results):
         '''Called AFTER the service implementing the functionality is called,
         with native return object serialized to Element objects as argument.
 
         @param the xml element containing the return value(s) from the method
         '''
 
-    @staticmethod
-    def on_method_exception_object(ctx, exc):
+    @classmethod
+    def on_method_exception_object(cls, ctx, exc):
         '''Called BEFORE the exception is serialized, when an error occurs
         during execution.
 
         @param the exception object
         '''
 
-    @staticmethod
-    def on_method_exception_doc(ctx, fault_doc):
+    @classmethod
+    def on_method_exception_doc(cls, ctx, fault_doc):
         '''Called AFTER the exception is serialized, when an error occurs
         during execution.
 
