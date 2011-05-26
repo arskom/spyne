@@ -1,15 +1,29 @@
 
-Change Log
+rpclib-1.2.0
+ * The rpc decorator now produces static methods. The methods still get an initial 
+   parameter that holds the service contexts. It's an instance of the MethodContext 
+   class, and not the DefinitionBase class.
+ * The srpc decorator which doesn't force the methods to have an initial context 
+   parameter.
+
+Ports from soaplib:
+ * duration object is now compatible with Python's native timedelta.
+ * WSDL: Support for multiple <service> tags in the wsdl (one for each class in the 
+   application)
+ * WSDL: Support for multiple <portType> tags and multiple ports.
+ * WSDL: Support for enumerating exceptions a method can throw was added.
+ * SOAP: Exceptions got some love to be more standards-compliant.
+ * SOAP: Xml attribute support
 
 soaplib-3 -> rpclib-1
-* Soaplib is now also protocol agnostic. As it now supports protocols (like 
-Rest-minus-the-verbs HttpRpc) other than soap, it's renamed to Rpclib. This also
-means soaplib can support multiple soap and wsdl versions.
-* Mention of xml and soap removed from public api where it's not directly
-related to soap or xml. (e.g. a hook rename: on_method_exception_xml ->
-on_method_exception_doc)
-* Protocol serializers now return iterables instead of complete messages. This
-lets return values of arbitrary length possible via the use of generators.
+ * Soaplib is now also protocol agnostic. As it now supports protocols (like 
+   Rest-minus-the-verbs HttpRpc) other than soap, it's renamed to Rpclib. This 
+   also means soaplib can support multiple soap and wsdl versions.
+ * Mention of xml and soap removed from public api where it's not directly
+   related to soap or xml. (e.g. a hook rename: on_method_exception_xml ->
+   on_method_exception_doc)
+ * Protocol serializers now return iterables instead of complete messages. This
+   lets return values of arbitrary length possible via the use of generators.
 
 soaplib-2
 * This release transformed soaplib from a soap server that exclusively supported
