@@ -155,7 +155,7 @@ class TestSuds(unittest.TestCase):
         val.ai = self.client.factory.create("integerArray")
         val.ai.integer.extend([1,2,3,45,5,3,2,1,4])
 
-        val.simple = self.client.factory.create("SimpleClassArray")
+        val.simple = self.client.factory.create("{rpclib.test.interop.server._service}SimpleClassArray")
 
         val.simple.SimpleClass.append(self.client.factory.create("SimpleClass"))
         val.simple.SimpleClass.append(self.client.factory.create("SimpleClass"))
@@ -188,7 +188,7 @@ class TestSuds(unittest.TestCase):
         val.s = "asd"
         val.f = 12.34
 
-        val.simple = self.client.factory.create("SimpleClassArray")
+        val.simple = self.client.factory.create("{rpclib.test.interop.server._service}SimpleClassArray")
 
         val.simple.SimpleClass.append(self.client.factory.create("SimpleClass"))
         val.simple.SimpleClass.append(self.client.factory.create("SimpleClass"))

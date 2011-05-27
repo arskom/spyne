@@ -1,11 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
-<wsdl:definitions xmlns:wsa="http://schemas.xmlsoap.org/ws/2003/03/addressing" xmlns:tns="rpclib.test.interop.server" xmlns:plink="http://schemas.xmlsoap.org/ws/2003/05/partner-link/" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:s3="hunk.sunk" xmlns:senc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:s1="punk.tunk" xmlns:s0="bar" xmlns:s12env="http://www.w3.org/2003/05/soap-envelope/" xmlns:s2="_service" xmlns:s12enc="http://www.w3.org/2003/05/soap-encoding/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="rpclib.test.interop.server" name="Application">
+<wsdl:definitions xmlns:wsa="http://schemas.xmlsoap.org/ws/2003/03/addressing" xmlns:tns="rpclib.test.interop.server" xmlns:plink="http://schemas.xmlsoap.org/ws/2003/05/partner-link/" xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:s3="hunk.sunk" xmlns:senc="http://schemas.xmlsoap.org/soap/encoding/" xmlns:s1="punk.tunk" xmlns:s0="bar" xmlns:s12env="http://www.w3.org/2003/05/soap-envelope/" xmlns:s2="rpclib.test.interop.server._service" xmlns:s12enc="http://www.w3.org/2003/05/soap-encoding/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" targetNamespace="rpclib.test.interop.server" name="Application">
   <wsdl:types>
     <xs:schema targetNamespace="rpclib.test.interop.server" elementFormDefault="qualified">
-      <xs:import namespace="_service" />
+      <xs:import namespace="hunk.sunk" />
       <xs:import namespace="punk.tunk" />
       <xs:import namespace="bar" />
-      <xs:import namespace="hunk.sunk" />
+      <xs:import namespace="rpclib.test.interop.server._service" />
       <xs:import namespace="http://www.w3.org/2001/XMLSchema" />
       <xs:complexType name="echo_integer">
         <xs:sequence>
@@ -524,7 +524,7 @@
       <xs:element name="soap_exception" type="tns:soap_exception" />
       <xs:element name="soap_exceptionResponse" type="tns:soap_exceptionResponse" />
     </xs:schema>
-    <xs:schema targetNamespace="_service" elementFormDefault="qualified">
+    <xs:schema targetNamespace="rpclib.test.interop.server._service" elementFormDefault="qualified">
       <xs:import namespace="http://www.w3.org/2001/XMLSchema" />
       <xs:complexType name="SimpleClass">
         <xs:sequence>
@@ -556,7 +556,7 @@
     </xs:schema>
     <xs:schema targetNamespace="punk.tunk" elementFormDefault="qualified">
       <xs:import namespace="rpclib.test.interop.server" />
-      <xs:import namespace="_service" />
+      <xs:import namespace="rpclib.test.interop.server._service" />
       <xs:import namespace="http://www.w3.org/2001/XMLSchema" />
       <xs:complexType name="NestedClass">
         <xs:sequence>
