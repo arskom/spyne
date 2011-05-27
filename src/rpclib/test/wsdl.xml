@@ -399,17 +399,29 @@
       <xs:complexType name="send_out_header">
         <xs:sequence />
       </xs:complexType>
+      <xs:complexType name="OutHeader">
+        <xs:sequence>
+          <xs:element name="dt" type="xs:dateTime" minOccurs="0" nillable="true" />
+          <xs:element name="f" type="xs:float" minOccurs="0" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
       <xs:complexType name="send_out_headerResponse">
         <xs:sequence>
-          <xs:element name="send_out_headerResult" type="s2:OutHeader" minOccurs="0" nillable="true" />
+          <xs:element name="send_out_headerResult" type="tns:OutHeader" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_in_header">
         <xs:sequence />
       </xs:complexType>
+      <xs:complexType name="InHeader">
+        <xs:sequence>
+          <xs:element name="i" type="xs:integer" minOccurs="0" nillable="true" />
+          <xs:element name="s" type="xs:string" minOccurs="0" nillable="true" />
+        </xs:sequence>
+      </xs:complexType>
       <xs:complexType name="echo_in_headerResponse">
         <xs:sequence>
-          <xs:element name="echo_in_headerResult" type="s2:InHeader" minOccurs="0" nillable="true" />
+          <xs:element name="echo_in_headerResult" type="tns:InHeader" minOccurs="0" nillable="true" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="python_exception">
@@ -502,8 +514,10 @@
       <xs:element name="RoleEnumArray" type="tns:RoleEnumArray" />
       <xs:element name="complex_returnResponse" type="tns:complex_returnResponse" />
       <xs:element name="send_out_header" type="tns:send_out_header" />
+      <xs:element name="OutHeader" type="tns:OutHeader" />
       <xs:element name="send_out_headerResponse" type="tns:send_out_headerResponse" />
       <xs:element name="echo_in_header" type="tns:echo_in_header" />
+      <xs:element name="InHeader" type="tns:InHeader" />
       <xs:element name="echo_in_headerResponse" type="tns:echo_in_headerResponse" />
       <xs:element name="python_exception" type="tns:python_exception" />
       <xs:element name="python_exceptionResponse" type="tns:python_exceptionResponse" />
@@ -535,24 +549,10 @@
           <xs:element name="OtherClass" type="s2:OtherClass" minOccurs="0" maxOccurs="unbounded" nillable="true" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="InHeader">
-        <xs:sequence>
-          <xs:element name="i" type="xs:integer" minOccurs="0" nillable="true" />
-          <xs:element name="s" type="xs:string" minOccurs="0" nillable="true" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="OutHeader">
-        <xs:sequence>
-          <xs:element name="dt" type="xs:dateTime" minOccurs="0" nillable="true" />
-          <xs:element name="f" type="xs:float" minOccurs="0" nillable="true" />
-        </xs:sequence>
-      </xs:complexType>
       <xs:element name="SimpleClass" type="s2:SimpleClass" />
       <xs:element name="SimpleClassArray" type="s2:SimpleClassArray" />
       <xs:element name="OtherClass" type="s2:OtherClass" />
       <xs:element name="OtherClassArray" type="s2:OtherClassArray" />
-      <xs:element name="InHeader" type="s2:InHeader" />
-      <xs:element name="OutHeader" type="s2:OutHeader" />
     </xs:schema>
     <xs:schema targetNamespace="punk.tunk" elementFormDefault="qualified">
       <xs:import namespace="rpclib.test.interop.server" />
@@ -821,10 +821,10 @@
     <wsdl:part name="send_out_headerResponse" element="tns:send_out_headerResponse" />
   </wsdl:message>
   <wsdl:message name="InHeader">
-    <wsdl:part name="InHeader" element="s2:InHeader" />
+    <wsdl:part name="InHeader" element="tns:InHeader" />
   </wsdl:message>
   <wsdl:message name="OutHeader">
-    <wsdl:part name="OutHeader" element="s2:OutHeader" />
+    <wsdl:part name="OutHeader" element="tns:OutHeader" />
   </wsdl:message>
   <wsdl:message name="echo_in_header">
     <wsdl:part name="echo_in_header" element="tns:echo_in_header" />
@@ -1156,22 +1156,22 @@
       <soap:operation soapAction="send_out_header" style="document" />
       <wsdl:input name="send_out_header">
         <soap:body use="literal" />
-        <soap:header use="literal" message="s2:InHeader" part="InHeader" />
+        <soap:header use="literal" message="tns:InHeader" part="InHeader" />
       </wsdl:input>
       <wsdl:output name="send_out_headerResponse">
         <soap:body use="literal" />
-        <soap:header use="literal" message="s2:InHeader" part="InHeader" />
+        <soap:header use="literal" message="tns:InHeader" part="InHeader" />
       </wsdl:output>
     </wsdl:operation>
     <wsdl:operation name="echo_in_header">
       <soap:operation soapAction="echo_in_header" style="document" />
       <wsdl:input name="echo_in_header">
         <soap:body use="literal" />
-        <soap:header use="literal" message="s2:InHeader" part="InHeader" />
+        <soap:header use="literal" message="tns:InHeader" part="InHeader" />
       </wsdl:input>
       <wsdl:output name="echo_in_headerResponse">
         <soap:body use="literal" />
-        <soap:header use="literal" message="s2:InHeader" part="InHeader" />
+        <soap:header use="literal" message="tns:InHeader" part="InHeader" />
       </wsdl:output>
     </wsdl:operation>
     <wsdl:operation name="python_exception">

@@ -210,6 +210,7 @@ class DefinitionBase(object):
     It is a natural abstract base class, because it's of no use without any
     method definitions, hence the 'Base' suffix in the name.
     '''
+
     __metaclass__ = DefinitionBaseMeta
 
     __tns__ = None

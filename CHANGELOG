@@ -1,4 +1,7 @@
 
+rpclib-1.2.1
+ * WSDL: A regression with header namespaces was fixed
+
 rpclib-1.2.0
  * The rpc decorator now produces static methods. The methods still get an initial 
    parameter that holds the service contexts. It's an instance of the MethodContext 

@@ -229,45 +229,37 @@ class Base(object):
 
         # populate types
         for s in self.services:
+            print self.get_tns()
             if s.__in_header__ != None:
-                s.__in_header__.resolve_namespace(s.__in_header__,
-                                                                s.get_tns())
-                s.__in_header__.add_to_schema(self)
+                s.__in_header__.__namespace__ = self.get_tns()
 
             if s.__out_header__ != None:
-                s.__out_header__.resolve_namespace(s.__out_header__,
-                                                                s.get_tns())
-                s.__out_header__.add_to_schema(self)
+                s.__out_header__.__namespace__ = self.get_tns()
 
             for method in s.public_methods:
-                # resolve namespaces
-                method.in_message.resolve_namespace(method.in_message,
-                                                                 self.get_tns())
-                method.out_message.resolve_namespace(method.out_message,
-                                                                 self.get_tns())
+                if method.in_header is None:
+                    method.in_header = s.__in_header__
+                if method.out_header is None:
+                    method.out_header = s.__out_header__
+
                 if not (method.in_header is None):
-                    method.in_header.resolve_namespace(method.in_message,
+                    method.in_header.resolve_namespace(method.in_header,
                                                                  self.get_tns())
                 if not (method.out_header is None):
-                    method.out_header.resolve_namespace(method.out_message,
+                    method.out_header.resolve_namespace(method.out_header,
                                                                  self.get_tns())
-
-
+                
+                method.in_message.resolve_namespace(method.in_message,
+                                                                 self.get_tns())
                 method.in_message.add_to_schema(self)
+
+                method.out_message.resolve_namespace(method.out_message,
+                                                                 self.get_tns())
                 method.out_message.add_to_schema(self)
 
                 for fault in method.faults:
+                    fault.resolve_namespace(method.in_message, self.get_tns())
                     fault.add_to_schema(self)
-
-                if method.in_header is None:
-                    method.in_header = s.__in_header__
-                else:
-                    method.in_header.add_to_schema(self)
-
-                if method.out_header is None:
-                    method.out_header = s.__out_header__
-                else:
-                    method.out_header.add_to_schema(self)
 
     tns = property(get_tns)
 
