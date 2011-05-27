@@ -5,9 +5,9 @@ from rpclib.model import SimpleType
 from rpclib.model import nillable_element
 from rpclib.model import nillable_value
 
-import rpclib.namespace.soap
+import rpclib.const.xml_ns
 
-_ns_xsd = rpclib.namespace.soap.xsd
+_ns_xsd = rpclib.const.xml_ns.xsd
 
 # adapted from: http://code.activestate.com/recipes/413486/
 

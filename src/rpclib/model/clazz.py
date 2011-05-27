@@ -32,7 +32,7 @@ from rpclib.model import nillable_dict
 from rpclib.model import nillable_string
 
 from rpclib.util.odict import odict as TypeInfo
-from rpclib.namespace import soap as namespace
+from rpclib.const import xml_ns as namespace
 
 class XMLAttribute(Base):
     """Items which are marshalled as attributes of the parent element."""

@@ -20,11 +20,10 @@ except ImportError:
 
 from email import message_from_string
 
-# import rpclib stuff
-import rpclib.namespace.soap
+import rpclib.const.xml_ns
 
-_ns_xop = rpclib.namespace.soap.xop
-_ns_soap_env = rpclib.namespace.soap.soap_env
+_ns_xop = rpclib.const.xml_ns.xop
+_ns_soap_env = rpclib.const.xml_ns.soap_env
 
 def join_attachment(href_id, envelope, payload, prefix=True):
     '''

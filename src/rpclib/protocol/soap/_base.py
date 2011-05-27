@@ -29,7 +29,7 @@ from lxml import etree
 from rpclib.protocol import Base
 from rpclib.model.exception import Fault
 from rpclib.model.primitive import string_encoding
-import rpclib.namespace.soap as ns
+import rpclib.const.xml_ns as ns
 
 class ValidationError(Fault):
     pass

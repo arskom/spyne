@@ -20,12 +20,12 @@
 from lxml import etree
 from rpclib.model import Base
 
-import rpclib.namespace.soap
+import rpclib.const.xml_ns
 
-_ns_xsd = rpclib.namespace.soap.xsd
-_ns_soap_env = rpclib.namespace.soap.soap_env
+_ns_xsd = rpclib.const.xml_ns.xsd
+_ns_soap_env = rpclib.const.xml_ns.soap_env
 
-_pref_soap_env = rpclib.namespace.soap.const_prefmap[_ns_soap_env]
+_pref_soap_env = rpclib.const.xml_ns.const_prefmap[_ns_soap_env]
 
 class Fault(Exception, Base):
     __type_name__ = "Fault"

@@ -23,8 +23,8 @@ logger = logging.getLogger(__name__)
 import warnings
 from rpclib.util.odict import odict
 
-import rpclib.namespace.soap
-_ns_xsd = rpclib.namespace.soap.xsd
+import rpclib.const.xml_ns
+_ns_xsd = rpclib.const.xml_ns.xsd
 
 class SchemaInfo(object):
     def __init__(self):
@@ -46,8 +46,8 @@ class Base(object):
         self.classes = {}
         self.imports = {}
 
-        self.nsmap = dict(rpclib.namespace.soap.const_nsmap)
-        self.prefmap = dict(rpclib.namespace.soap.const_prefmap)
+        self.nsmap = dict(rpclib.const.xml_ns.const_nsmap)
+        self.prefmap = dict(rpclib.const.xml_ns.const_prefmap)
 
         self.nsmap['tns']=tns
         self.prefmap[tns]='tns'
@@ -58,7 +58,7 @@ class Base(object):
         retval = False
         ns_prefix = cls.get_namespace_prefix(self)
 
-        if ns_prefix in rpclib.namespace.soap.const_nsmap:
+        if ns_prefix in rpclib.const.xml_ns.const_nsmap:
             retval = True
 
         else:

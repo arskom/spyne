@@ -22,10 +22,10 @@ import csv
 
 from lxml import etree
 
-import rpclib.namespace.soap
+import rpclib.const.xml_ns
 
-_ns_xsi = rpclib.namespace.soap.xsi
-_ns_xsd = rpclib.namespace.soap.xsd
+_ns_xsi = rpclib.const.xml_ns.xsi
+_ns_xsd = rpclib.const.xml_ns.xsd
 
 def nillable_value(func):
     def wrapper(cls, value, tns, parent_elt, *args, **kwargs):
@@ -95,7 +95,10 @@ class Base(object):
 
     @staticmethod
     def resolve_namespace(cls, default_ns):
-        if (cls.__namespace__ in rpclib.namespace.soap.const_prefmap and
+        if cls.__namespace__ is rpclib.const.xml_ns.DEFAULT_NS:
+            cls.__namespace__ = default_ns
+            
+        if (cls.__namespace__ in rpclib.const.xml_ns.const_prefmap and
                                                         not cls.is_default(cls)):
             cls.__namespace__ = default_ns
 

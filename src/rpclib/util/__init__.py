@@ -19,7 +19,7 @@
 
 import sys
 import urllib
-from rpclib.namespace import soap as ns
+from rpclib.const import xml_ns as ns
 
 from lxml import etree
 

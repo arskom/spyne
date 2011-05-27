@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 from rpclib.model.clazz import ClassSerializer as Message
 from rpclib.model.clazz import TypeInfo
+from rpclib.const.xml_ns import DEFAULT_NS
 
 class MethodDescriptor(object):
     '''This class represents the method signature of a soap method,
@@ -48,7 +49,7 @@ class MethodDescriptor(object):
         self.port_type = port_type
         self.no_ctx = no_ctx
 
-def _produce_input_message(ns, f, params, kparams, no_ctx):
+def _produce_input_message(f, params, kparams, no_ctx):
     if no_ctx is True:
         arg_start=0
     else:
@@ -72,10 +73,9 @@ def _produce_input_message(ns, f, params, kparams, no_ctx):
     except IndexError, e:
         raise Exception("%s has parameter numbers mismatching" % f.func_name)
 
-    message=Message.produce(type_name=_in_message, namespace=ns,
+    message=Message.produce(type_name=_in_message, namespace=DEFAULT_NS,
                                             members=in_params)
-    message.__namespace__ = ns
-    message.resolve_namespace(message, ns)
+    message.__namespace__ = DEFAULT_NS
 
     return message
 

@@ -28,15 +28,15 @@ from lxml import etree
 from rpclib.model.exception import Fault
 from rpclib.interface import Base
 
-import rpclib.namespace.soap
+import rpclib.const.xml_ns
 
-_ns_plink = rpclib.namespace.soap.plink
-_ns_xsd = rpclib.namespace.soap.xsd
-_ns_wsa = rpclib.namespace.soap.wsa
-_pref_wsa = rpclib.namespace.soap.const_prefmap[_ns_wsa]
+_ns_plink = rpclib.const.xml_ns.plink
+_ns_xsd = rpclib.const.xml_ns.xsd
+_ns_wsa = rpclib.const.xml_ns.wsa
+_pref_wsa = rpclib.const.xml_ns.const_prefmap[_ns_wsa]
 
-_ns_wsdl = rpclib.namespace.soap.wsdl
-_ns_soap = rpclib.namespace.soap.soap
+_ns_wsdl = rpclib.const.xml_ns.wsdl
+_ns_soap = rpclib.const.xml_ns.soap
 
 class ValidationError(Fault):
     pass
