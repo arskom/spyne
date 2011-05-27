@@ -236,10 +236,9 @@ class DefinitionBase(object):
         if not (cls.__tns__ is None):
             return cls.__tns__
 
-        service_name = cls.get_service_class_name().split('.')[-1]
-
         retval = cls.__module__
         if cls.__module__ == '__main__':
+            service_name = cls.get_service_class_name().split('.')[-1]
             retval = '.'.join((service_name, service_name))
 
         return retval
