@@ -97,7 +97,7 @@ def _validate_body_style(kparams):
 
     return _body_style
 
-def _produce_output_message(ns, f, params, kparams):
+def _produce_output_message(f, params, kparams):
     """Generate an output message for "rpc"-style API methods.
 
     This message is a wrapper to the declared return type.
@@ -129,14 +129,12 @@ def _produce_output_message(ns, f, params, kparams):
             out_params[_out_variable_name] = _returns
 
     if _body_style == 'wrapped':
-        message = Message.produce(type_name=_out_message, namespace=ns,
+        message = Message.produce(type_name=_out_message, namespace=DEFAULT_NS,
                                                              members=out_params)
-        message.__namespace__ = ns # FIXME: is this necessary?
+        message.__namespace__ = DEFAULT_NS # FIXME: is this necessary?
 
     else:
-        message = Message.alias(_out_message, ns, _returns)
-
-    message.resolve_namespace(message, ns)
+        message = Message.alias(_out_message, DEFAULT_NS, _returns)
 
     return message
 
@@ -155,6 +153,7 @@ def rpc(*params, **kparams):
     decorator should only be used on member methods of an instance of
     rpclib.service.DefinitionBase.
     '''
+
     def explain(f):
         def explain_method(*args, **kwargs):
             retval = None
@@ -172,18 +171,9 @@ def rpc(*params, **kparams):
                 _port_type = kparams.get('_soap_port_type', None)
                 _no_ctx = kparams.get('_no_ctx', False)
 
-                # the decorator function does not have a reference to the
-                # class and needs to be passed in
-                ns = kwargs['clazz'].get_tns()
-
-                in_message = _produce_input_message(ns, f, params, kparams, _no_ctx)
-                out_message = _produce_output_message(ns, f, params, kparams)
+                in_message = _produce_input_message(f, params, kparams, _no_ctx)
+                out_message = _produce_output_message(f, params, kparams)
                 _faults = kparams.get('_faults', [])
-
-                if not (_in_header is None):
-                    _in_header.resolve_namespace(_in_header, ns)
-                if not (_out_header is None):
-                    _out_header.resolve_namespace(_out_header, ns)
 
                 doc = getattr(f, '__doc__')
                 retval = MethodDescriptor(f.func_name, _public_name,
@@ -208,7 +198,7 @@ class DefinitionBaseMeta(type):
 
         for func_name, func in cls_dict.iteritems():
             if callable(func) and hasattr(func, '_is_rpc'):
-                descriptor = func(_method_descriptor=True, clazz=self)
+                descriptor = func(_method_descriptor=True)
                 self.public_methods.append(descriptor)
 
                 setattr(self, func_name, staticmethod(func))

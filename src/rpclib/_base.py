@@ -61,6 +61,7 @@ class MethodContext(object):
                 retval.append("\n\t%s=%r" % (k,v))
 
         retval.append('\n)')
+
         return ''.join((self.__class__.__name__, '(', ', '.join(retval), ')'))
 
 class Application(object):

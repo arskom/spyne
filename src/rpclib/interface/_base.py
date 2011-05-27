@@ -240,6 +240,19 @@ class Base(object):
                 s.__out_header__.add_to_schema(self)
 
             for method in s.public_methods:
+                # resolve namespaces
+                method.in_message.resolve_namespace(method.in_message,
+                                                                 self.get_tns())
+                method.out_message.resolve_namespace(method.out_message,
+                                                                 self.get_tns())
+                if not (method.in_header is None):
+                    method.in_header.resolve_namespace(method.in_message,
+                                                                 self.get_tns())
+                if not (method.out_header is None):
+                    method.out_header.resolve_namespace(method.out_message,
+                                                                 self.get_tns())
+
+
                 method.in_message.add_to_schema(self)
                 method.out_message.add_to_schema(self)
 
