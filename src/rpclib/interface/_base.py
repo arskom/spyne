@@ -229,7 +229,6 @@ class Base(object):
 
         # populate types
         for s in self.services:
-            print self.get_tns()
             if s.__in_header__ != None:
                 s.__in_header__.__namespace__ = self.get_tns()
 
