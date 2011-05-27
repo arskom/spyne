@@ -24,7 +24,6 @@ logger.setLevel(logging.DEBUG)
 
 from rpclib.test.interop.server.soap_http_basic import soap_application
 
-
 from rpclib.server.zeromq import Server
 
 if __name__ == '__main__':

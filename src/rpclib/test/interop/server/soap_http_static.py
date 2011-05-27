@@ -26,7 +26,7 @@ from twisted.python import log
 
 from rpclib.server import wsgi
 
-from rpclib.test.interop.server._service import soap_application
+from rpclib.test.interop.server.soap_http_basic import soap_application
 
 from rpclib.util.wsgi_wrapper import run_twisted
 from rpclib.server import wsgi

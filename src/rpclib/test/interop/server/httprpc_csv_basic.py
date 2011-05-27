@@ -28,7 +28,8 @@ from rpclib.protocol.csv import OutCsv
 from rpclib.protocol.http import HttpRpc
 from rpclib.interface.wsdl import Wsdl11
 
-httprpc_csv_application = Application(services, Wsdl11, HttpRpc, OutCsv, tns=__name__)
+httprpc_csv_application = Application(services, Wsdl11, HttpRpc, OutCsv,
+                                   tns='rpclib.test.interop.server.httprpc.csv')
 from rpclib.server import wsgi
 
 if __name__ == '__main__':
