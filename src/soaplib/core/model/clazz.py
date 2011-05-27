@@ -194,6 +194,8 @@ class ClassModelBase(Base):
                     for sv in subvalue:
                         v.to_parent_element(sv, cls.get_namespace(), parent, k)
 
+            #TODO: Fix rendering to not include a value if nillable is true and max_occurs == 0 and subvalue is None
+
             # Don't include empty values for non-nillable optional attributes.
             elif subvalue is not None or v.Attributes.nillable or v.Attributes.min_occurs > 0:
                 v.to_parent_element(subvalue, cls.get_namespace(), parent, k)
@@ -319,8 +321,8 @@ class ClassModelBase(Base):
                     member.set('nillable', 'true')
 
                 if v.Annotations.doc != '' :
-                    annotation = etree.SubElement(member, "annotation")
-                    doc = etree.SubElement(annotation, "documentation")
+                    annotation = etree.SubElement(member, "{%s}annotation" % namespaces.ns_xsd)
+                    doc = etree.SubElement(annotation, "{%s}documentation" % namespaces.ns_xsd)
                     doc.text = v.Annotations.doc
 
             schema_entries.add_complex_type(cls, complex_type)

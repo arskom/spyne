@@ -650,21 +650,29 @@ class Application(object):
 
     tns = property(get_tns)
 
-    def __build_schema_nodes(self, schema_entries, types=None):
+    def __build_schema_nodes(self, schema_entries, types=None, chameleon_schema=False):
         """Fill individual <schema> nodes for every service that are part of
         this app.
         """
 
+        #TODO: This is called by build_schema()
+        # schema_entries is a type that is based on the services, types is
+        # usually None
+
         schema_nodes = {}
 
         for pref in schema_entries.namespaces:
+            #TODO: For building a schema this just builds the root element and
+            # currently sets the namespace.
             schema = self.__get_schema_node(pref, schema_nodes, types)
 
             # append import tags
             for namespace in schema_entries.imports[pref]:
+                # TODO: Examine what needs to change here to generate a chamelon style XSD
                 import_ = etree.SubElement(schema, "{%s}import"% namespaces.ns_xsd)
                 import_.set("namespace", namespace)
                 if types is None:
+                    # TODO: Examine what needs to change here to generate a chamelon style XSD
                     import_.set('schemaLocation', "%s.xsd" %
                                         self.get_namespace_prefix(namespace))
 
@@ -684,6 +692,8 @@ class Application(object):
         This is a protected method.
         """
 
+
+        #TODO: Adding support for chamelon style schema
         if types is None:
             # populate call routes
             for s in self.services:
@@ -772,12 +782,16 @@ class Application(object):
         # create schema node
         if pref not in schema_nodes:
             if types is None:
+                # TODO: Look at how this effects generating Chamelon Style NS
                 schema = etree.Element("{%s}schema" % namespaces.ns_xsd,
                                                         nsmap=self.nsmap)
             else:
                 schema = etree.SubElement(types, "{%s}schema" % namespaces.ns_xsd)
 
+            # TODO: Look at how this effects generating Chamelon Style NS
             schema.set("targetNamespace", self.nsmap[pref])
+
+            # TODO: Look at how this effects generating Chamelon Style NS
             schema.set("elementFormDefault", "qualified")
 
             schema_nodes[pref] = schema

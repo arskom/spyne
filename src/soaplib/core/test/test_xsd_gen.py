@@ -29,9 +29,12 @@ from soaplib.core.util.xsd_gen import XSDGenerator
 
 
 class SimpleModel(ClassModel):
-    __namespace__ = "SimpleModel"
+    class Annotations(ClassModel.Annotations):
+        doc ="""Simple Model doc here:)"""
 
-    text = String
+    __namespace__ = "SimpleModel"
+    text = String(doc="Simple Model doc here:)")
+
 
 class NestedModel(ClassModel):
     __namespace__ = "NestedModel"
@@ -53,8 +56,9 @@ class TestXsdGen(unittest.TestCase):
         self.xsd_gen.model_schema_nsmap["SimpleModel"] = "SimpleModel"
 
     def tearDown(self):
-        for f in glob('*.xsd'):
-            os.unlink(f)
+	pass
+        #for f in glob('*.xsd'):
+        #    os.unlink(f)
 
     def named_element_check(self, element):
         name_found = False
@@ -70,6 +74,9 @@ class TestXsdGen(unittest.TestCase):
             SimpleModel,
             pretty_print=False
         )
+        print simple_xsd
+
+        self.xsd_gen.write_model_xsd_file(SimpleModel, ".")
 
         xsd_element = etree.XML(simple_xsd)
 
