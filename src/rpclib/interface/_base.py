@@ -247,7 +247,7 @@ class Base(object):
                 if not (method.out_header is None):
                     method.out_header.resolve_namespace(method.out_header,
                                                                  self.get_tns())
-                
+
                 method.in_message.resolve_namespace(method.in_message,
                                                                  self.get_tns())
                 method.in_message.add_to_schema(self)
@@ -257,7 +257,7 @@ class Base(object):
                 method.out_message.add_to_schema(self)
 
                 for fault in method.faults:
-                    fault.resolve_namespace(method.in_message, self.get_tns())
+                    fault.resolve_namespace(fault, self.get_tns())
                     fault.add_to_schema(self)
 
     tns = property(get_tns)
