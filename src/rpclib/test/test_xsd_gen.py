@@ -23,23 +23,23 @@ import unittest
 
 from lxml import etree
 
-from rpclib.model.complex import ClassSerializer
+from rpclib.model.complex import ComplexModel
 from rpclib.model.primitive import String
 from rpclib.model.primitive import Integer
 from rpclib.util.xsd_gen import XSDGenerator
 
-class SimpleModel(ClassSerializer):
+class SimpleModel(ComplexModel):
     __namespace__ = "SimpleModel"
 
     text = String
 
-class NestedModel(ClassSerializer):
+class NestedModel(ComplexModel):
     __namespace__ = "NestedModel"
 
     text = String
     simple_model = SimpleModel
 
-class DoubleNestedModel(ClassSerializer):
+class DoubleNestedModel(ComplexModel):
     __namespace__ = "DoubleNestedModel"
 
     some_text = String
@@ -120,14 +120,14 @@ class TestXsdGen(unittest.TestCase):
             self.assertTrue(os.path.isfile(file))
 
     def test_customized_xms(self):
-        class Complex(ClassSerializer):
+        class Complex(ComplexModel):
             simple = SimpleModel.customize(min_occurs=11, max_occurs="unbounded", nillable=False)
             bobby = Integer(nillable=False, min_occurs=10,max_occurs=20002)
             #simple = MySimple(min_occurs=1, max_occurs="unbounded", nillable=False)
 
         xsd = self.xsd_gen.get_model_xsd(Complex, pretty_print=True)
 
-        class ExtraComplex(ClassSerializer):
+        class ExtraComplex(ComplexModel):
             cp = Complex.customize(min_occurs=8, max_occurs=1010, nillable=False, foo="bar")
 
         xsd = self.xsd_gen.get_model_xsd(ExtraComplex, pretty_print=True)

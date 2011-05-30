@@ -18,26 +18,26 @@
 #
 
 """Utility classes and methods for converting and validating
-rpclib.model.ClassSerializer instances
+rpclib.model.ComplexModel instances
 """
 
 import re
 from lxml import etree
 
-class ClassSerializerConverter():
-    """A class to handle exporting a ClassSerializer to different representations
+class ComplexModelConverter():
+    """A class to handle exporting a ComplexModel to different representations
 
     Currently supported export targets are lxml.etree.Element, string and
     xml documents.
 
-    This functionality will most likely be moved into the ClassSerializer itself if
+    This functionality will most likely be moved into the ComplexModel itself if
     it proves useful and there is a willingness to modify the current
-    ClassSerializer API.
+    ComplexModel API.
     """
 
     def __init__(self, model_instance, tns, include_parent=False, parent_tag="root", include_ns=True):
         """
-        @param An instance of a rpclib.model.complex.ClassSerializer
+        @param An instance of a rpclib.model.complex.ComplexModel
         @parma The target namespace of the model instance.
         @param Indicates if a parent element should be returned as the root
         element of the xml representation.  If true, a root element will be included with
@@ -96,14 +96,14 @@ class ClassSerializerConverter():
 
 
     def to_etree(self):
-        """Returns a lxml.etree.Element from a rpclib.model.complex.ClassSerializer
+        """Returns a lxml.etree.Element from a rpclib.model.complex.ComplexModel
         instance.
         """
 
         return self.__get_etree()
 
     def to_xml(self):
-        """Returns a xml string from a rpclib.model.complex.ClassSerializer instance.
+        """Returns a xml string from a rpclib.model.complex.ComplexModel instance.
         """
 
         el = self.to_etree()

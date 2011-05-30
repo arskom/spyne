@@ -21,7 +21,7 @@ import unittest
 
 from lxml import etree
 
-from rpclib.model.complex import ClassSerializer
+from rpclib.model.complex import ComplexModel
 
 from rpclib.model.complex import Array
 from rpclib.model.primitive import DateTime
@@ -29,11 +29,11 @@ from rpclib.model.primitive import Float
 from rpclib.model.primitive import Integer
 from rpclib.model.primitive import String
 
-from rpclib.model.complex import ClassSerializer as Message
+from rpclib.model.complex import ComplexModel as Message
 from rpclib.protocol.soap import _from_soap
 from rpclib.protocol.soap import _parse_xml_string
 
-class Address(ClassSerializer):
+class Address(ComplexModel):
     street = String
     city = String
     zip = Integer
@@ -43,7 +43,7 @@ class Address(ClassSerializer):
 
 Address.resolve_namespace(Address, "punk")
 
-class Person(ClassSerializer):
+class Person(ComplexModel):
     name = String
     birthdate = DateTime
     age = Integer

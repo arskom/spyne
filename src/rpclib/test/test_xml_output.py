@@ -21,11 +21,11 @@ import unittest
 import os
 from datetime import datetime
 
-from rpclib.model.complex import ClassSerializer
+from rpclib.model.complex import ComplexModel
 from rpclib.model.primitive import Integer, String, DateTime
-from rpclib.util.model_utils import ClassSerializerConverter
+from rpclib.util.model_utils import ComplexModelConverter
 
-class SimpleModel(ClassSerializer):
+class SimpleModel(ComplexModel):
 
     __type_name__ = "simplemodel"
     simple_text = String
@@ -40,7 +40,7 @@ def simple_factory():
     return simple
 
 
-class ComplexModel(ClassSerializer):
+class ComplexModel(ComplexModel):
     __type_name__ = "complexmodel"
     simple = SimpleModel
     complex_text = String
@@ -64,7 +64,7 @@ class BaseCase(unittest.TestCase):
 
     def setUp(self):
         self.file_path = "instance.xml"
-        self.converter = ClassSerializerConverter(simple_factory(), "tns")
+        self.converter = ComplexModelConverter(simple_factory(), "tns")
 
     def tearDown(self):
         if os.path.isfile(self.file_path):
@@ -91,7 +91,7 @@ class BaseCase(unittest.TestCase):
         self.assertFalse(element.nsmap)
 
     def empty_ns(self):
-        self.assertRaises(AssertionError, ClassSerializerConverter, simple_factory(), "")
+        self.assertRaises(AssertionError, ComplexModelConverter, simple_factory(), "")
 
 
 class ModelAsRootTestCase(BaseCase):
@@ -123,7 +123,7 @@ class ModelAsRootTestCase(BaseCase):
 class AddedRootElementTestCase(BaseCase):
     def setUp(self):
         self.file_path = "instance.xml"
-        self.converter = ClassSerializerConverter(
+        self.converter = ComplexModelConverter(
                 simple_factory(),"tns",include_parent=True, parent_tag="foo")
 
     def element(self):

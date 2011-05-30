@@ -22,14 +22,14 @@ from urllib import quote_plus
 
 from lxml import etree
 
-from rpclib.model.complex import ClassSerializer
+from rpclib.model.complex import ComplexModel
 from rpclib.model.primitive import Integer
 from rpclib.model.primitive import String
 from rpclib.mime import join_attachment
 from rpclib.protocol.soap import namespace as ns
 
 # Service Classes
-class DownloadPartFileResult(ClassSerializer):
+class DownloadPartFileResult(ComplexModel):
     ErrorCode = Integer
     ErrorMessage = String
     Data = String

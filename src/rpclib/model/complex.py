@@ -63,9 +63,9 @@ class XMLAttributeRef(XMLAttribute):
         if self._use:
             element.set('use', self._use)
 
-class ClassSerializerMeta(type(Base)):
+class ComplexModelMeta(type(Base)):
     '''
-    This is the metaclass that populates ClassSerializer instances with
+    This is the metaclass that populates ComplexModel instances with
     the appropriate datatypes for (de)serialization.
     '''
 
@@ -125,14 +125,14 @@ class ClassSerializerMeta(type(Base)):
 
         return type.__new__(cls, cls_name, cls_bases, cls_dict)
 
-class ClassSerializerBase(Base):
+class ComplexModelBase(Base):
     """
     If you want to make a better class type, this is what you should
     inherit from
     """
 
     def __init__(self, **kwargs):
-        super(ClassSerializerBase,self).__init__()
+        super(ComplexModelBase,self).__init__()
 
         self.__reset_members(self.__class__, kwargs)
 
@@ -262,7 +262,7 @@ class ClassSerializerBase(Base):
     @nillable_dict
     def from_dict(cls, in_dict):
         inst = cls.get_deserialization_instance()
-        flat_type_info = ClassSerializerBase.get_flat_type_info(cls)
+        flat_type_info = ComplexModelBase.get_flat_type_info(cls)
 
         # initialize instance
         for k in flat_type_info:
@@ -298,7 +298,7 @@ class ClassSerializerBase(Base):
 
         # FIXME: the result of this method should be cached when build_wsdl is
         #        called (i.e. when _type_info becomes by definition immutable).
-        flat_type_info = ClassSerializerBase.get_flat_type_info(cls)
+        flat_type_info = ComplexModelBase.get_flat_type_info(cls)
 
         # initialize instance
         for k in flat_type_info:
@@ -430,13 +430,13 @@ class ClassSerializerBase(Base):
         cls_dict['__type_name__'] = type_name
         cls_dict['_type_info'] = TypeInfo(members)
 
-        return ClassSerializerMeta(type_name, (ClassSerializer,), cls_dict)
+        return ComplexModelMeta(type_name, (ComplexModel,), cls_dict)
 
     @staticmethod
     def alias(type_name, namespace, target):
         """Return an alias class for the given target class.
 
-        This function is a variation on 'ClassSerializer.produce'. The alias will
+        This function is a variation on 'ComplexModel.produce'. The alias will
         borrow the target's typeinfo.
         """
 
@@ -447,9 +447,9 @@ class ClassSerializerBase(Base):
         cls_dict['_type_info'] = getattr(target, '_type_info', ())
         cls_dict['_target'] = target
 
-        return ClassSerializerMeta(type_name, (ClassAlias,), cls_dict)
+        return ComplexModelMeta(type_name, (ClassAlias,), cls_dict)
 
-class ClassSerializer(ClassSerializerBase):
+class ComplexModel(ComplexModelBase):
     """
     The general complexType factory. The __call__ method of this class will
     return instances, contrary to primivites where the same call will result in
@@ -458,9 +458,9 @@ class ClassSerializer(ClassSerializerBase):
     (see rpclib.model.base.Base)
     """
 
-    __metaclass__ = ClassSerializerMeta
+    __metaclass__ = ComplexModelMeta
 
-class Array(ClassSerializer):
+class Array(ComplexModel):
     def __new__(cls, serializer, ** kwargs):
         retval = cls.customize(**kwargs)
 
@@ -498,11 +498,11 @@ class Array(ClassSerializer):
         if cls.__namespace__ in namespace.const_prefmap:
             cls.__namespace__ = default_ns
 
-        ClassSerializer.resolve_namespace(cls, default_ns)
+        ComplexModel.resolve_namespace(cls, default_ns)
 
     @classmethod
     def get_serialization_instance(cls, value):
-        inst = ClassSerializer.__new__(Array)
+        inst = ComplexModel.__new__(Array)
 
         (member_name,) = cls._type_info.keys()
         setattr(inst, member_name, value)
@@ -554,7 +554,7 @@ class Iterable(Array):
         for child in element.getchildren():
             yield serializer.from_xml(child)
 
-class ClassAlias(ClassSerializer):
+class ClassAlias(ComplexModel):
     """New type_name, same type_info.
     """
     @classmethod

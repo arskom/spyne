@@ -21,7 +21,7 @@ from lxml import etree
 
 from rpclib.model.binary import Attachment
 from rpclib.model.complex import Array
-from rpclib.model.complex import ClassSerializer
+from rpclib.model.complex import ComplexModel
 from rpclib.model.enum import Enum
 from rpclib.model.exception import Fault
 
@@ -43,16 +43,16 @@ from datetime import datetime
 import logging
 logger = logging.getLogger(__name__)
 
-class SimpleClass(ClassSerializer):
+class SimpleClass(ComplexModel):
     i = Integer
     s = String
 
-class OtherClass(ClassSerializer):
+class OtherClass(ComplexModel):
     dt = DateTime
     d = Double
     b = Boolean
 
-class NestedClass(ClassSerializer):
+class NestedClass(ComplexModel):
     __namespace__ = "punk.tunk"
 
     simple = Array(SimpleClass)
@@ -62,7 +62,7 @@ class NestedClass(ClassSerializer):
     other = OtherClass
     ai = Array(Integer)
 
-class NonNillableClass(ClassSerializer):
+class NonNillableClass(ComplexModel):
     __namespace__ = "hunk.sunk"
 
     nillable = False
@@ -89,11 +89,11 @@ DaysOfWeekEnum = Enum(
     type_name = 'DaysOfWeekEnum'
 )
 
-class InHeader(ClassSerializer):
+class InHeader(ComplexModel):
     s=String
     i=Integer
 
-class OutHeader(ClassSerializer):
+class OutHeader(ComplexModel):
     dt=DateTime
     f=Float
 

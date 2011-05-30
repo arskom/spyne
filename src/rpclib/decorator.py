@@ -18,7 +18,7 @@
 #
 
 from rpclib._base import MethodDescriptor
-from rpclib.model.complex import ClassSerializer as Message
+from rpclib.model.complex import ComplexModel as Message
 from rpclib.model.complex import TypeInfo
 from rpclib.const.xml_ns import DEFAULT_NS
 

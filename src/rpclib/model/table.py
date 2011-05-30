@@ -30,7 +30,7 @@ from sqlalchemy import Column
 
 from sqlalchemy.ext.declarative import DeclarativeMeta
 from rpclib.model.complex import TypeInfo
-from rpclib.model.complex import ClassSerializerBase
+from rpclib.model.complex import ComplexModelBase
 from rpclib.model import primitive
 from rpclib.model import complex
 
@@ -77,6 +77,6 @@ class TableSerializerMeta(DeclarativeMeta):
 
         return DeclarativeMeta.__new__(cls, cls_name, cls_bases, cls_dict)
 
-class TableSerializer(ClassSerializerBase):
+class TableSerializer(ComplexModelBase):
     __metaclass__ = TableSerializerMeta
     _decl_class_registry={}

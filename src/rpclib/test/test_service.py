@@ -28,7 +28,7 @@ from lxml import etree
 from rpclib import Application
 from rpclib import service
 from rpclib.model.complex import Array
-from rpclib.model.complex import ClassSerializer
+from rpclib.model.complex import ComplexModel
 from rpclib.model.primitive import DateTime
 from rpclib.model.primitive import Float
 from rpclib.model.primitive import Integer
@@ -38,7 +38,7 @@ Application.transport = 'test'
 
 from rpclib.service import rpc
 
-class Address(ClassSerializer):
+class Address(ComplexModel):
     __namespace__ = "TestService"
 
     street = String
@@ -48,7 +48,7 @@ class Address(ClassSerializer):
     laditude = Float
     longitude = Float
 
-class Person(ClassSerializer):
+class Person(ComplexModel):
     __namespace__ = "TestService"
 
     name = String
@@ -57,24 +57,24 @@ class Person(ClassSerializer):
     addresses = Array(Address)
     titles = Array(String)
 
-class Request(ClassSerializer):
+class Request(ComplexModel):
     __namespace__ = "TestService"
 
     param1 = String
     param2 = Integer
 
-class Response(ClassSerializer):
+class Response(ComplexModel):
     __namespace__ = "TestService"
 
     param1 = Float
 
-class TypeNS1(ClassSerializer):
+class TypeNS1(ComplexModel):
     __namespace__ = "TestService.NS1"
 
     s = String
     i = Integer
 
-class TypeNS2(ClassSerializer):
+class TypeNS2(ComplexModel):
     __namespace__ = "TestService.NS2"
 
     d = DateTime
