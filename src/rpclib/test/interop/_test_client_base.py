@@ -132,7 +132,7 @@ class RpclibClientTestBase(object):
         self.assertEquals(ret, val)
 
     def test_echo_simple_class(self):
-        val = self.client.factory.create("SimpleClass")
+        val = self.client.factory.create("{rpclib.test.interop.server._service}SimpleClass")
 
         val.i = 45
         val.s = "asd"
@@ -151,8 +151,8 @@ class RpclibClientTestBase(object):
         val.ai = [1,2,3,45,5,3,2,1,4]
 
         val.simple = [
-            self.client.factory.create("SimpleClass"),
-            self.client.factory.create("SimpleClass"),
+            self.client.factory.create("{rpclib.test.interop.server._service}SimpleClass"),
+            self.client.factory.create("{rpclib.test.interop.server._service}SimpleClass"),
         ]
 
         val.simple[0].i = 45
@@ -160,7 +160,7 @@ class RpclibClientTestBase(object):
         val.simple[1].i = 12
         val.simple[1].s = "qwe"
 
-        val.other = self.client.factory.create("OtherClass");
+        val.other = self.client.factory.create("{rpclib.test.interop.server._service}OtherClass");
         val.other.dt = datetime.now()
         val.other.d = 123.456
         val.other.b = True
@@ -180,8 +180,8 @@ class RpclibClientTestBase(object):
         val.f = 12.34
 
         val.simple = [
-            self.client.factory.create("SimpleClass"),
-            self.client.factory.create("SimpleClass"),
+            self.client.factory.create("{rpclib.test.interop.server._service}SimpleClass"),
+            self.client.factory.create("{rpclib.test.interop.server._service}SimpleClass"),
         ]
 
         val.simple[0].i = 45
@@ -189,7 +189,7 @@ class RpclibClientTestBase(object):
         val.simple[1].i = 12
         val.simple[1].s = "qwe"
 
-        val.other = self.client.factory.create("OtherClass");
+        val.other = self.client.factory.create("{rpclib.test.interop.server._service}OtherClass");
         val.other.dt = datetime.now()
         val.other.d = 123.456
         val.other.b = True

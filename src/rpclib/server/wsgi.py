@@ -26,10 +26,8 @@ logger = logging.getLogger(__name__)
 
 import traceback
 
-import rpclib
-
+from rpclib._base import MethodContext
 from rpclib.model.exception import Fault
-
 from rpclib.protocol.soap.mime import apply_mtom
 from rpclib.util import reconstruct_url
 from rpclib.server import Base
@@ -42,9 +40,9 @@ HTTP_405 = '405 Method Not Allowed'
 class ValidationError(Fault):
     pass
 
-class WsgiMethodContext(rpclib.MethodContext):
+class WsgiMethodContext(MethodContext):
     def __init__(self, app, req_env, content_type):
-        rpclib.MethodContext.__init__(self, app)
+        MethodContext.__init__(self, app)
 
         self.http_req_env = req_env
         self.http_resp_headers = {

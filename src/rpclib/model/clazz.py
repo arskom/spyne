@@ -405,8 +405,10 @@ class ClassSerializerBase(Base):
                 #    member.set('nillable', 'false')
 
                 if v.Annotations.doc != '' :
-                    annotation = etree.SubElement(member, "annotation")
-                    doc = etree.SubElement(annotation, "documentation")
+                    annotation = etree.SubElement(member, "{%s}annotation",
+                                                                  namespace.xsd)
+                    doc = etree.SubElement(annotation, "{%s}documentation",
+                                                                  namespace.xsd)
                     doc.text = v.Annotations.doc
 
             interface.add_complex_type(cls, complex_type)

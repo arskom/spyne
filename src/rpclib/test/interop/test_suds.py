@@ -29,7 +29,7 @@ suds_logger.setLevel(logging.INFO)
 
 class TestSuds(unittest.TestCase):
     def setUp(self):
-        self.client = Client("http://localhost:9753/?wsdl", cache=None)
+        self.client = Client("http://localhost:9753/?wsdl")
         self.ns = "rpclib.test.interop.server._service"
 
     def test_echo_simple_boolean_array(self):
@@ -136,7 +136,7 @@ class TestSuds(unittest.TestCase):
         self.assertEquals(ret, val)
 
     def test_echo_simple_class(self):
-        val = self.client.factory.create("SimpleClass")
+        val = self.client.factory.create("{rpclib.test.interop.server._service}SimpleClass")
 
         val.i = 45
         val.s = "asd"
@@ -157,22 +157,20 @@ class TestSuds(unittest.TestCase):
 
         val.simple = self.client.factory.create("{rpclib.test.interop.server._service}SimpleClassArray")
 
-        val.simple.SimpleClass.append(self.client.factory.create("SimpleClass"))
-        val.simple.SimpleClass.append(self.client.factory.create("SimpleClass"))
+        val.simple.SimpleClass.append(self.client.factory.create("{rpclib.test.interop.server._service}SimpleClass"))
+        val.simple.SimpleClass.append(self.client.factory.create("{rpclib.test.interop.server._service}SimpleClass"))
 
         val.simple.SimpleClass[0].i = 45
         val.simple.SimpleClass[0].s = "asd"
         val.simple.SimpleClass[1].i = 12
         val.simple.SimpleClass[1].s = "qwe"
 
-        val.other = self.client.factory.create("OtherClass");
+        val.other = self.client.factory.create("{rpclib.test.interop.server._service}OtherClass");
         val.other.dt = datetime.now()
         val.other.d = 123.456
         val.other.b = True
 
         ret = self.client.service.echo_nested_class(val)
-
-
 
         self.assertEquals(ret.i, val.i)
         self.assertEqual(ret.ai[0], val.ai[0])
@@ -190,15 +188,15 @@ class TestSuds(unittest.TestCase):
 
         val.simple = self.client.factory.create("{rpclib.test.interop.server._service}SimpleClassArray")
 
-        val.simple.SimpleClass.append(self.client.factory.create("SimpleClass"))
-        val.simple.SimpleClass.append(self.client.factory.create("SimpleClass"))
+        val.simple.SimpleClass.append(self.client.factory.create("{rpclib.test.interop.server._service}SimpleClass"))
+        val.simple.SimpleClass.append(self.client.factory.create("{rpclib.test.interop.server._service}SimpleClass"))
 
         val.simple.SimpleClass[0].i = 45
         val.simple.SimpleClass[0].s = "asd"
         val.simple.SimpleClass[1].i = 12
         val.simple.SimpleClass[1].s = "qwe"
 
-        val.other = self.client.factory.create("OtherClass");
+        val.other = self.client.factory.create("{rpclib.test.interop.server._service}OtherClass");
         val.other.dt = datetime.now()
         val.other.d = 123.456
         val.other.b = True
