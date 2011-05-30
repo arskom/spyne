@@ -3,7 +3,8 @@
 from unittest import TestLoader
 from pkg_resources import resource_exists
 from pkg_resources import resource_listdir
-from setuptools import setup, find_packages
+from setuptools import setup
+from setuptools import find_packages
 
 VERSION = '2.0.0'
 LONG_DESC = """\
@@ -20,9 +21,7 @@ This project uses lxml as it's XML API, providing full namespace support.
 SHORT_DESC="A transport and architecture agnostic rpc (de)serialization " \
            "library that focuses on making small, rpc-oriented messaging work."
 
-
 class NoInteropLoader(TestLoader):
-
     def loadTestsFromModule(self, module):
         """Load unit test (skip 'interop' package).
         
@@ -32,9 +31,7 @@ class NoInteropLoader(TestLoader):
         tests.append(TestLoader.loadTestsFromModule(self,module))
 
         if hasattr(module, '__path__'):
-
             for file in resource_listdir(module.__name__, ''):
-
                 if file == 'interop':
                     # These tests require installing a bunch of extra
                     # code:  see 'src/soaplib/test/README'.
@@ -69,11 +66,11 @@ setup(
         'Intended Audience :: Developers',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
-    keywords=('soap', 'wsdl', 'wsgi', 'zeromq', 'rest', 'rpc','json'),
+    keywords=('soap', 'wsdl', 'wsgi', 'zeromq', 'rest', 'rpc', 'json'),
     author='Burak Arslan',
-    author_email='burak-rpclib@arskom.com.tr',
+    author_email='burak+rpclib@arskom.com.tr',
     maintainer='Burak Arslan',
-    maintainer_email='burak-rpclib@arskom.com.tr',
+    maintainer_email='burak+rpclib@arskom.com.tr',
     url='http://github.com/arskom/rpclib',
     license='LGPL',
     zip_safe=False,
@@ -81,6 +78,6 @@ setup(
       'pytz',
       'lxml>=2.2.1',
     ],
-    test_suite='soaplib.test',
+    test_suite='rpclib.test',
     test_loader='__main__:NoInteropLoader',
 )
