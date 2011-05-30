@@ -34,9 +34,9 @@ from rpclib.model.primitive import Integer
 from rpclib.model.primitive import String
 from rpclib.model.primitive import Double
 
-from rpclib import service
-from rpclib.service import rpc
-from rpclib.service import srpc
+from rpclib.service import ServiceBase
+from rpclib.decorator import rpc
+from rpclib.decorator import srpc
 
 from datetime import datetime
 
@@ -97,7 +97,7 @@ class OutHeader(ClassSerializer):
     dt=DateTime
     f=Float
 
-class InteropServiceWithHeader(service.DefinitionBase):
+class InteropServiceWithHeader(ServiceBase):
     __in_header__ = InHeader
     __out_header__ = OutHeader
 
@@ -113,7 +113,7 @@ class InteropServiceWithHeader(service.DefinitionBase):
 
         return ctx.out_header
 
-class InteropPrimitive(service.DefinitionBase):
+class InteropPrimitive(ServiceBase):
     @srpc(Any, _returns=Any)
     def echo_any(xml):
         return xml
@@ -150,7 +150,7 @@ class InteropPrimitive(service.DefinitionBase):
     def echo_enum(day):
         return day
 
-class InteropArray(service.DefinitionBase):
+class InteropArray(ServiceBase):
     @srpc(Array(Integer), _returns=Array(Integer))
     def echo_integer_array(ia):
         return ia
@@ -183,7 +183,7 @@ class InteropArray(service.DefinitionBase):
     def echo_array_in_array(baa):
         return baa
 
-class InteropClass(service.DefinitionBase):
+class InteropClass(ServiceBase):
     @srpc(SimpleClass, _returns=SimpleClass)
     def echo_simple_class(sc):
         return sc
@@ -213,7 +213,7 @@ class InteropClass(service.DefinitionBase):
     def echo_attachment_array(aa):
         return aa
 
-class InteropException(service.DefinitionBase):
+class InteropException(ServiceBase):
     @srpc()
     def python_exception():
         raise Exception("Possible")
@@ -223,7 +223,7 @@ class InteropException(service.DefinitionBase):
         raise Fault("Plausible", "A plausible fault", 'Fault actor',
                                             detail=etree.Element('something'))
 
-class InteropMisc(service.DefinitionBase):
+class InteropMisc(ServiceBase):
     @srpc(
         _returns=[
             Integer,

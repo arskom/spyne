@@ -17,10 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from rpclib.model.exception import Fault
-
 from lxml import etree
-from rpclib import MethodContext
+
+from rpclib._base import MethodContext
+from rpclib.model.exception import Fault
 from rpclib.model.primitive import string_encoding
 
 class Factory(object):

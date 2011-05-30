@@ -24,7 +24,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('rpclib.protocol.soap')
 logger.setLevel(logging.DEBUG)
 
-from rpclib import Application
+from rpclib.application import Application
 from rpclib.test.interop.server._service import services
 from rpclib.protocol.http import HttpRpc
 from rpclib.interface.wsdl import Wsdl11

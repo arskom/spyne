@@ -172,8 +172,6 @@ class TestSuds(unittest.TestCase):
 
         ret = self.client.service.echo_nested_class(val)
 
-
-
         self.assertEquals(ret.i, val.i)
         self.assertEqual(ret.ai[0], val.ai[0])
         self.assertEquals(ret.simple.SimpleClass[0].s, val.simple.SimpleClass[0].s)

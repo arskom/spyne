@@ -5,7 +5,7 @@ from pkg_resources import resource_exists
 from pkg_resources import resource_listdir
 from setuptools import setup, find_packages
 
-VERSION = '1.2.0'
+VERSION = '2.0.0'
 LONG_DESC = """\
 This is a simple, easily extendible rpc library that provides several useful
 tools for creating and publishing web services in python.  This package
