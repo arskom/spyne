@@ -21,7 +21,7 @@ import unittest
 import os
 from datetime import datetime
 
-from rpclib.model.clazz import ClassSerializer
+from rpclib.model.complex import ClassSerializer
 from rpclib.model.primitive import Integer, String, DateTime
 from rpclib.util.model_utils import ClassSerializerConverter
 

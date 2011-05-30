@@ -37,7 +37,7 @@ class ClassSerializerConverter():
 
     def __init__(self, model_instance, tns, include_parent=False, parent_tag="root", include_ns=True):
         """
-        @param An instance of a rpclib.model.clazz.ClassSerializer
+        @param An instance of a rpclib.model.complex.ClassSerializer
         @parma The target namespace of the model instance.
         @param Indicates if a parent element should be returned as the root
         element of the xml representation.  If true, a root element will be included with
@@ -96,14 +96,14 @@ class ClassSerializerConverter():
 
 
     def to_etree(self):
-        """Returns a lxml.etree.Element from a rpclib.model.clazz.ClassSerializer
+        """Returns a lxml.etree.Element from a rpclib.model.complex.ClassSerializer
         instance.
         """
 
         return self.__get_etree()
 
     def to_xml(self):
-        """Returns a xml string from a rpclib.model.clazz.ClassSerializer instance.
+        """Returns a xml string from a rpclib.model.complex.ClassSerializer instance.
         """
 
         el = self.to_etree()

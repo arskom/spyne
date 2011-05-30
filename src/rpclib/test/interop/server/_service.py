@@ -20,8 +20,8 @@
 from lxml import etree
 
 from rpclib.model.binary import Attachment
-from rpclib.model.clazz import Array
-from rpclib.model.clazz import ClassSerializer
+from rpclib.model.complex import Array
+from rpclib.model.complex import ClassSerializer
 from rpclib.model.enum import Enum
 from rpclib.model.exception import Fault
 

@@ -21,15 +21,15 @@ import unittest
 
 from lxml import etree
 
-from rpclib.model.clazz import ClassSerializer
+from rpclib.model.complex import ClassSerializer
 
-from rpclib.model.clazz import Array
+from rpclib.model.complex import Array
 from rpclib.model.primitive import DateTime
 from rpclib.model.primitive import Float
 from rpclib.model.primitive import Integer
 from rpclib.model.primitive import String
 
-from rpclib.model.clazz import ClassSerializer as Message
+from rpclib.model.complex import ClassSerializer as Message
 from rpclib.protocol.soap import _from_soap
 from rpclib.protocol.soap import _parse_xml_string
 

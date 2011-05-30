@@ -18,8 +18,8 @@
 #
 
 from rpclib._base import MethodDescriptor
-from rpclib.model.clazz import ClassSerializer as Message
-from rpclib.model.clazz import TypeInfo
+from rpclib.model.complex import ClassSerializer as Message
+from rpclib.model.complex import TypeInfo
 from rpclib.const.xml_ns import DEFAULT_NS
 
 def _produce_input_message(f, params, kparams, no_ctx):

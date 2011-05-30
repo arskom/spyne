@@ -23,7 +23,7 @@ import unittest
 
 from lxml import etree
 
-from rpclib.model.clazz import ClassSerializer
+from rpclib.model.complex import ClassSerializer
 from rpclib.model.primitive import String
 from rpclib.model.primitive import Integer
 from rpclib.util.xsd_gen import XSDGenerator
