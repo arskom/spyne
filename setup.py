@@ -78,6 +78,13 @@ setup(
       'pytz',
       'lxml>=2.2.1',
     ],
+
+    entry_points = {
+        'console_scripts': [
+            'sort_wsdl=rpclib.test.sort_wsdl:main',
+        ]
+    },
+
     test_suite='rpclib.test',
     test_loader='__main__:NoInteropLoader',
 )
