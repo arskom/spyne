@@ -425,7 +425,7 @@ class Wsdl11(Base):
         """Build the wsdl for the application."""
         pref_tns = self.get_namespace_prefix(self.tns)
 
-        self.url = url = url.replace('.wsdl', '') # FIXME: doesn't look so robust
+        self.url = url.replace('.wsdl', '') # FIXME: doesn't look so robust
 
         service_name = self.get_name()
 
@@ -464,7 +464,7 @@ class Wsdl11(Base):
         cb_binding = None
 
         for s in self.services:
-            add_port_type(s, self, root, service_name, types, url)
+            add_port_type(s, self, root, service_name, types, self.url)
             cb_binding = add_bindings_for_methods(s, self, root, service_name,
                                                             binding, cb_binding)
 

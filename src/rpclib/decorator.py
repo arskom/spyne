@@ -124,7 +124,7 @@ def rpc(*params, **kparams):
     'MethodDescriptor' object.  This decorator does none of the rpc
     serialization, only flags a method as a remotely callable procedure. This
     decorator should only be used on member methods of an instance of
-    rpclib.service.DefinitionBase.
+    rpclib.service.ServiceBase.
     '''
 
     def explain(f):
@@ -143,10 +143,10 @@ def rpc(*params, **kparams):
                 _out_header = kparams.get('_out_header', None)
                 _port_type = kparams.get('_soap_port_type', None)
                 _no_ctx = kparams.get('_no_ctx', False)
+                _faults = kparams.get('_faults', [])
 
                 in_message = _produce_input_message(f, params, kparams, _no_ctx)
                 out_message = _produce_output_message(f, params, kparams)
-                _faults = kparams.get('_faults', [])
 
                 doc = getattr(f, '__doc__')
                 retval = MethodDescriptor(f.func_name, _public_name,
