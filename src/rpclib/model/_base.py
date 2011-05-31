@@ -95,7 +95,6 @@ class ModelBase(object):
 
     @staticmethod
     def resolve_namespace(cls, default_ns):
-        print cls.get_name()
         if cls.__namespace__ is rpclib.const.xml_ns.DEFAULT_NS:
             cls.__namespace__ = default_ns
             

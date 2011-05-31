@@ -229,12 +229,6 @@ class Base(object):
 
         # populate types
         for s in self.services:
-            if s.__in_header__ != None:
-                s.__in_header__.__namespace__ = self.get_tns()
-
-            if s.__out_header__ != None:
-                s.__out_header__.__namespace__ = self.get_tns()
-
             for method in s.public_methods:
                 if method.in_header is None:
                     method.in_header = s.__in_header__
@@ -244,9 +238,12 @@ class Base(object):
                 if not (method.in_header is None):
                     method.in_header.resolve_namespace(method.in_header,
                                                                  self.get_tns())
+                    method.in_header.add_to_schema(self)
+
                 if not (method.out_header is None):
                     method.out_header.resolve_namespace(method.out_header,
                                                                  self.get_tns())
+                    method.out_header.add_to_schema(self)
 
                 method.in_message.resolve_namespace(method.in_message,
                                                                  self.get_tns())
