@@ -20,23 +20,59 @@
 from collections import deque
 
 class MethodContext(object):
+    frozen = False
+
     def __init__(self, app):
         self.app = app
 
-        self.service_class = None
-
-        self.in_error = None
-        self.in_header = None
-        self.in_header_doc = None
-        self.in_body_doc = None
-
-        self.out_error = None
-        self.out_header = None
-        self.out_header_doc = None
-        self.out_body_doc = None
+        self.udc = None # the user defined context. use it to your liking.
 
         self.method_name = None
-        self.descriptor = None
+        # these are set based on the value of the method_name.
+        self.service_class = None # the class the method belongs to
+        self.descriptor = None    # its descriptor
+
+        self.in_string = None     # incoming bytestream (can be any kind of
+                                  #     iterable that contains strings)
+        self.in_document = None   # parsed document
+        self.in_error = None      # native python error object (probably a
+                                  #     child of Exception)
+        self.in_header_doc = None # incoming header document of the request.
+        self.in_body_doc = None   # incoming body document of the request.
+        self.in_header = None     # native incoming header
+
+        # in the request (i.e. server) case, this contains the function
+        # arguments for the function in the service definition class.
+        # in the response (i.e. client) case, this contains the object returned
+        # by the remote procedure call.
+        self.in_object = None
+
+        # in the response (i.e. server) case, this is the native python object
+        # returned by the function in the service definition class.
+        # in the response (i.e. client) case, this contains the function
+        # arguments passed to the function call wrapper.
+        self.out_object = None
+
+        self.out_header = None     # native python object set by the function in
+                                   # the service definition class
+        self.out_error = None      # native exception thrown by the function in
+                                   # the service definition class
+        self.out_body_doc = None   # serialized body object
+        self.out_header_doc = None # serialized header object
+        self.out_document = None   # body and header wrapped in the outgoing
+                                   # envelope
+        self.out_string = None     # outgoing bytestream (can be any kind of
+                                   # iterable that contains strings)
+
+        self.frozen = True # when this is set, no new attribute can be added to
+                           # the class instance.
+
+    def __setattr__(self, k, v):
+        if self.frozen == False or k in self.__dict__:
+            object.__setattr__(self, k,v)
+        else:
+            raise ValueError("use the udc member for storing arbitrary data in "
+                             "the method context")
 
     def __repr__(self):
         retval = deque()
@@ -65,7 +101,7 @@ class MethodDescriptor(object):
     def __init__(self, name, public_name, in_message, out_message, doc,
                  is_callback=False, is_async=False, mtom=False, in_header=None,
                  out_header=None, faults=(),
-                 port_type=None, no_ctx=False
+                 port_type=None, no_ctx=False,
                 ):
 
         self.name = name

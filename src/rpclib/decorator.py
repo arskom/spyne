@@ -18,8 +18,8 @@
 #
 
 from rpclib._base import MethodDescriptor
-from rpclib.model.clazz import ClassSerializer as Message
-from rpclib.model.clazz import TypeInfo
+from rpclib.model.complex import ComplexModel
+from rpclib.model.complex import TypeInfo
 from rpclib.const.xml_ns import DEFAULT_NS
 
 def _produce_input_message(f, params, kparams, no_ctx):
@@ -46,7 +46,7 @@ def _produce_input_message(f, params, kparams, no_ctx):
     except IndexError, e:
         raise Exception("%s has parameter numbers mismatching" % f.func_name)
 
-    message=Message.produce(type_name=_in_message, namespace=DEFAULT_NS,
+    message=ComplexModel.produce(type_name=_in_message, namespace=DEFAULT_NS,
                                             members=in_params)
     message.__namespace__ = DEFAULT_NS
 
@@ -102,12 +102,12 @@ def _produce_output_message(f, params, kparams):
             out_params[_out_variable_name] = _returns
 
     if _body_style == 'wrapped':
-        message = Message.produce(type_name=_out_message, namespace=DEFAULT_NS,
+        message = ComplexModel.produce(type_name=_out_message, namespace=DEFAULT_NS,
                                                              members=out_params)
         message.__namespace__ = DEFAULT_NS # FIXME: is this necessary?
 
     else:
-        message = Message.alias(_out_message, DEFAULT_NS, _returns)
+        message = ComplexModel.alias(_out_message, DEFAULT_NS, _returns)
 
     return message
 

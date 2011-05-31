@@ -20,8 +20,8 @@
 import datetime
 import unittest
 
-from rpclib.model.clazz import ClassSerializer
-from rpclib.model.clazz import Array
+from rpclib.model.complex import ComplexModel
+from rpclib.model.complex import Array
 
 from rpclib.model.primitive import DateTime
 from rpclib.model.primitive import Float
@@ -32,7 +32,7 @@ from lxml import etree
 
 ns_test = 'test_namespace'
 
-class Address(ClassSerializer):
+class Address(ComplexModel):
     street = String
     city = String
     zip = Integer
@@ -42,7 +42,7 @@ class Address(ClassSerializer):
 
 Address.resolve_namespace(Address,__name__)
 
-class Person(ClassSerializer):
+class Person(ComplexModel):
     name = String
     birthdate = DateTime
     age = Integer
@@ -57,30 +57,30 @@ class Employee(Person):
 
 Employee.resolve_namespace(Employee,__name__)
 
-class Level2(ClassSerializer):
+class Level2(ComplexModel):
     arg1 = String
     arg2 = Float
 
 Level2.resolve_namespace(Level2, __name__)
 
-class Level3(ClassSerializer):
+class Level3(ComplexModel):
     arg1 = Integer
 
 Level3.resolve_namespace(Level3, __name__)
 
-class Level4(ClassSerializer):
+class Level4(ComplexModel):
     arg1 = String
 
 Level4.resolve_namespace(Level4, __name__)
 
-class Level1(ClassSerializer):
+class Level1(ComplexModel):
     level2 = Level2
     level3 = Array(Level3)
     level4 = Array(Level4)
 
 Level1.resolve_namespace(Level1, __name__)
 
-class TestClassSerializer(unittest.TestCase):
+class TestComplexModel(unittest.TestCase):
     def test_simple_class(self):
         a = Address()
         a.street = '123 happy way'
@@ -200,8 +200,8 @@ class TestClassSerializer(unittest.TestCase):
         self.assertEquals(100, len(l.level3))
 
     def test_customize(self):
-        class Base(ClassSerializer):
-            class Attributes(ClassSerializer.Attributes):
+        class Base(ComplexModel):
+            class Attributes(ComplexModel.Attributes):
                 prop1=3
                 prop2=6
 
@@ -234,7 +234,7 @@ class TestClassSerializer(unittest.TestCase):
         self.assertNotEquals(Derived2.Attributes.prop1, Base.Attributes.prop1)
         self.assertEquals(Derived3.Attributes.prop1, Base.Attributes.prop1)
 
-class X(ClassSerializer):
+class X(ComplexModel):
     __namespace__='tns'
     x = Integer(nillable=True,max_occurs='unbounded')
 
@@ -272,13 +272,13 @@ class TestIncompleteInput(unittest.TestCase):
 
     def test_from_string(self):
 
-        from rpclib.util.model_utils import ClassSerializerConverter
+        from rpclib.util.model_utils import ComplexModelConverter
 
-        class Simple(ClassSerializer):
+        class Simple(ComplexModel):
             number = Integer
             text = String
 
-        class NotSoSimple(ClassSerializer):
+        class NotSoSimple(ComplexModel):
 
             number_1 = Integer
             number_2 = Integer
@@ -293,7 +293,7 @@ class TestIncompleteInput(unittest.TestCase):
         nss.body.number = 1
         nss.body.text = "Some Text"
 
-        cmc = ClassSerializerConverter(nss, "testfromstring", include_ns=False)
+        cmc = ComplexModelConverter(nss, "testfromstring", include_ns=False)
         element = cmc.to_etree()
 
         assert nss.body.number == 1
@@ -306,7 +306,7 @@ class TestIncompleteInput(unittest.TestCase):
         assert nss_from_xml.number_1 == 100
         assert nss_from_xml.number_2 == 1000
 
-class SisMsg(ClassSerializer):
+class SisMsg(ComplexModel):
     """Container with metadata for Jiva integration messages
     carried in the MQ payload.
     """
@@ -315,7 +315,7 @@ class SisMsg(ClassSerializer):
     interface_name = String(nillable=False, min_occurs=1, max_occurs=1, max_len=50)
     crt_dt = DateTime(nillable=False)
 
-class EncExtractXs(ClassSerializer):
+class EncExtractXs(ComplexModel):
     __min_occurs__ = 1
     __max_occurs__ = 1
     mbr_idn = Integer(nillable=False, min_occurs=1, max_occurs=1, max_len=18)

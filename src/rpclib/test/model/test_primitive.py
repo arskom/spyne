@@ -22,7 +22,7 @@ import unittest
 
 from lxml import etree
 
-from rpclib.model.clazz import Array
+from rpclib.model.complex import Array
 from rpclib.model.primitive import Boolean
 from rpclib.model.primitive import DateTime
 from rpclib.model.primitive import Duration

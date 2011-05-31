@@ -31,37 +31,34 @@ HTTP_405 = '405 Method Not Allowed'
 class ValidationError(Fault):
     pass
 
-class Base(object):
+class ServerBase(object):
     transport = None
 
     def __init__(self, app):
         self.app = app
         self.app.transport = self.transport
 
-    def get_in_object(self, ctx, in_string, in_string_charset=None):
-        in_object = None
-        struct = self.app.in_protocol.create_document_structure(ctx, in_string,
-                                                              in_string_charset)
+    def get_in_object(self, ctx, in_string_charset=None):
+        self.app.in_protocol.create_in_document(ctx, in_string_charset)
 
         try:
-            in_object = self.app.in_protocol.deserialize(ctx, struct)
+            self.app.in_protocol.deserialize(ctx)
+
         except Fault,e:
+            ctx.in_object = None
             ctx.in_error = e
+            ctx.out_error = e
 
-        return in_object
+    def get_out_object(self, ctx):
+        ctx.out_object = self.app.process_request(ctx, ctx.in_object)
 
-    def get_out_object(self, ctx, in_object):
-        out_object = self.app.process_request(ctx, in_object)
+        if isinstance(ctx.out_object, Exception):
+            ctx.out_error = ctx.out_object
+            ctx.out_object = None
 
-        if isinstance(out_object, Fault):
-            ctx.out_error = out_object
-        else:
-            assert not isinstance(out_object, Exception)
+    def get_out_string(self, ctx):
+        assert ctx.out_document is None
+        assert ctx.out_string is None
 
-        return out_object
-
-    def get_out_string(self, ctx, out_object):
-        out_doc = self.app.out_protocol.serialize(ctx, out_object)
-        out_string = self.app.out_protocol.create_document_string(ctx, out_doc)
-
-        return out_string
+        self.app.out_protocol.serialize(ctx)
+        self.app.out_protocol.create_out_string(ctx)

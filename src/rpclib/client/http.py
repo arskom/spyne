@@ -22,29 +22,34 @@
 import urllib2
 
 from rpclib.client import Service
-from rpclib.client import Base
+from rpclib.client import ClientBase
 from rpclib.client import RemoteProcedureBase
 
 import rpclib.protocol.soap
 
 class _RemoteProcedure(RemoteProcedureBase):
     def __call__(self, *args, **kwargs):
-        out_object = self.get_out_object(args, kwargs)
-        out_string = self.get_out_string(out_object)
+        self.get_out_object(args, kwargs) # sets self.ctx.out_object
+        self.get_out_string()
 
+        out_string = ''.join(self.ctx.out_string)
         request = urllib2.Request(self.url, out_string)
         code=200
         try:
             response = urllib2.urlopen(request)
-            in_str = response.read()
+            self.ctx.in_string = response.read()
 
         except urllib2.HTTPError,e:
             code=e.code
-            in_str = e.read()
+            self.ctx.in_string = e.read()
 
-        return self.get_in_object(in_str, is_error=(code == 500))
+        self.get_in_object(is_error=(code == 500))
+        if self.ctx.in_error is None:
+            return self.ctx.in_object
+        else:
+            return self.ctx.in_error
 
-class Client(Base):
+class Client(ClientBase):
     def __init__(self, url, app):
         super(Client, self).__init__(url, app)
 

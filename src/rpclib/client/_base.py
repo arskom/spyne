@@ -20,7 +20,6 @@
 from lxml import etree
 
 from rpclib._base import MethodContext
-from rpclib.model.exception import Fault
 from rpclib.model.primitive import string_encoding
 
 class Factory(object):
@@ -64,9 +63,11 @@ class RemoteProcedureBase(object):
         self.ctx.descriptor = self.ctx.service_class.get_method(self.ctx.method_name)
 
     def get_out_object(self, args, kwargs):
+        assert self.ctx.out_object is None
+
         request_raw_class = self.ctx.descriptor.in_message
         request_type_info = request_raw_class._type_info
-        request_raw = request_raw_class()
+        self.ctx.out_object = request_raw = request_raw_class()
 
         for i in range(len(request_type_info)):
             if i < len(args):
@@ -78,22 +79,24 @@ class RemoteProcedureBase(object):
             if k in kwargs:
                 setattr(request_raw, k, kwargs[k])
 
-        return request_raw
+    def get_out_string(self):
+        assert self.ctx.out_document is None
+        assert self.ctx.out_string is None
 
-    def get_out_string(self, out_object):
-        request_xml = self.app.out_protocol.serialize(self.ctx, out_object)
-        request_str = etree.tostring(request_xml, xml_declaration=True,
-                                                       encoding=string_encoding)
+        self.app.out_protocol.serialize(self.ctx)
+        self.app.out_protocol.create_out_string(self.ctx)
 
-        return request_str
+    def get_in_object(self, is_error=False):
+        assert self.ctx.in_string is not None
+        assert self.ctx.in_document is None
 
-    def get_in_object(self, response_str, is_error=False):
-        doc_struct = self.app.in_protocol.create_document_structure(self.ctx,
-                                                                   response_str)
-        wrapped_response = self.app.in_protocol.deserialize(self.ctx, doc_struct)
+        self.app.in_protocol.create_in_document(self.ctx)
 
-        if isinstance(wrapped_response, Fault) or is_error:
-            raise wrapped_response
+        # this sets ctx.in_object
+        self.app.in_protocol.deserialize(self.ctx)
+
+        if not (self.ctx.in_error is None) or is_error:
+            raise self.ctx.in_error
 
         else:
             type_info = self.ctx.descriptor.out_message._type_info
@@ -101,15 +104,12 @@ class RemoteProcedureBase(object):
             if (self.app.in_protocol.in_wrapper != self.app.in_protocol.NO_WRAPPER
                       and len(self.ctx.descriptor.out_message._type_info) == 1):
                 wrapper_attribute = type_info.keys()[0]
-                response_raw = getattr(wrapped_response, wrapper_attribute, None)
+                self.ctx.in_object = getattr(self.ctx.in_object,
+                                                        wrapper_attribute, None)
 
-                return response_raw
-            else:
-                return wrapped_response
-
-class Base(object):
+class ClientBase(object):
     def __init__(self, url, app):
-        """ Must be overridden to initialize the service properly"""
+        """Must be overridden to initialize the service properly"""
         self.factory = Factory(app)
 
     def set_options(self, **kwargs):

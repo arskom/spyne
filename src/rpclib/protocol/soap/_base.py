@@ -122,12 +122,12 @@ class Soap11(Base):
         self.in_wrapper = Soap11.IN_WRAPPER
         self.out_wrapper = Soap11.OUT_WRAPPER
 
-    def create_document_structure(self, ctx, in_string, in_string_encoding=None):
-        return _parse_xml_string(in_string, in_string_encoding)
+    def create_in_document(self, ctx, string_encoding=None):
+        ctx.in_document = _parse_xml_string(ctx.in_string, string_encoding)
 
-    def create_document_string(self, ctx, out_doc):
-        """Returns an iterable of string fragments"""
-        return [etree.tostring(out_doc, xml_declaration=True,
+    def create_out_string(self, ctx):
+        """Sets an iterable of string fragments to ctx.out_string"""
+        ctx.out_string = [etree.tostring(ctx.out_document, xml_declaration=True,
                                                       encoding=string_encoding)]
 
     def reconstruct_wsgi_request(self, http_env):
@@ -137,33 +137,32 @@ class Soap11(Base):
 
         return collapse_swa(content_type, http_payload), charset
 
-    def decompose_incoming_envelope(self, ctx, envelope_doc):
-        envelope_xml, xmlids = envelope_doc
-        header, body = _from_soap(envelope_xml, xmlids)
+    def decompose_incoming_envelope(self, ctx):
+        envelope_xml, xmlids = ctx.in_document
+        header_doc, body_doc = _from_soap(envelope_xml, xmlids)
 
-        # FIXME: find a way to include soap env schema with rpclib package and
-        # properly validate the whole request.
+        if len(body_doc) > 0 and body_doc.tag == '{%s}Fault' % ns.soap_env:
+            ctx.in_body_doc = body_doc
 
-        if len(body) > 0 and body.tag == '{%s}Fault' % ns.soap_env:
-            ctx.in_body_doc = body
-
-        elif not (body is None):
+        elif not (body_doc is None):
             try:
-                self.validate(body)
-                if (not (body is None)) and (ctx.method_name is None):
-                    ctx.method_name = body.tag
+                self.validate(body_doc)
+                if (not (body_doc is None)) and (ctx.method_name is None):
+                    ctx.method_name = body_doc.tag
                     logger.debug("\033[92mMethod name: %r\033[0m" %
                                                                 ctx.method_name)
 
             finally:
                 # for performance reasons, we don't want the following to run
                 # in production even though we won't see the results.
+                # that's why one needs to explicitly set the logging level of
+                # the 'rpclib.protocol.soap._base' to DEBUG to see the xml data.
                 if logger.level == logging.DEBUG:
                     try:
                         logger.debug(etree.tostring(envelope_xml,
                                                              pretty_print=True))
                     except etree.XMLSyntaxError, e:
-                        logger.debug(body)
+                        logger.debug(body_doc)
                         raise Fault('Client.Xml', 'Error at line: %d, '
                                     'col: %d' % e.position)
             try:
@@ -175,10 +174,10 @@ class Soap11(Base):
                 raise ValidationError('Client', 'Method not found: %r' %
                                                                 ctx.method_name)
 
-            ctx.in_header_doc = header
-            ctx.in_body_doc = body
+            ctx.in_header_doc = header_doc
+            ctx.in_body_doc = body_doc
 
-    def deserialize(self, ctx, doc_struct):
+    def deserialize(self, ctx):
         """Takes a MethodContext instance and a string containing ONE soap
         message.
         Returns the corresponding native python object
@@ -187,29 +186,26 @@ class Soap11(Base):
         """
 
         # this sets the ctx.in_body_doc and ctx.in_header_doc properties
-        self.decompose_incoming_envelope(ctx, doc_struct)
+        self.decompose_incoming_envelope(ctx)
 
         if ctx.in_body_doc.tag == "{%s}Fault" % ns.soap_env:
-            in_body = Fault.from_xml(ctx.in_body_doc)
+            ctx.in_object = None
+            ctx.in_error = Fault.from_xml(ctx.in_body_doc)
 
         else:
             # retrieve the method descriptor
             if ctx.method_name is None:
                 raise Exception("Could not extract method name from the request!")
-            else:
-                if ctx.descriptor is None:
-                    descriptor = ctx.descriptor = ctx.service_class.get_method(
-                                                                ctx.method_name)
-                else:
-                    descriptor = ctx.descriptor
+            if ctx.descriptor is None:
+                ctx.descriptor = ctx.service_class.get_method(ctx.method_name)
 
             if self.in_wrapper is self.IN_WRAPPER:
-                header_class = descriptor.in_header
-                body_class = descriptor.in_message
+                header_class = ctx.descriptor.in_header
+                body_class = ctx.descriptor.in_message
 
             elif self.in_wrapper is self.OUT_WRAPPER:
-                header_class = descriptor.out_header
-                body_class = descriptor.out_message
+                header_class = ctx.descriptor.out_header
+                body_class = ctx.descriptor.out_message
 
             # decode header object
             if (ctx.in_header_doc is not None and len(ctx.in_header_doc) > 0 and
@@ -218,42 +214,36 @@ class Soap11(Base):
 
             # decode method arguments
             if ctx.in_body_doc is not None and len(ctx.in_body_doc) > 0:
-                in_body = body_class.from_xml(ctx.in_body_doc)
+                ctx.in_object = body_class.from_xml(ctx.in_body_doc)
             else:
-                in_body = [None] * len(body_class._type_info)
+                ctx.in_object = [None] * len(body_class._type_info)
 
-        return in_body
-
-    def serialize(self, ctx, out_object):
-        """Takes a MethodContext instance and the object to be serialized.
-        Returns the corresponding xml structure as an lxml.etree._Element
-        instance.
+    def serialize(self, ctx):
+        """Uses ctx.out_object, ctx.out_header or ctx.out_error to set 
+        ctx.out_body_doc, ctx.out_header_doc and ctx.out_document as an
+        lxml.etree._Element instance.
 
         Not meant to be overridden.
         """
 
         # construct the soap response, and serialize it
         nsmap = self.parent.interface.nsmap
-        envelope = etree.Element('{%s}Envelope'% ns.soap_env,nsmap=nsmap)
+        ctx.out_document = etree.Element('{%s}Envelope'% ns.soap_env,nsmap=nsmap)
 
-        if isinstance(out_object, Fault):
+        if not (ctx.out_error is None):
             # FIXME: There's no way to alter soap response headers for the user.
-            ctx.out_body_doc = out_body_doc = etree.SubElement(envelope,
+            ctx.out_body_doc = out_body_doc = etree.SubElement(ctx.out_document,
                             '{%s}Body' % ns.soap_env, nsmap=nsmap)
-            out_object.add_to_parent_element(self.parent.interface.get_tns(),
+            ctx.out_error.add_to_parent_element(self.parent.interface.get_tns(),
                                                                    out_body_doc)
 
             # implementation hook
             if not (ctx.service_class is None):
-                ctx.service_class.on_method_exception_doc(ctx, out_body_doc)
+                ctx.service_class.on_method_exception_doc(ctx)
             self.parent.on_exception_doc(ctx, out_body_doc)
 
             if logger.level == logging.DEBUG:
-                logger.debug(etree.tostring(envelope, pretty_print=True))
-
-        elif isinstance(out_object, Exception):
-            raise Exception("Can't serialize native python exceptions.",
-                                                                     out_object)
+                logger.debug(etree.tostring(ctx.out_document, pretty_print=True))
 
         else:
             # header
@@ -266,12 +256,11 @@ class Soap11(Base):
                 if ctx.descriptor.out_header is None:
                     logger.warning(
                         "Skipping soap response header as %r method is not "
-                        "published to have one." %
-                                out_object.get_type_name()[:-len('Response')])
+                        "published to have one." % ctx.method_name)
 
                 else:
                     ctx.out_header_doc = soap_header_elt = etree.SubElement(
-                                    envelope, '{%s}Header' % ns.soap_env)
+                                    ctx.out_document, '{%s}Header' % ns.soap_env)
 
                     header_message_class.to_parent_element(
                         ctx.out_header,
@@ -281,13 +270,13 @@ class Soap11(Base):
                     )
 
             # body
-            ctx.out_body_doc = out_body_doc = etree.SubElement(envelope,
+            ctx.out_body_doc = out_body_doc = etree.SubElement(ctx.out_document,
                                                '{%s}Body' % ns.soap_env)
 
             # instantiate the result message
             if self.out_wrapper is self.NO_WRAPPER:
                 result_message_class = ctx.descriptor.in_message
-                result_message = out_object
+                result_message = ctx.out_object
 
             else:
                 if self.out_wrapper is self.IN_WRAPPER:
@@ -296,19 +285,19 @@ class Soap11(Base):
                     result_message_class = ctx.descriptor.out_message
 
                 result_message = result_message_class()
+                print result_message
 
                 # assign raw result to its wrapper, result_message
                 out_type_info = result_message_class._type_info
 
-                if len(out_type_info) > 0:
-                     if len(out_type_info) == 1:
-                         attr_name = result_message_class._type_info.keys()[0]
-                         setattr(result_message, attr_name, out_object)
+                if len(out_type_info) == 1:
+                    attr_name = result_message_class._type_info.keys()[0]
+                    setattr(result_message, attr_name, ctx.out_object)
 
-                     else:
-                         for i in range(len(out_type_info)):
-                             attr_name=result_message_class._type_info.keys()[i]
-                             setattr(result_message, attr_name, out_object[i])
+                else:
+                    for i in range(len(out_type_info)):
+                        attr_name=result_message_class._type_info.keys()[i]
+                        setattr(result_message, attr_name, ctx.out_object[i])
 
             # transform the results into an element
             result_message_class.to_parent_element(
@@ -316,14 +305,12 @@ class Soap11(Base):
 
             if logger.level == logging.DEBUG:
                 logger.debug('\033[91m'+ "Response" + '\033[0m')
-                logger.debug(etree.tostring(envelope, xml_declaration=True,
-                                                             pretty_print=True))
+                logger.debug(etree.tostring(ctx.out_document,
+                                       xml_declaration=True, pretty_print=True))
 
             # implementation hook
             if not (ctx.service_class is None):
-                ctx.service_class.on_method_return_doc(ctx, envelope)
-
-        return envelope
+                ctx.service_class.on_method_return_doc(ctx)
 
 class Soap11Strict(Soap11):
     def __init__(self, parent):
@@ -335,10 +322,7 @@ class Soap11Strict(Soap11):
         schema = self.parent.interface.validation_schema
         ret = schema.validate(payload)
 
-        logger.debug("validation result: %s" % str(ret))
+        logger.debug("Validated ? %s" % str(ret))
         if ret == False:
-            err = schema.error_log.last_error
-
-            fault_code = 'Client.SchemaValidation'
-
-            raise ValidationError(fault_code, faultstring=str(err))
+            raise ValidationError('Client.SchemaValidation',
+                                               str(schema.error_log.last_error))

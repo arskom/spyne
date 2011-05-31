@@ -29,10 +29,10 @@ import sqlalchemy
 from sqlalchemy import Column
 
 from sqlalchemy.ext.declarative import DeclarativeMeta
-from rpclib.model.clazz import TypeInfo
-from rpclib.model.clazz import ClassSerializerBase
+from rpclib.model.complex import TypeInfo
+from rpclib.model.complex import ComplexModelBase
 from rpclib.model import primitive
-from rpclib.model import clazz
+from rpclib.model import complex
 
 _type_map = {
     sqlalchemy.Text: primitive.String,
@@ -48,7 +48,7 @@ _type_map = {
     sqlalchemy.Boolean: primitive.Boolean,
     sqlalchemy.DateTime: primitive.DateTime,
     sqlalchemy.Numeric: primitive.Decimal,
-    sqlalchemy.orm.relation: clazz.Array,
+    sqlalchemy.orm.relation: complex.Array,
 }
 
 def parse_cls_dict(cls_dict):
@@ -77,6 +77,6 @@ class TableSerializerMeta(DeclarativeMeta):
 
         return DeclarativeMeta.__new__(cls, cls_name, cls_bases, cls_dict)
 
-class TableSerializer(ClassSerializerBase):
+class TableSerializer(ComplexModelBase):
     __metaclass__ = TableSerializerMeta
     _decl_class_registry={}

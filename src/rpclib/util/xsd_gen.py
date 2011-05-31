@@ -49,7 +49,7 @@ class XSDGenerator(object):
 
         Builds a class based on DefinitionBase to bind an arbritary rpclib
         class serilizer model to an instance of a rpclib application.
-        @param A rpclib ClassSerializer model
+        @param A rpclib ComplexModel model
         '''
 
         class BindingService(DefinitionBase):
@@ -85,7 +85,7 @@ class XSDGenerator(object):
     def __get_nodes(self, model):
         '''Builds and returns the scheame nodes as a python dictionary
 
-        @param A rpclib ClassSerializer model
+        @param A rpclib ComplexModel model
         '''
 
         binding_service = self.__get_binding_service(model)
