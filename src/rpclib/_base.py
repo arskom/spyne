@@ -17,6 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import logging
+logger = logging.getLogger(__name__)
+
 from collections import deque
 
 class MethodContext(object):
@@ -119,20 +122,19 @@ class MethodDescriptor(object):
         self.no_ctx = no_ctx
 
 class EventManager(object):
-    def __init__(self, supported_events):
-        self.__supported_events = set(supported_events)
+    def __init__(self, parent):
+        self.__parent = parent
         self.__event_handlers = {}
 
     def add_listener(self, event_name, handler):
-        assert event_name in self.__supported_events
-
         handlers = self.__event_handlers.get(event_name, [])
-        handlers.add(handler)
+        handlers.append(handler)
         self.__event_handlers[event_name] = handlers
 
-    def fire_event(self, event_name, ctx):
-        assert event_name in self.__supported_events
+        logger.debug("Adding handler '%s.%s' to event %r." %
+                             (handler.__module__, handler.__name__, event_name))
 
+    def fire_event(self, event_name, ctx):
         handlers = self.__event_handlers.get(event_name, [])
         for handler in handlers:
             handler(ctx)

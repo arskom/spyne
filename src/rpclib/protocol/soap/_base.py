@@ -239,8 +239,8 @@ class Soap11(Base):
 
             # implementation hook
             if not (ctx.service_class is None):
-                ctx.service_class.on_method_exception_doc(ctx)
-            self.parent.on_exception_doc(ctx, out_body_doc)
+                ctx.service_class.event_manager.fire_event('method_exception', ctx)
+            self.parent.event_manager.fire_event('method_exception', ctx)
 
             if logger.level == logging.DEBUG:
                 logger.debug(etree.tostring(ctx.out_document, pretty_print=True))
@@ -310,7 +310,7 @@ class Soap11(Base):
 
             # implementation hook
             if not (ctx.service_class is None):
-                ctx.service_class.on_method_return_doc(ctx)
+                ctx.service_class.event_manager.fire_event('method_return',ctx)
 
 class Soap11Strict(Soap11):
     def __init__(self, parent):

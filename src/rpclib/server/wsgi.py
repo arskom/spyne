@@ -47,6 +47,7 @@ class WsgiMethodContext(MethodContext):
             'Content-Type': content_type,
             'Content-Length': '0',
         }
+        self.wsdl_error = None
 
         MethodContext.__init__(self, app)
 
@@ -112,7 +113,7 @@ class Application(ServerBase):
 
             assert wsdl != None
             
-            self.on_wsdl(ctx) # implementation hook
+            self.event_manager.fire_event('wsdl',ctx) # implementation hook
 
             ctx.http_resp_headers['Content-Length'] = str(len(wsdl))
             start_response(HTTP_200, ctx.http_resp_headers.items())
@@ -121,9 +122,9 @@ class Application(ServerBase):
 
         except Exception, e:
             logger.error(traceback.format_exc())
-
+            ctx.wsdl_error = e
             # implementation hook
-            self.on_wsdl_exception(req_env, e)
+            self.event_manager.fire_event('wsdl_exception', ctx)
 
             start_response(HTTP_500, ctx.http_resp_headers.items())
 
@@ -134,7 +135,7 @@ class Application(ServerBase):
                                                 self.app.out_protocol.mime_type)
 
         # implementation hook
-        self.on_wsgi_call(ctx)
+        self.event_manager.fire_event('wsgi_call', ctx)
 
         ctx.in_string, in_string_charset = \
                         self.app.in_protocol.reconstruct_wsgi_request(req_env)
@@ -158,7 +159,7 @@ class Application(ServerBase):
         self.get_out_string(ctx)
 
         # implementation hook
-        self.on_wsgi_return(ctx)
+        self.event_manager.fire_event('wsgi_return', ctx)
 
         if ctx.descriptor and ctx.descriptor.mtom:
             # when there are more than one return type, the result is 
@@ -180,23 +181,3 @@ class Application(ServerBase):
         start_response(return_code, ctx.http_resp_headers.items())
 
         return ctx.out_string
-
-    def on_wsgi_call(self, ctx):
-        '''This is the first method called when this WSGI app is invoked.
-        '''
-        pass
-
-    def on_wsdl(self, ctx):
-        '''This is called when a wsdl is requested.
-        '''
-        pass
-
-    def on_wsdl_exception(self, ctx):
-        '''Called when an exception occurs durring wsdl generation.
-        '''
-        pass
-
-    def on_wsgi_return(self, ctx):
-        '''Called before the application returns.
-        '''
-        pass

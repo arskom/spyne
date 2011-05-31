@@ -20,11 +20,14 @@
 import logging
 logger = logging.getLogger(__name__)
 
+from rpclib._base import EventManager
+
 class ServiceBaseMeta(type):
     def __init__(self, cls_name, cls_bases, cls_dict):
         super(ServiceBaseMeta, self).__init__(cls_name, cls_bases, cls_dict)
 
         self.public_methods = []
+        self.event_manager = EventManager(self)
 
         for func_name, func in cls_dict.iteritems():
             if callable(func) and hasattr(func, '_is_rpc'):
@@ -109,44 +112,3 @@ class ServiceBase(object):
             return call(*params)
         else:
             return call(ctx, *params)
-
-    @classmethod
-    def on_method_call(cls, ctx):
-        '''Called BEFORE the service implementing the functionality is called
-
-        @param the method name
-        @param the tuple of python params being passed to the method
-        '''
-
-    @classmethod
-    def on_method_return_object(cls, ctx):
-        '''Called AFTER the service implementing the functionality is called,
-        with native return object as argument
-
-        @param the python results from the method
-        '''
-
-    @classmethod
-    def on_method_return_doc(cls, ctx):
-        '''Called AFTER the service implementing the functionality is called,
-        with native return object serialized to Element objects as argument.
-
-        @param the xml element containing the return value(s) from the method
-        '''
-
-    @classmethod
-    def on_method_exception_object(cls, ctx):
-        '''Called BEFORE the exception is serialized, when an error occurs
-        during execution.
-
-        @param the exception object
-        '''
-
-    @classmethod
-    def on_method_exception_doc(cls, ctx):
-        '''Called AFTER the exception is serialized, when an error occurs
-        during execution.
-
-        @param the xml element containing the exception object serialized to a
-        fault
-        '''

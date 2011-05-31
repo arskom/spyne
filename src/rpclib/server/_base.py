@@ -23,6 +23,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from rpclib.model.exception import Fault
+from rpclib._base import EventManager
 
 HTTP_500 = '500 Internal server error'
 HTTP_200 = '200 OK'
@@ -37,6 +38,7 @@ class ServerBase(object):
     def __init__(self, app):
         self.app = app
         self.app.transport = self.transport
+        self.event_manager = EventManager(self)
 
     def get_in_object(self, ctx, in_string_charset=None):
         self.app.in_protocol.create_in_document(ctx, in_string_charset)

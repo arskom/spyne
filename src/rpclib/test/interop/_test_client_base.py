@@ -77,7 +77,7 @@ class RpclibClientTestBase(object):
                 " type 'xs:dateTime'.")
 
     def test_echo_in_header(self):
-        in_header = self.client.factory.create('InHeader')
+        in_header = self.client.factory.create('{rpclib.test.interop.server._service}InHeader')
         in_header.s = 'a'
         in_header.i = 3
 
@@ -89,7 +89,7 @@ class RpclibClientTestBase(object):
         self.assertEquals(in_header.i, ret.i)
 
     def test_send_out_header(self):
-        out_header = self.client.factory.create('OutHeader')
+        out_header = self.client.factory.create('{rpclib.test.interop.server._service}OutHeader')
         out_header.dt = datetime(year=2000, month=01, day=01)
         out_header.f = 3.141592653
 

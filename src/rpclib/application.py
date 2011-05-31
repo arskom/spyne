@@ -23,6 +23,11 @@ logger = logging.getLogger(__name__)
 import traceback
 
 from rpclib.model.exception import Fault
+from rpclib._base import EventManager
+
+def _on_method_exception(ctx):
+    if ctx.service_class is not None:
+        ctx.service_class.event_manager.fire_event('method_exception',ctx)
 
 class Application(object):
     transport = None
@@ -50,6 +55,9 @@ class Application(object):
         self.__public_methods = {}
         self.__classes = {}
 
+        self.event_manager = EventManager(self)
+        self.event_manager.add_listener('method_exception', _on_method_exception)
+
     def process_request(self, ctx, req_obj):
         """Takes a MethodContext instance and the native request object.
         Returns the response to the request as a native python object.
@@ -59,7 +67,7 @@ class Application(object):
 
         try:
             # implementation hook
-            ctx.service_class.on_method_call(ctx)
+            ctx.service_class.event_manager.fire_event('method_call',ctx)
 
             # retrieve the method
             func = getattr(ctx.service_class, ctx.descriptor.name)
@@ -81,11 +89,10 @@ class Application(object):
 
         # implementation hook
         if isinstance(retval, Fault):
-            ctx.service_class.on_method_exception_object(ctx)
-            self.on_exception_object(ctx, retval)
+            self.event_manager.fire_event('method_exception', ctx)
 
         else:
-            ctx.service_class.on_method_return_object(ctx)
+            ctx.service_class.event_manager.fire_event('method_return', ctx)
 
         return retval
 
@@ -106,17 +113,3 @@ class Application(object):
                 return True
 
         return retval
-
-    def on_exception_object(self, ctx, exc):
-        '''Called when the app throws an exception. (might be inside or outside
-        the service call).
-
-        @param The exception object
-        '''
-
-    def on_exception_doc(self, ctx, fault_doc):
-        '''Called when the app throws an exception. (might be inside or outside
-        the service call.
-
-        @param The document root containing the serialized form of the exception.
-        '''
