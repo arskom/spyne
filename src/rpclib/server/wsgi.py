@@ -51,7 +51,7 @@ class WsgiMethodContext(MethodContext):
 
         MethodContext.__init__(self, app)
 
-class Application(ServerBase):
+class WsgiApplication(ServerBase):
     transport = 'http://schemas.xmlsoap.org/soap/http'
 
     def __init__(self, app):

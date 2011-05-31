@@ -22,7 +22,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('rpclib.protocol.soap._base')
 logger.setLevel(logging.DEBUG)
 
-from rpclib.server import wsgi
+from rpclib.server.wsgi import WsgiApplication
 from rpclib.test.interop.server._service import services
 from rpclib.application import Application
 from rpclib.protocol.soap import Soap11Strict
@@ -36,7 +36,7 @@ if __name__ == '__main__':
         from wsgiref.simple_server import make_server
         from wsgiref.validate import validator
 
-        wsgi_application = wsgi.Application(soap_application)
+        wsgi_application = WsgiApplication(soap_application)
         server = make_server('0.0.0.0', 9753, validator(wsgi_application))
 
         logger.info('Starting interop server at %s:%s.' % ('0.0.0.0', 9753))
