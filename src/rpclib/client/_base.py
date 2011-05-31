@@ -20,7 +20,6 @@
 from lxml import etree
 
 from rpclib._base import MethodContext
-from rpclib.model.exception import Fault
 from rpclib.model.primitive import string_encoding
 
 class Factory(object):
