@@ -136,7 +136,6 @@ def add_port_type(service, interface, root, service_name, types, url):
     for port_name, binding_name in port_binding_names:
         interface._add_port_to_service(ser, port_name, binding_name)
 
-
 # FIXME: I don't think this is working.
 def _add_callbacks(service, root, types, service_name, url):
     ns_tns = service.get_tns()

@@ -24,9 +24,9 @@ from lxml import etree
 from rpclib.model import nillable_element
 from rpclib.model import nillable_value
 from rpclib.model import nillable_string
-from rpclib.model import Base
+from rpclib.model import ModelBase
 
-class Attachment(Base):
+class Attachment(ModelBase):
     __type_name__ = 'base64Binary'
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
 

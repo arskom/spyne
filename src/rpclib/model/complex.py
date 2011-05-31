@@ -17,6 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import logging
+logger = logging.getLogger(__name__)
+
 import csv
 try:
     from cStringIO import StringIO
@@ -25,7 +28,7 @@ except ImportError:
 
 from lxml import etree
 
-from rpclib.model import Base
+from rpclib.model import ModelBase
 from rpclib.model import nillable_element
 from rpclib.model import nillable_value
 from rpclib.model import nillable_dict
@@ -34,7 +37,7 @@ from rpclib.model import nillable_string
 from rpclib.util.odict import odict as TypeInfo
 from rpclib.const import xml_ns as namespace
 
-class XMLAttribute(Base):
+class XMLAttribute(ModelBase):
     """Items which are marshalled as attributes of the parent element."""
 
     def __init__(self, typ, use=None):
@@ -63,7 +66,7 @@ class XMLAttributeRef(XMLAttribute):
         if self._use:
             element.set('use', self._use)
 
-class ComplexModelMeta(type(Base)):
+class ComplexModelMeta(type(ModelBase)):
     '''
     This is the metaclass that populates ComplexModel instances with
     the appropriate datatypes for (de)serialization.
@@ -92,7 +95,7 @@ class ComplexModelMeta(type(Base)):
                                         "inheritance")
 
                     try:
-                        if len(base_types) > 0 and issubclass(b, Base):
+                        if len(base_types) > 0 and issubclass(b, ModelBase):
                             cls_dict["__extends__"] = extends = b
                     except:
                         logger.error(repr(extends))
@@ -106,7 +109,7 @@ class ComplexModelMeta(type(Base)):
                 if not k.startswith('__'):
                     attr = isinstance(v, XMLAttribute)
                     try:
-                        subc = issubclass(v,Base)
+                        subc = issubclass(v, ModelBase)
                     except:
                         subc = False
 
@@ -125,7 +128,7 @@ class ComplexModelMeta(type(Base)):
 
         return type.__new__(cls, cls_name, cls_bases, cls_dict)
 
-class ComplexModelBase(Base):
+class ComplexModelBase(ModelBase):
     """
     If you want to make a better class type, this is what you should
     inherit from
@@ -344,10 +347,10 @@ class ComplexModelBase(Base):
         if getattr(cls, '__extends__', None) != None:
             cls.__extends__.resolve_namespace(cls.__extends__, default_ns)
 
-        Base.resolve_namespace(cls, default_ns)
+        ModelBase.resolve_namespace(cls, default_ns)
 
         for k, v in cls._type_info.items():
-            if v.__type_name__ is Base.Empty:
+            if v.__type_name__ is ModelBase.Empty:
                 v.__namespace__ = cls.get_namespace()
                 v.__type_name__ = "%s_%sType" % (cls.get_type_name(), k)
 
@@ -356,7 +359,7 @@ class ComplexModelBase(Base):
 
     @classmethod
     def add_to_schema(cls, interface):
-        if cls.get_type_name() is Base.Empty:
+        if cls.get_type_name() is ModelBase.Empty:
             (child,) = cls._type_info.values()
             cls.__type_name__ = '%sArray' % child.get_type_name()
 
@@ -455,7 +458,7 @@ class ComplexModel(ComplexModelBase):
     return instances, contrary to primivites where the same call will result in
     customized duplicates of the original class definition.
     Those who'd like to customize the class should use the customize method.
-    (see rpclib.model.base.Base)
+    (see rpclib.model.base.ModelBase)
     """
 
     __metaclass__ = ComplexModelMeta
@@ -469,10 +472,10 @@ class Array(ComplexModel):
         if serializer.Attributes.max_occurs == 1:
             serializer = serializer.customize(max_occurs='unbounded')
 
-        if serializer.get_type_name() is Base.Empty:
+        if serializer.get_type_name() is ModelBase.Empty:
             member_name = serializer.__base_type__.get_type_name()
             if cls.__type_name__ is None:
-                cls.__type_name__ = Base.Empty # to be resolved later
+                cls.__type_name__ = ModelBase.Empty # to be resolved later
 
         else:
             member_name = serializer.get_type_name()

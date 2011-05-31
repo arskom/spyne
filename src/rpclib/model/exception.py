@@ -18,7 +18,7 @@
 #
 
 from lxml import etree
-from rpclib.model import Base
+from rpclib.model import ModelBase
 
 import rpclib.const.xml_ns
 
@@ -27,7 +27,7 @@ _ns_soap_env = rpclib.const.xml_ns.soap_env
 
 _pref_soap_env = rpclib.const.xml_ns.const_prefmap[_ns_soap_env]
 
-class Fault(Exception, Base):
+class Fault(Exception, ModelBase):
     __type_name__ = "Fault"
 
     def __init__(self, faultcode='Server', faultstring="",

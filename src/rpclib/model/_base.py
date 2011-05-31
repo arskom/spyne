@@ -59,7 +59,7 @@ def nillable_string(func):
             return func(cls, string)
     return wrapper
 
-class Base(object):
+class ModelBase(object):
     __namespace__ = None
     __type_name__ = None
 
@@ -95,6 +95,7 @@ class Base(object):
 
     @staticmethod
     def resolve_namespace(cls, default_ns):
+        print cls.get_name()
         if cls.__namespace__ is rpclib.const.xml_ns.DEFAULT_NS:
             cls.__namespace__ = default_ns
             
@@ -219,7 +220,7 @@ class Base(object):
         cls_dup = type(cls.__name__, cls.__bases__, cls_dict)
         return cls_dup
 
-class Null(Base):
+class Null(ModelBase):
     @classmethod
     def to_parent_element(cls, value, tns, parent_elt, name='retval'):
         element = etree.SubElement(parent_elt, "{%s}%s" % (tns,name))
@@ -237,11 +238,11 @@ class Null(Base):
     def from_xml(cls, element):
         return None
 
-class SimpleType(Base):
+class SimpleType(ModelBase):
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
     __base_type__ = None
 
-    class Attributes(Base.Attributes):
+    class Attributes(ModelBase.Attributes):
         values = set()
 
     def __new__(cls, **kwargs):
@@ -249,7 +250,7 @@ class SimpleType(Base):
         Overriden so that any attempt to instantiate a primitive will return a
         customized class instead of an instance.
 
-        See type.base.Base for more information.
+        See rpclib.model.base.ModelBase for more information.
         """
 
         retval = cls.customize(**kwargs)
@@ -257,7 +258,7 @@ class SimpleType(Base):
         if not retval.is_default(retval):
             retval.__base_type__ = cls
             if retval.__type_name__ is None:
-                retval.__type_name__ = kwargs.get("type_name", Base.Empty)
+                retval.__type_name__ = kwargs.get("type_name", ModelBase.Empty)
 
         return retval
 
