@@ -18,15 +18,15 @@
 #
 
 from rpclib.model.primitive import String
-from rpclib.service import DefinitionBase
-from rpclib.service import rpc
+from rpclib.service import ServiceBase
+from rpclib.decorator import rpc
 
-class DefaultPortService(DefinitionBase):
+class DefaultPortService(ServiceBase):
     @rpc(String, _returns=String)
     def echo_default_port_service(self, string):
         return string
 
-class DefaultPortServiceMultipleMethods(DefinitionBase):
+class DefaultPortServiceMultipleMethods(ServiceBase):
     @rpc(String, _returns=String)
     def echo_one(self, string):
         return string

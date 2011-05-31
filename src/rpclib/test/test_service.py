@@ -25,8 +25,9 @@ import rpclib.protocol.soap
 
 from lxml import etree
 
-from rpclib import Application
-from rpclib import service
+from rpclib.application import Application
+from rpclib.decorator import rpc
+from rpclib.service import ServiceBase
 from rpclib.model.complex import Array
 from rpclib.model.complex import ComplexModel
 from rpclib.model.primitive import DateTime
@@ -36,7 +37,6 @@ from rpclib.model.primitive import String
 
 Application.transport = 'test'
 
-from rpclib.service import rpc
 
 class Address(ComplexModel):
     __namespace__ = "TestService"
@@ -80,7 +80,7 @@ class TypeNS2(ComplexModel):
     d = DateTime
     f = Float
 
-class MultipleNamespaceService(service.DefinitionBase):
+class MultipleNamespaceService(ServiceBase):
     @rpc(TypeNS1, TypeNS2)
     def a(self, t1, t2):
         return "OK"
@@ -91,7 +91,7 @@ class MultipleNamespaceValidatingService(MultipleNamespaceService):
 
         self.validating_service = True
 
-class TestService(service.DefinitionBase):
+class TestService(ServiceBase):
     @rpc(String, _returns=String)
     def aa(self, s):
         return s
@@ -119,7 +119,7 @@ class TestService(service.DefinitionBase):
     def f(self, _from, _self, _import):
         return '1234'
 
-class MultipleReturnService(service.DefinitionBase):
+class MultipleReturnService(ServiceBase):
     @rpc(String, _returns=(String, String, String))
     def multi(self, s):
         return s, 'a', 'b'
@@ -131,13 +131,9 @@ class Test(unittest.TestCase):
         self.app = Application([TestService], rpclib.interface.wsdl.Wsdl11,
                                         rpclib.protocol.soap.Soap11, tns='tns')
         self.srv = TestService()
-        self._wsdl = self.app.interface.get_interface_document('')
+        self.app.interface.build_interface_document('URL')
+        self._wsdl = self.app.interface.get_interface_document()
         self.wsdl = etree.fromstring(self._wsdl)
-
-    def test_ctor_saves_environ(self):
-        environ = {}
-        service = TestService(environ)
-        self.failUnless(service.environ is environ)
 
     def test_portypes(self):
         self._set_up()
@@ -155,7 +151,7 @@ class Test(unittest.TestCase):
     def test_multiple_return(self):
         app = Application([MultipleReturnService], rpclib.interface.wsdl.Wsdl11,
                                         rpclib.protocol.soap.Soap11, tns='tns')
-        app.interface.get_interface_document('')
+        app.interface.get_interface_document()
         srv = MultipleReturnService()
         message = srv.public_methods[0].out_message()
 
@@ -176,7 +172,7 @@ class Test(unittest.TestCase):
     def test_multiple_ns(self):
         svc = Application([MultipleNamespaceService],rpclib.interface.wsdl.Wsdl11,
                                          rpclib.protocol.soap.Soap11,tns='tns')
-        wsdl = svc.interface.get_interface_document("URL")
+        wsdl = svc.interface.get_interface_document()
 
 if __name__ == '__main__':
     unittest.main()

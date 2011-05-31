@@ -25,9 +25,9 @@ from tempfile import mkstemp
 from lxml import etree
 
 from rpclib.model.binary import Attachment
-import rpclib.namespace.soap
+import rpclib.const.xml_ns
 
-ns_xsd = rpclib.namespace.soap.xsd
+ns_xsd = rpclib.const.xml_ns.xsd
 ns_test = 'test_namespace'
 
 class TestBinary(unittest.TestCase):

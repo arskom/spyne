@@ -392,17 +392,6 @@ class Wsdl11(Base):
 
         return retval
 
-    def get_schema_document(self):
-        """Simple accessor method that caches application's xml schema, once
-        generated.
-
-        Not meant to be overridden.
-        """
-        if self.schema is None:
-            return self.populate_interface()
-        else:
-            return self.schema
-
     def get_interface_document(self):
         return self.__wsdl
 

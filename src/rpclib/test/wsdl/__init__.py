@@ -17,10 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from rpclib import Application
+from rpclib.application import Application
 from rpclib.interface.wsdl import Wsdl11
 from rpclib.protocol.soap import Soap11
-import rpclib.namespace.soap as ns
+import rpclib.const.xml_ns as ns
 
 def build_app(service_list, tns, name):
     app = Application(service_list, Wsdl11, Soap11, tns=tns, name=name)
@@ -39,7 +39,8 @@ class AppTestWrapper():
         self.binding_string = '{%s}binding' % ns.wsdl
 
         self.app = application
-        self.wsdl = self.app.interface.get_interface_document(self.url)
+        self.app.interface.build_interface_document(self.url)
+        self.wsdl = self.app.interface.get_interface_document()
 
     def get_service_list(self):
         return self.app.interface.root_elt.findall(self.service_string)
