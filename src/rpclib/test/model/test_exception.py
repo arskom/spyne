@@ -55,8 +55,8 @@ class FaultTests(unittest.TestCase):
 
     def test_to_parent_element_wo_detail(self):
         from lxml.etree import Element
-        import rpclib.namespace.soap
-        ns_soap_env = rpclib.namespace.soap.soap_env
+        import rpclib.const.xml_ns
+        ns_soap_env = rpclib.const.xml_ns.soap_env
 
         element = Element('testing')
         fault = self._makeOne()
@@ -85,8 +85,8 @@ class FaultTests(unittest.TestCase):
 
     def test_add_to_parent_element(self):
         from lxml.etree import Element
-        import rpclib.namespace.soap
-        ns_soap_env = rpclib.namespace.soap.soap_env
+        import rpclib.const.xml_ns
+        ns_soap_env = rpclib.const.xml_ns.soap_env
 
         element = Element('testing')
         fault = self._makeOne()
@@ -104,8 +104,8 @@ class FaultTests(unittest.TestCase):
     def test_from_xml_wo_detail(self):
         from lxml.etree import Element
         from lxml.etree import SubElement
-        import rpclib.namespace.soap
-        ns_soap_env = rpclib.namespace.soap.soap_env
+        import rpclib.const.xml_ns
+        ns_soap_env = rpclib.const.xml_ns.soap_env
 
         element = Element('{%s}Fault' % ns_soap_env)
         fcode = SubElement(element, 'faultcode')
@@ -125,8 +125,8 @@ class FaultTests(unittest.TestCase):
     def test_from_xml_w_detail(self):
         from lxml.etree import Element
         from lxml.etree import SubElement
-        import rpclib.namespace.soap
-        ns_soap_env = rpclib.namespace.soap.soap_env
+        import rpclib.const.xml_ns
+        ns_soap_env = rpclib.const.xml_ns.soap_env
 
         element = Element('{%s}Fault' % ns_soap_env)
         fcode = SubElement(element, 'faultcode')
@@ -142,8 +142,8 @@ class FaultTests(unittest.TestCase):
         self.failUnless(fault.detail is detail)
 
     def test_add_to_schema_no_extends(self):
-        import rpclib.namespace.soap
-        ns_xsd = rpclib.namespace.soap.xsd
+        import rpclib.const.xml_ns
+        ns_xsd = rpclib.const.xml_ns.xsd
 
         class cls(self._getTargetClass()):
             @classmethod
@@ -172,8 +172,8 @@ class FaultTests(unittest.TestCase):
         self.assertEqual(len(e_elt), 0)
 
     def test_add_to_schema_w_extends(self):
-        import rpclib.namespace.soap
-        ns_xsd = rpclib.namespace.soap.xsd
+        import rpclib.const.xml_ns
+        ns_xsd = rpclib.const.xml_ns.xsd
 
         class base(self._getTargetClass()):
             @classmethod

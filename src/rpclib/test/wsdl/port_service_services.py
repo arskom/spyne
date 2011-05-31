@@ -18,10 +18,10 @@
 #
 
 from rpclib.model.primitive import String
-from rpclib.service import DefinitionBase
-from rpclib.service import rpc
+from rpclib.service import ServiceBase
+from rpclib.decorator import rpc
 
-class S1(DefinitionBase):
+class S1(ServiceBase):
     name = 'S1Fools'
     __namespace__ = 'Hippity'
 
@@ -29,7 +29,7 @@ class S1(DefinitionBase):
     def echo_string_s1(self, string):
         return string
 
-class S2(DefinitionBase):
+class S2(ServiceBase):
     name = 'S2Fools'
     __namespace__ = 'Hoppity'
 
@@ -37,7 +37,7 @@ class S2(DefinitionBase):
     def bobs(self, string):
         return string 
 
-class S3(DefinitionBase):
+class S3(ServiceBase):
     name = 'S3Fools'
     __namespace__ = 'Hoppity'
     __service_name__ = 'BlahService'
@@ -52,7 +52,7 @@ class S3(DefinitionBase):
     def echo_bob_hope(self,  string):
         return 'Bob Hope'
 
-class MissingRPCPortService(DefinitionBase):
+class MissingRPCPortService(ServiceBase):
     name = 'MissingRPCPortService'
     __namespace__ = 'MissingRPCPortService'
     __service_name__ = 'MissingRPCPortService'
@@ -62,7 +62,7 @@ class MissingRPCPortService(DefinitionBase):
     def raise_exception(self, string):
         return string
 
-class BadRPCPortService(DefinitionBase):
+class BadRPCPortService(ServiceBase):
     name = 'MissingRPCPortService'
     __namespace__ = 'MissingRPCPortService'
     __service_name__ = 'MissingRPCPortService'
@@ -72,7 +72,7 @@ class BadRPCPortService(DefinitionBase):
     def raise_exception(self, string):
         return string
 
-class MissingServicePortService(DefinitionBase):
+class MissingServicePortService(ServiceBase):
     name = 'MissingRPCPortService'
     __namespace__ = 'MissingRPCPortService'
     __service_name__ = 'MissingRPCPortService'
@@ -82,7 +82,7 @@ class MissingServicePortService(DefinitionBase):
     def raise_exception(self, string):
         return string
 
-class SinglePortService(DefinitionBase):
+class SinglePortService(ServiceBase):
     name = 'SinglePort'
     __service_name__ = 'SinglePortService_ServiceInterface'
     __namespace__ = 'SinglePortNS'
@@ -92,7 +92,7 @@ class SinglePortService(DefinitionBase):
     def echo_default_port_service(self, string):
         return string
 
-class DoublePortService(DefinitionBase):
+class DoublePortService(ServiceBase):
     name = 'DoublePort'
     __namespace__ = 'DoublePort'
     __port_types__ = ['FirstPort', 'SecondPort']
