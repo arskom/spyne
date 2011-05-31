@@ -31,7 +31,7 @@ HTTP_405 = '405 Method Not Allowed'
 class ValidationError(Fault):
     pass
 
-class Base(object):
+class ServerBase(object):
     transport = None
 
     def __init__(self, app):

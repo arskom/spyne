@@ -22,15 +22,15 @@
 import zmq
 
 from rpclib import MethodContext
-from rpclib.server import Base
+from rpclib.server import ServerBase
 
 context = zmq.Context()
 
-class Server(Base):
+class Server(ServerBase):
     transport = 'http://rfc.zeromq.org/'
 
     def __init__(self, app, app_url, wsdl_url=None):
-        Base.__init__(self, app)
+        ServerBase.__init__(self, app)
 
         self.app_url = app_url
         self.wsdl_url = wsdl_url

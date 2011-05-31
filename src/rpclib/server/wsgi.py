@@ -30,7 +30,7 @@ from rpclib._base import MethodContext
 from rpclib.model.exception import Fault
 from rpclib.protocol.soap.mime import apply_mtom
 from rpclib.util import reconstruct_url
-from rpclib.server import Base
+from rpclib.server import ServerBase
 
 HTTP_500 = '500 Internal server error'
 HTTP_200 = '200 OK'
@@ -50,11 +50,11 @@ class WsgiMethodContext(MethodContext):
 
         MethodContext.__init__(self, app)
 
-class Application(Base):
+class Application(ServerBase):
     transport = 'http://schemas.xmlsoap.org/soap/http'
 
     def __init__(self, app):
-        Base.__init__(self, app)
+        ServerBase.__init__(self, app)
 
         self._allowed_http_verbs = app.in_protocol.allowed_http_verbs
 
