@@ -24,10 +24,10 @@ import rpclib.protocol.soap
 
 from lxml import etree
 
-from rpclib import Application
-from rpclib.service import DefinitionBase
-from rpclib.service import rpc
-from rpclib.namespace import soap as ns
+from rpclib.application import Application
+from rpclib.service import ServiceBase
+from rpclib.decorator import rpc
+from rpclib.const import xml_ns as ns
 
 class XSDGenerator(object):
     '''Class to support xsd generation for rpclib models.'''
@@ -47,12 +47,12 @@ class XSDGenerator(object):
     def __get_binding_service(self, model):
         '''A factory method to create a simple service class.
 
-        Builds a class based on DefinitionBase to bind an arbritary rpclib
+        Builds a class based on ServiceBase to bind an arbritary rpclib
         class serilizer model to an instance of a rpclib application.
         @param A rpclib ComplexModel model
         '''
 
-        class BindingService(DefinitionBase):
+        class BindingService(ServiceBase):
             @rpc(model)
             def binding_method(self, model):
                 pass
@@ -63,8 +63,8 @@ class XSDGenerator(object):
         '''Builds an instance of rpclib.Application
 
         The Application built is populated with an instance of a Service Class
-        based on DefinitionBase
-        @param A class based on DefinitionBase
+        based on ServiceBase
+        @param A class based on ServiceBase
         '''
 
         binding_application = Application([binding_service],
