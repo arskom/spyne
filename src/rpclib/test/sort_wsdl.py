@@ -87,7 +87,7 @@ def main():
         for e in nodes:
             s.append(e)
 
-    print etree.tostring(tree)
+    tree.write(sys.stdout, encoding="UTF-8", xml_declaration=True)
 
     return 0
 
