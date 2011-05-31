@@ -111,7 +111,7 @@ class ServiceBase(object):
             return call(ctx, *params)
 
     @classmethod
-    def on_method_call(cls, ctx, py_params):
+    def on_method_call(cls, ctx):
         '''Called BEFORE the service implementing the functionality is called
 
         @param the method name
@@ -119,7 +119,7 @@ class ServiceBase(object):
         '''
 
     @classmethod
-    def on_method_return_object(cls, ctx, py_results):
+    def on_method_return_object(cls, ctx):
         '''Called AFTER the service implementing the functionality is called,
         with native return object as argument
 
@@ -127,7 +127,7 @@ class ServiceBase(object):
         '''
 
     @classmethod
-    def on_method_return_doc(cls, ctx, doc_results):
+    def on_method_return_doc(cls, ctx):
         '''Called AFTER the service implementing the functionality is called,
         with native return object serialized to Element objects as argument.
 
@@ -135,7 +135,7 @@ class ServiceBase(object):
         '''
 
     @classmethod
-    def on_method_exception_object(cls, ctx, exc):
+    def on_method_exception_object(cls, ctx):
         '''Called BEFORE the exception is serialized, when an error occurs
         during execution.
 
@@ -143,7 +143,7 @@ class ServiceBase(object):
         '''
 
     @classmethod
-    def on_method_exception_doc(cls, ctx, fault_doc):
+    def on_method_exception_doc(cls, ctx):
         '''Called AFTER the exception is serialized, when an error occurs
         during execution.
 

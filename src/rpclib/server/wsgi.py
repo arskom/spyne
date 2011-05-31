@@ -102,19 +102,20 @@ class Application(ServerBase):
         )
 
     def __handle_wsdl_request(self, req_env, start_response, url):
-        http_resp_headers = {'Content-Type': 'text/xml'}
+        ctx = WsgiMethodContext(self.app, req_env, 'text/xml')
 
         try:
             wsdl = self.app.interface.get_interface_document()
             if wsdl is None:
                 self.app.interface.build_interface_document(url)
                 wsdl = self.app.interface.get_interface_document()
+
             assert wsdl != None
             
-            self.on_wsdl(req_env, wsdl) # implementation hook
+            self.on_wsdl(ctx) # implementation hook
 
-            http_resp_headers['Content-Length'] = str(len(wsdl))
-            start_response(HTTP_200, http_resp_headers.items())
+            ctx.http_resp_headers['Content-Length'] = str(len(wsdl))
+            start_response(HTTP_200, ctx.http_resp_headers.items())
 
             return [wsdl]
 
@@ -124,7 +125,7 @@ class Application(ServerBase):
             # implementation hook
             self.on_wsdl_exception(req_env, e)
 
-            start_response(HTTP_500, http_resp_headers.items())
+            start_response(HTTP_500, ctx.http_resp_headers.items())
 
             return [""]
 
@@ -133,12 +134,12 @@ class Application(ServerBase):
                                                 self.app.out_protocol.mime_type)
 
         # implementation hook
-        self.on_wsgi_call(req_env)
+        self.on_wsgi_call(ctx)
 
-        ret = self.app.in_protocol.reconstruct_wsgi_request(req_env)
-        in_string, in_string_charset = ret
+        ctx.in_string, in_string_charset = \
+                        self.app.in_protocol.reconstruct_wsgi_request(req_env)
 
-        in_object = self.get_in_object(ctx, in_string, in_string_charset)
+        self.get_in_object(ctx, in_string_charset)
 
         return_code = HTTP_200
         if ctx.in_error:
@@ -150,15 +151,14 @@ class Application(ServerBase):
                 start_response(HTTP_404, ctx.http_resp_headers.items())
                 return ['']
 
-            out_object = self.get_out_object(ctx, in_object)
-            if ctx.out_error:
-                out_object = ctx.out_error
+            self.get_out_object(ctx)
+            if not (ctx.out_error is None):
                 return_code = HTTP_500
 
-        out_fragments = self.get_out_string(ctx, out_object)
+        self.get_out_string(ctx)
 
         # implementation hook
-        self.on_wsgi_return(req_env, ctx.http_resp_headers, out_fragments)
+        self.on_wsgi_return(ctx)
 
         if ctx.descriptor and ctx.descriptor.mtom:
             # when there are more than one return type, the result is 
@@ -169,45 +169,34 @@ class Application(ServerBase):
             if len(out_type_info) == 1:
                 out_object = [out_object]
 
-            ctx.http_resp_headers, out_fragments = apply_mtom(ctx.http_resp_headers,
-                    out_fragments, ctx.descriptor.out_message._type_info.values(),
-                    out_object)
+            ctx.http_resp_headers, ctx.out_string = apply_mtom(
+                    ctx.http_resp_headers, ctx.out_string,
+                    ctx.descriptor.out_message._type_info.values(),
+                    out_object
+                )
 
         # initiate the response
         del ctx.http_resp_headers['Content-Length']
         start_response(return_code, ctx.http_resp_headers.items())
 
-        return out_fragments
+        return ctx.out_string
 
-    def on_wsgi_call(self, environ):
+    def on_wsgi_call(self, ctx):
         '''This is the first method called when this WSGI app is invoked.
-
-        @param the wsgi environment
         '''
         pass
 
-    def on_wsdl(self, environ, wsdl):
+    def on_wsdl(self, ctx):
         '''This is called when a wsdl is requested.
-
-        @param the wsgi environment
-        @param the wsdl string
         '''
         pass
 
-    def on_wsdl_exception(self, environ, exc):
+    def on_wsdl_exception(self, ctx):
         '''Called when an exception occurs durring wsdl generation.
-
-        @param the wsgi environment
-        @param exc the exception
-        @param the fault response string
         '''
         pass
 
-    def on_wsgi_return(self, environ, http_headers, return_str):
+    def on_wsgi_return(self, ctx):
         '''Called before the application returns.
-
-        @param the wsgi environment
-        @param http response headers as dict
-        @param return string of the rpc message
         '''
         pass

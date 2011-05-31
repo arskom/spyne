@@ -59,7 +59,7 @@ class Application(object):
 
         try:
             # implementation hook
-            ctx.service_class.on_method_call(ctx, req_obj)
+            ctx.service_class.on_method_call(ctx)
 
             # retrieve the method
             func = getattr(ctx.service_class, ctx.descriptor.name)
@@ -81,11 +81,11 @@ class Application(object):
 
         # implementation hook
         if isinstance(retval, Fault):
-            ctx.service_class.on_method_exception_object(ctx, retval)
+            ctx.service_class.on_method_exception_object(ctx)
             self.on_exception_object(ctx, retval)
 
         else:
-            ctx.service_class.on_method_return_object(ctx, retval)
+            ctx.service_class.on_method_return_object(ctx)
 
         return retval
 

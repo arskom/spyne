@@ -30,34 +30,35 @@ class Base(object):
     def __init__(self, parent):
         self.parent = parent
 
-    def create_document_structure(self, in_string, in_string_encoding=None):
-        pass
+    def create_in_document(self, ctx, in_string_encoding=None):
+        """Uses ctx.in_string to set ctx.in_document"""
 
-    def decompose_incoming_envelope(self, ctx, envelope_doc):
+    def decompose_incoming_envelope(self, ctx):
         """Sets the ctx.in_body_doc, ctx.in_header_doc and ctx.service
-        properties of the ctx object.
+        properties of the ctx object, if applicable.
         """
-        return envelope_doc
 
-    def deserialize(self, ctx, wrapper, envelope_xml):
+    def deserialize(self, ctx):
         """Takes a MethodContext instance and a string containing ONE document
-        instance.
+        instance in the ctx.in_string attribute.
 
-        Returns the corresponding native python object
+        Returns the corresponding native python object in the ctx.in_object
+        attribute.
         """
 
-    def serialize(self, ctx, wrapper, out_object):
-        """Takes a MethodContext instance and the object to be serialied.
+    def serialize(self, ctx):
+        """Takes a MethodContext instance and the object to be serialied in the
+        ctx.out_object attribute.
 
-        Returns the corresponding document structure.
+        Returns the corresponding document structure in the ctx.out_document
+        attribute.
         """
 
-    def create_document_string(self, ctx, out_doc):
-        return out_doc
+    def create_out_string(self, ctx):
+        """Uses ctx.out_string to set ctx.out_document"""
 
     def reconstruct_wsgi_request(self, http_env):
-        """Reconstruct http payload using information in the http header
-        """
+        """Reconstruct http payload using information in the http header"""
 
         input = http_env.get('wsgi.input')
         try:
