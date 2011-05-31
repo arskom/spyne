@@ -22,7 +22,7 @@
 import urllib2
 
 from rpclib.client import Service
-from rpclib.client import Base
+from rpclib.client import ClientBase
 from rpclib.client import RemoteProcedureBase
 
 import rpclib.protocol.soap
@@ -44,7 +44,7 @@ class _RemoteProcedure(RemoteProcedureBase):
 
         return self.get_in_object(in_str, is_error=(code == 500))
 
-class Client(Base):
+class Client(ClientBase):
     def __init__(self, url, app):
         super(Client, self).__init__(url, app)
 

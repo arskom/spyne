@@ -42,13 +42,13 @@ class ValidationError(Fault):
 
 class WsgiMethodContext(MethodContext):
     def __init__(self, app, req_env, content_type):
-        MethodContext.__init__(self, app)
-
         self.http_req_env = req_env
         self.http_resp_headers = {
             'Content-Type': content_type,
             'Content-Length': '0',
         }
+
+        MethodContext.__init__(self, app)
 
 class Application(Base):
     transport = 'http://schemas.xmlsoap.org/soap/http'
