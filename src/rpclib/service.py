@@ -47,7 +47,7 @@ class ServiceBaseMeta(type):
 
             for k,v in evmgr.handlers.items():
                 h=handlers.get(k,set())
-                h=h.union(v)
+                h.update(v)
                 handlers[k]=h
 
         return handlers
