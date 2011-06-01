@@ -19,7 +19,7 @@
 
 """An rpc server that uses http as transport, and wsgi as bridge api"""
 
-# FIXME: this is still too soap-centric.
+# FIXME: this is maybe still too soap-centric.
 
 import logging
 logger = logging.getLogger(__name__)

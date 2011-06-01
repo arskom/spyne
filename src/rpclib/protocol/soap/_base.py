@@ -185,9 +185,6 @@ class Soap11(ProtocolBase):
         Not meant to be overridden.
         """
 
-        # this sets the ctx.in_body_doc and ctx.in_header_doc properties
-        self.decompose_incoming_envelope(ctx)
-
         if ctx.in_body_doc.tag == "{%s}Fault" % ns.soap_env:
             ctx.in_object = None
             ctx.in_error = Fault.from_xml(ctx.in_body_doc)
@@ -218,6 +215,8 @@ class Soap11(ProtocolBase):
             else:
                 ctx.in_object = [None] * len(body_class._type_info)
 
+        self.event_manager.fire_event('deserialize', ctx)
+
     def serialize(self, ctx):
         """Uses ctx.out_object, ctx.out_header or ctx.out_error to set 
         ctx.out_body_doc, ctx.out_header_doc and ctx.out_document as an
@@ -228,7 +227,8 @@ class Soap11(ProtocolBase):
 
         # construct the soap response, and serialize it
         nsmap = self.parent.interface.nsmap
-        ctx.out_document = etree.Element('{%s}Envelope'% ns.soap_env,nsmap=nsmap)
+        ctx.out_document = etree.Element('{%s}Envelope' % ns.soap_env,
+                                                                    nsmap=nsmap)
 
         if not (ctx.out_error is None):
             # FIXME: There's no way to alter soap response headers for the user.
@@ -301,6 +301,8 @@ class Soap11(ProtocolBase):
                 logger.debug('\033[91m'+ "Response" + '\033[0m')
                 logger.debug(etree.tostring(ctx.out_document,
                                        xml_declaration=True, pretty_print=True))
+
+        self.event_manager.fire_event('serialize',ctx)
 
 class Soap11Strict(Soap11):
     def __init__(self, parent):

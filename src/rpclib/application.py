@@ -25,10 +25,6 @@ import traceback
 from rpclib.model.exception import Fault
 from rpclib._base import EventManager
 
-def _on_method_exception(ctx):
-    if ctx.service_class is not None:
-        ctx.service_class.event_manager.fire_event('method_exception',ctx)
-
 class Application(object):
     transport = None
 
@@ -56,7 +52,6 @@ class Application(object):
         self.__classes = {}
 
         self.event_manager = EventManager(self)
-        self.event_manager.add_listener('method_exception', _on_method_exception)
 
     def process_request(self, ctx, req_obj):
         """Takes a MethodContext instance and the native request object.
@@ -73,28 +68,36 @@ class Application(object):
             func = getattr(ctx.service_class, ctx.descriptor.name)
 
             # call the method
-            retval = ctx.service_class.call_wrapper(ctx, func, req_obj)
+            ctx.out_object = ctx.service_class.call_wrapper(ctx, func, req_obj)
+
+            # fire events
+            self.event_manager.fire_event('method_return_object', ctx)
+            ctx.service_class.event_manager.fire_event(
+                                                    'method_return_object', ctx)
 
         except Fault, e:
             stacktrace=traceback.format_exc()
             logger.error(stacktrace)
 
-            retval = e
+            ctx.out_error = e
+
+            # fire events
+            self.event_manager.fire_event('method_exception_object', ctx)
+            if ctx.service_class != None:
+                ctx.service_class.event_manager.fire_event(
+                                                    'method_return_object', ctx)
 
         except Exception, e:
             stacktrace=traceback.format_exc()
             logger.error(stacktrace)
 
-            retval = Fault('Server', str(e))
+            ctx.out_error = Fault('Server', str(e))
 
-        # implementation hook
-        if isinstance(retval, Fault):
-            self.event_manager.fire_event('method_exception', ctx)
-
-        else:
-            ctx.service_class.event_manager.fire_event('method_return', ctx)
-
-        return retval
+            # fire events
+            self.event_manager.fire_event('method_exception_object', ctx)
+            if ctx.service_class != None:
+                ctx.service_class.event_manager.fire_event(
+                                                    'method_return_object', ctx)
 
     def get_service_class(self, method_name):
         """This call maps method names to the services that will handle them.

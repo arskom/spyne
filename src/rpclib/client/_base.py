@@ -17,8 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from lxml import etree
-
 from rpclib._base import MethodContext
 from rpclib.model.primitive import string_encoding
 
@@ -84,13 +82,16 @@ class RemoteProcedureBase(object):
         assert self.ctx.out_string is None
 
         self.app.out_protocol.serialize(self.ctx)
-        self.app.out_protocol.create_out_string(self.ctx)
+        self.app.out_protocol.create_out_string(self.ctx, string_encoding)
 
     def get_in_object(self, is_error=False):
         assert self.ctx.in_string is not None
         assert self.ctx.in_document is None
 
         self.app.in_protocol.create_in_document(self.ctx)
+
+        # sets the ctx.in_body_doc and ctx.in_header_doc properties
+        self.app.in_protocol.decompose_incoming_envelope(self.ctx)
 
         # this sets ctx.in_object
         self.app.in_protocol.deserialize(self.ctx)

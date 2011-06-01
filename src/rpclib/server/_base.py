@@ -43,6 +43,12 @@ class ServerBase(object):
     def get_in_object(self, ctx, in_string_charset=None):
         self.app.in_protocol.create_in_document(ctx, in_string_charset)
 
+        # sets the ctx.in_body_doc and ctx.in_header_doc properties
+        self.app.in_protocol.decompose_incoming_envelope(ctx)
+        
+        if ctx.service_class != None:
+            ctx.service_class.event_manager.fire_event('decompose_envelope',ctx)
+
         try:
             self.app.in_protocol.deserialize(ctx)
 
@@ -52,15 +58,28 @@ class ServerBase(object):
             ctx.out_error = e
 
     def get_out_object(self, ctx):
-        ctx.out_object = self.app.process_request(ctx, ctx.in_object)
-
-        if isinstance(ctx.out_object, Exception):
-            ctx.out_error = ctx.out_object
-            ctx.out_object = None
+        self.app.process_request(ctx, ctx.in_object)
 
     def get_out_string(self, ctx):
         assert ctx.out_document is None
         assert ctx.out_string is None
 
         self.app.out_protocol.serialize(ctx)
+
+        if ctx.service_class != None:
+            if ctx.out_error is None:
+                ctx.service_class.event_manager.fire_event(
+                                            'method_return_document', ctx)
+            else:
+                ctx.service_class.event_manager.fire_event(
+                                            'method_exception_document', ctx)
+
         self.app.out_protocol.create_out_string(ctx)
+
+        if ctx.service_class != None:
+            if ctx.out_error is None:
+                ctx.service_class.event_manager.fire_event(
+                                            'method_return_string', ctx)
+            else:
+                ctx.service_class.event_manager.fire_event(
+                                            'method_exception_string', ctx)

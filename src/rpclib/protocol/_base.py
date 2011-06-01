@@ -18,6 +18,8 @@
 #
 
 import cgi
+
+from rpclib._base import EventManager
 from rpclib.model.exception import Fault
 
 class ValidationError(Fault):
@@ -29,6 +31,7 @@ class ProtocolBase(object):
 
     def __init__(self, parent):
         self.parent = parent
+        self.event_manager = EventManager(self)
 
     def create_in_document(self, ctx, in_string_encoding=None):
         """Uses ctx.in_string to set ctx.in_document"""
