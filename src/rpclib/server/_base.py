@@ -43,19 +43,20 @@ class ServerBase(object):
     def get_in_object(self, ctx, in_string_charset=None):
         self.app.in_protocol.create_in_document(ctx, in_string_charset)
 
-        # sets the ctx.in_body_doc and ctx.in_header_doc properties
-        self.app.in_protocol.decompose_incoming_envelope(ctx)
-        
-        if ctx.service_class != None:
-            ctx.service_class.event_manager.fire_event('decompose_envelope',ctx)
-
         try:
+            # sets the ctx.in_body_doc and ctx.in_header_doc properties
+            self.app.in_protocol.decompose_incoming_envelope(ctx)
+
+            if ctx.service_class != None:
+                ctx.service_class.event_manager.fire_event('decompose_envelope',
+                                                                        ctx)
             self.app.in_protocol.deserialize(ctx)
 
         except Fault,e:
             ctx.in_object = None
             ctx.in_error = e
             ctx.out_error = e
+
 
     def get_out_object(self, ctx):
         self.app.process_request(ctx, ctx.in_object)
