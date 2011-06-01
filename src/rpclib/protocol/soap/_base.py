@@ -237,11 +237,6 @@ class Soap11(Base):
             ctx.out_error.add_to_parent_element(self.parent.interface.get_tns(),
                                                                    out_body_doc)
 
-            # implementation hook
-            if not (ctx.service_class is None):
-                ctx.service_class.event_manager.fire_event('method_exception', ctx)
-            self.parent.event_manager.fire_event('method_exception', ctx)
-
             if logger.level == logging.DEBUG:
                 logger.debug(etree.tostring(ctx.out_document, pretty_print=True))
 
@@ -307,10 +302,6 @@ class Soap11(Base):
                 logger.debug('\033[91m'+ "Response" + '\033[0m')
                 logger.debug(etree.tostring(ctx.out_document,
                                        xml_declaration=True, pretty_print=True))
-
-            # implementation hook
-            if not (ctx.service_class is None):
-                ctx.service_class.event_manager.fire_event('method_return',ctx)
 
 class Soap11Strict(Soap11):
     def __init__(self, parent):
