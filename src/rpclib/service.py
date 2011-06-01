@@ -27,7 +27,8 @@ class ServiceBaseMeta(type):
         super(ServiceBaseMeta, self).__init__(cls_name, cls_bases, cls_dict)
 
         self.public_methods = []
-        self.event_manager = EventManager(self)
+        self.event_manager = EventManager(self,
+                                      self.__get_base_event_handlers(cls_bases))
 
         for func_name, func in cls_dict.iteritems():
             if callable(func) and hasattr(func, '_is_rpc'):
@@ -35,6 +36,21 @@ class ServiceBaseMeta(type):
                 self.public_methods.append(descriptor)
 
                 setattr(self, func_name, staticmethod(func))
+
+    def __get_base_event_handlers(self, cls_bases):
+        handlers = {}
+
+        for base in cls_bases:
+            evmgr = getattr(base,'event_manager',None)
+            if evmgr is None:
+                continue
+
+            for k,v in evmgr.handlers.items():
+                h=handlers.get(k,[])
+                h.extend(v)
+                handlers[k]=h
+
+        return handlers
 
 class ServiceBase(object):
     '''This class serves as the base for all service definitions.  Subclasses of

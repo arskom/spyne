@@ -122,19 +122,16 @@ class MethodDescriptor(object):
         self.no_ctx = no_ctx
 
 class EventManager(object):
-    def __init__(self, parent):
-        self.__parent = parent
-        self.__event_handlers = {}
+    def __init__(self, parent, handlers={}):
+        self.parent = parent
+        self.handlers = handlers
 
     def add_listener(self, event_name, handler):
-        handlers = self.__event_handlers.get(event_name, [])
+        handlers = self.handlers.get(event_name, [])
         handlers.append(handler)
-        self.__event_handlers[event_name] = handlers
-
-        logger.debug("Adding handler '%s.%s' to event %r." %
-                             (handler.__module__, handler.__name__, event_name))
+        self.handlers[event_name] = handlers
 
     def fire_event(self, event_name, ctx):
-        handlers = self.__event_handlers.get(event_name, [])
+        handlers = self.handlers.get(event_name, [])
         for handler in handlers:
             handler(ctx)
