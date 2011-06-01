@@ -127,11 +127,11 @@ class EventManager(object):
         self.handlers = handlers
 
     def add_listener(self, event_name, handler):
-        handlers = self.handlers.get(event_name, [])
-        handlers.append(handler)
+        handlers = self.handlers.get(event_name, set())
+        handlers.add(handler)
         self.handlers[event_name] = handlers
 
     def fire_event(self, event_name, ctx):
-        handlers = self.handlers.get(event_name, [])
+        handlers = self.handlers.get(event_name, set())
         for handler in handlers:
             handler(ctx)

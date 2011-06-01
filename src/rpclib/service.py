@@ -46,8 +46,8 @@ class ServiceBaseMeta(type):
                 continue
 
             for k,v in evmgr.handlers.items():
-                h=handlers.get(k,[])
-                h.extend(v)
+                h=handlers.get(k,set())
+                h=h.union(v)
                 handlers[k]=h
 
         return handlers
