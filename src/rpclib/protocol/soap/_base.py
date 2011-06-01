@@ -26,7 +26,7 @@ from rpclib.protocol.soap.mime import collapse_swa
 import traceback
 from lxml import etree
 
-from rpclib.protocol import Base
+from rpclib.protocol import ProtocolBase
 from rpclib.model.exception import Fault
 from rpclib.model.primitive import string_encoding
 import rpclib.const.xml_ns as ns
@@ -105,7 +105,7 @@ def resolve_hrefs(element, xmlids):
 
     return element
 
-class Soap11(Base):
+class Soap11(ProtocolBase):
     class NO_WRAPPER:
         pass
     class IN_WRAPPER:
@@ -117,7 +117,7 @@ class Soap11(Base):
     mime_type = 'application/soap+xml'
 
     def __init__(self, parent):
-        Base.__init__(self, parent)
+        ProtocolBase.__init__(self, parent)
 
         self.in_wrapper = Soap11.IN_WRAPPER
         self.out_wrapper = Soap11.OUT_WRAPPER
@@ -131,7 +131,7 @@ class Soap11(Base):
                                                       encoding=string_encoding)]
 
     def reconstruct_wsgi_request(self, http_env):
-        http_payload, charset = Base.reconstruct_wsgi_request(self, http_env)
+        http_payload, charset = ProtocolBase.reconstruct_wsgi_request(self, http_env)
 
         content_type = cgi.parse_header(http_env.get("CONTENT_TYPE"))
 

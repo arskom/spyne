@@ -20,11 +20,11 @@
 import logging
 logger = logging.getLogger(__name__)
 
-from rpclib.protocol import Base
+from rpclib.protocol import ProtocolBase
 import urlparse
 
 # this is not exactly rest, because it ignores http verbs.
-class HttpRpc(Base):
+class HttpRpc(ProtocolBase):
     def create_in_document(self, ctx, in_string_encoding=None):
         assert hasattr(ctx, 'http_req_env'), ("This protocol only works with a"
                                               "wsgi transport.")

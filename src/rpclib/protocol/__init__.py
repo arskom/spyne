@@ -17,5 +17,5 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from _base import Base
+from _base import ProtocolBase
 from _base import ValidationError

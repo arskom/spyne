@@ -20,9 +20,9 @@
 import logging
 logger = logging.getLogger(__name__)
 
-from rpclib.protocol import Base
+from rpclib.protocol import ProtocolBase
 
-class OutCsv(Base):
+class OutCsv(ProtocolBase):
     mime_type = 'text/csv'
 
     def create_in_document(self, ctx):

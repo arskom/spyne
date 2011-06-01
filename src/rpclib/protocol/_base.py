@@ -23,7 +23,7 @@ from rpclib.model.exception import Fault
 class ValidationError(Fault):
     pass
 
-class Base(object):
+class ProtocolBase(object):
     allowed_http_verbs = ['GET','POST']
     mime_type = 'application/octet-stream'
 
