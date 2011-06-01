@@ -280,7 +280,6 @@ class Soap11(Base):
                     result_message_class = ctx.descriptor.out_message
 
                 result_message = result_message_class()
-                print result_message
 
                 # assign raw result to its wrapper, result_message
                 out_type_info = result_message_class._type_info
