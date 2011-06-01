@@ -31,7 +31,9 @@ class OutCsv(ProtocolBase):
     def serialize(self, ctx):
         result_message_class = ctx.descriptor.out_message
 
-        assert ctx.out_object != None
+        if ctx.out_object is None:
+            ctx.out_object = []
+
         assert len(result_message_class._type_info) == 1, """CSV Serializer
             supports functions with exactly one return type:
             %r""" % result_message_class._type_info
