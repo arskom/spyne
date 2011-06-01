@@ -57,7 +57,7 @@ class ProtocolBase(object):
         attribute.
         """
 
-    def create_out_string(self, ctx):
+    def create_out_string(self, ctx, out_string_encoding=None):
         """Uses ctx.out_string to set ctx.out_document"""
 
     def reconstruct_wsgi_request(self, http_env):

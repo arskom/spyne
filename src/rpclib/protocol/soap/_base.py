@@ -67,8 +67,8 @@ def _from_soap(in_envelope_xml, xmlids=None):
 
 def _parse_xml_string(xml_string, charset=None):
     try:
-        if charset is None: # hack
-            raise ValueError(charset)
+        if charset is None:
+            charset = string_encoding
 
         root, xmlids = etree.XMLID(xml_string.decode(charset))
 
@@ -122,13 +122,16 @@ class Soap11(ProtocolBase):
         self.in_wrapper = Soap11.IN_WRAPPER
         self.out_wrapper = Soap11.OUT_WRAPPER
 
-    def create_in_document(self, ctx, string_encoding=None):
-        ctx.in_document = _parse_xml_string(ctx.in_string, string_encoding)
+    def create_in_document(self, ctx, charset=None):
+        ctx.in_document = _parse_xml_string(ctx.in_string, charset)
 
-    def create_out_string(self, ctx):
+    def create_out_string(self, ctx, charset=None):
         """Sets an iterable of string fragments to ctx.out_string"""
+        if charset is None:
+            charset = string_encoding
+
         ctx.out_string = [etree.tostring(ctx.out_document, xml_declaration=True,
-                                                      encoding=string_encoding)]
+                                                              encoding=charset)]
 
     def reconstruct_wsgi_request(self, http_env):
         http_payload, charset = ProtocolBase.reconstruct_wsgi_request(self, http_env)
