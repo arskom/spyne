@@ -21,6 +21,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from collections import deque
+from rpclib.util.oset import oset
 
 class MethodContext(object):
     frozen = False
@@ -124,14 +125,14 @@ class MethodDescriptor(object):
 class EventManager(object):
     def __init__(self, parent, handlers={}):
         self.parent = parent
-        self.handlers = handlers
+        self.handlers = dict(handlers)
 
     def add_listener(self, event_name, handler):
-        handlers = self.handlers.get(event_name, set())
+        handlers = self.handlers.get(event_name, oset())
         handlers.add(handler)
         self.handlers[event_name] = handlers
 
     def fire_event(self, event_name, ctx):
-        handlers = self.handlers.get(event_name, set())
+        handlers = self.handlers.get(event_name, oset())
         for handler in handlers:
             handler(ctx)

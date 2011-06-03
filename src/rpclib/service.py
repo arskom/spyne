@@ -21,6 +21,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from rpclib._base import EventManager
+from rpclib.util.oset import oset
 
 class ServiceBaseMeta(type):
     def __init__(self, cls_name, cls_bases, cls_dict):
@@ -46,9 +47,10 @@ class ServiceBaseMeta(type):
                 continue
 
             for k,v in evmgr.handlers.items():
-                h=handlers.get(k,set())
-                h.update(v)
-                handlers[k]=h
+                handler=handlers.get(k,oset())
+                for h in v:
+                    handler.add(h)
+                handlers[k]=handler
 
         return handlers
 
