@@ -6,6 +6,8 @@ import os
 import re
 from lxml import etree
 
+from soaplib.core.util.xsd_gen import XSDGenerator
+
 class ClassModelConverter():
     """A class to handle exporting a ClassModel to different representations
 
@@ -35,6 +37,11 @@ class ClassModelConverter():
         self.include_parent= include_parent
         self.parent_tag = parent_tag
         self.include_ns = include_ns
+
+        self.xsd_gen = XSDGenerator()
+        self.schema = self.xsd_gen.get_model_xsd(
+            self.instance.__class__,pretty_print=True)
+        self.nsmap = self.xsd_gen
 
 
     def __get_ns_free_element(self, element):

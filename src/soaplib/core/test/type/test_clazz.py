@@ -36,7 +36,7 @@ class Address(ClassModel):
     street = String
     city = String
     zip = Integer
-    since = DateTime
+    since = DateTime(min_occurs=1)
     lattitude = Float
     longitude = Float
 

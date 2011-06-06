@@ -154,3 +154,33 @@ class AddedRootElementTestCase(BaseCase):
     def test_strip_ns(self):
         self.remove_ns()
 
+class NillMinOccursModel(ClassModel):
+    __namespace__ = "tns"
+
+    nillable_only = String(nillable=True, min_occurs=1)
+    nillabl_min_occ_zero = String(nillable=True, min_occurs=0)
+    min_occ_int = Integer(nillable=True, min_occurs=1)
+
+
+class MinOccursTestCase(unittest.TestCase):
+
+    def _create_test_model(self, nill_only, nill_min):
+        inst = NillMinOccursModel()
+        inst.nillable_only = nill_only
+        inst.nillabl_min_occ_zero = nill_min
+
+        return inst
+
+    def _create_cmc(self, instance):
+        return ClassModelConverter(instance, "tns", include_ns=True)
+
+#    def test_all_none(self):
+#        instance = self._create_test_model(None, None)
+#        cmc = self._create_cmc(instance)
+#
+#        xml = cmc.to_xml()
+#        print xml
+#
+#        assert False
+
+
