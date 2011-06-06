@@ -381,6 +381,10 @@ class Wsdl11(Base):
                     import_.set('schemaLocation', "%s.xsd" %
                                            self.get_namespace_prefix(namespace))
 
+                sl = rpclib.const.xml_ns.schema_location.get(namespace, None)
+                if not (sl is None):
+                    import_.set('schemaLocation', sl)
+
             # append simpleType and complexType tags
             for node in self.namespaces[pref].types.values():
                 schema.append(node)

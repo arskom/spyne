@@ -47,5 +47,9 @@ const_nsmap = {
 
 const_prefmap = dict([(b,a) for a,b in const_nsmap.items()])
 
+schema_location = {
+    xsd: 'http://www.w3.org/2001/XMLSchema.xsd',
+}
+
 class DEFAULT_NS(object):
     pass
