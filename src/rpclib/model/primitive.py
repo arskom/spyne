@@ -25,7 +25,7 @@ import pytz
 from lxml import etree
 from pytz import FixedOffset
 
-from rpclib.model import SimpleType
+from rpclib.model import SimpleModel
 from rpclib.model import nillable_element
 from rpclib.model import nillable_value
 from rpclib.model import nillable_string
@@ -49,7 +49,7 @@ _date_re = re.compile(_date_pattern)
 _ns_xs = rpclib.const.xml_ns.xsd
 _ns_xsi = rpclib.const.xml_ns.xsi
 
-class Any(SimpleType):
+class Any(SimpleModel):
     __type_name__ = 'anyType'
 
     @classmethod
@@ -103,8 +103,8 @@ class AnyAsDict(Any):
     def from_string(cls, string):
         return etree_to_dict(etree.fromstring(string))
 
-class String(SimpleType):
-    class Attributes(SimpleType.Attributes):
+class String(SimpleModel):
+    class Attributes(SimpleModel.Attributes):
         min_len = 0
         max_len = "unbounded"
         pattern = None
@@ -115,13 +115,13 @@ class String(SimpleType):
         if len(args) == 1:
             kwargs['max_len'] = args[0]
 
-        retval = SimpleType.__new__(cls,  ** kwargs)
+        retval = SimpleModel.__new__(cls,  ** kwargs)
 
         return retval
 
     @staticmethod
     def is_default(cls):
-        return (    SimpleType.is_default(cls)
+        return (    SimpleModel.is_default(cls)
                 and cls.Attributes.min_len == String.Attributes.min_len
                 and cls.Attributes.max_len == String.Attributes.max_len
                 and cls.Attributes.pattern == String.Attributes.pattern)
@@ -176,7 +176,7 @@ class String(SimpleType):
 class AnyUri(String):
     __type_name__ = 'anyURI'
 
-class Decimal(SimpleType):
+class Decimal(SimpleModel):
     @classmethod
     @nillable_string
     def from_string(cls, string):
@@ -191,7 +191,7 @@ class Integer(Decimal):
         except:
             return long(string)
 
-class Date(SimpleType):
+class Date(SimpleModel):
     @classmethod
     @nillable_string
     def to_string(cls, value):
@@ -213,7 +213,7 @@ class Date(SimpleType):
 
         return parse_date(match)
 
-class DateTime(SimpleType):
+class DateTime(SimpleModel):
     __type_name__ = 'dateTime'
 
     @classmethod
@@ -251,21 +251,21 @@ class DateTime(SimpleType):
 
         return parse_date(match)
 
-class Duration(SimpleType):
+class Duration(SimpleModel):
     __type_name__ = 'duration'
 
     @classmethod
     @nillable_value
     def to_parent_element(cls, value, tns, parent_elt, name='retval'):
         duration = XmlDuration.parse(value)
-        SimpleType.to_parent_element(str(duration), tns, parent_elt, name)
+        SimpleModel.to_parent_element(str(duration), tns, parent_elt, name)
 
     @classmethod
     @nillable_string
     def from_string(cls, string):
         return XmlDuration.from_string(string).as_timedelta()
 
-class Double(SimpleType):
+class Double(SimpleModel):
     @classmethod
     @nillable_string
     def to_string(cls, value):
@@ -279,7 +279,7 @@ class Double(SimpleType):
 class Float(Double):
     pass
 
-class Boolean(SimpleType):
+class Boolean(SimpleModel):
     @classmethod
     @nillable_string
     def to_string(cls, value):

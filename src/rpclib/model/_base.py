@@ -237,7 +237,7 @@ class Null(ModelBase):
     def from_xml(cls, element):
         return None
 
-class SimpleType(ModelBase):
+class SimpleModel(ModelBase):
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
     __base_type__ = None
 
@@ -263,7 +263,7 @@ class SimpleType(ModelBase):
 
     @staticmethod
     def is_default(cls):
-        return (cls.Attributes.values == SimpleType.Attributes.values)
+        return (cls.Attributes.values == SimpleModel.Attributes.values)
 
     @classmethod
     def get_restriction_tag(cls, interface):

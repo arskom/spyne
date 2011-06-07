@@ -1,7 +1,7 @@
 
 from lxml import etree
 
-from rpclib.model import SimpleType
+from rpclib.model import SimpleModel
 from rpclib.model import nillable_element
 from rpclib.model import nillable_value
 
@@ -11,7 +11,7 @@ _ns_xsd = rpclib.const.xml_ns.xsd
 
 # adapted from: http://code.activestate.com/recipes/413486/
 
-class EnumBase(SimpleType):
+class EnumBase(SimpleModel):
     __namespace__ = None
 
     @staticmethod
@@ -25,7 +25,7 @@ class EnumBase(SimpleType):
         if name is None:
             name = cls.get_type_name()
 
-        SimpleType.to_parent_element(str(value), tns, parent_elt, name)
+        SimpleModel.to_parent_element(str(value), tns, parent_elt, name)
 
     @classmethod
     @nillable_element
