@@ -20,7 +20,7 @@
     <xs:schema elementFormDefault="qualified" targetNamespace="bar">
       <xs:import namespace="punk.tunk" />
       <xs:import namespace="hunk.sunk" />
-      <xs:import namespace="http://www.w3.org/2001/XMLSchema" />
+      <xs:import namespace="http://www.w3.org/2001/XMLSchema" schemaLocation="http://www.w3.org/2001/XMLSchema.xsd" />
       <xs:element name="ExtensionClass" type="s0:ExtensionClass" />
       <xs:complexType name="ExtensionClass">
         <xs:complexContent>
@@ -35,7 +35,7 @@
       </xs:complexType>
     </xs:schema>
     <xs:schema elementFormDefault="qualified" targetNamespace="hunk.sunk">
-      <xs:import namespace="http://www.w3.org/2001/XMLSchema" />
+      <xs:import namespace="http://www.w3.org/2001/XMLSchema" schemaLocation="http://www.w3.org/2001/XMLSchema.xsd" />
       <xs:element name="NonNillableClass" type="s3:NonNillableClass" />
       <xs:simpleType name="NonNillableClass_sType">
         <xs:restriction base="xs:string">
@@ -53,7 +53,7 @@
     <xs:schema elementFormDefault="qualified" targetNamespace="punk.tunk">
       <xs:import namespace="rpclib.test.interop.server" />
       <xs:import namespace="rpclib.test.interop.server._service" />
-      <xs:import namespace="http://www.w3.org/2001/XMLSchema" />
+      <xs:import namespace="http://www.w3.org/2001/XMLSchema" schemaLocation="http://www.w3.org/2001/XMLSchema.xsd" />
       <xs:element name="NestedClass" type="s1:NestedClass" />
       <xs:element name="NestedClassArray" type="s1:NestedClassArray" />
       <xs:complexType name="NestedClass">
@@ -77,7 +77,7 @@
       <xs:import namespace="punk.tunk" />
       <xs:import namespace="bar" />
       <xs:import namespace="rpclib.test.interop.server._service" />
-      <xs:import namespace="http://www.w3.org/2001/XMLSchema" />
+      <xs:import namespace="http://www.w3.org/2001/XMLSchema" schemaLocation="http://www.w3.org/2001/XMLSchema.xsd" />
       <xs:element name="echo_integer" type="tns:echo_integer" />
       <xs:element name="echo_integerResponse" type="tns:echo_integerResponse" />
       <xs:element name="echo_enum" type="tns:echo_enum" />
@@ -582,7 +582,7 @@
       </xs:complexType>
     </xs:schema>
     <xs:schema elementFormDefault="qualified" targetNamespace="rpclib.test.interop.server._service">
-      <xs:import namespace="http://www.w3.org/2001/XMLSchema" />
+      <xs:import namespace="http://www.w3.org/2001/XMLSchema" schemaLocation="http://www.w3.org/2001/XMLSchema.xsd" />
       <xs:element name="SimpleClass" type="s2:SimpleClass" />
       <xs:element name="SimpleClassArray" type="s2:SimpleClassArray" />
       <xs:element name="OtherClass" type="s2:OtherClass" />
