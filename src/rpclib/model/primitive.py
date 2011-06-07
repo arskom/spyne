@@ -104,6 +104,8 @@ class AnyAsDict(Any):
         return etree_to_dict(etree.fromstring(string))
 
 class String(SimpleModel):
+    __type_name__ = 'string'
+
     class Attributes(SimpleModel.Attributes):
         min_len = 0
         max_len = "unbounded"
@@ -177,12 +179,16 @@ class AnyUri(String):
     __type_name__ = 'anyURI'
 
 class Decimal(SimpleModel):
+    __type_name__ = 'decimal'
+
     @classmethod
     @nillable_string
     def from_string(cls, string):
         return decimal.Decimal(string)
 
 class Integer(Decimal):
+    __type_name__ = 'integer'
+
     @classmethod
     @nillable_string
     def from_string(cls, string):
@@ -192,6 +198,8 @@ class Integer(Decimal):
             return long(string)
 
 class Date(SimpleModel):
+    __type_name__ = 'date'
+
     @classmethod
     @nillable_string
     def to_string(cls, value):
@@ -266,6 +274,8 @@ class Duration(SimpleModel):
         return XmlDuration.from_string(string).as_timedelta()
 
 class Double(SimpleModel):
+    __type_name__ = 'double'
+
     @classmethod
     @nillable_string
     def to_string(cls, value):
@@ -277,9 +287,13 @@ class Double(SimpleModel):
         return float(string)
 
 class Float(Double):
+    __type_name__ = 'float'
+
     pass
 
 class Boolean(SimpleModel):
+    __type_name__ = 'boolean'
+
     @classmethod
     @nillable_string
     def to_string(cls, value):

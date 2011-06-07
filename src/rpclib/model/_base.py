@@ -109,7 +109,7 @@ class ModelBase(object):
     def get_type_name(cls):
         retval = cls.__type_name__
         if retval is None:
-            retval = cls.__name__.lower()
+            retval = cls.__name__
 
         return retval
 
@@ -164,8 +164,8 @@ class ModelBase(object):
     @classmethod
     @nillable_value
     def to_parent_element(cls, value, tns, parent_elt, name='retval'):
-        '''
-        Creates a lxml.etree SubElement as a child of a 'parent' Element
+        '''Creates a lxml.etree SubElement as a child of a 'parent' Element
+
         @param The value to be set for the 'text' element of the newly created
         SubElement
         @param The target namespace of the new SubElement, used with 'name' to
@@ -256,8 +256,7 @@ class SimpleModel(ModelBase):
 
         if not retval.is_default(retval):
             retval.__base_type__ = cls
-            if retval.__type_name__ is None:
-                retval.__type_name__ = kwargs.get("type_name", ModelBase.Empty)
+            retval.__type_name__ = kwargs.get("type_name", ModelBase.Empty)
 
         return retval
 
