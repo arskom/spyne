@@ -26,23 +26,23 @@ import urlparse
 # this is not exactly rest, because it ignores http verbs.
 class HttpRpc(ProtocolBase):
     def create_in_document(self, ctx, in_string_encoding=None):
-        assert hasattr(ctx, 'http_req_env'), ("This protocol only works with a"
-                                              "wsgi transport.")
+        assert hasattr(ctx, 'http_req_env'), ("This protocol only works with the"
+                                              "wsgi api.")
 
         ctx.method_name = '{%s}%s' % (self.parent.interface.get_tns(),
                                    ctx.http_req_env['PATH_INFO'].split('/')[-1])
         logger.debug("\033[92mMethod name: %r\033[0m" % ctx.method_name)
 
-        service_class = self.parent.get_service_class(ctx.method_name)
-        ctx.service = self.parent.get_service(service_class)
+        ctx.service_class = self.parent.get_service_class(ctx.method_name)
 
         if ctx.descriptor is None:
-            ctx.descriptor = ctx.service.get_method(ctx.method_name)
+            ctx.descriptor = ctx.service_class.get_method(ctx.method_name)
         
         ctx.in_header_doc = None
         ctx.in_body_doc = urlparse.parse_qs(ctx.http_req_env['QUERY_STRING'])
 
         logger.debug(repr(ctx.in_body_doc))
+
         return ctx.in_body_doc
 
     def deserialize(self, ctx, doc_struct):

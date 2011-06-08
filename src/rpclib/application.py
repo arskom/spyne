@@ -109,10 +109,4 @@ class Application(object):
         return self.interface.call_routes[method_name]
 
     def _has_callbacks(self):
-        retval = False
-
-        for s in self.services:
-            if self.get_service(s)._has_callbacks():
-                return True
-
-        return retval
+        return self.interface._has_callbacks()

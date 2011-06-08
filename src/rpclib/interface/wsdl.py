@@ -509,13 +509,11 @@ class Wsdl11(Base):
         addr.set('location', self.url)
 
     def _has_callbacks(self):
-        retval = False
-
         for s in self.services:
-            if self.get_service(s)._has_callbacks():
+            if s._has_callbacks():
                 return True
 
-        return retval
+        return False
 
     def build_validation_schema(self):
         """Build application schema specifically for xml validation purposes.
