@@ -45,16 +45,17 @@ class HttpRpc(ProtocolBase):
 
         return ctx.in_body_doc
 
-    def deserialize(self, ctx, doc_struct):
+    def deserialize(self, ctx):
         body_class = ctx.descriptor.in_message
         if ctx.in_body_doc is not None and len(ctx.in_body_doc) > 0:
             in_body = body_class.from_dict(ctx.in_body_doc)
         else:
             in_body = [None] * len(body_class._type_info)
 
+        self.event_manager.fire_event('deserialize', ctx)
         return in_body
 
-    def serialize(self, ctx, out_object):
+    def serialize(self, ctx):
         result_message_class = ctx.descriptor.out_message
         result_message = result_message_class()
 
@@ -63,15 +64,16 @@ class HttpRpc(ProtocolBase):
         if len(out_type_info) > 0:
              if len(out_type_info) == 1:
                  attr_name = result_message_class._type_info.keys()[0]
-                 setattr(result_message, attr_name, out_object)
+                 setattr(result_message, attr_name, ctx.out_object)
 
              else:
                  for i in range(len(out_type_info)):
                      attr_name=result_message_class._type_info.keys()[i]
-                     setattr(result_message, attr_name, out_object[i])
+                     setattr(result_message, attr_name, ctx.out_object[i])
 
         wrapped_result = ctx.descriptor.out_message.to_dict(result_message)
 
         retval, = wrapped_result.itervalues()
 
+        self.event_manager.fire_event('serialize', ctx)
         return retval
