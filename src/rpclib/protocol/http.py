@@ -75,3 +75,7 @@ class HttpRpc(ProtocolBase):
         ctx.out_document, = wrapped_result.itervalues()
 
         self.event_manager.fire_event('serialize', ctx)
+
+    def create_out_string(self, ctx, out_string_encoding=None):
+        ctx.out_string = ctx.out_document
+
