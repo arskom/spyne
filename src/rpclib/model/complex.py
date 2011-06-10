@@ -73,9 +73,8 @@ class ComplexModelMeta(type(ModelBase)):
     '''
 
     def __new__(cls, cls_name, cls_bases, cls_dict):
-        '''
-        This initializes the class, and sets all the appropriate types onto the
-        class for serialization.
+        '''This initializes the class, and registers attributes for
+        serialization.
         '''
 
         type_name = cls_dict.get("__type_name__", None)
