@@ -185,10 +185,8 @@ class ModelBase(object):
 
     @classmethod
     def customize(cls, **kwargs):
-        """
-        This function duplicates and customizes the class it belongs to. The
-        original class remains unchanged. This is an ugly hack. If you know
-        better, let us know.
+        """This function duplicates and customizes the class it belongs to. The
+        original class remains unchanged. 
         """
 
         cls_dict = {}
@@ -216,8 +214,7 @@ class ModelBase(object):
             else :
                 setattr(Annotations, k, v)
 
-        cls_dup = type(cls.__name__, cls.__bases__, cls_dict)
-        return cls_dup
+        return type(cls)(cls.__name__, cls.__bases__, cls_dict)
 
 class Null(ModelBase):
     @classmethod

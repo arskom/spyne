@@ -126,12 +126,11 @@ class ComplexModelMeta(type(ModelBase)):
             if not isinstance(_type_info, TypeInfo):
                 cls_dict['_type_info'] = TypeInfo(_type_info)
 
-        return type.__new__(cls, cls_name, cls_bases, cls_dict)
+        return type(ModelBase).__new__(cls, cls_name, cls_bases, cls_dict)
 
 class ComplexModelBase(ModelBase):
-    """
-    If you want to make a better class type, this is what you should
-    inherit from
+    """If you want to make a better class type, this is what you should inherit
+    from.
     """
 
     def __init__(self, **kwargs):
