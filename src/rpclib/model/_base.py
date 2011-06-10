@@ -185,11 +185,22 @@ class ModelBase(object):
 
     @classmethod
     def customize(cls, **kwargs):
+        cls_name, cls_bases, cls_dict = cls._s_customize(cls, **kwargs)
+
+        return type(cls_name, cls_bases, cls_dict)
+
+    @staticmethod
+    def _s_customize(cls, **kwargs):
         """This function duplicates and customizes the class it belongs to. The
         original class remains unchanged. 
         """
 
         cls_dict = {}
+
+        #assert (issubclass(cls, rpclib.model._base.SimpleModel)
+        #            or cls.__name__ == 'Array'
+        #            or getattr(cls, '_type_info', None) is not None
+        #        ),(cls.__name__)
 
         for k in cls.__dict__:
             if not (k in ("__dict__", "__weakref__")):
@@ -197,12 +208,10 @@ class ModelBase(object):
 
         class Attributes(cls.Attributes):
             pass
-
         cls_dict['Attributes'] = Attributes
 
         class Annotations(cls.Annotations):
             pass
-
         cls_dict['Annotations'] = Annotations
 
         if not ('_is_clone_of' in cls_dict):
@@ -214,7 +223,7 @@ class ModelBase(object):
             else:
                 setattr(Annotations, k, v)
 
-        return type(cls)(cls.__name__, cls.__bases__, cls_dict)
+        return (cls.__name__, cls.__bases__, cls_dict)
 
 class Null(ModelBase):
     @classmethod
