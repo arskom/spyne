@@ -19,7 +19,7 @@
 
 """
 The rpclib.model.table module is EXPERIMENTAL. It does not support
-inheritance, it is supposedly buggy and possibly slow.
+inheritance, it is probably buggy and slow.
 """
 
 import logging
@@ -29,8 +29,11 @@ import sqlalchemy
 from sqlalchemy import Column
 
 from sqlalchemy.ext.declarative import DeclarativeMeta
+from sqlalchemy.orm.attributes import manager_of_class
+
 from rpclib.model.complex import TypeInfo
 from rpclib.model.complex import ComplexModelBase
+from rpclib.model.complex import ComplexModelMeta
 from rpclib.model import primitive
 from rpclib.model import complex
 
@@ -67,7 +70,7 @@ def parse_cls_dict(cls_dict):
 
                 _type_info[k]=rpc_type
 
-class TableSerializerMeta(DeclarativeMeta):
+class TableSerializerMeta(DeclarativeMeta,ComplexModelMeta):
     def __new__(cls, cls_name, cls_bases, cls_dict):
         if cls_dict.get("__type_name__", None) is None:
             cls_dict["__type_name__"] = cls_name
@@ -79,4 +82,15 @@ class TableSerializerMeta(DeclarativeMeta):
 
 class TableSerializer(ComplexModelBase):
     __metaclass__ = TableSerializerMeta
-    _decl_class_registry={}
+    _decl_class_registry = {}
+
+    @classmethod
+    def customize(cls, **kwargs):
+        cls_name, cls_bases, cls_dict = ComplexModelBase._s_customize(cls, **kwargs)
+
+        manager = manager_of_class(cls)
+        cls_dict['class_'] = manager.class_
+
+        retval = ComplexModelMeta.__new__(ComplexModelMeta, cls_name, cls_bases, cls_dict)
+
+        return retval

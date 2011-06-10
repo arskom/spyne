@@ -78,4 +78,3 @@ class HttpRpc(ProtocolBase):
 
     def create_out_string(self, ctx, out_string_encoding=None):
         ctx.out_string = ctx.out_document
-
