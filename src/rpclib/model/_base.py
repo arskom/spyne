@@ -209,9 +209,9 @@ class ModelBase(object):
             cls_dict['_is_clone_of'] = cls
 
         for k,v in kwargs.items():
-            if k != "doc" :
-                setattr(Attributes,k,v)
-            else :
+            if k != "doc":
+                setattr(Attributes, k, v)
+            else:
                 setattr(Annotations, k, v)
 
         return type(cls)(cls.__name__, cls.__bases__, cls_dict)
