@@ -29,7 +29,6 @@ import sqlalchemy
 from sqlalchemy import Column
 
 from sqlalchemy.ext.declarative import DeclarativeMeta
-from sqlalchemy.orm.attributes import manager_of_class
 
 from rpclib.model.complex import TypeInfo
 from rpclib.model.complex import ComplexModelBase
@@ -87,9 +86,6 @@ class TableSerializer(ComplexModelBase):
     @classmethod
     def customize(cls, **kwargs):
         cls_name, cls_bases, cls_dict = ComplexModelBase._s_customize(cls, **kwargs)
-
-        manager = manager_of_class(cls)
-        cls_dict['class_'] = manager.class_
 
         retval = ComplexModelMeta.__new__(ComplexModelMeta, cls_name, cls_bases, cls_dict)
 
