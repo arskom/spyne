@@ -17,6 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 import unittest
 
 from rpclib.model.table import TableSerializer
@@ -31,15 +34,14 @@ from sqlalchemy import ForeignKey
 
 from sqlalchemy.orm import mapper
 from sqlalchemy.orm import relationship
-
-import logging
-logging.basicConfig(level=logging.DEBUG)
+from sqlalchemy.orm import sessionmaker
 
 class TestSqlAlchemy(unittest.TestCase):
     def set_up(self):
         self.metadata = MetaData()
         self.DeclarativeBase = declarative_base(metadata=self.metadata)
         self.engine = create_engine('sqlite:///:memory:', echo=True)
+        self.Session = sessionmaker(bind=self.engine)
 
     setUp=set_up
 
@@ -107,6 +109,100 @@ class TestSqlAlchemy(unittest.TestCase):
 
     #def test_deserialize(self):
     #    raise Exception("Test Something!")
+
+    def test_rpc(self):
+        import sqlalchemy
+        from sqlalchemy import sql
+
+        class KeyValuePair(TableSerializer, self.DeclarativeBase):
+            __tablename__ = 'key_value_store'
+            __namespace__ = 'punk'
+
+            id = Column(sqlalchemy.Integer, primary_key=True)
+            key = Column(sqlalchemy.String(100), nullable=False)
+            value = Column(sqlalchemy.String, nullable=False)
+
+        self.metadata.create_all(self.engine)
+
+        import hashlib
+
+        session = self.Session()
+
+        for i in xrange(1,10):
+            key = str(i)
+            m = hashlib.md5()
+            m.update(key)
+            value = m.hexdigest()
+
+            session.add(KeyValuePair(key=key, value=value))
+
+        session.commit()
+
+        from rpclib.service import ServiceBase
+        from rpclib.decorator import rpc
+        from rpclib.model.complex import Array
+        from rpclib.model.primitive import String
+
+        class Service(ServiceBase):
+            @rpc(String(max_occurs='unbounded'),
+                    _returns=Array(KeyValuePair),
+                    _in_variable_names={
+                        'keys': 'key'
+                    }
+                )
+            def get_values(ctx, keys):
+                session = self.Session()
+
+                return session.query(KeyValuePair).filter(sql.and_(
+                    KeyValuePair.key.in_(keys)
+                )).order_by(KeyValuePair.key)
+
+        from rpclib.application import Application
+        from rpclib.interface.wsdl import Wsdl11
+        from rpclib.protocol.http import HttpRpc
+        from rpclib.protocol.soap import Soap11
+
+        application = Application([Service],
+            interface_class=Wsdl11,
+            in_protocol_class=HttpRpc,
+            out_protocol_class=Soap11,
+            name='Service', tns='tns'
+        )
+
+        from rpclib.server.wsgi import WsgiMethodContext
+
+        ctx = WsgiMethodContext(application,{
+            'QUERY_STRING': 'key=1&key=2&key=3',
+            'PATH_INFO': '/get_values',
+        }, 'some-content-type')
+
+        from rpclib.server import ServerBase
+
+        ctx = WsgiMethodContext(application,{
+            'QUERY_STRING': 'key=1&key=2&key=3',
+            'PATH_INFO': '/get_values',
+        }, 'some-content-type')
+        server = ServerBase(application)
+        server.get_in_object(ctx)
+        server.get_out_object(ctx)
+        server.get_out_string(ctx)
+
+        i = 0
+        for e in ctx.out_document[0][0][0]:
+            i+=1
+            key = str(i)
+            m = hashlib.md5()
+            m.update(key)
+            value = m.hexdigest()
+
+            _key = e.find('{%s}key' % KeyValuePair.get_namespace())
+            _value = e.find('{%s}value' % KeyValuePair.get_namespace())
+
+            print _key, _key.text
+            print _value, _value.text
+
+            self.assertEquals(_key.text, key)
+            self.assertEquals(_value.text, value)
 
 if __name__ == '__main__':
     unittest.main()
