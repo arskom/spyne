@@ -95,7 +95,7 @@ class TestSqlAlchemy(unittest.TestCase):
                 }
 
                 cls._mapper = mapper(cls, cls._main_t,
-                    include_properties=cls._properties.keys(),
+                    include_properties=cls._properties.values(),
                     properties=cls._properties,
                     primary_key=[address_t.c.id]
                 )
