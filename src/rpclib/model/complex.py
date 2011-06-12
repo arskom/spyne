@@ -189,7 +189,10 @@ class ComplexModelBase(ModelBase):
             parent_cls.get_members_etree(inst, parent)
 
         for k, v in cls._type_info.items():
-            subvalue = getattr(inst, k, None)
+            try:
+                subvalue = getattr(inst, k, None)
+            except: # to guard against sqlalchemy throwing NoSuchColumnError
+                subvalue = None
 
             if isinstance(v, XMLAttribute):
                 v.marshall(k, subvalue, parent)
