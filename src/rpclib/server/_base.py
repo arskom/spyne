@@ -57,7 +57,6 @@ class ServerBase(object):
             ctx.in_error = e
             ctx.out_error = e
 
-
     def get_out_object(self, ctx):
         self.app.process_request(ctx, ctx.in_object)
 
