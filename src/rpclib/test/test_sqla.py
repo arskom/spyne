@@ -58,14 +58,14 @@ class TestSqlAlchemy(unittest.TestCase):
     def test_mapper(self):
         import sqlalchemy
 
-        class User(TableSerializer,self.DeclarativeBase):
+        class User(self.DeclarativeBase):
             __tablename__ = 'user'
 
             id = Column(sqlalchemy.Integer, primary_key=True)
             name = Column(sqlalchemy.String(50))
             addresses = relationship("Address", backref="user")
 
-        class Address(TableSerializer,self.DeclarativeBase):
+        class Address(self.DeclarativeBase):
             __tablename__ = 'address'
 
             id = Column(sqlalchemy.Integer, primary_key=True)
@@ -75,6 +75,7 @@ class TestSqlAlchemy(unittest.TestCase):
         self.metadata.create_all(self.engine)
 
         import rpclib.model.primitive
+
         class AddressDetail(ComplexModel):
             id = rpclib.model.primitive.Integer
             user_name = rpclib.model.primitive.String
