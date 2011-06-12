@@ -43,18 +43,17 @@ class Server(ServerBase):
 
     def serve_forever(self):
         while True:
-            in_string = self.soap_socket.recv()
+            ctx.in_string = self.soap_socket.recv()
             ctx = MethodContext(self.app)
 
-            in_object = self.get_in_object(ctx, in_string)
+            self.get_in_object(ctx)
 
             if ctx.in_error:
-                out_object = ctx.in_error
+                ctx.out_object = ctx.in_error
             else:
-                out_object = self.get_out_object(ctx, in_object)
+                self.get_out_object(ctx)
                 if ctx.out_error:
-                    out_object = ctx.out_error
+                    ctx.out_object = ctx.out_error
 
-            out_string = self.get_out_string(ctx, out_object)
-
-            self.soap_socket.send(''.join(out_string))
+            self.get_out_string(ctx, ctx.out_object)
+            self.soap_socket.send(''.join(ctx.out_string))
