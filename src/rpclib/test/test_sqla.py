@@ -27,8 +27,6 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
 from sqlalchemy import MetaData
 from sqlalchemy import Column
-from sqlalchemy import Integer
-from sqlalchemy import String
 from sqlalchemy import ForeignKey
 
 from sqlalchemy.orm import mapper
@@ -46,6 +44,9 @@ class TestSqlAlchemy(unittest.TestCase):
     setUp=set_up
 
     def test_declarative(self):
+        from sqlalchemy import Integer
+        from sqlalchemy import String
+
         class DbObject(TableSerializer,self.DeclarativeBase):
             __tablename__ = 'db_object'
 
@@ -55,26 +56,29 @@ class TestSqlAlchemy(unittest.TestCase):
         self.metadata.create_all(self.engine)
 
     def test_mapper(self):
+        import sqlalchemy
+
         class User(TableSerializer,self.DeclarativeBase):
             __tablename__ = 'user'
 
-            id = Column(Integer, primary_key=True)
-            name = Column(String(50))
+            id = Column(sqlalchemy.Integer, primary_key=True)
+            name = Column(sqlalchemy.String(50))
             addresses = relationship("Address", backref="user")
 
         class Address(TableSerializer,self.DeclarativeBase):
             __tablename__ = 'address'
 
-            id = Column(Integer, primary_key=True)
-            email = Column(String(50))
-            user_id = Column(Integer, ForeignKey('user.id'))
+            id = Column(sqlalchemy.Integer, primary_key=True)
+            email = Column(sqlalchemy.String(50))
+            user_id = Column(sqlalchemy.Integer, ForeignKey('user.id'))
 
         self.metadata.create_all(self.engine)
 
+        import rpclib.model.primitive
         class AddressDetail(ComplexModel):
-            id = Integer
-            user_name = String
-            address = String
+            id = rpclib.model.primitive.Integer
+            user_name = rpclib.model.primitive.String
+            address = rpclib.model.primitive.String
 
             @classmethod
             def mapper(cls, meta):
@@ -97,11 +101,11 @@ class TestSqlAlchemy(unittest.TestCase):
 
         AddressDetail.mapper(self.metadata)
 
-    def test_serialize(self):
-        raise Exception("Test Something!")
+    #def test_serialize(self):
+    #    raise Exception("Test Something!")
 
-    def test_deserialize(self):
-        raise Exception("Test Something!")
+    #def test_deserialize(self):
+    #    raise Exception("Test Something!")
 
 if __name__ == '__main__':
     unittest.main()
