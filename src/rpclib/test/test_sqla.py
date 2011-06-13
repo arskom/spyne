@@ -178,10 +178,6 @@ class TestSqlAlchemy(unittest.TestCase):
 
         from rpclib.server import ServerBase
 
-        ctx = WsgiMethodContext(application,{
-            'QUERY_STRING': 'key=1&key=2&key=3',
-            'PATH_INFO': '/get_values',
-        }, 'some-content-type')
         server = ServerBase(application)
         server.get_in_object(ctx)
         server.get_out_object(ctx)
