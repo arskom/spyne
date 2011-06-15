@@ -89,6 +89,9 @@ class XSDGenerator():
         app = self.__get_binding_application(binding_service)
         nodes = app.build_schema(types=None)
 
+        for k,v in nodes.items():
+            nodes[k] = self._clean_imports(v)
+
         return nodes
 
     def __get_model_node(self, model, nodes):
@@ -153,8 +156,26 @@ class XSDGenerator():
         for element in element_dict.values():
             if element.attrib['targetNamespace'] != 'binding_application':
                 out_elements.append(element)
-
         return out_elements
+
+    def _clean_imports(self, dirty_node):
+        """
+        Presently the xsd engine in soaplib adds excessive import statements
+        for xs.  This method removes them.
+        """
+
+        sl_attr = "schemaLocation"
+
+        for el in dirty_node :
+            if sl_attr in el.keys() and el.attrib["schemaLocation"] == "xs.xsd" :
+                dirty_node.remove(el)
+            #if el.attrib["schemaLocation"] == "xs.xsd" :
+#            print etree.tostring(el, pretty_print=True)
+#            print el.items()
+#            print "schemaLocation" in el.keys()
+
+        return dirty_node
+                
 
     def update_prefix_map(self, prefix, namespace):
         """
@@ -163,7 +184,7 @@ class XSDGenerator():
         self.model_schema_nsmap[namespace] = prefix
 
 
-    def get_model_xsd(self, model, encoding='utf-8', pretty_print=False):
+    def get_model_xsd(self, model, encoding='utf-8', pretty_print=False, strip_extra_imports=True):
         '''Returns a string representation of an XSD for the specified model.
 
         @param  A soaplib.core.model class that will be represented in the schema.
@@ -174,6 +195,9 @@ class XSDGenerator():
 
         nodes = self.__get_nodes(model)
         xsd_out = self.__get_model_node(model, nodes)
+
+        if strip_extra_imports:
+            xsd_out = self._clean_imports(xsd_out)
 
         return etree.tostring(
             xsd_out,

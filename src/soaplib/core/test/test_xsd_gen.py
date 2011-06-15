@@ -56,7 +56,7 @@ class TestXsdGen(unittest.TestCase):
         self.xsd_gen.model_schema_nsmap["SimpleModel"] = "SimpleModel"
 
     def tearDown(self):
-	pass
+	    pass
         #for f in glob('*.xsd'):
         #    os.unlink(f)
 
@@ -72,7 +72,7 @@ class TestXsdGen(unittest.TestCase):
     def test_simple_xsd(self):
         simple_xsd = self.xsd_gen.get_model_xsd(
             SimpleModel,
-            pretty_print=False
+            pretty_print=True
         )
         print simple_xsd
 

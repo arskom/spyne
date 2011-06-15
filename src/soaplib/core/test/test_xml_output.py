@@ -29,6 +29,7 @@ from soaplib.core.util.model_utils import ClassModelConverter
 
 class SimpleModel(ClassModel):
 
+    __namespace__ = "simplemodel"
     __type_name__ = "simplemodel"
     simple_text = String
     simple_num = Integer
@@ -43,6 +44,7 @@ def simple_factory():
 
 
 class ComplexModel(ClassModel):
+    __namespace__ = "complexmodel"
     __type_name__ = "complexmodel"
     simple = SimpleModel
     complex_text = String
@@ -66,11 +68,12 @@ class BaseCase(unittest.TestCase):
 
     def setUp(self):
         self.file_path = "instance.xml"
-        self.converter = ClassModelConverter(simple_factory(), "tns")
+        self.converter = ClassModelConverter(complex_factory(), "complexmodel")
 
     def tearDown(self):
-        if os.path.isfile(self.file_path):
-            os.unlink(self.file_path)
+        pass
+#        if os.path.isfile(self.file_path):
+#            os.unlink(self.file_path)
 
     def xml(self):
         xml = self.converter.to_xml()
@@ -98,61 +101,61 @@ class BaseCase(unittest.TestCase):
 
 class ModelAsRootTestCase(BaseCase):
 
-    def test_simple_xml(self):
-        self.xml()
+#    def test_simple_xml(self):
+#        self.xml()
 
     def test_simple_file(self):
         self.file()
-
-    def test_simple_element(self):
-        self.element()
-
-    def test_complex_xml(self):
-        self.xml()
-
-    def test_complex_file(self):
-        self.file()
-
-    def test_complex_element(self):
-        self.element()
-        
-    def test_strip_ns(self):
-        self.remove_ns()
-
-    def test_empty_ns(self):
-        self.empty_ns()
-
-class AddedRootElementTestCase(BaseCase):
-    def setUp(self):
-        self.file_path = "instance.xml"
-        self.converter = ClassModelConverter(
-                simple_factory(),"tns",include_parent=True, parent_tag="foo")
-
-    def element(self):
-        element =  self.converter.to_etree()
-        self.assertTrue(element)
-        self.assertEquals(element.tag, self.converter.parent_tag)
-
-    def test_simple_xml(self):
-        self.xml()
-
-    def test_simple_file(self):
-        self.file()
-
-    def test_simple_element(self):
-        self.element()
-
-    def test_complex_xml(self):
-        self.xml()
-
-    def test_complex_file(self):
-        self.file()
-
-    def test_complex_element(self):
-        self.element()
-
-    def test_strip_ns(self):
-        self.remove_ns()
+#
+#    def test_simple_element(self):
+#        self.element()
+#
+#    def test_complex_xml(self):
+#        self.xml()
+#
+#    def test_complex_file(self):
+#        self.file()
+#
+#    def test_complex_element(self):
+#        self.element()
+#
+#    def test_strip_ns(self):
+#        self.remove_ns()
+#
+#    def test_empty_ns(self):
+#        self.empty_ns()
+#
+#class AddedRootElementTestCase(BaseCase):
+#    def setUp(self):
+#        self.file_path = "instance.xml"
+#        self.converter = ClassModelConverter(
+#                simple_factory(),"tns",include_parent=True, parent_tag="foo")
+#
+#    def element(self):
+#        element =  self.converter.to_etree()
+#        self.assertTrue(element)
+#        self.assertEquals(element.tag, self.converter.parent_tag)
+#
+#    def test_simple_xml(self):
+#        self.xml()
+#
+#    def test_simple_file(self):
+#        self.file()
+#
+#    def test_simple_element(self):
+#        self.element()
+#
+#    def test_complex_xml(self):
+#        self.xml()
+#
+#    def test_complex_file(self):
+#        self.file()
+#
+#    def test_complex_element(self):
+#        self.element()
+#
+#    def test_strip_ns(self):
+#        self.remove_ns()
 
 class NillMinOccursModel(ClassModel):
     __namespace__ = "tns"
@@ -160,19 +163,19 @@ class NillMinOccursModel(ClassModel):
     nillable_only = String(nillable=True, min_occurs=1)
     nillabl_min_occ_zero = String(nillable=True, min_occurs=0)
     min_occ_int = Integer(nillable=True, min_occurs=1)
-
-
-class MinOccursTestCase(unittest.TestCase):
-
-    def _create_test_model(self, nill_only, nill_min):
-        inst = NillMinOccursModel()
-        inst.nillable_only = nill_only
-        inst.nillabl_min_occ_zero = nill_min
-
-        return inst
-
-    def _create_cmc(self, instance):
-        return ClassModelConverter(instance, "tns", include_ns=True)
+#
+#
+#class MinOccursTestCase(unittest.TestCase):
+#
+#    def _create_test_model(self, nill_only, nill_min):
+#        inst = NillMinOccursModel()
+#        inst.nillable_only = nill_only
+#        inst.nillabl_min_occ_zero = nill_min
+#
+#        return inst
+#
+#    def _create_cmc(self, instance):
+#        return ClassModelConverter(instance, "tns", include_ns=True)
 
 #    def test_all_none(self):
 #        instance = self._create_test_model(None, None)

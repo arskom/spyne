@@ -110,7 +110,8 @@ class Base(object):
     @classmethod
     def get_type_name_ns(cls,app):
         if cls.get_namespace() != None:
-            return "%s:%s" % (cls.get_namespace_prefix(app),cls.get_type_name())
+            tn_ns = "%s:%s" % (cls.get_namespace_prefix(app), cls.get_type_name())
+            return tn_ns
 
     @classmethod
     @nillable_element
@@ -122,18 +123,19 @@ class Base(object):
     def to_parent_element(cls, value, tns, parent_elt, name='retval'):
         '''
         Creates a lxml.etree SubElement as a child of a 'parent' Element
-        @param The value to be set for the 'text' element of the newly created
+        @param:value  The value to be set for the 'text' element of the newly created
         SubElement
-        @param The target namespace of the new SubElement, used with 'name' to
+        @param:tns The target namespace of the new SubElement, used with 'name' to
         set the tag.  
-        @param The parent Element to which the new child will be appended.
-        @param The new tag name of new SubElement.
+        @param:parent_elt The parent Element to which the new child will be appended.
+        @param:name The new tag name of new SubElement.
         '''
 
         assert isinstance(value, str) or isinstance(value, unicode), \
             "'value' must be string or unicode. it is instead %r" % value
 
-        etree.SubElement(parent_elt, "{%s}%s" % (tns,name)).text = value
+        child = etree.SubElement(parent_elt, "{%s}%s" % (tns,name))
+        child.text = value
 
     @classmethod
     def add_to_schema(cls, schema_entries):

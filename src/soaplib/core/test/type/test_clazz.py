@@ -33,12 +33,12 @@ from lxml import etree
 ns_test = 'test_namespace'
 
 class Address(ClassModel):
-    street = String
-    city = String
-    zip = Integer
+    street = String(min_occurs=1)
+    city = String(min_occurs=1)
+    zip = Integer(min_occurs=1)
     since = DateTime(min_occurs=1)
-    lattitude = Float
-    longitude = Float
+    lattitude = Float(min_occurs=1)
+    longitude = Float(min_occurs=1)
 
 Address.resolve_namespace(Address,__name__)
 
@@ -79,35 +79,6 @@ class Level1(ClassModel):
     level4 = Array(Level4)
 
 Level1.resolve_namespace(Level1, __name__)
-
-
-class SisMsg(ClassModel):
-    """
-    Container with metadata for Jiva integration messages
-    carried in the MQ payload.
-    """
-    data_source = String(nillable=False, min_occurs=1, max_occurs=1, max_len=50)
-    direction = String(nillable=False, min_occurs=1, max_occurs=1, max_len=50)
-    interface_name = String(nillable=False, min_occurs=1, max_occurs=1, max_len=50)
-    crt_dt = DateTime(nillable=False)
-
-class EncExtractXs (ClassModel):
-    __min_occurs__ = 1
-    __max_occurs__ = 1
-    mbr_idn = Integer(nillable=False, min_occurs=1, max_occurs=1, max_len=18)
-    enc_idn = Integer(nillable=False, min_occurs=1, max_occurs=1, max_len=18)
-    hist_idn = Integer(nillable=False, min_occurs=1, max_occurs=1, max_len=18)
-
-
-class EncExtractSisMsg (SisMsg):
-    """
-    Message indicating a Jiva episode needs to be extracted.
-
-    Desirable API: Will it work?
-    >>> msg = EncExtractSisMsg.from_xml(raw_xml)
-    >>> msg.body.mbr_idn
-    """
-    body = EncExtractXs
 
 
 class TestClassModel(unittest.TestCase):
