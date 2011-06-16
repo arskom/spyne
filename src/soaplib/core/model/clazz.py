@@ -59,16 +59,15 @@ class XMLAttributeRef(XMLAttribute):
 
 
 class ClassModelMeta(type(Base)):
-    '''
-    This is the metaclass that populates ClassModel instances with
+    """This is the metaclass that populates ClassModel instances with
     the appropriate datatypes for (de)serialization.
-    '''
+    """
 
     def __new__(cls, cls_name, cls_bases, cls_dict):
-        '''
+        """
         This initializes the class, and sets all the appropriate types onto the
         class for serialization.
-        '''
+        """
 
         type_name = cls_dict.get("__type_name__", None)
         if type_name is None:
