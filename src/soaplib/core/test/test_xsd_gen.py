@@ -56,9 +56,8 @@ class TestXsdGen(unittest.TestCase):
         self.xsd_gen.model_schema_nsmap["SimpleModel"] = "SimpleModel"
 
     def tearDown(self):
-	    pass
-        #for f in glob('*.xsd'):
-        #    os.unlink(f)
+        for f in glob('*.xsd'):
+            os.unlink(f)
 
     def named_element_check(self, element):
         name_found = False

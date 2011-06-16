@@ -71,9 +71,8 @@ class BaseCase(unittest.TestCase):
         self.converter = ClassModelConverter(complex_factory(), "complexmodel")
 
     def tearDown(self):
-        pass
-#        if os.path.isfile(self.file_path):
-#            os.unlink(self.file_path)
+        if os.path.isfile(self.file_path):
+            os.unlink(self.file_path)
 
     def xml(self):
         xml = self.converter.to_xml()
@@ -101,61 +100,61 @@ class BaseCase(unittest.TestCase):
 
 class ModelAsRootTestCase(BaseCase):
 
-#    def test_simple_xml(self):
-#        self.xml()
+    def test_simple_xml(self):
+        self.xml()
 
     def test_simple_file(self):
         self.file()
-#
-#    def test_simple_element(self):
-#        self.element()
-#
-#    def test_complex_xml(self):
-#        self.xml()
-#
-#    def test_complex_file(self):
-#        self.file()
-#
-#    def test_complex_element(self):
-#        self.element()
-#
-#    def test_strip_ns(self):
-#        self.remove_ns()
-#
-#    def test_empty_ns(self):
-#        self.empty_ns()
-#
-#class AddedRootElementTestCase(BaseCase):
-#    def setUp(self):
-#        self.file_path = "instance.xml"
-#        self.converter = ClassModelConverter(
-#                simple_factory(),"tns",include_parent=True, parent_tag="foo")
-#
-#    def element(self):
-#        element =  self.converter.to_etree()
-#        self.assertTrue(element)
-#        self.assertEquals(element.tag, self.converter.parent_tag)
-#
-#    def test_simple_xml(self):
-#        self.xml()
-#
-#    def test_simple_file(self):
-#        self.file()
-#
-#    def test_simple_element(self):
-#        self.element()
-#
-#    def test_complex_xml(self):
-#        self.xml()
-#
-#    def test_complex_file(self):
-#        self.file()
-#
-#    def test_complex_element(self):
-#        self.element()
-#
-#    def test_strip_ns(self):
-#        self.remove_ns()
+
+    def test_simple_element(self):
+        self.element()
+
+    def test_complex_xml(self):
+        self.xml()
+
+    def test_complex_file(self):
+        self.file()
+
+    def test_complex_element(self):
+        self.element()
+
+    def test_strip_ns(self):
+        self.remove_ns()
+
+    def test_empty_ns(self):
+        self.empty_ns()
+
+class AddedRootElementTestCase(BaseCase):
+    def setUp(self):
+        self.file_path = "instance.xml"
+        self.converter = ClassModelConverter(
+                simple_factory(),"tns",include_parent=True, parent_tag="foo")
+
+    def element(self):
+        element =  self.converter.to_etree()
+        self.assertTrue(element)
+        self.assertEquals(element.tag, self.converter.parent_tag)
+
+    def test_simple_xml(self):
+        self.xml()
+
+    def test_simple_file(self):
+        self.file()
+
+    def test_simple_element(self):
+        self.element()
+
+    def test_complex_xml(self):
+        self.xml()
+
+    def test_complex_file(self):
+        self.file()
+
+    def test_complex_element(self):
+        self.element()
+
+    def test_strip_ns(self):
+        self.remove_ns()
 
 class NillMinOccursModel(ClassModel):
     __namespace__ = "tns"
