@@ -169,10 +169,6 @@ class XSDGenerator():
         for el in dirty_node :
             if sl_attr in el.keys() and el.attrib["schemaLocation"] == "xs.xsd" :
                 dirty_node.remove(el)
-            #if el.attrib["schemaLocation"] == "xs.xsd" :
-#            print etree.tostring(el, pretty_print=True)
-#            print el.items()
-#            print "schemaLocation" in el.keys()
 
         return dirty_node
                 

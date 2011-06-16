@@ -74,7 +74,6 @@ class TestXsdGen(unittest.TestCase):
             SimpleModel,
             pretty_print=True
         )
-        print simple_xsd
 
         self.xsd_gen.write_model_xsd_file(SimpleModel, ".")
 

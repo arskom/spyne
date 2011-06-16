@@ -68,7 +68,7 @@ class ClassModelConverter():
     def _rebuild_root(self, old_root, new_root):
 
         for child in old_root.iterchildren():
-            new_sub = etree.SubElement(new_root, child.tag)
+            new_sub = etree.SubElement(new_root, child.tag, attrib=child.attrib)
             new_sub.text = child.text
             self._rebuild_root(child, new_sub)
 
@@ -84,16 +84,11 @@ class ClassModelConverter():
 
         for ns,prefix in prefix_by_namespace.items():
             if ns not in root_ns_map.values():
-                print ns, prefix
                 root_ns_map[prefix[0]] = ns
 
-
-        new_root = etree.Element(root.tag, nsmap=root_ns_map)
-
+        new_root = etree.Element(root.tag, nsmap=root_ns_map, attrib=root.attrib)
         self._rebuild_root(root, new_root)
         return new_root
-
-
 
     def _build_defult_prefix_by_namespace(self, root, default_dict):
         dirty_children = [child for child in root.iterchildren()]
