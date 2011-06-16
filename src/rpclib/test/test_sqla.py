@@ -118,8 +118,7 @@ class TestSqlAlchemy(unittest.TestCase):
             __tablename__ = 'key_value_store'
             __namespace__ = 'punk'
 
-            id = Column(sqlalchemy.Integer, primary_key=True)
-            key = Column(sqlalchemy.String(100), nullable=False)
+            key = Column(sqlalchemy.String(100), nullable=False, primary_key=True)
             value = Column(sqlalchemy.String, nullable=False)
 
         self.metadata.create_all(self.engine)
