@@ -30,6 +30,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
 from sqlalchemy import MetaData
 from sqlalchemy import Column
+from sqlalchemy import Table
 from sqlalchemy import ForeignKey
 
 from sqlalchemy.orm import mapper
@@ -198,6 +199,20 @@ class TestSqlAlchemy(unittest.TestCase):
 
             self.assertEquals(_key.text, key)
             self.assertEquals(_value.text, value)
+
+    def test_late_mapping(self):
+        import sqlalchemy
+
+        user_t = Table('user', self.metadata,
+             Column('id', sqlalchemy.Integer, primary_key=True),
+             Column('name',  sqlalchemy.String),
+        )
+
+        class User(TableSerializer, self.DeclarativeBase):
+            __table__ = user_t
+
+        self.assertEquals(User._type_info['id'].__type_name__, 'integer')
+        self.assertEquals(User._type_info['name'].__type_name__, 'string')
 
 if __name__ == '__main__':
     unittest.main()

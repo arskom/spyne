@@ -352,6 +352,7 @@ class ComplexModelBase(ModelBase):
         ModelBase.resolve_namespace(cls, default_ns)
 
         for k, v in cls._type_info.items():
+            logger.debug('resolving namespace for child %r', k)
             if v.__type_name__ is ModelBase.Empty:
                 v.__namespace__ = cls.get_namespace()
                 v.__type_name__ = "%s_%sType" % (cls.get_type_name(), k)
