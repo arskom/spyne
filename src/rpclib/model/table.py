@@ -53,16 +53,15 @@ _type_map = {
 }
 
 def _process_item(v):
-    if isinstance(v, Column):
-        if v.type in _type_map:
-            rpc_type = _type_map[v.type]
-        elif type(v.type) in _type_map:
-            rpc_type = _type_map[type(v.type)]
-        else:
-            raise Exception("soap_type was not found. maybe "
-                            "_type_map needs a new entry.")
+    if v.type in _type_map:
+        rpc_type = _type_map[v.type]
+    elif type(v.type) in _type_map:
+        rpc_type = _type_map[type(v.type)]
+    else:
+        raise Exception("soap_type was not found. maybe _type_map needs a new "
+                        "entry.")
 
-        return rpc_type
+    return rpc_type
 
 class TableSerializerMeta(DeclarativeMeta,ComplexModelMeta):
     def __new__(cls, cls_name, cls_bases, cls_dict):
@@ -73,17 +72,15 @@ class TableSerializerMeta(DeclarativeMeta,ComplexModelMeta):
             cls_dict["_type_info"] = _type_info = TypeInfo()
 
             for k, v in cls_dict.items():
-                if not k.startswith('__'):
+                if (not k.startswith('__')) and isinstance(v, Column):
                     t = _process_item(v)
-                    if not (t is None):
-                        _type_info[k] = t
+                    _type_info[k] = t
 
             table = cls_dict.get('__table__',None)
             if not (table is None):
                 for c in table.c:
                     t = _process_item(c)
-                    if not (t is None):
-                        _type_info[c.name] = t
+                    _type_info[c.name] = t
 
         return DeclarativeMeta.__new__(cls, cls_name, cls_bases, cls_dict)
 
