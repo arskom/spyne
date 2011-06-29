@@ -43,13 +43,12 @@ _type_map = {
     sqlalchemy.UnicodeText: primitive.String,
 
     sqlalchemy.Float: primitive.Float,
-    sqlalchemy.Numeric: primitive.Double,
+    sqlalchemy.Numeric: primitive.Decimal,
     sqlalchemy.Integer: primitive.Integer,
     sqlalchemy.SmallInteger: primitive.Integer,
 
     sqlalchemy.Boolean: primitive.Boolean,
     sqlalchemy.DateTime: primitive.DateTime,
-    sqlalchemy.Numeric: primitive.Decimal,
     sqlalchemy.orm.relation: complex.Array,
 }
 
