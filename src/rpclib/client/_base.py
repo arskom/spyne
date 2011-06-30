@@ -56,9 +56,10 @@ class RemoteProcedureBase(object):
 
         self.ctx = MethodContext(app)
         self.ctx.method_name = name
-        self.ctx.service_class = self.app.get_service_class(name)
         self.ctx.out_header = out_header
-        self.ctx.descriptor = self.ctx.service_class.get_method(self.ctx.method_name)
+
+        self.ctx.service_class = self.app.get_service_class(name)
+        self.ctx.descriptor = self.ctx.service_class.get_method(name)
 
     def get_out_object(self, args, kwargs):
         assert self.ctx.out_object is None

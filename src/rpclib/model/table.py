@@ -19,7 +19,7 @@
 
 """
 The rpclib.model.table module is EXPERIMENTAL. It does not support
-inheritance, it is probably buggy and slow.
+inheritance and it is probably buggy.
 """
 
 import logging
@@ -73,14 +73,12 @@ class TableSerializerMeta(DeclarativeMeta,ComplexModelMeta):
 
             for k, v in cls_dict.items():
                 if (not k.startswith('__')) and isinstance(v, Column):
-                    t = _process_item(v)
-                    _type_info[k] = t
+                    _type_info[k] = _process_item(v)
 
-            table = cls_dict.get('__table__',None)
+            table = cls_dict.get('__table__', None)
             if not (table is None):
                 for c in table.c:
-                    t = _process_item(c)
-                    _type_info[c.name] = t
+                    _type_info[c.name] = _process_item(c)
 
         return DeclarativeMeta.__new__(cls, cls_name, cls_bases, cls_dict)
 
@@ -90,8 +88,10 @@ class TableSerializer(ComplexModelBase):
 
     @classmethod
     def customize(cls, **kwargs):
-        cls_name, cls_bases, cls_dict = ComplexModelBase._s_customize(cls, **kwargs)
+        cls_name, cls_bases, cls_dict = ComplexModelBase._s_customize(
+                                                                  cls, **kwargs)
 
-        retval = ComplexModelMeta.__new__(ComplexModelMeta, cls_name, cls_bases, cls_dict)
+        retval = ComplexModelMeta.__new__(ComplexModelMeta, cls_name,
+                                                            cls_bases, cls_dict)
 
         return retval

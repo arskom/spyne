@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""A soap server that uses ZeroMQ (zmq.REP) as transport"""
+"""A server that uses ZeroMQ (zmq.REP) as transport"""
 
 import zmq
 
