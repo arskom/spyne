@@ -33,7 +33,7 @@ class ServiceBaseMeta(type):
 
         for func_name, func in cls_dict.iteritems():
             if callable(func) and hasattr(func, '_is_rpc'):
-                descriptor = func(_method_descriptor=True)
+                descriptor = func(_method_descriptor=func_name)
                 self.public_methods.append(descriptor)
 
                 setattr(self, func_name, staticmethod(func))

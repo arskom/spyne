@@ -214,18 +214,19 @@ class Base(object):
             s.__tns__ = self.get_tns()
             logger.debug("populating '%s.%s'" % (s.__module__, s.__name__))
             for method in s.public_methods:
-                method_name = "{%s}%s" % (self.get_tns(), method.name)
+                method_name = "{%s}%s" % (self.get_tns(), method.public_name)
 
                 if method_name in self.call_routes:
                     o = self.call_routes[method_name]
-                    raise Exception("%s.%s.%s overwrites %s.%s.%s" %
-                                    (s.__module__, s.__name__, method.name,
-                                     o.__module__, o.__name__, method.name))
+                    raise Exception("\n%s.%s.%s(%s) overwrites\n%s.%s.%s(%s)" %
+                        (s.__module__, s.__name__, method.name, method.public_name,
+                         o.__module__, o.__name__, method.name, method.public_name,
+                        ))
 
                 else:
-                    logger.debug('\tadding method %r' % method_name)
+                    logger.debug('\tadding method %r or %r' % (method_name, method.public_name))
                     self.call_routes[method_name] = s
-                    self.call_routes[method.name] = s
+                    self.call_routes[method.public_name] = s
 
         # populate types
         for s in self.services:

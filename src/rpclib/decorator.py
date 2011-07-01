@@ -22,13 +22,13 @@ from rpclib.model.complex import ComplexModel
 from rpclib.model.complex import TypeInfo
 from rpclib.const.xml_ns import DEFAULT_NS
 
-def _produce_input_message(f, params, kparams, no_ctx):
+def _produce_input_message(f, func_name, params, kparams, no_ctx):
     if no_ctx is True:
         arg_start=0
     else:
         arg_start=1
 
-    _in_message = kparams.get('_in_message', f.func_name)
+    _in_message = kparams.get('_in_message', func_name)
     _in_variable_names = kparams.get('_in_variable_names', {})
 
     argcount = f.func_code.co_argcount
@@ -71,7 +71,7 @@ def _validate_body_style(kparams):
 
     return _body_style
 
-def _produce_output_message(f, params, kparams):
+def _produce_output_message(f, func_name, params, kparams):
     """Generate an output message for "rpc"-style API methods.
 
     This message is a wrapper to the declared return type.
@@ -80,12 +80,12 @@ def _produce_output_message(f, params, kparams):
     _returns = kparams.get('_returns')
     _body_style = _validate_body_style(kparams)
 
-    _out_message = kparams.get('_out_message', '%sResponse' % f.func_name)
+    _out_message = kparams.get('_out_message', '%sResponse' % func_name)
     out_params = TypeInfo()
 
     if _returns and _body_style == 'wrapped':
         if isinstance(_returns, (list, tuple)):
-            default_names = ['%sResult%d' % (f.func_name, i) for i in
+            default_names = ['%sResult%d' % (func_name, i) for i in
                                                            range(len(_returns))]
 
             _out_variable_names = kparams.get('_out_variable_names',
@@ -98,13 +98,14 @@ def _produce_output_message(f, params, kparams):
 
         else:
             _out_variable_name = kparams.get('_out_variable_name',
-                                                       '%sResult' % f.func_name)
+                                                       '%sResult' % func_name)
 
             out_params[_out_variable_name] = _returns
 
     if _body_style == 'wrapped':
-        message = ComplexModel.produce(type_name=_out_message, namespace=DEFAULT_NS,
-                                                             members=out_params)
+        message = ComplexModel.produce(type_name=_out_message,
+                                        namespace=DEFAULT_NS,
+                                        members=out_params)
         message.__namespace__ = DEFAULT_NS # FIXME: is this necessary?
 
     else:
@@ -131,13 +132,14 @@ def rpc(*params, **kparams):
     def explain(f):
         def explain_method(*args, **kwargs):
             retval = None
+            function_name = kwargs.get('_method_descriptor', None)
 
-            if not ('_method_descriptor' in kwargs):
+            if function_name is None:
                 retval = f(*args, **kwargs)
 
             else:
                 _is_callback = kparams.get('_is_callback', False)
-                _public_name = kparams.get('_public_name', f.func_name)
+                _public_name = kparams.get('_public_name', function_name)
                 _is_async = kparams.get('_is_async', False)
                 _mtom = kparams.get('_mtom', False)
                 _in_header = kparams.get('_in_header', None)
@@ -146,11 +148,11 @@ def rpc(*params, **kparams):
                 _no_ctx = kparams.get('_no_ctx', False)
                 _faults = kparams.get('_faults', [])
 
-                in_message = _produce_input_message(f, params, kparams, _no_ctx)
-                out_message = _produce_output_message(f, params, kparams)
+                in_message = _produce_input_message(f, _public_name, params, kparams, _no_ctx)
+                out_message = _produce_output_message(f, _public_name, params, kparams)
 
                 doc = getattr(f, '__doc__')
-                retval = MethodDescriptor(f.func_name, _public_name,
+                retval = MethodDescriptor(function_name, _public_name,
                         in_message, out_message, doc, _is_callback, _is_async,
                         _mtom, _in_header, _out_header, _faults,
                         port_type=_port_type, no_ctx=_no_ctx)
@@ -159,7 +161,6 @@ def rpc(*params, **kparams):
 
         explain_method.__doc__ = f.__doc__
         explain_method._is_rpc = True
-        explain_method.func_name = f.func_name
 
         return explain_method
     return explain
