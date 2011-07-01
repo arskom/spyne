@@ -44,7 +44,8 @@ def _produce_input_message(f, params, kparams, no_ctx):
             in_params[e0] = e1
 
     except IndexError, e:
-        raise Exception("%s has parameter numbers mismatching" % f.func_name)
+        raise Exception("%r function's and its decorator's parameter numbers "
+                        "mismatch." % f.func_name)
 
     message=ComplexModel.produce(type_name=_in_message, namespace=DEFAULT_NS,
                                             members=in_params)
