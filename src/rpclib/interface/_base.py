@@ -83,7 +83,7 @@ class Base(object):
         pref_tns = cls.get_namespace_prefix(self)
 
         def is_valid_import(pref):
-            return pref != pref_tns
+            return pref != pref_tns and not (pref in rpclib.const.xml_ns.const_nsmap)
 
         if not (pref_tns in self.imports):
             self.imports[pref_tns] = set()
