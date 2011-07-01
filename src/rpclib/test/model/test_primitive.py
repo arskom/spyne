@@ -28,9 +28,9 @@ from rpclib.model.primitive import DateTime
 from rpclib.model.primitive import Duration
 from rpclib.model.primitive import Float
 from rpclib.model.primitive import Integer
-from rpclib.model.base import Null
+from rpclib.model._base import Null
 from rpclib.model.primitive import String
-from rpclib.protocol.soap import namespace as ns
+from rpclib.const import xml_ns as ns
 
 from rpclib.util.duration import XmlDuration
 
@@ -42,7 +42,7 @@ class TestPrimitive(unittest.TestCase):
         element = etree.Element('test')
         String.to_parent_element('value', ns_test, element)
         element=element[0]
-        
+
         self.assertEquals(element.text, 'value')
         value = String.from_xml(element)
         self.assertEquals(value, 'value')

@@ -23,25 +23,25 @@ import zmq
 
 from rpclib.client import Service
 from rpclib.client import RemoteProcedureBase
-from rpclib.client import Base
+from rpclib.client import ClientBase
 
 context = zmq.Context()
 
 class _RemoteProcedure(RemoteProcedureBase):
     def __call__(self, *args, **kwargs):
         out_object = self.get_out_object(args, kwargs)
-        out_string = self.get_out_string(out_object)
+        out_string = self.get_out_string()
 
         socket = context.socket(zmq.REQ)
         socket.connect(self.url)
         socket.send(out_string)
-    
+
         in_str = socket.recv()
 
         return self.get_in_object(in_str)
 
-class Client(Base):
+class Client(ClientBase):
     def __init__(self, url, app):
-        Base.__init__(self, url, app)
+        ClientBase.__init__(self, url, app)
 
         self.service = Service(_RemoteProcedure, url, app)

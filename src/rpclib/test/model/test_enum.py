@@ -20,15 +20,16 @@
 import unittest
 import rpclib.protocol.soap
 import rpclib.interface.wsdl
-_ns_xs = rpclib.namespace.soap.xsd
-_ns_xsi = rpclib.namespace.soap.xsi
-_ns_xsd = rpclib.namespace.soap.xsd
+import rpclib.const.xml_ns
+_ns_xs = rpclib.const.xml_ns.xsd
+_ns_xsi = rpclib.const.xml_ns.xsi
+_ns_xsd = rpclib.const.xml_ns.xsd
 
-from rpclib import Application
+from rpclib.application import Application
 Application.transport = 'test'
 
-from rpclib.service import DefinitionBase
-from rpclib.service import rpc
+from rpclib.service import ServiceBase
+from rpclib.decorator import rpc
 
 from rpclib.model.enum import Enum
 
@@ -53,7 +54,7 @@ DaysOfWeekEnum = Enum(
     type_name = 'DaysOfWeekEnum'
 )
 
-class TestService(DefinitionBase):
+class TestService(ServiceBase):
     @rpc(DaysOfWeekEnum, _returns=DaysOfWeekEnum)
     def remote_call(self, day):
         return DaysOfWeekEnum.Sunday

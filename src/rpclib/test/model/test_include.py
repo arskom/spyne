@@ -25,8 +25,8 @@ from lxml import etree
 from rpclib.model.complex import ComplexModel
 from rpclib.model.primitive import Integer
 from rpclib.model.primitive import String
-from rpclib.mime import join_attachment
-from rpclib.protocol.soap import namespace as ns
+from rpclib.protocol.soap.mime import join_attachment
+from rpclib.const import xml_ns as ns
 
 # Service Classes
 class DownloadPartFileResult(ComplexModel):
