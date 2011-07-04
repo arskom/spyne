@@ -67,4 +67,14 @@ class _FunctionCall(object):
         if ctx.out_error:
             raise ctx.out_error
         else:
+            # workaround to have the context be disposed when the caller is done
+            # with the return value. the context is sometimes needed to fully
+            # construct the return object.
+            try:
+                ctx.out_object.__ctx__ = ctx
+            except AttributeError,e:
+                # not all objects let this happen. (eg. built-in types like str)
+                # which don't need the context anyway.
+                pass
+
             return ctx.out_object
