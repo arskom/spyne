@@ -113,7 +113,7 @@ class ModelAsRootTestCase(BaseCase):
 
     def test_complex_element(self):
         self.element()
-        
+
     def test_strip_ns(self):
         self.remove_ns()
 

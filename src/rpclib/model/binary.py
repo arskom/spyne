@@ -73,7 +73,7 @@ class Attachment(ModelBase):
 
         element = etree.SubElement(parent_elt, '{%s}%s' % (tns,name))
         element.text = base64.encodestring(cls.to_string(value))
-        
+
     @classmethod
     @nillable_element
     def from_xml(cls, element):

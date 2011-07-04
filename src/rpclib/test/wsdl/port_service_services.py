@@ -35,7 +35,7 @@ class S2(ServiceBase):
 
     @rpc(String, _returns=String)
     def bobs(self, string):
-        return string 
+        return string
 
 class S3(ServiceBase):
     name = 'S3Fools'

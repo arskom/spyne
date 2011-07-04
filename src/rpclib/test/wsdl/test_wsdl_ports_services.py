@@ -78,7 +78,7 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
 
         self.assertRaises(ValueError, app.interface.build_interface_document,
                                                                        self.url)
-        
+
 
     def test_raise_invalid_port(self):
 
@@ -100,7 +100,7 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
         self.assertRaises(ValueError, app.interface.build_interface_document,
                                                                        self.url)
 
-        
+
 
     def test_raise_no_service_port(self):
 
@@ -156,7 +156,7 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
         port = ports[0]
 
         self.assertEquals('FirstPortType', port.get('name'))
-        
+
     def test_port_name(self):
         sa = build_app([SinglePortService], 'tns', name='SinglePortApp')
         sa.interface.build_interface_document(self.url)
@@ -175,7 +175,7 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
         self.assertEqual('FirstPort', pl2[0].get('name'))
         self.assertEqual('SecondPort', pl2[1].get('name'))
 
-        
+
     def test_port_count(self):
         sa = build_app([SinglePortService], 'tns', name='SinglePortApp')
         sa.interface.build_interface_document(self.url)

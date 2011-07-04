@@ -58,7 +58,7 @@ class TestPrimitive(unittest.TestCase):
         self.assertEquals(element.text, n.isoformat())
         dt = DateTime.from_xml(element)
         self.assertEquals(n, dt)
-    
+
     def test_duration_timedelta(self):
         delta = datetime.timedelta(days=400, seconds=3672)
 

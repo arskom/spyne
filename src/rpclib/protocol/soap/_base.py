@@ -221,7 +221,7 @@ class Soap11(ProtocolBase):
         self.event_manager.fire_event('deserialize', ctx)
 
     def serialize(self, ctx):
-        """Uses ctx.out_object, ctx.out_header or ctx.out_error to set 
+        """Uses ctx.out_object, ctx.out_header or ctx.out_error to set
         ctx.out_body_doc, ctx.out_header_doc and ctx.out_document as an
         lxml.etree._Element instance.
 

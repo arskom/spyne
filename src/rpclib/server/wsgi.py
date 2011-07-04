@@ -112,7 +112,7 @@ class WsgiApplication(ServerBase):
                 wsdl = self.app.interface.get_interface_document()
 
             assert wsdl != None
-            
+
             self.event_manager.fire_event('wsdl',ctx) # implementation hook
 
             ctx.http_resp_headers['Content-Length'] = str(len(wsdl))
@@ -164,7 +164,7 @@ class WsgiApplication(ServerBase):
         self.event_manager.fire_event('wsgi_return', ctx)
 
         if ctx.descriptor and ctx.descriptor.mtom:
-            # when there are more than one return type, the result is 
+            # when there are more than one return type, the result is
             # encapsulated inside a list. when there's just one, the result
             # is returned unencapsulated. the apply_mtom always expects the
             # objects to be inside an iterable, hence the following test.

@@ -97,7 +97,7 @@ class ModelBase(object):
     def resolve_namespace(cls, default_ns):
         if cls.__namespace__ is rpclib.const.xml_ns.DEFAULT_NS:
             cls.__namespace__ = default_ns
-            
+
         if (cls.__namespace__ in rpclib.const.xml_ns.const_prefmap and
                                                         not cls.is_default(cls)):
             cls.__namespace__ = default_ns
@@ -169,7 +169,7 @@ class ModelBase(object):
         @param The value to be set for the 'text' element of the newly created
         SubElement
         @param The target namespace of the new SubElement, used with 'name' to
-        set the tag.  
+        set the tag.
         @param The parent Element to which the new child will be appended.
         @param The new tag name of new SubElement.
         '''
@@ -192,7 +192,7 @@ class ModelBase(object):
     @staticmethod
     def _s_customize(cls, **kwargs):
         """This function duplicates and customizes the class it belongs to. The
-        original class remains unchanged. 
+        original class remains unchanged.
         """
 
         cls_dict = {}

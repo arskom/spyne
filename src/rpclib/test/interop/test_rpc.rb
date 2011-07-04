@@ -23,4 +23,4 @@ end
 ws = InteropTest.new()
 
 puts ws.echo_string("OK")
-puts ws.echo_int(0) 
+puts ws.echo_int(0)

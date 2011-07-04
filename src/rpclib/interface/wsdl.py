@@ -322,7 +322,7 @@ class Wsdl11(Base):
         '''
 
         Base.__init__(self, parent, services, tns, name)
-        
+
         self._with_plink = _with_partnerlink
         self.__wsdl = None
 
@@ -369,7 +369,7 @@ class Wsdl11(Base):
 
     def build_schema_nodes(self, types=None):
         retval = {}
-        
+
         for pref in self.namespaces:
             schema = self.get_schema_node(pref, types, retval)
 

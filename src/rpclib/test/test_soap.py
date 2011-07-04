@@ -66,7 +66,7 @@ class TestSoap(unittest.TestCase):
         e = etree.Element('test')
         m.to_parent_element(m_inst,m.get_namespace(),e)
         e=e[0]
-        
+
         self.assertEquals(e.tag, '{%s}myMessage' % m.get_namespace())
 
         self.assertEquals(e.find('{%s}s' % m.get_namespace()).text, 'a')
