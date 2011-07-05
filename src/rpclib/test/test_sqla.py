@@ -251,5 +251,22 @@ class TestSqlAlchemy(unittest.TestCase):
         assert u.mail == "a@b.com"
         assert u.name == "dummy"
 
+    def test_mixin_inheritance(self):
+        import sqlalchemy
+
+        class UserMixin(object):
+            id = Column(sqlalchemy.Integer, primary_key=True)
+            name = Column(sqlalchemy.String(256))
+
+        class User(self.DeclarativeBase, TableSerializer, UserMixin):
+            __tablename__ = 'rpclib_user'
+            __table_args__ = {'extend_existing': True} # FIXME: I don't understand why I need this.
+
+            mail = Column(sqlalchemy.String(256))
+
+        assert 'mail' in User._type_info
+        assert 'name' in User._type_info
+        assert 'id' in User._type_info
+
 if __name__ == '__main__':
     unittest.main()
