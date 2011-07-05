@@ -22,8 +22,16 @@ logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 
+from rpclib.application import Application
+from rpclib.decorator import rpc
+from rpclib.interface.wsdl import Wsdl11
 from rpclib.model.table import TableSerializer
 from rpclib.model.complex import ComplexModel
+from rpclib.model.complex import Array
+from rpclib.protocol.http import HttpRpc
+from rpclib.protocol.soap import Soap11
+from rpclib.server.null import NullServer
+from rpclib.service import ServiceBase
 
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -139,7 +147,6 @@ class TestSqlAlchemy(unittest.TestCase):
         session.commit()
 
         from rpclib.service import ServiceBase
-        from rpclib.decorator import rpc
         from rpclib.model.complex import Array
         from rpclib.model.primitive import String
 
@@ -156,11 +163,6 @@ class TestSqlAlchemy(unittest.TestCase):
                 return session.query(KeyValuePair).filter(sql.and_(
                     KeyValuePair.key.in_(keys)
                 )).order_by(KeyValuePair.key)
-
-        from rpclib.application import Application
-        from rpclib.interface.wsdl import Wsdl11
-        from rpclib.protocol.http import HttpRpc
-        from rpclib.protocol.soap import Soap11
 
         application = Application([Service],
             interface_class=Wsdl11,
