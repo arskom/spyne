@@ -25,28 +25,28 @@ from rpclib.model.complex import ComplexModel
 from rpclib.model.primitive import Integer, String, DateTime
 from rpclib.util.model_utils import ComplexModelConverter
 
-class SimpleModel(ComplexModel):
-
+class Simple(ComplexModel):
     __type_name__ = "simplemodel"
+
     simple_text = String
     simple_num = Integer
     simple_date = DateTime
 
 def simple_factory():
-    simple = SimpleModel()
+    simple = Simple()
     simple.simple_text = "Text"
     simple.simple_num = 1234
     simple.simple_date = datetime(2001, 12, 12)
+
     return simple
 
-
-class ComplexModel(ComplexModel):
+class Complex(ComplexModel):
     __type_name__ = "complexmodel"
-    simple = SimpleModel
+
+    simple = Simple
     complex_text = String
     complex_num = Integer
     complex_date = DateTime
-
 
 def complex_factory():
     simple = simple_factory()
@@ -55,13 +55,10 @@ def complex_factory():
     complex.complex_text = "ComplexText"
     complex.complex_num = 2222
     complex.complex_date = datetime(2010, 1, 1)
+
     return complex
 
-
-
-
 class BaseCase(unittest.TestCase):
-
     def setUp(self):
         self.file_path = "instance.xml"
         self.converter = ComplexModelConverter(simple_factory(), "tns")
@@ -93,9 +90,7 @@ class BaseCase(unittest.TestCase):
     def empty_ns(self):
         self.assertRaises(AssertionError, ComplexModelConverter, simple_factory(), "")
 
-
 class ModelAsRootTestCase(BaseCase):
-
     def test_simple_xml(self):
         self.xml()
 
