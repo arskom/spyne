@@ -85,6 +85,13 @@ class TableSerializerMeta(DeclarativeMeta,ComplexModelMeta):
                     if isinstance(v, Column):
                         _type_info[k] = _process_item(v)
 
+            for b in cls_bases:
+                table = getattr(b, '__table__', None)
+
+                if not (table is None):
+                    for c in table.c:
+                        _type_info[c.name] = _process_item(c)
+
         return DeclarativeMeta.__new__(cls, cls_name, cls_bases, cls_dict)
 
 class TableSerializer(ComplexModelBase):

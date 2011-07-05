@@ -259,14 +259,29 @@ class TestSqlAlchemy(unittest.TestCase):
             name = Column(sqlalchemy.String(256))
 
         class User(self.DeclarativeBase, TableSerializer, UserMixin):
-            __tablename__ = 'rpclib_user'
-            __table_args__ = {'extend_existing': True} # FIXME: I don't understand why I need this.
+            __tablename__ = 'rpclib_user_mixin'
 
             mail = Column(sqlalchemy.String(256))
 
         assert 'mail' in User._type_info
         assert 'name' in User._type_info
         assert 'id' in User._type_info
+
+    def test_same_table_inheritance(self):
+        import sqlalchemy
+
+        class User(self.DeclarativeBase, TableSerializer):
+            __tablename__ = 'rpclib_user_sti'
+
+            id = Column(sqlalchemy.Integer, primary_key=True)
+            name = Column(sqlalchemy.String(256))
+
+        class UserMail(User):
+            mail = Column(sqlalchemy.String(256))
+
+        assert 'mail' in UserMail._type_info
+        assert 'name' in UserMail._type_info
+        assert 'id' in UserMail._type_info
 
 if __name__ == '__main__':
     unittest.main()
