@@ -90,10 +90,14 @@ DaysOfWeekEnum = Enum(
 )
 
 class InHeader(ComplexModel):
+    __namespace__ = "rpclib.test.interop.server"
+
     s=String
     i=Integer
 
 class OutHeader(ComplexModel):
+    __namespace__ = "rpclib.test.interop.server"
+
     dt=DateTime
     f=Float
 
@@ -277,6 +281,10 @@ class InteropMisc(ServiceBase):
     @srpc(_returns=Attachment)
     def return_binary_data():
         return Attachment(data=''.join([chr(i) for i in xrange(256)]))
+
+    @srpc(_returns=Integer)
+    def return_invalid_data():
+        return 'a'
 
 services = [
     InteropPrimitive,

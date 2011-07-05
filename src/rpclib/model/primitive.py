@@ -183,11 +183,42 @@ class Decimal(SimpleModel):
 
     @classmethod
     @nillable_string
+    def to_string(cls, string):
+        decimal.Decimal(string)
+
+        return str(string)
+
+    @classmethod
+    @nillable_string
     def from_string(cls, string):
         return decimal.Decimal(string)
 
+class Int(Decimal):
+    __type_name__ = 'int'
+
+    @classmethod
+    @nillable_string
+    def to_string(cls, string):
+        int(string)
+        return str(string)
+
+    @classmethod
+    @nillable_string
+    def from_string(cls, string):
+        return int(string)
+
 class Integer(Decimal):
     __type_name__ = 'integer'
+
+    @classmethod
+    @nillable_string
+    def to_string(cls, string):
+        try:
+            int(string)
+        except:
+            long(string)
+
+        return str(string)
 
     @classmethod
     @nillable_string
@@ -288,8 +319,6 @@ class Double(SimpleModel):
 
 class Float(Double):
     __type_name__ = 'float'
-
-    pass
 
 class Boolean(SimpleModel):
     __type_name__ = 'boolean'

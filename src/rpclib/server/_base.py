@@ -29,6 +29,9 @@ HTTP_500 = '500 Internal server error'
 HTTP_200 = '200 OK'
 HTTP_405 = '405 Method Not Allowed'
 
+class InternalError(Fault):
+    pass
+
 class ValidationError(Fault):
     pass
 

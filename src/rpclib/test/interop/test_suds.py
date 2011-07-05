@@ -242,5 +242,8 @@ class TestSuds(unittest.TestCase):
         self.assertEquals(ret.transactionId, 123)
         self.assertEquals(ret.roles.RoleEnum[0], "MEMBER")
 
+    def test_return_invalid_data(self):
+        ret = self.client.service.return_invalid_data()
+
 if __name__ == '__main__':
     unittest.main()

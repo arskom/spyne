@@ -158,7 +158,7 @@ class WsgiApplication(ServerBase):
 
         self.get_out_string(ctx)
         if ctx.out_string is None:
-            ctx.out_string = ""
+            ctx.out_string = [""]
 
         # implementation hook
         self.event_manager.fire_event('wsgi_return', ctx)

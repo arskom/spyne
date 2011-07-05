@@ -59,7 +59,7 @@ def _process_item(v):
         rpc_type = _type_map[type(v.type)]
     else:
         raise Exception("soap_type was not found. maybe _type_map needs a new "
-                        "entry.")
+                        "entry. %r" % v)
 
     return rpc_type
 
@@ -80,11 +80,13 @@ class TableSerializerMeta(DeclarativeMeta,ComplexModelMeta):
                 for c in table.c:
                     _type_info[c.name] = _process_item(c)
 
+            # mixin inheritance
             for b in cls_bases:
                 for k,v in vars(b).items():
                     if isinstance(v, Column):
                         _type_info[k] = _process_item(v)
 
+            # same table inheritance
             for b in cls_bases:
                 table = getattr(b, '__table__', None)
 
