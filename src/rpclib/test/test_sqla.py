@@ -216,5 +216,7 @@ class TestSqlAlchemy(unittest.TestCase):
         self.assertEquals(User._type_info['id'].__type_name__, 'integer')
         self.assertEquals(User._type_info['name'].__type_name__, 'string')
 
+        Array(User)
+
 if __name__ == '__main__':
     unittest.main()
