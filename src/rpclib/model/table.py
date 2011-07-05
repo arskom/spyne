@@ -18,8 +18,8 @@
 #
 
 """
-The rpclib.model.table module is EXPERIMENTAL. It does not support
-inheritance and it is probably buggy.
+The rpclib.model.table module is EXPERIMENTAL. Please report any issues you
+might find.
 """
 
 import logging
