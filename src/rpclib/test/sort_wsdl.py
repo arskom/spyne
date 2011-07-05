@@ -17,6 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""Quick hack to sort the wsdl. it's helpful when comparing the wsdl output
+from two rpclib versions.
+"""
+
 ns_wsdl = "http://schemas.xmlsoap.org/wsdl/"
 ns_schema = "http://www.w3.org/2001/XMLSchema"
 
@@ -63,7 +67,6 @@ def main():
 
             for p in nodes:
                 e.append(p)
-
 
     schemas = []
 
