@@ -560,7 +560,7 @@ class Iterable(Array):
             yield serializer.from_xml(child)
 
 class ClassAlias(ComplexModel):
-    """New type_name, same type_info.
+    """New type_name, same _type_info.
     """
     @classmethod
     def add_to_schema(cls, schema_dict):
