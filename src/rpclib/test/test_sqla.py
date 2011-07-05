@@ -218,5 +218,38 @@ class TestSqlAlchemy(unittest.TestCase):
 
         Array(User)
 
+    def test_default_ctor(self):
+        import sqlalchemy
+
+        class User1Mixin(object):
+            id = Column(sqlalchemy.Integer, primary_key=True)
+            name = Column(sqlalchemy.String(256))
+
+        class User1(self.DeclarativeBase, TableSerializer, User1Mixin):
+            __tablename__ = 'rpclib_user1'
+
+            mail = Column(sqlalchemy.String(256))
+
+        u = User1(id=1, mail="a@b.com", name='dummy')
+
+        assert u.id == 1
+        assert u.mail == "a@b.com"
+        assert u.name == "dummy"
+
+        class User2Mixin(object):
+            id = Column(sqlalchemy.Integer, primary_key=True)
+            name = Column(sqlalchemy.String(256))
+
+        class User2(TableSerializer, self.DeclarativeBase, User2Mixin):
+            __tablename__ = 'rpclib_user2'
+
+            mail = Column(sqlalchemy.String(256))
+
+        u = User2(id=1, mail="a@b.com", name='dummy')
+
+        assert u.id == 1
+        assert u.mail == "a@b.com"
+        assert u.name == "dummy"
+
 if __name__ == '__main__':
     unittest.main()
