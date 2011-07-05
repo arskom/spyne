@@ -1,3 +1,4 @@
+
 Warning! This is rpclib's unstable development branch. Not only that, but rpclib
 project is experimental. You have been warned.
 
@@ -11,15 +12,15 @@ Rpclib is an easy to use python library for publishing services that uses variou
 protocols and transports. Currently, it supports WSDL 1.1 and SOAP 1.1 protocols
 over either ZeroMQ or HTTP.
 
-With a very small amount of code, rpclib allows you to write
-a useful remote procedure call pack and deploy it using your transport of choice.
+With a very small amount of code, rpclib allows you to write a useful remote
+procedure call pack and deploy it using your transport of choice.
 
 The official rpclib discussion forum can be found [here](http://mail.python.org/mailman/listinfo/soap).
 
 See the [downloads section](http://github.com/arskom/rpclib/downloads) for related downloads.
 
 Rpclib is a generalized version of a soap processing library known as soaplib.
-The legacy versions of soaplib are also available in this repository. 
+The legacy versions of soaplib are also available in this repository.
 See [here](http://github.com/arskom/rpclib/tree/soaplib-0_8) for the stable soaplib-0.8 branch.
 See [here](http://github.com/arskom/rpclib/tree/soaplib-1_0) for the stable soaplib-1.0 branch.
 See [here](http://github.com/arskom/rpclib/tree/soaplib-2_0) for the stable soaplib-2.0 branch.
@@ -53,4 +54,3 @@ Development Requirements
 * Most examples and tests require Python 2.5 or greater
 * Twisted is required for `rpclib.test.interop.server.basic` and `rpclib.test.interop.server.static`.
 * To run automated tests, see instructions under test/README
-
