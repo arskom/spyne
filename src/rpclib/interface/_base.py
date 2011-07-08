@@ -32,8 +32,11 @@ class SchemaInfo(object):
         self.types = odict()
 
 class Base(object):
-    def __init__(self, parent, services, tns, name=None):
+    def __init__(self, parent, services, tns, name=None, import_base_namespaces=False):
         self.__ns_counter = 0
+
+        # FIXME: this belongs in the wsdl class
+        self.import_base_namespaces = import_base_namespaces
 
         self.parent = parent
         self.services = services
@@ -83,7 +86,10 @@ class Base(object):
         pref_tns = cls.get_namespace_prefix(self)
 
         def is_valid_import(pref):
-            return pref != pref_tns and not (pref in rpclib.const.xml_ns.const_nsmap)
+            return pref != pref_tns and (
+                    self.import_base_namespaces or
+                    (not (pref in rpclib.const.xml_ns.const_nsmap))
+                )
 
         if not (pref_tns in self.imports):
             self.imports[pref_tns] = set()
