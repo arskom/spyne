@@ -265,10 +265,10 @@ def add_bindings_for_methods(service, app, root, service_name,
             soap_body = etree.SubElement(output, '{%s}body' % _ns_soap)
             soap_body.set('use', 'literal')
 
-            # get input soap header
-            out_header = method.in_header
+            # get output soap header
+            out_header = method.out_header
             if out_header is None:
-                out_header = service.__in_header__
+                out_header = service.__out_header__
 
             if not (out_header is None):
                 soap_header = etree.SubElement(output, '{%s}header' %
