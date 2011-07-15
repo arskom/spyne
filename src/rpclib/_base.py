@@ -23,27 +23,28 @@ logger = logging.getLogger(__name__)
 from collections import deque
 from rpclib.util.oset import oset
 
+
 class MethodContext(object):
     frozen = False
 
     def __init__(self, app):
         self.app = app
 
-        self.udc = None # the user defined context. use it to your liking.
+        self.udc = None  # the user defined context. use it to your liking.
 
         self.method_name = None
         # these are set based on the value of the method_name.
-        self.service_class = None # the class the method belongs to
-        self.descriptor = None    # its descriptor
+        self.service_class = None  # the class the method belongs to
+        self.descriptor = None     # its descriptor
 
-        self.in_string = None     # incoming bytestream (can be any kind of
-                                  #     iterable that contains strings)
-        self.in_document = None   # parsed document
-        self.in_error = None      # native python error object (probably a
-                                  #     child of Exception)
-        self.in_header_doc = None # incoming header document of the request.
-        self.in_body_doc = None   # incoming body document of the request.
-        self.in_header = None     # native incoming header
+        self.in_string = None      # incoming bytestream (can be any kind of
+                                   #     iterable that contains strings)
+        self.in_document = None    # parsed document
+        self.in_error = None       # native python error object (probably a
+                                   #     child of Exception)
+        self.in_header_doc = None  # incoming header document of the request.
+        self.in_body_doc = None    # incoming body document of the request.
+        self.in_header = None      # native incoming header
 
         # in the request (i.e. server) case, this contains the function
         # arguments for the function in the service definition class.
@@ -57,45 +58,46 @@ class MethodContext(object):
         # arguments passed to the function call wrapper.
         self.out_object = None
 
-        self.out_header = None     # native python object set by the function in
-                                   # the service definition class
-        self.out_error = None      # native exception thrown by the function in
-                                   # the service definition class
-        self.out_body_doc = None   # serialized body object
-        self.out_header_doc = None # serialized header object
-        self.out_document = None   # body and header wrapped in the outgoing
-                                   # envelope
-        self.out_string = None     # outgoing bytestream (can be any kind of
-                                   # iterable that contains strings)
+        self.out_header = None      # native python object set by the function
+                                    # in the service definition class
+        self.out_error = None       # native exception thrown by the function
+                                    # in the service definition class
+        self.out_body_doc = None    # serialized body object
+        self.out_header_doc = None  # serialized header object
+        self.out_document = None    # body and header wrapped in the outgoing
+                                    # envelope
+        self.out_string = None      # outgoing bytestream (can be any kind of
+                                    # iterable that contains strings)
 
-        self.frozen = True # when this is set, no new attribute can be added to
-                           # the class instance.
+        self.frozen = True  # when this is set, no new attribute can be added
+                            # to the class instance.
 
     def __setattr__(self, k, v):
         if self.frozen == False or k in self.__dict__:
-            object.__setattr__(self, k,v)
+            object.__setattr__(self, k, v)
         else:
-            raise ValueError("use the udc member for storing arbitrary data in "
-                             "the method context")
+            raise ValueError("use the udc member for storing arbitrary data "
+                             "in the method context")
 
     def __repr__(self):
         retval = deque()
-        for k,v in self.__dict__.items():
-            if isinstance(v,dict):
+        for k, v in self.__dict__.items():
+            if isinstance(v, dict):
                 ret = deque(['{'])
                 items = v.items()
                 items.sort()
-                for k2,v2 in items:
+                for k2, v2 in items:
                     ret.append('\t\t%r: %r,' % (k2, v2))
                 ret.append('\t}')
-                ret='\n'.join(ret)
-                retval.append("\n\t%s=%s" % (k,ret))
+                ret = '\n'.join(ret)
+                retval.append("\n\t%s=%s" % (k, ret))
             else:
-                retval.append("\n\t%s=%r" % (k,v))
+                retval.append("\n\t%s=%r" % (k, v))
 
         retval.append('\n)')
 
         return ''.join((self.__class__.__name__, '(', ', '.join(retval), ')'))
+
 
 class MethodDescriptor(object):
     '''This class represents the method signature of a soap method,
@@ -121,6 +123,7 @@ class MethodDescriptor(object):
         self.faults = faults
         self.port_type = port_type
         self.no_ctx = no_ctx
+
 
 class EventManager(object):
     def __init__(self, parent, handlers={}):
