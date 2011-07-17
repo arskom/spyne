@@ -29,7 +29,7 @@ suds_logger.setLevel(logging.INFO)
 
 class TestSuds(unittest.TestCase):
     def setUp(self):
-        self.client = Client("http://localhost:9753/?wsdl")
+        self.client = Client("http://localhost:9753/?wsdl", cache=None)
         self.ns = "rpclib.test.interop.server._service"
 
     def test_echo_simple_boolean_array(self):
