@@ -249,5 +249,10 @@ class TestSuds(unittest.TestCase):
         except:
             pass
 
+    def test_custom_messages(self):
+        ret = self.client.service.custom_messages("test")
+
+        assert ret == 'test'
+
 if __name__ == '__main__':
     unittest.main()

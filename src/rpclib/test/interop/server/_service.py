@@ -286,6 +286,15 @@ class InteropMisc(ServiceBase):
     def return_invalid_data():
         return 'a'
 
+    @srpc(String,
+          _public_name="urn:#getCustomMessages",
+          _in_message="getCustomMessagesMsgIn",
+          _out_message="getCustomMessagesMsgOut",
+          _out_variable_name="CustomMessages",
+          _returns=String)
+    def custom_messages(s):
+        return s
+
 services = [
     InteropPrimitive,
     InteropArray,
