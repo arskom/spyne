@@ -220,7 +220,8 @@ class Base(object):
             s.__tns__ = self.get_tns()
             logger.debug("populating '%s.%s'" % (s.__module__, s.__name__))
             for method in s.public_methods:
-                method_name = "{%s}%s" % (self.get_tns(), method.public_name)
+                method_name = "{%s}%s" % (self.get_tns(),
+                                              method.in_message.get_type_name())
 
                 if method_name in self.call_routes:
                     o = self.call_routes[method_name]
@@ -232,8 +233,9 @@ class Base(object):
 
                 else:
                     logger.debug('\tadding method %r to match %r tag.' % (method.name, method_name))
-                    self.call_routes[method_name] = s
-                    self.call_routes[method.public_name] = s
+                    self.call_routes[method_name] = s # used by servers
+                    self.call_routes[method.public_name] = s # used by clients
+
 
         # populate types
         for s in self.services:
