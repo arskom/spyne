@@ -30,6 +30,8 @@ from sqlalchemy import Column
 
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
+from sqlalchemy.dialects.postgresql import UUID
+
 from rpclib.model.complex import TypeInfo
 from rpclib.model.complex import ComplexModelBase
 from rpclib.model.complex import ComplexModelMeta
@@ -50,6 +52,7 @@ _type_map = {
     sqlalchemy.Boolean: primitive.Boolean,
     sqlalchemy.DateTime: primitive.DateTime,
     sqlalchemy.orm.relation: complex.Array,
+    UUID: primitive.String
 }
 
 def _process_item(v):
