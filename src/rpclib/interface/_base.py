@@ -231,7 +231,7 @@ class Base(object):
                         ))
 
                 else:
-                    logger.debug('\tadding method %r or %r' % (method_name, method.public_name))
+                    logger.debug('\tadding method %r to match %r tag.' % (method.name, method_name))
                     self.call_routes[method_name] = s
                     self.call_routes[method.public_name] = s
 
