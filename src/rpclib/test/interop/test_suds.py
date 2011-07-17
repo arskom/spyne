@@ -244,7 +244,7 @@ class TestSuds(unittest.TestCase):
 
     def test_return_invalid_data(self):
         try:
-            ret = self.client.service.return_invalid_data()
+            self.client.service.return_invalid_data()
             raise Exception("must fail")
         except:
             pass
