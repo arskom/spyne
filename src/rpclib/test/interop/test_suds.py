@@ -243,7 +243,11 @@ class TestSuds(unittest.TestCase):
         self.assertEquals(ret.roles.RoleEnum[0], "MEMBER")
 
     def test_return_invalid_data(self):
-        ret = self.client.service.return_invalid_data()
+        try:
+            ret = self.client.service.return_invalid_data()
+            raise Exception("must fail")
+        except:
+            pass
 
 if __name__ == '__main__':
     unittest.main()
