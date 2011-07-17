@@ -2,9 +2,14 @@
 rpclib-2.0.10-alpha
  * The inclusion of base xml schemas were made optional.
  * WSDL: Fix out header being the same as in header.
- * Some work towards making the code more pep8 compliant.
+ * Some work towards making the code (just rpclib._base module in fact) more
+   pep8 compliant.
  * Added type checking to outgoing Integer types. it's not handled as nicely as
    it should be.
+ * Fixed the minor typo that caused the incoming SOAP header to be used as the
+   the outgoing header header as well, ignoring the out_header definition.
+ * Fixed the case where changing the _in_message tag name of the method
+   prevented it from being called.
 
 rpclib-2.0.9-alpha
  * Added inheritance support to rpclib.model.table.TableSerializer.
