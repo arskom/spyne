@@ -224,9 +224,10 @@ class Base(object):
 
                 if method_name in self.call_routes:
                     o = self.call_routes[method_name]
-                    raise Exception("\n%s.%s.%s(%s) overwrites\n%s.%s.%s(%s)" %
-                        (s.__module__, s.__name__, method.name, method.public_name,
-                         o.__module__, o.__name__, method.name, method.public_name,
+                    raise Exception("\nThe message %r defined in both '%s.%s' "
+                                                                " and '%s.%s'"
+                      % (method_name, s.__module__, s.__name__,
+                                          o.__module__, o.__name__,
                         ))
 
                 else:
