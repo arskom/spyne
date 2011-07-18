@@ -2,12 +2,10 @@
 rpclib-2.0.10-alpha
  * The inclusion of base xml schemas were made optional.
  * WSDL: Fix out header being the same as in header.
- * Some work towards making the code (just rpclib._base module in fact) more
-   pep8 compliant.
+ * Some work towards making the code (just rpclib._base module in fact) pep8
+   compliant.
  * Added type checking to outgoing Integer types. it's not handled as nicely as
    it should be.
- * Fixed the minor typo that caused the incoming SOAP header to be used as the
-   the outgoing header header as well, ignoring the out_header definition.
  * Fixed the case where changing the _in_message tag name of the method
    prevented it from being called.
 
@@ -27,7 +25,7 @@ rpclib-2.0.7-alpha
 
 rpclib-2.0.6-alpha
  * Added rpclib.server.null.NullServer, which is a server class with a client
-   interface that attempts to do no (de)serialization at all. It's intented to
+   interface that attempts to do no (de)serialization at all. It's intended to
    be used in tests.
 
 rpclib-2.0.5-alpha
@@ -46,18 +44,18 @@ rpclib-2.0.2-alpha
 rpclib-2.0.1-alpha
  * EventManager now uses ordered sets instead of normal sets to store event
    handlers.
- * Implemented sort_wsdl, a small hack to sort wsdl output in order to ease 
+ * Implemented sort_wsdl, a small hack to sort wsdl output in order to ease
    debugging.
 
 rpclib-2.0.0-alpha
  * Implemented EventManager and replaced hook calls with events.
- * The rpc decorator now produces static methods. The methods still get an initial
-   parameter that holds the service contexts. It's an instance of the MethodContext
-   class, and not the ServiceBase class.
- * The srpc decorator which doesn't force the methods to have an initial context
-   parameter.
- * Fix fault namespace resolution.
- * Moved xml constants to rpclib.cont.xml_ns
+ * The rpc decorator now produces static methods. The methods still get an implicit
+   first argument that holds the service contexts. It's an instance of the
+   MethodContext class, and not the ServiceBase (formerly DefinitionBase) class.
+ * The new srpc decorator doesn't force the methods to have an implicit first
+   argument.
+ * Fixed fault namespace resolution.
+ * Moved xml constants to rpclib.const.xml_ns
  * The following changes to soaplib were ported to rpclib's SOAP/WSDL parts:
     * duration object is now compatible with Python's native timedelta.
     * WSDL: Support for multiple <service> tags in the wsdl (one for each class in the
@@ -67,7 +65,7 @@ rpclib-2.0.0-alpha
     * SOAP: Exceptions got some love to be more standards-compliant.
     * SOAP: Xml attribute support
  * Moved all modules with packagename.base to packagename._base.
- * Included the module names to some of the classes:
+ * Renamed classes to have module name as a prefix:
     * rpclib.client._base.Base -> rpclib.client._base.ClientBase
     * rpclib.model._base.Base -> rpclib.model._base.ModelBase
     * rpclib.protocol._base.Base -> rpclib.protocol._base.ProtocolBase
@@ -81,19 +79,22 @@ rpclib-2.0.0-alpha
    * rpclib.service.rpc, srpc -> rpclib.decorator.rpc, srpc
 
 soaplib-3.x -> rpclib-1.1.1-alpha
- * Soaplib is now also protocol agnostic. As it now supports protocols (like
-   Rest-minus-the-verbs HttpRpc) other than soap, it's renamed to Rpclib. This
-   also means soaplib can support multiple soap and wsdl versions.
+ * Soaplib is now also protocol agnostic. As it now supports protocols other
+   than soap (like Rest-minus-the-verbs HttpRpc), it's renamed to rpclib. This
+   also means soaplib can now support multiple versions of soap and wsdl
+   standards.
  * Mention of xml and soap removed from public api where it's not directly
    related to soap or xml. (e.g. a hook rename: on_method_exception_xml ->
    on_method_exception_doc)
  * Protocol serializers now return iterables instead of complete messages. This
-   lets return values of arbitrary length possible via the use of generators.
+   is a first step towards eliminating the need to have the whole message in 
+   memory during processing.
 
 soaplib-2.x
  * This release transformed soaplib from a soap server that exclusively supported
    http to a soap serialization/deserialization library that is architecture and
    transport agnostic.
+ * Hard dependency on WSGI removed.
  * Sphinx docs with working examples: http://arskom.github.com/soaplib/2_0/
  * Serializers renamed to Models.
  * Standalone xsd generation for ClassSerializer objects has been added. This
@@ -107,12 +108,11 @@ soaplib-2.x
    and dependent on community response.
  * 0mq support added.
  * Twisted supported via WSGI wrappers.
- * Hard dependency on WSGI removed.
  * Increased test coverage for soaplib and supported servers
 
 soaplib-1.0
  * Standards-compliant Soap Faults
- * Allow multiplre return values and return types
+ * Allow multiple return values and return types
 
 soaplib-0.9.4
  * pritimitive.Array -> clazz.Array
@@ -135,11 +135,9 @@ soaplib-0.9
  * XML Schema validation is supported.
  * Support for publishing multiple namespaces. (multiple <schema> tags in the wsdl)
  * Support for enumerations.
- * Application and Service Definition are separated. Application is instantiated 
+ * Application and Service Definition are separated. Application is instantiated
    on server start, and Service Definition is instantiated for each new request.
  * @soapmethod -> @rpc
 
 soaplib-0.8
  * Switched to lxml for proper xml namespace support.
- * In this version, soaplib is a stable soap server not without its glitches
-   and quirks
