@@ -246,14 +246,22 @@ class Base(object):
                     method.out_header = s.__out_header__
 
                 if not (method.in_header is None):
-                    method.in_header.resolve_namespace(method.in_header,
-                                                                 self.get_tns())
-                    method.in_header.add_to_schema(self)
+                    if isinstance(method.in_header, (list, tuple)):
+                        in_headers = method.in_header
+                    else:
+                        in_headers = (method.in_header,)
+                    for in_header in in_headers:
+                        in_header.resolve_namespace(in_header, self.get_tns())
+                        in_header.add_to_schema(self)
 
                 if not (method.out_header is None):
-                    method.out_header.resolve_namespace(method.out_header,
-                                                                 self.get_tns())
-                    method.out_header.add_to_schema(self)
+                    if isinstance(method.out_header, (list,tuple)):
+                        out_headers = method.out_header
+                    else:
+                        out_headers = (method.out_header,)
+                    for out_header in out_headers:
+                        out_header.resolve_namespace(out_header, self.get_tns())
+                        out_header.add_to_schema(self)
 
                 method.in_message.resolve_namespace(method.in_message,
                                                                  self.get_tns())
