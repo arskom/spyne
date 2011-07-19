@@ -86,6 +86,25 @@ class TestSuds(unittest.TestCase):
         self.assertEquals(in_header.s, ret.s)
         self.assertEquals(in_header.i, ret.i)
 
+    def test_echo_in_complex_header(self):
+        in_header = self.client.factory.create('InHeader')
+        in_header.s = 'a'
+        in_header.i = 3
+        in_trace_header = self.client.factory.create('InTraceHeader')
+        in_trace_header.client = 'suds'
+        in_trace_header.callDate = datetime(year=2000, month=01, day=01, hour=0, minute=0, second=0, microsecond=0)
+
+        self.client.set_options(soapheaders=(in_header, in_trace_header))
+        ret = self.client.service.echo_in_complex_header()
+        self.client.set_options(soapheaders=None)
+
+        print ret
+
+        self.assertEquals(in_header.s, ret[0].s)
+        self.assertEquals(in_header.i, ret[0].i)
+        self.assertEquals(in_trace_header.client, ret[1].client)
+        self.assertEquals(in_trace_header.callDate, ret[1].callDate)
+
     def test_send_out_header(self):
         out_header = self.client.factory.create('OutHeader')
         out_header.dt = datetime(year=2000, month=01, day=01)
@@ -96,6 +115,40 @@ class TestSuds(unittest.TestCase):
         self.assertTrue(isinstance(ret,type(out_header)))
         self.assertEquals(ret.dt, out_header.dt)
         self.assertEquals(ret.f, out_header.f)
+
+    def test_send_out_complex_header(self):
+        out_header = self.client.factory.create('OutHeader')
+        out_header.dt = datetime(year=2000, month=01, day=01)
+        out_header.f = 3.141592653
+        out_trace_header = self.client.factory.create('OutTraceHeader')
+        out_trace_header.receiptDate = datetime(year=2000, month=01, day=01,
+                                  hour=01, minute=01, second=01, microsecond=01)
+        out_trace_header.returnDate = datetime(year=2000, month=01, day=01,
+                                 hour=01, minute=01, second=01, microsecond=100)
+
+        ret = self.client.service.send_out_complex_header()
+
+        self.assertTrue(isinstance(ret[0], type(out_header)))
+        self.assertEquals(ret[0].dt, out_header.dt)
+        self.assertEquals(ret[0].f, out_header.f)
+        self.assertTrue(isinstance(ret[1], type(out_trace_header)))
+        self.assertEquals(ret[1].receiptDate, out_trace_header.receiptDate)
+        self.assertEquals(ret[1].returnDate, out_trace_header.returnDate)
+        # Control the reply soap header (in an unelegant way but this is the
+        # only way with suds)
+        soapheaders = self.client.last_received().getChild("Envelope").getChild("Header")
+        soap_out_header = soapheaders.getChild('OutHeader')
+        self.assertEquals('T'.join((out_header.dt.date().isoformat(),
+                                    out_header.dt.time().isoformat())),
+                          soap_out_header.getChild('dt').getText())
+        self.assertEquals(unicode(out_header.f), soap_out_header.getChild('f').getText())
+        soap_out_trace_header = soapheaders.getChild('OutTraceHeader')
+        self.assertEquals('T'.join((out_trace_header.receiptDate.date().isoformat(),
+                                    out_trace_header.receiptDate.time().isoformat())),
+                          soap_out_trace_header.getChild('receiptDate').getText())
+        self.assertEquals('T'.join((out_trace_header.returnDate.date().isoformat(),
+                                    out_trace_header.returnDate.time().isoformat())),
+                          soap_out_trace_header.getChild('returnDate').getText())
 
     def test_echo_string(self):
         test_string = "OK"

@@ -101,6 +101,18 @@ class OutHeader(ComplexModel):
     dt=DateTime
     f=Float
 
+class InTraceHeader(ComplexModel):
+    __namespace__ = "rpclib.test.interop.server"
+
+    client=String
+    callDate=DateTime
+
+class OutTraceHeader(ComplexModel):
+    __namespace__ = "rpclib.test.interop.server"
+
+    receiptDate=DateTime
+    returnDate=DateTime
+
 class InteropServiceWithHeader(ServiceBase):
     __in_header__ = InHeader
     __out_header__ = OutHeader
@@ -114,6 +126,28 @@ class InteropServiceWithHeader(ServiceBase):
         ctx.out_header = OutHeader()
         ctx.out_header.dt = datetime(year=2000, month=01, day=01)
         ctx.out_header.f = 3.141592653
+
+        return ctx.out_header
+
+class InteropServiceWithComplexHeader(ServiceBase):
+    __in_header__ = (InHeader, InTraceHeader)
+    __out_header__ = (OutHeader, OutTraceHeader)
+
+    @rpc(_returns=(InHeader, InTraceHeader))
+    def echo_in_complex_header(ctx):
+        return ctx.in_header
+
+    @rpc(_returns=(OutHeader, OutTraceHeader))
+    def send_out_complex_header(ctx):
+        out_header = OutHeader()
+        out_header.dt = datetime(year=2000, month=01, day=01)
+        out_header.f = 3.141592653
+        out_trace_header = OutTraceHeader()
+        out_trace_header.receiptDate = datetime(year=2000, month=01, day=01,
+                                  hour=01, minute=01, second=01, microsecond=01)
+        out_trace_header.returnDate = datetime(year=2000, month=01, day=01,
+                                 hour=01, minute=01, second=01, microsecond=100)
+        ctx.out_header = (out_header, out_trace_header)
 
         return ctx.out_header
 
@@ -301,5 +335,6 @@ services = [
     InteropClass,
     InteropMisc,
     InteropServiceWithHeader,
+    InteropServiceWithComplexHeader,
     InteropException,
 ]

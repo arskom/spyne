@@ -38,6 +38,9 @@ _pref_wsa = rpclib.const.xml_ns.const_prefmap[_ns_wsa]
 _ns_wsdl = rpclib.const.xml_ns.wsdl
 _ns_soap = rpclib.const.xml_ns.soap
 
+_in_header_msg_suffix = 'InHeaderMsg'
+_out_header_msg_suffix = 'OutHeaderMsg'
+
 class ValidationError(Fault):
     pass
 
@@ -191,26 +194,48 @@ def _add_callbacks(service, root, types, service_name, url):
 
     return cb_port_type
 
-def _add_message_for_object(self, app, root, messages, obj):
-    if obj != None and not (obj.get_type_name() in messages):
-        messages.add(obj.get_type_name())
+def _add_message_for_object(self, app, root, messages, obj, message_name):
+    if obj is not None and not (message_name in messages):
+        messages.add(message_name)
 
         message = etree.SubElement(root, '{%s}message' % _ns_wsdl)
-        message.set('name', obj.get_type_name())
+        message.set('name', message_name)
 
-        part = etree.SubElement(message, '{%s}part' % _ns_wsdl)
-        part.set('name', obj.get_type_name())
-        part.set('element', obj.get_type_name_ns(app))
+        if isinstance(obj, (list, tuple)):
+            objs = obj
+        else:
+            objs = (obj,)
+        for obj in objs:
+            part = etree.SubElement(message, '{%s}part' % _ns_wsdl)
+            part.set('name', obj.get_type_name())
+            part.set('element', obj.get_type_name_ns(app))
 
 def add_messages_for_methods(service, app, root, messages):
     for method in service.public_methods:
-        _add_message_for_object(service, app, root, messages,method.in_message)
-        _add_message_for_object(service, app, root, messages,method.out_message)
-        _add_message_for_object(service, app, root, messages,method.in_header)
-        _add_message_for_object(service, app, root, messages,method.out_header)
+        _add_message_for_object(service, app, root, messages, method.in_message,
+                                method.in_message.get_type_name())
+        _add_message_for_object(service, app, root, messages, method.out_message,
+                                method.out_message.get_type_name())
+        if method.in_header is not None:
+            if isinstance(method.in_header, (list, tuple)):
+                in_header_message_name = ''.join((method.name,
+                                                  _in_header_msg_suffix))
+            else:
+                in_header_message_name = method.in_header.get_type_name()
+            _add_message_for_object(service, app, root, messages,
+                                    method.in_header, in_header_message_name)
+        if method.out_header is not None:
+            if isinstance(method.out_header, (list, tuple)):
+                out_header_message_name = ''.join((method.name,
+                                                   _out_header_msg_suffix))
+            else:
+                out_header_message_name = method.out_header.get_type_name()
+            _add_message_for_object(service, app, root, messages,
+                                    method.out_header, out_header_message_name)
 
         for fault in method.faults:
-            _add_message_for_object(service, app, root, messages, fault)
+            _add_message_for_object(service, app, root, messages, fault,
+                                    fault.get_type_name())
 
 def add_bindings_for_methods(service, app, root, service_name,
                                     binding, transport, cb_binding=None):
@@ -253,10 +278,19 @@ def add_bindings_for_methods(service, app, root, service_name,
             in_header = service.__in_header__
 
         if not (in_header is None):
-            soap_header = etree.SubElement(input, '{%s}header' % _ns_soap)
-            soap_header.set('use', 'literal')
-            soap_header.set('message', in_header.get_type_name_ns(app))
-            soap_header.set('part', in_header.get_type_name())
+            if isinstance(in_header, (list, tuple)):
+                in_headers = in_header
+                in_header_message_name = ''.join((method.name,
+                                                  _in_header_msg_suffix))
+            else:
+                in_headers = (in_header,)
+                in_header_message_name = in_header.get_type_name()
+            for header in in_headers:
+                soap_header = etree.SubElement(input, '{%s}header' % _ns_soap)
+                soap_header.set('use', 'literal')
+                soap_header.set('message', '%s:%s' % (pref_tns,
+                                                      in_header_message_name))
+                soap_header.set('part', header.get_type_name())
 
         if not (method.is_async or method.is_callback):
             output = etree.SubElement(operation, '{%s}output' % _ns_wsdl)
@@ -271,11 +305,20 @@ def add_bindings_for_methods(service, app, root, service_name,
                 out_header = service.__out_header__
 
             if not (out_header is None):
-                soap_header = etree.SubElement(output, '{%s}header' %
+                if isinstance(out_header, (list, tuple)):
+                    out_headers = out_header
+                    out_header_message_name = ''.join((method.name,
+                                                     _out_header_msg_suffix))
+                else:
+                    out_headers = (out_header,)
+                    out_header_message_name = out_header.get_type_name()
+                for header in out_headers:
+                    soap_header = etree.SubElement(output, '{%s}header' %
                                                                     _ns_soap)
-                soap_header.set('use', 'literal')
-                soap_header.set('message', out_header.get_type_name_ns(app))
-                soap_header.set('part', out_header.get_type_name())
+                    soap_header.set('use', 'literal')
+                    soap_header.set('message', '%s:%s' % (pref_tns,
+                                                       out_header_message_name))
+                    soap_header.set('part', header.get_type_name())
 
                 for f in method.faults:
                     fault = etree.SubElement(operation, '{%s}fault' % _ns_wsdl)
