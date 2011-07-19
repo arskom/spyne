@@ -2,8 +2,6 @@
 rpclib-2.0.10-alpha
  * The inclusion of base xml schemas were made optional.
  * WSDL: Fix out header being the same as in header.
- * Some work towards making the code (just rpclib._base module in fact) pep8
-   compliant.
  * Added type checking to outgoing Integer types. it's not handled as nicely as
    it should be.
  * Fixed the case where changing the _in_message tag name of the method
