@@ -258,7 +258,7 @@ class Wsdl11(Base):
 
         messages = set()
         for s in self.services:
-            self.add_messages_for_methods(s, self, root, messages)
+            self.add_messages_for_methods(s, root, messages)
 
         if self._with_plink:
             plink = etree.SubElement(root, '{%s}partnerLinkType' % _ns_plink)
@@ -281,8 +281,8 @@ class Wsdl11(Base):
         cb_binding = None
 
         for s in self.services:
-            self.add_port_type(s, self, root, service_name, types, self.url)
-            cb_binding = self.add_bindings_for_methods(s, self, root, service_name,
+            self.add_port_type(s, root, service_name, types, self.url)
+            cb_binding = self.add_bindings_for_methods(s, root, service_name,
                                                             binding, cb_binding)
 
         self.__wsdl = etree.tostring(root, xml_declaration=True,
@@ -450,9 +450,9 @@ class Wsdl11(Base):
 
     def add_messages_for_methods(self, service, root, messages):
         for method in service.public_methods:
-            self._add_message_for_object(service, root, messages, method.in_message,
+            self._add_message_for_object(root, messages, method.in_message,
                                     method.in_message.get_type_name())
-            self._add_message_for_object(service, root, messages, method.out_message,
+            self._add_message_for_object(root, messages, method.out_message,
                                     method.out_message.get_type_name())
             if method.in_header is not None:
                 if isinstance(method.in_header, (list, tuple)):
@@ -460,7 +460,7 @@ class Wsdl11(Base):
                                                       _in_header_msg_suffix))
                 else:
                     in_header_message_name = method.in_header.get_type_name()
-                self._add_message_for_object(service, root, messages,
+                self._add_message_for_object(root, messages,
                                         method.in_header, in_header_message_name)
             if method.out_header is not None:
                 if isinstance(method.out_header, (list, tuple)):
@@ -468,11 +468,11 @@ class Wsdl11(Base):
                                                        _out_header_msg_suffix))
                 else:
                     out_header_message_name = method.out_header.get_type_name()
-                self._add_message_for_object(service, root, messages,
+                self._add_message_for_object(root, messages,
                                         method.out_header, out_header_message_name)
 
             for fault in method.faults:
-                self._add_message_for_object(service, root, messages, fault,
+                self._add_message_for_object(root, messages, fault,
                                         fault.get_type_name())
 
     def add_bindings_for_methods(self, service, root, service_name,
