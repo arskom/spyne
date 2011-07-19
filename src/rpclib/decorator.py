@@ -22,14 +22,11 @@ from rpclib.model.complex import ComplexModel
 from rpclib.model.complex import TypeInfo
 from rpclib.const.xml_ns import DEFAULT_NS
 
-def _produce_input_message(f, func_name, params, kparams, no_ctx):
+def _produce_input_message(f, params, _in_message, _in_variable_names, no_ctx):
     if no_ctx is True:
         arg_start=0
     else:
         arg_start=1
-
-    _in_message = kparams.get('_in_message', func_name)
-    _in_variable_names = kparams.get('_in_variable_names', {})
 
     argcount = f.func_code.co_argcount
     param_names = f.func_code.co_varnames[arg_start:argcount]
@@ -71,7 +68,7 @@ def _validate_body_style(kparams):
 
     return _body_style
 
-def _produce_output_message(f, func_name, params, kparams):
+def _produce_output_message(f, func_name, kparams):
     """Generate an output message for "rpc"-style API methods.
 
     This message is a wrapper to the declared return type.
@@ -148,8 +145,12 @@ def rpc(*params, **kparams):
                 _no_ctx = kparams.get('_no_ctx', False)
                 _faults = kparams.get('_faults', [])
 
-                in_message = _produce_input_message(f, _public_name, params, kparams, _no_ctx)
-                out_message = _produce_output_message(f, _public_name, params, kparams)
+                _in_message = kparams.get('_in_message', _public_name)
+                _in_variable_names = kparams.get('_in_variable_names', {})
+                in_message = _produce_input_message(f, params,
+                                    _in_message, _in_variable_names, _no_ctx)
+
+                out_message = _produce_output_message(f, _public_name, kparams)
 
                 doc = getattr(f, '__doc__')
                 retval = MethodDescriptor(function_name, _public_name,
