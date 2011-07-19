@@ -388,7 +388,7 @@ class ComplexModelBase(ModelBase):
             for k, v in cls._type_info.items():
                 if isinstance(v, XMLAttribute):
                     attribute = etree.SubElement(complex_type,
-                                            '{%s}attribute' % namespace.ns_xsd)
+                                            '{%s}attribute' % namespace.xsd)
                     v.describe(k, attribute)
                     continue
 
@@ -566,7 +566,7 @@ class ClassAlias(ComplexModel):
     def add_to_schema(cls, schema_dict):
         if not schema_dict.has_class(cls._target):
             cls._target.add_to_schema(schema_dict)
-        element = etree.Element('{%s}element' % soaplib.ns_xsd)
+        element = etree.Element('{%s}element' % namespace.xsd)
         element.set('name',cls.get_type_name())
         element.set('type',cls._target.get_type_name_ns(schema_dict.app))
 
