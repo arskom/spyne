@@ -126,13 +126,13 @@ class Base(object):
                 t_pref = typ.split(':')[0]
 
                 if t_pref and is_valid_import(t_pref):
-                    self.imports[pref_tns].add(self.app.nsmap[t_pref])
+                    self.imports[pref_tns].add(self.nsmap[t_pref])
 
                 ref = seq.get('ref', '')
                 r_pref = ref.split(':')[0]
 
                 if r_pref and is_valid_import(r_pref):
-                    self.imports[pref_tns].add(self.app.nsmap[r_pref])
+                    self.imports[pref_tns].add(self.nsmap[r_pref])
 
             else:
                 raise Exception("i guess you need to hack some more")
