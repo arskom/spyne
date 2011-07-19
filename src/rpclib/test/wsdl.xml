@@ -146,6 +146,8 @@
       <xs:element name="huge_numberResponse" type="tns:huge_numberResponse" />
       <xs:element name="test_empty" type="tns:test_empty" />
       <xs:element name="test_emptyResponse" type="tns:test_emptyResponse" />
+      <xs:element name="getCustomMessagesMsgIn" type="tns:getCustomMessagesMsgIn" />
+      <xs:element name="getCustomMessagesMsgOut" type="tns:getCustomMessagesMsgOut" />
       <xs:element name="do_something" type="tns:do_something" />
       <xs:element name="do_somethingResponse" type="tns:do_somethingResponse" />
       <xs:element name="return_invalid_data" type="tns:return_invalid_data" />
@@ -159,6 +161,12 @@
       <xs:element name="send_out_headerResponse" type="tns:send_out_headerResponse" />
       <xs:element name="echo_in_header" type="tns:echo_in_header" />
       <xs:element name="echo_in_headerResponse" type="tns:echo_in_headerResponse" />
+      <xs:element name="InTraceHeader" type="tns:InTraceHeader" />
+      <xs:element name="OutTraceHeader" type="tns:OutTraceHeader" />
+      <xs:element name="echo_in_complex_header" type="tns:echo_in_complex_header" />
+      <xs:element name="echo_in_complex_headerResponse" type="tns:echo_in_complex_headerResponse" />
+      <xs:element name="send_out_complex_header" type="tns:send_out_complex_header" />
+      <xs:element name="send_out_complex_headerResponse" type="tns:send_out_complex_headerResponse" />
       <xs:element name="python_exception" type="tns:python_exception" />
       <xs:element name="python_exceptionResponse" type="tns:python_exceptionResponse" />
       <xs:element name="soap_exception" type="tns:soap_exception" />
@@ -526,6 +534,16 @@
       <xs:complexType name="test_emptyResponse">
         <xs:sequence />
       </xs:complexType>
+      <xs:complexType name="getCustomMessagesMsgIn">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="s" nillable="true" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="getCustomMessagesMsgOut">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="CustomMessages" nillable="true" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
       <xs:complexType name="do_something">
         <xs:sequence>
           <xs:element minOccurs="0" name="s" nillable="true" type="xs:string" />
@@ -586,6 +604,36 @@
       <xs:complexType name="echo_in_headerResponse">
         <xs:sequence>
           <xs:element minOccurs="0" name="echo_in_headerResult" nillable="true" type="tns:InHeader" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="InTraceHeader">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="callDate" nillable="true" type="xs:dateTime" />
+          <xs:element minOccurs="0" name="client" nillable="true" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="OutTraceHeader">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="receiptDate" nillable="true" type="xs:dateTime" />
+          <xs:element minOccurs="0" name="returnDate" nillable="true" type="xs:dateTime" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_in_complex_header">
+        <xs:sequence />
+      </xs:complexType>
+      <xs:complexType name="echo_in_complex_headerResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="echo_in_complex_headerResult0" nillable="true" type="tns:InHeader" />
+          <xs:element minOccurs="0" name="echo_in_complex_headerResult1" nillable="true" type="tns:InTraceHeader" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="send_out_complex_header">
+        <xs:sequence />
+      </xs:complexType>
+      <xs:complexType name="send_out_complex_headerResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="send_out_complex_headerResult0" nillable="true" type="tns:OutHeader" />
+          <xs:element minOccurs="0" name="send_out_complex_headerResult1" nillable="true" type="tns:OutTraceHeader" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="python_exception">
@@ -739,6 +787,20 @@
   <wsdl:message name="echo_float_arrayResponse">
     <wsdl:part element="tns:echo_float_arrayResponse" name="echo_float_arrayResponse" />
   </wsdl:message>
+  <wsdl:message name="echo_in_complex_header">
+    <wsdl:part element="tns:echo_in_complex_header" name="echo_in_complex_header" />
+  </wsdl:message>
+  <wsdl:message name="echo_in_complex_headerInHeaderMsg">
+    <wsdl:part element="tns:InHeader" name="InHeader" />
+    <wsdl:part element="tns:InTraceHeader" name="InTraceHeader" />
+  </wsdl:message>
+  <wsdl:message name="echo_in_complex_headerOutHeaderMsg">
+    <wsdl:part element="tns:OutHeader" name="OutHeader" />
+    <wsdl:part element="tns:OutTraceHeader" name="OutTraceHeader" />
+  </wsdl:message>
+  <wsdl:message name="echo_in_complex_headerResponse">
+    <wsdl:part element="tns:echo_in_complex_headerResponse" name="echo_in_complex_headerResponse" />
+  </wsdl:message>
   <wsdl:message name="echo_in_header">
     <wsdl:part element="tns:echo_in_header" name="echo_in_header" />
   </wsdl:message>
@@ -799,6 +861,12 @@
   <wsdl:message name="echo_string_arrayResponse">
     <wsdl:part element="tns:echo_string_arrayResponse" name="echo_string_arrayResponse" />
   </wsdl:message>
+  <wsdl:message name="getCustomMessagesMsgIn">
+    <wsdl:part element="tns:getCustomMessagesMsgIn" name="getCustomMessagesMsgIn" />
+  </wsdl:message>
+  <wsdl:message name="getCustomMessagesMsgOut">
+    <wsdl:part element="tns:getCustomMessagesMsgOut" name="getCustomMessagesMsgOut" />
+  </wsdl:message>
   <wsdl:message name="huge_number">
     <wsdl:part element="tns:huge_number" name="huge_number" />
   </wsdl:message>
@@ -853,6 +921,20 @@
   <wsdl:message name="return_other_class_arrayResponse">
     <wsdl:part element="tns:return_other_class_arrayResponse" name="return_other_class_arrayResponse" />
   </wsdl:message>
+  <wsdl:message name="send_out_complex_header">
+    <wsdl:part element="tns:send_out_complex_header" name="send_out_complex_header" />
+  </wsdl:message>
+  <wsdl:message name="send_out_complex_headerInHeaderMsg">
+    <wsdl:part element="tns:InHeader" name="InHeader" />
+    <wsdl:part element="tns:InTraceHeader" name="InTraceHeader" />
+  </wsdl:message>
+  <wsdl:message name="send_out_complex_headerOutHeaderMsg">
+    <wsdl:part element="tns:OutHeader" name="OutHeader" />
+    <wsdl:part element="tns:OutTraceHeader" name="OutTraceHeader" />
+  </wsdl:message>
+  <wsdl:message name="send_out_complex_headerResponse">
+    <wsdl:part element="tns:send_out_complex_headerResponse" name="send_out_complex_headerResponse" />
+  </wsdl:message>
   <wsdl:message name="send_out_header">
     <wsdl:part element="tns:send_out_header" name="send_out_header" />
   </wsdl:message>
@@ -879,6 +961,15 @@
         <soap:body use="literal" />
       </wsdl:input>
       <wsdl:output name="complex_returnResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="custom_messages">
+      <soap:operation soapAction="urn:#getCustomMessages" style="document" />
+      <wsdl:input name="getCustomMessagesMsgIn">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="getCustomMessagesMsgOut">
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
@@ -1026,6 +1117,19 @@
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
+    <wsdl:operation name="echo_in_complex_header">
+      <soap:operation soapAction="echo_in_complex_header" style="document" />
+      <wsdl:input name="echo_in_complex_header">
+        <soap:body use="literal" />
+        <soap:header message="tns:echo_in_complex_headerInHeaderMsg" part="InHeader" use="literal" />
+        <soap:header message="tns:echo_in_complex_headerInHeaderMsg" part="InTraceHeader" use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_in_complex_headerResponse">
+        <soap:body use="literal" />
+        <soap:header message="tns:echo_in_complex_headerOutHeaderMsg" part="OutHeader" use="literal" />
+        <soap:header message="tns:echo_in_complex_headerOutHeaderMsg" part="OutTraceHeader" use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
     <wsdl:operation name="echo_in_header">
       <soap:operation soapAction="echo_in_header" style="document" />
       <wsdl:input name="echo_in_header">
@@ -1034,7 +1138,7 @@
       </wsdl:input>
       <wsdl:output name="echo_in_headerResponse">
         <soap:body use="literal" />
-        <soap:header message="tns:InHeader" part="InHeader" use="literal" />
+        <soap:header message="tns:OutHeader" part="OutHeader" use="literal" />
       </wsdl:output>
     </wsdl:operation>
     <wsdl:operation name="echo_integer">
@@ -1199,6 +1303,19 @@
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
+    <wsdl:operation name="send_out_complex_header">
+      <soap:operation soapAction="send_out_complex_header" style="document" />
+      <wsdl:input name="send_out_complex_header">
+        <soap:body use="literal" />
+        <soap:header message="tns:send_out_complex_headerInHeaderMsg" part="InHeader" use="literal" />
+        <soap:header message="tns:send_out_complex_headerInHeaderMsg" part="InTraceHeader" use="literal" />
+      </wsdl:input>
+      <wsdl:output name="send_out_complex_headerResponse">
+        <soap:body use="literal" />
+        <soap:header message="tns:send_out_complex_headerOutHeaderMsg" part="OutHeader" use="literal" />
+        <soap:header message="tns:send_out_complex_headerOutHeaderMsg" part="OutTraceHeader" use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
     <wsdl:operation name="send_out_header">
       <soap:operation soapAction="send_out_header" style="document" />
       <wsdl:input name="send_out_header">
@@ -1207,7 +1324,7 @@
       </wsdl:input>
       <wsdl:output name="send_out_headerResponse">
         <soap:body use="literal" />
-        <soap:header message="tns:InHeader" part="InHeader" use="literal" />
+        <soap:header message="tns:OutHeader" part="OutHeader" use="literal" />
       </wsdl:output>
     </wsdl:operation>
     <wsdl:operation name="soap_exception">
@@ -1233,6 +1350,10 @@
     <wsdl:operation name="complex_return" parameterOrder="complex_return">
       <wsdl:input message="tns:complex_return" name="complex_return" />
       <wsdl:output message="tns:complex_returnResponse" name="complex_returnResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="custom_messages" parameterOrder="getCustomMessagesMsgIn">
+      <wsdl:input message="tns:getCustomMessagesMsgIn" name="getCustomMessagesMsgIn" />
+      <wsdl:output message="tns:getCustomMessagesMsgOut" name="getCustomMessagesMsgOut" />
     </wsdl:operation>
     <wsdl:operation name="do_something_else" parameterOrder="do_something">
       <wsdl:input message="tns:do_something" name="do_something" />
@@ -1297,6 +1418,10 @@
     <wsdl:operation name="echo_float_array" parameterOrder="echo_float_array">
       <wsdl:input message="tns:echo_float_array" name="echo_float_array" />
       <wsdl:output message="tns:echo_float_arrayResponse" name="echo_float_arrayResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_in_complex_header" parameterOrder="echo_in_complex_header">
+      <wsdl:input message="tns:echo_in_complex_header" name="echo_in_complex_header" />
+      <wsdl:output message="tns:echo_in_complex_headerResponse" name="echo_in_complex_headerResponse" />
     </wsdl:operation>
     <wsdl:operation name="echo_in_header" parameterOrder="echo_in_header">
       <wsdl:input message="tns:echo_in_header" name="echo_in_header" />
@@ -1374,6 +1499,10 @@
       <wsdl:input message="tns:return_other_class_array" name="return_other_class_array" />
       <wsdl:output message="tns:return_other_class_arrayResponse" name="return_other_class_arrayResponse" />
     </wsdl:operation>
+    <wsdl:operation name="send_out_complex_header" parameterOrder="send_out_complex_header">
+      <wsdl:input message="tns:send_out_complex_header" name="send_out_complex_header" />
+      <wsdl:output message="tns:send_out_complex_headerResponse" name="send_out_complex_headerResponse" />
+    </wsdl:operation>
     <wsdl:operation name="send_out_header" parameterOrder="send_out_header">
       <wsdl:input message="tns:send_out_header" name="send_out_header" />
       <wsdl:output message="tns:send_out_headerResponse" name="send_out_headerResponse" />
@@ -1408,6 +1537,11 @@
     </wsdl:port>
   </wsdl:service>
   <wsdl:service name="InteropPrimitive">
+    <wsdl:port binding="tns:Application" name="Application">
+      <soap:address location="http://localhost:9753/?wsdl" />
+    </wsdl:port>
+  </wsdl:service>
+  <wsdl:service name="InteropServiceWithComplexHeader">
     <wsdl:port binding="tns:Application" name="Application">
       <soap:address location="http://localhost:9753/?wsdl" />
     </wsdl:port>
