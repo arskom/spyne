@@ -57,7 +57,7 @@ def _from_soap(in_envelope_xml, xmlids=None):
 
     header=None
     if len(header_envelope) > 0 and len(header_envelope[0]) > 0:
-        header = header_envelope[0].getchildren()[0]
+        header = header_envelope[0].getchildren()
 
     body=None
     if len(body_envelope) > 0 and len(body_envelope[0]) > 0:
@@ -207,10 +207,18 @@ class Soap11(ProtocolBase):
                 header_class = ctx.descriptor.out_header
                 body_class = ctx.descriptor.out_message
 
-            # decode header object
-            if (ctx.in_header_doc is not None and len(ctx.in_header_doc) > 0 and
-                  header_class is not None):
-                ctx.in_header = header_class.from_xml(ctx.in_header_doc)
+            # decode header objects
+            if (ctx.in_header_doc is not None and header_class is not None):
+                if isinstance(header_class, (list, tuple)):
+                    headers = [None] * len(header_class)
+                    for i, (header_doc, head_class) in enumerate(zip(ctx.in_header_doc, header_class)):
+                        if len(header_doc) > 0:
+                            headers[i] = head_class.from_xml(header_doc)
+                    ctx.in_header = tuple(headers)
+                else:
+                    header_doc = ctx.in_header_doc[0]
+                    if len(header_doc) > 0:
+                        ctx.in_header = header_class.from_xml(header_doc)
 
             # decode method arguments
             if ctx.in_body_doc is not None and len(ctx.in_body_doc) > 0:
@@ -245,11 +253,11 @@ class Soap11(ProtocolBase):
 
         else:
             # header
-            if ctx.out_header != None:
+            if ctx.out_header is not None:
                 if self.out_wrapper in (self.NO_WRAPPER, self.OUT_WRAPPER):
-                    header_message_class = ctx.descriptor.in_header
-                else:
                     header_message_class = ctx.descriptor.out_header
+                else:
+                    header_message_class = ctx.descriptor.in_header
 
                 if ctx.descriptor.out_header is None:
                     logger.warning(
@@ -259,13 +267,25 @@ class Soap11(ProtocolBase):
                 else:
                     ctx.out_header_doc = soap_header_elt = etree.SubElement(
                                     ctx.out_document, '{%s}Header' % ns.soap_env)
-
-                    header_message_class.to_parent_element(
-                        ctx.out_header,
-                        self.parent.interface.get_tns(),
-                        soap_header_elt,
-                        header_message_class.get_type_name()
-                    )
+                    if isinstance(header_message_class, (list, tuple)):
+                        if isinstance(ctx.out_header, (list, tuple)):
+                            out_headers = ctx.out_header
+                        else:
+                            out_headers = (ctx.out_header,)
+                        for header_class, out_header in zip(header_message_class, out_headers):
+                            header_class.to_parent_element(
+                                out_header,
+                                self.parent.interface.get_tns(),
+                                soap_header_elt,
+                                header_class.get_type_name()
+                            )
+                    else:
+                        header_message_class.to_parent_element(
+                            ctx.out_header,
+                            self.parent.interface.get_tns(),
+                            soap_header_elt,
+                            header_message_class.get_type_name()
+                        )
 
             # body
             ctx.out_body_doc = out_body_doc = etree.SubElement(ctx.out_document,
