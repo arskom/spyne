@@ -516,18 +516,15 @@ class Wsdl11(Base):
                 in_header = service.__in_header__
 
             if not (in_header is None):
-                if isinstance(in_header, (list, tuple)):
-                    in_headers = in_header
-                    in_header_message_name = ''.join((method.name,
-                                                      _in_header_msg_suffix))
-                else:
-                    in_headers = (in_header,)
-                    in_header_message_name = in_header.get_type_name()
-                for header in in_headers:
+                if not isinstance(in_header, (list, tuple)):
+                    in_header = (in_header,)
+
+                for header in in_header:
                     soap_header = etree.SubElement(input, '{%s}header' % _ns_soap)
                     soap_header.set('use', 'literal')
-                    soap_header.set('message', '%s:%s' % (pref_tns,
-                                                          in_header_message_name))
+                    soap_header.set('message', '%s:%s' % (
+                                            header.get_namespace_prefix(self),
+                                            header.header.get_type_name()))
                     soap_header.set('part', header.get_type_name())
 
             if not (method.is_async or method.is_callback):
@@ -543,19 +540,16 @@ class Wsdl11(Base):
                     out_header = service.__out_header__
 
                 if not (out_header is None):
-                    if isinstance(out_header, (list, tuple)):
-                        out_headers = out_header
-                        out_header_message_name = ''.join((method.name,
-                                                         _out_header_msg_suffix))
-                    else:
-                        out_headers = (out_header,)
-                        out_header_message_name = out_header.get_type_name()
-                    for header in out_headers:
+                    if not isinstance(out_header, (list, tuple)):
+                        out_header = (out_header,)
+
+                    for header in out_header:
                         soap_header = etree.SubElement(output, '{%s}header' %
-                                                                        _ns_soap)
+                                                                       _ns_soap)
                         soap_header.set('use', 'literal')
-                        soap_header.set('message', '%s:%s' % (pref_tns,
-                                                           out_header_message_name))
+                        soap_header.set('message', '%s:%s' % (
+                                        out_header.get_namespace_prefix(self),
+                                        out_header.get_type_name()))
                         soap_header.set('part', header.get_type_name())
 
                     for f in method.faults:
