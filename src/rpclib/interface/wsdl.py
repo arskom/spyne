@@ -520,17 +520,16 @@ class Wsdl11(Base):
                     in_headers = in_header
                     in_header_message_name = ''.join((method.name,
                                                       _in_header_msg_suffix))
-                    in_header_pref = pref_tns
                 else:
                     in_headers = (in_header,)
                     in_header_message_name = in_header.get_type_name()
-                    in_header_pref = in_header.get_namespace_prefix(self)
 
                 for header in in_headers:
                     soap_header = etree.SubElement(input, '{%s}header' % _ns_soap)
                     soap_header.set('use', 'literal')
-                    soap_header.set('message', '%s:%s' % (in_header_pref,
-                                                          in_header_message_name))
+                    soap_header.set('message', '%s:%s' % (
+                                            header.get_namespace_prefix(self),
+                                            in_header_message_name))
                     soap_header.set('part', header.get_type_name())
 
             if not (method.is_async or method.is_callback):
@@ -550,19 +549,17 @@ class Wsdl11(Base):
                         out_headers = out_header
                         out_header_message_name = ''.join((method.name,
                                                          _out_header_msg_suffix))
-                        out_header_pref = pref_tns
-
                     else:
                         out_headers = (out_header,)
                         out_header_message_name = out_header.get_type_name()
-                        out_header_pref = out_header.get_namespace_prefix(self)
 
                     for header in out_headers:
                         soap_header = etree.SubElement(output, '{%s}header' %
-                                                                    _ns_soap)
+                                                                       _ns_soap)
                         soap_header.set('use', 'literal')
-                        soap_header.set('message', '%s:%s' % (out_header_pref,
-                                                       out_header_message_name))
+                        soap_header.set('message', '%s:%s' % (
+                                            header.get_namespace_prefix(self),
+                                            out_header_message_name))
                         soap_header.set('part', header.get_type_name())
 
                     for f in method.faults:
