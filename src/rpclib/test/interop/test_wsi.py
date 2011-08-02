@@ -15,29 +15,33 @@ import string
 from lxml import etree
 
 CONFIG_FILE = 'config.xml'
-RPCLIB_TEST_NS = 'rpclib.test.interop.server._service'
-RPCLIB_TEST_SERVICE = 'ValidatingApplication'
-RPCLIB_TEST_PORT = 'ValidatingApplication'
+RPCLIB_TEST_NS = 'rpclib.test.interop.server'
+RPCLIB_TEST_SERVICE = 'Application'
+RPCLIB_TEST_PORT = 'Application'
 RPCLIB_REPORT_FILE = 'wsi-report-rpclib.xml'
 
-
-WSI_ANALYZER_CONFIG_TEMPLATE=string.Template("""\
-<?xml version="1.0" encoding="UTF-8"?>
-<wsi-analyzerConfig:configuration name="WS-I Basic Profile Analyzer Configuration" \
+WSI_ANALYZER_CONFIG_TEMPLATE=string.Template("""<?xml version="1.0" encoding="UTF-8"?>
+<wsi-analyzerConfig:configuration name="WS-I Basic Profile Analyzer Configuration"
       xmlns:wsi-analyzerConfig="http://www.ws-i.org/testing/2004/07/analyzerConfig/">
-<wsi-analyzerConfig:description />
-<wsi-analyzerConfig:verbose>false</wsi-analyzerConfig:verbose>
-<wsi-analyzerConfig:assertionResults type="all" messageEntry="true" failureMessage="true"/>
-<wsi-analyzerConfig:reportFile replace="true" location="${REPORT_FILE}">
+  <wsi-analyzerConfig:description />
+  <wsi-analyzerConfig:verbose>false</wsi-analyzerConfig:verbose>
+  <wsi-analyzerConfig:assertionResults type="all" messageEntry="true"
+      failureMessage="true"/>
+  <wsi-analyzerConfig:reportFile replace="true" location="${REPORT_FILE}">
     <wsi-analyzerConfig:addStyleSheet href="${STYLESHEET_FILE}" type="text/xsl"/>
-</wsi-analyzerConfig:reportFile>
-<wsi-analyzerConfig:testAssertionsFile>${ASSERTIONS_FILE}</wsi-analyzerConfig:testAssertionsFile>
-<wsi-analyzerConfig:wsdlReference>
-    <wsi-analyzerConfig:wsdlElement type="port" parentElementName="${SERVICE_NAME}" \
-    namespace="${WSDL_NAMESPACE}">${PORT_NAME}</wsi-analyzerConfig:wsdlElement>
+  </wsi-analyzerConfig:reportFile>
+  <wsi-analyzerConfig:testAssertionsFile>
+    ${ASSERTIONS_FILE}
+  </wsi-analyzerConfig:testAssertionsFile>
+  <wsi-analyzerConfig:wsdlReference>
+    <wsi-analyzerConfig:wsdlElement type="port"
+          parentElementName="${SERVICE_NAME}" namespace="${WSDL_NAMESPACE}">
+      ${PORT_NAME}
+    </wsi-analyzerConfig:wsdlElement>
     <wsi-analyzerConfig:wsdlURI>${WSDL_URI}</wsi-analyzerConfig:wsdlURI>
-</wsi-analyzerConfig:wsdlReference>
-</wsi-analyzerConfig:configuration>""")
+  </wsi-analyzerConfig:wsdlReference>
+</wsi-analyzerConfig:configuration>
+""")
 
 #This must be changed to point to the physical root of the wsi-installation
 WSI_HOME_TAG = "WSI_HOME"
