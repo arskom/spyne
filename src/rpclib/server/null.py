@@ -17,8 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""A server that doesn't support any transport at all -- it's here for testing
-purposes.
+"""A server that doesn't support any transport at all -- it's implemented for
+testing services without running a server.
 """
 
 from rpclib.client._base import Factory
