@@ -7,6 +7,7 @@ rpclib-2.0.10-alpha
  * Fixed the case where changing the _in_message tag name of the method
    prevented it from being called.
  * SOAP/WSDL: Added support for multiple {in,out}_header objects.
+ * Correct some bugs with the XMLAttribute model
 
 rpclib-2.0.9-alpha
  * Added inheritance support to rpclib.model.table.TableSerializer.

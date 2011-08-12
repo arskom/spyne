@@ -22,11 +22,16 @@ import unittest
 
 from rpclib.model.complex import ComplexModel
 from rpclib.model.complex import Array
+from rpclib.model.complex import XMLAttribute
 
 from rpclib.model.primitive import DateTime
 from rpclib.model.primitive import Float
 from rpclib.model.primitive import Integer
 from rpclib.model.primitive import String
+
+from rpclib.const import xml_ns
+
+from rpclib.interface.wsdl import Wsdl11
 
 from lxml import etree
 
@@ -234,6 +239,8 @@ class TestComplexModel(unittest.TestCase):
         self.assertNotEquals(Derived2.Attributes.prop1, Base.Attributes.prop1)
         self.assertEquals(Derived3.Attributes.prop1, Base.Attributes.prop1)
 
+
+
 class X(ComplexModel):
     __namespace__='tns'
     x = Integer(nillable=True,max_occurs='unbounded')
@@ -331,6 +338,28 @@ class EncExtractSisMsg(SisMsg):
     >>> msg.body.mbr_idn
     """
     body = EncExtractXs
+
+
+
+class Parameter(ComplexModel):
+    __namespace__ = ns_test
+    __extends__ = String
+    name = XMLAttribute('%s:string' % xml_ns.const_prefmap[xml_ns.xsd])
+
+Parameter.resolve_namespace(Parameter, __name__)
+
+
+
+class TestXmlAttribute(unittest.TestCase):
+    
+    def test_add_to_schema(self):
+        schema = Wsdl11(parent=None, services=[], tns=ns_test, name='TestXmlAttribute')
+        Parameter.add_to_schema(schema)
+        type_def = schema.get_schema_info('tns').types[Parameter.get_type_name()]
+        attribute_def = type_def.find('{%s}attribute' % xml_ns.xsd)
+        self.assertIsNotNone(attribute_def)
+        self.assertEqual(attribute_def.get('name'), 'name')
+        self.assertEqual(attribute_def.get('type'), Parameter.name._typ)
 
 if __name__ == '__main__':
     unittest.main()
