@@ -66,22 +66,16 @@ def _process_item(v):
 
     return rpc_type
 
-class TableSerializerMeta(DeclarativeMeta,ComplexModelMeta):
+class TableSerializerMeta(DeclarativeMeta, ComplexModelMeta):
     def __new__(cls, cls_name, cls_bases, cls_dict):
         if cls_dict.get("__type_name__", None) is None:
             cls_dict["__type_name__"] = cls_name
 
+        if cls_name == "User":
+            print cls_name, cls_dict.get("_type_info", None)
+
         if cls_dict.get("_type_info", None) is None:
             cls_dict["_type_info"] = _type_info = TypeInfo()
-
-            for k, v in cls_dict.items():
-                if (not k.startswith('__')) and isinstance(v, Column):
-                    _type_info[k] = _process_item(v)
-
-            table = cls_dict.get('__table__', None)
-            if not (table is None):
-                for c in table.c:
-                    _type_info[c.name] = _process_item(c)
 
             # mixin inheritance
             for b in cls_bases:
@@ -89,13 +83,33 @@ class TableSerializerMeta(DeclarativeMeta,ComplexModelMeta):
                     if isinstance(v, Column):
                         _type_info[k] = _process_item(v)
 
+            if cls_name == "User":
+                print cls_name, cls_bases
+
             # same table inheritance
             for b in cls_bases:
                 table = getattr(b, '__table__', None)
 
                 if not (table is None):
+                    if cls_name == "User":
+                        print "!!!!!!!!!!!!!!!!!!!!!!!!!!!",
                     for c in table.c:
+                        if cls_name == "User":
+                            print c
                         _type_info[c.name] = _process_item(c)
+                    if cls_name == "User":
+                        print "!!!!!!!!!!!!!!!!!!!!!!!!!!!",
+
+            # include from table
+            table = cls_dict.get('__table__', None)
+            if not (table is None):
+                for c in table.c:
+                    _type_info[c.name] = _process_item(c)
+
+            # own attributes
+            for k, v in cls_dict.items():
+                if (not k.startswith('__')) and isinstance(v, Column):
+                    _type_info[k] = _process_item(v)
 
         return DeclarativeMeta.__new__(cls, cls_name, cls_bases, cls_dict)
 
