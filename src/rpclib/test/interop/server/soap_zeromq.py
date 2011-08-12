@@ -18,9 +18,7 @@
 #
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('rpclib._base')
-logger.setLevel(logging.DEBUG)
 
 from rpclib.test.interop.server.soap_http_basic import soap_application
 
@@ -28,6 +26,9 @@ from rpclib.server.zeromq import Server
 
 if __name__ == '__main__':
     url = "tcp://*:5555"
+    logging.basicConfig(level=logging.DEBUG)
+    logger.setLevel(logging.DEBUG)
+
     server = Server(soap_application, url)
     logging.info("************************")
     logging.info("Use Ctrl+\\ to exit.")
