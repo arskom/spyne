@@ -34,7 +34,7 @@ class _RemoteProcedure(RemoteProcedureBase):
 
         out_string = ''.join(self.ctx.out_string)
         request = urllib2.Request(self.url, out_string)
-        code=200
+        code = 200
         try:
             response = urllib2.urlopen(request)
             self.ctx.in_string = response.read()
@@ -43,11 +43,14 @@ class _RemoteProcedure(RemoteProcedureBase):
             code=e.code
             self.ctx.in_string = e.read()
 
-        self.get_in_object(is_error=(code == 500))
-        if self.ctx.in_error is None:
-            return self.ctx.in_object
+        self.get_in_object()
+
+        if not (self.ctx.in_error is None):
+            raise self.ctx.in_error
+        elif code >= 500:
+            raise self.ctx.in_object
         else:
-            return self.ctx.in_error
+            return self.ctx.in_object
 
 class Client(ClientBase):
     def __init__(self, url, app):

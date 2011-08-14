@@ -58,8 +58,8 @@ class RemoteProcedureBase(object):
         self.ctx.method_request_string = name
         self.ctx.out_header = out_header
 
-        self.ctx.service_class = self.app.get_service_class(name)
-        self.ctx.descriptor = self.ctx.service_class.get_method(name)
+        self.ctx.service_class = self.app.get_service_class(self.ctx)
+        self.ctx.descriptor = self.ctx.service_class.get_method(self.ctx)
 
     def get_out_object(self, args, kwargs):
         assert self.ctx.out_object is None
@@ -85,7 +85,7 @@ class RemoteProcedureBase(object):
         self.app.out_protocol.serialize(self.ctx)
         self.app.out_protocol.create_out_string(self.ctx, string_encoding)
 
-    def get_in_object(self, is_error=False):
+    def get_in_object(self):
         assert self.ctx.in_string is not None
         assert self.ctx.in_document is None
 
@@ -97,17 +97,13 @@ class RemoteProcedureBase(object):
         # this sets ctx.in_object
         self.app.in_protocol.deserialize(self.ctx)
 
-        if not (self.ctx.in_error is None) or is_error:
-            raise self.ctx.in_error
+        type_info = self.ctx.descriptor.out_message._type_info
 
-        else:
-            type_info = self.ctx.descriptor.out_message._type_info
-
-            if (self.app.in_protocol.in_wrapper != self.app.in_protocol.NO_WRAPPER
-                      and len(self.ctx.descriptor.out_message._type_info) == 1):
-                wrapper_attribute = type_info.keys()[0]
-                self.ctx.in_object = getattr(self.ctx.in_object,
-                                                        wrapper_attribute, None)
+        if (self.app.in_protocol.in_wrapper != self.app.in_protocol.NO_WRAPPER
+                  and len(self.ctx.descriptor.out_message._type_info) == 1):
+            wrapper_attribute = type_info.keys()[0]
+            self.ctx.in_object = getattr(self.ctx.in_object,
+                                                    wrapper_attribute, None)
 
 class ClientBase(object):
     def __init__(self, url, app):
