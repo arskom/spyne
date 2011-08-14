@@ -29,16 +29,21 @@ context = zmq.Context()
 
 class _RemoteProcedure(RemoteProcedureBase):
     def __call__(self, *args, **kwargs):
-        out_object = self.get_out_object(args, kwargs)
-        out_string = self.get_out_string()
+        self.get_out_object(args, kwargs)
+        self.get_out_string()
+        out_string = ''.join(self.ctx.out_string)
 
         socket = context.socket(zmq.REQ)
         socket.connect(self.url)
         socket.send(out_string)
 
-        in_str = socket.recv()
+        self.ctx.in_string = socket.recv()
+        self.get_in_object()
 
-        return self.get_in_object(in_str)
+        if not (self.ctx.in_error is None):
+            raise self.ctx.in_error
+        else:
+            return self.ctx.in_object
 
 class Client(ClientBase):
     def __init__(self, url, app):
