@@ -20,8 +20,6 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import traceback
-
 from rpclib.model.exception import Fault
 from rpclib._base import EventManager
 
@@ -76,8 +74,7 @@ class Application(object):
                                                     'method_return_object', ctx)
 
         except Fault, e:
-            stacktrace=traceback.format_exc()
-            logger.error(stacktrace)
+            logger.exception(e)
 
             ctx.out_error = e
 
@@ -88,8 +85,7 @@ class Application(object):
                                                     'method_return_object', ctx)
 
         except Exception, e:
-            stacktrace=traceback.format_exc()
-            logger.error(stacktrace)
+            logger.exception(e)
 
             ctx.out_error = Fault('Server', str(e))
 
