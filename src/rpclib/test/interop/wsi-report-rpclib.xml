@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet href="wsi-test-tools/common/xsl/report.xsl" type="text/xsl" ?>
+<report name="WS-I Basic Profile Conformance Report."    timestamp="2011-08-04T11:29:52.038"
+    xmlns="http://www.ws-i.org/testing/2004/07/report/"
+    xmlns:wsi-report="http://www.ws-i.org/testing/2004/07/report/"
+    xmlns:wsi-log="http://www.ws-i.org/testing/2003/03/log/"
+    xmlns:wsi-analyzerConfig="http://www.ws-i.org/testing/2004/07/analyzerConfig/"
+    xmlns:wsi-monConfig="http://www.ws-i.org/testing/2003/03/monitorConfig/"
+    xmlns:wsi-assertions="http://www.ws-i.org/testing/2004/07/assertions/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <analyzer version="1.0.0" releaseDate="2005-07-04">
+    <implementer name="WS-I Organization" location="http://www.ws-i.org"/>
+    <environment>
+      <runtime name="Java(TM) SE Runtime Environment" version="1.6.0_26-b03"/>
+      <operatingSystem name="Linux" version="2.6.39-gentoo-r3"/>
+      <xmlParser name="Apache Xerces" version="Xerces-J 2.6.2"/>
+    </environment>
+    <wsi-analyzerConfig:configuration>
+      <wsi-analyzerConfig:verbose>false</wsi-analyzerConfig:verbose>
+      <wsi-analyzerConfig:assertionResults type="all" messageEntry="true" assertionDescription="false" failureMessage="true" failureDetail="true"/>
+        <wsi-analyzerConfig:reportFile replace="true" location="wsi-report-rpclib.xml">
+      <wsi-analyzerConfig:addStyleSheet href="wsi-test-tools/common/xsl/report.xsl" type="text/xsl" />
+        </wsi-analyzerConfig:reportFile>
+        <wsi-analyzerConfig:testAssertionsFile>wsi-test-tools/common/profiles/SSBP10_BP11_TAD.xml</wsi-analyzerConfig:testAssertionsFile>
+        <wsi-analyzerConfig:logFile correlationType="operation">null</wsi-analyzerConfig:logFile>
+      <wsi-analyzerConfig:wsdlReference>
+        <wsi-analyzerConfig:wsdlElement type="port" namespace="rpclib.test.interop.server" parentElementName="Application">Application</wsi-analyzerConfig:wsdlElement>
+        <wsi-analyzerConfig:wsdlURI>http://localhost:9753/?wsdl</wsi-analyzerConfig:wsdlURI>
+      </wsi-analyzerConfig:wsdlReference>
+    </wsi-analyzerConfig:configuration>
+  </analyzer>
+
+  <artifact type="discovery">
+    <entry type="[discovery]" >
+      <assertionResult id="BP3001" result="missingInput">
+      </assertionResult>
+      <assertionResult id="BP3002" result="missingInput">
+      </assertionResult>
+      <assertionResult id="BP3003" result="missingInput">
+      </assertionResult>
+    </entry>
+  </artifact>
+  <artifact type="description">
+  </artifact>
+  <analyzerFailure>
+    <failureDetail>The conformance validation process failed.
+Exception:org.wsi.WSIException
+WSDL Port &apos;Application&apos; for Service &apos;{rpclib.test.interop.server}Application&apos; not found in service description
+	at org.wsi.test.analyzer.CandidateInfo.&lt;init&gt;(Unknown Source)
+	at org.wsi.test.profile.validator.impl.wsdl.WSDLValidatorImpl.validate(Unknown Source)
+	at org.wsi.test.analyzer.BasicProfileAnalyzer.validateWSDL(Unknown Source)
+	at org.wsi.test.analyzer.BasicProfileAnalyzer.validateConformance(Unknown Source)
+	at org.wsi.test.analyzer.BasicProfileAnalyzer.main(Unknown Source)
+    </failureDetail>
+</analyzerFailure>
+</report>
