@@ -103,7 +103,10 @@ class Application(object):
         too crazy with regular expressions :)
         """
 
-        return self.interface.call_routes[ctx.method_request_string]
+        mrs = ctx.method_request_string
+        if not mrs.startswith("{"):
+            mrs = '{%s}%s' % (self.interface.get_tns(),mrs)
+        return self.interface.call_routes[mrs]
 
     def _has_callbacks(self):
         return self.interface._has_callbacks()
