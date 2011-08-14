@@ -228,6 +228,44 @@ class Integer(Decimal):
         except:
             return long(string)
 
+class UnsignedInteger(Integer):
+    __type_name__ = 'unsignedLong'
+    __length__ = None
+    @classmethod
+    @nillable_string
+    def to_string(cls, value):
+        assert (cls.__length__ is None) or (0 <= value < 2**cls.__length__)
+
+        return str(value)
+
+    @classmethod
+    @nillable_string
+    def from_string(cls, string):
+        try:
+            retval = int(string)
+        except:
+            retval = long(string)
+
+        assert (cls.__length__ is None) or (0 <= retval < 2**cls.__length__)
+
+        return retval
+
+class UnsignedInteger64(UnsignedInteger):
+    __type_name__ = 'unsignedLong'
+    __length__ = 64
+
+class UnsignedInteger32(UnsignedInteger):
+    __type_name__ = 'unsignedLong'
+    __length__ = 32
+
+class UnsignedInteger16(Integer):
+    __type_name__ = 'unsignedShort'
+    __length__ = 16
+
+class UnsignedInteger8(Integer):
+    __type_name__ = 'unsignedByte'
+    __length__ = 8
+
 class Date(SimpleModel):
     __type_name__ = 'date'
 
