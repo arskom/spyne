@@ -256,7 +256,7 @@ class Soap11(ProtocolBase):
         else:
             # header
             if ctx.out_header is not None:
-                if self.out_wrapper in (self.NO_WRAPPER, self.OUT_WRAPPER):
+                if self.out_wrapper is self.OUT_WRAPPER:
                     header_message_class = ctx.descriptor.out_header
                 else:
                     header_message_class = ctx.descriptor.in_header
