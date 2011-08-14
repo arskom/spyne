@@ -35,6 +35,7 @@ class MethodContext(object):
         self.app = app
 
         self.udc = None  # the user defined context. use it to your liking.
+        self.transport = TransportContext() # the transport-specific context.
 
         self.method_name = None
         # these are set based on the value of the method_name.
@@ -72,7 +73,6 @@ class MethodContext(object):
                                     # envelope
         self.out_string = None      # outgoing bytestream (can be any kind of
                                     # iterable that contains strings)
-        self.transport = TransportContext()
 
         self.frozen = True  # when this is set, no new attribute can be added
                             # to the class instance.
