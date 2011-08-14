@@ -67,7 +67,9 @@ class TestEnum(unittest.TestCase):
             tns='tns'
         )
 
-        wsdl = app.interface.get_interface_document('punk')
+        app.interface.build_interface_document('punk')
+        wsdl = app.interface.get_interface_document()
+
         elt = etree.fromstring(wsdl)
         simple_type = elt.xpath('//xs:simpleType', namespaces=app.interface.nsmap)[0]
 
