@@ -131,7 +131,6 @@ class ComplexModelMeta(type(ModelBase)):
         return type(ModelBase).__new__(cls, cls_name, cls_bases, cls_dict)
 
     def __init__(self, cls_name, cls_bases, cls_dict):
-        print "port"
         for k in cls_dict:
             if cls_dict[k] is SelfReference:
                 cls_dict[k] = self
