@@ -55,7 +55,7 @@ class RemoteProcedureBase(object):
         self.app = app
 
         self.ctx = MethodContext(app)
-        self.ctx.method_name = name
+        self.ctx.method_request_string = name
         self.ctx.out_header = out_header
 
         self.ctx.service_class = self.app.get_service_class(name)

@@ -215,31 +215,9 @@ class Base(object):
         # FIXME: should also somehow freeze child classes' _type_info
         #        dictionaries.
 
-        # populate call routes
-        for s in self.services:
-            s.__tns__ = self.get_tns()
-            logger.debug("populating '%s.%s'" % (s.__module__, s.__name__))
-            for method in s.public_methods:
-                method_name = "{%s}%s" % (self.get_tns(),
-                                              method.in_message.get_type_name())
-
-                if method_name in self.call_routes:
-                    o = self.call_routes[method_name]
-                    raise Exception("\nThe message %r defined in both '%s.%s' "
-                                                                " and '%s.%s'"
-                      % (method_name, s.__module__, s.__name__,
-                                          o.__module__, o.__name__,
-                        ))
-
-                else:
-                    logger.debug('\tadding method %r to match %r tag.' % (method.name, method_name))
-                    self.call_routes[method_name] = s # used by servers
-                    self.call_routes[method.public_name] = s # used by clients
-
-
         # populate types
         for s in self.services:
-            for method in s.public_methods:
+            for method in s.public_methods.values():
                 if method.in_header is None:
                     method.in_header = s.__in_header__
                 if method.out_header is None:
@@ -274,6 +252,25 @@ class Base(object):
                 for fault in method.faults:
                     fault.resolve_namespace(fault, self.get_tns())
                     fault.add_to_schema(self)
+
+        # populate call routes
+        for s in self.services:
+            s.__tns__ = self.get_tns()
+            logger.debug("populating '%s.%s'" % (s.__module__, s.__name__))
+            for method in s.public_methods.values():
+                if method.key in self.call_routes:
+                    o = self.call_routes[method.key]
+                    raise Exception("\nThe message %r defined in both '%s.%s' "
+                                                                " and '%s.%s'"
+                      % (method.key, s.__module__, s.__name__,
+                                          o.__module__, o.__name__,
+                        ))
+
+                else:
+                    logger.debug('\tadding method %r to match %r tag.' %
+                                                      (method.name, method.key))
+                    self.call_routes[method.key] = s  # used by servers
+                    s.public_methods[method.key] = method  # used by servers
 
     tns = property(get_tns)
 

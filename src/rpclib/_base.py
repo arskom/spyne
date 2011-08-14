@@ -21,6 +21,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 from collections import deque
+
+from rpclib.const.xml_ns import DEFAULT_NS
 from rpclib.util.oset import oset
 
 class TransportContext(object):
@@ -31,14 +33,22 @@ class TransportContext(object):
 class MethodContext(object):
     frozen = False
 
+    @property
+    def method_name(self):
+        if self.descriptor is None:
+            return None
+        else:
+            return self.descriptor.name
+
     def __init__(self, app):
         self.app = app
 
         self.udc = None  # the user defined context. use it to your liking.
         self.transport = TransportContext() # the transport-specific context.
 
-        self.method_name = None
-        # these are set based on the value of the method_name.
+        self.method_request_string = None
+
+        # the following are set based on the value of the method_name.
         self.service_class = None  # the class the method belongs to
         self.descriptor = None     # its descriptor
 
@@ -109,14 +119,12 @@ class MethodDescriptor(object):
     and is returned by the rpc decorator.
     '''
 
-    def __init__(self, name, public_name, in_message, out_message, doc,
+    def __init__(self, function, in_message, out_message, doc,
                  is_callback=False, is_async=False, mtom=False, in_header=None,
                  out_header=None, faults=(),
-                 port_type=None, no_ctx=False,
-                ):
+                 port_type=None, no_ctx=False):
 
-        self.name = name
-        self.public_name = public_name
+        self.function = function
         self.in_message = in_message
         self.out_message = out_message
         self.doc = doc
@@ -129,6 +137,16 @@ class MethodDescriptor(object):
         self.port_type = port_type
         self.no_ctx = no_ctx
 
+    @property
+    def name(self):
+        return self.in_message.get_type_name()
+
+    @property
+    def key(self):
+        assert not (self.in_message.get_namespace() is DEFAULT_NS)
+
+        return '{%s}%s' % (
+            self.in_message.get_namespace(), self.in_message.get_type_name())
 
 class EventManager(object):
     def __init__(self, parent, handlers={}):

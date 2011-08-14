@@ -56,11 +56,11 @@ class _FunctionCall(object):
 
     def __call__(self, *args, **kwargs):
         ctx = MethodContext(self.__app)
-        ctx.method_name = self.__key
+        ctx.method_request_string = self.__key
         ctx.in_header = self.__in_header
 
-        ctx.service_class = self.__app.get_service_class(ctx.method_name)
-        ctx.descriptor = ctx.service_class.get_method(ctx.method_name)
+        ctx.service_class = self.__app.get_service_class(ctx)
+        ctx.descriptor = ctx.service_class.get_method(ctx)
 
         self.__app.process_request(ctx, args)
 

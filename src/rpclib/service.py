@@ -27,16 +27,16 @@ class ServiceBaseMeta(type):
     def __init__(self, cls_name, cls_bases, cls_dict):
         super(ServiceBaseMeta, self).__init__(cls_name, cls_bases, cls_dict)
 
-        self.public_methods = []
+        self.public_methods = {}
         self.event_manager = EventManager(self,
                                       self.__get_base_event_handlers(cls_bases))
 
-        for func_name, func in cls_dict.iteritems():
-            if callable(func) and hasattr(func, '_is_rpc'):
-                descriptor = func(_method_descriptor=func_name)
-                self.public_methods.append(descriptor)
-
-                setattr(self, func_name, staticmethod(func))
+        for k, v in cls_dict.iteritems():
+            if hasattr(v, '_is_rpc'):
+                descriptor = v(_default_function_name=k)
+                self.public_methods[k] = descriptor
+                setattr(self, k, staticmethod(descriptor.function))
+                descriptor.function = getattr(self, k)
 
     def __get_base_event_handlers(self, cls_bases):
         handlers = {}
@@ -95,25 +95,26 @@ class ServiceBase(object):
         return retval
 
     @classmethod
-    def get_method(cls, name):
-        '''Returns the method descriptor based on element name.'''
+    def get_method(cls, ctx):
+        '''Returns the method descriptor based on element name.
 
-        for method in cls.public_methods:
-            type_name = method.in_message.get_type_name()
-            if '{%s}%s' % (cls.get_tns(), type_name) == name:
-                return method
+        This function can be overridden to alter the way incoming requests are
+        matched to handler functions.'''
 
-        for method in cls.public_methods:
-            if method.public_name == name:
-                return method
+        name = ctx.method_request_string
+        retval = cls.public_methods.get(name, None)
 
-        raise Exception('Method "%s" not found' % name)
+        if retval is None:
+            logger.debug(cls.public_methods.keys())
+            raise Exception('Method %r not found.' % name)
+
+        return retval
 
     @classmethod
     def _has_callbacks(cls):
         '''Determines if this object has callback methods or not.'''
 
-        for method in cls.public_methods:
+        for method in cls.public_methods.values():
             if method.is_callback:
                 return True
 

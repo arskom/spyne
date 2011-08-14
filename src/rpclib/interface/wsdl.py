@@ -396,7 +396,7 @@ class Wsdl11(Base):
 
         port_name = port_type.get('name')
 
-        for method in service.public_methods:
+        for method in service.public_methods.values():
             check_method_port(service, method)
 
             if method.is_callback:
@@ -449,7 +449,7 @@ class Wsdl11(Base):
                 part.set('element', obj.get_type_name_ns(self))
 
     def add_messages_for_methods(self, service, root, messages):
-        for method in service.public_methods:
+        for method in service.public_methods.values():
             self._add_message_for_object(root, messages, method.in_message,
                                     method.in_message.get_type_name())
             self._add_message_for_object(root, messages, method.out_message,
@@ -494,13 +494,13 @@ class Wsdl11(Base):
             soap_binding = etree.SubElement(cb_binding, '{%s}binding' % _ns_soap)
             soap_binding.set('transport', transport)
 
-        for method in service.public_methods:
+        for method in service.public_methods.values():
             operation = etree.Element('{%s}operation' % _ns_wsdl)
             operation.set('name', method.name)
 
             soap_operation = etree.SubElement(operation, '{%s}operation' %
                                                                        _ns_soap)
-            soap_operation.set('soapAction', method.public_name)
+            soap_operation.set('soapAction', method.name)
             soap_operation.set('style', 'document')
 
             # get input

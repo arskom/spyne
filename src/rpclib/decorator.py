@@ -22,7 +22,7 @@ from rpclib.model.complex import ComplexModel
 from rpclib.model.complex import TypeInfo
 from rpclib.const.xml_ns import DEFAULT_NS
 
-def _produce_input_message(f, params, _in_message, _in_variable_names, no_ctx):
+def _produce_input_message(f, params, _in_message_name, _in_variable_names, no_ctx):
     if no_ctx is True:
         arg_start=0
     else:
@@ -44,9 +44,13 @@ def _produce_input_message(f, params, _in_message, _in_variable_names, no_ctx):
         raise Exception("%r function's and its decorator's parameter numbers "
                         "mismatch." % f.func_name)
 
-    message=ComplexModel.produce(type_name=_in_message, namespace=DEFAULT_NS,
+    ns = DEFAULT_NS
+    if _in_message_name.startswith("{"):
+        ns = _in_message_name[1:].partition("}")[0]
+
+    message=ComplexModel.produce(type_name=_in_message_name, namespace=ns,
                                             members=in_params)
-    message.__namespace__ = DEFAULT_NS
+    message.__namespace__ = ns
 
     return message
 
@@ -77,7 +81,7 @@ def _produce_output_message(f, func_name, kparams):
     _returns = kparams.get('_returns')
     _body_style = _validate_body_style(kparams)
 
-    _out_message = kparams.get('_out_message', '%sResponse' % func_name)
+    _out_message_name = kparams.get('_out_message', '%sResponse' % func_name)
     out_params = TypeInfo()
 
     if _returns and _body_style == 'wrapped':
@@ -99,14 +103,18 @@ def _produce_output_message(f, func_name, kparams):
 
             out_params[_out_variable_name] = _returns
 
+    ns = DEFAULT_NS
+    if _out_message_name.startswith("{"):
+        ns = _out_message_name[1:].partition("}")[0]
+
     if _body_style == 'wrapped':
-        message = ComplexModel.produce(type_name=_out_message,
-                                        namespace=DEFAULT_NS,
+        message = ComplexModel.produce(type_name=_out_message_name,
+                                        namespace=ns,
                                         members=out_params)
-        message.__namespace__ = DEFAULT_NS # FIXME: is this necessary?
+        message.__namespace__ = ns # FIXME: is this necessary?
 
     else:
-        message = ComplexModel.alias(_out_message, DEFAULT_NS, _returns)
+        message = ComplexModel.alias(_out_message_name, ns, _returns)
 
     return message
 
@@ -129,34 +137,30 @@ def rpc(*params, **kparams):
     def explain(f):
         def explain_method(*args, **kwargs):
             retval = None
-            function_name = kwargs.get('_method_descriptor', None)
+            function_name = kwargs['_default_function_name']
 
-            if function_name is None:
-                retval = f(*args, **kwargs)
+            _is_callback = kparams.get('_is_callback', False)
+            _is_async = kparams.get('_is_async', False)
+            _mtom = kparams.get('_mtom', False)
+            _in_header = kparams.get('_in_header', None)
+            _out_header = kparams.get('_out_header', None)
+            _port_type = kparams.get('_soap_port_type', None)
+            _no_ctx = kparams.get('_no_ctx', False)
+            _faults = kparams.get('_faults', [])
 
-            else:
-                _is_callback = kparams.get('_is_callback', False)
-                _public_name = kparams.get('_public_name', function_name)
-                _is_async = kparams.get('_is_async', False)
-                _mtom = kparams.get('_mtom', False)
-                _in_header = kparams.get('_in_header', None)
-                _out_header = kparams.get('_out_header', None)
-                _port_type = kparams.get('_soap_port_type', None)
-                _no_ctx = kparams.get('_no_ctx', False)
-                _faults = kparams.get('_faults', [])
+            _in_message_name = kparams.get('_in_message_name', function_name)
+            _in_variable_names = kparams.get('_in_variable_names', {})
+            in_message = _produce_input_message(f, params, _in_message_name,
+                                                    _in_variable_names, _no_ctx)
 
-                _in_message = kparams.get('_in_message', _public_name)
-                _in_variable_names = kparams.get('_in_variable_names', {})
-                in_message = _produce_input_message(f, params,
-                                    _in_message, _in_variable_names, _no_ctx)
+            out_message = _produce_output_message(f, function_name, kparams)
 
-                out_message = _produce_output_message(f, _public_name, kparams)
+            doc = getattr(f, '__doc__')
 
-                doc = getattr(f, '__doc__')
-                retval = MethodDescriptor(function_name, _public_name,
-                        in_message, out_message, doc, _is_callback, _is_async,
-                        _mtom, _in_header, _out_header, _faults,
-                        port_type=_port_type, no_ctx=_no_ctx)
+            retval = MethodDescriptor(f,
+                    in_message, out_message, doc, _is_callback, _is_async,
+                    _mtom, _in_header, _out_header, _faults,
+                    port_type=_port_type, no_ctx=_no_ctx)
 
             return retval
 

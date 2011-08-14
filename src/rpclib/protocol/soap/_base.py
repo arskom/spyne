@@ -150,10 +150,11 @@ class Soap11(ProtocolBase):
         elif not (body_doc is None):
             try:
                 self.validate(body_doc)
-                if (not (body_doc is None)) and (ctx.method_name is None):
-                    ctx.method_name = body_doc.tag
-                    logger.debug("\033[92mMethod name: %r\033[0m" %
-                                                                ctx.method_name)
+                if (not (body_doc is None) and
+                                            (ctx.method_request_string is None)):
+                    ctx.method_request_string = body_doc.tag
+                    logger.debug("\033[92mMethod request_string: %r\033[0m" %
+                                                    ctx.method_request_string)
 
             finally:
                 # for performance reasons, we don't want the following to run
@@ -170,12 +171,12 @@ class Soap11(ProtocolBase):
                                     'col: %d' % e.position)
             try:
                 if ctx.service_class is None: # i.e. if it's a server
-                    ctx.service_class = self.parent.get_service_class(ctx.method_name)
+                    ctx.service_class = self.parent.get_service_class(ctx)
 
             except Exception,e:
                 logger.debug(traceback.format_exc())
                 raise ValidationError('Client', 'Method not found: %r' %
-                                                                ctx.method_name)
+                                                    ctx.method_request_string)
 
             ctx.in_header_doc = header_doc
             ctx.in_body_doc = body_doc
@@ -194,10 +195,11 @@ class Soap11(ProtocolBase):
 
         else:
             # retrieve the method descriptor
-            if ctx.method_name is None:
-                raise Exception("Could not extract method name from the request!")
+            if ctx.method_request_string is None:
+                raise Exception("Could not extract method request string from "
+                                "the request!")
             if ctx.descriptor is None:
-                ctx.descriptor = ctx.service_class.get_method(ctx.method_name)
+                ctx.descriptor = ctx.service_class.get_method(ctx)
 
             if self.in_wrapper is self.IN_WRAPPER:
                 header_class = ctx.descriptor.in_header
@@ -262,7 +264,7 @@ class Soap11(ProtocolBase):
                 if ctx.descriptor.out_header is None:
                     logger.warning(
                         "Skipping soap response header as %r method is not "
-                        "published to have one." % ctx.method_name)
+                        "declared to have one." % ctx.method_name)
 
                 else:
                     ctx.out_header_doc = soap_header_elt = etree.SubElement(

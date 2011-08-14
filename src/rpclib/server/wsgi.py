@@ -42,6 +42,8 @@ class ValidationError(Fault):
 
 class WsgiMethodContext(MethodContext):
     def __init__(self, app, req_env, content_type):
+        MethodContext.__init__(self, app)
+
         self.transport.type = 'wsgi'
         self.transport.req_env = req_env
         self.transport.resp_headers = {
@@ -51,7 +53,6 @@ class WsgiMethodContext(MethodContext):
         self.transport.req_method = req_env.get('REQUEST_METHOD', None)
         self.transport.wsdl_error = None
 
-        MethodContext.__init__(self, app)
 
 class WsgiApplication(ServerBase):
     transport = 'http://schemas.xmlsoap.org/soap/http'
@@ -125,7 +126,7 @@ class WsgiApplication(ServerBase):
 
         except Exception, e:
             logger.error(traceback.format_exc())
-            ctx.wsdl_error = e
+            ctx.transport.wsdl_error = e
             # implementation hook
             self.event_manager.fire_event('wsdl_exception', ctx)
 
