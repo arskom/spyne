@@ -66,6 +66,9 @@ class XMLAttributeRef(XMLAttribute):
         if self._use:
             element.set('use', self._use)
 
+class SelfReference(ModelBase):
+    pass
+
 class ComplexModelMeta(type(ModelBase)):
     '''
     This is the metaclass that populates ComplexModel instances with
@@ -126,6 +129,15 @@ class ComplexModelMeta(type(ModelBase)):
                 cls_dict['_type_info'] = TypeInfo(_type_info)
 
         return type(ModelBase).__new__(cls, cls_name, cls_bases, cls_dict)
+
+    def __init__(self, cls_name, cls_bases, cls_dict):
+        print "port"
+        for k in cls_dict:
+            if cls_dict[k] is SelfReference:
+                cls_dict[k] = self
+                self._type_info[k] = self
+
+        type(ModelBase).__init__(self, cls_name, cls_bases, cls_dict)
 
 class ComplexModelBase(ModelBase):
     """If you want to make a better class type, this is what you should inherit

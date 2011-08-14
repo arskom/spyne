@@ -20,6 +20,7 @@
 import datetime
 import unittest
 
+from rpclib.model.complex import SelfReference
 from rpclib.model.complex import ComplexModel
 from rpclib.model.complex import Array
 from rpclib.model.complex import XMLAttribute
@@ -86,6 +87,12 @@ class Level1(ComplexModel):
 Level1.resolve_namespace(Level1, __name__)
 
 class TestComplexModel(unittest.TestCase):
+    def test_self_reference(self):
+        class TestSelfReference(ComplexModel):
+            self_reference = SelfReference
+
+        assert (TestSelfReference._type_info['self_reference'] is TestSelfReference)
+
     def test_simple_class(self):
         a = Address()
         a.street = '123 happy way'
