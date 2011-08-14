@@ -89,15 +89,13 @@ class RpclibClientTestBase(object):
         self.assertEquals(in_header.i, ret.i)
 
     def test_send_out_header(self):
-        out_header = self.client.factory.create('{rpclib.test.interop.server}OutHeader')
-        out_header.dt = datetime(year=2000, month=01, day=01)
-        out_header.f = 3.141592653
+        call = self.client.service.send_out_header
+        ret = call()
+        in_header = call.ctx.in_header
 
-        ret = self.client.service.send_out_header()
-
-        self.assertTrue(isinstance(ret,type(out_header)))
-        self.assertEquals(ret.dt, out_header.dt)
-        self.assertEquals(ret.f, out_header.f)
+        self.assertTrue(isinstance(ret,type(in_header)))
+        self.assertEquals(ret.dt, in_header.dt)
+        self.assertEquals(ret.f, in_header.f)
 
     def _get_xml_test_val(self):
         return {
