@@ -42,12 +42,14 @@ class ValidationError(Fault):
 
 class WsgiMethodContext(MethodContext):
     def __init__(self, app, req_env, content_type):
-        self.http_req_env = req_env
-        self.http_resp_headers = {
+        self.transport.type = 'wsgi'
+        self.transport.req_env = req_env
+        self.transport.resp_headers = {
             'Content-Type': content_type,
             'Content-Length': '0',
         }
-        self.wsdl_error = None
+        self.transport.req_method = req_env.get('REQUEST_METHOD', None)
+        self.transport.wsdl_error = None
 
         MethodContext.__init__(self, app)
 
@@ -69,7 +71,8 @@ class WsgiApplication(ServerBase):
         @param a callable that begins the response message
         @param the optional url
 
-        @returns the string representation of the rpc message
+        @returns an iterable that contains the serialized response to the rpc
+        message.
         '''
 
         url = wsgi_url
@@ -115,8 +118,8 @@ class WsgiApplication(ServerBase):
 
             self.event_manager.fire_event('wsdl',ctx) # implementation hook
 
-            ctx.http_resp_headers['Content-Length'] = str(len(wsdl))
-            start_response(HTTP_200, ctx.http_resp_headers.items())
+            ctx.transport.resp_headers['Content-Length'] = str(len(wsdl))
+            start_response(HTTP_200, ctx.transport.resp_headers.items())
 
             return [wsdl]
 
@@ -126,7 +129,7 @@ class WsgiApplication(ServerBase):
             # implementation hook
             self.event_manager.fire_event('wsdl_exception', ctx)
 
-            start_response(HTTP_500, ctx.http_resp_headers.items())
+            start_response(HTTP_500, ctx.transport.resp_headers.items())
 
             return [""]
 
@@ -149,7 +152,7 @@ class WsgiApplication(ServerBase):
 
         else:
             if ctx.service_class == None:
-                start_response(HTTP_404, ctx.http_resp_headers.items())
+                start_response(HTTP_404, ctx.transport.resp_headers.items())
                 return ['']
 
             self.get_out_object(ctx)
@@ -172,14 +175,14 @@ class WsgiApplication(ServerBase):
             if len(out_type_info) == 1:
                 out_object = [out_object]
 
-            ctx.http_resp_headers, ctx.out_string = apply_mtom(
-                    ctx.http_resp_headers, ctx.out_string,
+            ctx.transport.resp_headers, ctx.out_string = apply_mtom(
+                    ctx.transport.resp_headers, ctx.out_string,
                     ctx.descriptor.out_message._type_info.values(),
                     out_object
                 )
 
         # initiate the response
-        del ctx.http_resp_headers['Content-Length']
-        start_response(return_code, ctx.http_resp_headers.items())
+        del ctx.transport.resp_headers['Content-Length']
+        start_response(return_code, ctx.transport.resp_headers.items())
 
         return ctx.out_string

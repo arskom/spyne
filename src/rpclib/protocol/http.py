@@ -26,14 +26,14 @@ import urlparse
 # this is not exactly rest, because it ignores http verbs.
 class HttpRpc(ProtocolBase):
     def create_in_document(self, ctx, in_string_encoding=None):
-        assert hasattr(ctx, 'http_req_env'), ("This protocol only works with "
+        assert ctx.transport.type == 'wsgi', ("This protocol only works with "
                                               "the wsgi api.")
 
-        logger.debug("PATH_INFO: %r" % ctx.http_req_env['PATH_INFO'])
-        logger.debug("QUERY_STRING: %r" % ctx.http_req_env['QUERY_STRING'])
+        logger.debug("PATH_INFO: %r" % ctx.transport.req_env['PATH_INFO'])
+        logger.debug("QUERY_STRING: %r" % ctx.transport.req_env['QUERY_STRING'])
 
         ctx.method_name = '{%s}%s' % (self.parent.interface.get_tns(),
-                                   ctx.http_req_env['PATH_INFO'].split('/')[-1])
+                                   ctx.transport.req_env['PATH_INFO'].split('/')[-1])
         logger.debug("\033[92mMethod name: %r\033[0m" % ctx.method_name)
 
         ctx.service_class = self.parent.get_service_class(ctx.method_name)
@@ -41,7 +41,7 @@ class HttpRpc(ProtocolBase):
             ctx.descriptor = ctx.service_class.get_method(ctx.method_name)
 
         ctx.in_header_doc = None
-        ctx.in_body_doc = urlparse.parse_qs(ctx.http_req_env['QUERY_STRING'])
+        ctx.in_body_doc = urlparse.parse_qs(ctx.transport.req_env['QUERY_STRING'])
 
         logger.debug(repr(ctx.in_body_doc))
 

@@ -23,6 +23,10 @@ logger = logging.getLogger(__name__)
 from collections import deque
 from rpclib.util.oset import oset
 
+class TransportContext(object):
+    """Generic object that holds transport-specific context information"""
+    def __init__(self, type=None):
+        self.type=type
 
 class MethodContext(object):
     frozen = False
@@ -68,6 +72,7 @@ class MethodContext(object):
                                     # envelope
         self.out_string = None      # outgoing bytestream (can be any kind of
                                     # iterable that contains strings)
+        self.transport = TransportContext()
 
         self.frozen = True  # when this is set, no new attribute can be added
                             # to the class instance.
