@@ -183,10 +183,10 @@ class Decimal(SimpleModel):
 
     @classmethod
     @nillable_string
-    def to_string(cls, string):
-        decimal.Decimal(string)
+    def to_string(cls, value):
+        decimal.Decimal(value)
 
-        return str(string)
+        return str(value)
 
     @classmethod
     @nillable_string
@@ -198,9 +198,9 @@ class Int(Decimal):
 
     @classmethod
     @nillable_string
-    def to_string(cls, string):
-        int(string)
-        return str(string)
+    def to_string(cls, value):
+        int(value)
+        return str(value)
 
     @classmethod
     @nillable_string
@@ -212,13 +212,13 @@ class Integer(Decimal):
 
     @classmethod
     @nillable_string
-    def to_string(cls, string):
+    def to_string(cls, value):
         try:
-            int(string)
+            int(value)
         except:
-            long(string)
+            long(value)
 
-        return str(string)
+        return str(value)
 
     @classmethod
     @nillable_string
