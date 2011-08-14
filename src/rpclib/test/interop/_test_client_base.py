@@ -216,16 +216,18 @@ class RpclibClientTestBase(object):
     def test_python_exception(self):
         try:
             self.client.service.python_exception()
-            raise Exception("must fail")
-        except Fault, e:
+        except Exception, e:
             pass
+        else:
+            raise Exception("must fail")
 
     def test_soap_exception(self):
         try:
             self.client.service.soap_exception()
-            raise Exception("must fail")
-        except Fault, e:
+        except Exception, e:
             pass
+        else:
+            raise Exception("must fail")
 
     def test_complex_return(self):
         roles = self.client.factory.create("RoleEnum")
