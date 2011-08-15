@@ -17,6 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import logging
+logger = logging.getLogger(__name__)
+
 from rpclib._base import EventManager
 from rpclib.model.exception import Fault
 
@@ -62,3 +65,22 @@ class ProtocolBase(object):
         """Method to be overriden to perform any sort of custom input
         validation.
         """
+
+    def set_method_descriptor(self, ctx):
+        """Method to be overriden to perform any sort of custom matching between
+        the method_request_string and the methods.
+        """
+
+        name = ctx.method_request_string
+        if not name.startswith("{"):
+            name = '{%s}%s' % (self.app.interface.get_tns(), name)
+
+        ctx.service_class = self.app.interface.call_routes.get(name, None)
+        if ctx.service_class is None:
+            logger.debug(self.app.interface.call_routes.keys())
+            raise Exception('Method %r not bound to a service class.' % name)
+
+        ctx.descriptor = ctx.service_class.public_methods.get(name, None)
+        if ctx.descriptor is None:
+            logger.debug(ctx.service_class.public_methods.keys())
+            raise Exception('Method %r not found.' % name)

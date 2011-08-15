@@ -95,22 +95,6 @@ class ServiceBase(object):
         return retval
 
     @classmethod
-    def get_method(cls, ctx):
-        '''Returns the method descriptor based on element name.
-
-        This function can be overridden to alter the way incoming requests are
-        matched to handler functions.'''
-
-        name = ctx.method_request_string
-        retval = cls.public_methods.get(name, None)
-
-        if retval is None:
-            logger.debug(cls.public_methods.keys())
-            raise Exception('Method %r not found.' % name)
-
-        return retval
-
-    @classmethod
     def _has_callbacks(cls):
         '''Determines if this object has callback methods or not.'''
 

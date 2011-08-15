@@ -59,9 +59,7 @@ class _FunctionCall(object):
         ctx.method_request_string = self.__key
         ctx.in_header = self.__in_header
 
-        ctx.service_class = self.__app.get_service_class(ctx)
-        ctx.descriptor = ctx.service_class.get_method(ctx)
-
+        self.__app.in_protocol.set_method_descriptor(ctx)
         self.__app.process_request(ctx, args)
 
         if ctx.out_error:

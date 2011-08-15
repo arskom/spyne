@@ -166,9 +166,13 @@ class Soap11(ProtocolBase):
                         logger.debug(body_doc)
                         raise Fault('Client.Xml', 'Error at line: %d, '
                                     'col: %d' % e.position)
+    
+            if ctx.method_request_string is None:
+                raise Exception("Could not extract method request string from "
+                                "the request!")
             try:
                 if ctx.service_class is None: # i.e. if it's a server
-                    ctx.service_class = self.parent.get_service_class(ctx)
+                    self.set_method_descriptor(ctx)
 
             except Exception,e:
                 logger.debug(traceback.format_exc())
@@ -191,13 +195,6 @@ class Soap11(ProtocolBase):
             ctx.in_error = Fault.from_xml(ctx.in_body_doc)
 
         else:
-            # retrieve the method descriptor
-            if ctx.method_request_string is None:
-                raise Exception("Could not extract method request string from "
-                                "the request!")
-            if ctx.descriptor is None:
-                ctx.descriptor = ctx.service_class.get_method(ctx)
-
             if self.in_wrapper is self.IN_WRAPPER:
                 header_class = ctx.descriptor.in_header
                 body_class = ctx.descriptor.in_message

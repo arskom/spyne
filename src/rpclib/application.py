@@ -63,11 +63,8 @@ class Application(object):
             # implementation hook
             ctx.service_class.event_manager.fire_event('method_call', ctx)
 
-            # retrieve the method
-            descriptor = ctx.service_class.get_method(ctx)
-
             # call the method
-            ctx.out_object = ctx.service_class.call_wrapper(ctx, descriptor.function, req_obj)
+            ctx.out_object = ctx.service_class.call_wrapper(ctx, ctx.descriptor.function, req_obj)
 
             # fire events
             self.event_manager.fire_event('method_return_object', ctx)
@@ -95,18 +92,6 @@ class Application(object):
             if ctx.service_class != None:
                 ctx.service_class.event_manager.fire_event(
                                                     'method_return_object', ctx)
-
-    def get_service_class(self, ctx):
-        """This call maps method names to the services that will handle them.
-
-        Override this function to alter the method mappings. Just try not to get
-        too crazy with regular expressions :)
-        """
-
-        mrs = ctx.method_request_string
-        if not mrs.startswith("{"):
-            mrs = '{%s}%s' % (self.interface.get_tns(),mrs)
-        return self.interface.call_routes[mrs]
 
     def _has_callbacks(self):
         return self.interface._has_callbacks()

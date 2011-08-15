@@ -36,9 +36,7 @@ class HttpRpc(ProtocolBase):
                               ctx.transport.req_env['PATH_INFO'].split('/')[-1])
         logger.debug("\033[92mMethod name: %r\033[0m" % ctx.method_request_string)
 
-        ctx.service_class = self.app.get_service_class(ctx)
-        if ctx.descriptor is None:
-            ctx.descriptor = ctx.service_class.get_method(ctx)
+        self.app.in_protocol.set_method_descriptor(ctx)
 
         ctx.in_header_doc = None
         ctx.in_body_doc = urlparse.parse_qs(ctx.transport.req_env['QUERY_STRING'])
