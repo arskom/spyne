@@ -24,7 +24,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import traceback
+import cgi
 
 from rpclib._base import MethodContext
 from rpclib.model.exception import Fault
@@ -32,13 +32,36 @@ from rpclib.protocol.soap.mime import apply_mtom
 from rpclib.util import reconstruct_url
 from rpclib.server import ServerBase
 
+
 HTTP_500 = '500 Internal server error'
 HTTP_200 = '200 OK'
 HTTP_404 = '404 Method Not Found'
 HTTP_405 = '405 Method Not Allowed'
 
+
+def reconstruct_wsgi_request(http_env):
+    """Reconstruct http payload using information in the http header"""
+
+    input = http_env.get('wsgi.input')
+    try:
+        length = int(http_env.get("CONTENT_LENGTH"))
+    except ValueError:
+        length = 0
+
+    # fyi, here's what the parse_header function returns:
+    # >>> import cgi; cgi.parse_header("text/xml; charset=utf-8")
+    # ('text/xml', {'charset': 'utf-8'})
+    content_type = cgi.parse_header(http_env.get("CONTENT_TYPE"))
+    charset = content_type[1].get('charset',None)
+    if charset is None:
+        charset = 'ascii'
+
+    return input.read(length), charset
+
+
 class ValidationError(Fault):
     pass
+
 
 class WsgiMethodContext(MethodContext):
     def __init__(self, app, req_env, content_type):
@@ -125,7 +148,7 @@ class WsgiApplication(ServerBase):
             return [wsdl]
 
         except Exception, e:
-            logger.error(traceback.format_exc())
+            logger.exception(e)
             ctx.transport.wsdl_error = e
             # implementation hook
             self.event_manager.fire_event('wsdl_exception', ctx)
@@ -141,8 +164,7 @@ class WsgiApplication(ServerBase):
         # implementation hook
         self.event_manager.fire_event('wsgi_call', ctx)
 
-        ctx.in_string, in_string_charset = \
-                        self.app.in_protocol.reconstruct_wsgi_request(req_env)
+        ctx.in_string, in_string_charset = reconstruct_wsgi_request(req_env)
 
         self.get_in_object(ctx, in_string_charset)
 

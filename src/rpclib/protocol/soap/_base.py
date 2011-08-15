@@ -123,6 +123,10 @@ class Soap11(ProtocolBase):
         self.out_wrapper = Soap11.OUT_WRAPPER
 
     def create_in_document(self, ctx, charset=None):
+        content_type = cgi.parse_header(ctx.transport.req_env.get("CONTENT_TYPE"))
+
+        collapse_swa(content_type, ctx.in_string)
+
         ctx.in_document = _parse_xml_string(ctx.in_string, charset)
 
     def create_out_string(self, ctx, charset=None):
@@ -132,13 +136,6 @@ class Soap11(ProtocolBase):
 
         ctx.out_string = [etree.tostring(ctx.out_document, xml_declaration=True,
                                                               encoding=charset)]
-
-    def reconstruct_wsgi_request(self, http_env):
-        http_payload, charset = ProtocolBase.reconstruct_wsgi_request(self, http_env)
-
-        content_type = cgi.parse_header(http_env.get("CONTENT_TYPE"))
-
-        return collapse_swa(content_type, http_payload), charset
 
     def decompose_incoming_envelope(self, ctx):
         envelope_xml, xmlids = ctx.in_document

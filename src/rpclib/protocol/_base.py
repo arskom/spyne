@@ -17,8 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import cgi
-
 from rpclib._base import EventManager
 from rpclib.model.exception import Fault
 
@@ -59,25 +57,6 @@ class ProtocolBase(object):
 
     def create_out_string(self, ctx, out_string_encoding=None):
         """Uses ctx.out_string to set ctx.out_document"""
-
-    def reconstruct_wsgi_request(self, http_env):
-        """Reconstruct http payload using information in the http header"""
-
-        input = http_env.get('wsgi.input')
-        try:
-            length = int(http_env.get("CONTENT_LENGTH"))
-        except ValueError:
-            length = 0
-
-        # fyi, here's what the parse_header function returns:
-        # >>> import cgi; cgi.parse_header("text/xml; charset=utf-8")
-        # ('text/xml', {'charset': 'utf-8'})
-        content_type = cgi.parse_header(http_env.get("CONTENT_TYPE"))
-        charset = content_type[1].get('charset',None)
-        if charset is None:
-            charset = 'ascii'
-
-        return input.read(length), charset
 
     def validate(self, payload):
         """Method to be overriden to perform any sort of custom input
