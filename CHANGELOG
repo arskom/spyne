@@ -1,3 +1,12 @@
+rpclib-2.1.0-alpha
+ * The method dispatch logic was rewritten: It's now possible for the protocols
+   to override how method request strings are matched to methods definitions.
+ * Unsigned integer primitives were added.
+ * ZeroMQ client was fixed.
+ * Header confusion in native http soap client was fixed.
+ * Grouped transport-specific context information under ctx.transport
+   attribute.
+ * Added a self reference mechanism
 
 rpclib-2.0.10-alpha
  * The inclusion of base xml schemas were made optional.
