@@ -151,9 +151,9 @@ class Test(unittest.TestCase):
     def test_multiple_return(self):
         app = Application([MultipleReturnService], rpclib.interface.wsdl.Wsdl11,
                                         rpclib.protocol.soap.Soap11, tns='tns')
-        app.interface.get_interface_document()
+        app.interface.build_interface_document('url')
         srv = MultipleReturnService()
-        message = srv.public_methods[0].out_message()
+        message = srv.public_methods.values()[0].out_message()
 
         self.assertEquals(len(message._type_info), 3)
 

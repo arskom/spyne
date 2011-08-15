@@ -17,6 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 import unittest
 
 import rpclib.const.xml_ns as ns
@@ -41,6 +44,7 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
 
     def test_tns(self):
         sa = build_app([SinglePortService], 'SinglePort','TestServiceName')
+
         sa.interface.build_interface_document(self.url)
         sa_el = sa.interface.root_elt
         tns = sa_el.get('targetNamespace')

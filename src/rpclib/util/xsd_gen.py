@@ -78,7 +78,7 @@ class XSDGenerator(object):
         binding_application.prefmap = \
                 dict([(b,a) for a,b in XSDGenerator.model_schema_nsmap.items()])
 
-        binding_application.call_routes = {}
+        binding_application.service_mapping = {}
 
         return binding_application
 

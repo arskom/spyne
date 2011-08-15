@@ -75,12 +75,12 @@ class ProtocolBase(object):
         if not name.startswith("{"):
             name = '{%s}%s' % (self.app.interface.get_tns(), name)
 
-        ctx.service_class = self.app.interface.call_routes.get(name, None)
+        ctx.service_class = self.app.interface.service_mapping.get(name, None)
         if ctx.service_class is None:
-            logger.debug(self.app.interface.call_routes.keys())
+            logger.debug(self.app.interface.service_mapping.keys())
             raise Exception('Method %r not bound to a service class.' % name)
 
-        ctx.descriptor = ctx.service_class.public_methods.get(name, None)
+        ctx.descriptor = ctx.app.interface.method_mapping.get(name, None)
         if ctx.descriptor is None:
-            logger.debug(ctx.service_class.public_methods.keys())
+            logger.debug(ctx.app.interface.method_mapping.keys())
             raise Exception('Method %r not found.' % name)

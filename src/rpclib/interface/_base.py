@@ -38,13 +38,15 @@ class Base(object):
         # FIXME: this belongs in the wsdl class
         self.import_base_namespaces = import_base_namespaces
 
+        self.service_mapping = {}
+        self.method_mapping = {}
+
         self.app = app
         self.services = services
         self.__tns = tns
         self.__name = name
         self.url = None
 
-        self.call_routes = {}
         self.namespaces = odict()
         self.classes = {}
         self.imports = {}
@@ -258,8 +260,8 @@ class Base(object):
             s.__tns__ = self.get_tns()
             logger.debug("populating '%s.%s'" % (s.__module__, s.__name__))
             for method in s.public_methods.values():
-                if method.key in self.call_routes:
-                    o = self.call_routes[method.key]
+                o = self.method_mapping.get(method.key)
+                if not (o is None):
                     raise Exception("\nThe message %r defined in both '%s.%s' "
                                                                 " and '%s.%s'"
                       % (method.key, s.__module__, s.__name__,
@@ -269,8 +271,8 @@ class Base(object):
                 else:
                     logger.debug('\tadding method %r to match %r tag.' %
                                                       (method.name, method.key))
-                    self.call_routes[method.key] = s  # used by servers
-                    s.public_methods[method.key] = method  # used by servers
+                    self.service_mapping[method.key] = s
+                    self.method_mapping[method.key] = method
 
     tns = property(get_tns)
 

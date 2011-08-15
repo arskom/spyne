@@ -17,6 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 import unittest
 
 from rpclib.test.wsdl import AppTestWrapper
