@@ -27,8 +27,8 @@ class ProtocolBase(object):
     allowed_http_verbs = ['GET','POST']
     mime_type = 'application/octet-stream'
 
-    def __init__(self, parent):
-        self.parent = parent
+    def __init__(self, app):
+        self.app = app
         self.event_manager = EventManager(self)
 
     def create_in_document(self, ctx, in_string_encoding=None):

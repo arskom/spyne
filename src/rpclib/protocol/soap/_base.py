@@ -236,7 +236,7 @@ class Soap11(ProtocolBase):
         """
 
         # construct the soap response, and serialize it
-        nsmap = self.parent.interface.nsmap
+        nsmap = self.app.interface.nsmap
         ctx.out_document = etree.Element('{%s}Envelope' % ns.soap_env,
                                                                     nsmap=nsmap)
 
@@ -244,7 +244,7 @@ class Soap11(ProtocolBase):
             # FIXME: There's no way to alter soap response headers for the user.
             ctx.out_body_doc = out_body_doc = etree.SubElement(ctx.out_document,
                             '{%s}Body' % ns.soap_env, nsmap=nsmap)
-            ctx.out_error.add_to_parent_element(self.parent.interface.get_tns(),
+            ctx.out_error.add_to_parent_element(self.app.interface.get_tns(),
                                                                    out_body_doc)
 
             if logger.level == logging.DEBUG:
@@ -274,14 +274,14 @@ class Soap11(ProtocolBase):
                         for header_class, out_header in zip(header_message_class, out_headers):
                             header_class.to_parent_element(
                                 out_header,
-                                self.parent.interface.get_tns(),
+                                self.app.interface.get_tns(),
                                 soap_header_elt,
                                 header_class.get_type_name()
                             )
                     else:
                         header_message_class.to_parent_element(
                             ctx.out_header,
-                            self.parent.interface.get_tns(),
+                            self.app.interface.get_tns(),
                             soap_header_elt,
                             header_message_class.get_type_name()
                         )
@@ -317,7 +317,7 @@ class Soap11(ProtocolBase):
 
             # transform the results into an element
             result_message_class.to_parent_element(
-                  result_message, self.parent.interface.get_tns(), out_body_doc)
+                  result_message, self.app.interface.get_tns(), out_body_doc)
 
             if logger.level == logging.DEBUG:
                 logger.debug('\033[91m'+ "Response" + '\033[0m')
@@ -333,7 +333,7 @@ class Soap11Strict(Soap11):
         parent.interface.build_validation_schema()
 
     def validate(self, payload):
-        schema = self.parent.interface.validation_schema
+        schema = self.app.interface.validation_schema
         ret = schema.validate(payload)
 
         logger.debug("Validated ? %s" % str(ret))

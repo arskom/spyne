@@ -32,11 +32,11 @@ class HttpRpc(ProtocolBase):
         logger.debug("PATH_INFO: %r" % ctx.transport.req_env['PATH_INFO'])
         logger.debug("QUERY_STRING: %r" % ctx.transport.req_env['QUERY_STRING'])
 
-        ctx.method_request_string = '{%s}%s' % (self.parent.interface.get_tns(),
+        ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
                               ctx.transport.req_env['PATH_INFO'].split('/')[-1])
         logger.debug("\033[92mMethod name: %r\033[0m" % ctx.method_request_string)
 
-        ctx.service_class = self.parent.get_service_class(ctx)
+        ctx.service_class = self.app.get_service_class(ctx)
         if ctx.descriptor is None:
             ctx.descriptor = ctx.service_class.get_method(ctx)
 
