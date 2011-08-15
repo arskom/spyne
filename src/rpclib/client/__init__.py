@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""This package contains the client transports."""
+
 from rpclib.client._base import Factory
 from rpclib.client._base import Service
 from rpclib.client._base import ClientBase

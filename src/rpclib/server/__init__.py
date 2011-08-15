@@ -17,4 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""This package contains the server transports."""
+
 from _base import ServerBase
