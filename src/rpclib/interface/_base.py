@@ -32,13 +32,13 @@ class SchemaInfo(object):
         self.types = odict()
 
 class Base(object):
-    def __init__(self, parent, services, tns, name=None, import_base_namespaces=False):
+    def __init__(self, app, services, tns, name=None, import_base_namespaces=False):
         self.__ns_counter = 0
 
         # FIXME: this belongs in the wsdl class
         self.import_base_namespaces = import_base_namespaces
 
-        self.parent = parent
+        self.app = app
         self.services = services
         self.__tns = tns
         self.__name = name
@@ -184,7 +184,7 @@ class Base(object):
         retval = self.__name
 
         if retval is None:
-            retval = self.parent.__class__.__name__.split('.')[-1]
+            retval = self.app.__class__.__name__.split('.')[-1]
 
         return retval
 

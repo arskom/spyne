@@ -273,10 +273,10 @@ class Wsdl11(Base):
         soap_binding = etree.SubElement(binding, '{%s}binding' % _ns_soap)
         soap_binding.set('style', 'document')
 
-        if self.parent.transport is None:
+        if self.app.transport is None:
             raise Exception("You must set the 'transport' property of the "
                             "parent 'Application' instance")
-        soap_binding.set('transport', self.parent.transport)
+        soap_binding.set('transport', self.app.transport)
 
         cb_binding = None
 
@@ -371,7 +371,7 @@ class Wsdl11(Base):
         if service.get_service_name() is None:
             # This is the default behavior. i.e. no service interface is
             # defined in the service heading
-            if len(self.parent.services) == 1:
+            if len(self.app.services) == 1:
                 applied_service_name = self.get_name()
             else:
                 applied_service_name = service.get_service_class_name()
