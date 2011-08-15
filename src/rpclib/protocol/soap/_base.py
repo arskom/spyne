@@ -123,9 +123,10 @@ class Soap11(ProtocolBase):
         self.out_wrapper = Soap11.OUT_WRAPPER
 
     def create_in_document(self, ctx, charset=None):
-        content_type = cgi.parse_header(ctx.transport.req_env.get("CONTENT_TYPE"))
+        if ctx.transport.type == 'wsgi':
+            content_type = cgi.parse_header(ctx.transport.req_env.get("CONTENT_TYPE"))
 
-        collapse_swa(content_type, ctx.in_string)
+            collapse_swa(content_type, ctx.in_string)
 
         ctx.in_document = _parse_xml_string(ctx.in_string, charset)
 

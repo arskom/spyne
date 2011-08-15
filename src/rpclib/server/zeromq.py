@@ -21,16 +21,15 @@
 
 import zmq
 
-from rpclib import MethodContext
+from rpclib._base import MethodContext
 from rpclib.server import ServerBase
 
 context = zmq.Context()
 
 class ZmqMethodContext(MethodContext):
     def __init__(self, app):
-        self.transport.type = 'zmq'
-
         MethodContext.__init__(self, app)
+        self.transport.type = 'zmq'
 
 class Server(ServerBase):
     transport = 'http://rfc.zeromq.org/'
@@ -49,8 +48,8 @@ class Server(ServerBase):
 
     def serve_forever(self):
         while True:
-            ctx.in_string = self.soap_socket.recv()
             ctx = ZmqMethodContext(self.app)
+            ctx.in_string = self.soap_socket.recv()
 
             self.get_in_object(ctx)
 
@@ -61,5 +60,5 @@ class Server(ServerBase):
                 if ctx.out_error:
                     ctx.out_object = ctx.out_error
 
-            self.get_out_string(ctx, ctx.out_object)
+            self.get_out_string(ctx)
             self.soap_socket.send(''.join(ctx.out_string))
