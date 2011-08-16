@@ -6,7 +6,7 @@ rpclib-2.1.0-alpha
  * Header confusion in native http soap client was fixed.
  * Grouped transport-specific context information under ctx.transport
    attribute.
- * Added a self reference mechanism
+ * Added a self reference mechanism.
 
 rpclib-2.0.10-alpha
  * The inclusion of base xml schemas were made optional.
