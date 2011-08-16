@@ -208,7 +208,8 @@ class Soap11(ProtocolBase):
             if (ctx.in_header_doc is not None and header_class is not None):
                 if isinstance(header_class, (list, tuple)):
                     headers = [None] * len(header_class)
-                    for i, (header_doc, head_class) in enumerate(zip(ctx.in_header_doc, header_class)):
+                    for i, (header_doc, head_class) in enumerate(
+                                          zip(ctx.in_header_doc, header_class)):
                         if len(header_doc) > 0:
                             headers[i] = head_class.from_xml(header_doc)
                     ctx.in_header = tuple(headers)
