@@ -30,6 +30,11 @@ class TransportContext(object):
     def __init__(self, type=None):
         self.type=type
 
+class EventContext(object):
+    """Generic object that holds event-specific context information"""
+    def __init__(self, event_id=None):
+        self.event_id=event_id
+
 class MethodContext(object):
     frozen = False
 
@@ -45,6 +50,7 @@ class MethodContext(object):
 
         self.udc = None  # the user defined context. use it to your liking.
         self.transport = TransportContext() # the transport-specific context.
+        self.event = EventContext() # Event-specific context
 
         self.method_request_string = None
 
