@@ -1,7 +1,6 @@
-
 The test modules are also executables. tests can be run simply by executing test
-modules. A more pleasant way to run tests is to use py.test. easy_install py to
-get it and run:
+modules. A more pleasant way to run tests is to use py.test. easy_install pytest 
+to get it and run:
 
 py.test -v --tb=short
 

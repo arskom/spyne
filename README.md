@@ -1,6 +1,7 @@
-
 Warning! This is rpclib's unstable development branch. Not only that, but rpclib
 project is experimental. You have been warned.
+
+Warning! The documentation is useless! To get some examples, look at the tests.
 
 Overview
 ========
