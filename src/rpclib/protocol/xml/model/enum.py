@@ -17,28 +17,17 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""cdict (ClassDict) is a funny kind of dict that tries to return the values for
-the base classes of a key when the entry for the key is not found.
-"""
+from _base import base_to_parent_element
+from _base import nillable_element
+from _base import nillable_value
 
-import logging
-logger = logging.getLogger(__name__)
+@nillable_value
+def enum_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
+    if name is None:
+        name = cls.get_type_name()
 
-class cdict(dict):
-    def __getitem__(self, cls):
-        logger.info("req: %r" % cls)
+    base_to_parent_element(prot, cls, str(value), tns, parent_elt, name)
 
-        try:
-            return dict.__getitem__(self, cls)
-
-        except KeyError, e:
-            try:
-                return dict.__getitem__(self, cls._is_clone_of)
-            except AttributeError:
-                pass
-            except KeyError:
-                pass
-
-            for b in cls.__bases__:
-                return self[b]
-            raise
+@nillable_element
+def enum_from_element(prot, cls, element):
+    return getattr(cls, element.text)

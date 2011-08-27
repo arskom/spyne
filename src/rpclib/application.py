@@ -20,7 +20,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
-from rpclib.model.exception import Fault
+from rpclib.model.fault import Fault
 from rpclib._base import EventManager
 
 class Application(object):

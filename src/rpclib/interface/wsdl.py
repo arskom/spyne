@@ -25,7 +25,7 @@ import tempfile
 
 from lxml import etree
 
-from rpclib.model.exception import Fault
+from rpclib.model.fault import Fault
 from rpclib.interface import Base
 
 import rpclib.const.xml_ns

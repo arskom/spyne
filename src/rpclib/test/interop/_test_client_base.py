@@ -19,7 +19,7 @@
 
 import unittest
 
-from rpclib.model.exception import Fault
+from rpclib.model.fault import Fault
 
 from datetime import datetime
 
@@ -121,7 +121,7 @@ class RpclibClientTestBase(object):
         val = self._get_xml_test_val()
         ret = self.client.service.echo_any(val)
 
-        self.assertEquals(ret, val)
+        self.assertDictEquals(ret, val)
 
     def test_any_as_dict(self):
         val=self._get_xml_test_val()

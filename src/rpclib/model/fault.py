@@ -27,7 +27,7 @@ _ns_soap_env = rpclib.const.xml_ns.soap_env
 
 _pref_soap_env = rpclib.const.xml_ns.const_prefmap[_ns_soap_env]
 
-class Fault(Exception, ModelBase):
+class Fault(ModelBase, Exception):
     __type_name__ = "Fault"
 
     def __init__(self, faultcode='Server', faultstring="",
@@ -43,30 +43,6 @@ class Fault(Exception, ModelBase):
 
     def __repr__(self):
         return "%s: %r" % (self.faultcode, self.faultstring)
-
-    @classmethod
-    def to_parent_element(cls, value, tns, parent_elt, name=None):
-        assert name is None
-        element = etree.SubElement(parent_elt, "{%s}Fault" % _ns_soap_env)
-
-        etree.SubElement(element, 'faultcode').text = value.faultcode
-        etree.SubElement(element, 'faultstring').text = value.faultstring
-        etree.SubElement(element, 'faultactor').text = value.faultactor
-        if value.detail != None:
-            etree.SubElement(element, 'detail').append(value.detail)
-
-    def add_to_parent_element(self, tns, parent):
-        self.__class__.to_parent_element(self, tns, parent, name=None)
-
-    @classmethod
-    def from_xml(cls, element):
-        code = element.find('faultcode').text
-        string = element.find('faultstring').text
-        factor = element.find('faultactor').text
-        detail = element.find('detail')
-
-        return cls(faultcode=code, faultstring=string,
-                   faultactor=factor, detail=detail)
 
     @classmethod
     def add_to_schema(cls, schema_dict):

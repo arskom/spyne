@@ -217,6 +217,10 @@ class Base(object):
         # FIXME: should also somehow freeze child classes' _type_info
         #        dictionaries.
 
+        logger.debug("Any changes made to the interface elements (e.g. class "
+            "definitions, method names, etc.) from this point on will not be "
+            "reflected to the interface document.")
+
         # populate types
         for s in self.services:
             for method in s.public_methods.values():

@@ -20,8 +20,13 @@
 import logging
 logger = logging.getLogger(__name__)
 
+import rpclib.const.xml_ns
+
+_ns_xsi = rpclib.const.xml_ns.xsi
+_ns_xsd = rpclib.const.xml_ns.xsd
+
 from rpclib._base import EventManager
-from rpclib.model.exception import Fault
+from rpclib.model.fault import Fault
 
 class ValidationError(Fault):
     pass

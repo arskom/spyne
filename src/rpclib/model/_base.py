@@ -27,22 +27,6 @@ import rpclib.const.xml_ns
 _ns_xsi = rpclib.const.xml_ns.xsi
 _ns_xsd = rpclib.const.xml_ns.xsd
 
-def nillable_value(func):
-    def wrapper(cls, value, tns, parent_elt, *args, **kwargs):
-        if value is None:
-            Null.to_parent_element(value, tns, parent_elt, *args, **kwargs)
-        else:
-            func(cls, value, tns, parent_elt, *args, **kwargs)
-    return wrapper
-
-def nillable_element(func):
-    def wrapper(cls, element):
-        if bool(element.get('{%s}nil' % _ns_xsi)):
-            return None
-        else:
-            return func(cls, element)
-    return wrapper
-
 def nillable_dict(func):
     def wrapper(cls, element):
         if element is None:
@@ -119,11 +103,6 @@ class ModelBase(object):
             return "%s:%s" % (cls.get_namespace_prefix(app),cls.get_type_name())
 
     @classmethod
-    @nillable_element
-    def from_xml(cls, element):
-        return cls.from_string(element.text)
-
-    @classmethod
     @nillable_string
     def to_string(cls, value):
         return str(value)
@@ -160,21 +139,6 @@ class ModelBase(object):
             d = cls.to_dict(values)
             writer.writerow([d.get(k,None) for k in keys])
             yield queue.getvalue()
-
-    @classmethod
-    @nillable_value
-    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
-        '''Creates a lxml.etree SubElement as a child of a 'parent' Element
-
-        @param The value to be set for the 'text' element of the newly created
-        SubElement
-        @param The target namespace of the new SubElement, used with 'name' to
-        set the tag.
-        @param The parent Element to which the new child will be appended.
-        @param The new tag name of new SubElement.
-        '''
-
-        etree.SubElement(parent_elt, "{%s}%s" % (tns,name)).text = cls.to_string(value)
 
     @classmethod
     def add_to_schema(cls, schema_entries):
@@ -276,8 +240,7 @@ class SimpleModel(ModelBase):
         simple_type.set('name', cls.get_type_name())
         interface.add_simple_type(cls, simple_type)
 
-        restriction = etree.SubElement(simple_type, '{%s}restriction' %
-                                                                  _ns_xsd)
+        restriction = etree.SubElement(simple_type, '{%s}restriction' % _ns_xsd)
         restriction.set('base', cls.__base_type__.get_type_name_ns(interface))
 
         for v in cls.Attributes.values:

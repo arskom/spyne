@@ -26,16 +26,12 @@ from lxml import etree
 from pytz import FixedOffset
 
 from rpclib.model import SimpleModel
-from rpclib.model import nillable_element
-from rpclib.model import nillable_value
 from rpclib.model import nillable_string
 from rpclib.util.duration import XmlDuration
-from rpclib.util.etreeconv import etree_to_dict
-from rpclib.util.etreeconv import dict_to_etree
 import rpclib.const.xml_ns
 import cPickle as pickle
 
-string_encoding = 'utf-8'
+string_encoding = 'utf8'
 
 _date_pattern = r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})'
 _time_pattern = r'(?P<hr>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})(?P<sec_frac>\.\d+)?'
@@ -59,50 +55,17 @@ class AnyXml(SimpleModel):
         return etree.tostring(value)
 
     @classmethod
-    @nillable_value
-    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
-        if isinstance(value, str) or isinstance(value, unicode):
-            value = etree.fromstring(value)
-
-        e = etree.SubElement(parent_elt, '{%s}%s' % (tns,name))
-        e.append(value)
-
-    @classmethod
-    @nillable_element
-    def from_xml(cls, element):
-        children = element.getchildren()
-        retval = None
-
-        if children:
-            retval = element.getchildren()[0]
-
-        return retval
-
-    @classmethod
     @nillable_string
     def from_string(cls, string):
         return etree.fromstring(string)
 
 class AnyDict(SimpleModel):
+    __type_name__ = 'anyType'
+
     @classmethod
     @nillable_string
     def to_string(cls, value):
         return pickle.dumps(value)
-
-    @classmethod
-    @nillable_value
-    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
-        e = etree.SubElement(parent_elt, '{%s}%s' % (tns,name))
-        dict_to_etree(e, value)
-
-    @classmethod
-    @nillable_element
-    def from_xml(cls, element):
-        children = element.getchildren()
-        if children:
-            return etree_to_dict(element)
-
-        return None
 
     @classmethod
     @nillable_string
@@ -157,29 +120,6 @@ class String(SimpleModel):
             if cls.Attributes.pattern != String.Attributes.pattern:
                 pattern = etree.SubElement(restriction, '{%s}pattern' % _ns_xs)
                 pattern.set('value', cls.Attributes.pattern)
-
-    @classmethod
-    @nillable_string
-    def to_string(cls, value):
-        if not isinstance(value, unicode):
-            value = unicode(value, string_encoding)
-        return value
-
-    @classmethod
-    @nillable_element
-    def from_xml(cls, element):
-        u = element.text or ""
-        return cls.from_string(u)
-
-    @classmethod
-    @nillable_string
-    def from_string(cls, string):
-        try:
-            string = str(string)
-            return string.encode(string_encoding)
-
-        except:
-            return string
 
 class AnyUri(String):
     __type_name__ = 'anyURI'
@@ -336,12 +276,6 @@ class DateTime(SimpleModel):
 
 class Duration(SimpleModel):
     __type_name__ = 'duration'
-
-    @classmethod
-    @nillable_value
-    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
-        duration = XmlDuration.parse(value)
-        SimpleModel.to_parent_element(str(duration), tns, parent_elt, name)
 
     @classmethod
     @nillable_string

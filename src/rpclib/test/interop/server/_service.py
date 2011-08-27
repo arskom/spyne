@@ -23,7 +23,7 @@ from rpclib.model.binary import Attachment
 from rpclib.model.complex import Array
 from rpclib.model.complex import ComplexModel
 from rpclib.model.enum import Enum
-from rpclib.model.exception import Fault
+from rpclib.model.fault import Fault
 
 from rpclib.model.primitive import AnyXml
 from rpclib.model.primitive import AnyDict
@@ -31,6 +31,7 @@ from rpclib.model.primitive import Boolean
 from rpclib.model.primitive import DateTime
 from rpclib.model.primitive import Float
 from rpclib.model.primitive import Integer
+from rpclib.model.primitive import Duration
 from rpclib.model.primitive import String
 from rpclib.model.primitive import Double
 
@@ -187,6 +188,10 @@ class InteropPrimitive(ServiceBase):
     @srpc(DaysOfWeekEnum, _returns=DaysOfWeekEnum)
     def echo_enum(day):
         return day
+
+    @srpc(Duration, _returns=Duration)
+    def echo_duration(dur):
+        return dur
 
 class InteropArray(ServiceBase):
     @srpc(Array(Integer), _returns=Array(Integer))

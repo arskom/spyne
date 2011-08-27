@@ -29,8 +29,6 @@ except ImportError:
 from lxml import etree
 
 from rpclib.model import ModelBase
-from rpclib.model import nillable_element
-from rpclib.model import nillable_value
 from rpclib.model import nillable_dict
 from rpclib.model import nillable_string
 
@@ -194,44 +192,6 @@ class ComplexModelBase(ModelBase):
         return cls()
 
     @classmethod
-    def get_members_etree(cls, inst, parent):
-        parent_cls = getattr(cls, '__extends__', None)
-        if not (parent_cls is None):
-            parent_cls.get_members_etree(inst, parent)
-
-        for k, v in cls._type_info.items():
-            try:
-                subvalue = getattr(inst, k, None)
-            except: # to guard against sqlalchemy throwing NoSuchColumnError
-                subvalue = None
-
-            if isinstance(v, XMLAttribute):
-                v.marshall(k, subvalue, parent)
-                continue
-
-            mo = v.Attributes.max_occurs
-            if mo == 'unbounded' or mo > 1:
-                if subvalue != None:
-                    for sv in subvalue:
-                        v.to_parent_element(sv, cls.get_namespace(), parent, k)
-
-            # Don't include empty values for non-nillable optional attributes.
-            elif subvalue is not None or v.Attributes.nillable or v.Attributes.min_occurs > 0:
-                v.to_parent_element(subvalue, cls.get_namespace(), parent, k)
-
-    @classmethod
-    @nillable_value
-    def to_parent_element(cls, value, tns, parent_elt, name=None):
-        if name is None:
-            name = cls.get_type_name()
-
-        element = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
-
-        inst = cls.get_serialization_instance(value)
-
-        cls.get_members_etree(inst, element)
-
-    @classmethod
     def get_members_pairs(cls, inst):
         parent_cls = getattr(cls, '__extends__', None)
         if not (parent_cls is None):
@@ -305,54 +265,6 @@ class ComplexModelBase(ModelBase):
                 v,=v
                 setattr(inst, k, member.from_string(v))
 
-        return inst
-
-    @classmethod
-    @nillable_element
-    def from_xml(cls, element):
-        inst = cls.get_deserialization_instance()
-
-        # FIXME: the result of this method should be cached when build_wsdl is
-        #        called (i.e. when _type_info becomes by definition immutable).
-        flat_type_info = ComplexModelBase.get_flat_type_info(cls)
-
-        # initialize instance
-        for k in flat_type_info:
-            setattr(inst, k, None)
-
-        # parse input to set incoming data to related attributes.
-        for c in element:
-            if isinstance(c, etree._Comment):
-                continue
-
-            key = c.tag.split('}')[-1]
-
-            member = flat_type_info.get(key, None)
-            if member is None:
-                continue
-
-            if isinstance(member, XMLAttribute):
-                value = element.get(key)
-
-            else:
-                mo = member.Attributes.max_occurs
-                if mo == 'unbounded' or mo > 1:
-                    value = getattr(inst, key, None)
-                    if value is None:
-                        value = []
-
-                    value.append(member.from_xml(c))
-
-                else:
-                    value = member.from_xml(c)
-
-            setattr(inst, key, value)
-
-        return inst
-
-    @classmethod
-    def from_string(cls, xml_string):
-        inst = cls.from_xml(etree.fromstring(xml_string))
         return inst
 
     @staticmethod
@@ -526,17 +438,6 @@ class Array(ComplexModel):
         return inst
 
     @classmethod
-    @nillable_element
-    def from_xml(cls, element):
-        retval = []
-        (serializer,) = cls._type_info.values()
-
-        for child in element.getchildren():
-            retval.append(serializer.from_xml(child))
-
-        return retval
-
-    @classmethod
     @nillable_string
     def to_csv(cls, values):
         queue = StringIO()
@@ -562,17 +463,11 @@ class Array(ComplexModel):
             queue.truncate(0)
 
 class Iterable(Array):
-    @classmethod
-    @nillable_element
-    def from_xml(cls, element):
-        (serializer,) = cls._type_info.values()
-
-        for child in element.getchildren():
-            yield serializer.from_xml(child)
+    pass
 
 class ClassAlias(ComplexModel):
-    """New type_name, same _type_info.
-    """
+    """New type_name, same _type_info."""
+
     @classmethod
     def add_to_schema(cls, schema_dict):
         if not schema_dict.has_class(cls._target):

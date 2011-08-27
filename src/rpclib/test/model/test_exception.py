@@ -21,7 +21,7 @@ import unittest
 class FaultTests(unittest.TestCase):
 
     def _getTargetClass(self):
-        from rpclib.model.exception import Fault
+        from rpclib.model.fault import Fault
         return Fault
 
     def _makeOne(self, *args, **kw):
