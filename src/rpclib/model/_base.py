@@ -19,9 +19,7 @@
 
 import cStringIO
 import csv
-
 from lxml import etree
-
 import rpclib.const.xml_ns
 
 _ns_xsi = rpclib.const.xml_ns.xsi
@@ -66,7 +64,7 @@ class ModelBase(object):
         return True
 
     @classmethod
-    def get_namespace_prefix(cls,interface):
+    def get_namespace_prefix(cls, interface):
         ns = cls.get_namespace()
 
         retval = interface.get_namespace_prefix(ns)
@@ -83,7 +81,7 @@ class ModelBase(object):
             cls.__namespace__ = default_ns
 
         if (cls.__namespace__ in rpclib.const.xml_ns.const_prefmap and
-                                                        not cls.is_default(cls)):
+                                                       not cls.is_default(cls)):
             cls.__namespace__ = default_ns
 
         if cls.__namespace__ is None:
@@ -98,9 +96,9 @@ class ModelBase(object):
         return retval
 
     @classmethod
-    def get_type_name_ns(cls,app):
+    def get_type_name_ns(cls, app):
         if cls.get_namespace() != None:
-            return "%s:%s" % (cls.get_namespace_prefix(app),cls.get_type_name())
+            return "%s:%s" % (cls.get_namespace_prefix(app), cls.get_type_name())
 
     @classmethod
     @nillable_string
@@ -118,9 +116,7 @@ class ModelBase(object):
         queue = cStringIO.StringIO()
         writer = csv.writer(queue, dialect=csv.excel)
 
-        type_info = getattr(cls, '_type_info', {
-            cls.get_type_name(): cls
-        })
+        type_info = getattr(cls, '_type_info', {cls.get_type_name(): cls})
 
         if cls.Attributes.max_occurs == 'unbounded' or cls.Attributes.max_occurs > 1:
             keys = type_info.keys()
@@ -132,12 +128,12 @@ class ModelBase(object):
 
             for v in values:
                 d = cls.to_dict(v)
-                writer.writerow([d.get(k,None) for k in keys])
+                writer.writerow([d.get(k, None) for k in keys])
                 yield queue.getvalue()
                 queue.truncate(0)
         else:
             d = cls.to_dict(values)
-            writer.writerow([d.get(k,None) for k in keys])
+            writer.writerow([d.get(k, None) for k in keys])
             yield queue.getvalue()
 
     @classmethod
@@ -148,13 +144,13 @@ class ModelBase(object):
         #Nothing needs to happen when the type is a standard schema element
 
     @classmethod
-    def customize(cls, **kwargs):
-        cls_name, cls_bases, cls_dict = cls._s_customize(cls, **kwargs)
+    def customize(cls, ** kwargs):
+        cls_name, cls_bases, cls_dict = cls._s_customize(cls, ** kwargs)
 
         return type(cls_name, cls_bases, cls_dict)
 
     @staticmethod
-    def _s_customize(cls, **kwargs):
+    def _s_customize(cls, ** kwargs):
         """This function duplicates and customizes the class it belongs to. The
         original class remains unchanged.
         """
@@ -181,7 +177,7 @@ class ModelBase(object):
         if not ('_is_clone_of' in cls_dict):
             cls_dict['_is_clone_of'] = cls
 
-        for k,v in kwargs.items():
+        for k, v in kwargs.items():
             if k != "doc":
                 setattr(Attributes, k, v)
             else:
@@ -192,7 +188,7 @@ class ModelBase(object):
 class Null(ModelBase):
     @classmethod
     def to_parent_element(cls, value, tns, parent_elt, name='retval'):
-        element = etree.SubElement(parent_elt, "{%s}%s" % (tns,name))
+        element = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
         element.set('{%s}nil' % _ns_xsi, 'true')
 
     @classmethod
@@ -214,7 +210,7 @@ class SimpleModel(ModelBase):
     class Attributes(ModelBase.Attributes):
         values = set()
 
-    def __new__(cls, **kwargs):
+    def __new__(cls, ** kwargs):
         """
         Overriden so that any attempt to instantiate a primitive will return a
         customized class instead of an instance.
@@ -222,7 +218,7 @@ class SimpleModel(ModelBase):
         See rpclib.model.base.ModelBase for more information.
         """
 
-        retval = cls.customize(**kwargs)
+        retval = cls.customize( ** kwargs)
 
         if not retval.is_default(retval):
             retval.__base_type__ = cls
@@ -245,7 +241,7 @@ class SimpleModel(ModelBase):
 
         for v in cls.Attributes.values:
             enumeration = etree.SubElement(restriction,
-                                            '{%s}enumeration' % _ns_xsd)
+                                                    '{%s}enumeration' % _ns_xsd)
             enumeration.set('value', str(v))
 
         return restriction

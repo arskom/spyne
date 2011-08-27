@@ -105,7 +105,7 @@ class ComplexModelMeta(type(ModelBase)):
         if not ('_type_info' in cls_dict):
             cls_dict['_type_info'] = _type_info = TypeInfo()
 
-            for k,v in cls_dict.items():
+            for k, v in cls_dict.items():
                 if not k.startswith('__'):
                     attr = isinstance(v, XMLAttribute)
                     try:
@@ -142,7 +142,7 @@ class ComplexModelBase(ModelBase):
     """
 
     def __init__(self, **kwargs):
-        super(ComplexModelBase,self).__init__()
+        super(ComplexModelBase, self).__init__()
 
         self.__reset_members(self.__class__, kwargs)
 
@@ -157,7 +157,7 @@ class ComplexModelBase(ModelBase):
     def __len__(self):
         return len(self._type_info)
 
-    def __getitem__(self,i):
+    def __getitem__(self, i):
         return getattr(self, self._type_info.keys()[i], None)
 
     @classmethod
@@ -180,7 +180,7 @@ class ComplexModelBase(ModelBase):
             inst = cls()
 
             for k in cls._type_info:
-                setattr(inst, k, value.get(k,None))
+                setattr(inst, k, value.get(k, None))
 
         else:
             inst = value
@@ -216,13 +216,6 @@ class ComplexModelBase(ModelBase):
 
         return dict(cls.get_members_pairs(inst))
 
-    @classmethod
-    @nillable_dict
-    def to_pairs(cls, value):
-        inst = cls.get_serialization_instance(value)
-
-        return cls.get_members_dict(inst, retval)
-
     @staticmethod
     def get_flat_type_info(clz, retval={}):
         parent = getattr(clz, '__extends__', None)
@@ -244,13 +237,13 @@ class ComplexModelBase(ModelBase):
             setattr(inst, k, None)
 
         # initialize instance
-        for k,v in in_dict.items():
+        for k, v in in_dict.items():
             member = flat_type_info.get(k, None)
             if member is None:
                 continue
 
             mo = member.Attributes.max_occurs
-            logger.debug("%r, %r: %r, %r"%(member, k, v, mo))
+            logger.debug("%r, %r: %r, %r" % (member, k, v, mo))
             if mo == 'unbounded' or mo > 1:
                 value = getattr(inst, k, None)
                 if value is None:
@@ -262,7 +255,7 @@ class ComplexModelBase(ModelBase):
                 setattr(inst, k, value)
 
             else:
-                v,=v
+                v,  = v
                 setattr(inst, k, member.from_string(v))
 
         return inst
@@ -285,7 +278,7 @@ class ComplexModelBase(ModelBase):
     @classmethod
     def add_to_schema(cls, interface):
         if cls.get_type_name() is ModelBase.Empty:
-            (child,) = cls._type_info.values()
+            (child, ) = cls._type_info.values()
             cls.__type_name__ = '%sArray' % child.get_type_name()
 
         if not interface.has_class(cls):
@@ -294,31 +287,31 @@ class ComplexModelBase(ModelBase):
                 extends.add_to_schema(interface)
 
             complex_type = etree.Element("{%s}complexType" % namespace.xsd)
-            complex_type.set('name',cls.get_type_name())
+            complex_type.set('name', cls.get_type_name())
 
             sequence_parent = complex_type
             if not (extends is None):
                 complex_content = etree.SubElement(complex_type,
-                                          "{%s}complexContent" % namespace.xsd)
-                extension = etree.SubElement(complex_content, "{%s}extension"
-                                                               % namespace.xsd)
+                                           "{%s}complexContent" % namespace.xsd)
+                extension = etree.SubElement(complex_content,
+                                           "{%s}extension" % namespace.xsd)
                 extension.set('base', extends.get_type_name_ns(interface))
                 sequence_parent = extension
 
             sequence = etree.SubElement(sequence_parent, '{%s}sequence' %
-                                                                  namespace.xsd)
+                                                                namespace.xsd)
 
             for k, v in cls._type_info.items():
                 if isinstance(v, XMLAttribute):
                     attribute = etree.SubElement(complex_type,
-                                            '{%s}attribute' % namespace.xsd)
+                                                '{%s}attribute' % namespace.xsd)
                     v.describe(k, attribute)
                     continue
 
                 if v != cls:
                     v.add_to_schema(interface)
 
-                member = etree.SubElement(sequence,'{%s}element'% namespace.xsd)
+                member = etree.SubElement(sequence, '{%s}element' % namespace.xsd)
                 member.set('name', k)
                 member.set('type', v.get_type_name_ns(interface))
 
@@ -332,7 +325,7 @@ class ComplexModelBase(ModelBase):
                 #else:
                 #    member.set('nillable', 'false')
 
-                if v.Annotations.doc != '' :
+                if v.Annotations.doc != '':
                     annotation = etree.SubElement(member, "{%s}annotation",
                                                                   namespace.xsd)
                     doc = etree.SubElement(annotation, "{%s}documentation",
@@ -343,8 +336,8 @@ class ComplexModelBase(ModelBase):
 
             # simple node
             element = etree.Element('{%s}element' % namespace.xsd)
-            element.set('name',cls.get_type_name())
-            element.set('type',cls.get_type_name_ns(interface))
+            element.set('name', cls.get_type_name())
+            element.set('type', cls.get_type_name_ns(interface))
 
             interface.add_element(cls, element)
 
@@ -358,7 +351,7 @@ class ComplexModelBase(ModelBase):
         cls_dict['__type_name__'] = type_name
         cls_dict['_type_info'] = TypeInfo(members)
 
-        return ComplexModelMeta(type_name, (ComplexModel,), cls_dict)
+        return ComplexModelMeta(type_name, (ComplexModel, ), cls_dict)
 
     @staticmethod
     def alias(type_name, namespace, target):
@@ -375,7 +368,7 @@ class ComplexModelBase(ModelBase):
         cls_dict['_type_info'] = getattr(target, '_type_info', ())
         cls_dict['_target'] = target
 
-        return ComplexModelMeta(type_name, (ClassAlias,), cls_dict)
+        return ComplexModelMeta(type_name, (ClassAlias, ), cls_dict)
 
 class ComplexModel(ComplexModelBase):
     """
@@ -389,7 +382,7 @@ class ComplexModel(ComplexModelBase):
     __metaclass__ = ComplexModelMeta
 
 class Array(ComplexModel):
-    def __new__(cls, serializer, ** kwargs):
+    def __new__(cls, serializer, **kwargs):
         retval = cls.customize(**kwargs)
 
         # hack to default to unbounded arrays when the user didn't specify
@@ -416,7 +409,7 @@ class Array(ComplexModel):
     # namespace.
     @staticmethod
     def resolve_namespace(cls, default_ns):
-        (serializer,) = cls._type_info.values()
+        (serializer, ) = cls._type_info.values()
 
         serializer.resolve_namespace(serializer, default_ns)
 
@@ -432,7 +425,7 @@ class Array(ComplexModel):
     def get_serialization_instance(cls, value):
         inst = ComplexModel.__new__(Array)
 
-        (member_name,) = cls._type_info.keys()
+        (member_name, ) = cls._type_info.keys()
         setattr(inst, member_name, value)
 
         return inst
@@ -445,9 +438,8 @@ class Array(ComplexModel):
 
         serializer, = cls._type_info.values()
 
-        type_info = getattr(serializer, '_type_info', {
-            serializer.get_type_name(): serializer
-        })
+        type_info = getattr(serializer, '_type_info',
+                                      {serializer.get_type_name(): serializer})
 
         keys = type_info.keys()
         keys.sort()
@@ -458,7 +450,7 @@ class Array(ComplexModel):
 
         for v in values:
             d = serializer.to_dict(v)
-            writer.writerow([d.get(k,None) for k in keys])
+            writer.writerow([d.get(k, None) for k in keys])
             yield queue.getvalue()
             queue.truncate(0)
 
@@ -473,7 +465,7 @@ class ClassAlias(ComplexModel):
         if not schema_dict.has_class(cls._target):
             cls._target.add_to_schema(schema_dict)
         element = etree.Element('{%s}element' % namespace.xsd)
-        element.set('name',cls.get_type_name())
-        element.set('type',cls._target.get_type_name_ns(schema_dict.app))
+        element.set('name', cls.get_type_name())
+        element.set('type', cls._target.get_type_name_ns(schema_dict.app))
 
         schema_dict.add_element(cls, element)
