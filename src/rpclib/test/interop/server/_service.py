@@ -25,8 +25,8 @@ from rpclib.model.complex import ComplexModel
 from rpclib.model.enum import Enum
 from rpclib.model.exception import Fault
 
-from rpclib.model.primitive import Any
-from rpclib.model.primitive import AnyAsDict
+from rpclib.model.primitive import AnyXml
+from rpclib.model.primitive import AnyDict
 from rpclib.model.primitive import Boolean
 from rpclib.model.primitive import DateTime
 from rpclib.model.primitive import Float
@@ -152,11 +152,11 @@ class InteropServiceWithComplexHeader(ServiceBase):
         return ctx.out_header
 
 class InteropPrimitive(ServiceBase):
-    @srpc(Any, _returns=Any)
+    @srpc(AnyXml, _returns=AnyXml)
     def echo_any(xml):
         return xml
 
-    @srpc(AnyAsDict, _returns=AnyAsDict)
+    @srpc(AnyDict, _returns=AnyDict)
     def echo_any_as_dict(xml_as_dict):
         return xml_as_dict
 

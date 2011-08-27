@@ -52,6 +52,8 @@ servers:
 
 Development Requirements
 ------------------------
-* Most examples and tests require Python 2.5 or greater
-* Twisted is required for `rpclib.test.interop.server.basic` and `rpclib.test.interop.server.static`.
+* Most examples and tests require Python 2.5 and greater. You need Python 2.7 to
+  run all of the tests.
+* Twisted is required for `rpclib.test.interop.server.basic` and
+  `rpclib.test.interop.server.static`.
 * To run automated tests, see instructions under test/README

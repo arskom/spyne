@@ -33,6 +33,7 @@ from rpclib.util.duration import XmlDuration
 from rpclib.util.etreeconv import etree_to_dict
 from rpclib.util.etreeconv import dict_to_etree
 import rpclib.const.xml_ns
+import cPickle as pickle
 
 string_encoding = 'utf-8'
 
@@ -49,7 +50,7 @@ _date_re = re.compile(_date_pattern)
 _ns_xs = rpclib.const.xml_ns.xsd
 _ns_xsi = rpclib.const.xml_ns.xsi
 
-class Any(SimpleModel):
+class AnyXml(SimpleModel):
     __type_name__ = 'anyType'
 
     @classmethod
@@ -82,7 +83,12 @@ class Any(SimpleModel):
     def from_string(cls, string):
         return etree.fromstring(string)
 
-class AnyAsDict(Any):
+class AnyDict(SimpleModel):
+    @classmethod
+    @nillable_string
+    def to_string(cls, value):
+        return pickle.dumps(value)
+
     @classmethod
     @nillable_value
     def to_parent_element(cls, value, tns, parent_elt, name='retval'):
@@ -101,7 +107,7 @@ class AnyAsDict(Any):
     @classmethod
     @nillable_string
     def from_string(cls, string):
-        return etree_to_dict(etree.fromstring(string))
+        return pickle.loads(string)
 
 class String(SimpleModel):
     __type_name__ = 'string'
