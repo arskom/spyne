@@ -17,17 +17,22 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import datetime
-import decimal
+from collections import deque
+
+from datetime import date
+from datetime import datetime
+from datetime import timedelta
+
 import re
+import math
 import pytz
+import decimal
 
 from lxml import etree
 from pytz import FixedOffset
 
 from rpclib.model import SimpleModel
 from rpclib.model import nillable_string
-from rpclib.util.duration import XmlDuration
 import rpclib.const.xml_ns
 import cPickle as pickle
 
@@ -42,6 +47,16 @@ _local_re = re.compile(_datetime_pattern)
 _utc_re = re.compile(_datetime_pattern + 'Z')
 _offset_re = re.compile(_datetime_pattern + _offset_pattern)
 _date_re = re.compile(_date_pattern)
+_duration_re = re.compile(
+        r'(?P<sign>-?)'
+        r'P'
+        r'(?:(?P<years>\d+)Y)?'
+        r'(?:(?P<months>\d+)M)?'
+        r'(?:(?P<days>\d+)D)?'
+        r'(?:T(?:(?P<hours>\d+)H)?'
+        r'(?:(?P<minutes>\d+)M)?'
+        r'(?:(?P<seconds>\d+(.\d+)?)S)?)?'
+    )
 
 _ns_xs = rpclib.const.xml_ns.xsd
 _ns_xsi = rpclib.const.xml_ns.xsi
@@ -228,7 +243,7 @@ class Date(SimpleModel):
             fields = date_match.groupdict(0)
             year, month, day = [int(fields[x]) for x in
                 ("year", "month", "day")]
-            return datetime.date(year, month, day)
+            return date(year, month, day)
 
         match = _date_re.match(string)
         if not match:
@@ -257,7 +272,7 @@ class DateTime(SimpleModel):
             # here, if willing to require python 2.4 or higher
             microsec = int(float(fields.get("sec_frac", 0)) * 10 ** 6)
 
-            return datetime.datetime(year,month,day, hour,min,sec, microsec, tz)
+            return datetime(year,month,day, hour,min,sec, microsec, tz)
 
         match = _utc_re.match(string)
         if match:
@@ -280,7 +295,67 @@ class Duration(SimpleModel):
     @classmethod
     @nillable_string
     def from_string(cls, string):
-        return XmlDuration.from_string(string).as_timedelta()
+        duration = _duration_re.match(string).groupdict(0)
+
+        # Create the timedelta object from extracted groups
+        days = int(duration['days'])
+        days += int(duration['months']) * 30
+        days += int(duration['years']) * 365
+        hours = int(duration['hours'])
+        minutes = int(duration['minutes'])
+        print duration
+        seconds = float(duration['seconds'])
+        print seconds
+        f,i = math.modf(seconds)
+        seconds = i
+        microseconds = int(1e6 * f)
+
+        delta = timedelta(days=days, hours=hours, minutes=minutes,
+                                    seconds=seconds, microseconds=microseconds)
+
+        if duration['sign'] == "-":
+            delta *= -1
+
+        return delta
+
+    @classmethod
+    def to_string(cls, value):
+        if value.days < 0:
+            value = -value
+            negative = True
+        else:
+            negative = False
+
+        seconds = value.seconds % 60
+        minutes = value.seconds / 60
+        hours = minutes / 60
+        minutes = minutes % 60
+        seconds = float(seconds) + value.microseconds / 1e6
+
+        retval = deque()
+        if negative:
+            retval.append("-")
+
+        retval = ['P']
+        if value.days > 0:
+            retval.extend([
+                    "%iD" % value.days,
+                ])
+
+        if hours > 0 and minutes > 0 and seconds > 0:
+            retval.extend([
+                    "T",
+                    "%iH" % hours,
+                    "%iM" % minutes,
+                    "%fS" % seconds,
+                ])
+
+        else:
+            retval.extend([
+                    "0S",
+                ])
+
+        return ''.join(retval)
 
 class Double(SimpleModel):
     __type_name__ = 'double'

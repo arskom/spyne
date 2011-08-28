@@ -32,8 +32,6 @@ from rpclib.model._base import Null
 from rpclib.model.primitive import String
 from rpclib.const import xml_ns as ns
 
-from rpclib.util.duration import XmlDuration
-
 ns_test = 'test_namespace'
 
 class TestPrimitive(unittest.TestCase):
@@ -48,7 +46,6 @@ class TestPrimitive(unittest.TestCase):
         self.assertEquals(value, 'value')
 
     def test_datetime(self):
-        d = DateTime()
         n = datetime.datetime.now()
 
         element = etree.Element('test')
@@ -59,30 +56,17 @@ class TestPrimitive(unittest.TestCase):
         dt = DateTime.from_xml(element)
         self.assertEquals(n, dt)
 
-    def test_duration_timedelta(self):
-        delta = datetime.timedelta(days=400, seconds=3672)
-
-        element = etree.Element('test')
-        Duration.to_parent_element(delta, ns_test, element)
-        element = element[0]
-
-        self.assertEquals(element.text, 'P1Y1M5DT1H1M12S')
-        du = Duration.from_xml(element)
-        self.assertEquals(delta, du)
-
     def test_duration_xml_duration(self):
-        dur = XmlDuration(years=1, months=1, days=5,
-                          hours=1, minutes=1, seconds=12.0)
-        dur2 = XmlDuration.from_string('P400DT3672S')
-        self.assertEquals(dur.as_timedelta(), dur2.as_timedelta())
+        dur = datetime.timedelta(days=5 + 30 + 365, hours=1, minutes=1,
+                                                   seconds=12, microseconds=8e5)
 
-        element = etree.Element('test')
-        Duration.to_parent_element(dur, ns_test, element)
-        element = element[0]
+        str1 = 'P400DT3672.8S'
+        str2 = 'P1Y1M5DT1H1M12.8S'
 
-        self.assertEquals(element.text, 'P1Y1M5DT1H1M12S')
-        du = Duration.from_xml(element)
-        self.assertEquals(dur.as_timedelta(), du)
+        self.assertEquals(dur, Duration.from_string(str1))
+        self.assertEquals(dur, Duration.from_string(str2))
+
+        self.assertEquals(dur, Duration.from_string(Duration.to_string(dur)))
 
     def test_utcdatetime(self):
         datestring = '2007-05-15T13:40:44Z'

@@ -187,20 +187,11 @@ class ModelBase(object):
 
 class Null(ModelBase):
     @classmethod
-    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
-        element = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
-        element.set('{%s}nil' % _ns_xsi, 'true')
-
-    @classmethod
     def to_string(cls, value):
         return ""
 
     @classmethod
     def from_string(cls, value):
-        return None
-
-    @classmethod
-    def from_xml(cls, element):
         return None
 
 class SimpleModel(ModelBase):
