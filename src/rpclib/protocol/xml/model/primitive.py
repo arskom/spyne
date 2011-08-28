@@ -21,19 +21,28 @@ from lxml import etree
 
 from rpclib.util.etreeconv import etree_to_dict
 from rpclib.util.etreeconv import dict_to_etree
-from rpclib.util.duration import XmlDuration
 
 from _base import base_to_parent_element
 from _base import nillable_value
 from _base import nillable_element
 
 @nillable_element
-def xml_from_element(prot, cls, value):
-    return value
+def xml_from_element(prot, cls, element):
+    children = element.getchildren()
+    retval = None
+
+    if children:
+        retval = element.getchildren()[0]
+
+    return retval
 
 @nillable_value
 def xml_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
-    parent_elt.append(value)
+    if isinstance(value, str) or isinstance(value, unicode):
+        value = etree.fromstring(value)
+
+    e = etree.SubElement(parent_elt, '{%s}%s' % (tns,name))
+    e.append(value)
 
 @nillable_value
 def dict_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
@@ -68,5 +77,4 @@ def decimal_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
 
 @nillable_value
 def duration_to_parent_element(cls, value, tns, parent_elt, name='retval'):
-    duration = XmlDuration.parse(value)
-    base_to_parent_element(str(duration), tns, parent_elt, name)
+    base_to_parent_element(cls.from_string(value), tns, parent_elt, name)

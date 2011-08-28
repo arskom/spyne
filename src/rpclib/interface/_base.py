@@ -217,10 +217,6 @@ class Base(object):
         # FIXME: should also somehow freeze child classes' _type_info
         #        dictionaries.
 
-        logger.debug("Any changes made to the interface elements (e.g. class "
-            "definitions, method names, etc.) from this point on will not be "
-            "reflected to the interface document.")
-
         # populate types
         for s in self.services:
             for method in s.public_methods.values():
@@ -266,7 +262,7 @@ class Base(object):
             for method in s.public_methods.values():
                 o = self.method_mapping.get(method.key)
                 if not (o is None):
-                    raise Exception("\nThe message %r defined in both '%s.%s' "
+                    raise Exception("\nThe message %r defined in both '%s.%s'"
                                                                 " and '%s.%s'"
                       % (method.key, s.__module__, s.__name__,
                                           o.__module__, o.__name__,

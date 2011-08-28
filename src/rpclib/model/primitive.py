@@ -289,6 +289,7 @@ class DateTime(SimpleModel):
 
         return parse_date(match)
 
+# this object tries to follow ISO 8601 standard.
 class Duration(SimpleModel):
     __type_name__ = 'duration'
 
@@ -297,15 +298,12 @@ class Duration(SimpleModel):
     def from_string(cls, string):
         duration = _duration_re.match(string).groupdict(0)
 
-        # Create the timedelta object from extracted groups
         days = int(duration['days'])
         days += int(duration['months']) * 30
         days += int(duration['years']) * 365
         hours = int(duration['hours'])
         minutes = int(duration['minutes'])
-        print duration
         seconds = float(duration['seconds'])
-        print seconds
         f,i = math.modf(seconds)
         seconds = i
         microseconds = int(1e6 * f)
