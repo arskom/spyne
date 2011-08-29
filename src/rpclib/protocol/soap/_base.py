@@ -170,7 +170,7 @@ class Soap11(XmlObject):
                         logger.debug(body_doc)
                         raise Fault('Client.Xml', 'Error at line: %d, '
                                     'col: %d' % e.position)
-    
+
             if ctx.method_request_string is None:
                 raise Exception("Could not extract method request string from "
                                 "the request!")
