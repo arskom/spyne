@@ -336,11 +336,18 @@ class Soap11Strict(Soap11):
     def __init__(self, parent):
         Soap11.__init__(self, parent)
 
-        parent.interface.build_validation_schema()
+    def set_app(self, value):
+        Soap11.set_app(self, value)
+
+        from rpclib.interface.wsdl import Wsdl11
+
+        wsdl = Wsdl11(value)
+        wsdl.build_validation_schema()
+
+        self.validation_schema = wsdl.validation_schema
 
     def validate(self, payload):
-        schema = self.app.interface.validation_schema
-        ret = schema.validate(payload)
+        ret = self.validation_schema.validate(payload)
 
         logger.debug("Validated ? %s" % str(ret))
         if ret == False:

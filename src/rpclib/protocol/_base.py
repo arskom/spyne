@@ -35,9 +35,16 @@ class ProtocolBase(object):
     allowed_http_verbs = ['GET','POST']
     mime_type = 'application/octet-stream'
 
-    def __init__(self, app):
-        self.app = app
+    def __init__(self, app=None):
+        self.set_app(app)
         self.event_manager = EventManager(self)
+
+    @property
+    def app(self):
+        return self.__app
+
+    def set_app(self, value):
+        self.__app = value
 
     def create_in_document(self, ctx, in_string_encoding=None):
         """Uses ctx.in_string to set ctx.in_document"""

@@ -39,7 +39,6 @@ class Application(object):
         if out_protocol_class is None:
             out_protocol_class = in_protocol_class
 
-        # interface should be initialized before protocols.
         self.interface = interface_class(self, services, *args, **kwargs)
 
         self.in_protocol = in_protocol_class(self)
