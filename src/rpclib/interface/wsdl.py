@@ -26,7 +26,7 @@ import tempfile
 from lxml import etree
 
 from rpclib.model.fault import Fault
-from rpclib.interface import Base
+from rpclib.interface import InterfaceBase
 
 import rpclib.const.xml_ns
 
@@ -124,7 +124,7 @@ def _add_callbacks(service, root, types, service_name, url):
 
     return cb_port_type
 
-class Wsdl11(Base):
+class Wsdl11(InterfaceBase):
     def __init__(self, parent, services, tns, name=None, _with_partnerlink=False):
         '''Constructor.
 
@@ -135,7 +135,7 @@ class Wsdl11(Base):
         @param Flag to indicate whether to generate partnerlink node.
         '''
 
-        Base.__init__(self, parent, services, tns, name)
+        InterfaceBase.__init__(self, parent, services, tns, name)
 
         self._with_plink = _with_partnerlink
         self.__wsdl = None

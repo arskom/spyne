@@ -31,7 +31,7 @@ class SchemaInfo(object):
         self.elements = odict()
         self.types = odict()
 
-class Base(object):
+class InterfaceBase(object):
     def __init__(self, app, services, tns, name=None, import_base_namespaces=False):
         self.__ns_counter = 0
 
@@ -47,6 +47,9 @@ class Base(object):
         self.__name = name
         self.url = None
 
+        self.populate_interface()
+
+    def reset_interface(self):
         self.namespaces = odict()
         self.classes = {}
         self.imports = {}
@@ -54,10 +57,8 @@ class Base(object):
         self.nsmap = dict(rpclib.const.xml_ns.const_nsmap)
         self.prefmap = dict(rpclib.const.xml_ns.const_prefmap)
 
-        self.nsmap['tns']=tns
-        self.prefmap[tns]='tns'
-
-        self.populate_interface()
+        self.nsmap['tns'] = self.__tns
+        self.prefmap[self.__tns] = 'tns'
 
     def has_class(self, cls):
         retval = False
@@ -198,24 +199,13 @@ class Base(object):
 
         Not meant to be overridden.
         """
-        retval = self.__tns
-
-        if retval is None:
-            service_name = self.get_name()
-
-            if self.__class__.__module__ == '__main__':
-                retval = '.'.join((service_name, service_name))
-            else:
-                retval = '.'.join((self.__class__.__module__, service_name))
-
-            if retval.startswith('rpclib'):
-                retval = self.services[0].get_tns()
-
-        return retval
+        return self.__tns
 
     def populate_interface(self, types=None):
         # FIXME: should also somehow freeze child classes' _type_info
         #        dictionaries.
+
+        self.reset_interface()
 
         # populate types
         for s in self.services:
