@@ -44,7 +44,6 @@ class Application(object):
 
         self.in_protocol = in_protocol_class(self)
         self.out_protocol = out_protocol_class(self)
-        self.services = services
 
         self.__public_methods = {}
         self.__classes = {}
