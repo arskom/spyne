@@ -20,17 +20,10 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import csv
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
-
 from lxml import etree
 
 from rpclib.model import ModelBase
 from rpclib.model import nillable_dict
-from rpclib.model import nillable_string
 
 from rpclib.util.odict import odict as TypeInfo
 from rpclib.const import xml_ns as namespace
@@ -429,30 +422,6 @@ class Array(ComplexModel):
         setattr(inst, member_name, value)
 
         return inst
-
-    @classmethod
-    @nillable_string
-    def to_csv(cls, values):
-        queue = StringIO()
-        writer = csv.writer(queue, dialect=csv.excel)
-
-        serializer, = cls._type_info.values()
-
-        type_info = getattr(serializer, '_type_info',
-                                      {serializer.get_type_name(): serializer})
-
-        keys = type_info.keys()
-        keys.sort()
-
-        writer.writerow(keys)
-        yield queue.getvalue()
-        queue.truncate(0)
-
-        for v in values:
-            d = serializer.to_dict(v)
-            writer.writerow([d.get(k, None) for k in keys])
-            yield queue.getvalue()
-            queue.truncate(0)
 
 class Iterable(Array):
     pass

@@ -17,8 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import cStringIO
-import csv
 from lxml import etree
 import rpclib.const.xml_ns
 
@@ -109,32 +107,6 @@ class ModelBase(object):
     @nillable_string
     def to_dict(cls, value):
         return {cls.get_type_name(): cls.to_string(value)}
-
-    @classmethod
-    @nillable_string
-    def to_csv(cls, values):
-        queue = cStringIO.StringIO()
-        writer = csv.writer(queue, dialect=csv.excel)
-
-        type_info = getattr(cls, '_type_info', {cls.get_type_name(): cls})
-
-        if cls.Attributes.max_occurs == 'unbounded' or cls.Attributes.max_occurs > 1:
-            keys = type_info.keys()
-            keys.sort()
-
-            writer.writerow(keys)
-            yield queue.getvalue()
-            queue.truncate(0)
-
-            for v in values:
-                d = cls.to_dict(v)
-                writer.writerow([d.get(k, None) for k in keys])
-                yield queue.getvalue()
-                queue.truncate(0)
-        else:
-            d = cls.to_dict(values)
-            writer.writerow([d.get(k, None) for k in keys])
-            yield queue.getvalue()
 
     @classmethod
     def add_to_schema(cls, schema_entries):

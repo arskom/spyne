@@ -105,6 +105,11 @@ class String(SimpleModel):
 
         return retval
 
+    @classmethod
+    @nillable_string
+    def from_string(cls, value):
+        return value
+
     @staticmethod
     def is_default(cls):
         return (    SimpleModel.is_default(cls)
