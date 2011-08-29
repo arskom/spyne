@@ -125,7 +125,8 @@ def _add_callbacks(service, root, types, service_name, url):
     return cb_port_type
 
 class Wsdl11(InterfaceBase):
-    def __init__(self, parent, services, tns, name=None, _with_partnerlink=False):
+    def __init__(self, app,
+                        import_base_namespaces=False, _with_partnerlink=False):
         '''Constructor.
 
         @param An iterable of ServiceBase subclasses that define the exposed
@@ -135,7 +136,7 @@ class Wsdl11(InterfaceBase):
         @param Flag to indicate whether to generate partnerlink node.
         '''
 
-        InterfaceBase.__init__(self, parent, services, tns, name)
+        InterfaceBase.__init__(self, app, import_base_namespaces)
 
         self._with_plink = _with_partnerlink
         self.__wsdl = None
@@ -371,7 +372,7 @@ class Wsdl11(InterfaceBase):
         if service.get_service_name() is None:
             # This is the default behavior. i.e. no service interface is
             # defined in the service heading
-            if len(self.app.services) == 1:
+            if len(self.services) == 1:
                 applied_service_name = self.get_name()
             else:
                 applied_service_name = service.get_service_class_name()

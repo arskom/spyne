@@ -26,8 +26,8 @@ from rpclib._base import EventManager
 class Application(object):
     transport = None
 
-    def __init__(self, services, interface_class, in_protocol_class,
-                                      out_protocol_class=None, *args, **kwargs):
+    def __init__(self, services, tns, interface_class, in_protocol_class,
+                                      out_protocol_class=None, name=None):
         '''Constructor.
 
         @param An iterable of ServiceBase subclasses that define the exposed
@@ -39,8 +39,13 @@ class Application(object):
         if out_protocol_class is None:
             out_protocol_class = in_protocol_class
 
-        self.interface = interface_class(self, services, *args, **kwargs)
+        self.services = services
+        self.tns = tns
+        self.name = name
+        if self.name is None:
+            self.name = self.__class__.__name__.split('.')[-1]
 
+        self.interface = interface_class(self)
         self.in_protocol = in_protocol_class(self)
         self.out_protocol = out_protocol_class(self)
 

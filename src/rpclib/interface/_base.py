@@ -32,8 +32,10 @@ class SchemaInfo(object):
         self.types = odict()
 
 class InterfaceBase(object):
-    def __init__(self, app, services, tns, name=None, import_base_namespaces=False):
+    def __init__(self, app, import_base_namespaces=False):
         self.__ns_counter = 0
+
+        self.set_app(app)
 
         # FIXME: this belongs in the wsdl class
         self.import_base_namespaces = import_base_namespaces
@@ -41,13 +43,20 @@ class InterfaceBase(object):
         self.service_mapping = {}
         self.method_mapping = {}
 
-        self.app = app
-        self.services = services
-        self.__tns = tns
-        self.__name = name
         self.url = None
 
         self.populate_interface()
+
+    def set_app(self, value):
+        self.__app = value
+
+    @property
+    def app(self):
+        return self.__app
+
+    @property
+    def services(self):
+        return self.__app.services
 
     def reset_interface(self):
         self.namespaces = odict()
@@ -57,8 +66,8 @@ class InterfaceBase(object):
         self.nsmap = dict(rpclib.const.xml_ns.const_nsmap)
         self.prefmap = dict(rpclib.const.xml_ns.const_prefmap)
 
-        self.nsmap['tns'] = self.__tns
-        self.prefmap[self.__tns] = 'tns'
+        self.nsmap['tns'] = self.get_tns()
+        self.prefmap[self.get_tns()] = 'tns'
 
     def has_class(self, cls):
         retval = False
@@ -184,14 +193,7 @@ class InterfaceBase(object):
 
         Not meant to be overridden.
         """
-        retval = self.__name
-
-        if retval is None:
-            retval = self.app.__class__.__name__.split('.')[-1]
-
-        return retval
-
-    name = property(get_name)
+        return self.app.name
 
     def get_tns(self):
         """Returns default namespace that is seen in the targetNamespace
@@ -199,7 +201,7 @@ class InterfaceBase(object):
 
         Not meant to be overridden.
         """
-        return self.__tns
+        return self.app.tns
 
     def populate_interface(self, types=None):
         # FIXME: should also somehow freeze child classes' _type_info
