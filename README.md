@@ -1,3 +1,4 @@
+
 Warning! This is rpclib's unstable development branch. Not only that, but rpclib
 project is experimental. You have been warned.
 
@@ -9,9 +10,10 @@ Overview
 What is rpclib?
 ----------------
 
-Rpclib is an easy to use python library for publishing services that uses various
-protocols and transports. Currently, it supports WSDL 1.1 and SOAP 1.1 protocols
-over either ZeroMQ or HTTP.
+Rpclib is a library for publishing services that uses various protocols and
+transports. Currently, it supports WSDL 1.1 interface to publish services
+that use SOAP 1.1 or the (Rest-minus-the-verbs) HttpRPC protocol over either
+ZeroMQ or HTTP (using WSGI).
 
 With a very small amount of code, rpclib allows you to write a useful remote
 procedure call pack and deploy it using your transport of choice.
@@ -28,11 +30,9 @@ See [here](http://github.com/arskom/rpclib/tree/soaplib-2_0) for the stable soap
 
 Features
 --------
-* Deploy services as WSGI applications
-* Handles all (de)serialization
-* On-demand WSDL generation
-* Powerful customization features to support many use-cases
-* Doesn't get in your way!!!
+* Handles all (de)serialization.
+* On-demand WSDL generation.
+* Powerful customization features to support many use-cases.
 
 Runtime Requirements
 --------------------
@@ -52,6 +52,8 @@ servers:
 
 Development Requirements
 ------------------------
-* Most examples and tests require Python 2.5 or greater
-* Twisted is required for `rpclib.test.interop.server.basic` and `rpclib.test.interop.server.static`.
+* Most examples and tests require Python 2.5 and greater. You need Python 2.7 to
+  run all of the tests.
+* Twisted is required for `rpclib.test.interop.server.basic` and
+  `rpclib.test.interop.server.static`.
 * To run automated tests, see instructions under test/README

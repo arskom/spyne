@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python
 #
 # rpclib - Copyright (C) Rpclib contributors.
 #
@@ -17,4 +17,44 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-__version__ = '2.2.0-alpha'
+import unittest
+
+from rpclib.util.cdict import cdict
+
+class TestClassDict(unittest.TestCase):
+    def test_cdict(self):
+        d = cdict()
+
+        class A(object):
+            pass
+
+        class B(A):
+            pass
+
+        class C(A):
+            pass
+
+        class D(object):
+            pass
+
+        d[A] = 1
+        d[C] = 2
+
+        self.assertEquals(d[A], 1)
+        self.assertEquals(d[B], 1)
+        self.assertEquals(d[C], 2)
+
+        try:
+            d[D]
+            raise Exception("Must fail")
+        except KeyError:
+            pass
+
+        try:
+            d[object]
+            raise Exception("Must fail")
+        except KeyError:
+            pass
+
+if __name__ == '__main__':
+    unittest.main()

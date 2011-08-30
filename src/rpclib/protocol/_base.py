@@ -20,8 +20,13 @@
 import logging
 logger = logging.getLogger(__name__)
 
+import rpclib.const.xml_ns
+
+_ns_xsi = rpclib.const.xml_ns.xsi
+_ns_xsd = rpclib.const.xml_ns.xsd
+
 from rpclib._base import EventManager
-from rpclib.model.exception import Fault
+from rpclib.model.fault import Fault
 
 class ValidationError(Fault):
     pass
@@ -30,9 +35,20 @@ class ProtocolBase(object):
     allowed_http_verbs = ['GET','POST']
     mime_type = 'application/octet-stream'
 
-    def __init__(self, app):
-        self.app = app
+    def __init__(self, app=None):
+        self.__app = None
+
+        self.set_app(app)
         self.event_manager = EventManager(self)
+
+    @property
+    def app(self):
+        return self.__app
+
+    def set_app(self, value):
+        assert self.__app is None, "One protocol instance should belong to one " \
+                                   "application instance."
+        self.__app = value
 
     def create_in_document(self, ctx, in_string_encoding=None):
         """Uses ctx.in_string to set ctx.in_document"""

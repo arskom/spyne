@@ -17,24 +17,26 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import datetime
-import decimal
+from collections import deque
+
+from datetime import date
+from datetime import datetime
+from datetime import timedelta
+
 import re
+import math
 import pytz
+import decimal
 
 from lxml import etree
 from pytz import FixedOffset
 
 from rpclib.model import SimpleModel
-from rpclib.model import nillable_element
-from rpclib.model import nillable_value
 from rpclib.model import nillable_string
-from rpclib.util.duration import XmlDuration
-from rpclib.util.etreeconv import etree_to_dict
-from rpclib.util.etreeconv import dict_to_etree
 import rpclib.const.xml_ns
+import cPickle as pickle
 
-string_encoding = 'utf-8'
+string_encoding = 'utf8'
 
 _date_pattern = r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})'
 _time_pattern = r'(?P<hr>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})(?P<sec_frac>\.\d+)?'
@@ -45,11 +47,21 @@ _local_re = re.compile(_datetime_pattern)
 _utc_re = re.compile(_datetime_pattern + 'Z')
 _offset_re = re.compile(_datetime_pattern + _offset_pattern)
 _date_re = re.compile(_date_pattern)
+_duration_re = re.compile(
+        r'(?P<sign>-?)'
+        r'P'
+        r'(?:(?P<years>\d+)Y)?'
+        r'(?:(?P<months>\d+)M)?'
+        r'(?:(?P<days>\d+)D)?'
+        r'(?:T(?:(?P<hours>\d+)H)?'
+        r'(?:(?P<minutes>\d+)M)?'
+        r'(?:(?P<seconds>\d+(.\d+)?)S)?)?'
+    )
 
 _ns_xs = rpclib.const.xml_ns.xsd
 _ns_xsi = rpclib.const.xml_ns.xsi
 
-class Any(SimpleModel):
+class AnyXml(SimpleModel):
     __type_name__ = 'anyType'
 
     @classmethod
@@ -58,50 +70,22 @@ class Any(SimpleModel):
         return etree.tostring(value)
 
     @classmethod
-    @nillable_value
-    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
-        if isinstance(value, str) or isinstance(value, unicode):
-            value = etree.fromstring(value)
-
-        e = etree.SubElement(parent_elt, '{%s}%s' % (tns,name))
-        e.append(value)
-
-    @classmethod
-    @nillable_element
-    def from_xml(cls, element):
-        children = element.getchildren()
-        retval = None
-
-        if children:
-            retval = element.getchildren()[0]
-
-        return retval
-
-    @classmethod
     @nillable_string
     def from_string(cls, string):
         return etree.fromstring(string)
 
-class AnyAsDict(Any):
-    @classmethod
-    @nillable_value
-    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
-        e = etree.SubElement(parent_elt, '{%s}%s' % (tns,name))
-        dict_to_etree(e, value)
+class AnyDict(SimpleModel):
+    __type_name__ = 'anyType'
 
     @classmethod
-    @nillable_element
-    def from_xml(cls, element):
-        children = element.getchildren()
-        if children:
-            return etree_to_dict(element)
-
-        return None
+    @nillable_string
+    def to_string(cls, value):
+        return pickle.dumps(value)
 
     @classmethod
     @nillable_string
     def from_string(cls, string):
-        return etree_to_dict(etree.fromstring(string))
+        return pickle.loads(string)
 
 class String(SimpleModel):
     __type_name__ = 'string'
@@ -120,6 +104,11 @@ class String(SimpleModel):
         retval = SimpleModel.__new__(cls,  ** kwargs)
 
         return retval
+
+    @classmethod
+    @nillable_string
+    def from_string(cls, value):
+        return value
 
     @staticmethod
     def is_default(cls):
@@ -152,34 +141,46 @@ class String(SimpleModel):
                 pattern = etree.SubElement(restriction, '{%s}pattern' % _ns_xs)
                 pattern.set('value', cls.Attributes.pattern)
 
-    @classmethod
-    @nillable_string
-    def to_string(cls, value):
-        if not isinstance(value, unicode):
-            value = unicode(value, string_encoding)
-        return value
-
-    @classmethod
-    @nillable_element
-    def from_xml(cls, element):
-        u = element.text or ""
-        return cls.from_string(u)
-
-    @classmethod
-    @nillable_string
-    def from_string(cls, string):
-        try:
-            string = str(string)
-            return string.encode(string_encoding)
-
-        except:
-            return string
-
 class AnyUri(String):
     __type_name__ = 'anyURI'
 
 class Decimal(SimpleModel):
     __type_name__ = 'decimal'
+
+    class Attributes(SimpleModel.Attributes):
+        gt = None # minExclusive
+        ge = None # minInclusive
+        lt = None # maxExclusive
+        le = None # maxInclusive
+
+    @staticmethod
+    def is_default(cls):
+        return (    SimpleModel.is_default(cls)
+                and cls.Attributes.gt == Decimal.Attributes.gt
+                and cls.Attributes.ge == Decimal.Attributes.ge
+                and cls.Attributes.lt == Decimal.Attributes.lt
+                and cls.Attributes.le == Decimal.Attributes.le)
+
+    @classmethod
+    def add_to_schema(cls, schema_entries):
+        if not schema_entries.has_class(cls) and not cls.is_default(cls):
+            restriction = cls.get_restriction_tag(schema_entries)
+
+            if cls.Attributes.gt != Decimal.Attributes.gt:
+                min_l = etree.SubElement(restriction, '{%s}minExclusive' % _ns_xs)
+                min_l.set('value', str(cls.Attributes.gt))
+
+            if cls.Attributes.ge != Decimal.Attributes.ge:
+                min_l = etree.SubElement(restriction, '{%s}minInclusive' % _ns_xs)
+                min_l.set('value', str(cls.Attributes.ge))
+
+            if cls.Attributes.lt != Decimal.Attributes.lt:
+                min_l = etree.SubElement(restriction, '{%s}maxExclusive' % _ns_xs)
+                min_l.set('value', str(cls.Attributes.lt))
+
+            if cls.Attributes.le != Decimal.Attributes.le:
+                min_l = etree.SubElement(restriction, '{%s}maxInclusive' % _ns_xs)
+                min_l.set('value', str(cls.Attributes.le))
 
     @classmethod
     @nillable_string
@@ -282,7 +283,7 @@ class Date(SimpleModel):
             fields = date_match.groupdict(0)
             year, month, day = [int(fields[x]) for x in
                 ("year", "month", "day")]
-            return datetime.date(year, month, day)
+            return date(year, month, day)
 
         match = _date_re.match(string)
         if not match:
@@ -311,7 +312,7 @@ class DateTime(SimpleModel):
             # here, if willing to require python 2.4 or higher
             microsec = int(float(fields.get("sec_frac", 0)) * 10 ** 6)
 
-            return datetime.datetime(year,month,day, hour,min,sec, microsec, tz)
+            return datetime(year,month,day, hour,min,sec, microsec, tz)
 
         match = _utc_re.match(string)
         if match:
@@ -328,19 +329,71 @@ class DateTime(SimpleModel):
 
         return parse_date(match)
 
+# this object tries to follow ISO 8601 standard.
 class Duration(SimpleModel):
     __type_name__ = 'duration'
 
     @classmethod
-    @nillable_value
-    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
-        duration = XmlDuration.parse(value)
-        SimpleModel.to_parent_element(str(duration), tns, parent_elt, name)
-
-    @classmethod
     @nillable_string
     def from_string(cls, string):
-        return XmlDuration.from_string(string).as_timedelta()
+        duration = _duration_re.match(string).groupdict(0)
+
+        days = int(duration['days'])
+        days += int(duration['months']) * 30
+        days += int(duration['years']) * 365
+        hours = int(duration['hours'])
+        minutes = int(duration['minutes'])
+        seconds = float(duration['seconds'])
+        f,i = math.modf(seconds)
+        seconds = i
+        microseconds = int(1e6 * f)
+
+        delta = timedelta(days=days, hours=hours, minutes=minutes,
+                                    seconds=seconds, microseconds=microseconds)
+
+        if duration['sign'] == "-":
+            delta *= -1
+
+        return delta
+
+    @classmethod
+    def to_string(cls, value):
+        if value.days < 0:
+            value = -value
+            negative = True
+        else:
+            negative = False
+
+        seconds = value.seconds % 60
+        minutes = value.seconds / 60
+        hours = minutes / 60
+        minutes = minutes % 60
+        seconds = float(seconds) + value.microseconds / 1e6
+
+        retval = deque()
+        if negative:
+            retval.append("-")
+
+        retval = ['P']
+        if value.days > 0:
+            retval.extend([
+                    "%iD" % value.days,
+                ])
+
+        if hours > 0 and minutes > 0 and seconds > 0:
+            retval.extend([
+                    "T",
+                    "%iH" % hours,
+                    "%iM" % minutes,
+                    "%fS" % seconds,
+                ])
+
+        else:
+            retval.extend([
+                    "0S",
+                ])
+
+        return ''.join(retval)
 
 class Double(SimpleModel):
     __type_name__ = 'double'

@@ -358,7 +358,7 @@ Parameter.resolve_namespace(Parameter, __name__)
 
 
 class TestXmlAttribute(unittest.TestCase):
-    
+
     def test_add_to_schema(self):
         schema = Wsdl11(parent=None, services=[], tns=ns_test, name='TestXmlAttribute')
         Parameter.add_to_schema(schema)

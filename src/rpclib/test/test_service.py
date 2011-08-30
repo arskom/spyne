@@ -172,7 +172,7 @@ class Test(unittest.TestCase):
     def test_multiple_ns(self):
         svc = Application([MultipleNamespaceService],rpclib.interface.wsdl.Wsdl11,
                                          rpclib.protocol.soap.Soap11,tns='tns')
-        wsdl = svc.interface.get_interface_document()
+        svc.interface.get_interface_document()
 
 if __name__ == '__main__':
     unittest.main()

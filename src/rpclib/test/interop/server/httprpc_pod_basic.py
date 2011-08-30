@@ -29,16 +29,16 @@ from rpclib.test.interop.server._service import services
 from rpclib.protocol.http import HttpRpc
 from rpclib.interface.wsdl import Wsdl11
 
-httprpc_soap_application = Application(services, Wsdl11, HttpRpc,
-                                   tns='rpclib.test.interop.server.httprpc.pod')
-from rpclib.server import wsgi
+httprpc_soap_application = Application(services,
+        'rpclib.test.interop.server.httprpc.pod', Wsdl11(), HttpRpc(), HttpRpc())
+from rpclib.server.wsgi import WsgiApplication
 
 if __name__ == '__main__':
     try:
         from wsgiref.simple_server import make_server
         from wsgiref.validate import validator
 
-        wsgi_application = wsgi.Application(httprpc_soap_application)
+        wsgi_application = WsgiApplication(httprpc_soap_application)
         server = make_server('0.0.0.0', 9757, validator(wsgi_application))
 
         logger.info('Starting interop server at %s:%s.' % ('0.0.0.0', 9756))

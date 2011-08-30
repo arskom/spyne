@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 import cgi
 
 from rpclib._base import MethodContext
-from rpclib.model.exception import Fault
+from rpclib.model.fault import Fault
 from rpclib.protocol.soap.mime import apply_mtom
 from rpclib.util import reconstruct_url
 from rpclib.server import ServerBase

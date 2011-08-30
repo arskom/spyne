@@ -70,7 +70,7 @@ class HttpRpc(ProtocolBase):
                      attr_name=result_message_class._type_info.keys()[i]
                      setattr(result_message, attr_name, ctx.out_object[i])
 
-        wrapped_result = ctx.descriptor.out_message.to_dict(result_message)
+        wrapped_result = result_message_class.to_dict(result_message)
 
         ctx.out_document, = wrapped_result.itervalues()
 

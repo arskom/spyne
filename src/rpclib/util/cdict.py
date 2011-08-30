@@ -17,28 +17,28 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""cdict (ClassDict) is a funny kind of dict that tries to return the values for
+the base classes of a key when the entry for the key is not found.
+"""
+
 import logging
 logger = logging.getLogger(__name__)
 
-from rpclib.protocol import ProtocolBase
+class cdict(dict):
+    def __getitem__(self, cls):
+        logger.info("req: %r" % cls)
 
-class OutCsv(ProtocolBase):
-    mime_type = 'text/csv'
+        try:
+            return dict.__getitem__(self, cls)
 
-    def create_in_document(self, ctx):
-        raise Exception("not supported")
+        except KeyError, e:
+            try:
+                return dict.__getitem__(self, cls._is_clone_of)
+            except AttributeError:
+                pass
+            except KeyError:
+                pass
 
-    def serialize(self, ctx):
-        result_message_class = ctx.descriptor.out_message
-
-        if ctx.out_object is None:
-            ctx.out_object = []
-
-        assert len(result_message_class._type_info) == 1, """CSV Serializer
-            supports functions with exactly one return type:
-            %r""" % result_message_class._type_info
-
-        # assign raw result to its wrapper, result_message
-        out_type, = result_message_class._type_info.itervalues()
-
-        ctx.out_string = out_type.to_csv(ctx.out_object)
+            for b in cls.__bases__:
+                return self[b]
+            raise
