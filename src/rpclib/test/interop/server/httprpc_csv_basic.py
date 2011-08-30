@@ -28,16 +28,16 @@ from rpclib.protocol.csv import OutCsv
 from rpclib.protocol.http import HttpRpc
 from rpclib.interface.wsdl import Wsdl11
 
-httprpc_csv_application = Application(services, Wsdl11, HttpRpc, OutCsv,
-                                   tns='rpclib.test.interop.server.httprpc.csv')
-from rpclib.server import wsgi
+httprpc_csv_application = Application(services,
+        'rpclib.test.interop.server.httprpc.csv', Wsdl11(), HttpRpc(), OutCsv())
+from rpclib.server.wsgi import WsgiApplication
 
 if __name__ == '__main__':
     try:
         from wsgiref.simple_server import make_server
         from wsgiref.validate import validator
 
-        wsgi_application = wsgi.Application(httprpc_csv_application)
+        wsgi_application = WsgiApplication(httprpc_csv_application)
         server = make_server('0.0.0.0', 9755, validator(wsgi_application))
 
         logger.info('Starting interop server at %s:%s.' % ('0.0.0.0', 9755))
