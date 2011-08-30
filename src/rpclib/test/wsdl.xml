@@ -111,6 +111,8 @@
       <xs:element name="echo_doubleResponse" type="tns:echo_doubleResponse" />
       <xs:element name="echo_double_array" type="tns:echo_double_array" />
       <xs:element name="echo_double_arrayResponse" type="tns:echo_double_arrayResponse" />
+      <xs:element name="echo_duration" type="tns:echo_duration" />
+      <xs:element name="echo_durationResponse" type="tns:echo_durationResponse" />
       <xs:element name="echo_enum" type="tns:echo_enum" />
       <xs:element name="echo_enumResponse" type="tns:echo_enumResponse" />
       <xs:element name="echo_extension_class" type="tns:echo_extension_class" />
@@ -374,6 +376,16 @@
       <xs:complexType name="echo_double_arrayResponse">
         <xs:sequence>
           <xs:element minOccurs="0" name="echo_double_arrayResult" nillable="true" type="tns:doubleArray" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_duration">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="dur" nillable="true" type="xs:duration" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_durationResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="echo_durationResult" nillable="true" type="xs:duration" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_enum">
@@ -766,6 +778,12 @@
   <wsdl:message name="echo_double_arrayResponse">
     <wsdl:part element="tns:echo_double_arrayResponse" name="echo_double_arrayResponse" />
   </wsdl:message>
+  <wsdl:message name="echo_duration">
+    <wsdl:part element="tns:echo_duration" name="echo_duration" />
+  </wsdl:message>
+  <wsdl:message name="echo_durationResponse">
+    <wsdl:part element="tns:echo_durationResponse" name="echo_durationResponse" />
+  </wsdl:message>
   <wsdl:message name="echo_enum">
     <wsdl:part element="tns:echo_enum" name="echo_enum" />
   </wsdl:message>
@@ -1078,6 +1096,15 @@
         <soap:body use="literal" />
       </wsdl:input>
       <wsdl:output name="echo_double_arrayResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_duration">
+      <soap:operation soapAction="echo_duration" style="document" />
+      <wsdl:input name="echo_duration">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_durationResponse">
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
@@ -1402,6 +1429,10 @@
     <wsdl:operation name="echo_double_array" parameterOrder="echo_double_array">
       <wsdl:input message="tns:echo_double_array" name="echo_double_array" />
       <wsdl:output message="tns:echo_double_arrayResponse" name="echo_double_arrayResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_duration" parameterOrder="echo_duration">
+      <wsdl:input message="tns:echo_duration" name="echo_duration" />
+      <wsdl:output message="tns:echo_durationResponse" name="echo_durationResponse" />
     </wsdl:operation>
     <wsdl:operation name="echo_enum" parameterOrder="echo_enum">
       <wsdl:input message="tns:echo_enum" name="echo_enum" />
