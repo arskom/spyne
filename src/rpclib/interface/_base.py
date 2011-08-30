@@ -32,10 +32,8 @@ class SchemaInfo(object):
         self.types = odict()
 
 class InterfaceBase(object):
-    def __init__(self, app, import_base_namespaces=False):
+    def __init__(self, app=None, import_base_namespaces=False):
         self.__ns_counter = 0
-
-        self.set_app(app)
 
         # FIXME: this belongs in the wsdl class
         self.import_base_namespaces = import_base_namespaces
@@ -45,10 +43,15 @@ class InterfaceBase(object):
 
         self.url = None
 
-        self.populate_interface()
+        self.__app = None
+        self.set_app(app)
 
     def set_app(self, value):
+        assert self.__app is None, "One interface instance should belong to one " \
+                                   "application instance."
+
         self.__app = value
+        self.populate_interface()
 
     @property
     def app(self):
@@ -56,7 +59,9 @@ class InterfaceBase(object):
 
     @property
     def services(self):
-        return self.__app.services
+        if self.__app:
+            return self.__app.services
+        return []
 
     def reset_interface(self):
         self.namespaces = odict()
@@ -193,7 +198,8 @@ class InterfaceBase(object):
 
         Not meant to be overridden.
         """
-        return self.app.name
+        if self.app:
+            return self.app.name
 
     def get_tns(self):
         """Returns default namespace that is seen in the targetNamespace
@@ -201,7 +207,8 @@ class InterfaceBase(object):
 
         Not meant to be overridden.
         """
-        return self.app.tns
+        if self.app:
+            return self.app.tns
 
     def populate_interface(self, types=None):
         # FIXME: should also somehow freeze child classes' _type_info
@@ -252,7 +259,7 @@ class InterfaceBase(object):
             s.__tns__ = self.get_tns()
             logger.debug("populating '%s.%s'" % (s.__module__, s.__name__))
             for method in s.public_methods.values():
-                o = self.method_mapping.get(method.key)
+                o = self.service_mapping.get(method.key)
                 if not (o is None):
                     raise Exception("\nThe message %r defined in both '%s.%s'"
                                                                 " and '%s.%s'"

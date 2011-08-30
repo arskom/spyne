@@ -108,7 +108,13 @@ def resolve_hrefs(element, xmlids):
 
     return element
 
-class Soap11(XmlObject):
+def Soap11(validator=None):
+    if validator is None:
+        return _Soap11()
+    else:
+        return _Soap11Strict(validator=validator)
+
+class _Soap11(XmlObject):
     class NO_WRAPPER:
         pass
     class IN_WRAPPER:
@@ -119,11 +125,11 @@ class Soap11(XmlObject):
     allowed_http_verbs = ['POST']
     mime_type = 'application/soap+xml'
 
-    def __init__(self, parent):
-        ProtocolBase.__init__(self, parent)
+    def __init__(self, app=None):
+        XmlObject.__init__(self, app)
 
-        self.in_wrapper = Soap11.IN_WRAPPER
-        self.out_wrapper = Soap11.OUT_WRAPPER
+        self.in_wrapper = _Soap11.IN_WRAPPER
+        self.out_wrapper = _Soap11.OUT_WRAPPER
 
     def create_in_document(self, ctx, charset=None):
         if ctx.transport.type == 'wsgi':
@@ -332,24 +338,38 @@ class Soap11(XmlObject):
 
         self.event_manager.fire_event('serialize',ctx)
 
-class Soap11Strict(Soap11):
-    def __init__(self, parent):
-        Soap11.__init__(self, parent)
+class _Soap11Strict(_Soap11):
+    def __init__(self, app=None, validator='lxml'):
+        """Soap 1.1 Protocol with validators.
+
+        @param A rpclib.application.Application instance.
+        @param The validator to use. Currently the only supported value is 'lxml'
+        """
+
+        if validator == 'lxml':
+            self.validate = self.__validate_lxml
+        else:
+            raise ValueError(validator)
+
+        _Soap11.__init__(self, app)
 
     def set_app(self, value):
-        Soap11.set_app(self, value)
+        _Soap11.set_app(self, value)
 
-        from rpclib.interface.wsdl import Wsdl11
+        self.validation_schema = None
 
-        wsdl = Wsdl11(value)
-        wsdl.build_validation_schema()
+        if value:
+            from rpclib.interface.wsdl import Wsdl11
 
-        self.validation_schema = wsdl.validation_schema
+            wsdl = Wsdl11(value)
+            wsdl.build_validation_schema()
 
-    def validate(self, payload):
+            self.validation_schema = wsdl.validation_schema
+
+    def __validate_lxml(self, payload):
         ret = self.validation_schema.validate(payload)
 
         logger.debug("Validated ? %s" % str(ret))
         if ret == False:
             raise ValidationError('Client.SchemaValidation',
-                                               str(schema.error_log.last_error))
+                               str(self.validation_schema.error_log.last_error))

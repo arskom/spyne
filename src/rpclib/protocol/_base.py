@@ -36,6 +36,8 @@ class ProtocolBase(object):
     mime_type = 'application/octet-stream'
 
     def __init__(self, app=None):
+        self.__app = None
+
         self.set_app(app)
         self.event_manager = EventManager(self)
 
@@ -44,6 +46,8 @@ class ProtocolBase(object):
         return self.__app
 
     def set_app(self, value):
+        assert self.__app is None, "One protocol instance should belong to one " \
+                                   "application instance."
         self.__app = value
 
     def create_in_document(self, ctx, in_string_encoding=None):

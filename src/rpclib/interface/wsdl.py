@@ -125,8 +125,8 @@ def _add_callbacks(service, root, types, service_name, url):
     return cb_port_type
 
 class Wsdl11(InterfaceBase):
-    def __init__(self, app,
-                        import_base_namespaces=False, _with_partnerlink=False):
+    def __init__(self, app=None, import_base_namespaces=False,
+                                                       _with_partnerlink=False):
         '''Constructor.
 
         @param An iterable of ServiceBase subclasses that define the exposed
