@@ -1,12 +1,17 @@
 #!/usr/bin/env python
 
+import os
+import re
+
 from unittest import TestLoader
 from pkg_resources import resource_exists
 from pkg_resources import resource_listdir
 from setuptools import setup
 from setuptools import find_packages
 
-VERSION = '2.1.0'
+v = open(os.path.join(os.path.dirname(__file__), 'src', 'rpclib', '__init__.py'), 'r')
+VERSION = re.match(r".*__version__ = '(.*?)'", v.read(), re.S).group(1)
+
 LONG_DESC = """\
 This is a simple, easily extendible rpc library that provides several useful
 tools for creating and publishing web services in python.  This package
@@ -24,7 +29,7 @@ SHORT_DESC="A transport and architecture agnostic rpc (de)serialization " \
 class NoInteropLoader(TestLoader):
     def loadTestsFromModule(self, module):
         """Load unit test (skip 'interop' package).
-        
+
         Hacked from the version in 'setuptools.command.test.ScanningLoader'.
         """
         tests = []

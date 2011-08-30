@@ -20,9 +20,6 @@
 import base64
 
 from cStringIO import StringIO
-from lxml import etree
-from rpclib.model import nillable_element
-from rpclib.model import nillable_value
 from rpclib.model import nillable_string
 from rpclib.model import ModelBase
 
@@ -61,28 +58,6 @@ class Attachment(ModelBase):
         f = open(self.file_name, 'rb')
         self.data = f.read()
         f.close()
-
-    @classmethod
-    @nillable_value
-    def to_parent_element(cls, value, tns, parent_elt, name='retval'):
-        '''This class method takes the data from the attachment and
-        base64 encodes it as the text of an Element. An attachment can
-        specify a file_name and if no data is given, it will read the data
-        from the file
-        '''
-
-        element = etree.SubElement(parent_elt, '{%s}%s' % (tns,name))
-        element.text = base64.encodestring(cls.to_string(value))
-
-    @classmethod
-    @nillable_element
-    def from_xml(cls, element):
-        '''This method returns an Attachment object that contains
-        the base64 decoded string of the text of the given element
-        '''
-        data = base64.decodestring(element.text)
-        a = Attachment(data=data)
-        return a
 
     @classmethod
     @nillable_string

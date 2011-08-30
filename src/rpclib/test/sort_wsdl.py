@@ -85,7 +85,7 @@ def main():
             nodes.append(e)
             e.getparent().remove(e)
 
-        nodes.sort(key=lambda e: (schema_order[e.tag],))
+        nodes.sort(key=lambda e: (schema_order[e.tag], e.attrib.get('name','\0')))
 
         for e in nodes:
             s.append(e)

@@ -21,15 +21,18 @@ import logging
 logger = logging.getLogger(__name__)
 
 import cgi
-from rpclib.protocol.soap.mime import collapse_swa
-
 import traceback
+
+import rpclib.const.xml_ns as ns
+
 from lxml import etree
 
+from rpclib.protocol.xml import XmlObject
+from rpclib.protocol.soap.mime import collapse_swa
+
 from rpclib.protocol import ProtocolBase
-from rpclib.model.exception import Fault
+from rpclib.model.fault import Fault
 from rpclib.model.primitive import string_encoding
-import rpclib.const.xml_ns as ns
 
 class ValidationError(Fault):
     pass
@@ -105,7 +108,13 @@ def resolve_hrefs(element, xmlids):
 
     return element
 
-class Soap11(ProtocolBase):
+def Soap11(validator=None):
+    if validator is None:
+        return _Soap11()
+    else:
+        return _Soap11Strict(validator=validator)
+
+class _Soap11(XmlObject):
     class NO_WRAPPER:
         pass
     class IN_WRAPPER:
@@ -116,11 +125,11 @@ class Soap11(ProtocolBase):
     allowed_http_verbs = ['POST']
     mime_type = 'application/soap+xml'
 
-    def __init__(self, parent):
-        ProtocolBase.__init__(self, parent)
+    def __init__(self, app=None):
+        XmlObject.__init__(self, app)
 
-        self.in_wrapper = Soap11.IN_WRAPPER
-        self.out_wrapper = Soap11.OUT_WRAPPER
+        self.in_wrapper = _Soap11.IN_WRAPPER
+        self.out_wrapper = _Soap11.OUT_WRAPPER
 
     def create_in_document(self, ctx, charset=None):
         if ctx.transport.type == 'wsgi':
@@ -167,7 +176,7 @@ class Soap11(ProtocolBase):
                         logger.debug(body_doc)
                         raise Fault('Client.Xml', 'Error at line: %d, '
                                     'col: %d' % e.position)
-    
+
             if ctx.method_request_string is None:
                 raise Exception("Could not extract method request string from "
                                 "the request!")
@@ -193,7 +202,7 @@ class Soap11(ProtocolBase):
 
         if ctx.in_body_doc.tag == "{%s}Fault" % ns.soap_env:
             ctx.in_object = None
-            ctx.in_error = Fault.from_xml(ctx.in_body_doc)
+            ctx.in_error = self.from_element(Fault, ctx.in_body_doc)
 
         else:
             if self.in_wrapper is self.IN_WRAPPER:
@@ -211,16 +220,17 @@ class Soap11(ProtocolBase):
                     for i, (header_doc, head_class) in enumerate(
                                           zip(ctx.in_header_doc, header_class)):
                         if len(header_doc) > 0:
-                            headers[i] = head_class.from_xml(header_doc)
+                            headers[i] = self.from_element(head_class, header_doc)
                     ctx.in_header = tuple(headers)
+
                 else:
                     header_doc = ctx.in_header_doc[0]
                     if len(header_doc) > 0:
-                        ctx.in_header = header_class.from_xml(header_doc)
+                        ctx.in_header = self.from_element(header_class, header_doc)
 
             # decode method arguments
             if ctx.in_body_doc is not None and len(ctx.in_body_doc) > 0:
-                ctx.in_object = body_class.from_xml(ctx.in_body_doc)
+                ctx.in_object = self.from_element(body_class, ctx.in_body_doc)
             else:
                 ctx.in_object = [None] * len(body_class._type_info)
 
@@ -243,8 +253,8 @@ class Soap11(ProtocolBase):
             # FIXME: There's no way to alter soap response headers for the user.
             ctx.out_body_doc = out_body_doc = etree.SubElement(ctx.out_document,
                             '{%s}Body' % ns.soap_env, nsmap=nsmap)
-            ctx.out_error.add_to_parent_element(self.app.interface.get_tns(),
-                                                                   out_body_doc)
+            self.to_parent_element(ctx.out_error.__class__, ctx.out_error,
+                                    self.app.interface.get_tns(), out_body_doc)
 
             if logger.level == logging.DEBUG:
                 logger.debug(etree.tostring(ctx.out_document, pretty_print=True))
@@ -265,20 +275,23 @@ class Soap11(ProtocolBase):
                 else:
                     ctx.out_header_doc = soap_header_elt = etree.SubElement(
                                     ctx.out_document, '{%s}Header' % ns.soap_env)
+
                     if isinstance(header_message_class, (list, tuple)):
                         if isinstance(ctx.out_header, (list, tuple)):
                             out_headers = ctx.out_header
                         else:
                             out_headers = (ctx.out_header,)
-                        for header_class, out_header in zip(header_message_class, out_headers):
-                            header_class.to_parent_element(
+
+                        for header_class, out_header in zip(header_message_class,
+                                                                out_headers):
+                            self.to_parent_element(header_class,
                                 out_header,
                                 self.app.interface.get_tns(),
                                 soap_header_elt,
-                                header_class.get_type_name()
+                                header_class.get_type_name(),
                             )
                     else:
-                        header_message_class.to_parent_element(
+                        self.to_parent_element(header_message_class,
                             ctx.out_header,
                             self.app.interface.get_tns(),
                             soap_header_elt,
@@ -315,7 +328,7 @@ class Soap11(ProtocolBase):
                         setattr(result_message, attr_name, ctx.out_object[i])
 
             # transform the results into an element
-            result_message_class.to_parent_element(
+            self.to_parent_element(result_message_class,
                   result_message, self.app.interface.get_tns(), out_body_doc)
 
             if logger.level == logging.DEBUG:
@@ -325,17 +338,38 @@ class Soap11(ProtocolBase):
 
         self.event_manager.fire_event('serialize',ctx)
 
-class Soap11Strict(Soap11):
-    def __init__(self, parent):
-        Soap11.__init__(self, parent)
+class _Soap11Strict(_Soap11):
+    def __init__(self, app=None, validator='lxml'):
+        """Soap 1.1 Protocol with validators.
 
-        parent.interface.build_validation_schema()
+        @param A rpclib.application.Application instance.
+        @param The validator to use. Currently the only supported value is 'lxml'
+        """
 
-    def validate(self, payload):
-        schema = self.app.interface.validation_schema
-        ret = schema.validate(payload)
+        if validator == 'lxml':
+            self.validate = self.__validate_lxml
+        else:
+            raise ValueError(validator)
+
+        _Soap11.__init__(self, app)
+
+    def set_app(self, value):
+        _Soap11.set_app(self, value)
+
+        self.validation_schema = None
+
+        if value:
+            from rpclib.interface.wsdl import Wsdl11
+
+            wsdl = Wsdl11(value)
+            wsdl.build_validation_schema()
+
+            self.validation_schema = wsdl.validation_schema
+
+    def __validate_lxml(self, payload):
+        ret = self.validation_schema.validate(payload)
 
         logger.debug("Validated ? %s" % str(ret))
         if ret == False:
             raise ValidationError('Client.SchemaValidation',
-                                               str(schema.error_log.last_error))
+                               str(self.validation_schema.error_log.last_error))

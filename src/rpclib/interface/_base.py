@@ -31,8 +31,8 @@ class SchemaInfo(object):
         self.elements = odict()
         self.types = odict()
 
-class Base(object):
-    def __init__(self, app, services, tns, name=None, import_base_namespaces=False):
+class InterfaceBase(object):
+    def __init__(self, app=None, import_base_namespaces=False):
         self.__ns_counter = 0
 
         # FIXME: this belongs in the wsdl class
@@ -41,12 +41,29 @@ class Base(object):
         self.service_mapping = {}
         self.method_mapping = {}
 
-        self.app = app
-        self.services = services
-        self.__tns = tns
-        self.__name = name
         self.url = None
 
+        self.__app = None
+        self.set_app(app)
+
+    def set_app(self, value):
+        assert self.__app is None, "One interface instance should belong to one " \
+                                   "application instance."
+
+        self.__app = value
+        self.populate_interface()
+
+    @property
+    def app(self):
+        return self.__app
+
+    @property
+    def services(self):
+        if self.__app:
+            return self.__app.services
+        return []
+
+    def reset_interface(self):
         self.namespaces = odict()
         self.classes = {}
         self.imports = {}
@@ -54,10 +71,8 @@ class Base(object):
         self.nsmap = dict(rpclib.const.xml_ns.const_nsmap)
         self.prefmap = dict(rpclib.const.xml_ns.const_prefmap)
 
-        self.nsmap['tns']=tns
-        self.prefmap[tns]='tns'
-
-        self.populate_interface()
+        self.nsmap['tns'] = self.get_tns()
+        self.prefmap[self.get_tns()] = 'tns'
 
     def has_class(self, cls):
         retval = False
@@ -183,14 +198,8 @@ class Base(object):
 
         Not meant to be overridden.
         """
-        retval = self.__name
-
-        if retval is None:
-            retval = self.app.__class__.__name__.split('.')[-1]
-
-        return retval
-
-    name = property(get_name)
+        if self.app:
+            return self.app.name
 
     def get_tns(self):
         """Returns default namespace that is seen in the targetNamespace
@@ -198,24 +207,14 @@ class Base(object):
 
         Not meant to be overridden.
         """
-        retval = self.__tns
-
-        if retval is None:
-            service_name = self.get_name()
-
-            if self.__class__.__module__ == '__main__':
-                retval = '.'.join((service_name, service_name))
-            else:
-                retval = '.'.join((self.__class__.__module__, service_name))
-
-            if retval.startswith('rpclib'):
-                retval = self.services[0].get_tns()
-
-        return retval
+        if self.app:
+            return self.app.tns
 
     def populate_interface(self, types=None):
         # FIXME: should also somehow freeze child classes' _type_info
         #        dictionaries.
+
+        self.reset_interface()
 
         # populate types
         for s in self.services:
@@ -260,9 +259,9 @@ class Base(object):
             s.__tns__ = self.get_tns()
             logger.debug("populating '%s.%s'" % (s.__module__, s.__name__))
             for method in s.public_methods.values():
-                o = self.method_mapping.get(method.key)
+                o = self.service_mapping.get(method.key)
                 if not (o is None):
-                    raise Exception("\nThe message %r defined in both '%s.%s' "
+                    raise Exception("\nThe message %r defined in both '%s.%s'"
                                                                 " and '%s.%s'"
                       % (method.key, s.__module__, s.__name__,
                                           o.__module__, o.__name__,

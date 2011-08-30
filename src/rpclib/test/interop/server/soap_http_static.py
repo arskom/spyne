@@ -29,7 +29,7 @@ from rpclib.server import wsgi
 from rpclib.test.interop.server.soap_http_basic import soap_application
 
 from rpclib.util.wsgi_wrapper import run_twisted
-from rpclib.server import wsgi
+from rpclib.server.wsgi import WsgiApplication
 
 port = 9754
 url = 'app'
@@ -38,7 +38,7 @@ def main(argv):
     observer = log.PythonLoggingObserver('twisted')
     log.startLoggingWithObserver(observer.emit, setStdout=False)
 
-    wsgi_application = wsgi.Application(soap_application)
+    wsgi_application = WsgiApplication(soap_application)
 
     return run_twisted( [ (wsgi_application, url) ], port )
 
