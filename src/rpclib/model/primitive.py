@@ -147,6 +147,41 @@ class AnyUri(String):
 class Decimal(SimpleModel):
     __type_name__ = 'decimal'
 
+    class Attributes(SimpleModel.Attributes):
+        gt = None # minExclusive
+        ge = None # minInclusive
+        lt = None # maxExclusive
+        le = None # maxInclusive
+
+    @staticmethod
+    def is_default(cls):
+        return (    SimpleModel.is_default(cls)
+                and cls.Attributes.gt == Decimal.Attributes.gt
+                and cls.Attributes.ge == Decimal.Attributes.ge
+                and cls.Attributes.lt == Decimal.Attributes.lt
+                and cls.Attributes.le == Decimal.Attributes.le)
+
+    @classmethod
+    def add_to_schema(cls, schema_entries):
+        if not schema_entries.has_class(cls) and not cls.is_default(cls):
+            restriction = cls.get_restriction_tag(schema_entries)
+
+            if cls.Attributes.gt != Decimal.Attributes.gt:
+                min_l = etree.SubElement(restriction, '{%s}minExclusive' % _ns_xs)
+                min_l.set('value', str(cls.Attributes.gt))
+
+            if cls.Attributes.ge != Decimal.Attributes.ge:
+                min_l = etree.SubElement(restriction, '{%s}minInclusive' % _ns_xs)
+                min_l.set('value', str(cls.Attributes.ge))
+
+            if cls.Attributes.lt != Decimal.Attributes.lt:
+                min_l = etree.SubElement(restriction, '{%s}maxExclusive' % _ns_xs)
+                min_l.set('value', str(cls.Attributes.lt))
+
+            if cls.Attributes.le != Decimal.Attributes.le:
+                min_l = etree.SubElement(restriction, '{%s}maxInclusive' % _ns_xs)
+                min_l.set('value', str(cls.Attributes.le))
+
     @classmethod
     @nillable_string
     def to_string(cls, value):
