@@ -74,103 +74,103 @@
       <xs:import namespace="bar" />
       <xs:import namespace="rpclib.test.interop.server._service" />
       <xs:import namespace="hunk.sunk" />
-      <xs:element name="echo_integer" type="tns:echo_integer" />
-      <xs:element name="echo_integerResponse" type="tns:echo_integerResponse" />
-      <xs:element name="echo_enum" type="tns:echo_enum" />
-      <xs:element name="echo_enumResponse" type="tns:echo_enumResponse" />
-      <xs:element name="echo_double" type="tns:echo_double" />
-      <xs:element name="echo_doubleResponse" type="tns:echo_doubleResponse" />
+      <xs:element name="InHeader" type="tns:InHeader" />
+      <xs:element name="InTraceHeader" type="tns:InTraceHeader" />
+      <xs:element name="OutHeader" type="tns:OutHeader" />
+      <xs:element name="OutTraceHeader" type="tns:OutTraceHeader" />
+      <xs:element name="RoleEnumArray" type="tns:RoleEnumArray" />
+      <xs:element name="base64BinaryArray" type="tns:base64BinaryArray" />
+      <xs:element name="booleanArray" type="tns:booleanArray" />
+      <xs:element name="booleanArrayArray" type="tns:booleanArrayArray" />
+      <xs:element name="complex_return" type="tns:complex_return" />
+      <xs:element name="complex_returnResponse" type="tns:complex_returnResponse" />
+      <xs:element name="custom_messages" type="tns:custom_messages" />
+      <xs:element name="dateTimeArray" type="tns:dateTimeArray" />
+      <xs:element name="do_something_else" type="tns:do_something_else" />
+      <xs:element name="do_something_elseResponse" type="tns:do_something_elseResponse" />
+      <xs:element name="doubleArray" type="tns:doubleArray" />
       <xs:element name="echo_any" type="tns:echo_any" />
       <xs:element name="echo_anyResponse" type="tns:echo_anyResponse" />
-      <xs:element name="echo_float" type="tns:echo_float" />
-      <xs:element name="echo_floatResponse" type="tns:echo_floatResponse" />
-      <xs:element name="echo_boolean" type="tns:echo_boolean" />
-      <xs:element name="echo_booleanResponse" type="tns:echo_booleanResponse" />
-      <xs:element name="echo_datetime" type="tns:echo_datetime" />
-      <xs:element name="echo_datetimeResponse" type="tns:echo_datetimeResponse" />
       <xs:element name="echo_any_as_dict" type="tns:echo_any_as_dict" />
       <xs:element name="echo_any_as_dictResponse" type="tns:echo_any_as_dictResponse" />
-      <xs:element name="echo_string" type="tns:echo_string" />
-      <xs:element name="echo_stringResponse" type="tns:echo_stringResponse" />
-      <xs:element name="dateTimeArray" type="tns:dateTimeArray" />
-      <xs:element name="echo_date_time_array" type="tns:echo_date_time_array" />
-      <xs:element name="echo_date_time_arrayResponse" type="tns:echo_date_time_arrayResponse" />
-      <xs:element name="echo_simple_boolean_array" type="tns:echo_simple_boolean_array" />
-      <xs:element name="echo_simple_boolean_arrayResponse" type="tns:echo_simple_boolean_arrayResponse" />
-      <xs:element name="doubleArray" type="tns:doubleArray" />
-      <xs:element name="echo_double_array" type="tns:echo_double_array" />
-      <xs:element name="echo_double_arrayResponse" type="tns:echo_double_arrayResponse" />
-      <xs:element name="stringArray" type="tns:stringArray" />
-      <xs:element name="echo_string_array" type="tns:echo_string_array" />
-      <xs:element name="echo_string_arrayResponse" type="tns:echo_string_arrayResponse" />
-      <xs:element name="booleanArray" type="tns:booleanArray" />
       <xs:element name="echo_array_in_array" type="tns:echo_array_in_array" />
-      <xs:element name="booleanArrayArray" type="tns:booleanArrayArray" />
       <xs:element name="echo_array_in_arrayResponse" type="tns:echo_array_in_arrayResponse" />
-      <xs:element name="floatArray" type="tns:floatArray" />
-      <xs:element name="echo_float_array" type="tns:echo_float_array" />
-      <xs:element name="echo_float_arrayResponse" type="tns:echo_float_arrayResponse" />
-      <xs:element name="integerArray" type="tns:integerArray" />
-      <xs:element name="echo_integer_array" type="tns:echo_integer_array" />
-      <xs:element name="echo_integer_arrayResponse" type="tns:echo_integer_arrayResponse" />
-      <xs:element name="echo_boolean_array" type="tns:echo_boolean_array" />
-      <xs:element name="echo_boolean_arrayResponse" type="tns:echo_boolean_arrayResponse" />
-      <xs:element name="base64BinaryArray" type="tns:base64BinaryArray" />
-      <xs:element name="echo_attachment_array" type="tns:echo_attachment_array" />
-      <xs:element name="echo_attachment_arrayResponse" type="tns:echo_attachment_arrayResponse" />
-      <xs:element name="echo_extension_class" type="tns:echo_extension_class" />
-      <xs:element name="echo_extension_classResponse" type="tns:echo_extension_classResponse" />
       <xs:element name="echo_attachment" type="tns:echo_attachment" />
       <xs:element name="echo_attachmentResponse" type="tns:echo_attachmentResponse" />
+      <xs:element name="echo_attachment_array" type="tns:echo_attachment_array" />
+      <xs:element name="echo_attachment_arrayResponse" type="tns:echo_attachment_arrayResponse" />
+      <xs:element name="echo_boolean" type="tns:echo_boolean" />
+      <xs:element name="echo_booleanResponse" type="tns:echo_booleanResponse" />
+      <xs:element name="echo_boolean_array" type="tns:echo_boolean_array" />
+      <xs:element name="echo_boolean_arrayResponse" type="tns:echo_boolean_arrayResponse" />
+      <xs:element name="echo_date_time_array" type="tns:echo_date_time_array" />
+      <xs:element name="echo_date_time_arrayResponse" type="tns:echo_date_time_arrayResponse" />
+      <xs:element name="echo_datetime" type="tns:echo_datetime" />
+      <xs:element name="echo_datetimeResponse" type="tns:echo_datetimeResponse" />
+      <xs:element name="echo_double" type="tns:echo_double" />
+      <xs:element name="echo_doubleResponse" type="tns:echo_doubleResponse" />
+      <xs:element name="echo_double_array" type="tns:echo_double_array" />
+      <xs:element name="echo_double_arrayResponse" type="tns:echo_double_arrayResponse" />
+      <xs:element name="echo_enum" type="tns:echo_enum" />
+      <xs:element name="echo_enumResponse" type="tns:echo_enumResponse" />
+      <xs:element name="echo_extension_class" type="tns:echo_extension_class" />
+      <xs:element name="echo_extension_classResponse" type="tns:echo_extension_classResponse" />
+      <xs:element name="echo_float" type="tns:echo_float" />
+      <xs:element name="echo_floatResponse" type="tns:echo_floatResponse" />
+      <xs:element name="echo_float_array" type="tns:echo_float_array" />
+      <xs:element name="echo_float_arrayResponse" type="tns:echo_float_arrayResponse" />
+      <xs:element name="echo_in_complex_header" type="tns:echo_in_complex_header" />
+      <xs:element name="echo_in_complex_headerResponse" type="tns:echo_in_complex_headerResponse" />
+      <xs:element name="echo_in_header" type="tns:echo_in_header" />
+      <xs:element name="echo_in_headerResponse" type="tns:echo_in_headerResponse" />
+      <xs:element name="echo_integer" type="tns:echo_integer" />
+      <xs:element name="echo_integerResponse" type="tns:echo_integerResponse" />
+      <xs:element name="echo_integer_array" type="tns:echo_integer_array" />
+      <xs:element name="echo_integer_arrayResponse" type="tns:echo_integer_arrayResponse" />
+      <xs:element name="echo_nested_class" type="tns:echo_nested_class" />
+      <xs:element name="echo_nested_classResponse" type="tns:echo_nested_classResponse" />
       <xs:element name="echo_nested_class_array" type="tns:echo_nested_class_array" />
       <xs:element name="echo_nested_class_arrayResponse" type="tns:echo_nested_class_arrayResponse" />
+      <xs:element name="echo_simple_boolean_array" type="tns:echo_simple_boolean_array" />
+      <xs:element name="echo_simple_boolean_arrayResponse" type="tns:echo_simple_boolean_arrayResponse" />
       <xs:element name="echo_simple_class" type="tns:echo_simple_class" />
       <xs:element name="echo_simple_classResponse" type="tns:echo_simple_classResponse" />
       <xs:element name="echo_simple_class_array" type="tns:echo_simple_class_array" />
       <xs:element name="echo_simple_class_arrayResponse" type="tns:echo_simple_class_arrayResponse" />
-      <xs:element name="echo_nested_class" type="tns:echo_nested_class" />
-      <xs:element name="echo_nested_classResponse" type="tns:echo_nested_classResponse" />
-      <xs:element name="return_binary_data" type="tns:return_binary_data" />
-      <xs:element name="return_binary_dataResponse" type="tns:return_binary_dataResponse" />
+      <xs:element name="echo_string" type="tns:echo_string" />
+      <xs:element name="echo_stringResponse" type="tns:echo_stringResponse" />
+      <xs:element name="echo_string_array" type="tns:echo_string_array" />
+      <xs:element name="echo_string_arrayResponse" type="tns:echo_string_arrayResponse" />
+      <xs:element name="floatArray" type="tns:floatArray" />
+      <xs:element name="getCustomMessagesMsgOut" type="tns:getCustomMessagesMsgOut" />
+      <xs:element name="huge_number" type="tns:huge_number" />
+      <xs:element name="huge_numberResponse" type="tns:huge_numberResponse" />
+      <xs:element name="integerArray" type="tns:integerArray" />
       <xs:element name="long_string" type="tns:long_string" />
       <xs:element name="long_stringResponse" type="tns:long_stringResponse" />
+      <xs:element name="multi_param" type="tns:multi_param" />
+      <xs:element name="multi_paramResponse" type="tns:multi_paramResponse" />
       <xs:element name="non_nillable" type="tns:non_nillable" />
       <xs:element name="non_nillableResponse" type="tns:non_nillableResponse" />
+      <xs:element name="python_exception" type="tns:python_exception" />
+      <xs:element name="python_exceptionResponse" type="tns:python_exceptionResponse" />
+      <xs:element name="return_binary_data" type="tns:return_binary_data" />
+      <xs:element name="return_binary_dataResponse" type="tns:return_binary_dataResponse" />
+      <xs:element name="return_invalid_data" type="tns:return_invalid_data" />
+      <xs:element name="return_invalid_dataResponse" type="tns:return_invalid_dataResponse" />
       <xs:element name="return_only" type="tns:return_only" />
       <xs:element name="return_onlyResponse" type="tns:return_onlyResponse" />
       <xs:element name="return_other_class_array" type="tns:return_other_class_array" />
       <xs:element name="return_other_class_arrayResponse" type="tns:return_other_class_arrayResponse" />
-      <xs:element name="multi_param" type="tns:multi_param" />
-      <xs:element name="multi_paramResponse" type="tns:multi_paramResponse" />
-      <xs:element name="huge_number" type="tns:huge_number" />
-      <xs:element name="huge_numberResponse" type="tns:huge_numberResponse" />
-      <xs:element name="test_empty" type="tns:test_empty" />
-      <xs:element name="test_emptyResponse" type="tns:test_emptyResponse" />
-      <xs:element name="getCustomMessagesMsgIn" type="tns:getCustomMessagesMsgIn" />
-      <xs:element name="getCustomMessagesMsgOut" type="tns:getCustomMessagesMsgOut" />
-      <xs:element name="do_something" type="tns:do_something" />
-      <xs:element name="do_somethingResponse" type="tns:do_somethingResponse" />
-      <xs:element name="return_invalid_data" type="tns:return_invalid_data" />
-      <xs:element name="return_invalid_dataResponse" type="tns:return_invalid_dataResponse" />
-      <xs:element name="complex_return" type="tns:complex_return" />
-      <xs:element name="RoleEnumArray" type="tns:RoleEnumArray" />
-      <xs:element name="complex_returnResponse" type="tns:complex_returnResponse" />
-      <xs:element name="InHeader" type="tns:InHeader" />
-      <xs:element name="OutHeader" type="tns:OutHeader" />
-      <xs:element name="send_out_header" type="tns:send_out_header" />
-      <xs:element name="send_out_headerResponse" type="tns:send_out_headerResponse" />
-      <xs:element name="echo_in_header" type="tns:echo_in_header" />
-      <xs:element name="echo_in_headerResponse" type="tns:echo_in_headerResponse" />
-      <xs:element name="InTraceHeader" type="tns:InTraceHeader" />
-      <xs:element name="OutTraceHeader" type="tns:OutTraceHeader" />
-      <xs:element name="echo_in_complex_header" type="tns:echo_in_complex_header" />
-      <xs:element name="echo_in_complex_headerResponse" type="tns:echo_in_complex_headerResponse" />
       <xs:element name="send_out_complex_header" type="tns:send_out_complex_header" />
       <xs:element name="send_out_complex_headerResponse" type="tns:send_out_complex_headerResponse" />
-      <xs:element name="python_exception" type="tns:python_exception" />
-      <xs:element name="python_exceptionResponse" type="tns:python_exceptionResponse" />
+      <xs:element name="send_out_header" type="tns:send_out_header" />
+      <xs:element name="send_out_headerResponse" type="tns:send_out_headerResponse" />
       <xs:element name="soap_exception" type="tns:soap_exception" />
       <xs:element name="soap_exceptionResponse" type="tns:soap_exceptionResponse" />
+      <xs:element name="stringArray" type="tns:stringArray" />
+      <xs:element name="test_empty" type="tns:test_empty" />
+      <xs:element name="test_emptyResponse" type="tns:test_emptyResponse" />
       <xs:simpleType name="DaysOfWeekEnum">
         <xs:restriction base="xs:string">
           <xs:enumeration value="Monday" />
@@ -186,34 +186,84 @@
           <xs:enumeration value="MEMBER" />
         </xs:restriction>
       </xs:simpleType>
-      <xs:complexType name="echo_integer">
+      <xs:complexType name="InHeader">
         <xs:sequence>
           <xs:element minOccurs="0" name="i" nillable="true" type="xs:integer" />
+          <xs:element minOccurs="0" name="s" nillable="true" type="xs:string" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="echo_integerResponse">
+      <xs:complexType name="InTraceHeader">
         <xs:sequence>
-          <xs:element minOccurs="0" name="echo_integerResult" nillable="true" type="xs:integer" />
+          <xs:element minOccurs="0" name="callDate" nillable="true" type="xs:dateTime" />
+          <xs:element minOccurs="0" name="client" nillable="true" type="xs:string" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="echo_enum">
+      <xs:complexType name="OutHeader">
         <xs:sequence>
-          <xs:element minOccurs="0" name="day" nillable="true" type="tns:DaysOfWeekEnum" />
+          <xs:element minOccurs="0" name="f" nillable="true" type="xs:float" />
+          <xs:element minOccurs="0" name="dt" nillable="true" type="xs:dateTime" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="echo_enumResponse">
+      <xs:complexType name="OutTraceHeader">
         <xs:sequence>
-          <xs:element minOccurs="0" name="echo_enumResult" nillable="true" type="tns:DaysOfWeekEnum" />
+          <xs:element minOccurs="0" name="receiptDate" nillable="true" type="xs:dateTime" />
+          <xs:element minOccurs="0" name="returnDate" nillable="true" type="xs:dateTime" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="echo_double">
+      <xs:complexType name="RoleEnumArray">
         <xs:sequence>
-          <xs:element minOccurs="0" name="f" nillable="true" type="xs:double" />
+          <xs:element maxOccurs="unbounded" minOccurs="0" name="RoleEnum" nillable="true" type="tns:RoleEnum" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="echo_doubleResponse">
+      <xs:complexType name="base64BinaryArray">
         <xs:sequence>
-          <xs:element minOccurs="0" name="echo_doubleResult" nillable="true" type="xs:double" />
+          <xs:element maxOccurs="unbounded" minOccurs="0" name="base64Binary" nillable="true" type="xs:base64Binary" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="booleanArray">
+        <xs:sequence>
+          <xs:element maxOccurs="unbounded" minOccurs="0" name="boolean" nillable="true" type="xs:boolean" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="booleanArrayArray">
+        <xs:sequence>
+          <xs:element maxOccurs="unbounded" minOccurs="0" name="booleanArray" nillable="true" type="tns:booleanArray" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="complex_return">
+        <xs:sequence />
+      </xs:complexType>
+      <xs:complexType name="complex_returnResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="resultCode" nillable="true" type="xs:integer" />
+          <xs:element minOccurs="0" name="resultDescription" nillable="true" type="xs:string" />
+          <xs:element minOccurs="0" name="transactionId" nillable="true" type="xs:integer" />
+          <xs:element minOccurs="0" name="roles" nillable="true" type="tns:RoleEnumArray" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="custom_messages">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="s" nillable="true" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="dateTimeArray">
+        <xs:sequence>
+          <xs:element maxOccurs="unbounded" minOccurs="0" name="dateTime" nillable="true" type="xs:dateTime" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="do_something_else">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="s" nillable="true" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="do_something_elseResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="do_something_elseResult" nillable="true" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="doubleArray">
+        <xs:sequence>
+          <xs:element maxOccurs="unbounded" minOccurs="0" name="double" nillable="true" type="xs:double" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_any">
@@ -226,36 +276,6 @@
           <xs:element minOccurs="0" name="echo_anyResult" nillable="true" type="xs:anyType" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="echo_float">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="f" nillable="true" type="xs:float" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_floatResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_floatResult" nillable="true" type="xs:float" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_boolean">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="b" nillable="true" type="xs:boolean" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_booleanResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_booleanResult" nillable="true" type="xs:boolean" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_datetime">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="dt" nillable="true" type="xs:dateTime" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_datetimeResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_datetimeResult" nillable="true" type="xs:dateTime" />
-        </xs:sequence>
-      </xs:complexType>
       <xs:complexType name="echo_any_as_dict">
         <xs:sequence>
           <xs:element minOccurs="0" name="xml_as_dict" nillable="true" type="xs:anyType" />
@@ -266,154 +286,14 @@
           <xs:element minOccurs="0" name="echo_any_as_dictResult" nillable="true" type="xs:anyType" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="echo_string">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="s" nillable="true" type="xs:string" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_stringResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_stringResult" nillable="true" type="xs:string" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="dateTimeArray">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="dateTime" nillable="true" type="xs:dateTime" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_date_time_array">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="dta" nillable="true" type="tns:dateTimeArray" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_date_time_arrayResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_date_time_arrayResult" nillable="true" type="tns:dateTimeArray" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_simple_boolean_array">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="ba" nillable="true" type="xs:boolean" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_simple_boolean_arrayResponse">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="echo_simple_boolean_arrayResult" nillable="true" type="xs:boolean" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="doubleArray">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="double" nillable="true" type="xs:double" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_double_array">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="da" nillable="true" type="tns:doubleArray" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_double_arrayResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_double_arrayResult" nillable="true" type="tns:doubleArray" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="stringArray">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="string" nillable="true" type="xs:string" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_string_array">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="sa" nillable="true" type="tns:stringArray" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_string_arrayResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_string_arrayResult" nillable="true" type="tns:stringArray" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="booleanArray">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="boolean" nillable="true" type="xs:boolean" />
-        </xs:sequence>
-      </xs:complexType>
       <xs:complexType name="echo_array_in_array">
         <xs:sequence>
           <xs:element minOccurs="0" name="baa" nillable="true" type="tns:booleanArray" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="booleanArrayArray">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="booleanArray" nillable="true" type="tns:booleanArray" />
-        </xs:sequence>
-      </xs:complexType>
       <xs:complexType name="echo_array_in_arrayResponse">
         <xs:sequence>
           <xs:element minOccurs="0" name="echo_array_in_arrayResult" nillable="true" type="tns:booleanArrayArray" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="floatArray">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="float" nillable="true" type="xs:float" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_float_array">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="fa" nillable="true" type="tns:floatArray" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_float_arrayResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_float_arrayResult" nillable="true" type="tns:floatArray" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="integerArray">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="integer" nillable="true" type="xs:integer" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_integer_array">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="ia" nillable="true" type="tns:integerArray" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_integer_arrayResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_integer_arrayResult" nillable="true" type="tns:integerArray" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_boolean_array">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="ba" nillable="true" type="tns:booleanArray" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_boolean_arrayResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_boolean_arrayResult" nillable="true" type="tns:booleanArray" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="base64BinaryArray">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="base64Binary" nillable="true" type="xs:base64Binary" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_attachment_array">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="aa" nillable="true" type="tns:base64BinaryArray" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_attachment_arrayResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_attachment_arrayResult" nillable="true" type="tns:base64BinaryArray" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_extension_class">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="nc" nillable="true" type="s0:ExtensionClass" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_extension_classResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_extension_classResult" nillable="true" type="s0:ExtensionClass" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_attachment">
@@ -426,6 +306,163 @@
           <xs:element minOccurs="0" name="echo_attachmentResult" nillable="true" type="xs:base64Binary" />
         </xs:sequence>
       </xs:complexType>
+      <xs:complexType name="echo_attachment_array">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="aa" nillable="true" type="tns:base64BinaryArray" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_attachment_arrayResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="echo_attachment_arrayResult" nillable="true" type="tns:base64BinaryArray" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_boolean">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="b" nillable="true" type="xs:boolean" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_booleanResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="echo_booleanResult" nillable="true" type="xs:boolean" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_boolean_array">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="ba" nillable="true" type="tns:booleanArray" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_boolean_arrayResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="echo_boolean_arrayResult" nillable="true" type="tns:booleanArray" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_date_time_array">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="dta" nillable="true" type="tns:dateTimeArray" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_date_time_arrayResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="echo_date_time_arrayResult" nillable="true" type="tns:dateTimeArray" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_datetime">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="dt" nillable="true" type="xs:dateTime" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_datetimeResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="echo_datetimeResult" nillable="true" type="xs:dateTime" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_double">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="f" nillable="true" type="xs:double" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_doubleResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="echo_doubleResult" nillable="true" type="xs:double" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_double_array">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="da" nillable="true" type="tns:doubleArray" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_double_arrayResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="echo_double_arrayResult" nillable="true" type="tns:doubleArray" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_enum">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="day" nillable="true" type="tns:DaysOfWeekEnum" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_enumResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="echo_enumResult" nillable="true" type="tns:DaysOfWeekEnum" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_extension_class">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="nc" nillable="true" type="s0:ExtensionClass" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_extension_classResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="echo_extension_classResult" nillable="true" type="s0:ExtensionClass" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_float">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="f" nillable="true" type="xs:float" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_floatResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="echo_floatResult" nillable="true" type="xs:float" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_float_array">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="fa" nillable="true" type="tns:floatArray" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_float_arrayResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="echo_float_arrayResult" nillable="true" type="tns:floatArray" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_in_complex_header">
+        <xs:sequence />
+      </xs:complexType>
+      <xs:complexType name="echo_in_complex_headerResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="echo_in_complex_headerResult0" nillable="true" type="tns:InHeader" />
+          <xs:element minOccurs="0" name="echo_in_complex_headerResult1" nillable="true" type="tns:InTraceHeader" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_in_header">
+        <xs:sequence />
+      </xs:complexType>
+      <xs:complexType name="echo_in_headerResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="echo_in_headerResult" nillable="true" type="tns:InHeader" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_integer">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="i" nillable="true" type="xs:integer" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_integerResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="echo_integerResult" nillable="true" type="xs:integer" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_integer_array">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="ia" nillable="true" type="tns:integerArray" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_integer_arrayResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="echo_integer_arrayResult" nillable="true" type="tns:integerArray" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_nested_class">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="nc" nillable="true" type="s1:NestedClass" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_nested_classResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="echo_nested_classResult" nillable="true" type="s1:NestedClass" />
+        </xs:sequence>
+      </xs:complexType>
       <xs:complexType name="echo_nested_class_array">
         <xs:sequence>
           <xs:element minOccurs="0" name="nca" nillable="true" type="s1:NestedClassArray" />
@@ -434,6 +471,16 @@
       <xs:complexType name="echo_nested_class_arrayResponse">
         <xs:sequence>
           <xs:element minOccurs="0" name="echo_nested_class_arrayResult" nillable="true" type="s1:NestedClassArray" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_simple_boolean_array">
+        <xs:sequence>
+          <xs:element maxOccurs="unbounded" minOccurs="0" name="ba" nillable="true" type="xs:boolean" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_simple_boolean_arrayResponse">
+        <xs:sequence>
+          <xs:element maxOccurs="unbounded" minOccurs="0" name="echo_simple_boolean_arrayResult" nillable="true" type="xs:boolean" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_simple_class">
@@ -456,22 +503,47 @@
           <xs:element minOccurs="0" name="echo_simple_class_arrayResult" nillable="true" type="s2:SimpleClassArray" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="echo_nested_class">
+      <xs:complexType name="echo_string">
         <xs:sequence>
-          <xs:element minOccurs="0" name="nc" nillable="true" type="s1:NestedClass" />
+          <xs:element minOccurs="0" name="s" nillable="true" type="xs:string" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="echo_nested_classResponse">
+      <xs:complexType name="echo_stringResponse">
         <xs:sequence>
-          <xs:element minOccurs="0" name="echo_nested_classResult" nillable="true" type="s1:NestedClass" />
+          <xs:element minOccurs="0" name="echo_stringResult" nillable="true" type="xs:string" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="return_binary_data">
+      <xs:complexType name="echo_string_array">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="sa" nillable="true" type="tns:stringArray" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_string_arrayResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="echo_string_arrayResult" nillable="true" type="tns:stringArray" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="floatArray">
+        <xs:sequence>
+          <xs:element maxOccurs="unbounded" minOccurs="0" name="float" nillable="true" type="xs:float" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="getCustomMessagesMsgOut">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="CustomMessages" nillable="true" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="huge_number">
         <xs:sequence />
       </xs:complexType>
-      <xs:complexType name="return_binary_dataResponse">
+      <xs:complexType name="huge_numberResponse">
         <xs:sequence>
-          <xs:element minOccurs="0" name="return_binary_dataResult" nillable="true" type="xs:base64Binary" />
+          <xs:element minOccurs="0" name="huge_numberResult" nillable="true" type="xs:integer" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="integerArray">
+        <xs:sequence>
+          <xs:element maxOccurs="unbounded" minOccurs="0" name="integer" nillable="true" type="xs:integer" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="long_string">
@@ -482,6 +554,16 @@
           <xs:element minOccurs="0" name="long_stringResult" nillable="true" type="xs:string" />
         </xs:sequence>
       </xs:complexType>
+      <xs:complexType name="multi_param">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="s" nillable="true" type="xs:string" />
+          <xs:element minOccurs="0" name="i" nillable="true" type="xs:integer" />
+          <xs:element minOccurs="0" name="dt" nillable="true" type="xs:dateTime" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="multi_paramResponse">
+        <xs:sequence />
+      </xs:complexType>
       <xs:complexType name="non_nillable">
         <xs:sequence>
           <xs:element minOccurs="0" name="n" nillable="true" type="s3:NonNillableClass" />
@@ -490,6 +572,28 @@
       <xs:complexType name="non_nillableResponse">
         <xs:sequence>
           <xs:element minOccurs="0" name="non_nillableResult" nillable="true" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="python_exception">
+        <xs:sequence />
+      </xs:complexType>
+      <xs:complexType name="python_exceptionResponse">
+        <xs:sequence />
+      </xs:complexType>
+      <xs:complexType name="return_binary_data">
+        <xs:sequence />
+      </xs:complexType>
+      <xs:complexType name="return_binary_dataResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="return_binary_dataResult" nillable="true" type="xs:base64Binary" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="return_invalid_data">
+        <xs:sequence />
+      </xs:complexType>
+      <xs:complexType name="return_invalid_dataResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="return_invalid_dataResult" nillable="true" type="xs:integer" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="return_only">
@@ -510,84 +614,13 @@
           <xs:element minOccurs="0" name="return_other_class_arrayResult" nillable="true" type="s2:OtherClassArray" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="multi_param">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="s" nillable="true" type="xs:string" />
-          <xs:element minOccurs="0" name="i" nillable="true" type="xs:integer" />
-          <xs:element minOccurs="0" name="dt" nillable="true" type="xs:dateTime" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="multi_paramResponse">
+      <xs:complexType name="send_out_complex_header">
         <xs:sequence />
       </xs:complexType>
-      <xs:complexType name="huge_number">
-        <xs:sequence />
-      </xs:complexType>
-      <xs:complexType name="huge_numberResponse">
+      <xs:complexType name="send_out_complex_headerResponse">
         <xs:sequence>
-          <xs:element minOccurs="0" name="huge_numberResult" nillable="true" type="xs:integer" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="test_empty">
-        <xs:sequence />
-      </xs:complexType>
-      <xs:complexType name="test_emptyResponse">
-        <xs:sequence />
-      </xs:complexType>
-      <xs:complexType name="getCustomMessagesMsgIn">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="s" nillable="true" type="xs:string" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="getCustomMessagesMsgOut">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="CustomMessages" nillable="true" type="xs:string" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="do_something">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="s" nillable="true" type="xs:string" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="do_somethingResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="do_somethingResult" nillable="true" type="xs:string" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="return_invalid_data">
-        <xs:sequence />
-      </xs:complexType>
-      <xs:complexType name="return_invalid_dataResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="return_invalid_dataResult" nillable="true" type="xs:integer" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="complex_return">
-        <xs:sequence />
-      </xs:complexType>
-      <xs:complexType name="RoleEnumArray">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="RoleEnum" nillable="true" type="tns:RoleEnum" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="complex_returnResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="resultCode" nillable="true" type="xs:integer" />
-          <xs:element minOccurs="0" name="resultDescription" nillable="true" type="xs:string" />
-          <xs:element minOccurs="0" name="transactionId" nillable="true" type="xs:integer" />
-          <xs:element minOccurs="0" name="roles" nillable="true" type="tns:RoleEnumArray" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="InHeader">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="i" nillable="true" type="xs:integer" />
-          <xs:element minOccurs="0" name="s" nillable="true" type="xs:string" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="OutHeader">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="f" nillable="true" type="xs:float" />
-          <xs:element minOccurs="0" name="dt" nillable="true" type="xs:dateTime" />
+          <xs:element minOccurs="0" name="send_out_complex_headerResult0" nillable="true" type="tns:OutHeader" />
+          <xs:element minOccurs="0" name="send_out_complex_headerResult1" nillable="true" type="tns:OutTraceHeader" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="send_out_header">
@@ -598,73 +631,29 @@
           <xs:element minOccurs="0" name="send_out_headerResult" nillable="true" type="tns:OutHeader" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="echo_in_header">
-        <xs:sequence />
-      </xs:complexType>
-      <xs:complexType name="echo_in_headerResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_in_headerResult" nillable="true" type="tns:InHeader" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="InTraceHeader">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="callDate" nillable="true" type="xs:dateTime" />
-          <xs:element minOccurs="0" name="client" nillable="true" type="xs:string" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="OutTraceHeader">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="receiptDate" nillable="true" type="xs:dateTime" />
-          <xs:element minOccurs="0" name="returnDate" nillable="true" type="xs:dateTime" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="echo_in_complex_header">
-        <xs:sequence />
-      </xs:complexType>
-      <xs:complexType name="echo_in_complex_headerResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="echo_in_complex_headerResult0" nillable="true" type="tns:InHeader" />
-          <xs:element minOccurs="0" name="echo_in_complex_headerResult1" nillable="true" type="tns:InTraceHeader" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="send_out_complex_header">
-        <xs:sequence />
-      </xs:complexType>
-      <xs:complexType name="send_out_complex_headerResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="send_out_complex_headerResult0" nillable="true" type="tns:OutHeader" />
-          <xs:element minOccurs="0" name="send_out_complex_headerResult1" nillable="true" type="tns:OutTraceHeader" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="python_exception">
-        <xs:sequence />
-      </xs:complexType>
-      <xs:complexType name="python_exceptionResponse">
-        <xs:sequence />
-      </xs:complexType>
       <xs:complexType name="soap_exception">
         <xs:sequence />
       </xs:complexType>
       <xs:complexType name="soap_exceptionResponse">
         <xs:sequence />
       </xs:complexType>
+      <xs:complexType name="stringArray">
+        <xs:sequence>
+          <xs:element maxOccurs="unbounded" minOccurs="0" name="string" nillable="true" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="test_empty">
+        <xs:sequence />
+      </xs:complexType>
+      <xs:complexType name="test_emptyResponse">
+        <xs:sequence />
+      </xs:complexType>
     </xs:schema>
     <xs:schema elementFormDefault="qualified" targetNamespace="rpclib.test.interop.server._service">
-      <xs:element name="SimpleClass" type="s2:SimpleClass" />
-      <xs:element name="SimpleClassArray" type="s2:SimpleClassArray" />
       <xs:element name="OtherClass" type="s2:OtherClass" />
       <xs:element name="OtherClassArray" type="s2:OtherClassArray" />
-      <xs:complexType name="SimpleClass">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="i" nillable="true" type="xs:integer" />
-          <xs:element minOccurs="0" name="s" nillable="true" type="xs:string" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="SimpleClassArray">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="SimpleClass" nillable="true" type="s2:SimpleClass" />
-        </xs:sequence>
-      </xs:complexType>
+      <xs:element name="SimpleClass" type="s2:SimpleClass" />
+      <xs:element name="SimpleClassArray" type="s2:SimpleClassArray" />
       <xs:complexType name="OtherClass">
         <xs:sequence>
           <xs:element minOccurs="0" name="b" nillable="true" type="xs:boolean" />
@@ -675,6 +664,17 @@
       <xs:complexType name="OtherClassArray">
         <xs:sequence>
           <xs:element maxOccurs="unbounded" minOccurs="0" name="OtherClass" nillable="true" type="s2:OtherClass" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="SimpleClass">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="i" nillable="true" type="xs:integer" />
+          <xs:element minOccurs="0" name="s" nillable="true" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="SimpleClassArray">
+        <xs:sequence>
+          <xs:element maxOccurs="unbounded" minOccurs="0" name="SimpleClass" nillable="true" type="s2:SimpleClass" />
         </xs:sequence>
       </xs:complexType>
     </xs:schema>
@@ -691,11 +691,14 @@
   <wsdl:message name="complex_returnResponse">
     <wsdl:part element="tns:complex_returnResponse" name="complex_returnResponse" />
   </wsdl:message>
-  <wsdl:message name="do_something">
-    <wsdl:part element="tns:do_something" name="do_something" />
+  <wsdl:message name="custom_messages">
+    <wsdl:part element="tns:custom_messages" name="custom_messages" />
   </wsdl:message>
-  <wsdl:message name="do_somethingResponse">
-    <wsdl:part element="tns:do_somethingResponse" name="do_somethingResponse" />
+  <wsdl:message name="do_something_else">
+    <wsdl:part element="tns:do_something_else" name="do_something_else" />
+  </wsdl:message>
+  <wsdl:message name="do_something_elseResponse">
+    <wsdl:part element="tns:do_something_elseResponse" name="do_something_elseResponse" />
   </wsdl:message>
   <wsdl:message name="echo_any">
     <wsdl:part element="tns:echo_any" name="echo_any" />
@@ -861,9 +864,6 @@
   <wsdl:message name="echo_string_arrayResponse">
     <wsdl:part element="tns:echo_string_arrayResponse" name="echo_string_arrayResponse" />
   </wsdl:message>
-  <wsdl:message name="getCustomMessagesMsgIn">
-    <wsdl:part element="tns:getCustomMessagesMsgIn" name="getCustomMessagesMsgIn" />
-  </wsdl:message>
   <wsdl:message name="getCustomMessagesMsgOut">
     <wsdl:part element="tns:getCustomMessagesMsgOut" name="getCustomMessagesMsgOut" />
   </wsdl:message>
@@ -965,8 +965,8 @@
       </wsdl:output>
     </wsdl:operation>
     <wsdl:operation name="custom_messages">
-      <soap:operation soapAction="urn:#getCustomMessages" style="document" />
-      <wsdl:input name="getCustomMessagesMsgIn">
+      <soap:operation soapAction="custom_messages" style="document" />
+      <wsdl:input name="custom_messages">
         <soap:body use="literal" />
       </wsdl:input>
       <wsdl:output name="getCustomMessagesMsgOut">
@@ -974,11 +974,11 @@
       </wsdl:output>
     </wsdl:operation>
     <wsdl:operation name="do_something_else">
-      <soap:operation soapAction="do_something" style="document" />
-      <wsdl:input name="do_something">
+      <soap:operation soapAction="do_something_else" style="document" />
+      <wsdl:input name="do_something_else">
         <soap:body use="literal" />
       </wsdl:input>
-      <wsdl:output name="do_somethingResponse">
+      <wsdl:output name="do_something_elseResponse">
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
@@ -1351,13 +1351,13 @@
       <wsdl:input message="tns:complex_return" name="complex_return" />
       <wsdl:output message="tns:complex_returnResponse" name="complex_returnResponse" />
     </wsdl:operation>
-    <wsdl:operation name="custom_messages" parameterOrder="getCustomMessagesMsgIn">
-      <wsdl:input message="tns:getCustomMessagesMsgIn" name="getCustomMessagesMsgIn" />
+    <wsdl:operation name="custom_messages" parameterOrder="custom_messages">
+      <wsdl:input message="tns:custom_messages" name="custom_messages" />
       <wsdl:output message="tns:getCustomMessagesMsgOut" name="getCustomMessagesMsgOut" />
     </wsdl:operation>
-    <wsdl:operation name="do_something_else" parameterOrder="do_something">
-      <wsdl:input message="tns:do_something" name="do_something" />
-      <wsdl:output message="tns:do_somethingResponse" name="do_somethingResponse" />
+    <wsdl:operation name="do_something_else" parameterOrder="do_something_else">
+      <wsdl:input message="tns:do_something_else" name="do_something_else" />
+      <wsdl:output message="tns:do_something_elseResponse" name="do_something_elseResponse" />
     </wsdl:operation>
     <wsdl:operation name="echo_any" parameterOrder="echo_any">
       <wsdl:input message="tns:echo_any" name="echo_any" />
