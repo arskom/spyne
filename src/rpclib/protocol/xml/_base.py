@@ -109,11 +109,13 @@ _deserialization_handlers = cdict({
 class XmlObject(ProtocolBase):
     def create_in_document(self, ctx, in_string_encoding=None):
         """Uses ctx.in_string to set ctx.in_document"""
+        raise NotImplementedError()
 
     def decompose_incoming_envelope(self, ctx):
         """Sets the ctx.in_body_doc, ctx.in_header_doc and ctx.service
         properties of the ctx object, if applicable.
         """
+        raise NotImplementedError()
 
     def from_element(self, cls, element):
         handler = _deserialization_handlers[cls]
@@ -132,6 +134,7 @@ class XmlObject(ProtocolBase):
         Returns the corresponding native python object in the ctx.in_object
         attribute.
         """
+        raise NotImplementedError()
 
     def serialize(self, ctx):
         """Takes a MethodContext instance and the object to be serialied in the
@@ -140,9 +143,11 @@ class XmlObject(ProtocolBase):
         Returns the corresponding document structure in the ctx.out_document
         attribute.
         """
+        raise NotImplementedError()
 
     def create_out_string(self, ctx, out_string_encoding=None):
         """Uses ctx.out_string to set ctx.out_document"""
+        raise NotImplementedError()
 
     def validate(self, payload):
         """Method to be overriden to perform any sort of custom input
