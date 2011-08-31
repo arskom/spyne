@@ -199,6 +199,20 @@ class TestSuds(unittest.TestCase):
         assert ret.i == val.i
         assert ret.s == val.s
 
+    def test_echo_class_with_self_reference(self):
+        val = self.client.factory.create("{rpclib.test.interop.server._service}ClassWithSelfReference")
+
+        val.i = 45
+        val.sr = self.client.factory.create("{rpclib.test.interop.server._service}ClassWithSelfReference")
+        val.sr.i = 50
+        val.sr.sr = None
+
+        ret = self.client.service.echo_class_with_self_reference(val)
+
+        assert ret.i == val.i
+        assert ret.sr.i == val.sr.i
+        assert ret.sr.sr == val.sr.sr
+
     def test_echo_nested_class(self):
         val = self.client.factory.create("{punk.tunk}NestedClass");
 

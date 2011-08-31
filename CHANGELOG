@@ -2,6 +2,11 @@ rpclib-2.2.0-alpha
  * The serialization / deserialization logic was redesigned. Now most of the
    serialization-related logic is under the responsibility of the ProtocolBase
    children.
+ * Interface and Protocol assignment of an rpclib application is now more
+   explicit. Both are also configurable during instantion. This doesn't mean
+   there's much to configure :)
+ * Numeric types now support range restrictions. e.g. Integer(ge=0) will only
+   accept positive integers.
  * Any -> AnyXml, AnyAsDict -> AnyDict. AnyAsDict is not the child of the AnyXml
    anymore.
  * rpclib.model.exception -> rpclib.model.fault.

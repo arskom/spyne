@@ -17,10 +17,24 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from _base import ModelBase
-from _base import Null
-from _base import SimpleModel
+from lxml import etree
 
-from _base import nillable_dict
-from _base import nillable_string
+import rpclib.const.xml_ns
+_ns_xsd = rpclib.const.xml_ns.xsd
 
+def enum_add_to_schema(interface, cls):
+    if not interface.has_class(cls):
+        simple_type = etree.Element('{%s}simpleType' % _ns_xsd)
+        simple_type.set('name', cls.get_type_name())
+
+        restriction = etree.SubElement(simple_type,
+                                            '{%s}restriction' % _ns_xsd)
+        restriction.set('base', '%s:string' %
+                                interface.get_namespace_prefix(_ns_xsd))
+
+        for v in cls.__values__:
+            enumeration = etree.SubElement(restriction,
+                                            '{%s}enumeration' % _ns_xsd)
+            enumeration.set('value', v)
+
+        interface.add_simple_type(cls, simple_type)

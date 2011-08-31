@@ -23,23 +23,53 @@ logger = logging.getLogger(__name__)
 import shutil
 import tempfile
 
+import rpclib.const.xml_ns
+
 from lxml import etree
 
-from rpclib.model.fault import Fault
-from rpclib.interface import InterfaceBase
+from rpclib.util.cdict import cdict
 
-import rpclib.const.xml_ns
+from rpclib.interface import InterfaceBase
+from rpclib.model import SimpleModel
+from rpclib.model.primitive import String
+from rpclib.model.primitive import Decimal
+from rpclib.model.complex import ComplexModelBase
+from rpclib.model.enum import EnumBase
+from rpclib.model.fault import Fault
+
+from rpclib.interface.wsdl.model import simple_add_to_schema
+from rpclib.interface.wsdl.model.complex import complex_add_to_schema
+from rpclib.interface.wsdl.model.fault import fault_add_to_schema
+from rpclib.interface.wsdl.model.enum import enum_add_to_schema
+
+from rpclib.interface.wsdl.model import simple_get_restriction_tag
+from rpclib.interface.wsdl.model.primitive import string_get_restriction_tag
+from rpclib.interface.wsdl.model.primitive import decimal_get_restriction_tag
 
 _ns_plink = rpclib.const.xml_ns.plink
 _ns_xsd = rpclib.const.xml_ns.xsd
 _ns_wsa = rpclib.const.xml_ns.wsa
-_pref_wsa = rpclib.const.xml_ns.const_prefmap[_ns_wsa]
-
 _ns_wsdl = rpclib.const.xml_ns.wsdl
 _ns_soap = rpclib.const.xml_ns.soap
+_pref_wsa = rpclib.const.xml_ns.const_prefmap[_ns_wsa]
 
 _in_header_msg_suffix = 'InHeaderMsg'
 _out_header_msg_suffix = 'OutHeaderMsg'
+
+_add_to_schema_handlers = cdict({
+    object: lambda self,cls: None,
+    SimpleModel: simple_add_to_schema,
+    ComplexModelBase: complex_add_to_schema,
+    Fault: fault_add_to_schema,
+    EnumBase: enum_add_to_schema,
+})
+
+_get_restriction_tag_handlers = cdict({
+    object: lambda self,cls: None,
+    SimpleModel: simple_get_restriction_tag,
+    String: string_get_restriction_tag,
+    Decimal: decimal_get_restriction_tag,
+})
 
 class ValidationError(Fault):
     pass
@@ -181,6 +211,16 @@ class Wsdl11(InterfaceBase):
             ser = self.service_elt_dict[service_name]
 
         return ser
+
+    def add_to_schema(self, cls):
+        handler = _add_to_schema_handlers[cls]
+        logger.debug("-"*20)
+        return handler(self, cls)
+
+    def get_restriction_tag(self, cls):
+        handler = _get_restriction_tag_handlers[cls]
+        logger.debug("-"*20)
+        return handler(self, cls)
 
     def build_schema_nodes(self, types=None):
         retval = {}

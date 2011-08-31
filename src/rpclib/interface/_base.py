@@ -231,28 +231,29 @@ class InterfaceBase(object):
                         in_headers = (method.in_header,)
                     for in_header in in_headers:
                         in_header.resolve_namespace(in_header, self.get_tns())
-                        in_header.add_to_schema(self)
+                        self.add_to_schema(in_header)
 
                 if not (method.out_header is None):
                     if isinstance(method.out_header, (list,tuple)):
                         out_headers = method.out_header
                     else:
                         out_headers = (method.out_header,)
+
                     for out_header in out_headers:
                         out_header.resolve_namespace(out_header, self.get_tns())
-                        out_header.add_to_schema(self)
+                        self.add_to_schema(out_header)
 
                 method.in_message.resolve_namespace(method.in_message,
                                                                  self.get_tns())
-                method.in_message.add_to_schema(self)
+                self.add_to_schema(method.in_message)
 
                 method.out_message.resolve_namespace(method.out_message,
                                                                  self.get_tns())
-                method.out_message.add_to_schema(self)
+                self.add_to_schema(method.out_message)
 
                 for fault in method.faults:
                     fault.resolve_namespace(fault, self.get_tns())
-                    fault.add_to_schema(self)
+                    self.add_to_schema(fault)
 
         # populate call routes
         for s in self.services:
@@ -304,3 +305,6 @@ class InterfaceBase(object):
             pref = self.prefmap[ns]
 
         return pref
+
+    def add_to_schema(self, cls):
+        raise NotImplementedError('Extend and override.')

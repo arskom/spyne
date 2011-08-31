@@ -22,6 +22,7 @@ from lxml import etree
 from rpclib.model.binary import Attachment
 from rpclib.model.complex import Array
 from rpclib.model.complex import ComplexModel
+from rpclib.model.complex import SelfReference
 from rpclib.model.enum import Enum
 from rpclib.model.fault import Fault
 
@@ -52,6 +53,10 @@ class OtherClass(ComplexModel):
     dt = DateTime
     d = Double
     b = Boolean
+
+class ClassWithSelfReference(ComplexModel):
+    i = Integer
+    sr = SelfReference
 
 class NestedClass(ComplexModel):
     __namespace__ = "punk.tunk"
@@ -246,6 +251,10 @@ class InteropClass(ServiceBase):
     @srpc(ExtensionClass, _returns=ExtensionClass)
     def echo_extension_class(nc):
         return nc
+
+    @srpc(ClassWithSelfReference, _returns=ClassWithSelfReference)
+    def echo_class_with_self_reference(sr):
+        return sr
 
     @srpc(Attachment, _returns=Attachment)
     def echo_attachment(a):
