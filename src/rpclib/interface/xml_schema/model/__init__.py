@@ -18,4 +18,4 @@
 #
 
 from _base import simple_get_restriction_tag
-from _base import simple_add_to_schema
+from _base import simple_add
