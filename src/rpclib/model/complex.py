@@ -57,7 +57,7 @@ class XMLAttributeRef(XMLAttribute):
         if self._use:
             element.set('use', self._use)
 
-class SelfReference(ModelBase):
+class SelfReference(object):
     pass
 
 class ComplexModelMeta(type(ModelBase)):
