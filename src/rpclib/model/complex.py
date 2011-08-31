@@ -268,72 +268,6 @@ class ComplexModelBase(ModelBase):
             if v != cls:
                 v.resolve_namespace(v, default_ns)
 
-    @classmethod
-    def add_to_schema(cls, interface):
-        if cls.get_type_name() is ModelBase.Empty:
-            (child, ) = cls._type_info.values()
-            cls.__type_name__ = '%sArray' % child.get_type_name()
-
-        if not interface.has_class(cls):
-            extends = getattr(cls, '__extends__', None)
-            if not (extends is None):
-                extends.add_to_schema(interface)
-
-            complex_type = etree.Element("{%s}complexType" % namespace.xsd)
-            complex_type.set('name', cls.get_type_name())
-
-            sequence_parent = complex_type
-            if not (extends is None):
-                complex_content = etree.SubElement(complex_type,
-                                           "{%s}complexContent" % namespace.xsd)
-                extension = etree.SubElement(complex_content,
-                                           "{%s}extension" % namespace.xsd)
-                extension.set('base', extends.get_type_name_ns(interface))
-                sequence_parent = extension
-
-            sequence = etree.SubElement(sequence_parent, '{%s}sequence' %
-                                                                namespace.xsd)
-
-            for k, v in cls._type_info.items():
-                if isinstance(v, XMLAttribute):
-                    attribute = etree.SubElement(complex_type,
-                                                '{%s}attribute' % namespace.xsd)
-                    v.describe(k, attribute)
-                    continue
-
-                if v != cls:
-                    v.add_to_schema(interface)
-
-                member = etree.SubElement(sequence, '{%s}element' % namespace.xsd)
-                member.set('name', k)
-                member.set('type', v.get_type_name_ns(interface))
-
-                if v.Attributes.min_occurs != 1: # 1 is the xml schema default
-                    member.set('minOccurs', str(v.Attributes.min_occurs))
-                if v.Attributes.max_occurs != 1: # 1 is the xml schema default
-                    member.set('maxOccurs', str(v.Attributes.max_occurs))
-
-                if bool(v.Attributes.nillable) == True:
-                    member.set('nillable', 'true')
-                #else:
-                #    member.set('nillable', 'false')
-
-                if v.Annotations.doc != '':
-                    annotation = etree.SubElement(member, "{%s}annotation",
-                                                                  namespace.xsd)
-                    doc = etree.SubElement(annotation, "{%s}documentation",
-                                                                  namespace.xsd)
-                    doc.text = v.Annotations.doc
-
-            interface.add_complex_type(cls, complex_type)
-
-            # simple node
-            element = etree.Element('{%s}element' % namespace.xsd)
-            element.set('name', cls.get_type_name())
-            element.set('type', cls.get_type_name_ns(interface))
-
-            interface.add_element(cls, element)
-
     @staticmethod
     def produce(namespace, type_name, members):
         """Lets you create a class programmatically."""
@@ -426,15 +360,5 @@ class Array(ComplexModel):
 class Iterable(Array):
     pass
 
-class ClassAlias(ComplexModel):
+class Alias(ComplexModel):
     """New type_name, same _type_info."""
-
-    @classmethod
-    def add_to_schema(cls, schema_dict):
-        if not schema_dict.has_class(cls._target):
-            cls._target.add_to_schema(schema_dict)
-        element = etree.Element('{%s}element' % namespace.xsd)
-        element.set('name', cls.get_type_name())
-        element.set('type', cls._target.get_type_name_ns(schema_dict.app))
-
-        schema_dict.add_element(cls, element)

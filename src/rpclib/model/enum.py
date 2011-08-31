@@ -17,12 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from lxml import etree
-
 from rpclib.model import SimpleModel
-
-import rpclib.const.xml_ns
-_ns_xsd = rpclib.const.xml_ns.xsd
 
 # adapted from: http://code.activestate.com/recipes/413486/
 
@@ -71,6 +66,7 @@ def Enum(*values, **kwargs):
     class EnumType(EnumBase):
         __doc__ = docstr
         __type_name__ = type_name
+        __values__ = values
 
         def __iter__(self):
             return iter(values)
@@ -86,24 +82,6 @@ def Enum(*values, **kwargs):
 
         def __str__(self):
             return 'enum ' + str(values)
-
-        @classmethod
-        def add_to_schema(cls, interface):
-            if not interface.has_class(cls):
-                simple_type = etree.Element('{%s}simpleType' % _ns_xsd)
-                simple_type.set('name', cls.get_type_name())
-
-                restriction = etree.SubElement(simple_type,
-                                                    '{%s}restriction' % _ns_xsd)
-                restriction.set('base', '%s:string' %
-                                        interface.get_namespace_prefix(_ns_xsd))
-
-                for v in values:
-                    enumeration = etree.SubElement(restriction,
-                                                    '{%s}enumeration' % _ns_xsd)
-                    enumeration.set('value', v)
-
-                interface.add_simple_type(cls, simple_type)
 
     for i,v in enumerate(values):
         setattr(EnumType, v, EnumValue(i))
