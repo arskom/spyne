@@ -22,7 +22,7 @@ from lxml import etree
 import rpclib.const.xml_ns
 _ns_xsd = rpclib.const.xml_ns.xsd
 
-def enum_add_to_schema(interface, cls):
+def enum_add(interface, cls):
     if not interface.has_class(cls):
         simple_type = etree.Element('{%s}simpleType' % _ns_xsd)
         simple_type.set('name', cls.get_type_name())

@@ -32,11 +32,8 @@ class SchemaInfo(object):
         self.types = odict()
 
 class InterfaceBase(object):
-    def __init__(self, app=None, import_base_namespaces=False):
+    def __init__(self, app=None):
         self.__ns_counter = 0
-
-        # FIXME: this belongs in the wsdl class
-        self.import_base_namespaces = import_base_namespaces
 
         self.service_mapping = {}
         self.method_mapping = {}
@@ -68,27 +65,12 @@ class InterfaceBase(object):
         self.classes = {}
         self.imports = {}
 
-        self.nsmap = dict(rpclib.const.xml_ns.const_nsmap)
-        self.prefmap = dict(rpclib.const.xml_ns.const_prefmap)
-
-        self.nsmap['tns'] = self.get_tns()
-        self.prefmap[self.get_tns()] = 'tns'
-
     def has_class(self, cls):
-        retval = False
         ns_prefix = cls.get_namespace_prefix(self)
+        type_name = cls.get_type_name()
 
-        if ns_prefix in rpclib.const.xml_ns.const_nsmap:
-            retval = True
-
-        else:
-            type_name = cls.get_type_name()
-
-            if ((ns_prefix in self.namespaces) and
-                               (type_name in self.namespaces[ns_prefix].types)):
-                retval = True
-
-        return retval
+        return ((ns_prefix in self.namespaces) and
+                           (type_name in self.namespaces[ns_prefix].types))
 
     def get_schema_info(self, prefix):
         if prefix in self.namespaces:
@@ -97,94 +79,6 @@ class InterfaceBase(object):
             schema = self.namespaces[prefix] = SchemaInfo()
 
         return schema
-
-    # FIXME: this is an ugly hack. we need proper dependency management
-    def __check_imports(self, cls, node):
-        pref_tns = cls.get_namespace_prefix(self)
-
-        def is_valid_import(pref):
-            return pref != pref_tns and (
-                    self.import_base_namespaces or
-                    (not (pref in rpclib.const.xml_ns.const_nsmap))
-                )
-
-        if not (pref_tns in self.imports):
-            self.imports[pref_tns] = set()
-
-        for c in node:
-            if c.tag == "{%s}complexContent" % _ns_xsd:
-                extension = c.getchildren()[0]
-
-                if extension.tag == '{%s}extension' % _ns_xsd:
-                    pref = extension.attrib['base'].split(':')[0]
-                    if is_valid_import(pref):
-                        self.imports[pref_tns].add(self.nsmap[pref])
-                    seq = extension.getchildren()[0]
-
-                else:
-                    seq = c.getchildren()[0]
-
-            else:
-                seq = c
-
-            if seq.tag == '{%s}sequence' % _ns_xsd:
-                for e in seq:
-                    pref = e.attrib['type'].split(':')[0]
-                    if is_valid_import(pref):
-                        self.imports[pref_tns].add(self.nsmap[pref])
-
-            elif seq.tag == '{%s}restriction' % _ns_xsd:
-                pref = seq.attrib['base'].split(':')[0]
-                if is_valid_import(pref):
-                    self.imports[pref_tns].add(self.nsmap[pref])
-
-            elif seq.tag == '{%s}attribute' % _ns_xsd:
-                typ = seq.get('type', '')
-                t_pref = typ.split(':')[0]
-
-                if t_pref and is_valid_import(t_pref):
-                    self.imports[pref_tns].add(self.nsmap[t_pref])
-
-                ref = seq.get('ref', '')
-                r_pref = ref.split(':')[0]
-
-                if r_pref and is_valid_import(r_pref):
-                    self.imports[pref_tns].add(self.nsmap[r_pref])
-
-            else:
-                raise Exception("i guess you need to hack some more")
-
-    def add_element(self, cls, node):
-        pref = cls.get_namespace_prefix(self)
-
-        schema_info = self.get_schema_info(pref)
-        schema_info.elements[cls.get_type_name()] = node
-
-    def add_simple_type(self, cls, node):
-        ns = cls.get_namespace()
-        tn = cls.get_type_name()
-        pref = cls.get_namespace_prefix(self)
-
-        self.__check_imports(cls, node)
-        schema_info = self.get_schema_info(pref)
-        schema_info.types[tn] = node
-
-        self.classes['{%s}%s' % (ns,tn)] = cls
-        if ns == self.get_tns():
-            self.classes[tn] = cls
-
-    def add_complex_type(self, cls, node):
-        ns = cls.get_namespace()
-        tn = cls.get_type_name()
-        pref = cls.get_namespace_prefix(self)
-
-        self.__check_imports(cls, node)
-        schema_info = self.get_schema_info(pref)
-        schema_info.types[tn] = node
-
-        self.classes['{%s}%s' % (ns,tn)] = cls
-        if ns == self.get_tns():
-            self.classes[tn] = cls
 
     def get_class(self, key):
         return self.classes[key]
@@ -231,7 +125,7 @@ class InterfaceBase(object):
                         in_headers = (method.in_header,)
                     for in_header in in_headers:
                         in_header.resolve_namespace(in_header, self.get_tns())
-                        self.add_to_schema(in_header)
+                        self.add(in_header)
 
                 if not (method.out_header is None):
                     if isinstance(method.out_header, (list,tuple)):
@@ -241,19 +135,19 @@ class InterfaceBase(object):
 
                     for out_header in out_headers:
                         out_header.resolve_namespace(out_header, self.get_tns())
-                        self.add_to_schema(out_header)
+                        self.add(out_header)
 
                 method.in_message.resolve_namespace(method.in_message,
                                                                  self.get_tns())
-                self.add_to_schema(method.in_message)
+                self.add(method.in_message)
 
                 method.out_message.resolve_namespace(method.out_message,
                                                                  self.get_tns())
-                self.add_to_schema(method.out_message)
+                self.add(method.out_message)
 
                 for fault in method.faults:
                     fault.resolve_namespace(fault, self.get_tns())
-                    self.add_to_schema(fault)
+                    self.add(fault)
 
         # populate call routes
         for s in self.services:
@@ -283,12 +177,11 @@ class InterfaceBase(object):
         Not meant to be overridden.
         """
 
+        if not (isinstance(ns, str) or isinstance(ns, unicode)):
+            raise TypeError(ns)
+
         if ns == "__main__":
             warnings.warn("Namespace is '__main__'", Warning )
-
-        assert ns != "rpclib.model.base"
-
-        assert (isinstance(ns, str) or isinstance(ns, unicode)), ns
 
         if not (ns in self.prefmap):
             pref = "s%d" % self.__ns_counter
@@ -306,5 +199,5 @@ class InterfaceBase(object):
 
         return pref
 
-    def add_to_schema(self, cls):
+    def add(self, cls):
         raise NotImplementedError('Extend and override.')

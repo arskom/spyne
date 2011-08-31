@@ -23,7 +23,7 @@ from rpclib.const import xml_ns as namespace
 from rpclib.model import ModelBase
 from rpclib.model.complex import XMLAttribute
 
-def complex_add_to_schema(interface, cls):
+def complex_add(interface, cls):
     if cls.get_type_name() is ModelBase.Empty:
         (child, ) = cls._type_info.values()
         cls.__type_name__ = '%sArray' % child.get_type_name()
@@ -31,7 +31,7 @@ def complex_add_to_schema(interface, cls):
     if not interface.has_class(cls):
         extends = getattr(cls, '__extends__', None)
         if not (extends is None):
-            interface.add_to_schema(extends)
+            interface.add(extends)
 
         complex_type = etree.Element("{%s}complexType" % namespace.xsd)
         complex_type.set('name', cls.get_type_name())
@@ -56,7 +56,7 @@ def complex_add_to_schema(interface, cls):
                 continue
 
             if v != cls:
-                interface.add_to_schema(v)
+                interface.add(v)
 
             member = etree.SubElement(sequence, '{%s}element' % namespace.xsd)
             member.set('name', k)
@@ -88,9 +88,9 @@ def complex_add_to_schema(interface, cls):
 
         interface.add_element(cls, element)
 
-def alias_add_to_schema(interface, cls):
+def alias_add(interface, cls):
     if not interface.has_class(cls._target):
-        interface.add_to_schema(cls._target)
+        interface.add(cls._target)
     element = etree.Element('{%s}element' % namespace.xsd)
     element.set('name', cls.get_type_name())
     element.set('type', cls._target.get_type_name_ns(interface.app))

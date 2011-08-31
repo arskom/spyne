@@ -39,6 +39,6 @@ def simple_get_restriction_tag(interface, cls):
 
     return restriction
 
-def simple_add_to_schema(interface, cls):
+def simple_add(interface, cls):
     if not interface.has_class(cls) and not cls.is_default(cls):
         interface.get_restriction_tag(cls)

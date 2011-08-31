@@ -20,31 +20,11 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import shutil
-import tempfile
-
 import rpclib.const.xml_ns
 
 from lxml import etree
 
-from rpclib.util.cdict import cdict
-
-from rpclib.interface import InterfaceBase
-from rpclib.model import SimpleModel
-from rpclib.model.primitive import String
-from rpclib.model.primitive import Decimal
-from rpclib.model.complex import ComplexModelBase
-from rpclib.model.enum import EnumBase
-from rpclib.model.fault import Fault
-
-from rpclib.interface.wsdl.model import simple_add_to_schema
-from rpclib.interface.wsdl.model.complex import complex_add_to_schema
-from rpclib.interface.wsdl.model.fault import fault_add_to_schema
-from rpclib.interface.wsdl.model.enum import enum_add_to_schema
-
-from rpclib.interface.wsdl.model import simple_get_restriction_tag
-from rpclib.interface.wsdl.model.primitive import string_get_restriction_tag
-from rpclib.interface.wsdl.model.primitive import decimal_get_restriction_tag
+from rpclib.interface.xml_schema import XmlSchema
 
 _ns_plink = rpclib.const.xml_ns.plink
 _ns_xsd = rpclib.const.xml_ns.xsd
@@ -55,24 +35,6 @@ _pref_wsa = rpclib.const.xml_ns.const_prefmap[_ns_wsa]
 
 _in_header_msg_suffix = 'InHeaderMsg'
 _out_header_msg_suffix = 'OutHeaderMsg'
-
-_add_to_schema_handlers = cdict({
-    object: lambda self,cls: None,
-    SimpleModel: simple_add_to_schema,
-    ComplexModelBase: complex_add_to_schema,
-    Fault: fault_add_to_schema,
-    EnumBase: enum_add_to_schema,
-})
-
-_get_restriction_tag_handlers = cdict({
-    object: lambda self,cls: None,
-    SimpleModel: simple_get_restriction_tag,
-    String: string_get_restriction_tag,
-    Decimal: decimal_get_restriction_tag,
-})
-
-class ValidationError(Fault):
-    pass
 
 def check_method_port(service, method):
     if len(service.__port_types__) != 0 and method.port_type is None:
@@ -154,7 +116,7 @@ def _add_callbacks(service, root, types, service_name, url):
 
     return cb_port_type
 
-class Wsdl11(InterfaceBase):
+class Wsdl11(XmlSchema):
     def __init__(self, app=None, import_base_namespaces=False,
                                                        _with_partnerlink=False):
         '''Constructor.
@@ -166,10 +128,9 @@ class Wsdl11(InterfaceBase):
         @param Flag to indicate whether to generate partnerlink node.
         '''
 
-        InterfaceBase.__init__(self, app, import_base_namespaces)
+        XmlSchema.__init__(self, app, import_base_namespaces)
 
         self._with_plink = _with_partnerlink
-        self.__wsdl = None
 
         self.port_type_dict = {}
         self.service_elt_dict = {}
@@ -177,6 +138,7 @@ class Wsdl11(InterfaceBase):
         self.root_elt = None
         self.service_elt = None
 
+        self.__wsdl = None
         self.validation_schema = None
 
     def _get_binding_name(self, port_type_name):
@@ -212,72 +174,8 @@ class Wsdl11(InterfaceBase):
 
         return ser
 
-    def add_to_schema(self, cls):
-        handler = _add_to_schema_handlers[cls]
-        logger.debug("-"*20)
-        return handler(self, cls)
-
-    def get_restriction_tag(self, cls):
-        handler = _get_restriction_tag_handlers[cls]
-        logger.debug("-"*20)
-        return handler(self, cls)
-
-    def build_schema_nodes(self, types=None):
-        retval = {}
-
-        for pref in self.namespaces:
-            schema = self.get_schema_node(pref, types, retval)
-
-            # append import tags
-            for namespace in self.imports[pref]:
-                import_ = etree.SubElement(schema, "{%s}import" % _ns_xsd)
-                import_.set("namespace", namespace)
-                if types is None:
-                    import_.set('schemaLocation', "%s.xsd" %
-                                           self.get_namespace_prefix(namespace))
-
-                sl = rpclib.const.xml_ns.schema_location.get(namespace, None)
-                if not (sl is None):
-                    import_.set('schemaLocation', sl)
-
-            # append simpleType and complexType tags
-            for node in self.namespaces[pref].types.values():
-                schema.append(node)
-
-            # append element tags
-            for node in self.namespaces[pref].elements.values():
-                schema.append(node)
-
-        return retval
-
     def get_interface_document(self):
         return self.__wsdl
-
-    def get_schema_node(self, pref, types, schema_nodes):
-        """Return schema node for the given namespace prefix.
-
-        types == None means the call is for creating a standalone xml schema
-                      file for one single namespace.
-        types != None means the call is for creating the wsdl file.
-        """
-
-        # create schema node
-        if not (pref in schema_nodes):
-            if types is None:
-                schema = etree.Element("{%s}schema" % _ns_xsd,
-                                                        nsmap=self.nsmap)
-            else:
-                schema = etree.SubElement(types, "{%s}schema" % _ns_xsd)
-
-            schema.set("targetNamespace", self.nsmap[pref])
-            schema.set("elementFormDefault", "qualified")
-
-            schema_nodes[pref] = schema
-
-        else:
-            schema = schema_nodes[pref]
-
-        return schema
 
     def build_interface_document(self, url):
         """Build the wsdl for the application."""
@@ -295,7 +193,9 @@ class Wsdl11(InterfaceBase):
 
         # create types node
         types = etree.SubElement(root, "{%s}types" % _ns_wsdl)
-        self.build_schema_nodes(types)
+        self.build_schema_nodes()
+        for s in self.schema_dict.values():
+            types.append(s)
 
         messages = set()
         for s in self.services:
@@ -370,39 +270,6 @@ class Wsdl11(InterfaceBase):
 
         return False
 
-    def build_validation_schema(self):
-        """Build application schema specifically for xml validation purposes.
-
-        It's called from ctors of protocols with a 'Strict' suffix. (i.e.
-        rpclib.protocol.soap.Soap11Strict)
-        """
-
-        schema_nodes = self.build_schema_nodes()
-
-        pref_tns = self.get_namespace_prefix(self.get_tns())
-        logger.debug("generating schema for targetNamespace=%r, prefix: %r"
-                                                   % (self.get_tns(), pref_tns))
-
-        tmp_dir_name = tempfile.mkdtemp()
-
-        # serialize nodes to files
-        for k,v in schema_nodes.items():
-            file_name = '%s/%s.xsd' % (tmp_dir_name, k)
-            f = open(file_name, 'w')
-            etree.ElementTree(v).write(f, pretty_print=True)
-            f.close()
-            logger.debug("writing %r for ns %s" % (file_name,
-                                                        self.nsmap[k]))
-
-        f = open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r')
-
-        logger.debug("building schema...")
-        self.validation_schema = etree.XMLSchema(etree.parse(f))
-        logger.debug("schema %r built, cleaning up..." % self.validation_schema)
-        f.close()
-        shutil.rmtree(tmp_dir_name)
-        logger.debug("removed %r" % tmp_dir_name)
-
     def add_port_type(self, service, root, service_name, types, url):
         # FIXME: I don't think this call is working.
         cb_port_type = _add_callbacks(service, root, types, service_name, url)
@@ -444,13 +311,14 @@ class Wsdl11(InterfaceBase):
                 operation = etree.SubElement(cb_port_type, '{%s}operation'
                                                                     % _ns_wsdl)
             else:
-                operation = etree.SubElement(port_type,'{%s}operation'% _ns_wsdl)
+                operation = etree.SubElement(port_type,'{%s}operation'
+                                                                    % _ns_wsdl)
 
             operation.set('name', method.name)
 
             if method.doc is not None:
                 documentation = etree.SubElement(operation, '{%s}documentation'
-                                                                % _ns_wsdl)
+                                                                    % _ns_wsdl)
                 documentation.text = method.doc
 
             operation.set('parameterOrder', method.in_message.get_type_name())
@@ -460,7 +328,7 @@ class Wsdl11(InterfaceBase):
             op_input.set('message', method.in_message.get_type_name_ns(self))
 
             if (not method.is_callback) and (not method.is_async):
-                op_output = etree.SubElement(operation, '{%s}output' %  _ns_wsdl)
+                op_output = etree.SubElement(operation, '{%s}output' % _ns_wsdl)
                 op_output.set('name', method.out_message.get_type_name())
                 op_output.set('message', method.out_message.get_type_name_ns(self))
 
@@ -502,7 +370,7 @@ class Wsdl11(InterfaceBase):
                 else:
                     in_header_message_name = method.in_header.get_type_name()
                 self._add_message_for_object(root, messages,
-                                        method.in_header, in_header_message_name)
+                                    method.in_header, in_header_message_name)
             if method.out_header is not None:
                 if isinstance(method.out_header, (list, tuple)):
                     out_header_message_name = ''.join((method.name,
@@ -510,7 +378,7 @@ class Wsdl11(InterfaceBase):
                 else:
                     out_header_message_name = method.out_header.get_type_name()
                 self._add_message_for_object(root, messages,
-                                        method.out_header, out_header_message_name)
+                                    method.out_header, out_header_message_name)
 
             for fault in method.faults:
                 self._add_message_for_object(root, messages, fault,
@@ -539,8 +407,8 @@ class Wsdl11(InterfaceBase):
             operation = etree.Element('{%s}operation' % _ns_wsdl)
             operation.set('name', method.name)
 
-            soap_operation = etree.SubElement(operation, '{%s}operation' %
-                                                                       _ns_soap)
+            soap_operation = etree.SubElement(operation, '{%s}operation' 
+                                                                    % _ns_soap)
             soap_operation.set('soapAction', method.name)
             soap_operation.set('style', 'document')
 
@@ -589,14 +457,14 @@ class Wsdl11(InterfaceBase):
                     if isinstance(out_header, (list, tuple)):
                         out_headers = out_header
                         out_header_message_name = ''.join((method.name,
-                                                         _out_header_msg_suffix))
+                                                        _out_header_msg_suffix))
                     else:
                         out_headers = (out_header,)
                         out_header_message_name = out_header.get_type_name()
 
                     for header in out_headers:
-                        soap_header = etree.SubElement(output, '{%s}header' %
-                                                                       _ns_soap)
+                        soap_header = etree.SubElement(output, '{%s}header'
+                                                                    % _ns_soap)
                         soap_header.set('use', 'literal')
                         soap_header.set('message', '%s:%s' % (
                                             header.get_namespace_prefix(self),
@@ -604,12 +472,12 @@ class Wsdl11(InterfaceBase):
                         soap_header.set('part', header.get_type_name())
 
                     for f in method.faults:
-                        fault = etree.SubElement(operation, '{%s}fault' %
-                                                                    _ns_wsdl)
+                        fault = etree.SubElement(operation, '{%s}fault'
+                                                                    % _ns_wsdl)
                         fault.set('name', f.get_type_name(self))
 
-                        soap_fault = etree.SubElement(fault, '{%s}fault' %
-                                                                    _ns_soap)
+                        soap_fault = etree.SubElement(fault, '{%s}fault'
+                                                                    % _ns_soap)
                         soap_fault.set('name', f.get_type_name())
                         soap_fault.set('use', 'literal')
 
