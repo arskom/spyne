@@ -103,6 +103,8 @@
       <xs:element name="echo_booleanResponse" type="tns:echo_booleanResponse" />
       <xs:element name="echo_boolean_array" type="tns:echo_boolean_array" />
       <xs:element name="echo_boolean_arrayResponse" type="tns:echo_boolean_arrayResponse" />
+      <xs:element name="echo_class_with_self_reference" type="tns:echo_class_with_self_reference" />
+      <xs:element name="echo_class_with_self_referenceResponse" type="tns:echo_class_with_self_referenceResponse" />
       <xs:element name="echo_date_time_array" type="tns:echo_date_time_array" />
       <xs:element name="echo_date_time_arrayResponse" type="tns:echo_date_time_arrayResponse" />
       <xs:element name="echo_datetime" type="tns:echo_datetime" />
@@ -336,6 +338,16 @@
       <xs:complexType name="echo_boolean_arrayResponse">
         <xs:sequence>
           <xs:element minOccurs="0" name="echo_boolean_arrayResult" nillable="true" type="tns:booleanArray" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_class_with_self_reference">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="sr" nillable="true" type="s2:ClassWithSelfReference" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_class_with_self_referenceResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="echo_class_with_self_referenceResult" nillable="true" type="s2:ClassWithSelfReference" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_date_time_array">
@@ -662,10 +674,17 @@
       </xs:complexType>
     </xs:schema>
     <xs:schema elementFormDefault="qualified" targetNamespace="rpclib.test.interop.server._service">
+      <xs:element name="ClassWithSelfReference" type="s2:ClassWithSelfReference" />
       <xs:element name="OtherClass" type="s2:OtherClass" />
       <xs:element name="OtherClassArray" type="s2:OtherClassArray" />
       <xs:element name="SimpleClass" type="s2:SimpleClass" />
       <xs:element name="SimpleClassArray" type="s2:SimpleClassArray" />
+      <xs:complexType name="ClassWithSelfReference">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="i" nillable="true" type="xs:integer" />
+          <xs:element minOccurs="0" name="sr" nillable="true" type="s2:ClassWithSelfReference" />
+        </xs:sequence>
+      </xs:complexType>
       <xs:complexType name="OtherClass">
         <xs:sequence>
           <xs:element minOccurs="0" name="b" nillable="true" type="xs:boolean" />
@@ -753,6 +772,12 @@
   </wsdl:message>
   <wsdl:message name="echo_boolean_arrayResponse">
     <wsdl:part element="tns:echo_boolean_arrayResponse" name="echo_boolean_arrayResponse" />
+  </wsdl:message>
+  <wsdl:message name="echo_class_with_self_reference">
+    <wsdl:part element="tns:echo_class_with_self_reference" name="echo_class_with_self_reference" />
+  </wsdl:message>
+  <wsdl:message name="echo_class_with_self_referenceResponse">
+    <wsdl:part element="tns:echo_class_with_self_referenceResponse" name="echo_class_with_self_referenceResponse" />
   </wsdl:message>
   <wsdl:message name="echo_date_time_array">
     <wsdl:part element="tns:echo_date_time_array" name="echo_date_time_array" />
@@ -1060,6 +1085,15 @@
         <soap:body use="literal" />
       </wsdl:input>
       <wsdl:output name="echo_boolean_arrayResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_class_with_self_reference">
+      <soap:operation soapAction="echo_class_with_self_reference" style="document" />
+      <wsdl:input name="echo_class_with_self_reference">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_class_with_self_referenceResponse">
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
@@ -1413,6 +1447,10 @@
     <wsdl:operation name="echo_boolean_array" parameterOrder="echo_boolean_array">
       <wsdl:input message="tns:echo_boolean_array" name="echo_boolean_array" />
       <wsdl:output message="tns:echo_boolean_arrayResponse" name="echo_boolean_arrayResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_class_with_self_reference" parameterOrder="echo_class_with_self_reference">
+      <wsdl:input message="tns:echo_class_with_self_reference" name="echo_class_with_self_reference" />
+      <wsdl:output message="tns:echo_class_with_self_referenceResponse" name="echo_class_with_self_referenceResponse" />
     </wsdl:operation>
     <wsdl:operation name="echo_date_time_array" parameterOrder="echo_date_time_array">
       <wsdl:input message="tns:echo_date_time_array" name="echo_date_time_array" />
