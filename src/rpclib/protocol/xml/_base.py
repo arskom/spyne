@@ -32,21 +32,7 @@ from rpclib.model.fault import Fault
 from rpclib.model.primitive import AnyXml
 from rpclib.model.primitive import AnyDict
 from rpclib.model.primitive import String
-from rpclib.model.primitive import AnyUri
-from rpclib.model.primitive import Decimal
-from rpclib.model.primitive import Integer
-from rpclib.model.primitive import UnsignedInteger
-from rpclib.model.primitive import UnsignedInteger64
-from rpclib.model.primitive import UnsignedInteger32
-from rpclib.model.primitive import UnsignedInteger16
-from rpclib.model.primitive import UnsignedInteger8
-from rpclib.model.primitive import Date
-from rpclib.model.primitive import DateTime
 from rpclib.model.primitive import Duration
-from rpclib.model.primitive import Double
-from rpclib.model.primitive import Float
-from rpclib.model.primitive import Boolean
-from rpclib.model.primitive import Mandatory
 
 from rpclib.protocol import ProtocolBase
 
@@ -78,20 +64,6 @@ _serialization_handlers = cdict({
     AnyDict: dict_to_parent_element,
     EnumBase: enum_to_parent_element,
     Duration: duration_to_parent_element,
-#    AnyUri: any_uri_serialize
-#    Decimal: any_uri_serialize
-#    Int:
-#    Integer:
-#    UnsignedInteger:
-#    UnsignedInteger64:
-#    UnsignedInteger32:
-#    UnsignedInteger16:
-#    UnsignedInteger8:
-#    Date:
-#    DateTime:
-#    Double:
-#    Float:
-#    Boolean:
 })
 
 _deserialization_handlers = cdict({
@@ -119,12 +91,10 @@ class XmlObject(ProtocolBase):
 
     def from_element(self, cls, element):
         handler = _deserialization_handlers[cls]
-        logger.debug("-"*20)
         return handler(self, cls, element)
 
     def to_parent_element(self, cls, value, tns, parent_elt, *args, **kwargs):
         handler = _serialization_handlers[cls]
-        logger.debug("-"*20)
         handler(self, cls, value, tns, parent_elt, *args, **kwargs)
 
     def deserialize(self, ctx):

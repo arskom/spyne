@@ -77,12 +77,10 @@ class XmlSchema(InterfaceBase):
 
     def add(self, cls):
         handler = _add_handlers[cls]
-        logger.debug("-"*20)
         return handler(self, cls)
 
     def get_restriction_tag(self, cls):
         handler = _get_restriction_tag_handlers[cls]
-        logger.debug("-"*20)
         return handler(self, cls)
 
     def build_schema_nodes(self, with_schema_location=False):
@@ -139,8 +137,8 @@ class XmlSchema(InterfaceBase):
         logger.debug("schema %r built, cleaning up..." % self.validation_schema)
         f.close()
 
-        #shutil.rmtree(tmp_dir_name)
-        #logger.debug("removed %r" % tmp_dir_name)
+        shutil.rmtree(tmp_dir_name)
+        logger.debug("removed %r" % tmp_dir_name)
 
     def get_schema_node(self, pref):
         """Return schema node for the given namespace prefix.
