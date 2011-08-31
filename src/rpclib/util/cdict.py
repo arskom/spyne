@@ -26,8 +26,6 @@ logger = logging.getLogger(__name__)
 
 class cdict(dict):
     def __getitem__(self, cls):
-        logger.info("req: %r" % cls)
-
         try:
             return dict.__getitem__(self, cls)
 
