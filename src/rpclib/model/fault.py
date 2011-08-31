@@ -17,14 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from lxml import etree
 from rpclib.model import ModelBase
 
 import rpclib.const.xml_ns
-
-_ns_xsd = rpclib.const.xml_ns.xsd
 _ns_soap_env = rpclib.const.xml_ns.soap_env
-
 _pref_soap_env = rpclib.const.xml_ns.const_prefmap[_ns_soap_env]
 
 class Fault(ModelBase, Exception):
@@ -43,31 +39,3 @@ class Fault(ModelBase, Exception):
 
     def __repr__(self):
         return "%s: %r" % (self.faultcode, self.faultstring)
-
-    @classmethod
-    def add_to_schema(cls, schema_dict):
-        app = schema_dict.app
-        complex_type = etree.Element('{%s}complexType' % _ns_xsd)
-        complex_type.set('name', '%sFault' % cls.get_type_name())
-
-        extends = getattr(cls, '__extends__', None)
-        if extends is not None:
-            complex_content = etree.SubElement(complex_type,
-                                            '{%s}complexContent' % _ns_xsd)
-            extension = etree.SubElement(complex_content, "{%s}extension"
-                                                                      % _ns_xsd)
-            extension.set('base', extends.get_type_name_ns(app))
-            sequence_parent = extension
-        else:
-            sequence_parent = complex_type
-
-        seq = etree.SubElement(sequence_parent, '{%s}sequence' % _ns_xsd)
-
-        schema_dict.add_complex_type(cls, complex_type)
-
-        top_level_element = etree.Element('{%s}element' % _ns_xsd)
-        top_level_element.set('name', cls.get_type_name())
-        top_level_element.set('{%s}type' % _ns_xsd,
-                              '%sFault' % cls.get_type_name_ns(app))
-
-        schema_dict.add_element(cls, top_level_element)

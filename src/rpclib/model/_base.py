@@ -17,11 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from lxml import etree
 import rpclib.const.xml_ns
-
-_ns_xsi = rpclib.const.xml_ns.xsi
-_ns_xsd = rpclib.const.xml_ns.xsd
 
 def nillable_dict(func):
     def wrapper(cls, element):
@@ -109,13 +105,6 @@ class ModelBase(object):
         return {cls.get_type_name(): cls.to_string(value)}
 
     @classmethod
-    def add_to_schema(cls, schema_entries):
-        '''
-        Add this type to the wsdl.
-        '''
-        #Nothing needs to happen when the type is a standard schema element
-
-    @classmethod
     def customize(cls, ** kwargs):
         cls_name, cls_bases, cls_dict = cls._s_customize(cls, ** kwargs)
 
@@ -192,24 +181,3 @@ class SimpleModel(ModelBase):
     @staticmethod
     def is_default(cls):
         return (cls.Attributes.values == SimpleModel.Attributes.values)
-
-    @classmethod
-    def get_restriction_tag(cls, interface):
-        simple_type = etree.Element('{%s}simpleType' % _ns_xsd)
-        simple_type.set('name', cls.get_type_name())
-        interface.add_simple_type(cls, simple_type)
-
-        restriction = etree.SubElement(simple_type, '{%s}restriction' % _ns_xsd)
-        restriction.set('base', cls.__base_type__.get_type_name_ns(interface))
-
-        for v in cls.Attributes.values:
-            enumeration = etree.SubElement(restriction,
-                                                    '{%s}enumeration' % _ns_xsd)
-            enumeration.set('value', str(v))
-
-        return restriction
-
-    @classmethod
-    def add_to_schema(cls, schema_entries):
-        if not schema_entries.has_class(cls) and not cls.is_default(cls):
-            cls.get_restriction_tag(schema_entries)

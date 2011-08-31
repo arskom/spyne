@@ -17,10 +17,5 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from _base import ModelBase
-from _base import Null
-from _base import SimpleModel
-
-from _base import nillable_dict
-from _base import nillable_string
-
+from _base import simple_get_restriction_tag
+from _base import simple_add_to_schema
