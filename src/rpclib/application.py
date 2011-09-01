@@ -57,7 +57,7 @@ class Application(object):
         self.event_manager = EventManager(self)
         self.error_handler = None
 
-    def process_request(self, ctx, req_obj):
+    def process_request(self, ctx):
         """Takes a MethodContext instance and the native request object.
         Returns the response to the request as a native python object.
 
@@ -65,11 +65,12 @@ class Application(object):
         """
 
         try:
-            # implementation hook
+            # fire events
+            self.event_manager.fire_event('method_call', ctx)
             ctx.service_class.event_manager.fire_event('method_call', ctx)
 
             # call the method
-            ctx.out_object = ctx.service_class.call_wrapper(ctx, ctx.descriptor.function, req_obj)
+            ctx.out_object = self.call_wrapper(ctx)
 
             # fire events
             self.event_manager.fire_event('method_return_object', ctx)
@@ -97,6 +98,11 @@ class Application(object):
             if ctx.service_class != None:
                 ctx.service_class.event_manager.fire_event(
                                                     'method_return_object', ctx)
+
+    def call_wrapper(self, ctx):
+        return ctx.service_class.call_wrapper(ctx, ctx.descriptor.function,
+                                                                ctx.in_object)
+
 
     def _has_callbacks(self):
         return self.interface._has_callbacks()

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# rpclib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
+# rpclib - Copyright (C) 2009 Rpclib contributors
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -17,23 +17,24 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import rpclib
-
-from rpclib.util.wsgi_wrapper import run_twisted
-from rpclib.server import wsgi
-from rpclib.service import DefinitionBase
-from rpclib.service import rpc
-from rpclib.model.clazz import Array
+from rpclib.application import Application
+from rpclib.decorator import srpc
+from rpclib.interface.wsdl import Wsdl11
+from rpclib.protocol.soap import Soap11
+from rpclib.service import ServiceBase
+from rpclib.model.complex import Array
 from rpclib.model.primitive import Integer
 from rpclib.model.primitive import String
+from rpclib.server.wsgi import WsgiApplication
+from rpclib.util.wsgi_wrapper import run_twisted
 
 '''
 This is the HelloWorld example running in the twisted framework.
 '''
 
-class HelloWorldService(DefinitionBase):
-    @rpc(String, Integer, _returns=Array(String))
-    def say_hello(self, name, times):
+class HelloWorldService(ServiceBase):
+    @srpc(String, Integer, _returns=Array(String))
+    def say_hello(name, times):
         '''Docstrings for service methods appear as documentation in the wsdl.
 
         @param name the name to say hello to
@@ -47,10 +48,11 @@ class HelloWorldService(DefinitionBase):
         return results
 
 if __name__=='__main__':
-    soap_app=rpclib.Application([HelloWorldService], 'tns')
-    wsgi_app=wsgi.Application(soap_app)
+    application = Application([HelloWorldService], 'rpclib.examples.hello.twisted',
+                interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
+    wsgi_app = WsgiApplication(application)
 
     print 'listening on 0.0.0.0:7789'
-    print 'wsdl is at: http://0.0.0.0:7789/SOAP/?wsdl'
+    print 'wsdl is at: http://0.0.0.0:7789/app/?wsdl'
 
-    run_twisted( ( (wsgi_app, "SOAP"),), 7789)
+    run_twisted( ( (wsgi_app, "app"),), 7789)

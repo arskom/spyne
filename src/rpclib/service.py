@@ -105,13 +105,13 @@ class ServiceBase(object):
         return False
 
     @classmethod
-    def call_wrapper(cls, ctx, call, params):
+    def call_wrapper(cls, ctx):
         '''Called in place of the original method call.
 
         @param the original method call
         @param the arguments to the call
         '''
         if ctx.descriptor.no_ctx:
-            return call(*params)
+            return ctx.descriptor.function(*ctx.in_object)
         else:
-            return call(ctx, *params)
+            return ctx.descriptor.function(ctx, *ctx.in_object)

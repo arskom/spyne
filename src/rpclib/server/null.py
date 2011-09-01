@@ -58,9 +58,10 @@ class _FunctionCall(object):
         ctx = MethodContext(self.__app)
         ctx.method_request_string = self.__key
         ctx.in_header = self.__in_header
+        ctx.in_object = args
 
         self.__app.in_protocol.set_method_descriptor(ctx)
-        self.__app.process_request(ctx, args)
+        self.__app.process_request(ctx)
 
         if ctx.out_error:
             raise ctx.out_error
