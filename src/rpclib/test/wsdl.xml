@@ -996,6 +996,219 @@
   <wsdl:message name="test_emptyResponse">
     <wsdl:part element="tns:test_emptyResponse" name="test_emptyResponse" />
   </wsdl:message>
+  <wsdl:service name="InteropArray">
+    <wsdl:port binding="tns:Application" name="Application">
+      <soap:address location="http://localhost:9753/?wsdl" />
+    </wsdl:port>
+  </wsdl:service>
+  <wsdl:service name="InteropClass">
+    <wsdl:port binding="tns:Application" name="Application">
+      <soap:address location="http://localhost:9753/?wsdl" />
+    </wsdl:port>
+  </wsdl:service>
+  <wsdl:service name="InteropException">
+    <wsdl:port binding="tns:Application" name="Application">
+      <soap:address location="http://localhost:9753/?wsdl" />
+    </wsdl:port>
+  </wsdl:service>
+  <wsdl:service name="InteropMisc">
+    <wsdl:port binding="tns:Application" name="Application">
+      <soap:address location="http://localhost:9753/?wsdl" />
+    </wsdl:port>
+  </wsdl:service>
+  <wsdl:service name="InteropPrimitive">
+    <wsdl:port binding="tns:Application" name="Application">
+      <soap:address location="http://localhost:9753/?wsdl" />
+    </wsdl:port>
+  </wsdl:service>
+  <wsdl:service name="InteropServiceWithComplexHeader">
+    <wsdl:port binding="tns:Application" name="Application">
+      <soap:address location="http://localhost:9753/?wsdl" />
+    </wsdl:port>
+  </wsdl:service>
+  <wsdl:service name="InteropServiceWithHeader">
+    <wsdl:port binding="tns:Application" name="Application">
+      <soap:address location="http://localhost:9753/?wsdl" />
+    </wsdl:port>
+  </wsdl:service>
+  <wsdl:portType name="Application">
+    <wsdl:operation name="complex_return" parameterOrder="complex_return">
+      <wsdl:input message="tns:complex_return" name="complex_return" />
+      <wsdl:output message="tns:complex_returnResponse" name="complex_returnResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="custom_messages" parameterOrder="custom_messages">
+      <wsdl:input message="tns:custom_messages" name="custom_messages" />
+      <wsdl:output message="tns:getCustomMessagesMsgOut" name="getCustomMessagesMsgOut" />
+    </wsdl:operation>
+    <wsdl:operation name="do_something_else" parameterOrder="do_something_else">
+      <wsdl:input message="tns:do_something_else" name="do_something_else" />
+      <wsdl:output message="tns:do_something_elseResponse" name="do_something_elseResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_any" parameterOrder="echo_any">
+      <wsdl:input message="tns:echo_any" name="echo_any" />
+      <wsdl:output message="tns:echo_anyResponse" name="echo_anyResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_any_as_dict" parameterOrder="echo_any_as_dict">
+      <wsdl:input message="tns:echo_any_as_dict" name="echo_any_as_dict" />
+      <wsdl:output message="tns:echo_any_as_dictResponse" name="echo_any_as_dictResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_array_in_array" parameterOrder="echo_array_in_array">
+      <wsdl:input message="tns:echo_array_in_array" name="echo_array_in_array" />
+      <wsdl:output message="tns:echo_array_in_arrayResponse" name="echo_array_in_arrayResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_attachment" parameterOrder="echo_attachment">
+      <wsdl:input message="tns:echo_attachment" name="echo_attachment" />
+      <wsdl:output message="tns:echo_attachmentResponse" name="echo_attachmentResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_attachment_array" parameterOrder="echo_attachment_array">
+      <wsdl:input message="tns:echo_attachment_array" name="echo_attachment_array" />
+      <wsdl:output message="tns:echo_attachment_arrayResponse" name="echo_attachment_arrayResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_boolean" parameterOrder="echo_boolean">
+      <wsdl:input message="tns:echo_boolean" name="echo_boolean" />
+      <wsdl:output message="tns:echo_booleanResponse" name="echo_booleanResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_boolean_array" parameterOrder="echo_boolean_array">
+      <wsdl:input message="tns:echo_boolean_array" name="echo_boolean_array" />
+      <wsdl:output message="tns:echo_boolean_arrayResponse" name="echo_boolean_arrayResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_class_with_self_reference" parameterOrder="echo_class_with_self_reference">
+      <wsdl:input message="tns:echo_class_with_self_reference" name="echo_class_with_self_reference" />
+      <wsdl:output message="tns:echo_class_with_self_referenceResponse" name="echo_class_with_self_referenceResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_date_time_array" parameterOrder="echo_date_time_array">
+      <wsdl:input message="tns:echo_date_time_array" name="echo_date_time_array" />
+      <wsdl:output message="tns:echo_date_time_arrayResponse" name="echo_date_time_arrayResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_datetime" parameterOrder="echo_datetime">
+      <wsdl:input message="tns:echo_datetime" name="echo_datetime" />
+      <wsdl:output message="tns:echo_datetimeResponse" name="echo_datetimeResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_double" parameterOrder="echo_double">
+      <wsdl:input message="tns:echo_double" name="echo_double" />
+      <wsdl:output message="tns:echo_doubleResponse" name="echo_doubleResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_double_array" parameterOrder="echo_double_array">
+      <wsdl:input message="tns:echo_double_array" name="echo_double_array" />
+      <wsdl:output message="tns:echo_double_arrayResponse" name="echo_double_arrayResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_duration" parameterOrder="echo_duration">
+      <wsdl:input message="tns:echo_duration" name="echo_duration" />
+      <wsdl:output message="tns:echo_durationResponse" name="echo_durationResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_enum" parameterOrder="echo_enum">
+      <wsdl:input message="tns:echo_enum" name="echo_enum" />
+      <wsdl:output message="tns:echo_enumResponse" name="echo_enumResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_extension_class" parameterOrder="echo_extension_class">
+      <wsdl:input message="tns:echo_extension_class" name="echo_extension_class" />
+      <wsdl:output message="tns:echo_extension_classResponse" name="echo_extension_classResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_float" parameterOrder="echo_float">
+      <wsdl:input message="tns:echo_float" name="echo_float" />
+      <wsdl:output message="tns:echo_floatResponse" name="echo_floatResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_float_array" parameterOrder="echo_float_array">
+      <wsdl:input message="tns:echo_float_array" name="echo_float_array" />
+      <wsdl:output message="tns:echo_float_arrayResponse" name="echo_float_arrayResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_in_complex_header" parameterOrder="echo_in_complex_header">
+      <wsdl:input message="tns:echo_in_complex_header" name="echo_in_complex_header" />
+      <wsdl:output message="tns:echo_in_complex_headerResponse" name="echo_in_complex_headerResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_in_header" parameterOrder="echo_in_header">
+      <wsdl:input message="tns:echo_in_header" name="echo_in_header" />
+      <wsdl:output message="tns:echo_in_headerResponse" name="echo_in_headerResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_integer" parameterOrder="echo_integer">
+      <wsdl:input message="tns:echo_integer" name="echo_integer" />
+      <wsdl:output message="tns:echo_integerResponse" name="echo_integerResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_integer_array" parameterOrder="echo_integer_array">
+      <wsdl:input message="tns:echo_integer_array" name="echo_integer_array" />
+      <wsdl:output message="tns:echo_integer_arrayResponse" name="echo_integer_arrayResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_nested_class" parameterOrder="echo_nested_class">
+      <wsdl:input message="tns:echo_nested_class" name="echo_nested_class" />
+      <wsdl:output message="tns:echo_nested_classResponse" name="echo_nested_classResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_nested_class_array" parameterOrder="echo_nested_class_array">
+      <wsdl:input message="tns:echo_nested_class_array" name="echo_nested_class_array" />
+      <wsdl:output message="tns:echo_nested_class_arrayResponse" name="echo_nested_class_arrayResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_simple_boolean_array" parameterOrder="echo_simple_boolean_array">
+      <wsdl:input message="tns:echo_simple_boolean_array" name="echo_simple_boolean_array" />
+      <wsdl:output message="tns:echo_simple_boolean_arrayResponse" name="echo_simple_boolean_arrayResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_simple_class" parameterOrder="echo_simple_class">
+      <wsdl:input message="tns:echo_simple_class" name="echo_simple_class" />
+      <wsdl:output message="tns:echo_simple_classResponse" name="echo_simple_classResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_simple_class_array" parameterOrder="echo_simple_class_array">
+      <wsdl:input message="tns:echo_simple_class_array" name="echo_simple_class_array" />
+      <wsdl:output message="tns:echo_simple_class_arrayResponse" name="echo_simple_class_arrayResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_string" parameterOrder="echo_string">
+      <wsdl:input message="tns:echo_string" name="echo_string" />
+      <wsdl:output message="tns:echo_stringResponse" name="echo_stringResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_string_array" parameterOrder="echo_string_array">
+      <wsdl:input message="tns:echo_string_array" name="echo_string_array" />
+      <wsdl:output message="tns:echo_string_arrayResponse" name="echo_string_arrayResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="huge_number" parameterOrder="huge_number">
+      <wsdl:input message="tns:huge_number" name="huge_number" />
+      <wsdl:output message="tns:huge_numberResponse" name="huge_numberResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="long_string" parameterOrder="long_string">
+      <wsdl:input message="tns:long_string" name="long_string" />
+      <wsdl:output message="tns:long_stringResponse" name="long_stringResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="multi_param" parameterOrder="multi_param">
+      <wsdl:input message="tns:multi_param" name="multi_param" />
+      <wsdl:output message="tns:multi_paramResponse" name="multi_paramResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="non_nillable" parameterOrder="non_nillable">
+      <wsdl:input message="tns:non_nillable" name="non_nillable" />
+      <wsdl:output message="tns:non_nillableResponse" name="non_nillableResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="python_exception" parameterOrder="python_exception">
+      <wsdl:input message="tns:python_exception" name="python_exception" />
+      <wsdl:output message="tns:python_exceptionResponse" name="python_exceptionResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="return_binary_data" parameterOrder="return_binary_data">
+      <wsdl:input message="tns:return_binary_data" name="return_binary_data" />
+      <wsdl:output message="tns:return_binary_dataResponse" name="return_binary_dataResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="return_invalid_data" parameterOrder="return_invalid_data">
+      <wsdl:input message="tns:return_invalid_data" name="return_invalid_data" />
+      <wsdl:output message="tns:return_invalid_dataResponse" name="return_invalid_dataResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="return_only" parameterOrder="return_only">
+      <wsdl:input message="tns:return_only" name="return_only" />
+      <wsdl:output message="tns:return_onlyResponse" name="return_onlyResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="return_other_class_array" parameterOrder="return_other_class_array">
+      <wsdl:input message="tns:return_other_class_array" name="return_other_class_array" />
+      <wsdl:output message="tns:return_other_class_arrayResponse" name="return_other_class_arrayResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="send_out_complex_header" parameterOrder="send_out_complex_header">
+      <wsdl:input message="tns:send_out_complex_header" name="send_out_complex_header" />
+      <wsdl:output message="tns:send_out_complex_headerResponse" name="send_out_complex_headerResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="send_out_header" parameterOrder="send_out_header">
+      <wsdl:input message="tns:send_out_header" name="send_out_header" />
+      <wsdl:output message="tns:send_out_headerResponse" name="send_out_headerResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="soap_exception" parameterOrder="soap_exception">
+      <wsdl:input message="tns:soap_exception" name="soap_exception" />
+      <wsdl:output message="tns:soap_exceptionResponse" name="soap_exceptionResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="test_empty" parameterOrder="test_empty">
+      <wsdl:input message="tns:test_empty" name="test_empty" />
+      <wsdl:output message="tns:test_emptyResponse" name="test_emptyResponse" />
+    </wsdl:operation>
+  </wsdl:portType>
   <wsdl:binding name="Application" type="tns:Application">
     <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
     <wsdl:operation name="complex_return">
@@ -1407,217 +1620,4 @@
       </wsdl:output>
     </wsdl:operation>
   </wsdl:binding>
-  <wsdl:portType name="Application">
-    <wsdl:operation name="complex_return" parameterOrder="complex_return">
-      <wsdl:input message="tns:complex_return" name="complex_return" />
-      <wsdl:output message="tns:complex_returnResponse" name="complex_returnResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="custom_messages" parameterOrder="custom_messages">
-      <wsdl:input message="tns:custom_messages" name="custom_messages" />
-      <wsdl:output message="tns:getCustomMessagesMsgOut" name="getCustomMessagesMsgOut" />
-    </wsdl:operation>
-    <wsdl:operation name="do_something_else" parameterOrder="do_something_else">
-      <wsdl:input message="tns:do_something_else" name="do_something_else" />
-      <wsdl:output message="tns:do_something_elseResponse" name="do_something_elseResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_any" parameterOrder="echo_any">
-      <wsdl:input message="tns:echo_any" name="echo_any" />
-      <wsdl:output message="tns:echo_anyResponse" name="echo_anyResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_any_as_dict" parameterOrder="echo_any_as_dict">
-      <wsdl:input message="tns:echo_any_as_dict" name="echo_any_as_dict" />
-      <wsdl:output message="tns:echo_any_as_dictResponse" name="echo_any_as_dictResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_array_in_array" parameterOrder="echo_array_in_array">
-      <wsdl:input message="tns:echo_array_in_array" name="echo_array_in_array" />
-      <wsdl:output message="tns:echo_array_in_arrayResponse" name="echo_array_in_arrayResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_attachment" parameterOrder="echo_attachment">
-      <wsdl:input message="tns:echo_attachment" name="echo_attachment" />
-      <wsdl:output message="tns:echo_attachmentResponse" name="echo_attachmentResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_attachment_array" parameterOrder="echo_attachment_array">
-      <wsdl:input message="tns:echo_attachment_array" name="echo_attachment_array" />
-      <wsdl:output message="tns:echo_attachment_arrayResponse" name="echo_attachment_arrayResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_boolean" parameterOrder="echo_boolean">
-      <wsdl:input message="tns:echo_boolean" name="echo_boolean" />
-      <wsdl:output message="tns:echo_booleanResponse" name="echo_booleanResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_boolean_array" parameterOrder="echo_boolean_array">
-      <wsdl:input message="tns:echo_boolean_array" name="echo_boolean_array" />
-      <wsdl:output message="tns:echo_boolean_arrayResponse" name="echo_boolean_arrayResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_class_with_self_reference" parameterOrder="echo_class_with_self_reference">
-      <wsdl:input message="tns:echo_class_with_self_reference" name="echo_class_with_self_reference" />
-      <wsdl:output message="tns:echo_class_with_self_referenceResponse" name="echo_class_with_self_referenceResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_date_time_array" parameterOrder="echo_date_time_array">
-      <wsdl:input message="tns:echo_date_time_array" name="echo_date_time_array" />
-      <wsdl:output message="tns:echo_date_time_arrayResponse" name="echo_date_time_arrayResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_datetime" parameterOrder="echo_datetime">
-      <wsdl:input message="tns:echo_datetime" name="echo_datetime" />
-      <wsdl:output message="tns:echo_datetimeResponse" name="echo_datetimeResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_double" parameterOrder="echo_double">
-      <wsdl:input message="tns:echo_double" name="echo_double" />
-      <wsdl:output message="tns:echo_doubleResponse" name="echo_doubleResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_double_array" parameterOrder="echo_double_array">
-      <wsdl:input message="tns:echo_double_array" name="echo_double_array" />
-      <wsdl:output message="tns:echo_double_arrayResponse" name="echo_double_arrayResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_duration" parameterOrder="echo_duration">
-      <wsdl:input message="tns:echo_duration" name="echo_duration" />
-      <wsdl:output message="tns:echo_durationResponse" name="echo_durationResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_enum" parameterOrder="echo_enum">
-      <wsdl:input message="tns:echo_enum" name="echo_enum" />
-      <wsdl:output message="tns:echo_enumResponse" name="echo_enumResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_extension_class" parameterOrder="echo_extension_class">
-      <wsdl:input message="tns:echo_extension_class" name="echo_extension_class" />
-      <wsdl:output message="tns:echo_extension_classResponse" name="echo_extension_classResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_float" parameterOrder="echo_float">
-      <wsdl:input message="tns:echo_float" name="echo_float" />
-      <wsdl:output message="tns:echo_floatResponse" name="echo_floatResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_float_array" parameterOrder="echo_float_array">
-      <wsdl:input message="tns:echo_float_array" name="echo_float_array" />
-      <wsdl:output message="tns:echo_float_arrayResponse" name="echo_float_arrayResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_in_complex_header" parameterOrder="echo_in_complex_header">
-      <wsdl:input message="tns:echo_in_complex_header" name="echo_in_complex_header" />
-      <wsdl:output message="tns:echo_in_complex_headerResponse" name="echo_in_complex_headerResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_in_header" parameterOrder="echo_in_header">
-      <wsdl:input message="tns:echo_in_header" name="echo_in_header" />
-      <wsdl:output message="tns:echo_in_headerResponse" name="echo_in_headerResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_integer" parameterOrder="echo_integer">
-      <wsdl:input message="tns:echo_integer" name="echo_integer" />
-      <wsdl:output message="tns:echo_integerResponse" name="echo_integerResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_integer_array" parameterOrder="echo_integer_array">
-      <wsdl:input message="tns:echo_integer_array" name="echo_integer_array" />
-      <wsdl:output message="tns:echo_integer_arrayResponse" name="echo_integer_arrayResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_nested_class" parameterOrder="echo_nested_class">
-      <wsdl:input message="tns:echo_nested_class" name="echo_nested_class" />
-      <wsdl:output message="tns:echo_nested_classResponse" name="echo_nested_classResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_nested_class_array" parameterOrder="echo_nested_class_array">
-      <wsdl:input message="tns:echo_nested_class_array" name="echo_nested_class_array" />
-      <wsdl:output message="tns:echo_nested_class_arrayResponse" name="echo_nested_class_arrayResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_simple_boolean_array" parameterOrder="echo_simple_boolean_array">
-      <wsdl:input message="tns:echo_simple_boolean_array" name="echo_simple_boolean_array" />
-      <wsdl:output message="tns:echo_simple_boolean_arrayResponse" name="echo_simple_boolean_arrayResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_simple_class" parameterOrder="echo_simple_class">
-      <wsdl:input message="tns:echo_simple_class" name="echo_simple_class" />
-      <wsdl:output message="tns:echo_simple_classResponse" name="echo_simple_classResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_simple_class_array" parameterOrder="echo_simple_class_array">
-      <wsdl:input message="tns:echo_simple_class_array" name="echo_simple_class_array" />
-      <wsdl:output message="tns:echo_simple_class_arrayResponse" name="echo_simple_class_arrayResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_string" parameterOrder="echo_string">
-      <wsdl:input message="tns:echo_string" name="echo_string" />
-      <wsdl:output message="tns:echo_stringResponse" name="echo_stringResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="echo_string_array" parameterOrder="echo_string_array">
-      <wsdl:input message="tns:echo_string_array" name="echo_string_array" />
-      <wsdl:output message="tns:echo_string_arrayResponse" name="echo_string_arrayResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="huge_number" parameterOrder="huge_number">
-      <wsdl:input message="tns:huge_number" name="huge_number" />
-      <wsdl:output message="tns:huge_numberResponse" name="huge_numberResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="long_string" parameterOrder="long_string">
-      <wsdl:input message="tns:long_string" name="long_string" />
-      <wsdl:output message="tns:long_stringResponse" name="long_stringResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="multi_param" parameterOrder="multi_param">
-      <wsdl:input message="tns:multi_param" name="multi_param" />
-      <wsdl:output message="tns:multi_paramResponse" name="multi_paramResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="non_nillable" parameterOrder="non_nillable">
-      <wsdl:input message="tns:non_nillable" name="non_nillable" />
-      <wsdl:output message="tns:non_nillableResponse" name="non_nillableResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="python_exception" parameterOrder="python_exception">
-      <wsdl:input message="tns:python_exception" name="python_exception" />
-      <wsdl:output message="tns:python_exceptionResponse" name="python_exceptionResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="return_binary_data" parameterOrder="return_binary_data">
-      <wsdl:input message="tns:return_binary_data" name="return_binary_data" />
-      <wsdl:output message="tns:return_binary_dataResponse" name="return_binary_dataResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="return_invalid_data" parameterOrder="return_invalid_data">
-      <wsdl:input message="tns:return_invalid_data" name="return_invalid_data" />
-      <wsdl:output message="tns:return_invalid_dataResponse" name="return_invalid_dataResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="return_only" parameterOrder="return_only">
-      <wsdl:input message="tns:return_only" name="return_only" />
-      <wsdl:output message="tns:return_onlyResponse" name="return_onlyResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="return_other_class_array" parameterOrder="return_other_class_array">
-      <wsdl:input message="tns:return_other_class_array" name="return_other_class_array" />
-      <wsdl:output message="tns:return_other_class_arrayResponse" name="return_other_class_arrayResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="send_out_complex_header" parameterOrder="send_out_complex_header">
-      <wsdl:input message="tns:send_out_complex_header" name="send_out_complex_header" />
-      <wsdl:output message="tns:send_out_complex_headerResponse" name="send_out_complex_headerResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="send_out_header" parameterOrder="send_out_header">
-      <wsdl:input message="tns:send_out_header" name="send_out_header" />
-      <wsdl:output message="tns:send_out_headerResponse" name="send_out_headerResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="soap_exception" parameterOrder="soap_exception">
-      <wsdl:input message="tns:soap_exception" name="soap_exception" />
-      <wsdl:output message="tns:soap_exceptionResponse" name="soap_exceptionResponse" />
-    </wsdl:operation>
-    <wsdl:operation name="test_empty" parameterOrder="test_empty">
-      <wsdl:input message="tns:test_empty" name="test_empty" />
-      <wsdl:output message="tns:test_emptyResponse" name="test_emptyResponse" />
-    </wsdl:operation>
-  </wsdl:portType>
-  <wsdl:service name="InteropArray">
-    <wsdl:port binding="tns:Application" name="Application">
-      <soap:address location="http://localhost:9753/?wsdl" />
-    </wsdl:port>
-  </wsdl:service>
-  <wsdl:service name="InteropClass">
-    <wsdl:port binding="tns:Application" name="Application">
-      <soap:address location="http://localhost:9753/?wsdl" />
-    </wsdl:port>
-  </wsdl:service>
-  <wsdl:service name="InteropException">
-    <wsdl:port binding="tns:Application" name="Application">
-      <soap:address location="http://localhost:9753/?wsdl" />
-    </wsdl:port>
-  </wsdl:service>
-  <wsdl:service name="InteropMisc">
-    <wsdl:port binding="tns:Application" name="Application">
-      <soap:address location="http://localhost:9753/?wsdl" />
-    </wsdl:port>
-  </wsdl:service>
-  <wsdl:service name="InteropPrimitive">
-    <wsdl:port binding="tns:Application" name="Application">
-      <soap:address location="http://localhost:9753/?wsdl" />
-    </wsdl:port>
-  </wsdl:service>
-  <wsdl:service name="InteropServiceWithComplexHeader">
-    <wsdl:port binding="tns:Application" name="Application">
-      <soap:address location="http://localhost:9753/?wsdl" />
-    </wsdl:port>
-  </wsdl:service>
-  <wsdl:service name="InteropServiceWithHeader">
-    <wsdl:port binding="tns:Application" name="Application">
-      <soap:address location="http://localhost:9753/?wsdl" />
-    </wsdl:port>
-  </wsdl:service>
 </wsdl:definitions>
