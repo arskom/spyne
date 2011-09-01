@@ -1,10 +1,16 @@
+
 rpclib-2.2.0-alpha
  * The serialization / deserialization logic was redesigned. Now most of the
    serialization-related logic is under the responsibility of the ProtocolBase
    children.
+ * Interface generation logic was redesigned. The WSDL logic is separated to
+   XmlSchema and Wsdl11 classes. 'add_to_schema' calls were renamed to just 
+   'add' and were moved inside rpclib.interface.xml_schema package.
  * Interface and Protocol assignment of an rpclib application is now more
    explicit. Both are also configurable during instantion. This doesn't mean
    there's much to configure :)
+ * WS-I Conformance is back!. See https://github.com/arskom/rpclib/blob/master/src/rpclib/test/interop/wsi-report-rpclib.xml
+   for the latest conformance report.
  * Numeric types now support range restrictions. e.g. Integer(ge=0) will only
    accept positive integers.
  * Any -> AnyXml, AnyAsDict -> AnyDict. AnyAsDict is not the child of the AnyXml
