@@ -18,12 +18,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from rpclib.server.wsgi import Application
-from rpclib.service import rpc
-from rpclib.service import DefinitionBase
-from rpclib.model.primitive import String, Integer
-
-from rpclib.model.clazz import ClassSerializer, Array
+from rpclib.application import Application
+from rpclib.decorator import srpc
+from rpclib.interface.wsdl import Wsdl11
+from rpclib.protocol.soap import Soap11
+from rpclib.service import ServiceBase
+from rpclib.model.complex import Array
+from rpclib.model.complex import ComplexModel
+from rpclib.model.primitive import Integer
+from rpclib.model.primitive import String
+from rpclib.server.wsgi import WsgiApplication
 
 '''
 This example shows how to define and use complex structures
@@ -35,22 +39,23 @@ user_database = {}
 userid_seq = 1
 
 
-class Permission(ClassSerializer):
+class Permission(ComplexModel):
     __namespace__ = "permission"
     application = String
     feature = String
 
-class User(ClassSerializer):
+class User(ComplexModel):
     __namespace__ = "user"
+
     userid = Integer
     username = String
     firstname = String
     lastname = String
     permissions = Array(Permission)
 
-class UserManager(DefinitionBase):
-    @rpc(User, _returns=Integer)
-    def add_user(self, user):
+class UserManager(ServiceBase):
+    @srpc(User, _returns=Integer)
+    def add_user(user):
         global user_database
         global userid_seq
 
@@ -60,34 +65,42 @@ class UserManager(DefinitionBase):
 
         return user.userid
 
-    @rpc(Integer, _returns=User)
-    def get_user(self, userid):
+    @srpc(Integer, _returns=User)
+    def get_user(userid):
         global user_database
 
         return user_database[userid]
 
-    @rpc(User)
-    def modify_user(self, user):
+    @srpc(User)
+    def modify_user(user):
         global user_database
 
         user_database[user.userid] = user
 
-    @rpc(Integer)
-    def delete_user(self, userid):
+    @srpc(Integer)
+    def delete_user(userid):
         global user_database
 
         del user_database[userid]
 
-    @rpc(_returns=Array(User))
-    def list_users(self):
+    @srpc(_returns=Array(User))
+    def list_users():
         global user_database
 
-        return [v for k, v in user_database.items()]
+        return user_database.values()
 
 if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server
-        server = make_server('localhost', 7789, Application([UserManager], 'tns'))
-        server.serve_forever()
     except ImportError:
         print "Error: example server code requires Python >= 2.5"
+
+    application = Application([UserManager], 'rpclib.examples.complex',
+                interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
+
+    server = make_server('127.0.0.1', 7789, WsgiApplication(application))
+
+    print "listening to http://127.0.0.1:7789"
+    print "wsdl is at: http://localhost:7789/?wsdl"
+
+    server.serve_forever()

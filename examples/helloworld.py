@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
+# encoding: utf8
 #
-# rpclib - Copyright (C) 2009 Aaron Bickell, Jamie Kirkpatrick
+# rpclib - Copyright (C) 2009 Rpclib contributors
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -18,24 +18,43 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import rpclib
+import logging
 
-from rpclib.service import rpc
-from rpclib.service import DefinitionBase
-from rpclib.model.primitive import String, Integer
-
-from rpclib.server import wsgi
-from rpclib.model.clazz import Array
+from rpclib.application import Application
+from rpclib.decorator import srpc
+from rpclib.interface.wsdl import Wsdl11
+from rpclib.protocol.soap import Soap11
+from rpclib.service import ServiceBase
+from rpclib.model.complex import Iterable
+from rpclib.model.primitive import Integer
+from rpclib.model.primitive import String
+from rpclib.server.wsgi import WsgiApplication
 
 '''
 This is a simple HelloWorld example to show the basics of writing
 a webservice using rpclib, starting a server, and creating a service
 client.
+
+Here's how to call it using suds:
+
+>>> from suds.client import Client
+>>> c = Client('http://localhost:7789/?wsdl')
+>>> c.service.say_hello('punk', 5)
+(stringArray){
+   string[] =
+      "Hello, punk",
+      "Hello, punk",
+      "Hello, punk",
+      "Hello, punk",
+      "Hello, punk",
+ }
+>>>
+
 '''
 
-class HelloWorldService(DefinitionBase):
-    @rpc(String, Integer, _returns=Array(String))
-    def say_hello(self, name, times):
+class HelloWorldService(ServiceBase):
+    @srpc(String, Integer, _returns=Iterable(String))
+    def say_hello(name, times):
         '''
         Docstrings for service methods appear as documentation in the wsdl
         <b>what fun</b>
@@ -43,22 +62,25 @@ class HelloWorldService(DefinitionBase):
         @param the number of times to say hello
         @return the completed array
         '''
-        results = []
-        for i in range(0, times):
-            results.append('Hello, %s' % name)
-        return results
+
+        for i in xrange(times):
+            yield 'Hello, %s' % name
 
 if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server
-        soap_application = rpclib.Application([HelloWorldService], 'tns')
-        wsgi_application = wsgi.Application(soap_application)
-
-        print "listening to http://0.0.0.0:7789"
-        print "wsdl is at: http://127.0.0.1:7789/?wsdl"
-
-        server = make_server('localhost', 7789, wsgi_application)
-        server.serve_forever()
-
     except ImportError:
         print "Error: example server code requires Python >= 2.5"
+
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger('rpclib.protocol.soap._base').setLevel(logging.DEBUG)
+
+    application = Application([HelloWorldService], 'rpclib.examples.hello.vanilla',
+                interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
+
+    server = make_server('127.0.0.1', 7789, WsgiApplication(application))
+
+    print "listening to http://127.0.0.1:7789"
+    print "wsdl is at: http://localhost:7789/?wsdl"
+
+    server.serve_forever()
