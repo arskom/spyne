@@ -31,7 +31,7 @@ if __name__ == '__main__':
 
     server = Server(soap_application, url)
     logging.info("************************")
-    logging.info("Use Ctrl+\\ to exit.")
+    logging.info("Use Ctrl+\\ to exit if Ctrl-C does not work.")
     logging.info("See the 'I can't Ctrl-C my Python/Ruby application. Help!' "
                  "question in http://www.zeromq.org/area:faq for more info.")
     logging.info("listening on %r" % url)
