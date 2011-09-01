@@ -1,5 +1,10 @@
 
+Changelog
+=========
+
 rpclib-2.2.0-alpha
+------------------
+
  * The serialization / deserialization logic was redesigned. Now most of the
    serialization-related logic is under the responsibility of the ProtocolBase
    children.
@@ -18,6 +23,8 @@ rpclib-2.2.0-alpha
  * rpclib.model.exception -> rpclib.model.fault.
 
 rpclib-2.1.0-alpha
+------------------
+
  * The method dispatch logic was rewritten: It's now possible for the protocols
    to override how method request strings are matched to methods definitions.
  * Unsigned integer primitives were added.
@@ -28,6 +35,8 @@ rpclib-2.1.0-alpha
  * Added a self reference mechanism.
 
 rpclib-2.0.10-alpha
+-------------------
+
  * The inclusion of base xml schemas were made optional.
  * WSDL: Fix out header being the same as in header.
  * Added type checking to outgoing Integer types. it's not handled as nicely as
@@ -38,13 +47,19 @@ rpclib-2.0.10-alpha
  * Correct some bugs with the XMLAttribute model
 
 rpclib-2.0.9-alpha
+------------------
+
  * Added inheritance support to rpclib.model.table.TableSerializer.
 
 rpclib-2.0.8-alpha
+------------------
+
  * The NullServer now also returns context with the return object to have it
    survive past user-defined method return.
 
 rpclib-2.0.7-alpha
+------------------
+
  * More tests are migrated to the new api.
  * Function identifier strings are no more created directly from the function
    object itself. Function's key in the class definition is used as default
@@ -52,30 +67,44 @@ rpclib-2.0.7-alpha
  * Base xml schemas are no longer imported.
 
 rpclib-2.0.6-alpha
+------------------
+
  * Added rpclib.server.null.NullServer, which is a server class with a client
    interface that attempts to do no (de)serialization at all. It's intended to
    be used in tests.
 
 rpclib-2.0.5-alpha
+------------------
+
  * Add late mapping support to sqlalchemy table serializer.
 
 rpclib-2.0.4-alpha
+------------------
+
  * Add preliminary support for a sqlalchemy-0.7-compatible serializer.
 
 rpclib-2.0.3-alpha
+------------------
+
  * Migrate the HttpRpc serializer to the new internal api.
 
 rpclib-2.0.2-alpha
+------------------
+
  * SimpleType -> SimpleModel
  * Small bugfixes.
 
 rpclib-2.0.1-alpha
+------------------
+
  * EventManager now uses ordered sets instead of normal sets to store event
    handlers.
  * Implemented sort_wsdl, a small hack to sort wsdl output in order to ease
    debugging.
 
 rpclib-2.0.0-alpha
+------------------
+
  * Implemented EventManager and replaced hook calls with events.
  * The rpc decorator now produces static methods. The methods still get an implicit
    first argument that holds the service contexts. It's an instance of the
@@ -107,6 +136,8 @@ rpclib-2.0.0-alpha
    * rpclib.service.rpc, srpc -> rpclib.decorator.rpc, srpc
 
 soaplib-3.x -> rpclib-1.1.1-alpha
+---------------------------------
+
  * Soaplib is now also protocol agnostic. As it now supports protocols other
    than soap (like Rest-minus-the-verbs HttpRpc), it's renamed to rpclib. This
    also means soaplib can now support multiple versions of soap and wsdl
@@ -119,6 +150,8 @@ soaplib-3.x -> rpclib-1.1.1-alpha
    memory during processing.
 
 soaplib-2.x
+-----------
+
  * This release transformed soaplib from a soap server that exclusively supported
    http to a soap serialization/deserialization library that is architecture and
    transport agnostic.
@@ -139,24 +172,36 @@ soaplib-2.x
  * Increased test coverage for soaplib and supported servers
 
 soaplib-1.0
+-----------
+
  * Standards-compliant Soap Faults
  * Allow multiple return values and return types
 
 soaplib-0.9.4
+-------------
+
  * pritimitive.Array -> clazz.Array
  * Support for SimpleType restrictions (pattern, length, etc.)
 
 soaplib-0.9.3
+-------------
+
  * Soap header support
  * Tried the WS-I Test first time. Many bug fixes.
 
 soaplib-0.9.2
+-------------
+
  * Support for inheritance.
 
 soaplib-0.9.1
+-------------
+
  * Support for publishing multiple service classes.
 
 soaplib-0.9
+-----------
+
  * Soap server logic almost completely rewritten.
  * Soap client removed in favor of suds.
  * Object definition api no longer needs a class types: under class definition.
@@ -168,4 +213,6 @@ soaplib-0.9
  * @soapmethod -> @rpc
 
 soaplib-0.8
+-----------
+
  * Switched to lxml for proper xml namespace support.
