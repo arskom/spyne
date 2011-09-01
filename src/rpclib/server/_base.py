@@ -61,7 +61,7 @@ class ServerBase(object):
             ctx.out_error = e
 
     def get_out_object(self, ctx):
-        self.app.process_request(ctx, ctx.in_object)
+        self.app.process_request(ctx)
 
     def get_out_string(self, ctx):
         assert ctx.out_document is None
