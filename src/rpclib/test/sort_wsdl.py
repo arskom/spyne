@@ -31,7 +31,7 @@ from lxml import etree
 def cache_order(l,ns):
     return dict([ ("{%s}%s" % (ns, a), l.index(a)) for a in l])
 
-wsdl_order = ('types', 'message', 'binding', 'portType', 'service')
+wsdl_order = ('types', 'message', 'service', 'portType', 'binding')
 wsdl_order = cache_order(wsdl_order,ns_wsdl)
 
 schema_order = ('import', 'element', 'simpleType', 'complexType')
