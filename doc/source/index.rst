@@ -44,11 +44,11 @@ submit a pull request to bring your work to the attention of the core
 committers. They will respond to review your patch and act accordingly.
 
 To save both parties time, make sure the existing tests pass. If you are
-adding new functionality or fixing a bug, please have accompanying test.
+adding new functionality or fixing a bug, please have the accompanying test.
 This will both help us increase test coverage and insure your use-case
 is immunte to feature code changes. You could also summarize in one or
 two lines how your work will affect the life of rpclib users in the
-CHANGELOG.md file.
+CHANGELOG file.
 
 Please follow the `PEP 8 <http://www.python.org/dev/peps/pep-0008/>`
 style guidelines for both source code and docstrings.
@@ -63,19 +63,6 @@ significant change to be committed via pull requests. It also provides a
 stable home for the rpclib repository, despite any "changing of the guard"
 as team members join and leave the project.
 
-FAQ
----
-.. toctree::
-   :maxdepth: 2
-
-   pages/faq
-
-Change Log
-----------
-.. toctree::
-   :maxdepth: 2
-
-   pages/changelog
 
 Contents:
 ---------
@@ -96,6 +83,20 @@ Contents:
    pages/service
 
    pages/indices_and_tables
+
+Frequently Asked Questions
+--------------------------
+.. toctree::
+   :maxdepth: 2
+
+   pages/faq
+
+Change Log
+----------
+.. toctree::
+   :maxdepth: 2
+
+   pages/changelog
 
 
 Indices and tables
