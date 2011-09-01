@@ -7,7 +7,7 @@ common datatypes generally needed.
 
 Base
 ----
-.. automodule:: rpclib.model.base
+.. automodule:: rpclib.model._base
     :members:
     :undoc-members:
     :inherited-members:
@@ -23,7 +23,7 @@ Binary
 
 Clazz
 ------
-.. automodule:: rpclib.model.clazz
+.. automodule:: rpclib.model.complex
     :members:
     :undoc-members:
     :inherited-members:
@@ -40,7 +40,7 @@ Enum
 
 Exception
 ---------
-.. automodule:: rpclib.model.exception
+.. automodule:: rpclib.model.fault
     :members:
     :undoc-members:
     :inherited-members:
