@@ -65,7 +65,8 @@ class Application(object):
         """
 
         try:
-            # implementation hook
+            # fire events
+            self.event_manager.fire_event('method_call', ctx)
             ctx.service_class.event_manager.fire_event('method_call', ctx)
 
             # call the method
