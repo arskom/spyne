@@ -28,7 +28,6 @@ from _base import nillable_value
 from _base import nillable_element
 
 def get_members_etree(prot, cls, inst, parent):
-    print parent
     parent_cls = getattr(cls, '__extends__', None)
     if not (parent_cls is None):
         get_members_etree(prot, parent_cls, inst, parent)
@@ -69,7 +68,6 @@ def complex_to_parent_element(prot, cls, value, tns, parent_elt, name=None):
 
 @nillable_element
 def complex_from_element(prot, cls, element):
-    print cls
     #import pdb; pdb.set_trace()
     inst = cls.get_deserialization_instance()
 
@@ -89,7 +87,6 @@ def complex_from_element(prot, cls, element):
         key = c.tag.split('}')[-1]
 
         member = flat_type_info.get(key, None)
-        logger.debug("\tprocessing: %r: %r" % (key, member))
         if member is None:
             continue
 
