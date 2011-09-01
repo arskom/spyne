@@ -16,7 +16,6 @@ from lxml import etree
 
 CONFIG_FILE = 'config.xml'
 RPCLIB_TEST_NS = 'rpclib.test.interop.server'
-RPCLIB_TEST_SERVICE = 'Application'
 RPCLIB_TEST_PORT = 'Application'
 RPCLIB_REPORT_FILE = 'wsi-report-rpclib.xml'
 
@@ -35,7 +34,31 @@ WSI_ANALYZER_CONFIG_TEMPLATE=string.Template("""<?xml version="1.0" encoding="UT
   </wsi-analyzerConfig:testAssertionsFile>
   <wsi-analyzerConfig:wsdlReference>
     <wsi-analyzerConfig:wsdlElement type="port"
-          parentElementName="${SERVICE_NAME}" namespace="${WSDL_NAMESPACE}">
+          parentElementName="InteropArray" namespace="${WSDL_NAMESPACE}">
+      ${PORT_NAME}
+    </wsi-analyzerConfig:wsdlElement>
+    <wsi-analyzerConfig:wsdlElement type="port"
+          parentElementName="InteropClass" namespace="${WSDL_NAMESPACE}">
+      ${PORT_NAME}
+    </wsi-analyzerConfig:wsdlElement>
+    <wsi-analyzerConfig:wsdlElement type="port"
+          parentElementName="InteropException" namespace="${WSDL_NAMESPACE}">
+      ${PORT_NAME}
+    </wsi-analyzerConfig:wsdlElement>
+    <wsi-analyzerConfig:wsdlElement type="port"
+          parentElementName="InteropMisc" namespace="${WSDL_NAMESPACE}">
+      ${PORT_NAME}
+    </wsi-analyzerConfig:wsdlElement>
+    <wsi-analyzerConfig:wsdlElement type="port"
+          parentElementName="InteropPrimitive" namespace="${WSDL_NAMESPACE}">
+      ${PORT_NAME}
+    </wsi-analyzerConfig:wsdlElement>
+    <wsi-analyzerConfig:wsdlElement type="port"
+          parentElementName="InteropServiceWithComplexHeader" namespace="${WSDL_NAMESPACE}">
+      ${PORT_NAME}
+    </wsi-analyzerConfig:wsdlElement>
+    <wsi-analyzerConfig:wsdlElement type="port"
+          parentElementName="InteropServiceWithHeader" namespace="${WSDL_NAMESPACE}">
       ${PORT_NAME}
     </wsi-analyzerConfig:wsdlElement>
     <wsi-analyzerConfig:wsdlURI>${WSDL_URI}</wsi-analyzerConfig:wsdlURI>
@@ -88,7 +111,6 @@ def create_config(wsdl_uri, config_file):
     vars = {'REPORT_FILE':RPCLIB_REPORT_FILE,
             'STYLESHEET_FILE':WSI_STYLESHEET_FILE,
             'ASSERTIONS_FILE':WSI_TEST_ASSERTIONS_FILE,
-            'SERVICE_NAME':RPCLIB_TEST_SERVICE,
             'WSDL_NAMESPACE':RPCLIB_TEST_NS,
             'PORT_NAME':RPCLIB_TEST_PORT,
             'WSDL_URI':wsdl_uri}
@@ -133,4 +155,5 @@ def analyze_wsdl(config_file):
 if __name__ == '__main__':
     configure_env()
     create_config('http://localhost:9753/?wsdl', CONFIG_FILE)
+    #create_config('/home/plq/src/github/plq/rpclib/src/rpclib/test/wsdl.xml', CONFIG_FILE)
     analyze_wsdl(CONFIG_FILE)

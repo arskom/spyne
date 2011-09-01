@@ -206,6 +206,15 @@ class Wsdl11(XmlSchema):
             plink.set('name', service_name)
             self.__add_partner_link(service_name, plink)
 
+        # create service nodes in advance. they're to be filled in subsequent
+        # add_port_type calls.
+        for s in self.services:
+            self._get_or_create_service_node(self._get_applied_service_name(s))
+
+        # create portType nodes
+        for s in self.services:
+            self.add_port_type(s, root, service_name, types, self.url)
+
         # create binding nodes
         binding = etree.SubElement(root, '{%s}binding' % _ns_wsdl)
         binding.set('name', service_name)
@@ -214,17 +223,15 @@ class Wsdl11(XmlSchema):
         soap_binding = etree.SubElement(binding, '{%s}binding' % _ns_soap)
         soap_binding.set('style', 'document')
 
+        cb_binding = None
+        for s in self.services:
+            cb_binding = self.add_bindings_for_methods(s, root, service_name,
+                                                            binding, cb_binding)
+
         if self.app.transport is None:
             raise Exception("You must set the 'transport' property of the "
                             "parent 'Application' instance")
         soap_binding.set('transport', self.app.transport)
-
-        cb_binding = None
-
-        for s in self.services:
-            self.add_port_type(s, root, service_name, types, self.url)
-            cb_binding = self.add_bindings_for_methods(s, root, service_name,
-                                                            binding, cb_binding)
 
         self.__wsdl = etree.tostring(root, xml_declaration=True,
                                                                encoding="UTF-8")
@@ -270,22 +277,25 @@ class Wsdl11(XmlSchema):
 
         return False
 
-    def add_port_type(self, service, root, service_name, types, url):
-        # FIXME: I don't think this call is working.
-        cb_port_type = _add_callbacks(service, root, types, service_name, url)
-
-        port_binding_names = []
-
+    def _get_applied_service_name(self, service):
         if service.get_service_name() is None:
             # This is the default behavior. i.e. no service interface is
             # defined in the service heading
             if len(self.services) == 1:
-                applied_service_name = self.get_name()
+                retval = self.get_name()
             else:
-                applied_service_name = service.get_service_class_name()
+                retval = service.get_service_class_name()
         else:
-            applied_service_name = service.get_service_name()
+            retval = service.get_service_name()
 
+        return retval
+
+    def add_port_type(self, service, root, service_name, types, url):
+        # FIXME: I don't think this call is working.
+        cb_port_type = _add_callbacks(service, root, types, service_name, url)
+        applied_service_name = self._get_applied_service_name(service)
+
+        port_binding_names = []
         port_type_list = service.get_port_types()
         if len(port_type_list) > 0:
             for port_type_name in port_type_list:
