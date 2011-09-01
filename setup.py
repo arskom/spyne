@@ -23,7 +23,7 @@ mechanisms.
 This project uses lxml as it's XML API, providing full namespace support.
 """
 
-LONG_DESC += open('CHANGELOG.md', 'r').read()
+LONG_DESC += open('CHANGELOG.rst', 'r').read()
 
 SHORT_DESC="A transport and architecture agnostic rpc (de)serialization " \
            "library that focuses on making small, rpc-oriented messaging work."
