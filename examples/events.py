@@ -31,26 +31,18 @@ from rpclib.server.wsgi import WsgiApplication
 
 '''
 This example is an enhanced version of the HelloWorld example that
-uses service 'hooks' to apply cross-cutting behavior to the service.
+uses event listeners to apply cross-cutting behavior to the service.
 In this example, the service hooks are used to gather performance
 information on both the method execution as well as the duration
-of the entire call, including serialization and deserialization. The
-available hooks are:
-
-    * on_call
-    * on_wsdl
-    * on_wsdl_exception
-    * on_method_exec
-    * on_results
-    * on_exception
-    * on_return
+of the entire call, including serialization and deserialization.
 
 These method can be used to easily apply cross-cutting functionality
 accross all methods in the service to do things like database transaction
-management, logging and measuring performance.  This example also
-employs the threadlocal request (rpclib.wsgi_soap.request) object
+management, logging and measuring performance. This example also
+uses the user-defined context (udc) attribute of the MethodContext object
 to hold the data points for this request.
 '''
+
 class UserDefinedContext(object):
     def __init__(self):
         self.call_start = None
