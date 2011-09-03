@@ -188,6 +188,7 @@ class Wsdl11(XmlSchema):
         # create wsdl root node
         self.root_elt = root = etree.Element("{%s}definitions" % _ns_wsdl,
                                                                nsmap=self.nsmap)
+
         root.set('targetNamespace', self.tns)
         root.set('name', service_name)
 
@@ -237,8 +238,8 @@ class Wsdl11(XmlSchema):
                                                                encoding="UTF-8")
 
     def __add_partner_link(self, service_name, plink):
-        """Add the partnerLinkType node to the wsdl.
-        """
+        """Add the partnerLinkType node to the wsdl."""
+
         ns_tns = self.get_tns()
         pref_tns = self.get_namespace_prefix(ns_tns)
 
@@ -373,6 +374,7 @@ class Wsdl11(XmlSchema):
                                     method.in_message.get_type_name())
             self._add_message_for_object(root, messages, method.out_message,
                                     method.out_message.get_type_name())
+
             if method.in_header is not None:
                 if isinstance(method.in_header, (list, tuple)):
                     in_header_message_name = ''.join((method.name,
@@ -381,6 +383,7 @@ class Wsdl11(XmlSchema):
                     in_header_message_name = method.in_header.get_type_name()
                 self._add_message_for_object(root, messages,
                                     method.in_header, in_header_message_name)
+
             if method.out_header is not None:
                 if isinstance(method.out_header, (list, tuple)):
                     out_header_message_name = ''.join((method.name,
