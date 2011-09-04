@@ -71,16 +71,16 @@ Contents:
    :maxdepth: 2
 
    tutorial/index
-   reference/index
-   pages/serializers
-   pages/binaryfiles
-   pages/message_api
-   pages/hooks
-   pages/apache_axis
-   pages/serializer_api
-   pages/soap
-   pages/wsgi
-   pages/service
+   #reference/index
+   #pages/serializers
+   #pages/binaryfiles
+   #pages/message_api
+   #pages/hooks
+   #pages/apache_axis
+   #pages/serializer_api
+   #pages/soap
+   #pages/wsgi
+   #pages/service
 
 Frequently Asked Questions
 --------------------------
