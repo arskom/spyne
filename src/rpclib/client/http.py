@@ -57,9 +57,9 @@ class Client(ClientBase):
         super(Client, self).__init__(url, app)
 
         # FIXME: this four-line block should be explained...
-        if isinstance(app.in_protocol,rpclib.protocol.soap.Soap11):
-            app.in_protocol.in_wrapper = rpclib.protocol.soap.Soap11.OUT_WRAPPER
-        if isinstance(app.out_protocol,rpclib.protocol.soap.Soap11):
-            app.out_protocol.out_wrapper= rpclib.protocol.soap.Soap11.NO_WRAPPER
+        if isinstance(app.in_protocol, rpclib.protocol.soap._base._Soap11):
+            app.in_protocol.in_wrapper = rpclib.protocol.soap._base._Soap11.OUT_WRAPPER
+        if isinstance(app.out_protocol,rpclib.protocol.soap._base._Soap11):
+            app.out_protocol.out_wrapper= rpclib.protocol.soap._base._Soap11.NO_WRAPPER
 
         self.service = Service(_RemoteProcedure, url, app)
