@@ -9,7 +9,7 @@ service for production purposes.
 Declaring a Rpclib Service
 --------------------------
 
-This example is available here: http://github.com/arskom/rpclib/blob/master/examples/helloworld.py.
+This example is available here: http://github.com/arskom/rpclib/blob/master/examples/helloworld_soap.py.
 ::
 
     import logging
@@ -116,8 +116,8 @@ and return types are standard python objects::
 As the name implies, when returning an iterable, you can use any type of python
 iterable. Here, we chose to use generators.
 
-Deploying the service
----------------------
+Deploying exposing the service using soap
+-----------------------------------------
 
 Now that we have defined our service, we are ready to share it with the outside
 world. Rpclib has been tested with several other web servers, This example uses
@@ -175,3 +175,57 @@ Suds is a separate project for building pure-python soap clients. To learn more
 visit the project's page: https://fedorahosted.org/suds/. You can simply install
 it using `easy_install suds`.
 
+Deploying exposing the service using HttpRpc
+--------------------------------------------
+
+HttpRpc is like rest, but it doesn't care about HTTP verbs (yet). The only
+difference between the SOAP and the HTTP version is the application instantiation
+line: ::
+
+        application = Application([HelloWorldService], 'rpclib.examples.hello.vanilla',
+                    interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
+
+This example is available here: http://github.com/arskom/rpclib/blob/master/examples/helloworld_http.py.
+
+Here's how you can test your service using wget. ::
+
+    wget "http://localhost:7789/say_hello?times=5&name=Dave" -qO -
+
+If you have HtmlTidy installed, you can use this command to get a more readable
+output. ::
+
+    wget "http://localhost:7789/say_hello?times=5&name=Dave" -qO - | tidy -xml -indent
+
+The command's output would be as follows: ::
+
+    <?xml version='1.0' encoding='utf8'?>
+    <senv:Envelope xmlns:wsa="http://schemas.xmlsoap.org/ws/2003/03/addressing"
+    xmlns:tns="rpclib.examples.hello.vanilla"
+    xmlns:plink="http://schemas.xmlsoap.org/ws/2003/05/partner-link/"
+    xmlns:xop="http://www.w3.org/2004/08/xop/include"
+    xmlns:senc="http://schemas.xmlsoap.org/soap/encoding/"
+    xmlns:s12env="http://www.w3.org/2003/05/soap-envelope/"
+    xmlns:s12enc="http://www.w3.org/2003/05/soap-encoding/"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
+    <senv:Body>
+        <tns:say_helloResponse>
+        <tns:say_helloResult>
+            <tns:string>Hello, Dave</tns:string>
+            <tns:string>Hello, Dave</tns:string>
+            <tns:string>Hello, Dave</tns:string>
+            <tns:string>Hello, Dave</tns:string>
+            <tns:string>Hello, Dave</tns:string>
+        </tns:say_helloResult>
+        </tns:say_helloResponse>
+    </senv:Body>
+    </senv:Envelope>
+
+What's next?
+------------
+
+See the next "User Manager" tutorial that will walk you through defining complex
+objects and using events.
