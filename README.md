@@ -2,8 +2,6 @@
 Warning! This is rpclib's unstable development branch. Not only that, but rpclib
 project is experimental. You have been warned.
 
-Warning! The documentation is useless! To get some examples, look at the tests.
-
 Overview
 ========
 
@@ -21,6 +19,8 @@ procedure call pack and deploy it using your transport of choice.
 The official rpclib discussion forum can be found [here](http://mail.python.org/mailman/listinfo/soap).
 
 See the [downloads section](http://github.com/arskom/rpclib/downloads) for related downloads.
+
+The documentation [here](http://arskom.github.com/rpclib)
 
 Rpclib is a generalized version of a soap processing library known as soaplib.
 The legacy versions of soaplib are also available in this repository.
