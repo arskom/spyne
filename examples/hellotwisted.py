@@ -1,6 +1,7 @@
 #!/usr/bin/env python
+# encoding: utf8
 #
-# rpclib - Copyright (C) 2009 Rpclib contributors
+# rpclib - Copyright (C) Rpclib contributors
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
