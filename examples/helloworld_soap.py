@@ -18,76 +18,53 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import logging
+
 from rpclib.application import Application
 from rpclib.decorator import srpc
 from rpclib.interface.wsdl import Wsdl11
 from rpclib.protocol.soap import Soap11
 from rpclib.service import ServiceBase
-from rpclib.model.complex import Array
-from rpclib.model.complex import ComplexModel
+from rpclib.model.complex import Iterable
 from rpclib.model.primitive import Integer
 from rpclib.model.primitive import String
 from rpclib.server.wsgi import WsgiApplication
 
 '''
-This example shows how to define and use complex structures
-in rpclib.  This example uses an extremely simple in-memory
-dictionary to store the User objects.
+This is a simple HelloWorld example to show the basics of writing
+a webservice using rpclib, starting a server, and creating a service
+client.
+
+Here's how to call it using suds:
+
+>>> from suds.client import Client
+>>> c = Client('http://localhost:7789/?wsdl')
+>>> c.service.say_hello('punk', 5)
+(stringArray){
+   string[] =
+      "Hello, punk",
+      "Hello, punk",
+      "Hello, punk",
+      "Hello, punk",
+      "Hello, punk",
+ }
+>>>
+
 '''
 
-user_database = {}
-userid_seq = 1
+class HelloWorldService(ServiceBase):
+    @srpc(String, Integer, _returns=Iterable(String))
+    def say_hello(name, times):
+        '''
+        Docstrings for service methods appear as documentation in the wsdl
+        <b>what fun</b>
+        @param name the name to say hello to
+        @param the number of times to say hello
+        @return the completed array
+        '''
 
-
-class Permission(ComplexModel):
-    __namespace__ = "permission"
-    application = String
-    feature = String
-
-class User(ComplexModel):
-    __namespace__ = "user"
-
-    userid = Integer
-    username = String
-    firstname = String
-    lastname = String
-    permissions = Array(Permission)
-
-class UserManager(ServiceBase):
-    @srpc(User, _returns=Integer)
-    def add_user(user):
-        global user_database
-        global userid_seq
-
-        user.userid = userid_seq
-        userid_seq = userid_seq+1
-        user_database[user.userid] = user
-
-        return user.userid
-
-    @srpc(Integer, _returns=User)
-    def get_user(userid):
-        global user_database
-
-        return user_database[userid]
-
-    @srpc(User)
-    def modify_user(user):
-        global user_database
-
-        user_database[user.userid] = user
-
-    @srpc(Integer)
-    def delete_user(userid):
-        global user_database
-
-        del user_database[userid]
-
-    @srpc(_returns=Array(User))
-    def list_users():
-        global user_database
-
-        return user_database.values()
+        for i in xrange(times):
+            yield 'Hello, %s' % name
 
 if __name__=='__main__':
     try:
@@ -95,7 +72,10 @@ if __name__=='__main__':
     except ImportError:
         print "Error: example server code requires Python >= 2.5"
 
-    application = Application([UserManager], 'rpclib.examples.complex',
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger('rpclib.protocol.soap._base').setLevel(logging.DEBUG)
+
+    application = Application([HelloWorldService], 'rpclib.examples.hello.vanilla',
                 interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
 
     server = make_server('127.0.0.1', 7789, WsgiApplication(application))

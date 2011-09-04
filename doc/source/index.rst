@@ -70,8 +70,8 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   pages/helloworld
-   pages/usermanager
+   tutorial/index
+   reference/index
    pages/serializers
    pages/binaryfiles
    pages/message_api
@@ -81,8 +81,6 @@ Contents:
    pages/soap
    pages/wsgi
    pages/service
-
-   pages/indices_and_tables
 
 Frequently Asked Questions
 --------------------------

@@ -51,3 +51,6 @@ nbproject
 
 wsi-test-tools
 src/rpclib/test/interop/config.xml
+
+# kate cruft
+*.kate-swp

@@ -112,6 +112,7 @@ class InterfaceBase(object):
 
         # populate types
         for s in self.services:
+            logger.debug("populating '%s.%s' types..." % (s.__module__, s.__name__))
             for method in s.public_methods.values():
                 if method.in_header is None:
                     method.in_header = s.__in_header__
@@ -152,7 +153,7 @@ class InterfaceBase(object):
         # populate call routes
         for s in self.services:
             s.__tns__ = self.get_tns()
-            logger.debug("populating '%s.%s'" % (s.__module__, s.__name__))
+            logger.debug("populating '%s.%s' methods..." % (s.__module__, s.__name__))
             for method in s.public_methods.values():
                 o = self.service_mapping.get(method.key)
                 if not (o is None):
