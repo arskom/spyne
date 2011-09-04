@@ -100,9 +100,7 @@ class Application(object):
                                                     'method_return_object', ctx)
 
     def call_wrapper(self, ctx):
-        return ctx.service_class.call_wrapper(ctx, ctx.descriptor.function,
-                                                                ctx.in_object)
-
+        return ctx.service_class.call_wrapper(ctx)
 
     def _has_callbacks(self):
         return self.interface._has_callbacks()
