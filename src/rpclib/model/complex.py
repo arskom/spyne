@@ -285,7 +285,7 @@ class ComplexModelBase(ModelBase):
         """Return an alias class for the given target class.
 
         This function is a variation on 'ComplexModel.produce'. The alias will
-        borrow the target's typeinfo.
+        borrow the target's _type_info.
         """
 
         cls_dict = {}
