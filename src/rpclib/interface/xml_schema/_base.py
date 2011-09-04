@@ -183,7 +183,10 @@ class XmlSchema(InterfaceBase):
         schema_info = self.get_schema_info(pref)
         schema_info.types[tn] = node
 
-        self.classes['{%s}%s' % (ns,tn)] = cls
+        class_key = '{%s}%s' % (ns,tn)
+        logger.debug('\tadding class %r for %r' % (repr(cls), class_key))
+
+        self.classes[class_key] = cls
         if ns == self.get_tns():
             self.classes[tn] = cls
 
@@ -196,7 +199,10 @@ class XmlSchema(InterfaceBase):
         schema_info = self.get_schema_info(pref)
         schema_info.types[tn] = node
 
-        self.classes['{%s}%s' % (ns,tn)] = cls
+        class_key = '{%s}%s' % (ns,tn)
+        logger.debug('\tadding class %r for %r' % (repr(cls), class_key))
+
+        self.classes[class_key] = cls
         if ns == self.get_tns():
             self.classes[tn] = cls
 

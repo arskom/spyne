@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf8
 #
-# rpclib - Copyright (C) 2009 Rpclib contributors
+# rpclib - Copyright (C) Rpclib contributors
 #
 # This library is free software; you can redistribute it and/or
 # modify it under the terms of the GNU Lesser General Public
@@ -24,6 +24,7 @@ from rpclib.application import Application
 from rpclib.decorator import srpc
 from rpclib.interface.wsdl import Wsdl11
 from rpclib.protocol.soap import Soap11
+from rpclib.protocol.http import HttpRpc
 from rpclib.service import ServiceBase
 from rpclib.model.complex import Iterable
 from rpclib.model.primitive import Integer
@@ -76,7 +77,7 @@ if __name__=='__main__':
     logging.getLogger('rpclib.protocol.soap._base').setLevel(logging.DEBUG)
 
     application = Application([HelloWorldService], 'rpclib.examples.hello.vanilla',
-                interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
+                interface=Wsdl11(), in_protocol=HttpRpc(), out_protocol=Soap11())
 
     server = make_server('127.0.0.1', 7789, WsgiApplication(application))
 
