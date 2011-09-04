@@ -2,18 +2,18 @@
 Changelog
 =========
 
-rpclib-2.2.2-alpha
+rpclib-2.2.2-beta
 ------------------
  * Fixed call to rpclib.application.Application.call_wrapper
  * Fixed HttpRpc server tranport instantiation.
  * Documentation improvements.
 
-rpclib-2.2.2-alpha
+rpclib-2.2.1-beta
 ------------------
  * Fixed call to rpclib.application.Application.call_wrapper introduced
  * Documentation improvements.
 
-rpclib-2.2.0-alpha
+rpclib-2.2.0-beta
 ------------------
 
  * The serialization / deserialization logic was redesigned. Now most of the
