@@ -17,4 +17,4 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-__version__ = '2.2.2-beta'
+__version__ = '2.2.2.1-beta'
