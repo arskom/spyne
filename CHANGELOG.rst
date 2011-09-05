@@ -167,7 +167,7 @@ soaplib-2.x
    http to a soap serialization/deserialization library that is architecture and
    transport agnostic.
  * Hard dependency on WSGI removed.
- * Sphinx docs with working examples: http://arskom.github.com/soaplib/2_0/
+ * Sphinx docs with working examples: http://arskom.github.com/rpclib/
  * Serializers renamed to Models.
  * Standalone xsd generation for ClassSerializer objects has been added. This
    allows soaplib to be used to define generic XML schemas, without SOAP
