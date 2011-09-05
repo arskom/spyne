@@ -20,7 +20,7 @@
 
 from rpclib.client.http import Client
 
-from user_manager import application
+from server_basic import application
 
 c = Client('http://localhost:7789/', application)
 
