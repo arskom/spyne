@@ -30,8 +30,6 @@ from rpclib.model.complex import ComplexModel
 from rpclib.model.complex import Array
 from rpclib.protocol.http import HttpRpc
 from rpclib.protocol.soap import Soap11
-from rpclib.server.null import NullServer
-from rpclib.service import ServiceBase
 
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -165,9 +163,9 @@ class TestSqlAlchemy(unittest.TestCase):
                 )).order_by(KeyValuePair.key)
 
         application = Application([Service],
-            interface_class=Wsdl11,
-            in_protocol_class=HttpRpc,
-            out_protocol_class=Soap11,
+            interface=Wsdl11(),
+            in_protocol=HttpRpc(),
+            out_protocol=Soap11(),
             name='Service', tns='tns'
         )
 
