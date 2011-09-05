@@ -10,7 +10,7 @@ rpclib-2.2.2-beta
 
 rpclib-2.2.1-beta
 ------------------
- * Fixed call to rpclib.application.Application.call_wrapper introduced
+ * rpclib.application.Application.call_wrapper introduced
  * Documentation improvements.
 
 rpclib-2.2.0-beta
