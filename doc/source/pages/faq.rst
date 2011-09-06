@@ -14,10 +14,9 @@ Patches are welcome.
 How do I implement a predefined WSDL?
 -------------------------------------
 
-This is not a strength of rpclib, which is more oriented toward designing
-new services declaratively in Python. It does not have any functionality
-to parse an existing WSDL document to produce the necessary Python classes
-and method stubs.
+This is not a strength of rpclib, which is more oriented toward implementing
+services from scratch in Python. It does not have any functionality to parse an
+existing WSDL document to produce the necessary Python classes and method stubs.
 
 Patches are welcome. You can start by adapting the WSDL parser from
 `RSL <http://rsl.sf.net>`.
