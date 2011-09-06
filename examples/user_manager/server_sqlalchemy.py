@@ -90,7 +90,7 @@ class UserManagerService(ServiceBase):
         ctx.udc.session.query(User).filter_by(user_id=user_id).delete()
 
     @rpc(_returns=Iterable(AlternativeUser))
-    def get_all_users(ctx):
+    def get_all_user(ctx):
         return ctx.udc.session.query(User)
 
 class UserDefinedContext(object):
