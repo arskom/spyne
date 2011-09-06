@@ -74,7 +74,6 @@ Contents:
    #reference/index
    #pages/serializers
    #pages/binaryfiles
-   #pages/message_api
    #pages/hooks
    #pages/serializer_api
    #pages/soap
