@@ -17,17 +17,14 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""A soap server that uses http as transport, and wsgi as bridge api"""
+"""This module contains the ServerBase class, the abstract base class for all
+server transport implementations."""
 
 import logging
 logger = logging.getLogger(__name__)
 
 from rpclib.model.fault import Fault
 from rpclib._base import EventManager
-
-HTTP_500 = '500 Internal server error'
-HTTP_200 = '200 OK'
-HTTP_405 = '405 Method Not Allowed'
 
 class InternalError(Fault):
     pass
@@ -36,7 +33,17 @@ class ValidationError(Fault):
     pass
 
 class ServerBase(object):
+    """This class is the abstract base class for all server transport
+    implementations. Unlike the client transports, this class does not define
+    a pure-virtual method that needs to be implemented by all base classes.
+
+    If there is a call to start the main loop, it's conventionally called
+    'serve_forever()'.
+    """
+
     transport = None
+    """The transport type, conventionally defined by the URI string to its
+    definition."""
 
     def __init__(self, app):
         self.app = app
@@ -44,6 +51,9 @@ class ServerBase(object):
         self.event_manager = EventManager(self)
 
     def get_in_object(self, ctx, in_string_charset=None):
+        """Uses the ctx.in_string to set ctx.in_body_doc, which in turn is used
+        to set ctx.in_object."""
+
         self.app.in_protocol.create_in_document(ctx, in_string_charset)
 
         try:
@@ -61,9 +71,15 @@ class ServerBase(object):
             ctx.out_error = e
 
     def get_out_object(self, ctx):
+        """Calls the matched method using the ctx.in_object to get
+        ctx.out_object."""
+
         self.app.process_request(ctx)
 
     def get_out_string(self, ctx):
+        """Uses the ctx.out_object to set ctx.out_document and later
+        ctx.out_object."""
+
         assert ctx.out_document is None
         assert ctx.out_string is None
 

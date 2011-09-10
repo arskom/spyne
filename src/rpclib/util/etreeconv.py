@@ -17,6 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""This module contains the utility methods that convert an ElementTree
+hierarchy to python dicts and vice versa.
+"""
+
 from lxml import etree
 
 from rpclib.util.odict import odict

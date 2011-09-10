@@ -17,10 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""This module contains a sort of an ordered dictionary implementation."""
+
 class odict(object):
-    """
-    Sort of an ordered dictionary implementation.
-    """
+    """Sort of an ordered dictionary implementation."""
 
     class Empty(object):
         pass

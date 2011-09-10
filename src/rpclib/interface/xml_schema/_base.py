@@ -17,6 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""This module contains the implementation of the Xml Schema standard and its
+helper methods and objects."""
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -68,6 +71,10 @@ _ns_soap = rpclib.const.xml_ns.soap
 _pref_wsa = rpclib.const.xml_ns.const_prefmap[_ns_wsa]
 
 class XmlSchema(InterfaceBase):
+    """The implementation of the  Xml Schema object definition document
+    standard.
+    """
+
     def __init__(self, app, import_base_namespaces=False):
         self.schema_dict = {}
         self.validation_schema = None
@@ -141,12 +148,7 @@ class XmlSchema(InterfaceBase):
         logger.debug("removed %r" % tmp_dir_name)
 
     def get_schema_node(self, pref):
-        """Return schema node for the given namespace prefix.
-
-        types == None means the call is for creating a standalone xml schema
-                      file for one single namespace.
-        types != None means the call is for creating the wsdl file.
-        """
+        """Return schema node for the given namespace prefix."""
 
         # create schema node
         if not (pref in self.schema_dict):
@@ -205,15 +207,6 @@ class XmlSchema(InterfaceBase):
         self.classes[class_key] = cls
         if ns == self.get_tns():
             self.classes[tn] = cls
-
-    def reset_interface(self):
-        InterfaceBase.reset_interface(self)
-
-        self.nsmap = dict(rpclib.const.xml_ns.const_nsmap)
-        self.prefmap = dict(rpclib.const.xml_ns.const_prefmap)
-
-        self.nsmap['tns'] = self.get_tns()
-        self.prefmap[self.get_tns()] = 'tns'
 
     def has_class(self, cls):
         ns_prefix = cls.get_namespace_prefix(self)

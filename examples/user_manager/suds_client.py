@@ -50,3 +50,4 @@ retval = c.service.add_user(u)
 print retval
 
 print c.service.get_user(retval)
+print c.service.get_all_user()

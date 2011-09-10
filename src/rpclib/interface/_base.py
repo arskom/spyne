@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""This module contains the InterfaceBase class and its helper objects."""
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -32,6 +34,8 @@ class SchemaInfo(object):
         self.types = odict()
 
 class InterfaceBase(object):
+    """The base class for all interface document generators."""
+
     def __init__(self, app=None):
         self.__ns_counter = 0
 
@@ -65,7 +69,16 @@ class InterfaceBase(object):
         self.classes = {}
         self.imports = {}
 
+        self.nsmap = dict(rpclib.const.xml_ns.const_nsmap)
+        self.prefmap = dict(rpclib.const.xml_ns.const_prefmap)
+
+        self.nsmap['tns'] = self.get_tns()
+        self.prefmap[self.get_tns()] = 'tns'
+
     def has_class(self, cls):
+        """Returns true if the given class is already included in the interface
+        object somewhere."""
+
         ns_prefix = cls.get_namespace_prefix(self)
         type_name = cls.get_type_name()
 
@@ -73,6 +86,12 @@ class InterfaceBase(object):
                            (type_name in self.namespaces[ns_prefix].types))
 
     def get_schema_info(self, prefix):
+        """Returns the SchemaInfo object for the corresponding namespace. It
+        creates it if it doesn't exist.
+
+        The SchemaInfo object holds the simple and complex type definitions
+        for a given namespace."""
+
         if prefix in self.namespaces:
             schema = self.namespaces[prefix]
         else:
@@ -81,9 +100,20 @@ class InterfaceBase(object):
         return schema
 
     def get_class(self, key):
+        """Returns the class definition that corresponds to the given key.
+        Keys are in '{namespace}class_name' form, a.k.a. XML QName format.
+
+        Not meant to be overridden.
+        """
         return self.classes[key]
 
     def get_class_instance(self, key):
+        """Returns the default class instance that corresponds to the given key.
+        Keys are in '{namespace}class_name' form, a.k.a. XML QName format.
+        Classes should not enforce arguments to the constructor.
+
+        Not meant to be overridden.
+        """
         return self.classes[key]()
 
     def get_name(self):
@@ -92,6 +122,7 @@ class InterfaceBase(object):
 
         Not meant to be overridden.
         """
+
         if self.app:
             return self.app.name
 
@@ -105,8 +136,12 @@ class InterfaceBase(object):
             return self.app.tns
 
     def populate_interface(self, types=None):
+        """Harvests the information stored in individual classes' _type_info
+        dictionaries. It starts from function definitions and includes only
+        the used objects.
+        """
         # FIXME: should also somehow freeze child classes' _type_info
-        #        dictionaries.
+        #        dictionaries, or at least warn about them.
 
         self.reset_interface()
 
@@ -201,4 +236,28 @@ class InterfaceBase(object):
         return pref
 
     def add(self, cls):
+        """This function is called by the populate_interface logic, which
+        expects you to implement a way to manage incoming classes.
+
+        In normal circumstances, the incoming classes are all ComplexModel
+        children.
+        """
+
+        raise NotImplementedError('Extend and override.')
+
+    def build_interface_document(self, cls):
+        """This function is supposed to be called just once, as late as possible
+        into the process start. It builds the interface document and caches it
+        somewhere.
+        """
+
+        raise NotImplementedError('Extend and override.')
+
+
+    def get_interface_document(self, cls):
+        """This function is called by server transports that try to satisfy the
+        request for the interface document. This should just return previously-cached
+        interface document.
+        """
+
         raise NotImplementedError('Extend and override.')

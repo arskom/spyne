@@ -17,6 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""This module contains the Wsdl 1.1 document standard implementation and
+its helper methods."""
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -117,15 +120,16 @@ def _add_callbacks(service, root, types, service_name, url):
     return cb_port_type
 
 class Wsdl11(XmlSchema):
+    """The implementation of the Wsdl 1.1 interface definition document standard."""
+
     def __init__(self, app=None, import_base_namespaces=False,
                                                        _with_partnerlink=False):
         '''Constructor.
 
-        @param An iterable of ServiceBase subclasses that define the exposed
-               services.
-        @param The targetNamespace attribute of the exposed service.
-        @param The name attribute of the exposed service.
-        @param Flag to indicate whether to generate partnerlink node.
+        :param app: The parent application.
+        :param import_base_namespaces: Include imports for base namespaces like
+                                       xsd, xsi, wsdl, etc.
+        :param _with_partnerlink: Include the partnerLink tag in the wsdl.
         '''
 
         XmlSchema.__init__(self, app, import_base_namespaces)
@@ -179,6 +183,7 @@ class Wsdl11(XmlSchema):
 
     def build_interface_document(self, url):
         """Build the wsdl for the application."""
+
         pref_tns = self.get_namespace_prefix(self.tns)
 
         self.url = url.replace('.wsdl', '') # FIXME: doesn't look so robust
@@ -399,11 +404,6 @@ class Wsdl11(XmlSchema):
 
     def add_bindings_for_methods(self, service, root, service_name,
                                         binding, transport, cb_binding=None):
-        '''Adds bindings to the wsdl
-
-        @param the root element of the wsdl
-        @param the name of this service
-        '''
 
         pref_tns = self.get_namespace_prefix(service.get_tns())
 
@@ -420,7 +420,7 @@ class Wsdl11(XmlSchema):
             operation = etree.Element('{%s}operation' % _ns_wsdl)
             operation.set('name', method.name)
 
-            soap_operation = etree.SubElement(operation, '{%s}operation' 
+            soap_operation = etree.SubElement(operation, '{%s}operation'
                                                                     % _ns_soap)
             soap_operation.set('soapAction', method.name)
             soap_operation.set('style', 'document')

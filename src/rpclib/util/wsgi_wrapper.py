@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""A Convenience module for wsgi wrapper libraries"""
+"""A Convenience module for wsgi wrapper libraries."""
 
 import os
 import logging
@@ -25,10 +25,12 @@ logger = logging.getLogger(__name__)
 
 import twisted.web.server
 import twisted.web.static
+
+from twisted.web.resource import Resource
 from twisted.web.wsgi import WSGIResource
 from twisted.internet import reactor
 
-def run_twisted(apps, port):
+def run_twisted(apps, port, with_static_file_server=True):
     """Twisted wrapper for the rpclib.server.wsgi.Application
 
     Takes a list of tuples containing application, url pairs, and a port to
@@ -36,8 +38,11 @@ def run_twisted(apps, port):
     """
 
     static_dir = os.path.abspath(".")
-    logging.info("registering static folder %r on /" % static_dir)
-    root = twisted.web.static.File(static_dir)
+    if with_static_file_server:
+        logging.info("registering static folder %r on /" % static_dir)
+        root = twisted.web.static.File(static_dir)
+    else:
+        root = Resource()
 
     for app,url in apps:
         resource = WSGIResource(reactor, reactor, app)

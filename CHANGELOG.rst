@@ -2,19 +2,27 @@
 Changelog
 =========
 
-rpclib-2.2.2-beta
+rpclib-2.2.3-beta
 ------------------
+ * Documentation improvements.
+ * rpclib.client.http.Client -> rpclib.client.http.HttpClient
+ * rpclib.client.zeromq.Client -> rpclib.client.zeromq.ZeroMQClient
+ * rpclib.server.zeromq.Server -> rpclib.server.zeromq.ZeroMQServer
+ * rpclib.model.table.TableSerializer -> rpclib.model.table.TableModel
+
+rpclib-2.2.2-beta
+-----------------
  * Fixed call to rpclib.application.Application.call_wrapper
  * Fixed HttpRpc server tranport instantiation.
  * Documentation improvements.
 
 rpclib-2.2.1-beta
-------------------
+-----------------
  * rpclib.application.Application.call_wrapper introduced
  * Documentation improvements.
 
 rpclib-2.2.0-beta
-------------------
+-----------------
 
  * The serialization / deserialization logic was redesigned. Now most of the
    serialization-related logic is under the responsibility of the ProtocolBase
@@ -223,7 +231,12 @@ soaplib-0.9
    on server start, and Service Definition is instantiated for each new request.
  * @soapmethod -> @rpc
 
-soaplib-0.8
------------
+soaplib-0.8.1
+-------------
 
  * Switched to lxml for proper xml namespace support.
+
+soaplib-0.8.0
+-------------
+
+ * First public stable release.

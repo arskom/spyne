@@ -47,14 +47,8 @@ class _RemoteProcedure(RemoteProcedureBase):
         else:
             return self.ctx.in_object
 
-class Client(ClientBase):
+class ZeroMQClient(ClientBase):
     def __init__(self, url, app):
         ClientBase.__init__(self, url, app)
-
-        # FIXME: this four-line block should be explained...
-        if isinstance(app.in_protocol,rpclib.protocol.soap.Soap11):
-            app.in_protocol.in_wrapper = rpclib.protocol.soap.Soap11.OUT_WRAPPER
-        if isinstance(app.out_protocol,rpclib.protocol.soap.Soap11):
-            app.out_protocol.out_wrapper= rpclib.protocol.soap.Soap11.NO_WRAPPER
 
         self.service = Service(_RemoteProcedure, url, app)

@@ -19,7 +19,7 @@
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
-logging.getLogger('rpclib.protocol.soap._base').setLevel(logging.DEBUG)
+logging.getLogger('rpclib.protocol.soap.soap11').setLevel(logging.DEBUG)
 logger = logging.getLogger('rpclib.test.interop.server.soap_http_basic')
 
 from rpclib.server.wsgi import WsgiApplication

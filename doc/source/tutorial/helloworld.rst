@@ -45,7 +45,7 @@ This example is available here: http://github.com/arskom/rpclib/blob/master/exam
             print "Error: example server code requires Python >= 2.5"
 
         logging.basicConfig(level=logging.DEBUG)
-        logging.getLogger('rpclib.protocol.soap._base').setLevel(logging.DEBUG)
+        logging.getLogger('rpclib.protocol.soap.soap11').setLevel(logging.DEBUG)
 
         application = Application([HelloWorldService], 'rpclib.examples.hello.vanilla',
                     interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
@@ -135,7 +135,7 @@ xml formatting code is run only when explicitly enabled ror performance
 reasons. ::
 
         logging.basicConfig(level=logging.DEBUG)
-        logging.getLogger('rpclib.protocol.soap._base').setLevel(logging.DEBUG)
+        logging.getLogger('rpclib.protocol.soap.soap11').setLevel(logging.DEBUG)
 
 We glue the service definition, interface document and input and output protocols
 under the targetNamespace 'rpclib.examples.hello.vanilla'. ::

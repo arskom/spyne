@@ -17,6 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""This module contains the ProtocolBase abstract base class for all
+protocol implementations.
+"""
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -32,6 +36,10 @@ class ValidationError(Fault):
     pass
 
 class ProtocolBase(object):
+    """This is the abstract base class for all protocol implementations. Child
+    classes can implement only the required subset of the public methods
+    """
+
     allowed_http_verbs = ['GET','POST']
     mime_type = 'application/octet-stream'
 
@@ -43,6 +51,10 @@ class ProtocolBase(object):
 
     @property
     def app(self):
+        """The :class:`rpclib.application.Application` instance this protocol
+        belongs to.
+        """
+
         return self.__app
 
     def set_app(self, value):

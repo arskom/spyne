@@ -73,7 +73,7 @@ class UserManagerService(ServiceBase):
         del ctx.udc.users[user_id]
 
     @rpc(_returns=Iterable(User))
-    def get_all_users(ctx):
+    def get_all_user(ctx):
         return ctx.udc.users.itervalues()
 
 class UserDefinedContext(object):

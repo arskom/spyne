@@ -55,8 +55,9 @@ class ServiceBaseMeta(type):
         return handlers
 
 class ServiceBase(object):
-    '''This class serves as the base for all service definitions.  Subclasses of
-    this class will use the rpc decorator to flag methods to be exposed via soap.
+    '''This class serves as the base for all service definitions. Subclasses of
+    this class will use the srpc decorator or its wrappers to flag methods to be
+    exposed.
 
     It is a natural abstract base class, because it's of no use without any
     method definitions, hence the 'Base' suffix in the name.
@@ -65,10 +66,23 @@ class ServiceBase(object):
     __metaclass__ = ServiceBaseMeta
 
     __tns__ = None
+    """For internal use only. You should use the tns argument to the Application
+    constructor to define the target namespace."""
+
     __in_header__ = None
+    """The incoming header object that the methods under this service definition
+    accept."""
+
     __out_header__ = None
+    """The outgoing header object that the methods under this service definition
+    accept."""
+
     __service_name__ = None
+    """The name of this service definition as exposed in the interface document.
+    Defaults to the class name."""
+
     __port_types__ = ()
+    """WSDL-Specific portType mappings"""
 
     @classmethod
     def get_service_class_name(cls):
@@ -96,7 +110,7 @@ class ServiceBase(object):
 
     @classmethod
     def _has_callbacks(cls):
-        '''Determines if this object has callback methods or not.'''
+        '''Determines if this service definition has callback methods or not.'''
 
         for method in cls.public_methods.values():
             if method.is_callback:
@@ -106,10 +120,10 @@ class ServiceBase(object):
 
     @classmethod
     def call_wrapper(cls, ctx):
-        '''Called in place of the original method call.
+        '''Called in place of the original method call. You can override this to
+        do your own exception handling.
 
-        @param the original method call
-        @param the arguments to the call
+        :param ctx: The method context.
         '''
         if ctx.descriptor.no_ctx:
             return ctx.descriptor.function(*ctx.in_object)

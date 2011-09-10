@@ -19,7 +19,13 @@
 
 import rpclib.const.xml_ns
 
+"""This module contains the ModelBase class and other building blocks for
+defining models.
+"""
+
 def nillable_dict(func):
+    """Decorator that retuns empty dictionary if input is None"""
+
     def wrapper(cls, element):
         if element is None:
             return {}
@@ -28,6 +34,8 @@ def nillable_dict(func):
     return wrapper
 
 def nillable_string(func):
+    """Decorator that retuns None if input is None."""
+
     def wrapper(cls, string):
         if string is None:
             return None
@@ -36,6 +44,11 @@ def nillable_string(func):
     return wrapper
 
 class ModelBase(object):
+    """The base class for type markers. It defines the model interface for the
+    interface generators to use and also manages class customizations that are
+    mainly used for defining constraints on input values.
+    """
+
     __namespace__ = None
     __type_name__ = None
 
@@ -59,6 +72,11 @@ class ModelBase(object):
 
     @classmethod
     def get_namespace_prefix(cls, interface):
+        """Returns the namespace prefix for the given interface. The
+        get_namespace_prefix of the interface class generates a prefix if none
+        is defined.
+        """
+
         ns = cls.get_namespace()
 
         retval = interface.get_namespace_prefix(ns)
@@ -67,10 +85,18 @@ class ModelBase(object):
 
     @classmethod
     def get_namespace(cls):
+        """Returns the namespace of the class. Defaults to the python module
+        name."""
+
         return cls.__namespace__
 
     @staticmethod
     def resolve_namespace(cls, default_ns):
+        """This call finalizes the namespace assignment. The default namespace
+        is not available until the application calls populate_interface method
+        of the interface generator.
+        """
+
         if cls.__namespace__ is rpclib.const.xml_ns.DEFAULT_NS:
             cls.__namespace__ = default_ns
 
@@ -83,6 +109,9 @@ class ModelBase(object):
 
     @classmethod
     def get_type_name(cls):
+        """Returns the class name unless the __type_name__ attribute is defined.
+        """
+
         retval = cls.__type_name__
         if retval is None:
             retval = cls.__name__
@@ -91,22 +120,34 @@ class ModelBase(object):
 
     @classmethod
     def get_type_name_ns(cls, app):
+        """Returns the type name with a namespace prefix, separated by a column.
+        """
+
         if cls.get_namespace() != None:
             return "%s:%s" % (cls.get_namespace_prefix(app), cls.get_type_name())
 
     @classmethod
     @nillable_string
     def to_string(cls, value):
+        """Returns str(value). This should be overridden if this is not
+        enough."""
+
         return str(value)
 
     @classmethod
     @nillable_string
     def to_dict(cls, value):
+        """Returns a dict with type name as key and str(value) as value. This
+        should be overridden if this is not enough."""
+
         return {cls.get_type_name(): cls.to_string(value)}
 
     @classmethod
-    def customize(cls, ** kwargs):
-        cls_name, cls_bases, cls_dict = cls._s_customize(cls, ** kwargs)
+    def customize(cls, **kwargs):
+        """Returns a duplicate of cls only with values in function arguments
+        overwriting the ones in cls.Attributes."""
+
+        cls_name, cls_bases, cls_dict = cls._s_customize(cls, **kwargs)
 
         return type(cls_name, cls_bases, cls_dict)
 
@@ -114,14 +155,11 @@ class ModelBase(object):
     def _s_customize(cls, ** kwargs):
         """This function duplicates and customizes the class it belongs to. The
         original class remains unchanged.
+
+        Not meant to be overridden.
         """
 
         cls_dict = {}
-
-        #assert (issubclass(cls, rpclib.model._base.SimpleModel)
-        #            or cls.__name__ == 'Array'
-        #            or getattr(cls, '_type_info', None) is not None
-        #        ),(cls.__name__)
 
         for k in cls.__dict__:
             if not (k in ("__dict__", "__weakref__")):
@@ -163,9 +201,8 @@ class SimpleModel(ModelBase):
         values = set()
 
     def __new__(cls, ** kwargs):
-        """
-        Overriden so that any attempt to instantiate a primitive will return a
-        customized class instead of an instance.
+        """Overriden so that any attempt to instantiate a primitive will return
+        a customized class instead of an instance.
 
         See rpclib.model.base.ModelBase for more information.
         """

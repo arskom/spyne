@@ -17,6 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""This module contains the ClientBase class and its helper objects."""
+
+import rpclib.protocol.soap.soap11
+
 from rpclib._base import MethodContext
 from rpclib.model.primitive import string_encoding
 
@@ -38,16 +42,17 @@ class Service(object):
         return self.rpc_class(self.__url, self.__app, key, self.out_header)
 
 class RemoteProcedureBase(object):
-    """Abstract base class for the callable that gets the request from the
-    python caller and forwards it to the remote side.
+    """Abstract base class that handles all (de)serialization.
 
-    Child classes that implement transports should override the __call__
-    function like so:
+    Child classes must implement the client transport in the __call__ method
+    using the following method signature:
 
-    def __call__(self, *args, **kwargs)
+        def __call__(self, *args, **kwargs):
 
-    where the args and kwargs are serialized using the protocol and sent to the
-    remote side using the transport the child implements.
+    :param url:  The url for the server endpoint.
+    :param app:  The application instance the client belongs to.
+    :param name: The string identifier for the remote method.
+    :param out_header: The header that's going to be sent with the remote call.
     """
 
     def __init__(self, url, app, name, out_header):
@@ -60,7 +65,19 @@ class RemoteProcedureBase(object):
 
         self.app.out_protocol.set_method_descriptor(self.ctx)
 
+    def __call__(self, *args, **kwargs):
+        """Serializes its arguments, sends them, receives and deserializes the
+        response."""
+
+        raise NotImplementedError()
+
     def get_out_object(self, args, kwargs):
+        """Serializes the method arguments to output document<.
+
+        :param args: Sequential arguments.
+        :param kwargs: Name-based arguments.
+        """
+
         assert self.ctx.out_object is None
 
         request_raw_class = self.ctx.descriptor.in_message
@@ -78,6 +95,8 @@ class RemoteProcedureBase(object):
                 setattr(request_raw, k, kwargs[k])
 
     def get_out_string(self):
+        """Serializes the output document to a bytestream."""
+
         assert self.ctx.out_document is None
         assert self.ctx.out_string is None
 
@@ -85,6 +104,10 @@ class RemoteProcedureBase(object):
         self.app.out_protocol.create_out_string(self.ctx, string_encoding)
 
     def get_in_object(self):
+        """Deserializes the response bytestream to input document and native
+        python object.
+        """
+
         assert self.ctx.in_string is not None
         assert self.ctx.in_document is None
 
@@ -102,12 +125,29 @@ class RemoteProcedureBase(object):
                   and len(self.ctx.descriptor.out_message._type_info) == 1):
             wrapper_attribute = type_info.keys()[0]
             self.ctx.in_object = getattr(self.ctx.in_object,
-                                                    wrapper_attribute, None)
+                                                        wrapper_attribute, None)
 
 class ClientBase(object):
     def __init__(self, url, app):
-        """Must be overridden to initialize the service properly"""
+        """The self.service property should be initialized in the constructor of
+        the child class."""
+
         self.factory = Factory(app)
 
+        # FIXME: this four-line block should be explained...
+        if isinstance(app.in_protocol,rpclib.protocol.soap.soap11._Soap11):
+            app.in_protocol.in_wrapper = rpclib.protocol.soap.soap11._Soap11.OUT_WRAPPER
+        if isinstance(app.out_protocol,rpclib.protocol.soap.soap11._Soap11):
+            app.out_protocol.out_wrapper= rpclib.protocol.soap.soap11._Soap11.NO_WRAPPER
+
     def set_options(self, **kwargs):
+        """Sets call options.
+
+        :param out_header:  Sets the header object that's going to be sent with
+                            the remote procedure call.
+        :param soapheaders: A suds-compatible alias for out_header.
+        """
+
         self.service.out_header = kwargs.get('soapheaders', None)
+        if self.service.out_header is None:
+            self.service.out_header = kwargs.get('out_header', None)

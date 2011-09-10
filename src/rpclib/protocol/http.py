@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""This module contains the HttpRpc protocol implementation."""
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -25,6 +27,10 @@ import urlparse
 
 # this is not exactly rest, because it ignores http verbs.
 class HttpRpc(ProtocolBase):
+    """The so-called ReST-minus-the-verbs HttpRpc protocol implementation.
+    It only works with the http server (wsgi) transport.
+    """
+
     def create_in_document(self, ctx, in_string_encoding=None):
         assert ctx.transport.type == 'wsgi', ("This protocol only works with "
                                               "the wsgi api.")
