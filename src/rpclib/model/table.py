@@ -115,7 +115,7 @@ class TableSerializerMeta(DeclarativeMeta, ComplexModelMeta):
 
         return DeclarativeMeta.__new__(cls, cls_name, cls_bases, cls_dict)
 
-class TableSerializer(ComplexModelBase):
+class TableModel(ComplexModelBase):
     """The main base class for complex types shared by both SQLAlchemy and
     rpclib. Classes that inherit from this class should also inherit from
     an sqlalchemy.declarative base class."""
@@ -132,3 +132,6 @@ class TableSerializer(ComplexModelBase):
                                                             cls_bases, cls_dict)
 
         return retval
+
+TableSerializer = TableModel
+"""DEPRECATED. Use TableModel instead."""
