@@ -11,3 +11,4 @@ rpclib concepts with examples.
 
    helloworld
    usermanager
+   sqlalchemy

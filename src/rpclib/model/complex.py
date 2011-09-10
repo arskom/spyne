@@ -17,6 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""This module contains ComplexBase class and its helper objects like Array and
+Iterable that are container classes that organize other values.
+"""
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -61,9 +65,8 @@ class SelfReference(object):
     pass
 
 class ComplexModelMeta(type(ModelBase)):
-    '''
-    This is the metaclass that populates ComplexModel instances with
-    the appropriate datatypes for (de)serialization.
+    '''This is the metaclass that populates ComplexModel instances with the
+    appropriate datatypes for (de)serialization.
     '''
 
     def __new__(cls, cls_name, cls_bases, cls_dict):
@@ -298,17 +301,20 @@ class ComplexModelBase(ModelBase):
         return ComplexModelMeta(type_name, (ClassAlias, ), cls_dict)
 
 class ComplexModel(ComplexModelBase):
-    """
-    The general complexType factory. The __call__ method of this class will
+    """The general complexType factory. The __call__ method of this class will
     return instances, contrary to primivites where the same call will result in
     customized duplicates of the original class definition.
     Those who'd like to customize the class should use the customize method.
-    (see rpclib.model.base.ModelBase)
+    (see rpclib.model.base.ModelBase).
     """
 
     __metaclass__ = ComplexModelMeta
 
 class Array(ComplexModel):
+    """This class generates a ComplexModel child that has one attribute that has
+    the same name as the serialized class. It's contained in a Python list.
+    """
+
     def __new__(cls, serializer, **kwargs):
         retval = cls.customize(**kwargs)
 
@@ -358,7 +364,9 @@ class Array(ComplexModel):
         return inst
 
 class Iterable(Array):
-    pass
+    """This class generates a ComplexModel child that has one attribute that has
+    the same name as the serialized class. It's contained in a Python iterable.
+    """
 
 class Alias(ComplexModel):
-    """New type_name, same _type_info."""
+    """Different type_name, same _type_info."""

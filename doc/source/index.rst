@@ -10,7 +10,7 @@ wider audience via various Remote Procedure Call protocols and transports.
 
 It currently supports the WSDL 1.1 interface definition standard, along with
 SOAP 1.1 and the rest-minus-the-verbs HttpRpc protocol which can be
-transported via HTTP or ZeroMQ in a both client or server architecture.
+transported via HTTP or ZeroMQ in a both client or server environment.
 
 The source code is `here <https://github.com/arskom/rpclib>`.
 
@@ -59,42 +59,31 @@ using Sphinx.
 Regular contributors may be invited to join as a core rpclib committer on
 GitHub. Even if this gives the core committers the power to commit directly
 to the core repository, we highly value code reviews and expect every
-significant change to be committed via pull requests. It also provides a
-stable home for the rpclib repository, despite any "changing of the guard"
-as team members join and leave the project.
+significant change to be committed via pull requests.
 
 
-Contents:
----------
+Contents
+--------
 
 .. toctree::
    :maxdepth: 2
 
    tutorial/index
-   #reference/index
-   #pages/serializers
-   #pages/binaryfiles
-   #pages/message_api
-   #pages/hooks
-   #pages/apache_axis
-   #pages/serializer_api
-   #pages/soap
-   #pages/wsgi
-   #pages/service
+   reference/index
 
 Frequently Asked Questions
 --------------------------
 .. toctree::
    :maxdepth: 2
 
-   pages/faq
+   faq
 
 Change Log
 ----------
 .. toctree::
    :maxdepth: 2
 
-   pages/changelog
+   changelog
 
 
 Indices and tables

@@ -48,12 +48,16 @@ def base_from_element(prot, cls, element):
 def base_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     '''Creates a lxml.etree SubElement as a child of a 'parent' Element
 
-    @param The value to be set for the 'text' element of the newly created
-    SubElement
-    @param The target namespace of the new SubElement, used with 'name' to
-    set the tag.
-    @param The parent Element to which the new child will be appended.
-    @param The new tag name of new SubElement.
+    :param prot:  The protocol that will be used to serialize the given value.
+    :param cls:   The type of the value that's going to determine how to pack
+                  the given value.
+    :param value: The value to be set for the 'text' element of the newly
+                  created SubElement
+    :param tns:   The target namespace of the new SubElement, used with 'name'
+                  to set the tag.
+    :param parent_elt: The parent Element to which the new child will be
+                  appended.
+    :param name:  The tag name of the new SubElement, 'retval' by default.
     '''
 
     elt = etree.SubElement(parent_elt, "{%s}%s" % (tns,name))

@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""This module defines the Fault class."""
+
 from rpclib.model import ModelBase
 
 import rpclib.const.xml_ns
@@ -24,10 +26,12 @@ _ns_soap_env = rpclib.const.xml_ns.soap_env
 _pref_soap_env = rpclib.const.xml_ns.const_prefmap[_ns_soap_env]
 
 class Fault(ModelBase, Exception):
+    """Use this class as a base for public exceptions."""
+
     __type_name__ = "Fault"
 
-    def __init__(self, faultcode='Server', faultstring="",
-                 faultactor="", detail=None):
+    def __init__(self, faultcode='Server', faultstring="", faultactor="",
+                                                                   detail=None):
         if faultcode.startswith('%s:' % _pref_soap_env):
             self.faultcode = faultcode
         else:

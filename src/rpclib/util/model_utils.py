@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""Utility classes and methods for converting and validating
+"""This module contains the classes and methods for converting and validating
 rpclib.model.ComplexModel instances
 """
 

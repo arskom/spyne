@@ -4,12 +4,12 @@ User Manager
 
 Let's try a more complicated example than just strings and integers!
 The following is an simple example using complex, nested data. It's available
-here: http://github.com/arskom/rpclib/blob/master/examples/user_manager/user_manager.py
+here: http://github.com/arskom/rpclib/blob/master/examples/user_manager/server_basic.py
 ::
 
     import logging
     logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('rpclib.protocol.soap._base').setLevel(logging.DEBUG)
+    logging.getLogger('rpclib.protocol.soap.soap11').setLevel(logging.DEBUG)
 
     from rpclib.application import Application
     from rpclib.decorator import rpc
@@ -153,9 +153,10 @@ examples directory in the source distribution for an example on using events to
 measure method performance.
 
 What's next?
-------------
+^^^^^^^^^^^^
 
 This tutorial walks you through most of what you need to know to expose your
-services. You can refer to the rest of the documentation or the mailing list
-if you have further questions.
+services. You can read the SQLAlchemy & Rpclib integration tutorial if you plan
+to expose your database application using rpclib. Otherwise, you should refer to
+the rest of the documentation or the mailing list if you have further questions.
 

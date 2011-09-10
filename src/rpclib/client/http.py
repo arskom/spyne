@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""A soap client that uses http (urllib2) as transport"""
+"""The HTTP (urllib2) client transport."""
 
 import urllib2
 
@@ -30,9 +30,9 @@ import rpclib.protocol.soap
 class _RemoteProcedure(RemoteProcedureBase):
     def __call__(self, *args, **kwargs):
         self.get_out_object(args, kwargs) # sets self.ctx.out_object
-        self.get_out_string()
+        self.get_out_string() # sets self.ctx.out_string
 
-        out_string = ''.join(self.ctx.out_string)
+        out_string = ''.join(self.ctx.out_string) # FIXME: just send the iterable to the http stream.
         request = urllib2.Request(self.url, out_string)
         code = 200
         try:
@@ -52,14 +52,8 @@ class _RemoteProcedure(RemoteProcedureBase):
         else:
             return self.ctx.in_object
 
-class Client(ClientBase):
+class HttpClient(ClientBase):
     def __init__(self, url, app):
-        super(Client, self).__init__(url, app)
-
-        # FIXME: this four-line block should be explained...
-        if isinstance(app.in_protocol, rpclib.protocol.soap._base._Soap11):
-            app.in_protocol.in_wrapper = rpclib.protocol.soap._base._Soap11.OUT_WRAPPER
-        if isinstance(app.out_protocol,rpclib.protocol.soap._base._Soap11):
-            app.out_protocol.out_wrapper= rpclib.protocol.soap._base._Soap11.NO_WRAPPER
+        super(HttpClient, self).__init__(url, app)
 
         self.service = Service(_RemoteProcedure, url, app)

@@ -17,6 +17,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""This module contains the the @srpc decorator and its helper methods. The
+@srpc decorator is responsible for tagging methods as remote procedure calls,
+and also for dynamically defining complex objects that carry the method's input
+parameters and output value(s).
+
+It's possible to create custom decorators that wrap the @srpc decorator in order
+to have a more elegant way of passing frequently-used parameter values. The @rpc
+decorator is a simple example of this.
+"""
+
 from rpclib._base import MethodDescriptor
 from rpclib.model.complex import ComplexModel
 from rpclib.model.complex import TypeInfo
@@ -41,8 +51,8 @@ def _produce_input_message(f, params, _in_message_name, _in_variable_names, no_c
             in_params[e0] = e1
 
     except IndexError, e:
-        raise Exception("%r function's and its decorator's parameter numbers "
-                        "mismatch." % f.func_name)
+        raise Exception("The parameter numbers of the %r function and its "
+                        "decorator mismatch." % f.func_name)
 
     ns = DEFAULT_NS
     if _in_message_name.startswith("{"):
@@ -68,6 +78,7 @@ def _validate_body_style(kparams):
         _body_style = 'wrapped'
     else:
         raise ValueError("soap_body_style must be one of ('rpc', 'document')")
+
     assert _body_style in ('wrapped','bare')
 
     return _body_style
@@ -118,20 +129,19 @@ def _produce_output_message(f, func_name, kparams):
 
     return message
 
-def srpc(*params, **kparams):
-    kparams["_no_ctx"] = True
-    return rpc(*params, **kparams)
-
 def rpc(*params, **kparams):
-    '''Method decorator to flag a method as a rpc-style operation.
+    kparams["_no_ctx"] = False
+    return srpc(*params, **kparams)
 
-    This is a method decorator to flag a method as a remote procedure call.  It
-    will behave like a normal python method on a class, and will only behave
-    differently when the keyword '_method_descriptor' is passed in, returning a
-    'MethodDescriptor' object.  This decorator does none of the rpc
-    serialization, only flags a method as a remotely callable procedure. This
-    decorator should only be used on member methods of an instance of
-    rpclib.service.ServiceBase.
+def srpc(*params, **kparams):
+    '''Method decorator to tag a method as a remote procedure call.
+
+    The methods tagged with this decorator do not behave like a normal python
+    method but return 'MethodDescriptor' object when called.
+
+    You should use the :classs:`rpclib.server.null.NullServer` transport if you
+    want to call the methods directly. You can also use the 'function' attribute
+    of the returned object to call the method itself.
     '''
 
     def explain(f):
@@ -145,7 +155,7 @@ def rpc(*params, **kparams):
             _in_header = kparams.get('_in_header', None)
             _out_header = kparams.get('_out_header', None)
             _port_type = kparams.get('_soap_port_type', None)
-            _no_ctx = kparams.get('_no_ctx', False)
+            _no_ctx = kparams.get('_no_ctx', True)
             _faults = kparams.get('_faults', [])
 
             _in_message_name = kparams.get('_in_message_name', function_name)

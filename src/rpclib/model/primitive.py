@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""This module defines primitives that are atomic, basic types."""
+
 import re
 import math
 import pytz
@@ -63,6 +65,9 @@ _ns_xs = rpclib.const.xml_ns.xsd
 _ns_xsi = rpclib.const.xml_ns.xsi
 
 class AnyXml(SimpleModel):
+    """An xml node that can contain any number of sub nodes. It's represented by
+    an ElementTree object."""
+
     __type_name__ = 'anyType'
 
     @classmethod
@@ -76,6 +81,11 @@ class AnyXml(SimpleModel):
         return etree.fromstring(string)
 
 class AnyDict(SimpleModel):
+    """An xml node that can contain any number of sub nodes. It's represented by
+    a dict instance that can contain other dicts or iterables of strings as
+    values.
+    """
+
     __type_name__ = 'anyType'
 
     @classmethod
@@ -89,6 +99,10 @@ class AnyDict(SimpleModel):
         return pickle.loads(string)
 
 class String(SimpleModel):
+    """A string instance that has the same encoding as the underlying
+    serializer. Currently, it's utf8.
+    """
+
     __type_name__ = 'string'
 
     class Attributes(SimpleModel.Attributes):
@@ -119,9 +133,15 @@ class String(SimpleModel):
                 and cls.Attributes.pattern == String.Attributes.pattern)
 
 class AnyUri(String):
+    """This is an xml schema type with is a special kind of String."""
     __type_name__ = 'anyURI'
 
 class Decimal(SimpleModel):
+    """The primitive that corresponds to the native python Decimal.
+
+    This is also the base class for representing numbers.
+    """
+
     __type_name__ = 'decimal'
 
     class Attributes(SimpleModel.Attributes):
@@ -150,13 +170,36 @@ class Decimal(SimpleModel):
     def from_string(cls, string):
         return decimal.Decimal(string)
 
+class Double(SimpleModel):
+    """This is serialized as the python float. So this type comes with its
+     gotchas."""
+
+    __type_name__ = 'double'
+
+    @classmethod
+    @nillable_string
+    def to_string(cls, value):
+        return repr(value)
+
+    @classmethod
+    @nillable_string
+    def from_string(cls, string):
+        return float(string)
+
+class Float(Double):
+    """Synonym for Double. This is here for compatibility purposes."""
+
+    __type_name__ = 'float'
+
 class Int(Decimal):
+    """The 32-Bit signed integer."""
+
     __type_name__ = 'int'
 
     @classmethod
     @nillable_string
     def to_string(cls, value):
-        int(value)
+        int(value) # for validation purposes.
         return str(value)
 
     @classmethod
@@ -165,6 +208,8 @@ class Int(Decimal):
         return int(string)
 
 class Integer(Decimal):
+    """The arbitrary-size signed integer."""
+
     __type_name__ = 'integer'
 
     @classmethod
@@ -186,6 +231,8 @@ class Integer(Decimal):
             return long(string)
 
 class UnsignedInteger(Integer):
+    """The arbitrary-size unsigned integer."""
+
     __type_name__ = 'unsignedLong'
     __length__ = None
     @classmethod
@@ -208,33 +255,46 @@ class UnsignedInteger(Integer):
         return retval
 
 class UnsignedInteger64(UnsignedInteger):
+    """The 64-bit unsigned integer."""
+
     __type_name__ = 'unsignedLong'
     __length__ = 64
 
 class UnsignedInteger32(UnsignedInteger):
+    """The 32-bit unsigned integer."""
+
     __type_name__ = 'unsignedLong'
     __length__ = 32
 
 class UnsignedInteger16(Integer):
+    """The 16-bit unsigned integer."""
+
     __type_name__ = 'unsignedShort'
     __length__ = 16
 
 class UnsignedInteger8(Integer):
+    """The 8-bit unsigned integer."""
+
     __type_name__ = 'unsignedByte'
     __length__ = 8
 
 class Date(SimpleModel):
+    """Just that, Date. It also supports time zones."""
+
     __type_name__ = 'date'
 
     @classmethod
     @nillable_string
     def to_string(cls, value):
+        """Returns ISO formatted dates."""
+
         return value.isoformat()
 
     @classmethod
     @nillable_string
     def from_string(cls, string):
-        """expect ISO formatted dates"""
+        """Expects ISO formatted dates."""
+
         def parse_date(date_match):
             fields = date_match.groupdict(0)
             year, month, day = [int(fields[x]) for x in
@@ -248,6 +308,8 @@ class Date(SimpleModel):
         return parse_date(match)
 
 class DateTime(SimpleModel):
+    """A compact way to represent dates and times together. Supports time zones.
+    """
     __type_name__ = 'dateTime'
 
     @classmethod
@@ -287,6 +349,8 @@ class DateTime(SimpleModel):
 
 # this object tries to follow ISO 8601 standard.
 class Duration(SimpleModel):
+    """This is how the native datetime.timedelta objects are serialized."""
+
     __type_name__ = 'duration'
 
     @classmethod
@@ -351,23 +415,9 @@ class Duration(SimpleModel):
 
         return ''.join(retval)
 
-class Double(SimpleModel):
-    __type_name__ = 'double'
-
-    @classmethod
-    @nillable_string
-    def to_string(cls, value):
-        return repr(value)
-
-    @classmethod
-    @nillable_string
-    def from_string(cls, string):
-        return float(string)
-
-class Float(Double):
-    __type_name__ = 'float'
-
 class Boolean(SimpleModel):
+    """Life is simple here. Just true or false."""
+
     __type_name__ = 'boolean'
 
     @classmethod
@@ -382,5 +432,7 @@ class Boolean(SimpleModel):
 
 # a class that is really a namespace
 class Mandatory(object):
+    """Class that contains mandatory variants of primitives."""
+
     String = String(min_occurs=1, nillable=False, min_len=1)
     Integer = Integer(min_occurs=1, nillable=False)
