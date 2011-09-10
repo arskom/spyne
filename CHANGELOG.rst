@@ -8,6 +8,7 @@ rpclib-2.2.3-beta
  * rpclib.client.http.Client -> rpclib.client.http.HttpClient
  * rpclib.client.zeromq.Client -> rpclib.client.zeromq.ZeroMQClient
  * rpclib.server.zeromq.Server -> rpclib.server.zeromq.ZeroMQServer
+ * rpclib.model.table.TableSerializer -> rpclib.model.table.TableModel
 
 rpclib-2.2.2-beta
 -----------------
