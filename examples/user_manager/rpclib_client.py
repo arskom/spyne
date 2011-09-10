@@ -18,11 +18,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from rpclib.client.http import Client
+from rpclib.client.http import HttpClient
 
 from server_basic import application
 
-c = Client('http://localhost:7789/', application)
+c = HttpClient('http://localhost:7789/', application)
 
 u = c.factory.create("User")
 

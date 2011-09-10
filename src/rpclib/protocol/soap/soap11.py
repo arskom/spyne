@@ -17,6 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""This module contains the implementation of a subset of the SOAP 1.1 remote
+procedure call standard.
+"""
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -38,9 +42,7 @@ class ValidationError(Fault):
     pass
 
 def _from_soap(in_envelope_xml, xmlids=None):
-    '''
-    Parses the xml string into the header and payload
-    '''
+    '''Parses the xml string into the header and payload.'''
 
     if xmlids:
         resolve_hrefs(in_envelope_xml, xmlids)
@@ -109,12 +111,19 @@ def resolve_hrefs(element, xmlids):
     return element
 
 def Soap11(validator=None):
+    """The Soap11 class factory method.
+
+    :param validator: either None or 'lxml'
+    """
+
     if validator is None:
         return _Soap11()
     else:
         return _Soap11Strict(validator=validator)
 
 class _Soap11(XmlObject):
+    '''The base implementation of the Soap 1.1 protocol.'''
+
     class NO_WRAPPER:
         pass
     class IN_WRAPPER:
@@ -339,11 +348,14 @@ class _Soap11(XmlObject):
         self.event_manager.fire_event('serialize',ctx)
 
 class _Soap11Strict(_Soap11):
+    '''The Soap 1.1 implementation that validates its input.'''
+
     def __init__(self, app=None, validator='lxml'):
         """Soap 1.1 Protocol with validators.
 
-        @param A rpclib.application.Application instance.
-        @param The validator to use. Currently the only supported value is 'lxml'
+        :param app: A rpclib.application.Application instance.
+        :param validator: The validator to use. Currently the only supported
+                          value is 'lxml'
         """
 
         if validator == 'lxml':

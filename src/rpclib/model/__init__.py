@@ -17,10 +17,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""Models are mere type markers, they are not of much use without protocols.
+"""
+
 from _base import ModelBase
 from _base import Null
 from _base import SimpleModel
 
 from _base import nillable_dict
 from _base import nillable_string
-

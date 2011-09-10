@@ -20,13 +20,13 @@
 import unittest
 
 from _test_client_base import RpclibClientTestBase
-from rpclib.client.http import Client
+from rpclib.client.http import HttpClient
 from rpclib.test.interop.server.soap_http_basic import soap_application
 from rpclib.util.etreeconv import root_dict_to_etree
 
 class TestRpclibHttpClient(RpclibClientTestBase, unittest.TestCase):
     def setUp(self):
-        self.client = Client('http://localhost:9753/', soap_application)
+        self.client = HttpClient('http://localhost:9753/', soap_application)
         self.ns = "rpclib.test.interop.server._service"
 
     def test_any(self):

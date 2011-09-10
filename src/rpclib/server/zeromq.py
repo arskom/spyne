@@ -17,7 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""A server that uses ZeroMQ (zmq.REP) as transport"""
+"""This module contains a server implementation that uses ZeroMQ (zmq.REP) as
+transport.
+"""
 
 import zmq
 
@@ -25,13 +27,15 @@ from rpclib._base import MethodContext
 from rpclib.server import ServerBase
 
 context = zmq.Context()
+"""The ZeroMQ context."""
 
 class ZmqMethodContext(MethodContext):
     def __init__(self, app):
         MethodContext.__init__(self, app)
         self.transport.type = 'zmq'
 
-class Server(ServerBase):
+class ZeroMQServer(ServerBase):
+    """The ZeroMQ server transport."""
     transport = 'http://rfc.zeromq.org/'
 
     def __init__(self, app, app_url, wsdl_url=None):
@@ -47,6 +51,8 @@ class Server(ServerBase):
         return self.app.get_interface_document(self.url)
 
     def serve_forever(self):
+        """Runs the ZeroMQ server."""
+
         while True:
             ctx = ZmqMethodContext(self.app)
             ctx.in_string = self.soap_socket.recv()

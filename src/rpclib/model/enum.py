@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""This module contains Enum object and its helper objects."""
+
 from rpclib.model import SimpleModel
 
 # adapted from: http://code.activestate.com/recipes/413486/

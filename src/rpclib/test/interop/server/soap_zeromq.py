@@ -21,14 +21,14 @@ import logging
 
 from rpclib.test.interop.server.soap_http_basic import soap_application
 
-from rpclib.server.zeromq import Server
+from rpclib.server.zeromq import ZeroMQServer
 
 if __name__ == '__main__':
     url = "tcp://*:5555"
     logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('rpclib.protocol.soap._base').setLevel(logging.DEBUG)
+    logging.getLogger('rpclib.protocol.soap.soap11').setLevel(logging.DEBUG)
 
-    server = Server(soap_application, url)
+    server = ZeroMQServer(soap_application, url)
     logging.info("************************")
     logging.info("Use Ctrl+\\ to exit if Ctrl-C does not work.")
     logging.info("See the 'I can't Ctrl-C my Python/Ruby application. Help!' "

@@ -59,9 +59,7 @@ using Sphinx.
 Regular contributors may be invited to join as a core rpclib committer on
 GitHub. Even if this gives the core committers the power to commit directly
 to the core repository, we highly value code reviews and expect every
-significant change to be committed via pull requests. It also provides a
-stable home for the rpclib repository, despite any "changing of the guard"
-as team members join and leave the project.
+significant change to be committed via pull requests.
 
 
 Contents:

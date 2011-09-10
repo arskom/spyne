@@ -2,6 +2,12 @@
 Changelog
 =========
 
+rpclib-2.2.3-beta
+------------------
+ * Documentation improvements.
+ * rpclib.client.zeromq.Client -> rpclib.client.zeromq.ZeroMQClient
+ * rpclib.server.zeromq.Server -> rpclib.server.zeromq.ZeroMQServer
+
 rpclib-2.2.2-beta
 ------------------
  * Fixed call to rpclib.application.Application.call_wrapper

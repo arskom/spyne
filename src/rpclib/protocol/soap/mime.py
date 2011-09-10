@@ -26,20 +26,17 @@ _ns_xop = rpclib.const.xml_ns.xop
 _ns_soap_env = rpclib.const.xml_ns.soap_env
 
 def join_attachment(href_id, envelope, payload, prefix=True):
-    '''
-    Helper function for swa_to_soap.
-
-    Places the data from an attachment back into a SOAP message, replacing
+    '''Places the data from an attachment back into a SOAP message, replacing
     its xop:Include element or href.
 
-    @param  id        content-id or content-location of attachment
-    @param  prefix    Set this to true if id is content-id or false if it is
-                      content-location.  It prefixes a "cid:" to the href value.
-    @param  envelope  soap envelope string to be operated on
-    @param  payload   attachment data
+    Returns a tuple of length 2 with the new message and the number of
+    replacements made
 
-    @return           tuple of length 2 with the new message and the
-                      number of replacements made
+    :param  id:        content-id or content-location of attachment
+    :param  prefix:    Set this to true if id is content-id or false if it is
+                       content-location.  It prefixes a "cid:" to the href value.
+    :param  envelope:  soap envelope string to be operated on
+    :param  payload:   attachment data
     '''
 
     def replacing(parent, node, payload, numreplaces):
@@ -91,8 +88,10 @@ def join_attachment(href_id, envelope, payload, prefix=True):
 
 def collapse_swa(content_type, envelope):
     '''
-    Translates an SwA multipart/related message into an
-    application/soap+xml message.
+    Translates an SwA multipart/related message into an application/soap+xml
+    message.
+
+    Returns the 'appication/soap+xml' version of the given HTTP body.
 
     References:
     SwA     http://www.w3.org/TR/SOAP-attachments
@@ -100,10 +99,9 @@ def collapse_swa(content_type, envelope):
     MTOM    http://www.w3.org/TR/soap12-mtom/
             http://www.w3.org/Submission/soap11mtom10/
 
-    @param  content_type value of the Content-Type header field, parsed by
-                         cgi.parse_header() function
-    @param  envelope     body of the HTTP message, a soap envelope
-    @return              appication/soap+xml version of the given HTTP body
+    :param  content_type: value of the Content-Type header field, parsed by
+                          cgi.parse_header() function
+    :param  envelope:     body of the HTTP message, a soap envelope
     '''
 
     # convert multipart messages back to pure SOAP
@@ -168,19 +166,20 @@ def apply_mtom(headers, envelope, params, paramvals):
     '''Apply MTOM to a SOAP envelope, separating attachments into a
     MIME multipart message.
 
+    Returns a tuple of length 2 with dictionary of headers and string of body
+    that can be sent with HTTPConnection
+
     References:
     XOP     http://www.w3.org/TR/xop10/
     MTOM    http://www.w3.org/TR/soap12-mtom/
             http://www.w3.org/Submission/soap11mtom10/
 
-    @param headers   Headers dictionary of the SOAP message that would
+    :param headers   Headers dictionary of the SOAP message that would
                      originally be sent.
-    @param envelope  Iterable containing SOAP envelope string that would have
+    :param envelope  Iterable containing SOAP envelope string that would have
                      originally been sent.
-    @param params    params attribute from the Message object used for the SOAP
-    @param paramvals values of the params, passed to Message.to_parent_element
-    @return          tuple of length 2 with dictionary of headers and
-                     string of body that can be sent with HTTPConnection
+    :param params    params attribute from the Message object used for the SOAP
+    :param paramvals values of the params, passed to Message.to_parent_element
     '''
 
     # grab the XML element of the message in the SOAP body

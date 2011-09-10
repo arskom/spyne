@@ -38,5 +38,8 @@ class cdict(dict):
                 pass
 
             for b in cls.__bases__:
-                return self[b]
+                try:
+                    return self[b]
+                except KeyError:
+                    pass
             raise

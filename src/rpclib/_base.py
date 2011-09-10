@@ -47,51 +47,96 @@ class MethodContext(object):
 
     def __init__(self, app):
         self.app = app
+        """The parent application."""
 
-        self.udc = None  # the user defined context. use it to your liking.
-        self.transport = TransportContext() # the transport-specific context.
-        self.event = EventContext() # Event-specific context
+        self.udc = None
+        """The user defined context. Use it to your liking."""
+
+        self.transport = TransportContext()
+        """The transport-specific context. Transport implementors can use this
+        to their liking."""
+
+        self.event = EventContext()
+        """Event-specific context. Use this as you want, preferably only in
+        events, as you'd probably want to separate the event data from the
+        method data."""
 
         self.method_request_string = None
+        """This is used as a basis on deciding which native method to call."""
 
-        # the following are set based on the value of the method_name.
-        self.service_class = None  # the class the method belongs to
-        self.descriptor = None     # its descriptor
+        self.descriptor = None
+        """The MethodDescriptor object representing the current method."""
 
-        self.in_string = None      # incoming bytestream (can be any kind of
-                                   #     iterable that contains strings)
-        self.in_document = None    # parsed document
-        self.in_error = None       # native python error object (probably a
-                                   #     child of Exception)
-        self.in_header_doc = None  # incoming header document of the request.
-        self.in_body_doc = None    # incoming body document of the request.
-        self.in_header = None      # native incoming header
+        #
+        # The following are set based on the value of the descriptor.
+        #
+        self.service_class = None
+        """The service definition class the method belongs to."""
 
-        # in the request (i.e. server) case, this contains the function
-        # arguments for the function in the service definition class.
-        # in the response (i.e. client) case, this contains the object returned
-        # by the remote procedure call.
+        #
+        # Input
+        #
+
+        # stream
+        self.in_string = None
+        """Incoming bytestream (i.e. an iterable of strings)"""
+
+        # parsed
+        self.in_document = None
+        """Incoming document, what you get when you parse the incoming stream."""
+        self.in_header_doc = None
+        """Incoming header document of the request."""
+        self.in_body_doc = None
+        """Incoming body document of the request."""
+
+        # native
+        self.in_error = None
+        """Native python error object. If this is set, either there was a
+        parsing error or the incoming document was representing an exception.
+        """
+        self.in_header = None
+        """Deserialzed incoming header -- a native object."""
         self.in_object = None
+        """In the request (i.e. server) case, this contains the function
+        arguments for the function in the service definition class.
+        In the response (i.e. client) case, this contains the object returned
+        by the remote procedure call.
+        """
 
-        # in the response (i.e. server) case, this is the native python object
-        # returned by the function in the service definition class.
-        # in the response (i.e. client) case, this contains the function
-        # arguments passed to the function call wrapper.
+        #
+        # Output
+        #
+
+        # native
         self.out_object = None
+        """In the request (i.e. server) case, this is the native python object
+        returned by the function in the service definition class.
+        In the response (i.e. client) case, this contains the function arguments
+        passed to the function call wrapper.
+        """
+        self.out_header = None
+        """Native python object set by the function in the service definition
+        class."""
+        self.out_error = None
+        """Native exception thrown by the function in the service definition
+        class"""
 
-        self.out_header = None      # native python object set by the function
-                                    # in the service definition class
-        self.out_error = None       # native exception thrown by the function
-                                    # in the service definition class
-        self.out_body_doc = None    # serialized body object
-        self.out_header_doc = None  # serialized header object
-        self.out_document = None    # body and header wrapped in the outgoing
-                                    # envelope
-        self.out_string = None      # outgoing bytestream (can be any kind of
-                                    # iterable that contains strings)
+        # parsed
+        self.out_body_doc = None
+        """Serialized body object."""
+        self.out_header_doc = None
+        """Serialized header object."""
+        self.out_document = None
+        """out_body_doc and out_header_doc wrapped in the outgoing envelope"""
 
-        self.frozen = True  # when this is set, no new attribute can be added
-                            # to the class instance.
+        # stream
+        self.out_string = None
+        """Outgoing bytestream (i.e. an iterable of strings)"""
+
+        self.frozen = True
+        """when this is set, no new attribute can be added to this class
+        instance. This is mostly for internal use.
+        """
 
     def __setattr__(self, k, v):
         if self.frozen == False or k in self.__dict__:

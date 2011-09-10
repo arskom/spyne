@@ -17,6 +17,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""This module contains the Application class that exposes multiple service
+definitions to the outside world.
+"""
+
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -24,17 +29,28 @@ from rpclib.model.fault import Fault
 from rpclib._base import EventManager
 
 class Application(object):
+    '''This class is the glue between one or more service definitions,
+    interface and protocol choices.
+
+    :param services:     An iterable of ServiceBase subclasses that define
+                         the exposed services.
+    :param tns:          The targetNamespace attribute of the exposed
+                         service.
+    :param interface:    An InterfaceBase instance that sets the service
+                         definition document standard.
+    :param in_protocol:  A ProtocolBase instance that defines the input
+                         protocol.
+    :param out_protocol: A ProtocolBase instance that defines the output
+                         protocol.
+    :param name:         The optional name attribute of the exposed service.
+                         The default is the name of the application class
+                         which is, by default, 'Application'.
+    '''
+
     transport = None
 
     def __init__(self, services, tns, interface, in_protocol, out_protocol,
                                                                     name=None):
-        '''Constructor.
-
-        @param An iterable of ServiceBase subclasses that define the exposed
-               services.
-        @param The targetNamespace attribute of the exposed service.
-        @param The name attribute of the exposed service.
-        '''
 
         self.services = services
         self.tns = tns
@@ -58,10 +74,12 @@ class Application(object):
         self.error_handler = None
 
     def process_request(self, ctx):
-        """Takes a MethodContext instance and the native request object.
-        Returns the response to the request as a native python object.
+        """Takes a MethodContext instance. Returns the response to the request
+        as a native python object. If the function throws an exception, it
+        returns None and sets the exception object to ctx.out_error.
 
-        Not meant to be overridden.
+        Overriding this method would break event management. So this is not
+        meant to be overridden unless you know what you're doing.
         """
 
         try:
@@ -100,6 +118,10 @@ class Application(object):
                                                     'method_return_object', ctx)
 
     def call_wrapper(self, ctx):
+        """This method calls the call_wrapper method in the service definition.
+        This can be overridden to make an application-wide custom exception
+        management."""
+
         return ctx.service_class.call_wrapper(ctx)
 
     def _has_callbacks(self):

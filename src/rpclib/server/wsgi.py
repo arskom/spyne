@@ -59,10 +59,6 @@ def reconstruct_wsgi_request(http_env):
     return input.read(length), charset
 
 
-class ValidationError(Fault):
-    pass
-
-
 class WsgiMethodContext(MethodContext):
     def __init__(self, app, req_env, content_type):
         MethodContext.__init__(self, app)
@@ -90,13 +86,6 @@ class WsgiApplication(ServerBase):
         (PEP 333). It looks in environ['wsgi.input'] for a fully formed rpc
         message envelope, will deserialize the request parameters and call the
         method on the object returned by the get_handler() method.
-
-        @param the http environment
-        @param a callable that begins the response message
-        @param the optional url
-
-        @returns an iterable that contains the serialized response to the rpc
-        message.
         '''
 
         url = wsgi_url

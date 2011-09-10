@@ -17,9 +17,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""
-The rpclib.model.table module is EXPERIMENTAL. Please report any issues you
-might find.
+"""This module aims to bridge SQLAlchemy and rpclib types by building a
+_type_info dictionary using the information held in class attributes by
+sqlalchemy.Column instances.
+
+While this module seems to be working fine for the documented purposes, the
+flexibility of SQLAlchemy and complexity of its internals leave much to be
+tested. Also considering the vast amount of non-supported sqlalchemy and rpclib
+features, this module should be treated as EXPERIMENTAL. Please use with care
+and do bring up any issues you experience with this module to the attention of
+rpclib or SQLAlchemy developers.
 """
 
 import logging
@@ -56,6 +63,8 @@ _type_map = {
 }
 
 def _process_item(v):
+    """This function maps sqlalchemy types to rpclib types."""
+
     if v.type in _type_map:
         rpc_type = _type_map[v.type]
     elif type(v.type) in _type_map:
@@ -67,6 +76,11 @@ def _process_item(v):
     return rpc_type
 
 class TableSerializerMeta(DeclarativeMeta, ComplexModelMeta):
+    """This class uses the information in class definition dictionary to build
+    the _type_info dictionary that rpclib relies on. It otherwise leaves
+    SQLAlchemy and its information alone.
+    """
+
     def __new__(cls, cls_name, cls_bases, cls_dict):
         if cls_dict.get("__type_name__", None) is None:
             cls_dict["__type_name__"] = cls_name
@@ -102,6 +116,10 @@ class TableSerializerMeta(DeclarativeMeta, ComplexModelMeta):
         return DeclarativeMeta.__new__(cls, cls_name, cls_bases, cls_dict)
 
 class TableSerializer(ComplexModelBase):
+    """The main base class for complex types shared by both SQLAlchemy and
+    rpclib. Classes that inherit from this class should also inherit from
+    an sqlalchemy.declarative base class."""
+
     __metaclass__ = TableSerializerMeta
     _decl_class_registry = {}
 
