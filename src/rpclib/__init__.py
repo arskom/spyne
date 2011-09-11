@@ -18,3 +18,9 @@
 #
 
 __version__ = '2.3.0-beta'
+
+from _base import TransportContext
+from _base import EventContext
+from _base import MethodContext
+from _base import MethodDescriptor
+from _base import EventManager

@@ -166,18 +166,26 @@ class WsgiApplication(ServerBase):
 
         if ctx.in_error:
             out_object = ctx.in_error
-            ctx.transport.resp_code = HTTP_500
+            if ctx.transport.resp_code is None:
+                ctx.transport.resp_code = HTTP_500
 
         else:
             if ctx.service_class == None:
-                start_response(HTTP_404, ctx.transport.resp_headers.items())
-                return ['']
+                if ctx.transport.resp_code is None:
+                    ctx.transport.resp_code = HTTP_500
+
+                ctx.out_string = [ctx.transport.resp_code]
+
+                self.event_manager.fire_event('wsgi_method_not_found', ctx)
+
+                start_response(ctx.transport.resp_code, ctx.transport.resp_headers.items())
+                return ctx.out_string
 
             self.get_out_object(ctx)
-            if not (ctx.out_error is None):
-                ctx.transport.resp_code = HTTP_500
-            else:
+            if ctx.out_error is None:
                 ctx.transport.resp_code = HTTP_200
+            else:
+                ctx.transport.resp_code = HTTP_500
 
         self.get_out_string(ctx)
 
