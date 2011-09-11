@@ -115,7 +115,7 @@ class WsgiApplication(ServerBase):
     def __is_wsdl_request(self, req_env):
         # Get the wsdl for the service. Assume path_info matches pattern:
         # /stuff/stuff/stuff/serviceName.wsdl or
-        # /stuff/stuff/stuff/serviceName/?wsdl
+        # /stuff/stuff/stuff/serviceName/?wsdl with anything between ? and wsdl.
 
         return (
             req_env['REQUEST_METHOD'].lower() == 'get'
@@ -200,8 +200,12 @@ class WsgiApplication(ServerBase):
                     out_object
                 )
 
-        # initiate the response
+        # We can't set the content-length if we want to support any kind of
+        # python iterable as output. We can't iterate and count, that defeats
+        # the whole point.
         del ctx.transport.resp_headers['Content-Length']
-        start_response(return_code, ctx.transport.resp_headers.items())
+
+        # initiate the response
+        start_response(ctx.transport.resp_code, ctx.transport.resp_headers.items())
 
         return ctx.out_string
