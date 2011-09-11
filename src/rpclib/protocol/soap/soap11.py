@@ -130,7 +130,7 @@ class _Soap11(XmlObject):
         pass
 
     allowed_http_verbs = ['POST']
-    mime_type = 'application/soap+xml'
+    mime_type = 'text/xml; charset=utf-8'
 
     def __init__(self, app=None):
         XmlObject.__init__(self, app)
