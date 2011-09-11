@@ -12,12 +12,22 @@ detect such corner cases is to have a great test suite.
 Requirements
 ------------
 
-While the stock unittest package is normally enough to run Python tests, using
-py.test from pytest package is just a more pleasant way to run them. Simply
-easy_install pytest to get it. You can run the following command in the test
-directory: ::
+While simply executing test modules is normally enough to run Python tests,
+using py.test from pytest package is just a more pleasant way to run them.
+Simply easy_install pytest to get it. You can run the following command in the
+test directory: ::
 
     py.test -v --tb=short
+
+You can use the module name as an argument: ::
+
+    py.test -v --tb=short test_sqla.py
+
+You can also choose which test to run: ::
+
+    py.test -v --tb=short test_sqla.py -k test_same_table_inheritance
+
+See [pytest documentation](http://pytest.org/latest/) for more info.
 
 Note that you need to do several other preparations to have the interop tests
 working. See the next section for the specifics.
@@ -27,6 +37,15 @@ Interoperability Tests
 ----------------------
 
 The interoperability servers require twisted.web.
+
+.Python
+^^^^^^^
+
+Python interop tests currently use Rpclib's own clients and suds. The suds test
+is the first thing we check and try not to break.
+
+Two tests that fail in the suds interop tests due to the lack of proper assert
+statements, so they're false alarms.
 
 .Net
 ^^^^
@@ -78,5 +97,3 @@ Here's the directory tree from a working setup:
     |       |-- README.txt
     |       `-- (...)
     `-- (...)
-
-

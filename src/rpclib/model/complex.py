@@ -24,10 +24,9 @@ Iterable that are container classes that organize other values.
 import logging
 logger = logging.getLogger(__name__)
 
-from lxml import etree
-
 from rpclib.model import ModelBase
 from rpclib.model import nillable_dict
+from rpclib.model import nillable_string
 
 from rpclib.util.odict import odict as TypeInfo
 from rpclib.const import xml_ns as namespace
@@ -221,6 +220,16 @@ class ComplexModelBase(ModelBase):
         retval.update(clz._type_info)
 
         return retval
+
+    @classmethod
+    @nillable_string
+    def to_string(cls, value):
+        raise ValueError("Only primitives can be serialized to string.")
+
+    @classmethod
+    @nillable_string
+    def from_string(cls, string):
+        raise ValueError("Only primitives can be deserialized from string.")
 
     @classmethod
     @nillable_dict

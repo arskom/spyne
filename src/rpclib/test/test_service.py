@@ -17,11 +17,14 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+#
+# Most of the service tests are performed through the interop tests.
+#
 import datetime
 import unittest
 
-import rpclib.interface.wsdl
-import rpclib.protocol.soap
+from rpclib.interface.wsdl import Wsdl11
+from rpclib.protocol.soap import Soap11
 
 from lxml import etree
 
@@ -124,55 +127,49 @@ class MultipleReturnService(ServiceBase):
     def multi(self, s):
         return s, 'a', 'b'
 
-class Test(unittest.TestCase):
-    '''Most of the service tests are performed through the interop tests.'''
-
-    def _set_up(self):
-        self.app = Application([TestService], rpclib.interface.wsdl.Wsdl11,
-                                        rpclib.protocol.soap.Soap11, tns='tns')
+class TestSingle(unittest.TestCase):
+    def setUp(self):
+        self.app = Application([TestService], 'tns', Wsdl11(), Soap11(), Soap11())
         self.srv = TestService()
+
         self.app.interface.build_interface_document('URL')
-        self._wsdl = self.app.interface.get_interface_document()
-        self.wsdl = etree.fromstring(self._wsdl)
+        self.wsdl_str = self.app.interface.get_interface_document()
+        self.wsdl_doc = etree.fromstring(self.wsdl_str)
 
     def test_portypes(self):
-        self._set_up()
-
-        porttype = self.wsdl.find('{http://schemas.xmlsoap.org/wsdl/}portType')
+        porttype = self.wsdl_doc.find('{http://schemas.xmlsoap.org/wsdl/}portType')
         self.assertEquals(
             len(self.srv.public_methods), len(porttype.getchildren()))
 
     def test_override_param_names(self):
-        self._set_up()
+        # FIXME: This test must be rewritten.
 
         for n in ['self', 'import', 'return', 'from']:
-            self.assertTrue(n in self._wsdl, '"%s" not in self._wsdl' % n)
+            self.assertTrue(n in self.wsdl_str, '"%s" not in self.wsdl_str' % n)
+
+class TestMultiple(unittest.TestCase):
+    def setUp(self):
+        self.app = Application([MultipleReturnService], 'tns', Wsdl11(), Soap11(), Soap11())
+        self.app.interface.build_interface_document('url')
 
     def test_multiple_return(self):
-        app = Application([MultipleReturnService], rpclib.interface.wsdl.Wsdl11,
-                                        rpclib.protocol.soap.Soap11, tns='tns')
-        app.interface.build_interface_document('url')
-        srv = MultipleReturnService()
-        message = srv.public_methods.values()[0].out_message()
+        message_class = MultipleReturnService.public_methods.values()[0].out_message
+        message = message_class()
 
         self.assertEquals(len(message._type_info), 3)
 
         sent_xml = etree.Element('test')
-        message.to_parent_element( ('a','b','c'), srv.get_tns(), sent_xml )
+        self.app.out_protocol.to_parent_element(message_class, ('a','b','c'),
+                                    MultipleReturnService.get_tns(), sent_xml)
         sent_xml = sent_xml[0]
 
         print etree.tostring(sent_xml, pretty_print=True)
-        response_data = message.from_xml(sent_xml)
+        response_data = self.app.out_protocol.from_element(message_class, sent_xml)
 
         self.assertEquals(len(response_data), 3)
         self.assertEqual(response_data[0], 'a')
         self.assertEqual(response_data[1], 'b')
         self.assertEqual(response_data[2], 'c')
-
-    def test_multiple_ns(self):
-        svc = Application([MultipleNamespaceService],rpclib.interface.wsdl.Wsdl11,
-                                         rpclib.protocol.soap.Soap11,tns='tns')
-        svc.interface.get_interface_document()
 
 if __name__ == '__main__':
     unittest.main()

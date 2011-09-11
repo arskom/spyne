@@ -2,6 +2,18 @@
 Changelog
 =========
 
+rpclib-2.3.1-beta
+-----------------
+ * HttpRpc protocol now returns 404 when a requested resource was not found.
+ * New tests added for HttpRpc protocol.
+ * Miscellanous other fixes.
+
+rpclib-2.3.0-beta
+-----------------
+ * Documentation improvements.
+ * rpclib.protocol.xml.XmlObject is now working as out_protocol.
+ * Many fixes.
+
 rpclib-2.2.3-beta
 ------------------
  * Documentation improvements.
