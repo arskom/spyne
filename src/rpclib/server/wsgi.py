@@ -28,7 +28,6 @@ import cgi
 
 from rpclib._base import TransportContext
 from rpclib._base import MethodContext
-from rpclib.model.fault import Fault
 from rpclib.protocol.soap.mime import apply_mtom
 from rpclib.util import reconstruct_url
 from rpclib.server import ServerBase
