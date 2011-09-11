@@ -20,6 +20,10 @@
 import logging
 logger = logging.getLogger(__name__)
 
+from lxml import etree
+
+from rpclib.const import xml_ns as ns
+
 from rpclib.util.cdict import cdict
 
 from rpclib.model import ModelBase
@@ -78,48 +82,134 @@ _deserialization_handlers = cdict({
     EnumBase: enum_from_element,
 })
 
+class NotFoundError(Exception):
+    """Raised when the requested resource was not found."""
+    pass
+
 class XmlObject(ProtocolBase):
-    def create_in_document(self, ctx, in_string_encoding=None):
-        """Uses ctx.in_string to set ctx.in_document"""
-        raise NotImplementedError()
-
-    def decompose_incoming_envelope(self, ctx):
-        """Sets the ctx.in_body_doc, ctx.in_header_doc and ctx.service
-        properties of the ctx object, if applicable.
-        """
-        raise NotImplementedError()
-
     def from_element(self, cls, element):
         handler = _deserialization_handlers[cls]
         return handler(self, cls, element)
 
-    def to_parent_element(self, cls, value, tns, parent_elt, *args, **kwargs):
+    def to_parent_element(self, cls, value, tns, parent_elt, * args, ** kwargs):
         handler = _serialization_handlers[cls]
-        handler(self, cls, value, tns, parent_elt, *args, **kwargs)
+        handler(self, cls, value, tns, parent_elt, * args, ** kwargs)
 
-    def deserialize(self, ctx):
-        """Takes a MethodContext instance and a string containing ONE document
-        instance in the ctx.in_string attribute.
+    def create_in_document(self, ctx, charset=None):
+        ctx.in_document = etree.fromstring(ctx.in_string, charset)
 
-        Returns the corresponding native python object in the ctx.in_object
-        attribute.
+    def create_out_string(self, ctx, charset=None):
+        """Sets an iterable of string fragments to ctx.out_string"""
+        if charset is None:
+            charset = 'utf8'
+
+        ctx.out_string = [etree.tostring(ctx.out_document, xml_declaration=True,
+                                                            encoding=charset)]
+
+    def decompose_incoming_envelope(self, ctx):
+        body_doc = ctx.in_document
+
+        try:
+            self.validate(body_doc)
+            if (not (body_doc is None) and
+                (ctx.method_request_string is None)):
+                ctx.method_request_string = body_doc.tag
+                logger.debug("\033[92mMethod request_string: %r\033[0m" %
+                                                    ctx.method_request_string)
+
+        finally:
+            # for performance reasons, we don't want the following to run
+            # in production even though we won't see the results.
+            # that's why one needs to explicitly set the logging level of
+            # the 'rpclib.protocol.xml._base' to DEBUG to see the xml data.
+            if logger.level == logging.DEBUG:
+                try:
+                    logger.debug(etree.tostring(body_doc, pretty_print=True))
+                except etree.XMLSyntaxError, e:
+                    logger.debug(body_doc)
+                    raise Fault('Client.Xml', 'Error at line: %d, col: %d' %
+                                                                    e.position)
+
+        if ctx.method_request_string is None:
+            raise Exception("Could not extract method request string from "
+                            "the request!")
+        try:
+            if ctx.service_class is None: # i.e. if it's a server
+                self.set_method_descriptor(ctx)
+
+        except Exception, e:
+            logger.exception(e)
+            raise NotFoundError('Client', 'Method not found: %r' %
+                                                    ctx.method_request_string)
+
+        ctx.in_header_doc = None # XmlObject does not know between header and
+            # payload. That's SOAP's job to do.
+        ctx.in_body_doc = body_doc
+
+    def deserialize(self, ctx, way='out'):
+        """Takes a MethodContext instance and a string containing ONE root xml
+        tag.
+
+        Returns the corresponding native python object
+
+        Not meant to be overridden.
         """
-        raise NotImplementedError()
 
-    def serialize(self, ctx):
-        """Takes a MethodContext instance and the object to be serialied in the
-        ctx.out_object attribute.
+        assert way in ('in', 'out')
 
-        Returns the corresponding document structure in the ctx.out_document
-        attribute.
+        if way == 'in':
+            body_class = ctx.descriptor.in_message
+
+        elif self.in_wrapper is self.OUT_WRAPPER:
+            body_class = ctx.descriptor.out_message
+
+        # decode method arguments
+        if ctx.in_body_doc is not None and len(ctx.in_body_doc) > 0:
+            ctx.in_object = self.from_element(body_class, ctx.in_body_doc)
+        else:
+            ctx.in_object = [None] * len(body_class._type_info)
+
+        self.event_manager.fire_event('deserialize', ctx)
+
+    def serialize(self, ctx, way='out'):
+        """Uses ctx.out_object, ctx.out_header or ctx.out_error to set
+        ctx.out_body_doc, ctx.out_header_doc and ctx.out_document as an
+        lxml.etree._Element instance.
+
+        Not meant to be overridden.
         """
-        raise NotImplementedError()
 
-    def create_out_string(self, ctx, out_string_encoding=None):
-        """Uses ctx.out_string to set ctx.out_document"""
-        raise NotImplementedError()
+        assert way in ('in', 'out')
 
-    def validate(self, payload):
-        """Method to be overriden to perform any sort of custom input
-        validation.
-        """
+        # instantiate the result message
+        if way == 'in':
+            result_message_class = ctx.descriptor.in_message
+        else:
+            result_message_class = ctx.descriptor.out_message
+
+        result_message = result_message_class()
+
+        # assign raw result to its wrapper, result_message
+        out_type_info = result_message_class._type_info
+
+        if len(out_type_info) == 1:
+            attr_name = result_message_class._type_info.keys()[0]
+            setattr(result_message, attr_name, ctx.out_object)
+
+        else:
+            for i in range(len(out_type_info)):
+                attr_name = result_message_class._type_info.keys()[i]
+                setattr(result_message, attr_name, ctx.out_object[i])
+
+        # transform the results into an element
+        tmp_elt = etree.Element('{%s}punk' % ns.soap_env)
+        self.to_parent_element(result_message_class,
+                    result_message, self.app.interface.get_tns(), tmp_elt)
+        ctx.out_document = tmp_elt[0]
+
+        if logger.level == logging.DEBUG:
+            logger.debug('\033[91m' + "Response" + '\033[0m')
+            logger.debug(etree.tostring(ctx.out_document,
+                         xml_declaration=True, pretty_print=True))
+
+        self.event_manager.fire_event('serialize', ctx)

@@ -6,7 +6,7 @@ This example uses the stock simple wsgi webserver to deploy this service. You
 should probably use a full-fledged wsgi implementation when deploying your
 service for production purposes.
 
-Declaring a Rpclib Service
+Defining an Rpclib Service
 --------------------------
 
 This example is available here: http://github.com/arskom/rpclib/blob/master/examples/helloworld_soap.py.
@@ -47,7 +47,7 @@ This example is available here: http://github.com/arskom/rpclib/blob/master/exam
         logging.basicConfig(level=logging.DEBUG)
         logging.getLogger('rpclib.protocol.soap.soap11').setLevel(logging.DEBUG)
 
-        application = Application([HelloWorldService], 'rpclib.examples.hello.vanilla',
+        application = Application([HelloWorldService], 'rpclib.examples.hello.soap',
                     interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
 
         server = make_server('127.0.0.1', 7789, WsgiApplication(application))
@@ -77,6 +77,17 @@ to pass fresh instances to each application instance. ::
     from rpclib.interface.wsdl import Wsdl11
     from rpclib.protocol.soap import Soap11
 
+For the sake of this tutorial, we are going to use HttpRpc as well. It's a
+rest-like protocol, but it doesn't care about HTTP verbs (yet). ::
+
+    from rpclib.protocol.http import HttpRpc
+
+The HttpRpc serializer does not support complex types. So we will use the
+XmlObject serializer as the out_protocol to prevent the clients from dealing
+with Soap cruft. ::
+
+    from rpclib.protocol.http import XmlObject
+
 ServiceBase is the base class for all service definitions. ::
 
     from rpclib.service import ServiceBase
@@ -99,8 +110,8 @@ attribute. ::
 
     class HelloWorldService(ServiceBase):
 
-The srpc decorator flags each method as a soap method and defines the types
-and order of the soap parameters, as well as the type of the return value.
+The srpc decorator flags each method as a remote procedure call and defines the
+types and order of the soap parameters, as well as the type of the return value.
 This method takes in a string and an integer and returns an iterable of strings,
 just like that: ::
 
@@ -113,16 +124,19 @@ and return types are standard python objects::
             for i in xrange(times):
                 yield 'Hello, %s' % name
 
-As the name implies, when returning an iterable, you can use any type of python
-iterable. Here, we chose to use generators.
+When returning an iterable, you can use any type of python iterable. Here, we
+chose to use generators.
 
 Deploying the service using SOAP
 --------------------------------
 
 Now that we have defined our service, we are ready to share it with the outside
-world. Rpclib has been tested with several other web servers, This example uses
-the python's stock simple wsgi web server; any WSGI-compliant server should
-work.
+world.
+
+We are going to use the ubiquitious Http protocol as a transport, using a
+Wsgi-compliant http server. This example uses Python's stock simple wsgi web
+server. Rpclib has been tested with several other web servers. Any
+WSGI-compliant server should work.
 
 This is the required import. ::
 
@@ -138,9 +152,9 @@ reasons. ::
         logging.getLogger('rpclib.protocol.soap.soap11').setLevel(logging.DEBUG)
 
 We glue the service definition, interface document and input and output protocols
-under the targetNamespace 'rpclib.examples.hello.vanilla'. ::
+under the targetNamespace 'rpclib.examples.hello.soap'. ::
 
-        application = Application([HelloWorldService], 'rpclib.examples.hello.vanilla',
+        application = Application([HelloWorldService], 'rpclib.examples.hello.soap',
                     interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
 
 We then wrap the rpclib application with its wsgi wrapper and register it as the
@@ -178,18 +192,16 @@ it using `easy_install suds`.
 Deploying service using HttpRpc
 -------------------------------
 
-HttpRpc is like rest, but it doesn't care about HTTP verbs (yet). We should first
-import it:
-
-    from rpclib.protocol.http import HttpRpc
+This example is available here: http://github.com/arskom/rpclib/blob/master/examples/helloworld_http.py.
 
 The only difference between the SOAP and the HTTP version is the application
 instantiation line: ::
 
-        application = Application([HelloWorldService], 'rpclib.examples.hello.vanilla',
-                    interface=Wsdl11(), in_protocol=HttpRpc(), out_protocol=Soap11())
+        application = Application([HelloWorldService], 'rpclib.examples.hello.http',
+                interface=Wsdl11(), in_protocol=HttpRpc(), out_protocol=XmlObject())
 
-This example is available here: http://github.com/arskom/rpclib/blob/master/examples/helloworld_http.py.
+We still want to keep Xml as the output protocol as the HttpRpc protocol is
+not able to handle complex types.
 
 Here's how you can test your service using wget. ::
 
@@ -203,30 +215,16 @@ output. ::
 The command's output would be as follows: ::
 
     <?xml version='1.0' encoding='utf8'?>
-    <senv:Envelope xmlns:wsa="http://schemas.xmlsoap.org/ws/2003/03/addressing"
-    xmlns:tns="rpclib.examples.hello.vanilla"
-    xmlns:plink="http://schemas.xmlsoap.org/ws/2003/05/partner-link/"
-    xmlns:xop="http://www.w3.org/2004/08/xop/include"
-    xmlns:senc="http://schemas.xmlsoap.org/soap/encoding/"
-    xmlns:s12env="http://www.w3.org/2003/05/soap-envelope/"
-    xmlns:s12enc="http://www.w3.org/2003/05/soap-encoding/"
-    xmlns:xs="http://www.w3.org/2001/XMLSchema"
-    xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/"
-    xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/">
-    <senv:Body>
-        <tns:say_helloResponse>
-        <tns:say_helloResult>
-            <tns:string>Hello, Dave</tns:string>
-            <tns:string>Hello, Dave</tns:string>
-            <tns:string>Hello, Dave</tns:string>
-            <tns:string>Hello, Dave</tns:string>
-            <tns:string>Hello, Dave</tns:string>
-        </tns:say_helloResult>
-        </tns:say_helloResponse>
-    </senv:Body>
-    </senv:Envelope>
+    <ns1:say_helloResponse xmlns:ns1="rpclib.examples.hello.http"
+    xmlns:ns0="http://schemas.xmlsoap.org/soap/envelope/">
+      <ns1:say_helloResult>
+        <ns1:string>Hello, Dave</ns1:string>
+        <ns1:string>Hello, Dave</ns1:string>
+        <ns1:string>Hello, Dave</ns1:string>
+        <ns1:string>Hello, Dave</ns1:string>
+        <ns1:string>Hello, Dave</ns1:string>
+      </ns1:say_helloResult>
+    </ns1:say_helloResponse>
 
 What's next?
 ------------

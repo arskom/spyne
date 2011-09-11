@@ -25,7 +25,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 import cgi
-import traceback
 
 import rpclib.const.xml_ns as ns
 
@@ -34,7 +33,6 @@ from lxml import etree
 from rpclib.protocol.xml import XmlObject
 from rpclib.protocol.soap.mime import collapse_swa
 
-from rpclib.protocol import ProtocolBase
 from rpclib.model.fault import Fault
 from rpclib.model.primitive import string_encoding
 
@@ -176,7 +174,7 @@ class _Soap11(XmlObject):
                 # for performance reasons, we don't want the following to run
                 # in production even though we won't see the results.
                 # that's why one needs to explicitly set the logging level of
-                # the 'rpclib.protocol.soap._base' to DEBUG to see the xml data.
+                # the 'rpclib.protocol.soap.soap11' to DEBUG to see the xml data.
                 if logger.level == logging.DEBUG:
                     try:
                         logger.debug(etree.tostring(envelope_xml,
@@ -194,7 +192,7 @@ class _Soap11(XmlObject):
                     self.set_method_descriptor(ctx)
 
             except Exception,e:
-                logger.debug(traceback.format_exc())
+                logger.exception(e)
                 raise ValidationError('Client', 'Method not found: %r' %
                                                     ctx.method_request_string)
 
