@@ -96,3 +96,6 @@ class ServerBase(object):
             else:
                 ctx.service_class.event_manager.fire_event(
                                             'method_exception_string', ctx)
+
+        if ctx.out_string is None:
+            ctx.out_string = [""]

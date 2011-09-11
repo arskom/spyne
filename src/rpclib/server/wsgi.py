@@ -179,8 +179,6 @@ class WsgiApplication(ServerBase):
                 return_code = HTTP_500
 
         self.get_out_string(ctx)
-        if ctx.out_string is None:
-            ctx.out_string = [""]
 
         # implementation hook
         self.event_manager.fire_event('wsgi_return', ctx)
