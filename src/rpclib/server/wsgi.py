@@ -164,10 +164,9 @@ class WsgiApplication(ServerBase):
 
         self.get_in_object(ctx, in_string_charset)
 
-        return_code = HTTP_200
         if ctx.in_error:
             out_object = ctx.in_error
-            return_code = HTTP_500
+            ctx.transport.resp_code = HTTP_500
 
         else:
             if ctx.service_class == None:
@@ -176,7 +175,9 @@ class WsgiApplication(ServerBase):
 
             self.get_out_object(ctx)
             if not (ctx.out_error is None):
-                return_code = HTTP_500
+                ctx.transport.resp_code = HTTP_500
+            else:
+                ctx.transport.resp_code = HTTP_200
 
         self.get_out_string(ctx)
 
