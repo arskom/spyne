@@ -18,6 +18,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+#
+# FIXME: This example is not working. It's here just so we don't forget about
+# it. Please ignore this.
+#
+
 import time
 from threading import Thread
 
@@ -31,11 +36,6 @@ from rpclib.model.primitive import String
 from rpclib.model.primitive import Integer
 from rpclib.util import get_callback_info
 from rpclib.server.wsgi import WsgiApplication
-
-#
-# This is not working. This is the closest to what it'd be if it was
-# working.
-#
 
 '''
 This is a very simple async service that sleeps for a specified
