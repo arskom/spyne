@@ -126,7 +126,7 @@ class WsgiApplication(ServerBase):
         )
 
     def __handle_wsdl_request(self, req_env, start_response, url):
-        ctx = WsgiMethodContext(self.app, req_env, 'text/xml')
+        ctx = WsgiMethodContext(self.app, req_env, 'text/xml; charset=utf-8')
 
         try:
             wsdl = self.app.interface.get_interface_document()
