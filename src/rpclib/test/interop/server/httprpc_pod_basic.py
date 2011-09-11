@@ -41,7 +41,7 @@ if __name__ == '__main__':
         wsgi_application = WsgiApplication(httprpc_soap_application)
         server = make_server('0.0.0.0', 9757, validator(wsgi_application))
 
-        logger.info('Starting interop server at %s:%s.' % ('0.0.0.0', 9756))
+        logger.info('Starting interop server at %s:%s.' % ('0.0.0.0', 9757))
         logger.info('WSDL is at: /?wsdl')
         server.serve_forever()
 
