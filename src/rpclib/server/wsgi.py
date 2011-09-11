@@ -186,10 +186,11 @@ class WsgiApplication(ServerBase):
         self.event_manager.fire_event('wsgi_return', ctx)
 
         if ctx.descriptor and ctx.descriptor.mtom:
-            # when there are more than one return type, the result is
+            # when there is more than one return type, the result is
             # encapsulated inside a list. when there's just one, the result
-            # is returned unencapsulated. the apply_mtom always expects the
-            # objects to be inside an iterable, hence the following test.
+            # is returned in a non-encapsulated form. the apply_mtom always
+            # expects the objects to be inside an iterable, hence the following
+            # test.
             out_type_info = ctx.descriptor.out_message._type_info
             if len(out_type_info) == 1:
                 out_object = [out_object]
