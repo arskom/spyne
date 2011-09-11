@@ -62,10 +62,11 @@ class TestSuds(unittest.TestCase):
         non_nillable_class.s = None
 
         try:
-            ret = self.client.service.non_nillable(non_nillable_class)
-            raise Exception("must fail")
+            self.client.service.non_nillable(non_nillable_class)
         except WebFault, e:
             pass
+        else:
+            raise Exception("must fail")
 
     def test_echo_integer_array(self):
         ia = self.client.factory.create('integerArray')

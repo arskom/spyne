@@ -18,4 +18,3 @@
 #
 
 from _base import ProtocolBase
-from _base import ValidationError

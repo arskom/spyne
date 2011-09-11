@@ -26,6 +26,7 @@ from rpclib.const import xml_ns as ns
 
 from rpclib.util.cdict import cdict
 
+from rpclib.error import NotFoundError
 from rpclib.model import ModelBase
 
 from rpclib.model.complex import Array
@@ -82,10 +83,6 @@ _deserialization_handlers = cdict({
     EnumBase: enum_from_element,
 })
 
-class NotFoundError(Exception):
-    """Raised when the requested resource was not found."""
-    pass
-
 class XmlObject(ProtocolBase):
     def from_element(self, cls, element):
         handler = _deserialization_handlers[cls]
@@ -98,15 +95,6 @@ class XmlObject(ProtocolBase):
     def create_in_document(self, ctx, charset=None):
         ctx.in_document = etree.fromstring(ctx.in_string, charset)
 
-    def create_out_string(self, ctx, charset=None):
-        """Sets an iterable of string fragments to ctx.out_string"""
-        if charset is None:
-            charset = 'utf8'
-
-        ctx.out_string = [etree.tostring(ctx.out_document, xml_declaration=True,
-                                                            encoding=charset)]
-
-    def decompose_incoming_envelope(self, ctx):
         body_doc = ctx.in_document
 
         try:
@@ -145,6 +133,14 @@ class XmlObject(ProtocolBase):
         ctx.in_header_doc = None # XmlObject does not know between header and
             # payload. That's SOAP's job to do.
         ctx.in_body_doc = body_doc
+
+    def create_out_string(self, ctx, charset=None):
+        """Sets an iterable of string fragments to ctx.out_string"""
+        if charset is None:
+            charset = 'utf8'
+
+        ctx.out_string = [etree.tostring(ctx.out_document, xml_declaration=True,
+                                                            encoding=charset)]
 
     def deserialize(self, ctx, way='out'):
         """Takes a MethodContext instance and a string containing ONE root xml

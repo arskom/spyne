@@ -34,7 +34,6 @@ from rpclib.protocol.xml import XmlObject
 from rpclib.protocol.soap.mime import collapse_swa
 
 from rpclib.model.fault import Fault
-from rpclib.model.primitive import string_encoding
 
 class ValidationError(Fault):
     pass
@@ -71,7 +70,7 @@ def _from_soap(in_envelope_xml, xmlids=None):
 def _parse_xml_string(xml_string, charset=None):
     try:
         if charset is None:
-            charset = string_encoding
+            charset = 'utf-8'
 
         root, xmlids = etree.XMLID(xml_string.decode(charset))
 
@@ -130,7 +129,7 @@ class _Soap11(XmlObject):
         pass
 
     allowed_http_verbs = ['POST']
-    mime_type = 'application/soap+xml'
+    mime_type = 'text/xml; charset=utf-8'
 
     def __init__(self, app=None):
         XmlObject.__init__(self, app)
@@ -149,7 +148,7 @@ class _Soap11(XmlObject):
     def create_out_string(self, ctx, charset=None):
         """Sets an iterable of string fragments to ctx.out_string"""
         if charset is None:
-            charset = string_encoding
+            charset = 'utf-8'
 
         ctx.out_string = [etree.tostring(ctx.out_document, xml_declaration=True,
                                                               encoding=charset)]

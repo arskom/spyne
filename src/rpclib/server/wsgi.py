@@ -26,8 +26,10 @@ logger = logging.getLogger(__name__)
 
 import cgi
 
-from rpclib._base import MethodContext
-from rpclib.model.fault import Fault
+from rpclib import TransportContext
+from rpclib import MethodContext
+
+from rpclib.error import NotFoundError
 from rpclib.protocol.soap.mime import apply_mtom
 from rpclib.util import reconstruct_url
 from rpclib.server import ServerBase
@@ -59,18 +61,25 @@ def reconstruct_wsgi_request(http_env):
     return input.read(length), charset
 
 
+class WsgiTransportContext(TransportContext):
+    def __init__(self, req_env, content_type):
+        TransportContext.__init__(self, 'wsgi')
+
+        self.req_env = req_env
+        self.resp_headers = {
+            'Content-Type': content_type,
+            'Content-Length': '0',
+        }
+        self.resp_code = None
+        self.req_method = req_env.get('REQUEST_METHOD', None)
+        self.wsdl_error = None
+
+
 class WsgiMethodContext(MethodContext):
     def __init__(self, app, req_env, content_type):
         MethodContext.__init__(self, app)
 
-        self.transport.type = 'wsgi'
-        self.transport.req_env = req_env
-        self.transport.resp_headers = {
-            'Content-Type': content_type,
-            'Content-Length': '0',
-        }
-        self.transport.req_method = req_env.get('REQUEST_METHOD', None)
-        self.transport.wsdl_error = None
+        self.transport = WsgiTransportContext(req_env, content_type)
 
 
 class WsgiApplication(ServerBase):
@@ -108,7 +117,7 @@ class WsgiApplication(ServerBase):
     def __is_wsdl_request(self, req_env):
         # Get the wsdl for the service. Assume path_info matches pattern:
         # /stuff/stuff/stuff/serviceName.wsdl or
-        # /stuff/stuff/stuff/serviceName/?wsdl
+        # /stuff/stuff/stuff/serviceName/?wsdl with anything between ? and wsdl.
 
         return (
             req_env['REQUEST_METHOD'].lower() == 'get'
@@ -119,7 +128,7 @@ class WsgiApplication(ServerBase):
         )
 
     def __handle_wsdl_request(self, req_env, start_response, url):
-        ctx = WsgiMethodContext(self.app, req_env, 'text/xml')
+        ctx = WsgiMethodContext(self.app, req_env, 'text/xml; charset=utf-8')
 
         try:
             wsdl = self.app.interface.get_interface_document()
@@ -155,34 +164,45 @@ class WsgiApplication(ServerBase):
 
         ctx.in_string, in_string_charset = reconstruct_wsgi_request(req_env)
 
-        self.get_in_object(ctx, in_string_charset)
+        try:
+            self.get_in_object(ctx, in_string_charset)
+        except NotFoundError, e:
+            pass
 
-        return_code = HTTP_200
         if ctx.in_error:
             out_object = ctx.in_error
-            return_code = HTTP_500
+            if ctx.transport.resp_code is None:
+                ctx.transport.resp_code = HTTP_500
 
         else:
             if ctx.service_class == None:
-                start_response(HTTP_404, ctx.transport.resp_headers.items())
-                return ['']
+                if ctx.transport.resp_code is None:
+                    ctx.transport.resp_code = HTTP_500
+
+                ctx.out_string = [ctx.transport.resp_code]
+
+                self.event_manager.fire_event('wsgi_method_not_found', ctx)
+
+                start_response(ctx.transport.resp_code, ctx.transport.resp_headers.items())
+                return ctx.out_string
 
             self.get_out_object(ctx)
-            if not (ctx.out_error is None):
-                return_code = HTTP_500
+            if ctx.out_error is None:
+                ctx.transport.resp_code = HTTP_200
+            else:
+                ctx.transport.resp_code = HTTP_500
 
         self.get_out_string(ctx)
-        if ctx.out_string is None:
-            ctx.out_string = [""]
 
         # implementation hook
         self.event_manager.fire_event('wsgi_return', ctx)
 
         if ctx.descriptor and ctx.descriptor.mtom:
-            # when there are more than one return type, the result is
+            # when there is more than one return type, the result is
             # encapsulated inside a list. when there's just one, the result
-            # is returned unencapsulated. the apply_mtom always expects the
-            # objects to be inside an iterable, hence the following test.
+            # is returned in a non-encapsulated form. the apply_mtom always
+            # expects the objects to be inside an iterable, hence the following
+            # test.
             out_type_info = ctx.descriptor.out_message._type_info
             if len(out_type_info) == 1:
                 out_object = [out_object]
@@ -193,8 +213,12 @@ class WsgiApplication(ServerBase):
                     out_object
                 )
 
-        # initiate the response
+        # We can't set the content-length if we want to support any kind of
+        # python iterable as output. We can't iterate and count, that defeats
+        # the whole point.
         del ctx.transport.resp_headers['Content-Length']
-        start_response(return_code, ctx.transport.resp_headers.items())
+
+        # initiate the response
+        start_response(ctx.transport.resp_code, ctx.transport.resp_headers.items())
 
         return ctx.out_string
