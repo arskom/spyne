@@ -1,4 +1,3 @@
-
 Changelog
 =========
 
@@ -6,7 +5,7 @@ rpclib-2.3.1-beta
 -----------------
  * HttpRpc protocol now returns 404 when a requested resource was not found.
  * New tests added for HttpRpc protocol.
- * Miscellanous other fixes.
+ * Miscellanous other fixes. See: https://github.com/arskom/rpclib/pull/86
 
 rpclib-2.3.0-beta
 -----------------
