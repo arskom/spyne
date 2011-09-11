@@ -21,11 +21,21 @@
 
 import logging
 logger = logging.getLogger(__name__)
-
-from rpclib.protocol import ProtocolBase
 import urlparse
 
+from rpclib.protocol import ProtocolBase
+
 # this is not exactly rest, because it ignores http verbs.
+
+def _get_http_headers(req_env):
+    retval = {}
+
+    for k,v in req_env.iteritems():
+        if k.startswith("HTTP_"):
+            retval[k[5:].lower()]= v
+
+    return retval
+
 class HttpRpc(ProtocolBase):
     """The so-called ReST-minus-the-verbs HttpRpc protocol implementation.
     It only works with the http server (wsgi) transport.
@@ -44,7 +54,7 @@ class HttpRpc(ProtocolBase):
 
         self.app.in_protocol.set_method_descriptor(ctx)
 
-        ctx.in_header_doc = None
+        ctx.in_header_doc = _get_http_headers(ctx.transport.req_env)
         ctx.in_body_doc = urlparse.parse_qs(ctx.transport.req_env['QUERY_STRING'])
 
         logger.debug(repr(ctx.in_body_doc))
