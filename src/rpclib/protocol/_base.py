@@ -30,6 +30,7 @@ _ns_xsi = rpclib.const.xml_ns.xsi
 _ns_xsd = rpclib.const.xml_ns.xsd
 
 from rpclib._base import EventManager
+from rpclib.error import NotFoundError
 # from pprint import pformat
 
 class ProtocolBase(object):
@@ -103,9 +104,9 @@ class ProtocolBase(object):
         ctx.service_class = self.app.interface.service_mapping.get(name, None)
         if ctx.service_class is None:
             # logger.debug(pformat(self.app.interface.service_mapping.keys()))
-            raise Exception('Method %r not bound to a service class.' % name)
+            raise NotFoundError('Method %r not bound to a service class.' % name)
 
         ctx.descriptor = ctx.app.interface.method_mapping.get(name, None)
         if ctx.descriptor is None:
             # logger.debug(pformat(ctx.app.interface.method_mapping.keys()))
-            raise Exception('Method %r not found.' % name)
+            raise NotFoundError('Method %r not found.' % name)

@@ -26,6 +26,7 @@ from rpclib.const import xml_ns as ns
 
 from rpclib.util.cdict import cdict
 
+from rpclib.error import NotFoundError
 from rpclib.model import ModelBase
 
 from rpclib.model.complex import Array
@@ -81,10 +82,6 @@ _deserialization_handlers = cdict({
     Iterable: iterable_from_element,
     EnumBase: enum_from_element,
 })
-
-class NotFoundError(Exception):
-    """Raised when the requested resource was not found."""
-    pass
 
 class XmlObject(ProtocolBase):
     def from_element(self, cls, element):
