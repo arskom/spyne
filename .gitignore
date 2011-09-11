@@ -1,6 +1,6 @@
 # All files to globally ignore
 
-#python cruft
+# python cruft
 *.pyc
 *.pyo
 *$py.class
@@ -8,21 +8,15 @@
 *.egg-info
 .noseids
 .coverage
-*prof*
 pip-log.txt
-*.swp
-*.patch
-*#
 MANIFEST
 dist
 build
-soaplib_lxml.egg-info
-soaplib.egg-info
 
 # Mac cruft
 .DS_Store
 
-#emacs cruft
+# emacs cruft
 *~
 *#*
 *.pyc
@@ -42,15 +36,15 @@ develop-eggs
 # netbeans cruft
 nbproject
 
-# wsi-test-tools
-/src/soaplib/test/interop/wsi-test-tools
-/src/soaplib/test/interop/config.xml
-
 # pycharm cruft
 .idea/
 
+# wsi-test
 wsi-test-tools
 src/rpclib/test/interop/config.xml
 
 # kate cruft
 *.kate-swp
+
+# sphinx cruft
+.buildinfo

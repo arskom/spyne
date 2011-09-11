@@ -1,59 +1,97 @@
 
-Warning! This is rpclib's unstable development branch. Not only that, but rpclib
-project is experimental. You have been warned.
+About
+=====
 
-Overview
-========
+Rpclib is an unobstrusive Python library that helps you expose your APIs to a
+wider audience via various Remote Procedure Call protocols and transports.
 
-What is rpclib?
-----------------
+It currently supports the WSDL 1.1 interface definition standard, along with
+SOAP 1.1 and the rest-minus-the-verbs HttpRpc protocol which can be
+transported via HTTP or ZeroMQ in a both client or server environment.
 
-Rpclib is a library for publishing services that uses various protocols and
-transports. Currently, it supports WSDL 1.1 interface to publish services
-that use SOAP 1.1 or the (Rest-minus-the-verbs) HttpRPC protocol over either
-ZeroMQ or HTTP (using WSGI).
-
-With a very small amount of code, rpclib allows you to write a useful remote
-procedure call pack and deploy it using your transport of choice.
+The source code is [here](https://github.com/arskom/rpclib).
 
 The official rpclib discussion forum can be found [here](http://mail.python.org/mailman/listinfo/soap).
 
 See the [downloads section](http://github.com/arskom/rpclib/downloads) for related downloads.
 
-The documentation [here](http://arskom.github.com/rpclib)
+The documentation is [here](http://arskom.github.com/rpclib).
 
 Rpclib is a generalized version of a soap processing library known as soaplib.
-The legacy versions of soaplib are also available in this repository.
-See [here](http://github.com/arskom/rpclib/tree/soaplib-0_8) for the stable soaplib-0.8 branch.
-See [here](http://github.com/arskom/rpclib/tree/soaplib-1_0) for the stable soaplib-1.0 branch.
-See [here](http://github.com/arskom/rpclib/tree/soaplib-2_0) for the stable soaplib-2.0 branch.
+The following legacy versions of soaplib are also available:
 
-Features
---------
-* Handles all (de)serialization.
-* On-demand WSDL generation.
-* Powerful customization features to support many use-cases.
+ * See [here](http://github.com/arskom/rpclib/tree/soaplib-0_8) for the stable soaplib-0.8 branch.
+ * See [here](http://github.com/arskom/rpclib/tree/soaplib-1_0) for the stable soaplib-1.0 branch.
+ * See [here](http://github.com/arskom/rpclib/tree/soaplib-2_0) for the stable soaplib-2.0 branch.
 
-Runtime Requirements
---------------------
-* Python 2.4 through 2.7 (looking for volunteers to test Python 3.x)
-* A WSGI-compliant web server for http services. (CherryPy, WSGIUtils, Twisted, etc.)
-* [lxml](http://codespeak.net/lxml/) for soap. (available through easy_install)
-* [pytz](http://pytz.sourceforge.net/) (available through easy_install)
+Requirements
+============
 
-See the examples directory in the source distribution for deployment
-examples. Rpclib services have been successfully run on the following web
-servers:
+Rpclib reportedly runs on any version of Python from 2.4 through 2.7. We're also
+looking for volunteers to test Python 3.x.
 
-* CherryPy 2.2
-* Flup
-* twisted.web (8.2, 9.0)
-* WSGIUtils 0.9
+The aim is to have no requirements besides the standard Python library for the
+Rpclib core. While much ground was covered towards this goal, there's still some
+work to be done. So currently, the following is needed if you want to run any
+Rpclib service at all:
 
-Development Requirements
-------------------------
-* Most examples and tests require Python 2.5 and greater. You need Python 2.7 to
-  run all of the tests.
-* Twisted is required for `rpclib.test.interop.server.basic` and
-  `rpclib.test.interop.server.static`.
-* To run automated tests, see instructions under test/README
+* [lxml](http://codespeak.net/lxml/). (available through easy_install)
+* [pytz](http://pytz.sourceforge.net/). (available through easy_install)
+
+And the following is needed for various subsystems that Rpclib supports:
+
+* [SQLAlchemy](http://sqlalchemy.org) for :class:`rpclib.model.table.TableModel`.
+* [pyzmq](https://github.com/zeromq/pyzmq) for
+  :class:`rpclib.client.zeromq.ZeroMQClient` and
+  :class:`rpclib.server.zeromq.ZeroMQServer`.
+* A Wsgi server of your choice to wrap :class:`rpclib.server.wsgi.WsgiApplication`.
+
+Please note that the examples assume Python 2.5 and up.
+
+Installing
+==========
+
+To install rpclib, you can use git to clone from github or install from pypi::
+
+    git clone git://github.com/arskom/rpclib.git
+    cd rpclib
+    python setup.py install
+
+    # to run the non-interop tests use:
+    python setup.py test
+
+    # if you want to make any changes to the rpclib code, it's more comfortable
+    # to use:
+    python setup.py develop
+
+Contributing
+============
+
+The main developers of rpclib lurk in the official soap implementors forum
+in python.org, [here](http://mail.python.org/mailman/listinfo/soap/).
+That's mostly because rpclib is the continuation of soaplib, but also
+because soap is an important part of rpclib.
+
+If you wish to contribute to rpclib's development, create a personal fork
+on GitHub.  When you are ready to push to the mainstream repository,
+submit a pull request to bring your work to the attention of the core
+committers. They will respond to review your patch and act accordingly.
+
+To save both parties time, make sure the existing tests pass. If you are
+adding new functionality or fixing a bug, please have the accompanying test.
+This will both help us increase test coverage and insure your use-case
+is immune to feature code changes. You could also summarize in one or
+two lines how your work will affect the life of rpclib users in the
+CHANGELOG file.
+
+Please follow the [PEP 8](http://www.python.org/dev/peps/pep-0008/>)
+style guidelines for both source code and docstrings.
+
+We could also use help with the docs, which are built from
+[reStructureText](http://docutils.sourceforge.net/rst.html) using
+[Sphinx](http://sphinx.pocoo.org).
+
+Regular contributors may be invited to join as a core rpclib committer on
+GitHub. Even if this gives the core committers the power to commit directly
+to the core repository, we highly value code reviews and expect every
+significant change to be committed via pull requests.

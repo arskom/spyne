@@ -38,7 +38,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'rpclib'
-copyright = u'Burak Arslan'
+copyright = u'Rpclib Contributors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -173,7 +173,7 @@ htmlhelp_basename = 'rpclibdoc'
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('index', 'rpclib.tex', u'rpclib Documentation',
-   u'Burak Arslan', 'manual'),
+   u'Rpclib Contributors', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
