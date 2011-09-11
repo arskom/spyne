@@ -26,8 +26,10 @@ logger = logging.getLogger(__name__)
 
 import cgi
 
-from rpclib._base import TransportContext
-from rpclib._base import MethodContext
+from rpclib import TransportContext
+from rpclib import MethodContext
+
+from rpclib.error import NotFoundError
 from rpclib.protocol.soap.mime import apply_mtom
 from rpclib.util import reconstruct_url
 from rpclib.server import ServerBase
@@ -162,7 +164,10 @@ class WsgiApplication(ServerBase):
 
         ctx.in_string, in_string_charset = reconstruct_wsgi_request(req_env)
 
-        self.get_in_object(ctx, in_string_charset)
+        try:
+            self.get_in_object(ctx, in_string_charset)
+        except NotFoundError, e:
+            pass
 
         if ctx.in_error:
             out_object = ctx.in_error

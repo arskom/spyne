@@ -21,8 +21,11 @@
 
 import logging
 logger = logging.getLogger(__name__)
+
 import urlparse
 
+from rpclib.error import NotFoundError
+from rpclib.server.wsgi import HTTP_404
 from rpclib.protocol import ProtocolBase
 
 # this is not exactly rest, because it ignores http verbs.
@@ -52,7 +55,11 @@ class HttpRpc(ProtocolBase):
                               ctx.transport.req_env['PATH_INFO'].split('/')[-1])
         logger.debug("\033[92mMethod name: %r\033[0m" % ctx.method_request_string)
 
-        self.app.in_protocol.set_method_descriptor(ctx)
+        try:
+            self.app.in_protocol.set_method_descriptor(ctx)
+        except NotFoundError, e:
+            ctx.transport.resp_code = HTTP_404
+            raise
 
         ctx.in_header_doc = _get_http_headers(ctx.transport.req_env)
         ctx.in_body_doc = urlparse.parse_qs(ctx.transport.req_env['QUERY_STRING'])
