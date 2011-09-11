@@ -26,12 +26,6 @@ logger = logging.getLogger(__name__)
 from rpclib.model.fault import Fault
 from rpclib._base import EventManager
 
-class InternalError(Fault):
-    pass
-
-class ValidationError(Fault):
-    pass
-
 class ServerBase(object):
     """This class is the abstract base class for all server transport
     implementations. Unlike the client transports, this class does not define

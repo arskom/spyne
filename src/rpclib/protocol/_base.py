@@ -30,10 +30,6 @@ _ns_xsi = rpclib.const.xml_ns.xsi
 _ns_xsd = rpclib.const.xml_ns.xsd
 
 from rpclib._base import EventManager
-from rpclib.model.fault import Fault
-
-class ValidationError(Fault):
-    pass
 
 class ProtocolBase(object):
     """This is the abstract base class for all protocol implementations. Child
