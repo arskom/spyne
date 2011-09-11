@@ -23,7 +23,7 @@ import logging
 from rpclib.application import Application
 from rpclib.decorator import srpc
 from rpclib.interface.wsdl import Wsdl11
-from rpclib.protocol.soap import Soap11
+from rpclib.protocol.xml import XmlObject
 from rpclib.protocol.http import HttpRpc
 from rpclib.service import ServiceBase
 from rpclib.model.complex import Iterable
@@ -74,10 +74,10 @@ if __name__=='__main__':
         print "Error: example server code requires Python >= 2.5"
 
     logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('rpclib.protocol.soap._base').setLevel(logging.DEBUG)
+    logging.getLogger('rpclib.protocol.xml._base').setLevel(logging.DEBUG)
 
-    application = Application([HelloWorldService], 'rpclib.examples.hello.vanilla',
-                interface=Wsdl11(), in_protocol=HttpRpc(), out_protocol=Soap11())
+    application = Application([HelloWorldService], 'rpclib.examples.hello.http',
+            interface=Wsdl11(), in_protocol=HttpRpc(), out_protocol=XmlObject())
 
     server = make_server('127.0.0.1', 7789, WsgiApplication(application))
 

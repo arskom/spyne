@@ -18,6 +18,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+# FIXME: This example is not tested!
+
+import logging
+
 from rpclib.application import Application
 from rpclib.decorator import srpc
 from rpclib.interface.wsdl import Wsdl11
@@ -42,6 +46,9 @@ if __name__=='__main__':
         from wsgiref.simple_server import make_server
     except ImportError:
         print "Error: example server code requires Python >= 2.5"
+
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger('rpclib.protocol.soap.soap11').setLevel(logging.DEBUG)
 
     application = Application([HelloWorldService], 'rpclib.examples.hello.attachment',
                 interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
