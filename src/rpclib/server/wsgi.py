@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 import cgi
 
+from rpclib._base import TransportContext
 from rpclib._base import MethodContext
 from rpclib.model.fault import Fault
 from rpclib.protocol.soap.mime import apply_mtom
@@ -59,18 +60,25 @@ def reconstruct_wsgi_request(http_env):
     return input.read(length), charset
 
 
+class WsgiTransportContext(TransportContext):
+    def __init__(self, req_env, content_type):
+        TransportContext.__init__(self, 'wsgi')
+
+        self.req_env = req_env
+        self.resp_headers = {
+            'Content-Type': content_type,
+            'Content-Length': '0',
+        }
+        self.resp_code = None
+        self.req_method = req_env.get('REQUEST_METHOD', None)
+        self.wsdl_error = None
+
+
 class WsgiMethodContext(MethodContext):
     def __init__(self, app, req_env, content_type):
         MethodContext.__init__(self, app)
 
-        self.transport.type = 'wsgi'
-        self.transport.req_env = req_env
-        self.transport.resp_headers = {
-            'Content-Type': content_type,
-            'Content-Length': '0',
-        }
-        self.transport.req_method = req_env.get('REQUEST_METHOD', None)
-        self.transport.wsdl_error = None
+        self.transport = WsgiTransportContext(req_env, content_type)
 
 
 class WsgiApplication(ServerBase):
