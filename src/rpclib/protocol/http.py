@@ -72,25 +72,20 @@ class HttpRpc(ProtocolBase):
 
     def serialize(self, ctx):
         result_message_class = ctx.descriptor.out_message
-        result_message = result_message_class()
 
         # assign raw result to its wrapper, result_message
         out_type_info = result_message_class._type_info
-        if len(out_type_info) > 0:
-             if len(out_type_info) == 1:
-                 attr_name = result_message_class._type_info.keys()[0]
-                 setattr(result_message, attr_name, ctx.out_object)
+        if len(out_type_info) == 1:
+            out_class = out_type_info.values()[0]
+            if ctx.out_object is None:
+                ctx.out_document = u''
+            else:
+                ctx.out_document = out_class.to_string(ctx.out_object)
 
-             else:
-                 for i in range(len(out_type_info)):
-                     attr_name=result_message_class._type_info.keys()[i]
-                     setattr(result_message, attr_name, ctx.out_object[i])
-
-        wrapped_result = result_message_class.to_dict(result_message)
-
-        ctx.out_document, = wrapped_result.itervalues()
+        else:
+            raise ValueError("HttpRpc protocol can only serialize primitives.")
 
         self.event_manager.fire_event('serialize', ctx)
 
     def create_out_string(self, ctx, out_string_encoding=None):
-        ctx.out_string = ctx.out_document
+        ctx.out_string = [ctx.out_document.encode('utf8')]
