@@ -77,7 +77,7 @@ to pass fresh instances to each application instance. ::
     from rpclib.interface.wsdl import Wsdl11
     from rpclib.protocol.soap import Soap11
 
-ServiceBase is the base class for all soap service definitions. ::
+ServiceBase is the base class for all service definitions. ::
 
     from rpclib.service import ServiceBase
 
@@ -116,12 +116,12 @@ and return types are standard python objects::
 As the name implies, when returning an iterable, you can use any type of python
 iterable. Here, we chose to use generators.
 
-Deploying exposing the service using soap
------------------------------------------
+Deploying the service using SOAP
+--------------------------------
 
 Now that we have defined our service, we are ready to share it with the outside
 world. Rpclib has been tested with several other web servers, This example uses
-the python's stock simple wsgi web server; any WSGI-compliant server *should*
+the python's stock simple wsgi web server; any WSGI-compliant server should
 work.
 
 This is the required import. ::
@@ -175,15 +175,19 @@ Suds is a separate project for building pure-python soap clients. To learn more
 visit the project's page: https://fedorahosted.org/suds/. You can simply install
 it using `easy_install suds`.
 
-Deploying exposing the service using HttpRpc
---------------------------------------------
+Deploying service using HttpRpc
+-------------------------------
 
-HttpRpc is like rest, but it doesn't care about HTTP verbs (yet). The only
-difference between the SOAP and the HTTP version is the application instantiation
-line: ::
+HttpRpc is like rest, but it doesn't care about HTTP verbs (yet). We should first
+import it:
+
+    from rpclib.protocol.http import HttpRpc
+
+The only difference between the SOAP and the HTTP version is the application
+instantiation line: ::
 
         application = Application([HelloWorldService], 'rpclib.examples.hello.vanilla',
-                    interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
+                    interface=Wsdl11(), in_protocol=HttpRpc(), out_protocol=Soap11())
 
 This example is available here: http://github.com/arskom/rpclib/blob/master/examples/helloworld_http.py.
 
