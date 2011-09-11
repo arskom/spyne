@@ -31,7 +31,7 @@ Rpclib reportedly runs on any version of Python from 2.4 through 2.7. We're also
 looking for volunteers to test Python 3.x.
 
 The aim is to have no requirements besides the standard Python library for the
-Rpclib core. While much ground was covered towards this goal, there's still some
+Rpclib core. While much progress was made towards this goal, there's still some
 work to be done. So currently, the following is needed if you want to run any
 Rpclib service at all:
 
