@@ -49,14 +49,14 @@ class ServerBase(object):
         to set ctx.in_object."""
 
         self.app.in_protocol.create_in_document(ctx, in_string_charset)
+        if ctx.service_class != None:
+            ctx.service_class.event_manager.fire_event('method_accept_document',ctx)
 
         try:
-            # sets the ctx.in_body_doc and ctx.in_header_doc properties
+            # sets the ctx.in_body_doc and ctx.in_header_doc
             self.app.in_protocol.decompose_incoming_envelope(ctx)
 
-            if ctx.service_class != None:
-                ctx.service_class.event_manager.fire_event('decompose_envelope',
-                                                                        ctx)
+            # sets the ctx.in_object and ctx.in_header
             self.app.in_protocol.deserialize(ctx)
 
         except Fault,e:
@@ -68,6 +68,8 @@ class ServerBase(object):
         """Calls the matched method using the ctx.in_object to get
         ctx.out_object."""
 
+
+        # event firing is done in the rpclib.application.Application
         self.app.process_request(ctx)
 
     def get_out_string(self, ctx):

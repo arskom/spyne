@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""An rpc server that uses http as transport, and wsgi as bridge api"""
+"""An rpc server that uses http as transport, and wsgi as bridge api."""
 
 # FIXME: this is maybe still too soap-centric.
 
@@ -62,27 +62,69 @@ def reconstruct_wsgi_request(http_env):
 
 
 class WsgiTransportContext(TransportContext):
+    """The class that is used in the transport attribute of the
+    :class:`WsgiMethodContext` class."""
+
     def __init__(self, req_env, content_type):
         TransportContext.__init__(self, 'wsgi')
 
         self.req_env = req_env
+        """WSGI Request environment"""
+
         self.resp_headers = {
             'Content-Type': content_type,
             'Content-Length': '0',
         }
+        """HTTP Response headers."""
+
         self.resp_code = None
+        """HTTP Response code."""
+
         self.req_method = req_env.get('REQUEST_METHOD', None)
+        """HTTP Request verb, as a convenience to users."""
+
+        self.wsdl = None
+        """The WSDL document that is being returned. Only relevant when handling
+        WSDL requests."""
+
         self.wsdl_error = None
+        """The error when handling WSDL requests."""
 
 
 class WsgiMethodContext(MethodContext):
+    """The WSGI-Specific method context. WSGI-Specific information is stored in
+    the transport attribute using the :class:`WsgiTransportContext` class."""
+
     def __init__(self, app, req_env, content_type):
         MethodContext.__init__(self, app)
 
         self.transport = WsgiTransportContext(req_env, content_type)
-
+        """Holds the WSGI-specific information"""
 
 class WsgiApplication(ServerBase):
+    '''A `PEP-3333 <http://www.python.org/dev/peps/pep-3333/#preface-for-readers-of-pep-333>`_
+    compliant callable class.
+
+    Supported events:
+        * ``wsdl``
+            Called right before the wsdl data is returned to the client.
+
+        * ``wsdl_exception``
+            Called right after an exception is thrown during wsdl generation. The
+            exception object is stored in ctx.transport.wsdl_error attribute.
+
+        * ``wsgi_call``
+            Called first when the incoming http request is identified as a rpc
+            request.
+
+        * ``wsgi_return``
+            Called right before the output stream is returned to the WSGI handler.
+
+        * ``wsgi_resource_not_found``
+            Called right before returning a 404 when the requested resource was not
+            found.
+    '''
+
     transport = 'http://schemas.xmlsoap.org/soap/http'
 
     def __init__(self, app):
@@ -129,21 +171,20 @@ class WsgiApplication(ServerBase):
 
     def __handle_wsdl_request(self, req_env, start_response, url):
         ctx = WsgiMethodContext(self.app, req_env, 'text/xml; charset=utf-8')
-
         try:
-            wsdl = self.app.interface.get_interface_document()
-            if wsdl is None:
+            ctx.transport.wsdl = self.app.interface.get_interface_document()
+            if ctx.transport.wsdl is None:
                 self.app.interface.build_interface_document(url)
-                wsdl = self.app.interface.get_interface_document()
+                ctx.transport.wsdl = self.app.interface.get_interface_document()
 
-            assert wsdl != None
+            assert ctx.transport.wsdl != None
 
-            self.event_manager.fire_event('wsdl',ctx) # implementation hook
+            self.event_manager.fire_event('wsdl', ctx) # implementation hook
 
-            ctx.transport.resp_headers['Content-Length'] = str(len(wsdl))
+            ctx.transport.resp_headers['Content-Length'] = str(len(ctx.transport.wsdl))
             start_response(HTTP_200, ctx.transport.resp_headers.items())
 
-            return [wsdl]
+            return [ctx.transport.wsdl]
 
         except Exception, e:
             logger.exception(e)
@@ -194,9 +235,6 @@ class WsgiApplication(ServerBase):
 
         self.get_out_string(ctx)
 
-        # implementation hook
-        self.event_manager.fire_event('wsgi_return', ctx)
-
         if ctx.descriptor and ctx.descriptor.mtom:
             # when there is more than one return type, the result is
             # encapsulated inside a list. when there's just one, the result
@@ -212,6 +250,9 @@ class WsgiApplication(ServerBase):
                     ctx.descriptor.out_message._type_info.values(),
                     out_object
                 )
+
+        # implementation hook
+        self.event_manager.fire_event('wsgi_return', ctx)
 
         # We can't set the content-length if we want to support any kind of
         # python iterable as output. We can't iterate and count, that defeats

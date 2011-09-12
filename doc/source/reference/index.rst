@@ -1,16 +1,19 @@
 
+.. _reference-index:
+
 ====================
 Rpclib API Reference
 ====================
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 2
 
-   model
-   interface
-   protocol
-   client
-   server
-   util
-   service
-   application
+    base
+    model
+    interface
+    protocol
+    client
+    server
+    util
+    service
+    application
