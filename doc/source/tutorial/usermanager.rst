@@ -1,4 +1,6 @@
 
+.. _tutorial-user-manager:
+
 User Manager
 ------------
 

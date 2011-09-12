@@ -3,7 +3,7 @@
 Rpclib
 ======
 
-.. include:: ../../README.md
+.. include:: ../../README.rst
 
 Contents
 ========
