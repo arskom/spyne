@@ -145,8 +145,8 @@ The SQLAlchemy integration is far from perfect at the moment:
 
     * SQL constraints are not reflected to the interface document.
     * It's not possible to define additional schema constraints.
-    * Object attributes defined by mechanisms other than Column are not directly
-      supported.
+    * Object attributes defined by mechanisms other than Column and a limited
+      form of `relationship` (no string arguments) are not supported.
 
 If you need any of the above features, you need to separate the rpclib and
 sqlalchemy object definitions.
@@ -158,8 +158,7 @@ Rpclib supports this with the following syntax: ::
         __table__ = User.__table__
 
 Here, The AlternativeUser object is automatically populated using columns from
-the table definition. You should explicitly re-define attributes that are not
-directly derivable from the table definition like the relationship()-based ones.
+the table definition.
 
 The context object is also a little bit different -- we start a transaction for
 every call in the constructor of the UserDefinedContext object, and close it in

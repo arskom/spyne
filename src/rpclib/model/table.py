@@ -33,7 +33,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 import sqlalchemy
+
+from warnings import warn
 from sqlalchemy import Column
+from sqlalchemy.orm import RelationshipProperty
 
 from sqlalchemy.ext.declarative import DeclarativeMeta
 
@@ -65,15 +68,35 @@ _type_map = {
 def _process_item(v):
     """This function maps sqlalchemy types to rpclib types."""
 
-    if v.type in _type_map:
-        rpc_type = _type_map[v.type]
-    elif type(v.type) in _type_map:
-        rpc_type = _type_map[type(v.type)]
-    else:
-        raise Exception("soap_type was not found. maybe _type_map needs a new "
-                        "entry. %r" % v)
+    rpc_type = None
+    if isinstance(v, Column):
+        if v.type in _type_map:
+            rpc_type = _type_map[v.type]
+        elif type(v.type) in _type_map:
+            rpc_type = _type_map[type(v.type)]
+        else:
+            raise Exception("soap_type was not found. maybe _type_map needs a new "
+                            "entry. %r" % v)
+    elif isinstance(v, RelationshipProperty):
+        rpc_type = v.argument
 
     return rpc_type
+
+def _is_interesting(k, v):
+    if k.startswith('__'):
+        return False
+
+    if isinstance(v, Column):
+        return True
+
+    if isinstance(v, RelationshipProperty):
+        if getattr(v.argument,'_type_info', None) is None:
+            warn("the argument to relationship should be a reference to the real"
+                 "column, not a string.")
+            return False
+
+        else:
+            return True
 
 class TableSerializerMeta(DeclarativeMeta, ComplexModelMeta):
     """This class uses the information in class definition dictionary to build
@@ -91,7 +114,7 @@ class TableSerializerMeta(DeclarativeMeta, ComplexModelMeta):
             # mixin inheritance
             for b in cls_bases:
                 for k,v in vars(b).items():
-                    if isinstance(v, Column):
+                    if _is_interesting(k,v):
                         _type_info[k] = _process_item(v)
 
             # same table inheritance
@@ -110,7 +133,7 @@ class TableSerializerMeta(DeclarativeMeta, ComplexModelMeta):
 
             # own attributes
             for k, v in cls_dict.items():
-                if (not k.startswith('__')) and isinstance(v, Column):
+                if _is_interesting(k,v):
                     _type_info[k] = _process_item(v)
 
         return DeclarativeMeta.__new__(cls, cls_name, cls_bases, cls_dict)
