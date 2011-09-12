@@ -176,40 +176,89 @@ class MethodDescriptor(object):
                  port_type=None, no_ctx=False):
 
         self.function = function
+        """The original function object to be called when the method is remotely
+        invoked."""
+
         self.in_message = in_message
+        """Automatically generated complex object based on incoming arguments to
+        the function."""
+
         self.out_message = out_message
+        """Automatically generated complex object based on the return type of
+        the function."""
+
         self.doc = doc
+        """The function docstring."""
+
         self.is_callback = is_callback
         self.is_async = is_async
+
         self.mtom = mtom
+        """Flag to indicate whether to use MTOM transpot with SOAP."""
+
         self.in_header = in_header
+        """The incoming header object this function could accept."""
+
         self.out_header = out_header
+        """The outgoing header object this function could send."""
+
         self.faults = faults
+        """The exceptions that this function can throw."""
+
         self.port_type = port_type
+        """The portType this function belongs to."""
+
         self.no_ctx = no_ctx
+        """Whether the function receives the method context as the first
+        argument implicitly."""
 
     @property
     def name(self):
+        """The public name of the function. Equals to the type_name of the
+        in_message."""
         return self.in_message.get_type_name()
 
     @property
     def key(self):
+        """The function identifier in '{namespace}name' form."""
+
         assert not (self.in_message.get_namespace() is DEFAULT_NS)
 
         return '{%s}%s' % (
             self.in_message.get_namespace(), self.in_message.get_type_name())
 
 class EventManager(object):
+    """The event manager for all rpclib events. The events are stored in an
+    ordered set -- so the events are ran in the order they were added and
+    adding a handler twice does not cause it to run twice.
+    """
+
     def __init__(self, parent, handlers={}):
         self.parent = parent
         self.handlers = dict(handlers)
 
     def add_listener(self, event_name, handler):
+        """Register a handler for the given event name.
+
+        :param event_name: The event identifier, indicated by the documentation.
+                           Usually, this is a string.
+        :param handler: A static python function that receives a single
+                        MethodContext argument.
+        """
+
         handlers = self.handlers.get(event_name, oset())
         handlers.add(handler)
         self.handlers[event_name] = handlers
 
     def fire_event(self, event_name, ctx):
+        """Run all the handlers for a given event name.
+
+        :param event_name: The event identifier, indicated by the documentation.
+                           Usually, this is a string.
+        :param handler: The method context. Event-related data is conventionally
+                        stored in ctx.event attribute.
+        """
+
         handlers = self.handlers.get(event_name, oset())
         for handler in handlers:
             handler(ctx)
