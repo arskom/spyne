@@ -17,8 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains the Application class that exposes multiple service
-definitions to the outside world.
+"""This module contains the Application class, to which every other rpclib
+component is integrated.
 """
 
 
@@ -45,6 +45,19 @@ class Application(object):
     :param name:         The optional name attribute of the exposed service.
                          The default is the name of the application class
                          which is, by default, 'Application'.
+
+    Supported events
+    ^^^^^^^^^^^^^^^^
+
+    * method_call
+        Called right before the service method is executed
+
+    * method_return_object
+        Called right after the service method is executed
+
+    * method_exception_object
+        Called when an exception occurred in a service method, before the
+        exception is serialized.
     '''
 
     transport = None
