@@ -4,6 +4,9 @@
 User Manager
 ------------
 
+This tutorial builds on the :ref:`tutorial-helloworld` tutorial. If you haven't
+done so, we recommended you to read it first.
+
 Let's try a more complicated example than just strings and integers!
 The following is an simple example using complex, nested data. It's available
 here: http://github.com/arskom/rpclib/blob/master/examples/user_manager/server_basic.py

@@ -4,6 +4,9 @@
 SQLAlchemy Integration
 ----------------------
 
+This tutorial builds on the :ref:`tutorial-user-manager` tutorial. If you haven't
+done so, we recommended you to read it first.
+
 Let's try a more complicated example than storing our data in a mere dictionary.
 
 The following example shows how to integrate SQLAlchemy and Rpclib objects, and
@@ -117,7 +120,8 @@ The full example is available here: http://github.com/arskom/rpclib/blob/master/
 
         server.serve_forever()
 
-Again, focusing on what's different from previous example: ::
+Again, focusing on what's different from previous :ref:`tutorial-user-manager`
+example: ::
 
     class User(TableModel, DeclarativeBase):
         __namespace__ = 'rpclib.examples.user_manager'
