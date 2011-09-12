@@ -4,9 +4,12 @@
 SQLAlchemy Integration
 ----------------------
 
-Let's try a more complicated example than just strings and integers!
-The following is an simple example using complex, nested data. It's available
-here: http://github.com/arskom/rpclib/blob/master/examples/user_manager/server_sqlalchemy.py
+Let's try a more complicated example than storing our data in a mere dictionary.
+
+The following example shows how to integrate SQLAlchemy and Rpclib objects, and
+how to do painless transaction management using Rpclib events.
+
+The full example is available here: http://github.com/arskom/rpclib/blob/master/examples/user_manager/server_sqlalchemy.py
 
 ::
 
@@ -165,14 +168,14 @@ its destructor: ::
         def __del__(self):
             self.session.close()
 
-And we register an event that instantiates the UserDefinedContext object for
-every method call: ::
+We implement an event handler that instantiates the UserDefinedContext object
+for every method call: ::
 
     def _on_method_call(ctx):
         ctx.udc = UserDefinedContext()
 
-We also implement an event that commits the transaction once the method call is
-complete. ::
+We also implement an event handler that commits the transaction once the method
+call is complete. ::
 
     def _on_method_return_object(ctx):
         ctx.udc.session.commit()
@@ -182,8 +185,8 @@ We register those handlers to the application's 'method_call' handler: ::
     application.event_manager.add_listener('method_call', _on_method_call)
     application.event_manager.add_listener('method_return_object', _on_method_return_object)
 
-Using events to do transaction management prevents us from littering code with
-repetitive code.
+Note that the ``method_return_object`` event is only run when the method call
+was completed without throwing any exceptions.
 
 What's next?
 ^^^^^^^^^^^^

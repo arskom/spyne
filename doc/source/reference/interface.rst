@@ -25,4 +25,3 @@ Wsdl 1.1
 .. automodule:: rpclib.interface.wsdl.wsdl11
     :members:
     :inherited-members:
-
