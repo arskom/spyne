@@ -62,18 +62,36 @@ class ServiceBase(object):
     It is a natural abstract base class, because it's of no use without any
     method definitions, hence the 'Base' suffix in the name.
 
-    Supported events
-    ^^^^^^^^^^^^^^^^
+    The WsgiApplication class supports the following events:
+        * ``method_call``
+            Called right before the service method is executed
 
-    * method_call
-        Called right before the service method is executed
+        * ``method_return_object``
+            Called right after the service method is executed
 
-    * method_return_object
-        Called right after the service method is executed
+        * ``method_exception_object``
+            Called when an exception occurred in a service method, before the
+            exception is serialized.
 
-    * method_exception_object
-        Called when an exception occurred in a service method, before the
-        exception is serialized.
+        * ``method_accept_document``
+            Called by the transport right after the incoming stream is parsed to
+            the incoming protocol's document type.
+
+        * ``method_return_document``
+            Called by the transport right after the outgoing object is
+            serialized to the outgoing protocol's document type.
+
+        * ``method_exception_document``
+            Called by the transport right before the outgoing exception object
+            is serialized to the outgoing protocol's document type.
+
+        * ``method_return_string``
+            Called by the transport right before passing the return string to
+            the client.
+
+        * ``method_exception_string``
+            Called by the transport right before passing the exception string to
+            the client.
     '''
 
     __metaclass__ = ServiceBaseMeta

@@ -194,7 +194,7 @@ class MethodDescriptor(object):
         self.is_async = is_async
 
         self.mtom = mtom
-        """Flag to indicate whether to use MTOM transpot with SOAP."""
+        """Flag to indicate whether to use MTOM transport with SOAP."""
 
         self.in_header = in_header
         """The incoming header object this function could accept."""

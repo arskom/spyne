@@ -46,18 +46,16 @@ class Application(object):
                          The default is the name of the application class
                          which is, by default, 'Application'.
 
-    Supported events
-    ^^^^^^^^^^^^^^^^
+    Supported events:
+        * method_call
+            Called right before the service method is executed
 
-    * method_call
-        Called right before the service method is executed
+        * method_return_object
+            Called right after the service method is executed
 
-    * method_return_object
-        Called right after the service method is executed
-
-    * method_exception_object
-        Called when an exception occurred in a service method, before the
-        exception is serialized.
+        * method_exception_object
+            Called when an exception occurred in a service method, before the
+            exception is serialized.
     '''
 
     transport = None
