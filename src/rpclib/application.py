@@ -104,7 +104,7 @@ class Application(object):
             self.event_manager.fire_event('method_exception_object', ctx)
             if ctx.service_class != None:
                 ctx.service_class.event_manager.fire_event(
-                                                    'method_return_object', ctx)
+                                                'method_exception_object', ctx)
 
         except Exception, e:
             logger.exception(e)
@@ -115,7 +115,7 @@ class Application(object):
             self.event_manager.fire_event('method_exception_object', ctx)
             if ctx.service_class != None:
                 ctx.service_class.event_manager.fire_event(
-                                                    'method_return_object', ctx)
+                                                'method_exception_object', ctx)
 
     def call_wrapper(self, ctx):
         """This method calls the call_wrapper method in the service definition.
