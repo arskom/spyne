@@ -26,6 +26,11 @@ from lxml import etree
 from rpclib.util.odict import odict
 
 def root_dict_to_etree(d):
+    """Converts a dictionary to an xml hiearchy. Just like a valid xml document,
+    the dictionary must have a single element. The format of the child
+    dictionaries is the same as :func:`dict_to_etree`.
+    """
+
     assert len(d) == 1
 
     retval = etree.Element(d.keys()[0])
@@ -41,7 +46,9 @@ def root_dict_to_etree(d):
     return retval
 
 def dict_to_etree(d, parent):
-    """the dict values are either dicts or iterables"""
+    """Takes a the dict whose values are either dicts, odicts or iterables. The
+    iterables can contain either other dicts/odicts or text.
+    """
 
     for k, v in d.items():
         if len(v) == 0:
@@ -60,9 +67,19 @@ def dict_to_etree(d, parent):
                     child.text=str(e)
 
 def root_etree_to_dict(element, iterable=(list, list.append)):
-    return {element.tag: [etree_to_dict(element)]}
+    """Takes an xml root element and returns the corresponding dict. The second
+    argument is a pair of iterable type and the function used to add elements to
+    the iterable. The xml attributes are ignored.
+    """
+
+    return {element.tag: iterable[0]([etree_to_dict(element, iterable)])}
 
 def etree_to_dict(element, iterable=(list,list.append)):
+    """Takes an xml root element and returns the corresponding dict. The second
+    argument is a pair of iterable type and the function used to add elements to
+    the iterable. The xml attributes are ignored.
+    """
+
     if (element.text is None) or element.text.isspace():
         retval = odict()
         for elt in element:
@@ -76,6 +93,8 @@ def etree_to_dict(element, iterable=(list,list.append)):
     return retval
 
 def etree_strip_namespaces(element):
+    """Removes any namespace information form the given element recursively."""
+
     retval = etree.Element(element.tag.rpartition('}')[-1])
     retval.text = element.text
     for a in element.attrib:

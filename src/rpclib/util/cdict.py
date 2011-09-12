@@ -18,7 +18,9 @@
 #
 
 """cdict (ClassDict) is a funny kind of dict that tries to return the values for
-the base classes of a key when the entry for the key is not found.
+the base classes of a key when the entry for the key is not found. It is not a
+generalized dictionary that can handle any type of key -- it relies on
+rpclib.model api to look for classes.
 """
 
 import logging
