@@ -47,7 +47,7 @@ def xml_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
 @nillable_value
 def dict_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     e = etree.SubElement(parent_elt, '{%s}%s' % (tns,name))
-    dict_to_etree(e, value)
+    dict_to_etree(value, e)
 
 @nillable_element
 def dict_from_element(prot, cls, element):

@@ -33,14 +33,14 @@ def root_dict_to_etree(d):
         break
 
     if isinstance(val, dict) or isinstance(val, odict):
-        dict_to_etree(retval, val)
+        dict_to_etree(val, retval)
     else:
         for a in val:
-            dict_to_etree(retval, a)
+            dict_to_etree(a, retval)
 
     return retval
 
-def dict_to_etree(parent, d):
+def dict_to_etree(d, parent):
     """the dict values are either dicts or iterables"""
 
     for k, v in d.items():
@@ -49,13 +49,13 @@ def dict_to_etree(parent, d):
 
         elif isinstance(v, dict) or isinstance(v, odict):
             child = etree.SubElement(parent,k)
-            dict_to_etree(child,v)
+            dict_to_etree(v, child)
 
         else:
             for e in v:
                 child=etree.SubElement(parent,k)
                 if isinstance(e, dict) or isinstance(e, odict):
-                    dict_to_etree(child,e)
+                    dict_to_etree(e, child)
                 else:
                     child.text=str(e)
 
