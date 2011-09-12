@@ -1,4 +1,6 @@
 
+.. _tutorial-sqlalchemy:
+
 SQLAlchemy Integration
 ----------------------
 
@@ -181,12 +183,11 @@ We register those handlers to the application's 'method_call' handler: ::
     application.event_manager.add_listener('method_return_object', _on_method_return_object)
 
 Using events to do transaction management prevents us from littering code with
-repetitive code. 
+repetitive code.
 
 What's next?
 ^^^^^^^^^^^^
 
 This tutorial walks you through most of what you need to know to expose your
-services. You can refer to the rest of the documentation or the mailing list
-if you have further questions.
-
+services. You can refer to the reference of the documentation or the mailing
+list if you have further questions.

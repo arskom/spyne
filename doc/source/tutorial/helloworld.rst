@@ -1,4 +1,6 @@
 
+.. _tutorial-helloworld:
+
 Hello World
 ===========
 
@@ -229,5 +231,5 @@ The command's output would be as follows: ::
 What's next?
 ------------
 
-See the next :ref:`tutorial-user-manager` tutorial that will walk you through defining complex
-objects and using events.
+See the next :ref:`tutorial-user-manager` tutorial that will walk you through
+defining complex objects and using events.

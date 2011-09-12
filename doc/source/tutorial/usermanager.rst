@@ -158,7 +158,6 @@ What's next?
 ^^^^^^^^^^^^
 
 This tutorial walks you through most of what you need to know to expose your
-services. You can read the SQLAlchemy & Rpclib integration tutorial if you plan
+services. You can read the :ref:`tutorial-sqlalchemy` tutorial if you plan
 to expose your database application using rpclib. Otherwise, you should refer to
 the rest of the documentation or the mailing list if you have further questions.
-
