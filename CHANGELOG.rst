@@ -1,6 +1,13 @@
 Changelog
 =========
 
+rpclib-2.3.2-beta
+-----------------
+ * Limited support for sqlalchemy.orm.relationship (no string arguments)
+ * Added missing event firings.
+ * Documented event api and fundamental data structures (rpclib._base)
+ * Full change log: https://github.com/arskom/rpclib/pull/87
+
 rpclib-2.3.1-beta
 -----------------
  * HttpRpc protocol now returns 404 when a requested resource was not found.
