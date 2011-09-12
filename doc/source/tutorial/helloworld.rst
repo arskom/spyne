@@ -229,5 +229,5 @@ The command's output would be as follows: ::
 What's next?
 ------------
 
-See the next "User Manager" tutorial that will walk you through defining complex
+See the next :ref:`tutorial-user-manager` tutorial that will walk you through defining complex
 objects and using events.
