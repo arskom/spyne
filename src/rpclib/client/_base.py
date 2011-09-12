@@ -101,7 +101,27 @@ class RemoteProcedureBase(object):
         assert self.ctx.out_string is None
 
         self.app.out_protocol.serialize(self.ctx)
+
+        if self.ctx.service_class != None:
+            if self.ctx.out_error is None:
+                self.ctx.service_class.event_manager.fire_event(
+                                        'method_return_document', self.ctx)
+            else:
+                self.ctx.service_class.event_manager.fire_event(
+                                        'method_exception_document', self.ctx)
+
         self.app.out_protocol.create_out_string(self.ctx, string_encoding)
+
+        if self.ctx.service_class != None:
+            if self.ctx.out_error is None:
+                self.ctx.service_class.event_manager.fire_event(
+                                            'method_return_string', self.ctx)
+            else:
+                self.ctx.service_class.event_manager.fire_event(
+                                            'method_exception_string', self.ctx)
+
+        if self.ctx.out_string is None:
+            self.ctx.out_string = [""]
 
     def get_in_object(self):
         """Deserializes the response bytestream to input document and native
@@ -112,6 +132,9 @@ class RemoteProcedureBase(object):
         assert self.ctx.in_document is None
 
         self.app.in_protocol.create_in_document(self.ctx)
+        if self.ctx.service_class != None:
+            self.ctx.service_class.event_manager.fire_event(
+                                            'method_accept_document', self.ctx)
 
         # sets the ctx.in_body_doc and ctx.in_header_doc properties
         self.app.in_protocol.decompose_incoming_envelope(self.ctx)

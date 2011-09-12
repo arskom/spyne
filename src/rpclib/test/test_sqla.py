@@ -281,5 +281,30 @@ class TestSqlAlchemy(unittest.TestCase):
         assert 'name' in UserMail._type_info
         assert 'id' in UserMail._type_info
 
+    def test_relationship(self):
+        import sqlalchemy
+
+        class User(self.DeclarativeBase, TableSerializer):
+            __tablename__ = 'rpclib_user'
+
+            id = Column(sqlalchemy.Integer, primary_key=True)
+            name = Column(sqlalchemy.String(256))
+
+        class Address(self.DeclarativeBase, TableSerializer):
+            __tablename__ = 'rpclib_address'
+            id = Column(sqlalchemy.Integer, primary_key=True)
+            address = Column(sqlalchemy.String(256))
+            user_id = Column(sqlalchemy.Integer, ForeignKey(User.id), nullable=False)
+            user = relationship(User)
+
+        assert 'user' in Address._type_info
+        assert Address._type_info['user'] is User
+
+        u = User()
+        a = Address()
+        a.user = u
+
+
+
 if __name__ == '__main__':
     unittest.main()

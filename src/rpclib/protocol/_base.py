@@ -35,7 +35,15 @@ from rpclib.error import NotFoundError
 
 class ProtocolBase(object):
     """This is the abstract base class for all protocol implementations. Child
-    classes can implement only the required subset of the public methods
+    classes can implement only the required subset of the public methods.
+
+    The ProtocolBase class supports the following events:
+    * ``deserialize``
+        Called right after the deserialization operation is finished.
+
+    * ``serialize``
+        Called right after the serialization operation is finished.
+
     """
 
     allowed_http_verbs = ['GET','POST']
