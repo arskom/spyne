@@ -70,21 +70,44 @@ class Attachment(ModelBase):
         if not (value.data is None):
             # the data has already been loaded, just encode
             # and return the element
-            return value.data
+            data = value.data
 
         elif not (value.file_name is None):
             # the data hasn't been loaded, but a file has been
             # specified
-            data_string = StringIO()
 
-            file_name = value.file_name
-            file = open(file_name, 'rb')
-            base64.encode(file, data_string)
-            file.close()
-
-            # go back to the begining of the data
-            data_string.seek(0)
-            return data_string.read()
+            data = open(value.file_name, 'rb').read()
 
         else:
             raise Exception("Neither data nor a file_name has been specified")
+
+        return data
+
+    @classmethod
+    @nillable_string
+    def to_base64(cls, value):
+        ostream = StringIO()
+        if not (value.data is None):
+            istream = StringIO(value.data)
+
+        elif not (value.file_name is None):
+            istream = open(value.file_name, 'rb')
+
+        else:
+            raise Exception("Neither data nor a file_name has been specified")
+
+        base64.encode(istream, ostream)
+        ostream.seek(0)
+
+        return ostream.read()
+
+    @classmethod
+    @nillable_string
+    def from_base64(cls, value):
+        istream = StringIO(value)
+        ostream = StringIO()
+
+        base64.decode(istream, ostream)
+        ostream.seek(0)
+
+        return Attachment(data=ostream.read())

@@ -29,6 +29,7 @@ from rpclib.util.cdict import cdict
 from rpclib.error import NotFoundError
 from rpclib.model import ModelBase
 
+from rpclib.model.binary import Attachment
 from rpclib.model.complex import Array
 from rpclib.model.complex import Iterable
 from rpclib.model.complex import ComplexModelBase
@@ -42,6 +43,7 @@ from rpclib.model.primitive import Duration
 from rpclib.protocol import ProtocolBase
 
 from rpclib.protocol.xml.model import base_to_parent_element
+from rpclib.protocol.xml.model.binary import binary_to_parent_element
 from rpclib.protocol.xml.model.enum import enum_to_parent_element
 from rpclib.protocol.xml.model.fault import fault_to_parent_element
 from rpclib.protocol.xml.model.complex import complex_to_parent_element
@@ -51,6 +53,7 @@ from rpclib.protocol.xml.model.primitive import string_to_parent_element
 from rpclib.protocol.xml.model.primitive import duration_to_parent_element
 
 from rpclib.protocol.xml.model import base_from_element
+from rpclib.protocol.xml.model.binary import binary_from_element
 from rpclib.protocol.xml.model.complex import array_from_element
 from rpclib.protocol.xml.model.complex import iterable_from_element
 from rpclib.protocol.xml.model.complex import complex_from_element
@@ -62,6 +65,7 @@ from rpclib.protocol.xml.model.primitive import string_from_element
 
 _serialization_handlers = cdict({
     ModelBase: base_to_parent_element,
+    Attachment: binary_to_parent_element,
     ComplexModelBase: complex_to_parent_element,
     Fault: fault_to_parent_element,
     String: string_to_parent_element,
@@ -73,6 +77,7 @@ _serialization_handlers = cdict({
 
 _deserialization_handlers = cdict({
     ModelBase: base_from_element,
+    Attachment: binary_from_element,
     ComplexModelBase: complex_from_element,
     Fault: fault_from_element,
     String: string_from_element,

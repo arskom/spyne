@@ -24,28 +24,23 @@ import base64
 
 from lxml import etree
 
-from rpclib.model.binary import Attachment
-
 from _base import nillable_value
 from _base import nillable_element
 
+
 @nillable_value
-def to_parent_element(cls, value, tns, parent_elt, name='retval'):
+def binary_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     '''This class method takes the data from the attachment and
     base64 encodes it as the text of an Element. An attachment can
     specify a file_name and if no data is given, it will read the data
     from the file
     '''
-
-    element = etree.SubElement(parent_elt, '{%s}%s' % (tns,name))
-    element.text = base64.encodestring(cls.to_string(value))
+    element = etree.SubElement(parent_elt, "{%s}%s" % (tns,name))
+    element.text = cls.to_base64(value)
 
 @nillable_element
-def from_xml(cls, element):
+def binary_from_element(prot, cls, element):
     '''This method returns an Attachment object that contains
     the base64 decoded string of the text of the given element
     '''
-    data = base64.decodestring(element.text)
-    a = Attachment(data=data)
-    return a
-
+    return cls.from_base64(element.text)
