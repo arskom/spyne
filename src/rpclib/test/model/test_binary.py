@@ -24,7 +24,7 @@ import unittest
 from tempfile import mkstemp
 from lxml import etree
 
-from rpclib.model.binary import Attachment
+from rpclib.model.binary import ByteArray
 import rpclib.const.xml_ns
 
 ns_xsd = rpclib.const.xml_ns.xsd
@@ -49,75 +49,35 @@ class TestBinary(unittest.TestCase):
         f = open(self.tmpfile)
         data = f.read()
         f.close()
-        a = Attachment()
-        a.data = data
+
         element = etree.Element('test')
-        Attachment.to_parent_element(a, ns_test, element)
+        ByteArray.to_parent_element([data], ns_test, element)
         element = element[0]
         encoded_data = base64.encodestring(data)
         self.assertNotEquals(element.text, None)
         self.assertEquals(element.text, encoded_data)
-
-    def test_to_parent_element_file(self):
-        a = Attachment()
-        a.file_name = self.tmpfile
-        f = open(self.tmpfile, 'rb')
-        data = f.read()
-        f.close()
-        element = etree.Element('test')
-        Attachment.to_parent_element(a, ns_test, element)
-        element = element[0]
-        encoded_data = base64.encodestring(data)
-        self.assertNotEquals(element.text, None)
-        self.assertEquals(element.text, encoded_data)
-
-    def test_to_from_xml_file(self):
-        a = Attachment()
-        a.file_name = self.tmpfile
-        element = etree.Element('test')
-        Attachment.to_parent_element(a, ns_test, element)
-        element = element[0]
-
-        data = Attachment.from_xml(element).data
-
-        f = open(self.tmpfile, 'rb')
-        fdata = f.read()
-        f.close()
-
-        self.assertEquals(data, fdata)
-
-    def test_exception(self):
-        try:
-            Attachment.to_parent_element(Attachment(), ns_test)
-        except:
-            self.assertTrue(True)
-        else:
-            self.assertFalse(True)
 
     def test_from_xml(self):
         f = open(self.tmpfile)
         data = f.read()
         f.close()
 
-        a = Attachment()
-        a.data = data
-        element = etree.Element('test')
-        Attachment.to_parent_element(a, ns_test, element)
+        ByteArray.to_parent_element([data], ns_test, element)
         element = element[0]
-        a2 = Attachment.from_xml(element)
+        a2 = ByteArray.from_xml(element)
 
         self.assertEquals(data, a2.data)
 
     def test_add_to_schema(self):
         schema = {}
-        Attachment.add_to_schema(schema)
+        ByteArray.add_to_schema(schema)
         self.assertEquals(0, len(schema.keys()))
 
     def test_get_datatype(self):
-        dt = Attachment.get_type_name()
+        dt = ByteArray.get_type_name()
         self.assertEquals('base64Binary', dt)
 
-        dt = Attachment.get_namespace()
+        dt = ByteArray.get_namespace()
         assert dt == ns_xsd
 
 if __name__ == '__main__':

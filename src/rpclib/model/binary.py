@@ -21,9 +21,62 @@ import base64
 
 from cStringIO import StringIO
 from rpclib.model import nillable_string
+from rpclib.model import nillable_iterable
 from rpclib.model import ModelBase
 
+class ByteArray(ModelBase):
+    """Handles anything other than ascii or unicode-encoded data. Every protocol
+    has a different way to handle arbitrary data. E.g. xml-based protocols
+    encode this as base64, while HttpRpc just hands it over.
+
+    Its native python format is an iterable of strings.
+    """
+
+    __type_name__ = 'base64Binary'
+    __namespace__ = "http://www.w3.org/2001/XMLSchema"
+
+    @classmethod
+    @nillable_string
+    def from_string(cls, value):
+        return [value]
+
+    @classmethod
+    @nillable_string
+    def to_string(cls, value):
+        return ''.join(value)
+
+    @classmethod
+    @nillable_iterable
+    def to_string_iterable(cls, value):
+        """Returns the result of :func:`to_string` in a list. This method should
+        be overridden if this is not enough."""
+
+        return [cls.to_string(value)]
+
+    @classmethod
+    @nillable_string
+    def to_base64(cls, value):
+        ostream = StringIO()
+        istream = StringIO(''.join(value))
+        base64.encode(istream, ostream)
+        ostream.seek(0)
+
+        return [ostream.read()]
+
+    @classmethod
+    @nillable_string
+    def from_base64(cls, value):
+        istream = StringIO(''.join(value))
+        ostream = StringIO()
+
+        base64.decode(istream, ostream)
+        ostream.seek(0)
+
+        return [ostream.read()]
+
 class Attachment(ModelBase):
+    """DEPRECATED! Use ByteArray instead."""
+
     __type_name__ = 'base64Binary'
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
 

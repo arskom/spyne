@@ -1,6 +1,13 @@
 Changelog
 =========
 
+rpclib-2.3.3-beta
+-----------------
+ * Added MAX_CONTENT_LENGTH = 2 * 1024 * 1024 and BLOCK_LENGTH = 8 * 1024
+   constants to rpclib.server.wsgi module.
+ * rpclib.model.binary.Attachment is deprecated, and is replaced by ByteArray.
+   The native format of ByteArray is an iterable of strings.
+
 rpclib-2.3.2-beta
 -----------------
  * Limited support for sqlalchemy.orm.relationship (no string arguments)

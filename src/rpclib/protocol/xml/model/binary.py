@@ -36,11 +36,11 @@ def binary_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     from the file
     '''
     element = etree.SubElement(parent_elt, "{%s}%s" % (tns,name))
-    element.text = cls.to_base64(value)
+    element.text = ''.join(cls.to_base64(value))
 
 @nillable_element
 def binary_from_element(prot, cls, element):
     '''This method returns an Attachment object that contains
     the base64 decoded string of the text of the given element
     '''
-    return cls.from_base64(element.text)
+    return cls.from_base64([element.text])

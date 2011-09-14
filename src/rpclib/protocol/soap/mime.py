@@ -19,7 +19,8 @@ except ImportError:
     from email.Encoders import encode_7or8bit
 
 from email import message_from_string
-
+from rpclib.model.binary import Attachment
+from rpclib.model.binary import ByteArray
 import rpclib.const.xml_ns
 
 _ns_xop = rpclib.const.xml_ns.xop
@@ -243,7 +244,7 @@ def apply_mtom(headers, envelope, params, paramvals):
     for i in range(len(params)):
         name, typ = params[i]
 
-        if typ == Attachment:
+        if typ in (ByteArray, Attachment):
             id = "rpclibAttachment_%s" % (len(mtompkg.get_payload()), )
 
             param = message[i]
@@ -255,7 +256,10 @@ def apply_mtom(headers, envelope, params, paramvals):
             if paramvals[i].fileName and not paramvals[i].data:
                 paramvals[i].load_from_file()
 
-            data = paramvals[i].data
+            if type == Attachment:
+                data = paramvals[i].data
+            else:
+                data = ''.join(paramvals[i])
             attachment = None
 
             try:

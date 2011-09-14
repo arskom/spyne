@@ -24,9 +24,10 @@ import logging
 from tempfile import mkstemp
 
 from rpclib.application import Application
+from rpclib.decorator import rpc
 from rpclib.decorator import srpc
 from rpclib.interface.wsdl import Wsdl11
-from rpclib.model.binary import Attachment
+from rpclib.model.binary import ByteArray
 from rpclib.model.fault import Fault
 from rpclib.model.primitive import String
 from rpclib.protocol.http import HttpRpc
@@ -34,20 +35,26 @@ from rpclib.service import ServiceBase
 from rpclib.server.wsgi import WsgiApplication
 
 class DocumentArchiver(ServiceBase):
-    @srpc(Attachment, _returns=String)
-    def put(document):
-        '''This method accepts an Attachment object, and returns
-        the filename of the archived file
+    @rpc(ByteArray, _returns=String)
+    def put(ctx, content):
+        '''This method accepts an Attachment object, and returns the filename
+        of the archived file
         '''
+        if content is None:
+            raise Fault("Client.BadRequest")
+
         fd, fname = mkstemp()
         os.close(fd)
 
-        document.file_name = fname
-        document.save_to_file()
+        f = open(fname, 'wb')
+
+        for chunk in content:
+            f.write(chunk)
+        f.close()
 
         return fname
 
-    @srpc(String, _returns=Attachment)
+    @srpc(String, _returns=ByteArray)
     def get(file_path):
         '''This method loads a document from the specified file path
         and returns it. If the path isn't found, an exception is
@@ -57,12 +64,14 @@ class DocumentArchiver(ServiceBase):
         if not os.path.exists(file_path):
             raise Fault("Client.FileName", "File '%s' not found" % file_path)
 
-        document = Attachment(file_name=file_path)
+        document = open(file_path, 'rb').read()
+
+
         # the service automatically loads the data from the file.
         # alternatively, The data could be manually loaded into memory
         # and loaded into the Attachment like:
         #   document = Attachment(data=data_from_file)
-        return document
+        return [document]
 
 if __name__=='__main__':
     try:
@@ -74,7 +83,6 @@ if __name__=='__main__':
                 interface=Wsdl11(), in_protocol=HttpRpc(), out_protocol=HttpRpc())
 
     logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('rpclib.protocol.soap.soap11').setLevel(logging.DEBUG)
 
     server = make_server('127.0.0.1', 7789, WsgiApplication(application))
     print "listening to http://127.0.0.1:7789"
