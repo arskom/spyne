@@ -23,6 +23,7 @@ Contents
    reference/index
    tests
    faq
+   roadmap
    h_and_f
 
 ******************
