@@ -26,9 +26,10 @@ from rpclib.const import xml_ns as ns
 
 from rpclib.util.cdict import cdict
 
-from rpclib.error import NotFoundError
+from rpclib.error import ResourceNotFoundError
 from rpclib.model import ModelBase
 
+from rpclib.model.binary import Attachment
 from rpclib.model.complex import Array
 from rpclib.model.complex import Iterable
 from rpclib.model.complex import ComplexModelBase
@@ -42,6 +43,7 @@ from rpclib.model.primitive import Duration
 from rpclib.protocol import ProtocolBase
 
 from rpclib.protocol.xml.model import base_to_parent_element
+from rpclib.protocol.xml.model.binary import binary_to_parent_element
 from rpclib.protocol.xml.model.enum import enum_to_parent_element
 from rpclib.protocol.xml.model.fault import fault_to_parent_element
 from rpclib.protocol.xml.model.complex import complex_to_parent_element
@@ -51,6 +53,7 @@ from rpclib.protocol.xml.model.primitive import string_to_parent_element
 from rpclib.protocol.xml.model.primitive import duration_to_parent_element
 
 from rpclib.protocol.xml.model import base_from_element
+from rpclib.protocol.xml.model.binary import binary_from_element
 from rpclib.protocol.xml.model.complex import array_from_element
 from rpclib.protocol.xml.model.complex import iterable_from_element
 from rpclib.protocol.xml.model.complex import complex_from_element
@@ -60,36 +63,41 @@ from rpclib.protocol.xml.model.primitive import dict_from_element
 from rpclib.protocol.xml.model.primitive import xml_from_element
 from rpclib.protocol.xml.model.primitive import string_from_element
 
-_serialization_handlers = cdict({
-    ModelBase: base_to_parent_element,
-    ComplexModelBase: complex_to_parent_element,
-    Fault: fault_to_parent_element,
-    String: string_to_parent_element,
-    AnyXml: xml_to_parent_element,
-    AnyDict: dict_to_parent_element,
-    EnumBase: enum_to_parent_element,
-    Duration: duration_to_parent_element,
-})
-
-_deserialization_handlers = cdict({
-    ModelBase: base_from_element,
-    ComplexModelBase: complex_from_element,
-    Fault: fault_from_element,
-    String: string_from_element,
-    AnyXml: xml_from_element,
-    AnyDict: dict_from_element,
-    Array: array_from_element,
-    Iterable: iterable_from_element,
-    EnumBase: enum_from_element,
-})
-
 class XmlObject(ProtocolBase):
+    def __init__(self, app=None):
+        ProtocolBase.__init__(self, app)
+
+        self.serialization_handlers = cdict({
+            ModelBase: base_to_parent_element,
+            Attachment: binary_to_parent_element,
+            ComplexModelBase: complex_to_parent_element,
+            Fault: fault_to_parent_element,
+            String: string_to_parent_element,
+            AnyXml: xml_to_parent_element,
+            AnyDict: dict_to_parent_element,
+            EnumBase: enum_to_parent_element,
+            Duration: duration_to_parent_element,
+        })
+
+        self.deserialization_handlers = cdict({
+            ModelBase: base_from_element,
+            Attachment: binary_from_element,
+            ComplexModelBase: complex_from_element,
+            Fault: fault_from_element,
+            String: string_from_element,
+            AnyXml: xml_from_element,
+            AnyDict: dict_from_element,
+            Array: array_from_element,
+            Iterable: iterable_from_element,
+            EnumBase: enum_from_element,
+        })
+
     def from_element(self, cls, element):
-        handler = _deserialization_handlers[cls]
+        handler = self.deserialization_handlers[cls]
         return handler(self, cls, element)
 
     def to_parent_element(self, cls, value, tns, parent_elt, * args, ** kwargs):
-        handler = _serialization_handlers[cls]
+        handler = self.serialization_handlers[cls]
         handler(self, cls, value, tns, parent_elt, * args, ** kwargs)
 
     def create_in_document(self, ctx, charset=None):
@@ -127,7 +135,7 @@ class XmlObject(ProtocolBase):
 
         except Exception, e:
             logger.exception(e)
-            raise NotFoundError('Client', 'Method not found: %r' %
+            raise ResourceNotFoundError('Client', 'Method not found: %r' %
                                                     ctx.method_request_string)
 
         ctx.in_header_doc = None # XmlObject does not know between header and

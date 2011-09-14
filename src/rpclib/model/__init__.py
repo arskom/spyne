@@ -26,3 +26,4 @@ from _base import SimpleModel
 
 from _base import nillable_dict
 from _base import nillable_string
+from _base import nillable_iterable

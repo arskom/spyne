@@ -19,7 +19,8 @@ except ImportError:
     from email.Encoders import encode_7or8bit
 
 from email import message_from_string
-
+from rpclib.model.binary import Attachment
+from rpclib.model.binary import ByteArray
 import rpclib.const.xml_ns
 
 _ns_xop = rpclib.const.xml_ns.xop
@@ -119,8 +120,8 @@ def collapse_swa(content_type, envelope):
         "MIME-Version: 1.0",
         "Content-Type: %s; charset=%s" % (mime_type, charset),
         "",
-        envelope
     ]
+    msg_string.extend(envelope)
 
     msg = message_from_string('\r\n'.join(msg_string)) # our message
 
@@ -160,7 +161,7 @@ def collapse_swa(content_type, envelope):
         if cloc and not cid and not numreplaces:
             soapmsg, numreplaces = join_attachment(cloc, soapmsg, payload, False)
 
-    return soapmsg
+    return [soapmsg]
 
 def apply_mtom(headers, envelope, params, paramvals):
     '''Apply MTOM to a SOAP envelope, separating attachments into a
@@ -243,7 +244,7 @@ def apply_mtom(headers, envelope, params, paramvals):
     for i in range(len(params)):
         name, typ = params[i]
 
-        if typ == Attachment:
+        if typ in (ByteArray, Attachment):
             id = "rpclibAttachment_%s" % (len(mtompkg.get_payload()), )
 
             param = message[i]
@@ -255,7 +256,10 @@ def apply_mtom(headers, envelope, params, paramvals):
             if paramvals[i].fileName and not paramvals[i].data:
                 paramvals[i].load_from_file()
 
-            data = paramvals[i].data
+            if type == Attachment:
+                data = paramvals[i].data
+            else:
+                data = ''.join(paramvals[i])
             attachment = None
 
             try:

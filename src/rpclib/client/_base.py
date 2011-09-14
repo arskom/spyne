@@ -45,7 +45,7 @@ class RemoteProcedureBase(object):
     """Abstract base class that handles all (de)serialization.
 
     Child classes must implement the client transport in the __call__ method
-    using the following method signature:
+    using the following method signature: ::
 
         def __call__(self, *args, **kwargs):
 

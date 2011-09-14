@@ -19,48 +19,54 @@
 #
 
 import os
+import logging
 
 from tempfile import mkstemp
 
 from rpclib.application import Application
 from rpclib.decorator import srpc
 from rpclib.interface.wsdl import Wsdl11
+from rpclib.model.binary import ByteArray
+from rpclib.error import ArgumentError
+from rpclib.model.primitive import String
 from rpclib.protocol.soap import Soap11
 from rpclib.service import ServiceBase
-from rpclib.model.primitive import String
-from rpclib.model.binary import Attachment
 from rpclib.server.wsgi import WsgiApplication
 
 class DocumentArchiver(ServiceBase):
-    @srpc(Attachment, _returns=String)
-    def archive_document(document):
-        '''This method accepts an Attachment object, and returns
-        the filename of the archived file
+    @srpc(ByteArray, _returns=String)
+    def put(content):
+        '''This method accepts an ByteArray object, and returns the filename
+        of the archived file
         '''
+
+        if content is None:
+            raise ArgumentError("'content' argument must be specified")
+
         fd, fname = mkstemp()
         os.close(fd)
 
-        document.file_name = fname
-        document.save_to_file()
+        f = open(fname, 'wb')
+
+        for chunk in content:
+            f.write(chunk)
+        f.close()
 
         return fname
 
-    @srpc(String, _returns=Attachment)
-    def get_archived_document(file_path):
+    @srpc(String, _returns=ByteArray)
+    def get(file_path):
         '''This method loads a document from the specified file path
-        and returns it.  If the path isn't found, an exception is
+        and returns it. If the path isn't found, an exception is
         raised.
         '''
 
-        if not os.path.exists(file_path):
-            raise Exception("File [%s] not found"%file_path)
+        if not os.path.exists(file_path) or file_path is None:
+            raise ArgumentError("File '%s' not found" % file_path)
 
-        document = Attachment(file_name=file_path)
-        # the service automatically loads the data from the file.
-        # alternatively, The data could be manually loaded into memory
-        # and loaded into the Attachment like:
-        #   document = Attachment(data=data_from_file)
-        return document
+        document = open(file_path, 'rb').read()
+
+        return [document]
 
 if __name__=='__main__':
     try:
@@ -71,8 +77,10 @@ if __name__=='__main__':
     application = Application([DocumentArchiver], 'rpclib.examples.binary',
                 interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
 
-    server = make_server('127.0.0.1', 7789, WsgiApplication(application))
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger('rpclib.protocol.soap.soap11').setLevel(logging.DEBUG)
 
+    server = make_server('127.0.0.1', 7789, WsgiApplication(application))
     print "listening to http://127.0.0.1:7789"
     print "wsdl is at: http://localhost:7789/?wsdl"
 
