@@ -40,25 +40,32 @@ HTTP_200 = '200 OK'
 HTTP_404 = '404 Method Not Found'
 HTTP_405 = '405 Method Not Allowed'
 
+MAX_CONTENT_LENGTH = 2 * 1024 * 1024
+BLOCK_LENGTH = 8 * 1024
+
+def _wsgi_input_to_iterable(http_env):
+    istream = http_env.get('wsgi.input')
+
+    length = int(http_env.get('CONTENT_LENGTH', str(MAX_CONTENT_LENGTH)))
+    bytes_read = 0
+
+    while bytes_read < length:
+        bytes_to_read = min(BLOCK_LENGTH, length - bytes_read)
+        data = istream.read(bytes_to_read)
+        bytes_read += len(data)
+
+        yield data
 
 def reconstruct_wsgi_request(http_env):
     """Reconstruct http payload using information in the http header"""
-
-    input = http_env.get('wsgi.input')
-    try:
-        length = int(http_env.get("CONTENT_LENGTH"))
-    except ValueError:
-        length = 0
 
     # fyi, here's what the parse_header function returns:
     # >>> import cgi; cgi.parse_header("text/xml; charset=utf-8")
     # ('text/xml', {'charset': 'utf-8'})
     content_type = cgi.parse_header(http_env.get("CONTENT_TYPE"))
-    charset = content_type[1].get('charset',None)
-    if charset is None:
-        charset = 'ascii'
+    charset = content_type[1].get('charset', 'utf-8')
 
-    return input.read(length), charset
+    return _wsgi_input_to_iterable(http_env), charset
 
 
 class WsgiTransportContext(TransportContext):
