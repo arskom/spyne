@@ -1,5 +1,5 @@
 
-.. _tutorial-helloworld:
+.. _manual-helloworld:
 
 Hello World
 ===========

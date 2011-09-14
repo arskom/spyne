@@ -1,8 +1,9 @@
 
 Warning! This is from rpclib's unstable development branch.
 
+*****
 About
-=====
+*****
 
 Rpclib seeks to save the protocol implementers the hassle of implementing their
 own remote procedure call api and the application programmers the hassle of
@@ -30,8 +31,9 @@ The following legacy versions of soaplib are also available:
  * See `here <http://github.com/arskom/rpclib/tree/soaplib-1_0>`_ for the stable soaplib-1.0 branch.
  * See `here <http://github.com/arskom/rpclib/tree/soaplib-2_0>`_ for the stable soaplib-2.0 branch.
 
+************
 Requirements
-============
+************
 
 Rpclib reportedly runs on any version of Python from 2.4 through 2.7. We're also
 looking for volunteers to test Python 3.x.
@@ -56,8 +58,9 @@ And the following is needed for various subsystems that Rpclib supports:
 
 Please note that the examples assume Python 2.5 and up.
 
+**********
 Installing
-==========
+**********
 
 To install rpclib, you can use git to clone from github or install from pypi::
 
@@ -72,8 +75,9 @@ To install rpclib, you can use git to clone from github or install from pypi::
     # to use:
     python setup.py develop
 
+************
 Contributing
-============
+************
 
 The main developers of rpclib lurk in the official soap implementors forum
 in python.org, `here <http://mail.python.org/mailman/listinfo/soap/>`_.

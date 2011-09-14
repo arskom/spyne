@@ -1,8 +1,8 @@
 
-.. _tutorial-sqlalchemy:
+.. _manual-sqlalchemy:
 
 SQLAlchemy Integration
-----------------------
+======================
 
 This tutorial builds on the :ref:`tutorial-user-manager` tutorial. If you haven't
 done so, we recommended you to read it first.
@@ -192,7 +192,7 @@ Note that the ``method_return_object`` event is only run when the method call
 was completed without throwing any exceptions.
 
 What's next?
-^^^^^^^^^^^^
+------------
 
 This tutorial walks you through most of what you need to know to expose your
 services. You can refer to the reference of the documentation or the mailing
