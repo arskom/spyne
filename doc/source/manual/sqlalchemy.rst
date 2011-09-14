@@ -4,7 +4,7 @@
 SQLAlchemy Integration
 ======================
 
-This tutorial builds on the :ref:`tutorial-user-manager` tutorial. If you haven't
+This tutorial builds on the :ref:`manual-user-manager` tutorial. If you haven't
 done so, we recommended you to read it first.
 
 Let's try a more complicated example than storing our data in a mere dictionary.
@@ -120,7 +120,7 @@ The full example is available here: http://github.com/arskom/rpclib/blob/master/
 
         server.serve_forever()
 
-Again, focusing on what's different from previous :ref:`tutorial-user-manager`
+Again, focusing on what's different from previous :ref:`manual-user-manager`
 example: ::
 
     class User(TableModel, DeclarativeBase):

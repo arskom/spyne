@@ -5,7 +5,7 @@ Hello World
 ===========
 
 This example uses the stock simple wsgi webserver to deploy this service. You
-should probably use a full-fledged wsgi implementation when deploying your
+should probably use a full-fledged server when deploying your
 service for production purposes.
 
 Defining an Rpclib Service
@@ -231,5 +231,5 @@ The command's output would be as follows: ::
 What's next?
 ------------
 
-See the next :ref:`tutorial-user-manager` tutorial that will walk you through
+See the next :ref:`manual-user-manager` tutorial that will walk you through
 defining complex objects and using events.

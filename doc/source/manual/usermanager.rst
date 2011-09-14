@@ -4,7 +4,7 @@
 User Manager
 ============
 
-This tutorial builds on the :ref:`tutorial-helloworld` tutorial. If you haven't
+This tutorial builds on the :ref:`manual-helloworld` tutorial. If you haven't
 done so, we recommended you to read it first.
 
 Let's try a more complicated example than just strings and integers!
@@ -161,7 +161,7 @@ What's next?
 ------------
 
 This tutorial walks you through most of what you need to know to expose your
-services. You can read the :ref:`tutorial-sqlalchemy` document where tools
+services. You can read the :ref:`manual-sqlalchemy` document where tools
 (the event subsystem and :class:`rpclib.model.table.TableModel` class) for those
 who plan to to expose their database application using rpclib are introduced.
 Otherwise, you should refer to the rest of the documentation or the mailing

@@ -155,6 +155,8 @@ class ServiceBase(object):
         do your own exception handling.
 
         :param ctx: The method context.
+
+        The overriding function must call this function by convention.
         '''
         if ctx.descriptor.no_ctx:
             return ctx.descriptor.function(*ctx.in_object)

@@ -3,8 +3,12 @@
 Rpclib
 ######
 
-We always welcome feedback about documentation. Please share your slightest
-criticism with us so we can make Rpclib documentation better. Thanks!
+Welcome to Rpclib documentation!
+
+We always welcome feedback. Please share your slightest
+criticism about this piece of writing so we can make Rpclib documentation better.
+
+Thanks and Enjoy!
 
 .. include:: ../../README.rst
 
@@ -14,14 +18,12 @@ Contents
 
 .. toctree::
    :maxdepth: 2
-   :hidden:
 
    manual/index
    reference/index
    tests
    faq
-   roadmap
-   changelog
+   h_and_f
 
 ******************
 Indices and tables

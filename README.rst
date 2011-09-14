@@ -5,7 +5,7 @@ Warning! This is from rpclib's unstable development branch.
 About
 *****
 
-Rpclib seeks to save the protocol implementers the hassle of implementing their
+Rpclib aims to save the protocol implementers the hassle of implementing their
 own remote procedure call api and the application programmers the hassle of
 jumping through hoops just to expose a service using multiple protocols and
 transports.
@@ -14,7 +14,8 @@ Rpclib comes with the implementations of popular transports, protocols and
 interface documents along with an easy-to-use API that lets you extend existing
 functionality. It currently supports the WSDL 1.1 interface definition standard,
 along with SOAP 1.1 and the rest-minus-the-verbs HttpRpc protocols which can be
-transported via HTTP or ZeroMQ tranports in a both client or server environment.
+transported mainly via HTTP. We also support ZeroMQ tranport where appropriate.
+The transports can be used in a both client or server environment.
 
 The documentation for Rpclib can be found `here <http://arskom.github.com/rpclib>`_.
 
@@ -43,7 +44,7 @@ Rpclib core. While much progress was made towards this goal, there's still some
 work to be done. So currently, the following is needed if you want to run any
 Rpclib service at all:
 
-* `lxml <http://codespeak.net/lxml/>`_ 
+* `lxml <http://codespeak.net/lxml/>`_
 * `pytz <http://pytz.sourceforge.net/>`_
 
 both of which are available through ``easy_install``.
@@ -56,8 +57,6 @@ And the following is needed for various subsystems that Rpclib supports:
   :class:`rpclib.server.zeromq.ZeroMQServer`.
 * A Wsgi server of your choice to wrap :class:`rpclib.server.wsgi.WsgiApplication`.
 
-Please note that the examples assume Python 2.5 and up.
-
 **********
 Installing
 **********
@@ -65,14 +64,18 @@ Installing
 To install rpclib, you can use git to clone from github or install from pypi::
 
     git clone git://github.com/arskom/rpclib.git
+
+and run its setup script as usual: ::
+
     cd rpclib
     python setup.py install
 
-    # to run the non-interop tests use:
+To run the non-interop tests use: ::
+
     python setup.py test
 
-    # if you want to make any changes to the rpclib code, it's more comfortable
-    # to use:
+And if you want to make any changes to the rpclib code, it's more comfortable to use: ::
+
     python setup.py develop
 
 ************
