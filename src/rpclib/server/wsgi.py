@@ -166,13 +166,14 @@ class WsgiApplication(ServerBase):
     def __is_wsdl_request(self, req_env):
         # Get the wsdl for the service. Assume path_info matches pattern:
         # /stuff/stuff/stuff/serviceName.wsdl or
-        # /stuff/stuff/stuff/serviceName/?wsdl with anything between ? and wsdl.
+        # /stuff/stuff/stuff/serviceName/?wsdl
 
+        print req_env['QUERY_STRING']
         return (
             req_env['REQUEST_METHOD'].lower() == 'get'
             and (
-                   req_env['QUERY_STRING'].endswith('wsdl')
-                or req_env['PATH_INFO'].endswith('wsdl')
+                   req_env['QUERY_STRING'] == 'wsdl'
+                or req_env['PATH_INFO'].endswith('.wsdl')
             )
         )
 
