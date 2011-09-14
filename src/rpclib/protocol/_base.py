@@ -30,8 +30,14 @@ _ns_xsi = rpclib.const.xml_ns.xsi
 _ns_xsd = rpclib.const.xml_ns.xsd
 
 from rpclib._base import EventManager
-from rpclib.error import NotFoundError
-# from pprint import pformat
+
+from rpclib.const.http import HTTP_400
+from rpclib.const.http import HTTP_404
+from rpclib.const.http import HTTP_413
+from rpclib.const.http import HTTP_500
+from rpclib.error import ResourceNotFoundError
+from rpclib.error import RequestTooLongError
+from rpclib.error import Fault
 
 class ProtocolBase(object):
     """This is the abstract base class for all protocol implementations. Child
@@ -39,11 +45,10 @@ class ProtocolBase(object):
 
     The ProtocolBase class supports the following events:
     * ``deserialize``
-        Called right after the deserialization operation is finished.
+      Called right after the deserialization operation is finished.
 
     * ``serialize``
-        Called right after the serialization operation is finished.
-
+      Called right after the serialization operation is finished.
     """
 
     allowed_http_verbs = ['GET','POST']
@@ -104,6 +109,7 @@ class ProtocolBase(object):
         """Method to be overriden to perform any sort of custom matching between
         the method_request_string and the methods.
         """
+        # from pprint import pformat
 
         name = ctx.method_request_string
         if not name.startswith("{"):
@@ -112,9 +118,20 @@ class ProtocolBase(object):
         ctx.service_class = self.app.interface.service_mapping.get(name, None)
         if ctx.service_class is None:
             # logger.debug(pformat(self.app.interface.service_mapping.keys()))
-            raise NotFoundError('Method %r not bound to a service class.' % name)
+            raise ResourceNotFoundError('Method %r not bound to a service class.'
+                                                                        % name)
 
         ctx.descriptor = ctx.app.interface.method_mapping.get(name, None)
         if ctx.descriptor is None:
             # logger.debug(pformat(ctx.app.interface.method_mapping.keys()))
-            raise NotFoundError('Method %r not found.' % name)
+            raise ResourceNotFoundError('Method %r not found.' % name)
+
+    def fault_to_http_response_code(self, fault):
+        if isinstance(fault, RequestTooLongError):
+            return HTTP_413
+        if isinstance(fault, ResourceNotFoundError):
+            return HTTP_404
+        if isinstance(fault, Fault) and  fault.faultcode.startswith('Client'):
+            return HTTP_400
+        else:
+            return HTTP_500

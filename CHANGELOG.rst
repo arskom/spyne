@@ -1,3 +1,4 @@
+
 Changelog
 =========
 
@@ -7,6 +8,8 @@ rpclib-2.3.3-beta
    constants to rpclib.server.wsgi module.
  * rpclib.model.binary.Attachment is deprecated, and is replaced by ByteArray.
    The native format of ByteArray is an iterable of strings.
+ * Exception handling was formalized. HTTP return codes can be set by exception
+   classes from rpclib.error or custom exceptions.
 
 rpclib-2.3.2-beta
 -----------------

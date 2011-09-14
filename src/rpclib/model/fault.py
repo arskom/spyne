@@ -33,5 +33,12 @@ class Fault(ModelBase, Exception):
         self.faultactor = faultactor
         self.detail = detail
 
+    def __str__(self):
+        return repr(self)
+
     def __repr__(self):
-        return "%s: %r" % (self.faultcode, self.faultstring)
+        return "Fault(%s: %r)" % (self.faultcode, self.faultstring)
+
+    @classmethod
+    def to_string_iterable(cls, value):
+        return [value.faultcode, '\n\n', value.faultstring]

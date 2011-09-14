@@ -24,8 +24,7 @@ logger = logging.getLogger(__name__)
 
 import urlparse
 
-from rpclib.error import NotFoundError
-from rpclib.server.wsgi import HTTP_404
+from rpclib.error import Fault
 from rpclib.protocol import ProtocolBase
 
 # this is not exactly rest, because it ignores http verbs.
@@ -50,26 +49,21 @@ class HttpRpc(ProtocolBase):
         assert ctx.transport.type == 'wsgi', ("This protocol only works with "
                                               "the wsgi api.")
 
-        logger.debug("PATH_INFO: %r" % ctx.transport.req_env['PATH_INFO'])
-        logger.debug("QUERY_STRING: %r" % ctx.transport.req_env['QUERY_STRING'])
+        ctx.in_document = ctx.transport.req_env
+
+    def decompose_incoming_envelope(self, ctx):
+        logger.debug("PATH_INFO: %r" % ctx.in_document['PATH_INFO'])
+        logger.debug("QUERY_STRING: %r" % ctx.in_document['QUERY_STRING'])
 
         ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
-                              ctx.transport.req_env['PATH_INFO'].split('/')[-1])
+                              ctx.in_document['PATH_INFO'].split('/')[-1])
         logger.debug("\033[92mMethod name: %r\033[0m" % ctx.method_request_string)
 
-        try:
-            self.app.in_protocol.set_method_descriptor(ctx)
-
-        except NotFoundError, e:
-            ctx.transport.resp_code = HTTP_404
-            raise
-
-        ctx.in_header_doc = _get_http_headers(ctx.transport.req_env)
-        ctx.in_body_doc = urlparse.parse_qs(ctx.transport.req_env['QUERY_STRING'])
+        self.app.in_protocol.set_method_descriptor(ctx)
+        ctx.in_header_doc = _get_http_headers(ctx.in_document)
+        ctx.in_body_doc = urlparse.parse_qs(ctx.in_document['QUERY_STRING'])
 
         logger.debug(repr(ctx.in_body_doc))
-
-        return ctx.in_body_doc
 
     def deserialize(self, ctx):
         body_class = ctx.descriptor.in_message
@@ -81,19 +75,21 @@ class HttpRpc(ProtocolBase):
         self.event_manager.fire_event('deserialize', ctx)
 
     def serialize(self, ctx):
-        result_message_class = ctx.descriptor.out_message
+        if ctx.out_error is None:
+            result_message_class = ctx.descriptor.out_message
 
-        # assign raw result to its wrapper, result_message
-        out_type_info = result_message_class._type_info
-        if len(out_type_info) == 1:
-            out_class = out_type_info.values()[0]
-            if ctx.out_object is None:
-                ctx.out_document = ['']
+            # assign raw result to its wrapper, result_message
+            out_type_info = result_message_class._type_info
+            if len(out_type_info) == 1:
+                out_class = out_type_info.values()[0]
+                if ctx.out_object is None:
+                    ctx.out_document = ['']
+                else:
+                    ctx.out_document = out_class.to_string_iterable(ctx.out_object)
             else:
-                ctx.out_document = out_class.to_string_iterable(ctx.out_object)
-
+                raise ValueError("HttpRpc protocol can only serialize primitives.")
         else:
-            raise ValueError("HttpRpc protocol can only serialize primitives.")
+            ctx.out_document = ctx.out_error.to_string_iterable(ctx.out_error)
 
         self.event_manager.fire_event('serialize', ctx)
 

@@ -61,6 +61,9 @@ class DocumentArchiver(ServiceBase):
         raised.
         '''
 
+        if file_path is None:
+            raise Fault("Client", "file_path is mandatory")
+
         if not os.path.exists(file_path):
             raise Fault("Client.FileName", "File '%s' not found" % file_path)
 

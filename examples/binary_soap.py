@@ -24,25 +24,24 @@ import logging
 from tempfile import mkstemp
 
 from rpclib.application import Application
-from rpclib.decorator import rpc
 from rpclib.decorator import srpc
 from rpclib.interface.wsdl import Wsdl11
 from rpclib.model.binary import ByteArray
-from rpclib.model.fault import Fault
+from rpclib.error import ArgumentError
 from rpclib.model.primitive import String
 from rpclib.protocol.soap import Soap11
 from rpclib.service import ServiceBase
 from rpclib.server.wsgi import WsgiApplication
 
 class DocumentArchiver(ServiceBase):
-    @rpc(ByteArray, _returns=String)
-    def put(ctx, content):
+    @srpc(ByteArray, _returns=String)
+    def put(content):
         '''This method accepts an ByteArray object, and returns the filename
         of the archived file
         '''
 
         if content is None:
-            raise Fault("Client.BadRequest")
+            raise ArgumentError("'content' argument must be specified")
 
         fd, fname = mkstemp()
         os.close(fd)
@@ -62,8 +61,8 @@ class DocumentArchiver(ServiceBase):
         raised.
         '''
 
-        if not os.path.exists(file_path):
-            raise Fault("Client.FileName", "File '%s' not found" % file_path)
+        if not os.path.exists(file_path) or file_path is None:
+            raise ArgumentError("File '%s' not found" % file_path)
 
         document = open(file_path, 'rb').read()
 

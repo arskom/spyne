@@ -26,7 +26,7 @@ from rpclib.const import xml_ns as ns
 
 from rpclib.util.cdict import cdict
 
-from rpclib.error import NotFoundError
+from rpclib.error import ResourceNotFoundError
 from rpclib.model import ModelBase
 
 from rpclib.model.binary import Attachment
@@ -135,7 +135,7 @@ class XmlObject(ProtocolBase):
 
         except Exception, e:
             logger.exception(e)
-            raise NotFoundError('Client', 'Method not found: %r' %
+            raise ResourceNotFoundError('Client', 'Method not found: %r' %
                                                     ctx.method_request_string)
 
         ctx.in_header_doc = None # XmlObject does not know between header and

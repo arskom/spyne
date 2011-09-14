@@ -29,7 +29,9 @@ import cgi
 import rpclib.const.xml_ns as ns
 
 from lxml import etree
+from lxml.etree import XMLSyntaxError
 
+from rpclib.const.http import HTTP_500
 from rpclib.protocol.xml import XmlObject
 from rpclib.protocol.soap.mime import collapse_swa
 
@@ -74,7 +76,10 @@ def _parse_xml_string(xml_string, charset=None):
 
         xml_string = ''.join(xml_string)
 
-        root, xmlids = etree.XMLID(xml_string.decode(charset))
+        try:
+            root, xmlids = etree.XMLID(xml_string.decode(charset))
+        except XMLSyntaxError,e:
+            raise Fault('Client.XMLSyntaxError')
 
     except ValueError,e:
         logger.debug('%s -- falling back to str decoding.' % (e))
@@ -344,6 +349,9 @@ class _Soap11(XmlObject):
                                        xml_declaration=True, pretty_print=True))
 
         self.event_manager.fire_event('serialize',ctx)
+
+    def fault_to_http_response_code(self, fault):
+        return HTTP_500
 
 class _Soap11Strict(_Soap11):
     '''The Soap 1.1 implementation that validates its input.'''
