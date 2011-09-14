@@ -21,10 +21,6 @@
 
 from rpclib.model import ModelBase
 
-import rpclib.const.xml_ns
-_ns_soap_env = rpclib.const.xml_ns.soap_env
-_pref_soap_env = rpclib.const.xml_ns.const_prefmap[_ns_soap_env]
-
 class Fault(ModelBase, Exception):
     """Use this class as a base for public exceptions."""
 
@@ -32,14 +28,17 @@ class Fault(ModelBase, Exception):
 
     def __init__(self, faultcode='Server', faultstring="", faultactor="",
                                                                    detail=None):
-        if faultcode.startswith('%s:' % _pref_soap_env):
-            self.faultcode = faultcode
-        else:
-            self.faultcode = '%s:%s' % (_pref_soap_env, faultcode)
-
+        self.faultcode = faultcode
         self.faultstring = faultstring or self.get_type_name()
         self.faultactor = faultactor
         self.detail = detail
 
+    def __str__(self):
+        return repr(self)
+
     def __repr__(self):
-        return "%s: %r" % (self.faultcode, self.faultstring)
+        return "Fault(%s: %r)" % (self.faultcode, self.faultstring)
+
+    @classmethod
+    def to_string_iterable(cls, value):
+        return [value.faultcode, '\n\n', value.faultstring]

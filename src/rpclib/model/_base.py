@@ -43,6 +43,16 @@ def nillable_string(func):
             return func(cls, string)
     return wrapper
 
+def nillable_iterable(func):
+    """Decorator that retuns [] if input is None."""
+
+    def wrapper(cls, string):
+        if string is None:
+            return []
+        else:
+            return func(cls, string)
+    return wrapper
+
 class ModelBase(object):
     """The base class for type markers. It defines the model interface for the
     interface generators to use and also manages class customizations that are
@@ -129,10 +139,18 @@ class ModelBase(object):
     @classmethod
     @nillable_string
     def to_string(cls, value):
-        """Returns str(value). This should be overridden if this is not
-        enough."""
+        """Returns str(value). This should be overridden if this is not enough.
+        """
 
         return str(value)
+
+    @classmethod
+    @nillable_iterable
+    def to_string_iterable(cls, value):
+        """Returns the result of :func:`to_string` in a list. This method should
+        be overridden if this is not enough."""
+
+        return [cls.to_string(value)]
 
     @classmethod
     @nillable_string

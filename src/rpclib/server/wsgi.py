@@ -19,8 +19,6 @@
 
 """An rpc server that uses http as transport, and wsgi as bridge api."""
 
-# FIXME: this is maybe still too soap-centric.
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -29,36 +27,50 @@ import cgi
 from rpclib import TransportContext
 from rpclib import MethodContext
 
-from rpclib.error import NotFoundError
+from rpclib.error import RequestTooLongError
 from rpclib.protocol.soap.mime import apply_mtom
 from rpclib.util import reconstruct_url
 from rpclib.server import ServerBase
 
+from rpclib.const.http import HTTP_200
+from rpclib.const.http import HTTP_405
+from rpclib.const.http import HTTP_500
 
-HTTP_500 = '500 Internal server error'
-HTTP_200 = '200 OK'
-HTTP_404 = '404 Method Not Found'
-HTTP_405 = '405 Method Not Allowed'
+MAX_CONTENT_LENGTH = 2 * 1024 * 1024
+BLOCK_LENGTH = 8 * 1024
 
+def _wsgi_input_to_iterable(http_env):
+    istream = http_env.get('wsgi.input')
+
+    length = int(http_env.get('CONTENT_LENGTH', str(MAX_CONTENT_LENGTH)))
+    if length > MAX_CONTENT_LENGTH:
+        raise RequestTooLongError()
+    bytes_read = 0
+
+    while bytes_read < length:
+        bytes_to_read = min(BLOCK_LENGTH, length - bytes_read)
+
+        if bytes_to_read + bytes_read > MAX_CONTENT_LENGTH:
+            raise RequestTooLongError()
+
+        data = istream.read(bytes_to_read)
+        if data is None:
+            break
+
+        bytes_read += len(data)
+
+        yield data
 
 def reconstruct_wsgi_request(http_env):
     """Reconstruct http payload using information in the http header"""
-
-    input = http_env.get('wsgi.input')
-    try:
-        length = int(http_env.get("CONTENT_LENGTH"))
-    except ValueError:
-        length = 0
 
     # fyi, here's what the parse_header function returns:
     # >>> import cgi; cgi.parse_header("text/xml; charset=utf-8")
     # ('text/xml', {'charset': 'utf-8'})
     content_type = cgi.parse_header(http_env.get("CONTENT_TYPE"))
-    charset = content_type[1].get('charset',None)
-    if charset is None:
-        charset = 'ascii'
+    charset = content_type[1].get('charset', 'utf-8')
 
-    return input.read(length), charset
+    return _wsgi_input_to_iterable(http_env), charset
 
 
 class WsgiTransportContext(TransportContext):
@@ -73,7 +85,7 @@ class WsgiTransportContext(TransportContext):
 
         self.resp_headers = {
             'Content-Type': content_type,
-            'Content-Length': '0',
+            'Content-Length': None,
         }
         """HTTP Response headers."""
 
@@ -110,8 +122,8 @@ class WsgiApplication(ServerBase):
             Called right before the wsdl data is returned to the client.
 
         * ``wsdl_exception``
-            Called right after an exception is thrown during wsdl generation. The
-            exception object is stored in ctx.transport.wsdl_error attribute.
+            Called right after an exception is thrown during wsdl generation.
+            The exception object is stored in ctx.transport.wsdl_error attribute.
 
         * ``wsgi_call``
             Called first when the incoming http request is identified as a rpc
@@ -120,9 +132,8 @@ class WsgiApplication(ServerBase):
         * ``wsgi_return``
             Called right before the output stream is returned to the WSGI handler.
 
-        * ``wsgi_resource_not_found``
-            Called right before returning a 404 when the requested resource was not
-            found.
+        * ``wsgi_error``
+            Called right before returning the exception to the client.
     '''
 
     transport = 'http://schemas.xmlsoap.org/soap/http'
@@ -159,13 +170,13 @@ class WsgiApplication(ServerBase):
     def __is_wsdl_request(self, req_env):
         # Get the wsdl for the service. Assume path_info matches pattern:
         # /stuff/stuff/stuff/serviceName.wsdl or
-        # /stuff/stuff/stuff/serviceName/?wsdl with anything between ? and wsdl.
+        # /stuff/stuff/stuff/serviceName/?wsdl
 
         return (
             req_env['REQUEST_METHOD'].lower() == 'get'
             and (
-                   req_env['QUERY_STRING'].endswith('wsdl')
-                or req_env['PATH_INFO'].endswith('wsdl')
+                   req_env['QUERY_STRING'] == 'wsdl'
+                or req_env['PATH_INFO'].endswith('.wsdl')
             )
         )
 
@@ -189,12 +200,29 @@ class WsgiApplication(ServerBase):
         except Exception, e:
             logger.exception(e)
             ctx.transport.wsdl_error = e
+
             # implementation hook
             self.event_manager.fire_event('wsdl_exception', ctx)
 
             start_response(HTTP_500, ctx.transport.resp_headers.items())
 
             return [""]
+
+    def __handle_error(self, ctx, error, start_response):
+        if ctx.transport.resp_code is None:
+            print "#" *10, self.app.out_protocol.fault_to_http_response_code
+            ctx.transport.resp_code = \
+                self.app.out_protocol.fault_to_http_response_code(error)
+
+        self.get_out_string(ctx)
+        ctx.out_string = [''.join(ctx.out_string)]
+
+        ctx.transport.resp_headers['Content-Length'] = str(len(ctx.out_string[0]))
+        self.event_manager.fire_event('wsgi_exception', ctx)
+
+        start_response(ctx.transport.resp_code,
+                                            ctx.transport.resp_headers.items())
+        return ctx.out_string
 
     def __handle_rpc(self, req_env, start_response):
         ctx = WsgiMethodContext(self.app, req_env,
@@ -205,33 +233,16 @@ class WsgiApplication(ServerBase):
 
         ctx.in_string, in_string_charset = reconstruct_wsgi_request(req_env)
 
-        try:
-            self.get_in_object(ctx, in_string_charset)
-        except NotFoundError, e:
-            pass
-
+        self.get_in_object(ctx, in_string_charset)
         if ctx.in_error:
-            out_object = ctx.in_error
-            if ctx.transport.resp_code is None:
-                ctx.transport.resp_code = HTTP_500
+            return self.__handle_error(ctx, ctx.in_error, start_response)
 
-        else:
-            if ctx.service_class == None:
-                if ctx.transport.resp_code is None:
-                    ctx.transport.resp_code = HTTP_500
+        self.get_out_object(ctx)
+        if ctx.out_error:
+            return self.__handle_error(ctx, ctx.out_error, start_response)
 
-                ctx.out_string = [ctx.transport.resp_code]
-
-                self.event_manager.fire_event('wsgi_method_not_found', ctx)
-
-                start_response(ctx.transport.resp_code, ctx.transport.resp_headers.items())
-                return ctx.out_string
-
-            self.get_out_object(ctx)
-            if ctx.out_error is None:
-                ctx.transport.resp_code = HTTP_200
-            else:
-                ctx.transport.resp_code = HTTP_500
+        if ctx.transport.resp_code is None:
+            ctx.transport.resp_code = HTTP_200
 
         self.get_out_string(ctx)
 
@@ -254,10 +265,10 @@ class WsgiApplication(ServerBase):
         # implementation hook
         self.event_manager.fire_event('wsgi_return', ctx)
 
-        # We can't set the content-length if we want to support any kind of
-        # python iterable as output. We can't iterate and count, that defeats
-        # the whole point.
-        del ctx.transport.resp_headers['Content-Length']
+        # the client has not set a content-length, so we delete it as the input
+        # is just an iterable.
+        if ctx.transport.resp_headers['Content-Length'] is None:
+            del ctx.transport.resp_headers['Content-Length']
 
         # initiate the response
         start_response(ctx.transport.resp_code, ctx.transport.resp_headers.items())

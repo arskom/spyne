@@ -25,8 +25,6 @@ from rpclib.client import Service
 from rpclib.client import ClientBase
 from rpclib.client import RemoteProcedureBase
 
-import rpclib.protocol.soap
-
 class _RemoteProcedure(RemoteProcedureBase):
     def __call__(self, *args, **kwargs):
         self.get_out_object(args, kwargs) # sets self.ctx.out_object
@@ -37,11 +35,11 @@ class _RemoteProcedure(RemoteProcedureBase):
         code = 200
         try:
             response = urllib2.urlopen(request)
-            self.ctx.in_string = response.read()
+            self.ctx.in_string = [response.read()]
 
         except urllib2.HTTPError,e:
             code=e.code
-            self.ctx.in_string = e.read()
+            self.ctx.in_string = [e.read()]
 
         self.get_in_object()
 

@@ -1,5 +1,15 @@
+
 Changelog
 =========
+
+rpclib-2.3.3-beta
+-----------------
+ * Added MAX_CONTENT_LENGTH = 2 * 1024 * 1024 and BLOCK_LENGTH = 8 * 1024
+   constants to rpclib.server.wsgi module.
+ * rpclib.model.binary.Attachment is deprecated, and is replaced by ByteArray.
+   The native format of ByteArray is an iterable of strings.
+ * Exception handling was formalized. HTTP return codes can be set by exception
+   classes from rpclib.error or custom exceptions.
 
 rpclib-2.3.2-beta
 -----------------
@@ -46,7 +56,7 @@ rpclib-2.2.0-beta
    serialization-related logic is under the responsibility of the ProtocolBase
    children.
  * Interface generation logic was redesigned. The WSDL logic is separated to
-   XmlSchema and Wsdl11 classes. 'add_to_schema' calls were renamed to just 
+   XmlSchema and Wsdl11 classes. 'add_to_schema' calls were renamed to just
    'add' and were moved inside rpclib.interface.xml_schema package.
  * Interface and Protocol assignment of an rpclib application is now more
    explicit. Both are also configurable during instantion. This doesn't mean
@@ -183,7 +193,7 @@ soaplib-3.x -> rpclib-1.1.1-alpha
    related to soap or xml. (e.g. a hook rename: on_method_exception_xml ->
    on_method_exception_doc)
  * Protocol serializers now return iterables instead of complete messages. This
-   is a first step towards eliminating the need to have the whole message in 
+   is a first step towards eliminating the need to have the whole message in
    memory during processing.
 
 soaplib-2.x

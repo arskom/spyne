@@ -1,26 +1,27 @@
 
-======
+######
 Rpclib
-======
+######
 
 .. include:: ../../README.rst
 
+********
 Contents
-========
+********
 
 .. toctree::
    :maxdepth: 2
 
-   tutorial/index
+   manual/index
    reference/index
    tests
    faq
-   changelog
+   h_and_f
 
+******************
 Indices and tables
-==================
+******************
 
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

@@ -39,7 +39,7 @@ class _RemoteProcedure(RemoteProcedureBase):
         socket.connect(self.url)
         socket.send(out_string)
 
-        self.ctx.in_string = socket.recv()
+        self.ctx.in_string = [socket.recv()]
         self.get_in_object()
 
         if not (self.ctx.in_error is None):

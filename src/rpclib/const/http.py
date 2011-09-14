@@ -17,10 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-__version__ = '2.3.3-beta-dev'
-
-from _base import TransportContext
-from _base import EventContext
-from _base import MethodContext
-from _base import MethodDescriptor
-from _base import EventManager
+HTTP_200 = '200 OK'
+HTTP_400 = '400 Bad Request'
+HTTP_404 = '404 Method Not Found'
+HTTP_405 = '405 Method Not Allowed'
+HTTP_413 = '413 Request Too Long'
+HTTP_500 = '500 Internal Server Error'
+HTTP_501 = '501 Not Implemented'

@@ -55,7 +55,7 @@ class ZeroMQServer(ServerBase):
 
         while True:
             ctx = ZmqMethodContext(self.app)
-            ctx.in_string = self.soap_socket.recv()
+            ctx.in_string = [self.soap_socket.recv()]
 
             self.get_in_object(ctx)
 
