@@ -84,8 +84,9 @@ code:
         from here and there .
 
         So, namespaces are another artifact of the Xml world. There are varying
-        opinions about the usefulness of the concept of the namespaces in Xml, but we
-        generally think it to be A Nice Thing, so we chose to keep it around.
+        opinions about the usefulness of the concept of the namespaces in Xml,
+        but we generally think it to be A Nice Thing, so we chose to keep it
+        around.
 
         When instantiating the application, you should also give it a
         targetNamespace (the ``tns`` argument to the :class:`Application` constructor)
