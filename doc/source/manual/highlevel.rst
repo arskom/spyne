@@ -1,5 +1,5 @@
 
-.. _manual-highlevel
+.. _manual-highlevel:
 
 High-Level Introduction to Rpclib
 =================================
