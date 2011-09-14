@@ -30,6 +30,7 @@ from rpclib import TransportContext
 from rpclib import MethodContext
 
 from rpclib.error import NotFoundError
+from rpclib.model.fault import Fault
 from rpclib.protocol.soap.mime import apply_mtom
 from rpclib.util import reconstruct_url
 from rpclib.server import ServerBase
@@ -37,6 +38,7 @@ from rpclib.server import ServerBase
 
 HTTP_500 = '500 Internal server error'
 HTTP_200 = '200 OK'
+HTTP_400 = '400 Bad Request'
 HTTP_404 = '404 Method Not Found'
 HTTP_405 = '405 Method Not Allowed'
 
@@ -197,6 +199,7 @@ class WsgiApplication(ServerBase):
         except Exception, e:
             logger.exception(e)
             ctx.transport.wsdl_error = e
+
             # implementation hook
             self.event_manager.fire_event('wsdl_exception', ctx)
 
@@ -221,7 +224,11 @@ class WsgiApplication(ServerBase):
         if ctx.in_error:
             out_object = ctx.in_error
             if ctx.transport.resp_code is None:
-                ctx.transport.resp_code = HTTP_500
+                if isinstance(out_object, Fault) and \
+                                      out_object.faultcode.startswith('Client'):
+                    ctx.transport.resp_code = HTTP_400
+                else:
+                    ctx.transport.resp_code = HTTP_500
 
         else:
             if ctx.service_class == None:
@@ -232,14 +239,20 @@ class WsgiApplication(ServerBase):
 
                 self.event_manager.fire_event('wsgi_method_not_found', ctx)
 
-                start_response(ctx.transport.resp_code, ctx.transport.resp_headers.items())
+                start_response(ctx.transport.resp_code,
+                                            ctx.transport.resp_headers.items())
                 return ctx.out_string
 
             self.get_out_object(ctx)
             if ctx.out_error is None:
                 ctx.transport.resp_code = HTTP_200
             else:
-                ctx.transport.resp_code = HTTP_500
+                if ctx.transport.resp_code is None:
+                    if isinstance(ctx.out_error, Fault) and \
+                                  ctx.out_error.faultcode.startswith('Client'):
+                        ctx.transport.resp_code = HTTP_400
+                    else:
+                        ctx.transport.resp_code = HTTP_500
 
         self.get_out_string(ctx)
 
