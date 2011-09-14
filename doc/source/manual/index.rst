@@ -12,6 +12,7 @@ aspects of Rpclib by examples.
 .. toctree::
     :maxdepth: 2
 
+    highlevel
     helloworld
     usermanager
     sqlalchemy

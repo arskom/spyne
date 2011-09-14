@@ -14,14 +14,13 @@ Contents
 
 .. toctree::
    :maxdepth: 2
-   :hidden:
 
    manual/index
    reference/index
    tests
    faq
    roadmap
-   changelog
+   h_and_f
 
 ******************
 Indices and tables
