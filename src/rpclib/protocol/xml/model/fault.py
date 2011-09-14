@@ -29,7 +29,7 @@ _pref_soap_env = rpclib.const.xml_ns.const_prefmap[_ns_soap_env]
 def fault_to_parent_element(prot, cls, value, tns, parent_elt, name=None):
     element = etree.SubElement(parent_elt, "{%s}Fault" % _ns_soap_env)
 
-    etree.SubElement(element, 'faultcode').text = value.faultcode
+    etree.SubElement(element, 'faultcode').text = '%s:%s' % (_pref_soap_env, value.faultcode)
     etree.SubElement(element, 'faultstring').text = value.faultstring
     etree.SubElement(element, 'faultactor').text = value.faultactor
     if value.detail != None:
