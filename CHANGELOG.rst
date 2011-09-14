@@ -10,6 +10,7 @@ rpclib-2.3.3-beta
    The native format of ByteArray is an iterable of strings.
  * Exception handling was formalized. HTTP return codes can be set by exception
    classes from rpclib.error or custom exceptions.
+ * Full change log: https://github.com/arskom/rpclib/pull/88
 
 rpclib-2.3.2-beta
 -----------------

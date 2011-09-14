@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-__version__ = '2.3.3-beta-dev'
+__version__ = '2.3.3-beta'
 
 from _base import TransportContext
 from _base import EventContext
