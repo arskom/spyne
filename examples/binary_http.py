@@ -38,7 +38,7 @@ class DocumentArchiver(ServiceBase):
     @rpc(ByteArray, _returns=String)
     def put(ctx, content):
         '''This method accepts an Attachment object, and returns the filename
-        of the archived file
+        of the archived file.
         '''
         if content is None:
             raise Fault("Client.BadRequest")
