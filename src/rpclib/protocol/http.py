@@ -42,6 +42,8 @@ def _get_http_headers(req_env):
 class HttpRpc(ProtocolBase):
     """The so-called ReST-minus-the-verbs HttpRpc protocol implementation.
     It only works with the http server (wsgi) transport.
+
+    It only parses GET requests where the whole data is in the 'QUERY_STRING'.
     """
 
     def create_in_document(self, ctx, in_string_encoding=None):
@@ -57,6 +59,7 @@ class HttpRpc(ProtocolBase):
 
         try:
             self.app.in_protocol.set_method_descriptor(ctx)
+
         except NotFoundError, e:
             ctx.transport.resp_code = HTTP_404
             raise
