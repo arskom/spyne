@@ -72,6 +72,8 @@ def _parse_xml_string(xml_string, charset=None):
         if charset is None:
             charset = 'utf-8'
 
+        xml_string = ''.join(xml_string)
+
         root, xmlids = etree.XMLID(xml_string.decode(charset))
 
     except ValueError,e:
@@ -140,7 +142,6 @@ class _Soap11(XmlObject):
     def create_in_document(self, ctx, charset=None):
         if ctx.transport.type == 'wsgi':
             content_type = cgi.parse_header(ctx.transport.req_env.get("CONTENT_TYPE"))
-
             collapse_swa(content_type, ctx.in_string)
 
         ctx.in_document = _parse_xml_string(ctx.in_string, charset)

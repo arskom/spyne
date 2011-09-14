@@ -120,8 +120,8 @@ def collapse_swa(content_type, envelope):
         "MIME-Version: 1.0",
         "Content-Type: %s; charset=%s" % (mime_type, charset),
         "",
-        envelope
     ]
+    msg_string.extend(envelope)
 
     msg = message_from_string('\r\n'.join(msg_string)) # our message
 
@@ -161,7 +161,7 @@ def collapse_swa(content_type, envelope):
         if cloc and not cid and not numreplaces:
             soapmsg, numreplaces = join_attachment(cloc, soapmsg, payload, False)
 
-    return soapmsg
+    return [soapmsg]
 
 def apply_mtom(headers, envelope, params, paramvals):
     '''Apply MTOM to a SOAP envelope, separating attachments into a

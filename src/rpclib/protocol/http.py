@@ -85,14 +85,14 @@ class HttpRpc(ProtocolBase):
         if len(out_type_info) == 1:
             out_class = out_type_info.values()[0]
             if ctx.out_object is None:
-                ctx.out_document = u''
+                ctx.out_document = ['']
             else:
-                ctx.out_document = out_class.to_string(ctx.out_object)
+                ctx.out_document = out_class.to_string_iterable(ctx.out_object)
 
         else:
             raise ValueError("HttpRpc protocol can only serialize primitives.")
 
         self.event_manager.fire_event('serialize', ctx)
 
-    def create_out_string(self, ctx, out_string_encoding=None):
-        ctx.out_string = [ctx.out_document.encode('utf8')]
+    def create_out_string(self, ctx, out_string_encoding='utf8'):
+        ctx.out_string = ctx.out_document
