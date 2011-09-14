@@ -23,10 +23,10 @@ The following is most of the Rpclib jargon:
     message in its base64-encoded ByteArray container.
 
     Transports are separated to two packages in Rpclib source code:
-    :mod:`rpclib.client` and :mod:`rpclib.server` packages.
+    :mod:`rpclib.client` and :mod:`rpclib.server`.
 
 * **Models:**
-    Models are used to define schemas. They are mere magic cookies who contain
+    Models are used to define schemas. They are mere magic cookies that contain
     very little amount of serialization code They reside in the
     :mod:`rpclib.model` package.
 
@@ -52,7 +52,9 @@ The following is most of the Rpclib jargon:
 How your code is wrapped
 ------------------------
 
-As a user of the Rpclib library, you will 
+A typical user of the Rpclib will just write methods that will be exposed as
+remote procedure calls to the outside world. The following is used to wrap that
+code:
 
 * **Decorators**:
     the ``@rpc`` and ``@srpc`` decorators from :mod:`rpclib.decorator` module
