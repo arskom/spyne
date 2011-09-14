@@ -99,8 +99,8 @@ class AnyDict(SimpleModel):
         return pickle.loads(string)
 
 class String(SimpleModel):
-    """A string instance that has the same encoding as the underlying
-    serializer. Currently, it's utf8.
+    """The type to represent human-readable data. Its native format is unicode.
+    Currently, it can read from only utf8-compatible encodings.
     """
 
     __type_name__ = 'string'
@@ -123,7 +123,12 @@ class String(SimpleModel):
     @classmethod
     @nillable_string
     def from_string(cls, value):
-        return value
+        return unicode(value)
+
+    @classmethod
+    @nillable_string
+    def to_string(cls, value):
+        return value.encode('utf8')
 
     @staticmethod
     def is_default(cls):
@@ -232,9 +237,9 @@ class Integer(Decimal):
 
 class UnsignedInteger(Integer):
     """The arbitrary-size unsigned integer."""
-
     __type_name__ = 'unsignedLong'
     __length__ = None
+
     @classmethod
     @nillable_string
     def to_string(cls, value):
@@ -250,7 +255,7 @@ class UnsignedInteger(Integer):
         except:
             retval = long(string)
 
-        assert (cls.__length__ is None) or (0 <= retval < 2**cls.__length__)
+        assert (cls.__length__ is None) or (0 <= retval < 2 ** cls.__length__)
 
         return retval
 
