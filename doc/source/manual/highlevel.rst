@@ -79,9 +79,9 @@ code:
     you define events and hooks like ServiceBase does, so you can do more general,
     application-wide customizations like exception management.
 
-    * **Namespaces**: You might know that rpclib is a generalized version of a
-        soap library. So some artifacts of the Xml world creep off from here and
-        there inevitably.
+    .. NOTE:: You might know that rpclib is a generalized version of a
+        soap library. So inevitably, some artifacts of the Soap world creep in
+        from here and there .
 
         So, namespaces are another artifact of the Xml world. There are varying
         opinions about the usefulness of the concept of the namespaces in Xml, but we
