@@ -210,7 +210,6 @@ class WsgiApplication(ServerBase):
 
     def __handle_error(self, ctx, error, start_response):
         if ctx.transport.resp_code is None:
-            print "#" *10, self.app.out_protocol.fault_to_http_response_code
             ctx.transport.resp_code = \
                 self.app.out_protocol.fault_to_http_response_code(error)
 
