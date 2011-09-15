@@ -38,6 +38,7 @@ from pytz import FixedOffset
 
 from rpclib.model import SimpleModel
 from rpclib.model import nillable_string
+from rpclib.model.fault import Fault
 
 string_encoding = 'utf8'
 
@@ -348,7 +349,8 @@ class DateTime(SimpleModel):
 
         match = _local_re.match(string)
         if not match:
-            raise Exception("DateTime [%s] not in known format" % string)
+            raise Fault("Client.ValueError",
+                                "DateTime [%s] not in known format" % string)
 
         return parse_date(match)
 
