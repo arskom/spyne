@@ -52,9 +52,6 @@ class HttpRpc(ProtocolBase):
         ctx.in_document = ctx.transport.req_env
 
     def decompose_incoming_envelope(self, ctx):
-        logger.debug("PATH_INFO: %r" % ctx.in_document['PATH_INFO'])
-        logger.debug("QUERY_STRING: %r" % ctx.in_document['QUERY_STRING'])
-
         ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
                               ctx.in_document['PATH_INFO'].split('/')[-1])
         logger.debug("\033[92mMethod name: %r\033[0m" % ctx.method_request_string)

@@ -248,7 +248,6 @@ class ComplexModelBase(ModelBase):
                 continue
 
             mo = member.Attributes.max_occurs
-            logger.debug("%r, %r: %r, %r" % (member, k, v, mo))
             if mo == 'unbounded' or mo > 1:
                 value = getattr(inst, k, None)
                 if value is None:
