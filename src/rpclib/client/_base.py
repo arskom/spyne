@@ -19,8 +19,6 @@
 
 """This module contains the ClientBase class and its helper objects."""
 
-import rpclib.protocol.soap.soap11
-
 from rpclib._base import MethodContext
 from rpclib.model.primitive import string_encoding
 
@@ -78,11 +76,11 @@ class RemoteProcedureBase(object):
         :param kwargs: Name-based arguments.
         """
 
-        assert self.ctx.out_object is None
+        assert self.ctx._t is None
 
         request_raw_class = self.ctx.descriptor.in_message
         request_type_info = request_raw_class._type_info
-        self.ctx.out_object = request_raw = request_raw_class()
+        request_raw = request_raw_class()
 
         for i in range(len(request_type_info)):
             if i < len(args):
@@ -94,13 +92,15 @@ class RemoteProcedureBase(object):
             if k in kwargs:
                 setattr(request_raw, k, kwargs[k])
 
+        self.ctx.out_object = iter(request_raw)
+
     def get_out_string(self):
         """Serializes the output document to a bytestream."""
 
         assert self.ctx.out_document is None
         assert self.ctx.out_string is None
 
-        self.app.out_protocol.serialize(self.ctx)
+        self.app.out_protocol.serialize(self.ctx, message='request')
 
         if self.ctx.service_class != None:
             if self.ctx.out_error is None:
@@ -140,28 +140,20 @@ class RemoteProcedureBase(object):
         self.app.in_protocol.decompose_incoming_envelope(self.ctx)
 
         # this sets ctx.in_object
-        self.app.in_protocol.deserialize(self.ctx)
+        self.app.in_protocol.deserialize(self.ctx, message='response')
 
         type_info = self.ctx.descriptor.out_message._type_info
 
-        if (self.app.in_protocol.in_wrapper != self.app.in_protocol.NO_WRAPPER
-                  and len(self.ctx.descriptor.out_message._type_info) == 1):
+        if len(self.ctx.descriptor.out_message._type_info) == 1: # TODO: Non-Wrapped Object Support
             wrapper_attribute = type_info.keys()[0]
             self.ctx.in_object = getattr(self.ctx.in_object,
                                                         wrapper_attribute, None)
-
 class ClientBase(object):
     def __init__(self, url, app):
         """The self.service property should be initialized in the constructor of
         the child class."""
 
         self.factory = Factory(app)
-
-        # FIXME: this four-line block should be explained...
-        if isinstance(app.in_protocol,rpclib.protocol.soap.soap11._Soap11):
-            app.in_protocol.in_wrapper = rpclib.protocol.soap.soap11._Soap11.OUT_WRAPPER
-        if isinstance(app.out_protocol,rpclib.protocol.soap.soap11._Soap11):
-            app.out_protocol.out_wrapper= rpclib.protocol.soap.soap11._Soap11.NO_WRAPPER
 
     def set_options(self, **kwargs):
         """Sets call options.

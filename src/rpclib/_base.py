@@ -101,6 +101,15 @@ class MethodContext(object):
         arguments for the function in the service definition class.
         In the response (i.e. client) case, this contains the object returned
         by the remote procedure call.
+
+        It's always an iterable of objects:
+        * [None] when the function has no output (cllient)/input (server) types.
+        * A single-element list that wraps the return value when the function
+          has one return type defined,
+        * Left untouched even when the function has more than one return values.
+
+        The objects never contain the instances but lists of values. The order
+        is in line with ``self.descriptor.in_class._type_info.keys()``.
         """
 
         #
@@ -113,6 +122,15 @@ class MethodContext(object):
         returned by the function in the service definition class.
         In the response (i.e. client) case, this contains the function arguments
         passed to the function call wrapper.
+
+        It's always an iterable of objects:
+        * [None] when the function has no output (server)/input (client) types.
+        * A single-element list that wraps the return value when the function
+          has one return type defined,
+        * Left untouched even when the function has more than one return values.
+
+        The objects never contain the instances but lists of values. The order
+        is in line with ``self.descriptor.out_class._type_info.keys()``.
         """
         self.out_header = None
         """Native python object set by the function in the service definition

@@ -62,7 +62,9 @@ class HttpRpc(ProtocolBase):
 
         logger.debug(repr(ctx.in_body_doc))
 
-    def deserialize(self, ctx):
+    def deserialize(self, ctx, message):
+        assert message in ('request',)
+
         body_class = ctx.descriptor.in_message
         if ctx.in_body_doc is not None and len(ctx.in_body_doc) > 0:
             ctx.in_object = body_class.from_dict(ctx.in_body_doc)
@@ -71,7 +73,9 @@ class HttpRpc(ProtocolBase):
 
         self.event_manager.fire_event('deserialize', ctx)
 
-    def serialize(self, ctx):
+    def serialize(self, ctx, message):
+        assert message in ('response',)
+
         if ctx.out_error is None:
             result_message_class = ctx.descriptor.out_message
 

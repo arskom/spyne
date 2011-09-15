@@ -56,7 +56,7 @@ class ServerBase(object):
             self.app.in_protocol.decompose_incoming_envelope(ctx)
 
             # sets ctx.in_object and ctx.in_header
-            self.app.in_protocol.deserialize(ctx)
+            self.app.in_protocol.deserialize(ctx, message='request')
 
         except Fault,e:
             ctx.in_object = None
@@ -77,7 +77,7 @@ class ServerBase(object):
         assert ctx.out_document is None
         assert ctx.out_string is None
 
-        self.app.out_protocol.serialize(ctx)
+        self.app.out_protocol.serialize(ctx, message='response')
 
         if ctx.service_class != None:
             if ctx.out_error is None:

@@ -101,6 +101,15 @@ class Application(object):
             # call the method
             ctx.out_object = self.call_wrapper(ctx)
 
+            # out object is always an iterable of return values. see
+            # MethodContext docstrings for more info
+            if len(ctx.descriptor.out_message._type_info) == 0:
+                ctx.out_object = [None]
+            elif len(ctx.descriptor.out_message._type_info) == 1:
+                ctx.out_object = [ctx.out_object]
+            # otherwise, the return value should already be wrapped in an
+            # iterable.
+
             # fire events
             self.event_manager.fire_event('method_return_object', ctx)
             ctx.service_class.event_manager.fire_event(

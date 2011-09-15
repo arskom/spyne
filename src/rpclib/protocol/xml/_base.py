@@ -139,7 +139,7 @@ class XmlObject(ProtocolBase):
                                                     ctx.method_request_string)
 
         ctx.in_header_doc = None # XmlObject does not know between header and
-            # payload. That's SOAP's job to do.
+                                 # payload. That's SOAP's job to do.
         ctx.in_body_doc = body_doc
 
     def create_out_string(self, ctx, charset=None):
@@ -150,7 +150,7 @@ class XmlObject(ProtocolBase):
         ctx.out_string = [etree.tostring(ctx.out_document, xml_declaration=True,
                                                             encoding=charset)]
 
-    def deserialize(self, ctx, way='out'):
+    def deserialize(self, ctx, message):
         """Takes a MethodContext instance and a string containing ONE root xml
         tag.
 
@@ -159,12 +159,11 @@ class XmlObject(ProtocolBase):
         Not meant to be overridden.
         """
 
-        assert way in ('in', 'out')
+        assert message in ('request', 'response')
 
-        if way == 'in':
+        if message == 'request':
             body_class = ctx.descriptor.in_message
-
-        elif self.in_wrapper is self.OUT_WRAPPER:
+        elif message == 'response':
             body_class = ctx.descriptor.out_message
 
         # decode method arguments
@@ -175,7 +174,7 @@ class XmlObject(ProtocolBase):
 
         self.event_manager.fire_event('deserialize', ctx)
 
-    def serialize(self, ctx, way='out'):
+    def serialize(self, ctx, message):
         """Uses ctx.out_object, ctx.out_header or ctx.out_error to set
         ctx.out_body_doc, ctx.out_header_doc and ctx.out_document as an
         lxml.etree._Element instance.
@@ -183,12 +182,12 @@ class XmlObject(ProtocolBase):
         Not meant to be overridden.
         """
 
-        assert way in ('in', 'out')
+        assert message in ('request', 'response')
 
         # instantiate the result message
-        if way == 'in':
+        if message == 'request':
             result_message_class = ctx.descriptor.in_message
-        else:
+        elif message == 'response':
             result_message_class = ctx.descriptor.out_message
 
         result_message = result_message_class()
@@ -196,14 +195,9 @@ class XmlObject(ProtocolBase):
         # assign raw result to its wrapper, result_message
         out_type_info = result_message_class._type_info
 
-        if len(out_type_info) == 1:
-            attr_name = result_message_class._type_info.keys()[0]
-            setattr(result_message, attr_name, ctx.out_object)
-
-        else:
-            for i in range(len(out_type_info)):
-                attr_name = result_message_class._type_info.keys()[i]
-                setattr(result_message, attr_name, ctx.out_object[i])
+        for i in range(len(out_type_info)):
+            attr_name = result_message_class._type_info.keys()[i]
+            setattr(result_message, attr_name, ctx.out_object[i])
 
         # transform the results into an element
         tmp_elt = etree.Element('{%s}punk' % ns.soap_env)
