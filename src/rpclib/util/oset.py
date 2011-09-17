@@ -4,7 +4,12 @@ import collections
 
 KEY, PREV, NEXT = range(3)
 
+"""This module contains an ordered set implementation from
+http://code.activestate.com/recipes/576694/ """
+
 class oset(collections.MutableSet):
+	"""An ordered set implementation."""
+
     def __init__(self, iterable=None):
         self.end = end = []
         end += [None, end, end]         # sentinel node for doubly linked list
@@ -66,5 +71,5 @@ class oset(collections.MutableSet):
 
 
 if __name__ == '__main__':
-    print(OrderedSet('abracadaba'))
+    print(OrderedSet('abracadabra'))
     print(OrderedSet('simsalabim'))

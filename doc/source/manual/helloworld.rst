@@ -5,8 +5,8 @@ Hello World
 ===========
 
 This example uses the stock simple wsgi webserver to deploy this service. You
-should probably use a full-fledged server when deploying your
-service for production purposes.
+should probably use a full-fledged server when deploying your service for 
+production purposes.
 
 Defining an Rpclib Service
 --------------------------

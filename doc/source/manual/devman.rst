@@ -3,7 +3,7 @@ Developer Manual
 ================
 
 So, you want to add a new transport, protocol or interface standard implementation to
-rpclib? First, some information:
+rpclib? Here's some information thay may be relevant to you:
 
 How Exactly is User Code Wrapped?
 ---------------------------------
@@ -16,7 +16,6 @@ dealing with this.
 
 If the incoming request was for the interface document, it's easy: The interface
 document needs to be generated and returned as a nice chunk of string to the client.
-
 The server transport first calls ``self.app.interface.build_interface_document()``
 which builds and caches the document and later calls the
 :func:`rpclib.interface.InterfaceBase.get_interface_document` that returns the cached
@@ -39,22 +38,22 @@ If it was an RPC request, here's what happens:
 #. The ``process_request`` function fires relevant events and calls the
    using :func:`rpclib.application.Application.call_wrapper` function.
    This function is overridable by user, but the overriding function must call
-   the one in :class:`rpclib.application.Application` by convention. This in turn
-   calls the :func:`rpclib.service.ServiceBase.call_wrapper` function, which has
-   the same requirements by convention.
+   the one in :class:`rpclib.application.Application` by convention. This in
+   turn calls the :func:`rpclib.service.ServiceBase.call_wrapper` function,
+   which has has same requirements by convention.
 #. The :func:`rpclib.service.ServiceBase.call_wrapper` finally calls the user
    function, and the value is returned to ``process_request`` call, which sets
    the return value to ``ctx.out_object``.
-#. The server object now calls the ``get_out_string`` function to get the response
-   as an iterable of strings in ``ctx.out_string``. The ``get_out_string`` call
-   calls the ``serialize`` and ``create_out_string`` functions of the protocol
-   class.
+#. The server object now calls the ``get_out_string`` function to get the
+   response as an iterable of strings in ``ctx.out_string``. The
+   ``get_out_string`` call calls the ``serialize`` and ``create_out_string``
+   functions of the protocol class.
 #. The server pushes the stream from ctx.out_string back to the client.
 
 You can apply the same logic in reverse to the client transport.
 
-So all you need to do is to subclass the relevant base class and implement the
-missing methods.
+So if you want to implement a new transport or protocol, all you need to do is
+to subclass the relevant base class and implement the missing methods.
 
 What's Next?
 ^^^^^^^^^^^^
