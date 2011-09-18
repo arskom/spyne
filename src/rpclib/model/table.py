@@ -98,7 +98,7 @@ def _is_interesting(k, v):
         else:
             return True
 
-class TableSerializerMeta(DeclarativeMeta, ComplexModelMeta):
+class TableModelMeta(DeclarativeMeta, ComplexModelMeta):
     """This class uses the information in class definition dictionary to build
     the _type_info dictionary that rpclib relies on. It otherwise leaves
     SQLAlchemy and its information alone.
@@ -143,7 +143,7 @@ class TableModel(ComplexModelBase):
     rpclib. Classes that inherit from this class should also inherit from
     an sqlalchemy.declarative base class."""
 
-    __metaclass__ = TableSerializerMeta
+    __metaclass__ = TableModelMeta
     _decl_class_registry = {}
 
     @classmethod
