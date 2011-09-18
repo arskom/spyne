@@ -27,9 +27,9 @@ from rpclib.util.oset import oset
 '''
 
 class ServiceBaseMeta(type):
-	'''Creates the :class:`rpclib.MethodDescriptor` objects by iterating over
-	tagged methods.
-	'''
+    '''Creates the :class:`rpclib.MethodDescriptor` objects by iterating over
+    tagged methods.
+    '''
 
     def __init__(self, cls_name, cls_bases, cls_dict):
         super(ServiceBaseMeta, self).__init__(cls_name, cls_bases, cls_dict)

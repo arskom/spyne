@@ -8,7 +8,7 @@ KEY, PREV, NEXT = range(3)
 http://code.activestate.com/recipes/576694/ """
 
 class oset(collections.MutableSet):
-	"""An ordered set implementation."""
+    """An ordered set implementation."""
 
     def __init__(self, iterable=None):
         self.end = end = []
