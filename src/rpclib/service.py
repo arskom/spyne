@@ -23,7 +23,14 @@ logger = logging.getLogger(__name__)
 from rpclib._base import EventManager
 from rpclib.util.oset import oset
 
+'''This module contains the :class:`ServiceBase` class and its helper objects.
+'''
+
 class ServiceBaseMeta(type):
+	'''Creates the :class:`rpclib.MethodDescriptor` objects by iterating over
+	tagged methods.
+	'''
+
     def __init__(self, cls_name, cls_bases, cls_dict):
         super(ServiceBaseMeta, self).__init__(cls_name, cls_bases, cls_dict)
 
@@ -158,6 +165,7 @@ class ServiceBase(object):
 
         The overriding function must call this function by convention.
         '''
+
         if ctx.descriptor.no_ctx:
             return ctx.descriptor.function(*ctx.in_object)
         else:

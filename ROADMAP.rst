@@ -43,10 +43,10 @@ exercise in oo interface design, but this may be a solution in search of a
 problem. Would anybody be interested using Soap over Json instead of Xml?
 Probably not :)
 
-It would, however, help newer serialization formats by reusing code from
-their more mature cousins. E.g. Soap already has a security layer defined.
-If the serializer is abstracted away, it'd be trivial to port security code
-from Soap to JsonRpc.
+It would, however, help newer serialization formats by reusing code from their
+more mature cousins. E.g. Soap already has a security layer defined. If the
+serializer is abstracted away, it could be easier to port security code from
+Soap to JsonRpc.
 
 Miscellanous
 ------------
@@ -55,7 +55,9 @@ The following would definitely be nice to have, but are just modules that should
 not cause a change in unrelated areas of rpclib. Those would increment the minor
 revision number of the Rpclib version once implemented.
 
-* Support for a JsonObject and JsonRpc protocols.
+* Currently, parameter validation is performed only by lxml's schema validator.
+  Implement soft validation that'd work for any serializer for the primitives.
+* Support for the JsonObject (a la XmlObject) and JsonRpc protocols.
 * Support for the JsonSchema interface document standard.
 * Support for the Thrift binary protocol.
 * Support for the Thrift IDL -- The Thrift Interface Definition Language.
@@ -69,6 +71,7 @@ revision number of the Rpclib version once implemented.
 * Implement converting csv output to pdf.
 * Implement DNS as transport
 * Support security extensions to Soap (maybe using `PyXMLSec <http://pypi.python.org/pypi/PyXMLSec/0.3.0>`_ ?)
+* Support addressing (routing) extensions to Soap
 * Add WSDL Parsing support to Soap client
-* Reflect transports and protocols pairs other than Soap/Http properly to the wsdl.
-* Oh and fix the tests that fail due to api changes.
+* Reflect transport and protocol pairs other than Soap/Http to the Wsdl.
+* Fix the tests that fail due to api changes.
