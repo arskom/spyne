@@ -64,8 +64,8 @@ revision number of the Rpclib version once implemented.
 * Support for the XmlRpc standard. Thanks to the XmlObject protocol, this
   is 90% ready!
 * Support for EXI -- The Efficient Xml Interchange as a serializer.
-* SMTP as server tranport.
-* SMTP as client tranport.
+* SMTP as server transport.
+* SMTP as client transport.
 * Improve HttpRpc to be Rest compliant. Probably by dumping HttpRpc as it is
   and rewriting it as a wrapper to Werkzeug or a similar WSGI library.
 * Implement converting csv output to pdf.

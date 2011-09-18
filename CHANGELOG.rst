@@ -42,7 +42,7 @@ rpclib-2.2.3-beta
 rpclib-2.2.2-beta
 -----------------
  * Fixed call to rpclib.application.Application.call_wrapper
- * Fixed HttpRpc server tranport instantiation.
+ * Fixed HttpRpc server transport instantiation.
  * Documentation improvements.
 
 rpclib-2.2.1-beta

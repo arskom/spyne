@@ -14,7 +14,7 @@ Rpclib comes with the implementations of popular transports, protocols and
 interface documents along with an easy-to-use API that lets you extend existing
 functionality. It currently supports the WSDL 1.1 interface definition standard,
 along with SOAP 1.1 and the rest-minus-the-verbs HttpRpc protocols which can be
-transported mainly via HTTP. We also support ZeroMQ tranport where appropriate.
+transported mainly via HTTP. We also support ZeroMQ transport where appropriate.
 The transports can be used in a both client or server environment.
 
 The documentation for Rpclib can be found `here <http://arskom.github.com/rpclib>`_.
