@@ -29,9 +29,13 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 import sys
-import bcrypt
 import random
 import logging
+
+# bcrypt is the latest consensus on cryptograpic circles on storing passwords.
+# You need the package from http://code.google.com/p/py-bcrypt/
+# You can install it by running easy_install py-crypt.
+import bcrypt
 
 from rpclib.model.complex import ComplexModel
 from rpclib.model.fault import Fault
@@ -43,6 +47,7 @@ from rpclib.model.primitive import String
 from rpclib.service import ServiceBase
 from rpclib.server.wsgi import WsgiApplication
 from rpclib.application import Application
+
 
 class PublicValueError(Fault):
     __type_name__ = 'ValueError'
@@ -66,6 +71,7 @@ class AuthenticationError(Fault):
                 faultstring='Invalid authentication request for %r' % user_name
             )
 
+
 class AuthorizationError(Fault):
     __namespace__ = 'rpclib.examples.authentication'
 
@@ -76,6 +82,7 @@ class AuthorizationError(Fault):
                 faultcode='Client.AuthorizationError',
                 faultstring='You are not authozied to access this resource.'
             )
+
 
 class RpclibDict(dict):
     def __getitem__(self, key):
