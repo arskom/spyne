@@ -202,7 +202,7 @@ class MethodDescriptor(object):
 
     def __init__(self, function, in_message, out_message, doc,
                  is_callback=False, is_async=False, mtom=False, in_header=None,
-                 out_header=None, faults=(),
+                 out_header=None, faults=None,
                  port_type=None, no_ctx=False):
 
         self.function = function

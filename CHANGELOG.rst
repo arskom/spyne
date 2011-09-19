@@ -2,6 +2,10 @@
 Changelog
 =========
 
+rpclib-2.3.4-beta
+-----------------
+ * Fix Fault publishing in Wsdl.
+
 rpclib-2.3.3-beta
 -----------------
  * Added MAX_CONTENT_LENGTH = 2 * 1024 * 1024 and BLOCK_LENGTH = 8 * 1024

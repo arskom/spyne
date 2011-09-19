@@ -348,10 +348,14 @@ class Wsdl11(XmlSchema):
                 op_output.set('name', method.out_message.get_type_name())
                 op_output.set('message', method.out_message.get_type_name_ns(self))
 
-                for f in method.faults:
-                    fault = etree.SubElement(operation, '{%s}fault' %  _ns_wsdl)
-                    fault.set('name', f.get_type_name())
-                    fault.set('message', f.get_type_name(self))
+                if not (method.faults is None):
+                    for f in method.faults:
+                        fault = etree.SubElement(operation, '{%s}fault' %
+                                                                       _ns_wsdl)
+                        fault.set('name', f.get_type_name())
+                        fault.set('message', '%s:%s' % (
+                                                f.get_namespace_prefix(self),
+                                                f.get_type_name()))
 
         ser = self._get_or_create_service_node(applied_service_name)
         for port_name, binding_name in port_binding_names:
@@ -484,13 +488,14 @@ class Wsdl11(XmlSchema):
                                             out_header_message_name))
                         soap_header.set('part', header.get_type_name())
 
+                if not (method.faults is None):
                     for f in method.faults:
-                        fault = etree.SubElement(operation, '{%s}fault'
-                                                                    % _ns_wsdl)
-                        fault.set('name', f.get_type_name(self))
+                        wsdl_fault = etree.SubElement(operation, '{%s}fault' %
+                                                                    _ns_wsdl)
+                        wsdl_fault.set('name', f.get_type_name())
 
-                        soap_fault = etree.SubElement(fault, '{%s}fault'
-                                                                    % _ns_soap)
+                        soap_fault = etree.SubElement(wsdl_fault, '{%s}fault' %
+                                                                    _ns_soap)
                         soap_fault.set('name', f.get_type_name())
                         soap_fault.set('use', 'literal')
 

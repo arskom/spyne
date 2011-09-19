@@ -156,7 +156,13 @@ def srpc(*params, **kparams):
             _out_header = kparams.get('_out_header', None)
             _port_type = kparams.get('_soap_port_type', None)
             _no_ctx = kparams.get('_no_ctx', True)
-            _faults = kparams.get('_faults', [])
+
+            if ('_faults' in kparams) and ('_throws' in kparams):
+                raise ValueError("only one of '_throws ' and '_faults' arguments"
+                                 "should be given, as they're synonyms.")
+            _faults = kparams.get('_faults', None)
+            if _faults is None:
+                _faults = kparams.get('_throws', None)
 
             _in_message_name = kparams.get('_in_message_name', function_name)
             _in_variable_names = kparams.get('_in_variable_names', {})
