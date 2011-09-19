@@ -48,9 +48,9 @@ class EmailManager(ServiceBase):
         _in_variable_names = {'_to': 'to', '_from': 'from',
             '_message': 'message'},
         _out_variable_name = 'return')
-    def send_email(_to, _from, message):
+    def send_email(_to, _from, _message):
         # do email sending here
-        return repr((_to, _from, message, 'sent!'))
+        return repr((_to, _from, _message, 'sent!'))
 
 if __name__=='__main__':
     try:

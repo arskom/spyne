@@ -67,6 +67,8 @@ class ServerBase(object):
         """Calls the matched method using the ctx.in_object to get
         ctx.out_object."""
 
+        assert ctx.in_error is None,"There was an error processing input string"
+
         # event firing is done in the rpclib.application.Application
         self.app.process_request(ctx)
 

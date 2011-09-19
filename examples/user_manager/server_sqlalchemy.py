@@ -49,7 +49,7 @@ from rpclib.interface.wsdl import Wsdl11
 from rpclib.protocol.soap import Soap11
 from rpclib.model.complex import Iterable
 from rpclib.model.primitive import Integer
-from rpclib.model.table import TableSerializer
+from rpclib.model.table import TableModel
 from rpclib.server.wsgi import WsgiApplication
 from rpclib.service import ServiceBase
 
@@ -65,7 +65,7 @@ Session = sessionmaker(bind=_user_database)
 # inside @rpc decorator)
 #
 
-class User(TableSerializer, DeclarativeBase):
+class User(TableModel, DeclarativeBase):
     __namespace__ = 'rpclib.examples.user_manager'
     __tablename__ = 'rpclib_user'
 

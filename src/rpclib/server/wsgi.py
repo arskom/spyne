@@ -220,7 +220,7 @@ class WsgiApplication(ServerBase):
         self.event_manager.fire_event('wsgi_exception', ctx)
 
         start_response(ctx.transport.resp_code,
-                                            ctx.transport.resp_headers.items())
+                                             ctx.transport.resp_headers.items())
         return ctx.out_string
 
     def __handle_rpc(self, req_env, start_response):

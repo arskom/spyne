@@ -21,8 +21,6 @@
 
 import zmq
 
-import rpclib.protocol.soap
-
 from rpclib.client import Service
 from rpclib.client import RemoteProcedureBase
 from rpclib.client import ClientBase

@@ -30,14 +30,17 @@ class Factory(object):
         return self.__app.interface.get_class_instance(object_name)
 
 class Service(object):
-    def __init__(self, rpc_class, url, app):
+    def __init__(self, rpc_class, url, app, *args, **kwargs):
         self.__app = app
         self.__url = url
         self.out_header = None
         self.rpc_class = rpc_class
+        self.args = args
+        self.kwargs = kwargs
 
     def __getattr__(self, key):
-        return self.rpc_class(self.__url, self.__app, key, self.out_header)
+        return self.rpc_class(self.__url, self.__app, key, self.out_header,
+                                                    *self.args, **self.kwargs)
 
 class RemoteProcedureBase(object):
     """Abstract base class that handles all (de)serialization.
@@ -76,7 +79,7 @@ class RemoteProcedureBase(object):
         :param kwargs: Name-based arguments.
         """
 
-        assert self.ctx._t is None
+        assert self.ctx.out_object is None
 
         request_raw_class = self.ctx.descriptor.in_message
         request_type_info = request_raw_class._type_info
@@ -148,11 +151,14 @@ class RemoteProcedureBase(object):
             wrapper_attribute = type_info.keys()[0]
             self.ctx.in_object = getattr(self.ctx.in_object,
                                                         wrapper_attribute, None)
-class ClientBase(object):
-    def __init__(self, url, app):
-        """The self.service property should be initialized in the constructor of
-        the child class."""
 
+
+class ClientBase(object):
+    """The base class for all client applications. ``self.service``
+    attribute should be initialized in the constructor of the child class.
+    """
+
+    def __init__(self, url, app):
         self.factory = Factory(app)
 
     def set_options(self, **kwargs):
@@ -162,6 +168,10 @@ class ClientBase(object):
                             the remote procedure call.
         :param soapheaders: A suds-compatible alias for out_header.
         """
+
+        if ('soapheaders' in kwargs) and ('out_header' in kwargs):
+            raise ValueError('you should specify only one of "soapheaders" or '
+                             '"out_header" keyword arguments.')
 
         self.service.out_header = kwargs.get('soapheaders', None)
         if self.service.out_header is None:
