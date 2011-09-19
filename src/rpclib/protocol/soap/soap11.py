@@ -341,8 +341,6 @@ class _Soap11(XmlObject):
                 except StopIteration:
                     v = None
 
-                print "!" * 100, k,v
-
                 setattr(out_object, k, v)
 
             # transform the results into an element
