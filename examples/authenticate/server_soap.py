@@ -27,6 +27,7 @@
 # OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
 
 import sys
 import random
@@ -34,7 +35,7 @@ import logging
 
 # bcrypt is the latest consensus on cryptograpic circles on storing passwords.
 # You need the package from http://code.google.com/p/py-bcrypt/
-# You can install it by running easy_install py-crypt.
+# You can install it by running easy_install py-bcrypt.
 import bcrypt
 
 from rpclib.model.complex import ComplexModel
