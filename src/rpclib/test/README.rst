@@ -1,6 +1,7 @@
 
+*************
 Running Tests
-=============
+*************
 
 While the test coverage for Rpclib is not that bad, we always accept new tests
 that cover new use-cases. Please consider contributing tests even if your
@@ -10,7 +11,7 @@ which may cause incompatibilities with your existing code base. The only way to
 detect such corner cases is to have a great test suite.
 
 Requirements
-------------
+============
 
 While simply executing test modules is normally enough to run Python tests,
 using py.test from pytest package is just a more pleasant way to run them.
@@ -27,19 +28,18 @@ You can also choose which test to run: ::
 
     py.test -v --tb=short test_sqla.py -k test_same_table_inheritance
 
-See [pytest documentation](http://pytest.org/latest/) for more info.
+See `pytest documentation <http://pytest.org/latest/>`_ for more info.
 
 Note that you need to do several other preparations to have the interop tests
 working. See the next section for the specifics.
 
-
 Interoperability Tests
-----------------------
+======================
 
 The interoperability servers require twisted.web.
 
-.Python
-^^^^^^^
+Python
+-------
 
 Python interop tests currently use Rpclib's own clients and suds. The suds test
 is the first thing we check and try not to break.
@@ -47,14 +47,8 @@ is the first thing we check and try not to break.
 Two tests that fail in the suds interop tests due to the lack of proper assert
 statements, so they're false alarms.
 
-.Net
-^^^^
-
-There isn't any .Net tests for rpclib. WS-I test compliance reportedly covers
-.Net use cases as well. Patches are welcome!
-
 Ruby
-^^^^
+----
 
 You need Ruby 1.8.x to run the ruby interop test against soap_http_basic.
 Unfortunately, the Ruby Soap client does not do proper handling of namespaces,
@@ -65,14 +59,20 @@ Ruby test module is very incomplete, implementing only two (echo_string and
 echo_integer) tests. We're looking for volunteers who'd like to work on
 increasing test coverage for other use cases.
 
+.Net
+----
+
+There isn't any .Net tests for rpclib. WS-I test compliance reportedly covers
+.Net use cases as well. Patches are welcome!
+
 Java
-^^^^
+----
 
-Unfortunately, the Java tests only focus on Wsdl document and not the soap
-functionality itself. We're looking for volunteers who'd like to work on writing
-Java interop tests for rpclib.
+The WS-I test is written in Java. But unfortunately, it only focuses on Wsdl
+document and not the soap functionality itself. We're looking for volunteers
+who'd like to work on writing Java interop tests for rpclib.
 
-To run the Wsdl tests, you should first get get wsi-interop-tools package from
+To run the Wsdl tests, you should first get wsi-interop-tools package from
 http://ws-i.org and unpack it next to test_wsi.py. Here are the relevant links:
 
 http://www.ws-i.org/deliverables/workinggroup.aspx?wg=testingtools
@@ -87,7 +87,7 @@ Here's the directory tree from a working setup:
 
 ::
 
-    |-- README
+    |-- README.rst
     |-- (...)
     |-- interop
     |   |-- (...)

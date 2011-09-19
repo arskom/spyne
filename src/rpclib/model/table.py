@@ -141,7 +141,9 @@ class TableModelMeta(DeclarativeMeta, ComplexModelMeta):
 class TableModel(ComplexModelBase):
     """The main base class for complex types shared by both SQLAlchemy and
     rpclib. Classes that inherit from this class should also inherit from
-    an sqlalchemy.declarative base class."""
+    an sqlalchemy.declarative base class. See the :ref:`manual-sqlalchemy`
+    section for more info.
+    """
 
     __metaclass__ = TableModelMeta
     _decl_class_registry = {}
