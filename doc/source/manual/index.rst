@@ -16,4 +16,5 @@ aspects of Rpclib by examples.
     helloworld
     usermanager
     sqlalchemy
+    metadata
     devman

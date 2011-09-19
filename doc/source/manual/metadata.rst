@@ -1,4 +1,6 @@
 
+.. _manual-metadata:
+
 Working with RPC Metadata
 =========================
 
@@ -20,28 +22,53 @@ If you want to use headers in a function, you must denote it either in the
 decorator or the :class:`rpclib.service.ServiceBase` child that you use to
 expose your functions.
 
-Let's look at an example: ::
+A full example using most of the available metadata functionality is available
+here: https://github.com/plq/rpclib/blob/master/examples/authenticate/server_soap.py
+
+Protocol Headers
+----------------
+
+The protocol headers are available in ``ctx.in_header`` and ``ctx.out_header``
+objects. You should set the ``ctx.out_header`` to the native value of the
+declared type.
+
+Header objects are defined just like any other object: ::
 
     class RequestHeader(ComplexModel):
-        session_id = String
+        user_name = Mandatory.String
+        session_id = Mandatory.String
 
-    class AuthenticationService(ServiceBase):
-        @srpc(Mandatory.String, Mandatory.String, _returns=ByteArray)
-        def authenticate(user_name, password):
-            if user_name == 'neo' and password == 'Wh1teR@bb1t':
-               return hash
+They can be integrated to the rpc definition either by denoting it in the
+service definition: ::
 
-        def get_preferences():
+    class UserService(ServiceBase):
+        __tns__ = 'rpclib.examples.authentication'
+        __in_header__ = RequestHeader
 
-    application = Application([HelloWorldService], 'qx.soap.demo',
-        interface=Wsdl11(),
-        in_protocol=Soap11(validator='lxml'),
-        out_protocol=Soap11()
-    )
+        @rpc(_throws=PublicValueError, _returns=Preferences)
+        def get_preferences(ctx):
+            retval = preferences_db[ctx.in_header.user_name]
 
+            return retval
 
-if __name__=='__main__':
-    twisted_apps = [ 
-        (WsgiApplication(application), 'app'),
-    ]
-    sys.exit(run_twisted(twisted_apps, 7789))
+Or in the decorator: ::
+
+        @srpc(Mandatory.String, _throws=PublicValueError,
+                                _in_header=RequestHeader, _returns=Preferences)
+
+It's generally a better idea to set the header types in the ServiceBase child
+as it's likely that a lot of methods will use it. This will avoid cluttering the
+service definition with header declarations. The header declaration in the
+decorator will overwrite the one in the service definition.
+
+Among the protocols that support headers, only Soap is supported.
+
+Transport Headers
+-----------------
+
+There is currently no general transport header api -- transport-specific apis
+should be used for setting headers.
+
+:class:`rpclib.server.wsgi.WsgiApplication`:
+    The ``ctx.transport.resp_headers`` attribute is a dict made of header/value
+    pairs, both strings.

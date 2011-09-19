@@ -1,4 +1,6 @@
 
+.. _manual-devman:
+
 Developer Manual
 ================
 
