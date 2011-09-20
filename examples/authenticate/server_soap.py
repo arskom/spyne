@@ -41,6 +41,7 @@ import bcrypt
 from rpclib.model.complex import ComplexModel
 from rpclib.model.fault import Fault
 from rpclib.decorator import srpc
+from rpclib.error import ArgumentError
 from rpclib.protocol.soap import Soap11
 from rpclib.interface.wsdl import Wsdl11
 from rpclib.model.primitive import Mandatory
@@ -50,13 +51,13 @@ from rpclib.server.wsgi import WsgiApplication
 from rpclib.application import Application
 
 
-class PublicValueError(Fault):
-    __type_name__ = 'ValueError'
+class PublicKeyError(Fault):
+    __type_name__ = 'KeyError'
     __namespace__ = 'rpclib.examples.authentication'
 
     def __init__(self, value):
         Fault.__init__(self,
-                faultcode='Client.ValueError',
+                faultcode='Client.KeyError',
                 faultstring='Value %r not found' % value
             )
 
@@ -90,7 +91,7 @@ class RpclibDict(dict):
         try:
             return dict.__getitem__(self, key)
         except KeyError:
-            raise PublicValueError(key)
+            raise PublicKeyError(key)
 
 
 class RequestHeader(ComplexModel):
@@ -143,7 +144,7 @@ class UserService(ServiceBase):
     __tns__ = 'rpclib.examples.authentication'
     __in_header__ = RequestHeader
 
-    @srpc(Mandatory.String, _throws=PublicValueError, _returns=Preferences)
+    @srpc(Mandatory.String, _throws=PublicKeyError, _returns=Preferences)
     def get_preferences(user_name):
         if user_name == 'smith':
             raise AuthorizationError()
@@ -153,6 +154,8 @@ class UserService(ServiceBase):
         return retval
 
 def _on_method_call(ctx):
+    if ctx.in_object is None:
+        raise ArgumentError("RequestHeader is null")
     if not (ctx.in_header.user_name, ctx.in_header.session_id) in session_db:
         raise AuthenticationError(ctx.in_object.user_name)
 

@@ -161,11 +161,12 @@ What's next?
 ------------
 
 This tutorial walks you through most of what you need to know to expose your
-services. You can read the :ref:`manual-sqlalchemy` document where the event
-subsystem and :class:`rpclib.model.table.TableModel` class are introduced. These
-tools are useful to those who'd like to expose their database application using
-rpclib are introduced. Otherwise, you can look at the :ref:`manual-metadata`
-section where service metadata management apis are introduced.
+services. You can read the :ref:`manual-sqlalchemy` document where the
+:class:`rpclib.model.table.TableModel` class and its helpers are introduced.
+These tools are useful to those who'd like to expose their database application
+using rpclib are introduced. Otherwise, you can look at the
+:ref:`manual-metadata` section where service metadata management apis are
+introduced.
 
 Otherwise, please refer to the rest of the documentation or the mailing list
 if you have further questions.

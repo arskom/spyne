@@ -83,7 +83,7 @@ code:
         soap library. So inevitably, some artifacts of the Soap world creep in
         from here and there .
 
-        So, namespaces are another artifact of the Xml world. There are varying
+        And, namespaces are another artifact of the Xml world. There are varying
         opinions about the usefulness of the concept of the namespaces in Xml,
         but we generally think it to be A Nice Thing, so we chose to keep it
         around.
@@ -110,11 +110,11 @@ code:
 In a nutshell
 ^^^^^^^^^^^^^^
 
-So in a nutshell, your code is inside a @rpc-wrapped method in a ServiceBase child,
-wrapped by a decorator, which are grouped in an Application instance, which
-communicates with the outside world using given interface and protocol classes,
-and which is finally wrapped by a client or server transport that takes the
-responsibility of moving the bits around.
+Your code is inside @rpc-wrapped methods in ServiceBase children, which are
+grouped in an Application instance, which communicates with the outside world
+using given interface and protocol classes, and which is finally wrapped by a
+client or server transport that takes the responsibility of moving the bits
+around.
 
 What's next?
 ------------

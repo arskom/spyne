@@ -53,7 +53,7 @@ Miscellanous
 
 The following would definitely be nice to have, but are just modules that should
 not cause a change in unrelated areas of rpclib. Those would increment the minor
-revision number of the Rpclib version once implemented.
+version number of the Rpclib version once implemented.
 
 * Currently, parameter validation is performed only by lxml's schema validator.
   Implement soft validation that'd work for any serializer for the primitives.

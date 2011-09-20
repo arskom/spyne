@@ -24,7 +24,6 @@ logger = logging.getLogger(__name__)
 
 import urlparse
 
-from rpclib.error import Fault
 from rpclib.protocol import ProtocolBase
 
 # this is not exactly rest, because it ignores http verbs.

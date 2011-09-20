@@ -41,11 +41,13 @@ Header objects are defined just like any other object: ::
 They can be integrated to the rpc definition either by denoting it in the
 service definition: ::
 
+    preferences_db = {}
+
     class UserService(ServiceBase):
         __tns__ = 'rpclib.examples.authentication'
         __in_header__ = RequestHeader
 
-        @rpc(_throws=PublicValueError, _returns=Preferences)
+        @rpc(_returns=Preferences)
         def get_preferences(ctx):
             retval = preferences_db[ctx.in_header.user_name]
 
@@ -72,3 +74,78 @@ should be used for setting headers.
 :class:`rpclib.server.wsgi.WsgiApplication`:
     The ``ctx.transport.resp_headers`` attribute is a dict made of header/value
     pairs, both strings.
+
+Exceptions
+----------
+
+The base class for public exceptions in rpclib is :class:`rpclib.model.fault.Fault`.
+The Fault object adheres to the `SOAP 1.1 Fault definition <http://www.w3.org/TR/2000/NOTE-SOAP-20000508/#_Toc478383507>`_,
+which has three main attributes:
+
+    #. ``faultcode``: is a dot-delimited string whose first part is either 'Client'
+       or 'Server'. Just like HTTP 4xx and 5xx codes, 'Client' indicates that
+       something was wrong with the input, and 'Server' indicates something went
+       wrong during the processing of the otherwise legitimate request.
+
+       Protocol implementors should heed the values in ``faultcode`` to set
+       proper return codes in the protocol level when necessary. E.g. HttpRpc
+       protocol will return a HTTP 404 error when a
+       :class:`rpclib.error.ResourceNotFound` is raised, and a general HTTP 400
+       when the ``faultcode`` starts with 'Client.'.
+
+    #. ``faultstring``: is the human-readable explanation of the exception.
+    #. ``detail``: is the additional information as a valid xml document.
+
+
+You can define Java-like exception definitions in the decorator.
+
+Here's how you define your own public exceptions: ::
+
+    class PublicKeyError(Fault):
+        __type_name__ = 'KeyError'
+        __namespace__ = 'rpclib.examples.authentication'
+
+        def __init__(self, value):
+            Fault.__init__(self,
+                    faultcode='Client.KeyError',
+                    faultstring='Value %r not found' % value
+                )
+
+Let's modify the python dict to throw our own exception class: ::
+
+    class RpclibDict(dict):
+        def __getitem__(self, key):
+            try:
+                return dict.__getitem__(self, key)
+            except KeyError:
+                raise PublicKeyError(key)
+
+We can now modify the decorator to expose the exception this service can throw: ::
+
+    preferences_db = RpclibDict()
+
+    class UserService(ServiceBase):
+        __tns__ = 'rpclib.examples.authentication'
+        __in_header__ = RequestHeader
+
+        @rpc(_throws=PublicKeyError, _returns=Preferences)
+        def get_preferences(ctx):
+            retval = preferences_db[ctx.in_header.user_name]
+
+            return retval
+
+While this is not really necessary in the world of the dynamic languages, it'd
+still be nice to specify the exceptions your service can throw in the interface
+document. Plus, it will be easier to interoperate with Java-like languages where
+exceptions are kept on a short leash.
+
+What's next?
+^^^^^^^^^^^^
+
+With this document, you know most of what rpclib has to offer for application
+programmers. You can refer to the :ref:`manual-t-and-p` section if you want to
+implement your own transports and protocols.
+
+Otherwise, please refer to the rest of the documentation or the mailing list
+if you have further questions.
+

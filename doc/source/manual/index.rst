@@ -17,4 +17,5 @@ aspects of Rpclib by examples.
     usermanager
     sqlalchemy
     metadata
-    devman
+    typecust
+    t_and_p

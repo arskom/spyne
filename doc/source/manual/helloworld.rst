@@ -140,27 +140,27 @@ Wsgi-compliant http server. This example uses Python's stock simple wsgi web
 server. Rpclib has been tested with several other web servers. Any
 WSGI-compliant server should work.
 
-This is the required import. ::
+This is the required import: ::
 
     if __name__=='__main__':
         from wsgiref.simple_server import make_server
 
 Here, we configure the python logger to show debugging output. We have to
 specifically enable the debug output from the soap handler. That's because the
-xml formatting code is run only when explicitly enabled ror performance
+xml formatting code is run only when explicitly enabled for performance
 reasons. ::
 
         logging.basicConfig(level=logging.DEBUG)
         logging.getLogger('rpclib.protocol.soap.soap11').setLevel(logging.DEBUG)
 
 We glue the service definition, interface document and input and output protocols
-under the targetNamespace 'rpclib.examples.hello.soap'. ::
+under the targetNamespace 'rpclib.examples.hello.soap': ::
 
         application = Application([HelloWorldService], 'rpclib.examples.hello.soap',
                     interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
 
 We then wrap the rpclib application with its wsgi wrapper and register it as the
-handler to the wsgi server, and run the http server. ::
+handler to the wsgi server, and run the http server: ::
 
         server = make_server('127.0.0.1', 7789, WsgiApplication(application))
 
@@ -169,7 +169,14 @@ handler to the wsgi server, and run the http server. ::
 
         server.serve_forever()
 
-Here's how you can test your service using suds. ::
+You can test your service using suds. Suds is a separate project for building
+pure-python soap clients. To learn more visit the project's page:
+https://fedorahosted.org/suds/. You can simply install it using
+``easy_install suds``.
+
+So here's how you can use suds to test your new rpclib service:
+
+::
 
     from suds.client import Client
     hello_client = Client('http://localhost:7789/?wsdl')
@@ -187,9 +194,6 @@ The script's output would be as follows: ::
             "Hello, Dave",
         }
 
-Suds is a separate project for building pure-python soap clients. To learn more
-visit the project's page: https://fedorahosted.org/suds/. You can simply install
-it using `easy_install suds`.
 
 Deploying service using HttpRpc
 -------------------------------
@@ -205,7 +209,7 @@ instantiation line: ::
 We still want to keep Xml as the output protocol as the HttpRpc protocol is
 not able to handle complex types.
 
-Here's how you can test your service using wget. ::
+Here's how you can test your service using wget: ::
 
     wget "http://localhost:7789/say_hello?times=5&name=Dave" -qO -
 
@@ -229,7 +233,7 @@ The command's output would be as follows: ::
     </ns1:say_helloResponse>
 
 What's next?
-------------
+^^^^^^^^^^^^
 
 See the next :ref:`manual-user-manager` tutorial that will walk you through
 defining complex objects and using events.

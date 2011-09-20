@@ -12,6 +12,6 @@ class RequestTooLongError(Fault):
         Fault.__init__(self, 'Client.RequestTooLong', faultstring)
 
 class ArgumentError(Fault):
-    """Raised when the request is too long."""
+    """Raised when there is a general problem with input data."""
     def __init__(self, faultstring):
         Fault.__init__(self, 'Client.ArgumentError', faultstring)

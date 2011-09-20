@@ -195,5 +195,8 @@ What's next?
 ------------
 
 This tutorial walks you through most of what you need to know to expose your
-services. You can refer to the reference of the documentation or the mailing
+services. You can read the :ref:`manual-metadata` section where service metadata
+management apis are introduced.
+
+Otherwise, you can refer to the reference of the documentation or the mailing
 list if you have further questions.

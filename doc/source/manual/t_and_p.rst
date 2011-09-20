@@ -1,8 +1,8 @@
 
-.. _manual-devman:
+.. _manual-t-and-p:
 
-Developer Manual
-================
+Implementing Transports and Protocols
+=====================================
 
 So, you want to add a new transport, protocol or interface standard implementation to
 rpclib? Here's some information thay may be relevant to you:
@@ -57,8 +57,16 @@ You can apply the same logic in reverse to the client transport.
 So if you want to implement a new transport or protocol, all you need to do is
 to subclass the relevant base class and implement the missing methods.
 
+A transport example: Persistent, DB-Backed Queue
+------------------------------------------------
+
+Here's the server: https://github.com/arskom/rpclib/blob/master/examples/authenticate/server_soap.py
+
+Here's the client: https://github.com/arskom/rpclib/blob/master/examples/authenticate/client_suds.py
+
+TODO: Write a line-by-line guide for that code.
+
 What's Next?
 ^^^^^^^^^^^^
-
 Start hacking! Good luck, and be sure to pop out to the mailing list if you have
 questions.

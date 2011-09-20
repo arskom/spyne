@@ -182,10 +182,10 @@ rpclib-2.0.0-alpha
     * rpclic.service.DefinitionBase -> rpclib.service.ServiceBase
     * rpclib.server.wsgi.Application  -> rpclib.server.wsgi.WsgiApplication
  * Moved some classes and modules around:
-   * rpclib.model.clazz -> rpclib.model.complex
-   * rpclib.model.complex.ClassSerializer -> rpclib.model.complex.ComplexModel
-   * rpclib.Application -> rpclib.application.Application
-   * rpclib.service.rpc, srpc -> rpclib.decorator.rpc, srpc
+    * rpclib.model.clazz -> rpclib.model.complex
+    * rpclib.model.complex.ClassSerializer -> rpclib.model.complex.ComplexModel
+    * rpclib.Application -> rpclib.application.Application
+    * rpclib.service.rpc, srpc -> rpclib.decorator.rpc, srpc
 
 soaplib-3.x -> rpclib-1.1.1-alpha
 ---------------------------------
