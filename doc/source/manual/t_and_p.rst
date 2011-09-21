@@ -10,8 +10,8 @@ How Exactly is User Code Wrapped?
 
 Here's what happens when a request arrives to an Rpclib server:
 
-The server transport decides whether this is a request for the interface
-document or a remote proceduce call request. Every transport has its own way of
+The server transport decides whether this is a simple interface request
+or a remote procedure call request. Every transport has its own way of
 dealing with this.
 
 If the incoming request was for the interface document, it's easy: The interface
@@ -25,13 +25,13 @@ If it was an RPC request, here's what happens:
 
 #. The server must set the ``ctx.in_string`` attribute to an iterable of strings.
    This will contain the incoming byte stream.
-#. The server calls the :class:`rpclib.server.ServerBase.get_in_object` call
+#. The server calls the :class:`rpclib.server.ServerBase.get_in_object` function
    from its parent class.
 #. The server then calls the ``create_in_document``, ``decompose_incoming_envelope``
-   and ``deserialize`` functions from the protocol class. The first parses the
-   incoming stream to the protocol serializer's internal representation, which
-   is then split to header and body parts, which is later deserialized to the
-   native python representations.
+   and ``deserialize`` functions from the protocol class. The first call parses
+   incoming stream to the protocol serializer's internal representation. This
+   is then split to header and body parts by the second call and deserialized to the
+   native python representation by the third call.
 #. Once the protocol performs its voodoo, the server calls ``get_out_object`` 
    which in turn calls the :func:`rpclib.application.Application.process_request`
    function.
@@ -40,7 +40,7 @@ If it was an RPC request, here's what happens:
    This function is overridable by user, but the overriding function must call
    the one in :class:`rpclib.application.Application`. This in
    turn calls the :func:`rpclib.service.ServiceBase.call_wrapper` function,
-   which has has same requirements.
+   which has has the same requirements.
 #. The :func:`rpclib.service.ServiceBase.call_wrapper` finally calls the user
    function, and the value is returned to ``process_request`` call, which sets
    the return value to ``ctx.out_object``.
@@ -55,11 +55,10 @@ You can apply the same logic in reverse to the client transport.
 So if you want to implement a new transport or protocol, all you need to do is
 to subclass the relevant base class and implement the missing methods.
 
-A transport example: Persistent, DB-Backed, Fan-Out Queue
-----------------------------------------------------
+A Transport Example: A DB-Backed Fan-Out Queue
+-------------------------------------------
 
-Here's the server: https://github.com/arskom/rpclib/blob/master/examples/authenticate/server_soap.py
-Here's the client: https://github.com/arskom/rpclib/blob/master/examples/authenticate/client_suds.py
+Here's the source code in one file: https://github.com/arskom/rpclib/blob/master/examples/queue.py
 
 We skip the imports and dive straight into code. Here's the SQLAlchemy boilerplate for creating the database and other related machinery. ::
 
@@ -67,9 +66,9 @@ We skip the imports and dive straight into code. Here's the SQLAlchemy boilerpla
     metadata = MetaData(bind=db)
     DeclarativeBase = declarative_base(metadata=metadata)
 
-This the table where queued messages are stored. ::
+This the table where queued messages are stored. Note that it's a vanilla SQLAlchemy object: ::
 
-    class TaskQueue(TableModel, DeclarativeBase):
+    class TaskQueue(DeclarativeBase):
         __tablename__ = 'task_queue'
 
         id = Column(sqlalchemy.Integer, primary_key=True)
@@ -77,7 +76,7 @@ This the table where queued messages are stored. ::
 
 This is the table where the task id of the last processed task for each worker is stored. Workers are identified by an integer. ::
 
-    class WorkerStatus(TableModel, DeclarativeBase):
+    class WorkerStatus(DeclarativeBase):
         __tablename__ = 'worker_status'
 
         worker_id = Column(sqlalchemy.Integer, nullable=False, primary_key=True, autoincrement=False)
@@ -135,7 +134,7 @@ This call parses the incoming request. ::
 
                     self.get_in_object(ctx)
 
-In case of an error when parsing the request, the server logs the error and continues to process the next task in queue. The ``get_out_string`` call is smart enough to notice and serialize the error. ::
+In case of an error when parsing the request, the server logs the error and continues to process the next task in queue. The ``get_out_string`` call is smart enough to notice and serialize the error. If this was a normal server, we'd worry about returning the error to the client as well as logging it. ::
 
                     if ctx.in_error:
                         self.get_out_string(ctx)
@@ -146,7 +145,7 @@ As the request was parsed correctly, the user method can be called to process th
 
                     self.get_out_object(ctx)
 
-If there was an expected or non-expected error the result from the server's perspective is the same. So it logs the error and continues to process the next task in queue. ::
+The server should not care whether the error was an expected or unexpected one. So the error is logged and the server  continues to process the next task in queue. ::
 
                     if ctx.out_error:
                         self.get_out_string(ctx)
@@ -169,7 +168,7 @@ Once all tasks in queue are comsumed, the server waits a pre-defined amount of t
 
 This concludes the worker implementation. But how do we put tasks in the task queue? That's the job of the ``Producer`` class that is implemented as an rpclib client.
 
-Implementing clients is a two-stage operation. The main transport logic is in the :class:`rpclib.client.RemoteProcedureBase` child that is a native Python callable whose function is to serialize the arguments, send it to the server, receive the reply, deserialize it and pass the return value to the python caller.
+Implementing clients is a two-stage operation. The main transport logic is in the :class:`rpclib.client.RemoteProcedureBase` child that is a native Python callable whose function is to serialize the arguments, send it to the server, receive the reply, deserialize it and pass the return value to the python caller. However, in our case, the client does not return anything as calls are processed asyncronously.
 
 We start with the constructor, where we initialize the SQLAlchemy database connection factory.
 
@@ -189,13 +188,13 @@ The implementation of the client is much simpler because we trust that the Rpcli
 
             out_string = ''.join(self.ctx.out_string)
 
-And put it to the database: ::
+And put the resulting bytestream to the database: ::
 
             session.add(TaskQueue(data=out_string))
             session.commit()
             session.close()
 
-The function does not return anything because this is an asyncronous client.
+Again, here the function does not return anything because this is an asyncronous client.
 
 Here's the ``Producer`` class whose sole purpose is to initialize the right callable factory. ::
 
