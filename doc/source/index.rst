@@ -17,6 +17,7 @@ Contents
    tests
    faq
    h_and_f
+   comparison
 
 ******************
 Indices and tables
