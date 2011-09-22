@@ -5,11 +5,14 @@ Hello World
 ===========
 
 This example uses the stock simple wsgi webserver to deploy this service. You
-should probably use a full-fledged server when deploying your service for 
+should probably use a full-fledged server when deploying your service for
 production purposes.
 
 Defining an Rpclib Service
 --------------------------
+
+Here we introduce the fundamental mechanisms the rpclib offers to expose your
+services.
 
 This example is available here: http://github.com/arskom/rpclib/blob/master/examples/helloworld_soap.py.
 ::

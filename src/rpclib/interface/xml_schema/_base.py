@@ -50,7 +50,7 @@ from rpclib.interface.xml_schema.model.primitive import string_get_restriction_t
 from rpclib.interface.xml_schema.model.primitive import decimal_get_restriction_tag
 
 _add_handlers = cdict({
-    object: lambda self,cls: None,
+    object: lambda interface,cls: None,
     SimpleModel: simple_add,
     ComplexModelBase: complex_add,
     Fault: fault_add,

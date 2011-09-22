@@ -40,6 +40,7 @@ u = c.factory.create("User")
 u.user_name = 'dave'
 u.first_name = 'david'
 u.last_name = 'smith'
+u.email = 'david.smith@example.com'
 u.permissions = []
 
 permission = c.factory.create("Permission")

@@ -312,7 +312,7 @@ class InteropMisc(ServiceBase):
 
     @srpc(_returns=String)
     def long_string():
-        return len('0123456789abcdef' * 16384)
+        return ('0123456789abcdef' * 16384)
 
     @srpc()
     def test_empty():
@@ -321,10 +321,6 @@ class InteropMisc(ServiceBase):
     @srpc(String, Integer, DateTime)
     def multi_param(s, i, dt):
         pass
-
-    @srpc(_returns=String)
-    def return_only():
-        return 'howdy'
 
     @srpc(NonNillableClass, _returns=String)
     def non_nillable(n):

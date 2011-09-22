@@ -140,6 +140,7 @@ class InterfaceBase(object):
         dictionaries. It starts from function definitions and includes only
         the used objects.
         """
+
         # FIXME: should also somehow freeze child classes' _type_info
         #        dictionaries, or at least warn about them.
 

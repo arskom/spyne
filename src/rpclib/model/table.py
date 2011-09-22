@@ -46,6 +46,7 @@ from rpclib.model.complex import TypeInfo
 from rpclib.model.complex import ComplexModelBase
 from rpclib.model.complex import ComplexModelMeta
 from rpclib.model import primitive
+from rpclib.model import binary
 from rpclib.model import complex
 
 _type_map = {
@@ -59,6 +60,7 @@ _type_map = {
     sqlalchemy.Integer: primitive.Integer,
     sqlalchemy.SmallInteger: primitive.Integer,
 
+    sqlalchemy.LargeBinary: binary.ByteArray,
     sqlalchemy.Boolean: primitive.Boolean,
     sqlalchemy.DateTime: primitive.DateTime,
     sqlalchemy.orm.relation: complex.Array,

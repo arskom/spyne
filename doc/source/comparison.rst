@@ -4,6 +4,12 @@
 Comparison with other rpc frameworks
 ====================================
 
+Oh my.
+
+* http://pypi.python.org/pypi?%3Aaction=search&term=rpc
+* http://www.ohloh.net/tags/python/rpc
+* http://stackoverflow.com/questions/1879971/what-is-the-current-choice-for-doing-rpc-in-python
+
 Ladon
 -----
 
@@ -20,14 +26,11 @@ Discussion thread: https://answers.launchpad.net/ladon/+question/171664
 * Auto-generates human-readable API documentation.
   (example: http://ladonize.org/python-demos/AlbumService) In Rpclib, you need
   to do with the ugliness of a raw wsdl document.
-* Supports both Python 2 and Python 3
-* Serves up all protocols at once on same port (see the example above)
-* Makes string encoding operations easy (You can control on method level whether
-  you want all strings delivered as unicode or as str in a specific encoding)
+* Supports both Python 2 and Python 3.
 * Does not support ZeroMQ.
 * Uses standard python tools for xml parsing which is good for pure-python
   deployments. Rpclib uses lxml, due to its excellent namespace support and
-  speed. So Rpclib-based solutions are easier to develop, faster to work with
+  speed. So Rpclib-based solutions are easier to develop and faster to work with
   but more difficult to deploy.
 * Does not do input validation for SOAP.
 * Does not support events.
@@ -39,4 +42,53 @@ Discussion thread: https://answers.launchpad.net/ladon/+question/171664
   callables. This lets ladon api to be simpler, but gives the rpclib api the
   power to have declarative restrictions on input types.
 * Does not test against ws-i.org deliverables for testing soap compatibility.
-* Does not support modifying protocol & transport headers.
+* Does not support parsing and/or modifying protocol & transport headers.
+* Does not offer declarative constraints.
+
+RPyC
+----
+
+This is preliminary. Please correct these points if you spot any error.
+
+* Uses own protocol
+* Does not do validation.
+* Python-specific.
+* Fast.
+* Not designed for public servers. ??
+
+rfoo
+----
+
+This is preliminary. Please correct these points if you spot any error.
+
+* Uses own protocol
+* Does not do validation.
+* Python-specific.
+* Fast.
+* Not designed for public servers. ??
+
+
+Suds
+----
+
+* Excellent wsdl parser, very easy to use.
+* Soap 1.1 / Wsdl 1.1 Client only.
+* Slow.
+
+ZSI
+---
+
+* Unmaintained
+
+SOAPPy
+------
+* ???
+
+rsl
+---
+* Unmaintained.
+* Client only.
+
+PyRo
+----
+* ???

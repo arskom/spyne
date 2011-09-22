@@ -26,7 +26,7 @@ import urlparse
 
 from rpclib.protocol import ProtocolBase
 
-# this is not exactly rest, because it ignores http verbs.
+# this is not exactly ReST, because it ignores http verbs.
 
 def _get_http_headers(req_env):
     retval = {}
@@ -53,6 +53,7 @@ class HttpRpc(ProtocolBase):
     def decompose_incoming_envelope(self, ctx):
         ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
                               ctx.in_document['PATH_INFO'].split('/')[-1])
+
         logger.debug("\033[92mMethod name: %r\033[0m" % ctx.method_request_string)
 
         self.app.in_protocol.set_method_descriptor(ctx)
@@ -64,13 +65,15 @@ class HttpRpc(ProtocolBase):
     def deserialize(self, ctx, message):
         assert message in ('request',)
 
+        self.event_manager.fire_event('before_deserialize', ctx)
+
         body_class = ctx.descriptor.in_message
         if ctx.in_body_doc is not None and len(ctx.in_body_doc) > 0:
             ctx.in_object = body_class.from_dict(ctx.in_body_doc)
         else:
             ctx.in_object = [None] * len(body_class._type_info)
 
-        self.event_manager.fire_event('deserialize', ctx)
+        self.event_manager.fire_event('after_deserialize', ctx)
 
     def serialize(self, ctx, message):
         assert message in ('response',)

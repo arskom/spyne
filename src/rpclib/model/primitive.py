@@ -107,9 +107,18 @@ class String(SimpleModel):
     __type_name__ = 'string'
 
     class Attributes(SimpleModel.Attributes):
+        """The class that holds the constraints for the given type."""
+
         min_len = 0
+        """Minimum length of string. Can be set to any positive integer"""
+
         max_len = "unbounded"
+        """Maximum length of string. Can be set to 'unbounded' to accept strings
+        of arbitrary sizes. Also check :const:`rpclib.server.wsgi.MAX_CONTENT_LENGTH`."""
+
         pattern = None
+        """A regular expression that matches the whole string. See here for more
+        info: http://www.regular-expressions.info/xml.html"""
 
     def __new__(cls, *args, **kwargs):
         assert len(args) <= 1
@@ -137,6 +146,10 @@ class String(SimpleModel):
                 and cls.Attributes.min_len == String.Attributes.min_len
                 and cls.Attributes.max_len == String.Attributes.max_len
                 and cls.Attributes.pattern == String.Attributes.pattern)
+
+    @classmethod
+    def validate(cls, validate):
+        pass
 
 class AnyUri(String):
     """This is an xml schema type with is a special kind of String."""

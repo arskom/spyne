@@ -18,9 +18,10 @@ The following is most of the Rpclib jargon:
 * **Transports:**
     Transports, also protocols themselves, encapsulate protocol data in their
     free-form data sections. E.g. Http is used as a transport for Soap, by
-    tucking a Soap message in the Http byte-stream. Whereas the HttpRpc protocol
-    exposes Http as a protocol. One could use Soap as a transport by tucking a
-    message in its base64-encoded ByteArray container.
+    tucking a Soap message in the Http byte-stream part of a Http POST request.
+    The same Http is exposed as a "protocol" using the :class:`rpclib.protocol.http.HttpRpc`
+    class. One could use Soap as a transport by tucking a protocol message in its
+    base64-encoded ByteArray container.
 
     Transports are separated to two packages in Rpclib source code:
     :mod:`rpclib.client` and :mod:`rpclib.server`.
@@ -41,10 +42,10 @@ The following is most of the Rpclib jargon:
 * **Serializers:**
     Serializers can be considered mostly as apis around hiearchical key-value
     stores. Various xml apis like ``lxml.etree.Element``, Python's own
-    ``xml.etree.ElementTree``, or pickle, simplejson, YaML and the like fall in this
-    category. They're a little bit more difficult to abstract away because each has
-    their own strenghts and weaknesses when dealing with complex, hiearchical data
-    with mixed types.
+    ``xml.etree.ElementTree``, or apis around pickle, simplejson, YaML and the like
+    fall in this category. They're a little bit more difficult to abstract away because
+    each has their own strenghts and weaknesses when dealing with complex, hiearchical
+    data with mixed types.
 
     Serializers are currently not distinguished in rpclib code. lxml.etree is
     used as xml serializer, and a custom wsgi callable is used as http serializer.
@@ -52,7 +53,7 @@ The following is most of the Rpclib jargon:
 How your code is wrapped
 ------------------------
 
-A typical user of the Rpclib will just write methods that will be exposed as
+A typical Rpclib user will just write methods that will be exposed as
 remote procedure calls to the outside world. The following is used to wrap that
 code:
 
@@ -81,15 +82,15 @@ code:
 
     .. NOTE:: You might know that rpclib is a generalized version of a
         soap library. So inevitably, some artifacts of the Soap world creep in
-        from here and there .
+        from here and there.
 
-        And, namespaces are another artifact of the Xml world. There are varying
+        Namespaces are another artifact of the Xml world. There are varying
         opinions about the usefulness of the concept of the namespaces in Xml,
         but we generally think it to be A Nice Thing, so we chose to keep it
         around.
 
-        When instantiating the application, you should also give it a
-        targetNamespace (the ``tns`` argument to the :class:`Application` constructor)
+        When instantiating the :class:`rpclib.application.Application`, you should also
+        give it a targetNamespace (the ``tns`` argument to its constructor)
         string and an optional application name (the ``name`` argument to the
         :class:`Application` constructor), which are used to generally distinguish your
         application from other applications. While it's conventionally the URL and

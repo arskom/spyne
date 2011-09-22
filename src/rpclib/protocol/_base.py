@@ -44,11 +44,18 @@ class ProtocolBase(object):
     classes can implement only the required subset of the public methods.
 
     The ProtocolBase class supports the following events:
-     * ``deserialize``:
-       Called right after the deserialization operation is finished.
+    
+    * ``before_deserialize``:
+      Called before the deserialization operation is attempted.
 
-     * ``serialize``:
-       Called right after the serialization operation is finished.
+    * ``after_deserialize``:
+      Called after the deserialization operation is finished.
+
+    * ``before_serialize``:
+      Called before after the serialization operation is attempted.
+
+    * ``after_serialize``:
+      Called after the serialization operation is finished.
 
     """
 
@@ -101,9 +108,9 @@ class ProtocolBase(object):
     def create_out_string(self, ctx, out_string_encoding=None):
         """Uses ctx.out_string to set ctx.out_document"""
 
-    def validate(self, payload):
+    def validate_document(self, payload):
         """Method to be overriden to perform any sort of custom input
-        validation.
+        validation on the parsed input document.
         """
 
     def set_method_descriptor(self, ctx):

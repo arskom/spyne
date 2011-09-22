@@ -75,7 +75,7 @@ class ByteArray(ModelBase):
         return [ostream.read()]
 
 class Attachment(ModelBase):
-    """DEPRECATED! Use ByteArray instead."""
+    """**DEPRECATED!** Use ByteArray instead."""
 
     __type_name__ = 'base64Binary'
     __namespace__ = "http://www.w3.org/2001/XMLSchema"

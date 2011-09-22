@@ -4,6 +4,9 @@
 Working with RPC Metadata
 =========================
 
+This section builds on :ref:`manual-usermanager` section. If you haven’t done so,
+we recommended you to read it first.
+
 In most of the real-world scenarios, rpc data comes with additional baggage like
 authentication headers, routing history, and similar information. Rpclib comes
 with rich mechanisms that lets you deal with both protocol and transport

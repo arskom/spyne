@@ -66,12 +66,25 @@ class ModelBase(object):
     # considered in ComplexModel's add_to_schema method. the defaults here
     # are to reflect what people seem to want most.
     class Attributes(object):
+        """The class that holds the constraints for the given type."""
+
         nillable = True
+        """Set this to false to reject null values."""
+
         min_occurs = 0
+        """Set this to 0 to make the type mandatory. Can be set to any positive
+        integer."""
+
         max_occurs = 1
+        """Can be set to any strictly positive integer. Values greater than 1
+        will imply an iterable of objects as native python type. Can be set to
+        'unbounded' for arbitrary number of arguments."""
 
     class Annotations(object):
+        """The class that holds the annotations for the given type."""
+
         doc = ""
+        """The documentation for the given type."""
 
     class Empty(object):
         pass
@@ -162,8 +175,8 @@ class ModelBase(object):
 
     @classmethod
     def customize(cls, **kwargs):
-        """Returns a duplicate of cls only with values in function arguments
-        overwriting the ones in cls.Attributes."""
+        """Duplicates cls and overwrites the values in ``cls.Attributes`` with
+        ``**kwargs`` and returns the new class."""
 
         cls_name, cls_bases, cls_dict = cls._s_customize(cls, **kwargs)
 
@@ -202,6 +215,10 @@ class ModelBase(object):
 
         return (cls.__name__, cls.__bases__, cls_dict)
 
+    @classmethod
+    def validate(cls, value):
+        """Override this method to do your own input validation."""
+
 class Null(ModelBase):
     @classmethod
     def to_string(cls, value):
@@ -212,11 +229,16 @@ class Null(ModelBase):
         return None
 
 class SimpleModel(ModelBase):
+    """The base class for primitives."""
+
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
     __base_type__ = None
 
     class Attributes(ModelBase.Attributes):
+        """The class that holds the constraints for the given type."""
+
         values = set()
+        """The set of possible values for this type."""
 
     def __new__(cls, ** kwargs):
         """Overriden so that any attempt to instantiate a primitive will return

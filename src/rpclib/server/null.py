@@ -17,15 +17,17 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""A server that doesn't support any transport at all -- it's implemented for
-testing services without running a server.
-"""
+"""This module contains the NullServer class and its helper objects."""
 
 from rpclib.client._base import Factory
 from rpclib._base import MethodContext
 from rpclib.server import ServerBase
 
 class NullServer(ServerBase):
+    """A server that doesn't support any transport at all -- it's implemented
+    for testing services without running a server.
+    """
+
     transport = 'noconn://null.rpclib'
 
     def __init__(self, app):

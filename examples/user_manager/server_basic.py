@@ -61,6 +61,7 @@ class User(ComplexModel):
     user_name = String
     first_name = String
     last_name = String
+    email = String(pattern=r'\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[A-Z]{2,4}\b')
     permissions = Array(Permission)
 
 class UserManagerService(ServiceBase):

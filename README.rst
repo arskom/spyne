@@ -17,20 +17,21 @@ along with SOAP 1.1 and the rest-minus-the-verbs HttpRpc protocols which can be
 transported mainly via HTTP. We also support ZeroMQ transport where appropriate.
 The transports can be used in a both client or server environment.
 
-The documentation for Rpclib can be found `here <http://arskom.github.com/rpclib>`_.
+The following are the primary sources of information about rpclib:
 
-The source code is `here <https://github.com/arskom/rpclib>`_.
-
-The official rpclib discussion forum can be found `here <http://mail.python.org/mailman/listinfo/soap>`_.
-
-See the `downloads section <http://github.com/arskom/rpclib/downloads>`_ for related downloads.
+* The latest documentation for Rpclib can be found `here <http://arskom.github.com/rpclib>`_.
+* The source code is `here <https://github.com/arskom/rpclib>`_.
+* The official rpclib discussion forum can be found `here <http://mail.python.org/mailman/listinfo/soap>`_.
+* You can download Rpclib packages from `github <http://github.com/arskom/rpclib/downloads>`_ or 
+  `pypi <http://pypi.python.org/pypi/rpclib>`_.
 
 Rpclib is a generalized version of a soap processing library known as soaplib.
-The following legacy versions of soaplib are also available:
+The following legacy versions of soaplib are also available in the source repository at github
+as branches.
 
- * See `here <http://github.com/arskom/rpclib/tree/soaplib-0_8>`_ for the stable soaplib-0.8 branch.
- * See `here <http://github.com/arskom/rpclib/tree/soaplib-1_0>`_ for the stable soaplib-1.0 branch.
- * See `here <http://github.com/arskom/rpclib/tree/soaplib-2_0>`_ for the stable soaplib-2.0 branch.
+* See `here <http://github.com/arskom/rpclib/tree/soaplib-0_8>`_ for the stable soaplib-0.8 branch.
+* See `here <http://github.com/arskom/rpclib/tree/soaplib-1_0>`_ for the stable soaplib-1.0 branch.
+* See `here <http://github.com/arskom/rpclib/tree/soaplib-2_0>`_ for the stable soaplib-2.0 branch.
 
 ************
 Requirements

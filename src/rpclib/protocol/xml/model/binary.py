@@ -20,8 +20,6 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import base64
-
 from lxml import etree
 
 from _base import nillable_value

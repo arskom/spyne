@@ -7,10 +7,9 @@ SQLAlchemy Integration
 This tutorial builds on the :ref:`manual-user-manager` tutorial. If you haven't
 done so, we recommended you to read it first.
 
-Let's try a more complicated example than storing our data in a mere dictionary.
-
-The following example shows how to integrate SQLAlchemy and Rpclib objects, and
-how to do painless transaction management using Rpclib events.
+In this tutorial, we talk about using Rpclib tools that make it easy to deal with
+database-related operations. We will show how to integrate SQLAlchemy and Rpclib
+object definitions, and how to do painless transaction management using Rpclib events.
 
 The full example is available here: http://github.com/arskom/rpclib/blob/master/examples/user_manager/server_sqlalchemy.py
 

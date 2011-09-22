@@ -54,7 +54,6 @@ from rpclib.decorator import rpc
 from rpclib.interface.wsdl import Wsdl11
 from rpclib.protocol.soap import Soap11
 from rpclib.model.primitive import Integer
-from rpclib.model.table import TableModel
 from rpclib.server import ServerBase
 from rpclib.service import ServiceBase
 
@@ -62,13 +61,13 @@ db = create_engine('sqlite:///:memory:')
 metadata = MetaData(bind=db)
 DeclarativeBase = declarative_base(metadata=metadata)
 
-class TaskQueue(TableModel, DeclarativeBase):
+class TaskQueue(DeclarativeBase):
     __tablename__ = 'task_queue'
 
     id = Column(sqlalchemy.Integer, primary_key=True)
-    data = Column(sqlalchemy.UnicodeText, nullable=False)
+    data = Column(sqlalchemy.LargeBinary, nullable=False)
 
-class WorkerStatus(TableModel, DeclarativeBase):
+class WorkerStatus(DeclarativeBase):
     __tablename__ = 'worker_status'
 
     worker_id = Column(sqlalchemy.Integer, nullable=False, primary_key=True, autoincrement=False)
@@ -77,7 +76,7 @@ class WorkerStatus(TableModel, DeclarativeBase):
 class Consumer(ServerBase):
     transport = 'http://sqlalchemy.persistent.queue/'
 
-    def __init__(self, app, db, consumer_id):
+    def __init__(self, db, app, consumer_id):
         ServerBase.__init__(self, app)
 
         self.session = sessionmaker(bind=db)()
@@ -102,7 +101,7 @@ class Consumer(ServerBase):
 
             for task in task_queue:
                 ctx = MethodContext(self.app)
-                ctx.in_string = [task.data.encode('utf8')]
+                ctx.in_string = [task.data]
                 ctx.transport.consumer_id = self.id
                 ctx.transport.task_id = task.id
 
@@ -127,8 +126,8 @@ class Consumer(ServerBase):
             time.sleep(10)
 
 class RemoteProcedure(RemoteProcedureBase):
-    def __init__(self, url, app, name, out_header, db):
-        RemoteProcedureBase.__init__(self, url, app, name, out_header)
+    def __init__(self, db, app, name, out_header):
+        RemoteProcedureBase.__init__(self, db, app, name, out_header)
 
         self.Session = sessionmaker(bind=db)
 
@@ -145,10 +144,10 @@ class RemoteProcedure(RemoteProcedureBase):
         session.close()
 
 class Producer(ClientBase):
-    def __init__(self, url, app):
-        ClientBase.__init__(self, url, app)
+    def __init__(self, db, app):
+        ClientBase.__init__(self, db, app)
 
-        self.service = Service(RemoteProcedure, url, app, db)
+        self.service = Service(RemoteProcedure, db, app)
 
 class AsyncService(ServiceBase):
     @rpc(Integer)
@@ -174,5 +173,5 @@ if __name__ == '__main__':
     for i in range(10):
         producer.service.sleep(i)
 
-    consumer = Consumer(application, db, 1)
+    consumer = Consumer(db, application, 1)
     consumer.serve_forever()

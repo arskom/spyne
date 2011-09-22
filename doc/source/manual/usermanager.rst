@@ -7,7 +7,12 @@ User Manager
 This tutorial builds on the :ref:`manual-helloworld` tutorial. If you haven't
 done so, we recommended you to read it first.
 
-Let's try a more complicated example than just strings and integers!
+In this tutorial, we will talk about:
+
+* Defining complex types.
+* Customizing types.
+* Defining events.
+
 The following is an simple example using complex, nested data. It's available
 here: http://github.com/arskom/rpclib/blob/master/examples/user_manager/server_basic.py
 ::
@@ -103,26 +108,54 @@ here: http://github.com/arskom/rpclib/blob/master/examples/user_manager/server_b
 
         server.serve_forever()
 
-Jumping into what's new. ::
+Rpclib uses ``ComplexModel`` as a general type that when extended will produce complex
+serializable types that can be used in a public service. The ``Permission`` class is a
+fairly simple class with just two members: ::
 
     class Permission(ComplexModel):
         application = String
         feature = String
+
+The ``User`` class is more interesting: ::
 
     class User(ComplexModel):
         user_id = Integer
         username = String
         firstname = String
         lastname = String
+
+Nothing new so far.
+
+Below, you can see that the ``email`` member which has a regular expression restriction
+defined. The String type accepts other restrictions, please refer to its documentation for
+more info: :class:`rpclib.model.primitive.String`
+
+        email = String(pattern=r'\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[A-Z]{2,4}\b')
+
+The permissions attribute is an array, whose native type is a ``list`` of ``Permission``
+objects. ::
+
         permissions = Array(Permission)
 
-The `Permission` and `User` structures in the example are standard python
-objects that extend `ComplexModel`.  Rpclib uses `ComplexModel` as a general
-type that when extended will produce complex serializable types that can be used
-in a public service.
+The following is deserialized as a generator, but looks the same from the protocol and
+interface points of view: ::
+
+        permissions = Iterable(Permission)
+
+The following is deserialized as a list of ``Permission`` objects, just like with
+the ``Array`` example, but is shown and serialized differently in Wsdl and Soap
+representations. ::
+
+        permissions = Permission.customize(max_occurs='unbounded')
+
+Here, we need to use the :func:`rpclib.model._base.ModelBase.customize` call because
+calling a ``ComplexModel`` child instantiates that class, whereas calling a ``SimpleModel``
+object returns a duplicate of that class. The ``customize`` function just sets given arguments
+as class attributes to ``cls.Attributes`` class. You can refer to the documentation of
+each class to see which member of the ``Attributes`` class is used for the given object.
 
 Here, we define a function to be called for every method call. It instantiates
-an object called UserDefinedContext and sets it to the context object's udc
+the ``UserDefinedContext`` class and sets it to the context object's ``udc``
 attribute, which is in fact short for 'user defined context'. ::
 
     def _on_method_call(ctx):
@@ -160,13 +193,14 @@ measure method performance.
 What's next?
 ------------
 
-This tutorial walks you through most of what you need to know to expose your
+This tutorial walks you through what you need to know to expose basic
 services. You can read the :ref:`manual-sqlalchemy` document where the
 :class:`rpclib.model.table.TableModel` class and its helpers are introduced.
 These tools are useful to those who'd like to expose their database application
-using rpclib are introduced. Otherwise, you can look at the
+using rpclib. Otherwise, you can look at the
 :ref:`manual-metadata` section where service metadata management apis are
 introduced.
 
 Otherwise, please refer to the rest of the documentation or the mailing list
 if you have further questions.
+

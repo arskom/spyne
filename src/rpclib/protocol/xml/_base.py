@@ -18,17 +18,13 @@
 #
 
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('rpclib.protocol.xml')
 
 from lxml import etree
 
 from rpclib.const import xml_ns as ns
-
 from rpclib.util.cdict import cdict
-
-from rpclib.error import ResourceNotFoundError
 from rpclib.model import ModelBase
-
 from rpclib.model.binary import Attachment
 from rpclib.model.complex import Array
 from rpclib.model.complex import Iterable
@@ -37,8 +33,6 @@ from rpclib.model.enum import EnumBase
 from rpclib.model.fault import Fault
 from rpclib.model.primitive import AnyXml
 from rpclib.model.primitive import AnyDict
-from rpclib.model.primitive import String
-from rpclib.model.primitive import Duration
 
 from rpclib.protocol import ProtocolBase
 
@@ -49,8 +43,6 @@ from rpclib.protocol.xml.model.fault import fault_to_parent_element
 from rpclib.protocol.xml.model.complex import complex_to_parent_element
 from rpclib.protocol.xml.model.primitive import xml_to_parent_element
 from rpclib.protocol.xml.model.primitive import dict_to_parent_element
-from rpclib.protocol.xml.model.primitive import string_to_parent_element
-from rpclib.protocol.xml.model.primitive import duration_to_parent_element
 
 from rpclib.protocol.xml.model import base_from_element
 from rpclib.protocol.xml.model.binary import binary_from_element
@@ -61,10 +53,14 @@ from rpclib.protocol.xml.model.enum import enum_from_element
 from rpclib.protocol.xml.model.fault import fault_from_element
 from rpclib.protocol.xml.model.primitive import dict_from_element
 from rpclib.protocol.xml.model.primitive import xml_from_element
-from rpclib.protocol.xml.model.primitive import string_from_element
+
+class SchemaValidationError(Fault):
+    """Raised when the input stream could not be validated by the Xml Schema."""
+    def __init__(self, faultstring):
+        Fault.__init__(self, 'Client.SchemaValidationError', faultstring)
 
 class XmlObject(ProtocolBase):
-    def __init__(self, app=None):
+    def __init__(self, app=None, validator=None):
         ProtocolBase.__init__(self, app)
 
         self.serialization_handlers = cdict({
@@ -72,11 +68,9 @@ class XmlObject(ProtocolBase):
             Attachment: binary_to_parent_element,
             ComplexModelBase: complex_to_parent_element,
             Fault: fault_to_parent_element,
-            String: string_to_parent_element,
             AnyXml: xml_to_parent_element,
             AnyDict: dict_to_parent_element,
             EnumBase: enum_to_parent_element,
-            Duration: duration_to_parent_element,
         })
 
         self.deserialization_handlers = cdict({
@@ -84,13 +78,30 @@ class XmlObject(ProtocolBase):
             Attachment: binary_from_element,
             ComplexModelBase: complex_from_element,
             Fault: fault_from_element,
-            String: string_from_element,
             AnyXml: xml_from_element,
             AnyDict: dict_from_element,
+            EnumBase: enum_from_element,
+
             Array: array_from_element,
             Iterable: iterable_from_element,
-            EnumBase: enum_from_element,
         })
+
+        self.validation_schema = None
+        self.validator = validator
+
+        if validator == 'lxml':
+            self.validate_document = self.__validate_lxml
+        elif validator is None:
+            pass
+        else:
+            raise ValueError(validator)
+
+        # for performance reasons, we don't want the following to run
+        # in production even though we won't see the results.
+        # that's why one needs to explicitly set the logging level of
+        # the 'rpclib.protocol.soap.soap11' to DEBUG to see the xml data.
+
+        self.log_messages = (logger.level == logging.DEBUG)
 
     def from_element(self, cls, element):
         handler = self.deserialization_handlers[cls]
@@ -100,47 +111,26 @@ class XmlObject(ProtocolBase):
         handler = self.serialization_handlers[cls]
         handler(self, cls, value, tns, parent_elt, * args, ** kwargs)
 
+    def validate_body(self, ctx, body_document):
+        try:
+            self.validate_document(body_document)
+            ctx.method_request_string = body_document.tag
+            logger.debug("\033[92mMethod request_string: %r\033[0m" %
+                                                    ctx.method_request_string)
+        finally:
+            if self.log_messages:
+                logger.debug(etree.tostring(ctx.in_document, pretty_print=True))
+
+        if ctx.service_class is None: # i.e. if it's a server
+            self.set_method_descriptor(ctx)
+
     def create_in_document(self, ctx, charset=None):
         ctx.in_document = etree.fromstring(ctx.in_string, charset)
 
-        body_doc = ctx.in_document
+        self.validate_body(ctx, ctx.in_document)
 
-        try:
-            self.validate(body_doc)
-            if (not (body_doc is None) and
-                (ctx.method_request_string is None)):
-                ctx.method_request_string = body_doc.tag
-                logger.debug("\033[92mMethod request_string: %r\033[0m" %
-                                                    ctx.method_request_string)
-
-        finally:
-            # for performance reasons, we don't want the following to run
-            # in production even though we won't see the results.
-            # that's why one needs to explicitly set the logging level of
-            # the 'rpclib.protocol.xml._base' to DEBUG to see the xml data.
-            if logger.level == logging.DEBUG:
-                try:
-                    logger.debug(etree.tostring(body_doc, pretty_print=True))
-                except etree.XMLSyntaxError, e:
-                    logger.debug(body_doc)
-                    raise Fault('Client.Xml', 'Error at line: %d, col: %d' %
-                                                                    e.position)
-
-        if ctx.method_request_string is None:
-            raise Exception("Could not extract method request string from "
-                            "the request!")
-        try:
-            if ctx.service_class is None: # i.e. if it's a server
-                self.set_method_descriptor(ctx)
-
-        except Exception, e:
-            logger.exception(e)
-            raise ResourceNotFoundError('Client', 'Method not found: %r' %
-                                                    ctx.method_request_string)
-
-        ctx.in_header_doc = None # XmlObject does not know between header and
-                                 # payload. That's SOAP's job to do.
-        ctx.in_body_doc = body_doc
+        ctx.in_header_doc = None
+        ctx.in_body_doc = ctx.in_body_doc
 
     def create_out_string(self, ctx, charset=None):
         """Sets an iterable of string fragments to ctx.out_string"""
@@ -161,6 +151,8 @@ class XmlObject(ProtocolBase):
 
         assert message in ('request', 'response')
 
+        self.event_manager.fire_event('before_deserialize', ctx)
+
         if message == 'request':
             body_class = ctx.descriptor.in_message
         elif message == 'response':
@@ -172,7 +164,12 @@ class XmlObject(ProtocolBase):
         else:
             ctx.in_object = [None] * len(body_class._type_info)
 
-        self.event_manager.fire_event('deserialize', ctx)
+        if self.log_messages:
+            logger.debug('\033[91m' + "Response" + '\033[0m')
+            logger.debug(etree.tostring(ctx.out_document,
+                                        xml_declaration=True, pretty_print=True))
+
+        self.event_manager.fire_event('after_deserialize', ctx)
 
     def serialize(self, ctx, message):
         """Uses ctx.out_object, ctx.out_header or ctx.out_error to set
@@ -183,6 +180,8 @@ class XmlObject(ProtocolBase):
         """
 
         assert message in ('request', 'response')
+
+        self.event_manager.fire_event('before_serialize', ctx)
 
         # instantiate the result message
         if message == 'request':
@@ -205,9 +204,25 @@ class XmlObject(ProtocolBase):
                     result_message, self.app.interface.get_tns(), tmp_elt)
         ctx.out_document = tmp_elt[0]
 
-        if logger.level == logging.DEBUG:
-            logger.debug('\033[91m' + "Response" + '\033[0m')
-            logger.debug(etree.tostring(ctx.out_document,
-                         xml_declaration=True, pretty_print=True))
+        self.event_manager.fire_event('after_serialize', ctx)
 
-        self.event_manager.fire_event('serialize', ctx)
+    def set_app(self, value):
+        ProtocolBase.set_app(self, value)
+
+        self.validation_schema = None
+
+        if value:
+            from rpclib.interface.wsdl import Wsdl11
+
+            wsdl = Wsdl11(value)
+            wsdl.build_validation_schema()
+
+            self.validation_schema = wsdl.validation_schema
+
+    def __validate_lxml(self, payload):
+        ret = self.validation_schema.validate(payload)
+
+        logger.debug("Validated ? %s" % str(ret))
+        if ret == False:
+            raise SchemaValidationError(
+                               str(self.validation_schema.error_log.last_error))

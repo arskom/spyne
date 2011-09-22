@@ -120,8 +120,8 @@ def array_from_element(prot, cls, element):
     return retval
 
 @nillable_element
-def iterable_from_element(cls, element):
+def iterable_from_element(prot, cls, element):
     (serializer,) = cls._type_info.values()
 
     for child in element.getchildren():
-        yield serializer.from_xml(child)
+        yield prot.from_element(serializer, child)

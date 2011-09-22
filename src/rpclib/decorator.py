@@ -139,9 +139,9 @@ def srpc(*params, **kparams):
     The methods tagged with this decorator do not behave like a normal python
     method but return 'MethodDescriptor' object when called.
 
-    You should use the :classs:`rpclib.server.null.NullServer` transport if you
+    You should use the :class:`rpclib.server.null.NullServer` transport if you
     want to call the methods directly. You can also use the 'function' attribute
-    of the returned object to call the method itself.
+    of the returned object to call the function itself.
     '''
 
     def explain(f):
