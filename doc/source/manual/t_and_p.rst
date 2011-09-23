@@ -19,7 +19,7 @@ If the incoming request was for the interface document, it's easy: The interface
 document needs to be generated and returned as a nice chunk of string to the
 client.
 The server transport first calls
-:func:`self.app.interface.build_interface_document`
+:func:`rpclib.interface._base.InterfaceBase.build_interface_document`
 which builds and caches the document and later calls the
 :func:`rpclib.interface._base.InterfaceBase.get_interface_document` that returns
 the cached document.
@@ -28,7 +28,7 @@ If it was an RPC request, here's what happens:
 
 #. The server must set the ``ctx.in_string`` attribute to an iterable of
    strings. This will contain the incoming byte stream.
-#. The server calls the :class:`rpclib.server.ServerBase.get_in_object` function
+#. The server calls the :class:`rpclib.server._base.ServerBase.get_in_object` function
    from its parent class.
 #. The server then calls the ``create_in_document``,
    ``decompose_incoming_envelope``

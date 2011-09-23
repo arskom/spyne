@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,7 @@ def binary_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     '''
     element = etree.SubElement(parent_elt, "{%s}%s" % (tns,name))
     element.text = ''.join(cls.to_base64(value))
+
 
 @nillable_element
 def binary_from_element(prot, cls, element):

@@ -19,6 +19,8 @@
 
 """This module contains the HttpRpc protocol implementation."""
 
+from rpclib.error import Fault
+from rpclib.error import ValidationError
 import logging
 logger = logging.getLogger(__name__)
 
@@ -44,6 +46,9 @@ class HttpRpc(ProtocolBase):
     It only parses GET requests where the whole data is in the 'QUERY_STRING'.
     """
 
+    def check_validator(self):
+        assert self.validator in ('soft', None)
+
     def create_in_document(self, ctx, in_string_encoding=None):
         assert ctx.transport.type == 'wsgi', ("This protocol only works with "
                                               "the wsgi api.")
@@ -68,10 +73,65 @@ class HttpRpc(ProtocolBase):
         self.event_manager.fire_event('before_deserialize', ctx)
 
         body_class = ctx.descriptor.in_message
+        flat_type_info = body_class.get_flat_type_info(body_class)
+
         if ctx.in_body_doc is not None and len(ctx.in_body_doc) > 0:
-            ctx.in_object = body_class.from_dict(ctx.in_body_doc)
+            inst = body_class.get_deserialization_instance()
+
+            # this is for validating cls.Attributes.{min,max}_occurs
+            frequencies = {}
+
+            for k, v in ctx.in_body_doc.items():
+                setattr(inst, k, None)
+                member = flat_type_info.get(k, None)
+                if member is None:
+                    continue
+
+                mo = member.Attributes.max_occurs
+                if mo == 'unbounded' or mo > 1:
+                    value = getattr(inst, k, None)
+                    if value is None:
+                        value = []
+
+                    for v2 in v:
+                        if self.validator == 'soft' and not member.validate_string(member, v2):
+                            raise ValidationError(v2)
+                        native_v2 = member.from_string(v2)
+                        if self.validator == 'soft' and not member.validate_native(member, native_v2):
+                            raise ValidationError(v2)
+
+                        value.append(native_v2)
+                        freq = frequencies.get(k,0)
+                        freq+=1
+                        frequencies[k] = freq
+
+                    setattr(inst, k, value)
+
+                else:
+                    v,  = v
+                    if self.validator == 'soft' and not member.validate_string(member, v):
+                        raise ValidationError(v)
+                    native_v = member.from_string(v)
+                    if self.validator == 'soft' and not member.validate_native(member, native_v):
+                        raise ValidationError(v2)
+                    setattr(inst, k, native_v)
+                    freq = frequencies.get(k,0)
+                    freq+=1
+                    frequencies[k] = freq
+
+            if self.validator == 'soft':
+                print frequencies
+                for k,c in flat_type_info.items():
+                    val = frequencies.get(k, 0)
+                    if val < c.Attributes.min_occurs \
+                            or  (c.Attributes.max_occurs != 'unbounded'
+                                            and val > c.Attributes.max_occurs ):
+                        raise Fault('Client.ValidationError',
+                            '%r member does not respect frequency constraints' % k)
+
+            ctx.in_object = inst
         else:
-            ctx.in_object = [None] * len(body_class._type_info)
+            ctx.in_object = [None] * len(flat_type_info)
 
         self.event_manager.fire_event('after_deserialize', ctx)
 
@@ -82,7 +142,7 @@ class HttpRpc(ProtocolBase):
             result_message_class = ctx.descriptor.out_message
 
             # assign raw result to its wrapper, result_message
-            out_type_info = result_message_class._type_info
+            out_type_info = result_message_class.get_flat_type_info(result_message_class)
             if len(out_type_info) == 1:
                 out_class = out_type_info.values()[0]
                 if ctx.out_object is None:

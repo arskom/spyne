@@ -61,7 +61,7 @@ class SchemaValidationError(Fault):
 
 class XmlObject(ProtocolBase):
     def __init__(self, app=None, validator=None):
-        ProtocolBase.__init__(self, app)
+        ProtocolBase.__init__(self, app, validator)
 
         self.serialization_handlers = cdict({
             ModelBase: base_to_parent_element,
@@ -86,22 +86,19 @@ class XmlObject(ProtocolBase):
             Iterable: iterable_from_element,
         })
 
-        self.validation_schema = None
-        self.validator = validator
-
-        if validator == 'lxml':
-            self.validate_document = self.__validate_lxml
-        elif validator is None:
-            pass
-        else:
-            raise ValueError(validator)
-
-        # for performance reasons, we don't want the following to run
-        # in production even though we won't see the results.
-        # that's why one needs to explicitly set the logging level of
-        # the 'rpclib.protocol.xml' to DEBUG to see the xml data.
-
         self.log_messages = (logger.level == logging.DEBUG)
+
+    def check_validator(self):
+        self.validation_schema = None
+
+        if self.validator == 'lxml':
+            self.validate_document = self.__validate_lxml
+
+        elif self.validator in (None, 'soft'):
+            pass
+
+        else:
+            raise ValueError(self.validator)
 
     def from_element(self, cls, element):
         handler = self.deserialization_handlers[cls]
@@ -129,7 +126,7 @@ class XmlObject(ProtocolBase):
 
         self.validate_body(ctx, ctx.in_document)
 
-        ctx.in_header_doc = None
+        ctx.in_header_doc = None # If you need header support, you should use Soap
         ctx.in_body_doc = ctx.in_body_doc
 
     def create_out_string(self, ctx, charset=None):

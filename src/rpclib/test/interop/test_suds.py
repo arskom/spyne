@@ -212,7 +212,6 @@ class TestSuds(unittest.TestCase):
 
         assert ret.i == val.i
         assert ret.sr.i == val.sr.i
-        assert ret.sr.sr == val.sr.sr
 
     def test_echo_nested_class(self):
         val = self.client.factory.create("{punk.tunk}NestedClass");

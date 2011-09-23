@@ -65,6 +65,9 @@ class ModelBase(object):
     # These are not the xml schema defaults. The xml schema defaults are
     # considered in ComplexModel's add_to_schema method. the defaults here
     # are to reflect what people seem to want most.
+    #
+    # please note that min_occurs and max_occurs must be validated in the
+    # ComplexModelBase deserializer.
     class Attributes(object):
         """The class that holds the constraints for the given type."""
 
@@ -215,9 +218,17 @@ class ModelBase(object):
 
         return (cls.__name__, cls.__bases__, cls_dict)
 
-    @classmethod
-    def validate(cls, value):
-        """Override this method to do your own input validation."""
+    @staticmethod
+    def validate_string(cls, value):
+        """Override this method to do your own input validation on the input
+        string."""
+        return True
+
+    @staticmethod
+    def validate_native(cls, value):
+        """Override this method to do your own input validation on the native
+        value."""
+        return True
 
 class Null(ModelBase):
     @classmethod
@@ -258,3 +269,10 @@ class SimpleModel(ModelBase):
     @staticmethod
     def is_default(cls):
         return (cls.Attributes.values == SimpleModel.Attributes.values)
+
+    @staticmethod
+    def validate_string(cls, value):
+        return (    ModelBase.validate_string(cls, value)
+                and (len(cls.Attributes.values) == 0 or
+                                                value in cls.Attributes.values)
+            )

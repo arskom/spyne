@@ -62,11 +62,13 @@ class ProtocolBase(object):
     allowed_http_verbs = ['GET','POST']
     mime_type = 'application/octet-stream'
 
-    def __init__(self, app=None):
+    def __init__(self, app=None, validator=None):
         self.__app = None
 
         self.set_app(app)
         self.event_manager = EventManager(self)
+        self.validator = validator
+        self.check_validator()
 
     @property
     def app(self):

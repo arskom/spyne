@@ -56,8 +56,6 @@ The following would definitely be nice to have, but are just modules that should
 not cause a change in unrelated areas of rpclib. Those would increment the minor
 version number of the Rpclib version once implemented.
 
-* Currently, parameter validation is performed only by lxml's schema validator.
-  Implement soft validation that'd work for any serializer for the primitives.
 * Support for the JsonObject (a la XmlObject) and JsonRpc protocols.
 * Support for the JsonSchema interface document standard.
 * Support for the Thrift binary protocol.

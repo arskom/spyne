@@ -76,7 +76,7 @@ def _parse_xml_string(xml_string, charset=None):
         try:
             root, xmlids = etree.XMLID(xml_string.decode(charset))
         except XMLSyntaxError,e:
-            raise Fault('Client.XMLSyntaxError')
+            raise Fault('Client.XMLSyntaxError',str(e))
 
     except ValueError,e:
         logger.debug('%s -- falling back to str decoding.' % (e))
