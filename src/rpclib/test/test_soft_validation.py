@@ -159,8 +159,6 @@ class TestSoap11SoftValidation(unittest.TestCase):
         ctx = MethodContext(application)
         ctx.in_string = [u"""
             <SOAP-ENV:Envelope xmlns:ns0="tns"
-                               xmlns:xs="http://www.w3.org/2001/XMLSchema"
-                               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                                xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
                <SOAP-ENV:Body>
                   <ns0:some_method>
@@ -175,7 +173,7 @@ class TestSoap11SoftValidation(unittest.TestCase):
         server = ServerBase(application)
         server.get_in_object(ctx)
 
-        print ctx.in_error
+        self.assertEquals(isinstance(ctx.in_error, ValidationError), True)
 
 if __name__ == '__main__':
     unittest.main()
