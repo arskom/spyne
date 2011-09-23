@@ -60,6 +60,13 @@ class SchemaValidationError(Fault):
         Fault.__init__(self, 'Client.SchemaValidationError', faultstring)
 
 class XmlObject(ProtocolBase):
+    """The protocol that serializes python objects to xml using schema
+    conventions.
+
+    :param app: The owner application instance.
+    :param validator: One of (None, 'soft', 'lxml').
+    """
+
     def __init__(self, app=None, validator=None):
         ProtocolBase.__init__(self, app, validator)
 
@@ -109,6 +116,9 @@ class XmlObject(ProtocolBase):
         handler(self, cls, value, tns, parent_elt, * args, ** kwargs)
 
     def validate_body(self, ctx, body_document):
+        """Sets ctx.method_request_string and calls :func:`set_method_descriptor`
+        """
+
         try:
             self.validate_document(body_document)
             ctx.method_request_string = body_document.tag
@@ -122,6 +132,9 @@ class XmlObject(ProtocolBase):
             self.set_method_descriptor(ctx)
 
     def create_in_document(self, ctx, charset=None):
+        """Uses the iterable of string fragments in ``ctx.in_string`` to set
+        ``ctx.in_document``"""
+
         ctx.in_document = etree.fromstring(ctx.in_string, charset)
 
         self.validate_body(ctx, ctx.in_document)
@@ -131,6 +144,7 @@ class XmlObject(ProtocolBase):
 
     def create_out_string(self, ctx, charset=None):
         """Sets an iterable of string fragments to ctx.out_string"""
+
         if charset is None:
             charset = 'utf8'
 
