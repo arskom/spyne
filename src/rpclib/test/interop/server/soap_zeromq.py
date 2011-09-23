@@ -26,7 +26,7 @@ from rpclib.server.zeromq import ZeroMQServer
 if __name__ == '__main__':
     url = "tcp://*:5555"
     logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('rpclib.protocol.soap.soap11').setLevel(logging.DEBUG)
+    logging.getLogger('rpclib.protocol.xml').setLevel(logging.DEBUG)
 
     server = ZeroMQServer(soap_application, url)
     logging.info("************************")

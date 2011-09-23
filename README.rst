@@ -1,48 +1,48 @@
 
 Warning! This is from rpclib's unstable development branch.
 
-*****
 About
-*****
+=====
 
 Rpclib aims to save the protocol implementers the hassle of implementing their
 own remote procedure call api and the application programmers the hassle of
-jumping through hoops just to expose a service using multiple protocols and
+jumping through hoops just to expose their services using multiple protocols and
 transports.
 
-Rpclib comes with the implementations of popular transports, protocols and
-interface documents along with an easy-to-use API that lets you extend existing
-functionality. It currently supports the WSDL 1.1 interface definition standard,
+Rpclib comes with the implementations of popular transport, protocol and
+interface document standards along with an easy-to-use API that lets you
+build on and extend existing functionality.
+
+Rpclib currently supports the WSDL 1.1 interface description standard,
 along with SOAP 1.1 and the rest-minus-the-verbs HttpRpc protocols which can be
-transported mainly via HTTP. We also support ZeroMQ transport where appropriate.
-The transports can be used in a both client or server environment.
+transported via HTTP or ZeroMQ. The transports can be used in a both client or
+server setting.
 
 The following are the primary sources of information about rpclib:
 
-* The latest documentation for Rpclib can be found `here <http://arskom.github.com/rpclib>`_.
-* The source code is `here <https://github.com/arskom/rpclib>`_.
-* The official rpclib discussion forum can be found `here <http://mail.python.org/mailman/listinfo/soap>`_.
-* You can download Rpclib packages from `github <http://github.com/arskom/rpclib/downloads>`_ or 
-  `pypi <http://pypi.python.org/pypi/rpclib>`_.
+* The latest documentation for Rpclib can be found at: http://arskom.github.com/rpclib
+* The official source code repository is at: https://github.com/arskom/rpclib
+* The official rpclib discussion forum is at: http://mail.python.org/mailman/listinfo/soap
+* You can download Rpclib packages from `github <http://github.com/arskom/rpclib/downloads>`_
+  or `pypi <http://pypi.python.org/pypi/rpclib>`_.
 
 Rpclib is a generalized version of a soap processing library known as soaplib.
 The following legacy versions of soaplib are also available in the source repository at github
 as branches.
 
-* See `here <http://github.com/arskom/rpclib/tree/soaplib-0_8>`_ for the stable soaplib-0.8 branch.
-* See `here <http://github.com/arskom/rpclib/tree/soaplib-1_0>`_ for the stable soaplib-1.0 branch.
-* See `here <http://github.com/arskom/rpclib/tree/soaplib-2_0>`_ for the stable soaplib-2.0 branch.
+* Soaplib-0.8 branch: http://github.com/arskom/rpclib/tree/soaplib-0_8
+* Soaplib-1.0 branch: http://github.com/arskom/rpclib/tree/soaplib-1_0
+* Soaplib was never released as a stable package, but the branch is still
+  available: http://github.com/arskom/rpclib/tree/soaplib-2_0
 
-************
 Requirements
-************
+============
 
 Rpclib reportedly runs on any version of Python from 2.4 through 2.7. We're also
 looking for volunteers to test Python 3.x.
 
-Our aim is to have no requirements besides the standard Python library for the
-Rpclib core. While much progress was made towards this goal, there's still some
-work to be done. So currently, the following is needed if you want to run any
+While the aim is to have no requirements besides the standard Python library for
+the Rpclib core, the following packages are needed if you want to run any
 Rpclib service at all:
 
 * `lxml <http://codespeak.net/lxml/>`_
@@ -50,7 +50,8 @@ Rpclib service at all:
 
 both of which are available through ``easy_install``.
 
-And the following is needed for various subsystems that Rpclib supports:
+Additionally the following software packages are needed for various subsystems
+that Rpclib supports:
 
 * `SQLAlchemy <http://sqlalchemy.org>`_ for :class:`rpclib.model.table.TableModel`.
 * `pyzmq <https://github.com/zeromq/pyzmq>`_ for
@@ -58,30 +59,34 @@ And the following is needed for various subsystems that Rpclib supports:
   :class:`rpclib.server.zeromq.ZeroMQServer`.
 * A Wsgi server of your choice to wrap :class:`rpclib.server.wsgi.WsgiApplication`.
 
-**********
 Installing
-**********
+==========
 
-To install rpclib, you can use git to clone from github or install from pypi::
+You can get rpclib via pypi: ::
+
+    easy_install rpclib
+
+or you can clone from github: ::
 
     git clone git://github.com/arskom/rpclib.git
 
-and run its setup script as usual: ::
+or get the source distribution from one of the download sites and unpack it.
 
-    cd rpclib
+To install from source distribution, you should run its setup script as usual: ::
+
     python setup.py install
 
 To run the non-interop tests use: ::
 
     python setup.py test
 
-And if you want to make any changes to the rpclib code, it's more comfortable to use: ::
+And if you want to make any changes to the rpclib code, it's more comfortable to
+use: ::
 
     python setup.py develop
 
-************
 Contributing
-************
+============
 
 The main developers of rpclib lurk in the official soap implementors forum
 in python.org, `here <http://mail.python.org/mailman/listinfo/soap/>`_.

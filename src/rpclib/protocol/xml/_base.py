@@ -99,7 +99,7 @@ class XmlObject(ProtocolBase):
         # for performance reasons, we don't want the following to run
         # in production even though we won't see the results.
         # that's why one needs to explicitly set the logging level of
-        # the 'rpclib.protocol.soap.soap11' to DEBUG to see the xml data.
+        # the 'rpclib.protocol.xml' to DEBUG to see the xml data.
 
         self.log_messages = (logger.level == logging.DEBUG)
 

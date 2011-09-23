@@ -5,6 +5,7 @@ Changelog
 rpclib-2.3.4-beta
 -----------------
  * Fix Fault publishing in Wsdl.
+ * Documentation improvements.
 
 rpclib-2.3.3-beta
 -----------------

@@ -19,7 +19,7 @@ here: http://github.com/arskom/rpclib/blob/master/examples/user_manager/server_b
 
     import logging
     logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('rpclib.protocol.soap.soap11').setLevel(logging.DEBUG)
+    logging.getLogger('rpclib.protocol.xml').setLevel(logging.DEBUG)
 
     from rpclib.application import Application
     from rpclib.decorator import rpc
@@ -108,7 +108,7 @@ here: http://github.com/arskom/rpclib/blob/master/examples/user_manager/server_b
 
         server.serve_forever()
 
-Rpclib uses ``ComplexModel`` as a general type that when extended will produce complex
+Juping into what's new: Rpclib uses ``ComplexModel`` as a general type that when extended will produce complex
 serializable types that can be used in a public service. The ``Permission`` class is a
 fairly simple class with just two members: ::
 
@@ -116,7 +116,7 @@ fairly simple class with just two members: ::
         application = String
         feature = String
 
-The ``User`` class is more interesting: ::
+Let's also look at the ``User`` class: ::
 
     class User(ComplexModel):
         user_id = Integer
@@ -126,13 +126,13 @@ The ``User`` class is more interesting: ::
 
 Nothing new so far.
 
-Below, you can see that the ``email`` member which has a regular expression restriction
-defined. The String type accepts other restrictions, please refer to its documentation for
-more info: :class:`rpclib.model.primitive.String`
+Below, you can see that the ``email`` member which has a regular expression
+restriction defined. The String type accepts other restrictions, please refer to
+the :class:`rpclib.model.primitive.String` documentation for more information: ::
 
         email = String(pattern=r'\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[A-Z]{2,4}\b')
 
-The permissions attribute is an array, whose native type is a ``list`` of ``Permission``
+The ``permissions`` attribute is an array, whose native type is a ``list`` of ``Permission``
 objects. ::
 
         permissions = Array(Permission)
@@ -148,11 +148,12 @@ representations. ::
 
         permissions = Permission.customize(max_occurs='unbounded')
 
-Here, we need to use the :func:`rpclib.model._base.ModelBase.customize` call because
-calling a ``ComplexModel`` child instantiates that class, whereas calling a ``SimpleModel``
-object returns a duplicate of that class. The ``customize`` function just sets given arguments
-as class attributes to ``cls.Attributes`` class. You can refer to the documentation of
-each class to see which member of the ``Attributes`` class is used for the given object.
+Here, we need to use the :func:`rpclib.model._base.ModelBase.customize` call
+because calling a ``ComplexModel`` child instantiates that class, whereas
+calling a ``SimpleModel`` child returns a duplicate of that class. The
+``customize`` function just sets given arguments as class attributes to
+``cls.Attributes`` class. You can refer to the documentation of each class to
+see which member of the ``Attributes`` class is used for the given object.
 
 Here, we define a function to be called for every method call. It instantiates
 the ``UserDefinedContext`` class and sets it to the context object's ``udc``
@@ -186,9 +187,10 @@ with no specific api it should adhere to, other than your own. ::
             return _user_id_seq
 
 Such custom objects could be used to manage everything from transactions to
-logging or to performance measurements. (see the events.py example in the
-examples directory in the source distribution for an example on using events to
-measure method performance.
+logging or to performance measurements. You can have a look at the
+`events.py example `http://github.com/arskom/rpclib/blob/master/examples/user_manager/server_basic.py>`_
+in the examples directory in the source distribution for an example on using
+events to measure method performance)
 
 What's next?
 ------------
@@ -196,10 +198,8 @@ What's next?
 This tutorial walks you through what you need to know to expose basic
 services. You can read the :ref:`manual-sqlalchemy` document where the
 :class:`rpclib.model.table.TableModel` class and its helpers are introduced.
-These tools are useful to those who'd like to expose their database application
-using rpclib. Otherwise, you can look at the
-:ref:`manual-metadata` section where service metadata management apis are
-introduced.
+You can also have look at the :ref:`manual-metadata` section where service
+metadata management apis are introduced.
 
 Otherwise, please refer to the rest of the documentation or the mailing list
 if you have further questions.

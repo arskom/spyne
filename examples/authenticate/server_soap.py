@@ -165,7 +165,7 @@ if __name__=='__main__':
     from rpclib.util.wsgi_wrapper import run_twisted
 
     logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('rpclib.protocol.soap.soap11').setLevel(logging.DEBUG)
+    logging.getLogger('rpclib.protocol.xml').setLevel(logging.DEBUG)
     logging.getLogger('twisted').setLevel(logging.DEBUG)
 
     application = Application([AuthenticationService,UserService],

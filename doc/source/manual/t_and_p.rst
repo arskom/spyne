@@ -11,34 +11,32 @@ How Exactly is User Code Wrapped?
 
 Here's what happens when a request arrives to an Rpclib server:
 
-The server transport decides whether this is a simple interface request
-or a remote procedure call request. Every transport has its own way of
-dealing with this.
+The server transport decides whether this is a simple interface document request
+or a remote procedure call request. Every transport has its own way of dealing
+with this.
 
 If the incoming request was for the interface document, it's easy: The interface
 document needs to be generated and returned as a nice chunk of string to the
 client.
 The server transport first calls
-``self.app.interface.build_interface_document()``
+:func:`self.app.interface.build_interface_document`
 which builds and caches the document and later calls the
 :func:`rpclib.interface._base.InterfaceBase.get_interface_document` that returns
-the cached
-document.
+the cached document.
 
 If it was an RPC request, here's what happens:
 
 #. The server must set the ``ctx.in_string`` attribute to an iterable of
-   strings.
-   This will contain the incoming byte stream.
+   strings. This will contain the incoming byte stream.
 #. The server calls the :class:`rpclib.server.ServerBase.get_in_object` function
    from its parent class.
 #. The server then calls the ``create_in_document``,
    ``decompose_incoming_envelope``
-   and ``deserialize`` functions from the protocol class. The first call parses
+   and ``deserialize`` functions from the protocol class in the ``in_protocol``
+   attribute. The first call parses
    incoming stream to the protocol serializer's internal representation. This
    is then split to header and body parts by the second call and deserialized to
-   the
-   native python representation by the third call.
+   the native python representation by the third call.
 #. Once the protocol performs its voodoo, the server calls ``get_out_object``
    which in turn calls the
    :func:`rpclib.application.Application.process_request`
@@ -46,7 +44,8 @@ If it was an RPC request, here's what happens:
 #. The ``process_request`` function fires relevant events and calls the
    :func:`rpclib.application.Application.call_wrapper` function.
    This function is overridable by user, but the overriding function must call
-   the one in :class:`rpclib.application.Application`. This in
+   the one in :class:`rpclib.application.Application`.
+#. The ``call_wrapper`` function in
    turn calls the :func:`rpclib.service.ServiceBase.call_wrapper` function,
    which has has the same requirements.
 #. The :func:`rpclib.service.ServiceBase.call_wrapper` finally calls the user
@@ -58,7 +57,7 @@ If it was an RPC request, here's what happens:
    functions of the protocol class.
 #. The server pushes the stream from ctx.out_string back to the client.
 
-You can apply the same logic in reverse to the client transport.
+The same logic applies to client transports, in reverse.
 
 So if you want to implement a new transport or protocol, all you need to do is
 to subclass the relevant base class and implement the missing methods.
@@ -69,18 +68,18 @@ A Transport Example: A DB-Backed Fan-Out Queue
 Here's the source code in one file:
 https://github.com/arskom/rpclib/blob/master/examples/queue.py
 
-We skip the imports and dive straight into code. Here's the SQLAlchemy
+The following block of code is SQLAlchemy
 boilerplate for creating the database and other related machinery. Under normal
 conditions, you should pass the sqlalchemy url to the Producer and Consumer
 instances instead of the connection object itself, but here as we deal with an
-in-memory database, global variable ugliness is just a cleaner way to pass
+in-memory database, global variable ugliness is just a nicer way to pass
 database handles. ::
 
     db = create_engine('sqlite:///:memory:')
     metadata = MetaData(bind=db)
     DeclarativeBase = declarative_base(metadata=metadata)
 
-This the table where queued messages are stored. Note that it's a vanilla
+This is the table where queued messages are stored. Note that it's a vanilla
 SQLAlchemy object: ::
 
     class TaskQueue(DeclarativeBase):
@@ -104,13 +103,13 @@ The consumer is a :class:`rpclib.server._base.ServerBase` child that receives
 requests by polling the database. 
 
 The transport is for displaying it in the Wsdl. While it's irrelevant here, it's
-nice to put it in. ::
+nice to put it in: ::
 
     class Consumer(ServerBase):
         transport = 'http://sqlalchemy.persistent.queue/'
 
 We set the incoming values, create a database connection and set it to
-`self.session`. ::
+`self.session`: ::
 
         def __init__(self, db, app, consumer_id):
             ServerBase.__init__(self, app)
@@ -119,7 +118,7 @@ We set the incoming values, create a database connection and set it to
             self.id = consumer_id
 
 We also query the worker status table and get the id for the first task. If
-there is no record for own worker id, the server starts from task_id=0. ::
+there is no record for own worker id, the server starts from the beginning: ::
 
             try:
                 self.session.query(WorkerStatus) \
@@ -128,12 +127,10 @@ there is no record for own worker id, the server starts from task_id=0. ::
                 self.session.add(WorkerStatus(worker_id=self.id, task_id=0))
                 self.session.commit()
 
-This is the main loop for our server. ::
+This is the main loop for our server: ::
 
         def serve_forever(self):
             while True:
-                last = self.session.query(WorkerStatus).with_lockmode("update") \
-                            .filter_by(worker_id=self.id).one()
 
 We first get the id of the last processed task: ::
 
@@ -146,9 +143,9 @@ Which is used to get the next tasks to process: ::
                         .filter(TaskQueue.id > last.task_id) \
                         .order_by(TaskQueue.id)
 
-Each task is a procedure call, so we create a :class:`rpclib.MethodContext`
+Each task is an rpc request, so we create a :class:`rpclib.MethodContext`
 instance for each task and set transport-specific data to the ``ctx.transport``
-object. ::
+object: ::
 
                 for task in task_queue:
                     ctx = MethodContext(self.app)
@@ -156,7 +153,7 @@ object. ::
                     ctx.transport.consumer_id = self.id
                     ctx.transport.task_id = task.id
 
-This call parses the incoming request. ::
+This call parses the incoming request: ::
 
                     self.get_in_object(ctx)
 
@@ -171,7 +168,7 @@ we'd worry about returning the error to the client as well as logging it. ::
                         continue
 
 As the request was parsed correctly, the user method can be called to process
-the task. ::
+the task: ::
 
                     self.get_out_object(ctx)
 
@@ -190,18 +187,18 @@ instead. ::
                     self.get_out_string(ctx)
                     logging.debug(''.join(ctx.out_string))
 
-Finally, the task marked as processed.
+Finally, the task is marked as processed.
 
                     last.task_id = task.id
                     self.session.commit()
 
 Once all tasks in queue are consumed, the server waits a pre-defined amount of
-time before polling the database for new tasks. ::
+time before polling the database for new tasks: ::
 
             time.sleep(10)
 
 This concludes the worker implementation. But how do we put tasks in the task
-queue? That's the job of the ``Producer`` class that is implemented as an rpclib
+queue? That's the job of the ``Producer`` class that is implemented as an Rpclib
 client.
 
 Implementing clients is a two-stage operation. The main transport logic is in
@@ -237,7 +234,7 @@ And put the resulting bytestream to the database: ::
             session.commit()
             session.close()
 
-Again, here the function does not return anything because this is an asyncronous
+Again here the function does not return anything because this is an asyncronous
 client.
 
 Here's the ``Producer`` class whose sole purpose is to initialize the right

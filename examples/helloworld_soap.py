@@ -84,7 +84,7 @@ if __name__=='__main__':
         print "Error: example server code requires Python >= 2.5"
 
     logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('rpclib.protocol.soap.soap11').setLevel(logging.DEBUG)
+    logging.getLogger('rpclib.protocol.xml').setLevel(logging.DEBUG)
 
     application = Application([HelloWorldService], 'rpclib.examples.hello.soap',
                 interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())

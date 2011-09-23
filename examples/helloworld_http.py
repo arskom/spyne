@@ -85,7 +85,7 @@ if __name__=='__main__':
         print "Error: example server code requires Python >= 2.5"
 
     logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('rpclib.protocol.xml._base').setLevel(logging.DEBUG)
+    logging.getLogger('rpclib.protocol.xml').setLevel(logging.DEBUG)
 
     application = Application([HelloWorldService], 'rpclib.examples.hello.http',
             interface=Wsdl11(), in_protocol=HttpRpc(), out_protocol=XmlObject())

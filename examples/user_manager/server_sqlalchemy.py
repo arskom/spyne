@@ -31,7 +31,7 @@
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
-logging.getLogger('rpclib.protocol.soap._base').setLevel(logging.DEBUG)
+logging.getLogger('rpclib.protocol.xml').setLevel(logging.DEBUG)
 logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
 
 import sqlalchemy

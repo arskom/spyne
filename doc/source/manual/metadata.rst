@@ -4,13 +4,13 @@
 Working with RPC Metadata
 =========================
 
-This section builds on :ref:`manual-usermanager` section. If you haven’t done so,
-we recommended you to read it first.
+This section builds on :ref:`manual-user-manager` section. If you haven’t done
+so, we recommended you to read it first.
 
-In most of the real-world scenarios, rpc data comes with additional baggage like
-authentication headers, routing history, and similar information. Rpclib comes
-with rich mechanisms that lets you deal with both protocol and transport
-metadata.
+In most of the real-world scenarios, an rpc request comes with additional
+baggage like authentication headers, routing history, and similar information.
+Rpclib comes with rich mechanisms that lets you deal with both protocol and
+transport metadata.
 
 At the protocol level, the input and the output of the rpc function itself
 are kept in ``ctx.in_object`` and ``ctx.out_object`` attributes of the
@@ -58,8 +58,7 @@ service definition: ::
 
 Or in the decorator: ::
 
-        @srpc(Mandatory.String, _throws=PublicValueError,
-                                _in_header=RequestHeader, _returns=Preferences)
+        @rpc(_in_header=RequestHeader, _returns=Preferences)
 
 It's generally a better idea to set the header types in the ServiceBase child
 as it's likely that a lot of methods will use it. This will avoid cluttering the
@@ -81,26 +80,23 @@ should be used for setting headers.
 Exceptions
 ----------
 
-The base class for public exceptions in rpclib is :class:`rpclib.model.fault.Fault`.
-The Fault object adheres to the `SOAP 1.1 Fault definition <http://www.w3.org/TR/2000/NOTE-SOAP-20000508/#_Toc478383507>`_,
+The base class for public exceptions in rpclib is
+:class:`rpclib.model.fault.Fault`. The Fault object adheres to the
+`SOAP 1.1 Fault definition <http://www.w3.org/TR/2000/NOTE-SOAP-20000508/#_Toc478383507>`_,
 which has three main attributes:
 
-    #. ``faultcode``: is a dot-delimited string whose first part is either 'Client'
-       or 'Server'. Just like HTTP 4xx and 5xx codes, 'Client' indicates that
-       something was wrong with the input, and 'Server' indicates something went
-       wrong during the processing of the otherwise legitimate request.
+    #. ``faultcode``: is a dot-delimited string whose first part is either
+       'Client' or 'Server'. Just like HTTP 4xx and 5xx codes, 'Client' indicates
+       that something was wrong with the input, and 'Server' indicates something
+       went wrong during the processing of the otherwise legitimate request.
 
        Protocol implementors should heed the values in ``faultcode`` to set
        proper return codes in the protocol level when necessary. E.g. HttpRpc
        protocol will return a HTTP 404 error when a
        :class:`rpclib.error.ResourceNotFound` is raised, and a general HTTP 400
        when the ``faultcode`` starts with 'Client.'.
-
     #. ``faultstring``: is the human-readable explanation of the exception.
     #. ``detail``: is the additional information as a valid xml document.
-
-
-You can define Java-like exception definitions in the decorator.
 
 Here's how you define your own public exceptions: ::
 
@@ -139,8 +135,8 @@ We can now modify the decorator to expose the exception this service can throw: 
 
 While this is not really necessary in the world of the dynamic languages, it'd
 still be nice to specify the exceptions your service can throw in the interface
-document. Plus, it will be easier to interoperate with Java-like languages where
-exceptions are kept on a short leash.
+document. Plus, intefacing with your services will just feel more natural with
+languages like Java where exceptions are kept on a short leash.
 
 What's next?
 ^^^^^^^^^^^^
@@ -151,4 +147,3 @@ implement your own transports and protocols.
 
 Otherwise, please refer to the rest of the documentation or the mailing list
 if you have further questions.
-

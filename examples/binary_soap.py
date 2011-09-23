@@ -89,7 +89,7 @@ if __name__=='__main__':
                 interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
 
     logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('rpclib.protocol.soap.soap11').setLevel(logging.DEBUG)
+    logging.getLogger('rpclib.protocol.xml').setLevel(logging.DEBUG)
 
     server = make_server('127.0.0.1', 7789, WsgiApplication(application))
     print "listening to http://127.0.0.1:7789"
