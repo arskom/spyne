@@ -32,7 +32,7 @@ as branches.
 
 * Soaplib-0.8 branch: http://github.com/arskom/rpclib/tree/soaplib-0_8
 * Soaplib-1.0 branch: http://github.com/arskom/rpclib/tree/soaplib-1_0
-* Soaplib was never released as a stable package, but the branch is still
+* Soaplib-2.0 was never released as a stable package, but the branch is still
   available: http://github.com/arskom/rpclib/tree/soaplib-2_0
 
 Requirements
