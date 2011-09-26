@@ -14,7 +14,7 @@ Defining an Rpclib Service
 Here we introduce the fundamental mechanisms the rpclib offers to expose your
 services.
 
-This example is available here: http://github.com/arskom/rpclib/blob/master/examples/helloworld_soap.py.
+This example is available here: http://github.com/arskom/rpclib/blob/master/examples/helloworld_soap.py
 ::
 
     import logging
@@ -171,6 +171,11 @@ handler to the wsgi server, and run the http server: ::
         print "wsdl is at: http://localhost:7789/?wsdl"
 
         server.serve_forever()
+
+.. NOTE::
+    * **Django users:** See this gist for a django wrapper example: https://gist.github.com/1242760
+    * **Twisted users:** See the this example that illustrates deploying an
+      Rpclib application using twisted: http://github.com/arskom/rpclib/blob/master/examples/helloworld_soap_twisted.py
 
 You can test your service using suds. Suds is a separate project for building
 pure-python soap clients. To learn more visit the project's page:
