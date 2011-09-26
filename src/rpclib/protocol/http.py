@@ -82,7 +82,6 @@ class HttpRpc(ProtocolBase):
             frequencies = {}
 
             for k, v in ctx.in_body_doc.items():
-                setattr(inst, k, None)
                 member = flat_type_info.get(k, None)
                 if member is None:
                     continue
@@ -113,14 +112,18 @@ class HttpRpc(ProtocolBase):
                         raise ValidationError(v)
                     native_v = member.from_string(v)
                     if self.validator == 'soft' and not member.validate_native(member, native_v):
-                        raise ValidationError(v2)
-                    setattr(inst, k, native_v)
-                    freq = frequencies.get(k,0)
-                    freq+=1
+                        raise ValidationError(native_v)
+
+                    if native_v is None:
+                        setattr(inst, k, member.Attributes.default)
+                    else:
+                        setattr(inst, k, native_v)
+
+                    freq = frequencies.get(k, 0)
+                    freq += 1
                     frequencies[k] = freq
 
             if self.validator == 'soft':
-                print frequencies
                 for k,c in flat_type_info.items():
                     val = frequencies.get(k, 0)
                     if val < c.Attributes.min_occurs \

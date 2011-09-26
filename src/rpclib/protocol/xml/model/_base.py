@@ -28,7 +28,10 @@ _ns_xsd = rpclib.const.xml_ns.xsd
 def nillable_value(func):
     def wrapper(prot, cls, value, tns, parent_elt, *args, **kwargs):
         if value is None:
-            null_to_parent_element(prot, cls, value, tns, parent_elt, *args, **kwargs)
+            if cls.Attributes.default is None:
+                null_to_parent_element(prot, cls, value, tns, parent_elt, *args, **kwargs)
+            else:
+                func(prot, cls, cls.Attributes.default, tns, parent_elt, *args, **kwargs)
         else:
             func(prot, cls, value, tns, parent_elt, *args, **kwargs)
     return wrapper
@@ -39,7 +42,10 @@ def nillable_element(func):
             if prot.validator == 'soft' and not cls.Attributes.nillable:
                 raise ValidationError('')
             else:
-                return None
+                if cls.Attributes.default is None:
+                    return None
+                else:
+                    return cls.Attributes.default
         else:
             return func(prot, cls, element)
     return wrapper

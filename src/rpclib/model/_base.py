@@ -71,6 +71,9 @@ class ModelBase(object):
     class Attributes(object):
         """The class that holds the constraints for the given type."""
 
+        default = None
+        """The default value if the input is None"""
+
         nillable = True
         """Set this to false to reject null values."""
 
