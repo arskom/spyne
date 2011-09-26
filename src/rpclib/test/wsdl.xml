@@ -74,6 +74,7 @@
       <xs:import namespace="bar" />
       <xs:import namespace="rpclib.test.interop.server._service" />
       <xs:import namespace="hunk.sunk" />
+      <xs:element name="Fault" type="tns:Fault" />
       <xs:element name="InHeader" type="tns:InHeader" />
       <xs:element name="InTraceHeader" type="tns:InTraceHeader" />
       <xs:element name="OutHeader" type="tns:OutHeader" />
@@ -88,6 +89,8 @@
       <xs:element name="dateTimeArray" type="tns:dateTimeArray" />
       <xs:element name="do_something_else" type="tns:do_something_else" />
       <xs:element name="do_something_elseResponse" type="tns:do_something_elseResponse" />
+      <xs:element name="documented_exception" type="tns:documented_exception" />
+      <xs:element name="documented_exceptionResponse" type="tns:documented_exceptionResponse" />
       <xs:element name="doubleArray" type="tns:doubleArray" />
       <xs:element name="echo_any" type="tns:echo_any" />
       <xs:element name="echo_anyResponse" type="tns:echo_anyResponse" />
@@ -190,6 +193,9 @@
           <xs:enumeration value="MEMBER" />
         </xs:restriction>
       </xs:simpleType>
+      <xs:complexType name="Fault">
+        <xs:sequence />
+      </xs:complexType>
       <xs:complexType name="InHeader">
         <xs:sequence>
           <xs:element minOccurs="0" name="i" nillable="true" type="xs:integer" />
@@ -264,6 +270,12 @@
         <xs:sequence>
           <xs:element minOccurs="0" name="do_something_elseResult" nillable="true" type="xs:string" />
         </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="documented_exception">
+        <xs:sequence />
+      </xs:complexType>
+      <xs:complexType name="documented_exceptionResponse">
+        <xs:sequence />
       </xs:complexType>
       <xs:complexType name="doubleArray">
         <xs:sequence>
@@ -710,6 +722,9 @@
       </xs:complexType>
     </xs:schema>
   </wsdl:types>
+  <wsdl:message name="Fault">
+    <wsdl:part element="tns:Fault" name="Fault" />
+  </wsdl:message>
   <wsdl:message name="InHeader">
     <wsdl:part element="tns:InHeader" name="InHeader" />
   </wsdl:message>
@@ -730,6 +745,12 @@
   </wsdl:message>
   <wsdl:message name="do_something_elseResponse">
     <wsdl:part element="tns:do_something_elseResponse" name="do_something_elseResponse" />
+  </wsdl:message>
+  <wsdl:message name="documented_exception">
+    <wsdl:part element="tns:documented_exception" name="documented_exception" />
+  </wsdl:message>
+  <wsdl:message name="documented_exceptionResponse">
+    <wsdl:part element="tns:documented_exceptionResponse" name="documented_exceptionResponse" />
   </wsdl:message>
   <wsdl:message name="echo_any">
     <wsdl:part element="tns:echo_any" name="echo_any" />
@@ -1044,6 +1065,11 @@
       <wsdl:input message="tns:do_something_else" name="do_something_else" />
       <wsdl:output message="tns:do_something_elseResponse" name="do_something_elseResponse" />
     </wsdl:operation>
+    <wsdl:operation name="documented_exception" parameterOrder="documented_exception">
+      <wsdl:input message="tns:documented_exception" name="documented_exception" />
+      <wsdl:output message="tns:documented_exceptionResponse" name="documented_exceptionResponse" />
+      <wsdl:fault message="tns:Fault" name="Fault" />
+    </wsdl:operation>
     <wsdl:operation name="echo_any" parameterOrder="echo_any">
       <wsdl:input message="tns:echo_any" name="echo_any" />
       <wsdl:output message="tns:echo_anyResponse" name="echo_anyResponse" />
@@ -1237,6 +1263,18 @@
       <wsdl:output name="do_something_elseResponse">
         <soap:body use="literal" />
       </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="documented_exception">
+      <soap:operation soapAction="documented_exception" style="document" />
+      <wsdl:input name="documented_exception">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="documented_exceptionResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="Fault">
+        <soap:fault name="Fault" use="literal" />
+      </wsdl:fault>
     </wsdl:operation>
     <wsdl:operation name="echo_any">
       <soap:operation soapAction="echo_any" style="document" />

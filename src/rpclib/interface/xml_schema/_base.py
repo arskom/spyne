@@ -50,7 +50,7 @@ from rpclib.interface.xml_schema.model.primitive import string_get_restriction_t
 from rpclib.interface.xml_schema.model.primitive import decimal_get_restriction_tag
 
 _add_handlers = cdict({
-    object: lambda self,cls: None,
+    object: lambda interface,cls: None,
     SimpleModel: simple_add,
     ComplexModelBase: complex_add,
     Fault: fault_add,
@@ -75,7 +75,7 @@ class XmlSchema(InterfaceBase):
     standard.
     """
 
-    def __init__(self, app, import_base_namespaces=False):
+    def __init__(self, app=None, import_base_namespaces=False):
         self.schema_dict = {}
         self.validation_schema = None
         self.import_base_namespaces = import_base_namespaces
@@ -167,7 +167,7 @@ class XmlSchema(InterfaceBase):
     def get_interface_document(self):
         return self.schema_dict
 
-    def build_interface_document(self, url):
+    def build_interface_document(self):
         self.build_schema_nodes()
 
     def add_element(self, cls, node):

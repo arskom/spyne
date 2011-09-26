@@ -46,6 +46,7 @@ from rpclib.model.complex import TypeInfo
 from rpclib.model.complex import ComplexModelBase
 from rpclib.model.complex import ComplexModelMeta
 from rpclib.model import primitive
+from rpclib.model import binary
 from rpclib.model import complex
 
 _type_map = {
@@ -59,6 +60,7 @@ _type_map = {
     sqlalchemy.Integer: primitive.Integer,
     sqlalchemy.SmallInteger: primitive.Integer,
 
+    sqlalchemy.LargeBinary: binary.ByteArray,
     sqlalchemy.Boolean: primitive.Boolean,
     sqlalchemy.DateTime: primitive.DateTime,
     sqlalchemy.orm.relation: complex.Array,
@@ -98,7 +100,7 @@ def _is_interesting(k, v):
         else:
             return True
 
-class TableSerializerMeta(DeclarativeMeta, ComplexModelMeta):
+class TableModelMeta(DeclarativeMeta, ComplexModelMeta):
     """This class uses the information in class definition dictionary to build
     the _type_info dictionary that rpclib relies on. It otherwise leaves
     SQLAlchemy and its information alone.
@@ -141,9 +143,11 @@ class TableSerializerMeta(DeclarativeMeta, ComplexModelMeta):
 class TableModel(ComplexModelBase):
     """The main base class for complex types shared by both SQLAlchemy and
     rpclib. Classes that inherit from this class should also inherit from
-    an sqlalchemy.declarative base class."""
+    an sqlalchemy.declarative base class. See the :ref:`manual-sqlalchemy`
+    section for more info.
+    """
 
-    __metaclass__ = TableSerializerMeta
+    __metaclass__ = TableModelMeta
     _decl_class_registry = {}
 
     @classmethod

@@ -16,10 +16,10 @@ Element Tree Conversion
     :members:
     :inherited-members:
 
-Model Utilities
----------------
+Xml Utilities
+-------------
 
-.. automodule:: rpclib.util.model_utils
+.. automodule:: rpclib.util.xml
     :members:
     :inherited-members:
 

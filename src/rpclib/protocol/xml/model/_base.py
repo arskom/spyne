@@ -19,6 +19,7 @@
 
 import rpclib.const.xml_ns
 
+from rpclib.error import ValidationError
 from lxml import etree
 
 _ns_xsi = rpclib.const.xml_ns.xsi
@@ -35,14 +36,22 @@ def nillable_value(func):
 def nillable_element(func):
     def wrapper(prot, cls, element):
         if bool(element.get('{%s}nil' % _ns_xsi)):
-            return None
+            if prot.validator == 'soft' and not cls.Attributes.nillable:
+                raise ValidationError('')
+            else:
+                return None
         else:
             return func(prot, cls, element)
     return wrapper
 
 @nillable_element
 def base_from_element(prot, cls, element):
-    return cls.from_string(element.text)
+    if prot.validator == 'soft' and not (cls.validate_string(cls, element.text)):
+        raise ValidationError(element.text)
+    retval = cls.from_string(element.text)
+    if prot.validator == 'soft' and not (cls.validate_native(cls, retval)):
+        raise ValidationError(element.text)
+    return retval
 
 @nillable_value
 def base_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):

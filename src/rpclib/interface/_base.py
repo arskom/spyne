@@ -140,6 +140,7 @@ class InterfaceBase(object):
         dictionaries. It starts from function definitions and includes only
         the used objects.
         """
+
         # FIXME: should also somehow freeze child classes' _type_info
         #        dictionaries, or at least warn about them.
 
@@ -147,7 +148,7 @@ class InterfaceBase(object):
 
         # populate types
         for s in self.services:
-            logger.debug("populating '%s.%s' types..." % (s.__module__, s.__name__))
+            logger.debug("populating '%s.%s (%s) ' types..." % (s.__module__, s.__name__, s.get_service_key()))
             for method in s.public_methods.values():
                 if method.in_header is None:
                     method.in_header = s.__in_header__
@@ -173,6 +174,15 @@ class InterfaceBase(object):
                         out_header.resolve_namespace(out_header, self.get_tns())
                         self.add(out_header)
 
+                if method.faults is None:
+                    method.faults = []
+                elif not (isinstance(method.faults, (list,tuple))):
+                    method.faults = (method.faults,)
+
+                for fault in method.faults:
+                    fault.__namespace__ = self.get_tns()
+                    self.add(fault)
+
                 method.in_message.resolve_namespace(method.in_message,
                                                                  self.get_tns())
                 self.add(method.in_message)
@@ -181,9 +191,6 @@ class InterfaceBase(object):
                                                                  self.get_tns())
                 self.add(method.out_message)
 
-                for fault in method.faults:
-                    fault.resolve_namespace(fault, self.get_tns())
-                    self.add(fault)
 
         # populate call routes
         for s in self.services:

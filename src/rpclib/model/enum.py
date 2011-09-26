@@ -31,6 +31,12 @@ class EnumBase(SimpleModel):
         if cls.__namespace__ is None:
             cls.__namespace__ = default_ns
 
+    @staticmethod
+    def validate_string(cls, value):
+        return (    SimpleModel.validate_string(cls, value)
+                and value in cls.__values__
+            )
+
 def Enum(*values, **kwargs):
     type_name = kwargs.get('type_name', None)
     docstr = kwargs.get('__doc__', '')

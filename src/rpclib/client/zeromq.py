@@ -17,11 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""A soap client that uses ZeroMQ (zmq.REQ) as transport"""
+"""The ZeroMQ (zmq.REQ) client transport."""
 
 import zmq
-
-import rpclib.protocol.soap
 
 from rpclib.client import Service
 from rpclib.client import RemoteProcedureBase

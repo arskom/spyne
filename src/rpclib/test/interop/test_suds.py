@@ -212,7 +212,6 @@ class TestSuds(unittest.TestCase):
 
         assert ret.i == val.i
         assert ret.sr.i == val.sr.i
-        assert ret.sr.sr == val.sr.sr
 
     def test_echo_nested_class(self):
         val = self.client.factory.create("{punk.tunk}NestedClass");
@@ -245,10 +244,17 @@ class TestSuds(unittest.TestCase):
         self.assertEquals(ret.simple.SimpleClass[0].s, val.simple.SimpleClass[0].s)
         self.assertEqual(ret.other.dt, val.other.dt)
 
+    def test_huge_number(self):
+        self.assertEquals(self.client.service.huge_number(), 2**int(1e5))
+
+    def test_long_string(self):
+        self.assertEquals(self.client.service.long_string(), ('0123456789abcdef' * 16384))
+
+    def test_long_string(self):
+        self.client.service.test_empty()
 
     def test_echo_extension_class(self):
-        service_name = "echo_extension_class";
-        val = self.client.factory.create("{bar}ExtensionClass");
+        val = self.client.factory.create("{bar}ExtensionClass")
 
         val.i = 45
         val.s = "asd"

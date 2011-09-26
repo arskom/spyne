@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# encoding: utf8
+#encoding: utf8
 #
 # Copyright © Burak Arslan <burak at arskom dot com dot tr>,
 #             Arskom Ltd. http://www.arskom.com.tr
@@ -29,34 +29,27 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from rpclib.client.http import HttpClient
+from suds import WebFault
+from suds.client import Client
 
-from server_basic import application
+c = Client('http://localhost:7789/app/?wsdl')
 
-c = HttpClient('http://localhost:7789/', application)
+user_name = 'neo'
 
-u = c.factory.create("User")
+session_id = c.service.authenticate(user_name, 'Wh1teR@bbit')
 
-u.user_name = 'dave'
-u.first_name = 'david'
-u.last_name = 'smith'
-u.email = 'david.smith@example.com'
-u.permissions = []
+request_header = c.factory.create('RequestHeader')
+request_header.session_id = session_id
+request_header.user_name = user_name
 
-permission = c.factory.create("Permission")
-permission.application = 'table'
-permission.operation = 'write'
-u.permissions.append(permission)
+c.set_options(soapheaders=request_header)
+print c.service.get_preferences('neo')
+try:
+    print c.service.get_preferences('trinity')
+except WebFault, e:
+    print e
 
-permission = c.factory.create("Permission")
-permission.application = 'table'
-permission.operation = 'read'
-u.permissions.append(permission)
-
-print u
-
-retval = c.service.add_user(u)
-print retval
-
-print c.service.get_user(retval)
-print c.service.get_all_user()
+try:
+    print c.service.get_preferences('smith')
+except WebFault, e:
+    print e

@@ -35,8 +35,8 @@ processing of the request, which are documented in the relevant classes.
 The classes that support events are:
     * :class:`rpclib.application.Application`
     * :class:`rpclib.service.ServiceBase`
-    * :class:`rpclib.protocol.ProtocolBase`
-    * :class:`rpclib.server.WsgiApplication`
+    * :class:`rpclib.protocol._base.ProtocolBase`
+    * :class:`rpclib.server.wsgi.WsgiApplication`
 
 .. autoclass:: rpclib.EventManager
     :members:

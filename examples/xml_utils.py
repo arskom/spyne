@@ -29,34 +29,57 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from rpclib.client.http import HttpClient
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
-from server_basic import application
+from datetime import datetime
+from pprint import pprint
 
-c = HttpClient('http://localhost:7789/', application)
+from lxml import etree
 
-u = c.factory.create("User")
+from rpclib.model.primitive import String
+from rpclib.model.primitive import Integer
+from rpclib.model.primitive import Decimal
+from rpclib.model.primitive import DateTime
+from rpclib.model.complex import ComplexModel
 
-u.user_name = 'dave'
-u.first_name = 'david'
-u.last_name = 'smith'
-u.email = 'david.smith@example.com'
-u.permissions = []
+from rpclib.util.xml import get_schema_documents
+from rpclib.util.xml import get_object_as_xml
+from rpclib.util.xml import get_validation_schema
 
-permission = c.factory.create("Permission")
-permission.application = 'table'
-permission.operation = 'write'
-u.permissions.append(permission)
+class Punk(ComplexModel):
+    __namespace__ = 'some_namespace'
 
-permission = c.factory.create("Permission")
-permission.application = 'table'
-permission.operation = 'read'
-u.permissions.append(permission)
+    a = String
+    b = Integer
+    c = Decimal
+    d = DateTime
 
-print u
+class Foo(ComplexModel):
+    __namespace__ = 'some_other_namespace'
 
-retval = c.service.add_user(u)
-print retval
+    a = String
+    b = Integer
+    c = Decimal
+    d = DateTime
 
-print c.service.get_user(retval)
-print c.service.get_all_user()
+
+docs = get_schema_documents([Punk, Foo])
+pprint(docs)
+print
+
+# the default ns prefix is always tns
+print "the default namespace %r:" % docs['tns'].attrib['targetNamespace']
+print etree.tostring(docs['tns'], pretty_print=True)
+print
+
+# Namespace prefixes are assigned like s0, s1, s2, etc...
+print "the other namespace %r:" % docs['s0'].attrib['targetNamespace']
+print etree.tostring(docs['s0'], pretty_print=True)
+
+
+foo = Foo(a='a', b=1, c=3.4, d=datetime(2011,02,20))
+print etree.tostring(get_object_as_xml(foo),pretty_print=True)
+
+# See http://lxml.de/validation.html to see what this could be used for.
+print get_validation_schema([Punk, Foo])

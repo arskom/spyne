@@ -7,10 +7,9 @@ SQLAlchemy Integration
 This tutorial builds on the :ref:`manual-user-manager` tutorial. If you haven't
 done so, we recommended you to read it first.
 
-Let's try a more complicated example than storing our data in a mere dictionary.
-
-The following example shows how to integrate SQLAlchemy and Rpclib objects, and
-how to do painless transaction management using Rpclib events.
+In this tutorial, we talk about using Rpclib tools that make it easy to deal with
+database-related operations. We will show how to integrate SQLAlchemy and Rpclib
+object definitions, and how to do painless transaction management using Rpclib events.
 
 The full example is available here: http://github.com/arskom/rpclib/blob/master/examples/user_manager/server_sqlalchemy.py
 
@@ -18,7 +17,7 @@ The full example is available here: http://github.com/arskom/rpclib/blob/master/
 
     import logging
     logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('rpclib.protocol.soap._base').setLevel(logging.DEBUG)
+    logging.getLogger('rpclib.protocol.xml').setLevel(logging.DEBUG)
     logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
 
     import sqlalchemy
@@ -136,8 +135,8 @@ Defined this way, SQLAlchemy objects are regular Rpclib objects that can be used
 anywhere the regular Rpclib types go. The definition for the `User` object is
 quite similar to vanilla SQLAlchemy declarative syntax, save for two elements:
 
-    #. The object also bases on TableModel, which bridges SQLAlchemy and Rpclib
-       types.
+    #. The object also bases on :class:`rpclib.model.table.TableModel`, which
+       bridges SQLAlchemy and Rpclib types.
     #. It has a namespace declaration, which is just so the service looks good
        on wsdl.
 
@@ -151,7 +150,7 @@ The SQLAlchemy integration is far from perfect at the moment:
 If you need any of the above features, you need to separate the rpclib and
 sqlalchemy object definitions.
 
-Rpclib supports this with the following syntax: ::
+Rpclib makes it easy to an extent with the following syntax: ::
 
     class AlternativeUser(TableSerializer, DeclarativeBase):
         __namespace__ = 'rpclib.examples.user_manager'
@@ -188,12 +187,15 @@ We register those handlers to the application's 'method_call' handler: ::
     application.event_manager.add_listener('method_call', _on_method_call)
     application.event_manager.add_listener('method_return_object', _on_method_return_object)
 
-Note that the ``method_return_object`` event is only run when the method call
-was completed without throwing any exceptions.
+Note that the ``method_return_object`` event is only fired when the method call
+completes without throwing any exceptions.
 
 What's next?
 ------------
 
 This tutorial walks you through most of what you need to know to expose your
-services. You can refer to the reference of the documentation or the mailing
+services. You can read the :ref:`manual-metadata` section where service metadata
+management apis are introduced.
+
+Otherwise, you can refer to the reference of the documentation or the mailing
 list if you have further questions.

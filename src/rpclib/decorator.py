@@ -139,9 +139,9 @@ def srpc(*params, **kparams):
     The methods tagged with this decorator do not behave like a normal python
     method but return 'MethodDescriptor' object when called.
 
-    You should use the :classs:`rpclib.server.null.NullServer` transport if you
+    You should use the :class:`rpclib.server.null.NullServer` transport if you
     want to call the methods directly. You can also use the 'function' attribute
-    of the returned object to call the method itself.
+    of the returned object to call the function itself.
     '''
 
     def explain(f):
@@ -156,7 +156,13 @@ def srpc(*params, **kparams):
             _out_header = kparams.get('_out_header', None)
             _port_type = kparams.get('_soap_port_type', None)
             _no_ctx = kparams.get('_no_ctx', True)
-            _faults = kparams.get('_faults', [])
+
+            if ('_faults' in kparams) and ('_throws' in kparams):
+                raise ValueError("only one of '_throws ' and '_faults' arguments"
+                                 "should be given, as they're synonyms.")
+            _faults = kparams.get('_faults', None)
+            if _faults is None:
+                _faults = kparams.get('_throws', None)
 
             _in_message_name = kparams.get('_in_message_name', function_name)
             _in_variable_names = kparams.get('_in_variable_names', {})

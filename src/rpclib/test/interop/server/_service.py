@@ -49,6 +49,15 @@ class SimpleClass(ComplexModel):
     i = Integer
     s = String
 
+class DocumentedFault(Fault):
+    def __init__(self):
+        Fault.__init__(self,
+                faultcode="Documented",
+                faultstring="A documented fault",
+                faultactor='http://faultactor.example.com',
+                detail=etree.Element('something')
+            )
+
 class OtherClass(ComplexModel):
     dt = DateTime
     d = Double
@@ -272,8 +281,12 @@ class InteropException(ServiceBase):
 
     @srpc()
     def soap_exception():
-        raise Fault("Plausible", "A plausible fault", 'Fault actor',
+        raise Fault("Plausible", "A plausible fault", 'http://faultactor.example.com',
                                             detail=etree.Element('something'))
+
+    @srpc(_throws=DocumentedFault)
+    def documented_exception():
+        raise DocumentedFault()
 
 class InteropMisc(ServiceBase):
     @srpc(
@@ -299,7 +312,7 @@ class InteropMisc(ServiceBase):
 
     @srpc(_returns=String)
     def long_string():
-        return len('0123456789abcdef' * 16384)
+        return ('0123456789abcdef' * 16384)
 
     @srpc()
     def test_empty():
@@ -308,10 +321,6 @@ class InteropMisc(ServiceBase):
     @srpc(String, Integer, DateTime)
     def multi_param(s, i, dt):
         pass
-
-    @srpc(_returns=String)
-    def return_only():
-        return 'howdy'
 
     @srpc(NonNillableClass, _returns=String)
     def non_nillable(n):

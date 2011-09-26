@@ -2,6 +2,12 @@
 Changelog
 =========
 
+rpclib-2.3.4-beta
+-----------------
+ * Fix Fault publishing in Wsdl.
+ * Implement 'soft' validation.
+ * Documentation improvements. It's mostly ready!
+
 rpclib-2.3.3-beta
 -----------------
  * Added MAX_CONTENT_LENGTH = 2 * 1024 * 1024 and BLOCK_LENGTH = 8 * 1024
@@ -42,7 +48,7 @@ rpclib-2.2.3-beta
 rpclib-2.2.2-beta
 -----------------
  * Fixed call to rpclib.application.Application.call_wrapper
- * Fixed HttpRpc server tranport instantiation.
+ * Fixed HttpRpc server transport instantiation.
  * Documentation improvements.
 
 rpclib-2.2.1-beta
@@ -178,10 +184,10 @@ rpclib-2.0.0-alpha
     * rpclic.service.DefinitionBase -> rpclib.service.ServiceBase
     * rpclib.server.wsgi.Application  -> rpclib.server.wsgi.WsgiApplication
  * Moved some classes and modules around:
-   * rpclib.model.clazz -> rpclib.model.complex
-   * rpclib.model.complex.ClassSerializer -> rpclib.model.complex.ComplexModel
-   * rpclib.Application -> rpclib.application.Application
-   * rpclib.service.rpc, srpc -> rpclib.decorator.rpc, srpc
+    * rpclib.model.clazz -> rpclib.model.complex
+    * rpclib.model.complex.ClassSerializer -> rpclib.model.complex.ComplexModel
+    * rpclib.Application -> rpclib.application.Application
+    * rpclib.service.rpc, srpc -> rpclib.decorator.rpc, srpc
 
 soaplib-3.x -> rpclib-1.1.1-alpha
 ---------------------------------

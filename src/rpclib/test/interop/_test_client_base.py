@@ -70,11 +70,7 @@ class RpclibClientTestBase(object):
             raise Exception("must fail")
 
         except Fault, e:
-            assert e.faultcode=='senv:Client.SchemaValidation'
-            assert e.faultstring == (
-                "<string>:2:0:ERROR:SCHEMASV:SCHEMAV_CVC_DATATYPE_VALID_1_2_1: "
-                "Element '{hunk.sunk}dt': '' is not a valid value of the atomic"
-                " type 'xs:dateTime'.")
+            assert e.faultcode in ('senv:Client.SchemaValidationError','senv:Client.ValidationError')
 
     def test_echo_in_header(self):
         in_header = self.client.factory.create('{rpclib.test.interop.server}InHeader')
