@@ -24,28 +24,21 @@ import rpclib.const.xml_ns
 _ns_xsd = rpclib.const.xml_ns.xsd
 
 def fault_add(interface, cls):
-    app = interface.app
-    complex_type = etree.Element('{%s}complexType' % _ns_xsd)
-    complex_type.set('name', '%sFault' % cls.get_type_name())
+    if not interface.has_class(cls):
+        extends = getattr(cls, '__extends__', None)
+        if not (extends is None):
+            interface.add(extends)
 
-    extends = getattr(cls, '__extends__', None)
-    if extends is not None:
-        complex_content = etree.SubElement(complex_type,
-                                        '{%s}complexContent' % _ns_xsd)
-        extension = etree.SubElement(complex_content, "{%s}extension"
-                                                                  % _ns_xsd)
-        extension.set('base', extends.get_type_name_ns(app))
-        sequence_parent = extension
-    else:
-        sequence_parent = complex_type
+        complex_type = etree.Element("{%s}complexType" % _ns_xsd)
+        complex_type.set('name', cls.get_type_name())
 
-    etree.SubElement(sequence_parent, '{%s}sequence' % _ns_xsd)
+        #sequence = etree.SubElement(complex_type, '{%s}sequence' % _ns_xsd)
 
-    interface.add_complex_type(cls, complex_type)
+        interface.add_complex_type(cls, complex_type)
 
-    top_level_element = etree.Element('{%s}element' % _ns_xsd)
-    top_level_element.set('name', cls.get_type_name())
-    top_level_element.set('{%s}type' % _ns_xsd,
-                          '%sFault' % cls.get_type_name_ns(app))
+        # simple node
+        element = etree.Element('{%s}element' % _ns_xsd)
+        element.set('name', cls.get_type_name())
+        element.set('type', cls.get_type_name_ns(interface))
 
-    interface.add_element(cls, top_level_element)
+        interface.add_element(cls, element)

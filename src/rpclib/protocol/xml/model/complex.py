@@ -22,10 +22,12 @@ logger = logging.getLogger(__name__)
 
 from lxml import etree
 
+from rpclib.error import Fault
 from rpclib.model.complex import XMLAttribute # FIXME: Rename this to XmlAttribute
 
 from _base import nillable_value
 from _base import nillable_element
+
 
 def get_members_etree(prot, cls, inst, parent):
     parent_cls = getattr(cls, '__extends__', None)
@@ -43,13 +45,12 @@ def get_members_etree(prot, cls, inst, parent):
             continue
 
         mo = v.Attributes.max_occurs
-        if mo == 'unbounded' or mo > 1:
-            if subvalue != None:
-                for sv in subvalue:
-                    prot.to_parent_element(v, sv, cls.get_namespace(), parent, k)
+        if subvalue is not None and (mo == 'unbounded' or mo > 1):
+            for sv in subvalue:
+                prot.to_parent_element(v, sv, cls.get_namespace(), parent, k)
 
         # Don't include empty values for non-nillable optional attributes.
-        elif subvalue is not None or v.Attributes.nillable or v.Attributes.min_occurs > 0:
+        elif subvalue is not None or (not v.Attributes.nillable or v.Attributes.min_occurs > 0):
             prot.to_parent_element(v, subvalue, cls.get_namespace(), parent, k)
 
 
@@ -66,18 +67,19 @@ def complex_to_parent_element(prot, cls, value, tns, parent_elt, name=None):
 
     get_members_etree(prot, cls, inst, element)
 
+
 @nillable_element
 def complex_from_element(prot, cls, element):
-    #import pdb; pdb.set_trace()
     inst = cls.get_deserialization_instance()
 
-    # FIXME: the result of this method should be cached when build_wsdl is
-    #        called (i.e. when _type_info becomes by definition immutable).
     flat_type_info = cls.get_flat_type_info(cls)
 
     # initialize instance
     for k in flat_type_info:
         setattr(inst, k, None)
+
+    # this is for validating cls.Attributes.{min,max}_occurs
+    frequencies = {}
 
     # parse input to set incoming data to related attributes.
     for c in element:
@@ -85,6 +87,10 @@ def complex_from_element(prot, cls, element):
             continue
 
         key = c.tag.split('}')[-1]
+        freq = frequencies.get(key,0)
+        freq+=1
+        frequencies[key] = freq
+
 
         member = flat_type_info.get(key, None)
         if member is None:
@@ -107,7 +113,17 @@ def complex_from_element(prot, cls, element):
 
         setattr(inst, key, value)
 
+    if prot.validator == 'soft':
+        for key,c in flat_type_info.items():
+            val = frequencies.get(key, 0)
+            if (        val < c.Attributes.min_occurs
+                    or  (     c.Attributes.max_occurs != 'unbounded'
+                          and val > c.Attributes.max_occurs )):
+                raise Fault('Client.ValidationError',
+                    '%r member does not respect frequency constraints' % key)
+
     return inst
+
 
 @nillable_element
 def array_from_element(prot, cls, element):
@@ -119,9 +135,10 @@ def array_from_element(prot, cls, element):
 
     return retval
 
+
 @nillable_element
-def iterable_from_element(cls, element):
+def iterable_from_element(prot, cls, element):
     (serializer,) = cls._type_info.values()
 
     for child in element.getchildren():
-        yield serializer.from_xml(child)
+        yield prot.from_element(serializer, child)

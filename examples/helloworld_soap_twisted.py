@@ -29,34 +29,42 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from rpclib.client.http import HttpClient
+from rpclib.application import Application
+from rpclib.decorator import srpc
+from rpclib.interface.wsdl import Wsdl11
+from rpclib.protocol.soap import Soap11
+from rpclib.service import ServiceBase
+from rpclib.model.complex import Array
+from rpclib.model.primitive import Integer
+from rpclib.model.primitive import String
+from rpclib.server.wsgi import WsgiApplication
+from rpclib.util.wsgi_wrapper import run_twisted
 
-from server_basic import application
+'''
+This is the HelloWorld example running in the twisted framework.
+'''
 
-c = HttpClient('http://localhost:7789/', application)
+class HelloWorldService(ServiceBase):
+    @srpc(String, Integer, _returns=Array(String))
+    def say_hello(name, times):
+        '''Docstrings for service methods appear as documentation in the wsdl.
 
-u = c.factory.create("User")
+        @param name the name to say hello to
+        @param the number of times to say hello
+        @return the completed array
+        '''
+        results = []
+        for i in range(0, times):
+            results.append('Hello, %s' % name)
 
-u.user_name = 'dave'
-u.first_name = 'david'
-u.last_name = 'smith'
-u.email = 'david.smith@example.com'
-u.permissions = []
+        return results
 
-permission = c.factory.create("Permission")
-permission.application = 'table'
-permission.operation = 'write'
-u.permissions.append(permission)
+if __name__=='__main__':
+    application = Application([HelloWorldService], 'rpclib.examples.hello.twisted',
+                interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
+    wsgi_app = WsgiApplication(application)
 
-permission = c.factory.create("Permission")
-permission.application = 'table'
-permission.operation = 'read'
-u.permissions.append(permission)
+    print 'listening on 0.0.0.0:7789'
+    print 'wsdl is at: http://0.0.0.0:7789/app/?wsdl'
 
-print u
-
-retval = c.service.add_user(u)
-print retval
-
-print c.service.get_user(retval)
-print c.service.get_all_user()
+    run_twisted( ( (wsgi_app, "app"),), 7789)

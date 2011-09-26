@@ -38,6 +38,7 @@ from pytz import FixedOffset
 
 from rpclib.model import SimpleModel
 from rpclib.model import nillable_string
+from rpclib.error import ValidationError
 
 string_encoding = 'utf8'
 
@@ -106,9 +107,18 @@ class String(SimpleModel):
     __type_name__ = 'string'
 
     class Attributes(SimpleModel.Attributes):
+        """The class that holds the constraints for the given type."""
+
         min_len = 0
+        """Minimum length of string. Can be set to any positive integer"""
+
         max_len = "unbounded"
+        """Maximum length of string. Can be set to 'unbounded' to accept strings
+        of arbitrary sizes. Also check :const:`rpclib.server.wsgi.MAX_CONTENT_LENGTH`."""
+
         pattern = None
+        """A regular expression that matches the whole string. See here for more
+        info: http://www.regular-expressions.info/xml.html"""
 
     def __new__(cls, *args, **kwargs):
         assert len(args) <= 1
@@ -137,6 +147,15 @@ class String(SimpleModel):
                 and cls.Attributes.max_len == String.Attributes.max_len
                 and cls.Attributes.pattern == String.Attributes.pattern)
 
+    @staticmethod
+    def validate_string(cls, value):
+        return (    SimpleModel.validate_string(cls, value)
+                and len(value) >= cls.Attributes.min_len
+                and len(value) <= cls.Attributes.max_len
+                and (cls.Attributes.pattern is None or
+                            re.match(cls.Attributes.pattern, value) is not None)
+            )
+
 class AnyUri(String):
     """This is an xml schema type with is a special kind of String."""
     __type_name__ = 'anyURI'
@@ -150,10 +169,10 @@ class Decimal(SimpleModel):
     __type_name__ = 'decimal'
 
     class Attributes(SimpleModel.Attributes):
-        gt = None # minExclusive
-        ge = None # minInclusive
-        lt = None # maxExclusive
-        le = None # maxInclusive
+        gt = -float('inf') # minExclusive
+        ge = -float('inf') # minInclusive
+        lt =  float('inf') # maxExclusive
+        le =  float('inf') # maxInclusive
 
     @staticmethod
     def is_default(cls):
@@ -161,7 +180,17 @@ class Decimal(SimpleModel):
                 and cls.Attributes.gt == Decimal.Attributes.gt
                 and cls.Attributes.ge == Decimal.Attributes.ge
                 and cls.Attributes.lt == Decimal.Attributes.lt
-                and cls.Attributes.le == Decimal.Attributes.le)
+                and cls.Attributes.le == Decimal.Attributes.le
+            )
+
+    @staticmethod
+    def validate_native(cls, value):
+        return (    SimpleModel.validate_native(cls, value)
+                and value >  cls.Attributes.gt
+                and value >= cls.Attributes.ge
+                and value <  cls.Attributes.lt
+                and value <= cls.Attributes.le
+            )
 
     @classmethod
     @nillable_string
@@ -300,17 +329,13 @@ class Date(SimpleModel):
     def from_string(cls, string):
         """Expects ISO formatted dates."""
 
-        def parse_date(date_match):
-            fields = date_match.groupdict(0)
-            year, month, day = [int(fields[x]) for x in
-                ("year", "month", "day")]
-            return date(year, month, day)
-
         match = _date_re.match(string)
-        if not match:
-            raise Exception("Date [%s] not in known format" % string)
+        if match is None:
+            raise ValidationError(string)
 
-        return parse_date(match)
+        fields = match.groupdict(0)
+
+        return date(fields['year'], fields['month'], fields['day'])
 
 class DateTime(SimpleModel):
     """A compact way to represent dates and times together. Supports time zones.
@@ -322,35 +347,37 @@ class DateTime(SimpleModel):
     def to_string(cls, value):
         return value.isoformat('T')
 
+    @staticmethod
+    def parse(date_match, tz=None):
+        fields = date_match.groupdict(0)
+        year, month, day, hour, min, sec = [int(fields[x]) for x in
+            ("year", "month", "day", "hr", "min", "sec")]
+
+        # use of decimal module here (rather than float) might be better
+        # here, if willing to require python 2.4 or higher
+        microsec = int(float(fields.get("sec_frac", 0)) * 10 ** 6)
+
+        return datetime(year,month,day, hour,min,sec, microsec, tz)
+
     @classmethod
     @nillable_string
     def from_string(cls, string):
         """expect ISO formatted dates"""
-        def parse_date(date_match, tz=None):
-            fields = date_match.groupdict(0)
-            year, month, day, hour, min, sec = [int(fields[x]) for x in
-                ("year", "month", "day", "hr", "min", "sec")]
-
-            # use of decimal module here (rather than float) might be better
-            # here, if willing to require python 2.4 or higher
-            microsec = int(float(fields.get("sec_frac", 0)) * 10 ** 6)
-
-            return datetime(year,month,day, hour,min,sec, microsec, tz)
 
         match = _utc_re.match(string)
         if match:
-            return parse_date(match, tz=pytz.utc)
+            return cls.parse(match, tz=pytz.utc)
 
         match = _offset_re.match(string)
         if match:
             tz_hr, tz_min = [int(match.group(x)) for x in "tz_hr", "tz_min"]
-            return parse_date(match, tz=FixedOffset(tz_hr * 60 + tz_min, {}))
+            return cls.parse(match, tz=FixedOffset(tz_hr * 60 + tz_min, {}))
 
         match = _local_re.match(string)
-        if not match:
-            raise Exception("DateTime [%s] not in known format" % string)
+        if match is None:
+            raise ValidationError(string)
 
-        return parse_date(match)
+        return cls.parse(match)
 
 # this object tries to follow ISO 8601 standard.
 class Duration(SimpleModel):

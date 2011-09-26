@@ -44,22 +44,31 @@ class ProtocolBase(object):
     classes can implement only the required subset of the public methods.
 
     The ProtocolBase class supports the following events:
-     * ``deserialize``:
-       Called right after the deserialization operation is finished.
+    
+    * ``before_deserialize``:
+      Called before the deserialization operation is attempted.
 
-     * ``serialize``:
-       Called right after the serialization operation is finished.
+    * ``after_deserialize``:
+      Called after the deserialization operation is finished.
+
+    * ``before_serialize``:
+      Called before after the serialization operation is attempted.
+
+    * ``after_serialize``:
+      Called after the serialization operation is finished.
 
     """
 
     allowed_http_verbs = ['GET','POST']
     mime_type = 'application/octet-stream'
 
-    def __init__(self, app=None):
+    def __init__(self, app=None, validator=None):
         self.__app = None
 
         self.set_app(app)
         self.event_manager = EventManager(self)
+        self.validator = validator
+        self.check_validator()
 
     @property
     def app(self):
@@ -101,9 +110,9 @@ class ProtocolBase(object):
     def create_out_string(self, ctx, out_string_encoding=None):
         """Uses ctx.out_string to set ctx.out_document"""
 
-    def validate(self, payload):
+    def validate_document(self, payload):
         """Method to be overriden to perform any sort of custom input
-        validation.
+        validation on the parsed input document.
         """
 
     def set_method_descriptor(self, ctx):
@@ -132,7 +141,13 @@ class ProtocolBase(object):
             return HTTP_413
         if isinstance(fault, ResourceNotFoundError):
             return HTTP_404
-        if isinstance(fault, Fault) and  fault.faultcode.startswith('Client'):
+        if isinstance(fault, Fault) and fault.faultcode.startswith('Client.'):
             return HTTP_400
         else:
             return HTTP_500
+
+    def check_validator(self):
+        """You must override this function if your protocol supports validation.
+        """
+
+        assert self.validator is None

@@ -26,6 +26,7 @@ _ns_soap_env = rpclib.const.xml_ns.soap_env
 
 _pref_soap_env = rpclib.const.xml_ns.const_prefmap[_ns_soap_env]
 
+
 def fault_to_parent_element(prot, cls, value, tns, parent_elt, name=None):
     element = etree.SubElement(parent_elt, "{%s}Fault" % _ns_soap_env)
 
@@ -34,6 +35,7 @@ def fault_to_parent_element(prot, cls, value, tns, parent_elt, name=None):
     etree.SubElement(element, 'faultactor').text = value.faultactor
     if value.detail != None:
         etree.SubElement(element, 'detail').append(value.detail)
+
 
 def fault_from_element(prot, cls, element):
     code = element.find('faultcode').text

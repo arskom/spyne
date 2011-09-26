@@ -158,8 +158,8 @@ class ComplexModelBase(ModelBase):
     @classmethod
     def get_serialization_instance(cls, value):
         # if the instance is a list, convert it to a cls instance.
-        # this is only useful when deserializing descriptor.in_message as it's
-        # the only time when the member order is not arbitrary (as the members
+        # this is only useful when deserializing method arguments which is the
+        # only time when the member order is not arbitrary (as the members
         # are declared and passed around as sequences of arguments, unlike
         # dictionaries in a regular class definition).
         if isinstance(value, list) or isinstance(value, tuple):
@@ -212,12 +212,18 @@ class ComplexModelBase(ModelBase):
         return dict(cls.get_members_pairs(inst))
 
     @staticmethod
-    def get_flat_type_info(clz, retval={}):
-        parent = getattr(clz, '__extends__', None)
-        if parent != None:
-            clz.get_flat_type_info(parent, retval)
+    def get_flat_type_info(cls, retval=None):
+        """Returns a _type_info dict that includes members from all base classes.
+        """
 
-        retval.update(clz._type_info)
+        if retval is None:
+            retval = {}
+
+        parent = getattr(cls, '__extends__', None)
+        if parent != None:
+            cls.get_flat_type_info(parent, retval)
+
+        retval.update(cls._type_info)
 
         return retval
 
@@ -230,40 +236,6 @@ class ComplexModelBase(ModelBase):
     @nillable_string
     def from_string(cls, string):
         raise ValueError("Only primitives can be deserialized from string.")
-
-    @classmethod
-    @nillable_dict
-    def from_dict(cls, in_dict):
-        inst = cls.get_deserialization_instance()
-        flat_type_info = ComplexModelBase.get_flat_type_info(cls)
-
-        # initialize instance
-        for k in flat_type_info:
-            setattr(inst, k, None)
-
-        # initialize instance
-        for k, v in in_dict.items():
-            member = flat_type_info.get(k, None)
-            if member is None:
-                continue
-
-            mo = member.Attributes.max_occurs
-            logger.debug("%r, %r: %r, %r" % (member, k, v, mo))
-            if mo == 'unbounded' or mo > 1:
-                value = getattr(inst, k, None)
-                if value is None:
-                    value = []
-
-                for v2 in v:
-                    value.append(member.from_string(v2))
-
-                setattr(inst, k, value)
-
-            else:
-                v,  = v
-                setattr(inst, k, member.from_string(v))
-
-        return inst
 
     @staticmethod
     def resolve_namespace(cls, default_ns):

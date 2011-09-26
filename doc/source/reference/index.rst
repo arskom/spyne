@@ -15,5 +15,6 @@ Rpclib API Reference
     client
     server
     util
-    service
     application
+    service
+    decorator

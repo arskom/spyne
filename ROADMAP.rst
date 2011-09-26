@@ -13,7 +13,8 @@ Processing Pipeline
 -------------------
 
 We think rpclib package has one last missing element whose addition can result in
-touching most of the codebase: A proper pipeline for request processing.
+touching most of the codebase: A proper lazily-evaluated pipeline for request
+processing.
 
 Currently, every artifact of the rpc processing pipeline remain in memory for the
 entire life time of the context object. This also causes to have the whole message
@@ -53,19 +54,16 @@ Miscellanous
 
 The following would definitely be nice to have, but are just modules that should
 not cause a change in unrelated areas of rpclib. Those would increment the minor
-revision number of the Rpclib version once implemented.
+version number of the Rpclib version once implemented.
 
-* Currently, parameter validation is performed only by lxml's schema validator.
-  Implement soft validation that'd work for any serializer for the primitives.
 * Support for the JsonObject (a la XmlObject) and JsonRpc protocols.
 * Support for the JsonSchema interface document standard.
 * Support for the Thrift binary protocol.
 * Support for the Thrift IDL -- The Thrift Interface Definition Language.
-* Support for the XmlRpc standard. Thanks to the XmlObject protocol, this
-  is 90% ready!
+* Support for the XmlRpc standard.
 * Support for EXI -- The Efficient Xml Interchange as a serializer.
-* SMTP as server tranport.
-* SMTP as client tranport.
+* SMTP as server transport.
+* SMTP as client transport.
 * Improve HttpRpc to be Rest compliant. Probably by dumping HttpRpc as it is
   and rewriting it as a wrapper to Werkzeug or a similar WSGI library.
 * Implement converting csv output to pdf.

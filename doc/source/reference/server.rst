@@ -24,3 +24,11 @@ ZeroMQ
     :members:
     :inherited-members:
     :undoc-members:
+
+NullServer
+----------
+
+.. automodule:: rpclib.server.null
+    :members:
+    :inherited-members:
+    :undoc-members:

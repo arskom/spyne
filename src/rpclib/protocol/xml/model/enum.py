@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from rpclib.error import ValidationError
+
 from _base import base_to_parent_element
 from _base import nillable_element
 from _base import nillable_value
@@ -25,9 +27,10 @@ from _base import nillable_value
 def enum_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     if name is None:
         name = cls.get_type_name()
-
     base_to_parent_element(prot, cls, str(value), tns, parent_elt, name)
 
 @nillable_element
 def enum_from_element(prot, cls, element):
+    if prot.validator == 'soft' and not (cls.validate_string(cls, element.text)):
+        raise ValidationError(element.text)
     return getattr(cls, element.text)

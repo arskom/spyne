@@ -210,7 +210,6 @@ class WsgiApplication(ServerBase):
 
     def __handle_error(self, ctx, error, start_response):
         if ctx.transport.resp_code is None:
-            print "#" *10, self.app.out_protocol.fault_to_http_response_code
             ctx.transport.resp_code = \
                 self.app.out_protocol.fault_to_http_response_code(error)
 
@@ -221,7 +220,7 @@ class WsgiApplication(ServerBase):
         self.event_manager.fire_event('wsgi_exception', ctx)
 
         start_response(ctx.transport.resp_code,
-                                            ctx.transport.resp_headers.items())
+                                             ctx.transport.resp_headers.items())
         return ctx.out_string
 
     def __handle_rpc(self, req_env, start_response):
