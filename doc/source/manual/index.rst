@@ -15,5 +15,6 @@ aspects of Rpclib by examples.
     helloworld
     usermanager
     sqlalchemy
+    validation
     metadata
     t_and_p
