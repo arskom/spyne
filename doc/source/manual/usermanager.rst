@@ -188,7 +188,7 @@ with no specific api it should adhere to, other than your own. ::
 
 Such custom objects could be used to manage everything from transactions to
 logging or to performance measurements. You can have a look at the
-`events.py example `http://github.com/arskom/rpclib/blob/master/examples/user_manager/server_basic.py>`_
+`events.py example <http://github.com/arskom/rpclib/blob/master/examples/user_manager/server_basic.py>`_
 in the examples directory in the source distribution for an example on using
 events to measure method performance)
 
