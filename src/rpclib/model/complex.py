@@ -139,14 +139,7 @@ class ComplexModelBase(ModelBase):
     def __init__(self, **kwargs):
         super(ComplexModelBase, self).__init__()
 
-        self.__reset_members(self.__class__, kwargs)
-
-    def __reset_members(self, cls, kwargs):
-        extends = getattr(cls, "__extends__", None)
-        if not (extends is None):
-            self.__reset_members(extends, kwargs)
-
-        for k in cls._type_info.keys():
+        for k in self.get_flat_type_info(self.__class__).keys():
             setattr(self, k, kwargs.get(k, None))
 
     def __len__(self):

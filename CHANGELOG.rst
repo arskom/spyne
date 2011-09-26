@@ -2,11 +2,13 @@
 Changelog
 =========
 
-rpclib-2.3.4-beta
+rpclib-2.4.0-beta
 -----------------
  * Fix Fault publishing in Wsdl.
  * Implement 'soft' validation.
  * Documentation improvements. It's mostly ready!
+ * A bug with min/max_occurs logic was fixed. This causes rpclib not to send
+   null values for elements with min_occurs=0 (the default value).
 
 rpclib-2.3.3-beta
 -----------------
