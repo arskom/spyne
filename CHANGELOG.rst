@@ -9,6 +9,7 @@ rpclib-2.4.0-beta
  * Documentation improvements. It's mostly ready!
  * A bug with min/max_occurs logic was fixed. This causes rpclib not to send
    null values for elements with min_occurs=0 (the default value).
+ * https://github.com/arskom/rpclib/pull/90
 
 rpclib-2.3.3-beta
 -----------------
