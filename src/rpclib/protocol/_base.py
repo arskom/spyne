@@ -145,3 +145,9 @@ class ProtocolBase(object):
             return HTTP_400
         else:
             return HTTP_500
+
+    def check_validator(self):
+        """You must override this function if your protocol supports validation.
+        """
+
+        assert self.validator is None
