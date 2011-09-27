@@ -133,12 +133,15 @@ class String(SimpleModel):
     @classmethod
     @nillable_string
     def from_string(cls, value):
-        return unicode(value)
+        try:
+            return value.decode('utf8')
+        except:
+            return value
 
     @classmethod
     @nillable_string
     def to_string(cls, value):
-        return value.encode('utf8')
+        return value
 
     @staticmethod
     def is_default(cls):
