@@ -5,6 +5,7 @@ Changelog
 rpclib-2.4.1-beta
 -----------------
  * Fix import errors in Python<=2.5.
+ * Try to play nice with unicode nitpick.
 
  rpclib-2.4.0-beta
 -----------------
