@@ -2,14 +2,21 @@
 Changelog
 =========
 
-rpclib-2.4.0-beta
+rpclib-2.4.1-beta
+-----------------
+ * Fix import errors in Python<=2.5.
+
+ rpclib-2.4.0-beta
 -----------------
  * Fix Fault publishing in Wsdl.
  * Implement 'soft' validation.
  * Documentation improvements. It's mostly ready!
  * A bug with min/max_occurs logic was fixed. This causes rpclib not to send
    null values for elements with min_occurs=0 (the default value).
- * https://github.com/arskom/rpclib/pull/90
+ * Native value for :class:`rpclib.model.primitive.String` was changed to
+   ``unicode``. To exchange raw strings, you should use
+   :class:`rpclib.model.binary.ByteArray`.
+ * Full change log: https://github.com/arskom/rpclib/pull/90
 
 rpclib-2.3.3-beta
 -----------------
