@@ -190,12 +190,13 @@ class Decimal(SimpleModel):
 
     @staticmethod
     def validate_native(cls, value):
-        return (    SimpleModel.validate_native(cls, value)
-                and value >  cls.Attributes.gt
-                and value >= cls.Attributes.ge
-                and value <  cls.Attributes.lt
-                and value <= cls.Attributes.le
-            )
+        return (    SimpleModel.validate_native(cls, value) and
+                value is None or (
+                    value >  cls.Attributes.gt and
+                    value >= cls.Attributes.ge and
+                    value <  cls.Attributes.lt and
+                    value <= cls.Attributes.le
+            ))
 
     @classmethod
     @nillable_string
