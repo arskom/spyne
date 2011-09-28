@@ -99,6 +99,7 @@ class AnyDict(SimpleModel):
     def from_string(cls, string):
         return pickle.loads(string)
 
+
 class String(SimpleModel):
     """The type to represent human-readable data. Its native format is unicode.
     Currently, it can read from only utf8-compatible encodings.
@@ -152,9 +153,10 @@ class String(SimpleModel):
 
     @staticmethod
     def validate_string(cls, value):
-        return (    SimpleModel.validate_string(cls, value)
-                and len(value) >= cls.Attributes.min_len
-                and len(value) <= cls.Attributes.max_len
+        return (     SimpleModel.validate_string(cls, value)
+                and (value is None or (
+                        len(value) >= cls.Attributes.min_len and
+                        len(value) <= cls.Attributes.max_len))
                 and (cls.Attributes.pattern is None or
                             re.match(cls.Attributes.pattern, value) is not None)
             )
