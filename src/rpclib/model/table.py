@@ -57,6 +57,7 @@ _type_map = {
 
     sqlalchemy.Float: primitive.Float,
     sqlalchemy.Numeric: primitive.Decimal,
+    sqlalchemy.BigInteger: primitive.Integer,
     sqlalchemy.Integer: primitive.Integer,
     sqlalchemy.SmallInteger: primitive.Integer,
 
@@ -66,6 +67,7 @@ _type_map = {
     sqlalchemy.orm.relation: complex.Array,
     UUID: primitive.String
 }
+
 
 def _process_item(v):
     """This function maps sqlalchemy types to rpclib types."""
@@ -84,6 +86,7 @@ def _process_item(v):
 
     return rpc_type
 
+
 def _is_interesting(k, v):
     if k.startswith('__'):
         return False
@@ -99,6 +102,7 @@ def _is_interesting(k, v):
 
         else:
             return True
+
 
 class TableModelMeta(DeclarativeMeta, ComplexModelMeta):
     """This class uses the information in class definition dictionary to build
