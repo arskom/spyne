@@ -41,7 +41,7 @@ def Enum(*values, **kwargs):
     type_name = kwargs.get('type_name', None)
     docstr = kwargs.get('__doc__', '')
     if type_name is None:
-        raise ValueError("Please specify 'type_name' as a keyword argument")
+        raise Exception("Please specify 'type_name' as a keyword argument")
 
     assert len(values) > 0, "Empty enums are meaningless"
 
