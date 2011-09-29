@@ -34,7 +34,6 @@ logger = logging.getLogger(__name__)
 
 import sqlalchemy
 
-from warnings import warn
 from sqlalchemy import Column
 from sqlalchemy.orm import RelationshipProperty
 
@@ -96,8 +95,8 @@ def _is_interesting(k, v):
 
     if isinstance(v, RelationshipProperty):
         if getattr(v.argument,'_type_info', None) is None:
-            warn("the argument to relationship should be a reference to the real"
-                 "column, not a string.")
+            logger.warning("the argument to relationship should be a reference "
+                           "to the real column, not a string.")
             return False
 
         else:
@@ -143,6 +142,7 @@ class TableModelMeta(DeclarativeMeta, ComplexModelMeta):
                     _type_info[k] = _process_item(v)
 
         return DeclarativeMeta.__new__(cls, cls_name, cls_bases, cls_dict)
+
 
 class TableModel(ComplexModelBase):
     """The main base class for complex types shared by both SQLAlchemy and
