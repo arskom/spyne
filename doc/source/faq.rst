@@ -23,7 +23,7 @@ Patches are welcome. You can start by adapting the WSDL parser from
 `RSL <http://rsl.sf.net>`.
 
 Is it possible to use other decorators with @rpc/@srpc?
-========================================================
+=======================================================
 
 **Short answer:** No, use events. See the :ref:`manual-user-manager` tutorial and
 the `events example <http://github.com/arskom/rpclib/blob/master/examples/user_manager/server_basic.py>`_
@@ -39,3 +39,7 @@ wrong, which will cause weird errors. So just use events.
 
 If you're hell bent on using decorators, you can wrap @srpc. However that's not
 a supported way to work with rpclib, so you'll most probably be on your own.
+
+Please note that if you just intend to have a convenient way to set additional
+method metadata, you can use the ``_udp`` argument to the :func:`rpclib.decorator.srpc`
+to your liking.
