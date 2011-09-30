@@ -156,6 +156,7 @@ def srpc(*params, **kparams):
             _out_header = kparams.get('_out_header', None)
             _port_type = kparams.get('_soap_port_type', None)
             _no_ctx = kparams.get('_no_ctx', True)
+            _udp = kparams.get('_udp', None)
 
             if ('_faults' in kparams) and ('_throws' in kparams):
                 raise ValueError("only one of '_throws ' and '_faults' arguments"
@@ -176,7 +177,7 @@ def srpc(*params, **kparams):
             retval = MethodDescriptor(f,
                     in_message, out_message, doc, _is_callback, _is_async,
                     _mtom, _in_header, _out_header, _faults,
-                    port_type=_port_type, no_ctx=_no_ctx)
+                    port_type=_port_type, no_ctx=_no_ctx, udp=_udp)
 
             return retval
 

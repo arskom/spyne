@@ -5,6 +5,9 @@ Changelog
 rpclib-2.4.2-beta
 -----------------
  * Many issues with 'soft' validation was fixed.
+ * ``MethodDescriptor.udp`` added. Short for "User-Defined Properties", you can
+   use it to store arbitrary metadata about the decorated method.
+ * Documentation updates.
 
 rpclib-2.4.1-beta
 -----------------
