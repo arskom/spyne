@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf8
 #
-# Copyright © Burak Arslan <burak at arskom dot com dot tr>,
+# Copyright Â© Burak Arslan <burak at arskom dot com dot tr>,
 #             Arskom Ltd. http://www.arskom.com.tr
 # All rights reserved.
 #
