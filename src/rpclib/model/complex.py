@@ -347,6 +347,8 @@ class Alias(ComplexModel):
 
 class SimpleContent(ModelBase):
     """
+    THIS DOES NOT WORK!
+
     Implementation of a limited version on SimpleContent ComplexType.
     Actually, it can only do the extension part (no restriction of simpleType)
     """
