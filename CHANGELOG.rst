@@ -2,20 +2,28 @@
 Changelog
 =========
 
+rpclib-2.4.2-beta
+-----------------
+ * Many issues with 'soft' validation was fixed.
+ * ``MethodDescriptor.udp`` added. Short for "User-Defined Properties", you can
+   use it to store arbitrary metadata about the decorated method.
+ * Fix HttpRpc response serialization.
+ * Documentation updates.
+
 rpclib-2.4.1-beta
 -----------------
- * Fix import errors in Python<=2.5.
- * Try to play nice with unicode nitpick.
+ * Fixed import errors in Python<=2.5.
+ * A problem with rpclib's String and unicode objects was fixed.
 
- rpclib-2.4.0-beta
+rpclib-2.4.0-beta
 -----------------
- * Fix Fault publishing in Wsdl.
- * Implement 'soft' validation.
+ * Fixed Fault publishing in Wsdl.
+ * Implemented 'soft' validation.
  * Documentation improvements. It's mostly ready!
  * A bug with min/max_occurs logic was fixed. This causes rpclib not to send
    null values for elements with min_occurs=0 (the default value).
  * Native value for :class:`rpclib.model.primitive.String` was changed to
-   ``unicode``. To exchange raw strings, you should use
+   ``unicode``. To exchange raw data, you should use
    :class:`rpclib.model.binary.ByteArray`.
  * Full change log: https://github.com/arskom/rpclib/pull/90
 

@@ -75,6 +75,10 @@ class oset(object):
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, list(self))
 
+    def add(self, element):
+        """An alias for :func:`rpclib.util.oset.old.oset.append`."""
+        self.append(element)
+
     def append(self, element):
         """Add an element to the right side of the OrderedSet."""
         self._insertatnode(self._end.prev, element)
