@@ -8,6 +8,7 @@ rpclib-2.4.2-beta
  * ``MethodDescriptor.udp`` added. Short for "User-Defined Properties", you can
    use it to store arbitrary metadata about the decorated method.
  * Fix HttpRpc response serialization.
+ * WSDL: Fix missing multiple porttypes with multiple services
  * Documentation updates.
 
 rpclib-2.4.1-beta
@@ -22,9 +23,9 @@ rpclib-2.4.0-beta
  * Documentation improvements. It's mostly ready!
  * A bug with min/max_occurs logic was fixed. This causes rpclib not to send
    null values for elements with min_occurs=0 (the default value).
- * Native value for :class:`rpclib.model.primitive.String` was changed to
+ * Native value for ``rpclib.model.primitive.String`` was changed to
    ``unicode``. To exchange raw data, you should use
-   :class:`rpclib.model.binary.ByteArray`.
+   ``rpclib.model.binary.ByteArray``.
  * Full change log: https://github.com/arskom/rpclib/pull/90
 
 rpclib-2.3.3-beta
