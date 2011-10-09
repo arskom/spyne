@@ -224,13 +224,16 @@ class ModelBase(object):
     @staticmethod
     def validate_string(cls, value):
         """Override this method to do your own input validation on the input
-        string."""
-        return True
+        string. This is called before converting the incoming string to the
+        native python value."""
+
+        return (cls.Attributes.nillable or value is not None)
 
     @staticmethod
     def validate_native(cls, value):
         """Override this method to do your own input validation on the native
-        value."""
+        value. This is called after converting the incoming string to the
+        native python value."""
         return True
 
 class Null(ModelBase):

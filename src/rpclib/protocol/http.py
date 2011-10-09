@@ -151,7 +151,7 @@ class HttpRpc(ProtocolBase):
                 if ctx.out_object is None:
                     ctx.out_document = ['']
                 else:
-                    ctx.out_document = out_class.to_string_iterable(ctx.out_object)
+                    ctx.out_document = out_class.to_string_iterable(ctx.out_object[0])
             else:
                 raise ValueError("HttpRpc protocol can only serialize primitives.")
         else:
