@@ -4,10 +4,6 @@ Changelog
 
 rpclib-2.4.3-beta
 -----------------
- * Revert multiple porttype patch from https://github.com/arskom/rpclib/pull/97.
-
-rpclib-2.4.2-beta
------------------
  * Many issues with 'soft' validation was fixed.
  * ``MethodDescriptor.udp`` added. Short for "User-Defined Properties", you can
    use it to store arbitrary metadata about the decorated method.
