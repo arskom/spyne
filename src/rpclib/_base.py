@@ -203,7 +203,7 @@ class MethodDescriptor(object):
     def __init__(self, function, in_message, out_message, doc,
                  is_callback=False, is_async=False, mtom=False, in_header=None,
                  out_header=None, faults=None,
-                 port_type=None, no_ctx=False):
+                 port_type=None, no_ctx=False, udp=None):
 
         self.function = function
         """The original function object to be called when the method is remotely
@@ -241,6 +241,10 @@ class MethodDescriptor(object):
         self.no_ctx = no_ctx
         """Whether the function receives the method context as the first
         argument implicitly."""
+
+        self.udp = udp
+        """Short for "User-Defined Properties", it's your own playground. You
+        can use it to store custom metadata about the method."""
 
     @property
     def name(self):

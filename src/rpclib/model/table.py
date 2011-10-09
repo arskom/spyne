@@ -34,7 +34,6 @@ logger = logging.getLogger(__name__)
 
 import sqlalchemy
 
-from warnings import warn
 from sqlalchemy import Column
 from sqlalchemy.orm import RelationshipProperty
 
@@ -57,6 +56,7 @@ _type_map = {
 
     sqlalchemy.Float: primitive.Float,
     sqlalchemy.Numeric: primitive.Decimal,
+    sqlalchemy.BigInteger: primitive.Integer,
     sqlalchemy.Integer: primitive.Integer,
     sqlalchemy.SmallInteger: primitive.Integer,
 
@@ -66,6 +66,7 @@ _type_map = {
     sqlalchemy.orm.relation: complex.Array,
     UUID: primitive.String
 }
+
 
 def _process_item(v):
     """This function maps sqlalchemy types to rpclib types."""
@@ -84,6 +85,7 @@ def _process_item(v):
 
     return rpc_type
 
+
 def _is_interesting(k, v):
     if k.startswith('__'):
         return False
@@ -93,12 +95,13 @@ def _is_interesting(k, v):
 
     if isinstance(v, RelationshipProperty):
         if getattr(v.argument,'_type_info', None) is None:
-            warn("the argument to relationship should be a reference to the real"
-                 "column, not a string.")
+            logger.warning("the argument to relationship should be a reference "
+                           "to the real column, not a string.")
             return False
 
         else:
             return True
+
 
 class TableModelMeta(DeclarativeMeta, ComplexModelMeta):
     """This class uses the information in class definition dictionary to build
@@ -139,6 +142,7 @@ class TableModelMeta(DeclarativeMeta, ComplexModelMeta):
                     _type_info[k] = _process_item(v)
 
         return DeclarativeMeta.__new__(cls, cls_name, cls_bases, cls_dict)
+
 
 class TableModel(ComplexModelBase):
     """The main base class for complex types shared by both SQLAlchemy and
