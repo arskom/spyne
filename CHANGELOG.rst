@@ -8,7 +8,6 @@ rpclib-2.4.2-beta
  * ``MethodDescriptor.udp`` added. Short for "User-Defined Properties", you can
    use it to store arbitrary metadata about the decorated method.
  * Fix HttpRpc response serialization.
- * WSDL: Fix missing multiple porttypes with multiple services
  * Documentation updates.
 
 rpclib-2.4.1-beta
