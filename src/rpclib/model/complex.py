@@ -344,3 +344,77 @@ class Iterable(Array):
 
 class Alias(ComplexModel):
     """Different type_name, same _type_info."""
+
+class SimpleContent(ModelBase):
+    """
+    Implementation of a limited version on SimpleContent ComplexType.
+    Actually, it can only do the extension part (no restriction of simpleType)
+    """
+    # Use ClassModelMeta to have _type_info
+    __metaclass__ = ComplexModelMeta
+
+    @classmethod
+    def to_parent_element(cls, inst, tns, parent_elt, name=None):
+        if name is None:
+            name = cls.get_type_name()
+
+        elt = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
+        for k,v in cls._type_info.items():
+            subval = getattr(inst, k, None)
+
+            if isinstance(v, XMLAttribute):
+                v.marshall(k, subval, elt)
+
+        elt.text = str(inst.get_value())
+
+    @classmethod
+    def from_xml(cls, element):
+        inst = cls()
+        # reset attributes
+        for k in cls._type_info.keys():
+            setattr(inst, k, None)
+
+        inst.set_value(element.text)
+        for k in element.keys():
+            setattr(inst, k, element.get(k, None))
+
+        return inst
+
+    @classmethod
+    def add_to_schema(cls, schema_entries):
+        if not schema_entries.has_class(cls):
+            ns = namespaces.ns_xsd
+            # extends should be a SimpleType
+            extends = getattr(cls, '__extends__', None)
+            if extends is None:
+                raise Exception('SimpleContent must extend something')
+
+            complex_type = etree.Element("{%s}complexType" % ns)
+            complex_type.set('name', cls.get_type_name())
+            simple_content = etree.SubElement(complex_type,
+                                              "{%s}simpleContent" % ns)
+            extention = etree.SubElement(simple_content, "{%s}extention" % ns)
+            extention.set('base', extends.get_type_name_ns(schema_entries.app))
+
+            for k, v in cls._type_info.items():
+                if isinstance(v, XMLAttribute):
+                    attr = etree.SubElement(extention, "{%s}attribute" % ns)
+                    v.describe(k, attr)
+
+            schema_entries.add_complex_type(cls, complex_type)
+
+            element = etree.Element('{%s}element' % ns)
+            element.set('name',cls.get_type_name())
+            element.set('type',cls.get_type_name_ns(schema_entries.app))
+
+            schema_entries.add_element(cls, element)
+
+    @staticmethod
+    def resolve_namespace(cls, default_ns):
+        pass
+
+    def get_value(self):
+        return self._value
+
+    def set_value(self, value):
+        self._value = value
