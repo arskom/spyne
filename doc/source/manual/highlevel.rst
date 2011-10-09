@@ -69,9 +69,12 @@ A typical Rpclib user will just write methods that will be exposed as remote
 procedure calls to the outside world. The following is used to wrap that
 code:
 
+* **User Methods**: User methods are the code that you wrote and decided to use
+    rpclib to expose to the outside world.
+
 * **Decorators**:
     the ``@rpc`` and ``@srpc`` decorators from :mod:`rpclib.decorator` module
-    are used to flag methods that will be exposed to the outside world by 
+    are used to flag methods that will be exposed to the outside world by
     marking their input and output types, as well as other properties.
 
 * **Service Definition**:
