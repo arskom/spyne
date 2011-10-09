@@ -99,7 +99,7 @@ class AnyDict(SimpleModel):
     def from_string(cls, string):
         return pickle.loads(string)
 
-class String(SimpleModel):
+class Unicode(SimpleModel):
     """The type to represent human-readable data. Its native format is unicode.
     Currently, it can read from only utf8-compatible encodings.
     """
@@ -158,6 +158,19 @@ class String(SimpleModel):
                 and (cls.Attributes.pattern is None or
                             re.match(cls.Attributes.pattern, value) is not None)
             )
+
+class String(Unicode):
+    @classmethod
+    @nillable_string
+    def from_string(cls, value):
+        return str(value)
+
+    @classmethod
+    @nillable_string
+    def to_string(cls, value):
+        return str(value)
+
+String = Unicode # FIXME: the string/unicode separation needs to be tested
 
 class AnyUri(String):
     """This is an xml schema type with is a special kind of String."""
