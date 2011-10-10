@@ -48,10 +48,11 @@ class ByteArray(ModelBase):
     @classmethod
     @nillable_iterable
     def to_string_iterable(cls, value):
-        """Returns the result of :func:`to_string` in a list. This method should
-        be overridden if this is not enough."""
-
-        return [cls.to_string(value)]
+        for v in value:
+            if isinstance(v, unicode):
+                yield v.encode('utf8')
+            else:
+                yield v
 
     @classmethod
     @nillable_string
