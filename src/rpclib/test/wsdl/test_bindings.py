@@ -25,7 +25,7 @@ import rpclib.const.xml_ns as ns
 
 
 from . import build_app
-from .port_service_services import DoublePortService, SinglePortService
+from .port_service_services import DoublePortService, SinglePortService, S1
 
 class TestWSDLBindingBehavior(unittest.TestCase):
     def setUp(self):
@@ -37,21 +37,37 @@ class TestWSDLBindingBehavior(unittest.TestCase):
         self.operation_string = '{%s}operation' % ns.wsdl
         self.port_string = '{%s}port' % ns.wsdl
 
-    def test_binding(self):
-        """
-        sa = build_app([SinglePortService], 'SinglePort','TestServiceName')
+    def test_binding_simple(self):
+        sa = build_app([S1], 'S1Port','TestServiceName')
 
         sa.interface.build_interface_document(self.url)
-        sa_el = sa.interface.root_elt
-        tns = sa_el.get('targetNamespace')
-        self.assertEqual('SinglePort', tns)
-        """
+
+        services =  sa.interface.root_elt.xpath(
+                        '/wsdl:definitions/wsdl:service', 
+                        namespaces = { 
+                            'wsdl':'http://schemas.xmlsoap.org/wsdl/' })
+        self.assertEqual(len(services) , 1)
+        
+        portTypes =  sa.interface.root_elt.xpath(
+                        '/wsdl:definitions/wsdl:portType', 
+                        namespaces = { 
+                            'wsdl':'http://schemas.xmlsoap.org/wsdl/' })
+        self.assertEqual(len(portTypes) , 1)
+
+        ports =  sa.interface.root_elt.xpath(
+                        '/wsdl:definitions/wsdl:service[@name="%s"]/wsdl:port' % 
+                            "S1", 
+                        namespaces = {
+                            'wsdl':'http://schemas.xmlsoap.org/wsdl/' })
+        self.assertEqual(len(ports) , 1)
+        
+
+    def test_binding_multiple(self):
         sa = build_app(
             [SinglePortService, DoublePortService],
             'MultiServiceTns',
             'AppName'
         )
-        from lxml import etree
         sa.interface.build_interface_document(self.url)
 
         # 2 Service, 
@@ -93,6 +109,7 @@ class TestWSDLBindingBehavior(unittest.TestCase):
                             "DoublePortService", 
                         namespaces = {
                             'wsdl':'http://schemas.xmlsoap.org/wsdl/' })
+        self.assertEqual(len(ports) , 2)
         
         # checking name and type
         #service SinglePortService
@@ -105,7 +122,7 @@ class TestWSDLBindingBehavior(unittest.TestCase):
                                     'wsdl':'http://schemas.xmlsoap.org/wsdl/' })
                 self.assertEqual(bindings[0].get('type'), "tns:%s" % port) 
 
-        
+
 
     
     

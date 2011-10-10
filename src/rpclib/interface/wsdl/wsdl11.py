@@ -131,7 +131,6 @@ class Wsdl11(XmlSchema):
                                        xsd, xsi, wsdl, etc.
         :param _with_partnerlink: Include the partnerLink tag in the wsdl.
         '''
-
         XmlSchema.__init__(self, app, import_base_namespaces)
 
         self._with_plink = _with_partnerlink
@@ -528,10 +527,11 @@ class Wsdl11(XmlSchema):
                 inner(binding,transport)           
 
         else:
+            # there is only an unamed port, let's call it has it's service.
             #binding_name = self._get_binding_name(service_name)
             # create binding nodes
             binding = etree.SubElement(root, '{%s}binding' % _ns_wsdl)
-            binding.set('name', port_type_name)
+            binding.set('name', service_name)
             binding.set('type', '%s:%s'% (pref_tns, service_name))
 
             transport = etree.SubElement(binding, '{%s}binding' % _ns_soap)
