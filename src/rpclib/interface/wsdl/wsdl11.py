@@ -220,23 +220,13 @@ class Wsdl11(XmlSchema):
         for s in self.services:
             self.add_port_type(s, root, service_name, types, self.url)
 
-        # create binding nodes
-        binding = etree.SubElement(root, '{%s}binding' % _ns_wsdl)
-        binding.set('name', service_name)
-        binding.set('type', '%s:%s'% (pref_tns, service_name))
-
-        soap_binding = etree.SubElement(binding, '{%s}binding' % _ns_soap)
-        soap_binding.set('style', 'document')
-
         cb_binding = None
         for s in self.services:
-            cb_binding = self.add_bindings_for_methods(s, root, service_name,
-                                                            binding, cb_binding)
+            cb_binding = self.add_bindings_for_methods(s, root, service_name)
 
         if self.app.transport is None:
             raise Exception("You must set the 'transport' property of the "
                             "parent 'Application' instance")
-        soap_binding.set('transport', self.app.transport)
 
         self.__wsdl = etree.tostring(root, xml_declaration=True,
                                                                encoding="UTF-8")
@@ -406,102 +396,136 @@ class Wsdl11(XmlSchema):
                                         fault.get_type_name())
 
     def add_bindings_for_methods(self, service, root, service_name,
-                                        binding, transport, cb_binding=None):
+                                     cb_binding=None):
 
         pref_tns = self.get_namespace_prefix(service.get_tns())
+        
+        def inner(binding,transport):
+            if service._has_callbacks():
+                if cb_binding is None:
+                    cb_binding = etree.SubElement(root, '{%s}binding' % _ns_wsdl)
+                    cb_binding.set('name', '%sCallback' % service_name)
+                    cb_binding.set('type', 'typens:%sCallback' % service_name)
 
-        if service._has_callbacks():
-            if cb_binding is None:
-                cb_binding = etree.SubElement(root, '{%s}binding' % _ns_wsdl)
-                cb_binding.set('name', '%sCallback' % service_name)
-                cb_binding.set('type', 'typens:%sCallback' % service_name)
+                soap_binding = etree.SubElement(cb_binding, '{%s}binding' % _ns_soap)
+                soap_binding.set('transport', transport)
 
-            soap_binding = etree.SubElement(cb_binding, '{%s}binding' % _ns_soap)
-            soap_binding.set('transport', transport)
+            for method in service.public_methods.values():
+                operation = etree.Element('{%s}operation' % _ns_wsdl)
+                operation.set('name', method.name)
 
-        for method in service.public_methods.values():
-            operation = etree.Element('{%s}operation' % _ns_wsdl)
-            operation.set('name', method.name)
+                soap_operation = etree.SubElement(operation, '{%s}operation'
+                                                                        % _ns_soap)
+                soap_operation.set('soapAction', method.name)
+                soap_operation.set('style', 'document')
 
-            soap_operation = etree.SubElement(operation, '{%s}operation'
-                                                                    % _ns_soap)
-            soap_operation.set('soapAction', method.name)
-            soap_operation.set('style', 'document')
+                # get input
+                input = etree.SubElement(operation, '{%s}input' % _ns_wsdl)
+                input.set('name', method.in_message.get_type_name())
 
-            # get input
-            input = etree.SubElement(operation, '{%s}input' % _ns_wsdl)
-            input.set('name', method.in_message.get_type_name())
-
-            soap_body = etree.SubElement(input, '{%s}body' % _ns_soap)
-            soap_body.set('use', 'literal')
-
-            # get input soap header
-            in_header = method.in_header
-            if in_header is None:
-                in_header = service.__in_header__
-
-            if not (in_header is None):
-                if isinstance(in_header, (list, tuple)):
-                    in_headers = in_header
-                    in_header_message_name = ''.join((method.name,
-                                                      _in_header_msg_suffix))
-                else:
-                    in_headers = (in_header,)
-                    in_header_message_name = in_header.get_type_name()
-
-                for header in in_headers:
-                    soap_header = etree.SubElement(input, '{%s}header' % _ns_soap)
-                    soap_header.set('use', 'literal')
-                    soap_header.set('message', '%s:%s' % (
-                                            header.get_namespace_prefix(self),
-                                            in_header_message_name))
-                    soap_header.set('part', header.get_type_name())
-
-            if not (method.is_async or method.is_callback):
-                output = etree.SubElement(operation, '{%s}output' % _ns_wsdl)
-                output.set('name', method.out_message.get_type_name())
-
-                soap_body = etree.SubElement(output, '{%s}body' % _ns_soap)
+                soap_body = etree.SubElement(input, '{%s}body' % _ns_soap)
                 soap_body.set('use', 'literal')
 
-                # get output soap header
-                out_header = method.out_header
-                if out_header is None:
-                    out_header = service.__out_header__
+                # get input soap header
+                in_header = method.in_header
+                if in_header is None:
+                    in_header = service.__in_header__
 
-                if not (out_header is None):
-                    if isinstance(out_header, (list, tuple)):
-                        out_headers = out_header
-                        out_header_message_name = ''.join((method.name,
-                                                        _out_header_msg_suffix))
+                if not (in_header is None):
+                    if isinstance(in_header, (list, tuple)):
+                        in_headers = in_header
+                        in_header_message_name = ''.join((method.name,
+                                                          _in_header_msg_suffix))
                     else:
-                        out_headers = (out_header,)
-                        out_header_message_name = out_header.get_type_name()
+                        in_headers = (in_header,)
+                        in_header_message_name = in_header.get_type_name()
 
-                    for header in out_headers:
-                        soap_header = etree.SubElement(output, '{%s}header'
-                                                                    % _ns_soap)
+                    for header in in_headers:
+                        soap_header = etree.SubElement(input, '{%s}header' % _ns_soap)
                         soap_header.set('use', 'literal')
                         soap_header.set('message', '%s:%s' % (
-                                            header.get_namespace_prefix(self),
-                                            out_header_message_name))
+                                                header.get_namespace_prefix(self),
+                                                in_header_message_name))
                         soap_header.set('part', header.get_type_name())
 
-                if not (method.faults is None):
-                    for f in method.faults:
-                        wsdl_fault = etree.SubElement(operation, '{%s}fault' %
-                                                                    _ns_wsdl)
-                        wsdl_fault.set('name', f.get_type_name())
+                if not (method.is_async or method.is_callback):
+                    output = etree.SubElement(operation, '{%s}output' % _ns_wsdl)
+                    output.set('name', method.out_message.get_type_name())
 
-                        soap_fault = etree.SubElement(wsdl_fault, '{%s}fault' %
-                                                                    _ns_soap)
-                        soap_fault.set('name', f.get_type_name())
-                        soap_fault.set('use', 'literal')
+                    soap_body = etree.SubElement(output, '{%s}body' % _ns_soap)
+                    soap_body.set('use', 'literal')
 
-            if method.is_callback:
-                relates_to = etree.SubElement(input, '{%s}header' % _ns_soap)
+                    # get output soap header
+                    out_header = method.out_header
+                    if out_header is None:
+                        out_header = service.__out_header__
 
-<<<<<<< HEAD
+                    if not (out_header is None):
+                        if isinstance(out_header, (list, tuple)):
+                            out_headers = out_header
+                            out_header_message_name = ''.join((method.name,
+                                                            _out_header_msg_suffix))
+                        else:
+                            out_headers = (out_header,)
+                            out_header_message_name = out_header.get_type_name()
+
+                        for header in out_headers:
+                            soap_header = etree.SubElement(output, '{%s}header'
+                                                                        % _ns_soap)
+                            soap_header.set('use', 'literal')
+                            soap_header.set('message', '%s:%s' % (
+                                                header.get_namespace_prefix(self),
+                                                out_header_message_name))
+                            soap_header.set('part', header.get_type_name())
+
+                    if not (method.faults is None):
+                        for f in method.faults:
+                            wsdl_fault = etree.SubElement(operation, '{%s}fault' %
+                                                                        _ns_wsdl)
+                            wsdl_fault.set('name', f.get_type_name())
+
+                            soap_fault = etree.SubElement(wsdl_fault, '{%s}fault' %
+                                                                        _ns_soap)
+                            soap_fault.set('name', f.get_type_name())
+                            soap_fault.set('use', 'literal')
+
+                if method.is_callback:
+                    relates_to = etree.SubElement(input, '{%s}header' % _ns_soap)
+
+                    relates_to.set('message', '%s:RelatesToHeader' % pref_tns)
+                    relates_to.set('part', 'RelatesTo')
+                    relates_to.set('use', 'literal')
+
+                    cb_binding.append(operation)
+
+                else:
+                    if method.is_async:
+                        rt_header = etree.SubElement(input,'{%s}header' % _ns_soap)
+                        rt_header.set('message', '%s:ReplyToHeader' % pref_tns)
+                        rt_header.set('part', 'ReplyTo')
+                        rt_header.set('use', 'literal')
+
+                        mid_header = etree.SubElement(input, '{%s}header'% _ns_soap)
+                        mid_header.set('message', '%s:MessageIDHeader' % pref_tns)
+                        mid_header.set('part', 'MessageID')
+                        mid_header.set('use', 'literal')
+
+                    binding.append(operation)
+        
+        port_type_list = service.get_port_types()
+        if len(port_type_list) > 0:
+            for port_type_name in port_type_list:
+                
+                # create binding nodes
+                binding = etree.SubElement(root, '{%s}binding' % _ns_wsdl)
+                binding.set('name', port_type_name)
+                binding.set('type', '%s:%s'% (pref_tns, port_type_name))
+
+                transport = etree.SubElement(binding, '{%s}binding' % _ns_soap)
+                transport.set('style', 'document')
+                
+                inner(binding,transport)
+
         else:
             # there is only an unamed port, let's call it has it's service.
             #binding_name = self._get_binding_name(service_name)
@@ -515,26 +539,5 @@ class Wsdl11(XmlSchema):
             
             inner(binding,transport)
         
-=======
-                relates_to.set('message', '%s:RelatesToHeader' % pref_tns)
-                relates_to.set('part', 'RelatesTo')
-                relates_to.set('use', 'literal')
-
-                cb_binding.append(operation)
-
-            else:
-                if method.is_async:
-                    rt_header = etree.SubElement(input,'{%s}header' % _ns_soap)
-                    rt_header.set('message', '%s:ReplyToHeader' % pref_tns)
-                    rt_header.set('part', 'ReplyTo')
-                    rt_header.set('use', 'literal')
-
-                    mid_header = etree.SubElement(input, '{%s}header'% _ns_soap)
-                    mid_header.set('message', '%s:MessageIDHeader' % pref_tns)
-                    mid_header.set('part', 'MessageID')
-                    mid_header.set('use', 'literal')
-
-                binding.append(operation)
->>>>>>> arskom/master
 
         return cb_binding
