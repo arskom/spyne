@@ -79,7 +79,10 @@ class AnyXml(SimpleModel):
     @classmethod
     @nillable_string
     def from_string(cls, string):
-        return etree.fromstring(string)
+        try:
+            return etree.fromstring(string)
+        except etree.XMLSyntaxError:
+            raise ValidationError(string)
 
 class AnyDict(SimpleModel):
     """An xml node that can contain any number of sub nodes. It's represented by
@@ -97,9 +100,12 @@ class AnyDict(SimpleModel):
     @classmethod
     @nillable_string
     def from_string(cls, string):
-        return pickle.loads(string)
+        try:
+            return pickle.loads(string)
+        except:
+            raise ValidationError(string)
 
-class String(SimpleModel):
+class Unicode(SimpleModel):
     """The type to represent human-readable data. Its native format is unicode.
     Currently, it can read from only utf8-compatible encodings.
     """
@@ -152,12 +158,26 @@ class String(SimpleModel):
 
     @staticmethod
     def validate_string(cls, value):
-        return (    SimpleModel.validate_string(cls, value)
-                and len(value) >= cls.Attributes.min_len
-                and len(value) <= cls.Attributes.max_len
+        return (     SimpleModel.validate_string(cls, value)
+                and (value is None or (
+                        len(value) >= cls.Attributes.min_len and
+                        len(value) <= cls.Attributes.max_len))
                 and (cls.Attributes.pattern is None or
                             re.match(cls.Attributes.pattern, value) is not None)
             )
+
+class String(Unicode):
+    @classmethod
+    @nillable_string
+    def from_string(cls, value):
+        return str(value)
+
+    @classmethod
+    @nillable_string
+    def to_string(cls, value):
+        return str(value)
+
+String = Unicode # FIXME: the string/unicode separation needs to be tested
 
 class AnyUri(String):
     """This is an xml schema type with is a special kind of String."""
@@ -188,12 +208,13 @@ class Decimal(SimpleModel):
 
     @staticmethod
     def validate_native(cls, value):
-        return (    SimpleModel.validate_native(cls, value)
-                and value >  cls.Attributes.gt
-                and value >= cls.Attributes.ge
-                and value <  cls.Attributes.lt
-                and value <= cls.Attributes.le
-            )
+        return (    SimpleModel.validate_native(cls, value) and
+                value is None or (
+                    value >  cls.Attributes.gt and
+                    value >= cls.Attributes.ge and
+                    value <  cls.Attributes.lt and
+                    value <= cls.Attributes.le
+            ))
 
     @classmethod
     @nillable_string
@@ -205,7 +226,10 @@ class Decimal(SimpleModel):
     @classmethod
     @nillable_string
     def from_string(cls, string):
-        return decimal.Decimal(string)
+        try:
+            return decimal.Decimal(string)
+        except decimal.InvalidOperation,e:
+            raise ValidationError(string)
 
 class Double(SimpleModel):
     """This is serialized as the python float. So this type comes with its
@@ -221,7 +245,10 @@ class Double(SimpleModel):
     @classmethod
     @nillable_string
     def from_string(cls, string):
-        return float(string)
+        try:
+            return float(string)
+        except ValueError:
+            raise ValidationError(string)
 
 class Float(Double):
     """Synonym for Double. This is here for compatibility purposes."""
@@ -242,7 +269,10 @@ class Int(Decimal):
     @classmethod
     @nillable_string
     def from_string(cls, string):
-        return int(string)
+        try:
+            return int(string)
+        except ValueError:
+            raise ValidationError(string)
 
 class Integer(Decimal):
     """The arbitrary-size signed integer."""
@@ -252,10 +282,7 @@ class Integer(Decimal):
     @classmethod
     @nillable_string
     def to_string(cls, value):
-        try:
-            int(value)
-        except:
-            long(value)
+        long(value) # sanity check
 
         return str(value)
 
@@ -264,13 +291,17 @@ class Integer(Decimal):
     def from_string(cls, string):
         try:
             return int(string)
-        except:
-            return long(string)
+        except ValueError:
+            try:
+                return long(string)
+            except ValueError:
+                raise ValidationError(string)
 
 class UnsignedInteger(Integer):
     """The arbitrary-size unsigned integer."""
     __type_name__ = 'unsignedLong'
     __length__ = None
+    """length of the number, in bits"""
 
     @classmethod
     @nillable_string
@@ -279,17 +310,11 @@ class UnsignedInteger(Integer):
 
         return str(value)
 
-    @classmethod
-    @nillable_string
-    def from_string(cls, string):
-        try:
-            retval = int(string)
-        except:
-            retval = long(string)
-
-        assert (cls.__length__ is None) or (0 <= retval < 2 ** cls.__length__)
-
-        return retval
+    @staticmethod
+    def validate_native(cls, value):
+        return (     Integer.validate_native(cls, value)
+                and (cls.__length__ is None or (0 <= value < 2 ** cls.__length__))
+            )
 
 class UnsignedInteger64(UnsignedInteger):
     """The 64-bit unsigned integer."""
@@ -392,6 +417,8 @@ class Duration(SimpleModel):
     @nillable_string
     def from_string(cls, string):
         duration = _duration_re.match(string).groupdict(0)
+        if duration is None:
+            ValidationError(string)
 
         days = int(duration['days'])
         days += int(duration['months']) * 30

@@ -116,3 +116,18 @@ Regular contributors may be invited to join as a core rpclib committer on
 GitHub. Even if this gives the core committers the power to commit directly
 to the core repository, we highly value code reviews and expect every
 significant change to be committed via pull requests.
+
+Submitting Pull Requests
+------------------------
+
+Github's pull-request feature is awesome, but
+there's a subtlety that's not totally obvious for newcomers: If you continue
+working on the branch that you used to submit a pull request, your commits will
+"pollute" the pull request until it gets merged. This is not a bug, but a
+feature -- it gives you the ability to address reviewers' concerns without
+creating pull requests over and over again. So, if you intend to work on other
+parts of rpclib after submitting a pull request, please do move your work to its
+own branch and never submit a pull request from your master branch. This will
+give you the freedom to continue working on rpclib while waiting for your pull
+request to be reviewed.
+

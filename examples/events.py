@@ -29,6 +29,8 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+import logging
+
 from time import time
 
 from rpclib.application import Application
@@ -97,6 +99,9 @@ if __name__=='__main__':
         from wsgiref.simple_server import make_server
     except ImportError:
         print "Error: example server code requires Python >= 2.5"
+
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger('rpclib.protocol.xml').setLevel(logging.DEBUG)
 
     application = Application([HelloWorldService], 'rpclib.examples.events',
                 interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())

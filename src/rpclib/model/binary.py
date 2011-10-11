@@ -48,10 +48,11 @@ class ByteArray(ModelBase):
     @classmethod
     @nillable_iterable
     def to_string_iterable(cls, value):
-        """Returns the result of :func:`to_string` in a list. This method should
-        be overridden if this is not enough."""
-
-        return [cls.to_string(value)]
+        for v in value:
+            if isinstance(v, unicode):
+                yield v.encode('utf8')
+            else:
+                yield v
 
     @classmethod
     @nillable_string
@@ -132,7 +133,7 @@ class Attachment(ModelBase):
             data = open(value.file_name, 'rb').read()
 
         else:
-            raise Exception("Neither data nor a file_name has been specified")
+            raise ValueError("Neither data nor a file_name has been specified")
 
         return data
 
@@ -147,7 +148,7 @@ class Attachment(ModelBase):
             istream = open(value.file_name, 'rb')
 
         else:
-            raise Exception("Neither data nor a file_name has been specified")
+            raise ValueError("Neither data nor a file_name has been specified")
 
         base64.encode(istream, ostream)
         ostream.seek(0)

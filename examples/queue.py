@@ -70,8 +70,10 @@ class TaskQueue(DeclarativeBase):
 class WorkerStatus(DeclarativeBase):
     __tablename__ = 'worker_status'
 
-    worker_id = Column(sqlalchemy.Integer, nullable=False, primary_key=True, autoincrement=False)
-    task_id = Column(sqlalchemy.Integer, ForeignKey(TaskQueue.id), nullable=False)
+    worker_id = Column(sqlalchemy.Integer, nullable=False, primary_key=True,
+                                                            autoincrement=False)
+    task_id = Column(sqlalchemy.Integer, ForeignKey(TaskQueue.id),
+                                                            nullable=False)
 
 class Consumer(ServerBase):
     transport = 'http://sqlalchemy.persistent.queue/'

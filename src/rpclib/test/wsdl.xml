@@ -165,8 +165,6 @@
       <xs:element name="return_binary_dataResponse" type="tns:return_binary_dataResponse" />
       <xs:element name="return_invalid_data" type="tns:return_invalid_data" />
       <xs:element name="return_invalid_dataResponse" type="tns:return_invalid_dataResponse" />
-      <xs:element name="return_only" type="tns:return_only" />
-      <xs:element name="return_onlyResponse" type="tns:return_onlyResponse" />
       <xs:element name="return_other_class_array" type="tns:return_other_class_array" />
       <xs:element name="return_other_class_arrayResponse" type="tns:return_other_class_arrayResponse" />
       <xs:element name="send_out_complex_header" type="tns:send_out_complex_header" />
@@ -193,9 +191,7 @@
           <xs:enumeration value="MEMBER" />
         </xs:restriction>
       </xs:simpleType>
-      <xs:complexType name="Fault">
-        <xs:sequence />
-      </xs:complexType>
+      <xs:complexType name="Fault" />
       <xs:complexType name="InHeader">
         <xs:sequence>
           <xs:element minOccurs="0" name="i" nillable="true" type="xs:integer" />
@@ -632,14 +628,6 @@
           <xs:element minOccurs="0" name="return_invalid_dataResult" nillable="true" type="xs:integer" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="return_only">
-        <xs:sequence />
-      </xs:complexType>
-      <xs:complexType name="return_onlyResponse">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="return_onlyResult" nillable="true" type="xs:string" />
-        </xs:sequence>
-      </xs:complexType>
       <xs:complexType name="return_other_class_array">
         <xs:sequence>
           <xs:element minOccurs="0" name="num" nillable="true" type="xs:integer" />
@@ -973,12 +961,6 @@
   <wsdl:message name="return_invalid_dataResponse">
     <wsdl:part element="tns:return_invalid_dataResponse" name="return_invalid_dataResponse" />
   </wsdl:message>
-  <wsdl:message name="return_only">
-    <wsdl:part element="tns:return_only" name="return_only" />
-  </wsdl:message>
-  <wsdl:message name="return_onlyResponse">
-    <wsdl:part element="tns:return_onlyResponse" name="return_onlyResponse" />
-  </wsdl:message>
   <wsdl:message name="return_other_class_array">
     <wsdl:part element="tns:return_other_class_array" name="return_other_class_array" />
   </wsdl:message>
@@ -1210,10 +1192,6 @@
       <wsdl:input message="tns:return_invalid_data" name="return_invalid_data" />
       <wsdl:output message="tns:return_invalid_dataResponse" name="return_invalid_dataResponse" />
     </wsdl:operation>
-    <wsdl:operation name="return_only" parameterOrder="return_only">
-      <wsdl:input message="tns:return_only" name="return_only" />
-      <wsdl:output message="tns:return_onlyResponse" name="return_onlyResponse" />
-    </wsdl:operation>
     <wsdl:operation name="return_other_class_array" parameterOrder="return_other_class_array">
       <wsdl:input message="tns:return_other_class_array" name="return_other_class_array" />
       <wsdl:output message="tns:return_other_class_arrayResponse" name="return_other_class_arrayResponse" />
@@ -1236,7 +1214,250 @@
     </wsdl:operation>
   </wsdl:portType>
   <wsdl:binding name="Application" type="tns:Application">
-    <soap:binding style="document" transport="http://schemas.xmlsoap.org/soap/http" />
+    <soap:binding style="document" />
+    <wsdl:operation name="echo_any">
+      <soap:operation soapAction="echo_any" style="document" />
+      <wsdl:input name="echo_any">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_anyResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_any_as_dict">
+      <soap:operation soapAction="echo_any_as_dict" style="document" />
+      <wsdl:input name="echo_any_as_dict">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_any_as_dictResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_boolean">
+      <soap:operation soapAction="echo_boolean" style="document" />
+      <wsdl:input name="echo_boolean">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_booleanResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_datetime">
+      <soap:operation soapAction="echo_datetime" style="document" />
+      <wsdl:input name="echo_datetime">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_datetimeResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_double">
+      <soap:operation soapAction="echo_double" style="document" />
+      <wsdl:input name="echo_double">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_doubleResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_duration">
+      <soap:operation soapAction="echo_duration" style="document" />
+      <wsdl:input name="echo_duration">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_durationResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_enum">
+      <soap:operation soapAction="echo_enum" style="document" />
+      <wsdl:input name="echo_enum">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_enumResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_float">
+      <soap:operation soapAction="echo_float" style="document" />
+      <wsdl:input name="echo_float">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_floatResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_integer">
+      <soap:operation soapAction="echo_integer" style="document" />
+      <wsdl:input name="echo_integer">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_integerResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_string">
+      <soap:operation soapAction="echo_string" style="document" />
+      <wsdl:input name="echo_string">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_stringResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="Application" type="tns:Application">
+    <soap:binding style="document" />
+    <wsdl:operation name="echo_array_in_array">
+      <soap:operation soapAction="echo_array_in_array" style="document" />
+      <wsdl:input name="echo_array_in_array">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_array_in_arrayResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_boolean_array">
+      <soap:operation soapAction="echo_boolean_array" style="document" />
+      <wsdl:input name="echo_boolean_array">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_boolean_arrayResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_date_time_array">
+      <soap:operation soapAction="echo_date_time_array" style="document" />
+      <wsdl:input name="echo_date_time_array">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_date_time_arrayResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_double_array">
+      <soap:operation soapAction="echo_double_array" style="document" />
+      <wsdl:input name="echo_double_array">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_double_arrayResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_float_array">
+      <soap:operation soapAction="echo_float_array" style="document" />
+      <wsdl:input name="echo_float_array">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_float_arrayResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_integer_array">
+      <soap:operation soapAction="echo_integer_array" style="document" />
+      <wsdl:input name="echo_integer_array">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_integer_arrayResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_simple_boolean_array">
+      <soap:operation soapAction="echo_simple_boolean_array" style="document" />
+      <wsdl:input name="echo_simple_boolean_array">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_simple_boolean_arrayResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_string_array">
+      <soap:operation soapAction="echo_string_array" style="document" />
+      <wsdl:input name="echo_string_array">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_string_arrayResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="Application" type="tns:Application">
+    <soap:binding style="document" />
+    <wsdl:operation name="echo_attachment">
+      <soap:operation soapAction="echo_attachment" style="document" />
+      <wsdl:input name="echo_attachment">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_attachmentResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_attachment_array">
+      <soap:operation soapAction="echo_attachment_array" style="document" />
+      <wsdl:input name="echo_attachment_array">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_attachment_arrayResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_class_with_self_reference">
+      <soap:operation soapAction="echo_class_with_self_reference" style="document" />
+      <wsdl:input name="echo_class_with_self_reference">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_class_with_self_referenceResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_extension_class">
+      <soap:operation soapAction="echo_extension_class" style="document" />
+      <wsdl:input name="echo_extension_class">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_extension_classResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_nested_class">
+      <soap:operation soapAction="echo_nested_class" style="document" />
+      <wsdl:input name="echo_nested_class">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_nested_classResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_nested_class_array">
+      <soap:operation soapAction="echo_nested_class_array" style="document" />
+      <wsdl:input name="echo_nested_class_array">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_nested_class_arrayResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_simple_class">
+      <soap:operation soapAction="echo_simple_class" style="document" />
+      <wsdl:input name="echo_simple_class">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_simple_classResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_simple_class_array">
+      <soap:operation soapAction="echo_simple_class_array" style="document" />
+      <wsdl:input name="echo_simple_class_array">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_simple_class_arrayResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="Application" type="tns:Application">
+    <soap:binding style="document" />
     <wsdl:operation name="complex_return">
       <soap:operation soapAction="complex_return" style="document" />
       <wsdl:input name="complex_return">
@@ -1261,276 +1482,6 @@
         <soap:body use="literal" />
       </wsdl:input>
       <wsdl:output name="do_something_elseResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="documented_exception">
-      <soap:operation soapAction="documented_exception" style="document" />
-      <wsdl:input name="documented_exception">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="documented_exceptionResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-      <wsdl:fault name="Fault">
-        <soap:fault name="Fault" use="literal" />
-      </wsdl:fault>
-    </wsdl:operation>
-    <wsdl:operation name="echo_any">
-      <soap:operation soapAction="echo_any" style="document" />
-      <wsdl:input name="echo_any">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_anyResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="echo_any_as_dict">
-      <soap:operation soapAction="echo_any_as_dict" style="document" />
-      <wsdl:input name="echo_any_as_dict">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_any_as_dictResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="echo_array_in_array">
-      <soap:operation soapAction="echo_array_in_array" style="document" />
-      <wsdl:input name="echo_array_in_array">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_array_in_arrayResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="echo_attachment">
-      <soap:operation soapAction="echo_attachment" style="document" />
-      <wsdl:input name="echo_attachment">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_attachmentResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="echo_attachment_array">
-      <soap:operation soapAction="echo_attachment_array" style="document" />
-      <wsdl:input name="echo_attachment_array">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_attachment_arrayResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="echo_boolean">
-      <soap:operation soapAction="echo_boolean" style="document" />
-      <wsdl:input name="echo_boolean">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_booleanResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="echo_boolean_array">
-      <soap:operation soapAction="echo_boolean_array" style="document" />
-      <wsdl:input name="echo_boolean_array">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_boolean_arrayResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="echo_class_with_self_reference">
-      <soap:operation soapAction="echo_class_with_self_reference" style="document" />
-      <wsdl:input name="echo_class_with_self_reference">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_class_with_self_referenceResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="echo_date_time_array">
-      <soap:operation soapAction="echo_date_time_array" style="document" />
-      <wsdl:input name="echo_date_time_array">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_date_time_arrayResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="echo_datetime">
-      <soap:operation soapAction="echo_datetime" style="document" />
-      <wsdl:input name="echo_datetime">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_datetimeResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="echo_double">
-      <soap:operation soapAction="echo_double" style="document" />
-      <wsdl:input name="echo_double">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_doubleResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="echo_double_array">
-      <soap:operation soapAction="echo_double_array" style="document" />
-      <wsdl:input name="echo_double_array">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_double_arrayResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="echo_duration">
-      <soap:operation soapAction="echo_duration" style="document" />
-      <wsdl:input name="echo_duration">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_durationResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="echo_enum">
-      <soap:operation soapAction="echo_enum" style="document" />
-      <wsdl:input name="echo_enum">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_enumResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="echo_extension_class">
-      <soap:operation soapAction="echo_extension_class" style="document" />
-      <wsdl:input name="echo_extension_class">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_extension_classResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="echo_float">
-      <soap:operation soapAction="echo_float" style="document" />
-      <wsdl:input name="echo_float">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_floatResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="echo_float_array">
-      <soap:operation soapAction="echo_float_array" style="document" />
-      <wsdl:input name="echo_float_array">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_float_arrayResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="echo_in_complex_header">
-      <soap:operation soapAction="echo_in_complex_header" style="document" />
-      <wsdl:input name="echo_in_complex_header">
-        <soap:body use="literal" />
-        <soap:header message="tns:echo_in_complex_headerInHeaderMsg" part="InHeader" use="literal" />
-        <soap:header message="tns:echo_in_complex_headerInHeaderMsg" part="InTraceHeader" use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_in_complex_headerResponse">
-        <soap:body use="literal" />
-        <soap:header message="tns:echo_in_complex_headerOutHeaderMsg" part="OutHeader" use="literal" />
-        <soap:header message="tns:echo_in_complex_headerOutHeaderMsg" part="OutTraceHeader" use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="echo_in_header">
-      <soap:operation soapAction="echo_in_header" style="document" />
-      <wsdl:input name="echo_in_header">
-        <soap:body use="literal" />
-        <soap:header message="tns:InHeader" part="InHeader" use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_in_headerResponse">
-        <soap:body use="literal" />
-        <soap:header message="tns:OutHeader" part="OutHeader" use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="echo_integer">
-      <soap:operation soapAction="echo_integer" style="document" />
-      <wsdl:input name="echo_integer">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_integerResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="echo_integer_array">
-      <soap:operation soapAction="echo_integer_array" style="document" />
-      <wsdl:input name="echo_integer_array">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_integer_arrayResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="echo_nested_class">
-      <soap:operation soapAction="echo_nested_class" style="document" />
-      <wsdl:input name="echo_nested_class">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_nested_classResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="echo_nested_class_array">
-      <soap:operation soapAction="echo_nested_class_array" style="document" />
-      <wsdl:input name="echo_nested_class_array">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_nested_class_arrayResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="echo_simple_boolean_array">
-      <soap:operation soapAction="echo_simple_boolean_array" style="document" />
-      <wsdl:input name="echo_simple_boolean_array">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_simple_boolean_arrayResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="echo_simple_class">
-      <soap:operation soapAction="echo_simple_class" style="document" />
-      <wsdl:input name="echo_simple_class">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_simple_classResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="echo_simple_class_array">
-      <soap:operation soapAction="echo_simple_class_array" style="document" />
-      <wsdl:input name="echo_simple_class_array">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_simple_class_arrayResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="echo_string">
-      <soap:operation soapAction="echo_string" style="document" />
-      <wsdl:input name="echo_string">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_stringResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="echo_string_array">
-      <soap:operation soapAction="echo_string_array" style="document" />
-      <wsdl:input name="echo_string_array">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="echo_string_arrayResponse">
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
@@ -1570,15 +1521,6 @@
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
-    <wsdl:operation name="python_exception">
-      <soap:operation soapAction="python_exception" style="document" />
-      <wsdl:input name="python_exception">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="python_exceptionResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
     <wsdl:operation name="return_binary_data">
       <soap:operation soapAction="return_binary_data" style="document" />
       <wsdl:input name="return_binary_data">
@@ -1597,15 +1539,6 @@
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
-    <wsdl:operation name="return_only">
-      <soap:operation soapAction="return_only" style="document" />
-      <wsdl:input name="return_only">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="return_onlyResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
     <wsdl:operation name="return_other_class_array">
       <soap:operation soapAction="return_other_class_array" style="document" />
       <wsdl:input name="return_other_class_array">
@@ -1613,6 +1546,56 @@
       </wsdl:input>
       <wsdl:output name="return_other_class_arrayResponse">
         <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="test_empty">
+      <soap:operation soapAction="test_empty" style="document" />
+      <wsdl:input name="test_empty">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="test_emptyResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="Application" type="tns:Application">
+    <soap:binding style="document" />
+    <wsdl:operation name="echo_in_header">
+      <soap:operation soapAction="echo_in_header" style="document" />
+      <wsdl:input name="echo_in_header">
+        <soap:body use="literal" />
+        <soap:header message="tns:InHeader" part="InHeader" use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_in_headerResponse">
+        <soap:body use="literal" />
+        <soap:header message="tns:OutHeader" part="OutHeader" use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="send_out_header">
+      <soap:operation soapAction="send_out_header" style="document" />
+      <wsdl:input name="send_out_header">
+        <soap:body use="literal" />
+        <soap:header message="tns:InHeader" part="InHeader" use="literal" />
+      </wsdl:input>
+      <wsdl:output name="send_out_headerResponse">
+        <soap:body use="literal" />
+        <soap:header message="tns:OutHeader" part="OutHeader" use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+  </wsdl:binding>
+  <wsdl:binding name="Application" type="tns:Application">
+    <soap:binding style="document" />
+    <wsdl:operation name="echo_in_complex_header">
+      <soap:operation soapAction="echo_in_complex_header" style="document" />
+      <wsdl:input name="echo_in_complex_header">
+        <soap:body use="literal" />
+        <soap:header message="tns:echo_in_complex_headerInHeaderMsg" part="InHeader" use="literal" />
+        <soap:header message="tns:echo_in_complex_headerInHeaderMsg" part="InTraceHeader" use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_in_complex_headerResponse">
+        <soap:body use="literal" />
+        <soap:header message="tns:echo_in_complex_headerOutHeaderMsg" part="OutHeader" use="literal" />
+        <soap:header message="tns:echo_in_complex_headerOutHeaderMsg" part="OutTraceHeader" use="literal" />
       </wsdl:output>
     </wsdl:operation>
     <wsdl:operation name="send_out_complex_header">
@@ -1628,15 +1611,28 @@
         <soap:header message="tns:send_out_complex_headerOutHeaderMsg" part="OutTraceHeader" use="literal" />
       </wsdl:output>
     </wsdl:operation>
-    <wsdl:operation name="send_out_header">
-      <soap:operation soapAction="send_out_header" style="document" />
-      <wsdl:input name="send_out_header">
+  </wsdl:binding>
+  <wsdl:binding name="Application" type="tns:Application">
+    <soap:binding style="document" />
+    <wsdl:operation name="documented_exception">
+      <soap:operation soapAction="documented_exception" style="document" />
+      <wsdl:input name="documented_exception">
         <soap:body use="literal" />
-        <soap:header message="tns:InHeader" part="InHeader" use="literal" />
       </wsdl:input>
-      <wsdl:output name="send_out_headerResponse">
+      <wsdl:output name="documented_exceptionResponse">
         <soap:body use="literal" />
-        <soap:header message="tns:OutHeader" part="OutHeader" use="literal" />
+      </wsdl:output>
+      <wsdl:fault name="Fault">
+        <soap:fault name="Fault" use="literal" />
+      </wsdl:fault>
+    </wsdl:operation>
+    <wsdl:operation name="python_exception">
+      <soap:operation soapAction="python_exception" style="document" />
+      <wsdl:input name="python_exception">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="python_exceptionResponse">
+        <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
     <wsdl:operation name="soap_exception">
@@ -1645,15 +1641,6 @@
         <soap:body use="literal" />
       </wsdl:input>
       <wsdl:output name="soap_exceptionResponse">
-        <soap:body use="literal" />
-      </wsdl:output>
-    </wsdl:operation>
-    <wsdl:operation name="test_empty">
-      <soap:operation soapAction="test_empty" style="document" />
-      <wsdl:input name="test_empty">
-        <soap:body use="literal" />
-      </wsdl:input>
-      <wsdl:output name="test_emptyResponse">
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>

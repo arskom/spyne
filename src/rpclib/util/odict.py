@@ -79,6 +79,12 @@ class odict(object):
         del self.__list[key]
 
     def items(self):
+        retval = []
+        for k in self.__list:
+            retval.append( (k, self.__dict[k]) )
+        return retval
+
+    def iteritems(self):
         for k in self.__list:
             yield k, self.__dict[k]
 
