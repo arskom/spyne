@@ -46,6 +46,7 @@ class InterfaceBase(object):
 
         self.__app = None
         self.set_app(app)
+        
 
     def set_app(self, value):
         assert self.__app is None, "One interface instance should belong to one " \
@@ -81,7 +82,6 @@ class InterfaceBase(object):
 
         ns_prefix = cls.get_namespace_prefix(self)
         type_name = cls.get_type_name()
-
         return ((ns_prefix in self.namespaces) and
                            (type_name in self.namespaces[ns_prefix].types))
 
@@ -225,7 +225,7 @@ class InterfaceBase(object):
 
         if ns == "__main__":
             warnings.warn("Namespace is '__main__'", Warning )
-
+        
         if not (ns in self.prefmap):
             pref = "s%d" % self.__ns_counter
             while pref in self.nsmap:
@@ -239,7 +239,6 @@ class InterfaceBase(object):
 
         else:
             pref = self.prefmap[ns]
-
         return pref
 
     def add(self, cls):

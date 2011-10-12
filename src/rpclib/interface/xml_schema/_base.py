@@ -92,7 +92,6 @@ class XmlSchema(InterfaceBase):
 
     def build_schema_nodes(self, with_schema_location=False):
         self.schema_dict = {}
-
         for pref in self.namespaces:
             schema = self.get_schema_node(pref)
 
@@ -149,7 +148,6 @@ class XmlSchema(InterfaceBase):
 
     def get_schema_node(self, pref):
         """Return schema node for the given namespace prefix."""
-
         # create schema node
         if not (pref in self.schema_dict):
             schema = etree.Element("{%s}schema" % _ns_xsd, nsmap=self.nsmap)
