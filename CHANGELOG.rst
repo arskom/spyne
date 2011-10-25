@@ -2,6 +2,10 @@
 Changelog
 =========
 
+rpclib-2.4.4-beta
+-----------------
+ * Time primitive was implemented.
+
 rpclib-2.4.3-beta
 -----------------
  * Many issues with 'soft' validation was fixed.
