@@ -23,15 +23,12 @@ import re
 import math
 import pytz
 import decimal
+import datetime
 
 import rpclib.const.xml_ns
 import cPickle as pickle
 
 from collections import deque
-
-from datetime import date
-from datetime import datetime
-from datetime import timedelta
 
 from lxml import etree
 from pytz import FixedOffset
@@ -51,6 +48,7 @@ _local_re = re.compile(_datetime_pattern)
 _utc_re = re.compile(_datetime_pattern + 'Z')
 _offset_re = re.compile(_datetime_pattern + _offset_pattern)
 _date_re = re.compile(_date_pattern)
+_time_re = re.compile(_time_pattern)
 _duration_re = re.compile(
         r'(?P<sign>-?)'
         r'P'
@@ -340,8 +338,40 @@ class UnsignedInteger8(Integer):
     __type_name__ = 'unsignedByte'
     __length__ = 8
 
+class Time(SimpleModel):
+    """Just that, Time. No time zone support.
+
+    Native type is :class:`datetime.time`.
+    """
+
+    __type_name__ = 'time'
+
+    @classmethod
+    @nillable_string
+    def to_string(cls, value):
+        """Returns ISO formatted dates."""
+
+        return value.isoformat()
+
+    @classmethod
+    @nillable_string
+    def from_string(cls, string):
+        """Expects ISO formatted dates."""
+
+        match = _time_re.match(string)
+        if match is None:
+            raise ValidationError(string)
+
+        fields = match.groupdict(0)
+
+        return datetime.time(int(fields['hr']), int(fields['min']),
+                    int(fields['sec']), int(fields.get("sec_frac", '.')[1:]))
+
 class Date(SimpleModel):
-    """Just that, Date. It also supports time zones."""
+    """Just that, Date. It also supports time zones.
+
+    Native type is :class:`datetime.date`.
+    """
 
     __type_name__ = 'date'
 
@@ -363,10 +393,12 @@ class Date(SimpleModel):
 
         fields = match.groupdict(0)
 
-        return date(fields['year'], fields['month'], fields['day'])
+        return datetime.date(fields['year'], fields['month'], fields['day'])
 
 class DateTime(SimpleModel):
     """A compact way to represent dates and times together. Supports time zones.
+
+    Native type is :class:`datetime.datetime`.
     """
     __type_name__ = 'dateTime'
 
@@ -377,15 +409,21 @@ class DateTime(SimpleModel):
 
     @staticmethod
     def parse(date_match, tz=None):
-        fields = date_match.groupdict(0)
-        year, month, day, hour, min, sec = [int(fields[x]) for x in
-            ("year", "month", "day", "hr", "min", "sec")]
+        fields = date_match.groupdict()
 
-        # use of decimal module here (rather than float) might be better
-        # here, if willing to require python 2.4 or higher
-        microsec = int(float(fields.get("sec_frac", 0)) * 10 ** 6)
+        year = int(fields.get('year'))
+        month =  int(fields.get('month'))
+        day = int(fields.get('day'))
+        hour = int(fields.get('hr'))
+        min = int(fields.get('min'))
+        sec = int(fields.get('sec'))
+        microsec = fields.get("sec_frac")
+        if microsec is None:
+            microsec = 0
+        else:
+            microsec = int(microsec[1:])
 
-        return datetime(year,month,day, hour,min,sec, microsec, tz)
+        return datetime.datetime(year,month,day, hour,min,sec, microsec, tz)
 
     @classmethod
     @nillable_string
@@ -409,7 +447,7 @@ class DateTime(SimpleModel):
 
 # this object tries to follow ISO 8601 standard.
 class Duration(SimpleModel):
-    """This is how the native datetime.timedelta objects are serialized."""
+    """Native type is :class:`datetime.timedelta`."""
 
     __type_name__ = 'duration'
 
@@ -430,7 +468,7 @@ class Duration(SimpleModel):
         seconds = i
         microseconds = int(1e6 * f)
 
-        delta = timedelta(days=days, hours=hours, minutes=minutes,
+        delta = datetime.timedelta(days=days, hours=hours, minutes=minutes,
                                     seconds=seconds, microseconds=microseconds)
 
         if duration['sign'] == "-":
