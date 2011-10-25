@@ -104,14 +104,15 @@ class AnyDict(SimpleModel):
             raise ValidationError(string)
 
 class Unicode(SimpleModel):
-    """The type to represent human-readable data. Its native format is unicode.
-    Currently, it can read from only utf8-compatible encodings.
+    """The type to represent human-readable data. Its native format is `unicode`.
+    or `str` with given encoding.
     """
 
     __type_name__ = 'string'
 
     class Attributes(SimpleModel.Attributes):
-        """The class that holds the constraints for the given type."""
+        """Customizable attributes of the :class:`rpclib.model.primitive.Unicode`
+        type."""
 
         min_len = 0
         """Minimum length of string. Can be set to any positive integer"""
@@ -137,10 +138,7 @@ class Unicode(SimpleModel):
     @classmethod
     @nillable_string
     def from_string(cls, value):
-        try:
-            return value.decode('utf8')
-        except:
-            return value
+        return value
 
     @classmethod
     @nillable_string
@@ -164,20 +162,36 @@ class Unicode(SimpleModel):
                             re.match(cls.Attributes.pattern, value) is not None)
             )
 
-class String(Unicode):
+
+# the undocumented string type, for those who want not-so-implicit encoding
+# conversions.
+class _String(Unicode):
+    class Attributes(Unicode.Attributes):
+        """Customizable attributes of the :class:`rpclib.model.primitive.String`
+        type."""
+
+        encoding = 'utf8'
+        """The encoding of the passed `str` object."""
+
     @classmethod
     @nillable_string
     def from_string(cls, value):
-        return str(value)
+        retval = value
+        if cls.Attributes.encoding is not None:
+            retval = value.decode(cls.Attributes.encoding)
+        return retval
 
     @classmethod
     @nillable_string
     def to_string(cls, value):
-        return str(value)
+        retval = value
+        if cls.Attribute.encoding is not None:
+            retval = value.encode(cls.Attributes.encoding)
+        return retval
 
 String = Unicode # FIXME: the string/unicode separation needs to be tested
 
-class AnyUri(String):
+class AnyUri(Unicode):
     """This is an xml schema type with is a special kind of String."""
     __type_name__ = 'anyURI'
 
