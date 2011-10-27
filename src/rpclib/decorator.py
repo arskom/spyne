@@ -118,16 +118,12 @@ def _produce_output_message(f, func_name, kparams):
         ns = _out_message_name[1:].partition("}")[0]
 
     if _body_style == 'wrapped':
-        if isinstance(_returns,ComplexModelMeta):
-            message = _returns
-        else:
-            message = ComplexModel.produce(type_name=_out_message_name,
-                                        namespace=ns,
-                                        members=out_params)
+        message = ComplexModel.produce(type_name=_out_message_name,
+                                       namespace=ns,
+                                       members=out_params)
         message.__namespace__ = ns # FIXME: is this necessary?
-
-    else:
-        message = ComplexModel.alias(_out_message_name, ns, _returns)
+    else: #bare
+        message = _returns
 
     return message
 
