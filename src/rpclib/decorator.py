@@ -28,8 +28,7 @@ decorator is a simple example of this.
 """
 
 from rpclib._base import MethodDescriptor
-from rpclib.model.complex import ComplexModel
-from rpclib.model.complex import TypeInfo
+from rpclib.model.complex import ComplexModel, ComplexModelMeta, TypeInfo
 from rpclib.const.xml_ns import DEFAULT_NS
 
 def _produce_input_message(f, params, _in_message_name, _in_variable_names, no_ctx):
@@ -120,12 +119,11 @@ def _produce_output_message(f, func_name, kparams):
 
     if _body_style == 'wrapped':
         message = ComplexModel.produce(type_name=_out_message_name,
-                                        namespace=ns,
-                                        members=out_params)
+                                       namespace=ns,
+                                       members=out_params)
         message.__namespace__ = ns # FIXME: is this necessary?
-
-    else:
-        message = ComplexModel.alias(_out_message_name, ns, _returns)
+    else: #bare
+        message = _returns
 
     return message
 

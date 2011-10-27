@@ -222,7 +222,8 @@ class Wsdl11(XmlSchema):
 
         cb_binding = None
         for s in self.services:
-            cb_binding = self.add_bindings_for_methods(s, root, service_name)
+            cb_binding = self.add_bindings_for_methods(s, root, service_name,
+                                                       cb_binding)
 
         if self.app.transport is None:
             raise Exception("You must set the 'transport' property of the "
@@ -396,20 +397,11 @@ class Wsdl11(XmlSchema):
                                         fault.get_type_name())
 
     def add_bindings_for_methods(self, service, root, service_name,
-                                     cb_binding=None):
+                                     cb_binding):
 
         pref_tns = self.get_namespace_prefix(service.get_tns())
         
-        def inner(binding,transport):
-            if service._has_callbacks():
-                if cb_binding is None:
-                    cb_binding = etree.SubElement(root, '{%s}binding' % _ns_wsdl)
-                    cb_binding.set('name', '%sCallback' % service_name)
-                    cb_binding.set('type', 'typens:%sCallback' % service_name)
-
-                soap_binding = etree.SubElement(cb_binding, '{%s}binding' % _ns_soap)
-                soap_binding.set('transport', transport)
-
+        def inner(binding):
             for method in service.public_methods.values():
                 operation = etree.Element('{%s}operation' % _ns_wsdl)
                 operation.set('name', method.name)
@@ -524,20 +516,19 @@ class Wsdl11(XmlSchema):
                 transport = etree.SubElement(binding, '{%s}binding' % _ns_soap)
                 transport.set('style', 'document')
                 
-                inner(binding,transport)
+                inner(binding)
 
         else:
-            # there is only an unamed port, let's call it has it's service.
-            #binding_name = self._get_binding_name(service_name)
-            # create binding nodes
-            binding = etree.SubElement(root, '{%s}binding' % _ns_wsdl)
-            binding.set('name', service_name)
-            binding.set('type', '%s:%s'% (pref_tns, service_name))
+            # here is the default port.
+            if cb_binding is None:
+                cb_binding = etree.SubElement(root, '{%s}binding' % _ns_wsdl)
+                cb_binding.set('name', service_name)
+                cb_binding.set('type', '%s:%s'% (pref_tns, service_name))
 
-            transport = etree.SubElement(binding, '{%s}binding' % _ns_soap)
-            transport.set('style', 'document')
+                transport = etree.SubElement(cb_binding, '{%s}binding' % _ns_soap)
+                transport.set('style', 'document')
+                transport.set('transport', self.app.transport)
             
-            inner(binding,transport)
-        
+            inner(cb_binding)
 
         return cb_binding
