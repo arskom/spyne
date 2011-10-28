@@ -2,7 +2,7 @@
 Changelog
 =========
 
-rpclib-2.4.4-beta
+rpclib-2.4.5-beta
 -----------------
  * Time primitive was implemented.
  * Fix for multiple ports was integrated.
