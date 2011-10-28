@@ -6,6 +6,7 @@ rpclib-2.4.4-beta
 -----------------
  * Time primitive was implemented.
  * Fix for multiple ports was integrated.
+ * Added http cookie authentication example with suds.
 
 rpclib-2.4.3-beta
 -----------------
