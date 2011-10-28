@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="wsi-test-tools/common/xsl/report.xsl" type="text/xsl" ?>
-<report name="WS-I Basic Profile Conformance Report."    timestamp="2011-09-19T15:13:36.767"
+<report name="WS-I Basic Profile Conformance Report."    timestamp="2011-10-28T16:12:06.460"
     xmlns="http://www.ws-i.org/testing/2004/07/report/"
     xmlns:wsi-report="http://www.ws-i.org/testing/2004/07/report/"
     xmlns:wsi-log="http://www.ws-i.org/testing/2003/03/log/"
@@ -141,7 +141,7 @@
       <assertionResult id="SSBP2403" result="passed">
       </assertionResult>
     </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}send_out_complex_headerOutHeaderMsg">
+    <entry type="message" referenceID="{rpclib.test.interop.server}OutHeader">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
@@ -153,25 +153,25 @@
       <assertionResult id="BP2116" result="passed">
       </assertionResult>
     </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}send_out_complex_headerInHeaderMsg">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_in_complex_headerOutHeaderMsg">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
     <entry type="message" referenceID="{rpclib.test.interop.server}echo_in_complex_headerInHeaderMsg">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
       </assertionResult>
     </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}OutHeader">
+    <entry type="message" referenceID="{rpclib.test.interop.server}send_out_complex_headerInHeaderMsg">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}send_out_complex_headerOutHeaderMsg">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_in_complex_headerOutHeaderMsg">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
@@ -361,12 +361,6 @@
       <assertionResult id="BP2014" result="notApplicable">
       </assertionResult>
     </entry>
-    <entry type="operation" referenceID="return_only">
-      <assertionResult id="BP2208" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2014" result="notApplicable">
-      </assertionResult>
-    </entry>
     <entry type="operation" referenceID="multi_param">
       <assertionResult id="BP2208" result="passed">
       </assertionResult>
@@ -451,13 +445,25 @@
       <assertionResult id="BP2014" result="notApplicable">
       </assertionResult>
     </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_datetimeResponse">
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_date_time_arrayResponse">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
       </assertionResult>
     </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}send_out_complex_header">
+    <entry type="message" referenceID="{rpclib.test.interop.server}return_binary_dataResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}soap_exceptionResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_double">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
@@ -469,91 +475,13 @@
       <assertionResult id="BP2116" result="passed">
       </assertionResult>
     </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_in_complex_headerResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_boolean_arrayResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_extension_class">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_in_complex_header">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}return_onlyResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_boolean">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_double_arrayResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}long_stringResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_float">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_integer_arrayResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}multi_paramResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
     <entry type="message" referenceID="{rpclib.test.interop.server}echo_simple_class_array">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
       </assertionResult>
     </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_duration">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_nested_classResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_nested_class_arrayResponse">
+    <entry type="message" referenceID="{rpclib.test.interop.server}soap_exception">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
@@ -565,79 +493,31 @@
       <assertionResult id="BP2116" result="passed">
       </assertionResult>
     </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_simple_class">
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_string_array">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
       </assertionResult>
     </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_stringResponse">
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_attachment_arrayResponse">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
       </assertionResult>
     </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_boolean_array">
+    <entry type="message" referenceID="{rpclib.test.interop.server}getCustomMessagesMsgOut">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
       </assertionResult>
     </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_nested_class_array">
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_any_as_dict">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
       </assertionResult>
     </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_class_with_self_reference">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_durationResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_nested_class">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_attachmentResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_array_in_arrayResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}return_other_class_arrayResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_simple_boolean_arrayResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}send_out_headerResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}custom_messages">
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_nested_class_arrayResponse">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
@@ -655,217 +535,19 @@
       <assertionResult id="BP2116" result="passed">
       </assertionResult>
     </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_integerResponse">
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_array_in_array">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
       </assertionResult>
     </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}non_nillableResponse">
+    <entry type="message" referenceID="{rpclib.test.interop.server}multi_paramResponse">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
       </assertionResult>
     </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}return_binary_dataResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_anyResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_float_array">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_simple_class_arrayResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}documented_exceptionResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_enum">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_attachment">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}soap_exceptionResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_date_time_array">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_booleanResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}python_exceptionResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}return_invalid_data">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}send_out_header">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_integer">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}test_emptyResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_date_time_arrayResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}send_out_complex_headerResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}do_something_else">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_double">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_attachment_array">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}documented_exception">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_attachment_arrayResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_any">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_any_as_dictResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}return_binary_data">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}soap_exception">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}return_only">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_double_array">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_extension_classResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}do_something_elseResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}huge_number">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_float_arrayResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}test_empty">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}getCustomMessagesMsgOut">
+    <entry type="message" referenceID="{rpclib.test.interop.server}return_other_class_arrayResponse">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
@@ -877,55 +559,43 @@
       <assertionResult id="BP2116" result="passed">
       </assertionResult>
     </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_in_header">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_any_as_dict">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_in_headerResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_simple_boolean_array">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_floatResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
     <entry type="message" referenceID="{rpclib.test.interop.server}return_other_class_array">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
       </assertionResult>
     </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_string_arrayResponse">
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_double_arrayResponse">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
       </assertionResult>
     </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_array_in_array">
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_class_with_self_reference">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
       </assertionResult>
     </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}Fault">
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_integer">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}return_binary_data">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_float">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_array_in_arrayResponse">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
@@ -937,37 +607,19 @@
       <assertionResult id="BP2116" result="passed">
       </assertionResult>
     </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_doubleResponse">
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_nested_classResponse">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
       </assertionResult>
     </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_enumResponse">
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_extension_classResponse">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
       </assertionResult>
     </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_integer_array">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_simple_classResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}python_exception">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_string_array">
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_anyResponse">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
@@ -979,7 +631,115 @@
       <assertionResult id="BP2116" result="passed">
       </assertionResult>
     </entry>
-    <entry type="message" referenceID="{rpclib.test.interop.server}echo_string">
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_boolean_arrayResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_floatResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_in_header">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}send_out_complex_header">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_integerResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}Fault">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}do_something_else">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_datetimeResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}do_something_elseResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}test_emptyResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_durationResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_attachment">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}non_nillableResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_nested_class">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_boolean">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_float_array">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_string_arrayResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}documented_exception">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}send_out_complex_headerResponse">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
@@ -991,7 +751,229 @@
       <assertionResult id="BP2116" result="passed">
       </assertionResult>
     </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_float_arrayResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_any">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_in_complex_header">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_enum">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_string">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_simple_class">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_simple_classResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_duration">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_simple_boolean_arrayResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}test_empty">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}return_invalid_data">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_simple_class_arrayResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_attachment_array">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_in_complex_headerResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}send_out_header">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_attachmentResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_in_headerResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}custom_messages">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}python_exception">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_simple_boolean_array">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}python_exceptionResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_any_as_dictResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_boolean_array">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}huge_number">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_integer_arrayResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_extension_class">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}documented_exceptionResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
     <entry type="message" referenceID="{rpclib.test.interop.server}complex_return">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_stringResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_booleanResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_enumResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_doubleResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}long_stringResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_nested_class_array">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_integer_array">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}send_out_headerResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_double_array">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{rpclib.test.interop.server}echo_date_time_array">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">

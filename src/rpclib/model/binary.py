@@ -57,23 +57,12 @@ class ByteArray(ModelBase):
     @classmethod
     @nillable_string
     def to_base64(cls, value):
-        ostream = StringIO()
-        istream = StringIO(''.join(value))
-        base64.encode(istream, ostream)
-        ostream.seek(0)
-
-        return [ostream.read()]
+        return [base64.b64encode(''.join(value))]
 
     @classmethod
     @nillable_string
     def from_base64(cls, value):
-        istream = StringIO(''.join(value))
-        ostream = StringIO()
-
-        base64.decode(istream, ostream)
-        ostream.seek(0)
-
-        return [ostream.read()]
+        return [base64.b64decode(''.join(value))]
 
 class Attachment(ModelBase):
     """**DEPRECATED!** Use ByteArray instead."""

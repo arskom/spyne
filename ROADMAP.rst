@@ -17,7 +17,7 @@ touching most of the codebase: A proper lazily-evaluated pipeline for request
 processing.
 
 Currently, every artifact of the rpc processing pipeline remain in memory for the
-entire life time of the context object. This also causes to have the whole message
+entire life time of the context object. This also results in having the whole message
 in memory while processing. While this is not a problem for small messages, which is
 rpclib's main target, it limits rpclib capabilities.
 
@@ -52,10 +52,15 @@ Soap to JsonRpc.
 Miscellanous
 ------------
 
+First and foremost:
+
+     Fix the tests that fail due to api changes!
+
 The following would definitely be nice to have, but are just modules that should
 not cause a change in unrelated areas of rpclib. Those would increment the minor
 version number of the Rpclib version once implemented.
 
+* Support for polymorphism in XML Schema.
 * Support for the JsonObject (à la XmlObject) and JsonRpc protocols.
 * Support for the JsonSchema interface document standard.
 * Support for the Thrift binary protocol.
@@ -72,4 +77,3 @@ version number of the Rpclib version once implemented.
 * Support addressing (routing) extensions to Soap
 * Add WSDL Parsing support to Soap client
 * Reflect transport and protocol pairs other than Soap/Http to the Wsdl.
-* Fix the tests that fail due to api changes.
