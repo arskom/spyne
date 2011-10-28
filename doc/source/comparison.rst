@@ -22,11 +22,10 @@ Discussion thread: https://answers.launchpad.net/ladon/+question/171664
     The main motive for designing JSON-WSP was the need for a JSON-based RPC
     protocol with a service description specification with built-in service /
     method documentation.
-* Supports Python 3.x.
+* Supports both Python 2 and Python 3.
 * Auto-generates human-readable API documentation.
   (example: http://ladonize.org/python-demos/AlbumService) In Rpclib, you need
   to do with the ugliness of a raw wsdl document.
-* Supports both Python 2 and Python 3.
 * Does not support ZeroMQ.
 * Uses standard python tools for xml parsing which is good for pure-python
   deployments. Rpclib uses lxml, due to its excellent namespace support and

@@ -23,6 +23,8 @@ import unittest
 from lxml import etree
 
 from rpclib.model.complex import Array
+from rpclib.model.primitive import Date
+from rpclib.model.primitive import Time
 from rpclib.model.primitive import Boolean
 from rpclib.model.primitive import DateTime
 from rpclib.model.primitive import Duration
@@ -54,6 +56,15 @@ class TestPrimitive(unittest.TestCase):
 
         self.assertEquals(element.text, n.isoformat())
         dt = DateTime.from_xml(element)
+        self.assertEquals(n, dt)
+
+    def test_time(self):
+        n = datetime.time(1,2,3,4)
+
+        ret = Time.to_string(n)
+        self.assertEquals(ret, n.isoformat())
+
+        dt = Time.from_string(ret)
         self.assertEquals(n, dt)
 
     def test_duration_xml_duration(self):

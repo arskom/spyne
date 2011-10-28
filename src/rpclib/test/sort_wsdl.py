@@ -58,7 +58,7 @@ def main():
         tree.getroot().append(e)
 
     for e in tree.getroot():
-        if e.tag in ("{%s}portType" % ns_wsdl, "{%s}binding" % ns_wsdl):
+        if e.tag in ("{%s}portType" % ns_wsdl, "{%s}binding" % ns_wsdl, "{%s}operation" % ns_wsdl):
             nodes = []
             for p in e.getchildren():
                 nodes.append(p)

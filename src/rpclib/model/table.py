@@ -48,6 +48,7 @@ from rpclib.model import primitive
 from rpclib.model import binary
 from rpclib.model import complex
 
+
 _type_map = {
     sqlalchemy.Text: primitive.String,
     sqlalchemy.String: primitive.String,
@@ -63,7 +64,11 @@ _type_map = {
     sqlalchemy.LargeBinary: binary.ByteArray,
     sqlalchemy.Boolean: primitive.Boolean,
     sqlalchemy.DateTime: primitive.DateTime,
+    sqlalchemy.Date: primitive.Date,
+    sqlalchemy.Time: primitive.Time,
+
     sqlalchemy.orm.relation: complex.Array,
+
     UUID: primitive.String
 }
 
