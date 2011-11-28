@@ -177,7 +177,8 @@ def srpc(*params, **kparams):
             retval = MethodDescriptor(f,
                     in_message, out_message, doc, _is_callback, _is_async,
                     _mtom, _in_header, _out_header, _faults,
-                    port_type=_port_type, no_ctx=_no_ctx, udp=_udp)
+                    port_type=_port_type, no_ctx=_no_ctx, udp=_udp,
+                    class_key=function_name)
 
             return retval
 
