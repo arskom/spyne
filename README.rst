@@ -11,7 +11,7 @@ transports.
 
 Rpclib comes with the implementations of popular transport, protocol and
 interface document standards along with an easy-to-use API that lets you
-build on and extend existing functionality.
+build on existing functionality.
 
 Rpclib currently supports the WSDL 1.1 interface description standard,
 along with SOAP 1.1 and the rest-minus-the-verbs HttpRpc protocols which can be

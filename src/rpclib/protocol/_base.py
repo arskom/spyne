@@ -100,7 +100,7 @@ class ProtocolBase(object):
         """
 
     def serialize(self, ctx):
-        """Takes a MethodContext instance and the object to be serialied in the
+        """Takes a MethodContext instance and the object to be serialized in the
         ctx.out_object attribute.
 
         Returns the corresponding document structure in the ctx.out_document

@@ -68,9 +68,10 @@ class _FunctionCall(object):
         if ctx.out_error:
             raise ctx.out_error
         else:
-            # workaround to have the context be disposed when the caller is done
+            # workaround to have the context disposed of when the caller is done
             # with the return value. the context is sometimes needed to fully
-            # construct the return object.
+            # construct the return object (e.g. when the object is a sqlalchemy
+            # object bound to a session that's defined in the context object).
             try:
                 ctx.out_object.__ctx__ = ctx
             except AttributeError,e:
