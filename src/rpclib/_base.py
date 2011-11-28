@@ -203,7 +203,7 @@ class MethodDescriptor(object):
     def __init__(self, function, in_message, out_message, doc,
                  is_callback=False, is_async=False, mtom=False, in_header=None,
                  out_header=None, faults=None,
-                 port_type=None, no_ctx=False, udp=None):
+                 port_type=None, no_ctx=False, udp=None, class_key=None):
 
         self.function = function
         """The original function object to be called when the method is remotely
@@ -245,6 +245,9 @@ class MethodDescriptor(object):
         self.udp = udp
         """Short for "User-Defined Properties", it's your own playground. You
         can use it to store custom metadata about the method."""
+
+        self.class_key = class_key
+        """The name the function is accessible from in the class."""
 
     @property
     def name(self):
