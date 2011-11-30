@@ -3,7 +3,7 @@ from rpclib.model.fault import Fault
 
 class ResourceNotFoundError(Fault):
     """Raised when the requested resource was not found."""
-    def __init__(self, faultstring):
+    def __init__(self, faultstring="Requested resource not found"):
         Fault.__init__(self, 'Client.ResourceNotFound', faultstring)
 
 class RequestTooLongError(Fault):
