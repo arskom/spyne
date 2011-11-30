@@ -143,8 +143,9 @@ class XmlObject(ProtocolBase):
 
         self.validate_body(ctx, ctx.in_document)
 
+    def decompose_incoming_envelope(self, ctx):
         ctx.in_header_doc = None # If you need header support, you should use Soap
-        ctx.in_body_doc = ctx.in_body_doc
+        ctx.in_body_doc = ctx.in_document
 
     def create_out_string(self, ctx, charset=None):
         """Sets an iterable of string fragments to ctx.out_string"""
