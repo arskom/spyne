@@ -68,15 +68,31 @@ class _FunctionCall(object):
         if ctx.out_error:
             raise ctx.out_error
         else:
-            # workaround to have the context disposed of when the caller is done
-            # with the return value. the context is sometimes needed to fully
-            # construct the return object (e.g. when the object is a sqlalchemy
-            # object bound to a session that's defined in the context object).
-            try:
-                ctx.out_object.__ctx__ = ctx
-            except AttributeError,e:
-                # not all objects let this happen. (eg. built-in types like str)
-                # which don't need the context anyway.
-                pass
 
-            return ctx.out_object
+            if len(ctx.descriptor.out_message._type_info) == 0:
+                retval = None
+
+            elif len(ctx.descriptor.out_message._type_info) == 1:
+                retval = ctx.out_object[0]
+
+                # workaround to have the context disposed of when the caller is done
+                # with the return value. the context is sometimes needed to fully
+                # construct the return object (e.g. when the object is a sqlalchemy
+                # object bound to a session that's defined in the context object).
+                try:
+                    retval.__ctx__ = ctx
+                except AttributeError:
+                    # not all objects let this happen. (eg. built-in types like str)
+                    # which don't need the context anyway.
+                    pass
+
+            else:
+                retval = ctx.out_object
+
+                # same as above
+                try:
+                    retval[0].__ctx__ = ctx
+                except AttributeError:
+                    pass
+
+            return retval
