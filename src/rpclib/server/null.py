@@ -19,7 +19,12 @@
 
 """This module contains the NullServer class and its helper objects."""
 
+import logging
+logger = logging.getLogger(__name__)
+
 from rpclib.client._base import Factory
+from rpclib.const.ansi_color import LIGHT_RED
+from rpclib.const.ansi_color import END_COLOR
 from rpclib._base import MethodContext
 from rpclib.server import ServerBase
 
@@ -63,7 +68,15 @@ class _FunctionCall(object):
         ctx.in_object = args
 
         self.__app.in_protocol.set_method_descriptor(ctx)
+
+        # set logging.getLogger('rpclib.server.null').setLevel(logging.CRITICAL)
+        # to hide the following
+        _header = ('=' * 30) + LIGHT_RED
+        _footer = END_COLOR + ('=' * 30)
+
+        logger.warning( "%s start request %s" % (_header, _footer)  )
         self.__app.process_request(ctx)
+        logger.warning( "%s  end request  %s" % (_header, _footer)  )
 
         if ctx.out_error:
             raise ctx.out_error
