@@ -29,6 +29,7 @@ from rpclib.const.ansi_color import END_COLOR
 
 from rpclib.util.cdict import cdict
 from rpclib.model import ModelBase
+from rpclib.model.binary import ByteArray
 from rpclib.model.binary import Attachment
 from rpclib.model.complex import Array
 from rpclib.model.complex import Iterable
@@ -76,6 +77,7 @@ class XmlObject(ProtocolBase):
 
         self.serialization_handlers = cdict({
             ModelBase: base_to_parent_element,
+            ByteArray: binary_to_parent_element,
             Attachment: binary_to_parent_element,
             ComplexModelBase: complex_to_parent_element,
             Fault: fault_to_parent_element,
@@ -86,6 +88,7 @@ class XmlObject(ProtocolBase):
 
         self.deserialization_handlers = cdict({
             ModelBase: base_from_element,
+            ByteArray: binary_from_element,
             Attachment: binary_from_element,
             ComplexModelBase: complex_from_element,
             Fault: fault_from_element,
