@@ -2,6 +2,11 @@
 Changelog
 =========
 
+rpclib-2.4.7-beta
+-----------------
+ * Made color in logs optional
+ * Fixed ByteArray serializer
+
 rpclib-2.4.5-beta
 -----------------
  * Time primitive was implemented.
