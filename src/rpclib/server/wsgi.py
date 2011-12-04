@@ -142,6 +142,9 @@ class WsgiApplication(ServerBase):
         ServerBase.__init__(self, app)
 
         self._allowed_http_verbs = app.in_protocol.allowed_http_verbs
+        self._verb_handlers = {
+            "POST": self.handle_post
+        }
 
     def __call__(self, req_env, start_response, wsgi_url=None):
         '''This method conforms to the WSGI spec for callable wsgi applications
@@ -151,13 +154,14 @@ class WsgiApplication(ServerBase):
         '''
 
         url = wsgi_url
+        verb = req_env['REQUEST_METHOD'].upper()
         if url is None:
             url = reconstruct_url(req_env).split('.wsdl')[0]
 
         if self.__is_wsdl_request(req_env):
             return self.__handle_wsdl_request(req_env, start_response, url)
 
-        elif not (req_env['REQUEST_METHOD'].upper() in self._allowed_http_verbs):
+        elif not (verb in self._allowed_http_verbs or verb in self._verb_handlers):
             start_response(HTTP_405, [
                 ('Content-type', ''),
                 ('Allow', ', '.join(self._allowed_http_verbs)),
@@ -165,7 +169,7 @@ class WsgiApplication(ServerBase):
             return ['']
 
         else:
-            return self.__handle_rpc(req_env, start_response)
+            return self._verb_handlers[verb](req_env, start_response)
 
     def __is_wsdl_request(self, req_env):
         # Get the wsdl for the service. Assume path_info matches pattern:
@@ -208,7 +212,7 @@ class WsgiApplication(ServerBase):
 
             return [""]
 
-    def __handle_error(self, ctx, error, start_response):
+    def handle_error(self, ctx, error, start_response):
         if ctx.transport.resp_code is None:
             ctx.transport.resp_code = \
                 self.app.out_protocol.fault_to_http_response_code(error)
@@ -223,7 +227,7 @@ class WsgiApplication(ServerBase):
                                              ctx.transport.resp_headers.items())
         return ctx.out_string
 
-    def __handle_rpc(self, req_env, start_response):
+    def handle_post(self, req_env, start_response):
         ctx = WsgiMethodContext(self.app, req_env,
                                                 self.app.out_protocol.mime_type)
 
@@ -234,11 +238,11 @@ class WsgiApplication(ServerBase):
 
         self.get_in_object(ctx, in_string_charset)
         if ctx.in_error:
-            return self.__handle_error(ctx, ctx.in_error, start_response)
+            return self.handle_error(ctx, ctx.in_error, start_response)
 
         self.get_out_object(ctx)
         if ctx.out_error:
-            return self.__handle_error(ctx, ctx.out_error, start_response)
+            return self.handle_error(ctx, ctx.out_error, start_response)
 
         if ctx.transport.resp_code is None:
             ctx.transport.resp_code = HTTP_200
