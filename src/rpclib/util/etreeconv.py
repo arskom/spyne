@@ -33,7 +33,8 @@ def root_dict_to_etree(d):
 
     assert len(d) == 1
 
-    retval = etree.Element(d.keys()[0])
+    key, = d.keys()
+    retval = etree.Element(key)
     for val in d.values():
         break
 

@@ -153,7 +153,7 @@ class TestMultiple(unittest.TestCase):
         self.app.interface.build_interface_document('url')
 
     def test_multiple_return(self):
-        message_class = MultipleReturnService.public_methods.values()[0].out_message
+        message_class = list(MultipleReturnService.public_methods.values())[0].out_message
         message = message_class()
 
         self.assertEquals(len(message._type_info), 3)
