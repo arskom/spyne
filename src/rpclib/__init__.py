@@ -19,8 +19,8 @@
 
 __version__ = '2.4.7-beta'
 
-from _base import TransportContext
-from _base import EventContext
-from _base import MethodContext
-from _base import MethodDescriptor
-from _base import EventManager
+from rpclib._base import TransportContext
+from rpclib._base import EventContext
+from rpclib._base import MethodContext
+from rpclib._base import MethodDescriptor
+from rpclib._base import EventManager

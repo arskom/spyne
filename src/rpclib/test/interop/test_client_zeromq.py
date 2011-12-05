@@ -19,7 +19,7 @@
 
 import unittest
 
-from _test_client_base import RpclibClientTestBase
+from rpclib.test.interop._test_client_base import RpclibClientTestBase
 from rpclib.client.zeromq import ZeroMQClient
 from rpclib.test.interop.server.soap_http_basic import soap_application
 

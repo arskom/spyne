@@ -17,15 +17,14 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import rpclib.const.xml_ns
-_ns_xs = rpclib.const.xml_ns.xsd
 
 from lxml import etree
 
+from rpclib.const.xml_ns import xsd as _ns_xs
 from rpclib.model.primitive import String
 from rpclib.model.primitive import Decimal
+from rpclib.interface.xml_schema.model._base import simple_get_restriction_tag
 
-from _base import simple_get_restriction_tag
 
 def string_get_restriction_tag(interface, cls):
     restriction = simple_get_restriction_tag(interface, cls)

@@ -23,8 +23,8 @@ logger = logging.getLogger(__name__)
 
 from lxml import etree
 
-from _base import nillable_value
-from _base import nillable_element
+from rpclib.protocol.xml.model._base import nillable_value
+from rpclib.protocol.xml.model._base import nillable_element
 
 
 @nillable_value

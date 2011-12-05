@@ -21,9 +21,8 @@ from lxml import etree
 
 from rpclib.util.etreeconv import etree_to_dict
 from rpclib.util.etreeconv import dict_to_etree
-
-from _base import nillable_value
-from _base import nillable_element
+from rpclib.protocol.xml.model._base import nillable_value
+from rpclib.protocol.xml.model._base import nillable_element
 
 @nillable_element
 def xml_from_element(prot, cls, element):

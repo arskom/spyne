@@ -19,4 +19,4 @@
 
 """This package contains the server transports."""
 
-from _base import ServerBase
+from rpclib.server._base import ServerBase

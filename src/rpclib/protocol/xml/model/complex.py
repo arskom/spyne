@@ -24,9 +24,8 @@ from lxml import etree
 
 from rpclib.error import Fault
 from rpclib.model.complex import XMLAttribute # FIXME: Rename this to XmlAttribute
-
-from _base import nillable_value
-from _base import nillable_element
+from rpclib.protocol.xml.model._base import nillable_value
+from rpclib.protocol.xml.model._base import nillable_element
 
 
 def get_members_etree(prot, cls, inst, parent):

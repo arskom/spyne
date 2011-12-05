@@ -20,10 +20,10 @@
 """Models are mere type markers, they are not of much use without protocols.
 """
 
-from _base import ModelBase
-from _base import Null
-from _base import SimpleModel
+from rpclib.model._base import ModelBase
+from rpclib.model._base import Null
+from rpclib.model._base import SimpleModel
 
-from _base import nillable_dict
-from _base import nillable_string
-from _base import nillable_iterable
+from rpclib.model._base import nillable_dict
+from rpclib.model._base import nillable_string
+from rpclib.model._base import nillable_iterable

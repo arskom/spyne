@@ -17,5 +17,5 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from _base import simple_get_restriction_tag
-from _base import simple_add
+from rpclib.interface.xml_schema.model._base import simple_get_restriction_tag
+from rpclib.interface.xml_schema.model._base import simple_add
