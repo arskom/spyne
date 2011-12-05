@@ -152,7 +152,7 @@ class Wsdl11(XmlSchema):
 
         pt = None
 
-        if not self.port_type_dict.has_key(pt_name):
+        if not pt_name in self.port_type_dict:
             pt = etree.SubElement(self.root_elt, '{%s}portType' % _ns_wsdl)
             pt.set('name', pt_name)
             self.port_type_dict[pt_name] = pt
@@ -166,8 +166,7 @@ class Wsdl11(XmlSchema):
         ''' Builds a wsdl:service element. '''
 
         ser = None
-        if not self.service_elt_dict.has_key(service_name):
-
+        if not service_name in self.service_elt_dict:
             ser = etree.SubElement(self.root_elt, '{%s}service' % _ns_wsdl)
             ser.set('name', service_name)
             self.service_elt_dict[service_name] = ser
