@@ -175,22 +175,22 @@ class _SentinalNode(_Node):
 
 __test__ = {
     '__foo__': """
-        >>> OrderedSet(range(10))
-        OrderedSet([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-        >>> list(reversed(OrderedSet(range(10))))
+        >>> oset(range(10))
+        oset([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+        >>> list(reversed(oset(range(10))))
         [9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
-        >>> stuff = OrderedSet()
+        >>> stuff = oset()
         >>> stuff.extendleft(range(20, 25))
         >>> stuff.pop()
         20
         >>> stuff
-        OrderedSet([24, 23, 22, 21])
+        oset([24, 23, 22, 21])
         >>> stuff.insertleft(23, 99)
         >>> stuff
-        OrderedSet([24, 99, 23, 22, 21])
+        oset([24, 99, 23, 22, 21])
         >>> stuff.remove(21)
         >>> stuff
-        OrderedSet([24, 99, 23, 22])
+        oset([24, 99, 23, 22])
         >>> len(stuff)
         4
         >>> 23 in stuff
@@ -198,9 +198,9 @@ __test__ = {
         >>> 44 in stuff
         False
 
-        >>> OrderedSet([1, 2, 3, 2])
-        OrderedSet([1, 3, 2])
-        >>> OrderedSet([1, 2, 3, 2], allow_move=False)
+        >>> oset([1, 2, 3, 2])
+        oset([1, 3, 2])
+        >>> oset([1, 2, 3, 2], allow_move=False)
         Traceback (most recent call last):
             ...
         ValueError: element already exists
