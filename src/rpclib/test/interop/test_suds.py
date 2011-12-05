@@ -82,7 +82,7 @@ class TestSuds(unittest.TestCase):
         ret = self.client.service.echo_in_header()
         self.client.set_options(soapheaders=None)
 
-        print ret
+        print(ret)
 
         self.assertEquals(in_header.s, ret.s)
         self.assertEquals(in_header.i, ret.i)
@@ -99,7 +99,7 @@ class TestSuds(unittest.TestCase):
         ret = self.client.service.echo_in_complex_header()
         self.client.set_options(soapheaders=None)
 
-        print ret
+        print(ret)
 
         self.assertEquals(in_header.s, ret[0].s)
         self.assertEquals(in_header.i, ret[0].i)
@@ -284,7 +284,7 @@ class TestSuds(unittest.TestCase):
         val.q = 5
 
         ret = self.client.service.echo_extension_class(val)
-        print ret
+        print(ret)
 
         self.assertEquals(ret.i, val.i)
         self.assertEquals(ret.s, val.s)

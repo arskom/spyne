@@ -197,7 +197,7 @@ class RpclibClientTestBase(object):
         val.q = 5
 
         ret = self.client.service.echo_extension_class(val)
-        print ret
+        print(ret)
 
         self.assertEquals(ret.i, val.i)
         self.assertEquals(ret.s, val.s)

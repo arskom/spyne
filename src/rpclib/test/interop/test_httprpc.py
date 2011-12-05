@@ -64,7 +64,7 @@ class TestHttpRpc(unittest.TestCase):
             'dt': dt,
         })
 
-        print params
+        print(params)
         url = 'http://localhost:9757/echo_datetime?%s' % str(params)
         data = urllib2.urlopen(url).read()
 
@@ -76,7 +76,7 @@ class TestHttpRpc(unittest.TestCase):
             'dt': dt,
         })
 
-        print params
+        print(params)
         url = 'http://localhost:9757/echo_datetime?%s' % str(params)
         data = urllib2.urlopen(url).read()
 

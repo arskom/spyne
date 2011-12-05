@@ -134,7 +134,7 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
 
         sl = [s for s in sa_el.iterfind(self.service_string)]
         name = sl[0].get('name')
-        print len(sl)
+        print((len(sl)))
 
         self.assertEqual('SinglePortService_ServiceInterface', name)
 
@@ -167,7 +167,7 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
         sa_wsdl_el = sa.interface.root_elt
 
         pl = sa_wsdl_el.findall(self.port_type_string)
-        print '\n', pl, pl[0].attrib
+        print(('\n', pl, pl[0].attrib))
         self.assertEqual('FirstPortType', pl[0].get('name'))
 
         da = build_app([DoublePortService], 'tns', name='DoublePortApp')

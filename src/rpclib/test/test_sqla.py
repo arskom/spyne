@@ -194,8 +194,8 @@ class TestSqlAlchemy(unittest.TestCase):
             _key = e.find('{%s}key' % KeyValuePair.get_namespace())
             _value = e.find('{%s}value' % KeyValuePair.get_namespace())
 
-            print _key, _key.text
-            print _value, _value.text
+            print((_key, _key.text))
+            print((_value, _value.text))
 
             self.assertEquals(_key.text, key)
             self.assertEquals(_value.text, value)

@@ -71,10 +71,10 @@ class oset(collections.MutableSet):
 
 
 if __name__ == '__main__':
-    print(oset('abracadabra'))
+    print((oset('abracadabra')))
     stuff = oset()
     stuff.append(1)
-    print stuff
+    print(stuff)
     stuff.append(1)
-    print stuff
-    print(oset('simsalabim'))
+    print(stuff)
+    print((oset('simsalabim')))
