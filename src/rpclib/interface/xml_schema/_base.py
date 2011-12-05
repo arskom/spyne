@@ -130,7 +130,7 @@ class XmlSchema(InterfaceBase):
         # serialize nodes to files
         for k,v in self.schema_dict.items():
             file_name = '%s/%s.xsd' % (tmp_dir_name, k)
-            f = open(file_name, 'w')
+            f = open(file_name, 'wb')
             etree.ElementTree(v).write(f, pretty_print=True)
             f.close()
             logger.debug("writing %r for ns %s" % (file_name, self.nsmap[k]))
