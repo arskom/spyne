@@ -148,6 +148,11 @@ class ComplexModelBase(ModelBase):
     def __getitem__(self, i):
         return getattr(self, self._type_info.keys()[i], None)
 
+    def __repr__(self):
+        return "%s(%r)" % (self.get_type_name(),
+                    ['%s=%s' % (k,getattr(self,k,None))
+                                for k in self.__class__._type_info])
+
     @classmethod
     def get_serialization_instance(cls, value):
         # if the instance is a list, convert it to a cls instance.
