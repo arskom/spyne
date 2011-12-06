@@ -205,6 +205,7 @@ class MethodDescriptor(object):
                  out_header=None, faults=None,
                  port_type=None, no_ctx=False, udp=None, class_key=None):
 
+        self.__real_function = function
         self.function = function
         """The original function object to be called when the method is remotely
         invoked."""
@@ -263,6 +264,14 @@ class MethodDescriptor(object):
 
         return '{%s}%s' % (
             self.in_message.get_namespace(), self.in_message.get_type_name())
+
+    def get_function(self):
+        return self.__function
+    def set_function(self, val):
+        self.__function = val
+    def reset_function(self):
+        self.__function = self.__real_function
+    function = property(get_function, set_function)
 
 class EventManager(object):
     """The event manager for all rpclib events. The events are stored in an
