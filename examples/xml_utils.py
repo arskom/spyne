@@ -47,6 +47,7 @@ from rpclib.util.xml import get_schema_documents
 from rpclib.util.xml import get_object_as_xml
 from rpclib.util.xml import get_validation_schema
 
+
 class Punk(ComplexModel):
     __namespace__ = 'some_namespace'
 
