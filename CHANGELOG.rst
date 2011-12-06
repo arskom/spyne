@@ -2,6 +2,11 @@
 Changelog
 =========
 
+rpclib-2.4.8-beta
+-----------------
+ * Added rpclib.util.simple module
+ * Some work towards Python-3 support.
+
 rpclib-2.4.7-beta
 -----------------
  * Made color in logs optional
