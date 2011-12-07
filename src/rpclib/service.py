@@ -38,7 +38,7 @@ class ServiceBaseMeta(type):
         self.event_manager = EventManager(self,
                                       self.__get_base_event_handlers(cls_bases))
 
-        for k, v in cls_dict.iteritems():
+        for k, v in cls_dict.items():
             if hasattr(v, '_is_rpc'):
                 descriptor = v(_default_function_name=k)
                 self.public_methods[k] = descriptor
@@ -61,7 +61,7 @@ class ServiceBaseMeta(type):
 
         return handlers
 
-class ServiceBase(object):
+class ServiceBase(object, metaclass=ServiceBaseMeta):
     '''This class serves as the base for all service definitions. Subclasses of
     this class will use the srpc decorator or its wrappers to flag methods to be
     exposed.
@@ -100,8 +100,6 @@ class ServiceBase(object):
             Called by the transport right before passing the exception string to
             the client.
     '''
-
-    __metaclass__ = ServiceBaseMeta
 
     __tns__ = None
     """For internal use only. You should use the tns argument to the Application
