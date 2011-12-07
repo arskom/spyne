@@ -154,12 +154,12 @@ class Producer(ClientBase):
 class AsyncService(ServiceBase):
     @rpc(Integer)
     def sleep(ctx, integer):
-        print "Sleeping for %d seconds..." % (integer)
+        print("Sleeping for %d seconds..." % (integer))
         time.sleep(integer)
 
 def _on_method_call(ctx):
-    print "This is worker id %d, processing task id %d." % (
-                                ctx.transport.consumer_id, ctx.transport.task_id)
+    print("This is worker id %d, processing task id %d." % (
+                                ctx.transport.consumer_id, ctx.transport.task_id))
 
 AsyncService.event_manager.add_listener('method_call', _on_method_call)
 

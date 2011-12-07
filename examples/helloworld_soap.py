@@ -42,7 +42,7 @@ from rpclib.util.simple import wsgi_soap_application
 try:
     from wsgiref.simple_server import make_server
 except ImportError:
-    print "Error: example server code requires Python >= 2.5"
+    print("Error: example server code requires Python >= 2.5")
     raise
 
 '''

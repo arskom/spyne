@@ -78,14 +78,14 @@ if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server
     except ImportError:
-        print "Error: example server code requires Python >= 2.5"
+        print("Error: example server code requires Python >= 2.5")
 
     application = Application([SleepingService], 'rpclib.examples.async',
                 interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
 
     server = make_server('127.0.0.1', 7789, WsgiApplication(application))
 
-    print "listening to http://127.0.0.1:7789"
-    print "wsdl is at: http://localhost:7789/?wsdl"
+    print("listening to http://127.0.0.1:7789")
+    print("wsdl is at: http://localhost:7789/?wsdl")
 
     server.serve_forever()
