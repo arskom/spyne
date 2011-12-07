@@ -2,7 +2,7 @@
 
 import collections
 
-KEY, PREV, NEXT = range(3)
+KEY, PREV, NEXT = list(range(3))
 
 """This module contains an ordered set implementation from
 http://code.activestate.com/recipes/576694/ """

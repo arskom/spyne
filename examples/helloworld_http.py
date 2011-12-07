@@ -75,7 +75,7 @@ class HelloWorldService(ServiceBase):
         @return the completed array
         '''
 
-        for i in xrange(times):
+        for i in range(times):
             yield 'Hello, %s' % name
 
 if __name__=='__main__':

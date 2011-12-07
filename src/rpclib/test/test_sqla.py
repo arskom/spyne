@@ -134,7 +134,7 @@ class TestSqlAlchemy(unittest.TestCase):
 
         session = self.Session()
 
-        for i in xrange(1, 10):
+        for i in range(1, 10):
             key = str(i)
             m = hashlib.md5()
             m.update(key)

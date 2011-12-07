@@ -332,12 +332,12 @@ class InteropMisc(ServiceBase):
 
     @srpc(Integer, _returns=Array(OtherClass))
     def return_other_class_array(num):
-        for i in xrange(num):
+        for i in range(num):
             yield OtherClass(dt=datetime(2010, 12, 6), d=3.0, b=True)
 
     @srpc(_returns=Attachment)
     def return_binary_data():
-        return Attachment(data=''.join([chr(i) for i in xrange(256)]))
+        return Attachment(data=''.join([chr(i) for i in range(256)]))
 
     @srpc(_returns=Integer)
     def return_invalid_data():
