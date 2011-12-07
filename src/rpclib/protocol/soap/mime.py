@@ -4,7 +4,11 @@ logger = logging.getLogger(__name__)
 from lxml import etree
 
 from base64 import b64encode
-from urllib import unquote
+
+try:
+    from urllib import unquote
+except ImportError: # Python 3
+    from urllib.parse import unquote
 
 # import email data format related stuff
 try:
