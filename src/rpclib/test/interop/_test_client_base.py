@@ -189,11 +189,11 @@ class RpclibClientTestBase(object):
         val.other.b = True
 
         val.p = self.client.factory.create("{hunk.sunk}NonNillableClass");
-        val.p.dt = datetime(2010,06,02)
+        val.p.dt = datetime(2010,6,2)
         val.p.i = 123
         val.p.s = "punk"
 
-        val.l = datetime(2010,07,02)
+        val.l = datetime(2010,7,2)
         val.q = 5
 
         ret = self.client.service.echo_extension_class(val)

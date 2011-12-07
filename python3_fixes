@@ -2,7 +2,6 @@ except: 43
 funcattrs: 3
 metaclass: 7
 next: 5
-numliterals: 81
 paren: 3
 raise: 63
 unicode: 13
