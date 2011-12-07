@@ -3,7 +3,5 @@ funcattrs: 3
 metaclass: 7
 next: 5
 unicode: 13
-urllib: 11
-ws_comma: 163
 xrange: 7
 zip: 5
