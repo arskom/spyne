@@ -68,6 +68,9 @@ def Enum(*values, **kwargs):
         def __nonzero__(self):
             return bool(self.__value)
 
+        def __bool__(self):
+            return bool(self.__value)
+
         def __repr__(self):
             return str(values[self.__value])
 
