@@ -35,7 +35,7 @@ def binary_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     from the file
     '''
     element = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
-    element.text = ''.join(cls.to_base64(value))
+    element.text = ''.join([b.decode('ascii') for b in cls.to_base64(value)])
 
 
 @nillable_element

@@ -61,12 +61,12 @@ class ByteArray(ModelBase):
     @classmethod
     @nillable_string
     def to_base64(cls, value):
-        return [base64.b64encode(''.join(value))]
+        return [base64.b64encode(v) for v in value]
 
     @classmethod
     @nillable_string
     def from_base64(cls, value):
-        return [base64.b64decode(''.join(value))]
+        return [base64.b64decode(v) for v in value]
 
 class Attachment(ModelBase):
     """**DEPRECATED!** Use ByteArray instead."""

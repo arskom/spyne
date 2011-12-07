@@ -71,10 +71,10 @@ def _parse_xml_string(xml_string, charset=None):
         if charset is None:
             charset = 'utf-8'
 
-        xml_string = ''.join(xml_string)
+        xml_string = ''.join([s.decode(charset) for s in xml_string])
 
         try:
-            root, xmlids = etree.XMLID(xml_string.decode(charset))
+            root, xmlids = etree.XMLID(xml_string)
         except XMLSyntaxError, e:
             raise Fault('Client.XMLSyntaxError', str(e))
 
