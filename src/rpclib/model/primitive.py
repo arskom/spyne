@@ -454,7 +454,7 @@ class DateTime(SimpleModel):
 
         match = _offset_re.match(string)
         if match:
-            tz_hr, tz_min = [int(match.group(x)) for x in "tz_hr", "tz_min"]
+            tz_hr, tz_min = [int(match.group(x)) for x in ("tz_hr", "tz_min")]
             return cls.parse(match, tz=FixedOffset(tz_hr * 60 + tz_min, {}))
 
         match = _local_re.match(string)
