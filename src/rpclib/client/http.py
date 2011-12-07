@@ -19,6 +19,16 @@
 
 """The HTTP (urllib2) client transport."""
 
+try:
+    from urllib2 import Request
+    from urllib2 import urlopen
+    from urllib2 import HTTPError
+
+except ImportError: # Python 3
+    from urllib.request import Request
+    from urllib.request import urlopen
+    from urllib.error import HTTPError
+
 import urllib2
 
 from rpclib.client import Service
@@ -31,14 +41,14 @@ class _RemoteProcedure(RemoteProcedureBase):
         self.get_out_string() # sets self.ctx.out_string
 
         out_string = ''.join(self.ctx.out_string) # FIXME: just send the iterable to the http stream.
-        request = urllib2.Request(self.url, out_string)
+        request = Request(self.url, out_string)
         code = 200
         try:
-            response = urllib2.urlopen(request)
+            response = urlopen(request)
             self.ctx.in_string = [response.read()]
 
-        except urllib2.HTTPError,e:
-            code=e.code
+        except HTTPError,e:
+            code = e.code
             self.ctx.in_string = [e.read()]
 
         self.get_in_object()
