@@ -59,7 +59,7 @@ class ProtocolBase(object):
 
     """
 
-    allowed_http_verbs = ['GET','POST']
+    allowed_http_verbs = ['GET', 'POST']
     mime_type = 'application/octet-stream'
 
     def __init__(self, app=None, validator=None):

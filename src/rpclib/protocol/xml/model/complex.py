@@ -86,7 +86,7 @@ def complex_from_element(prot, cls, element):
             continue
 
         key = c.tag.split('}')[-1]
-        freq = frequencies.get(key,0)
+        freq = frequencies.get(key, 0)
         freq+=1
         frequencies[key] = freq
 
@@ -113,7 +113,7 @@ def complex_from_element(prot, cls, element):
         setattr(inst, key, value)
 
     if prot.validator == 'soft':
-        for key,c in flat_type_info.items():
+        for key, c in flat_type_info.items():
             val = frequencies.get(key, 0)
             if (        val < c.Attributes.min_occurs
                     or  (     c.Attributes.max_occurs != 'unbounded'

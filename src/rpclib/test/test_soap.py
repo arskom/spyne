@@ -59,12 +59,12 @@ class TestSoap(unittest.TestCase):
             type_name='myMessage',
             members={'s': String, 'i': Integer}
         )
-        m.resolve_namespace(m,'test')
+        m.resolve_namespace(m, 'test')
 
         m_inst = m(s="a", i=43)
 
         e = etree.Element('test')
-        m.to_parent_element(m_inst,m.get_namespace(),e)
+        m.to_parent_element(m_inst, m.get_namespace(), e)
         e=e[0]
 
         self.assertEquals(e.tag, '{%s}myMessage' % m.get_namespace())
@@ -123,7 +123,7 @@ class TestSoap(unittest.TestCase):
         mi.s = 'a'
 
         e = etree.Element('test')
-        m.to_parent_element(mi,m.get_namespace(),e)
+        m.to_parent_element(mi, m.get_namespace(), e)
         e=e[0]
 
         self.assertEquals(e.tag, '{some_namespace}myMessage')
@@ -135,7 +135,7 @@ class TestSoap(unittest.TestCase):
             members={'p': Person}
         )
 
-        m.resolve_namespace(m,"punk")
+        m.resolve_namespace(m, "punk")
 
         m_inst = m()
         m_inst.p = Person()
@@ -144,7 +144,7 @@ class TestSoap(unittest.TestCase):
         m_inst.p.addresses = []
 
         element=etree.Element('test')
-        m.to_parent_element(m_inst,m.get_namespace(),element)
+        m.to_parent_element(m_inst, m.get_namespace(), element)
         element=element[0]
 
         self.assertEquals(element.tag, '{%s}myMessage' % m.get_namespace())
@@ -167,7 +167,7 @@ class TestSoap(unittest.TestCase):
             members={'p':Person}
         )
 
-        m.resolve_namespace(m,"m")
+        m.resolve_namespace(m, "m")
 
         p = Person()
         p.name = 'steve-o'
@@ -185,7 +185,7 @@ class TestSoap(unittest.TestCase):
         m_inst = m(p=p)
 
         element=etree.Element('test')
-        m.to_parent_element(m_inst,m.get_namespace(),element)
+        m.to_parent_element(m_inst, m.get_namespace(), element)
         element=element[0]
 
         self.assertEquals('{%s}myMessage' % m.get_namespace(), element.tag)

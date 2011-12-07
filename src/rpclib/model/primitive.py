@@ -244,7 +244,7 @@ class Decimal(SimpleModel):
     def from_string(cls, string):
         try:
             return decimal.Decimal(string)
-        except decimal.InvalidOperation,e:
+        except decimal.InvalidOperation, e:
             raise ValidationError(string)
 
 class Double(SimpleModel):
@@ -441,7 +441,7 @@ class DateTime(SimpleModel):
         else:
             microsec = int(microsec[1:])
 
-        return datetime.datetime(year,month,day, hour,min,sec, microsec, tz)
+        return datetime.datetime(year, month, day, hour, min, sec, microsec, tz)
 
     @classmethod
     @nillable_string
@@ -482,7 +482,7 @@ class Duration(SimpleModel):
         hours = int(duration['hours'])
         minutes = int(duration['minutes'])
         seconds = float(duration['seconds'])
-        f,i = math.modf(seconds)
+        f, i = math.modf(seconds)
         seconds = i
         microseconds = int(1e6 * f)
 

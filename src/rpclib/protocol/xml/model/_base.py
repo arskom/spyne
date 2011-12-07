@@ -75,11 +75,11 @@ def base_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     :param name:  The tag name of the new SubElement, 'retval' by default.
     '''
 
-    elt = etree.SubElement(parent_elt, "{%s}%s" % (tns,name))
+    elt = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
     elt.text = cls.to_string(value)
 
 def null_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
-    element = etree.SubElement(parent_elt, "{%s}%s" % (tns,name))
+    element = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
     element.set('{%s}nil' % _ns_xsi, 'true')
 
 def null_from_element(prot, cls, element):

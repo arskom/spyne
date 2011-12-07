@@ -43,7 +43,7 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
         self.port_string = '{%s}port' % ns.wsdl
 
     def test_tns(self):
-        sa = build_app([SinglePortService], 'SinglePort','TestServiceName')
+        sa = build_app([SinglePortService], 'SinglePort', 'TestServiceName')
 
         sa.interface.build_interface_document(self.url)
         sa_el = sa.interface.root_elt
@@ -114,7 +114,7 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
             'MissingPortApp'
         )
 
-        self.assertRaises(ValueError,app.interface.build_interface_document,
+        self.assertRaises(ValueError, app.interface.build_interface_document,
                                                                        self.url)
 
         app = build_app(

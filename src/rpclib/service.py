@@ -49,12 +49,12 @@ class ServiceBaseMeta(type):
         handlers = {}
 
         for base in cls_bases:
-            evmgr = getattr(base,'event_manager',None)
+            evmgr = getattr(base, 'event_manager', None)
             if evmgr is None:
                 continue
 
-            for k,v in evmgr.handlers.items():
-                handler=handlers.get(k,oset())
+            for k, v in evmgr.handlers.items():
+                handler=handlers.get(k, oset())
                 for h in v:
                     handler.add(h)
                 handlers[k]=handler

@@ -46,7 +46,7 @@ class Address(ComplexModel):
     lattitude = Float
     longitude = Float
 
-Address.resolve_namespace(Address,__name__)
+Address.resolve_namespace(Address, __name__)
 
 class Person(ComplexModel):
     name = String
@@ -55,13 +55,13 @@ class Person(ComplexModel):
     addresses = Array(Address)
     titles = Array(String)
 
-Person.resolve_namespace(Person,__name__)
+Person.resolve_namespace(Person, __name__)
 
 class Employee(Person):
     employee_id = Integer
     salary = Float
 
-Employee.resolve_namespace(Employee,__name__)
+Employee.resolve_namespace(Employee, __name__)
 
 class Level2(ComplexModel):
     arg1 = String
@@ -137,7 +137,7 @@ class TestComplexModel(unittest.TestCase):
             peeps.append(a)
 
         type = Array(Person)
-        type.resolve_namespace(type,__name__)
+        type.resolve_namespace(type, __name__)
 
         element = etree.Element('test')
         type.to_parent_element(peeps, ns_test, element)
@@ -170,7 +170,7 @@ class TestComplexModel(unittest.TestCase):
             peeps.append(a)
 
         type = Array(Person)
-        type.resolve_namespace(type,__name__)
+        type.resolve_namespace(type, __name__)
         element = etree.Element('test')
         type.to_parent_element(peeps, ns_test, element)
         element = element[0]
@@ -250,7 +250,7 @@ class TestComplexModel(unittest.TestCase):
 
 class X(ComplexModel):
     __namespace__='tns'
-    x = Integer(nillable=True,max_occurs='unbounded')
+    x = Integer(nillable=True, max_occurs='unbounded')
 
 class Y(X):
     __namespace__='tns'
@@ -259,25 +259,25 @@ class Y(X):
 class TestIncompleteInput(unittest.TestCase):
     def test_x(self):
         x = X()
-        x.x = [1,2]
+        x.x = [1, 2]
         element = etree.Element('test')
         X.to_parent_element(x, 'tns', element)
         msg = element[0]
         r = X.from_xml(msg)
-        self.assertEqual(r.x, [1,2])
+        self.assertEqual(r.x, [1, 2])
 
     def test_y_fromxml(self):
         x = X()
-        x.x = [1,2]
+        x.x = [1, 2]
         element = etree.Element('test')
         X.to_parent_element(x, 'tns', element)
         msg = element[0]
         r = Y.from_xml(msg)
-        self.assertEqual(r.x, [1,2])
+        self.assertEqual(r.x, [1, 2])
 
     def test_y_toxml(self):
         y = Y()
-        y.x = [1,2]
+        y.x = [1, 2]
         y.y = 38
         element = etree.Element('test')
         Y.to_parent_element(y, 'tns', element)

@@ -165,7 +165,7 @@ class InterfaceBase(object):
                         self.add(in_header)
 
                 if not (method.out_header is None):
-                    if isinstance(method.out_header, (list,tuple)):
+                    if isinstance(method.out_header, (list, tuple)):
                         out_headers = method.out_header
                     else:
                         out_headers = (method.out_header,)
@@ -176,7 +176,7 @@ class InterfaceBase(object):
 
                 if method.faults is None:
                     method.faults = []
-                elif not (isinstance(method.faults, (list,tuple))):
+                elif not (isinstance(method.faults, (list, tuple))):
                     method.faults = (method.faults,)
 
                 for fault in method.faults:

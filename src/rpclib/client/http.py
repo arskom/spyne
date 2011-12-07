@@ -47,7 +47,7 @@ class _RemoteProcedure(RemoteProcedureBase):
             response = urlopen(request)
             self.ctx.in_string = [response.read()]
 
-        except HTTPError,e:
+        except HTTPError, e:
             code = e.code
             self.ctx.in_string = [e.read()]
 

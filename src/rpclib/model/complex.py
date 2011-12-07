@@ -150,7 +150,7 @@ class ComplexModelBase(ModelBase):
 
     def __repr__(self):
         return "%s(%r)" % (self.get_type_name(),
-                    ['%s=%s' % (k,getattr(self,k,None))
+                    ['%s=%s' % (k, getattr(self, k, None))
                                 for k in self.__class__._type_info])
 
     @classmethod
@@ -366,7 +366,7 @@ class SimpleContent(ModelBase):
             name = cls.get_type_name()
 
         elt = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
-        for k,v in cls._type_info.items():
+        for k, v in cls._type_info.items():
             subval = getattr(inst, k, None)
 
             if isinstance(v, XMLAttribute):
@@ -411,8 +411,8 @@ class SimpleContent(ModelBase):
             schema_entries.add_complex_type(cls, complex_type)
 
             element = etree.Element('{%s}element' % ns)
-            element.set('name',cls.get_type_name())
-            element.set('type',cls.get_type_name_ns(schema_entries.app))
+            element.set('name', cls.get_type_name())
+            element.set('type', cls.get_type_name_ns(schema_entries.app))
 
             schema_entries.add_element(cls, element)
 

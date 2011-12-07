@@ -267,7 +267,7 @@ class InteropClass(ServiceBase):
 
     @srpc(Attachment, _returns=Attachment)
     def echo_attachment(a):
-        assert isinstance(a,Attachment)
+        assert isinstance(a, Attachment)
         return a
 
     @srpc(Array(Attachment), _returns=Array(Attachment))
@@ -333,7 +333,7 @@ class InteropMisc(ServiceBase):
     @srpc(Integer, _returns=Array(OtherClass))
     def return_other_class_array(num):
         for i in xrange(num):
-            yield OtherClass(dt=datetime(2010,12,6), d=3.0, b=True)
+            yield OtherClass(dt=datetime(2010, 12, 6), d=3.0, b=True)
 
     @srpc(_returns=Attachment)
     def return_binary_data():

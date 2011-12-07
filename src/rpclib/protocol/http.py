@@ -36,7 +36,7 @@ from rpclib.protocol import ProtocolBase
 def _get_http_headers(req_env):
     retval = {}
 
-    for k,v in req_env.iteritems():
+    for k, v in req_env.iteritems():
         if k.startswith("HTTP_"):
             retval[k[5:].lower()]= v
 
@@ -103,7 +103,7 @@ class HttpRpc(ProtocolBase):
                             raise ValidationError(v2)
 
                         value.append(native_v2)
-                        freq = frequencies.get(k,0)
+                        freq = frequencies.get(k, 0)
                         freq+=1
                         frequencies[k] = freq
 
@@ -127,7 +127,7 @@ class HttpRpc(ProtocolBase):
                     frequencies[k] = freq
 
             if self.validator == 'soft':
-                for k,c in flat_type_info.items():
+                for k, c in flat_type_info.items():
                     val = frequencies.get(k, 0)
                     if val < c.Attributes.min_occurs \
                             or  (c.Attributes.max_occurs != 'unbounded'

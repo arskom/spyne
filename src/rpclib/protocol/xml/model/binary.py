@@ -34,7 +34,7 @@ def binary_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     specify a file_name and if no data is given, it will read the data
     from the file
     '''
-    element = etree.SubElement(parent_elt, "{%s}%s" % (tns,name))
+    element = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
     element.text = ''.join(cls.to_base64(value))
 
 

@@ -211,7 +211,7 @@ def apply_mtom(headers, envelope, params, paramvals):
         rootparams[n] = v.strip("\"'")
 
     # Set up initial MIME parts.
-    mtompkg = MIMEMultipart('related',boundary='?//<><>rpclib_MIME_boundary<>')
+    mtompkg = MIMEMultipart('related', boundary='?//<><>rpclib_MIME_boundary<>')
     rootpkg = None
     try:
         rootpkg = MIMEApplication(envelope, 'xop+xml', encode_7or8bit)

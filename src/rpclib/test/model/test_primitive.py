@@ -59,7 +59,7 @@ class TestPrimitive(unittest.TestCase):
         self.assertEquals(n, dt)
 
     def test_time(self):
-        n = datetime.time(1,2,3,4)
+        n = datetime.time(1, 2, 3, 4)
 
         ret = Time.to_string(n)
         self.assertEquals(ret, n.isoformat())
@@ -138,7 +138,7 @@ class TestPrimitive(unittest.TestCase):
 
     def test_array(self):
         type = Array(String)
-        type.resolve_namespace(type,"zbank")
+        type.resolve_namespace(type, "zbank")
 
         values = ['a', 'b', 'c', 'd', 'e', 'f']
 
@@ -153,7 +153,7 @@ class TestPrimitive(unittest.TestCase):
 
     def test_array_empty(self):
         type = Array(String)
-        type.resolve_namespace(type,"zbank")
+        type.resolve_namespace(type, "zbank")
 
         values = []
 

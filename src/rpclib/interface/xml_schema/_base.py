@@ -50,7 +50,7 @@ from rpclib.interface.xml_schema.model.primitive import string_get_restriction_t
 from rpclib.interface.xml_schema.model.primitive import decimal_get_restriction_tag
 
 _add_handlers = cdict({
-    object: lambda interface,cls: None,
+    object: lambda interface, cls: None,
     SimpleModel: simple_add,
     ComplexModelBase: complex_add,
     Fault: fault_add,
@@ -58,7 +58,7 @@ _add_handlers = cdict({
 })
 
 _get_restriction_tag_handlers = cdict({
-    object: lambda self,cls: None,
+    object: lambda self, cls: None,
     SimpleModel: simple_get_restriction_tag,
     String: string_get_restriction_tag,
     Decimal: decimal_get_restriction_tag,
@@ -128,7 +128,7 @@ class XmlSchema(InterfaceBase):
         tmp_dir_name = tempfile.mkdtemp()
 
         # serialize nodes to files
-        for k,v in self.schema_dict.items():
+        for k, v in self.schema_dict.items():
             file_name = '%s/%s.xsd' % (tmp_dir_name, k)
             f = open(file_name, 'wb')
             etree.ElementTree(v).write(f, pretty_print=True)
@@ -183,7 +183,7 @@ class XmlSchema(InterfaceBase):
         schema_info = self.get_schema_info(pref)
         schema_info.types[tn] = node
 
-        class_key = '{%s}%s' % (ns,tn)
+        class_key = '{%s}%s' % (ns, tn)
         logger.debug('\tadding class %r for %r' % (repr(cls), class_key))
 
         self.classes[class_key] = cls
@@ -199,7 +199,7 @@ class XmlSchema(InterfaceBase):
         schema_info = self.get_schema_info(pref)
         schema_info.types[tn] = node
 
-        class_key = '{%s}%s' % (ns,tn)
+        class_key = '{%s}%s' % (ns, tn)
         logger.debug('\tadding class %r for %r' % (repr(cls), class_key))
 
         self.classes[class_key] = cls

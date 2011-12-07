@@ -58,7 +58,7 @@ class ServerBase(object):
             # sets ctx.in_object and ctx.in_header
             self.app.in_protocol.deserialize(ctx, message='request')
 
-        except Fault,e:
+        except Fault, e:
             ctx.in_object = None
             ctx.in_error = e
             ctx.out_error = e
@@ -67,7 +67,7 @@ class ServerBase(object):
         """Calls the matched method using the ctx.in_object to get
         ctx.out_object."""
 
-        assert ctx.in_error is None,"There was an error processing input string"
+        assert ctx.in_error is None, "There was an error processing input string"
 
         # event firing is done in the rpclib.application.Application
         self.app.process_request(ctx)

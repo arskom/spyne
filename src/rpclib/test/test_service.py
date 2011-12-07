@@ -159,7 +159,7 @@ class TestMultiple(unittest.TestCase):
         self.assertEquals(len(message._type_info), 3)
 
         sent_xml = etree.Element('test')
-        self.app.out_protocol.to_parent_element(message_class, ('a','b','c'),
+        self.app.out_protocol.to_parent_element(message_class, ('a', 'b', 'c'),
                                     MultipleReturnService.get_tns(), sent_xml)
         sent_xml = sent_xml[0]
 

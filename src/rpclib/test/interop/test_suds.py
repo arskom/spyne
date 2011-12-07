@@ -41,11 +41,11 @@ class TestSuds(unittest.TestCase):
     def test_echo_boolean(self):
         val = True
         ret = self.client.service.echo_boolean(val)
-        self.assertEquals(val,ret)
+        self.assertEquals(val, ret)
 
         val = False
         ret = self.client.service.echo_boolean(val)
-        self.assertEquals(val,ret)
+        self.assertEquals(val, ret)
 
     def test_enum(self):
         DaysOfWeekEnum = self.client.factory.create("DaysOfWeekEnum")
@@ -70,7 +70,7 @@ class TestSuds(unittest.TestCase):
 
     def test_echo_integer_array(self):
         ia = self.client.factory.create('integerArray')
-        ia.integer.extend([1,2,3,4,5])
+        ia.integer.extend([1, 2, 3, 4, 5])
         self.client.service.echo_integer_array(ia)
 
     def test_echo_in_header(self):
@@ -113,7 +113,7 @@ class TestSuds(unittest.TestCase):
 
         ret = self.client.service.send_out_header()
 
-        self.assertTrue(isinstance(ret,type(out_header)))
+        self.assertTrue(isinstance(ret, type(out_header)))
         self.assertEquals(ret.dt, out_header.dt)
         self.assertEquals(ret.f, out_header.f)
 
@@ -220,7 +220,7 @@ class TestSuds(unittest.TestCase):
         val.s = "asd"
         val.f = 12.34
         val.ai = self.client.factory.create("integerArray")
-        val.ai.integer.extend([1,2,3,45,5,3,2,1,4])
+        val.ai.integer.extend([1, 2, 3, 45, 5, 3, 2, 1, 4])
 
         val.simple = self.client.factory.create("{rpclib.test.interop.server._service}SimpleClassArray")
 
@@ -276,11 +276,11 @@ class TestSuds(unittest.TestCase):
         val.other.b = True
 
         val.p = self.client.factory.create("{hunk.sunk}NonNillableClass");
-        val.p.dt = datetime(2010,6,2)
+        val.p.dt = datetime(2010, 6, 2)
         val.p.i = 123
         val.p.s = "punk"
 
-        val.l = datetime(2010,7,2)
+        val.l = datetime(2010, 7, 2)
         val.q = 5
 
         ret = self.client.service.echo_extension_class(val)

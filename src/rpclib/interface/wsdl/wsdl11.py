@@ -316,7 +316,7 @@ class Wsdl11(XmlSchema):
                 operation = etree.SubElement(cb_port_type, '{%s}operation'
                                                                     % _ns_wsdl)
             else:
-                operation = etree.SubElement(port_type,'{%s}operation'
+                operation = etree.SubElement(port_type, '{%s}operation'
                                                                     % _ns_wsdl)
 
             operation.set('name', method.name)
@@ -491,7 +491,7 @@ class Wsdl11(XmlSchema):
 
                 else:
                     if method.is_async:
-                        rt_header = etree.SubElement(input,'{%s}header' % _ns_soap)
+                        rt_header = etree.SubElement(input, '{%s}header' % _ns_soap)
                         rt_header.set('message', '%s:ReplyToHeader' % pref_tns)
                         rt_header.set('part', 'ReplyTo')
                         rt_header.set('use', 'literal')

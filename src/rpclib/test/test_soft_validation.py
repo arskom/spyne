@@ -108,7 +108,7 @@ class TestHttpRpcSoftValidation(unittest.TestCase):
 
 
     def __get_ctx(self, mn, qs):
-        ctx = WsgiMethodContext(self.application,{
+        ctx = WsgiMethodContext(self.application, {
             'QUERY_STRING': qs,
             'PATH_INFO': '/%s' % mn,
         }, 'some-content-type')

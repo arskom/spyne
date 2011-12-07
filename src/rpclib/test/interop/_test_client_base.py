@@ -27,11 +27,11 @@ class RpclibClientTestBase(object):
     def test_echo_boolean(self):
         val = True
         ret = self.client.service.echo_boolean(val)
-        self.assertEquals(val,ret)
+        self.assertEquals(val, ret)
 
         val = False
         ret = self.client.service.echo_boolean(val)
-        self.assertEquals(val,ret)
+        self.assertEquals(val, ret)
 
     def test_echo_simple_boolean_array(self):
         val = [False, False, False, True]
@@ -40,10 +40,10 @@ class RpclibClientTestBase(object):
         assert val == ret
 
     def test_echo_integer_array(self):
-        val = [1,2,3,4,5]
-        ret = self.client.service.echo_integer_array([1,2,3,4,5])
+        val = [1, 2, 3, 4, 5]
+        ret = self.client.service.echo_integer_array([1, 2, 3, 4, 5])
 
-        self.assertEquals(val,ret)
+        self.assertEquals(val, ret)
 
     def test_echo_string(self):
         val = "OK"
@@ -70,7 +70,7 @@ class RpclibClientTestBase(object):
             raise Exception("must fail")
 
         except Fault, e:
-            assert e.faultcode in ('senv:Client.SchemaValidationError','senv:Client.ValidationError')
+            assert e.faultcode in ('senv:Client.SchemaValidationError', 'senv:Client.ValidationError')
 
     def test_echo_in_header(self):
         in_header = self.client.factory.create('{rpclib.test.interop.server}InHeader')
@@ -89,7 +89,7 @@ class RpclibClientTestBase(object):
         ret = call()
         in_header = call.ctx.in_header
 
-        self.assertTrue(isinstance(ret,type(in_header)))
+        self.assertTrue(isinstance(ret, type(in_header)))
         self.assertEquals(ret.dt, in_header.dt)
         self.assertEquals(ret.f, in_header.f)
 
@@ -142,7 +142,7 @@ class RpclibClientTestBase(object):
         val.i = 45
         val.s = "asd"
         val.f = 12.34
-        val.ai = [1,2,3,45,5,3,2,1,4]
+        val.ai = [1, 2, 3, 45, 5, 3, 2, 1, 4]
 
         val.simple = [
             self.client.factory.create("{rpclib.test.interop.server._service}SimpleClass"),
@@ -189,11 +189,11 @@ class RpclibClientTestBase(object):
         val.other.b = True
 
         val.p = self.client.factory.create("{hunk.sunk}NonNillableClass");
-        val.p.dt = datetime(2010,6,2)
+        val.p.dt = datetime(2010, 6, 2)
         val.p.i = 123
         val.p.s = "punk"
 
-        val.l = datetime(2010,7,2)
+        val.l = datetime(2010, 7, 2)
         val.q = 5
 
         ret = self.client.service.echo_extension_class(val)

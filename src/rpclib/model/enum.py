@@ -94,7 +94,7 @@ def Enum(*values, **kwargs):
         def __str__(self):
             return 'enum ' + str(values)
 
-    for i,v in enumerate(values):
+    for i, v in enumerate(values):
         setattr(EnumType, v, EnumValue(i))
 
     return EnumType

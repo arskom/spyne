@@ -39,12 +39,12 @@ def xml_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     if isinstance(value, str) or isinstance(value, unicode):
         value = etree.fromstring(value)
 
-    e = etree.SubElement(parent_elt, '{%s}%s' % (tns,name))
+    e = etree.SubElement(parent_elt, '{%s}%s' % (tns, name))
     e.append(value)
 
 @nillable_value
 def dict_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
-    e = etree.SubElement(parent_elt, '{%s}%s' % (tns,name))
+    e = etree.SubElement(parent_elt, '{%s}%s' % (tns, name))
     dict_to_etree(value, e)
 
 @nillable_element

@@ -79,7 +79,7 @@ def _validate_body_style(kparams):
     else:
         raise ValueError("soap_body_style must be one of ('rpc', 'document')")
 
-    assert _body_style in ('wrapped','bare')
+    assert _body_style in ('wrapped', 'bare')
 
     return _body_style
 
@@ -105,7 +105,7 @@ def _produce_output_message(f, func_name, kparams):
 
             assert (len(_returns) == len(_out_variable_names))
 
-            var_pair = zip(_out_variable_names,_returns)
+            var_pair = zip(_out_variable_names, _returns)
             out_params = TypeInfo(var_pair)
 
         else:
