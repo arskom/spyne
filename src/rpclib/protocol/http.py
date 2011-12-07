@@ -24,7 +24,10 @@ from rpclib.error import ValidationError
 import logging
 logger = logging.getLogger(__name__)
 
-import urlparse
+try:
+    from urlparse import parse_qs
+except ImportError: # Python 3
+    from urllib.parse import parse_qs
 
 from rpclib.protocol import ProtocolBase
 
@@ -63,7 +66,7 @@ class HttpRpc(ProtocolBase):
 
         self.app.in_protocol.set_method_descriptor(ctx)
         ctx.in_header_doc = _get_http_headers(ctx.in_document)
-        ctx.in_body_doc = urlparse.parse_qs(ctx.in_document['QUERY_STRING'])
+        ctx.in_body_doc = parse_qs(ctx.in_document['QUERY_STRING'])
 
         logger.debug(repr(ctx.in_body_doc))
 

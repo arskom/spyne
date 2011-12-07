@@ -19,7 +19,11 @@
 
 import base64
 
-from cStringIO import StringIO
+try:
+    from cStringIO import StringIO
+except ImportError: # Python 3
+    from io import StringIO
+
 from rpclib.model import nillable_string
 from rpclib.model import nillable_iterable
 from rpclib.model import ModelBase

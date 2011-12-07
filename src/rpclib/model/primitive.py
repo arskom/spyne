@@ -26,7 +26,7 @@ import decimal
 import datetime
 
 import rpclib.const.xml_ns
-import cPickle as pickle
+import pickle
 
 from collections import deque
 

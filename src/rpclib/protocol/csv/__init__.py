@@ -22,7 +22,10 @@ logger = logging.getLogger(__name__)
 
 import csv
 
-from cStringIO import StringIO
+try:
+    from cStringIO import StringIO
+except ImportError: # Python 3
+    from io import StringIO
 
 from rpclib.protocol import ProtocolBase
 
