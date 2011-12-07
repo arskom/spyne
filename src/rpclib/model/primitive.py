@@ -19,6 +19,10 @@
 
 """This module defines primitives that are atomic, basic types."""
 
+import sys
+if sys.version > '3':
+    long = int
+
 import re
 import math
 import pytz
@@ -294,7 +298,7 @@ class Integer(Decimal):
     @classmethod
     @nillable_string
     def to_string(cls, value):
-        long(value) # sanity check
+        int(value) # sanity check
 
         return str(value)
 
@@ -305,7 +309,7 @@ class Integer(Decimal):
             return int(string)
         except ValueError:
             try:
-                return long(string)
+                return int(string)
             except ValueError:
                 raise ValidationError(string)
 
