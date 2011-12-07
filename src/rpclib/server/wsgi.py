@@ -143,7 +143,8 @@ class WsgiApplication(ServerBase):
 
         self._allowed_http_verbs = app.in_protocol.allowed_http_verbs
         self._verb_handlers = {
-            "POST": self.handle_post
+            "GET": self.handle_rpc,
+            "POST": self.handle_rpc,
         }
 
     def __call__(self, req_env, start_response, wsgi_url=None):
@@ -227,7 +228,7 @@ class WsgiApplication(ServerBase):
                                              ctx.transport.resp_headers.items())
         return ctx.out_string
 
-    def handle_post(self, req_env, start_response):
+    def handle_rpc(self, req_env, start_response):
         ctx = WsgiMethodContext(self.app, req_env,
                                                 self.app.out_protocol.mime_type)
 
