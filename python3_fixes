@@ -1,6 +1,5 @@
 except: 43
 funcattrs: 3
-isinstance: 9
 long: 3
 metaclass: 7
 next: 5
