@@ -1,0 +1,16 @@
+except: 43
+funcattrs: 3
+imports: 9
+isinstance: 9
+long: 3
+metaclass: 7
+next: 5
+nonzero: 3
+numliterals: 81
+paren: 3
+raise: 63
+unicode: 13
+urllib: 11
+ws_comma: 163
+xrange: 7
+zip: 5
