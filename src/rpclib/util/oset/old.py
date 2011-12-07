@@ -44,7 +44,7 @@ class oset(object):
                 raise RuntimeError("OrderedSet modified inappropriately "
                     "during iteration")
 
-            if type(curnode) is _SentinalNode:
+            if isinstance(curnode, _SentinalNode):
                 return
 
             nextnode = curnode.next
@@ -63,7 +63,7 @@ class oset(object):
                 raise RuntimeError("OrderedSet modified inappropriately "
                     "during iteration")
 
-            if type(curnode) is _SentinalNode:
+            if isinstance(curnode, _SentinalNode):
                 return
 
             prevnode = curnode.prev
@@ -147,7 +147,7 @@ class oset(object):
     def remove(self, element):
         """Remove element from the OrderedSet."""
         node = self._map.pop(element)
-        assert type(node) is not _SentinalNode
+        assert not isinstance(node, _SentinalNode)
         left = node.prev
         right = node.next
         left.next = right

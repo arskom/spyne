@@ -180,8 +180,7 @@ class MethodContext(object):
         for k, v in self.__dict__.items():
             if isinstance(v, dict):
                 ret = deque(['{'])
-                items = v.items()
-                items.sort()
+                items = sorted(v.items())
                 for k2, v2 in items:
                     ret.append('\t\t%r: %r,' % (k2, v2))
                 ret.append('\t}')

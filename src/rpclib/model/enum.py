@@ -57,7 +57,7 @@ def Enum(*values, **kwargs):
             return hash(self.__value)
 
         def __cmp__(self, other):
-            assert type(self) is type(other), \
+            assert isinstance(self, type(other)), \
                              "Only values from the same enum are comparable"
 
             return cmp(self.__value, other.__value)

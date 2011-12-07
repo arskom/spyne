@@ -35,8 +35,7 @@ def complex_to_csv(cls, values):
     type_info = getattr(serializer, '_type_info',
                                   {serializer.get_type_name(): serializer})
 
-    keys = type_info.keys()
-    keys.sort()
+    keys = sorted(type_info.keys())
 
     writer.writerow(keys)
     yield queue.getvalue()
