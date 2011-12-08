@@ -38,7 +38,7 @@ class ServiceBaseMeta(type):
         self.event_manager = EventManager(self,
                                       self.__get_base_event_handlers(cls_bases))
 
-        for k, v in cls_dict.iteritems():
+        for k, v in cls_dict.items():
             if hasattr(v, '_is_rpc'):
                 descriptor = v(_default_function_name=k)
                 self.public_methods[k] = descriptor

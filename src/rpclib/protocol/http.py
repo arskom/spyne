@@ -36,7 +36,7 @@ from rpclib.protocol import ProtocolBase
 def _get_http_headers(req_env):
     retval = {}
 
-    for k, v in req_env.iteritems():
+    for k, v in req_env.items():
         if k.startswith("HTTP_"):
             retval[k[5:].lower()]= v
 
