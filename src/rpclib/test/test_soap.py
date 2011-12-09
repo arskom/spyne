@@ -30,6 +30,7 @@ from rpclib.model.primitive import Integer
 from rpclib.model.primitive import String
 
 from rpclib.model.complex import ComplexModel as Message
+from rpclib.protocol.soap import Soap11
 from rpclib.protocol.soap import _from_soap
 from rpclib.protocol.soap import _parse_xml_string
 
@@ -64,7 +65,7 @@ class TestSoap(unittest.TestCase):
         m_inst = m(s="a", i=43)
 
         e = etree.Element('test')
-        m.to_parent_element(m_inst, m.get_namespace(), e)
+        Soap11().to_parent_element(m, m_inst, m.get_namespace(), e)
         e=e[0]
 
         self.assertEquals(e.tag, '{%s}myMessage' % m.get_namespace())
@@ -72,7 +73,7 @@ class TestSoap(unittest.TestCase):
         self.assertEquals(e.find('{%s}s' % m.get_namespace()).text, 'a')
         self.assertEquals(e.find('{%s}i' % m.get_namespace()).text, '43')
 
-        values = m.from_xml(e)
+        values = Soap11().from_element(m, e)
 
         self.assertEquals('a', values.s)
         self.assertEquals(43, values.i)
@@ -80,7 +81,7 @@ class TestSoap(unittest.TestCase):
     def test_href(self):
         # the template. Start at pos 0, some servers complain if
         # xml tag is not in the first line.
-        envelope_string = '''<?xml version="1.0" encoding="utf-8"?>
+        envelope_string = '''
 <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                xmlns:xsd="http://www.w3.org/2001/XMLSchema"
                xmlns:soapenc="http://schemas.xmlsoap.org/soap/encoding/"
@@ -123,7 +124,7 @@ class TestSoap(unittest.TestCase):
         mi.s = 'a'
 
         e = etree.Element('test')
-        m.to_parent_element(mi, m.get_namespace(), e)
+        Soap11().to_parent_element(m, mi, m.get_namespace(), e)
         e=e[0]
 
         self.assertEquals(e.tag, '{some_namespace}myMessage')
@@ -144,7 +145,7 @@ class TestSoap(unittest.TestCase):
         m_inst.p.addresses = []
 
         element=etree.Element('test')
-        m.to_parent_element(m_inst, m.get_namespace(), element)
+        Soap11().to_parent_element(m, m_inst, m.get_namespace(), element)
         element=element[0]
 
         self.assertEquals(element.tag, '{%s}myMessage' % m.get_namespace())
@@ -154,7 +155,7 @@ class TestSoap(unittest.TestCase):
         self.assertEquals(
               len(element[0].find('{%s}addresses' % Person.get_namespace())), 0)
 
-        p1 = m.from_xml(element)[0]
+        p1 = Soap11().from_element(m,element)[0]
 
         self.assertEquals(p1.name, m_inst.p.name)
         self.assertEquals(p1.age, m_inst.p.age)
@@ -185,7 +186,7 @@ class TestSoap(unittest.TestCase):
         m_inst = m(p=p)
 
         element=etree.Element('test')
-        m.to_parent_element(m_inst, m.get_namespace(), element)
+        Soap11().to_parent_element(m, m_inst, m.get_namespace(), element)
         element=element[0]
 
         self.assertEquals('{%s}myMessage' % m.get_namespace(), element.tag)
