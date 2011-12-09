@@ -63,7 +63,7 @@ class ServiceBaseMeta(type):
 
         return handlers
 
-class ServiceBase(object, metaclass=ServiceBaseMeta):
+class ServiceBase(object):
     '''This class serves as the base for all service definitions. Subclasses of
     this class will use the srpc decorator or its wrappers to flag methods to be
     exposed.
@@ -102,6 +102,8 @@ class ServiceBase(object, metaclass=ServiceBaseMeta):
             Called by the transport right before passing the exception string to
             the client.
     '''
+
+    __metaclass__ = ServiceBaseMeta
 
     __tns__ = None
     """For internal use only. You should use the tns argument to the Application

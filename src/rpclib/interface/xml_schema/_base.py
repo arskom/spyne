@@ -84,7 +84,7 @@ class XmlSchema(InterfaceBase):
 
     def add(self, cls):
         handler = _add_handlers[cls]
-        return handler(self, cls)
+        handler(self, cls)
 
     def get_restriction_tag(self, cls):
         handler = _get_restriction_tag_handlers[cls]
