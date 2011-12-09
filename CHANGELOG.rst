@@ -2,6 +2,16 @@
 Changelog
 =========
 
+rpclib-2.5.0-beta
+-----------------
+ * Implemented fanout support for transports and protocols that can handle 
+   that.
+ * Implemented a helper module that generates a Soap/Wsdl 1.1 application in
+   ``rpclib.util.simple``
+ * Some work towards supporting Python3 using ``2to3``.
+ * ``ctx.descriptor.reset_function`` implemented. It's now safe to fiddle
+   with that value in event handlers.
+
 rpclib-2.4.8-beta
 -----------------
  * Added rpclib.util.simple module
