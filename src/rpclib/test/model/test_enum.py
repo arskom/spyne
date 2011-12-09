@@ -25,6 +25,7 @@ _ns_xs = rpclib.const.xml_ns.xsd
 _ns_xsi = rpclib.const.xml_ns.xsi
 _ns_xsd = rpclib.const.xml_ns.xsd
 
+from rpclib.protocol.xml import XmlObject
 from rpclib.application import Application
 Application.transport = 'test'
 
@@ -61,10 +62,10 @@ class TestService(ServiceBase):
 
 class TestEnum(unittest.TestCase):
     def test_wsdl(self):
-        app = Application([TestService],
-            rpclib.interface.wsdl.Wsdl11,
-            rpclib.protocol.soap.Soap11,
-            tns='tns'
+        app = Application([TestService], 'tns',
+            rpclib.interface.wsdl.Wsdl11(),
+            rpclib.protocol.soap.Soap11(),
+            rpclib.protocol.soap.Soap11(),
         )
 
         app.interface.build_interface_document('punk')
@@ -73,7 +74,7 @@ class TestEnum(unittest.TestCase):
         elt = etree.fromstring(wsdl)
         simple_type = elt.xpath('//xs:simpleType', namespaces=app.interface.nsmap)[0]
 
-        print((etree.tostring(elt, pretty_print=True)))
+        print(etree.tostring(elt, pretty_print=True))
         print(simple_type)
 
         self.assertEquals(simple_type.attrib['name'], 'DaysOfWeekEnum')
@@ -86,9 +87,9 @@ class TestEnum(unittest.TestCase):
         print((repr(mo)))
 
         elt = etree.Element('test')
-        DaysOfWeekEnum.to_parent_element(mo, 'test_namespace', elt)
+        XmlObject().to_parent_element(DaysOfWeekEnum, mo, 'test_namespace', elt)
         elt = elt[0]
-        ret = DaysOfWeekEnum.from_xml(elt)
+        ret = XmlObject().from_element(DaysOfWeekEnum, elt)
 
         self.assertEquals(mo, ret)
 

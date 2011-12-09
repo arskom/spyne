@@ -28,6 +28,7 @@ from lxml import etree
 from rpclib.model.complex import ComplexModel
 from rpclib.model.primitive import Integer
 from rpclib.model.primitive import String
+from rpclib.protocol.xml import XmlObject
 from rpclib.protocol.soap.mime import join_attachment
 from rpclib.const import xml_ns as ns
 
@@ -66,7 +67,7 @@ class TestInclude(unittest.TestCase):
         body = soaptree.find("{%s}Body" % ns.soap_env)
         response = body.getchildren()[0]
         result = response.getchildren()[0]
-        r = DownloadPartFileResult.from_xml(result)
+        r = XmlObject().from_element(DownloadPartFileResult, result)
 
         self.assertEquals(payload, r.Data)
 
