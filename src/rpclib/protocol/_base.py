@@ -56,10 +56,10 @@ class ProtocolBase(object):
 
     * ``after_serialize``:
       Called after the serialization operation is finished.
-
     """
 
     allowed_http_verbs = ['GET', 'POST']
+    supports_fanout_methods = False
     mime_type = 'application/octet-stream'
 
     def __init__(self, app=None, validator=None):
@@ -125,15 +125,11 @@ class ProtocolBase(object):
         if not name.startswith("{"):
             name = '{%s}%s' % (self.app.interface.get_tns(), name)
 
-        ctx.service_class = self.app.interface.service_mapping.get(name, None)
-        if ctx.service_class is None:
-            # logger.debug(pformat(self.app.interface.service_mapping.keys()))
-            raise ResourceNotFoundError('Method %r not bound to a service class.'
-                                                                        % name)
+        (ctx.service_class, ctx.descriptor), = \
+                self.app.interface.service_method_map.get(name, (None,None))
 
-        ctx.descriptor = ctx.app.interface.method_mapping.get(name, None)
         if ctx.descriptor is None:
-            # logger.debug(pformat(ctx.app.interface.method_mapping.keys()))
+            # logger.debug(pformat(ctx.app.interface.method_map.keys()))
             raise ResourceNotFoundError('Method %r not found.' % name)
 
     def fault_to_http_response_code(self, fault):
