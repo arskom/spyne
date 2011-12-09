@@ -54,17 +54,22 @@ class ZeroMQServer(ServerBase):
         """Runs the ZeroMQ server."""
 
         while True:
-            ctx = ZmqMethodContext(self.app)
-            ctx.in_string = [self.soap_socket.recv()]
+            initial_ctx = ZmqMethodContext(self.app)
+            initial_ctx.in_string = [self.soap_socket.recv()]
 
-            self.get_in_object(ctx)
-
+            ctx, = self.generate_contexts(initial_ctx)
             if ctx.in_error:
                 ctx.out_object = ctx.in_error
+            
             else:
-                self.get_out_object(ctx)
-                if ctx.out_error:
-                    ctx.out_object = ctx.out_error
+                self.get_in_object(ctx)
+
+                if ctx.in_error:
+                    ctx.out_object = ctx.in_error
+                else:
+                    self.get_out_object(ctx)
+                    if ctx.out_error:
+                        ctx.out_object = ctx.out_error
 
             self.get_out_string(ctx)
             self.soap_socket.send(''.join(ctx.out_string))

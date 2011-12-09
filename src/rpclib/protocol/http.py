@@ -61,10 +61,8 @@ class HttpRpc(ProtocolBase):
     def decompose_incoming_envelope(self, ctx):
         ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
                               ctx.in_document['PATH_INFO'].split('/')[-1])
-
         logger.debug("\033[92mMethod name: %r\033[0m" % ctx.method_request_string)
 
-        self.app.in_protocol.set_method_descriptor(ctx)
         ctx.in_header_doc = _get_http_headers(ctx.in_document)
         ctx.in_body_doc = parse_qs(ctx.in_document['QUERY_STRING'])
 

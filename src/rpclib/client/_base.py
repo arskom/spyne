@@ -60,11 +60,11 @@ class RemoteProcedureBase(object):
         self.url = url
         self.app = app
 
-        self.ctx = MethodContext(app)
-        self.ctx.method_request_string = name
-        self.ctx.out_header = out_header
+        initial_ctx = MethodContext(app)
+        initial_ctx.method_request_string = name
+        initial_ctx.out_header = out_header
 
-        self.app.out_protocol.set_method_descriptor(self.ctx)
+        self.contexts = self.app.out_protocol.generate_method_contexts(initial_ctx)
 
     def __call__(self, *args, **kwargs):
         """Serializes its arguments, sends them, receives and deserializes the
@@ -72,16 +72,16 @@ class RemoteProcedureBase(object):
 
         raise NotImplementedError()
 
-    def get_out_object(self, args, kwargs):
+    def get_out_object(self, ctx, args, kwargs):
         """Serializes the method arguments to output document.
 
         :param args: Sequential arguments.
         :param kwargs: Name-based arguments.
         """
 
-        assert self.ctx.out_object is None
+        assert ctx.out_object is None
 
-        request_raw_class = self.ctx.descriptor.in_message
+        request_raw_class = ctx.descriptor.in_message
         request_type_info = request_raw_class._type_info
         request_raw = request_raw_class()
 
@@ -95,61 +95,61 @@ class RemoteProcedureBase(object):
             if k in kwargs:
                 setattr(request_raw, k, kwargs[k])
 
-        self.ctx.out_object = iter(request_raw)
+        ctx.out_object = iter(request_raw)
 
-    def get_out_string(self):
+    def get_out_string(self, ctx):
         """Serializes the output document to a bytestream."""
 
-        assert self.ctx.out_document is None
-        assert self.ctx.out_string is None
+        assert ctx.out_document is None
+        assert ctx.out_string is None
 
-        self.app.out_protocol.serialize(self.ctx, message='request')
+        self.app.out_protocol.serialize(ctx, message='request')
 
-        if self.ctx.service_class != None:
-            if self.ctx.out_error is None:
-                self.ctx.service_class.event_manager.fire_event(
-                                        'method_return_document', self.ctx)
+        if ctx.service_class != None:
+            if ctx.out_error is None:
+                ctx.service_class.event_manager.fire_event(
+                                        'method_return_document', ctx)
             else:
-                self.ctx.service_class.event_manager.fire_event(
-                                        'method_exception_document', self.ctx)
+                ctx.service_class.event_manager.fire_event(
+                                        'method_exception_document', ctx)
 
-        self.app.out_protocol.create_out_string(self.ctx, string_encoding)
+        self.app.out_protocol.create_out_string(ctx, string_encoding)
 
-        if self.ctx.service_class != None:
-            if self.ctx.out_error is None:
-                self.ctx.service_class.event_manager.fire_event(
-                                            'method_return_string', self.ctx)
+        if ctx.service_class != None:
+            if ctx.out_error is None:
+                ctx.service_class.event_manager.fire_event(
+                                            'method_return_string', ctx)
             else:
-                self.ctx.service_class.event_manager.fire_event(
-                                            'method_exception_string', self.ctx)
+                ctx.service_class.event_manager.fire_event(
+                                            'method_exception_string', ctx)
 
-        if self.ctx.out_string is None:
-            self.ctx.out_string = [""]
+        if ctx.out_string is None:
+            ctx.out_string = [""]
 
-    def get_in_object(self):
+    def get_in_object(self, ctx):
         """Deserializes the response bytestream to input document and native
         python object.
         """
 
-        assert self.ctx.in_string is not None
-        assert self.ctx.in_document is None
+        assert ctx.in_string is not None
+        assert ctx.in_document is None
 
-        self.app.in_protocol.create_in_document(self.ctx)
-        if self.ctx.service_class != None:
-            self.ctx.service_class.event_manager.fire_event(
-                                            'method_accept_document', self.ctx)
+        self.app.in_protocol.create_in_document(ctx)
+        if ctx.service_class != None:
+            ctx.service_class.event_manager.fire_event(
+                                            'method_accept_document', ctx)
 
         # sets the ctx.in_body_doc and ctx.in_header_doc properties
-        self.app.in_protocol.decompose_incoming_envelope(self.ctx)
+        self.app.in_protocol.decompose_incoming_envelope(ctx)
 
         # this sets ctx.in_object
-        self.app.in_protocol.deserialize(self.ctx, message='response')
+        self.app.in_protocol.deserialize(ctx, message='response')
 
-        type_info = self.ctx.descriptor.out_message._type_info
+        type_info = ctx.descriptor.out_message._type_info
 
-        if len(self.ctx.descriptor.out_message._type_info) == 1: # TODO: Non-Wrapped Object Support
+        if len(ctx.descriptor.out_message._type_info) == 1: # TODO: Non-Wrapped Object Support
             wrapper_attribute = type_info.keys()[0]
-            self.ctx.in_object = getattr(self.ctx.in_object,
+            ctx.in_object = getattr(ctx.in_object,
                                                         wrapper_attribute, None)
 
 

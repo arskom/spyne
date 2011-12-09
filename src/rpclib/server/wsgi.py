@@ -234,10 +234,13 @@ class WsgiApplication(ServerBase):
 
         # implementation hook
         self.event_manager.fire_event('wsgi_call', ctx)
-
         ctx.in_string, in_string_charset = reconstruct_wsgi_request(req_env)
 
-        self.get_in_object(ctx, in_string_charset)
+        ctx, = self.generate_contexts(ctx, in_string_charset)
+        if ctx.in_error:
+            return self.handle_error(ctx, ctx.in_error, start_response)
+
+        self.get_in_object(ctx)
         if ctx.in_error:
             return self.handle_error(ctx, ctx.in_error, start_response)
 

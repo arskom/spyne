@@ -25,6 +25,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 import rpclib.const.xml_ns
+from copy import copy
 
 _ns_xsi = rpclib.const.xml_ns.xsi
 _ns_xsd = rpclib.const.xml_ns.xsd
@@ -84,16 +85,17 @@ class ProtocolBase(object):
         self.__app = value
 
     def create_in_document(self, ctx, in_string_encoding=None):
-        """Uses ctx.in_string to set ctx.in_document"""
+        """Uses ``ctx.in_string`` to set ``ctx.in_document``."""
 
     def decompose_incoming_envelope(self, ctx):
-        """Sets the ctx.in_body_doc, ctx.in_header_doc and ctx.service
-        properties of the ctx object, if applicable.
+        """Sets the ``ctx.method_request_string``, ``ctx.in_body_doc``,
+        ``ctx.in_header_doc`` and ``ctx.service`` properties of the ctx object,
+        if applicable.
         """
 
     def deserialize(self, ctx):
         """Takes a MethodContext instance and a string containing ONE document
-        instance in the ctx.in_string attribute.
+        instance in the ``ctx.in_string`` attribute.
 
         Returns the corresponding native python object in the ctx.in_object
         attribute.
@@ -115,7 +117,7 @@ class ProtocolBase(object):
         validation on the parsed input document.
         """
 
-    def set_method_descriptor(self, ctx):
+    def generate_method_contexts(self, ctx):
         """Method to be overriden to perform any sort of custom matching between
         the method_request_string and the methods.
         """
@@ -125,12 +127,21 @@ class ProtocolBase(object):
         if not name.startswith("{"):
             name = '{%s}%s' % (self.app.interface.get_tns(), name)
 
-        (ctx.service_class, ctx.descriptor), = \
-                self.app.interface.service_method_map.get(name, (None,None))
-
-        if ctx.descriptor is None:
+        call_handles = self.app.interface.service_method_map.get(name, [])
+        if len(call_handles) == 0:
             # logger.debug(pformat(ctx.app.interface.method_map.keys()))
             raise ResourceNotFoundError('Method %r not found.' % name)
+
+        retval = []
+        for sc, d in call_handles:
+            c = copy(ctx)
+
+            c.descriptor = d
+            c.service_class = sc
+
+            retval.append(c)
+
+        return retval
 
     def fault_to_http_response_code(self, fault):
         if isinstance(fault, RequestTooLongError):

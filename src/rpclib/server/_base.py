@@ -44,9 +44,10 @@ class ServerBase(object):
         self.app.transport = self.transport
         self.event_manager = EventManager(self)
 
-    def get_in_object(self, ctx, in_string_charset=None):
-        """Uses the ctx.in_string to set ctx.in_body_doc, which in turn is used
-        to set ctx.in_object."""
+    def generate_contexts(self, ctx, in_string_charset):
+        """Calls create_in_document and decompose_incoming_envelope to get
+        method_request string in order to generate contexts.
+        """
 
         try:
             # sets ctx.in_document
@@ -55,6 +56,22 @@ class ServerBase(object):
             # sets ctx.in_body_doc and ctx.in_header_doc
             self.app.in_protocol.decompose_incoming_envelope(ctx)
 
+            retval = self.app.in_protocol.generate_method_contexts(ctx)
+
+        except Fault, e:
+            ctx.in_object = None
+            ctx.in_error = e
+            ctx.out_error = e
+
+            retval = [ctx]
+
+        return retval
+
+    def get_in_object(self, ctx):
+        """Uses the ctx.in_string to set ctx.in_body_doc, which in turn is used
+        to set ctx.in_object."""
+
+        try:
             # sets ctx.in_object and ctx.in_header
             self.app.in_protocol.deserialize(ctx, message='request')
 

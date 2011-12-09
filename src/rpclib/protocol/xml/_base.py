@@ -123,30 +123,26 @@ class XmlObject(ProtocolBase):
         handler(self, cls, value, tns, parent_elt, * args, ** kwargs)
 
     def validate_body(self, ctx, body_document):
-        """Sets ctx.method_request_string and calls :func:`set_method_descriptor`
-        """
+        """Sets ctx.method_request_string and calls :func:`generate_contexts`
+        for validation."""
+        ctx.method_request_string = body_document.tag
 
         try:
             self.validate_document(body_document)
-            ctx.method_request_string = body_document.tag
             logger.debug("%sMethod request string: %r%s" %
                            (LIGHT_GREEN, ctx.method_request_string, END_COLOR))
         finally:
             if self.log_messages:
                 logger.debug(etree.tostring(ctx.in_document, pretty_print=True))
 
-        if ctx.service_class is None: # i.e. if it's a server
-            self.set_method_descriptor(ctx)
-
     def create_in_document(self, ctx, charset=None):
         """Uses the iterable of string fragments in ``ctx.in_string`` to set
-        ``ctx.in_document``"""
+        ``ctx.in_document``."""
 
         ctx.in_document = etree.fromstring(ctx.in_string, charset)
 
-        self.validate_body(ctx, ctx.in_document)
-
     def decompose_incoming_envelope(self, ctx):
+        self.validate_body(ctx, ctx.in_document)
         ctx.in_header_doc = None # If you need header support, you should use Soap
         ctx.in_body_doc = ctx.in_document
 
