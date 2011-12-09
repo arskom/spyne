@@ -30,6 +30,7 @@ from lxml import etree
 
 from rpclib.application import Application
 from rpclib.decorator import rpc
+from rpclib.decorator import srpc
 from rpclib.service import ServiceBase
 from rpclib.model.complex import Array
 from rpclib.model.complex import ComplexModel
@@ -127,6 +128,16 @@ class MultipleReturnService(ServiceBase):
     def multi(self, s):
         return s, 'a', 'b'
 
+class MultipleMethods1(ServiceBase):
+    @srpc(String)
+    def multi(s):
+        return "%r multi 1" % s
+
+class MultipleMethods2(ServiceBase):
+    @srpc(String)
+    def multi(s):
+        return "%r multi 2" % s
+
 class TestSingle(unittest.TestCase):
     def setUp(self):
         self.app = Application([TestService], 'tns', Wsdl11(), Soap11(), Soap11())
@@ -170,6 +181,38 @@ class TestMultiple(unittest.TestCase):
         self.assertEqual(response_data[0], 'a')
         self.assertEqual(response_data[1], 'b')
         self.assertEqual(response_data[2], 'c')
+
+class TestMultipleMethods(unittest.TestCase):
+    def test_single_method(self):
+        try:
+            app = Application([MultipleMethods1,MultipleMethods2], 'tns', Wsdl11(), Soap11(), Soap11())
+            app.interface.build_interface_document('url')
+            raise Exception('must fail.')
+        except ValueError:
+            pass
+
+    def test_multiple_methods(self):
+        app = Application([MultipleMethods1,MultipleMethods2], 'tns',
+                    Wsdl11(), Soap11(), Soap11(), allow_multiple_methods=True)
+        app.interface.build_interface_document('url')
+
+        assert MultipleMethods1 in app.interface.service_mapping['{tns}multi']
+        assert MultipleMethods2 in app.interface.service_mapping['{tns}multi']
+
+        mm = app.interface.method_mapping['{tns}multi']
+        def find_in_mm(f):
+            i = 0
+            found = False
+            for v in mm:
+                i+=1
+                if v.function is f:
+                    found = True
+                    print i
+                    break
+            return found
+
+        assert find_in_mm(MultipleMethods1.multi)
+        assert find_in_mm(MultipleMethods2.multi)
 
 if __name__ == '__main__':
     unittest.main()

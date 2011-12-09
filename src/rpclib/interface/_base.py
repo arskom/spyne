@@ -197,19 +197,23 @@ class InterfaceBase(object):
             s.__tns__ = self.get_tns()
             logger.debug("populating '%s.%s' methods..." % (s.__module__, s.__name__))
             for method in s.public_methods.values():
-                o = self.service_mapping.get(method.key)
-                if not (o is None):
-                    raise Exception("\nThe message %r defined in both '%s.%s'"
-                                                                " and '%s.%s'"
-                      % (method.key, s.__module__, s.__name__,
-                                          o.__module__, o.__name__,
-                        ))
-
-                else:
+                o = self.service_mapping.get(method.key, None)
+                if o is None:
                     logger.debug('\tadding method %r to match %r tag.' %
                                                       (method.name, method.key))
-                    self.service_mapping[method.key] = s
-                    self.method_mapping[method.key] = method
+                    self.service_mapping[method.key] = [s]
+                    self.method_mapping[method.key] = [method]
+
+                else:
+                    if self.app.allow_multiple_methods:
+                        self.service_mapping[method.key].append(s)
+                        self.method_mapping[method.key].append(method)
+                    else:
+                        raise ValueError("\nThe message %r defined in both '%s.%s'"
+                                                                " and '%s.%s'"
+                                % (method.key, s.__module__, s.__name__,
+                                               o[0].__module__, o[0].__name__,
+                                ))
 
     tns = property(get_tns)
 
