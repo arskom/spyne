@@ -40,10 +40,12 @@ class ServiceBaseMeta(type):
 
         for k, v in cls_dict.items():
             if hasattr(v, '_is_rpc'):
+                # these three lines are needed for staticmethod wrapping to work
                 descriptor = v(_default_function_name=k)
-                self.public_methods[k] = descriptor
                 setattr(self, k, staticmethod(descriptor.function))
-                descriptor.function = getattr(self, k)
+                descriptor.reset_function(getattr(self, k))
+
+                self.public_methods[k] = descriptor
 
     def __get_base_event_handlers(self, cls_bases):
         handlers = {}
