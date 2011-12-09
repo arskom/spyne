@@ -62,50 +62,50 @@ class _FunctionCall(object):
         self.__in_header = in_header
 
     def __call__(self, *args, **kwargs):
-        ctx = MethodContext(self.__app)
-        ctx.method_request_string = self.__key
-        ctx.in_header = self.__in_header
-        ctx.in_object = args
+        initial_ctx = MethodContext(self.__app)
+        initial_ctx.method_request_string = self.__key
+        initial_ctx.in_header = self.__in_header
+        initial_ctx.in_object = args
 
-        self.__app.in_protocol.set_method_descriptor(ctx)
+        contexts = self.__app.in_protocol.generate_contexts(initial_ctx)
 
-        # set logging.getLogger('rpclib.server.null').setLevel(logging.CRITICAL)
-        # to hide the following
-        _header = ('=' * 30) + LIGHT_RED
-        _footer = END_COLOR + ('=' * 30)
+        for ctx in contexts:
+            # set logging.getLogger('rpclib.server.null').setLevel(logging.CRITICAL)
+            # to hide the following
+            _header = ('=' * 30) + LIGHT_RED
+            _footer = END_COLOR + ('=' * 30)
 
-        logger.warning( "%s start request %s" % (_header, _footer)  )
-        self.__app.process_request(ctx)
-        logger.warning( "%s  end request  %s" % (_header, _footer)  )
+            logger.warning( "%s start request %s" % (_header, _footer)  )
+            self.__app.process_request(ctx)
+            logger.warning( "%s  end request  %s" % (_header, _footer)  )
 
-        if ctx.out_error:
-            raise ctx.out_error
-        else:
-
-            if len(ctx.descriptor.out_message._type_info) == 0:
-                retval = None
-
-            elif len(ctx.descriptor.out_message._type_info) == 1:
-                retval = ctx.out_object[0]
-
-                # workaround to have the context disposed of when the caller is done
-                # with the return value. the context is sometimes needed to fully
-                # construct the return object (e.g. when the object is a sqlalchemy
-                # object bound to a session that's defined in the context object).
-                try:
-                    retval.__ctx__ = ctx
-                except AttributeError:
-                    # not all objects let this happen. (eg. built-in types like str)
-                    # which don't need the context anyway.
-                    pass
-
+            if ctx.out_error:
+                raise ctx.out_error
             else:
-                retval = ctx.out_object
+                if len(ctx.descriptor.out_message._type_info) == 0:
+                    retval = None
 
-                # same as above
-                try:
-                    retval[0].__ctx__ = ctx
-                except AttributeError:
-                    pass
+                elif len(ctx.descriptor.out_message._type_info) == 1:
+                    retval = ctx.out_object[0]
 
-            return retval
+                    # workaround to have the context disposed of when the caller is done
+                    # with the return value. the context is sometimes needed to fully
+                    # construct the return object (e.g. when the object is a sqlalchemy
+                    # object bound to a session that's defined in the context object).
+                    try:
+                        retval.__ctx__ = ctx
+                    except AttributeError:
+                        # not all objects let this happen. (eg. built-in types like str)
+                        # which don't need the context anyway.
+                        pass
+
+                else:
+                    retval = ctx.out_object
+
+                    # same as above
+                    try:
+                        retval[0].__ctx__ = ctx
+                    except AttributeError:
+                        pass
+
+                yield retval
