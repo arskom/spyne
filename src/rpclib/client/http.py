@@ -29,8 +29,6 @@ except ImportError: # Python 3
     from urllib.request import urlopen
     from urllib.error import HTTPError
 
-import urllib2
-
 from rpclib.client import Service
 from rpclib.client import ClientBase
 from rpclib.client import RemoteProcedureBase
