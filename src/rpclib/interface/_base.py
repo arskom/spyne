@@ -44,7 +44,6 @@ class InterfaceBase(object):
 
         self.__app = None
         self.set_app(app)
-        
 
     def set_app(self, value):
         assert self.__app is None, "One interface instance should belong to one " \
@@ -202,8 +201,9 @@ class InterfaceBase(object):
                     self.service_method_map[method.key] = [(s, method)]
 
                 else:
-                    if self.app.allow_multiple_methods:
+                    if self.app.in_protocol.allow_fanout_methods and self.app.in_protocol.allow_fanout_methods:
                         self.service_method_map[method.key].append( (s, method) )
+
                     else:
                         os, om = val[0]
                         raise ValueError("\nThe message %r defined in both '%s.%s'"
@@ -226,7 +226,7 @@ class InterfaceBase(object):
 
         if ns == "__main__":
             warnings.warn("Namespace is '__main__'", Warning )
-        
+
         if not (ns in self.prefmap):
             pref = "s%d" % self.__ns_counter
             while pref in self.nsmap:

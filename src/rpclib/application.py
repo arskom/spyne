@@ -66,7 +66,7 @@ class Application(object):
         self.services = services
         self.tns = tns
         self.name = name
-        self.allow_multiple_methods = allow_fanout_methods
+        self.allow_fanout_methods = allow_fanout_methods
 
         if allow_fanout_methods and not in_protocol.supports_fanout_methods:
             raise Exception("You can't use fanout methods with in_protocol=%r." % in_protocol)
