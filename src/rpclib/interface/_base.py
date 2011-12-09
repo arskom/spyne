@@ -39,9 +39,7 @@ class InterfaceBase(object):
     def __init__(self, app=None):
         self.__ns_counter = 0
 
-        self.service_mapping = {}
-        self.method_mapping = {}
-
+        self.service_method_map = {}
         self.url = None
 
         self.__app = None
@@ -197,22 +195,21 @@ class InterfaceBase(object):
             s.__tns__ = self.get_tns()
             logger.debug("populating '%s.%s' methods..." % (s.__module__, s.__name__))
             for method in s.public_methods.values():
-                o = self.service_mapping.get(method.key, None)
-                if o is None:
+                val = self.service_method_map.get(method.key, None)
+                if val is None:
                     logger.debug('\tadding method %r to match %r tag.' %
                                                       (method.name, method.key))
-                    self.service_mapping[method.key] = [s]
-                    self.method_mapping[method.key] = [method]
+                    self.service_method_map[method.key] = [(s, method)]
 
                 else:
                     if self.app.allow_multiple_methods:
-                        self.service_mapping[method.key].append(s)
-                        self.method_mapping[method.key].append(method)
+                        self.service_method_map[method.key].append( (s, method) )
                     else:
+                        os, om = val[0]
                         raise ValueError("\nThe message %r defined in both '%s.%s'"
                                                                 " and '%s.%s'"
                                 % (method.key, s.__module__, s.__name__,
-                                               o[0].__module__, o[0].__name__,
+                                               os.__module__, os.__name__,
                                 ))
 
     tns = property(get_tns)

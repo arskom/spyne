@@ -182,31 +182,50 @@ class TestMultipleMethods(unittest.TestCase):
             app = Application([MultipleMethods1,MultipleMethods2], 'tns', Wsdl11(), Soap11(), Soap11())
             app.interface.build_interface_document('url')
             raise Exception('must fail.')
+
         except ValueError:
             pass
 
     def test_multiple_methods(self):
+        in_protocol = Soap11()
+        out_protocol = Soap11()
+
+        # for the sake of this test.
+        in_protocol.supports_fanout_methods = True
+        out_protocol.supports_fanout_methods = True
+
         app = Application([MultipleMethods1,MultipleMethods2], 'tns',
-                    Wsdl11(), Soap11(), Soap11(), allow_multiple_methods=True)
+                    Wsdl11(), in_protocol, out_protocol, allow_fanout_methods=True)
         app.interface.build_interface_document('url')
 
-        assert MultipleMethods1 in app.interface.service_mapping['{tns}multi']
-        assert MultipleMethods2 in app.interface.service_mapping['{tns}multi']
+        mm = app.interface.service_method_map['{tns}multi']
 
-        mm = app.interface.method_mapping['{tns}multi']
-        def find_in_mm(f):
+        def find_class_in_mm(c):
+            found = False
+            for s, _ in mm:
+                if s is c:
+                    found = True
+                    break
+
+            return found
+
+        assert find_class_in_mm(MultipleMethods1)
+        assert find_class_in_mm(MultipleMethods2)
+
+        def find_function_in_mm(f):
             i = 0
             found = False
-            for v in mm:
+            for _, d in mm:
                 i+=1
-                if v.function is f:
+                if d.function is f:
                     found = True
                     print i
                     break
+
             return found
 
-        assert find_in_mm(MultipleMethods1.multi)
-        assert find_in_mm(MultipleMethods2.multi)
+        assert find_function_in_mm(MultipleMethods1.multi)
+        assert find_function_in_mm(MultipleMethods2.multi)
 
 if __name__ == '__main__':
     unittest.main()
