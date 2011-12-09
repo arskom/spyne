@@ -59,7 +59,7 @@ class ProtocolBase(object):
       Called after the serialization operation is finished.
     """
 
-    allow_fanout_methods = False
+    supports_fanout_methods = False
     allowed_http_verbs = ['GET', 'POST']
     supports_fanout_methods = False
     mime_type = 'application/octet-stream'

@@ -20,6 +20,7 @@
 #
 # Most of the service tests are performed through the interop tests.
 #
+
 import datetime
 import unittest
 
@@ -195,7 +196,7 @@ class TestMultipleMethods(unittest.TestCase):
         out_protocol.supports_fanout_methods = True
 
         app = Application([MultipleMethods1,MultipleMethods2], 'tns',
-                    Wsdl11(), in_protocol, out_protocol, allow_fanout_methods=True)
+                Wsdl11(), in_protocol, out_protocol, supports_fanout_methods=True)
         app.interface.build_interface_document('url')
 
         mm = app.interface.service_method_map['{tns}multi']
