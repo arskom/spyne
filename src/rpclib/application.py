@@ -61,11 +61,18 @@ class Application(object):
     transport = None
 
     def __init__(self, services, tns, interface, in_protocol, out_protocol,
-                                                                    name=None):
+                                        name=None, allow_fanout_methods=False):
 
         self.services = services
         self.tns = tns
         self.name = name
+        self.allow_multiple_methods = allow_fanout_methods
+
+        if allow_fanout_methods and not in_protocol.supports_fanout_methods:
+            raise Exception("You can't use fanout methods with in_protocol=%r." % in_protocol)
+        if allow_fanout_methods and not out_protocol.supports_fanout_methods:
+            raise Exception("You can't use fanout methods with out_protocol=%r." % in_protocol)
+
         if self.name is None:
             self.name = self.__class__.__name__.split('.')[-1]
 
