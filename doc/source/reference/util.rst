@@ -37,3 +37,10 @@ Ordered Set
 
 .. automodule:: rpclib.util.oset
     :members:
+
+
+Helpers
+-------
+
+.. automodule:: rpclib.util.simple
+    :members:
