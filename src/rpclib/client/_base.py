@@ -73,7 +73,7 @@ class RemoteProcedureBase(object):
         raise NotImplementedError()
 
     def get_out_object(self, args, kwargs):
-        """Serializes the method arguments to output document<.
+        """Serializes the method arguments to output document.
 
         :param args: Sequential arguments.
         :param kwargs: Name-based arguments.
