@@ -86,46 +86,40 @@ class TypeNS2(ComplexModel):
 
 class MultipleNamespaceService(ServiceBase):
     @rpc(TypeNS1, TypeNS2)
-    def a(self, t1, t2):
+    def a(ctx, t1, t2):
         return "OK"
-
-class MultipleNamespaceValidatingService(MultipleNamespaceService):
-    def __init__(self):
-        MultipleNamespaceService.__init__(self)
-
-        self.validating_service = True
 
 class TestService(ServiceBase):
     @rpc(String, _returns=String)
-    def aa(self, s):
+    def aa(ctx, s):
         return s
 
     @rpc(String, Integer, _returns=DateTime)
-    def a(self, s, i):
+    def a(ctx, s, i):
         return datetime.datetime.now()
 
     @rpc(Person, String, Address, _returns=Address)
-    def b(self, p, s, a):
+    def b(ctx, p, s, a):
         return Address()
 
     @rpc(Person, isAsync=True)
-    def d(self, Person):
+    def d(ctx, Person):
         pass
 
     @rpc(Person, isCallback=True)
-    def e(self, Person):
+    def e(ctx, Person):
         pass
 
     @rpc(String, String, String, _returns=String,
         _in_variable_names={'_from': 'from', '_self': 'self',
             '_import': 'import'},
         _out_variable_name="return")
-    def f(self, _from, _self, _import):
+    def f(ctx, _from, _self, _import):
         return '1234'
 
 class MultipleReturnService(ServiceBase):
     @rpc(String, _returns=(String, String, String))
-    def multi(self, s):
+    def multi(ctx, s):
         return s, 'a', 'b'
 
 class MultipleMethods1(ServiceBase):
