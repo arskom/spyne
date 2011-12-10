@@ -4,7 +4,9 @@
 Comparison with other rpc frameworks
 ====================================
 
-Oh my.
+RPC is a very popular subject. There's a plethora of active and inactive
+projects that satisfy a wide arrange of requirements. Here are the main sources
+of information:
 
 * http://pypi.python.org/pypi?%3Aaction=search&term=rpc
 * http://www.ohloh.net/tags/python/rpc
@@ -14,7 +16,7 @@ Ladon
 -----
 
 The Ladon project has almost the same goals and same approach to the rpc-related
-issues.
+issues as rpclib.
 
 Discussion thread: https://answers.launchpad.net/ladon/+question/171664
 
@@ -37,12 +39,28 @@ Discussion thread: https://answers.launchpad.net/ladon/+question/171664
 * Does not have a Soap client.
     In fact, Ladon is pure server-side software - the whole idea of supporting a
     standard protocol like SOAP is that clients are already out there.
-* Rpclib uses own classes for denoting types, whereas ladon uses python
+* Rpclib uses own classes for denoting types, whereas ladon uses Python
   callables. This lets ladon api to be simpler, but gives the rpclib api the
   power to have declarative restrictions on input types.
 * Does not test against ws-i.org deliverables for testing soap compatibility.
 * Does not support parsing and/or modifying protocol & transport headers.
-* Does not offer declarative constraints.
+
+WSME
+----
+
+"""
+Web Service Made Easy (WSME) is a very easy way to implement webservices in your
+python web application. It is originally a rewrite of TGWebServices with focus
+on extensibility, framework-independance and better type handling.
+"""
+
+* Supports TurboGears
+* Supports REST+Json, REST+Xml, (a subset of) SOAP and ExtDirect.
+* Supports type validation.
+* No client support.
+* Does not test against ws-i.org deliverables for testing soap compatibility.
+* Only supports http as transport.
+* Uses genshi for Xml support.
 
 RPyC
 ----
@@ -70,9 +88,12 @@ This is preliminary. Please correct these points if you spot any error.
 Suds
 ----
 
-* Excellent wsdl parser, very easy to use.
 * Soap 1.1 / Wsdl 1.1 Client only.
-* Slow.
+* Excellent wsdl parser, very easy to use.
+* Recommended way to interface with rpclib services.
+* Uses own pure-python xml implementation, so it's roughly 10 times slower
+  than rpclib.
+* Only depends on pure-python solutions, so much easier to deploy.
 
 ZSI
 ---
@@ -81,13 +102,16 @@ ZSI
 
 SOAPPy
 ------
+
 * ???
 
 rsl
 ---
-* Unmaintained.
+
 * Client only.
+* Unmaintained.
 
 PyRo
 ----
+
 * ???
