@@ -140,7 +140,7 @@ class RemoteProcedureBase(object):
                                             'method_accept_document', ctx)
 
         # sets the ctx.in_body_doc and ctx.in_header_doc properties
-        self.app.in_protocol.decompose_incoming_envelope(ctx)
+        self.app.in_protocol.decompose_incoming_envelope(ctx, message='response')
 
         # this sets ctx.in_object
         self.app.in_protocol.deserialize(ctx, message='response')
@@ -149,8 +149,7 @@ class RemoteProcedureBase(object):
 
         if len(ctx.descriptor.out_message._type_info) == 1: # TODO: Non-Wrapped Object Support
             wrapper_attribute = type_info.keys()[0]
-            ctx.in_object = getattr(ctx.in_object,
-                                                        wrapper_attribute, None)
+            ctx.in_object = getattr(ctx.in_object, wrapper_attribute, None)
 
 
 class ClientBase(object):

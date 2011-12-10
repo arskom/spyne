@@ -24,3 +24,13 @@ from rpclib._base import EventContext
 from rpclib._base import MethodContext
 from rpclib._base import MethodDescriptor
 from rpclib._base import EventManager
+
+import sys
+
+if sys.version > '3':
+    def _join(val):
+        return bytes('').join(val)
+else:
+    def _join(val):
+        return ''.join(val)
+

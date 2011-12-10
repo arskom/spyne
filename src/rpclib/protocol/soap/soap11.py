@@ -27,6 +27,9 @@ logger = logging.getLogger(__name__)
 import cgi
 
 import rpclib.const.xml_ns as ns
+from rpclib.const.ansi_color import LIGHT_GREEN
+from rpclib.const.ansi_color import LIGHT_RED
+from rpclib.const.ansi_color import END_COLOR
 
 from lxml import etree
 from lxml.etree import XMLSyntaxError
@@ -67,20 +70,26 @@ def _from_soap(in_envelope_xml, xmlids=None):
     return header, body
 
 def _parse_xml_string(xml_string, charset=None):
+    if charset:
+        string = ''.join([s.decode(charset) for s in xml_string])
+    else:
+        string = ''.join(xml_string)
+
     try:
-        if charset is None:
-            charset = 'utf-8'
-
-        xml_string = ''.join([s.decode(charset) for s in xml_string])
-
         try:
-            root, xmlids = etree.XMLID(xml_string)
+            root, xmlids = etree.XMLID(string)
+
         except XMLSyntaxError, e:
+            logger.error(string)
             raise Fault('Client.XMLSyntaxError', str(e))
 
     except ValueError, e:
-        logger.debug('%s -- falling back to str decoding.' % (e))
-        root, xmlids = etree.XMLID(xml_string)
+        logger.debug('%r -- falling back to str decoding.' % (e))
+        try:
+            root, xmlids = etree.XMLID(string.encode(charset))
+        except XMLSyntaxError, e:
+            logger.error(string)
+            raise Fault('Client.XMLSyntaxError', str(e))
 
     return root, xmlids
 
@@ -149,7 +158,7 @@ class Soap11(XmlObject):
         ctx.out_string = [etree.tostring(ctx.out_document, xml_declaration=True,
                                                               encoding=charset)]
 
-    def decompose_incoming_envelope(self, ctx):
+    def decompose_incoming_envelope(self, ctx, message='request'):
         envelope_xml, xmlids = ctx.in_document
         header_document, body_document = _from_soap(envelope_xml, xmlids)
 
@@ -159,10 +168,10 @@ class Soap11(XmlObject):
             ctx.in_body_doc = body_document
 
         else:
-            self.validate_body(ctx, body_document)
-
             ctx.in_header_doc = header_document
             ctx.in_body_doc = body_document
+
+            self.validate_body(ctx, message)
 
     def deserialize(self, ctx, message):
         """Takes a MethodContext instance and a string containing ONE soap
@@ -304,10 +313,12 @@ class Soap11(XmlObject):
                                     self.app.interface.get_tns(), out_body_doc)
 
         if self.log_messages:
-            logger.debug('\033[91m' + "Response" + '\033[0m')
-            logger.debug(etree.tostring(ctx.out_document,
-                                        xml_declaration=True, pretty_print=True))
-
+            if message == 'request':
+                line_header = '%sRequest%s' % (LIGHT_GREEN, END_COLOR)
+            elif message == 'response':
+                line_header = '%sResponse%s' % (LIGHT_RED, END_COLOR)
+            logger.debug('%s %s' % (line_header, etree.tostring(ctx.out_document,
+                                        xml_declaration=True, pretty_print=True)))
         self.event_manager.fire_event('after_serialize', ctx)
 
     def fault_to_http_response_code(self, fault):

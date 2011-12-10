@@ -122,18 +122,24 @@ class XmlObject(ProtocolBase):
         handler = self.serialization_handlers[cls]
         handler(self, cls, value, tns, parent_elt, * args, ** kwargs)
 
-    def validate_body(self, ctx, body_document):
+    def validate_body(self, ctx, message='request'):
         """Sets ctx.method_request_string and calls :func:`generate_contexts`
         for validation."""
-        ctx.method_request_string = body_document.tag
 
+        assert message in ('request', 'response')
+        ctx.method_request_string = ctx.in_body_doc.tag
+
+        line_header = LIGHT_RED + "Error:" + END_COLOR
         try:
-            self.validate_document(body_document)
-            logger.debug("%sMethod request string: %r%s" %
-                           (LIGHT_GREEN, ctx.method_request_string, END_COLOR))
+            self.validate_document(ctx.in_body_doc)
+            if message == 'request':
+                line_header = LIGHT_GREEN + "Method request string:" + END_COLOR
+            else:
+                line_header = LIGHT_RED + "Response:" + END_COLOR
         finally:
             if self.log_messages:
-                logger.debug(etree.tostring(ctx.in_document, pretty_print=True))
+                logger.debug("%s %s" % (line_header,
+                            etree.tostring(ctx.in_document, pretty_print=True)))
 
     def create_in_document(self, ctx, charset=None):
         """Uses the iterable of string fragments in ``ctx.in_string`` to set
@@ -141,10 +147,12 @@ class XmlObject(ProtocolBase):
 
         ctx.in_document = etree.fromstring(ctx.in_string, charset)
 
-    def decompose_incoming_envelope(self, ctx):
-        self.validate_body(ctx, ctx.in_document)
+    def decompose_incoming_envelope(self, ctx, message='request'):
+        assert message in ('request', 'response')
+
         ctx.in_header_doc = None # If you need header support, you should use Soap
         ctx.in_body_doc = ctx.in_document
+        self.validate_body(ctx, message)
 
     def create_out_string(self, ctx, charset=None):
         """Sets an iterable of string fragments to ctx.out_string"""
@@ -180,9 +188,13 @@ class XmlObject(ProtocolBase):
             ctx.in_object = [None] * len(body_class._type_info)
 
         if self.log_messages:
-            logger.debug(LIGHT_RED + "Response" + END_COLOR)
-            logger.debug(etree.tostring(ctx.out_document,
-                                        xml_declaration=True, pretty_print=True))
+            if message == 'request':
+                line_header = '%sRequest%s' % (LIGHT_GREEN, END_COLOR)
+            elif message == 'response':
+                line_header = '%sResponse%s' % (LIGHT_RED, END_COLOR)
+
+            logger.debug("%s %s" % (line_header, etree.tostring(ctx.out_document,
+                                    xml_declaration=True, pretty_print=True)))
 
         self.event_manager.fire_event('after_deserialize', ctx)
 

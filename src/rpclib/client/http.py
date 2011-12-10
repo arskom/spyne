@@ -35,30 +35,30 @@ from rpclib.client import RemoteProcedureBase
 
 class _RemoteProcedure(RemoteProcedureBase):
     def __call__(self, *args, **kwargs):
-        ctx = self.contexts[0]
+        self.ctx = self.contexts[0]
 
-        self.get_out_object(ctx, args, kwargs) # sets self.ctx.out_object
-        self.get_out_string(ctx) # sets self.ctx.out_string
+        self.get_out_object(self.ctx, args, kwargs) # sets ctx.out_object
+        self.get_out_string(self.ctx) # sets ctx.out_string
 
         out_string = ''.join(self.ctx.out_string) # FIXME: just send the iterable to the http stream.
         request = Request(self.url, out_string)
         code = 200
         try:
             response = urlopen(request)
-            ctx.in_string = [response.read()]
+            self.ctx.in_string = [response.read()]
 
         except HTTPError, e:
             code = e.code
-            ctx.in_string = [e.read()]
+            self.ctx.in_string = [e.read()]
 
-        self.get_in_object(ctx)
+        self.get_in_object(self.ctx)
 
-        if not (ctx.in_error is None):
-            raise ctx.in_error
-        elif code >= 500:
-            raise ctx.in_object
+        if not (self.ctx.in_error is None):
+            raise self.ctx.in_error
+        elif code >= 400:
+            raise self.ctx.in_error
         else:
-            return ctx.in_object
+            return self.ctx.in_object
 
 class HttpClient(ClientBase):
     def __init__(self, url, app):

@@ -25,16 +25,11 @@ try:
 except ImportError: # Python 3
     from io import StringIO
 
+from rpclib import _join
 from rpclib.model import nillable_string
 from rpclib.model import nillable_iterable
 from rpclib.model import ModelBase
 
-if sys.version > '3':
-    def _join(val):
-        return bytes('').join(val)
-else:
-    def _join(val):
-        return ''.join(val)
 
 class ByteArray(ModelBase):
     """Handles anything other than ascii or unicode-encoded data. Every protocol
