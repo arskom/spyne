@@ -229,45 +229,47 @@ class WsgiApplication(ServerBase):
         return ctx.out_string
 
     def handle_rpc(self, req_env, start_response):
-        ctx = WsgiMethodContext(self.app, req_env,
+        initial_ctx = WsgiMethodContext(self.app, req_env,
                                                 self.app.out_protocol.mime_type)
 
         # implementation hook
-        self.event_manager.fire_event('wsgi_call', ctx)
-        ctx.in_string, in_string_charset = reconstruct_wsgi_request(req_env)
+        self.event_manager.fire_event('wsgi_call', initial_ctx)
+        initial_ctx.in_string, in_string_charset = reconstruct_wsgi_request(req_env)
 
-        ctx, = self.generate_contexts(ctx, in_string_charset)
-        if ctx.in_error:
-            return self.handle_error(ctx, ctx.in_error, start_response)
+        # note that in fanout mode, only the response from the last
+        # call will be returned.
+        for ctx in self.generate_contexts(initial_ctx, in_string_charset):
+            if ctx.in_error:
+                return self.handle_error(ctx, ctx.in_error, start_response)
 
-        self.get_in_object(ctx)
-        if ctx.in_error:
-            return self.handle_error(ctx, ctx.in_error, start_response)
+            self.get_in_object(ctx)
+            if ctx.in_error:
+                return self.handle_error(ctx, ctx.in_error, start_response)
 
-        self.get_out_object(ctx)
-        if ctx.out_error:
-            return self.handle_error(ctx, ctx.out_error, start_response)
+            self.get_out_object(ctx)
+            if ctx.out_error:
+                return self.handle_error(ctx, ctx.out_error, start_response)
 
-        if ctx.transport.resp_code is None:
-            ctx.transport.resp_code = HTTP_200
+            if ctx.transport.resp_code is None:
+                ctx.transport.resp_code = HTTP_200
 
-        self.get_out_string(ctx)
+            self.get_out_string(ctx)
 
-        if ctx.descriptor and ctx.descriptor.mtom:
-            # when there is more than one return type, the result is
-            # encapsulated inside a list. when there's just one, the result
-            # is returned in a non-encapsulated form. the apply_mtom always
-            # expects the objects to be inside an iterable, hence the following
-            # test.
-            out_type_info = ctx.descriptor.out_message._type_info
-            if len(out_type_info) == 1:
-                out_object = [out_object]
+            if ctx.descriptor and ctx.descriptor.mtom:
+                # when there is more than one return type, the result is
+                # encapsulated inside a list. when there's just one, the result
+                # is returned in a non-encapsulated form. the apply_mtom always
+                # expects the objects to be inside an iterable, hence the following
+                # test.
+                out_type_info = ctx.descriptor.out_message._type_info
+                if len(out_type_info) == 1:
+                    out_object = [out_object]
 
-            ctx.transport.resp_headers, ctx.out_string = apply_mtom(
-                    ctx.transport.resp_headers, ctx.out_string,
-                    ctx.descriptor.out_message._type_info.values(),
-                    out_object
-                )
+                ctx.transport.resp_headers, ctx.out_string = apply_mtom(
+                        ctx.transport.resp_headers, ctx.out_string,
+                        ctx.descriptor.out_message._type_info.values(),
+                        out_object
+                    )
 
         # implementation hook
         self.event_manager.fire_event('wsgi_return', ctx)

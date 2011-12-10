@@ -69,11 +69,6 @@ class Application(object):
         self.name = name
         self.supports_fanout_methods = supports_fanout_methods
 
-        if supports_fanout_methods and not in_protocol.supports_fanout_methods:
-            raise Exception("You can't use fanout methods with in_protocol=%r." % in_protocol)
-        if supports_fanout_methods and not out_protocol.supports_fanout_methods:
-            raise Exception("You can't use fanout methods with out_protocol=%r." % in_protocol)
-
         if self.name is None:
             self.name = self.__class__.__name__.split('.')[-1]
 
