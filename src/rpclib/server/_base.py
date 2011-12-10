@@ -44,7 +44,7 @@ class ServerBase(object):
         self.app.transport = self.transport
         self.event_manager = EventManager(self)
 
-    def generate_contexts(self, ctx, in_string_charset):
+    def generate_contexts(self, ctx, in_string_charset=None):
         """Calls create_in_document and decompose_incoming_envelope to get
         method_request string in order to generate contexts.
         """
