@@ -122,11 +122,11 @@ class XmlSchema(InterfaceBase):
         self.build_schema_nodes(with_schema_location=True)
 
         pref_tns = self.get_namespace_prefix(self.get_tns())
-        logger.debug("generating schema for targetNamespace=%r, prefix: %r"
-                                                   % (self.get_tns(), pref_tns))
-
         tmp_dir_name = tempfile.mkdtemp()
+        logger.debug("generating schema for targetNamespace=%r, prefix: %r in dir %r"
+                                   % (self.get_tns(), pref_tns, tmp_dir_name))
 
+        logger.debug
         # serialize nodes to files
         for k, v in self.schema_dict.items():
             file_name = '%s/%s.xsd' % (tmp_dir_name, k)

@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -26,6 +27,7 @@ from rpclib.test.wsdl import AppTestWrapper
 from rpclib.test.wsdl import build_app
 from rpclib.test.wsdl.defult_services import DefaultPortService
 from rpclib.test.wsdl.defult_services import DefaultPortServiceMultipleMethods
+
 
 class TestDefaultWSDLBehavior(unittest.TestCase):
     def _default_service(self, app_wrapper, service_name):
@@ -185,3 +187,6 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
                 3,
                 ['echo_one', 'echo_two', 'echo_three']
         )
+
+if __name__ == '__main__':
+    unittest.main()

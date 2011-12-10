@@ -195,3 +195,6 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
         da_wsdl_el = da.interface.root_elt
 
         self.assertEquals(2, len(da_wsdl_el.findall(self.port_type_string)))
+
+if __name__ == '__main__':
+    unittest.main()
