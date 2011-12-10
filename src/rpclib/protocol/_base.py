@@ -118,11 +118,32 @@ class ProtocolBase(object):
         validation on the parsed input document.
         """
 
-    def generate_method_contexts(self, ctx):
-        """Method to be overriden to perform any sort of custom matching between
+    def set_method_descriptor(self, ctx):
+        """DEPRECATED! Use :func:`generate_method_contexts` instead.
+
+        Method to be overriden to perform any sort of custom matching between
         the method_request_string and the methods.
         """
-        # from pprint import pformat
+
+        name = ctx.method_request_string
+        if not name.startswith("{"):
+            name = '{%s}%s' % (self.app.interface.get_tns(), name)
+
+        ctx.service_class = self.app.interface.service_mapping.get(name, None)
+        if ctx.service_class is None:
+            raise ResourceNotFoundError('Method %r not bound to a service class.'
+                                                                        % name)
+
+        ctx.descriptor = ctx.app.interface.method_mapping.get(name, None)
+        if ctx.descriptor is None:
+            raise ResourceNotFoundError('Method %r not found.' % name)
+
+    def generate_method_contexts(self, ctx):
+        """Method to be overriden to perform any sort of custom matching between
+        the method_request_string and the methods. Returns a list of contexts.
+        Can return multiple contexts if a method_request_string matches more
+        than one function. (This is called the fanout mode.)
+        """
 
         name = ctx.method_request_string
         if not name.startswith("{"):
@@ -130,7 +151,6 @@ class ProtocolBase(object):
 
         call_handles = self.app.interface.service_method_map.get(name, [])
         if len(call_handles) == 0:
-            # logger.debug(pformat(ctx.app.interface.method_map.keys()))
             raise ResourceNotFoundError('Method %r not found.' % name)
 
         retval = []
