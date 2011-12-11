@@ -56,7 +56,7 @@ class RemoteProcedureBase(object):
     :param out_header: The header that's going to be sent with the remote call.
     """
 
-    def __init__(self, url, app, name, out_header):
+    def __init__(self, url, app, name, out_header=None):
         self.url = url
         self.app = app
 
