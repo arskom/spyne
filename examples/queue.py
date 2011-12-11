@@ -102,28 +102,29 @@ class Consumer(ServerBase):
                     .order_by(TaskQueue.id)
 
             for task in task_queue:
-                ctx = MethodContext(self.app)
-                ctx.in_string = [task.data]
-                ctx.transport.consumer_id = self.id
-                ctx.transport.task_id = task.id
+                initial_ctx = MethodContext(self.app)
+                initial_ctx.in_string = [task.data]
+                initial_ctx.transport.consumer_id = self.id
+                initial_ctx.transport.task_id = task.id
 
-                self.get_in_object(ctx)
-                if ctx.in_error:
+                for ctx in self.generate_contexts(initial_ctx, 'utf8'):
+                    self.get_in_object(ctx)
+                    if ctx.in_error:
+                        self.get_out_string(ctx)
+                        logging.error(''.join(ctx.out_string))
+                        continue
+
+                    self.get_out_object(ctx)
+                    if ctx.out_error:
+                        self.get_out_string(ctx)
+                        logging.error(''.join(ctx.out_string))
+                        continue
+
                     self.get_out_string(ctx)
-                    logging.error(''.join(ctx.out_string))
-                    continue
+                    logging.debug(''.join(ctx.out_string))
 
-                self.get_out_object(ctx)
-                if ctx.out_error:
-                    self.get_out_string(ctx)
-                    logging.error(''.join(ctx.out_string))
-                    continue
-
-                self.get_out_string(ctx)
-                logging.debug(''.join(ctx.out_string))
-
-                last.task_id = task.id
-                self.session.commit()
+                    last.task_id = task.id
+                    self.session.commit()
 
             time.sleep(10)
 
@@ -136,12 +137,14 @@ class RemoteProcedure(RemoteProcedureBase):
     def __call__(self, *args, **kwargs):
         session = self.Session()
 
-        self.get_out_object(args, kwargs)
-        self.get_out_string()
+        for ctx in self.contexts:
+            self.get_out_object(ctx, args, kwargs)
+            self.get_out_string(ctx)
 
-        out_string = ''.join(self.ctx.out_string)
+            out_string = ''.join(ctx.out_string)
 
-        session.add(TaskQueue(data=out_string))
+            session.add(TaskQueue(data=out_string))
+
         session.commit()
         session.close()
 
