@@ -48,17 +48,19 @@ class NullServer(ServerBase):
         self.service.in_header = kwargs.get('soapheaders', None)
 
 class _FunctionProxy(object):
-    def __init__(self, parent, app):
+    def __init__(self, server, app):
         self.__app = app
+        self.__server = server
         self.in_header = None
 
     def __getattr__(self, key):
-        return _FunctionCall(self.__app, key, self.in_header)
+        return _FunctionCall(self.__app, self.__server, key, self.in_header)
 
 class _FunctionCall(object):
-    def __init__(self, app, key, in_header):
+    def __init__(self, app, server, key, in_header):
         self.__key = key
         self.__app = app
+        self.__server = server
         self.__in_header = in_header
 
     def __call__(self, *args, **kwargs):
@@ -67,8 +69,7 @@ class _FunctionCall(object):
         initial_ctx.in_header = self.__in_header
         initial_ctx.in_object = args
 
-        contexts = self.__app.in_protocol.generate_contexts(initial_ctx)
-
+        contexts = self.__app.in_protocol.generate_method_contexts(initial_ctx)
         for ctx in contexts:
             # set logging.getLogger('rpclib.server.null').setLevel(logging.CRITICAL)
             # to hide the following
@@ -81,6 +82,7 @@ class _FunctionCall(object):
 
             if ctx.out_error:
                 raise ctx.out_error
+
             else:
                 if len(ctx.descriptor.out_message._type_info) == 0:
                     retval = None
@@ -108,4 +110,4 @@ class _FunctionCall(object):
                     except AttributeError:
                         pass
 
-                yield retval
+        return retval
