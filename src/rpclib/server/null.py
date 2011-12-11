@@ -34,6 +34,7 @@ class NullServer(ServerBase):
     """
 
     transport = 'noconn://null.rpclib'
+    supports_fanout_methods = False
 
     def __init__(self, app):
         ServerBase.__init__(self, app)
