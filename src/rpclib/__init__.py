@@ -28,9 +28,8 @@ from rpclib._base import EventManager
 import sys
 
 if sys.version > '3':
-    def _join(val):
-        return bytes('').join(val)
+    def _join(val, joiner=''):
+        return bytes(joiner).join(val)
 else:
-    def _join(val):
-        return ''.join(val)
-
+    def _join(val, joiner=''):
+        return joiner.join(val)
