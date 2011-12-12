@@ -63,6 +63,10 @@ class ServerBase(object):
             # sets ctx.in_body_doc, ctx.in_header_doc and ctx.method_request_string
             self.app.in_protocol.decompose_incoming_envelope(ctx)
 
+            # returns a list of contexts. multiple contexts are only returned
+            # when supports_fanout_mode=True parameter is given to the
+            # Application constructor and there's more than one method defined
+            # for the given method_request_string here.
             retval = self.app.in_protocol.generate_method_contexts(ctx)
 
         except Fault, e:
