@@ -95,7 +95,7 @@ class RemoteProcedureBase(object):
             if k in kwargs:
                 setattr(request_raw, k, kwargs[k])
 
-        ctx.out_object = iter(request_raw)
+        ctx.out_object = list(request_raw)
 
     def get_out_string(self, ctx):
         """Serializes the output document to a bytestream."""
