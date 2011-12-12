@@ -147,7 +147,11 @@ class XmlObject(ProtocolBase):
         """Uses the iterable of string fragments in ``ctx.in_string`` to set
         ``ctx.in_document``."""
 
-        ctx.in_document = etree.fromstring(ctx.in_string, charset)
+        try:
+            ctx.in_document = etree.fromstring(_join(ctx.in_string))
+        except ValueError:
+            ctx.in_document = etree.fromstring(_join([s.decode(charset) for s in ctx.in_string]))
+
 
     def decompose_incoming_envelope(self, ctx, message='request'):
         assert message in ('request', 'response')
