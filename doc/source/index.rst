@@ -3,10 +3,9 @@
 Rpclib Documentation
 ####################
 
-Welcome to Rpclib documentation! We hope you find this text useful. As usual,
-we're always open to comments and suggestions about how we can improve the
-quality of this document. So please do chime in to let us know about your
-thoughts about this document using one or more of the contact methods described
+Welcome to Rpclib documentation! We hope you find this text useful.
+Please do not hesitate to get in touch with us if you think you can help us
+improve Rpclib or its documentation one way or another. Contact information is
 below.
 
 Have fun!
