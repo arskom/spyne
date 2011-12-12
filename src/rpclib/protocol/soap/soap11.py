@@ -126,7 +126,7 @@ class Soap11(XmlObject):
     allowed_http_verbs = ['POST']
     mime_type = 'text/xml; charset=utf-8'
 
-    def __init__(self, app=None, validator=None, wrapped=True):
+    def __init__(self, app=None, validator=None, wrapped=True, xml_declaration=True):
         """Soap 1.1 Protocol with validators.
 
         :param app: A rpclib.application.Application instance.
@@ -135,7 +135,7 @@ class Soap11(XmlObject):
         :param wrapped: Whether the return type should be wrapped in another
             object. Default is 'True'.
         """
-        XmlObject.__init__(self, app, validator)
+        XmlObject.__init__(self, app, validator, xml_declaration)
 
         self.__wrapped = wrapped
 

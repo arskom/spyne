@@ -22,6 +22,8 @@ logger = logging.getLogger('rpclib.protocol.xml')
 
 from lxml import etree
 
+from rpclib import _join
+
 from rpclib.const import xml_ns as ns
 from rpclib.const.ansi_color import LIGHT_GREEN
 from rpclib.const.ansi_color import LIGHT_RED
@@ -72,8 +74,9 @@ class XmlObject(ProtocolBase):
     :param validator: One of (None, 'soft', 'lxml').
     """
 
-    def __init__(self, app=None, validator=None):
+    def __init__(self, app=None, validator=None, xml_declaration=True):
         ProtocolBase.__init__(self, app, validator)
+        self.xml_declaration = xml_declaration
 
         self.serialization_handlers = cdict({
             ModelBase: base_to_parent_element,
@@ -160,8 +163,8 @@ class XmlObject(ProtocolBase):
         if charset is None:
             charset = 'utf8'
 
-        ctx.out_string = [etree.tostring(ctx.out_document, xml_declaration=True,
-                                                            encoding=charset)]
+        ctx.out_string = [etree.tostring(ctx.out_document,
+                        xml_declaration=self.xml_declaration, encoding=charset)]
 
     def deserialize(self, ctx, message):
         """Takes a MethodContext instance and a string containing ONE root xml
@@ -194,7 +197,7 @@ class XmlObject(ProtocolBase):
                 line_header = '%sResponse%s' % (LIGHT_RED, END_COLOR)
 
             logger.debug("%s %s" % (line_header, etree.tostring(ctx.out_document,
-                                    xml_declaration=True, pretty_print=True)))
+                    xml_declaration=self.xml_declaration, pretty_print=True)))
 
         self.event_manager.fire_event('after_deserialize', ctx)
 
