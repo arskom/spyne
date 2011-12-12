@@ -150,14 +150,6 @@ class Soap11(XmlObject):
 
         ctx.in_document = _parse_xml_string(ctx.in_string, charset)
 
-    def create_out_string(self, ctx, charset=None):
-        """Sets an iterable of string fragments to ctx.out_string"""
-        if charset is None:
-            charset = 'utf-8'
-
-        ctx.out_string = [etree.tostring(ctx.out_document, xml_declaration=True,
-                                                              encoding=charset)]
-
     def decompose_incoming_envelope(self, ctx, message='request'):
         envelope_xml, xmlids = ctx.in_document
         header_document, body_document = _from_soap(envelope_xml, xmlids)
@@ -170,7 +162,7 @@ class Soap11(XmlObject):
         else:
             ctx.in_header_doc = header_document
             ctx.in_body_doc = body_document
-
+            ctx.method_request_string = ctx.in_body_doc.tag
             self.validate_body(ctx, message)
 
     def deserialize(self, ctx, message):

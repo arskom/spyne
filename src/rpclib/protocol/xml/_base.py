@@ -130,7 +130,6 @@ class XmlObject(ProtocolBase):
         for validation."""
 
         assert message in ('request', 'response')
-        ctx.method_request_string = ctx.in_body_doc.tag
 
         line_header = LIGHT_RED + "Error:" + END_COLOR
         try:
@@ -155,6 +154,7 @@ class XmlObject(ProtocolBase):
 
         ctx.in_header_doc = None # If you need header support, you should use Soap
         ctx.in_body_doc = ctx.in_document
+        ctx.method_request_string = ctx.in_body_doc.tag
         self.validate_body(ctx, message)
 
     def create_out_string(self, ctx, charset=None):

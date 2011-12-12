@@ -60,7 +60,7 @@ class ServerBase(object):
             # sets ctx.in_document
             self.app.in_protocol.create_in_document(ctx, in_string_charset)
 
-            # sets ctx.in_body_doc and ctx.in_header_doc
+            # sets ctx.in_body_doc, ctx.in_header_doc and ctx.method_request_string
             self.app.in_protocol.decompose_incoming_envelope(ctx)
 
             retval = self.app.in_protocol.generate_method_contexts(ctx)
