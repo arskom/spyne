@@ -35,6 +35,8 @@ from rpclib.client import RemoteProcedureBase
 
 class _RemoteProcedure(RemoteProcedureBase):
     def __call__(self, *args, **kwargs):
+        # there's no point in the client making the same request over and over
+        # again.
         self.ctx = self.contexts[0]
 
         self.get_out_object(self.ctx, args, kwargs) # sets ctx.out_object
