@@ -15,7 +15,7 @@ import string
 from lxml import etree
 
 CONFIG_FILE = 'config.xml'
-SOAPLIB_TEST_NS = 'soaplib.test.interop.server._service'
+SOAPLIB_TEST_NS = 'soaplib.core.test.interop.server._service'
 SOAPLIB_TEST_SERVICE = 'ValidatingApplication'
 SOAPLIB_TEST_PORT = 'ValidatingApplication'
 SOAPLIB_REPORT_FILE = 'wsi-report-soaplib.xml'
