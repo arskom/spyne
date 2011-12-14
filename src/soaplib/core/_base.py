@@ -328,8 +328,6 @@ class Application(object):
         return self.__classes[key]()
 
     def parse_xml_string(self, xml_string, charset=None):
-        from xml.sax.saxutils import unescape, escape
-        x = unescape(xml_string, {"&apos;": "'", "&quot;": '"'})
         return _parse_xml_string(x, charset)
 
     def decompose_incoming_envelope(self, ctx, envelope_xml, xmlids=None):
