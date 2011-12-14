@@ -1,4 +1,8 @@
+
+This repository is going away! Please interact with [rpclib](http://github.com/arskom/rpclib) instead.
+
 Warning! This is soaplib's unstable development branch. The latest stable branch is [here](http://github.com/arskom/soaplib/tree/1_0). The legacy soaplib-0.8 branch is [here](http://github.com/arskom/soaplib/tree/0_8).
+
 
 Overview
 ========
