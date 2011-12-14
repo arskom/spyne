@@ -22,7 +22,7 @@ from lxml import etree
 
 from rpclib.protocol.soap import Soap11
 from rpclib.model.binary import ByteArray
-from rpclib.model.binary import _join
+from rpclib.model.binary import _bytes_join
 import rpclib.const.xml_ns
 
 ns_xsd = rpclib.const.xml_ns.xsd
@@ -39,7 +39,7 @@ class TestBinary(unittest.TestCase):
         element = element[0]
 
         a2 = Soap11().from_element(ByteArray, element)
-        self.assertEquals(_join(self.data), _join(a2))
+        self.assertEquals(_bytes_join(self.data), _bytes_join(a2))
 
 if __name__ == '__main__':
     unittest.main()

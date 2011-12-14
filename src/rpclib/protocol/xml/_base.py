@@ -22,7 +22,7 @@ logger = logging.getLogger('rpclib.protocol.xml')
 
 from lxml import etree
 
-from rpclib import _join
+from rpclib import _bytes_join
 
 from rpclib.const import xml_ns as ns
 from rpclib.const.ansi_color import LIGHT_GREEN
@@ -148,9 +148,9 @@ class XmlObject(ProtocolBase):
         ``ctx.in_document``."""
 
         try:
-            ctx.in_document = etree.fromstring(_join(ctx.in_string))
+            ctx.in_document = etree.fromstring(_bytes_join(ctx.in_string))
         except ValueError:
-            ctx.in_document = etree.fromstring(_join([s.decode(charset) for s in ctx.in_string]))
+            ctx.in_document = etree.fromstring(_bytes_join([s.decode(charset) for s in ctx.in_string]))
 
 
     def decompose_incoming_envelope(self, ctx, message='request'):

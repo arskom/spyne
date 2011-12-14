@@ -25,7 +25,7 @@ try:
 except ImportError: # Python 3
     from io import StringIO
 
-from rpclib import _join
+from rpclib import _bytes_join
 from rpclib.model import nillable_string
 from rpclib.model import nillable_iterable
 from rpclib.model import ModelBase
@@ -64,12 +64,12 @@ class ByteArray(ModelBase):
     @classmethod
     @nillable_string
     def to_base64(cls, value):
-        return [base64.b64encode(_join(value))]
+        return [base64.b64encode(_bytes_join(value))]
 
     @classmethod
     @nillable_string
     def from_base64(cls, value):
-        return [base64.b64decode(_join(value))]
+        return [base64.b64decode(_bytes_join(value))]
 
 class Attachment(ModelBase):
     """**DEPRECATED!** Use ByteArray instead."""

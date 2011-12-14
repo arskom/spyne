@@ -40,7 +40,7 @@ class DownloadPartFileResult(ComplexModel):
 
 # Tests
 class TestInclude(unittest.TestCase):
-    def test_join_attachment(self):
+    def test_bytes_join_attachment(self):
         href_id="http://tempuri.org/1/634133419330914808"
         payload="ANJNSLJNDYBC SFDJNIREMX:CMKSAJN"
         envelope = '''
