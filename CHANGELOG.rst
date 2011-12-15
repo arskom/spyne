@@ -11,7 +11,8 @@ rpclib-2.5.0-beta
  * Some work towards supporting Python3 using ``2to3``. See issue #113.
  * ``ctx.descriptor.reset_function`` implemented. It's now safe to fiddle
    with that value in event handlers.
- * Fix most of the test that fail due to api changes.
+ * Incorporated a cleaned-up version of the Django wrapper: https://gist.github.com/1316025
+ * Fix most of the tests that fail due to api changes.
  * Fix Http soap client.
  * Full change log: https://github.com/arskom/rpclib/pull/115
 
