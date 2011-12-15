@@ -118,7 +118,7 @@ class ComplexModelMeta(type(ModelBase)):
                         _type_info[k] = v
                         if issubclass(v, Array) and v.serializer is None:
                             raise Exception("%s.%s is an array of what?" %
-                                                                  (cls_name, k))
+                                            (cls_name, k))
                     elif attr:
                         _type_info[k] = v
 
@@ -142,7 +142,7 @@ class ComplexModelBase(ModelBase):
     from.
     """
 
-    def __init__(self, **kwargs):
+    def __init__(self, ** kwargs):
         super(ComplexModelBase, self).__init__()
 
         for k in self.get_flat_type_info(self.__class__).keys():
@@ -156,8 +156,8 @@ class ComplexModelBase(ModelBase):
 
     def __repr__(self):
         return "%s(%r)" % (self.get_type_name(),
-                    ['%s=%s' % (k, getattr(self, k, None))
-                                for k in self.__class__._type_info])
+                           ['%s=%s' % (k, getattr(self, k, None))
+                           for k in self.__class__._type_info])
 
     @classmethod
     def get_serialization_instance(cls, value):
@@ -248,9 +248,14 @@ class ComplexModelBase(ModelBase):
             prefix = ""
 
         fti = cls.get_flat_type_info(cls)
-        for k,v in fti.items():
+        for k, v in fti.items():
             if getattr(v, 'get_flat_type_info', None) is None:
-                retval[prefix+k] = v
+                key = prefix + k
+                value = retval.get(key, None)
+                if value:
+                    raise ValueError("%r.%s conflicts with %r" % (cls, k, value))
+                else:
+                    retval[key] = v
             else:
                 v.get_simple_type_info(v, retval, k)
 
@@ -291,7 +296,7 @@ class ComplexModelBase(ModelBase):
         cls_dict['__type_name__'] = type_name
         cls_dict['_type_info'] = TypeInfo(members)
 
-        return ComplexModelMeta(type_name, (ComplexModel, ), cls_dict)
+        return ComplexModelMeta(type_name, (ComplexModel,), cls_dict)
 
     @staticmethod
     def alias(type_name, namespace, target):
@@ -308,7 +313,7 @@ class ComplexModelBase(ModelBase):
         cls_dict['_type_info'] = getattr(target, '_type_info', ())
         cls_dict['_target'] = target
 
-        return ComplexModelMeta(type_name, (ClassAlias, ), cls_dict)
+        return ComplexModelMeta(type_name, (ClassAlias,), cls_dict)
 
 class ComplexModel(ComplexModelBase):
     """The general complexType factory. The __call__ method of this class will
@@ -325,8 +330,8 @@ class Array(ComplexModel):
     the same name as the serialized class. It's contained in a Python list.
     """
 
-    def __new__(cls, serializer, **kwargs):
-        retval = cls.customize(**kwargs)
+    def __new__(cls, serializer, ** kwargs):
+        retval = cls.customize( ** kwargs)
 
         # hack to default to unbounded arrays when the user didn't specify
         # max_occurs. We should find a better way.
@@ -352,7 +357,7 @@ class Array(ComplexModel):
     # namespace.
     @staticmethod
     def resolve_namespace(cls, default_ns):
-        (serializer, ) = cls._type_info.values()
+        (serializer,) = cls._type_info.values()
 
         serializer.resolve_namespace(serializer, default_ns)
 
@@ -368,7 +373,7 @@ class Array(ComplexModel):
     def get_serialization_instance(cls, value):
         inst = ComplexModel.__new__(Array)
 
-        (member_name, ) = cls._type_info.keys()
+        (member_name,) = cls._type_info.keys()
         setattr(inst, member_name, value)
 
         return inst

@@ -362,6 +362,21 @@ class TestXmlAttribute(unittest.TestCase):
         assert "c_s" in sti
         assert sti["c_s"] is String
 
+    def test_simple_type_info_conflicts(self):
+        class CM(ComplexModel):
+            i = Integer
+            s = String
+
+        class CCM(ComplexModel):
+            c = CM
+            c_i = Float
+
+        try:
+            CCM.get_simple_type_info(CCM)
+            raise Exception("must fail")
+
+        except ValueError:
+            pass
 
 if __name__ == '__main__':
     unittest.main()
