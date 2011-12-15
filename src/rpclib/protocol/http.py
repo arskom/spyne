@@ -24,7 +24,10 @@ from rpclib.error import ValidationError
 import logging
 logger = logging.getLogger(__name__)
 
-import urlparse
+try:
+    from urlparse import parse_qs
+except ImportError: # Python 3
+    from urllib.parse import parse_qs
 
 from rpclib.protocol import ProtocolBase
 
@@ -33,7 +36,7 @@ from rpclib.protocol import ProtocolBase
 def _get_http_headers(req_env):
     retval = {}
 
-    for k,v in req_env.iteritems():
+    for k, v in req_env.items():
         if k.startswith("HTTP_"):
             retval[k[5:].lower()]= v
 
@@ -58,12 +61,10 @@ class HttpRpc(ProtocolBase):
     def decompose_incoming_envelope(self, ctx):
         ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
                               ctx.in_document['PATH_INFO'].split('/')[-1])
-
         logger.debug("\033[92mMethod name: %r\033[0m" % ctx.method_request_string)
 
-        self.app.in_protocol.set_method_descriptor(ctx)
         ctx.in_header_doc = _get_http_headers(ctx.in_document)
-        ctx.in_body_doc = urlparse.parse_qs(ctx.in_document['QUERY_STRING'])
+        ctx.in_body_doc = parse_qs(ctx.in_document['QUERY_STRING'])
 
         logger.debug(repr(ctx.in_body_doc))
 
@@ -100,7 +101,7 @@ class HttpRpc(ProtocolBase):
                             raise ValidationError(v2)
 
                         value.append(native_v2)
-                        freq = frequencies.get(k,0)
+                        freq = frequencies.get(k, 0)
                         freq+=1
                         frequencies[k] = freq
 
@@ -124,7 +125,7 @@ class HttpRpc(ProtocolBase):
                     frequencies[k] = freq
 
             if self.validator == 'soft':
-                for k,c in flat_type_info.items():
+                for k, c in flat_type_info.items():
                     val = frequencies.get(k, 0)
                     if val < c.Attributes.min_occurs \
                             or  (c.Attributes.max_occurs != 'unbounded'

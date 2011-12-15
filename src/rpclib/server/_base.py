@@ -39,26 +39,54 @@ class ServerBase(object):
     """The transport type, conventionally defined by the URI string to its
     definition."""
 
+    supports_fanout_methods = False
+
     def __init__(self, app):
         self.app = app
         self.app.transport = self.transport
+        if app.supports_fanout_methods and not self.supports_fanout_methods:
+            logger.warning("""Your application is in fanout mode.
+            note that in fanout mode, only the response from the last
+            call will be returned.""")
+
         self.event_manager = EventManager(self)
 
-    def get_in_object(self, ctx, in_string_charset=None):
-        """Uses the ctx.in_string to set ctx.in_body_doc, which in turn is used
-        to set ctx.in_object."""
+    def generate_contexts(self, ctx, in_string_charset=None):
+        """Calls create_in_document and decompose_incoming_envelope to get
+        method_request string in order to generate contexts.
+        """
 
         try:
             # sets ctx.in_document
             self.app.in_protocol.create_in_document(ctx, in_string_charset)
 
-            # sets ctx.in_body_doc and ctx.in_header_doc
+            # sets ctx.in_body_doc, ctx.in_header_doc and ctx.method_request_string
             self.app.in_protocol.decompose_incoming_envelope(ctx)
 
+            # returns a list of contexts. multiple contexts are only returned
+            # when supports_fanout_mode=True parameter is given to the
+            # Application constructor and there's more than one method defined
+            # for the given method_request_string here.
+            retval = self.app.in_protocol.generate_method_contexts(ctx)
+
+        except Fault, e:
+            ctx.in_object = None
+            ctx.in_error = e
+            ctx.out_error = e
+
+            retval = [ctx]
+
+        return retval
+
+    def get_in_object(self, ctx):
+        """Uses the ctx.in_string to set ctx.in_body_doc, which in turn is used
+        to set ctx.in_object."""
+
+        try:
             # sets ctx.in_object and ctx.in_header
             self.app.in_protocol.deserialize(ctx, message='request')
 
-        except Fault,e:
+        except Fault, e:
             ctx.in_object = None
             ctx.in_error = e
             ctx.out_error = e
@@ -67,7 +95,7 @@ class ServerBase(object):
         """Calls the matched method using the ctx.in_object to get
         ctx.out_object."""
 
-        assert ctx.in_error is None,"There was an error processing input string"
+        assert ctx.in_error is None, "There was an error processing input string"
 
         # event firing is done in the rpclib.application.Application
         self.app.process_request(ctx)

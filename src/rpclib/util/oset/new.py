@@ -2,7 +2,7 @@
 
 import collections
 
-KEY, PREV, NEXT = range(3)
+KEY, PREV, NEXT = list(range(3))
 
 """This module contains an ordered set implementation from
 http://code.activestate.com/recipes/576694/ """
@@ -71,10 +71,10 @@ class oset(collections.MutableSet):
 
 
 if __name__ == '__main__':
-    print(oset('abracadabra'))
+    print((oset('abracadabra')))
     stuff = oset()
-    stuff.append(1)
-    print stuff
-    stuff.append(1)
-    print stuff
-    print(oset('simsalabim'))
+    stuff.add(1)
+    print(stuff)
+    stuff.add(1)
+    print(stuff)
+    print((oset('simsalabim')))

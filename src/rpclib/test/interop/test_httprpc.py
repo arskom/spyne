@@ -19,8 +19,15 @@
 
 import pytz
 import unittest
-import urllib
-import urllib2
+
+try:
+    from urllib import urlencode
+    from urllib2 import urlopen
+    from urllib2 import HTTPError
+except ImportError:
+    from urllib.parse import urlencode
+    from urllib.request import urlopen
+    from urllib.error import HTTPError
 
 from datetime import datetime
 
@@ -28,57 +35,57 @@ class TestHttpRpc(unittest.TestCase):
     def test_404(self):
         url = 'http://localhost:9757/404'
         try:
-            data = urllib2.urlopen(url).read()
-        except urllib2.HTTPError, e:
+            data = urlopen(url).read()
+        except HTTPError, e:
             assert e.code == 404
 
     def test_500(self):
         url = 'http://localhost:9757/python_exception'
         try:
-            data = urllib2.urlopen(url).read()
-        except urllib2.HTTPError, e:
+            data = urlopen(url).read()
+        except HTTPError, e:
             assert e.code == 500
 
     def test_500_2(self):
         url = 'http://localhost:9757/soap_exception'
         try:
-            data = urllib2.urlopen(url).read()
-        except urllib2.HTTPError, e:
+            data = urlopen(url).read()
+        except HTTPError, e:
             assert e.code == 500
 
     def test_echo_string(self):
         url = 'http://localhost:9757/echo_string?s=punk'
-        data = urllib2.urlopen(url).read()
+        data = urlopen(url).read()
 
         assert data == 'punk'
 
     def test_echo_integer(self):
         url = 'http://localhost:9757/echo_integer?i=444'
-        data = urllib2.urlopen(url).read()
+        data = urlopen(url).read()
 
         assert data == '444'
 
     def test_echo_datetime(self):
         dt = datetime.now().isoformat()
-        params = urllib.urlencode({
+        params = urlencode({
             'dt': dt,
         })
 
-        print params
+        print(params)
         url = 'http://localhost:9757/echo_datetime?%s' % str(params)
-        data = urllib2.urlopen(url).read()
+        data = urlopen(url).read()
 
         assert dt == data
 
     def test_echo_datetime_tz(self):
         dt = datetime.now(pytz.utc).isoformat()
-        params = urllib.urlencode({
+        params = urlencode({
             'dt': dt,
         })
 
-        print params
+        print(params)
         url = 'http://localhost:9757/echo_datetime?%s' % str(params)
-        data = urllib2.urlopen(url).read()
+        data = urlopen(url).read()
 
         assert dt == data
 

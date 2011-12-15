@@ -28,14 +28,14 @@ import sys
 
 from lxml import etree
 
-def cache_order(l,ns):
+def cache_order(l, ns):
     return dict([ ("{%s}%s" % (ns, a), l.index(a)) for a in l])
 
 wsdl_order = ('types', 'message', 'service', 'portType', 'binding')
-wsdl_order = cache_order(wsdl_order,ns_wsdl)
+wsdl_order = cache_order(wsdl_order, ns_wsdl)
 
 schema_order = ('import', 'element', 'simpleType', 'complexType')
-schema_order = cache_order(schema_order,ns_schema)
+schema_order = cache_order(schema_order, ns_schema)
 
 parser = etree.XMLParser(remove_blank_text=True)
 
@@ -63,7 +63,7 @@ def main():
             for p in e.getchildren():
                 nodes.append(p)
 
-            nodes.sort(key=lambda e: e.attrib.get('name','0'))
+            nodes.sort(key=lambda e: e.attrib.get('name', '0'))
 
             for p in nodes:
                 e.append(p)
@@ -85,7 +85,7 @@ def main():
             nodes.append(e)
             e.getparent().remove(e)
 
-        nodes.sort(key=lambda e: (schema_order[e.tag], e.attrib.get('name','\0')))
+        nodes.sort(key=lambda e: (schema_order[e.tag], e.attrib.get('name', '\0')))
 
         for e in nodes:
             s.append(e)

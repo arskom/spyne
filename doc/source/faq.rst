@@ -81,3 +81,7 @@ How do I alter the behaviour of a user method without using decorators?
 ``ctx.descriptor.function`` contains the handle to the original function. You
 can set that attribute to arbitrary callables to prevent the original user
 method from running.
+
+Note that this property is initialized only when the process starts. So you
+should call :func:`ctx.descriptor.reset_function()` to restore it to its
+original value

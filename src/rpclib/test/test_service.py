@@ -20,6 +20,7 @@
 #
 # Most of the service tests are performed through the interop tests.
 #
+
 import datetime
 import unittest
 
@@ -30,6 +31,7 @@ from lxml import etree
 
 from rpclib.application import Application
 from rpclib.decorator import rpc
+from rpclib.decorator import srpc
 from rpclib.service import ServiceBase
 from rpclib.model.complex import Array
 from rpclib.model.complex import ComplexModel
@@ -85,47 +87,51 @@ class TypeNS2(ComplexModel):
 
 class MultipleNamespaceService(ServiceBase):
     @rpc(TypeNS1, TypeNS2)
-    def a(self, t1, t2):
+    def a(ctx, t1, t2):
         return "OK"
-
-class MultipleNamespaceValidatingService(MultipleNamespaceService):
-    def __init__(self):
-        MultipleNamespaceService.__init__(self)
-
-        self.validating_service = True
 
 class TestService(ServiceBase):
     @rpc(String, _returns=String)
-    def aa(self, s):
+    def aa(ctx, s):
         return s
 
     @rpc(String, Integer, _returns=DateTime)
-    def a(self, s, i):
+    def a(ctx, s, i):
         return datetime.datetime.now()
 
     @rpc(Person, String, Address, _returns=Address)
-    def b(self, p, s, a):
+    def b(ctx, p, s, a):
         return Address()
 
     @rpc(Person, isAsync=True)
-    def d(self, Person):
+    def d(ctx, Person):
         pass
 
     @rpc(Person, isCallback=True)
-    def e(self, Person):
+    def e(ctx, Person):
         pass
 
     @rpc(String, String, String, _returns=String,
         _in_variable_names={'_from': 'from', '_self': 'self',
             '_import': 'import'},
         _out_variable_name="return")
-    def f(self, _from, _self, _import):
+    def f(ctx, _from, _self, _import):
         return '1234'
 
 class MultipleReturnService(ServiceBase):
     @rpc(String, _returns=(String, String, String))
-    def multi(self, s):
+    def multi(ctx, s):
         return s, 'a', 'b'
+
+class MultipleMethods1(ServiceBase):
+    @srpc(String)
+    def multi(s):
+        return "%r multi 1" % s
+
+class MultipleMethods2(ServiceBase):
+    @srpc(String)
+    def multi(s):
+        return "%r multi 2" % s
 
 class TestSingle(unittest.TestCase):
     def setUp(self):
@@ -153,23 +159,74 @@ class TestMultiple(unittest.TestCase):
         self.app.interface.build_interface_document('url')
 
     def test_multiple_return(self):
-        message_class = MultipleReturnService.public_methods.values()[0].out_message
+        message_class = list(MultipleReturnService.public_methods.values())[0].out_message
         message = message_class()
 
         self.assertEquals(len(message._type_info), 3)
 
         sent_xml = etree.Element('test')
-        self.app.out_protocol.to_parent_element(message_class, ('a','b','c'),
+        self.app.out_protocol.to_parent_element(message_class, ('a', 'b', 'c'),
                                     MultipleReturnService.get_tns(), sent_xml)
         sent_xml = sent_xml[0]
 
-        print etree.tostring(sent_xml, pretty_print=True)
+        print((etree.tostring(sent_xml, pretty_print=True)))
         response_data = self.app.out_protocol.from_element(message_class, sent_xml)
 
         self.assertEquals(len(response_data), 3)
         self.assertEqual(response_data[0], 'a')
         self.assertEqual(response_data[1], 'b')
         self.assertEqual(response_data[2], 'c')
+
+class TestMultipleMethods(unittest.TestCase):
+    def test_single_method(self):
+        try:
+            app = Application([MultipleMethods1,MultipleMethods2], 'tns', Wsdl11(), Soap11(), Soap11())
+            app.interface.build_interface_document('url')
+            raise Exception('must fail.')
+
+        except ValueError:
+            pass
+
+    def test_multiple_methods(self):
+        in_protocol = Soap11()
+        out_protocol = Soap11()
+
+        # for the sake of this test.
+        in_protocol.supports_fanout_methods = True
+        out_protocol.supports_fanout_methods = True
+
+        app = Application([MultipleMethods1,MultipleMethods2], 'tns',
+                Wsdl11(), in_protocol, out_protocol, supports_fanout_methods=True)
+        app.interface.build_interface_document('url')
+
+        mm = app.interface.service_method_map['{tns}multi']
+
+        def find_class_in_mm(c):
+            found = False
+            for s, _ in mm:
+                if s is c:
+                    found = True
+                    break
+
+            return found
+
+        assert find_class_in_mm(MultipleMethods1)
+        assert find_class_in_mm(MultipleMethods2)
+
+        def find_function_in_mm(f):
+            i = 0
+            found = False
+            for _, d in mm:
+                i+=1
+                if d.function is f:
+                    found = True
+                    print i
+                    break
+
+            return found
+
+        assert find_function_in_mm(MultipleMethods1.multi)
+        assert find_function_in_mm(MultipleMethods2.multi)
 
 if __name__ == '__main__':
     unittest.main()

@@ -39,14 +39,11 @@ class InterfaceBase(object):
     def __init__(self, app=None):
         self.__ns_counter = 0
 
-        self.service_mapping = {}
-        self.method_mapping = {}
-
+        self.service_method_map = {}
         self.url = None
 
         self.__app = None
         self.set_app(app)
-        
 
     def set_app(self, value):
         assert self.__app is None, "One interface instance should belong to one " \
@@ -165,7 +162,7 @@ class InterfaceBase(object):
                         self.add(in_header)
 
                 if not (method.out_header is None):
-                    if isinstance(method.out_header, (list,tuple)):
+                    if isinstance(method.out_header, (list, tuple)):
                         out_headers = method.out_header
                     else:
                         out_headers = (method.out_header,)
@@ -176,7 +173,7 @@ class InterfaceBase(object):
 
                 if method.faults is None:
                     method.faults = []
-                elif not (isinstance(method.faults, (list,tuple))):
+                elif not (isinstance(method.faults, (list, tuple))):
                     method.faults = (method.faults,)
 
                 for fault in method.faults:
@@ -197,19 +194,23 @@ class InterfaceBase(object):
             s.__tns__ = self.get_tns()
             logger.debug("populating '%s.%s' methods..." % (s.__module__, s.__name__))
             for method in s.public_methods.values():
-                o = self.service_mapping.get(method.key)
-                if not (o is None):
-                    raise Exception("\nThe message %r defined in both '%s.%s'"
-                                                                " and '%s.%s'"
-                      % (method.key, s.__module__, s.__name__,
-                                          o.__module__, o.__name__,
-                        ))
-
-                else:
+                val = self.service_method_map.get(method.key, None)
+                if val is None:
                     logger.debug('\tadding method %r to match %r tag.' %
                                                       (method.name, method.key))
-                    self.service_mapping[method.key] = s
-                    self.method_mapping[method.key] = method
+                    self.service_method_map[method.key] = [(s, method)]
+
+                else:
+                    if self.app.supports_fanout_methods:
+                        self.service_method_map[method.key].append( (s, method) )
+
+                    else:
+                        os, om = val[0]
+                        raise ValueError("\nThe message %r defined in both '%s.%s'"
+                                                                " and '%s.%s'"
+                                % (method.key, s.__module__, s.__name__,
+                                               os.__module__, os.__name__,
+                                ))
 
     tns = property(get_tns)
 
@@ -225,7 +226,7 @@ class InterfaceBase(object):
 
         if ns == "__main__":
             warnings.warn("Namespace is '__main__'", Warning )
-        
+
         if not (ns in self.prefmap):
             pref = "s%d" % self.__ns_counter
             while pref in self.nsmap:
@@ -262,8 +263,8 @@ class InterfaceBase(object):
 
     def get_interface_document(self, cls):
         """This function is called by server transports that try to satisfy the
-        request for the interface document. This should just return previously-cached
-        interface document.
+        request for the interface document. This should just return previously
+        cached interface document.
         """
 
         raise NotImplementedError('Extend and override.')

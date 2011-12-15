@@ -43,13 +43,13 @@ class Test(unittest.TestCase):
         class SomeService(ServiceBase):
             @srpc(_returns=[Integer, String])
             def some_call():
-                return 1,'s'
+                return 1, 's'
 
         app = Application([SomeService], 'tns', Wsdl11(), HttpRpc(), HttpRpc())
 
         from rpclib.server.wsgi import WsgiMethodContext
 
-        ctx = WsgiMethodContext(app,{
+        ctx = WsgiMethodContext(app, {
             'QUERY_STRING': '',
             'PATH_INFO': '/some_call',
         }, 'some-content-type')
@@ -74,13 +74,13 @@ class Test(unittest.TestCase):
         class SomeService(ServiceBase):
             @srpc(SomeComplexModel, _returns=SomeComplexModel)
             def some_call(scm):
-                return SomeComplexModel(i=5,s='5x')
+                return SomeComplexModel(i=5, s='5x')
 
         app = Application([SomeService], 'tns', Wsdl11(), HttpRpc(), HttpRpc())
 
         from rpclib.server.wsgi import WsgiMethodContext
 
-        ctx = WsgiMethodContext(app,{
+        ctx = WsgiMethodContext(app, {
             'QUERY_STRING': '',
             'PATH_INFO': '/some_call',
         }, 'some-content-type')

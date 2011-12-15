@@ -57,7 +57,7 @@ def Enum(*values, **kwargs):
             return hash(self.__value)
 
         def __cmp__(self, other):
-            assert type(self) is type(other), \
+            assert isinstance(self, type(other)), \
                              "Only values from the same enum are comparable"
 
             return cmp(self.__value, other.__value)
@@ -66,6 +66,9 @@ def Enum(*values, **kwargs):
             return values[maximum - self.__value]
 
         def __nonzero__(self):
+            return bool(self.__value)
+
+        def __bool__(self):
             return bool(self.__value)
 
         def __repr__(self):
@@ -91,7 +94,7 @@ def Enum(*values, **kwargs):
         def __str__(self):
             return 'enum ' + str(values)
 
-    for i,v in enumerate(values):
+    for i, v in enumerate(values):
         setattr(EnumType, v, EnumValue(i))
 
     return EnumType

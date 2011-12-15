@@ -33,7 +33,8 @@ def root_dict_to_etree(d):
 
     assert len(d) == 1
 
-    retval = etree.Element(d.keys()[0])
+    key, = d.keys()
+    retval = etree.Element(key)
     for val in d.values():
         break
 
@@ -52,15 +53,15 @@ def dict_to_etree(d, parent):
 
     for k, v in d.items():
         if len(v) == 0:
-            etree.SubElement(parent,k)
+            etree.SubElement(parent, k)
 
         elif isinstance(v, dict) or isinstance(v, odict):
-            child = etree.SubElement(parent,k)
+            child = etree.SubElement(parent, k)
             dict_to_etree(v, child)
 
         else:
             for e in v:
-                child=etree.SubElement(parent,k)
+                child=etree.SubElement(parent, k)
                 if isinstance(e, dict) or isinstance(e, odict):
                     dict_to_etree(e, child)
                 else:
@@ -74,7 +75,7 @@ def root_etree_to_dict(element, iterable=(list, list.append)):
 
     return {element.tag: iterable[0]([etree_to_dict(element, iterable)])}
 
-def etree_to_dict(element, iterable=(list,list.append)):
+def etree_to_dict(element, iterable=(list, list.append)):
     """Takes an xml root element and returns the corresponding dict. The second
     argument is a pair of iterable type and the function used to add elements to
     the iterable. The xml attributes are ignored.

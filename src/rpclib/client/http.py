@@ -19,7 +19,15 @@
 
 """The HTTP (urllib2) client transport."""
 
-import urllib2
+try:
+    from urllib2 import Request
+    from urllib2 import urlopen
+    from urllib2 import HTTPError
+
+except ImportError: # Python 3
+    from urllib.request import Request
+    from urllib.request import urlopen
+    from urllib.error import HTTPError
 
 from rpclib.client import Service
 from rpclib.client import ClientBase
@@ -27,26 +35,30 @@ from rpclib.client import RemoteProcedureBase
 
 class _RemoteProcedure(RemoteProcedureBase):
     def __call__(self, *args, **kwargs):
-        self.get_out_object(args, kwargs) # sets self.ctx.out_object
-        self.get_out_string() # sets self.ctx.out_string
+        # there's no point in the client making the same request over and over
+        # again.
+        self.ctx = self.contexts[0]
+
+        self.get_out_object(self.ctx, args, kwargs) # sets ctx.out_object
+        self.get_out_string(self.ctx) # sets ctx.out_string
 
         out_string = ''.join(self.ctx.out_string) # FIXME: just send the iterable to the http stream.
-        request = urllib2.Request(self.url, out_string)
+        request = Request(self.url, out_string)
         code = 200
         try:
-            response = urllib2.urlopen(request)
+            response = urlopen(request)
             self.ctx.in_string = [response.read()]
 
-        except urllib2.HTTPError,e:
-            code=e.code
+        except HTTPError, e:
+            code = e.code
             self.ctx.in_string = [e.read()]
 
-        self.get_in_object()
+        self.get_in_object(self.ctx)
 
         if not (self.ctx.in_error is None):
             raise self.ctx.in_error
-        elif code >= 500:
-            raise self.ctx.in_object
+        elif code >= 400:
+            raise self.ctx.in_error
         else:
             return self.ctx.in_object
 

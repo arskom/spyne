@@ -44,7 +44,7 @@ def run_twisted(apps, port, with_static_file_server=True):
     else:
         root = Resource()
 
-    for app,url in apps:
+    for app, url in apps:
         resource = WSGIResource(reactor, reactor, app)
         logging.info("registering %r on /%s" % (app, url))
         root.putChild(url, resource)

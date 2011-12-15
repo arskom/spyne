@@ -139,7 +139,7 @@ class InteropServiceWithHeader(ServiceBase):
     @rpc(_returns=OutHeader)
     def send_out_header(ctx):
         ctx.out_header = OutHeader()
-        ctx.out_header.dt = datetime(year=2000, month=01, day=01)
+        ctx.out_header.dt = datetime(year=2000, month=1, day=1)
         ctx.out_header.f = 3.141592653
 
         return ctx.out_header
@@ -155,13 +155,13 @@ class InteropServiceWithComplexHeader(ServiceBase):
     @rpc(_returns=(OutHeader, OutTraceHeader))
     def send_out_complex_header(ctx):
         out_header = OutHeader()
-        out_header.dt = datetime(year=2000, month=01, day=01)
+        out_header.dt = datetime(year=2000, month=1, day=1)
         out_header.f = 3.141592653
         out_trace_header = OutTraceHeader()
-        out_trace_header.receiptDate = datetime(year=2000, month=01, day=01,
-                                  hour=01, minute=01, second=01, microsecond=01)
-        out_trace_header.returnDate = datetime(year=2000, month=01, day=01,
-                                 hour=01, minute=01, second=01, microsecond=100)
+        out_trace_header.receiptDate = datetime(year=2000, month=1, day=1,
+                                  hour=1, minute=1, second=1, microsecond=1)
+        out_trace_header.returnDate = datetime(year=2000, month=1, day=1,
+                                 hour=1, minute=1, second=1, microsecond=100)
         ctx.out_header = (out_header, out_trace_header)
 
         return ctx.out_header
@@ -267,7 +267,7 @@ class InteropClass(ServiceBase):
 
     @srpc(Attachment, _returns=Attachment)
     def echo_attachment(a):
-        assert isinstance(a,Attachment)
+        assert isinstance(a, Attachment)
         return a
 
     @srpc(Array(Attachment), _returns=Array(Attachment))
@@ -332,12 +332,12 @@ class InteropMisc(ServiceBase):
 
     @srpc(Integer, _returns=Array(OtherClass))
     def return_other_class_array(num):
-        for i in xrange(num):
-            yield OtherClass(dt=datetime(2010,12,06), d=3.0, b=True)
+        for i in range(num):
+            yield OtherClass(dt=datetime(2010, 12, 6), d=3.0, b=True)
 
     @srpc(_returns=Attachment)
     def return_binary_data():
-        return Attachment(data=''.join([chr(i) for i in xrange(256)]))
+        return Attachment(data=''.join([chr(i) for i in range(256)]))
 
     @srpc(_returns=Integer)
     def return_invalid_data():

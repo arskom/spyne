@@ -21,9 +21,8 @@ from lxml import etree
 
 from rpclib.util.etreeconv import etree_to_dict
 from rpclib.util.etreeconv import dict_to_etree
-
-from _base import nillable_value
-from _base import nillable_element
+from rpclib.protocol.xml.model._base import nillable_value
+from rpclib.protocol.xml.model._base import nillable_element
 
 @nillable_element
 def xml_from_element(prot, cls, element):
@@ -40,12 +39,12 @@ def xml_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     if isinstance(value, str) or isinstance(value, unicode):
         value = etree.fromstring(value)
 
-    e = etree.SubElement(parent_elt, '{%s}%s' % (tns,name))
+    e = etree.SubElement(parent_elt, '{%s}%s' % (tns, name))
     e.append(value)
 
 @nillable_value
 def dict_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
-    e = etree.SubElement(parent_elt, '{%s}%s' % (tns,name))
+    e = etree.SubElement(parent_elt, '{%s}%s' % (tns, name))
     dict_to_etree(value, e)
 
 @nillable_element

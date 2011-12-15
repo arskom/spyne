@@ -102,7 +102,7 @@ def configure_env():
     os.environ[WSI_CLASSPATH_TAG] = WSI_CLASSPATH_VAL
 
 def create_config(wsdl_uri, config_file):
-    print "Creating config for wsdl at %s ...\n" %wsdl_uri
+    print(("Creating config for wsdl at %s ...\n" %wsdl_uri))
     # extract target elements
     service = 'ValidatingApplication'
     port = 'ValidatingApplication'
@@ -146,11 +146,11 @@ def analyze_wsdl(config_file):
                         fail_msg = etree.ETXPath('{%s}failureMessage' %e.nsmap['wsi-report'])(test)
                         fail_det = etree.ETXPath('{%s}failureDetail' %e.nsmap['wsi-report'])(test)
                         if fail_msg:
-                            print '\nFAILURE in test %s\n' %test.get('id')
-                            print fail_msg[0].text
+                            print(('\nFAILURE in test %s\n' %test.get('id')))
+                            print((fail_msg[0].text))
                         if fail_det:
-                            print '\nFAILURE MSG\n'
-                            print fail_det[0].text
+                            print('\nFAILURE MSG\n')
+                            print((fail_det[0].text))
 
 if __name__ == '__main__':
     configure_env()

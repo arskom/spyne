@@ -38,23 +38,25 @@ class ServiceBaseMeta(type):
         self.event_manager = EventManager(self,
                                       self.__get_base_event_handlers(cls_bases))
 
-        for k, v in cls_dict.iteritems():
+        for k, v in cls_dict.items():
             if hasattr(v, '_is_rpc'):
+                # these three lines are needed for staticmethod wrapping to work
                 descriptor = v(_default_function_name=k)
-                self.public_methods[k] = descriptor
                 setattr(self, k, staticmethod(descriptor.function))
-                descriptor.function = getattr(self, k)
+                descriptor.reset_function(getattr(self, k))
+
+                self.public_methods[k] = descriptor
 
     def __get_base_event_handlers(self, cls_bases):
         handlers = {}
 
         for base in cls_bases:
-            evmgr = getattr(base,'event_manager',None)
+            evmgr = getattr(base, 'event_manager', None)
             if evmgr is None:
                 continue
 
-            for k,v in evmgr.handlers.items():
-                handler=handlers.get(k,oset())
+            for k, v in evmgr.handlers.items():
+                handler=handlers.get(k, oset())
                 for h in v:
                     handler.add(h)
                 handlers[k]=handler

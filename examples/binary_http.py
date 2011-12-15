@@ -91,7 +91,7 @@ if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server
     except ImportError:
-        print "Error: example server code requires Python >= 2.5"
+        print("Error: example server code requires Python >= 2.5")
 
     application = Application([DocumentArchiver], 'rpclib.examples.binary',
                 interface=Wsdl11(), in_protocol=HttpRpc(), out_protocol=HttpRpc())
@@ -99,7 +99,7 @@ if __name__=='__main__':
     logging.basicConfig(level=logging.DEBUG)
 
     server = make_server('127.0.0.1', 7789, WsgiApplication(application))
-    print "listening to http://127.0.0.1:7789"
-    print "wsdl is at: http://localhost:7789/?wsdl"
+    print("listening to http://127.0.0.1:7789")
+    print("wsdl is at: http://localhost:7789/?wsdl")
 
     server.serve_forever()

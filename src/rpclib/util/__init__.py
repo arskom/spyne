@@ -18,7 +18,17 @@
 #
 
 import sys
-import urllib
+
+try:
+    from urllib import splittype
+    from urllib import splithost
+    from urllib import quote
+
+except ImportError: # Python 3
+    from urllib.parse import splittype
+    from urllib.parse import splithost
+    from urllib.parse import quote
+
 from rpclib.const import xml_ns as ns
 
 from lxml import etree
@@ -80,8 +90,8 @@ def get_relates_to_info(request):
 
 def split_url(url):
     '''Splits a url into (uri_scheme, host[:port], path)'''
-    scheme, remainder = urllib.splittype(url)
-    host, path = urllib.splithost(remainder)
+    scheme, remainder = splittype(url)
+    host, path = splithost(remainder)
     return scheme.lower(), host, path
 
 def reconstruct_url(environ):
@@ -109,18 +119,18 @@ def reconstruct_url(environ):
             if environ['SERVER_PORT'] != '80':
                 url += ':' + environ['SERVER_PORT']
 
-    if (urllib.quote(environ.get('SCRIPT_NAME', '')) == '/' and
-        urllib.quote(environ.get('PATH_INFO', ''))[0:1] == '/'):
+    if (quote(environ.get('SCRIPT_NAME', '')) == '/' and
+        quote(environ.get('PATH_INFO', ''))[0] == '/'):
         #skip this if it is only a slash
         pass
 
-    elif urllib.quote(environ.get('SCRIPT_NAME', ''))[0:2] == '//':
-        url += urllib.quote(environ.get('SCRIPT_NAME', ''))[1:]
+    elif quote(environ.get('SCRIPT_NAME', ''))[0:2] == '//':
+        url += quote(environ.get('SCRIPT_NAME', ''))[1:]
 
     else:
-        url += urllib.quote(environ.get('SCRIPT_NAME', ''))
+        url += quote(environ.get('SCRIPT_NAME', ''))
 
-    url += urllib.quote(environ.get('PATH_INFO', ''))
+    url += quote(environ.get('PATH_INFO', ''))
     if environ.get('QUERY_STRING'):
         url += '?' + environ['QUERY_STRING']
 

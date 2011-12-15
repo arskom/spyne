@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+
 #
 # rpclib - Copyright (C) Rpclib contributors.
 #
@@ -17,44 +17,20 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import unittest
+"""Contains functions that implement the most common protocol and transport
+combinations"""
 
-from rpclib.util.cdict import cdict
+from rpclib.application import Application
+from rpclib.interface.wsdl import Wsdl11
+from rpclib.protocol.soap import Soap11
+from rpclib.server.wsgi import WsgiApplication
 
-class TestClassDict(unittest.TestCase):
-    def test_cdict(self):
-        d = cdict()
+def wsgi_soap11_application(services, tns='rpclib.simple.soap', validator=None):
+    """Wraps `services` argument inside a WsgiApplication that uses Wsdl 1.1 as
+    interface document and Soap 1.1 and both input and output protocols.
+    """
 
-        class A(object):
-            pass
+    application = Application(services, tns, interface=Wsdl11(),
+                in_protocol=Soap11(validator=validator), out_protocol=Soap11())
 
-        class B(A):
-            pass
-
-        class C(A):
-            pass
-
-        class D(object):
-            pass
-
-        d[A] = 1
-        d[C] = 2
-
-        self.assertEquals(d[A], 1)
-        self.assertEquals(d[B], 1)
-        self.assertEquals(d[C], 2)
-
-        try:
-            d[D]
-            raise Exception("Must fail")
-        except KeyError:
-            pass
-
-        try:
-            d[object]
-            raise Exception("Must fail")
-        except KeyError:
-            pass
-
-if __name__ == '__main__':
-    unittest.main()
+    return WsgiApplication(application)

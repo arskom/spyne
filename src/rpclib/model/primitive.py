@@ -19,6 +19,10 @@
 
 """This module defines primitives that are atomic, basic types."""
 
+import sys
+if sys.version > '3':
+    long = int
+
 import re
 import math
 import pytz
@@ -26,7 +30,7 @@ import decimal
 import datetime
 
 import rpclib.const.xml_ns
-import cPickle as pickle
+import pickle
 
 from collections import deque
 
@@ -240,7 +244,7 @@ class Decimal(SimpleModel):
     def from_string(cls, string):
         try:
             return decimal.Decimal(string)
-        except decimal.InvalidOperation,e:
+        except decimal.InvalidOperation, e:
             raise ValidationError(string)
 
 class Double(SimpleModel):
@@ -294,7 +298,7 @@ class Integer(Decimal):
     @classmethod
     @nillable_string
     def to_string(cls, value):
-        long(value) # sanity check
+        int(value) # sanity check
 
         return str(value)
 
@@ -305,7 +309,7 @@ class Integer(Decimal):
             return int(string)
         except ValueError:
             try:
-                return long(string)
+                return int(string)
             except ValueError:
                 raise ValidationError(string)
 
@@ -437,7 +441,7 @@ class DateTime(SimpleModel):
         else:
             microsec = int(microsec[1:])
 
-        return datetime.datetime(year,month,day, hour,min,sec, microsec, tz)
+        return datetime.datetime(year, month, day, hour, min, sec, microsec, tz)
 
     @classmethod
     @nillable_string
@@ -450,7 +454,7 @@ class DateTime(SimpleModel):
 
         match = _offset_re.match(string)
         if match:
-            tz_hr, tz_min = [int(match.group(x)) for x in "tz_hr", "tz_min"]
+            tz_hr, tz_min = [int(match.group(x)) for x in ("tz_hr", "tz_min")]
             return cls.parse(match, tz=FixedOffset(tz_hr * 60 + tz_min, {}))
 
         match = _local_re.match(string)
@@ -478,7 +482,7 @@ class Duration(SimpleModel):
         hours = int(duration['hours'])
         minutes = int(duration['minutes'])
         seconds = float(duration['seconds'])
-        f,i = math.modf(seconds)
+        f, i = math.modf(seconds)
         seconds = i
         microseconds = int(1e6 * f)
 

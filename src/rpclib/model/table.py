@@ -99,7 +99,7 @@ def _is_interesting(k, v):
         return True
 
     if isinstance(v, RelationshipProperty):
-        if getattr(v.argument,'_type_info', None) is None:
+        if getattr(v.argument, '_type_info', None) is None:
             logger.warning("the argument to relationship should be a reference "
                            "to the real column, not a string.")
             return False
@@ -123,8 +123,8 @@ class TableModelMeta(DeclarativeMeta, ComplexModelMeta):
 
             # mixin inheritance
             for b in cls_bases:
-                for k,v in vars(b).items():
-                    if _is_interesting(k,v):
+                for k, v in vars(b).items():
+                    if _is_interesting(k, v):
                         _type_info[k] = _process_item(v)
 
             # same table inheritance
@@ -143,7 +143,7 @@ class TableModelMeta(DeclarativeMeta, ComplexModelMeta):
 
             # own attributes
             for k, v in cls_dict.items():
-                if _is_interesting(k,v):
+                if _is_interesting(k, v):
                     _type_info[k] = _process_item(v)
 
         return DeclarativeMeta.__new__(cls, cls_name, cls_bases, cls_dict)

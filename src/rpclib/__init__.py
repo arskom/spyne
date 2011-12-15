@@ -17,10 +17,19 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-__version__ = '2.4.7-beta'
+__version__ = '2.5.0-beta'
 
-from _base import TransportContext
-from _base import EventContext
-from _base import MethodContext
-from _base import MethodDescriptor
-from _base import EventManager
+from rpclib._base import TransportContext
+from rpclib._base import EventContext
+from rpclib._base import MethodContext
+from rpclib._base import MethodDescriptor
+from rpclib._base import EventManager
+
+import sys
+
+if sys.version > '3':
+    def _bytes_join(val, joiner=''):
+        return bytes(joiner).join(val)
+else:
+    def _bytes_join(val, joiner=''):
+        return joiner.join(val)

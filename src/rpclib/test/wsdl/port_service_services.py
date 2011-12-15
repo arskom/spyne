@@ -101,6 +101,6 @@ class DoublePortService(ServiceBase):
     def echo_first_port(self, string):
         return string
 
-    @rpc(String,_soap_port_type='SecondPort', _returns=String)
+    @rpc(String, _soap_port_type='SecondPort', _returns=String)
     def echo_second_port(self, string):
         return string
