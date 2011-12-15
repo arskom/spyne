@@ -31,7 +31,7 @@ from rpclib.model import nillable_string
 from rpclib.util.odict import odict as TypeInfo
 from rpclib.const import xml_ns as namespace
 
-class XMLAttribute(ModelBase):
+class XmlAttribute(ModelBase):
     """Items which are marshalled as attributes of the parent element."""
 
     def __init__(self, typ, use=None):
@@ -48,7 +48,7 @@ class XMLAttribute(ModelBase):
         if self._use:
             element.set('use', self._use)
 
-class XMLAttributeRef(XMLAttribute):
+class XmlAttributeRef(XmlAttribute):
     """Reference to stock XML attribute."""
 
     def __init__(self, ref, use=None):
@@ -59,6 +59,12 @@ class XMLAttributeRef(XMLAttribute):
         element.set('ref', self._ref)
         if self._use:
             element.set('use', self._use)
+
+XMLAttribute = XmlAttribute
+""" DEPRECATED! Use :class:`XmlAttribute` instead"""
+
+XMLAttributeRef = XmlAttributeRef
+""" DEPRECATED! Use :class:`XmlAttributeRef` instead"""
 
 class SelfReference(object):
     pass
