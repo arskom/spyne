@@ -20,25 +20,20 @@
 import datetime
 import unittest
 
-from rpclib.test import FakeApp
+from lxml import etree
 
-from rpclib.protocol.xml import XmlObject
-
-from rpclib.model.complex import SelfReference
-from rpclib.model.complex import ComplexModel
+from rpclib.const import xml_ns
+from rpclib.interface.wsdl import Wsdl11
 from rpclib.model.complex import Array
+from rpclib.model.complex import ComplexModel
+from rpclib.model.complex import SelfReference
 from rpclib.model.complex import XMLAttribute
-
 from rpclib.model.primitive import DateTime
 from rpclib.model.primitive import Float
 from rpclib.model.primitive import Integer
 from rpclib.model.primitive import String
-
-from rpclib.const import xml_ns
-
-from rpclib.interface.wsdl import Wsdl11
-
-from lxml import etree
+from rpclib.protocol.xml import XmlObject
+from rpclib.test import FakeApp
 
 ns_test = 'test_namespace'
 
@@ -159,7 +154,7 @@ class TestComplexModel(unittest.TestCase):
         for i in range(0, 4):
             self.assertEquals(peeps2[i].name, names[i])
             self.assertEquals(peeps2[i].birthdate,
-                datetime.datetime(1979, 1, 1))
+                              datetime.datetime(1979, 1, 1))
 
     def test_class_nested_array(self):
         peeps = []
@@ -224,8 +219,8 @@ class TestComplexModel(unittest.TestCase):
     def test_customize(self):
         class Base(ComplexModel):
             class Attributes(ComplexModel.Attributes):
-                prop1=3
-                prop2=6
+                prop1 = 3
+                prop2 = 6
 
         Base2 = Base.customize(prop1=4)
 
@@ -259,11 +254,11 @@ class TestComplexModel(unittest.TestCase):
 
 
 class X(ComplexModel):
-    __namespace__='tns'
+    __namespace__ = 'tns'
     x = Integer(nillable=True, max_occurs='unbounded')
 
 class Y(X):
-    __namespace__='tns'
+    __namespace__ = 'tns'
     y = Integer
 
 class TestIncompleteInput(unittest.TestCase):

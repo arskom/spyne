@@ -17,8 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains ComplexBase class and its helper objects like Array and
-Iterable that are container classes that organize other values.
+"""This module contains ComplexBase class and its helper objects that are
+mainly container classes that organize other values.
 """
 
 import logging
@@ -357,8 +357,7 @@ class Alias(ComplexModel):
     """Different type_name, same _type_info."""
 
 class SimpleContent(ModelBase):
-    """
-    THIS DOES NOT WORK!
+    """THIS DOES NOT WORK!
 
     Implementation of a limited version on SimpleContent ComplexType.
     Actually, it can only do the extension part (no restriction of simpleType)

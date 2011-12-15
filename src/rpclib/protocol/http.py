@@ -102,7 +102,7 @@ class HttpRpc(ProtocolBase):
 
                         value.append(native_v2)
                         freq = frequencies.get(k, 0)
-                        freq+=1
+                        freq += 1
                         frequencies[k] = freq
 
                     setattr(inst, k, value)
