@@ -8,14 +8,10 @@ rpclib-2.5.0-beta
    that.
  * Implemented a helper module that generates a Soap/Wsdl 1.1 application in
    ``rpclib.util.simple``
- * Some work towards supporting Python3 using ``2to3``.
+ * Some work towards supporting Python3 using ``2to3``. See issue #113.
  * ``ctx.descriptor.reset_function`` implemented. It's now safe to fiddle
    with that value in event handlers.
-
-rpclib-2.4.8-beta
------------------
- * Added rpclib.util.simple module
- * Some work towards Python-3 support.
+ * Full change log: https://github.com/arskom/rpclib/pull/115
 
 rpclib-2.4.7-beta
 -----------------
