@@ -231,6 +231,31 @@ class ComplexModelBase(ModelBase):
 
         return retval
 
+    @staticmethod
+    def get_simple_type_info(cls, retval=None, prefix=None):
+        """Returns a _type_info dict that includes members from all base classes
+        and whose types are only primitives.
+        """
+        from rpclib.model import SimpleModel
+        from rpclib.model.binary import ByteArray
+
+        if retval is None:
+            retval = {}
+
+        if prefix:
+            prefix += "_"
+        else:
+            prefix = ""
+
+        fti = cls.get_flat_type_info(cls)
+        for k,v in fti.items():
+            if getattr(v, 'get_flat_type_info', None) is None:
+                retval[prefix+k] = v
+            else:
+                v.get_simple_type_info(v, retval, k)
+
+        return retval
+
     @classmethod
     @nillable_string
     def to_string(cls, value):

@@ -339,5 +339,29 @@ class TestXmlAttribute(unittest.TestCase):
         self.assertEqual(attribute_def.get('name'), 'name')
         self.assertEqual(attribute_def.get('type'), Parameter.name._typ)
 
+
+class TestXmlAttribute(unittest.TestCase):
+    def test_simple_type_info(self):
+        class CM(ComplexModel):
+            i = Integer
+            s = String
+
+        class CCM(ComplexModel):
+            c = CM
+            i = Integer
+            s = String
+
+        sti = CCM.get_simple_type_info(CCM)
+        assert "i" in sti
+        assert sti["i"] is Integer
+        assert "s" in sti
+        assert sti["s"] is String
+
+        assert "c_i" in sti
+        assert sti["c_i"] is Integer
+        assert "c_s" in sti
+        assert sti["c_s"] is String
+
+
 if __name__ == '__main__':
     unittest.main()
