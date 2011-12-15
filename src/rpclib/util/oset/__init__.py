@@ -1,5 +1,5 @@
 
 try:
-    from new import oset
+    from rpclib.util.oset.new import oset
 except (SyntaxError, ImportError, AttributeError), e:
-    from old import oset
+    from rpclib.util.oset.old import oset

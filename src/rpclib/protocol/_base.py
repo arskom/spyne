@@ -25,6 +25,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 import rpclib.const.xml_ns
+from copy import copy
 
 _ns_xsi = rpclib.const.xml_ns.xsi
 _ns_xsd = rpclib.const.xml_ns.xsd
@@ -56,10 +57,9 @@ class ProtocolBase(object):
 
     * ``after_serialize``:
       Called after the serialization operation is finished.
-
     """
 
-    allowed_http_verbs = ['GET','POST']
+    allowed_http_verbs = ['GET', 'POST']
     mime_type = 'application/octet-stream'
 
     def __init__(self, app=None, validator=None):
@@ -84,16 +84,17 @@ class ProtocolBase(object):
         self.__app = value
 
     def create_in_document(self, ctx, in_string_encoding=None):
-        """Uses ctx.in_string to set ctx.in_document"""
+        """Uses ``ctx.in_string`` to set ``ctx.in_document``."""
 
     def decompose_incoming_envelope(self, ctx):
-        """Sets the ctx.in_body_doc, ctx.in_header_doc and ctx.service
-        properties of the ctx object, if applicable.
+        """Sets the ``ctx.method_request_string``, ``ctx.in_body_doc``,
+        ``ctx.in_header_doc`` and ``ctx.service`` properties of the ctx object,
+        if applicable.
         """
 
     def deserialize(self, ctx):
         """Takes a MethodContext instance and a string containing ONE document
-        instance in the ctx.in_string attribute.
+        instance in the ``ctx.in_string`` attribute.
 
         Returns the corresponding native python object in the ctx.in_object
         attribute.
@@ -116,10 +117,11 @@ class ProtocolBase(object):
         """
 
     def set_method_descriptor(self, ctx):
-        """Method to be overriden to perform any sort of custom matching between
+        """DEPRECATED! Use :func:`generate_method_contexts` instead.
+
+        Method to be overriden to perform any sort of custom matching between
         the method_request_string and the methods.
         """
-        # from pprint import pformat
 
         name = ctx.method_request_string
         if not name.startswith("{"):
@@ -127,14 +129,38 @@ class ProtocolBase(object):
 
         ctx.service_class = self.app.interface.service_mapping.get(name, None)
         if ctx.service_class is None:
-            # logger.debug(pformat(self.app.interface.service_mapping.keys()))
             raise ResourceNotFoundError('Method %r not bound to a service class.'
                                                                         % name)
 
         ctx.descriptor = ctx.app.interface.method_mapping.get(name, None)
         if ctx.descriptor is None:
-            # logger.debug(pformat(ctx.app.interface.method_mapping.keys()))
             raise ResourceNotFoundError('Method %r not found.' % name)
+
+    def generate_method_contexts(self, ctx):
+        """Method to be overriden to perform any sort of custom matching between
+        the method_request_string and the methods. Returns a list of contexts.
+        Can return multiple contexts if a method_request_string matches more
+        than one function. (This is called the fanout mode.)
+        """
+
+        name = ctx.method_request_string
+        if not name.startswith("{"):
+            name = '{%s}%s' % (self.app.interface.get_tns(), name)
+
+        call_handles = self.app.interface.service_method_map.get(name, [])
+        if len(call_handles) == 0:
+            raise ResourceNotFoundError('Method %r not found.' % name)
+
+        retval = []
+        for sc, d in call_handles:
+            c = copy(ctx)
+
+            c.descriptor = d
+            c.service_class = sc
+
+            retval.append(c)
+
+        return retval
 
     def fault_to_http_response_code(self, fault):
         if isinstance(fault, RequestTooLongError):

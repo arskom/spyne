@@ -17,4 +17,4 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from wsdl11 import Wsdl11
+from rpclib.interface.wsdl.wsdl11 import Wsdl11

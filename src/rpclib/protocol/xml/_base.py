@@ -22,6 +22,8 @@ logger = logging.getLogger('rpclib.protocol.xml')
 
 from lxml import etree
 
+from rpclib import _bytes_join
+
 from rpclib.const import xml_ns as ns
 from rpclib.const.ansi_color import LIGHT_GREEN
 from rpclib.const.ansi_color import LIGHT_RED
@@ -72,8 +74,9 @@ class XmlObject(ProtocolBase):
     :param validator: One of (None, 'soft', 'lxml').
     """
 
-    def __init__(self, app=None, validator=None):
+    def __init__(self, app=None, validator=None, xml_declaration=True):
         ProtocolBase.__init__(self, app, validator)
+        self.xml_declaration = xml_declaration
 
         self.serialization_handlers = cdict({
             ModelBase: base_to_parent_element,
@@ -122,33 +125,41 @@ class XmlObject(ProtocolBase):
         handler = self.serialization_handlers[cls]
         handler(self, cls, value, tns, parent_elt, * args, ** kwargs)
 
-    def validate_body(self, ctx, body_document):
-        """Sets ctx.method_request_string and calls :func:`set_method_descriptor`
-        """
+    def validate_body(self, ctx, message='request'):
+        """Sets ctx.method_request_string and calls :func:`generate_contexts`
+        for validation."""
 
+        assert message in ('request', 'response')
+
+        line_header = LIGHT_RED + "Error:" + END_COLOR
         try:
-            self.validate_document(body_document)
-            ctx.method_request_string = body_document.tag
-            logger.debug("%sMethod request string: %r%s" %
-                           (LIGHT_GREEN, ctx.method_request_string, END_COLOR))
+            self.validate_document(ctx.in_body_doc)
+            if message == 'request':
+                line_header = LIGHT_GREEN + "Method request string:" + END_COLOR
+            else:
+                line_header = LIGHT_RED + "Response:" + END_COLOR
         finally:
             if self.log_messages:
-                logger.debug(etree.tostring(ctx.in_document, pretty_print=True))
-
-        if ctx.service_class is None: # i.e. if it's a server
-            self.set_method_descriptor(ctx)
+                logger.debug("%s %s" % (line_header,
+                            etree.tostring(ctx.in_document, pretty_print=True)))
 
     def create_in_document(self, ctx, charset=None):
         """Uses the iterable of string fragments in ``ctx.in_string`` to set
-        ``ctx.in_document``"""
+        ``ctx.in_document``."""
 
-        ctx.in_document = etree.fromstring(ctx.in_string, charset)
+        try:
+            ctx.in_document = etree.fromstring(_bytes_join(ctx.in_string))
+        except ValueError:
+            ctx.in_document = etree.fromstring(_bytes_join([s.decode(charset) for s in ctx.in_string]))
 
-        self.validate_body(ctx, ctx.in_document)
 
-    def decompose_incoming_envelope(self, ctx):
+    def decompose_incoming_envelope(self, ctx, message='request'):
+        assert message in ('request', 'response')
+
         ctx.in_header_doc = None # If you need header support, you should use Soap
         ctx.in_body_doc = ctx.in_document
+        ctx.method_request_string = ctx.in_body_doc.tag
+        self.validate_body(ctx, message)
 
     def create_out_string(self, ctx, charset=None):
         """Sets an iterable of string fragments to ctx.out_string"""
@@ -156,8 +167,8 @@ class XmlObject(ProtocolBase):
         if charset is None:
             charset = 'utf8'
 
-        ctx.out_string = [etree.tostring(ctx.out_document, xml_declaration=True,
-                                                            encoding=charset)]
+        ctx.out_string = [etree.tostring(ctx.out_document,
+                        xml_declaration=self.xml_declaration, encoding=charset)]
 
     def deserialize(self, ctx, message):
         """Takes a MethodContext instance and a string containing ONE root xml
@@ -184,9 +195,13 @@ class XmlObject(ProtocolBase):
             ctx.in_object = [None] * len(body_class._type_info)
 
         if self.log_messages:
-            logger.debug(LIGHT_RED + "Response" + END_COLOR)
-            logger.debug(etree.tostring(ctx.out_document,
-                                        xml_declaration=True, pretty_print=True))
+            if message == 'request':
+                line_header = '%sRequest%s' % (LIGHT_GREEN, END_COLOR)
+            elif message == 'response':
+                line_header = '%sResponse%s' % (LIGHT_RED, END_COLOR)
+
+            logger.debug("%s %s" % (line_header, etree.tostring(ctx.out_document,
+                    xml_declaration=self.xml_declaration, pretty_print=True)))
 
         self.event_manager.fire_event('after_deserialize', ctx)
 

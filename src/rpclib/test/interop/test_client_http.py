@@ -19,8 +19,8 @@
 
 import unittest
 
-from _test_client_base import RpclibClientTestBase
 from rpclib.client.http import HttpClient
+from rpclib.test.interop._test_client_base import RpclibClientTestBase
 from rpclib.test.interop.server.soap_http_basic import soap_application
 from rpclib.util.etreeconv import root_dict_to_etree
 

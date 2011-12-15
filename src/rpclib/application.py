@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+
 """This module contains the Application class, to which every other rpclib
 component is integrated.
 """
@@ -61,22 +62,24 @@ class Application(object):
     transport = None
 
     def __init__(self, services, tns, interface, in_protocol, out_protocol,
-                                                                    name=None):
+                                        name=None, supports_fanout_methods=False):
 
         self.services = services
         self.tns = tns
         self.name = name
+        self.supports_fanout_methods = supports_fanout_methods
+
         if self.name is None:
             self.name = self.__class__.__name__.split('.')[-1]
-
-        self.interface = interface
-        self.interface.set_app(self)
 
         self.in_protocol = in_protocol
         self.in_protocol.set_app(self)
 
         self.out_protocol = out_protocol
         self.out_protocol.set_app(self)
+
+        self.interface = interface
+        self.interface.set_app(self)
 
         self.__public_methods = {}
         self.__classes = {}

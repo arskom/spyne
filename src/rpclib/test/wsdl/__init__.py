@@ -48,7 +48,7 @@ class AppTestWrapper():
 
     def get_port_list(self, service):
         from lxml import etree
-        print etree.tostring(service, pretty_print=True)
+        print((etree.tostring(service, pretty_print=True)))
         return service.findall(self.port_string)
 
     def get_soap_bindings(self, binding):

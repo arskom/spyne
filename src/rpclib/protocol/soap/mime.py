@@ -4,7 +4,11 @@ logger = logging.getLogger(__name__)
 from lxml import etree
 
 from base64 import b64encode
-from urllib import unquote
+
+try:
+    from urllib import unquote
+except ImportError: # Python 3
+    from urllib.parse import unquote
 
 # import email data format related stuff
 try:
@@ -211,7 +215,7 @@ def apply_mtom(headers, envelope, params, paramvals):
         rootparams[n] = v.strip("\"'")
 
     # Set up initial MIME parts.
-    mtompkg = MIMEMultipart('related',boundary='?//<><>rpclib_MIME_boundary<>')
+    mtompkg = MIMEMultipart('related', boundary='?//<><>rpclib_MIME_boundary<>')
     rootpkg = None
     try:
         rootpkg = MIMEApplication(envelope, 'xop+xml', encode_7or8bit)

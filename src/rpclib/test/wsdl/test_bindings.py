@@ -38,7 +38,7 @@ class TestWSDLBindingBehavior(unittest.TestCase):
         self.port_string = '{%s}port' % ns.wsdl
 
     def test_binding_simple(self):
-        sa = build_app([S1], 'S1Port','TestServiceName')
+        sa = build_app([S1], 'S1Port', 'TestServiceName')
 
         sa.interface.build_interface_document(self.url)
 
@@ -46,20 +46,20 @@ class TestWSDLBindingBehavior(unittest.TestCase):
                         '/wsdl:definitions/wsdl:service', 
                         namespaces = { 
                             'wsdl':'http://schemas.xmlsoap.org/wsdl/' })
-        self.assertEqual(len(services) , 1)
+        self.assertEqual(len(services), 1)
         
         portTypes =  sa.interface.root_elt.xpath(
                         '/wsdl:definitions/wsdl:portType', 
                         namespaces = { 
                             'wsdl':'http://schemas.xmlsoap.org/wsdl/' })
-        self.assertEqual(len(portTypes) , 1)
+        self.assertEqual(len(portTypes), 1)
 
         ports =  sa.interface.root_elt.xpath(
                         '/wsdl:definitions/wsdl:service[@name="%s"]/wsdl:port' % 
                             "S1", 
                         namespaces = {
                             'wsdl':'http://schemas.xmlsoap.org/wsdl/' })
-        self.assertEqual(len(ports) , 1)
+        self.assertEqual(len(ports), 1)
         
 
     def test_binding_multiple(self):
@@ -80,14 +80,14 @@ class TestWSDLBindingBehavior(unittest.TestCase):
                         '/wsdl:definitions/wsdl:service', 
                         namespaces = { 
                             'wsdl':'http://schemas.xmlsoap.org/wsdl/' })
-        self.assertEqual(len(services) , 2)
+        self.assertEqual(len(services), 2)
         
         
         portTypes =  sa.interface.root_elt.xpath(
                         '/wsdl:definitions/wsdl:portType', 
                         namespaces = { 
                             'wsdl':'http://schemas.xmlsoap.org/wsdl/' })
-        self.assertEqual(len(portTypes) , 3)
+        self.assertEqual(len(portTypes), 3)
 
 
         bindings =  sa.interface.root_elt.xpath(
@@ -95,21 +95,21 @@ class TestWSDLBindingBehavior(unittest.TestCase):
                         namespaces = {
                             'wsdl':'http://schemas.xmlsoap.org/wsdl/' })
 
-        self.assertEqual(len(bindings) , 3)
+        self.assertEqual(len(bindings), 3)
 
         ports =  sa.interface.root_elt.xpath(
                         '/wsdl:definitions/wsdl:service[@name="%s"]/wsdl:port' % 
                             SinglePortService.__service_name__, 
                         namespaces = {
                             'wsdl':'http://schemas.xmlsoap.org/wsdl/' })
-        self.assertEqual(len(ports) , 1)
+        self.assertEqual(len(ports), 1)
         
         ports =  sa.interface.root_elt.xpath(
                         '/wsdl:definitions/wsdl:service[@name="%s"]/wsdl:port' % 
                             "DoublePortService", 
                         namespaces = {
                             'wsdl':'http://schemas.xmlsoap.org/wsdl/' })
-        self.assertEqual(len(ports) , 2)
+        self.assertEqual(len(ports), 2)
         
         # checking name and type
         #service SinglePortService

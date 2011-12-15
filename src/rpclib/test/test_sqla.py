@@ -56,7 +56,7 @@ class TestSqlAlchemy(unittest.TestCase):
         from sqlalchemy import Integer
         from sqlalchemy import String
 
-        class DbObject(TableSerializer,self.DeclarativeBase):
+        class DbObject(TableSerializer, self.DeclarativeBase):
             __tablename__ = 'db_object'
 
             id = Column(Integer, primary_key=True)
@@ -98,9 +98,9 @@ class TestSqlAlchemy(unittest.TestCase):
                 cls._main_t = user_t.join(address_t)
 
                 cls._properties = {
-                    'id' : address_t.c.id,
-                    'user_name' : user_t.c.name,
-                    'address' : address_t.c.email,
+                    'id': address_t.c.id,
+                    'user_name': user_t.c.name,
+                    'address': address_t.c.email,
                 }
 
                 cls._mapper = mapper(cls, cls._main_t,
@@ -134,7 +134,7 @@ class TestSqlAlchemy(unittest.TestCase):
 
         session = self.Session()
 
-        for i in xrange(1,10):
+        for i in range(1, 10):
             key = str(i)
             m = hashlib.md5()
             m.update(key)
@@ -171,7 +171,7 @@ class TestSqlAlchemy(unittest.TestCase):
 
         from rpclib.server.wsgi import WsgiMethodContext
 
-        ctx = WsgiMethodContext(application,{
+        ctx = WsgiMethodContext(application, {
             'QUERY_STRING': 'key=1&key=2&key=3',
             'PATH_INFO': '/get_values',
         }, 'some-content-type')
@@ -194,8 +194,8 @@ class TestSqlAlchemy(unittest.TestCase):
             _key = e.find('{%s}key' % KeyValuePair.get_namespace())
             _value = e.find('{%s}value' % KeyValuePair.get_namespace())
 
-            print _key, _key.text
-            print _value, _value.text
+            print((_key, _key.text))
+            print((_value, _value.text))
 
             self.assertEquals(_key.text, key)
             self.assertEquals(_value.text, value)

@@ -24,9 +24,8 @@ from lxml import etree
 
 from rpclib.error import Fault
 from rpclib.model.complex import XMLAttribute # FIXME: Rename this to XmlAttribute
-
-from _base import nillable_value
-from _base import nillable_element
+from rpclib.protocol.xml.model._base import nillable_value
+from rpclib.protocol.xml.model._base import nillable_element
 
 
 def get_members_etree(prot, cls, inst, parent):
@@ -87,7 +86,7 @@ def complex_from_element(prot, cls, element):
             continue
 
         key = c.tag.split('}')[-1]
-        freq = frequencies.get(key,0)
+        freq = frequencies.get(key, 0)
         freq+=1
         frequencies[key] = freq
 
@@ -114,7 +113,7 @@ def complex_from_element(prot, cls, element):
         setattr(inst, key, value)
 
     if prot.validator == 'soft':
-        for key,c in flat_type_info.items():
+        for key, c in flat_type_info.items():
             val = frequencies.get(key, 0)
             if (        val < c.Attributes.min_occurs
                     or  (     c.Attributes.max_occurs != 'unbounded'

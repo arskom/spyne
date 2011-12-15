@@ -52,10 +52,6 @@ Soap to JsonRpc.
 Miscellanous
 ------------
 
-First and foremost:
-
-     Fix the tests that fail due to api changes!
-
 The following would definitely be nice to have, but are just modules that should
 not cause a change in unrelated areas of rpclib. Those would increment the minor
 version number of the Rpclib version once implemented.

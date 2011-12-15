@@ -17,4 +17,4 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from _base import XmlSchema
+from rpclib.interface.xml_schema._base import XmlSchema

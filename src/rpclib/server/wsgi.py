@@ -142,6 +142,10 @@ class WsgiApplication(ServerBase):
         ServerBase.__init__(self, app)
 
         self._allowed_http_verbs = app.in_protocol.allowed_http_verbs
+        self._verb_handlers = {
+            "GET": self.handle_rpc,
+            "POST": self.handle_rpc,
+        }
 
     def __call__(self, req_env, start_response, wsgi_url=None):
         '''This method conforms to the WSGI spec for callable wsgi applications
@@ -151,13 +155,14 @@ class WsgiApplication(ServerBase):
         '''
 
         url = wsgi_url
+        verb = req_env['REQUEST_METHOD'].upper()
         if url is None:
             url = reconstruct_url(req_env).split('.wsdl')[0]
 
         if self.__is_wsdl_request(req_env):
             return self.__handle_wsdl_request(req_env, start_response, url)
 
-        elif not (req_env['REQUEST_METHOD'].upper() in self._allowed_http_verbs):
+        elif not (verb in self._allowed_http_verbs or verb in self._verb_handlers):
             start_response(HTTP_405, [
                 ('Content-type', ''),
                 ('Allow', ', '.join(self._allowed_http_verbs)),
@@ -165,7 +170,7 @@ class WsgiApplication(ServerBase):
             return ['']
 
         else:
-            return self.__handle_rpc(req_env, start_response)
+            return self._verb_handlers[verb](req_env, start_response)
 
     def __is_wsdl_request(self, req_env):
         # Get the wsdl for the service. Assume path_info matches pattern:
@@ -208,7 +213,7 @@ class WsgiApplication(ServerBase):
 
             return [""]
 
-    def __handle_error(self, ctx, error, start_response):
+    def handle_error(self, ctx, error, start_response):
         if ctx.transport.resp_code is None:
             ctx.transport.resp_code = \
                 self.app.out_protocol.fault_to_http_response_code(error)
@@ -223,43 +228,48 @@ class WsgiApplication(ServerBase):
                                              ctx.transport.resp_headers.items())
         return ctx.out_string
 
-    def __handle_rpc(self, req_env, start_response):
-        ctx = WsgiMethodContext(self.app, req_env,
+    def handle_rpc(self, req_env, start_response):
+        initial_ctx = WsgiMethodContext(self.app, req_env,
                                                 self.app.out_protocol.mime_type)
 
         # implementation hook
-        self.event_manager.fire_event('wsgi_call', ctx)
+        self.event_manager.fire_event('wsgi_call', initial_ctx)
+        initial_ctx.in_string, in_string_charset = reconstruct_wsgi_request(req_env)
 
-        ctx.in_string, in_string_charset = reconstruct_wsgi_request(req_env)
+        # note that in fanout mode, only the response from the last
+        # call will be returned.
+        for ctx in self.generate_contexts(initial_ctx, in_string_charset):
+            if ctx.in_error:
+                return self.handle_error(ctx, ctx.in_error, start_response)
 
-        self.get_in_object(ctx, in_string_charset)
-        if ctx.in_error:
-            return self.__handle_error(ctx, ctx.in_error, start_response)
+            self.get_in_object(ctx)
+            if ctx.in_error:
+                return self.handle_error(ctx, ctx.in_error, start_response)
 
-        self.get_out_object(ctx)
-        if ctx.out_error:
-            return self.__handle_error(ctx, ctx.out_error, start_response)
+            self.get_out_object(ctx)
+            if ctx.out_error:
+                return self.handle_error(ctx, ctx.out_error, start_response)
 
-        if ctx.transport.resp_code is None:
-            ctx.transport.resp_code = HTTP_200
+            if ctx.transport.resp_code is None:
+                ctx.transport.resp_code = HTTP_200
 
-        self.get_out_string(ctx)
+            self.get_out_string(ctx)
 
-        if ctx.descriptor and ctx.descriptor.mtom:
-            # when there is more than one return type, the result is
-            # encapsulated inside a list. when there's just one, the result
-            # is returned in a non-encapsulated form. the apply_mtom always
-            # expects the objects to be inside an iterable, hence the following
-            # test.
-            out_type_info = ctx.descriptor.out_message._type_info
-            if len(out_type_info) == 1:
-                out_object = [out_object]
+            if ctx.descriptor and ctx.descriptor.mtom:
+                # when there is more than one return type, the result is
+                # encapsulated inside a list. when there's just one, the result
+                # is returned in a non-encapsulated form. the apply_mtom always
+                # expects the objects to be inside an iterable, hence the following
+                # test.
+                out_type_info = ctx.descriptor.out_message._type_info
+                if len(out_type_info) == 1:
+                    out_object = [out_object]
 
-            ctx.transport.resp_headers, ctx.out_string = apply_mtom(
-                    ctx.transport.resp_headers, ctx.out_string,
-                    ctx.descriptor.out_message._type_info.values(),
-                    out_object
-                )
+                ctx.transport.resp_headers, ctx.out_string = apply_mtom(
+                        ctx.transport.resp_headers, ctx.out_string,
+                        ctx.descriptor.out_message._type_info.values(),
+                        out_object
+                    )
 
         # implementation hook
         self.event_manager.fire_event('wsgi_return', ctx)

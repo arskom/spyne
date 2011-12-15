@@ -23,8 +23,8 @@ logger = logging.getLogger(__name__)
 
 from lxml import etree
 
-from _base import nillable_value
-from _base import nillable_element
+from rpclib.protocol.xml.model._base import nillable_value
+from rpclib.protocol.xml.model._base import nillable_element
 
 
 @nillable_value
@@ -34,8 +34,8 @@ def binary_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     specify a file_name and if no data is given, it will read the data
     from the file
     '''
-    element = etree.SubElement(parent_elt, "{%s}%s" % (tns,name))
-    element.text = ''.join(cls.to_base64(value))
+    element = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
+    element.text = ''.join([b.decode('ascii') for b in cls.to_base64(value)])
 
 
 @nillable_element

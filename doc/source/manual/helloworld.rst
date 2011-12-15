@@ -14,7 +14,7 @@ Defining an Rpclib Service
 Here we introduce the fundamental mechanisms the rpclib offers to expose your
 services.
 
-This example is available here: http://github.com/arskom/rpclib/blob/master/examples/helloworld_soap.py
+The simpler version of this example is available here: http://github.com/arskom/rpclib/blob/master/examples/helloworld_soap.py
 ::
 
     import logging
@@ -162,15 +162,26 @@ under the targetNamespace 'rpclib.examples.hello.soap': ::
         application = Application([HelloWorldService], 'rpclib.examples.hello.soap',
                     interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
 
-We then wrap the rpclib application with its wsgi wrapper and register it as the
-handler to the wsgi server, and run the http server: ::
+We then wrap the rpclib application with its wsgi wrapper: ::
 
-        server = make_server('127.0.0.1', 7789, WsgiApplication(application))
+        wsgi_app = WsgiApplication(application)
+
+The above two lines can be replaced with an easier-to-use function that covers
+this common use case: ::
+
+        from rpclib.util.simple import wsgi_soap_application
+        wsgi_app = wsgi_soap_application([HelloWorldService], 'rpclib.examples.hello.soap')
+
+We now register the WSGI application as the handler to the wsgi server, and run
+the http server: ::
+
+        server = make_server('127.0.0.1', 7789, wsgi_app)
 
         print "listening to http://127.0.0.1:7789"
         print "wsdl is at: http://localhost:7789/?wsdl"
 
         server.serve_forever()
+
 
 .. NOTE::
     * **Django users:** See this gist for a django wrapper example: https://gist.github.com/1242760

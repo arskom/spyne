@@ -17,6 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from _base import null_to_parent_element
-from _base import base_to_parent_element
-from _base import base_from_element
+from rpclib.protocol.xml.model._base import null_to_parent_element
+from rpclib.protocol.xml.model._base import base_to_parent_element
+from rpclib.protocol.xml.model._base import base_from_element

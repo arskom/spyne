@@ -19,11 +19,11 @@
 
 import unittest
 
-from _test_client_base import RpclibClientTestBase
+from rpclib.test.interop._test_client_base import RpclibClientTestBase
 from rpclib.client.zeromq import ZeroMQClient
 from rpclib.test.interop.server.soap_http_basic import soap_application
 
-class TestRpclibZmqClient(RpclibClientTestBase,unittest.TestCase):
+class TestRpclibZmqClient(RpclibClientTestBase, unittest.TestCase):
     def setUp(self):
         self.client = ZeroMQClient('tcp://localhost:5555', soap_application)
         self.ns = "rpclib.test.interop.server._service"

@@ -29,8 +29,10 @@ context = zmq.Context()
 
 class _RemoteProcedure(RemoteProcedureBase):
     def __call__(self, *args, **kwargs):
-        self.get_out_object(args, kwargs)
-        self.get_out_string()
+        self.ctx = self.contexts[0]
+
+        self.get_out_object(self.ctx, args, kwargs)
+        self.get_out_string(self.ctx)
         out_string = ''.join(self.ctx.out_string)
 
         socket = context.socket(zmq.REQ)
@@ -38,7 +40,7 @@ class _RemoteProcedure(RemoteProcedureBase):
         socket.send(out_string)
 
         self.ctx.in_string = [socket.recv()]
-        self.get_in_object()
+        self.get_in_object(self.ctx)
 
         if not (self.ctx.in_error is None):
             raise self.ctx.in_error
