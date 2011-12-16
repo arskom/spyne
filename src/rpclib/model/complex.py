@@ -33,6 +33,7 @@ from rpclib.const import xml_ns as namespace
 
 
 class _SimpleTypeInfoElement(object):
+    __slots__ = ['path', 'parent', 'type']
     def __init__(self, path, parent, type_):
         self.path = path
         self.parent = parent
