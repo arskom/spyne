@@ -31,6 +31,14 @@ from rpclib.model import nillable_string
 from rpclib.util.odict import odict as TypeInfo
 from rpclib.const import xml_ns as namespace
 
+
+class _SimpleTypeInfoElement(object):
+    def __init__(self, path, parent, type_):
+        self.path = path
+        self.parent = parent
+        self.type = type_
+
+
 class XmlAttribute(ModelBase):
     """Items which are marshalled as attributes of the parent element."""
 
@@ -232,7 +240,7 @@ class ComplexModelBase(ModelBase):
         return retval
 
     @staticmethod
-    def get_simple_type_info(cls, retval=None, prefix=None):
+    def get_simple_type_info(cls, retval=None, prefix=None, parent=None):
         """Returns a _type_info dict that includes members from all base classes
         and whose types are only primitives.
         """
@@ -241,23 +249,28 @@ class ComplexModelBase(ModelBase):
 
         if retval is None:
             retval = {}
-
-        if prefix:
-            prefix += "_"
-        else:
-            prefix = ""
+        if prefix is None:
+            prefix = []
 
         fti = cls.get_flat_type_info(cls)
         for k, v in fti.items():
             if getattr(v, 'get_flat_type_info', None) is None:
-                key = prefix + k
+                new_prefix = list(prefix)
+                new_prefix.append(k)
+                key = '_'.join(new_prefix)
                 value = retval.get(key, None)
+
                 if value:
                     raise ValueError("%r.%s conflicts with %r" % (cls, k, value))
+
                 else:
-                    retval[key] = v
+                    retval[key] = _SimpleTypeInfoElement(
+                                        path=new_prefix, parent=parent, type_=v)
+
             else:
-                v.get_simple_type_info(v, retval, k)
+                new_prefix = list(prefix)
+                new_prefix.append(k)
+                v.get_simple_type_info(v, retval, new_prefix, parent=cls)
 
         return retval
 

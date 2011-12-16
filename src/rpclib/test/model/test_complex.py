@@ -326,7 +326,6 @@ Parameter.resolve_namespace(Parameter, __name__)
 
 
 class TestXmlAttribute(unittest.TestCase):
-
     def test_add_to_schema(self):
         app = FakeApp()
         schema = Wsdl11(app)
@@ -353,14 +352,22 @@ class TestXmlAttribute(unittest.TestCase):
 
         sti = CCM.get_simple_type_info(CCM)
         assert "i" in sti
-        assert sti["i"] is Integer
+        assert sti["i"].path == ['i']
+        assert sti["i"].type is Integer
+        assert sti["s"].parent is None
         assert "s" in sti
-        assert sti["s"] is String
+        assert sti["s"].path == ['s']
+        assert sti["s"].type is String
+        assert sti["s"].parent is None
 
         assert "c_i" in sti
-        assert sti["c_i"] is Integer
+        assert sti["c_i"].path == ['c','i']
+        assert sti["c_i"].type is Integer
+        assert sti["c_i"].parent is CCM
         assert "c_s" in sti
-        assert sti["c_s"] is String
+        assert sti["c_s"].path == ['c','s']
+        assert sti["c_s"].type is String
+        assert sti["c_s"].parent is CCM
 
     def test_simple_type_info_conflicts(self):
         class CM(ComplexModel):
