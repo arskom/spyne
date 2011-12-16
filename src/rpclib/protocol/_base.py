@@ -155,6 +155,8 @@ class ProtocolBase(object):
         for sc, d in call_handles:
             c = copy(ctx)
 
+            assert d != None
+
             c.descriptor = d
             c.service_class = sc
 

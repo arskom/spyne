@@ -75,6 +75,7 @@ class HttpRpc(ProtocolBase):
 
         body_class = ctx.descriptor.in_message
         flat_type_info = body_class.get_flat_type_info(body_class)
+        simple_type_info = body_class.get_simple_type_info(body_class)
 
         if ctx.in_body_doc is not None and len(ctx.in_body_doc) > 0:
             inst = body_class.get_deserialization_instance()
@@ -83,46 +84,51 @@ class HttpRpc(ProtocolBase):
             frequencies = {}
 
             for k, v in ctx.in_body_doc.items():
-                member = flat_type_info.get(k, None)
+                member = simple_type_info.get(k, None)
                 if member is None:
                     continue
 
-                mo = member.Attributes.max_occurs
-                if mo == 'unbounded' or mo > 1:
-                    value = getattr(inst, k, None)
-                    if value is None:
-                        value = []
+                mo = member.type.Attributes.max_occurs
+                value = getattr(inst, k, None)
+                if value is None:
+                    value = []
 
-                    for v2 in v:
-                        if self.validator == 'soft' and not member.validate_string(member, v2):
-                            raise ValidationError(v2)
-                        native_v2 = member.from_string(v2)
-                        if self.validator == 'soft' and not member.validate_native(member, native_v2):
-                            raise ValidationError(v2)
+                for v2 in v:
+                    if (self.validator == 'soft' and not
+                            member.type.validate_string(member.type, v2)):
+                        raise ValidationError(v2)
+                    native_v2 = member.type.from_string(v2)
+                    if (self.validator == 'soft' and not
+                            member.type.validate_native(member.type, native_v2)):
+                        raise ValidationError(v2)
 
-                        value.append(native_v2)
-                        freq = frequencies.get(k, 0)
-                        freq += 1
-                        frequencies[k] = freq
-
-                    setattr(inst, k, value)
-
-                else:
-                    v,  = v
-                    if self.validator == 'soft' and not member.validate_string(member, v):
-                        raise ValidationError(v)
-                    native_v = member.from_string(v)
-                    if self.validator == 'soft' and not member.validate_native(member, native_v):
-                        raise ValidationError(native_v)
-
-                    if native_v is None:
-                        setattr(inst, k, member.Attributes.default)
-                    else:
-                        setattr(inst, k, native_v)
+                    value.append(native_v2)
 
                     freq = frequencies.get(k, 0)
                     freq += 1
                     frequencies[k] = freq
+
+                if mo == 1:
+                    value = value[0]
+
+                cinst = inst
+                ctype_info = body_class._type_info
+                print member.path, ":", ctype_info
+                for i in range(len(member.path) - 1):
+                    pkey = member.path[i]
+                    if not (ctype_info[pkey].Attributes.max_occurs in (0,1)):
+                        raise Exception("HttpRpc deserializer does not support "
+                                        "non-primitives with max_occurs > 1")
+
+                    ninst = getattr(cinst, pkey, None)
+                    if ninst is None:
+                        ninst = ctype_info[pkey].get_deserialization_instance()
+                        setattr(cinst, pkey, ninst)
+                    cinst = ninst
+
+                    ctype_info = ctype_info[pkey]._type_info
+
+                setattr(cinst, member.path[-1], value)
 
             if self.validator == 'soft':
                 for k, c in flat_type_info.items():
@@ -152,9 +158,12 @@ class HttpRpc(ProtocolBase):
                 if ctx.out_object is None:
                     ctx.out_document = ['']
                 else:
-                    ctx.out_document = out_class.to_string_iterable(ctx.out_object[0])
+                    if hasattr(out_class,'to_string_iterable'):
+                        ctx.out_document = out_class.to_string_iterable(ctx.out_object[0])
+                    else:
+                        raise ValueError("HttpRpc protocol can only serialize primitives. %r" % out_class)
             else:
-                raise ValueError("HttpRpc protocol can only serialize primitives.")
+                raise ValueError("HttpRpc protocol can only serialize simple return values.")
         else:
             ctx.out_document = ctx.out_error.to_string_iterable(ctx.out_error)
 

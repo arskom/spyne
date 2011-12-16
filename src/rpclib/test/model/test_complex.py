@@ -380,10 +380,10 @@ class TestXmlAttribute(unittest.TestCase):
 
         try:
             CCM.get_simple_type_info(CCM)
-            raise Exception("must fail")
-
         except ValueError:
             pass
+        else:
+            raise Exception("must fail")
 
 if __name__ == '__main__':
     unittest.main()
