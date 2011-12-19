@@ -169,7 +169,8 @@ class ProtocolBase(object):
             return HTTP_413
         if isinstance(fault, ResourceNotFoundError):
             return HTTP_404
-        if isinstance(fault, Fault) and fault.faultcode.startswith('Client.'):
+        if isinstance(fault, Fault) and (fault.faultcode.startswith('Client.')
+                                                or fault.faultcode == 'Client'):
             return HTTP_400
         else:
             return HTTP_500
