@@ -1,11 +1,10 @@
-
 .. _manual-comparison:
 
 Comparison with other rpc frameworks
 ====================================
 
 RPC is a very popular subject. There's a plethora of active and inactive
-projects that satisfy a wide arrange of requirements. Here are the main sources
+projects that satisfy a wide range of requirements. Here are the main sources
 of information:
 
 * http://pypi.python.org/pypi?%3Aaction=search&term=rpc
