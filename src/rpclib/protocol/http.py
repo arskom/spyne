@@ -19,8 +19,6 @@
 
 """This module contains the HttpRpc protocol implementation."""
 
-from rpclib.error import Fault
-from rpclib.error import ValidationError
 import logging
 logger = logging.getLogger(__name__)
 
@@ -29,6 +27,8 @@ try:
 except ImportError: # Python 3
     from urllib.parse import parse_qs
 
+from rpclib.model.fault import Fault
+from rpclib.error import ValidationError
 from rpclib.protocol import ProtocolBase
 
 # this is not exactly ReST, because it ignores http verbs.
@@ -38,7 +38,7 @@ def _get_http_headers(req_env):
 
     for k, v in req_env.items():
         if k.startswith("HTTP_"):
-            retval[k[5:].lower()]= v
+            retval[k[5:].lower()]= [v]
 
     return retval
 
@@ -66,82 +66,90 @@ class HttpRpc(ProtocolBase):
         ctx.in_header_doc = _get_http_headers(ctx.in_document)
         ctx.in_body_doc = parse_qs(ctx.in_document['QUERY_STRING'])
 
-        logger.debug(repr(ctx.in_body_doc))
+        logger.debug('body   : %r' % (ctx.in_body_doc))
+        logger.debug('header : %r' % (ctx.in_header_doc))
+
+    def dict_to_object(self, doc, inst_class):
+        flat_type_info = inst_class.get_flat_type_info(inst_class)
+        simple_type_info = inst_class.get_simple_type_info(inst_class)
+        inst = inst_class.get_deserialization_instance()
+
+        # this is for validating cls.Attributes.{min,max}_occurs
+        frequencies = {}
+
+        for k, v in doc.items():
+            member = simple_type_info.get(k, None)
+            if member is None:
+                continue
+
+            mo = member.type.Attributes.max_occurs
+            value = getattr(inst, k, None)
+            if value is None:
+                value = []
+
+            for v2 in v:
+                if (self.validator == 'soft' and not
+                        member.type.validate_string(member.type, v2)):
+                    raise ValidationError(v2)
+                native_v2 = member.type.from_string(v2)
+                if (self.validator == 'soft' and not
+                        member.type.validate_native(member.type, native_v2)):
+                    raise ValidationError(v2)
+
+                value.append(native_v2)
+
+                freq = frequencies.get(k, 0)
+                freq += 1
+                frequencies[k] = freq
+
+            if mo == 1:
+                value = value[0]
+
+            cinst = inst
+            ctype_info = inst_class._type_info
+            for i in range(len(member.path) - 1):
+                pkey = member.path[i]
+                if not (ctype_info[pkey].Attributes.max_occurs in (0,1)):
+                    raise Exception("HttpRpc deserializer does not support "
+                                    "non-primitives with max_occurs > 1")
+
+                ninst = getattr(cinst, pkey, None)
+                if ninst is None:
+                    ninst = ctype_info[pkey].get_deserialization_instance()
+                    setattr(cinst, pkey, ninst)
+                cinst = ninst
+
+                ctype_info = ctype_info[pkey]._type_info
+
+            setattr(cinst, member.path[-1], value)
+
+        if self.validator == 'soft':
+            for k, c in flat_type_info.items():
+                val = frequencies.get(k, 0)
+                if val < c.Attributes.min_occurs \
+                        or  (c.Attributes.max_occurs != 'unbounded'
+                                        and val > c.Attributes.max_occurs ):
+                    raise Fault('Client.ValidationError',
+                            '%r member does not respect frequency constraints' % k)
+
+        return inst
 
     def deserialize(self, ctx, message):
         assert message in ('request',)
 
         self.event_manager.fire_event('before_deserialize', ctx)
 
-        body_class = ctx.descriptor.in_message
-        flat_type_info = body_class.get_flat_type_info(body_class)
-        simple_type_info = body_class.get_simple_type_info(body_class)
+        if ctx.in_header_doc is not None and len(ctx.in_header_doc) > 0:
+            ctx.in_header = self.dict_to_object(ctx.in_header_doc,
+                                                    ctx.descriptor.in_header)
 
         if ctx.in_body_doc is not None and len(ctx.in_body_doc) > 0:
-            inst = body_class.get_deserialization_instance()
-
-            # this is for validating cls.Attributes.{min,max}_occurs
-            frequencies = {}
-
-            for k, v in ctx.in_body_doc.items():
-                member = simple_type_info.get(k, None)
-                if member is None:
-                    continue
-
-                mo = member.type.Attributes.max_occurs
-                value = getattr(inst, k, None)
-                if value is None:
-                    value = []
-
-                for v2 in v:
-                    if (self.validator == 'soft' and not
-                            member.type.validate_string(member.type, v2)):
-                        raise ValidationError(v2)
-                    native_v2 = member.type.from_string(v2)
-                    if (self.validator == 'soft' and not
-                            member.type.validate_native(member.type, native_v2)):
-                        raise ValidationError(v2)
-
-                    value.append(native_v2)
-
-                    freq = frequencies.get(k, 0)
-                    freq += 1
-                    frequencies[k] = freq
-
-                if mo == 1:
-                    value = value[0]
-
-                cinst = inst
-                ctype_info = body_class._type_info
-                print member.path, ":", ctype_info
-                for i in range(len(member.path) - 1):
-                    pkey = member.path[i]
-                    if not (ctype_info[pkey].Attributes.max_occurs in (0,1)):
-                        raise Exception("HttpRpc deserializer does not support "
-                                        "non-primitives with max_occurs > 1")
-
-                    ninst = getattr(cinst, pkey, None)
-                    if ninst is None:
-                        ninst = ctype_info[pkey].get_deserialization_instance()
-                        setattr(cinst, pkey, ninst)
-                    cinst = ninst
-
-                    ctype_info = ctype_info[pkey]._type_info
-
-                setattr(cinst, member.path[-1], value)
-
-            if self.validator == 'soft':
-                for k, c in flat_type_info.items():
-                    val = frequencies.get(k, 0)
-                    if val < c.Attributes.min_occurs \
-                            or  (c.Attributes.max_occurs != 'unbounded'
-                                            and val > c.Attributes.max_occurs ):
-                        raise Fault('Client.ValidationError',
-                            '%r member does not respect frequency constraints' % k)
-
-            ctx.in_object = inst
+            ctx.in_object = self.dict_to_object(ctx.in_body_doc,
+                                                    ctx.descriptor.in_message)
         else:
-            ctx.in_object = [None] * len(flat_type_info)
+            ctx.in_object = [None] * len(
+                        ctx.descriptor.in_message.get_flat_type_info(
+                                                    ctx.descriptor.in_message))
 
         self.event_manager.fire_event('after_deserialize', ctx)
 
@@ -158,7 +166,7 @@ class HttpRpc(ProtocolBase):
                 if ctx.out_object is None:
                     ctx.out_document = ['']
                 else:
-                    if hasattr(out_class,'to_string_iterable'):
+                    if hasattr(out_class, 'to_string_iterable'):
                         ctx.out_document = out_class.to_string_iterable(ctx.out_object[0])
                     else:
                         raise ValueError("HttpRpc protocol can only serialize primitives. %r" % out_class)
