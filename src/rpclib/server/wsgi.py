@@ -244,6 +244,7 @@ class WsgiApplication(ServerBase):
 
             self.get_in_object(ctx)
             if ctx.in_error:
+                logger.error(ctx.in_error)
                 return self.handle_error(ctx, ctx.in_error, start_response)
 
             self.get_out_object(ctx)
