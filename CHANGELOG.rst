@@ -6,6 +6,9 @@ rpclib-2.5.1-beta
 -----------------
  * Switched to magic cookie constants instead of strings in protocol logic.
  * check_validator -> set_validator in ProtocolBase
+ * Started parsing Http headers in HttpRpc protocol.
+ * HttpRpc now properly validates nested value frequencies.
+ * HttpRpc now works with arrays of simple types as well.
 
 rpclib-2.5.0-beta
 -----------------

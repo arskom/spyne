@@ -127,8 +127,8 @@ class RemoteProcedureBase(object):
             ctx.out_string = [""]
 
     def get_in_object(self, ctx):
-        """Deserializes the response bytestream to input document and native
-        python object.
+        """Deserializes the response bytestream first as a document and then
+        as a native python object.
         """
 
         assert ctx.in_string is not None

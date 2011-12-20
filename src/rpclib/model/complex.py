@@ -170,11 +170,16 @@ class ComplexModelBase(ModelBase):
 
     @classmethod
     def get_serialization_instance(cls, value):
+        """The value argument can be:
+            * A list of native types aligned with cls._type_info.
+            * A dict of native types
+            * The native type itself.
+        """
         # if the instance is a list, convert it to a cls instance.
-        # this is only useful when deserializing method arguments which is the
-        # only time when the member order is not arbitrary (as the members
-        # are declared and passed around as sequences of arguments, unlike
-        # dictionaries in a regular class definition).
+        # this is only useful when deserializing method arguments for a client
+        # request which is the only time when the member order is not arbitrary
+        # (as the members are declared and passed around as sequences of
+        # arguments, unlike dictionaries in a regular class definition).
         if isinstance(value, list) or isinstance(value, tuple):
             assert len(value) <= len(cls._type_info)
 
@@ -197,6 +202,9 @@ class ComplexModelBase(ModelBase):
 
     @classmethod
     def get_deserialization_instance(cls):
+        """Get an empty native type so that the deserialization logic can set
+        its attributes.
+        """
         return cls()
 
     @classmethod

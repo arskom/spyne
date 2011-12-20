@@ -17,7 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains the HttpRpc protocol implementation."""
+"""This module contains the HttpRpc protocol implementation. This is not exactly
+Rest, because it ignores Http verbs.
+"""
 
 import logging
 logger = logging.getLogger(__name__)
@@ -31,8 +33,6 @@ from rpclib.error import ValidationError
 from rpclib.model.complex import Array
 from rpclib.model.fault import Fault
 from rpclib.protocol import ProtocolBase
-
-# this is not exactly ReST, because it ignores http verbs.
 
 def _get_http_headers(req_env):
     retval = {}

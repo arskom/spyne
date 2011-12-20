@@ -59,9 +59,6 @@ def complex_to_parent_element(prot, cls, value, tns, parent_elt, name=None):
         name = cls.get_type_name()
 
     element = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
-
-    # here, we try our best to match the incoming value with the class
-    # definition in cls._type_map.
     inst = cls.get_serialization_instance(value)
 
     get_members_etree(prot, cls, inst, element)
