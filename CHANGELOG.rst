@@ -5,6 +5,7 @@ Changelog
 rpclib-2.5.1-beta
 -----------------
  * Switched to magic cookie constants instead of strings in protocol logic.
+ * check_validator -> set_validator in ProtocolBase
 
 rpclib-2.5.0-beta
 -----------------

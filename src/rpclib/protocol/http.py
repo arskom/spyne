@@ -43,10 +43,11 @@ def _get_http_headers(req_env):
     return retval
 
 class HttpRpc(ProtocolBase):
-    """The so-called ReST-minus-the-verbs HttpRpc protocol implementation.
+    """The so-called REST-minus-the-verbs HttpRpc protocol implementation.
     It only works with the http server (wsgi) transport.
 
-    It only parses GET requests where the whole data is in the 'QUERY_STRING'.
+    It only parses requests where the whole data is in the 'QUERY_STRING', i.e.
+    the part after '?' character in a URI string.
     """
 
     def check_validator(self):
@@ -66,8 +67,8 @@ class HttpRpc(ProtocolBase):
         ctx.in_header_doc = _get_http_headers(ctx.in_document)
         ctx.in_body_doc = parse_qs(ctx.in_document['QUERY_STRING'])
 
-        logger.debug('body   : %r' % (ctx.in_body_doc))
         logger.debug('header : %r' % (ctx.in_header_doc))
+        logger.debug('body   : %r' % (ctx.in_body_doc))
 
     def dict_to_object(self, doc, inst_class):
         flat_type_info = inst_class.get_flat_type_info(inst_class)

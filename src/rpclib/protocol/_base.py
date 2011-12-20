@@ -36,6 +36,7 @@ from rpclib.const.http import HTTP_400
 from rpclib.const.http import HTTP_404
 from rpclib.const.http import HTTP_413
 from rpclib.const.http import HTTP_500
+
 from rpclib.error import ResourceNotFoundError
 from rpclib.error import RequestTooLongError
 from rpclib.error import Fault
@@ -71,8 +72,7 @@ class ProtocolBase(object):
 
         self.set_app(app)
         self.event_manager = EventManager(self)
-        self.validator = validator
-        self.check_validator()
+        self.set_validator(validator)
 
     @property
     def app(self):
@@ -179,8 +179,10 @@ class ProtocolBase(object):
         else:
             return HTTP_500
 
-    def check_validator(self):
+    def set_validator(self, validator):
         """You must override this function if your protocol supports validation.
         """
 
-        assert self.validator is None
+        assert validator is None
+
+        self.validator = None
