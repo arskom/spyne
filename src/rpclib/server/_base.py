@@ -84,7 +84,8 @@ class ServerBase(object):
 
         try:
             # sets ctx.in_object and ctx.in_header
-            self.app.in_protocol.deserialize(ctx, message='request')
+            self.app.in_protocol.deserialize(ctx,
+                                        message=self.app.in_protocol.REQUEST)
 
         except Fault, e:
             ctx.in_object = None
@@ -107,7 +108,8 @@ class ServerBase(object):
         assert ctx.out_document is None
         assert ctx.out_string is None
 
-        self.app.out_protocol.serialize(ctx, message='response')
+        self.app.out_protocol.serialize(ctx,
+                                        message=self.app.out_protocol.RESPONSE)
 
         if ctx.service_class != None:
             if ctx.out_error is None:

@@ -112,7 +112,7 @@ def complex_from_element(prot, cls, element):
 
         setattr(inst, key, value)
 
-    if prot.validator == 'soft':
+    if prot.validator is prot.SOFT_VALIDATION:
         for key, c in flat_type_info.items():
             val = frequencies.get(key, 0)
             if (        val < c.Attributes.min_occurs

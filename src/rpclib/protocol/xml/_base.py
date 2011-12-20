@@ -74,6 +74,8 @@ class XmlObject(ProtocolBase):
     :param validator: One of (None, 'soft', 'lxml').
     """
 
+    SCHEMA_VALIDATION = type("schema", (object,), {})
+
     def __init__(self, app=None, validator=None, xml_declaration=True):
         ProtocolBase.__init__(self, app, validator)
         self.xml_declaration = xml_declaration
@@ -105,17 +107,23 @@ class XmlObject(ProtocolBase):
 
         self.log_messages = (logger.level == logging.DEBUG)
 
-    def check_validator(self):
-        self.validation_schema = None
-
-        if self.validator == 'lxml':
+    def set_validator(self, validator):
+        if validator in ('lxml', 'schema') or \
+                                    validator is self.SCHEMA_VALIDATION:
             self.validate_document = self.__validate_lxml
+            self.validator = self.SCHEMA_VALIDATION
 
-        elif self.validator in (None, 'soft'):
+        elif validator is self.SOFT_VALIDATION or \
+                                    validator is ProtocolBase.SOFT_VALIDATION:
+            self.validator = self.SOFT_VALIDATION
+
+        elif validator is None:
             pass
 
         else:
-            raise ValueError(self.validator)
+            raise ValueError(validator)
+
+        self.validation_schema = None
 
     def from_element(self, cls, element):
         handler = self.deserialization_handlers[cls]
@@ -125,16 +133,16 @@ class XmlObject(ProtocolBase):
         handler = self.serialization_handlers[cls]
         handler(self, cls, value, tns, parent_elt, * args, ** kwargs)
 
-    def validate_body(self, ctx, message='request'):
+    def validate_body(self, ctx, message):
         """Sets ctx.method_request_string and calls :func:`generate_contexts`
         for validation."""
 
-        assert message in ('request', 'response')
+        assert message in (self.REQUEST, self.RESPONSE), message
 
         line_header = LIGHT_RED + "Error:" + END_COLOR
         try:
             self.validate_document(ctx.in_body_doc)
-            if message == 'request':
+            if message is self.REQUEST:
                 line_header = LIGHT_GREEN + "Method request string:" + END_COLOR
             else:
                 line_header = LIGHT_RED + "Response:" + END_COLOR
@@ -153,8 +161,8 @@ class XmlObject(ProtocolBase):
             ctx.in_document = etree.fromstring(_bytes_join([s.decode(charset) for s in ctx.in_string]))
 
 
-    def decompose_incoming_envelope(self, ctx, message='request'):
-        assert message in ('request', 'response')
+    def decompose_incoming_envelope(self, ctx, message):
+        assert message in (self.REQUEST, self.RESPONSE)
 
         ctx.in_header_doc = None # If you need header support, you should use Soap
         ctx.in_body_doc = ctx.in_document
@@ -179,13 +187,13 @@ class XmlObject(ProtocolBase):
         Not meant to be overridden.
         """
 
-        assert message in ('request', 'response')
+        assert message in (self.REQUEST, self.RESPONSE)
 
         self.event_manager.fire_event('before_deserialize', ctx)
 
-        if message == 'request':
+        if message is self.REQUEST:
             body_class = ctx.descriptor.in_message
-        elif message == 'response':
+        elif message is self.RESPONSE:
             body_class = ctx.descriptor.out_message
 
         # decode method arguments
@@ -195,9 +203,9 @@ class XmlObject(ProtocolBase):
             ctx.in_object = [None] * len(body_class._type_info)
 
         if self.log_messages:
-            if message == 'request':
+            if message is self.REQUEST:
                 line_header = '%sRequest%s' % (LIGHT_GREEN, END_COLOR)
-            elif message == 'response':
+            elif message is self.RESPONSE:
                 line_header = '%sResponse%s' % (LIGHT_RED, END_COLOR)
 
             logger.debug("%s %s" % (line_header, etree.tostring(ctx.out_document,
@@ -213,14 +221,14 @@ class XmlObject(ProtocolBase):
         Not meant to be overridden.
         """
 
-        assert message in ('request', 'response')
+        assert message in (self.REQUEST, self.RESPONSE)
 
         self.event_manager.fire_event('before_serialize', ctx)
 
         # instantiate the result message
-        if message == 'request':
+        if message is self.REQUEST:
             result_message_class = ctx.descriptor.in_message
-        elif message == 'response':
+        elif message is self.RESPONSE:
             result_message_class = ctx.descriptor.out_message
 
         result_message = result_message_class()

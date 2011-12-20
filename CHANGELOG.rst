@@ -2,6 +2,10 @@
 Changelog
 =========
 
+rpclib-2.5.1-beta
+-----------------
+ * Switched to magic cookie constants instead of strings in protocol logic.
+
 rpclib-2.5.0-beta
 -----------------
  * Implemented fanout support for transports and protocols that can handle 

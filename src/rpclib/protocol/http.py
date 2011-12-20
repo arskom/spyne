@@ -88,17 +88,17 @@ class HttpRpc(ProtocolBase):
                 value = []
 
             for v2 in v:
-                if (self.validator == 'soft' and not
-                        member.type.validate_string(member.type, v2)):
+                if (self.validator is self.SOFT_VALIDATION and not
+                            member.type.validate_string(member.type, v2)):
                     raise ValidationError(v2)
                 native_v2 = member.type.from_string(v2)
-                if (self.validator == 'soft' and not
-                        member.type.validate_native(member.type, native_v2)):
+                if (self.validator is self.SOFT_VALIDATION and not
+                            member.type.validate_native(member.type, native_v2)):
                     raise ValidationError(v2)
 
                 value.append(native_v2)
 
-                freq = frequencies.get(k, 0)
+                freq = frequencies.get(member.path, 0)
                 freq += 1
                 frequencies[k] = freq
 
@@ -123,19 +123,19 @@ class HttpRpc(ProtocolBase):
 
             setattr(cinst, member.path[-1], value)
 
-        if self.validator == 'soft':
+        if self.validator is self.SOFT_VALIDATION:
             for k, c in flat_type_info.items():
                 val = frequencies.get(k, 0)
                 if val < c.Attributes.min_occurs \
                         or  (c.Attributes.max_occurs != 'unbounded'
                                         and val > c.Attributes.max_occurs ):
                     raise Fault('Client.ValidationError',
-                            '%r member does not respect frequency constraints' % k)
+                         '%r member does not respect frequency constraints' % k)
 
         return inst
 
     def deserialize(self, ctx, message):
-        assert message in ('request',)
+        assert message in (self.REQUEST,)
 
         self.event_manager.fire_event('before_deserialize', ctx)
 
@@ -154,7 +154,7 @@ class HttpRpc(ProtocolBase):
         self.event_manager.fire_event('after_deserialize', ctx)
 
     def serialize(self, ctx, message):
-        assert message in ('response',)
+        assert message in (self.RESPONSE,)
 
         if ctx.out_error is None:
             result_message_class = ctx.descriptor.out_message
