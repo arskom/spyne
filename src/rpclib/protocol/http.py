@@ -50,8 +50,13 @@ class HttpRpc(ProtocolBase):
     the part after '?' character in a URI string.
     """
 
-    def check_validator(self):
-        assert self.validator in ('soft', None)
+    def set_validator(self, validator):
+        if validator == 'soft' or validator is self.SOFT_VALIDATION:
+            self.validator = self.SOFT_VALIDATION
+        elif validator is None:
+            self.validator = None
+        else:
+            raise ValueError(validator)
 
     def create_in_document(self, ctx, in_string_encoding=None):
         assert ctx.transport.type == 'wsgi', ("This protocol only works with "
@@ -71,7 +76,6 @@ class HttpRpc(ProtocolBase):
         logger.debug('body   : %r' % (ctx.in_body_doc))
 
     def dict_to_object(self, doc, inst_class):
-        flat_type_info = inst_class.get_flat_type_info(inst_class)
         simple_type_info = inst_class.get_simple_type_info(inst_class)
         inst = inst_class.get_deserialization_instance()
 
@@ -101,13 +105,17 @@ class HttpRpc(ProtocolBase):
 
                 freq = frequencies.get(member.path, 0)
                 freq += 1
-                frequencies[k] = freq
+                frequencies[member.path] = freq
+                print "! ", member.path, native_v2
+                for i in range(1,len(member.path)):
+                    frequencies[member.path[:i]] = 1
+                    print "!!", member.path[:i]
 
             if mo == 1:
                 value = value[0]
 
             cinst = inst
-            ctype_info = inst_class._type_info
+            ctype_info = inst_class.get_flat_type_info(inst_class)
             for i in range(len(member.path) - 1):
                 pkey = member.path[i]
                 if not (ctype_info[pkey].Attributes.max_occurs in (0,1)):
@@ -116,22 +124,34 @@ class HttpRpc(ProtocolBase):
 
                 ninst = getattr(cinst, pkey, None)
                 if ninst is None:
-                    ninst = ctype_info[pkey].get_deserialization_instance()
+                    ninst = ctype_info[pkey].get_serialization_instance([])
                     setattr(cinst, pkey, ninst)
                 cinst = ninst
 
                 ctype_info = ctype_info[pkey]._type_info
 
+            print cinst, member.path[-1], value
             setattr(cinst, member.path[-1], value)
 
+        print
         if self.validator is self.SOFT_VALIDATION:
-            for k, c in flat_type_info.items():
-                val = frequencies.get(k, 0)
-                if val < c.Attributes.min_occurs \
-                        or  (c.Attributes.max_occurs != 'unbounded'
-                                        and val > c.Attributes.max_occurs ):
+            sti = simple_type_info.values()
+            sti.sort(key=lambda x: (len(x.path), x.path))
+            pfrag = None
+            for s in sti:
+                if len(s.path) > 1 and pfrag != s.path[:-1]:
+                    pfrag = s.path[:-1]
+                    print pfrag, frequencies.get(pfrag,0)
+
+                key = s.path
+                val = frequencies.get(key, 0)
+                print s.path,val
+                if val < s.type.Attributes.min_occurs \
+                        or  (s.type.Attributes.max_occurs != 'unbounded'
+                                        and val > s.type.Attributes.max_occurs):
                     raise Fault('Client.ValidationError',
-                         '%r member does not respect frequency constraints' % k)
+                                '%r member does not respect frequency '
+                                'constraints' % k)
 
         return inst
 
@@ -140,11 +160,11 @@ class HttpRpc(ProtocolBase):
 
         self.event_manager.fire_event('before_deserialize', ctx)
 
-        if ctx.in_header_doc is not None and len(ctx.in_header_doc) > 0:
+        if ctx.in_header_doc is not None:
             ctx.in_header = self.dict_to_object(ctx.in_header_doc,
                                                     ctx.descriptor.in_header)
 
-        if ctx.in_body_doc is not None and len(ctx.in_body_doc) > 0:
+        if ctx.in_body_doc is not None:
             ctx.in_object = self.dict_to_object(ctx.in_body_doc,
                                                     ctx.descriptor.in_message)
         else:

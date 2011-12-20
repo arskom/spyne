@@ -266,7 +266,7 @@ class ComplexModelBase(ModelBase):
 
                 else:
                     retval[key] = _SimpleTypeInfoElement(
-                                        path=new_prefix, parent=parent, type_=v)
+                                        path=tuple(new_prefix), parent=parent, type_=v)
 
             else:
                 new_prefix = list(prefix)
@@ -345,7 +345,7 @@ class Array(ComplexModel):
     """
 
     def __new__(cls, serializer, ** kwargs):
-        retval = cls.customize( ** kwargs)
+        retval = cls.customize(**kwargs)
 
         # hack to default to unbounded arrays when the user didn't specify
         # max_occurs. We should find a better way.
