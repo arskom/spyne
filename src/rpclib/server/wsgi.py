@@ -62,7 +62,7 @@ def _wsgi_input_to_iterable(http_env):
         yield data
 
 def reconstruct_wsgi_request(http_env):
-    """Reconstruct http payload using information in the http header"""
+    """Reconstruct http payload using information in the http header."""
 
     # fyi, here's what the parse_header function returns:
     # >>> import cgi; cgi.parse_header("text/xml; charset=utf-8")
@@ -119,7 +119,8 @@ class WsgiTransportContext(TransportContext):
 
 class WsgiMethodContext(MethodContext):
     """The WSGI-Specific method context. WSGI-Specific information is stored in
-    the transport attribute using the :class:`WsgiTransportContext` class."""
+    the transport attribute using the :class:`WsgiTransportContext` class.
+    """
 
     def __init__(self, app, req_env, content_type):
         MethodContext.__init__(self, app)

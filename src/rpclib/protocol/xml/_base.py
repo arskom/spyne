@@ -158,8 +158,8 @@ class XmlObject(ProtocolBase):
         try:
             ctx.in_document = etree.fromstring(_bytes_join(ctx.in_string))
         except ValueError:
-            ctx.in_document = etree.fromstring(_bytes_join([s.decode(charset) for s in ctx.in_string]))
-
+            ctx.in_document = etree.fromstring(_bytes_join([s.decode(charset)
+                                                        for s in ctx.in_string]))
 
     def decompose_incoming_envelope(self, ctx, message):
         assert message in (self.REQUEST, self.RESPONSE)
