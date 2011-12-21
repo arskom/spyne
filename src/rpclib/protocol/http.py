@@ -72,8 +72,8 @@ class HttpRpc(ProtocolBase):
         ctx.in_header_doc = _get_http_headers(ctx.in_document)
         ctx.in_body_doc = parse_qs(ctx.in_document['QUERY_STRING'])
 
-        logger.debug('header : %r' % (ctx.in_header_doc))
-        logger.debug('body   : %r' % (ctx.in_body_doc))
+        logger.debug('\theader : %r' % (ctx.in_header_doc))
+        logger.debug('\tbody   : %r' % (ctx.in_body_doc))
 
     def dict_to_object(self, doc, inst_class):
         simple_type_info = inst_class.get_simple_type_info(inst_class)
@@ -85,6 +85,7 @@ class HttpRpc(ProtocolBase):
         for k, v in doc.items():
             member = simple_type_info.get(k, None)
             if member is None:
+                logger.debug("discarding field %r" % k)
                 continue
 
             mo = member.type.Attributes.max_occurs
@@ -103,13 +104,16 @@ class HttpRpc(ProtocolBase):
 
                 value.append(native_v2)
 
+                # set frequencies of parents.
+                if not (member.path[:-1] in frequencies):
+                    for i in range(1,len(member.path)):
+                        logger.debug("\tset freq %r = 1" % (member.path[:i],))
+                        frequencies[member.path[:i]] = 1
+
                 freq = frequencies.get(member.path, 0)
                 freq += 1
                 frequencies[member.path] = freq
-                print "! ", member.path, native_v2
-                for i in range(1,len(member.path)):
-                    frequencies[member.path[:i]] = 1
-                    print "!!", member.path[:i]
+                logger.debug("\tset freq %r = %d" % (member.path, freq))
 
             if mo == 1:
                 value = value[0]
@@ -130,10 +134,9 @@ class HttpRpc(ProtocolBase):
 
                 ctype_info = ctype_info[pkey]._type_info
 
-            print cinst, member.path[-1], value
+            logger.debug("\tset %r = %r" % (member.path, value))
             setattr(cinst, member.path[-1], value)
 
-        print
         if self.validator is self.SOFT_VALIDATION:
             sti = simple_type_info.values()
             sti.sort(key=lambda x: (len(x.path), x.path))
@@ -141,17 +144,38 @@ class HttpRpc(ProtocolBase):
             for s in sti:
                 if len(s.path) > 1 and pfrag != s.path[:-1]:
                     pfrag = s.path[:-1]
-                    print pfrag, frequencies.get(pfrag,0)
+                    ctype_info = inst_class.get_flat_type_info(inst_class)
+                    for i in range(len(pfrag)):
+                        f = pfrag[i]
+                        ntype_info = ctype_info[f]
+                        z = ctype_info[f].Attributes.min_occurs
 
-                key = s.path
-                val = frequencies.get(key, 0)
-                print s.path,val
-                if val < s.type.Attributes.min_occurs \
-                        or  (s.type.Attributes.max_occurs != 'unbounded'
-                                        and val > s.type.Attributes.max_occurs):
+                        min_o = ctype_info[f].Attributes.min_occurs
+                        max_o = ctype_info[f].Attributes.max_occurs
+                        val = frequencies.get(pfrag[:i+1], 0)
+                        if val < min_o:
+                            raise Fault('Client.ValidationError',
+                                '"%s" member must occur at least %d times'
+                                              % ('_'.join(pfrag[:i+1]), min_o))
+
+                        if max_o != 'unbounded' and val > max_o:
+                            raise Fault('Client.ValidationError',
+                                '"%s" member must occur at most %d times'
+                                             % ('_'.join(pfrag[:i+1]), max_o))
+
+                        ctype_info = ntype_info.get_flat_type_info(ntype_info)
+
+                val = frequencies.get(s.path, 0)
+                min_o = s.type.Attributes.min_occurs
+                max_o = s.type.Attributes.max_occurs
+                if val < min_o:
                     raise Fault('Client.ValidationError',
-                                '%r member does not respect frequency '
-                                'constraints' % k)
+                                '"%s" member must occur at least %d times'
+                                                    % ('_'.join(s.path), min_o))
+                if max_o != 'unbounded' and val > max_o:
+                    raise Fault('Client.ValidationError',
+                                '"%s" member must occur at most %d times'
+                                                    % ('_'.join(s.path), max_o))
 
         return inst
 
@@ -194,6 +218,7 @@ class HttpRpc(ProtocolBase):
             else:
                 raise ValueError("HttpRpc protocol can only serialize simple return values.")
         else:
+            ctx.transport.mime_type = 'text/plain'
             ctx.out_document = ctx.out_error.to_string_iterable(ctx.out_error)
 
         self.event_manager.fire_event('serialize', ctx)
