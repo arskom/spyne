@@ -27,8 +27,9 @@ try:
 except ImportError: # Python 3
     from urllib.parse import parse_qs
 
-from rpclib.model.fault import Fault
 from rpclib.error import ValidationError
+from rpclib.model.complex import Array
+from rpclib.model.fault import Fault
 from rpclib.protocol import ProtocolBase
 
 # this is not exactly ReST, because it ignores http verbs.
@@ -92,6 +93,9 @@ class HttpRpc(ProtocolBase):
             value = getattr(inst, k, None)
             if value is None:
                 value = []
+            elif mo == 1:
+                raise Fault('Client.ValidationError',
+                        '"%s" member must occur at most %d times' % (k, max_o))
 
             for v2 in v:
                 if (self.validator is self.SOFT_VALIDATION and not
@@ -120,6 +124,7 @@ class HttpRpc(ProtocolBase):
 
             cinst = inst
             ctype_info = inst_class.get_flat_type_info(inst_class)
+            pkey = member.path[0]
             for i in range(len(member.path) - 1):
                 pkey = member.path[i]
                 if not (ctype_info[pkey].Attributes.max_occurs in (0,1)):
@@ -128,14 +133,25 @@ class HttpRpc(ProtocolBase):
 
                 ninst = getattr(cinst, pkey, None)
                 if ninst is None:
-                    ninst = ctype_info[pkey].get_serialization_instance([])
+                    ninst = ctype_info[pkey].get_deserialization_instance()
                     setattr(cinst, pkey, ninst)
                 cinst = ninst
 
                 ctype_info = ctype_info[pkey]._type_info
 
-            logger.debug("\tset %r = %r" % (member.path, value))
-            setattr(cinst, member.path[-1], value)
+            if isinstance(cinst, list):
+                cinst.extend(value)
+                logger.debug("\tset array   %r(%r) = %r" %
+                                                    (member.path, pkey, value))
+            else:
+                setattr(cinst, member.path[-1], value)
+                logger.debug("\tset default %r(%r) = %r" %
+                                                    (member.path, pkey, value))
+
+        try:
+            print inst.qo.vehicles
+        except Exception,e:
+            print e
 
         if self.validator is self.SOFT_VALIDATION:
             sti = simple_type_info.values()
@@ -148,7 +164,6 @@ class HttpRpc(ProtocolBase):
                     for i in range(len(pfrag)):
                         f = pfrag[i]
                         ntype_info = ctype_info[f]
-                        z = ctype_info[f].Attributes.min_occurs
 
                         min_o = ctype_info[f].Attributes.min_occurs
                         max_o = ctype_info[f].Attributes.max_occurs

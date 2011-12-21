@@ -392,6 +392,11 @@ class Array(ComplexModel):
 
         return inst
 
+    @classmethod
+    def get_deserialization_instance(cls):
+        return []
+
+
 class Iterable(Array):
     """This class generates a ComplexModel child that has one attribute that has
     the same name as the serialized class. It's contained in a Python iterable.
