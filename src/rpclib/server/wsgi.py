@@ -102,6 +102,20 @@ class WsgiTransportContext(TransportContext):
         self.wsdl_error = None
         """The error when handling WSDL requests."""
 
+    def get_mime_type(self):
+        return self.resp_headers['Content-Type']
+
+    def set_mime_type(self, what):
+        self.resp_headers['Content-Type'] = what
+
+    mime_type = property(get_mime_type, set_mime_type)
+    """Provides an easy way to set outgoing mime type. Synonym for
+    `content_type`"""
+
+    content_type = property(get_mime_type, set_mime_type)
+    """Provides an easy way to set outgoing mime type. Synonym for
+    `mime_type`"""
+
 
 class WsgiMethodContext(MethodContext):
     """The WSGI-Specific method context. WSGI-Specific information is stored in
