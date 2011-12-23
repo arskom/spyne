@@ -102,6 +102,7 @@ ZSI
 * Supports attachments
 * Requires code generation (wsdl2py) for complex data structures
 * Almost complete lack of user-friendliness
+* Lack of WSDL generator
 
 SOAPy
 ------
