@@ -98,8 +98,9 @@ ZSI
 ---
 
 * Unmaintained
+* Contains SOAPpy, which is not the same as SOAPy (notice the extra P)
 
-SOAPPy
+SOAPy
 ------
 
 * ???
