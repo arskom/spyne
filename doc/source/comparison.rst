@@ -106,7 +106,9 @@ ZSI
 SOAPy
 ------
 
-* ???
+* Really simple (only two files, both less than 500 lines of code)
+* Client only
+* Requires PyXML, thus unusable with recent Python versions
 
 rsl
 ---
