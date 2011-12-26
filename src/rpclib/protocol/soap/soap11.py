@@ -150,7 +150,7 @@ class Soap11(XmlObject):
 
         ctx.in_document = _parse_xml_string(ctx.in_string, charset)
 
-    def decompose_incoming_envelope(self, ctx, message='request'):
+    def decompose_incoming_envelope(self, ctx, message=XmlObject.REQUEST):
         envelope_xml, xmlids = ctx.in_document
         header_document, body_document = _from_soap(envelope_xml, xmlids)
 
@@ -173,7 +173,7 @@ class Soap11(XmlObject):
         Not meant to be overridden.
         """
 
-        assert message in ('request', 'response')
+        assert message in (self.REQUEST, self.RESPONSE)
 
         self.event_manager.fire_event('before_deserialize', ctx)
 
@@ -182,11 +182,11 @@ class Soap11(XmlObject):
             ctx.in_error = self.from_element(Fault, ctx.in_body_doc)
 
         else:
-            if message == 'request':
+            if message is self.REQUEST:
                 header_class = ctx.descriptor.in_header
                 body_class = ctx.descriptor.in_message
 
-            elif message == 'response':
+            elif message is self.RESPONSE:
                 header_class = ctx.descriptor.out_header
                 body_class = ctx.descriptor.out_message
 
@@ -221,7 +221,7 @@ class Soap11(XmlObject):
         Not meant to be overridden.
         """
 
-        assert message in ('request', 'response')
+        assert message in (self.REQUEST, self.RESPONSE)
 
         self.event_manager.fire_event('before_serialize', ctx)
 
@@ -237,11 +237,11 @@ class Soap11(XmlObject):
                                     self.app.interface.get_tns(), out_body_doc)
 
         else:
-            if message == 'request':
+            if message is self.REQUEST:
                 header_message_class = ctx.descriptor.in_header
                 body_message_class = ctx.descriptor.in_message
 
-            elif message == 'response':
+            elif message is self.RESPONSE:
                 header_message_class = ctx.descriptor.out_header
                 body_message_class = ctx.descriptor.out_message
 
@@ -305,9 +305,9 @@ class Soap11(XmlObject):
                                     self.app.interface.get_tns(), out_body_doc)
 
         if self.log_messages:
-            if message == 'request':
+            if message is self.REQUEST:
                 line_header = '%sRequest%s' % (LIGHT_GREEN, END_COLOR)
-            elif message == 'response':
+            elif message is self.RESPONSE:
                 line_header = '%sResponse%s' % (LIGHT_RED, END_COLOR)
             logger.debug('%s %s' % (line_header, etree.tostring(ctx.out_document,
                                         xml_declaration=True, pretty_print=True)))

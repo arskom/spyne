@@ -85,3 +85,39 @@ method from running.
 Note that this property is initialized only when the process starts. So you
 should call :func:`ctx.descriptor.reset_function()` to restore it to its
 original value
+
+How do I use variable names that are also python keywords?
+==========================================================
+
+Due to restrictions of the python language, you can't do this:
+
+    class SomeClass(ComplexModel):
+        and = String
+        or = Integer
+        import = Datetime
+
+The workaround is as follows:
+
+    class SomeClass(ComplexModel):
+        _type_info = {
+            'and': String
+            'or': Integer
+            'import': Datetime
+        }
+
+You also can't do this:
+
+    @rpc(String, String, String, _returns=String)
+    def f(ctx, from, import):
+        return '1234'
+
+The workaround is as follows:
+
+    @rpc(String, String, String, _returns=String,
+        _in_variable_names={'_from': 'from',
+            '_import': 'import'},
+        _out_variable_name="return"
+    def f(ctx, _from, _import):
+        return '1234'
+
+See here: https://github.com/arskom/rpclib/blob/rpclib-2.5.0-beta/src/rpclib/test/test_service.py#L114

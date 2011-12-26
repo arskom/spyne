@@ -59,9 +59,6 @@ def complex_to_parent_element(prot, cls, value, tns, parent_elt, name=None):
         name = cls.get_type_name()
 
     element = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
-
-    # here, we try our best to match the incoming value with the class
-    # definition in cls._type_map.
     inst = cls.get_serialization_instance(value)
 
     get_members_etree(prot, cls, inst, element)
@@ -112,7 +109,7 @@ def complex_from_element(prot, cls, element):
 
         setattr(inst, key, value)
 
-    if prot.validator == 'soft':
+    if prot.validator is prot.SOFT_VALIDATION:
         for key, c in flat_type_info.items():
             val = frequencies.get(key, 0)
             if (        val < c.Attributes.min_occurs

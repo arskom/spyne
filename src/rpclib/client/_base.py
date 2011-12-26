@@ -103,7 +103,7 @@ class RemoteProcedureBase(object):
         assert ctx.out_document is None
         assert ctx.out_string is None
 
-        self.app.out_protocol.serialize(ctx, message='request')
+        self.app.out_protocol.serialize(ctx, self.app.out_protocol.REQUEST)
 
         if ctx.service_class != None:
             if ctx.out_error is None:
@@ -127,8 +127,8 @@ class RemoteProcedureBase(object):
             ctx.out_string = [""]
 
     def get_in_object(self, ctx):
-        """Deserializes the response bytestream to input document and native
-        python object.
+        """Deserializes the response bytestream first as a document and then
+        as a native python object.
         """
 
         assert ctx.in_string is not None
@@ -140,10 +140,12 @@ class RemoteProcedureBase(object):
                                             'method_accept_document', ctx)
 
         # sets the ctx.in_body_doc and ctx.in_header_doc properties
-        self.app.in_protocol.decompose_incoming_envelope(ctx, message='response')
+        self.app.in_protocol.decompose_incoming_envelope(ctx,
+                                        message=self.app.in_protocol.RESPONSE)
 
         # this sets ctx.in_object
-        self.app.in_protocol.deserialize(ctx, message='response')
+        self.app.in_protocol.deserialize(ctx,
+                                        message=self.app.in_protocol.RESPONSE)
 
         type_info = ctx.descriptor.out_message._type_info
 
