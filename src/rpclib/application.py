@@ -57,6 +57,12 @@ class Application(object):
         * method_exception_object
             Called when an exception occurred in a service method, before the
             exception is serialized.
+
+        * method_context_constructed
+            Called from the constructor of the MethodContext instance.
+
+        * method_context_destroyed
+            Called from the destructor of the MethodContext instance.
     '''
 
     transport = None

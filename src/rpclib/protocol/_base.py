@@ -36,6 +36,7 @@ from rpclib.const.http import HTTP_400
 from rpclib.const.http import HTTP_404
 from rpclib.const.http import HTTP_413
 from rpclib.const.http import HTTP_500
+
 from rpclib.error import ResourceNotFoundError
 from rpclib.error import RequestTooLongError
 from rpclib.error import Fault
@@ -62,13 +63,16 @@ class ProtocolBase(object):
     allowed_http_verbs = ['GET', 'POST']
     mime_type = 'application/octet-stream'
 
+    SOFT_VALIDATION = type("soft", (object,), {})
+    REQUEST = type("request", (object,), {})
+    RESPONSE = type("response", (object,), {})
+
     def __init__(self, app=None, validator=None):
         self.__app = None
 
         self.set_app(app)
         self.event_manager = EventManager(self)
-        self.validator = validator
-        self.check_validator()
+        self.set_validator(validator)
 
     @property
     def app(self):
@@ -155,6 +159,8 @@ class ProtocolBase(object):
         for sc, d in call_handles:
             c = copy(ctx)
 
+            assert d != None
+
             c.descriptor = d
             c.service_class = sc
 
@@ -167,13 +173,16 @@ class ProtocolBase(object):
             return HTTP_413
         if isinstance(fault, ResourceNotFoundError):
             return HTTP_404
-        if isinstance(fault, Fault) and fault.faultcode.startswith('Client.'):
+        if isinstance(fault, Fault) and (fault.faultcode.startswith('Client.')
+                                                or fault.faultcode == 'Client'):
             return HTTP_400
         else:
             return HTTP_500
 
-    def check_validator(self):
+    def set_validator(self, validator):
         """You must override this function if your protocol supports validation.
         """
 
-        assert self.validator is None
+        assert validator is None
+
+        self.validator = None

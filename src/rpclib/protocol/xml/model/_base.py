@@ -41,7 +41,8 @@ def nillable_value(func):
 def nillable_element(func):
     def wrapper(prot, cls, element):
         if bool(element.get('{%s}nil' % _ns_xsi)):
-            if prot.validator == 'soft' and (not cls.Attributes.nillable or
+            if prot.validator is prot.SOFT_VALIDATION and (
+                        not cls.Attributes.nillable or
                                     cls.Attributes._has_non_nillable_children):
                 raise ValidationError('')
             else:
@@ -52,10 +53,12 @@ def nillable_element(func):
 
 @nillable_element
 def base_from_element(prot, cls, element):
-    if prot.validator == 'soft' and not (cls.validate_string(cls, element.text)):
+    if prot.validator is prot.SOFT_VALIDATION and not (
+                                        cls.validate_string(cls, element.text)):
         raise ValidationError(element.text)
     retval = cls.from_string(element.text)
-    if prot.validator == 'soft' and not (cls.validate_native(cls, retval)):
+    if prot.validator is prot.SOFT_VALIDATION and not (
+                                        cls.validate_native(cls, retval)):
         raise ValidationError(element.text)
     return retval
 

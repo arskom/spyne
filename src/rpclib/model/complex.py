@@ -31,6 +31,15 @@ from rpclib.model import nillable_string
 from rpclib.util.odict import odict as TypeInfo
 from rpclib.const import xml_ns as namespace
 
+
+class _SimpleTypeInfoElement(object):
+    __slots__ = ['path', 'parent', 'type']
+    def __init__(self, path, parent, type_):
+        self.path = path
+        self.parent = parent
+        self.type = type_
+
+
 class XmlAttribute(ModelBase):
     """Items which are marshalled as attributes of the parent element."""
 
@@ -155,17 +164,22 @@ class ComplexModelBase(ModelBase):
         return getattr(self, self._type_info.keys()[i], None)
 
     def __repr__(self):
-        return "%s(%r)" % (self.get_type_name(),
-                           ['%s=%s' % (k, getattr(self, k, None))
-                           for k in self.__class__._type_info])
+        return "%s(%s)" % (self.get_type_name(), ', '.join(
+                           ['%s=%r' % (k, getattr(self, k, None))
+                                            for k in self.__class__._type_info]))
 
     @classmethod
     def get_serialization_instance(cls, value):
+        """The value argument can be:
+            * A list of native types aligned with cls._type_info.
+            * A dict of native types
+            * The native type itself.
+        """
         # if the instance is a list, convert it to a cls instance.
-        # this is only useful when deserializing method arguments which is the
-        # only time when the member order is not arbitrary (as the members
-        # are declared and passed around as sequences of arguments, unlike
-        # dictionaries in a regular class definition).
+        # this is only useful when deserializing method arguments for a client
+        # request which is the only time when the member order is not arbitrary
+        # (as the members are declared and passed around as sequences of
+        # arguments, unlike dictionaries in a regular class definition).
         if isinstance(value, list) or isinstance(value, tuple):
             assert len(value) <= len(cls._type_info)
 
@@ -188,6 +202,9 @@ class ComplexModelBase(ModelBase):
 
     @classmethod
     def get_deserialization_instance(cls):
+        """Get an empty native type so that the deserialization logic can set
+        its attributes.
+        """
         return cls()
 
     @classmethod
@@ -232,7 +249,7 @@ class ComplexModelBase(ModelBase):
         return retval
 
     @staticmethod
-    def get_simple_type_info(cls, retval=None, prefix=None):
+    def get_simple_type_info(cls, retval=None, prefix=None, parent=None):
         """Returns a _type_info dict that includes members from all base classes
         and whose types are only primitives.
         """
@@ -241,23 +258,28 @@ class ComplexModelBase(ModelBase):
 
         if retval is None:
             retval = {}
-
-        if prefix:
-            prefix += "_"
-        else:
-            prefix = ""
+        if prefix is None:
+            prefix = []
 
         fti = cls.get_flat_type_info(cls)
         for k, v in fti.items():
             if getattr(v, 'get_flat_type_info', None) is None:
-                key = prefix + k
+                new_prefix = list(prefix)
+                new_prefix.append(k)
+                key = '_'.join(new_prefix)
                 value = retval.get(key, None)
+
                 if value:
                     raise ValueError("%r.%s conflicts with %r" % (cls, k, value))
+
                 else:
-                    retval[key] = v
+                    retval[key] = _SimpleTypeInfoElement(
+                                        path=tuple(new_prefix), parent=parent, type_=v)
+
             else:
-                v.get_simple_type_info(v, retval, k)
+                new_prefix = list(prefix)
+                new_prefix.append(k)
+                v.get_simple_type_info(v, retval, new_prefix, parent=cls)
 
         return retval
 
@@ -331,7 +353,7 @@ class Array(ComplexModel):
     """
 
     def __new__(cls, serializer, ** kwargs):
-        retval = cls.customize( ** kwargs)
+        retval = cls.customize(**kwargs)
 
         # hack to default to unbounded arrays when the user didn't specify
         # max_occurs. We should find a better way.
@@ -377,6 +399,11 @@ class Array(ComplexModel):
         setattr(inst, member_name, value)
 
         return inst
+
+    @classmethod
+    def get_deserialization_instance(cls):
+        return []
+
 
 class Iterable(Array):
     """This class generates a ComplexModel child that has one attribute that has

@@ -62,7 +62,7 @@ def _wsgi_input_to_iterable(http_env):
         yield data
 
 def reconstruct_wsgi_request(http_env):
-    """Reconstruct http payload using information in the http header"""
+    """Reconstruct http payload using information in the http header."""
 
     # fyi, here's what the parse_header function returns:
     # >>> import cgi; cgi.parse_header("text/xml; charset=utf-8")
@@ -102,10 +102,25 @@ class WsgiTransportContext(TransportContext):
         self.wsdl_error = None
         """The error when handling WSDL requests."""
 
+    def get_mime_type(self):
+        return self.resp_headers['Content-Type']
+
+    def set_mime_type(self, what):
+        self.resp_headers['Content-Type'] = what
+
+    mime_type = property(get_mime_type, set_mime_type)
+    """Provides an easy way to set outgoing mime type. Synonym for
+    `content_type`"""
+
+    content_type = property(get_mime_type, set_mime_type)
+    """Provides an easy way to set outgoing mime type. Synonym for
+    `mime_type`"""
+
 
 class WsgiMethodContext(MethodContext):
     """The WSGI-Specific method context. WSGI-Specific information is stored in
-    the transport attribute using the :class:`WsgiTransportContext` class."""
+    the transport attribute using the :class:`WsgiTransportContext` class.
+    """
 
     def __init__(self, app, req_env, content_type):
         MethodContext.__init__(self, app)
@@ -244,6 +259,7 @@ class WsgiApplication(ServerBase):
 
             self.get_in_object(ctx)
             if ctx.in_error:
+                logger.error(ctx.in_error)
                 return self.handle_error(ctx, ctx.in_error, start_response)
 
             self.get_out_object(ctx)
