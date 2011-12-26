@@ -1,11 +1,10 @@
-
 .. _manual-comparison:
 
 Comparison with other rpc frameworks
 ====================================
 
 RPC is a very popular subject. There's a plethora of active and inactive
-projects that satisfy a wide arrange of requirements. Here are the main sources
+projects that satisfy a wide range of requirements. Here are the main sources
 of information:
 
 * http://pypi.python.org/pypi?%3Aaction=search&term=rpc
@@ -98,12 +97,19 @@ Suds
 ZSI
 ---
 
-* Unmaintained
+* Unmaintained, although still works with recent Python versions
+* Contains SOAPpy, which is not the same as SOAPy (notice the extra P)
+* Supports attachments
+* Requires code generation (wsdl2py) for complex data structures
+* Almost complete lack of user-friendliness
+* Lack of WSDL generator
 
-SOAPPy
+SOAPy
 ------
 
-* ???
+* Really simple (only two files, both less than 500 lines of code)
+* Client only
+* Requires PyXML, thus unusable with recent Python versions
 
 rsl
 ---

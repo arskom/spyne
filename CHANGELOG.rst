@@ -9,6 +9,8 @@ rpclib-2.5.1-beta
  * Started parsing Http headers in HttpRpc protocol.
  * HttpRpc now properly validates nested value frequencies.
  * HttpRpc now works with arrays of simple types as well.
+ * Full change log: https://github.com/arskom/rpclib/pull/117
+                    https://github.com/arskom/rpclib/pull/116
 
 rpclib-2.5.0-beta
 -----------------
