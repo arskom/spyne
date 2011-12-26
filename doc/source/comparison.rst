@@ -97,12 +97,19 @@ Suds
 ZSI
 ---
 
-* Unmaintained
+* Unmaintained, although still works with recent Python versions
+* Contains SOAPpy, which is not the same as SOAPy (notice the extra P)
+* Supports attachments
+* Requires code generation (wsdl2py) for complex data structures
+* Almost complete lack of user-friendliness
+* Lack of WSDL generator
 
-SOAPPy
+SOAPy
 ------
 
-* ???
+* Really simple (only two files, both less than 500 lines of code)
+* Client only
+* Requires PyXML, thus unusable with recent Python versions
 
 rsl
 ---
