@@ -199,9 +199,13 @@ class HttpRpc(ProtocolBase):
 
         self.event_manager.fire_event('before_deserialize', ctx)
 
-        if ctx.in_header_doc is not None:
+        if len(ctx.in_header_doc) > 0:
             ctx.in_header = self.dict_to_object(ctx.in_header_doc,
                                                     ctx.descriptor.in_header)
+        else:
+            ctx.in_header = [None] * len(
+                        ctx.descriptor.in_header.get_flat_type_info(
+                                                    ctx.descriptor.in_message))
 
         if ctx.in_body_doc is not None:
             ctx.in_object = self.dict_to_object(ctx.in_body_doc,
