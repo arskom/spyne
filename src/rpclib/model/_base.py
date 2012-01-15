@@ -257,7 +257,7 @@ class SimpleModel(ModelBase):
         values = set()
         """The set of possible values for this type."""
 
-    def __new__(cls, ** kwargs):
+    def __new__(cls, **kwargs):
         """Overriden so that any attempt to instantiate a primitive will return
         a customized class instead of an instance.
 
