@@ -61,6 +61,7 @@ _type_map = {
     sqlalchemy.Integer: primitive.Integer,
     sqlalchemy.SmallInteger: primitive.Integer,
 
+    sqlalchemy.Binary: binary.ByteArray,
     sqlalchemy.LargeBinary: binary.ByteArray,
     sqlalchemy.Boolean: primitive.Boolean,
     sqlalchemy.DateTime: primitive.DateTime,

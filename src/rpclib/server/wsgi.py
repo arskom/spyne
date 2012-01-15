@@ -42,7 +42,12 @@ BLOCK_LENGTH = 8 * 1024
 def _wsgi_input_to_iterable(http_env):
     istream = http_env.get('wsgi.input')
 
-    length = int(http_env.get('CONTENT_LENGTH', str(MAX_CONTENT_LENGTH)))
+    length = http_env.get('CONTENT_LENGTH', str(MAX_CONTENT_LENGTH))
+    if len(length) == 0:
+        length = 0
+    else:
+        length = int(length)
+
     if length > MAX_CONTENT_LENGTH:
         raise RequestTooLongError()
     bytes_read = 0

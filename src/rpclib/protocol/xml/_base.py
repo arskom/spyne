@@ -71,7 +71,8 @@ class XmlObject(ProtocolBase):
     conventions.
 
     :param app: The owner application instance.
-    :param validator: One of (None, 'soft', 'lxml').
+    :param validator: One of (None, 'soft', 'lxml', 'schema',
+                ProtocolBase.SOFT_VALIDATION, XmlObject.SCHEMA_VALIDATION).
     """
 
     SCHEMA_VALIDATION = type("schema", (object,), {})

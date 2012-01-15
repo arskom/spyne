@@ -69,6 +69,7 @@ class ProtocolBase(object):
 
     def __init__(self, app=None, validator=None):
         self.__app = None
+        self.validator = None
 
         self.set_app(app)
         self.event_manager = EventManager(self)

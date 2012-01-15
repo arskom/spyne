@@ -552,5 +552,5 @@ class Boolean(SimpleModel):
 class Mandatory(object):
     """Class that contains mandatory variants of primitives."""
 
-    String = String(min_occurs=1, nillable=False, min_len=1)
-    Integer = Integer(min_occurs=1, nillable=False)
+    String = String(type_name="mandatory_string", min_occurs=1, nillable=False, min_len=1)
+    Integer = Integer(type_name="mandatory_integer", min_occurs=1, nillable=False)

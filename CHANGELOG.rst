@@ -2,6 +2,11 @@
 Changelog
 =========
 
+rpclib-2.5.2-beta
+-----------------
+ * Misc. fixes.
+ * Full change log: https://github.com/arskom/rpclib/pull/118
+
 rpclib-2.5.1-beta
 -----------------
  * Switched to magic cookie constants instead of strings in protocol logic.

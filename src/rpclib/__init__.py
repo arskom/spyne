@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-__version__ = '2.5.1-beta'
+__version__ = '2.5.2-beta'
 
 from rpclib._base import TransportContext
 from rpclib._base import EventContext
