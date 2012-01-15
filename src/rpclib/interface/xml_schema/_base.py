@@ -108,7 +108,7 @@ class XmlSchema(InterfaceBase):
                     import_.set('schemaLocation', sl)
 
             # append simpleType and complexType tags
-            for node in self.namespaces[pref].types.values():
+            for node in reversed(self.namespaces[pref].types.values()):
                 schema.append(node)
 
             # append element tags
