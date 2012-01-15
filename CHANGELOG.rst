@@ -2,6 +2,10 @@
 Changelog
 =========
 
+rpclib-2.5.2-beta
+-----------------
+ * Misc. fixes.
+
 rpclib-2.5.1-beta
 -----------------
  * Switched to magic cookie constants instead of strings in protocol logic.
