@@ -33,8 +33,7 @@ def simple_get_restriction_tag(interface, cls):
     restriction.set('base', cls.__base_type__.get_type_name_ns(interface))
 
     for v in cls.Attributes.values:
-        enumeration = etree.SubElement(restriction,
-                                                '{%s}enumeration' % _ns_xsd)
+        enumeration = etree.SubElement(restriction, '{%s}enumeration' % _ns_xsd)
         enumeration.set('value', str(v))
 
     return restriction
