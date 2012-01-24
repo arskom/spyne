@@ -114,8 +114,7 @@ class XmlObject(ProtocolBase):
             self.validate_document = self.__validate_lxml
             self.validator = self.SCHEMA_VALIDATION
 
-        elif validator is self.SOFT_VALIDATION or \
-                                    validator is ProtocolBase.SOFT_VALIDATION:
+        elif validator == 'soft' or validator is self.SOFT_VALIDATION:
             self.validator = self.SOFT_VALIDATION
 
         elif validator is None:
