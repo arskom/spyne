@@ -173,7 +173,7 @@ class XmlObject(ProtocolBase):
         """Sets an iterable of string fragments to ctx.out_string"""
 
         if charset is None:
-            charset = 'utf8'
+            charset = 'UTF-8'
 
         ctx.out_string = [etree.tostring(ctx.out_document,
                         xml_declaration=self.xml_declaration, encoding=charset)]
