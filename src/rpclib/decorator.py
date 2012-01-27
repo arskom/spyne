@@ -158,11 +158,13 @@ def srpc(*params, **kparams):
             _no_ctx = kparams.get('_no_ctx', True)
             _udp = kparams.get('_udp', None)
 
+            _faults = None
             if ('_faults' in kparams) and ('_throws' in kparams):
                 raise ValueError("only one of '_throws ' and '_faults' arguments"
                                  "should be given, as they're synonyms.")
-            _faults = kparams.get('_faults', None)
-            if _faults is None:
+            elif '_faults' in kparams:
+                _faults = kparams.get('_faults', None)
+            elif '_throws' in kparams:
                 _faults = kparams.get('_throws', None)
 
             _in_message_name = kparams.get('_in_message_name', function_name)
