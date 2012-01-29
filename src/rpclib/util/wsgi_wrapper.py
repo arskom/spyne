@@ -30,15 +30,15 @@ from twisted.web.resource import Resource
 from twisted.web.wsgi import WSGIResource
 from twisted.internet import reactor
 
-def run_twisted(apps, port, with_static_file_server=True):
+def run_twisted(apps, port, static_dir='.'):
     """Twisted wrapper for the rpclib.server.wsgi.Application
 
     Takes a list of tuples containing application, url pairs, and a port to
     to listen to.
     """
 
-    static_dir = os.path.abspath(".")
-    if with_static_file_server:
+    if static_dir != None:
+        static_dir = os.path.abspath(static_dir)
         logging.info("registering static folder %r on /" % static_dir)
         root = twisted.web.static.File(static_dir)
     else:
