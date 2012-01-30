@@ -29,9 +29,10 @@ from rpclib import _bytes_join
 from rpclib.model import nillable_string
 from rpclib.model import nillable_iterable
 from rpclib.model import ModelBase
+from rpclib.model import SimpleModel
 
 
-class ByteArray(ModelBase):
+class ByteArray(SimpleModel):
     """Handles anything other than ascii or unicode-encoded data. Every protocol
     has a different way to handle arbitrary data. E.g. xml-based protocols
     encode this as base64, while HttpRpc just hands it over.

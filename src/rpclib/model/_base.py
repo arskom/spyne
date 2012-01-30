@@ -267,7 +267,11 @@ class SimpleModel(ModelBase):
         retval = cls.customize( ** kwargs)
 
         if not retval.is_default(retval):
-            retval.__base_type__ = cls
+            if hasattr(cls, '_is_clone_of'):
+                retval.__base_type__ = cls._is_clone_of
+            else:
+                retval.__base_type__ = cls
+
             retval.__type_name__ = kwargs.get("type_name", ModelBase.Empty)
 
         return retval
