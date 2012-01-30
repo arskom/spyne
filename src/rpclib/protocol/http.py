@@ -272,3 +272,11 @@ class HttpRpc(ProtocolBase):
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         ctx.out_string = ctx.out_document
+
+    def get_call_handles(self, ctx):
+        retval = super(HttpRpc, self).get_call_handles(ctx)
+
+        if len(retval) == 0:
+            pass
+
+        return retval
