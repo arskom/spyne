@@ -2,6 +2,11 @@
 Changelog
 =========
 
+rpclib-2.6.0-beta
+-----------------
+ * HttpRpc now parses POST/PUT/PATCH bodies, can accept file uploads.
+   Uses werkzeug to do that.
+
 rpclib-2.5.2-beta
 -----------------
  * Misc. fixes.
