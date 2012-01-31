@@ -6,6 +6,8 @@ rpclib-2.6.0-beta
 -----------------
  * HttpRpc now parses POST/PUT/PATCH bodies, can accept file uploads.
    Uses werkzeug to do that.
+ * ByteArray now child of SimpleModel. It's now possible to customize it simply
+   by calling it.
 
 rpclib-2.5.2-beta
 -----------------
