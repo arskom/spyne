@@ -234,6 +234,7 @@ class ModelBase(object):
         """Override this method to do your own input validation on the native
         value. This is called after converting the incoming string to the
         native python value."""
+
         return True
 
 class Null(ModelBase):
