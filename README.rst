@@ -1,4 +1,3 @@
-
 Warning! This is from rpclib's unstable development branch.
 
 About
@@ -58,6 +57,7 @@ that Rpclib supports:
   :class:`rpclib.client.zeromq.ZeroMQClient` and
   :class:`rpclib.server.zeromq.ZeroMQServer`.
 * A Wsgi server of your choice to wrap :class:`rpclib.server.wsgi.WsgiApplication`.
+* `Werkzeug <http://werkzeug.pocoo.org/>` is needed for :class:`rpclib.protocol.http.HttpSoap`.
 
 Installing
 ==========
