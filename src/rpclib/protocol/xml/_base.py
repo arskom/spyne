@@ -148,8 +148,8 @@ class XmlObject(ProtocolBase):
                 line_header = LIGHT_RED + "Response:" + END_COLOR
         finally:
             if self.log_messages:
-                logger.debug("%s %s" % (line_header,
-                            etree.tostring(ctx.in_document, pretty_print=True)))
+                logger.debug("%s %s" % (line_header, ctx.method_request_string))
+                logger.debug(etree.tostring(ctx.in_document, pretty_print=True))
 
     def create_in_document(self, ctx, charset=None):
         """Uses the iterable of string fragments in ``ctx.in_string`` to set
