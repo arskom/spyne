@@ -66,14 +66,19 @@ def _wsgi_input_to_iterable(http_env):
 
         yield data
 
+
 def reconstruct_wsgi_request(http_env):
     """Reconstruct http payload using information in the http header."""
 
     # fyi, here's what the parse_header function returns:
     # >>> import cgi; cgi.parse_header("text/xml; charset=utf-8")
     # ('text/xml', {'charset': 'utf-8'})
-    content_type = cgi.parse_header(http_env.get("CONTENT_TYPE"))
-    charset = content_type[1].get('charset', 'utf-8')
+    content_type = http_env.get("CONTENT_TYPE")
+    if content_type is None:
+        charset = 'UTF-8'
+    else:
+        content_type = cgi.parse_header(content_type)
+        charset = content_type[1].get('charset', 'UTF-8')
 
     return _wsgi_input_to_iterable(http_env), charset
 
