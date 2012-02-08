@@ -76,7 +76,7 @@ class User(TableModel, DeclarativeBase):
 
 # this is the same as the above user object. Use this method of declaring
 # objects for tables that have to be defined elsewhere.
-class AlternativeUser(TableSerializer, DeclarativeBase):
+class AlternativeUser(TableModel, DeclarativeBase):
     __namespace__ = 'rpclib.examples.user_manager'
     __table__ = User.__table__
 
