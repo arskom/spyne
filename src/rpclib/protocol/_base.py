@@ -34,11 +34,12 @@ from rpclib._base import EventManager
 
 from rpclib.const.http import HTTP_400
 from rpclib.const.http import HTTP_404
+from rpclib.const.http import HTTP_405
 from rpclib.const.http import HTTP_413
 from rpclib.const.http import HTTP_500
 
 from rpclib.error import ResourceNotFoundError
-from rpclib.error import RequestTooLongError
+from rpclib.error import RequestNotAllowed
 from rpclib.error import Fault
 
 class ProtocolBase(object):
@@ -179,6 +180,8 @@ class ProtocolBase(object):
             return HTTP_413
         if isinstance(fault, ResourceNotFoundError):
             return HTTP_404
+        if isinstance(fault, RequestNotAllowed):
+            return HTTP_405
         if isinstance(fault, Fault) and (fault.faultcode.startswith('Client.')
                                                 or fault.faultcode == 'Client'):
             return HTTP_400
