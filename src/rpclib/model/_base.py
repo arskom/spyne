@@ -95,6 +95,8 @@ class ModelBase(object):
     class Empty(object):
         pass
 
+    _force_own_namespace = set()
+
     @staticmethod
     def is_default(cls):
         return True
@@ -135,6 +137,9 @@ class ModelBase(object):
 
         if cls.__namespace__ is None:
             cls.__namespace__ = cls.__module__
+
+        for c in cls._force_own_namespace:
+            c.__namespace__ = cls.__namespace__
 
     @classmethod
     def get_type_name(cls):
@@ -283,7 +288,7 @@ class SimpleModel(ModelBase):
 
     @staticmethod
     def validate_string(cls, value):
-        return (    ModelBase.validate_string(cls, value)
+        return (     ModelBase.validate_string(cls, value)
                 and (len(cls.Attributes.values) == 0 or
                                                 value in cls.Attributes.values)
             )

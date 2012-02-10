@@ -39,6 +39,7 @@ from rpclib.const.http import HTTP_413
 from rpclib.const.http import HTTP_500
 
 from rpclib.error import ResourceNotFoundError
+from rpclib.error import RequestTooLongError
 from rpclib.error import RequestNotAllowed
 from rpclib.error import Fault
 
