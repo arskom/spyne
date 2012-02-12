@@ -76,7 +76,7 @@ class User(TableModel, DeclarativeBase):
 
 # this is the same as the above user object. Use this method of declaring
 # objects for tables that have to be defined elsewhere.
-class AlternativeUser(TableSerializer, DeclarativeBase):
+class AlternativeUser(TableModel, DeclarativeBase):
     __namespace__ = 'rpclib.examples.user_manager'
     __table__ = User.__table__
 
@@ -108,16 +108,12 @@ class UserDefinedContext(object):
     def __init__(self):
         self.session = Session()
 
-    def __del__(self):
-        self.session.close()
-
 def _on_method_call(ctx):
     ctx.udc = UserDefinedContext()
 
 def _on_method_return_object(ctx):
-    # we don't do this in UserDefinedContext.__del__ simply to be able to alert
-    # the client in case the commit fails.
     ctx.udc.session.commit()
+    ctx.udc.session.close()
 
 application = Application([UserManagerService], 'rpclib.examples.user_manager',
             interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())

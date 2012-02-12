@@ -30,9 +30,19 @@ except ImportError: # Python 3
     from urllib.parse import parse_qs
 
 from rpclib.error import ValidationError
-from rpclib.model.complex import Array
+from rpclib.model.binary import ByteArray
 from rpclib.model.fault import Fault
 from rpclib.protocol import ProtocolBase
+
+from werkzeug.formparser import parse_form_data
+
+STREAM_READ_BLOCK_SIZE = 16384
+
+def yield_stream(istr):
+    data = istr.read(STREAM_READ_BLOCK_SIZE)
+    while len(data) > 0:
+        yield data
+        data = istr.read(STREAM_READ_BLOCK_SIZE)
 
 def _get_http_headers(req_env):
     retval = {}
@@ -68,10 +78,35 @@ class HttpRpc(ProtocolBase):
     def decompose_incoming_envelope(self, ctx):
         ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
                               ctx.in_document['PATH_INFO'].split('/')[-1])
+
         logger.debug("\033[92mMethod name: %r\033[0m" % ctx.method_request_string)
 
         ctx.in_header_doc = _get_http_headers(ctx.in_document)
         ctx.in_body_doc = parse_qs(ctx.in_document['QUERY_STRING'])
+
+        if ctx.transport.req_env['REQUEST_METHOD'].lower() in ('post', 'put', 'patch'):
+            stream, form, files = parse_form_data(ctx.transport.req_env)
+
+            for k, v in form.lists():
+                val = ctx.in_body_doc.get(k, [])
+                val.extend(v)
+                ctx.in_body_doc[k] = val
+
+            for k, v in files.items():
+                val = ctx.in_body_doc.get(k, [])
+                val.append(yield_stream(v.stream))
+                ctx.in_body_doc[k] = val
+
+                # FIXME: some proper variable matching is needed here.
+                k2 = k + "_name"
+                val = ctx.in_body_doc.get(k2, [])
+                val.append(v.filename)
+                ctx.in_body_doc[k2] = val
+
+                k2 = k + "_type"
+                val = ctx.in_body_doc.get(k2, [])
+                val.append(v.headers.get('Content-Type','application/octet-stream'))
+                ctx.in_body_doc[k2] = val
 
         logger.debug('\theader : %r' % (ctx.in_header_doc))
         logger.debug('\tbody   : %r' % (ctx.in_body_doc))
@@ -101,7 +136,16 @@ class HttpRpc(ProtocolBase):
                 if (self.validator is self.SOFT_VALIDATION and not
                             member.type.validate_string(member.type, v2)):
                     raise ValidationError(v2)
-                native_v2 = member.type.from_string(v2)
+
+                if member.type is ByteArray or \
+                        getattr(member.type, '_is_clone_of', None) is ByteArray:
+                    if isinstance(v2, str) or isinstance(v2, unicode):
+                        native_v2 = member.type.from_string(v2)
+                    else:
+                        native_v2 = v2
+                else:
+                    native_v2 = member.type.from_string(v2)
+
                 if (self.validator is self.SOFT_VALIDATION and not
                             member.type.validate_native(member.type, native_v2)):
                     raise ValidationError(v2)
@@ -147,11 +191,6 @@ class HttpRpc(ProtocolBase):
                 setattr(cinst, member.path[-1], value)
                 logger.debug("\tset default %r(%r) = %r" %
                                                     (member.path, pkey, value))
-
-        try:
-            print inst.qo.vehicles
-        except Exception,e:
-            print e
 
         if self.validator is self.SOFT_VALIDATION:
             sti = simple_type_info.values()
@@ -199,21 +238,10 @@ class HttpRpc(ProtocolBase):
 
         self.event_manager.fire_event('before_deserialize', ctx)
 
-        if len(ctx.in_header_doc) > 0:
-            ctx.in_header = self.dict_to_object(ctx.in_header_doc,
+        ctx.in_header = self.dict_to_object(ctx.in_header_doc,
                                                     ctx.descriptor.in_header)
-        else:
-            ctx.in_header = [None] * len(
-                        ctx.descriptor.in_header.get_flat_type_info(
-                                                    ctx.descriptor.in_message))
-
-        if ctx.in_body_doc is not None:
-            ctx.in_object = self.dict_to_object(ctx.in_body_doc,
+        ctx.in_object = self.dict_to_object(ctx.in_body_doc,
                                                     ctx.descriptor.in_message)
-        else:
-            ctx.in_object = [None] * len(
-                        ctx.descriptor.in_message.get_flat_type_info(
-                                                    ctx.descriptor.in_message))
 
         self.event_manager.fire_event('after_deserialize', ctx)
 
@@ -244,3 +272,11 @@ class HttpRpc(ProtocolBase):
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         ctx.out_string = ctx.out_document
+
+    def get_call_handles(self, ctx):
+        retval = super(HttpRpc, self).get_call_handles(ctx)
+
+        if len(retval) == 0:
+            pass
+
+        return retval

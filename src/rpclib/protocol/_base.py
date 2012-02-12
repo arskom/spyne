@@ -34,11 +34,13 @@ from rpclib._base import EventManager
 
 from rpclib.const.http import HTTP_400
 from rpclib.const.http import HTTP_404
+from rpclib.const.http import HTTP_405
 from rpclib.const.http import HTTP_413
 from rpclib.const.http import HTTP_500
 
 from rpclib.error import ResourceNotFoundError
 from rpclib.error import RequestTooLongError
+from rpclib.error import RequestNotAllowed
 from rpclib.error import Fault
 
 class ProtocolBase(object):
@@ -142,19 +144,9 @@ class ProtocolBase(object):
             raise ResourceNotFoundError('Method %r not found.' % name)
 
     def generate_method_contexts(self, ctx):
-        """Method to be overriden to perform any sort of custom matching between
-        the method_request_string and the methods. Returns a list of contexts.
-        Can return multiple contexts if a method_request_string matches more
-        than one function. (This is called the fanout mode.)
-        """
-
-        name = ctx.method_request_string
-        if not name.startswith("{"):
-            name = '{%s}%s' % (self.app.interface.get_tns(), name)
-
-        call_handles = self.app.interface.service_method_map.get(name, [])
+        call_handles = self.get_call_handles(ctx)
         if len(call_handles) == 0:
-            raise ResourceNotFoundError('Method %r not found.' % name)
+            raise ResourceNotFoundError('Method %r not found.' % ctx.method_request_string)
 
         retval = []
         for sc, d in call_handles:
@@ -169,11 +161,28 @@ class ProtocolBase(object):
 
         return retval
 
+    def get_call_handles(self, ctx):
+        """Method to be overriden to perform any sort of custom method mapping
+        using any data in the method context. Returns a list of contexts.
+        Can return multiple contexts if a method_request_string matches more
+        than one function. (This is called the fanout mode.)
+        """
+
+        name = ctx.method_request_string
+        if not name.startswith("{"):
+            name = '{%s}%s' % (self.app.interface.get_tns(), name)
+
+        call_handles = self.app.interface.service_method_map.get(name, [])
+
+        return call_handles
+
     def fault_to_http_response_code(self, fault):
         if isinstance(fault, RequestTooLongError):
             return HTTP_413
         if isinstance(fault, ResourceNotFoundError):
             return HTTP_404
+        if isinstance(fault, RequestNotAllowed):
+            return HTTP_405
         if isinstance(fault, Fault) and (fault.faultcode.startswith('Client.')
                                                 or fault.faultcode == 'Client'):
             return HTTP_400

@@ -27,18 +27,19 @@ logger = logging.getLogger(__name__)
 import cgi
 
 import rpclib.const.xml_ns as ns
-from rpclib.const.ansi_color import LIGHT_GREEN
-from rpclib.const.ansi_color import LIGHT_RED
-from rpclib.const.ansi_color import END_COLOR
 
 from lxml import etree
 from lxml.etree import XMLSyntaxError
 
+from rpclib.const.http import HTTP_405
 from rpclib.const.http import HTTP_500
+from rpclib.const.ansi_color import LIGHT_GREEN
+from rpclib.const.ansi_color import LIGHT_RED
+from rpclib.const.ansi_color import END_COLOR
+from rpclib.error import RequestNotAllowed
+from rpclib.model.fault import Fault
 from rpclib.protocol.xml import XmlObject
 from rpclib.protocol.soap.mime import collapse_swa
-
-from rpclib.model.fault import Fault
 
 def _from_soap(in_envelope_xml, xmlids=None):
     '''Parses the xml string into the header and payload.'''
@@ -145,7 +146,17 @@ class Soap11(XmlObject):
 
     def create_in_document(self, ctx, charset=None):
         if ctx.transport.type == 'wsgi':
-            content_type = cgi.parse_header(ctx.transport.req_env.get("CONTENT_TYPE"))
+            # according to the soap via http standard, soap requests must only
+            # work with proper POST requests.
+            content_type = ctx.transport.req_env.get("CONTENT_TYPE")
+            http_verb = ctx.transport.req_env['REQUEST_METHOD'].upper()
+            if content_type is None or http_verb != "POST":
+                ctx.transport.resp_code = HTTP_405
+                raise RequestNotAllowed(
+                        "You must issue a POST request with the Content-Type "
+                        "header properly set.")
+
+            content_type = cgi.parse_header(content_type)
             collapse_swa(content_type, ctx.in_string)
 
         ctx.in_document = _parse_xml_string(ctx.in_string, charset)
