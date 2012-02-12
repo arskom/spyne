@@ -97,7 +97,7 @@ That's mostly because rpclib is the continuation of soaplib, but also
 because soap is an important part of rpclib.
 
 If you wish to contribute to rpclib's development, create a personal fork
-on GitHub.  When you are ready to push to the mainstream repository,
+on GitHub.  When you are ready to push to the upstream repository,
 submit a pull request to bring your work to the attention of the core
 committers. They will respond to review your patch and act accordingly.
 
