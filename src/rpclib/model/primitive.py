@@ -554,3 +554,4 @@ class Mandatory(object):
 
     String = String(type_name="mandatory_string", min_occurs=1, nillable=False, min_len=1)
     Integer = Integer(type_name="mandatory_integer", min_occurs=1, nillable=False)
+    UnsignedInteger = UnsignedInteger(type_name="mandatory_unsigned_integer", min_occurs=1, nillable=False)

@@ -114,8 +114,7 @@ class XmlObject(ProtocolBase):
             self.validate_document = self.__validate_lxml
             self.validator = self.SCHEMA_VALIDATION
 
-        elif validator is self.SOFT_VALIDATION or \
-                                    validator is ProtocolBase.SOFT_VALIDATION:
+        elif validator == 'soft' or validator is self.SOFT_VALIDATION:
             self.validator = self.SOFT_VALIDATION
 
         elif validator is None:
@@ -149,8 +148,8 @@ class XmlObject(ProtocolBase):
                 line_header = LIGHT_RED + "Response:" + END_COLOR
         finally:
             if self.log_messages:
-                logger.debug("%s %s" % (line_header,
-                            etree.tostring(ctx.in_document, pretty_print=True)))
+                logger.debug("%s %s" % (line_header, ctx.method_request_string))
+                logger.debug(etree.tostring(ctx.in_document, pretty_print=True))
 
     def create_in_document(self, ctx, charset=None):
         """Uses the iterable of string fragments in ``ctx.in_string`` to set
@@ -174,7 +173,7 @@ class XmlObject(ProtocolBase):
         """Sets an iterable of string fragments to ctx.out_string"""
 
         if charset is None:
-            charset = 'utf8'
+            charset = 'UTF-8'
 
         ctx.out_string = [etree.tostring(ctx.out_document,
                         xml_declaration=self.xml_declaration, encoding=charset)]

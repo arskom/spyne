@@ -95,6 +95,8 @@ class ModelBase(object):
     class Empty(object):
         pass
 
+    _force_own_namespace = set()
+
     @staticmethod
     def is_default(cls):
         return True
@@ -135,6 +137,9 @@ class ModelBase(object):
 
         if cls.__namespace__ is None:
             cls.__namespace__ = cls.__module__
+
+        for c in cls._force_own_namespace:
+            c.__namespace__ = cls.__namespace__
 
     @classmethod
     def get_type_name(cls):
@@ -234,6 +239,7 @@ class ModelBase(object):
         """Override this method to do your own input validation on the native
         value. This is called after converting the incoming string to the
         native python value."""
+
         return True
 
 class Null(ModelBase):
@@ -267,7 +273,11 @@ class SimpleModel(ModelBase):
         retval = cls.customize( ** kwargs)
 
         if not retval.is_default(retval):
-            retval.__base_type__ = cls
+            if hasattr(cls, '_is_clone_of'):
+                retval.__base_type__ = cls._is_clone_of
+            else:
+                retval.__base_type__ = cls
+
             retval.__type_name__ = kwargs.get("type_name", ModelBase.Empty)
 
         return retval
@@ -278,7 +288,7 @@ class SimpleModel(ModelBase):
 
     @staticmethod
     def validate_string(cls, value):
-        return (    ModelBase.validate_string(cls, value)
+        return (     ModelBase.validate_string(cls, value)
                 and (len(cls.Attributes.values) == 0 or
                                                 value in cls.Attributes.values)
             )

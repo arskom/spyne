@@ -145,7 +145,9 @@ class InterfaceBase(object):
 
         # populate types
         for s in self.services:
-            logger.debug("populating '%s.%s (%s) ' types..." % (s.__module__, s.__name__, s.get_service_key()))
+            logger.debug("populating '%s.%s (%s) ' types..." % (s.__module__,
+                                                s.__name__, s.get_service_key()))
+
             for method in s.public_methods.values():
                 if method.in_header is None:
                     method.in_header = s.__in_header__

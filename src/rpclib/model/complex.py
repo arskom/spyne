@@ -151,11 +151,17 @@ class ComplexModelBase(ModelBase):
     from.
     """
 
-    def __init__(self, ** kwargs):
+    def __init__(self, **kwargs):
         super(ComplexModelBase, self).__init__()
 
         for k in self.get_flat_type_info(self.__class__).keys():
-            setattr(self, k, kwargs.get(k, None))
+            try:
+                delattr(self, k)
+            except:
+                pass
+
+        for k,v in kwargs.items():
+            setattr(self, k, v)
 
     def __len__(self):
         return len(self._type_info)

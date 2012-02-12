@@ -24,6 +24,8 @@ logger = logging.getLogger(__name__)
 
 import cgi
 
+from threading import Lock
+
 from rpclib import TransportContext
 from rpclib import MethodContext
 
@@ -66,14 +68,19 @@ def _wsgi_input_to_iterable(http_env):
 
         yield data
 
+
 def reconstruct_wsgi_request(http_env):
     """Reconstruct http payload using information in the http header."""
 
     # fyi, here's what the parse_header function returns:
     # >>> import cgi; cgi.parse_header("text/xml; charset=utf-8")
     # ('text/xml', {'charset': 'utf-8'})
-    content_type = cgi.parse_header(http_env.get("CONTENT_TYPE"))
-    charset = content_type[1].get('charset', 'utf-8')
+    content_type = http_env.get("CONTENT_TYPE")
+    if content_type is None:
+        charset = 'utf-8'
+    else:
+        content_type = cgi.parse_header(content_type)
+        charset = content_type[1].get('charset', 'utf-8')
 
     return _wsgi_input_to_iterable(http_env), charset
 
@@ -166,6 +173,7 @@ class WsgiApplication(ServerBase):
             "GET": self.handle_rpc,
             "POST": self.handle_rpc,
         }
+        self._mtx_build_interface_document = Lock()
 
     def __call__(self, req_env, start_response, wsgi_url=None):
         '''This method conforms to the WSGI spec for callable wsgi applications
@@ -210,8 +218,13 @@ class WsgiApplication(ServerBase):
         try:
             ctx.transport.wsdl = self.app.interface.get_interface_document()
             if ctx.transport.wsdl is None:
-                self.app.interface.build_interface_document(url)
-                ctx.transport.wsdl = self.app.interface.get_interface_document()
+                self._mtx_build_interface_document.acquire()
+
+                if ctx.transport.wsdl is None:
+                    self.app.interface.build_interface_document(url)
+                    ctx.transport.wsdl = self.app.interface.get_interface_document()
+
+                self._mtx_build_interface_document.release()
 
             assert ctx.transport.wsdl != None
 
