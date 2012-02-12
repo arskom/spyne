@@ -60,7 +60,7 @@ that Rpclib supports:
 * `Werkzeug <http://werkzeug.pocoo.org/>` is needed for :class:`rpclib.protocol.http.HttpRpc`.
 
 You are advised to add these as requirements to your own projects, as these are
-only "soft" requirements for rpclib, thus not handled in its setup script.
+only "soft" dependencies of rpclib, thus not handled in its setup script.
 
 Installing
 ==========
