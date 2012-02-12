@@ -24,6 +24,8 @@ logger = logging.getLogger(__name__)
 
 import cgi
 
+from threading import Lock
+
 from rpclib import TransportContext
 from rpclib import MethodContext
 
@@ -171,6 +173,7 @@ class WsgiApplication(ServerBase):
             "GET": self.handle_rpc,
             "POST": self.handle_rpc,
         }
+        self._mtx_build_interface_document = Lock()
 
     def __call__(self, req_env, start_response, wsgi_url=None):
         '''This method conforms to the WSGI spec for callable wsgi applications
@@ -215,8 +218,13 @@ class WsgiApplication(ServerBase):
         try:
             ctx.transport.wsdl = self.app.interface.get_interface_document()
             if ctx.transport.wsdl is None:
-                self.app.interface.build_interface_document(url)
-                ctx.transport.wsdl = self.app.interface.get_interface_document()
+                self._mtx_build_interface_document.acquire()
+
+                if ctx.transport.wsdl is None:
+                    self.app.interface.build_interface_document(url)
+                    ctx.transport.wsdl = self.app.interface.get_interface_document()
+
+                self._mtx_build_interface_document.release()
 
             assert ctx.transport.wsdl != None
 
