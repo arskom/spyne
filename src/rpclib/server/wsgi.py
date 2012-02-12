@@ -23,8 +23,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 import cgi
-
-from threading import Lock
+import threading
 
 from rpclib import TransportContext
 from rpclib import MethodContext
@@ -128,7 +127,6 @@ class WsgiTransportContext(TransportContext):
     """Provides an easy way to set outgoing mime type. Synonym for
     `mime_type`"""
 
-
 class WsgiMethodContext(MethodContext):
     """The WSGI-Specific method context. WSGI-Specific information is stored in
     the transport attribute using the :class:`WsgiTransportContext` class.
@@ -173,7 +171,7 @@ class WsgiApplication(ServerBase):
             "GET": self.handle_rpc,
             "POST": self.handle_rpc,
         }
-        self._mtx_build_interface_document = Lock()
+        self._mtx_build_interface_document = threading.Lock()
 
     def __call__(self, req_env, start_response, wsgi_url=None):
         '''This method conforms to the WSGI spec for callable wsgi applications
@@ -217,8 +215,11 @@ class WsgiApplication(ServerBase):
         ctx = WsgiMethodContext(self.app, req_env, 'text/xml; charset=utf-8')
         try:
             ctx.transport.wsdl = self.app.interface.get_interface_document()
+
             if ctx.transport.wsdl is None:
                 self._mtx_build_interface_document.acquire()
+    
+                ctx.transport.wsdl = self.app.interface.get_interface_document()
 
                 if ctx.transport.wsdl is None:
                     self.app.interface.build_interface_document(url)
