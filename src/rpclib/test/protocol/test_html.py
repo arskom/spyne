@@ -218,8 +218,7 @@ class TestHtmlMicroFormat(unittest.TestCase):
         server.get_out_object(ctx)
         server.get_out_string(ctx)
 
-        assert ''.join(ctx.out_string) == '''<div class="some_callResponse"><div class="some_callResult">1
-2</div></div>'''
+        assert ''.join(ctx.out_string) == '<div class="some_callResponse"><div class="some_callResult">1\n2</div></div>'
 
 if __name__ == '__main__':
     unittest.main()
