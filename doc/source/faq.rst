@@ -78,13 +78,16 @@ PS: The next faq entry is also probably relevant to you.
 How do I alter the behaviour of a user method without using decorators?
 =======================================================================
 
-``ctx.descriptor.function`` contains the handle to the original function. You
+``ctx.function`` contains the handle to the original function. You
 can set that attribute to arbitrary callables to prevent the original user
-method from running.
+method from running. This property is initiallized from
+``ctx.descriptor.function`` every time a new context is initialized.
 
-Note that this property is initialized only when the process starts. So you
-should call :func:`ctx.descriptor.reset_function()` to restore it to its
-original value
+If for some reason you need to alter the ``ctx.descriptor.function``,
+you can call :func:`ctx.descriptor.reset_function()` to restore it to its
+original value.
+
+Also consider thread-safety issues when altering global state.
 
 How do I use variable names that are also python keywords?
 ==========================================================
@@ -121,3 +124,15 @@ The workaround is as follows:
         return '1234'
 
 See here: https://github.com/arskom/rpclib/blob/rpclib-2.5.0-beta/src/rpclib/test/test_service.py#L114
+
+How does rpclib behave in a multi-threaded environment?
+=======================================================
+
+Rpclib code is re-entrant, thus mostly thread safe. (A notable exception to
+this rule is the Interface clasess which cache the document string once
+generated.) Whatever global state that is accessed is initialized and frozen
+(by convention) before any rpc processing is performed.
+
+The transport implementations (i.e. the code in client and server packages) or
+the user code are responsible for assuring thread-safety when accessing the
+out-of-thread data. No other parts of rpclib should be made aware of threads.

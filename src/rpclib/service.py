@@ -176,6 +176,6 @@ class ServiceBase(object):
         '''
 
         if ctx.descriptor.no_ctx:
-            return ctx.descriptor.function(*ctx.in_object)
+            return ctx.function(*ctx.in_object)
         else:
-            return ctx.descriptor.function(ctx, *ctx.in_object)
+            return ctx.function(ctx, *ctx.in_object)
