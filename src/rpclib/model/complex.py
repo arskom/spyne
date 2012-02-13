@@ -222,14 +222,17 @@ class ComplexModelBase(ModelBase):
 
         for k, v in cls._type_info.items():
             mo = v.Attributes.max_occurs
-            subvalue = getattr(inst, k, None)
+            try:
+                subvalue = getattr(inst, k, None)
+            except: # to guard against e.g. sqlalchemy throwing NoSuchColumnError
+                subvalue = None
 
             if mo == 'unbounded' or mo > 1:
                 if subvalue != None:
-                    yield (k, [v.to_string(sv) for sv in subvalue])
+                    yield (k, (v.to_string(sv) for sv in subvalue))
 
             else:
-                yield k, v.to_string(subvalue)
+                yield (k, [v.to_string(subvalue)])
 
     @classmethod
     @nillable_dict
@@ -255,9 +258,20 @@ class ComplexModelBase(ModelBase):
         return retval
 
     @staticmethod
-    def get_simple_type_info(cls, retval=None, prefix=None, parent=None):
+    def get_simple_type_info(cls, hier_delim="_", retval=None, prefix=None,
+                                                                    parent=None):
         """Returns a _type_info dict that includes members from all base classes
-        and whose types are only primitives.
+        and whose types are only primitives. It will prefix field names in
+        non-top-level complex objects with field of its parent.
+
+        For example:
+
+            {'some_object': [{'some_string': 'abc'}]}
+
+        will become:
+
+            {'some_object_some_string'': ['abc']}
+
         """
         from rpclib.model import SimpleModel
         from rpclib.model.binary import ByteArray
@@ -272,7 +286,7 @@ class ComplexModelBase(ModelBase):
             if getattr(v, 'get_flat_type_info', None) is None:
                 new_prefix = list(prefix)
                 new_prefix.append(k)
-                key = '_'.join(new_prefix)
+                key = hier_delim.join(new_prefix)
                 value = retval.get(key, None)
 
                 if value:
@@ -285,7 +299,7 @@ class ComplexModelBase(ModelBase):
             else:
                 new_prefix = list(prefix)
                 new_prefix.append(k)
-                v.get_simple_type_info(v, retval, new_prefix, parent=cls)
+                v.get_simple_type_info(v, hier_delim, retval, new_prefix, parent=cls)
 
         return retval
 

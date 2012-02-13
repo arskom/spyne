@@ -29,7 +29,6 @@ from rpclib.model.primitive import String
 from rpclib.model.complex import ComplexModel
 from rpclib.interface.wsdl import Wsdl11
 from rpclib.protocol.http import HttpRpc
-from rpclib.protocol.soap import Soap11
 from rpclib.service import ServiceBase
 
 class Test(unittest.TestCase):
@@ -51,6 +50,7 @@ class Test(unittest.TestCase):
         initial_ctx = WsgiMethodContext(app, {
             'QUERY_STRING': '',
             'PATH_INFO': '/some_call',
+            'QUERY_STRING': '?s=a',
             'REQUEST_METHOD': 'GET',
         }, 'some-content-type')
 
