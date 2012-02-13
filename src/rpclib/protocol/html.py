@@ -62,11 +62,6 @@ def not_supported(prot, cls, *args, **kwargs):
 def serialize_model_base(prot, cls, value, name='retval'):
     return [ E(prot.child_tag, cls.to_string(value), **{prot.field_name_attr: name}) ]
 
-def generate_members(prot, cls, inst):
-    for k, v in cls.get_flat_type_info(cls).items():
-        for val in prot.serialize_class(v, getattr(inst, k, None), k):
-            yield val
-
 @nillable_value
 def serialize_complex_model(prot, cls, value, name='retval'):
     yield '<%s %s="%s">' % (prot.root_tag, prot.field_name_attr, name)
@@ -76,30 +71,24 @@ def serialize_complex_model(prot, cls, value, name='retval'):
 
     inst = cls.get_serialization_instance(value)
 
-    for m in generate_members(prot, cls, inst):
-        yield m
+    for k, v in cls.get_flat_type_info(cls).items():
+        for val in prot.serialize_class(v, getattr(inst, k, None), k):
+            yield val
 
     yield '</%s>' % prot.root_tag
 
 
 class HtmlMicroFormat(ProtocolBase):
-    """Protocol that returns the response object as a html microformat. See
-    https://en.wikipedia.org/wiki/Microformats for more info.
+    def __init__(self, app=None, validator=None, root_tag='div',
+            child_tag='div', field_name_attr='class'):
+        """Protocol that returns the response object as a html microformat. See
+        https://en.wikipedia.org/wiki/Microformats for more info.
 
-    The simple flavour is like the XmlObject protocol, but returns data in <div>
-    or <span> tags.
-    """
-
-    def __init__(self, app=None, validator=None, use_namespaces=False,
-            root_tag='div', child_tag='div', field_name_attr='class',
-            field_type_attr='id'):
-        """Simple Html Protocol with validators.
+        The simple flavour is like the XmlObject protocol, but returns data in
+        <div> or <span> tags.
 
         :param app: A rpclib.application.Application instance.
-        :param validator: The validator to use. Currently the only supported
-            value is 'lxml'
-        :param ignore_namespaces:  if True, uses {namespace}field_name syntax
-            for field names.
+        :param validator: The validator to use. Ignored.
         :param root_tag: The type of the root tag that encapsulates the return
             data.
         :param child_tag: The type of the tag that encapsulates the fields of
@@ -114,14 +103,11 @@ class HtmlMicroFormat(ProtocolBase):
 
         assert root_tag in ('div','span')
         assert child_tag in ('div','span')
-        assert field_name_attr in ('class','id', None)
-        assert field_type_attr in ('class','id', None)
+        assert field_name_attr in ('class','id')
 
-        self.__use_namespaces = use_namespaces
         self.__root_tag = root_tag
         self.__child_tag = child_tag
         self.__field_name_attr = field_name_attr
-        self.__field_type_attr = field_type_attr
 
         self.__serialization_handlers = cdict({
             ModelBase: serialize_model_base,
@@ -141,10 +127,6 @@ class HtmlMicroFormat(ProtocolBase):
     @property
     def field_name_attr(self):
         return self.__field_name_attr
-
-    @property
-    def field_type_attr(self):
-        return self.__field_type_attr
 
     def serialize_class(self, cls, value, name):
         handler = self.__serialization_handlers[cls]
