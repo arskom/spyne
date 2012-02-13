@@ -31,6 +31,7 @@ from rpclib.model import nillable_string
 from rpclib.util.odict import odict as TypeInfo
 from rpclib.const import xml_ns as namespace
 
+TYPE_SUFFIX = "Type"
 
 class _SimpleTypeInfoElement(object):
     __slots__ = ['path', 'parent', 'type']
@@ -323,7 +324,7 @@ class ComplexModelBase(ModelBase):
         for k, v in cls._type_info.items():
             if v.__type_name__ is ModelBase.Empty:
                 v.__namespace__ = cls.get_namespace()
-                v.__type_name__ = "%s_%sType" % (cls.get_type_name(), k)
+                v.__type_name__ = "%s_%s%s" % (cls.get_type_name(), k, TYPE_SUFFIX)
 
             if v != cls:
                 v.resolve_namespace(v, default_ns)
