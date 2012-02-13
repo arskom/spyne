@@ -51,6 +51,7 @@ class Test(unittest.TestCase):
         initial_ctx = WsgiMethodContext(app, {
             'QUERY_STRING': '',
             'PATH_INFO': '/some_call',
+            'REQUEST_METHOD': 'GET',
         }, 'some-content-type')
 
         from rpclib.server import ServerBase
@@ -84,6 +85,7 @@ class Test(unittest.TestCase):
         initial_ctx = WsgiMethodContext(app, {
             'QUERY_STRING': '',
             'PATH_INFO': '/some_call',
+            'REQUEST_METHOD': 'GET',
         }, 'some-content-type')
 
         from rpclib.server import ServerBase
@@ -125,6 +127,7 @@ class Test(unittest.TestCase):
         initial_ctx = WsgiMethodContext(app, {
             'QUERY_STRING': '',
             'PATH_INFO': '/some_call',
+            'REQUEST_METHOD': 'GET',
         }, 'some-content-type')
 
         from rpclib.server import ServerBase
@@ -148,6 +151,7 @@ class Test(unittest.TestCase):
         initial_ctx = WsgiMethodContext(app, {
             'QUERY_STRING': 's=1&s=2',
             'PATH_INFO': '/some_call',
+            'REQUEST_METHOD': 'GET',
         }, 'some-content-type')
 
         from rpclib.server import ServerBase
@@ -182,6 +186,7 @@ class Test(unittest.TestCase):
         initial_ctx = WsgiMethodContext(app, {
             'QUERY_STRING': 'ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs',
             'PATH_INFO': '/some_call',
+            'REQUEST_METHOD': 'GET',
         }, 'some-content-type')
 
         from rpclib.server import ServerBase
@@ -222,6 +227,7 @@ class Test(unittest.TestCase):
         initial_ctx = WsgiMethodContext(app, {
             'QUERY_STRING': 'ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs',
             'PATH_INFO': '/some_call',
+            'REQUEST_METHOD': 'GET',
         }, 'some-content-type')
 
         from rpclib.server import ServerBase
@@ -259,6 +265,7 @@ class Test(unittest.TestCase):
         initial_ctx = WsgiMethodContext(app, {
             'QUERY_STRING': 'ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs',
             'PATH_INFO': '/some_call',
+            'REQUEST_METHOD': 'GET',
         }, 'some-content-type')
 
         from rpclib.server import ServerBase

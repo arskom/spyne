@@ -242,9 +242,11 @@ class HttpRpc(ProtocolBase):
 
         self.event_manager.fire_event('before_deserialize', ctx)
 
-        ctx.in_header = self.dict_to_object(ctx.in_header_doc,
+        if ctx.descriptor.in_header:
+            ctx.in_header = self.dict_to_object(ctx.in_header_doc,
                                                     ctx.descriptor.in_header)
-        ctx.in_object = self.dict_to_object(ctx.in_body_doc,
+        if ctx.descriptor.in_message:
+            ctx.in_object = self.dict_to_object(ctx.in_body_doc,
                                                     ctx.descriptor.in_message)
 
         self.event_manager.fire_event('after_deserialize', ctx)
