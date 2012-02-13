@@ -92,34 +92,8 @@ class TestHtmlMicroFormat(unittest.TestCase):
         server.get_out_object(ctx)
         server.get_out_string(ctx)
 
-    def test_primitive_only(self):
-        class SomeComplexModel(ComplexModel):
-            i = Integer
-            s = String
+        assert ''.join(ctx.out_string) == '<div class="some_callResponse"><div class="some_callResult0">1</div><div class="some_callResult1">s</div></div>'
 
-        class SomeService(ServiceBase):
-            @srpc(SomeComplexModel, _returns=SomeComplexModel)
-            def some_call(scm):
-                return SomeComplexModel(i=5, s='5x')
-
-        app = Application([SomeService], 'tns', Wsdl11(), HttpRpc(), HtmlMicroFormat())
-
-        from rpclib.server.wsgi import WsgiMethodContext
-
-        initial_ctx = WsgiMethodContext(app, {
-            'QUERY_STRING': '',
-            'PATH_INFO': '/some_call',
-            'REQUEST_METHOD': 'GET',
-        }, 'some-content-type')
-
-        from rpclib.server import ServerBase
-
-        server = ServerBase(app)
-
-        ctx, = server.generate_contexts(initial_ctx)
-        server.get_in_object(ctx)
-        server.get_out_object(ctx)
-        server.get_out_string(ctx)
 
     def test_complex(self):
         class CM(ComplexModel):
