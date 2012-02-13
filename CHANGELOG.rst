@@ -5,6 +5,8 @@ Changelog
 rpclib-2.7.0-beta
 -----------------
  * Add support for Html Microformats.
+ * Add ctx.function property to MethodContext that is re-initialized from
+   ``ctx.descriptor.function`` for each new request.
 
 rpclib-2.6.1-beta
 -----------------
