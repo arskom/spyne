@@ -132,6 +132,8 @@ class HttpRpc(ProtocolBase):
                 raise Fault('Client.ValidationError',
                         '"%s" member must occur at most %d times' % (k, max_o))
 
+            # extract native values from the list of strings that comes from the
+            # http dict.
             for v2 in v:
                 if (self.validator is self.SOFT_VALIDATION and not
                             member.type.validate_string(member.type, v2)):
@@ -166,6 +168,8 @@ class HttpRpc(ProtocolBase):
             if mo == 1:
                 value = value[0]
 
+            # assign the native value to the relevant class in the nested object
+            # structure.
             cinst = inst
             ctype_info = inst_class.get_flat_type_info(inst_class)
             pkey = member.path[0]

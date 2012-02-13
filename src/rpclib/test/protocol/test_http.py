@@ -64,7 +64,8 @@ class Test(unittest.TestCase):
         except ValueError:
             pass
         else:
-            raise Exception("Must Fail")
+            raise Exception("Must fail with: HttpRpc does not support complex "
+                "return types.")
 
     def test_primitive_only(self):
         class SomeComplexModel(ComplexModel):
@@ -99,7 +100,8 @@ class Test(unittest.TestCase):
         except:
             pass
         else:
-            raise Exception("Must Fail")
+            raise Exception("Must fail with: HttpRpc does not support complex "
+                "return types.")
 
     def test_complex(self):
         class CM(ComplexModel):
