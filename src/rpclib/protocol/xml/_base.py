@@ -24,7 +24,6 @@ from lxml import etree
 
 from rpclib import _bytes_join
 
-from rpclib.const import xml_ns as ns
 from rpclib.const.ansi_color import LIGHT_GREEN
 from rpclib.const.ansi_color import LIGHT_RED
 from rpclib.const.ansi_color import END_COLOR
@@ -241,7 +240,7 @@ class XmlObject(ProtocolBase):
             setattr(result_message, attr_name, ctx.out_object[i])
 
         # transform the results into an element
-        tmp_elt = etree.Element('{%s}punk' % ns.soap_env)
+        tmp_elt = etree.Element('punk')
         self.to_parent_element(result_message_class,
                     result_message, self.app.interface.get_tns(), tmp_elt)
         ctx.out_document = tmp_elt[0]
