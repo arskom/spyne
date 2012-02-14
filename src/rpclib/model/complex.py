@@ -159,7 +159,13 @@ class ComplexModelBase(ModelBase):
             try:
                 delattr(self, k)
             except:
-                pass
+                try:
+                    setattr(self, k, None)
+                except:
+                    try:
+                        setattr(self, k, [])
+                    except:
+                        pass
 
         for k,v in kwargs.items():
             setattr(self, k, v)
