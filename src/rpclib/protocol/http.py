@@ -24,12 +24,25 @@ Rest, because it ignores Http verbs.
 import logging
 logger = logging.getLogger(__name__)
 
+import tempfile
+TEMPORARY_DIR = None
+
 try:
     from urlparse import parse_qs
+    from cStringIO import StringIO
 except ImportError: # Python 3
     from urllib.parse import parse_qs
 
+try:
+    from cStringIO import StringIO
+except ImportError:
+    try:
+        from StringIO import StringIO
+    except ImportError: # Python 3
+        from io import StringIO
+
 from rpclib.error import ValidationError
+from rpclib.model.binary import File
 from rpclib.model.binary import ByteArray
 from rpclib.model.fault import Fault
 from rpclib.protocol import ProtocolBase
@@ -53,6 +66,20 @@ def _get_http_headers(req_env):
 
     return retval
 
+def get_stream_factory(dir=None, delete=True):
+    def stream_factory(total_content_length, filename, content_type,
+                                                               content_length=None):
+        if total_content_length >= 512 * 1024 or delete == False:
+            if delete == False:
+                retval = tempfile.NamedTemporaryFile('wb+', dir=dir, delete=delete) # You need python >= 2.6 for this.
+            else:
+                retval = tempfile.NamedTemporaryFile('wb+', dir=dir)
+        else:
+            retval = StringIO()
+
+        return retval
+    return stream_factory
+
 class HttpRpc(ProtocolBase):
     """The so-called REST-minus-the-verbs HttpRpc protocol implementation.
     It only works with the http server (wsgi) transport.
@@ -60,6 +87,21 @@ class HttpRpc(ProtocolBase):
     It only parses requests where the whole data is in the 'QUERY_STRING', i.e.
     the part after '?' character in a URI string.
     """
+
+    def __init__(self, app=None, validator=None, tmp_dir=None, tmp_delete_on_close=True):
+        ProtocolBase.__init__(self, app, validator)
+
+        self.tmp_dir = tmp_dir
+        self.tmp_delete_on_close = tmp_delete_on_close
+
+    def get_tmp_delete_on_close(self):
+        return self.__tmp_delete_on_close
+
+    def set_tmp_delete_on_close(self, val):
+        self.__tmp_delete_on_close = val
+        self.stream_factory = get_stream_factory(self.tmp_dir, self.__tmp_delete_on_close)
+
+    tmp_delete_on_close = property(get_tmp_delete_on_close, set_tmp_delete_on_close)
 
     def set_validator(self, validator):
         if validator == 'soft' or validator is self.SOFT_VALIDATION:
@@ -85,7 +127,8 @@ class HttpRpc(ProtocolBase):
         ctx.in_body_doc = parse_qs(ctx.in_document['QUERY_STRING'])
 
         if ctx.transport.req_env['REQUEST_METHOD'].lower() in ('post', 'put', 'patch'):
-            stream, form, files = parse_form_data(ctx.transport.req_env)
+            stream, form, files = parse_form_data(ctx.transport.req_env,
+                                            stream_factory=self.stream_factory)
 
             for k, v in form.lists():
                 val = ctx.in_body_doc.get(k, [])
@@ -94,25 +137,24 @@ class HttpRpc(ProtocolBase):
 
             for k, v in files.items():
                 val = ctx.in_body_doc.get(k, [])
-                val.append(yield_stream(v.stream))
+
+                mime_type = v.headers.get('Content-Type', 'application/octet-stream')
+
+                path = getattr(v.stream, 'name', None)
+                if path is None:
+                    val.append(File(name=v.filename, type=mime_type, data=[v.stream.getvalue()]))
+                else:
+                    v.stream.seek(0)
+                    val.append(File(name=v.filename, type=mime_type, path=path, handle=v.stream))
+
                 ctx.in_body_doc[k] = val
-
-                # FIXME: some proper variable matching is needed here.
-                k2 = k + "_name"
-                val = ctx.in_body_doc.get(k2, [])
-                val.append(v.filename)
-                ctx.in_body_doc[k2] = val
-
-                k2 = k + "_type"
-                val = ctx.in_body_doc.get(k2, [])
-                val.append(v.headers.get('Content-Type','application/octet-stream'))
-                ctx.in_body_doc[k2] = val
 
         logger.debug('\theader : %r' % (ctx.in_header_doc))
         logger.debug('\tbody   : %r' % (ctx.in_body_doc))
 
     def dict_to_object(self, doc, inst_class):
         simple_type_info = inst_class.get_simple_type_info(inst_class)
+        logger.debug(repr(simple_type_info))
         inst = inst_class.get_deserialization_instance()
 
         # this is for validating cls.Attributes.{min,max}_occurs
@@ -139,7 +181,8 @@ class HttpRpc(ProtocolBase):
                             member.type.validate_string(member.type, v2)):
                     raise ValidationError(v2)
 
-                if member.type is ByteArray or \
+                if member.type is File or member.type is ByteArray or \
+                        getattr(member.type, '_is_clone_of', None) is File or \
                         getattr(member.type, '_is_clone_of', None) is ByteArray:
                     if isinstance(v2, str) or isinstance(v2, unicode):
                         native_v2 = member.type.from_string(v2)

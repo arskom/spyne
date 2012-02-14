@@ -17,8 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import os
 import base64
-import sys
+import tempfile
 
 try:
     from cStringIO import StringIO
@@ -72,8 +73,96 @@ class ByteArray(SimpleModel):
     def from_base64(cls, value):
         return [base64.b64decode(_bytes_join(value))]
 
+class File(ModelBase):
+    __type_name__ = 'base64Binary'
+    __namespace__ = "http://www.w3.org/2001/XMLSchema"
+
+    def __init__(self, name=None, path=None, type='application/octet-stream',
+            data=None, handle=None):
+        self.name = name
+        if self.name is not None:
+            assert os.path.basename(self.name) == self.name
+
+        self.path = path
+        if self.path is not None:
+            assert os.path.isabs(self.path)
+
+        self.type = type
+
+        if data is None:
+            self.data = File.to_string_iterable(self)
+        else:
+            self.data = iter(data)
+        self.handle = handle
+
+    def rollover(self):
+        iter(self.data)
+
+        if self.path is None:
+            handle, self.path = tempfile.mkstemp()
+            f = os.fdopen(handle, 'wb')
+        else:
+            assert os.path.isabs(self.path)
+            f = open(self.path, 'wb')
+
+        if self.name is None:
+            self.name = os.path.basename(self.path)
+
+        for data in self.data:
+            f.write(data)
+
+        f.close()
+
+        self.data = File.to_string_iterable(self)
+
+    @classmethod
+    @nillable_iterable
+    def to_string_iterable(cls, value):
+        assert value.path, "You need to write data to disk if you want to read it back."
+
+        if value.handle is None:
+            f = open(value.path, 'rb')
+        else:
+            f = value.handle
+            f.seek(0)
+
+        data = f.read(0x4000)
+        while len(data) > 0:
+            yield data
+            data = f.read(0x4000)
+
+        if value.handle is None:
+            f.close()
+
+    @classmethod
+    @nillable_string
+    def from_string(cls, value):
+        return File(data=[value])
+
+    @classmethod
+    @nillable_string
+    def to_base64(cls, value):
+        assert value.path, "You need to write data to disk if you want to read it back."
+
+        f = open(value.path, 'rb')
+
+        data = f.read(0x4000)
+        while len(data) > 0:
+            yield base64.b64encode(data)
+            data = f.read(0x4000)
+
+        f.close()
+
+    @classmethod
+    @nillable_string
+    def from_base64(cls, value):
+        return File(data=[base64.b64decode(value)])
+
+    def __repr__(self):
+        return "File(name=%r, path=%r, type=%r, data=%r)" % (self.name, self.path, self.type, self.data)
+
 class Attachment(ModelBase):
-    """**DEPRECATED!** Use ByteArray instead."""
+    """**DEPRECATED!** Use ByteArray or File instead."""
 
     __type_name__ = 'base64Binary'
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
