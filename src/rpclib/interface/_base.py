@@ -143,10 +143,12 @@ class InterfaceBase(object):
 
         self.reset_interface()
 
+        classes = []
         # populate types
         for s in self.services:
             logger.debug("populating '%s.%s (%s) ' types..." % (s.__module__,
                                                 s.__name__, s.get_service_key()))
+
 
             for method in s.public_methods.values():
                 if method.in_header is None:
@@ -161,7 +163,7 @@ class InterfaceBase(object):
                         in_headers = (method.in_header,)
                     for in_header in in_headers:
                         in_header.resolve_namespace(in_header, self.get_tns())
-                        self.add(in_header)
+                        classes.append(in_header)
 
                 if not (method.out_header is None):
                     if isinstance(method.out_header, (list, tuple)):
@@ -171,7 +173,7 @@ class InterfaceBase(object):
 
                     for out_header in out_headers:
                         out_header.resolve_namespace(out_header, self.get_tns())
-                        self.add(out_header)
+                        classes.append(out_header)
 
                 if method.faults is None:
                     method.faults = []
@@ -180,16 +182,18 @@ class InterfaceBase(object):
 
                 for fault in method.faults:
                     fault.__namespace__ = self.get_tns()
-                    self.add(fault)
+                    classes.append(fault)
 
                 method.in_message.resolve_namespace(method.in_message,
                                                                  self.get_tns())
-                self.add(method.in_message)
+                classes.append(method.in_message)
 
                 method.out_message.resolve_namespace(method.out_message,
                                                                  self.get_tns())
-                self.add(method.out_message)
+                classes.append(method.out_message)
 
+        for c in classes:
+            self.add(c)
 
         # populate call routes
         for s in self.services:
