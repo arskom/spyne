@@ -30,6 +30,7 @@ from rpclib.model.primitive import DateTime
 from rpclib.model.primitive import Duration
 from rpclib.model.primitive import Float
 from rpclib.model.primitive import Integer
+from rpclib.model.primitive import UnsignedInteger
 from rpclib.model._base import Null
 from rpclib.model.primitive import String
 from rpclib.const import xml_ns as ns
@@ -122,6 +123,23 @@ class TestPrimitive(unittest.TestCase):
         self.assertEquals(element.text, '12')
         value = XmlObject().from_element(integer, element)
         self.assertEquals(value, i)
+
+    def test_limits(self):
+        try:
+            Integer.from_string("1"* (Integer.__max_str_len__ + 1))
+        except:
+            pass
+        else:
+            raise Exception("must fail.")
+
+        UnsignedInteger.from_string("-1") # This is not supposed to fail.
+
+        try:
+            UnsignedInteger.validate_native(-1) # This is supposed to fail.
+        except:
+            pass
+        else:
+            raise Exception("must fail.")
 
     def test_large_integer(self):
         i = 128375873458473
