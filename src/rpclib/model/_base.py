@@ -97,7 +97,7 @@ class ModelBase(object):
     class Empty(object):
         pass
 
-    _force_own_namespace = set()
+    _force_own_namespace = None
 
     @staticmethod
     def is_default(cls):
@@ -139,10 +139,7 @@ class ModelBase(object):
 
         if cls.__namespace__ is None:
             cls.__namespace__ = cls.__module__
-
-        for c in cls._force_own_namespace:
-            c.__namespace__ = cls.__namespace__
-
+ 
     @classmethod
     def get_type_name(cls):
         """Returns the class name unless the __type_name__ attribute is defined.
@@ -243,6 +240,7 @@ class ModelBase(object):
         native python value."""
 
         return True
+
 
 class Null(ModelBase):
     @classmethod

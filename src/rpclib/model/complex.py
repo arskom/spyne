@@ -335,6 +335,11 @@ class ComplexModelBase(ModelBase):
             if v != cls:
                 v.resolve_namespace(v, default_ns)
 
+        if cls._force_own_namespace is not None:
+            for c in cls._force_own_namespace:
+                c.__namespace__ = cls.get_namespace()
+                ComplexModel.resolve_namespace(c, cls.get_namespace())
+
     @staticmethod
     def produce(namespace, type_name, members):
         """Lets you create a class programmatically."""
