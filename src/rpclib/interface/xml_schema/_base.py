@@ -267,5 +267,8 @@ class XmlSchema(InterfaceBase):
                 if r_pref and is_valid_import(r_pref):
                     self.imports[pref_tns].add(self.nsmap[r_pref])
 
+            elif seq.tag == '{%s}annotation' % _ns_xsd:
+                pass
+
             else:
                 raise Exception("i guess you need to hack some more")
