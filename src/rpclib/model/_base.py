@@ -91,6 +91,8 @@ class ModelBase(object):
 
         doc = ""
         """The documentation for the given type."""
+        appinfo = None
+        """Any object that carries app-specific info."""
 
     class Empty(object):
         pass
