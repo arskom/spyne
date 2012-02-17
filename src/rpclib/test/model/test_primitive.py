@@ -17,12 +17,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from rpclib.service import ServiceBase
 import datetime
 import unittest
 
 from lxml import etree
 
+from rpclib.model.binary import File
+from rpclib.model.binary import ByteArray
 from rpclib.model.complex import Array
+from rpclib.model.complex import ComplexModel
 from rpclib.model.primitive import Date
 from rpclib.model.primitive import Time
 from rpclib.model.primitive import Boolean
@@ -31,6 +35,20 @@ from rpclib.model.primitive import Duration
 from rpclib.model.primitive import Float
 from rpclib.model.primitive import Integer
 from rpclib.model.primitive import UnsignedInteger
+from rpclib.model.primitive import AnyXml
+from rpclib.model.primitive import AnyDict
+from rpclib.model.primitive import AnyUri
+from rpclib.model.primitive import Unicode
+from rpclib.model.primitive import Decimal
+from rpclib.model.primitive import Double
+from rpclib.model.primitive import Integer64
+from rpclib.model.primitive import Integer32
+from rpclib.model.primitive import Integer16
+from rpclib.model.primitive import Integer8
+from rpclib.model.primitive import UnsignedInteger64
+from rpclib.model.primitive import UnsignedInteger32
+from rpclib.model.primitive import UnsignedInteger16
+from rpclib.model.primitive import UnsignedInteger8
 from rpclib.model._base import Null
 from rpclib.model.primitive import String
 from rpclib.const import xml_ns as ns
@@ -248,6 +266,57 @@ class TestPrimitive(unittest.TestCase):
 
         b = XmlObject().from_element(Boolean, b)
         self.assertEquals(b, None)
+
+    def test_type_names(self):
+        from rpclib.application import Application
+        from rpclib.decorator import srpc
+        from rpclib.service import ServiceBase
+        from rpclib.interface.xml_schema import XmlSchema
+
+        class Test(ComplexModel):
+            any_xml = AnyXml
+            any_dict = AnyDict
+            unicode_ = Unicode
+            any_uri = AnyUri
+            decimal = Decimal
+            double = Double
+            float = Float
+            integer = Integer
+            unsigned = UnsignedInteger
+            int64 = Integer64
+            int32 = Integer32
+            int16 = Integer16
+            int8 = Integer8
+            uint64 = UnsignedInteger64
+            uint32 = UnsignedInteger32
+            uint16 = UnsignedInteger16
+            uint8 = UnsignedInteger8
+            t = Time
+            d = Date
+            dt = DateTime
+            dur = Duration
+            bool = Boolean
+            f = File
+            b = ByteArray
+
+        class Service(ServiceBase):
+            @srpc(Test)
+            def call(t):
+                pass
+
+        AnyXml.__type_name__ = 'oui'
+        try:
+            app.interface.build_interface_document()
+        except:
+            pass
+        else:
+            raise Exception("must fail.")
+
+        AnyXml.__type_name__ = 'anyType'
+
+        app = Application([Service], 'hey', XmlSchema(), XmlObject(), XmlObject())
+        app.interface.build_interface_document()
+
 
 if __name__ == '__main__':
     unittest.main()
