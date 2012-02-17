@@ -30,8 +30,7 @@ from rpclib.model import nillable_string
 
 from rpclib.util.odict import odict as TypeInfo
 from rpclib.const import xml_ns as namespace
-
-TYPE_SUFFIX = "Type"
+from rpclib.const.suffix import TYPE_SUFFIX
 
 class _SimpleTypeInfoElement(object):
     __slots__ = ['path', 'parent', 'type']

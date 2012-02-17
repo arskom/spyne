@@ -30,10 +30,10 @@ decorator is a simple example of this.
 from rpclib._base import MethodDescriptor
 from rpclib.model.complex import ComplexModel
 from rpclib.model.complex import TypeInfo
-from rpclib.const.xml_ns import DEFAULT_NS
 
-RESPONSE_SUFFIX = "Response"
-RESULT_SUFFIX = "Result"
+from rpclib.const.xml_ns import DEFAULT_NS
+from rpclib.const.suffix import RESPONSE_SUFFIX
+from rpclib.const.suffix import RESULT_SUFFIX
 
 def _produce_input_message(f, params, _in_message_name, _in_variable_names, no_ctx):
     if no_ctx is True:
