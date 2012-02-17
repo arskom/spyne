@@ -22,6 +22,7 @@ import unittest
 
 from lxml import etree
 
+from rpclib.const import xml_ns as ns
 from rpclib.model import Null
 from rpclib.model.binary import File
 from rpclib.model.binary import ByteArray
@@ -52,9 +53,27 @@ from rpclib.model.primitive import UnsignedInteger16
 from rpclib.model.primitive import UnsignedInteger8
 from rpclib.protocol.xml import XmlObject
 
+from rpclib.application import Application
+from rpclib.decorator import srpc
+from rpclib.service import ServiceBase
+from rpclib.interface.xml_schema import XmlSchema
+
 ns_test = 'test_namespace'
 
 class TestPrimitive(unittest.TestCase):
+    def test_invalid_name(self):
+        class Service(ServiceBase):
+            @srpc()
+            def XResponse():
+                pass
+
+        try:
+            app = Application([Service], 'hey', XmlSchema(), XmlObject(), XmlObject())
+        except:
+            pass
+        else:
+            raise Exception("must fail.")
+
     def test_string(self):
         s = String()
         element = etree.Element('test')
@@ -265,11 +284,6 @@ class TestPrimitive(unittest.TestCase):
         self.assertEquals(b, None)
 
     def test_type_names(self):
-        from rpclib.application import Application
-        from rpclib.decorator import srpc
-        from rpclib.service import ServiceBase
-        from rpclib.interface.xml_schema import XmlSchema
-
         class Test(ComplexModel):
             any_xml = AnyXml
             any_dict = AnyDict
