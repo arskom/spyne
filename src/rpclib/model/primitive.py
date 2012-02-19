@@ -130,6 +130,13 @@ class Unicode(SimpleModel):
         """A regular expression that matches the whole string. See here for more
         info: http://www.regular-expressions.info/xml.html"""
 
+        encoding = None
+        """The encoding of `str` objects this class may have to deal with."""
+
+        unicode_errors = 'strict'
+        """The argument to the ``unicode`` builtin; one of 'strict', 'replace' or
+        'ignore'."""
+
     def __new__(cls, *args, **kwargs):
         assert len(args) <= 1
 
@@ -143,19 +150,29 @@ class Unicode(SimpleModel):
     @classmethod
     @nillable_string
     def from_string(cls, value):
-        return value
+        retval = value
+        if isinstance(value, str):
+            if cls.Attributes.encoding is None:
+                retval = unicode(value, errors=cls.Attributes.unicode_errors)
+            else:
+                retval = unicode(value, cls.Attributes.encoding,
+                                        errors=cls.Attributes.unicode_errors)
+        return retval
 
     @classmethod
     @nillable_string
     def to_string(cls, value):
-        return value
+        retval = value
+        if cls.Attributes.encoding is not None and isinstance(value, unicode):
+            retval = value.encode(cls.Attributes.encoding)
+        return retval
 
     @staticmethod
     def is_default(cls):
         return (    SimpleModel.is_default(cls)
-                and cls.Attributes.min_len == String.Attributes.min_len
-                and cls.Attributes.max_len == String.Attributes.max_len
-                and cls.Attributes.pattern == String.Attributes.pattern)
+                and cls.Attributes.min_len == Unicode.Attributes.min_len
+                and cls.Attributes.max_len == Unicode.Attributes.max_len
+                and cls.Attributes.pattern == Unicode.Attributes.pattern)
 
     @staticmethod
     def validate_string(cls, value):
@@ -168,33 +185,20 @@ class Unicode(SimpleModel):
             )
 
 
-# the undocumented string type, for those who want not-so-implicit encoding
-# conversions.
-class _String(Unicode):
-    class Attributes(Unicode.Attributes):
-        """Customizable attributes of the :class:`rpclib.model.primitive.String`
-        type."""
-
-        encoding = 'utf8'
-        """The encoding of the passed `str` object."""
-
+class String(Unicode):
     @classmethod
     @nillable_string
     def from_string(cls, value):
         retval = value
-        if cls.Attributes.encoding is not None:
-            retval = value.decode(cls.Attributes.encoding)
+        if isinstance(value, unicode):
+            if cls.Attributes.encoding is None:
+                raise Exception("You need to define an encoding to encode the "
+                                "incoming unicode values to.")
+            else:
+                retval = value.encode(cls.Attributes.encoding)
+
         return retval
 
-    @classmethod
-    @nillable_string
-    def to_string(cls, value):
-        retval = value
-        if cls.Attribute.encoding is not None:
-            retval = value.encode(cls.Attributes.encoding)
-        return retval
-
-String = Unicode # FIXME: the string/unicode separation needs to be tested
 
 class AnyUri(Unicode):
     """This is an xml schema type with is a special kind of String."""
