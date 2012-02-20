@@ -199,6 +199,8 @@ class String(Unicode):
 
         return retval
 
+if sys.version > '3':
+    String = Unicode
 
 class AnyUri(Unicode):
     """This is an xml schema type with is a special kind of String."""
