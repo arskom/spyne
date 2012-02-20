@@ -192,7 +192,7 @@ class String(Unicode):
         retval = value
         if isinstance(value, unicode):
             if cls.Attributes.encoding is None:
-                raise Exception("You need to define an encoding to encode the "
+                raise Exception("You need to define an encoding to convert the "
                                 "incoming unicode values to.")
             else:
                 retval = value.encode(cls.Attributes.encoding)
