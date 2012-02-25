@@ -339,7 +339,7 @@ class TestXmlAttribute(unittest.TestCase):
         self.assertEqual(attribute_def.get('type'), Parameter.name._typ)
 
 
-class TestXmlAttribute(unittest.TestCase):
+class TestSimpleTypeRestrictions(unittest.TestCase):
     def test_simple_type_info(self):
         class CM(ComplexModel):
             i = Integer
@@ -352,20 +352,20 @@ class TestXmlAttribute(unittest.TestCase):
 
         sti = CCM.get_simple_type_info(CCM)
         assert "i" in sti
-        assert sti["i"].path == ['i']
+        assert sti["i"].path == ('i',)
         assert sti["i"].type is Integer
         assert sti["s"].parent is None
         assert "s" in sti
-        assert sti["s"].path == ['s']
+        assert sti["s"].path == ('s',)
         assert sti["s"].type is String
         assert sti["s"].parent is None
 
         assert "c_i" in sti
-        assert sti["c_i"].path == ['c','i']
+        assert sti["c_i"].path == ('c','i')
         assert sti["c_i"].type is Integer
         assert sti["c_i"].parent is CCM
         assert "c_s" in sti
-        assert sti["c_s"].path == ['c','s']
+        assert sti["c_s"].path == ('c','s')
         assert sti["c_s"].type is String
         assert sti["c_s"].parent is CCM
 
