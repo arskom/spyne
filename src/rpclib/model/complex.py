@@ -32,6 +32,7 @@ from rpclib.util.odict import odict as TypeInfo
 from rpclib.const import xml_ns as namespace
 from rpclib.const.suffix import TYPE_SUFFIX
 
+
 class _SimpleTypeInfoElement(object):
     __slots__ = ['path', 'parent', 'type']
     def __init__(self, path, parent, type_):
@@ -49,13 +50,14 @@ class XmlAttribute(ModelBase):
 
     def marshall(self, name, value, parent_elt):
         if value is not None:
-            parent_elt.set(name, value)
+            parent_elt.set(name, self._typ.to_string(value))
 
-    def describe(self, name, element):
+    def describe(self, name, element, app):
         element.set('name', name)
-        element.set('type', self._typ)
+        element.set('type', self._typ.get_type_name_ns(app))
         if self._use:
             element.set('use', self._use)
+
 
 class XmlAttributeRef(XmlAttribute):
     """Reference to stock XML attribute."""
@@ -64,7 +66,7 @@ class XmlAttributeRef(XmlAttribute):
         self._ref = ref
         self._use = use
 
-    def describe(self, name, element):
+    def describe(self, name, element, app):
         element.set('ref', self._ref)
         if self._use:
             element.set('use', self._use)
@@ -117,7 +119,7 @@ class ComplexModelMeta(type(ModelBase)):
 
             for k, v in cls_dict.items():
                 if not k.startswith('__'):
-                    attr = isinstance(v, XMLAttribute)
+                    is_attr = isinstance(v, XmlAttribute)
                     try:
                         subc = issubclass(v, ModelBase)
                     except:
@@ -128,9 +130,8 @@ class ComplexModelMeta(type(ModelBase)):
                         if issubclass(v, Array) and v.serializer is None:
                             raise Exception("%s.%s is an array of what?" %
                                             (cls_name, k))
-                    elif attr:
+                    elif is_attr:
                         _type_info[k] = v
-
         else:
             _type_info = cls_dict['_type_info']
             if not isinstance(_type_info, TypeInfo):

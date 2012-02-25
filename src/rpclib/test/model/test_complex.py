@@ -27,7 +27,7 @@ from rpclib.interface.wsdl import Wsdl11
 from rpclib.model.complex import Array
 from rpclib.model.complex import ComplexModel
 from rpclib.model.complex import SelfReference
-from rpclib.model.complex import XMLAttribute
+from rpclib.model.complex import XmlAttribute
 from rpclib.model.primitive import DateTime
 from rpclib.model.primitive import Float
 from rpclib.model.primitive import Integer
@@ -316,27 +316,27 @@ class EncExtractSisMsg(SisMsg):
     body = EncExtractXs
 
 
-
-class Parameter(ComplexModel):
-    __namespace__ = ns_test
-    __extends__ = String
-    name = XMLAttribute('%s:string' % xml_ns.const_prefmap[xml_ns.xsd])
-
-Parameter.resolve_namespace(Parameter, __name__)
-
-
 class TestXmlAttribute(unittest.TestCase):
     def test_add_to_schema(self):
+        class CM(ComplexModel):
+            __namespace__ = 'ns'
+
+            i = Integer
+            s = String
+            a = XmlAttribute(String)
+
         app = FakeApp()
         schema = Wsdl11(app)
-        schema.add(Parameter)
+        schema.add(CM)
 
-        pref = Parameter.get_namespace_prefix(schema)
-        type_def = schema.get_schema_info(pref).types[Parameter.get_type_name()]
+        pref = CM.get_namespace_prefix(schema)
+        type_def = schema.get_schema_info(pref).types[CM.get_type_name()]
+        print etree.tostring(type_def, pretty_print=True)
         attribute_def = type_def.find('{%s}attribute' % xml_ns.xsd)
+
         self.assertIsNotNone(attribute_def)
-        self.assertEqual(attribute_def.get('name'), 'name')
-        self.assertEqual(attribute_def.get('type'), Parameter.name._typ)
+        self.assertEqual(attribute_def.get('name'), 'a')
+        self.assertEqual(attribute_def.get('type'), CM.a._typ.get_type_name_ns(schema))
 
 
 class TestSimpleTypeRestrictions(unittest.TestCase):

@@ -21,7 +21,7 @@ from lxml import etree
 
 from rpclib.const import xml_ns as namespace
 from rpclib.model import ModelBase
-from rpclib.model.complex import XMLAttribute
+from rpclib.model.complex import XmlAttribute
 from rpclib.util.etreeconv import dict_to_etree
 
 def complex_add(interface, cls):
@@ -73,10 +73,10 @@ def complex_add(interface, cls):
                                                                   namespace.xsd)
 
         for k, v in cls._type_info.items():
-            if isinstance(v, XMLAttribute):
+            if isinstance(v, XmlAttribute):
                 attribute = etree.SubElement(complex_type,
                                             '{%s}attribute' % namespace.xsd)
-                v.describe(k, attribute)
+                v.describe(k, attribute, interface)
                 continue
 
             if v != cls:

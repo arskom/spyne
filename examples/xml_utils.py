@@ -42,6 +42,7 @@ from rpclib.model.primitive import Integer
 from rpclib.model.primitive import Decimal
 from rpclib.model.primitive import DateTime
 from rpclib.model.complex import ComplexModel
+from rpclib.model.complex import XmlAttribute
 
 from rpclib.util.xml import get_schema_documents
 from rpclib.util.xml import get_object_as_xml
@@ -64,6 +65,7 @@ class Foo(ComplexModel):
     b = Integer
     c = Decimal
     d = DateTime
+    e = XmlAttribute(Integer)
 
 
 docs = get_schema_documents([Punk, Foo])
