@@ -89,3 +89,15 @@ def get_object_as_xml(value):
     xml_object.to_parent_element(value.__class__, value, value.get_namespace(), parent)
 
     return parent[0]
+
+def get_xml_as_object(cls, value):
+    '''Returns a native :class:`rpclib.model.complex.ComplexModel` child from an
+    ElementTree representation of the same class.
+
+    :param value: The class the xml document represents.
+    :param value: The xml document to be deserialized.
+    '''
+
+    xml_object = XmlObject()
+
+    return xml_object.from_element(cls, value)
