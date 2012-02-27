@@ -36,7 +36,9 @@ from rpclib.interface.wsdl import Wsdl11
 from rpclib.protocol.soap import Soap11
 from rpclib.application import Application
 from rpclib.decorator import rpc
+from django.views.decorators.csrf import csrf_exempt
 
+@csrf_exempt
 class HelloWorldService(ServiceBase):
     @rpc(String, Integer, _returns=Iterable(String))
     def say_hello(ctx, name, times):
