@@ -34,3 +34,6 @@ def wsgi_soap11_application(services, tns='rpclib.simple.soap', validator=None):
                 in_protocol=Soap11(validator=validator), out_protocol=Soap11())
 
     return WsgiApplication(application)
+
+wsgi_soap_application = wsgi_soap11_application
+"""DEPRECATED! Use :func:`wsgi_soap11_application` instead."""
