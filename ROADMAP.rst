@@ -21,6 +21,14 @@ entire life time of the context object. This also results in having the whole
 message in memory while processing. While this is not a problem for small
 messages, which is rpclib's main target, it limits rpclib capabilities.
 
+A prerequisite of having such a lazy pipeline is to have ProtocolBase offer a
+``.feed()`` call, which accepts data fragments coming in from socket stream.
+Currently, rpclib can only work with transports who support message semantics
+-- i.e. those that offer a way of delimiting messages using without having to
+parse the contents. While the most popular transports support this, it prevents
+rpclib from making use of low-level operating system primitives like tcp
+sockets.
+
 Serializer Support
 ------------------
 
@@ -84,8 +92,6 @@ version number of the Rpclib version once implemented.
 * Support for EXI -- The Efficient Xml Interchange as a serializer.
 * SMTP as server transport.
 * SMTP as client transport.
-* Improve HttpRpc to be Rest compliant. Probably by dumping HttpRpc as it is
-  and rewriting it as a wrapper to Werkzeug or a similar WSGI library.
 * Implement converting csv output to pdf.
 * Implement DNS as transport
 * Support security extensions to Soap (maybe using `PyXMLSec <http://pypi.python.org/pypi/PyXMLSec/0.3.0>`_ ?)
