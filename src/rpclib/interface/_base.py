@@ -163,11 +163,6 @@ class InterfaceBase(object):
                                                 s.__name__, s.get_service_key()))
 
             for method in s.public_methods.values():
-                self.__test_type_name_validity(method.in_header)
-                self.__test_type_name_validity(method.out_header)
-                self.__test_type_name_validity(method.in_message)
-                # we are not testing out_message because that's automatically
-                # generated.
 
                 if method.in_header is None:
                     method.in_header = s.__in_header__
@@ -180,6 +175,7 @@ class InterfaceBase(object):
                     else:
                         in_headers = (method.in_header,)
                     for in_header in in_headers:
+                        self.__test_type_name_validity(in_header)
                         in_header.resolve_namespace(in_header, self.get_tns())
                         classes.append(in_header)
 
@@ -190,6 +186,7 @@ class InterfaceBase(object):
                         out_headers = (method.out_header,)
 
                     for out_header in out_headers:
+                        self.__test_type_name_validity(out_header)
                         out_header.resolve_namespace(out_header, self.get_tns())
                         classes.append(out_header)
 
@@ -202,10 +199,14 @@ class InterfaceBase(object):
                     fault.__namespace__ = self.get_tns()
                     classes.append(fault)
 
+                self.__test_type_name_validity(method.in_message)
                 method.in_message.resolve_namespace(method.in_message,
                                                                  self.get_tns())
                 classes.append(method.in_message)
 
+                # we are not testing out_message with __test_type_name_validity
+                # because they have RESPONSE_SUFFIX and RESULT_SUFFIX added
+                # automatically. actually, they're what we're trying to protect.
                 method.out_message.resolve_namespace(method.out_message,
                                                                  self.get_tns())
                 classes.append(method.out_message)
