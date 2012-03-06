@@ -60,6 +60,9 @@ from rpclib.protocol.html import HtmlMicroFormat
 from protocol import PngClock
 from protocol import SvgClock
 
+tns = 'rpclib.examples.multiple_protocols'
+port = 9910
+host = '127.0.0.1'
 
 class HelloWorldService(ServiceBase):
     @srpc(_returns=DateTime)
@@ -67,11 +70,6 @@ class HelloWorldService(ServiceBase):
         return datetime.utcnow()
 
 if __name__ == '__main__':
-    from wsgiref.simple_server import make_server
-
-    logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('rpclib.protocol.xml').setLevel(logging.DEBUG)
-
     rest = Application([HelloWorldService],
             tns='rpclib.examples.multiple_protocols',
             interface=Wsdl11(), in_protocol=HttpRpc(), out_protocol=HttpRpc())
@@ -106,9 +104,10 @@ if __name__ == '__main__':
         'svg': svg,
     })
 
-    server = make_server('127.0.0.1', 9910, root)
+    from wsgiref.simple_server import make_server
+    server = make_server(host, port, root)
 
-    logging.info("listening to http://127.0.0.1:7789")
-    logging.info("wsdl is at: http://localhost:7789/?wsdl")
+    logging.basicConfig(level=logging.DEBUG)
+    logging.info("listening to http://%s:%d" % (host,port))
 
     server.serve_forever()
