@@ -46,7 +46,6 @@ from datetime import datetime
 
 from rpclib.application import Application
 from rpclib.decorator import srpc
-from rpclib.interface.wsdl import Wsdl11
 from rpclib.service import ServiceBase
 from rpclib.util.wsgi_wrapper import WsgiMounter
 
@@ -70,30 +69,23 @@ class HelloWorldService(ServiceBase):
         return datetime.utcnow()
 
 if __name__ == '__main__':
-    rest = Application([HelloWorldService],
-            tns='rpclib.examples.multiple_protocols',
-            interface=Wsdl11(), in_protocol=HttpRpc(), out_protocol=HttpRpc())
+    rest = Application([HelloWorldService], tns=tns,
+            in_protocol=HttpRpc(), out_protocol=HttpRpc())
 
-    xml = Application([HelloWorldService],
-            tns='rpclib.examples.multiple_protocols',
-            interface=Wsdl11(), in_protocol=HttpRpc(), out_protocol=XmlObject())
+    xml = Application([HelloWorldService], tns=tns,
+            in_protocol=HttpRpc(), out_protocol=XmlObject())
 
-    soap = Application([HelloWorldService],
-            tns='rpclib.examples.multiple_protocols',
-            interface=Wsdl11(), in_protocol=HttpRpc(), out_protocol=Soap11())
+    soap = Application([HelloWorldService], tns=tns,
+            in_protocol=HttpRpc(), out_protocol=Soap11())
 
-    html = Application([HelloWorldService],
-            tns='rpclib.examples.multiple_protocols',
-            interface=Wsdl11(), in_protocol=HttpRpc(), out_protocol=HtmlMicroFormat())
+    html = Application([HelloWorldService], tns=tns,
+            in_protocol=HttpRpc(), out_protocol=HtmlMicroFormat())
 
-    png = Application([HelloWorldService],
-            tns='rpclib.examples.multiple_protocols',
-            interface=Wsdl11(), in_protocol=HttpRpc(), out_protocol=PngClock())
+    png = Application([HelloWorldService], tns=tns,
+            in_protocol=HttpRpc(), out_protocol=PngClock())
 
-    svg = Application([HelloWorldService],
-            tns='rpclib.examples.multiple_protocols',
-            interface=Wsdl11(), in_protocol=HttpRpc(), out_protocol=SvgClock())
-
+    svg = Application([HelloWorldService], tns=tns,
+            in_protocol=HttpRpc(), out_protocol=SvgClock())
 
     root = WsgiMounter({
         'rest': rest,
