@@ -73,23 +73,27 @@ if __name__ == '__main__':
     logging.getLogger('rpclib.protocol.xml').setLevel(logging.DEBUG)
 
     rest = Application([HelloWorldService],
-            tns='rpclib.examples.hello.http',
+            tns='rpclib.examples.multiple_protocols',
             interface=Wsdl11(), in_protocol=HttpRpc(), out_protocol=HttpRpc())
 
     xml = Application([HelloWorldService],
-            tns='rpclib.examples.hello.http',
+            tns='rpclib.examples.multiple_protocols',
             interface=Wsdl11(), in_protocol=HttpRpc(), out_protocol=XmlObject())
 
     soap = Application([HelloWorldService],
-            tns='rpclib.examples.hello.http',
+            tns='rpclib.examples.multiple_protocols',
             interface=Wsdl11(), in_protocol=HttpRpc(), out_protocol=Soap11())
 
     html = Application([HelloWorldService],
-            tns='rpclib.examples.hello.http',
+            tns='rpclib.examples.multiple_protocols',
             interface=Wsdl11(), in_protocol=HttpRpc(), out_protocol=HtmlMicroFormat())
 
+    png = Application([HelloWorldService],
+            tns='rpclib.examples.multiple_protocols',
+            interface=Wsdl11(), in_protocol=HttpRpc(), out_protocol=PngClock())
+
     svg = Application([HelloWorldService],
-            tns='rpclib.examples.hello.http',
+            tns='rpclib.examples.multiple_protocols',
             interface=Wsdl11(), in_protocol=HttpRpc(), out_protocol=SvgClock())
 
 
@@ -98,6 +102,7 @@ if __name__ == '__main__':
         'xml': xml,
         'soap': soap,
         'html': html,
+        'png': png,
         'svg': svg,
     })
 
