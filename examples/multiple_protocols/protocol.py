@@ -32,17 +32,11 @@ ns = {'x': 'http://www.w3.org/2000/svg'}
 class SvgClock(ProtocolBase):
     mime_type = 'image/svg+xml'
 
-    def __init__(self, app=None, length=500):
-        """Protocol that returns a PNG Clock picture based on a received datetime
-        object.
-
-        :param app: A rpclib.application.Application instance.
-        :param length: The length of the edge of the produced square image, in pixels.
-        """
-
+    def __init__(self, app=None):
         ProtocolBase.__init__(self, app, validator=None)
 
-        self.length = length
+        self.length = 500 # if you change this, you should re-scale the svg file
+                          # as well.
 
     def serialize(self, ctx, message):
         """Uses ctx.out_object, ctx.out_header or ctx.out_error to set
@@ -55,10 +49,11 @@ class SvgClock(ProtocolBase):
         ctx.out_header_doc = None
         ctx.out_body_doc = copy.deepcopy(clock)
 
+        d = ctx.out_object[0] # this has to be a datetime.datetime() instance.
+
         ctx.out_body_doc.xpath("//x:flowPara[@id='date_text']", namespaces=ns)[0] \
                 .text = '%04d-%02d-%02d' % (d.year, d.month, d.day)
 
-        d = ctx.out_object[0]
         yelkovan_deg = d.minute * 360 / 60;
         akrep_deg = (d.hour % 12) * 360.0 / 12 + yelkovan_deg / 12;
         ctx.out_body_doc.xpath("//x:path[@id='akrep']", namespaces=ns)[0] \
@@ -66,7 +61,7 @@ class SvgClock(ProtocolBase):
             ' rotate(%d, %d, %d)' % (akrep_deg, self.length /2, self.length / 2)
         ctx.out_body_doc.xpath("//x:path[@id='yelkovan']", namespaces=ns)[0] \
             .attrib['transform'] += \
-            ' rotate(%d, %d, %d)' % (yelkovan_deg, self.length /2, self.length / 2)
+            ' rotate(%d, %d, %d)' % (yelkovan_deg, self.length /2, self.length /2)
 
         ctx.out_document = ctx.out_body_doc
 
@@ -80,3 +75,26 @@ class SvgClock(ProtocolBase):
 
     def decompose_incoming_envelope(self, ctx, message):
         raise NotImplementedError("This is an output-only protocol.")
+
+class PngClock(SvgClock):
+    mime_type = 'image/png'
+
+    def create_out_string(self, ctx, charset=None):
+        """Sets an iterable of string fragments to ctx.out_string"""
+
+        import rsvg
+        from gtk import gdk
+
+        h = rsvg.Handle()
+        h.write(etree.tostring(ctx.out_document))
+        h.close()
+
+        pixbuf = h.get_pixbuf()
+
+        ctx.out_string= []
+
+        def cb(buf, data=None):
+            ctx.out_string.append(buf)
+            return True
+
+        pixbuf.save_to_callback(cb, 'png')
