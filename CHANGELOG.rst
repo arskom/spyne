@@ -10,6 +10,13 @@ rpclib-2.7.0-beta
    ``descriptor.function`` unless you understand the consequences!..
  * String and Unicode models are now separate objects with well-defined
    (de)serialization behaviour.
+ * Argument order change in Application ctor:
+
+       interface, in_protocol, out_protocol
+
+   becomes:
+
+       in_protocol, out_protocol, interface
 
 rpclib-2.6.1-beta
 -----------------
