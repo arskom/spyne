@@ -30,13 +30,7 @@ from lxml.html.builder import E
 from rpclib.model import ModelBase
 from rpclib.model.binary import ByteArray
 from rpclib.model.binary import Attachment
-from rpclib.model.complex import Array
-from rpclib.model.complex import Iterable
 from rpclib.model.complex import ComplexModelBase
-from rpclib.model.enum import EnumBase
-from rpclib.model.fault import Fault
-from rpclib.model.primitive import AnyXml
-from rpclib.model.primitive import AnyDict
 from rpclib.protocol import ProtocolBase
 from rpclib.util.cdict import cdict
 
