@@ -62,7 +62,7 @@ class SvgClock(ProtocolBase):
 
         d = ctx.out_object[0] # this has to be a datetime.datetime() instance.
 
-        ctx.out_body_doc.xpath("//x:flowPara[@id='date_text']", namespaces=ns)[0] \
+        ctx.out_body_doc.xpath("//x:tspan[@id='date_text']", namespaces=ns)[0] \
                 .text = '%04d-%02d-%02d' % (d.year, d.month, d.day)
 
         yelkovan_deg = d.minute * 360 / 60;
@@ -102,7 +102,7 @@ class PngClock(SvgClock):
 
         pixbuf = h.get_pixbuf()
 
-        ctx.out_string= []
+        ctx.out_string = []
 
         def cb(buf, data=None):
             ctx.out_string.append(buf)
