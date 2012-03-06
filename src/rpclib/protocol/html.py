@@ -79,6 +79,8 @@ def serialize_complex_model(prot, cls, value, name='retval'):
 
 
 class HtmlMicroFormat(ProtocolBase):
+    mime_type = 'text/html'
+
     def __init__(self, app=None, validator=None, root_tag='div',
             child_tag='div', field_name_attr='class'):
         """Protocol that returns the response object as a html microformat. See

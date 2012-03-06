@@ -75,6 +75,7 @@ class XmlObject(ProtocolBase):
     """
 
     SCHEMA_VALIDATION = type("schema", (object,), {})
+    mime_type = 'text/xml'
 
     def __init__(self, app=None, validator=None, xml_declaration=True):
         ProtocolBase.__init__(self, app, validator)

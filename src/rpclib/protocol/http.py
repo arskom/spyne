@@ -88,6 +88,8 @@ class HttpRpc(ProtocolBase):
     the part after '?' character in a URI string.
     """
 
+    mime_type = 'text/plain'
+
     def __init__(self, app=None, validator=None, tmp_dir=None, tmp_delete_on_close=True):
         ProtocolBase.__init__(self, app, validator)
 
