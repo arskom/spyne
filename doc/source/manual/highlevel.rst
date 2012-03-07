@@ -4,7 +4,10 @@
 High-Level Introduction to Rpclib
 =================================
 
-The impatient can just jump to the :ref:`manual-highlevel-nutshell` section.
+The impatient can just jump to the :ref:`manual-highlevel-nutshell` section,
+or read a small
+`presentation <http://arskom.github.com/rpclib/multiple_protocols_presentation.pdf>'_
+that illustrates the following concepts by examples.
 
 Concepts
 --------
