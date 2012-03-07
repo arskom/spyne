@@ -17,8 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""A Convenience module for wsgi wrapper libraries."""
+"""A Convenience module for wsgi wrapper routines."""
 
+from rpclib.server.wsgi import WsgiApplication
 import os
 import logging
 logger = logging.getLogger(__name__)
@@ -55,3 +56,31 @@ def run_twisted(apps, port, static_dir='.'):
     logging.info("listening on: 0.0.0.0:%d" % port)
 
     return reactor.run()
+
+
+class WsgiMounter(object):
+    @staticmethod
+    def default(e, s):
+        s("404 Not found", [])
+        return []
+
+    def __init__(self, mounts=None):
+        self.mounts = mounts or { }
+        self.mounts = dict([(k, WsgiApplication(v)) for k,v in self.mounts.items()])
+
+    def __call__(self, environ, start_response):
+        path_info = environ.get('PATH_INFO', '')
+        fragments = [a for a in path_info.split('/') if len(a) > 0]
+
+        script = ''
+        if len(fragments) > 0:
+            script = fragments[0]
+
+        app = self.mounts.get(script, self.default)
+
+        original_script_name = environ.get('SCRIPT_NAME', '')
+
+        environ['SCRIPT_NAME'] = original_script_name + script
+        environ['PATH_INFO'] = '/' + '/'.join(fragments[1:])
+
+        return app(environ, start_response)

@@ -30,6 +30,7 @@ from rpclib.model import nillable_string
 
 from rpclib.util.odict import odict as TypeInfo
 from rpclib.const import xml_ns as namespace
+from rpclib.const.suffix import TYPE_SUFFIX
 
 
 class _SimpleTypeInfoElement(object):
@@ -49,13 +50,14 @@ class XmlAttribute(ModelBase):
 
     def marshall(self, name, value, parent_elt):
         if value is not None:
-            parent_elt.set(name, value)
+            parent_elt.set(name, self._typ.to_string(value))
 
-    def describe(self, name, element):
+    def describe(self, name, element, app):
         element.set('name', name)
-        element.set('type', self._typ)
+        element.set('type', self._typ.get_type_name_ns(app))
         if self._use:
             element.set('use', self._use)
+
 
 class XmlAttributeRef(XmlAttribute):
     """Reference to stock XML attribute."""
@@ -64,7 +66,7 @@ class XmlAttributeRef(XmlAttribute):
         self._ref = ref
         self._use = use
 
-    def describe(self, name, element):
+    def describe(self, name, element, app):
         element.set('ref', self._ref)
         if self._use:
             element.set('use', self._use)
@@ -117,7 +119,7 @@ class ComplexModelMeta(type(ModelBase)):
 
             for k, v in cls_dict.items():
                 if not k.startswith('__'):
-                    attr = isinstance(v, XMLAttribute)
+                    is_attr = isinstance(v, XmlAttribute)
                     try:
                         subc = issubclass(v, ModelBase)
                     except:
@@ -128,9 +130,8 @@ class ComplexModelMeta(type(ModelBase)):
                         if issubclass(v, Array) and v.serializer is None:
                             raise Exception("%s.%s is an array of what?" %
                                             (cls_name, k))
-                    elif attr:
+                    elif is_attr:
                         _type_info[k] = v
-
         else:
             _type_info = cls_dict['_type_info']
             if not isinstance(_type_info, TypeInfo):
@@ -158,7 +159,13 @@ class ComplexModelBase(ModelBase):
             try:
                 delattr(self, k)
             except:
-                pass
+                try:
+                    setattr(self, k, None)
+                except:
+                    try:
+                        setattr(self, k, [])
+                    except:
+                        pass
 
         for k,v in kwargs.items():
             setattr(self, k, v)
@@ -222,14 +229,17 @@ class ComplexModelBase(ModelBase):
 
         for k, v in cls._type_info.items():
             mo = v.Attributes.max_occurs
-            subvalue = getattr(inst, k, None)
+            try:
+                subvalue = getattr(inst, k, None)
+            except: # to guard against e.g. sqlalchemy throwing NoSuchColumnError
+                subvalue = None
 
             if mo == 'unbounded' or mo > 1:
                 if subvalue != None:
-                    yield (k, [v.to_string(sv) for sv in subvalue])
+                    yield (k, (v.to_string(sv) for sv in subvalue))
 
             else:
-                yield k, v.to_string(subvalue)
+                yield (k, [v.to_string(subvalue)])
 
     @classmethod
     @nillable_dict
@@ -255,9 +265,20 @@ class ComplexModelBase(ModelBase):
         return retval
 
     @staticmethod
-    def get_simple_type_info(cls, retval=None, prefix=None, parent=None):
+    def get_simple_type_info(cls, hier_delim="_", retval=None, prefix=None,
+                                                                    parent=None):
         """Returns a _type_info dict that includes members from all base classes
-        and whose types are only primitives.
+        and whose types are only primitives. It will prefix field names in
+        non-top-level complex objects with field of its parent.
+
+        For example:
+
+            {'some_object': [{'some_string': 'abc'}]}
+
+        will become:
+
+            {'some_object_some_string'': ['abc']}
+
         """
         from rpclib.model import SimpleModel
         from rpclib.model.binary import ByteArray
@@ -272,7 +293,7 @@ class ComplexModelBase(ModelBase):
             if getattr(v, 'get_flat_type_info', None) is None:
                 new_prefix = list(prefix)
                 new_prefix.append(k)
-                key = '_'.join(new_prefix)
+                key = hier_delim.join(new_prefix)
                 value = retval.get(key, None)
 
                 if value:
@@ -285,7 +306,7 @@ class ComplexModelBase(ModelBase):
             else:
                 new_prefix = list(prefix)
                 new_prefix.append(k)
-                v.get_simple_type_info(v, retval, new_prefix, parent=cls)
+                v.get_simple_type_info(v, hier_delim, retval, new_prefix, parent=cls)
 
         return retval
 
@@ -309,10 +330,15 @@ class ComplexModelBase(ModelBase):
         for k, v in cls._type_info.items():
             if v.__type_name__ is ModelBase.Empty:
                 v.__namespace__ = cls.get_namespace()
-                v.__type_name__ = "%s_%sType" % (cls.get_type_name(), k)
+                v.__type_name__ = "%s_%s%s" % (cls.get_type_name(), k, TYPE_SUFFIX)
 
             if v != cls:
                 v.resolve_namespace(v, default_ns)
+
+        if cls._force_own_namespace is not None:
+            for c in cls._force_own_namespace:
+                c.__namespace__ = cls.get_namespace()
+                ComplexModel.resolve_namespace(c, cls.get_namespace())
 
     @staticmethod
     def produce(namespace, type_name, members):
@@ -418,78 +444,3 @@ class Iterable(Array):
 
 class Alias(ComplexModel):
     """Different type_name, same _type_info."""
-
-class SimpleContent(ModelBase):
-    """THIS DOES NOT WORK!
-
-    Implementation of a limited version on SimpleContent ComplexType.
-    Actually, it can only do the extension part (no restriction of simpleType)
-    """
-    # Use ClassModelMeta to have _type_info
-    __metaclass__ = ComplexModelMeta
-
-    @classmethod
-    def to_parent_element(cls, inst, tns, parent_elt, name=None):
-        if name is None:
-            name = cls.get_type_name()
-
-        elt = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
-        for k, v in cls._type_info.items():
-            subval = getattr(inst, k, None)
-
-            if isinstance(v, XMLAttribute):
-                v.marshall(k, subval, elt)
-
-        elt.text = str(inst.get_value())
-
-    @classmethod
-    def from_xml(cls, element):
-        inst = cls()
-        # reset attributes
-        for k in cls._type_info.keys():
-            setattr(inst, k, None)
-
-        inst.set_value(element.text)
-        for k in element.keys():
-            setattr(inst, k, element.get(k, None))
-
-        return inst
-
-    @classmethod
-    def add_to_schema(cls, schema_entries):
-        if not schema_entries.has_class(cls):
-            ns = namespaces.ns_xsd
-            # extends should be a SimpleType
-            extends = getattr(cls, '__extends__', None)
-            if extends is None:
-                raise Exception('SimpleContent must extend something')
-
-            complex_type = etree.Element("{%s}complexType" % ns)
-            complex_type.set('name', cls.get_type_name())
-            simple_content = etree.SubElement(complex_type,
-                                              "{%s}simpleContent" % ns)
-            extention = etree.SubElement(simple_content, "{%s}extention" % ns)
-            extention.set('base', extends.get_type_name_ns(schema_entries.app))
-
-            for k, v in cls._type_info.items():
-                if isinstance(v, XMLAttribute):
-                    attr = etree.SubElement(extention, "{%s}attribute" % ns)
-                    v.describe(k, attr)
-
-            schema_entries.add_complex_type(cls, complex_type)
-
-            element = etree.Element('{%s}element' % ns)
-            element.set('name', cls.get_type_name())
-            element.set('type', cls.get_type_name_ns(schema_entries.app))
-
-            schema_entries.add_element(cls, element)
-
-    @staticmethod
-    def resolve_namespace(cls, default_ns):
-        pass
-
-    def get_value(self):
-        return self._value
-
-    def set_value(self, value):
-        self._value = value

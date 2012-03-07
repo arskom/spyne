@@ -23,6 +23,7 @@ import rpclib.const.xml_ns
 defining models.
 """
 
+
 def nillable_dict(func):
     """Decorator that retuns empty dictionary if input is None"""
 
@@ -52,6 +53,7 @@ def nillable_iterable(func):
         else:
             return func(cls, string)
     return wrapper
+
 
 class ModelBase(object):
     """The base class for type markers. It defines the model interface for the
@@ -92,10 +94,13 @@ class ModelBase(object):
         doc = ""
         """The documentation for the given type."""
 
+        appinfo = None
+        """Any object that carries app-specific info."""
+
     class Empty(object):
         pass
 
-    _force_own_namespace = set()
+    _force_own_namespace = None
 
     @staticmethod
     def is_default(cls):
@@ -137,10 +142,7 @@ class ModelBase(object):
 
         if cls.__namespace__ is None:
             cls.__namespace__ = cls.__module__
-
-        for c in cls._force_own_namespace:
-            c.__namespace__ = cls.__namespace__
-
+ 
     @classmethod
     def get_type_name(cls):
         """Returns the class name unless the __type_name__ attribute is defined.
@@ -242,6 +244,7 @@ class ModelBase(object):
 
         return True
 
+
 class Null(ModelBase):
     @classmethod
     def to_string(cls, value):
@@ -250,6 +253,7 @@ class Null(ModelBase):
     @classmethod
     def from_string(cls, value):
         return None
+
 
 class SimpleModel(ModelBase):
     """The base class for primitives."""

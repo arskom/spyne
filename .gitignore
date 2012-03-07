@@ -49,3 +49,14 @@ src/rpclib/test/interop/config.xml
 
 # sphinx cruft
 .buildinfo
+
+# latex cruft
+get_utc_time.pdf
+pres.pdf
+*.aux
+*.log
+*.nav
+*.out
+*.snm
+*.toc
+*.vrb

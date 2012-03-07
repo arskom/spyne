@@ -40,6 +40,7 @@ from pytz import FixedOffset
 from rpclib.model import SimpleModel
 from rpclib.model import nillable_string
 from rpclib.error import ValidationError
+from rpclib.error import Fault
 
 string_encoding = 'utf8'
 
@@ -129,6 +130,13 @@ class Unicode(SimpleModel):
         """A regular expression that matches the whole string. See here for more
         info: http://www.regular-expressions.info/xml.html"""
 
+        encoding = None
+        """The encoding of `str` objects this class may have to deal with."""
+
+        unicode_errors = 'strict'
+        """The argument to the ``unicode`` builtin; one of 'strict', 'replace' or
+        'ignore'."""
+
     def __new__(cls, *args, **kwargs):
         assert len(args) <= 1
 
@@ -142,19 +150,29 @@ class Unicode(SimpleModel):
     @classmethod
     @nillable_string
     def from_string(cls, value):
-        return value
+        retval = value
+        if isinstance(value, str):
+            if cls.Attributes.encoding is None:
+                retval = unicode(value, errors=cls.Attributes.unicode_errors)
+            else:
+                retval = unicode(value, cls.Attributes.encoding,
+                                        errors=cls.Attributes.unicode_errors)
+        return retval
 
     @classmethod
     @nillable_string
     def to_string(cls, value):
-        return value
+        retval = value
+        if cls.Attributes.encoding is not None and isinstance(value, unicode):
+            retval = value.encode(cls.Attributes.encoding)
+        return retval
 
     @staticmethod
     def is_default(cls):
         return (    SimpleModel.is_default(cls)
-                and cls.Attributes.min_len == String.Attributes.min_len
-                and cls.Attributes.max_len == String.Attributes.max_len
-                and cls.Attributes.pattern == String.Attributes.pattern)
+                and cls.Attributes.min_len == Unicode.Attributes.min_len
+                and cls.Attributes.max_len == Unicode.Attributes.max_len
+                and cls.Attributes.pattern == Unicode.Attributes.pattern)
 
     @staticmethod
     def validate_string(cls, value):
@@ -167,33 +185,22 @@ class Unicode(SimpleModel):
             )
 
 
-# the undocumented string type, for those who want not-so-implicit encoding
-# conversions.
-class _String(Unicode):
-    class Attributes(Unicode.Attributes):
-        """Customizable attributes of the :class:`rpclib.model.primitive.String`
-        type."""
-
-        encoding = 'utf8'
-        """The encoding of the passed `str` object."""
-
+class String(Unicode):
     @classmethod
     @nillable_string
     def from_string(cls, value):
         retval = value
-        if cls.Attributes.encoding is not None:
-            retval = value.decode(cls.Attributes.encoding)
+        if isinstance(value, unicode):
+            if cls.Attributes.encoding is None:
+                raise Exception("You need to define an encoding to convert the "
+                                "incoming unicode values to.")
+            else:
+                retval = value.encode(cls.Attributes.encoding)
+
         return retval
 
-    @classmethod
-    @nillable_string
-    def to_string(cls, value):
-        retval = value
-        if cls.Attribute.encoding is not None:
-            retval = value.encode(cls.Attributes.encoding)
-        return retval
-
-String = Unicode # FIXME: the string/unicode separation needs to be tested
+if sys.version > '3':
+    String = Unicode
 
 class AnyUri(Unicode):
     """This is an xml schema type with is a special kind of String."""
@@ -206,6 +213,7 @@ class Decimal(SimpleModel):
     """
 
     __type_name__ = 'decimal'
+    __max_str_len__ = 1024
 
     class Attributes(SimpleModel.Attributes):
         gt = -float('inf') # minExclusive
@@ -242,6 +250,9 @@ class Decimal(SimpleModel):
     @classmethod
     @nillable_string
     def from_string(cls, string):
+        if cls.__max_str_len__ is not None and len(string) > cls.__max_str_len__:
+            raise ValidationError(string, 'string too long.')
+
         try:
             return decimal.Decimal(string)
         except decimal.InvalidOperation, e:
@@ -271,33 +282,17 @@ class Float(Double):
 
     __type_name__ = 'float'
 
-class Int(Decimal):
-    """The 32-Bit signed integer."""
-
-    __type_name__ = 'int'
-
-    @classmethod
-    @nillable_string
-    def to_string(cls, value):
-        int(value) # for validation purposes.
-        return str(value)
-
-    @classmethod
-    @nillable_string
-    def from_string(cls, string):
-        try:
-            return int(string)
-        except ValueError:
-            raise ValidationError(string)
-
 class Integer(Decimal):
     """The arbitrary-size signed integer."""
 
     __type_name__ = 'integer'
+    __length__ = None
+    """length of the number, in bits"""
 
     @classmethod
     @nillable_string
     def to_string(cls, value):
+        assert (cls.__length__ is None) or (0 <= value < 2** cls.__length__)
         int(value) # sanity check
 
         return str(value)
@@ -305,6 +300,10 @@ class Integer(Decimal):
     @classmethod
     @nillable_string
     def from_string(cls, string):
+        if cls.__max_str_len__ is not None and len(string) > cls.__max_str_len__:
+            raise Fault('Client.ValidationError', 'String longer than '
+                        '%d characters.' % cls.__max_str_len__)
+
         try:
             return int(string)
         except ValueError:
@@ -313,48 +312,98 @@ class Integer(Decimal):
             except ValueError:
                 raise ValidationError(string)
 
+    @staticmethod
+    def validate_native(cls, value):
+        return (     Decimal.validate_native(cls, value)
+                and (cls.__length__ is None or
+                    (-2**( cls.__length__ -1) <= value < 2 ** (cls.__length__ - 1))
+                )
+            )
+
 class UnsignedInteger(Integer):
-    """The arbitrary-size unsigned integer."""
-    __type_name__ = 'unsignedLong'
-    __length__ = None
-    """length of the number, in bits"""
-
-    @classmethod
-    @nillable_string
-    def to_string(cls, value):
-        assert (cls.__length__ is None) or (0 <= value < 2**cls.__length__)
-
-        return str(value)
+    """The arbitrary-size unsigned integer, aka nonNegativeInteger."""
+    __type_name__ = 'nonNegativeInteger'
 
     @staticmethod
     def validate_native(cls, value):
         return (     Integer.validate_native(cls, value)
-                and (cls.__length__ is None or (0 <= value < 2 ** cls.__length__))
+                and value >= 0
+                and (cls.__length__ is None or (value < 2 ** cls.__length__))
             )
 
+NonNegativeInteger = UnsignedInteger
+
+class Integer64(Integer):
+    """The 64-bit signed integer, aka long."""
+
+    __type_name__ = 'long'
+    __length__ = 64
+    __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
+
+Long = Integer64
+
+class Integer32(Integer):
+    """The 32-bit signed integer, aka int."""
+
+    __type_name__ = 'int'
+    __length__ = 32
+    __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
+
+Int = Integer32
+
+class Integer16(Integer):
+    """The 8-bit signed integer, aka short."""
+
+    __type_name__ = 'short'
+    __length__ = 16
+    __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
+
+Short = Integer64
+
+class Integer8(Integer):
+    """The 8-bit signed integer, aka byte."""
+
+    __type_name__ = 'byte'
+    __length__ = 16
+    __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
+
+Byte = Integer8
+
 class UnsignedInteger64(UnsignedInteger):
-    """The 64-bit unsigned integer."""
+    """The 64-bit unsigned integer, aka unsignedLong."""
 
     __type_name__ = 'unsignedLong'
     __length__ = 64
+    __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
+
+UnsignedLong = UnsignedInteger64
 
 class UnsignedInteger32(UnsignedInteger):
-    """The 32-bit unsigned integer."""
+    """The 32-bit unsigned integer, aka unsignedInt."""
 
-    __type_name__ = 'unsignedLong'
+    __type_name__ = 'unsignedInt'
     __length__ = 32
+    __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
+
+UnsignedInt = UnsignedInteger32
 
 class UnsignedInteger16(Integer):
-    """The 16-bit unsigned integer."""
+    """The 16-bit unsigned integer, aka unsignedShort."""
 
     __type_name__ = 'unsignedShort'
     __length__ = 16
+    __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
+
+UnsignedShort = UnsignedInteger16
 
 class UnsignedInteger8(Integer):
-    """The 8-bit unsigned integer."""
+    """The 8-bit unsigned integer, aka unsignedByte."""
 
     __type_name__ = 'unsignedByte'
     __length__ = 8
+    __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
+
+UnsignedByte = UnsignedInteger8
 
 class Time(SimpleModel):
     """Just that, Time. No time zone support.
@@ -555,3 +604,4 @@ class Mandatory(object):
     String = String(type_name="mandatory_string", min_occurs=1, nillable=False, min_len=1)
     Integer = Integer(type_name="mandatory_integer", min_occurs=1, nillable=False)
     UnsignedInteger = UnsignedInteger(type_name="mandatory_unsigned_integer", min_occurs=1, nillable=False)
+    UnsignedLong = UnsignedLong(type_name="mandatory_unsigned_integer", min_occurs=1, nillable=False)

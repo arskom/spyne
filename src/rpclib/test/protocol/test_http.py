@@ -29,7 +29,6 @@ from rpclib.model.primitive import String
 from rpclib.model.complex import ComplexModel
 from rpclib.interface.wsdl import Wsdl11
 from rpclib.protocol.http import HttpRpc
-from rpclib.protocol.soap import Soap11
 from rpclib.service import ServiceBase
 
 class Test(unittest.TestCase):
@@ -51,6 +50,8 @@ class Test(unittest.TestCase):
         initial_ctx = WsgiMethodContext(app, {
             'QUERY_STRING': '',
             'PATH_INFO': '/some_call',
+            'QUERY_STRING': '?s=a',
+            'REQUEST_METHOD': 'GET',
         }, 'some-content-type')
 
         from rpclib.server import ServerBase
@@ -64,7 +65,8 @@ class Test(unittest.TestCase):
         except ValueError:
             pass
         else:
-            raise Exception("Must Fail")
+            raise Exception("Must fail with: HttpRpc does not support complex "
+                "return types.")
 
     def test_primitive_only(self):
         class SomeComplexModel(ComplexModel):
@@ -83,6 +85,7 @@ class Test(unittest.TestCase):
         initial_ctx = WsgiMethodContext(app, {
             'QUERY_STRING': '',
             'PATH_INFO': '/some_call',
+            'REQUEST_METHOD': 'GET',
         }, 'some-content-type')
 
         from rpclib.server import ServerBase
@@ -99,7 +102,8 @@ class Test(unittest.TestCase):
         except:
             pass
         else:
-            raise Exception("Must Fail")
+            raise Exception("Must fail with: HttpRpc does not support complex "
+                "return types.")
 
     def test_complex(self):
         class CM(ComplexModel):
@@ -123,6 +127,7 @@ class Test(unittest.TestCase):
         initial_ctx = WsgiMethodContext(app, {
             'QUERY_STRING': '',
             'PATH_INFO': '/some_call',
+            'REQUEST_METHOD': 'GET',
         }, 'some-content-type')
 
         from rpclib.server import ServerBase
@@ -146,6 +151,7 @@ class Test(unittest.TestCase):
         initial_ctx = WsgiMethodContext(app, {
             'QUERY_STRING': 's=1&s=2',
             'PATH_INFO': '/some_call',
+            'REQUEST_METHOD': 'GET',
         }, 'some-content-type')
 
         from rpclib.server import ServerBase
@@ -180,6 +186,7 @@ class Test(unittest.TestCase):
         initial_ctx = WsgiMethodContext(app, {
             'QUERY_STRING': 'ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs',
             'PATH_INFO': '/some_call',
+            'REQUEST_METHOD': 'GET',
         }, 'some-content-type')
 
         from rpclib.server import ServerBase
@@ -220,6 +227,7 @@ class Test(unittest.TestCase):
         initial_ctx = WsgiMethodContext(app, {
             'QUERY_STRING': 'ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs',
             'PATH_INFO': '/some_call',
+            'REQUEST_METHOD': 'GET',
         }, 'some-content-type')
 
         from rpclib.server import ServerBase
@@ -257,6 +265,7 @@ class Test(unittest.TestCase):
         initial_ctx = WsgiMethodContext(app, {
             'QUERY_STRING': 'ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs',
             'PATH_INFO': '/some_call',
+            'REQUEST_METHOD': 'GET',
         }, 'some-content-type')
 
         from rpclib.server import ServerBase

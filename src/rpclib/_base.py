@@ -87,8 +87,7 @@ class MethodContext(object):
         self.method_request_string = None
         """This is used as a basis on deciding which native method to call."""
 
-        self.descriptor = None
-        """The MethodDescriptor object representing the current method."""
+        self.__descriptor = None
 
         #
         # The following are set based on the value of the descriptor.
@@ -178,6 +177,9 @@ class MethodContext(object):
         self.out_string = None
         """Outgoing bytestream (i.e. an iterable of strings)"""
 
+        self.function = None
+        """The callable of the user code."""
+
         self.frozen = True
         """When this is set, no new attribute can be added to this class
         instance. This is mostly for internal use.
@@ -185,8 +187,19 @@ class MethodContext(object):
 
         self.app.event_manager.fire_event("method_context_constructed", self)
 
+    def get_descriptor(self):
+        return self.__descriptor
+
+    def set_descriptor(self, descriptor):
+        self.__descriptor = descriptor
+        self.function = descriptor.function
+
+    descriptor = property(get_descriptor, set_descriptor)
+    """The MethodDescriptor object representing the current method. This object
+    should not be changed by the user code."""
+
     def __setattr__(self, k, v):
-        if self.frozen == False or k in self.__dict__:
+        if self.frozen == False or k in self.__dict__ or k == 'descriptor':
             object.__setattr__(self, k, v)
         else:
             raise ValueError("use the udc member for storing arbitrary data "

@@ -67,7 +67,7 @@ class Application(object):
 
     transport = None
 
-    def __init__(self, services, tns, interface, in_protocol, out_protocol,
+    def __init__(self, services, tns, in_protocol, out_protocol, interface=None,
                                         name=None, supports_fanout_methods=False):
 
         self.services = services
@@ -83,6 +83,10 @@ class Application(object):
 
         self.out_protocol = out_protocol
         self.out_protocol.set_app(self)
+
+        if interface is None:
+            from rpclib.interface.wsdl import Wsdl11
+            interface = Wsdl11()
 
         self.interface = interface
         self.interface.set_app(self)

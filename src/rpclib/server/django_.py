@@ -1,4 +1,4 @@
-
+# encoding: utf-8
 #
 # rpclib - Copyright (C) Rpclib contributors.
 #
@@ -17,23 +17,28 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""Contains functions that implement the most common protocol and transport
-combinations"""
+from __future__ import absolute_import
 
-from rpclib.application import Application
-from rpclib.interface.wsdl import Wsdl11
-from rpclib.protocol.soap import Soap11
+from django.http import HttpResponse
 from rpclib.server.wsgi import WsgiApplication
 
-def wsgi_soap11_application(services, tns='rpclib.simple.soap', validator=None):
-    """Wraps `services` argument inside a WsgiApplication that uses Wsdl 1.1 as
-    interface document and Soap 1.1 and both input and output protocols.
-    """
+class DjangoApplication(WsgiApplication):
+    def __call__(self, request):
+        django_response = HttpResponse()
 
-    application = Application(services, tns, interface=Wsdl11(),
-                in_protocol=Soap11(validator=validator), out_protocol=Soap11())
+        def start_response(status, headers):
+            status, reason = status.split(' ', 1)
 
-    return WsgiApplication(application)
+            django_response.status_code = int(status)
+            for header, value in headers:
+                django_response[header] = value
 
-wsgi_soap_application = wsgi_soap11_application
-"""DEPRECATED! Use :func:`wsgi_soap11_application` instead."""
+        environ = request.META.copy()
+        environ['wsgi.input'] = request
+        environ['wsgi.multithread'] = False
+
+        response = WsgiApplication.__call__(self, environ, start_response)
+
+        django_response.content = "\n".join(response)
+
+        return django_response
