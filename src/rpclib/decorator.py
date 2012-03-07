@@ -30,7 +30,10 @@ decorator is a simple example of this.
 from rpclib._base import MethodDescriptor
 from rpclib.model.complex import ComplexModel
 from rpclib.model.complex import TypeInfo
+
 from rpclib.const.xml_ns import DEFAULT_NS
+from rpclib.const.suffix import RESPONSE_SUFFIX
+from rpclib.const.suffix import RESULT_SUFFIX
 
 def _produce_input_message(f, params, _in_message_name, _in_variable_names, no_ctx):
     if no_ctx is True:
@@ -92,12 +95,13 @@ def _produce_output_message(f, func_name, kparams):
     _returns = kparams.get('_returns')
     _body_style = _validate_body_style(kparams)
 
-    _out_message_name = kparams.get('_out_message', '%sResponse' % func_name)
+    _out_message_name = kparams.get('_out_message', '%s%s' %
+                                                    (func_name, RESPONSE_SUFFIX))
     out_params = TypeInfo()
 
     if _returns and _body_style == 'wrapped':
         if isinstance(_returns, (list, tuple)):
-            default_names = ['%sResult%d' % (func_name, i) for i in
+            default_names = ['%s%s%d' % (func_name, RESULT_SUFFIX, i) for i in
                                                            range(len(_returns))]
 
             _out_variable_names = kparams.get('_out_variable_names',
@@ -110,7 +114,7 @@ def _produce_output_message(f, func_name, kparams):
 
         else:
             _out_variable_name = kparams.get('_out_variable_name',
-                                                       '%sResult' % func_name)
+                                           '%s%s' % (func_name, RESULT_SUFFIX))
 
             out_params[_out_variable_name] = _returns
 

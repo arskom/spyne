@@ -21,7 +21,8 @@ from lxml import etree
 
 from rpclib.const import xml_ns as namespace
 from rpclib.model import ModelBase
-from rpclib.model.complex import XMLAttribute
+from rpclib.model.complex import XmlAttribute
+from rpclib.util.etreeconv import dict_to_etree
 
 def complex_add(interface, cls):
     if cls.get_type_name() is ModelBase.Empty:
@@ -36,6 +37,29 @@ def complex_add(interface, cls):
         complex_type = etree.Element("{%s}complexType" % namespace.xsd)
         complex_type.set('name', cls.get_type_name())
 
+        if cls.Annotations.doc != '' or cls.Annotations.appinfo != None:
+            annotation = etree.SubElement(complex_type, "{%s}annotation" %
+                                                                  namespace.xsd)
+            if cls.Annotations.doc != '':
+                doc = etree.SubElement(annotation, "{%s}documentation" %
+                                                                  namespace.xsd)
+                doc.text = cls.Annotations.doc
+
+            _ai = cls.Annotations.appinfo;
+            if _ai != None:
+                appinfo = etree.SubElement(annotation, "{%s}appinfo" %
+                                                                  namespace.xsd)
+                if isinstance(_ai, dict):
+                    dict_to_etree(_ai, appinfo)
+                elif isinstance(_ai, str) or isinstance(_ai, unicode):
+                    appinfo.text = _ai
+                elif isinstance(_ai, etree._Element):
+                    appinfo.append(_ai)
+                else:
+                    from rpclib.util.xml import get_object_as_xml
+
+                    appinfo.append(get_object_as_xml(_ai))
+
         sequence_parent = complex_type
         if not (extends is None):
             complex_content = etree.SubElement(complex_type,
@@ -46,13 +70,13 @@ def complex_add(interface, cls):
             sequence_parent = extension
 
         sequence = etree.SubElement(sequence_parent, '{%s}sequence' %
-                                                                 namespace.xsd)
+                                                                  namespace.xsd)
 
         for k, v in cls._type_info.items():
-            if isinstance(v, XMLAttribute):
+            if isinstance(v, XmlAttribute):
                 attribute = etree.SubElement(complex_type,
                                             '{%s}attribute' % namespace.xsd)
-                v.describe(k, attribute)
+                v.describe(k, attribute, interface)
                 continue
 
             if v != cls:
@@ -71,13 +95,6 @@ def complex_add(interface, cls):
                 member.set('nillable', 'true')
             #else:
             #    member.set('nillable', 'false')
-
-            if v.Annotations.doc != '':
-                annotation = etree.SubElement(member, "{%s}annotation",
-                                                              namespace.xsd)
-                doc = etree.SubElement(annotation, "{%s}documentation",
-                                                              namespace.xsd)
-                doc.text = v.Annotations.doc
 
         interface.add_complex_type(cls, complex_type)
 

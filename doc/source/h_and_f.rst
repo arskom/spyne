@@ -8,7 +8,7 @@ History and Future
 Versioning
 ==========
 
-Rpclib respects Semantic Versioning rules outlined in http://semver.org.
+Rpclib respects the "Semantic Versioning" rules outlined in http://semver.org.
 
 This means  you can do better than just adding ``'rpclib'`` to your list of
 dependencies. Assuming the current version of rpclib is 2.4.8,

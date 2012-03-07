@@ -2,6 +2,26 @@
 Changelog
 =========
 
+rpclib-2.7.0-beta
+-----------------
+ * Add support for Html Microformats.
+ * Add ``function`` property to MethodContext that is re-initialized from
+   ``descriptor.function`` for each new request. Stay away from
+   ``descriptor.function`` unless you understand the consequences!..
+ * String and Unicode models are now separate objects with well-defined
+   (de)serialization behaviour.
+ * Argument order change in Application ctor:
+
+       interface, in_protocol, out_protocol
+
+   becomes:
+
+       in_protocol, out_protocol, interface
+
+rpclib-2.6.1-beta
+-----------------
+ * Fix (for real this time) the race condition in wsgi server's wsdl handler.
+
 rpclib-2.6.0-beta
 -----------------
  * HttpRpc now parses POST/PUT/PATCH bodies, can accept file uploads.
@@ -167,7 +187,7 @@ rpclib-2.0.10-alpha
  * Fixed the case where changing the _in_message tag name of the method
    prevented it from being called.
  * SOAP/WSDL: Added support for multiple {in,out}_header objects.
- * Correct some bugs with the XMLAttribute model
+ * Fix some XMLAttribute bugs.
 
 rpclib-2.0.9-alpha
 ------------------
