@@ -20,13 +20,13 @@
 \author{Burak Arslan}
 \usepackage{wasysym}
 
-\hypersetup{                                                                                                                                                                                                                    
-   colorlinks,                                                                                                                                                                                                                  
-   citecolor=blue,                                                                                                                                                                                                             
-   filecolor=blue,                                                                                                                                                                                                             
-   linkcolor=blue,                                                                                                                                                                                                             
-   urlcolor=blue,                                                                                                                                                                                                              
-   breaklinks=true                                                                                                                                                                                                              
+\hypersetup{
+   colorlinks,
+   citecolor=blue,
+   filecolor=blue,
+   linkcolor=blue,
+   urlcolor=blue,
+   breaklinks=true
 }
 
 \begin{document}
@@ -37,15 +37,15 @@
 
 \begin{frame}
   \frametitle{What is Rpclib?}
-  
-  \LARGE 
+
+  \LARGE
 \begin{center}
- 
-  Rpclib provides a convenient way of 
+
+  Rpclib makes it convenient to
 
   \bigskip
 
-  exposing your services using multiple 
+  expose your services using multiple
 
   \bigskip
 
@@ -60,8 +60,8 @@
 \begin{frame}
 \LARGE
 \begin{center}
-  
-  Which seems to be especially important 
+
+  Which seems to be especially important
 
   \bigskip
 
@@ -80,7 +80,7 @@
 \begin{frame}
 \Huge
 \begin{center}
-  
+
   How does it work?
 
 \end{center}
@@ -88,7 +88,7 @@
 \end{frame}
 
 \begin{frame}[fragile]
-  \LARGE 
+  \LARGE
 \begin{center}
 
   Let's start small, with a simple function
@@ -160,9 +160,9 @@
 from rpclib.application import Application
 from rpclib.protocol.http import HttpRpc
 
-httprpc = Application([DateTimeService], 
+httprpc = Application([DateTimeService],
         tns='rpclib.examples.multiprot',
-        in_protocol=HttpRpc(), 
+        in_protocol=HttpRpc(),
         out_protocol=HttpRpc()
     )
   \end{lstlisting}
@@ -189,22 +189,25 @@ httprpc = Application([DateTimeService],
 
 \begin{frame}[fragile]
  \begin{lstlisting}
-    application = WsgiApplication(httprpc)
+from rpclib.server.wsgi import WsgiApplication
+
+application = WsgiApplication(httprpc)
  \end{lstlisting}
 
-  \begin{center} 
-    This is now a regular WSGI Application that 
+  \begin{center}
+    This is now a regular WSGI Application that
 
     \bigskip
 
-    we can pass to wsgi-compliant servers like 
+    we can pass to wsgi-compliant servers like
 
     \bigskip
 
     CherryPy, mod\_wsgi, etc.
   \end{center}
+  \pause
   \begin{lstlisting}[language=sh]
-$ curl http://localhost:9910/get_utc_time 
+$ curl http://localhost:9910/get_utc_time
 2012-03-09T17:38:11.997784
   \end{lstlisting}
 \end{frame}
@@ -220,7 +223,7 @@ $ curl http://localhost:9910/get_utc_time
   \end{center}
 \end{frame}
 
-\begin{frame}[fragile]    
+\begin{frame}[fragile]
   \frametitle{For example: SOAP}
 
   \begin{lstlisting}
@@ -235,7 +238,7 @@ soap = Application([DateTimeService],
   \end{lstlisting}
 \end{frame}
 
-\begin{frame}[fragile]    
+\begin{frame}[fragile]
   \frametitle{For example: SOAP}
 
   \begin{lstlisting}[language=sh,frame=topline]
@@ -244,14 +247,14 @@ $ curl http://localhost:9910/get_utc_time \
   \end{lstlisting}
   \tiny
   \begin{lstlisting}[language=xml,frame=bottomline]
-  <?xml version='1.0' encoding='utf-8'?>                                                                                                                                                                                          
-  <senv:Envelope xmlns:wsa="http://schemas.xmlsoap.org/ws/2003/03/addressing"                                                                                                                                                     
-  xmlns:tns="rpclib.examples.multiple_protocols"                                                                                                                                                                                  
-  xmlns:plink="http://schemas.xmlsoap.org/ws/2003/05/partner-link/"                                                                                                                                                               
-  xmlns:xop="http://www.w3.org/2004/08/xop/include"                                                                                                                                                                               
-  xmlns:senc="http://schemas.xmlsoap.org/soap/encoding/"                                                                                                                                                                          
-  xmlns:s12env="http://www.w3.org/2003/05/soap-envelope/"                                                                                                                                                                         
-  xmlns:s12enc="http://www.w3.org/2003/05/soap-encoding/"                                                                                                                                                                         
+  <?xml version='1.0' encoding='utf-8'?>
+  <senv:Envelope xmlns:wsa="http://schemas.xmlsoap.org/ws/2003/03/addressing"
+  xmlns:tns="rpclib.examples.multiple_protocols"
+  xmlns:plink="http://schemas.xmlsoap.org/ws/2003/05/partner-link/"
+  xmlns:xop="http://www.w3.org/2004/08/xop/include"
+  xmlns:senc="http://schemas.xmlsoap.org/soap/encoding/"
+  xmlns:s12env="http://www.w3.org/2003/05/soap-envelope/"
+  xmlns:s12enc="http://www.w3.org/2003/05/soap-encoding/"
   xmlns:xs="http://www.w3.org/2001/XMLSchema"
   xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -268,7 +271,7 @@ $ curl http://localhost:9910/get_utc_time \
   \end{lstlisting}
 \end{frame}
 
-\begin{frame}[fragile]    
+\begin{frame}[fragile]
   \frametitle{Or, just XML:}
 
   \begin{lstlisting}
@@ -284,7 +287,7 @@ xml = Application([DateTimeService],
 \end{frame}
 
 
-\begin{frame}[fragile]    
+\begin{frame}[fragile]
   \frametitle{Or, just XML:}
 
   \begin{lstlisting}[language=sh,frame=topline]
@@ -294,7 +297,7 @@ $ curl http://localhost:9910/get_utc_time \
   \small
   \begin{lstlisting}[language=xml,frame=bottomline]
 <?xml version='1.0' encoding='utf-8'?>
-<ns0:get_utc_timeResponse 
+<ns0:get_utc_timeResponse
 xmlns:ns0="rpclib.examples.multiple_protocols">
   <ns0:get_utc_timeResult>
     2012-03-06T17:49:08.922501
@@ -303,7 +306,7 @@ xmlns:ns0="rpclib.examples.multiple_protocols">
   \end{lstlisting}
 \end{frame}
 
-\begin{frame}[fragile]    
+\begin{frame}[fragile]
   \frametitle{Or, HTML:}
 
   \begin{lstlisting}
@@ -319,7 +322,7 @@ html = Application([DateTimeService],
 \end{frame}
 
 
-\begin{frame}[fragile]    
+\begin{frame}[fragile]
   \frametitle{Or, HTML:}
 
   \begin{lstlisting}[language=sh,frame=topline]
@@ -365,20 +368,20 @@ $ curl http://localhost:9910/get_utc_time \
 
     \bigskip
 
-    \pause  
+    \pause
     \large
     (without going into much detail \smiley)
-  
+
   \end{center}
 \end{frame}
 
 \begin{frame}
   \LARGE
   \begin{center}
-    To do that, we need to implement the 
+    To do that, we need to implement the
 
     \bigskip
-    
+
     \texttt{serialize} and \texttt{create\_out\_string}
 
     \bigskip
@@ -399,13 +402,13 @@ class SvgClock(ProtocolBase):
     d = ctx.out_object[0] # the return value
     # (some math and boilerplate suppressed)
     # clock is a svg file parsed as lxml Element
-    ctx.out_document = clock 
+    ctx.out_document = clock
 
   def create_out_string(self, ctx, charset=None):
     ctx.out_string = [
-        etree.tostring(ctx.out_document, 
+        etree.tostring(ctx.out_document,
             pretty_print=True,
-            encoding='UTF-8', 
+            encoding='UTF-8',
             xml_declaration=True
         )]
   \end{lstlisting}
@@ -422,12 +425,12 @@ svg = Application([DateTimeService],
         in_protocol=HttpRpc(),
         out_protocol=SvgClock()
     )
- 
+
 \end{lstlisting}
 
 \end{frame}
 
-\begin{frame}[fragile]    
+\begin{frame}[fragile]
 \frametitle{The custom SVG protocol:}
 
   \begin{lstlisting}[language=sh]
@@ -460,7 +463,7 @@ $ curl http://localhost:9910/get_utc_time \
     in the source repo.
   \end{tabular}
   \right)$
- 
+
   \end{center}
 \end{frame}
 
@@ -480,14 +483,14 @@ $ curl http://localhost:9910/get_utc_time \
 
   \bigskip
 
-  \huge 
-  
+  \huge
+
   If interested, grab me during the
 
   \bigskip
 
   sprints, I'll be around!
-  
+
   \end{center}
 
 \end{frame}
