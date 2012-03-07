@@ -9,15 +9,19 @@
 \usepackage{listings}
 \definecolor{keywords}{RGB}{180,180,0}
 \definecolor{comments}{RGB}{60,179,113}
+% \definecolor{red}{RGB}{255,0,0}
+\definecolor{darkgreen}{RGB}{0,127,0}
 \lstset{
   language=Python,
   frame=lines,
   keywordstyle=\color{keywords},
-    commentstyle=\color{comments}\emph
+  commentstyle=\color{comments}\emph,
+  stringstyle=\ttfamily\color{darkgreen},
+  emph={Soap11,XmlObject,HtmlMicroFormat},emphstyle=\color{red}\textbf
 }
 
 \title{A Quick Look At Rpclib}
-\author{Burak Arslan}
+\author{Burak Arslan \\ \small burak at arskom \small{dot} com \small{dot} tr}
 \usepackage{wasysym}
 
 \hypersetup{
@@ -28,6 +32,9 @@
    urlcolor=blue,
    breaklinks=true
 }
+
+\setbeamertemplate{footline}{\hfill\scriptsize{\insertframenumber}\hspace*{.5cm}\vspace*{.5cm}}
+\setbeamertemplate{navigation symbols}{}
 
 \begin{document}
 
@@ -57,31 +64,31 @@
 \end{frame}
 
 
-\begin{frame}
-\LARGE
-\begin{center}
-
-  Which seems to be especially important
-
-  \bigskip
-
-  for applications with multiple types of clients
-
-  \large
-
-  \bigskip
-
-  (Native Apps, Browsers, etc.)
-
-\end{center}
-
-\end{frame}
+% \begin{frame}
+% \LARGE
+% \begin{center}
+%
+%   Which seems to be especially important
+%
+%   \bigskip
+%
+%   for applications with multiple types of clients
+%
+%   \large
+%
+%   \bigskip
+%
+%   (Native apps, browsers, etc.)
+%
+% \end{center}
+%
+% \end{frame}
 
 \begin{frame}
 \Huge
 \begin{center}
 
-  How does it work?
+  How?
 
 \end{center}
 
@@ -91,48 +98,70 @@
   \LARGE
 \begin{center}
 
-  Let's start small, with a simple function
+  Here's a simple function:
+
+  \pause
 
   \bigskip
 
-  which we want to be remotely callable:
-\end{center}
-\end{frame}
+  \bigskip
 
-
-\begin{frame}[fragile]
   \large
+
   \begin{lstlisting}
   from datetime import datetime
 
   def get_utc_time():
       return datetime.utcnow()
   \end{lstlisting}
+
+\end{center}
 \end{frame}
 
 \begin{frame}
   \LARGE
 
+  Now, to make this function remotely callable;
+
+  \bigskip
+
+\pause
+
   \color{red} \textbf{1)} \color{black}
 
 
     \begin{center}
-      We wrap it with Rpclib boilerplate:
+      We wrap it in a \texttt{ServiceBase} child:
     \end{center}
 
 \end{frame}
 
 \begin{frame}[fragile]
-  \begin{lstlisting}
-  from rpclib.model.primitive import DateTime
-  from rpclib.decorator import srpc
-  from rpclib.service import ServiceBase
-
-  class DateTimeService(ServiceBase):
-      @srpc(_returns=DateTime)
-      def get_utc_time():
-          return datetime.utcnow()
+\begin{uncoverenv}<2->
+  \begin{lstlisting}[frame=none]
+from rpclib.model.primitive import DateTime
+from rpclib.decorator import srpc
+from rpclib.service import ServiceBase
   \end{lstlisting}
+\end{uncoverenv}
+\begin{uncoverenv}<3->
+  \begin{lstlisting}[frame=none]
+class DateTimeService(ServiceBase):
+  \end{lstlisting}
+  \vspace{-13pt}
+\end{uncoverenv}
+\begin{uncoverenv}<4->
+  \begin{lstlisting}[frame=none]
+    @srpc(_returns=DateTime)
+  \end{lstlisting}
+  \vspace{-13pt}
+\end{uncoverenv}
+\begin{uncoverenv}<1->
+  \begin{lstlisting}[frame=none]
+    def get_utc_time():
+        return datetime.utcnow()
+  \end{lstlisting}
+\end{uncoverenv}
 \end{frame}
 
 \begin{frame}
@@ -141,31 +170,49 @@
   \color{red} \textbf{2)} \color{black}
 
   \begin{center}
-    We now wrap the service definition inside
+    Now, we have to wrap the service definition
 
     \bigskip
 
-    an \texttt{Application} definition, where
-
-    \bigskip
-
-    we assign input and output protocols.
+    in an \texttt{Application} definition.
 
   \end{center}
 
 \end{frame}
 
 \begin{frame}[fragile]
-  \begin{lstlisting}
+\begin{uncoverenv}<2->
+  \vspace{-13pt}
+  \begin{lstlisting}[frame=none]
 from rpclib.application import Application
 from rpclib.protocol.http import HttpRpc
-
-httprpc = Application([DateTimeService],
+  \end{lstlisting}
+\end{uncoverenv}
+\begin{uncoverenv}<2->
+  \begin{lstlisting}[frame=none]
+httprpc = Application(
+  \end{lstlisting}
+\end{uncoverenv}
+\begin{uncoverenv}<1->
+  \vspace{-13pt}
+  \begin{lstlisting}[frame=none]
+        [DateTimeService],
+  \end{lstlisting}
+\end{uncoverenv}
+\begin{uncoverenv}<3->
+  \vspace{-13pt}
+  \begin{lstlisting}[frame=none]
         tns='rpclib.examples.multiprot',
+  \end{lstlisting}
+\end{uncoverenv}
+\begin{uncoverenv}<4->
+  \vspace{-13pt}
+  \begin{lstlisting}[frame=none]
         in_protocol=HttpRpc(),
         out_protocol=HttpRpc()
     )
   \end{lstlisting}
+\end{uncoverenv}
 \end{frame}
 
 \begin{frame}
@@ -173,15 +220,11 @@ httprpc = Application([DateTimeService],
   \color{red} \textbf{3)} \color{black}
 
   \begin{center}
-    Finally, we wrap the application inside
+    Finally, we wrap the application in
 
     \bigskip
 
-    a transport. For this case, we will use
-
-    \bigskip
-
-    the WSGI transport.
+    a transport.
 
   \end{center}
 
@@ -219,7 +262,7 @@ $ curl http://localhost:9910/get_utc_time
 
     \bigskip
 
-    function using other protocols?
+    function using another protocol?
   \end{center}
 \end{frame}
 
@@ -368,7 +411,6 @@ $ curl http://localhost:9910/get_utc_time \
 
     \bigskip
 
-    \pause
     \large
     (without going into much detail \smiley)
 
@@ -392,31 +434,44 @@ $ curl http://localhost:9910/get_utc_time \
 
 \begin{frame}[fragile]
   \small
-  \begin{lstlisting}
+  \begin{lstlisting}[frame=none]
 from rpclib.protocol import ProtocolBase
 
 class SvgClock(ProtocolBase):
   mime_type = 'image/svg+xml'
+  \end{lstlisting}
 
+\begin{uncoverenv}<2->
+  \begin{lstlisting}[frame=none]
   def serialize(self, ctx, message):
     d = ctx.out_object[0] # the return value
+  \end{lstlisting}
+\end{uncoverenv}
+\begin{uncoverenv}<3->
+  \begin{lstlisting}[frame=none]
     # (some math and boilerplate suppressed)
+  \end{lstlisting}
+\end{uncoverenv}
+\begin{uncoverenv}<4->
+  \begin{lstlisting}[frame=none]
     # clock is a svg file parsed as lxml Element
     ctx.out_document = clock
+  \end{lstlisting}
+\end{uncoverenv}
 
+\begin{uncoverenv}<5->
+  \begin{lstlisting}[frame=none]
   def create_out_string(self, ctx, charset=None):
     ctx.out_string = [
-        etree.tostring(ctx.out_document,
-            pretty_print=True,
-            encoding='UTF-8',
-            xml_declaration=True
-        )]
+        etree.tostring(ctx.out_document)
+    ]
   \end{lstlisting}
+\end{uncoverenv}
 \end{frame}
 
 \begin{frame}[fragile]
 \frametitle{The custom SVG protocol:}
-\begin{lstlisting}
+\begin{lstlisting}[emph={SvgClock}]
 
 from rpclib.application import Application
 
@@ -451,7 +506,7 @@ $ curl http://localhost:9910/get_utc_time \
   \begin{tabular}{ll}
     \textbf{Protocols}:  & JSON! ProtoBuf! XmlRpc! \\
                          & HTML! (The whole document) \\
-    \textbf{Transports}: & SMTP!
+    \textbf{Transports}: & SMTP! DNS! (?)
   \end{tabular}
 
   \bigskip
@@ -485,12 +540,6 @@ $ curl http://localhost:9910/get_utc_time \
   \bigskip
 
   \huge
-
-  % If interested, grab me during the
-  %
-  % \bigskip
-  %
-  % sprints, I'll be around!
 
   \end{center}
 
