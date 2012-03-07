@@ -314,7 +314,7 @@ class Integer(Decimal):
 
     @staticmethod
     def validate_native(cls, value):
-        return (     Integer.validate_native(cls, value)
+        return (     Decimal.validate_native(cls, value)
                 and (cls.__length__ is None or
                     (-2**( cls.__length__ -1) <= value < 2 ** (cls.__length__ - 1))
                 )
