@@ -163,9 +163,10 @@ class WsgiApplication(ServerBase):
 
     transport = 'http://schemas.xmlsoap.org/soap/http'
 
-    def __init__(self, app):
+    def __init__(self, app, chunked=True):
         ServerBase.__init__(self, app)
 
+        self.chunked = chunked
         self._allowed_http_verbs = app.in_protocol.allowed_http_verbs
         self._verb_handlers = {
             "GET": self.handle_rpc,
@@ -312,7 +313,13 @@ class WsgiApplication(ServerBase):
         # the client has not set a content-length, so we delete it as the input
         # is just an iterable.
         if ctx.transport.resp_headers['Content-Length'] is None:
-            del ctx.transport.resp_headers['Content-Length']
+            if self.chunked:
+                del ctx.transport.resp_headers['Content-Length']
+
+            else:
+                ctx.out_string = [''.join(ctx.out_string)]
+                ctx.transport.resp_headers['Content-Length'] = \
+                                                     str(len(ctx.out_string[0]))
 
         # initiate the response
         start_response(ctx.transport.resp_code, ctx.transport.resp_headers.items())
