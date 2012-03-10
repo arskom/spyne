@@ -27,8 +27,8 @@ The following is a quick introduction to the Rpclib way of naming things:
     :class:`rpclib.server._base.ServerBase` classes.
 
     For example, Http is used as a transport for Soap, by
-    tucking a Soap message in the Http byte-stream part of a Http POST request.
-    The same Http is exposed as a "protocol" using the
+    tucking a Soap message in the arbitrary byte-stream part of a Http POST
+    request. The same Http is exposed as a "protocol" using the
     :class:`rpclib.protocol.http.HttpRpc`
     class. One could use Soap as a transport by tucking a protocol message in its
     base64-encoded ByteArray container.
