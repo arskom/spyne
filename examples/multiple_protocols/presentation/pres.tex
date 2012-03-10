@@ -46,20 +46,19 @@
   \frametitle{What is Rpclib?}
 
   \LARGE
-\begin{center}
+  \begin{center}
 
-  Rpclib makes it convenient to
+    Rpclib makes it convenient to
 
-  \bigskip
+    \bigskip
 
-  expose your services using multiple
+    expose your services using multiple
 
-  \bigskip
+    \bigskip
 
-  protocols and/or transports.
+    protocols and/or transports.
 
-\end{center}
-
+  \end{center}
 
 \end{frame}
 
@@ -83,6 +82,30 @@
 % \end{center}
 %
 % \end{frame}
+
+
+\begin{frame}
+  \frametitle{What is Rpclib?}
+
+  \LARGE
+  \begin{center}
+
+    It also forces you to have a well-defined api.
+
+%     \bigskip
+%
+%     \pause
+%
+%     Because static typing works wonders
+%
+%     \bigskip
+%
+%     when your input comes from untrusted sources
+
+  \end{center}
+
+\end{frame}
+
 
 \begin{frame}
 \Huge
@@ -131,7 +154,7 @@
 
 
     \begin{center}
-      We wrap it in a \texttt{ServiceBase} child:
+      We wrap it in a \texttt{ServiceBase} subclass:
     \end{center}
 
 \end{frame}
@@ -242,11 +265,11 @@ application = WsgiApplication(httprpc)
 
     \bigskip
 
-    we can pass to wsgi-compliant servers like
+    we can pass to WSGI-compliant servers like
 
     \bigskip
 
-    CherryPy, mod\_wsgi, etc.
+    CherryPy, mod\_wsgi, Twisted, etc.
   \end{center}
   \pause
   \begin{lstlisting}[language=sh]
@@ -271,6 +294,7 @@ $ curl http://localhost:9910/get_utc_time
 
   \begin{lstlisting}
 from rpclib.application import Application
+from rpclib.protocol.http import HttpRpc
 from rpclib.protocol.soap import Soap11
 
 soap = Application([DateTimeService],
@@ -319,6 +343,7 @@ $ curl http://localhost:9910/get_utc_time \
 
   \begin{lstlisting}
 from rpclib.application import Application
+from rpclib.protocol.http import HttpRpc
 from rpclib.protocol.xml import XmlObject
 
 xml = Application([DateTimeService],
@@ -354,6 +379,7 @@ xmlns:ns0="rpclib.examples.multiple_protocols">
 
   \begin{lstlisting}
 from rpclib.application import Application
+from rpclib.protocol.http import HttpRpc
 from rpclib.protocol.xml import HtmlMicroFormat
 
 html = Application([DateTimeService],
@@ -431,7 +457,7 @@ $ curl http://localhost:9910/get_utc_time \
 
     \bigskip
 
-    functions in a \texttt{ProtocolBase} child.
+    functions in a \texttt{ProtocolBase} subclass.
   \end{center}
 \end{frame}
 
@@ -502,14 +528,115 @@ $ curl http://localhost:9910/get_utc_time \
 \end{frame}
 
 \begin{frame}
+
+  \begin{center}
+  \LARGE
+    It's also easy to implement declarative
+
+    \bigskip
+
+    restrictions on your input data.
+  \end{center}
+
+\end{frame}
+
+\begin{frame}[fragile]
+  \begin{tabular}{l}
+  \LARGE So instead of doing this:
+  \end{tabular}
+
+  \bigskip
+
+  \begin{lstlisting}
+from datetime import datetime
+
+def get_name_of_month(month):
+    """Takes an integer between 1-12 and
+    returns the name of month as string
+    """
+
+    value = int(month)
+    if not (1 <= value <= 12):
+            raise ValueError(value)
+    return datetime(2000,month,1).strftime("%B")
+  \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+  \begin{tabular}{l}
+  \LARGE You can do this:
+  \end{tabular}
+
+  \bigskip
+
+  \begin{lstlisting}[emph={Integer,le,ge}]
+from datetime import datetime
+from rpclib.model.primitive import Integer,Unicode
+from rpclib.decorator import srpc
+from rpclib.service import ServiceBase
+
+class NameOfMonthService(ServiceBase):
+  @srpc(Integer(le=1,ge=12), _returns=Unicode)
+  def get_name_of_month(month):
+    return datetime(2000,month,1).strftime("%B")
+  \end{lstlisting}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \begin{tabular}{l}
+  \LARGE And if you enable validation;
+  \end{tabular}
+
+  \bigskip
+
+  \begin{lstlisting}[emph=validator]
+from rpclib.application import Application
+from rpclib.protocol.http import HttpRpc
+
+rest = Application([NameOfMonthService],
+        tns='rpclib.examples.multiprot',
+        in_protocol=HttpRpc(validator='soft'),
+        out_protocol=HttpRpc()
+    )
+  \end{lstlisting}
+
+\end{frame}
+\begin{frame}[fragile]
+
+  \begin{lstlisting}[language=sh]
+$ curl localhost:9912/get_name_of_month?month=3
+March
+  \end{lstlisting}
+
+\bigskip
+
+  \begin{lstlisting}[language=sh,basicstyle=\small]
+$ curl -D - localhost:9912/get_name_of_month?month=13
+HTTP/1.0 400 Bad Request
+Date: Sat, 10 Mar 2012 14:21:36 GMT
+Server: WSGIServer/0.1 Python/2.7.2
+Content-Length: 63
+Content-Type: text/plain
+
+Client.ValidationError
+
+The string '13' could not be validated
+  \end{lstlisting}
+
+\end{frame}
+
+
+
+\begin{frame}
   \huge
   \textbf{So, what's missing?}
   \begin{center}
 \Large
   \begin{tabular}{ll}
-    \textbf{Protocols}:  & JSON! ProtoBuf! XmlRpc! \\
-                         & HTML! (The whole document) \\
-    \textbf{Transports}: & SMTP! Files! BitTorrent!
+    \textbf{Protocols}:  & JSON! ProtoBuf! XmlRpc! Thrift! \\
+                         & YAML! HTML! (The whole document) \\
+    \textbf{Transports}: & SMTP! Files! SPDY! WebSockets!
   \end{tabular}
 
   \bigskip
@@ -539,6 +666,8 @@ $ curl http://localhost:9910/get_utc_time \
 
   This example and the presentation are in:
   \href{https://github.com/arskom/rpclib/tree/master/examples/multiple_protocols}{examples/multiple\_protocols}
+
+  \href{https://github.com/arskom/rpclib/tree/master/validation.py}{examples/validation.py}
 
   \bigskip
 
