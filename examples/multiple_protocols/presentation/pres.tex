@@ -46,20 +46,19 @@
   \frametitle{What is Rpclib?}
 
   \LARGE
-\begin{center}
+  \begin{center}
 
-  Rpclib makes it convenient to
+    Rpclib makes it convenient to
 
-  \bigskip
+    \bigskip
 
-  expose your services using multiple
+    expose your services using multiple
 
-  \bigskip
+    \bigskip
 
-  protocols and/or transports.
+    protocols and/or transports.
 
-\end{center}
-
+  \end{center}
 
 \end{frame}
 
@@ -83,6 +82,30 @@
 % \end{center}
 %
 % \end{frame}
+
+
+\begin{frame}
+  \frametitle{What is Rpclib?}
+
+  \LARGE
+  \begin{center}
+
+    It also forces you to have a well-defined api.
+
+%     \bigskip
+% 
+%     \pause
+% 
+%     Because static typing works wonders
+% 
+%     \bigskip
+% 
+%     when your input comes from untrusted sources
+
+  \end{center}
+
+\end{frame}
+
 
 \begin{frame}
 \Huge
@@ -131,7 +154,7 @@
 
 
     \begin{center}
-      We wrap it in a \texttt{ServiceBase} child:
+      We wrap it in a \texttt{ServiceBase} subclass:
     \end{center}
 
 \end{frame}
@@ -431,7 +454,7 @@ $ curl http://localhost:9910/get_utc_time \
 
     \bigskip
 
-    functions in a \texttt{ProtocolBase} child.
+    functions in a \texttt{ProtocolBase} subclass.
   \end{center}
 \end{frame}
 
@@ -507,9 +530,9 @@ $ curl http://localhost:9910/get_utc_time \
   \begin{center}
 \Large
   \begin{tabular}{ll}
-    \textbf{Protocols}:  & JSON! ProtoBuf! XmlRpc! \\
-                         & HTML! (The whole document) \\
-    \textbf{Transports}: & SMTP! Files! SPDY!
+    \textbf{Protocols}:  & JSON! ProtoBuf! XmlRpc! Thrift! \\
+                         & YAML! HTML! (The whole document) \\
+    \textbf{Transports}: & SMTP! Files! SPDY! WebSockets!
   \end{tabular}
 
   \bigskip

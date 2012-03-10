@@ -90,8 +90,9 @@ version number of the Rpclib version once implemented.
 * Support for the Thrift IDL -- The Thrift Interface Definition Language.
 * Support for the XmlRpc standard.
 * Support for EXI -- The Efficient Xml Interchange as a serializer.
-* SMTP as server transport.
-* SMTP as client transport.
+* SMTP as client/server transport.
+* SPDY as client/server transport.
+* WebSockets as client/server transport.
 * Implement converting csv output to pdf.
 * Implement DNS as transport
 * Support security extensions to Soap (maybe using `PyXMLSec <http://pypi.python.org/pypi/PyXMLSec/0.3.0>`_ ?)
