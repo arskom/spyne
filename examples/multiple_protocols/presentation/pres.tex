@@ -123,8 +123,6 @@
 
   Here's a simple function:
 
-  \pause
-
   \bigskip
 
   \bigskip
@@ -464,6 +462,7 @@ $ curl http://localhost:9910/get_utc_time \
 \begin{frame}[fragile]
   \small
   \begin{lstlisting}[frame=none]
+from lxml import etree
 from rpclib.protocol import ProtocolBase
 
 class SvgClock(ProtocolBase):
@@ -501,7 +500,6 @@ class SvgClock(ProtocolBase):
 \begin{frame}[fragile]
 \frametitle{The custom SVG protocol:}
 \begin{lstlisting}[emph={SvgClock}]
-
 from rpclib.application import Application
 
 svg = Application([DateTimeService],
@@ -548,16 +546,16 @@ $ curl http://localhost:9910/get_utc_time \
   \bigskip
 
   \begin{lstlisting}
-from datetime import datetime
-
 def get_name_of_month(month):
     """Takes an integer between 1-12 and
     returns the name of month as string
     """
 
     value = int(month)
+
     if not (1 <= value <= 12):
-            raise ValueError(value)
+        raise ValueError(value)
+
     return datetime(2000,month,1).strftime("%B")
   \end{lstlisting}
 \end{frame}
@@ -576,7 +574,7 @@ from rpclib.decorator import srpc
 from rpclib.service import ServiceBase
 
 class NameOfMonthService(ServiceBase):
-  @srpc(Integer(le=1,ge=12), _returns=Unicode)
+  @srpc(Integer(ge=1,le=12), _returns=Unicode)
   def get_name_of_month(month):
     return datetime(2000,month,1).strftime("%B")
   \end{lstlisting}
@@ -609,6 +607,7 @@ $ curl localhost:9912/get_name_of_month?month=3
 March
   \end{lstlisting}
 
+\pause
 \bigskip
 
   \begin{lstlisting}[language=sh,basicstyle=\small]
@@ -667,11 +666,11 @@ The string '13' could not be validated
   This example and the presentation are in:
   \href{https://github.com/arskom/rpclib/tree/master/examples/multiple_protocols}{examples/multiple\_protocols}
 
-  \href{https://github.com/arskom/rpclib/tree/master/validation.py}{examples/validation.py}
+  \href{https://github.com/arskom/rpclib/tree/master/examples/validation.py}{examples/validation.py}
 
   \bigskip
 
-  \huge
+  Stay for the sprints! I'll be around!
 
   \end{center}
 
