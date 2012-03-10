@@ -21,6 +21,11 @@ rpclib-2.7.0-beta
 
    See here: https://github.com/arskom/rpclib/commit/45f5af70aa826640008222bda96299d51c9df980#diff-1
 
+ * Full changelog:
+   * https://github.com/arskom/rpclib/pull/123
+   * https://github.com/arskom/rpclib/pull/124
+   * https://github.com/arskom/rpclib/pull/125
+
 rpclib-2.6.1-beta
 -----------------
  * Fix (for real this time) the race condition in wsgi server's wsdl handler.
