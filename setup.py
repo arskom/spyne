@@ -71,7 +71,10 @@ setup(
     description=SHORT_DESC,
     long_description=LONG_DESC,
     classifiers=[
-        'Programming Language :: Python',
+        'Programming Language :: Python :: 2.4',
+        'Programming Language :: Python :: 2.5',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
         'Operating System :: OS Independent',
         'Natural Language :: English',
         'Development Status :: 4 - Beta',
