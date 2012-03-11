@@ -23,6 +23,9 @@ its helper methods."""
 import logging
 logger = logging.getLogger(__name__)
 
+import re
+REGEX_WSDL = re.compile('[.?]wsdl$')
+
 import rpclib.const.xml_ns
 
 from lxml import etree
@@ -184,7 +187,7 @@ class Wsdl11(XmlSchema):
 
         pref_tns = self.get_namespace_prefix(self.tns)
 
-        self.url = url.replace('.wsdl', '') # FIXME: doesn't look so robust
+        self.url = REGEX_WSDL.sub('', url)
 
         service_name = self.get_name()
 
