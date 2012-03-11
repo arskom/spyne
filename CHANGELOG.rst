@@ -4,6 +4,7 @@ Changelog
 
 rpclib-2.7.0-beta
 -----------------
+ * Add support for non-chunked encoding to Wsgi transport.
  * Add support for Html Microformats.
  * Add ``function`` property to MethodContext that is re-initialized from
    ``descriptor.function`` for each new request. Stay away from
@@ -17,6 +18,13 @@ rpclib-2.7.0-beta
    becomes:
 
        in_protocol, out_protocol, interface
+
+   See here: https://github.com/arskom/rpclib/commit/45f5af70aa826640008222bda96299d51c9df980#diff-1
+
+ * Full changelog:
+     * https://github.com/arskom/rpclib/pull/123
+     * https://github.com/arskom/rpclib/pull/124
+     * https://github.com/arskom/rpclib/pull/125
 
 rpclib-2.6.1-beta
 -----------------

@@ -460,7 +460,7 @@ class Date(SimpleModel):
 
         fields = match.groupdict(0)
 
-        return datetime.date(fields['year'], fields['month'], fields['day'])
+        return datetime.date(int(fields['year']), int(fields['month']), int(fields['day']))
 
 class DateTime(SimpleModel):
     """A compact way to represent dates and times together. Supports time zones.
