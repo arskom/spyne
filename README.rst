@@ -1,4 +1,3 @@
-Warning! This is from rpclib's unstable development branch.
 
 About
 =====
@@ -13,7 +12,7 @@ interface document standards along with an easy-to-use API that lets you
 build on existing functionality.
 
 Rpclib currently supports the WSDL 1.1 interface description standard,
-along with SOAP 1.1 and the rest-minus-the-verbs HttpRpc protocols which can be
+along with SOAP 1.1 and the so-called HttpRpc protocols which can be
 transported via HTTP or ZeroMQ. The transports can be used in a both client or
 server setting.
 
