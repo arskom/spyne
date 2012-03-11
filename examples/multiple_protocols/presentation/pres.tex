@@ -568,11 +568,6 @@ def get_name_of_month(month):
   \bigskip
 
   \begin{lstlisting}[emph={Integer,le,ge}]
-from datetime import datetime
-from rpclib.model.primitive import Integer,Unicode
-from rpclib.decorator import srpc
-from rpclib.service import ServiceBase
-
 class NameOfMonthService(ServiceBase):
   @srpc(Integer(ge=1,le=12), _returns=Unicode)
   def get_name_of_month(month):
