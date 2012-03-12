@@ -29,7 +29,7 @@ from rpclib.protocol.soap import Soap11
 from rpclib.interface.wsdl import Wsdl11
 
 soap_application = Application(services, 'rpclib.test.interop.server',
-                                   Wsdl11(), Soap11(validator='lxml'), Soap11())
+                                   Soap11(validator='lxml'), Soap11(), Wsdl11())
 
 if __name__ == '__main__':
     try:
