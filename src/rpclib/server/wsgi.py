@@ -25,120 +25,46 @@ logger = logging.getLogger(__name__)
 import cgi
 import threading
 
-from rpclib import TransportContext
-from rpclib import MethodContext
+from rpclib.server.http import HttpMethodContext
+from rpclib.server.http import HttpTransportContext
 
 from rpclib.error import RequestTooLongError
 from rpclib.protocol.soap.mime import apply_mtom
 from rpclib.util import reconstruct_url
-from rpclib.server import ServerBase
+from rpclib.server.http import HttpBase
 
 from rpclib.const.http import HTTP_200
 from rpclib.const.http import HTTP_405
 from rpclib.const.http import HTTP_500
 
-MAX_CONTENT_LENGTH = 2 * 1024 * 1024
-BLOCK_LENGTH = 8 * 1024
 
-def _wsgi_input_to_iterable(http_env):
-    istream = http_env.get('wsgi.input')
-
-    length = str(http_env.get('CONTENT_LENGTH', MAX_CONTENT_LENGTH))
-    if len(length) == 0:
-        length = 0
-    else:
-        length = int(length)
-
-    if length > MAX_CONTENT_LENGTH:
-        raise RequestTooLongError()
-    bytes_read = 0
-
-    while bytes_read < length:
-        bytes_to_read = min(BLOCK_LENGTH, length - bytes_read)
-
-        if bytes_to_read + bytes_read > MAX_CONTENT_LENGTH:
-            raise RequestTooLongError()
-
-        data = istream.read(bytes_to_read)
-        if data is None:
-            break
-
-        bytes_read += len(data)
-
-        yield data
-
-
-def reconstruct_wsgi_request(http_env):
-    """Reconstruct http payload using information in the http header."""
-
-    # fyi, here's what the parse_header function returns:
-    # >>> import cgi; cgi.parse_header("text/xml; charset=utf-8")
-    # ('text/xml', {'charset': 'utf-8'})
-    content_type = http_env.get("CONTENT_TYPE")
-    if content_type is None:
-        charset = 'utf-8'
-    else:
-        content_type = cgi.parse_header(content_type)
-        charset = content_type[1].get('charset', 'utf-8')
-
-    return _wsgi_input_to_iterable(http_env), charset
-
-
-class WsgiTransportContext(TransportContext):
+class WsgiTransportContext(HttpTransportContext):
     """The class that is used in the transport attribute of the
     :class:`WsgiMethodContext` class."""
 
     def __init__(self, req_env, content_type):
-        TransportContext.__init__(self, 'wsgi')
+        HttpTransportContext.__init__(self, req_env, content_type)
 
-        self.req_env = req_env
+        self.req_env = self.req
         """WSGI Request environment"""
-
-        self.resp_headers = {
-            'Content-Type': content_type,
-            'Content-Length': None,
-        }
-        """HTTP Response headers."""
-
-        self.resp_code = None
-        """HTTP Response code."""
 
         self.req_method = req_env.get('REQUEST_METHOD', None)
         """HTTP Request verb, as a convenience to users."""
 
-        self.wsdl = None
-        """The WSDL document that is being returned. Only relevant when handling
-        WSDL requests."""
 
-        self.wsdl_error = None
-        """The error when handling WSDL requests."""
-
-    def get_mime_type(self):
-        return self.resp_headers['Content-Type']
-
-    def set_mime_type(self, what):
-        self.resp_headers['Content-Type'] = what
-
-    mime_type = property(get_mime_type, set_mime_type)
-    """Provides an easy way to set outgoing mime type. Synonym for
-    `content_type`"""
-
-    content_type = property(get_mime_type, set_mime_type)
-    """Provides an easy way to set outgoing mime type. Synonym for
-    `mime_type`"""
-
-class WsgiMethodContext(MethodContext):
+class WsgiMethodContext(HttpMethodContext):
     """The WSGI-Specific method context. WSGI-Specific information is stored in
     the transport attribute using the :class:`WsgiTransportContext` class.
     """
 
     def __init__(self, app, req_env, content_type):
-        MethodContext.__init__(self, app)
+        HttpMethodContext.__init__(self, app)
 
         self.transport = WsgiTransportContext(req_env, content_type)
         """Holds the WSGI-specific information"""
 
-class WsgiApplication(ServerBase):
+
+class WsgiApplication(HttpBase):
     '''A `PEP-3333 <http://www.python.org/dev/peps/pep-3333/#preface-for-readers-of-pep-333>`_
     compliant callable class.
 
@@ -161,12 +87,9 @@ class WsgiApplication(ServerBase):
             Called right before returning the exception to the client.
     '''
 
-    transport = 'http://schemas.xmlsoap.org/soap/http'
-
     def __init__(self, app, chunked=True):
-        ServerBase.__init__(self, app)
+        HttpBase.__init__(self, app, chunked)
 
-        self.chunked = chunked
         self._allowed_http_verbs = app.in_protocol.allowed_http_verbs
         self._verb_handlers = {
             "GET": self.handle_rpc,
@@ -232,7 +155,8 @@ class WsgiApplication(ServerBase):
 
             self.event_manager.fire_event('wsdl', ctx) # implementation hook
 
-            ctx.transport.resp_headers['Content-Length'] = str(len(ctx.transport.wsdl))
+            ctx.transport.resp_headers['Content-Length'] = \
+                                                    str(len(ctx.transport.wsdl))
             start_response(HTTP_200, ctx.transport.resp_headers.items())
 
             return [ctx.transport.wsdl]
@@ -244,6 +168,7 @@ class WsgiApplication(ServerBase):
             # implementation hook
             self.event_manager.fire_event('wsdl_exception', ctx)
 
+            print ctx.transport.resp_headers.items()
             start_response(HTTP_500, ctx.transport.resp_headers.items())
 
             return [""]
@@ -269,7 +194,8 @@ class WsgiApplication(ServerBase):
 
         # implementation hook
         self.event_manager.fire_event('wsgi_call', initial_ctx)
-        initial_ctx.in_string, in_string_charset = reconstruct_wsgi_request(req_env)
+        initial_ctx.in_string, in_string_charset = \
+                                        self.__reconstruct_wsgi_request(req_env)
 
         # note that in fanout mode, only the response from the last
         # call will be returned.
@@ -325,3 +251,47 @@ class WsgiApplication(ServerBase):
         start_response(ctx.transport.resp_code, ctx.transport.resp_headers.items())
 
         return ctx.out_string
+
+
+    def __reconstruct_wsgi_request(self, http_env):
+        """Reconstruct http payload using information in the http header."""
+
+        # fyi, here's what the parse_header function returns:
+        # >>> import cgi; cgi.parse_header("text/xml; charset=utf-8")
+        # ('text/xml', {'charset': 'utf-8'})
+        content_type = http_env.get("CONTENT_TYPE")
+        if content_type is None:
+            charset = 'utf-8'
+        else:
+            content_type = cgi.parse_header(content_type)
+            charset = content_type[1].get('charset', 'utf-8')
+
+        return self.__wsgi_input_to_iterable(http_env), charset
+
+    def __wsgi_input_to_iterable(self, http_env):
+        istream = http_env.get('wsgi.input')
+
+        length = str(http_env.get('CONTENT_LENGTH', self.max_content_length))
+        if len(length) == 0:
+            length = 0
+        else:
+            length = int(length)
+
+        if length > self.max_content_length:
+            raise RequestTooLongError()
+        bytes_read = 0
+
+        while bytes_read < length:
+            bytes_to_read = min(self.block_length, length - bytes_read)
+
+            if bytes_to_read + bytes_read > self.max_content_length:
+                raise RequestTooLongError()
+
+            data = istream.read(bytes_to_read)
+            if data is None:
+                break
+
+            bytes_read += len(data)
+
+            yield data
+
