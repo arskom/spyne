@@ -5,6 +5,8 @@ Changelog
 rpclib-2.8.0-beta
 -----------------
  * Make DateTime string format customizable.
+ * Implement the server transport that exposes Application as a
+   ``twisted.web.resource.Resource`` child.
 
 rpclib-2.7.0-beta
 -----------------
