@@ -337,7 +337,7 @@ class TestPrimitive(unittest.TestCase):
 
         AnyXml.__type_name__ = 'anyType'
 
-        app = Application([Service], 'hey', XmlSchema(), XmlObject(), XmlObject())
+        app = Application([Service], 'hey', XmlObject(), XmlObject(), XmlSchema())
         app.interface.build_interface_document()
 
 
