@@ -22,23 +22,40 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('rpclib.wsgi')
 logger.setLevel(logging.DEBUG)
 
-from twisted.python import log
+import os
 
 from rpclib.test.interop.server.soap_http_basic import soap_application
+from rpclib.server.twisted_ import TwistedWebApplication
 
-from rpclib.util.wsgi_wrapper import run_twisted
-from rpclib.server.wsgi import WsgiApplication
-
+host = '127.0.0.1'
 port = 9754
 url = 'app'
 
 def main(argv):
+    from twisted.python import log
+    from twisted.web.server import Site
+    from twisted.web.static import File
+    from twisted.internet import reactor
+    from twisted.python import log
+
     observer = log.PythonLoggingObserver('twisted')
     log.startLoggingWithObserver(observer.emit, setStdout=False)
 
-    wsgi_application = WsgiApplication(soap_application)
+    static_dir = os.path.abspath('.')
+    logging.info("registering static folder %r on /" % static_dir)
+    root = File(static_dir)
 
-    return run_twisted( [ (wsgi_application, url) ], port )
+    wr = TwistedWebApplication(soap_application)
+    logging.info("registering %r on /%s" % (wr, url))
+    root.putChild(url, wr)
+
+    site = Site(root)
+
+    reactor.listenTCP(port, site)
+    logging.info("listening on: %s:%d" % (host,port))
+
+    return reactor.run()
+
 
 if __name__ == '__main__':
     import sys
