@@ -117,12 +117,12 @@ class TestPrimitive(unittest.TestCase):
         self.assertEquals(n, dt)
 
     def test_date(self):
-        n = datetime.time(1, 2, 3, 4)
+        n = datetime.date(2011,12,13)
 
         ret = Date.to_string(n)
         self.assertEquals(ret, n.isoformat())
 
-        dt = Time.from_string(ret)
+        dt = Date.from_string(ret)
         self.assertEquals(n, dt)
 
     def test_duration_xml_duration(self):

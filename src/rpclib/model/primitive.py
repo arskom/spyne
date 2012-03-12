@@ -434,33 +434,6 @@ class Time(SimpleModel):
         return datetime.time(int(fields['hr']), int(fields['min']),
                     int(fields['sec']), int(fields.get("sec_frac", '.')[1:]))
 
-class Date(SimpleModel):
-    """Just that, Date. It also supports time zones.
-
-    Native type is :class:`datetime.date`.
-    """
-
-    __type_name__ = 'date'
-
-    @classmethod
-    @nillable_string
-    def to_string(cls, value):
-        """Returns ISO formatted dates."""
-
-        return value.isoformat()
-
-    @classmethod
-    @nillable_string
-    def from_string(cls, string):
-        """Expects ISO formatted dates."""
-
-        match = _date_re.match(string)
-        if match is None:
-            raise ValidationError(string)
-
-        fields = match.groupdict(0)
-
-        return datetime.date(int(fields['year']), int(fields['month']), int(fields['day']))
 
 class DateTime(SimpleModel):
     """A compact way to represent dates and times together. Supports time zones.
@@ -525,6 +498,22 @@ class DateTime(SimpleModel):
             return datetime.datetime.strptime(string, format)
 
 
+class Date(DateTime):
+    """Just that, Date. It also supports time zones.
+
+    Native type is :class:`datetime.date`.
+    """
+
+    class Attributes(DateTime.Attributes):
+        format = '%Y-%m-%d'
+
+    __type_name__ = 'date'
+
+    @classmethod
+    @nillable_string
+    def from_string(cls, string):
+        d = datetime.datetime.strptime(string, cls.Attributes.format)
+        return datetime.date(d.year, d.month, d.day)
 
 
 # this object tries to follow ISO 8601 standard.
