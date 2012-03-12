@@ -36,6 +36,7 @@ import copy
 from lxml import etree
 
 from rpclib.protocol import ProtocolBase
+from rpclib.model.primitive import DateTime
 
 clock = etree.fromstring(open('clock.svg','r').read())
 ns = {'x': 'http://www.w3.org/2000/svg'}
@@ -50,29 +51,43 @@ class SvgClock(ProtocolBase):
                           # as well.
 
     def serialize(self, ctx, message):
-        """Uses ctx.out_object, ctx.out_header or ctx.out_error to set
-        ctx.out_body_doc, ctx.out_header_doc and ctx.out_document.
+        """Uses a datetime.datetime instance inside ctx.out_object[0] to set
+        ctx.out_document to an lxml.etree._Element instance.
         """
 
+        # this is an output-only protocol
         assert message in (self.RESPONSE,)
 
+        # this protocol can only handle DateTime types.
+        return_type = ctx.descriptor.out_message._type_info[0]
+
+        assert (
+            return_type is DateTime or # check if this is a vanilla DateTime
+            (hasattr(return_type, '_is_clone_of') and # ... or a customized one.
+                                    return_type._is_clone_of is DateTime)
+            ), "This protocol only supports functions with %r as return " \
+               "type" % DateTime
+
+        # Finally, start serialization.
         self.event_manager.fire_event('before_serialize', ctx)
+
         ctx.out_header_doc = None
         ctx.out_body_doc = copy.deepcopy(clock)
 
-        d = ctx.out_object[0] # this has to be a datetime.datetime() instance.
+        d = ctx.out_object[0] # this has to be a datetime.datetime instance.
 
+        # set the current date
         ctx.out_body_doc.xpath("//x:tspan[@id='date_text']", namespaces=ns)[0] \
                 .text = '%04d-%02d-%02d' % (d.year, d.month, d.day)
 
-        yelkovan_deg = d.minute * 360 / 60;
-        akrep_deg = (d.hour % 12) * 360.0 / 12 + yelkovan_deg / 12;
+        minute_hand = d.minute * 360 / 60;
+        hour_hand = (d.hour % 12) * 360.0 / 12 + minute_hand / 12;
         ctx.out_body_doc.xpath("//x:path[@id='akrep']", namespaces=ns)[0] \
             .attrib['transform'] += \
-            ' rotate(%d, %d, %d)' % (akrep_deg, self.length /2, self.length / 2)
+            ' rotate(%d, %d, %d)' % (hour_hand, self.length /2, self.length / 2)
         ctx.out_body_doc.xpath("//x:path[@id='yelkovan']", namespaces=ns)[0] \
             .attrib['transform'] += \
-            ' rotate(%d, %d, %d)' % (yelkovan_deg, self.length /2, self.length /2)
+            ' rotate(%d, %d, %d)' % (minute_hand, self.length /2, self.length /2)
 
         ctx.out_document = ctx.out_body_doc
 
