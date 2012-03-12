@@ -17,7 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+
 """This module contains the InterfaceBase class and its helper objects."""
+
 
 import logging
 logger = logging.getLogger(__name__)

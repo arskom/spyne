@@ -30,7 +30,7 @@ from rpclib.util.oset import oset
 class TransportContext(object):
     """Generic object that holds transport-specific context information"""
     def __init__(self, type=None):
-        self.type=type
+        self.type = type
 
 class EventContext(object):
     """Generic object that holds event-specific context information"""
