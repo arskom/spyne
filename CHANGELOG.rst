@@ -2,6 +2,10 @@
 Changelog
 =========
 
+rpclib-2.8.0-beta
+-----------------
+ * Make DateTime string format customizable.
+
 rpclib-2.7.0-beta
 -----------------
  * Add support for non-chunked encoding to Wsgi transport.

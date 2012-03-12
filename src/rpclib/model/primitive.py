@@ -469,10 +469,17 @@ class DateTime(SimpleModel):
     """
     __type_name__ = 'dateTime'
 
+    class Attributes(SimpleModel.Attributes):
+        format = None
+
     @classmethod
     @nillable_string
     def to_string(cls, value):
-        return value.isoformat('T')
+        format = cls.Attributes.format
+        if format is None:
+            return value.isoformat('T')
+        else:
+            return datetime.datetime.strftime(value, format)
 
     @staticmethod
     def parse(date_match, tz=None):
@@ -496,21 +503,29 @@ class DateTime(SimpleModel):
     @nillable_string
     def from_string(cls, string):
         """expect ISO formatted dates"""
+        format = cls.Attributes.format
 
-        match = _utc_re.match(string)
-        if match:
-            return cls.parse(match, tz=pytz.utc)
+        if format is None:
+            match = _utc_re.match(string)
+            if match:
+                return cls.parse(match, tz=pytz.utc)
 
-        match = _offset_re.match(string)
-        if match:
-            tz_hr, tz_min = [int(match.group(x)) for x in ("tz_hr", "tz_min")]
-            return cls.parse(match, tz=FixedOffset(tz_hr * 60 + tz_min, {}))
+            match = _offset_re.match(string)
+            if match:
+                tz_hr, tz_min = [int(match.group(x)) for x in ("tz_hr", "tz_min")]
+                return cls.parse(match, tz=FixedOffset(tz_hr * 60 + tz_min, {}))
 
-        match = _local_re.match(string)
-        if match is None:
-            raise ValidationError(string)
+            match = _local_re.match(string)
+            if match is None:
+                raise ValidationError(string)
 
-        return cls.parse(match)
+            return cls.parse(match)
+
+        else:
+            return datetime.datetime.strptime(string, format)
+
+
+
 
 # this object tries to follow ISO 8601 standard.
 class Duration(SimpleModel):

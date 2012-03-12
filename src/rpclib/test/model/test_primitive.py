@@ -95,6 +95,18 @@ class TestPrimitive(unittest.TestCase):
         dt = XmlObject().from_element(DateTime, element)
         self.assertEquals(n, dt)
 
+    def test_datetime_format(self):
+        n = datetime.datetime.now()
+        format = "%Y %m %d %H %M %S %f"
+
+        element = etree.Element('test')
+        XmlObject().to_parent_element(DateTime(format=format), n, ns_test, element)
+        element = element[0]
+
+        self.assertEquals(element.text, datetime.datetime.strftime(n, format))
+        dt = XmlObject().from_element(DateTime(format=format), element)
+        self.assertEquals(n, dt)
+
     def test_time(self):
         n = datetime.time(1, 2, 3, 4)
 
