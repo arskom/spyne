@@ -58,7 +58,7 @@ class WsgiMethodContext(HttpMethodContext):
     """
 
     def __init__(self, app, req_env, content_type):
-        HttpMethodContext.__init__(self, app)
+        HttpMethodContext.__init__(self, app, req_env, content_type)
 
         self.transport = WsgiTransportContext(req_env, content_type)
         """Holds the WSGI-specific information"""
