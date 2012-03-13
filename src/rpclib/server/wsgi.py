@@ -294,4 +294,3 @@ class WsgiApplication(HttpBase):
             bytes_read += len(data)
 
             yield data
-

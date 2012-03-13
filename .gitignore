@@ -64,3 +64,6 @@ pres.pdf
 *.toc
 *.vrb
 *.backup
+
+# twisted trial cruft
+_trial_temp
