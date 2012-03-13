@@ -71,6 +71,8 @@ setup(
     description=SHORT_DESC,
     long_description=LONG_DESC,
     classifiers=[
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.4',
         'Programming Language :: Python :: 2.5',
         'Programming Language :: Python :: 2.6',
