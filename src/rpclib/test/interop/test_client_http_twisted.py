@@ -22,16 +22,12 @@ from twisted.trial import unittest
 from rpclib.client.twisted_ import TwistedHttpClient
 from rpclib.test.interop.server.soap_http_basic import soap_application
 
-from twisted.internet import reactor
-
 class TestRpclibHttpClient(unittest.TestCase):
     def setUp(self):
         self.ns = "rpclib.test.interop.server._service"
         self.client = TwistedHttpClient('http://localhost:9753/', soap_application)
 
     def test_echo_boolean(self):
-        error = None
-
         def eb(ret):
             raise ret
 
@@ -39,3 +35,30 @@ class TestRpclibHttpClient(unittest.TestCase):
             assert ret == True
 
         return self.client.service.echo_boolean(True).addCallbacks(cb, eb)
+
+    def test_python_exception(self):
+        def eb(ret):
+            print ret
+
+        def cb(ret):
+            assert False, "must fail: %r" % ret
+
+        return self.client.service.python_exception().addCallbacks(cb, eb)
+
+    def test_soap_exception(self):
+        def eb(ret):
+            print type(ret)
+
+        def cb(ret):
+            assert False, "must fail: %r" % ret
+
+        return self.client.service.soap_exception().addCallbacks(cb, eb)
+
+    def test_documented_exception(self):
+        def eb(ret):
+            print ret
+
+        def cb(ret):
+            assert False, "must fail: %r" % ret
+
+        return self.client.service.python_exception().addCallbacks(cb, eb)
