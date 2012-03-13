@@ -110,7 +110,7 @@ class _RemoteProcedure(RemoteProcedureBase):
 
         agent = Agent(reactor)
         d = agent.request(
-            'POST', 'http://localhost:9753/',
+            'POST', self.url,
             Headers({'User-Agent': ['Rpclib Twisted Http Client']}),
             _Producer(self.ctx.out_string)
         )
