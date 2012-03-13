@@ -31,7 +31,6 @@ from rpclib.server.http import HttpBase
 
 from rpclib.const.http import HTTP_400
 from rpclib.const.http import HTTP_405
-from rpclib.const.http import HTTP_500
 
 def _reconstruct_url(request):
     server_name = request.getRequestHostname()
@@ -53,10 +52,16 @@ class TwistedWebMethodContext(HttpMethodContext):
 
         self.transport.type = 'twisted.web'
 
-class TwistedWebApplication(HttpBase, Resource):
+class TwistedWebApplication(Resource):
     """The ZeroMQ server transport."""
 
     isLeaf = True
+
+    def __init__(self, app, chunked=False, max_content_length=2 * 1024 * 1024,
+                                           block_length=8 * 1024):
+        Resource.__init__(self)
+
+        self.__http_base = HttpBase(app, chunked, max_content_length, block_length)
 
     def render_GET(self, request):
         retval = ""
@@ -64,7 +69,7 @@ class TwistedWebApplication(HttpBase, Resource):
         if request.uri.endswith('.wsdl') or request.uri.endswith('?wsdl'):
             retval = self.__handle_wsdl_request(request)
 
-        elif "get" not in self._allowed_http_verbs:
+        elif "get" not in self.__http_base._allowed_http_verbs:
             request.setResponseCode(405)
             retval = HTTP_405
 
@@ -75,33 +80,31 @@ class TwistedWebApplication(HttpBase, Resource):
         return retval
 
     def render_POST(self, request):
-        initial_ctx = TwistedWebMethodContext(self.app, request,
-                                                self.app.out_protocol.mime_type)
+        initial_ctx = TwistedWebMethodContext(self.__http_base.app, request,
+                                    self.__http_base.app.out_protocol.mime_type)
         initial_ctx.in_string = [request.content.getvalue()]
 
-        ctx, = self.generate_contexts(initial_ctx)
+        ctx, = self.__http_base.generate_contexts(initial_ctx)
         if ctx.in_error:
             ctx.out_object = ctx.in_error
 
         else:
-            self.get_in_object(ctx)
+            self.__http_base.get_in_object(ctx)
 
             if ctx.in_error:
                 ctx.out_object = ctx.in_error
             else:
-                self.get_out_object(ctx)
+                self.__http_base.get_out_object(ctx)
                 if ctx.out_error:
                     ctx.out_object = ctx.out_error
 
-        self.get_out_string(ctx)
+        self.__http_base.get_out_string(ctx)
 
         return ''.join(ctx.out_string)
 
     def __handle_wsdl_request(self, request):
-        retval = ""
         ctx = TwistedWebMethodContext(self.app, request, "text/xml; charset=utf-8")
         url = _reconstruct_url(request)
-        print url
 
         try:
             ctx.transport.wsdl = self.app.interface.get_interface_document()
@@ -118,16 +121,9 @@ class TwistedWebApplication(HttpBase, Resource):
             for k,v in ctx.transport.resp_headers.items():
                 request.setHeader(k,v)
 
-            retval = ctx.transport.wsdl
+            return ctx.transport.wsdl
         
         except Exception, e:
-            logger.exception(e)
             ctx.transport.wsdl_error = e
-
             self.event_manager.fire_event('wsdl_exception', ctx)
-
-            request.setResponseCode(500)
-
-            retval = HTTP_500
-
-        return retval
+            raise
