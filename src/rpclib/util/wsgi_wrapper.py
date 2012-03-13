@@ -19,17 +19,11 @@
 
 """A Convenience module for wsgi wrapper routines."""
 
-from rpclib.server.wsgi import WsgiApplication
 import os
 import logging
 logger = logging.getLogger(__name__)
 
-import twisted.web.server
-import twisted.web.static
-
-from twisted.web.resource import Resource
-from twisted.web.wsgi import WSGIResource
-from twisted.internet import reactor
+from rpclib.server.wsgi import WsgiApplication
 
 class WsgiMounter(object):
     @staticmethod
@@ -60,11 +54,17 @@ class WsgiMounter(object):
 
 
 def run_twisted(apps, port, static_dir='.'):
-    """Twisted wrapper for the rpclib.server.wsgi.Application
+    """Twisted wrapper for the rpclib.server.wsgi.WsgiApplication
 
     Takes a list of tuples containing application, url pairs, and a port to
     to listen to.
     """
+    import twisted.web.server
+    import twisted.web.static
+
+    from twisted.web.resource import Resource
+    from twisted.web.wsgi import WSGIResource
+    from twisted.internet import reactor
 
     if static_dir != None:
         static_dir = os.path.abspath(static_dir)
