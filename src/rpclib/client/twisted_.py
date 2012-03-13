@@ -26,17 +26,20 @@ from rpclib.client import ClientBase
 from zope.interface import implements
 
 from twisted.internet import reactor
+from twisted.internet import error
 from twisted.internet.defer import succeed
 from twisted.web.iweb import IBodyProducer
 from twisted.web.iweb import UNKNOWN_LENGTH
 from twisted.web.http_headers import Headers
+from twisted.web import error as werror
 
 from twisted.internet.defer import Deferred
 from twisted.internet.protocol import Protocol
-from twisted.web.client import Agent
+from twisted.web.client import Agent, ResponseDone
 
 class _Producer(object):
     implements(IBodyProducer)
+    _deferred = None
 
     def __init__(self, body):
         """:param body: an iterable of strings"""
@@ -45,23 +48,29 @@ class _Producer(object):
 
         # check to see if we can determine the length
         try:
-            body[0] # check if this is a list
+            len(body) # iterator?
             self.length = sum([len(fragment) for fragment in body])
-
-        except:
+            self.body = iter(body)
+        except TypeError:
             self.length = UNKNOWN_LENGTH
 
-        self.body = iter(body)
+        self._deferred = Deferred()
 
     def startProducing(self, consumer):
-        self.__paused = False
-        while not self.__paused:
-            try:
-                consumer.write(self.body.next())
-            except StopIteration:
-                break
+        self.consumer = consumer
 
-        return succeed(None)
+        self.resumeProducing()
+
+        return self._deferred
+
+    def resumeProducing(self):
+        self.__paused = False
+        for chunk in self.body:
+            self.consumer.write(chunk)
+            if self.__paused:
+                break
+        else:
+            self._deferred.callback(None) # done producing forever
 
     def pauseProducing(self):
         self.__paused = True
@@ -71,16 +80,18 @@ class _Producer(object):
 
 
 class _Protocol(Protocol):
-    def __init__(self, ctx, finished, response):
-        self.finished = finished
-        self.response = response
+    def __init__(self, ctx):
         self.ctx = ctx
+        self.deferred = Deferred()
 
     def dataReceived(self, bytes):
         self.ctx.in_string.append(bytes)
 
     def connectionLost(self, reason):
-        self.finished(self.response, reason)
+        if reason.check(ResponseDone):
+            self.deferred.callback(None)
+        else:
+            self.deferred.errback(reason)
 
 
 class _RemoteProcedure(RemoteProcedureBase):
@@ -104,25 +115,24 @@ class _RemoteProcedure(RemoteProcedureBase):
             _Producer(self.ctx.out_string)
         )
 
-        user_deferred = Deferred()
-        def cb_finished(response, reason):
+        def _process_response(_, response):
             # this sets ctx.in_error if there's an error, and ctx.in_object if
             # there's none.
             self.get_in_object(self.ctx)
 
-            if not (self.ctx.in_error is None):
-                user_deferred.errback(self.ctx.in_error)
+            if self.ctx.in_error is not None:
+                raise self.ctx.in_error
             elif response.code >= 400:
-                user_deferred.errback(self.ctx.in_error)
-            else:
-                user_deferred.callback(self.ctx.in_object)
+                raise werror.Error(response.code)
+            return self.ctx.in_object
 
-        def cb_request(response):
-            response.deliverBody(_Protocol(self.ctx, cb_finished, response))
+        def _cb_request(response):
+            p = _Protocol(self.ctx)
+            response.deliverBody(p)
+            return p.deferred.addCallback(_process_response, response)
 
-        d.addCallback(cb_request)
+        return d.addCallback(_cb_request)
 
-        return user_deferred
 
 class TwistedHttpClient(ClientBase):
     def __init__(self, url, app):
