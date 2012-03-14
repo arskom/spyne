@@ -21,9 +21,6 @@
 as transport.
 """
 
-import logging
-logger = logging.getLogger(__name__)
-
 from twisted.web.resource import Resource
 
 from rpclib.server.http import HttpMethodContext
@@ -52,8 +49,10 @@ class TwistedWebMethodContext(HttpMethodContext):
 
         self.transport.type = 'twisted.web'
 
-class TwistedWebApplication(Resource):
-    """The ZeroMQ server transport."""
+class TwistedWebResource(Resource):
+    """A server transport that exposes the application as a twisted web
+    Resource.
+    """
 
     isLeaf = True
 
@@ -117,7 +116,6 @@ class TwistedWebApplication(Resource):
 
             self.event_manager.fire_event('wsdl', ctx) # implementation hook
 
-            ctx.transport.resp_headers['Content-Length'] = str(len(ctx.transport.wsdl))
             for k,v in ctx.transport.resp_headers.items():
                 request.setHeader(k,v)
 

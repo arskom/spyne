@@ -25,7 +25,7 @@ logger.setLevel(logging.DEBUG)
 import os
 
 from rpclib.test.interop.server.soap_http_basic import soap_application
-from rpclib.server.twisted_ import TwistedWebApplication
+from rpclib.server.twisted_ import TwistedWebResource
 
 host = '127.0.0.1'
 port = 9754
@@ -45,7 +45,7 @@ def main(argv):
     logging.info("registering static folder %r on /" % static_dir)
     root = File(static_dir)
 
-    wr = TwistedWebApplication(soap_application)
+    wr = TwistedWebResource(soap_application)
     logging.info("registering %r on /%s" % (wr, url))
     root.putChild(url, wr)
 

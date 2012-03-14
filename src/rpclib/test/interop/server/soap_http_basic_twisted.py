@@ -25,7 +25,7 @@ logger.setLevel(logging.DEBUG)
 import os
 
 from rpclib.test.interop.server.soap_http_basic import soap_application
-from rpclib.server.twisted_ import TwistedWebApplication
+from rpclib.server.twisted_ import TwistedWebResource
 
 host = '127.0.0.1'
 port = 9753
@@ -40,7 +40,7 @@ def main(argv):
     observer = log.PythonLoggingObserver('twisted')
     log.startLoggingWithObserver(observer.emit, setStdout=False)
 
-    wr = TwistedWebApplication(soap_application)
+    wr = TwistedWebResource(soap_application)
     site = Site(wr)
 
     reactor.listenTCP(port, site)
