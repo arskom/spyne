@@ -29,7 +29,7 @@ from rpclib.protocol.http import HttpRpc
 from rpclib.interface.wsdl import Wsdl11
 
 httprpc_csv_application = Application(services,
-        'rpclib.test.interop.server.httprpc.csv', Wsdl11(), HttpRpc(), OutCsv())
+        'rpclib.test.interop.server.httprpc.csv', HttpRpc(), OutCsv(), Wsdl11())
 from rpclib.server.wsgi import WsgiApplication
 
 if __name__ == '__main__':
