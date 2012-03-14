@@ -114,8 +114,8 @@ class HttpRpc(ProtocolBase):
             raise ValueError(validator)
 
     def create_in_document(self, ctx, in_string_encoding=None):
-        assert ctx.transport.type == 'wsgi', ("This protocol only works with "
-                                              "the wsgi api.")
+        assert ctx.transport.type == 'http', ("This protocol only works with "
+                                  "the wsgi api, not: %s" %  ctx.transport.type)
 
         ctx.in_document = ctx.transport.req_env
 
