@@ -29,8 +29,12 @@ from rpclib.util.oset import oset
 
 class TransportContext(object):
     """Generic object that holds transport-specific context information"""
-    def __init__(self, type=None):
+    def __init__(self, transport, type=None):
+        self.itself = transport
+        """The transport itself; i.e. a ServerBase instance."""
+
         self.type = type
+        """The protocol the transport uses."""
 
 class EventContext(object):
     """Generic object that holds event-specific context information"""
@@ -55,7 +59,7 @@ class MethodContext(object):
         else:
             return self.descriptor.name
 
-    def __init__(self, app):
+    def __init__(self, transport):
         # metadata
         self.call_start = time()
         """The time the rpc operation was initiated in seconds-since-epoch
@@ -69,13 +73,13 @@ class MethodContext(object):
 
         Useful for benchmarking purposes."""
 
-        self.app = app
+        self.app = transport.app
         """The parent application."""
 
         self.udc = None
         """The user defined context. Use it to your liking."""
 
-        self.transport = TransportContext()
+        self.transport = TransportContext(transport)
         """The transport-specific context. Transport implementors can use this
         to their liking."""
 

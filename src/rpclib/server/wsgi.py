@@ -42,8 +42,8 @@ class WsgiTransportContext(HttpTransportContext):
     """The class that is used in the transport attribute of the
     :class:`WsgiMethodContext` class."""
 
-    def __init__(self, req_env, content_type):
-        HttpTransportContext.__init__(self, req_env, content_type)
+    def __init__(self, transport, req_env, content_type):
+        HttpTransportContext.__init__(self, transport, req_env, content_type)
 
         self.req_env = self.req
         """WSGI Request environment"""
@@ -57,10 +57,10 @@ class WsgiMethodContext(HttpMethodContext):
     the transport attribute using the :class:`WsgiTransportContext` class.
     """
 
-    def __init__(self, app, req_env, content_type):
-        HttpMethodContext.__init__(self, app, req_env, content_type)
+    def __init__(self, transport, req_env, content_type):
+        HttpMethodContext.__init__(self, transport, req_env, content_type)
 
-        self.transport = WsgiTransportContext(req_env, content_type)
+        self.transport = WsgiTransportContext(transport, req_env, content_type)
         """Holds the WSGI-specific information"""
 
 
@@ -136,7 +136,7 @@ class WsgiApplication(HttpBase):
         )
 
     def __handle_wsdl_request(self, req_env, start_response, url):
-        ctx = WsgiMethodContext(self.app, req_env, 'text/xml; charset=utf-8')
+        ctx = WsgiMethodContext(self, req_env, 'text/xml; charset=utf-8')
         try:
             ctx.transport.wsdl = self.app.interface.get_interface_document()
 
