@@ -38,10 +38,15 @@ from rpclib.const.http import HTTP_405
 from rpclib.const.http import HTTP_413
 from rpclib.const.http import HTTP_500
 
+from rpclib.error import Fault
 from rpclib.error import ResourceNotFoundError
 from rpclib.error import RequestTooLongError
 from rpclib.error import RequestNotAllowed
-from rpclib.error import Fault
+from rpclib.error import ValidationError
+
+from rpclib.model.binary import File
+from rpclib.model.binary import ByteArray
+
 
 class ProtocolBase(object):
     """This is the abstract base class for all protocol implementations. Child
@@ -196,3 +201,132 @@ class ProtocolBase(object):
         assert validator is None
 
         self.validator = None
+
+    def flat_dict_to_object(self, doc, inst_class):
+        simple_type_info = inst_class.get_simple_type_info(inst_class)
+        logger.debug(repr(simple_type_info))
+        inst = inst_class.get_deserialization_instance()
+
+        # this is for validating cls.Attributes.{min,max}_occurs
+        frequencies = {}
+
+        for k, v in doc.items():
+            member = simple_type_info.get(k, None)
+            if member is None:
+                logger.debug("discarding field %r" % k)
+                continue
+
+            mo = member.type.Attributes.max_occurs
+            value = getattr(inst, k, None)
+            if value is None:
+                value = []
+            elif mo == 1:
+                raise Fault('Client.ValidationError',
+                        '"%s" member must occur at most %d times' % (k, max_o))
+
+            # extract native values from the list of strings that comes from the
+            # http dict.
+            for v2 in v:
+                if (self.validator is self.SOFT_VALIDATION and not
+                            member.type.validate_string(member.type, v2)):
+                    raise ValidationError(v2)
+
+                if member.type is File or member.type is ByteArray or \
+                        getattr(member.type, '_is_clone_of', None) is File or \
+                        getattr(member.type, '_is_clone_of', None) is ByteArray:
+                    if isinstance(v2, str) or isinstance(v2, unicode):
+                        native_v2 = member.type.from_string(v2)
+                    else:
+                        native_v2 = v2
+                else:
+                    native_v2 = member.type.from_string(v2)
+
+                if (self.validator is self.SOFT_VALIDATION and not
+                            member.type.validate_native(member.type, native_v2)):
+                    raise ValidationError(v2)
+
+                value.append(native_v2)
+
+                # set frequencies of parents.
+                if not (member.path[:-1] in frequencies):
+                    for i in range(1,len(member.path)):
+                        logger.debug("\tset freq %r = 1" % (member.path[:i],))
+                        frequencies[member.path[:i]] = 1
+
+                freq = frequencies.get(member.path, 0)
+                freq += 1
+                frequencies[member.path] = freq
+                logger.debug("\tset freq %r = %d" % (member.path, freq))
+
+            if mo == 1:
+                value = value[0]
+
+            # assign the native value to the relevant class in the nested object
+            # structure.
+            cinst = inst
+            ctype_info = inst_class.get_flat_type_info(inst_class)
+            pkey = member.path[0]
+            for i in range(len(member.path) - 1):
+                pkey = member.path[i]
+                if not (ctype_info[pkey].Attributes.max_occurs in (0,1)):
+                    raise Exception("HttpRpc deserializer does not support "
+                                    "non-primitives with max_occurs > 1")
+
+                ninst = getattr(cinst, pkey, None)
+                if ninst is None:
+                    ninst = ctype_info[pkey].get_deserialization_instance()
+                    setattr(cinst, pkey, ninst)
+                cinst = ninst
+
+                ctype_info = ctype_info[pkey]._type_info
+
+            if isinstance(cinst, list):
+                cinst.extend(value)
+                logger.debug("\tset array   %r(%r) = %r" %
+                                                    (member.path, pkey, value))
+            else:
+                setattr(cinst, member.path[-1], value)
+                logger.debug("\tset default %r(%r) = %r" %
+                                                    (member.path, pkey, value))
+
+        if self.validator is self.SOFT_VALIDATION:
+            sti = simple_type_info.values()
+            sti.sort(key=lambda x: (len(x.path), x.path))
+            pfrag = None
+            for s in sti:
+                if len(s.path) > 1 and pfrag != s.path[:-1]:
+                    pfrag = s.path[:-1]
+                    ctype_info = inst_class.get_flat_type_info(inst_class)
+                    for i in range(len(pfrag)):
+                        f = pfrag[i]
+                        ntype_info = ctype_info[f]
+
+                        min_o = ctype_info[f].Attributes.min_occurs
+                        max_o = ctype_info[f].Attributes.max_occurs
+                        val = frequencies.get(pfrag[:i+1], 0)
+                        if val < min_o:
+                            raise Fault('Client.ValidationError',
+                                '"%s" member must occur at least %d times'
+                                              % ('_'.join(pfrag[:i+1]), min_o))
+
+                        if max_o != 'unbounded' and val > max_o:
+                            raise Fault('Client.ValidationError',
+                                '"%s" member must occur at most %d times'
+                                             % ('_'.join(pfrag[:i+1]), max_o))
+
+                        ctype_info = ntype_info.get_flat_type_info(ntype_info)
+
+                val = frequencies.get(s.path, 0)
+                min_o = s.type.Attributes.min_occurs
+                max_o = s.type.Attributes.max_occurs
+                if val < min_o:
+                    raise Fault('Client.ValidationError',
+                                '"%s" member must occur at least %d times'
+                                                    % ('_'.join(s.path), min_o))
+                if max_o != 'unbounded' and val > max_o:
+                    raise Fault('Client.ValidationError',
+                                '"%s" member must occur at most %d times'
+                                                    % ('_'.join(s.path), max_o))
+
+        return inst
+
