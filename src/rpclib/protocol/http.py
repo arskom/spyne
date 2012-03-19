@@ -35,17 +35,14 @@ except ImportError:
     except ImportError: # Python 3
         from io import StringIO
 
-from rpclib.error import ValidationError
-from rpclib.model.binary import File
-from rpclib.model.binary import ByteArray
-from rpclib.model.fault import Fault
 from rpclib.protocol import ProtocolBase
 
 STREAM_READ_BLOCK_SIZE = 16384
 
+
 def get_stream_factory(dir=None, delete=True):
     def stream_factory(total_content_length, filename, content_type,
-                                                               content_length=None):
+                                                           content_length=None):
         if total_content_length >= 512 * 1024 or delete == False:
             if delete == False:
                 retval = tempfile.NamedTemporaryFile('wb+', dir=dir, delete=delete) # You need python >= 2.6 for this.
@@ -57,12 +54,10 @@ def get_stream_factory(dir=None, delete=True):
         return retval
     return stream_factory
 
-class HttpRpc(ProtocolBase):
-    """The so-called REST-minus-the-verbs HttpRpc protocol implementation.
-    It only works with the http server (wsgi) transport.
 
-    It only parses requests where the whole data is in the 'QUERY_STRING', i.e.
-    the part after '?' character in a URI string.
+class HttpRpc(ProtocolBase):
+    """The so-called ReST-ish HttpRpc protocol implementation. It only works
+    with http (wsgi and twisted) transports.
     """
 
     mime_type = 'text/plain'
@@ -132,12 +127,12 @@ class HttpRpc(ProtocolBase):
                 if ctx.out_object is None:
                     ctx.out_document = ['']
                 else:
-                    if hasattr(out_class, 'to_string_iterable'):
+                    try:
                         ctx.out_document = out_class.to_string_iterable(
                                                               ctx.out_object[0])
-                    else:
+                    except AttributeError:
                         raise ValueError("HttpRpc protocol can only serialize "
-                                         "primitives. %r" % out_class)
+                                         "primitives, not %r" % out_class)
             else:
                 raise ValueError("HttpRpc protocol can only serialize simple "
                                  "return values.")
@@ -149,11 +144,3 @@ class HttpRpc(ProtocolBase):
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         ctx.out_string = ctx.out_document
-
-    def get_call_handles(self, ctx):
-        retval = super(HttpRpc, self).get_call_handles(ctx)
-
-        if len(retval) == 0:
-            pass
-
-        return retval
