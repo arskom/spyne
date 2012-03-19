@@ -221,7 +221,7 @@ class ComplexModelBase(ModelBase):
         return cls()
 
     @classmethod
-    def get_members_pairs(cls, inst):
+    def get_members_pairs(cls, inst, no_list_for_singular_fields, use_generators):
         parent_cls = getattr(cls, '__extends__', None)
         if not (parent_cls is None):
             for r in parent_cls.get_members_pairs(inst, parent):
@@ -236,17 +236,37 @@ class ComplexModelBase(ModelBase):
 
             if mo == 'unbounded' or mo > 1:
                 if subvalue != None:
-                    yield (k, (v.to_string(sv) for sv in subvalue))
+                    if use_generators:
+                        yield (k, (v.to_string(sv) for sv in subvalue))
+                    else:
+                        yield (k, [v.to_string(sv) for sv in subvalue])
 
             else:
-                yield (k, [v.to_string(subvalue)])
+                if no_list_for_singular_fields:
+                    if issubclass(v, ComplexModelBase):
+                        yield (k, v.to_dict(subvalue,
+                                    no_list_for_singular_fields, use_generators))
+                    else:
+                        yield (k, v.to_string(subvalue))
+                else:
+                    yield (k, [v.to_string(subvalue)])
+
 
     @classmethod
     @nillable_dict
-    def to_dict(cls, value):
+    def to_dict(cls, value, no_list_for_singular_fields, use_generators):
         inst = cls.get_serialization_instance(value)
 
-        return dict(cls.get_members_pairs(inst))
+        return dict(cls.get_members_pairs(inst, no_list_for_singular_fields,
+                                                               use_generators))
+
+    @classmethod
+    @nillable_dict
+    def from_dict(cls, value, no_list_for_singular_fields, use_generators):
+        inst = cls.get_serialization_instance(value)
+
+        return dict(cls.get_members_pairs(inst, no_list_for_singular_fields,
+                                                               use_generators))
 
     @staticmethod
     def get_flat_type_info(cls, retval=None):
