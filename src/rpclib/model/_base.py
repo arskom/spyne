@@ -86,7 +86,7 @@ class ModelBase(object):
         max_occurs = 1
         """Can be set to any strictly positive integer. Values greater than 1
         will imply an iterable of objects as native python type. Can be set to
-        'float("inf")' for arbitrary number of arguments."""
+        ``float("inf")`` for arbitrary number of arguments."""
 
     class Annotations(object):
         """The class that holds the annotations for the given type."""
