@@ -459,7 +459,12 @@ class DateTime(SimpleModel):
     __type_name__ = 'dateTime'
 
     class Attributes(SimpleModel.Attributes):
+        """Customizable attributes of the :class:`rpclib.model.primitive.DateTime`
+        type."""
+        
         format = None
+        """DateTime format fed to the ``strftime`` function. See:
+        http://docs.python.org/library/datetime.html?highlight=strftime#strftime-strptime-behavior"""
 
     @classmethod
     @nillable_string
