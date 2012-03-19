@@ -217,10 +217,19 @@ class Decimal(SimpleModel):
     __max_str_len__ = 1024
 
     class Attributes(SimpleModel.Attributes):
+        """Class that holds constraints information for Decimal type."""
+
         gt = -float('inf') # minExclusive
+        """The value should be greater than this number."""
+
         ge = -float('inf') # minInclusive
+        """The value should be greater than or equal to this number."""
+
         lt =  float('inf') # maxExclusive
+        """The value should be smaller than this number."""
+
         le =  float('inf') # maxInclusive
+        """The value should be smaller than or equal to this number."""
 
     @staticmethod
     def is_default(cls):
