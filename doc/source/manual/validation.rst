@@ -1,9 +1,9 @@
-
 .. _manual-validation:
 
 Input Validation
 ================
 This is necessary in the cases in which you have to ensure that the received data comply with a given format, such as:
+
 - a number must be within a certain range
 - a string that must contain a specific character
 
