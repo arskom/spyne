@@ -231,6 +231,10 @@ class Decimal(SimpleModel):
         le =  float('inf') # maxInclusive
         """The value should be smaller than or equal to this number."""
 
+        format = None
+        """A regular python string formatting string. See here:
+        http://docs.python.org/library/stdtypes.html#string-formatting"""
+
     @staticmethod
     def is_default(cls):
         return (    SimpleModel.is_default(cls)
@@ -254,8 +258,10 @@ class Decimal(SimpleModel):
     @nillable_string
     def to_string(cls, value):
         decimal.Decimal(value)
-
-        return str(value)
+        if cls.Attributes.format is None:
+            return str(value)
+        else:
+            return cls.Attributes.format % value
 
     @classmethod
     @nillable_string
