@@ -137,22 +137,29 @@ class HtmlMicroFormat(ProtocolBase):
 
         self.event_manager.fire_event('before_serialize', ctx)
 
-        # instantiate the result message
-        result_message_class = ctx.descriptor.out_message
-        result_message = result_message_class()
+        if ctx.out_error is not None:
+            # FIXME: There's no way to alter soap response headers for the user.
+            ctx.out_document = serialize_complex_model(self,
+                    ctx.out_error.__class__, ctx.out_error,
+                    ctx.out_error.get_type_name())
 
-        # assign raw result to its wrapper, result_message
-        out_type_info = result_message_class._type_info
+        else:
+            # instantiate the result message
+            result_message_class = ctx.descriptor.out_message
+            result_message = result_message_class()
 
-        for i in range(len(out_type_info)):
-            attr_name = result_message_class._type_info.keys()[i]
-            setattr(result_message, attr_name, ctx.out_object[i])
+            # assign raw result to its wrapper, result_message
+            out_type_info = result_message_class._type_info
 
-        ctx.out_header_doc = None
-        ctx.out_body_doc = serialize_complex_model(self, result_message_class,
-                         result_message, result_message_class.get_type_name())
+            for i in range(len(out_type_info)):
+                attr_name = result_message_class._type_info.keys()[i]
+                setattr(result_message, attr_name, ctx.out_object[i])
 
-        ctx.out_document = ctx.out_body_doc
+            ctx.out_header_doc = None
+            ctx.out_body_doc = serialize_complex_model(self, result_message_class,
+                             result_message, result_message_class.get_type_name())
+
+            ctx.out_document = ctx.out_body_doc
 
         self.event_manager.fire_event('after_serialize', ctx)
 
