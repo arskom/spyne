@@ -30,6 +30,8 @@ from rpclib.model.complex import ComplexModel
 from rpclib.interface.wsdl import Wsdl11
 from rpclib.protocol.http import HttpRpc
 from rpclib.service import ServiceBase
+from rpclib.server import ServerBase
+from rpclib.server.wsgi import WsgiMethodContext
 
 class Test(unittest.TestCase):
     '''Most of the service tests are performed through the interop tests.'''
@@ -43,20 +45,16 @@ class Test(unittest.TestCase):
             def some_call():
                 return 1, 's'
 
-        app = Application([SomeService], 'tns', Wsdl11(), HttpRpc(), HttpRpc())
+        app = Application([SomeService], 'tns', HttpRpc(), HttpRpc(), Wsdl11())
+        server = ServerBase(app)
 
-        from rpclib.server.wsgi import WsgiMethodContext
-
-        initial_ctx = WsgiMethodContext(app, {
+        initial_ctx = WsgiMethodContext(server, {
             'QUERY_STRING': '',
             'PATH_INFO': '/some_call',
             'QUERY_STRING': '?s=a',
             'REQUEST_METHOD': 'GET',
         }, 'some-content-type')
 
-        from rpclib.server import ServerBase
-
-        server = ServerBase(app)
         try:
             ctx, = server.generate_contexts(initial_ctx)
             server.get_in_object(ctx)
@@ -78,25 +76,18 @@ class Test(unittest.TestCase):
             def some_call(scm):
                 return SomeComplexModel(i=5, s='5x')
 
-        app = Application([SomeService], 'tns', Wsdl11(), HttpRpc(), HttpRpc())
+        app = Application([SomeService], 'tns', HttpRpc(), HttpRpc(), Wsdl11())
+        server = ServerBase(app)
 
-        from rpclib.server.wsgi import WsgiMethodContext
-
-        initial_ctx = WsgiMethodContext(app, {
+        initial_ctx = WsgiMethodContext(server, {
             'QUERY_STRING': '',
             'PATH_INFO': '/some_call',
             'REQUEST_METHOD': 'GET',
         }, 'some-content-type')
-
-        from rpclib.server import ServerBase
-
-        server = ServerBase(app)
-
         ctx, = server.generate_contexts(initial_ctx)
-        server.get_in_object(ctx)
-        print "!", ctx.in_object
-        server.get_out_object(ctx)
 
+        server.get_in_object(ctx)
+        server.get_out_object(ctx)
         try:
             server.get_out_string(ctx)
         except:
@@ -118,21 +109,15 @@ class Test(unittest.TestCase):
         class SomeService(ServiceBase):
             @srpc(CCM, _returns=CCM)
             def some_call(ccm):
-                return CCM(c=ccm.c,i=ccm.i, s=ccm.s)
+                return CCM(c=ccm.c, i=ccm.i, s=ccm.s)
 
-        app = Application([SomeService], 'tns', Wsdl11(), HttpRpc(), HttpRpc())
-
-        from rpclib.server.wsgi import WsgiMethodContext
-
-        initial_ctx = WsgiMethodContext(app, {
+        app = Application([SomeService], 'tns', HttpRpc(), HttpRpc(), Wsdl11())
+        server = ServerBase(app)
+        initial_ctx = WsgiMethodContext(server, {
             'QUERY_STRING': '',
             'PATH_INFO': '/some_call',
             'REQUEST_METHOD': 'GET',
         }, 'some-content-type')
-
-        from rpclib.server import ServerBase
-
-        server = ServerBase(app)
         ctx, = server.generate_contexts(initial_ctx)
         server.get_in_object(ctx)
         server.get_out_object(ctx)
@@ -144,19 +129,15 @@ class Test(unittest.TestCase):
             def some_call(s):
                 return '\n'.join(s)
 
-        app = Application([SomeService], 'tns', Wsdl11(), HttpRpc(), HttpRpc())
+        app = Application([SomeService], 'tns', HttpRpc(), HttpRpc(), Wsdl11())
+        server = ServerBase(app)
 
-        from rpclib.server.wsgi import WsgiMethodContext
-
-        initial_ctx = WsgiMethodContext(app, {
+        initial_ctx = WsgiMethodContext(server, {
             'QUERY_STRING': 's=1&s=2',
             'PATH_INFO': '/some_call',
             'REQUEST_METHOD': 'GET',
         }, 'some-content-type')
 
-        from rpclib.server import ServerBase
-
-        server = ServerBase(app)
         ctx, = server.generate_contexts(initial_ctx)
         server.get_in_object(ctx)
         server.get_out_object(ctx)
@@ -179,19 +160,15 @@ class Test(unittest.TestCase):
             def some_call(ccm):
                 return repr(ccm)
 
-        app = Application([SomeService], 'tns', Wsdl11(), HttpRpc(), HttpRpc())
+        app = Application([SomeService], 'tns', HttpRpc(), HttpRpc(), Wsdl11())
+        server = ServerBase(app)
 
-        from rpclib.server.wsgi import WsgiMethodContext
-
-        initial_ctx = WsgiMethodContext(app, {
+        initial_ctx = WsgiMethodContext(server, {
             'QUERY_STRING': 'ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs',
             'PATH_INFO': '/some_call',
             'REQUEST_METHOD': 'GET',
         }, 'some-content-type')
 
-        from rpclib.server import ServerBase
-
-        server = ServerBase(app)
         ctx, = server.generate_contexts(initial_ctx)
 
         server.get_in_object(ctx)
@@ -220,19 +197,15 @@ class Test(unittest.TestCase):
             def some_call(ccm):
                 return repr(ccm)
 
-        app = Application([SomeService], 'tns', Wsdl11(), HttpRpc(), HttpRpc())
+        app = Application([SomeService], 'tns', HttpRpc(), HttpRpc(), Wsdl11())
+        server = ServerBase(app)
 
-        from rpclib.server.wsgi import WsgiMethodContext
-
-        initial_ctx = WsgiMethodContext(app, {
+        initial_ctx = WsgiMethodContext(server, {
             'QUERY_STRING': 'ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs',
             'PATH_INFO': '/some_call',
             'REQUEST_METHOD': 'GET',
         }, 'some-content-type')
 
-        from rpclib.server import ServerBase
-
-        server = ServerBase(app)
         ctx, = server.generate_contexts(initial_ctx)
 
         try:
@@ -258,19 +231,15 @@ class Test(unittest.TestCase):
             def some_call(ccm):
                 return repr(ccm)
 
-        app = Application([SomeService], 'tns', Wsdl11(), HttpRpc(), HttpRpc())
+        app = Application([SomeService], 'tns', HttpRpc(), HttpRpc(), Wsdl11())
+        server = ServerBase(app)
 
-        from rpclib.server.wsgi import WsgiMethodContext
-
-        initial_ctx = WsgiMethodContext(app, {
+        initial_ctx = WsgiMethodContext(server, {
             'QUERY_STRING': 'ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs',
             'PATH_INFO': '/some_call',
             'REQUEST_METHOD': 'GET',
         }, 'some-content-type')
 
-        from rpclib.server import ServerBase
-
-        server = ServerBase(app)
         ctx, = server.generate_contexts(initial_ctx)
 
         try:
