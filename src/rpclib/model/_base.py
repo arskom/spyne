@@ -27,11 +27,11 @@ defining models.
 def nillable_dict(func):
     """Decorator that retuns empty dictionary if input is None"""
 
-    def wrapper(cls, element, no_list_for_singular_fields=False, use_generators=True):
+    def wrapper(cls, element):
         if element is None:
             return {}
         else:
-            return func(cls, element, no_list_for_singular_fields, use_generators)
+            return func(cls, element)
     return wrapper
 
 def nillable_string(func):
@@ -180,7 +180,7 @@ class ModelBase(object):
 
     @classmethod
     @nillable_dict
-    def to_dict(cls, value, _, _2):
+    def to_dict(cls, value):
         """Returns a dict with type name as key and str(value) as value. This
         should be overridden if this is not enough."""
 

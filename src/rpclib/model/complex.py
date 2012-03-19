@@ -221,10 +221,10 @@ class ComplexModelBase(ModelBase):
         return cls()
 
     @classmethod
-    def get_members_pairs(cls, inst, no_list_for_singular_fields, use_generators):
+    def get_members_pairs(cls, inst):
         parent_cls = getattr(cls, '__extends__', None)
         if not (parent_cls is None):
-            for r in parent_cls.get_members_pairs(inst, parent):
+            for r in parent_cls.get_members_pairs(parent_cls, inst):
                 yield r
 
         for k, v in cls._type_info.items():
@@ -236,37 +236,18 @@ class ComplexModelBase(ModelBase):
 
             if mo > 1:
                 if subvalue != None:
-                    if use_generators:
-                        yield (k, (v.to_string(sv) for sv in subvalue))
-                    else:
-                        yield (k, [v.to_string(sv) for sv in subvalue])
+                    yield (k, (v.to_string(sv) for sv in subvalue))
 
             else:
-                if no_list_for_singular_fields:
-                    if issubclass(v, ComplexModelBase):
-                        yield (k, v.to_dict(subvalue,
-                                    no_list_for_singular_fields, use_generators))
-                    else:
-                        yield (k, v.to_string(subvalue))
-                else:
-                    yield (k, [v.to_string(subvalue)])
+                yield (k, [v.to_string(subvalue)])
 
 
     @classmethod
     @nillable_dict
-    def to_dict(cls, value, no_list_for_singular_fields, use_generators):
+    def to_dict(cls, value):
         inst = cls.get_serialization_instance(value)
 
-        return dict(cls.get_members_pairs(inst, no_list_for_singular_fields,
-                                                               use_generators))
-
-    @classmethod
-    @nillable_dict
-    def from_dict(cls, value, no_list_for_singular_fields, use_generators):
-        inst = cls.get_serialization_instance(value)
-
-        return dict(cls.get_members_pairs(inst, no_list_for_singular_fields,
-                                                               use_generators))
+        return dict(cls.get_members_pairs(inst))
 
     @staticmethod
     def get_flat_type_info(cls, retval=None):
