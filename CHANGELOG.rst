@@ -4,6 +4,7 @@ Changelog
 
 rpclib-2.8.0-beta
 -----------------
+ * Add support for JsonObject protocol.
  * Make DateTime string format customizable.
  * Implement the server transport that exposes Application as a
    ``twisted.web.resource.Resource`` child.
