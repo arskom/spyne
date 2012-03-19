@@ -17,32 +17,43 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""pod being plain old data"""
+
 import logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('rpclib.protocol.xml')
 logger.setLevel(logging.DEBUG)
 
 from rpclib.application import Application
-from rpclib.interface.wsdl import Wsdl11
 from rpclib.test.interop.server._service import services
 from rpclib.protocol.http import HttpRpc
-from rpclib.protocol.soap import Soap11
-from rpclib.server.wsgi import WsgiApplication
+from rpclib.interface.wsdl import Wsdl11
+from rpclib.server.twisted_ import TwistedWebResource
 
 httprpc_soap_application = Application(services,
-    'rpclib.test.interop.server.httprpc.soap', Wsdl11(), HttpRpc(), Soap11())
+        'rpclib.test.interop.server.httprpc.pod', HttpRpc(), HttpRpc(), Wsdl11())
+
+host = '127.0.0.1'
+port = 9758
+
+def main(argv):
+    from twisted.python import log
+    from twisted.web.server import Site
+    from twisted.web.static import File
+    from twisted.internet import reactor
+    from twisted.python import log
+
+    observer = log.PythonLoggingObserver('twisted')
+    log.startLoggingWithObserver(observer.emit, setStdout=False)
+
+    wr = TwistedWebResource(httprpc_soap_application)
+    site = Site(wr)
+
+    reactor.listenTCP(port, site)
+    logging.info("listening on: %s:%d" % (host,port))
+
+    return reactor.run()
 
 if __name__ == '__main__':
-    try:
-        from wsgiref.simple_server import make_server
-        from wsgiref.validate import validator
-
-        wsgi_application = WsgiApplication(httprpc_soap_application)
-        server = make_server('0.0.0.0', 9756, validator(wsgi_application))
-
-        logger.info('Starting interop server at %s:%s.' % ('0.0.0.0', 9756))
-        logger.info('WSDL is at: /?wsdl')
-        server.serve_forever()
-
-    except ImportError:
-        print("Error: example server code requires Python >= 2.5")
+    import sys
+    sys.exit(main(sys.argv))

@@ -44,9 +44,9 @@ from rpclib.protocol import ProtocolBase
 
 from rpclib.protocol.xml.model import base_to_parent_element
 from rpclib.protocol.xml.model.binary import binary_to_parent_element
+from rpclib.protocol.xml.model.complex import complex_to_parent_element
 from rpclib.protocol.xml.model.enum import enum_to_parent_element
 from rpclib.protocol.xml.model.fault import fault_to_parent_element
-from rpclib.protocol.xml.model.complex import complex_to_parent_element
 from rpclib.protocol.xml.model.primitive import xml_to_parent_element
 from rpclib.protocol.xml.model.primitive import dict_to_parent_element
 
@@ -76,6 +76,7 @@ class XmlObject(ProtocolBase):
 
     SCHEMA_VALIDATION = type("schema", (object,), {})
     mime_type = 'text/xml'
+    allowed_http_verbs = set(['GET', 'POST'])
 
     def __init__(self, app=None, validator=None, xml_declaration=True):
         ProtocolBase.__init__(self, app, validator)

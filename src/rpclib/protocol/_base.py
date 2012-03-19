@@ -62,7 +62,7 @@ class ProtocolBase(object):
       Called after the serialization operation is finished.
     """
 
-    allowed_http_verbs = ['GET', 'POST']
+    allowed_http_verbs = None
     mime_type = 'application/octet-stream'
 
     SOFT_VALIDATION = type("soft", (object,), {})

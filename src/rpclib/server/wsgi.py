@@ -25,6 +25,24 @@ logger = logging.getLogger(__name__)
 import cgi
 import threading
 
+from rpclib.model.binary import File
+
+try:
+    from urlparse import parse_qs
+except ImportError: # Python 3
+    from urllib.parse import parse_qs
+
+from werkzeug.formparser import parse_form_data
+
+def _get_http_headers(req_env):
+    retval = {}
+
+    for k, v in req_env.items():
+        if k.startswith("HTTP_"):
+            retval[k[5:].lower()]= [v]
+
+    return retval
+
 from rpclib.server.http import HttpMethodContext
 from rpclib.server.http import HttpTransportContext
 
@@ -112,7 +130,8 @@ class WsgiApplication(HttpBase):
         if self.__is_wsdl_request(req_env):
             return self.__handle_wsdl_request(req_env, start_response, url)
 
-        elif not (verb in self._allowed_http_verbs or verb in self._verb_handlers):
+        elif not (self._allowed_http_verbs is None or
+               verb in self._allowed_http_verbs or verb in self._verb_handlers):
             start_response(HTTP_405, [
                 ('Content-type', ''),
                 ('Allow', ', '.join(self._allowed_http_verbs)),
@@ -128,7 +147,7 @@ class WsgiApplication(HttpBase):
         # /stuff/stuff/stuff/serviceName/?wsdl
 
         return (
-            req_env['REQUEST_METHOD'].lower() == 'get'
+            req_env['REQUEST_METHOD'].upper() == 'GET'
             and (
                    req_env['QUERY_STRING'] == 'wsdl'
                 or req_env['PATH_INFO'].endswith('.wsdl')
@@ -189,7 +208,7 @@ class WsgiApplication(HttpBase):
         return ctx.out_string
 
     def handle_rpc(self, req_env, start_response):
-        initial_ctx = WsgiMethodContext(self.app, req_env,
+        initial_ctx = WsgiMethodContext(self, req_env,
                                                 self.app.out_protocol.mime_type)
 
         # implementation hook
@@ -221,8 +240,8 @@ class WsgiApplication(HttpBase):
                 # when there is more than one return type, the result is
                 # encapsulated inside a list. when there's just one, the result
                 # is returned in a non-encapsulated form. the apply_mtom always
-                # expects the objects to be inside an iterable, hence the following
-                # test.
+                # expects the objects to be inside an iterable, hence the
+                # following test.
                 out_type_info = ctx.descriptor.out_message._type_info
                 if len(out_type_info) == 1:
                     out_object = [out_object]
@@ -294,3 +313,42 @@ class WsgiApplication(HttpBase):
             bytes_read += len(data)
 
             yield data
+
+    @staticmethod
+    def decompose_incoming_envelope(prot, ctx):
+        """This function is only called by the HttpRpc protocol to have the wsgi
+        environment parsed into ``ctx.in_body_doc`` and ``ctx.in_header_doc``.
+        """
+
+        ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
+                              ctx.in_document['PATH_INFO'].split('/')[-1])
+
+        logger.debug("\033[92mMethod name: %r\033[0m" % ctx.method_request_string)
+
+        ctx.in_header_doc = _get_http_headers(ctx.in_document)
+        ctx.in_body_doc = parse_qs(ctx.in_document['QUERY_STRING'])
+
+        if ctx.in_document['REQUEST_METHOD'].upper() in ('POST', 'PUT', 'PATCH'):
+            stream, form, files = parse_form_data(ctx.in_document,
+                                        stream_factory=prot.stream_factory)
+
+            for k, v in form.lists():
+                val = ctx.in_body_doc.get(k, [])
+                val.extend(v)
+                ctx.in_body_doc[k] = val
+
+            for k, v in files.items():
+                val = ctx.in_body_doc.get(k, [])
+
+                mime_type = v.headers.get('Content-Type', 'application/octet-stream')
+
+                path = getattr(v.stream, 'name', None)
+                if path is None:
+                    val.append(File(name=v.filename, type=mime_type,
+                                                    data=[v.stream.getvalue()]))
+                else:
+                    v.stream.seek(0)
+                    val.append(File(name=v.filename, type=mime_type, path=path,
+                                                               handle=v.stream))
+
+                ctx.in_body_doc[k] = val

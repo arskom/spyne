@@ -26,19 +26,20 @@ from rpclib.client import ClientBase
 from zope.interface import implements
 
 from twisted.internet import reactor
-from twisted.internet import error
-from twisted.internet.defer import succeed
+from twisted.internet.defer import Deferred
+from twisted.internet.protocol import Protocol
+
+from twisted.web import error as werror
+from twisted.web.client import Agent
+from twisted.web.client import ResponseDone
 from twisted.web.iweb import IBodyProducer
 from twisted.web.iweb import UNKNOWN_LENGTH
 from twisted.web.http_headers import Headers
-from twisted.web import error as werror
 
-from twisted.internet.defer import Deferred
-from twisted.internet.protocol import Protocol
-from twisted.web.client import Agent, ResponseDone
 
 class _Producer(object):
     implements(IBodyProducer)
+
     _deferred = None
 
     def __init__(self, body):
@@ -51,6 +52,7 @@ class _Producer(object):
             len(body) # iterator?
             self.length = sum([len(fragment) for fragment in body])
             self.body = iter(body)
+
         except TypeError:
             self.length = UNKNOWN_LENGTH
 

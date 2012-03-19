@@ -17,16 +17,20 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains a server implementation that uses a TwistedWeb Resource
+"""This module contains a server implementation that uses a Twisted Web Resource
 as transport.
 """
+
+import logging
+logger = logging.getLogger(__name__)
+
+from pprint import pformat
 
 from twisted.web.resource import Resource
 
 from rpclib.server.http import HttpMethodContext
 from rpclib.server.http import HttpBase
 
-from rpclib.const.http import HTTP_400
 from rpclib.const.http import HTTP_405
 
 def _reconstruct_url(request):
@@ -43,11 +47,22 @@ def _reconstruct_url(request):
 
     return ''.join([url_scheme, "://", server_name, request.uri])
 
-class TwistedWebMethodContext(HttpMethodContext):
-    def __init__(self, app, request, content_type):
-        HttpMethodContext.__init__(self, app, request, content_type)
+class TwistedHttpTransport(HttpBase):
+    @staticmethod
+    def decompose_incoming_envelope(prot, ctx):
+        """This function is only called by the HttpRpc protocol to have the
+        twisted web's Request object is parsed into ``ctx.in_body_doc`` and
+        ``ctx.in_header_doc``.
+        """
+        request = ctx.in_document
 
-        self.transport.type = 'twisted.web'
+        ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
+                              request.path.split('/')[-1])
+
+        logger.debug("\033[92mMethod name: %r\033[0m" % ctx.method_request_string)
+
+        ctx.in_header_doc = request.headers
+        ctx.in_body_doc = request.args
 
 class TwistedWebResource(Resource):
     """A server transport that exposes the application as a twisted web
@@ -60,49 +75,51 @@ class TwistedWebResource(Resource):
                                            block_length=8 * 1024):
         Resource.__init__(self)
 
-        self.__http_base = HttpBase(app, chunked, max_content_length, block_length)
+        self.http_transport = TwistedHttpTransport(app, chunked,
+                                            max_content_length, block_length)
 
     def render_GET(self, request):
-        retval = ""
-        
+        _ahv = self.http_transport._allowed_http_verbs
         if request.uri.endswith('.wsdl') or request.uri.endswith('?wsdl'):
-            retval = self.__handle_wsdl_request(request)
+            return self.__handle_wsdl_request(request)
 
-        elif "get" not in self.__http_base._allowed_http_verbs:
+        elif not (_ahv is None or "GET" in _ahv):
             request.setResponseCode(405)
-            retval = HTTP_405
+            return HTTP_405
 
         else:
-            request.setResponseCode(400)
-            retval = HTTP_400
-
-        return retval
+            return self.handle_rpc(request)
 
     def render_POST(self, request):
-        initial_ctx = TwistedWebMethodContext(self.__http_base.app, request,
-                                    self.__http_base.app.out_protocol.mime_type)
+        return self.handle_rpc(request)
+
+    def handle_rpc(self, request):
+        initial_ctx = HttpMethodContext(self.http_transport, request,
+                                    self.http_transport.app.out_protocol.mime_type)
+        logger.debug("%s %s %s" % (request, request.__class__, pformat(vars(request))))
         initial_ctx.in_string = [request.content.getvalue()]
 
-        ctx, = self.__http_base.generate_contexts(initial_ctx)
+        ctx, = self.http_transport.generate_contexts(initial_ctx)
         if ctx.in_error:
             ctx.out_object = ctx.in_error
 
         else:
-            self.__http_base.get_in_object(ctx)
+            self.http_transport.get_in_object(ctx)
 
             if ctx.in_error:
                 ctx.out_object = ctx.in_error
             else:
-                self.__http_base.get_out_object(ctx)
+                self.http_transport.get_out_object(ctx)
                 if ctx.out_error:
                     ctx.out_object = ctx.out_error
 
-        self.__http_base.get_out_string(ctx)
+        self.http_transport.get_out_string(ctx)
 
         return ''.join(ctx.out_string)
 
     def __handle_wsdl_request(self, request):
-        ctx = TwistedWebMethodContext(self.app, request, "text/xml; charset=utf-8")
+        ctx = HttpMethodContext(self.http_transport, request,
+                                                      "text/xml; charset=utf-8")
         url = _reconstruct_url(request)
 
         try:

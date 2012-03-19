@@ -28,12 +28,6 @@ import tempfile
 TEMPORARY_DIR = None
 
 try:
-    from urlparse import parse_qs
-    from cStringIO import StringIO
-except ImportError: # Python 3
-    from urllib.parse import parse_qs
-
-try:
     from cStringIO import StringIO
 except ImportError:
     try:
@@ -47,24 +41,7 @@ from rpclib.model.binary import ByteArray
 from rpclib.model.fault import Fault
 from rpclib.protocol import ProtocolBase
 
-from werkzeug.formparser import parse_form_data
-
 STREAM_READ_BLOCK_SIZE = 16384
-
-def yield_stream(istr):
-    data = istr.read(STREAM_READ_BLOCK_SIZE)
-    while len(data) > 0:
-        yield data
-        data = istr.read(STREAM_READ_BLOCK_SIZE)
-
-def _get_http_headers(req_env):
-    retval = {}
-
-    for k, v in req_env.items():
-        if k.startswith("HTTP_"):
-            retval[k[5:].lower()]= [v]
-
-    return retval
 
 def get_stream_factory(dir=None, delete=True):
     def stream_factory(total_content_length, filename, content_type,
@@ -89,6 +66,7 @@ class HttpRpc(ProtocolBase):
     """
 
     mime_type = 'text/plain'
+    allowed_http_verbs = None
 
     def __init__(self, app=None, validator=None, tmp_dir=None, tmp_delete_on_close=True):
         ProtocolBase.__init__(self, app, validator)
@@ -114,42 +92,14 @@ class HttpRpc(ProtocolBase):
             raise ValueError(validator)
 
     def create_in_document(self, ctx, in_string_encoding=None):
-        assert ctx.transport.type == 'http', ("This protocol only works with "
-                                  "the wsgi api, not: %s" %  ctx.transport.type)
+        assert ctx.transport.type.endswith('http'), \
+            ("This protocol only works with an http transport, not: %s, (in %r)" 
+                                          % (ctx.transport.type, ctx.transport))
 
-        ctx.in_document = ctx.transport.req_env
+        ctx.in_document = ctx.transport.req
 
     def decompose_incoming_envelope(self, ctx):
-        ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
-                              ctx.in_document['PATH_INFO'].split('/')[-1])
-
-        logger.debug("\033[92mMethod name: %r\033[0m" % ctx.method_request_string)
-
-        ctx.in_header_doc = _get_http_headers(ctx.in_document)
-        ctx.in_body_doc = parse_qs(ctx.in_document['QUERY_STRING'])
-
-        if ctx.transport.req_env['REQUEST_METHOD'].lower() in ('post', 'put', 'patch'):
-            stream, form, files = parse_form_data(ctx.transport.req_env,
-                                            stream_factory=self.stream_factory)
-
-            for k, v in form.lists():
-                val = ctx.in_body_doc.get(k, [])
-                val.extend(v)
-                ctx.in_body_doc[k] = val
-
-            for k, v in files.items():
-                val = ctx.in_body_doc.get(k, [])
-
-                mime_type = v.headers.get('Content-Type', 'application/octet-stream')
-
-                path = getattr(v.stream, 'name', None)
-                if path is None:
-                    val.append(File(name=v.filename, type=mime_type, data=[v.stream.getvalue()]))
-                else:
-                    v.stream.seek(0)
-                    val.append(File(name=v.filename, type=mime_type, path=path, handle=v.stream))
-
-                ctx.in_body_doc[k] = val
+        ctx.transport.itself.decompose_incoming_envelope(self, ctx)
 
         logger.debug('\theader : %r' % (ctx.in_header_doc))
         logger.debug('\tbody   : %r' % (ctx.in_body_doc))
@@ -303,18 +253,22 @@ class HttpRpc(ProtocolBase):
             result_message_class = ctx.descriptor.out_message
 
             # assign raw result to its wrapper, result_message
-            out_type_info = result_message_class.get_flat_type_info(result_message_class)
+            out_type_info = result_message_class.get_flat_type_info(
+                                                           result_message_class)
             if len(out_type_info) == 1:
                 out_class = out_type_info.values()[0]
                 if ctx.out_object is None:
                     ctx.out_document = ['']
                 else:
                     if hasattr(out_class, 'to_string_iterable'):
-                        ctx.out_document = out_class.to_string_iterable(ctx.out_object[0])
+                        ctx.out_document = out_class.to_string_iterable(
+                                                              ctx.out_object[0])
                     else:
-                        raise ValueError("HttpRpc protocol can only serialize primitives. %r" % out_class)
+                        raise ValueError("HttpRpc protocol can only serialize "
+                                         "primitives. %r" % out_class)
             else:
-                raise ValueError("HttpRpc protocol can only serialize simple return values.")
+                raise ValueError("HttpRpc protocol can only serialize simple "
+                                 "return values.")
         else:
             ctx.transport.mime_type = 'text/plain'
             ctx.out_document = ctx.out_error.to_string_iterable(ctx.out_error)
