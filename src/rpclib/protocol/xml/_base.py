@@ -159,8 +159,8 @@ class XmlObject(ProtocolBase):
         try:
             ctx.in_document = etree.fromstring(_bytes_join(ctx.in_string))
         except ValueError:
-            ctx.in_document = etree.fromstring(_bytes_join([s.decode(charset)
-                                                        for s in ctx.in_string]))
+            ctx.in_document = etree.fromstring(_bytes_join(ctx.in_string) \
+                                                               .decode(charset))
 
     def decompose_incoming_envelope(self, ctx, message):
         assert message in (self.REQUEST, self.RESPONSE)
@@ -226,26 +226,34 @@ class XmlObject(ProtocolBase):
 
         self.event_manager.fire_event('before_serialize', ctx)
 
-        # instantiate the result message
-        if message is self.REQUEST:
-            result_message_class = ctx.descriptor.in_message
-        elif message is self.RESPONSE:
-            result_message_class = ctx.descriptor.out_message
+        if ctx.out_error is not None:
+            # FIXME: There's no way to alter soap response headers for the user.
+            tmp_elt = etree.Element(ctx.out_document, 'punk')
+            self.to_parent_element(ctx.out_error.__class__, ctx.out_error,
+                                    self.app.interface.get_tns(), tmp_elt)
+            ctx.out_document = tmp_elt[0]
 
-        result_message = result_message_class()
+        else:
+            # instantiate the result message
+            if message is self.REQUEST:
+                result_message_class = ctx.descriptor.in_message
+            elif message is self.RESPONSE:
+                result_message_class = ctx.descriptor.out_message
 
-        # assign raw result to its wrapper, result_message
-        out_type_info = result_message_class._type_info
+            result_message = result_message_class()
 
-        for i in range(len(out_type_info)):
-            attr_name = result_message_class._type_info.keys()[i]
-            setattr(result_message, attr_name, ctx.out_object[i])
+            # assign raw result to its wrapper, result_message
+            out_type_info = result_message_class._type_info
 
-        # transform the results into an element
-        tmp_elt = etree.Element('punk')
-        self.to_parent_element(result_message_class,
-                    result_message, self.app.interface.get_tns(), tmp_elt)
-        ctx.out_document = tmp_elt[0]
+            for i in range(len(out_type_info)):
+                attr_name = result_message_class._type_info.keys()[i]
+                setattr(result_message, attr_name, ctx.out_object[i])
+
+            # transform the results into an element
+            tmp_elt = etree.Element('punk')
+            self.to_parent_element(result_message_class,
+                        result_message, self.app.interface.get_tns(), tmp_elt)
+            ctx.out_document = tmp_elt[0]
 
         self.event_manager.fire_event('after_serialize', ctx)
 
