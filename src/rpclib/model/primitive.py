@@ -217,7 +217,8 @@ class Decimal(SimpleModel):
     __max_str_len__ = 1024
 
     class Attributes(SimpleModel.Attributes):
-        """Class that holds constraints information for Decimal type."""
+        """Customizable attributes of the :class:`rpclib.model.primitive.Decimal`
+        type."""
 
         gt = -float('inf') # minExclusive
         """The value should be greater than this number."""
@@ -466,14 +467,25 @@ class DateTime(SimpleModel):
         """DateTime format fed to the ``strftime`` function. See:
         http://docs.python.org/library/datetime.html?highlight=strftime#strftime-strptime-behavior"""
 
+        string_format = None
+        """A regular python string formatting string. %s will contain the date
+        string. See here for more info:
+        http://docs.python.org/library/stdtypes.html#string-formatting"""
+
     @classmethod
     @nillable_string
     def to_string(cls, value):
         format = cls.Attributes.format
         if format is None:
-            return value.isoformat('T')
+            ret_str = value.isoformat('T')
         else:
-            return datetime.datetime.strftime(value, format)
+            ret_str = datetime.datetime.strftime(value, format)
+
+        string_format = cls.Attributes.string_format
+        if string_format is None:
+            return ret_str
+        else:
+            return string_format % ret_str
 
     @staticmethod
     def parse(date_match, tz=None):
