@@ -1,3 +1,4 @@
+
 .. _manual-validation:
 
 Input Validation
@@ -22,7 +23,7 @@ Since XML is a text file, when you read it - you get a string; thus *validate_st
 
 At a later stage, the data can be converted to something else, for example - a number. Once that conversion occurs, you can apply some additional checks - this is handled by *validate_native*.
 
-  >>> stringNumber = '123'
+	>>> stringNumber = '123'
 	>>> stringNumber
 	'123'		#note the quotes, it is a string
 	>>> number = int(stringNumber)
@@ -35,7 +36,7 @@ At a later stage, the data can be converted to something else, for example - a n
 
 In the example above, *number* is an actual number and can be validated with *validate_native*, whereas *stringNumber* is a string and can be validated by *validate_string*.
 
-Another case in which you need a native validation would be a sanity check on a date. Imagine that you have to verify that a received date complies with the *"YYYY-MM-DDThh:mm:ss"* pattern (which is *xs:datetime*). You can devise a regular expression that will look for 4 digits (YYYY), followed by a dash, then by 2 more digits for the month, etc. But such a regexp will happily absorb dates that have "13" as a month number, even though that doesn't make sense. You can make a more complex regexp to deal with that, but it will be very hard to maintain and debug. The best approach is to convert the string into a datetime object and then perform all the checks you want.
+Another case in which you need a native validation would be a sanity check on a date. Imagine that you have to verify if a received date complies with the *"YYYY-MM-DDThh:mm:ss"* pattern (which is *xs:datetime*). You can devise a regular expression that will look for 4 digits (YYYY), followed by a dash, then by 2 more digits for the month, etc. But such a regexp will happily absorb dates that have "13" as a month number, even though that doesn't make sense. You can make a more complex regexp to deal with that, but it will be very hard to maintain and debug. The best approach is to convert the string into a datetime object and then perform all the checks you want.
 
 
 
@@ -48,7 +49,6 @@ We'll have to declare our own class, derived from *Unicode* (which, in turn, is 
 
 	class SpecialString(Unicode):
 		"""Custom string type that prohibis the use of colons"""
-		__type_name__ = 'DecolonizedString' #override the name, otherwise it will be "SpecialString"
 		
 		@staticmethod
 		def validate_string(cls, value):
@@ -65,7 +65,7 @@ A slightly more complicated example
 This example illustrates another custom type, which uses both flavours of validation. This type is a number that must be prime. We'll use *validate_string* to see if it is a number, and then *validate_native* to see if it is prime.
 
 .. NOTE::
-	*rpclib* has a primitive type called *Integer*, it is reasonable to use that one as a basis for this custom type. In this example I will use *Unicode*, simply because it gives me the opportunity to show both types of validation functions in action.
+	*rpclib* has a primitive type called *Integer*, it is reasonable to use that one as a basis for this custom type. In this example I will use *Unicode*, simply because it gives me the opportunity to show both types of validation functions in action. This may be a good academic example, but it is certainly not the approach one would use in production code.
 
 
 ::
