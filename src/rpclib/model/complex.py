@@ -234,7 +234,7 @@ class ComplexModelBase(ModelBase):
             except: # to guard against e.g. sqlalchemy throwing NoSuchColumnError
                 subvalue = None
 
-            if mo == 'unbounded' or mo > 1:
+            if mo > 1:
                 if subvalue != None:
                     if use_generators:
                         yield (k, (v.to_string(sv) for sv in subvalue))
@@ -410,7 +410,7 @@ class Array(ComplexModel):
         # hack to default to unbounded arrays when the user didn't specify
         # max_occurs. We should find a better way.
         if serializer.Attributes.max_occurs == 1:
-            serializer = serializer.customize(max_occurs='unbounded')
+            serializer = serializer.customize(max_occurs=float('inf'))
 
         if serializer.get_type_name() is ModelBase.Empty:
             member_name = serializer.__base_type__.get_type_name()

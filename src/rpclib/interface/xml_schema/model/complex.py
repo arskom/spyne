@@ -89,12 +89,16 @@ def complex_add(interface, cls):
             if v.Attributes.min_occurs != 1: # 1 is the xml schema default
                 member.set('minOccurs', str(v.Attributes.min_occurs))
             if v.Attributes.max_occurs != 1: # 1 is the xml schema default
-                member.set('maxOccurs', str(v.Attributes.max_occurs))
+                val = v.Attributes.max_occurs
+                if val == float('inf'):
+                    val = 'unbounded'
+                else:
+                    val = str(val)
 
-            if bool(v.Attributes.nillable) == True:
+                member.set('maxOccurs', val)
+
+            if bool(v.Attributes.nillable) != False: # False is the xml schema default
                 member.set('nillable', 'true')
-            #else:
-            #    member.set('nillable', 'false')
 
         interface.add_complex_type(cls, complex_type)
 

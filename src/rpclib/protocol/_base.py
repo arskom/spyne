@@ -309,7 +309,7 @@ class ProtocolBase(object):
                                 '"%s" member must occur at least %d times'
                                               % ('_'.join(pfrag[:i+1]), min_o))
 
-                        if max_o != 'unbounded' and val > max_o:
+                        if val > max_o:
                             raise Fault('Client.ValidationError',
                                 '"%s" member must occur at most %d times'
                                              % ('_'.join(pfrag[:i+1]), max_o))
@@ -323,7 +323,7 @@ class ProtocolBase(object):
                     raise Fault('Client.ValidationError',
                                 '"%s" member must occur at least %d times'
                                                     % ('_'.join(s.path), min_o))
-                if max_o != 'unbounded' and val > max_o:
+                if val > max_o:
                     raise Fault('Client.ValidationError',
                                 '"%s" member must occur at most %d times'
                                                     % ('_'.join(s.path), max_o))

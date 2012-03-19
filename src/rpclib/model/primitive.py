@@ -122,9 +122,10 @@ class Unicode(SimpleModel):
         min_len = 0
         """Minimum length of string. Can be set to any positive integer"""
 
-        max_len = "unbounded"
-        """Maximum length of string. Can be set to 'unbounded' to accept strings
-        of arbitrary sizes. Also check :const:`rpclib.server.wsgi.MAX_CONTENT_LENGTH`."""
+        max_len = float('inf')
+        """Maximum length of string. Can be set to ``float('inf')`` to accept
+        strings of arbitrary length.
+        :const:`rpclib.server.wsgi.MAX_CONTENT_LENGTH`."""
 
         pattern = None
         """A regular expression that matches the whole string. See here for more
