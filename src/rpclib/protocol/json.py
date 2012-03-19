@@ -66,7 +66,7 @@ class JsonObject(ProtocolBase):
     packages.
     """
 
-    mime_type = 'text/json'
+    mime_type = 'application/json'
 
     def __init__(self, app=None, validator=None, skip_depth=0):
         """
@@ -213,7 +213,7 @@ class JsonObject(ProtocolBase):
 
         if ctx.out_error is not None:
             # FIXME: There's no way to alter soap response headers for the user.
-            ctx.out_document = ctx.out_error.to_dict(ctx.out_error, True, False)
+            ctx.out_document = ctx.out_error.to_dict(ctx.out_error)
 
         else:
             # instantiate the result message
@@ -283,12 +283,12 @@ class JsonObject(ProtocolBase):
                 if issubclass(v, ComplexModelBase):
                     yield (k, self.to_dict(v, subvalue))
                 elif issubclass(v, DateTime):
-                    yield (k, self.to_string(v, subvalue))
+                    yield (k, v.to_string(subvalue))
                 elif issubclass(v, Decimal):
                     if v.Attributes.format is None:
                         yield (k, subvalue)
                     else:
-                        yield (k, self.to_string(v, subvalue))
+                        yield (k, v.to_string(subvalue))
                 else:
                     yield (k, subvalue)
 
