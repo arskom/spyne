@@ -75,6 +75,16 @@ class ProtocolBase(object):
     RESPONSE = type("response", (object,), {})
 
     def __init__(self, app=None, validator=None, mime_type=None):
+        """The arguments the constructor takes are as follows:
+
+        :param app: The application this protocol belongs to.
+        :param validator: The type of validation this protocol should do on
+            incoming data.
+        :param mime_type: The mime_type this protocol should set for transports
+            that support this. This is a quick way to override the mime_type by
+            default instead of subclassing the releavant protocol implementation.
+        """
+
         self.__app = None
         self.validator = None
 
