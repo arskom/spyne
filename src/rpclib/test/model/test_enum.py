@@ -63,9 +63,9 @@ class TestService(ServiceBase):
 class TestEnum(unittest.TestCase):
     def test_wsdl(self):
         app = Application([TestService], 'tns',
+            rpclib.protocol.soap.Soap11(),
+            rpclib.protocol.soap.Soap11(),
             rpclib.interface.wsdl.Wsdl11(),
-            rpclib.protocol.soap.Soap11(),
-            rpclib.protocol.soap.Soap11(),
         )
 
         app.interface.build_interface_document('punk')
