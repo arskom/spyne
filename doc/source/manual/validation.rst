@@ -1,4 +1,3 @@
-
 .. _manual-validation:
 
 Input Validation
@@ -11,13 +10,27 @@ data comply with a given format, such as:
 - a string that can only take certain values
 
 
-Data validation can occur at two layers:
+Data validation can be handled by two subsystems:
 
-XML schema level
+XML schema
 	such rules are enforced by *lxml*, the underlying XML parsing library 
 "Soft" level
 	*rpclib* itself can apply additional checks after the data were validated by
 	the layer underneath
+	
+
+.. NOTE::
+	The two validation sybsystems operate independently, you can use either one,
+	but not both at the same time.
+	
+	The differences between them are:
+	
+	- Soft validation ignores unknown fields, while *lxml* validation rejects 
+	  them.
+	- Soft validation doesn't care about namespaces, while *lxml* validation 
+	  rejects unexpected namespaces.
+    - Soft validation works with any transport protocol supported by *rpclib*,
+      while *lxml* validation only works for XML data (i.e. just SOAP/XML).
 
 
 Simple validation at the XML schema level
@@ -29,6 +42,9 @@ conditions.
 	Constraints applied at this level are reflected in the XML schema itself,
 	thus a client that retrieves the WSDL of the service will be able to see
 	what the constraints are.
+	As it was mentioned in the introduction, such validation is only effective
+	in the context of SOAP/XML.
+	
 
 Numbers
 ~~~~~~~
@@ -64,7 +80,7 @@ Other string-related constraints are related to encoding issues. You can specify
         String(unicode_errors = 'strict') #could be 'replace' or 'ignore'
 
 		
-These restrictions can be comined: ::
+These restrictions can be combined: ::
 
 		String(encoding = 'win-1251', max_len = 20)
 		String(min_len = 5, max_len = 20, pattern = '[a-z]')
@@ -77,8 +93,28 @@ difficult to describe in terms of an interval. If this is the case, you can
 explicitly indicate the set: ::
 
 	Integer(values = [1984, 13, 45, 42])
-	Unicode(values = ["alpha", "bravo", "charlie"])
+	Unicode(values = [u"alpha", u"bravo", u"charlie"]) #note the 'u' prefix
 	
+
+
+Extending the rules of XML validation
+-------------------------------------
+It is possible to add your own attributes to the XML schema and enforce them.
+
+
+To do so, create an ``Attributes`` in the definition of your custom type derived
+from ``ModelBase``.
+
+
+After that, you must apply the relevant changes in the code that generates the
+XML schema, otherwise these attributes will **not** be visible in the output. 
+
+Examples of how to do that:
+https://github.com/arskom/rpclib/tree/master/src/rpclib/interface/xml_schema/model
+
+
+
+
 
 Advanced validation
 -------------------
@@ -114,6 +150,7 @@ is handled by *validate_native*.
 In the example above, *number* is an actual number and can be validated with 
 *validate_native*, whereas *stringNumber* is a string and can be validated by 
 *validate_string*.
+
 
 Another case in which you need a native validation would be a sanity check on a 
 date. Imagine that you have to verify if a received date complies with the 
@@ -192,6 +229,12 @@ it is a number, and then *validate_native* to see if it is prime.
 	these restrictions. Keep this in mind and make sure that validation rules
 	that are not visible in the XML schema are documented elsewhere.
 			
+.. NOTE::
+	When overriding ``validate_string`` or ``validate_native`` in a custom type
+	class, the validation functions from the parent class are **not invoked**.
+	If you wish to apply those validation functions as well, you must call them
+	explicitly.
+
 
 		
 Summary
