@@ -30,6 +30,7 @@ from rpclib.util.odict import odict
 import rpclib.const.xml_ns
 _ns_xsd = rpclib.const.xml_ns.xsd
 
+from rpclib import EventManager
 from rpclib.const.suffix import TYPE_SUFFIX
 from rpclib.const.suffix import RESULT_SUFFIX
 from rpclib.const.suffix import RESPONSE_SUFFIX
@@ -47,6 +48,7 @@ class InterfaceBase(object):
 
         self.service_method_map = {}
         self.url = None
+        self.event_manager = EventManager(self)
 
         self.__app = None
         self.set_app(app)
