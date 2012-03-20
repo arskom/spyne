@@ -44,6 +44,20 @@ conditions.
 	what the constraints are.
 	As it was mentioned in the introduction, such validation is only effective
 	in the context of SOAP/XML.
+
+
+Any primitive type
+~~~~~~~~~~~~~~~~~~
+Certain generic restrictions can be applied to any type. They are listed below,
+along with their default values
+
+- ``default = None`` - default value if the input is ``None``
+- ``nillable = True`` - if True, the item is optional
+- ``min_occurs = 0`` - set this to 0 to make the type mandatory. Can be set to 
+  any positive integer
+- ``max_occurs = 1`` - can be set to any strictly positive integer. Values 
+  greater than 1 will imply an iterable of objects as native Python type. Can be
+  set to ``unbounded`` for arbitrary number of arguments
 	
 
 Numbers
