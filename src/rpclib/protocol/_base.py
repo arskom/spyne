@@ -74,13 +74,15 @@ class ProtocolBase(object):
     REQUEST = type("request", (object,), {})
     RESPONSE = type("response", (object,), {})
 
-    def __init__(self, app=None, validator=None):
+    def __init__(self, app=None, validator=None, mime_type=None):
         self.__app = None
         self.validator = None
 
         self.set_app(app)
         self.event_manager = EventManager(self)
         self.set_validator(validator)
+        if mime_type is not None:
+            self.mime_type = mime_type
 
     @property
     def app(self):

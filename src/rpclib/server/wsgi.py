@@ -133,7 +133,7 @@ class WsgiApplication(HttpBase):
         elif not (self._allowed_http_verbs is None or
                verb in self._allowed_http_verbs or verb in self._verb_handlers):
             start_response(HTTP_405, [
-                ('Content-type', ''),
+                ('Content-Type', ''),
                 ('Allow', ', '.join(self._allowed_http_verbs)),
             ])
             return ['']

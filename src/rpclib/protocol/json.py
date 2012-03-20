@@ -133,7 +133,6 @@ class JsonObject(ProtocolBase):
         if doc is None:
             return
 
-
         inst = inst_class.get_deserialization_instance()
 
         # get all class attributes, including the ones coming from parent classes.
@@ -250,7 +249,6 @@ class JsonObject(ProtocolBase):
             ctx.out_document = doc
 
         self.event_manager.fire_event('after_serialize', ctx)
-        self.event_manager.fire_event('serialize', ctx) # FIXME: huh? why two events?
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         ctx.out_string = [json.dumps(ctx.out_document)]
