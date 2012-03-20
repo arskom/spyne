@@ -115,6 +115,8 @@ class XmlSchema(InterfaceBase):
             for node in self.namespaces[pref].elements.values():
                 schema.append(node)
 
+        self.event_manager.fire_event('document_built', self.schema_dict)
+
     def build_validation_schema(self):
         """Build application schema specifically for xml validation purposes.
         """
