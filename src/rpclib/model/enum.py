@@ -66,7 +66,7 @@ def Enum(*values, **kwargs):
             return values[maximum - self.__value]
 
         def __nonzero__(self):
-            return bool(self.__value)
+            return bool(values[self.__value])
 
         def __bool__(self):
             return bool(self.__value)

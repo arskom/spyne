@@ -92,6 +92,15 @@ class TestEnum(unittest.TestCase):
         ret = XmlObject().from_element(DaysOfWeekEnum, elt)
 
         self.assertEquals(mo, ret)
+    
+    def test_nonzero(self):
+        DaysOfWeekEnum.resolve_namespace(DaysOfWeekEnum, 'punk')
+        mo = DaysOfWeekEnum.Monday
+        tue = DaysOfWeekEnum.Tuesday
+        print((repr(mo)))
+
+        self.assertFalse(not tue)
+        self.assertFalse(not mo, "First Enum element is using 'bool(0)' as it's '__nonzero__'")
 
 if __name__ == '__main__':
     unittest.main()
