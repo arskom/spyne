@@ -80,8 +80,9 @@ class ModelBase(object):
         """Set this to false to reject null values."""
 
         min_occurs = 0
-        """Set this to 0 to make the type mandatory. Can be set to any positive
-        integer."""
+        """Set this to 1 to make this object mandatory. Can be set to any
+        positive integer. Note that an object can still be null or empty, even
+        if it's there."""
 
         max_occurs = 1
         """Can be set to any strictly positive integer. Values greater than 1
