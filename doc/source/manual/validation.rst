@@ -17,20 +17,50 @@ XML schema
 "Soft" level
 	*rpclib* itself can apply additional checks after the data were validated by
 	the layer underneath
+
+The differences between them are:
+
+- Soft validation ignores unknown fields, while *lxml* validation rejects 
+  them.
+- Soft validation doesn't care about namespaces, while *lxml* validation 
+  rejects unexpected namespaces.
+- Soft validation works with any transport protocol supported by *rpclib*,
+  while *lxml* validation only works for XML data (i.e. just SOAP/XML).
+
+============================== ======== =========                            
+Criteria                       lxml     soft
+============================== ======== =========
+Unknown fields                 reject   ignore
+Unknown namespaces             reject   ignore
+Supported transport protocols  SOAP/XML any
+============================== ======== =========
+
+
 	
 
 .. NOTE::
 	The two validation sybsystems operate independently, you can use either one,
-	but not both at the same time.
+	but not both at the same time. The validator is indicated when instantiating
+	the protocol: ``validator='soft'`` or ``validator='lxml'``.
 	
-	The differences between them are:
+	::
+
+		#using 'soft' validation with HttpRpc
+		application = Application([NameOfMonthService],
+			tns='rpclib.examples.multiprot',
+			in_protocol=HttpRpc(validator='soft'),
+			out_protocol=HttpRpc()
+			)
+
+		#using lxml validation with Soap
+		application = Application([UserService],
+			tns='rpclib.examples.authentication',
+			interface=Wsdl11(),
+			in_protocol=Soap11(validator='lxml'),
+			out_protocol=Soap11()
+			)
+
 	
-	- Soft validation ignores unknown fields, while *lxml* validation rejects 
-	  them.
-	- Soft validation doesn't care about namespaces, while *lxml* validation 
-	  rejects unexpected namespaces.
-    - Soft validation works with any transport protocol supported by *rpclib*,
-      while *lxml* validation only works for XML data (i.e. just SOAP/XML).
 
 
 Simple validation at the XML schema level
@@ -53,11 +83,19 @@ along with their default values
 
 - ``default = None`` - default value if the input is ``None``
 - ``nillable = True`` - if True, the item is optional
-- ``min_occurs = 0`` - set this to 0 to make the type mandatory. Can be set to 
+- ``min_occurs = 0`` - set this to 1 to make the type mandatory. Can be set to 
   any positive integer
 - ``max_occurs = 1`` - can be set to any strictly positive integer. Values 
   greater than 1 will imply an iterable of objects as native Python type. Can be
   set to ``unbounded`` for arbitrary number of arguments
+  
+  .. NOTE::
+	As of rpclib-2.8.0, use ``float('inf')`` instead of ``unbounded``.
+  
+These rules can be combined, the example below illustrates how to create a
+mandatory string:
+
+	String(min_occurs=1, min_len=1, nillable=False)
 	
 
 Numbers
@@ -79,8 +117,8 @@ These can be validated against a regular expression: ::
 	
 Length checks can be enforced as well: ::
 
-		String(min_len = 5, max_len = 10)
-		String(max_len = 10) #implicit value for min_len = 0
+	String(min_len = 5, max_len = 10)
+	String(max_len = 10) #implicit value for min_len = 0
 
 
 Other string-related constraints are related to encoding issues. You can specify
@@ -96,9 +134,9 @@ Other string-related constraints are related to encoding issues. You can specify
 		
 These restrictions can be combined: ::
 
-		String(encoding = 'win-1251', max_len = 20)
-		String(min_len = 5, max_len = 20, pattern = '[a-z]')
-		
+	String(encoding = 'win-1251', max_len = 20)
+	String(min_len = 5, max_len = 20, pattern = '[a-z]')
+	
 
 Possible values
 ~~~~~~~~~~~~~~~
