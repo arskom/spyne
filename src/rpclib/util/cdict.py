@@ -21,6 +21,34 @@
 the base classes of a key when the entry for the key is not found. It is not a
 generalized dictionary that can handle any type of key -- it relies on
 rpclib.model api to look for classes.
+
+>>> from rpclib.util.cdict import cdict
+>>> class A(object):
+...     pass
+...
+>>> class B(A):
+...     pass
+...
+>>> class C(object):
+...     pass
+...
+>>> class D:
+...     pass
+...
+>>> d=cdict({A: "fun", object: "base"})
+>>> d[A]
+'fun'
+>>> d[B]
+'fun'
+>>> d[C]
+'base'
+>>> d[D]
+__main__.D
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/home/plq/src/github/plq/rpclib/src/rpclib/util/cdict.py", line 68, in __getitem__
+    raise e
+KeyError: <class __main__.D at 0x8d92c0>
 """
 
 import logging
@@ -31,9 +59,9 @@ class cdict(dict):
         try:
             return dict.__getitem__(self, cls)
 
-        except KeyError, e:
+        except KeyError,e:
             try:
-                return dict.__getitem__(self, cls._is_clone_of)
+                return self[cls._is_clone_of]
             except AttributeError:
                 pass
             except KeyError:
@@ -44,4 +72,4 @@ class cdict(dict):
                     return self[b]
                 except KeyError:
                     pass
-            raise
+            raise e
