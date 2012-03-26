@@ -187,7 +187,6 @@ class WsgiApplication(HttpBase):
             # implementation hook
             self.event_manager.fire_event('wsdl_exception', ctx)
 
-            print ctx.transport.resp_headers.items()
             start_response(HTTP_500, ctx.transport.resp_headers.items())
 
             return [""]
