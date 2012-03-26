@@ -79,10 +79,18 @@ def _process_item(v):
 
     rpc_type = None
     if isinstance(v, Column):
-        if v.type in _type_map:
+        if isinstance(v.type, sqlalchemy.Enum):
+            if v.type.convert_unicode:
+                rpc_type = primitive.Unicode(values=v.type.enums)
+            else:
+                rpc_type = primitive.String(values=v.type.enums)
+
+        elif v.type in _type_map:
             rpc_type = _type_map[v.type]
+
         elif type(v.type) in _type_map:
             rpc_type = _type_map[type(v.type)]
+
         else:
             raise Exception("soap_type was not found. maybe _type_map needs a new "
                             "entry. %r" % v)
