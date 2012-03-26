@@ -133,7 +133,7 @@ class ProtocolBase(object):
         """
 
     def create_out_string(self, ctx, out_string_encoding=None):
-        """Uses ctx.out_string to set ctx.out_document"""
+        """Uses ctx.out_document to set ctx.out_string"""
 
     def validate_document(self, payload):
         """Method to be overriden to perform any sort of custom input
@@ -324,7 +324,7 @@ class ProtocolBase(object):
                         if val > max_o:
                             raise Fault('Client.ValidationError',
                                 '"%s" member must occur at most %d times'
-                                             % ('_'.join(pfrag[:i+1]), max_o))
+                                              % ('_'.join(pfrag[:i+1]), max_o))
 
                         ctype_info = ntype_info.get_flat_type_info(ntype_info)
 
@@ -341,4 +341,3 @@ class ProtocolBase(object):
                                                     % ('_'.join(s.path), max_o))
 
         return inst
-
