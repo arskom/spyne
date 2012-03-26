@@ -287,7 +287,8 @@ class InterfaceBase(object):
     def build_interface_document(self, cls):
         """This function is supposed to be called just once, as late as possible
         into the process start. It builds the interface document and caches it
-        somewhere.
+        somewhere. The overriding function should never call the overridden
+        function as this may result in the same event firing more than once.
         """
 
         raise NotImplementedError('Extend and override.')
