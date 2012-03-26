@@ -35,6 +35,7 @@ from rpclib.interface.wsdl import Wsdl11
 from rpclib.protocol.soap import Soap11
 from rpclib.service import ServiceBase
 from rpclib.model.primitive import String
+from rpclib.model.complex import ComplexModel
 from rpclib.server.wsgi import WsgiApplication
 
 '''
@@ -43,9 +44,15 @@ This is very useful for situations that require the use of variable names
 that are python keywords like, from, to, import, return, etc.
 '''
 
+class SomeClass(ComplexModel):
+    _type_info = {
+        'and': String,
+        'or': String
+    }
+
 class EmailManager(ServiceBase):
     @srpc(String, String, String, _returns=String,
-        _in_variable_names = {'_to': 'to', '_from': 'from',
+        _in_variable_names={'_to': 'to', '_from': 'from',
             '_message': 'message'},
         _out_variable_name = 'return')
     def send_email(_to, _from, _message):
