@@ -33,6 +33,8 @@ from rpclib.interface.wsdl import Wsdl11
 from rpclib.protocol.http import HttpRpc
 from rpclib.protocol.html import HtmlMicroFormat
 from rpclib.service import ServiceBase
+from rpclib.server.wsgi import WsgiMethodContext
+from rpclib.server.wsgi import WsgiApplication
 
 class TestHtmlMicroFormat(unittest.TestCase):
     '''Most of the service tests are performed through the interop tests.'''
@@ -43,19 +45,15 @@ class TestHtmlMicroFormat(unittest.TestCase):
             def some_call(s):
                 return s
 
-        app = Application([SomeService], 'tns', Wsdl11(), HttpRpc(), HtmlMicroFormat())
+        app = Application([SomeService], 'tns', HttpRpc(), HtmlMicroFormat(), Wsdl11())
+        server = WsgiApplication(app)
 
-        from rpclib.server.wsgi import WsgiMethodContext
-
-        initial_ctx = WsgiMethodContext(app, {
+        initial_ctx = WsgiMethodContext(server, {
             'QUERY_STRING': 's=s',
             'PATH_INFO': '/some_call',
             'REQUEST_METHOD': 'GET',
         }, 'some-content-type')
 
-        from rpclib.server import ServerBase
-
-        server = ServerBase(app)
         ctx, = server.generate_contexts(initial_ctx)
         assert ctx.in_error is None
 
@@ -74,19 +72,16 @@ class TestHtmlMicroFormat(unittest.TestCase):
             def some_call():
                 return 1, 's'
 
-        app = Application([SomeService], 'tns', Wsdl11(), HttpRpc(), HtmlMicroFormat())
+        app = Application([SomeService], 'tns', HttpRpc(), HtmlMicroFormat(), Wsdl11())
+        server = WsgiApplication(app)
 
-        from rpclib.server.wsgi import WsgiMethodContext
-
-        initial_ctx = WsgiMethodContext(app, {
+        initial_ctx = WsgiMethodContext(server, {
             'QUERY_STRING': '',
             'PATH_INFO': '/some_call',
             'REQUEST_METHOD': 'GET',
         }, 'some-content-type')
 
-        from rpclib.server import ServerBase
 
-        server = ServerBase(app)
         ctx, = server.generate_contexts(initial_ctx)
         server.get_in_object(ctx)
         server.get_out_object(ctx)
@@ -110,19 +105,15 @@ class TestHtmlMicroFormat(unittest.TestCase):
             def some_call(ccm):
                 return CCM(c=ccm.c,i=ccm.i, s=ccm.s)
 
-        app = Application([SomeService], 'tns', Wsdl11(), HttpRpc(), HtmlMicroFormat())
+        app = Application([SomeService], 'tns', HttpRpc(), HtmlMicroFormat(), Wsdl11())
+        server = WsgiApplication(app)
 
-        from rpclib.server.wsgi import WsgiMethodContext
-
-        initial_ctx = WsgiMethodContext(app, {
+        initial_ctx = WsgiMethodContext(server, {
             'QUERY_STRING': 'ccm_c_s=abc&ccm_c_i=123&ccm_i=456&ccm_s=def',
             'PATH_INFO': '/some_call',
             'REQUEST_METHOD': 'GET',
         }, 'some-content-type')
 
-        from rpclib.server import ServerBase
-
-        server = ServerBase(app)
         ctx, = server.generate_contexts(initial_ctx)
         server.get_in_object(ctx)
         server.get_out_object(ctx)
@@ -174,19 +165,22 @@ class TestHtmlMicroFormat(unittest.TestCase):
             def some_call(s):
                 return '\n'.join(s)
 
-        app = Application([SomeService], 'tns', Wsdl11(), HttpRpc(), HtmlMicroFormat())
+        app = Application([SomeService], 'tns', HttpRpc(), HtmlMicroFormat(), Wsdl11())
+        server = WsgiApplication(app)
 
-        from rpclib.server.wsgi import WsgiMethodContext
-
-        initial_ctx = WsgiMethodContext(app, {
+        initial_ctx = WsgiMethodContext(server, {
             'QUERY_STRING': 's=1&s=2',
             'PATH_INFO': '/some_call',
             'REQUEST_METHOD': 'GET',
         }, 'some-content-type')
 
-        from rpclib.server import ServerBase
+        ctx, = server.generate_contexts(initial_ctx)
+        server.get_in_object(ctx)
+        server.get_out_object(ctx)
+        server.get_out_string(ctx)
 
-        server = ServerBase(app)
+        assert ''.join(ctx.out_string) == '<div class="some_callResponse"><div class="some_callResult">1\n2</div></div>'
+
         ctx, = server.generate_contexts(initial_ctx)
         server.get_in_object(ctx)
         server.get_out_object(ctx)
