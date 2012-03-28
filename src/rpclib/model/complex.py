@@ -155,6 +155,8 @@ class ComplexModelBase(ModelBase):
     def __init__(self, **kwargs):
         super(ComplexModelBase, self).__init__()
 
+        # this ugliness is due to sqlalchemy's forcing relevant types for database
+        # fields
         for k in self.get_flat_type_info(self.__class__).keys():
             try:
                 delattr(self, k)
@@ -270,19 +272,17 @@ class ComplexModelBase(ModelBase):
                                                                     parent=None):
         """Returns a _type_info dict that includes members from all base classes
         and whose types are only primitives. It will prefix field names in
-        non-top-level complex objects with field of its parent.
+        non-top-level complex objects with field name of its parent.
 
-        For example:
+        For example, given hier_delim='_'; the following hierarchy:
 
-            {'some_object': [{'some_string': 'abc'}]}
+            {'some_object': [{'some_string': ['abc']}]}
 
-        will become:
+         would be transformed to:
 
-            {'some_object_some_string'': ['abc']}
+            {'some_object_some_string': ['abc']}
 
         """
-        from rpclib.model import SimpleModel
-        from rpclib.model.binary import ByteArray
 
         if retval is None:
             retval = {}
