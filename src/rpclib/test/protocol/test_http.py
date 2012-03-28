@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from rpclib.server.wsgi import WsgiApplication
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -30,7 +31,7 @@ from rpclib.model.complex import ComplexModel
 from rpclib.interface.wsdl import Wsdl11
 from rpclib.protocol.http import HttpRpc
 from rpclib.service import ServiceBase
-from rpclib.server import ServerBase
+from rpclib.server.wsgi import WsgiApplication
 from rpclib.server.wsgi import WsgiMethodContext
 
 class Test(unittest.TestCase):
@@ -46,7 +47,7 @@ class Test(unittest.TestCase):
                 return 1, 's'
 
         app = Application([SomeService], 'tns', HttpRpc(), HttpRpc(), Wsdl11())
-        server = ServerBase(app)
+        server = WsgiApplication(app)
 
         initial_ctx = WsgiMethodContext(server, {
             'QUERY_STRING': '',
@@ -77,7 +78,7 @@ class Test(unittest.TestCase):
                 return SomeComplexModel(i=5, s='5x')
 
         app = Application([SomeService], 'tns', HttpRpc(), HttpRpc(), Wsdl11())
-        server = ServerBase(app)
+        server = WsgiApplication(app)
 
         initial_ctx = WsgiMethodContext(server, {
             'QUERY_STRING': '',
@@ -112,7 +113,7 @@ class Test(unittest.TestCase):
                 return CCM(c=ccm.c, i=ccm.i, s=ccm.s)
 
         app = Application([SomeService], 'tns', HttpRpc(), HttpRpc(), Wsdl11())
-        server = ServerBase(app)
+        server = WsgiApplication(app)
         initial_ctx = WsgiMethodContext(server, {
             'QUERY_STRING': '',
             'PATH_INFO': '/some_call',
@@ -130,7 +131,7 @@ class Test(unittest.TestCase):
                 return '\n'.join(s)
 
         app = Application([SomeService], 'tns', HttpRpc(), HttpRpc(), Wsdl11())
-        server = ServerBase(app)
+        server = WsgiApplication(app)
 
         initial_ctx = WsgiMethodContext(server, {
             'QUERY_STRING': 's=1&s=2',
@@ -161,7 +162,7 @@ class Test(unittest.TestCase):
                 return repr(ccm)
 
         app = Application([SomeService], 'tns', HttpRpc(), HttpRpc(), Wsdl11())
-        server = ServerBase(app)
+        server = WsgiApplication(app)
 
         initial_ctx = WsgiMethodContext(server, {
             'QUERY_STRING': 'ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs',
@@ -198,7 +199,7 @@ class Test(unittest.TestCase):
                 return repr(ccm)
 
         app = Application([SomeService], 'tns', HttpRpc(), HttpRpc(), Wsdl11())
-        server = ServerBase(app)
+        server = WsgiApplication(app)
 
         initial_ctx = WsgiMethodContext(server, {
             'QUERY_STRING': 'ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs',
@@ -232,7 +233,7 @@ class Test(unittest.TestCase):
                 return repr(ccm)
 
         app = Application([SomeService], 'tns', HttpRpc(), HttpRpc(), Wsdl11())
-        server = ServerBase(app)
+        server = WsgiApplication(app)
 
         initial_ctx = WsgiMethodContext(server, {
             'QUERY_STRING': 'ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs',
