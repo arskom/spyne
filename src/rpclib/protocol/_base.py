@@ -216,7 +216,6 @@ class ProtocolBase(object):
 
     def flat_dict_to_object(self, doc, inst_class):
         simple_type_info = inst_class.get_simple_type_info(inst_class)
-        logger.debug(repr(simple_type_info))
         inst = inst_class.get_deserialization_instance()
 
         # this is for validating cls.Attributes.{min,max}_occurs

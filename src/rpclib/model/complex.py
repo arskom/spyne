@@ -300,9 +300,8 @@ class ComplexModelBase(ModelBase):
                 if value:
                     raise ValueError("%r.%s conflicts with %r" % (cls, k, value))
 
-                else:
-                    retval[key] = _SimpleTypeInfoElement(
-                                        path=tuple(new_prefix), parent=parent, type_=v)
+                retval[key] = _SimpleTypeInfoElement(
+                                    path=tuple(new_prefix), parent=parent, type_=v)
 
             else:
                 new_prefix = list(prefix)

@@ -195,7 +195,7 @@ class JsonObject(ProtocolBase):
             result_message_class = ctx.descriptor.in_message
             value = ctx.in_body_doc.get(result_message_class.get_type_name(), None)
             result_message = self.dict_to_object(value, result_message_class)
-            
+
             ctx.in_object = result_message
 
             self.event_manager.fire_event('after_deserialize', ctx)
