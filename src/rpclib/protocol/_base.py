@@ -231,9 +231,6 @@ class ProtocolBase(object):
             value = getattr(inst, k, None)
             if value is None:
                 value = []
-            elif mo == 1:
-                raise Fault('Client.ValidationError',
-                        '"%s" member must occur at most %d times' % (k, max_o))
 
             # extract native values from the list of strings that comes from the
             # http dict.
