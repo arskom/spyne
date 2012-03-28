@@ -337,3 +337,34 @@ class ProtocolBase(object):
                                                     % ('_'.join(s.path), max_o))
 
         return inst
+
+
+    def object_to_flat_dict(self, inst_cls, value, hier_delim="_", retval=None,
+                                                    prefix=None, parent=None):
+        if retval is None:
+            retval = {}
+        if prefix is None:
+            prefix = []
+
+        fti = inst_cls.get_flat_type_info(inst_cls)
+        for k, v in fti.items():
+            new_prefix = list(prefix)
+            new_prefix.append(k)
+            subvalue = getattr(value, k, None)
+            if getattr(v, 'get_flat_type_info', None) is None: # Not a ComplexModel
+                key = hier_delim.join(new_prefix)
+
+                if retval.get(key, None) is not None:
+                    raise ValueError("%r.%s conflicts with previous value %r" %
+                                                        (inst_cls, k, retval[key]))
+
+                try:
+                    retval[key] = subvalue
+                except:
+                    retval[key] = None
+
+            else:
+                self.object_to_flat_dict(fti[k], subvalue, hier_delim,
+                                             retval, new_prefix, parent=inst_cls)
+
+        return retval

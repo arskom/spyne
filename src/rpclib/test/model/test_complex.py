@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from rpclib.protocol._base import ProtocolBase
 import datetime
 import unittest
 
@@ -384,6 +385,27 @@ class TestSimpleTypeRestrictions(unittest.TestCase):
             pass
         else:
             raise Exception("must fail")
+
+    def test_serialization_to_simple_dict(self):
+        class CM(ComplexModel):
+            i = Integer
+            s = String
+
+        class CCM(ComplexModel):
+            c = CM
+            i = Integer
+            s = String
+
+        val = CCM(i=5, s='a', c=CM(i=7, s='b'))
+
+        d = ProtocolBase().object_to_flat_dict(CCM, val)
+
+        assert d['i'] == 5
+        assert d['s'] == 'a'
+        assert d['c_i'] == 7
+        assert d['c_s'] == 'b'
+
+        assert len(d) == 4
 
 if __name__ == '__main__':
     unittest.main()
