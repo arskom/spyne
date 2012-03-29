@@ -34,8 +34,8 @@ from rpclib.util.cdict import cdict
 
 from rpclib.interface import InterfaceBase
 from rpclib.model import SimpleModel
-from rpclib.model.primitive import String
 from rpclib.model.primitive import Decimal
+from rpclib.model.primitive import String
 from rpclib.model.complex import ComplexModelBase
 from rpclib.model.enum import EnumBase
 from rpclib.model.fault import Fault

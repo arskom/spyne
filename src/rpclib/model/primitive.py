@@ -74,6 +74,13 @@ class AnyXml(SimpleModel):
 
     __type_name__ = 'anyType'
 
+    class Attributes(SimpleModel.Attributes):
+        namespace = None
+        """Xml-Schema specific namespace attribute"""
+
+        process_contents = None
+        """Xml-Schema specific processContents attribute"""
+
     @classmethod
     @nillable_string
     def to_string(cls, value):

@@ -89,6 +89,10 @@ class ModelBase(object):
         will imply an iterable of objects as native python type. Can be set to
         ``float("inf")`` for arbitrary number of arguments."""
 
+        schema_tag = '{%s}element' % rpclib.const.xml_ns.xsd
+        """The tag used to add a primitives as child to a complex type in the
+        xml schema."""
+
     class Annotations(object):
         """The class that holds the annotations for the given type."""
 
