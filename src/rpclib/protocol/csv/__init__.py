@@ -60,9 +60,9 @@ def complex_to_csv(ctx):
                 d = serializer.to_dict(v)
                 row = [ ]
                 for k in keys:
-                    val = d.get(k, None)
+                    val = d.get(k, [None])[0]
                     if val:
-                        val=val.encode('utf8')
+                        val = val.encode('utf8')
                     row.append(val)
 
                 writer.writerow(row)
