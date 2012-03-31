@@ -69,11 +69,11 @@ def complex_to_csv(ctx):
                 yield queue.getvalue()
                 queue.truncate(0)
 
-class OutCsv(ProtocolBase):
+class Csv(ProtocolBase):
     mime_type = 'text/csv'
 
     def create_in_document(self, ctx):
-        raise Exception("not supported")
+        raise NotImplementedError()
 
     def serialize(self, ctx, message):
         assert message in (self.RESPONSE, )
@@ -88,3 +88,6 @@ class OutCsv(ProtocolBase):
         ctx.out_string = complex_to_csv(ctx)
         ctx.transport.resp_headers['Content-Disposition'] = (
                          'attachment; filename=%s.csv;' % ctx.descriptor.name)
+
+OutCsv = Csv
+"""DEPRECATED: Use :class:`Csv` instead."""
