@@ -46,6 +46,16 @@ from rpclib.model.primitive import DateTime
 from rpclib.model.primitive import Decimal
 from rpclib.protocol import ProtocolBase
 
+
+def _unwrap_messages(cls, skip_depth):
+    out_type = cls
+
+    for i in range(skip_depth):
+        if len(out_type._type_info) == 1:
+            out_type = out_type._type_info[0]
+
+    return out_type
+
 def get_stream_factory(dir=None, delete=True):
     def stream_factory(total_content_length, filename, content_type,
                                                                content_length=None):
@@ -109,15 +119,7 @@ class JsonObject(ProtocolBase):
         # set ctx.in_body
         doc = ctx.in_document
 
-        # get rid of ``skip_depth`` number of wrappers. 
-        for _ in range(self.skip_depth):
-            if len(doc) == 0:
-                raise Fault("Client", "Empty request.")
-            elif len(doc) > 1:
-                raise Fault("Client", "Ambiguous request.")
-
-            doc = doc[ doc.keys()[0] ]
-
+        ctx.in_header_doc = None
         ctx.in_body_doc = doc
 
         if len(doc) == 0:
@@ -142,7 +144,7 @@ class JsonObject(ProtocolBase):
         from pprint import pformat
 
         print inst_class
-        print pformat(flat_type_info)
+        print "flat_type_info:", pformat(flat_type_info)
 
         # initialize instance
         for k in flat_type_info:
@@ -152,12 +154,22 @@ class JsonObject(ProtocolBase):
         frequencies = {}
 
         # parse input to set incoming data to related attributes.
-        for k,v in doc.items():
+        print "doc:", doc
+        
+        try:
+            values = doc.values()
+        except:
+            values = doc
+
+        keys = inst_class._type_info.keys()
+        for i in range(len(values)):
+            k = keys[i]
+            v = values[i]
+
             freq = frequencies.get(k, 0)
             freq += 1
             frequencies[k] = freq
 
-            print k, v, flat_type_info
             member = flat_type_info.get(k, None)
             if member is None:
                 continue
@@ -186,26 +198,32 @@ class JsonObject(ProtocolBase):
         return inst
 
     def deserialize(self, ctx, message):
+        assert message in (self.REQUEST, self.RESPONSE)
+
         self.event_manager.fire_event('before_deserialize', ctx)
 
         if ctx.descriptor is None:
             raise Fault("Client", "Method %r not found." %
                                                       ctx.method_request_string)
 
-        if ctx.descriptor.in_message:
+        # instantiate the result message
+        if message is self.REQUEST:
+            in_type = _unwrap_messages(ctx.descriptor.in_message,
+                                                                self.skip_depth)
+        elif message is self.RESPONSE:
+            in_type = _unwrap_messages(ctx.descriptor.out_message,
+                                                                self.skip_depth)
+        if in_type:
             # assign raw result to its wrapper, result_message
             result_message_class = ctx.descriptor.in_message
             value = ctx.in_body_doc.get(result_message_class.get_type_name(), None)
             result_message = self.dict_to_object(value, result_message_class)
 
             ctx.in_object = result_message
-
             self.event_manager.fire_event('after_deserialize', ctx)
 
         else:
             ctx.in_object = []
-
-        print ctx.in_object
 
     def serialize(self, ctx, message):
         assert message in (self.REQUEST, self.RESPONSE)
@@ -219,43 +237,32 @@ class JsonObject(ProtocolBase):
         else:
             # instantiate the result message
             if message is self.REQUEST:
-                result_message_class = ctx.descriptor.in_message
+                out_type = ctx.descriptor.in_message
             elif message is self.RESPONSE:
-                result_message_class = ctx.descriptor.out_message
+                out_type = ctx.descriptor.out_message
 
-            result_message = result_message_class()
+            if out_type is None:
+                return
+
+            out_instance = out_type()
 
             # assign raw result to its wrapper, result_message
-            out_type_info = result_message_class._type_info
+            out_type_info = out_type._type_info
 
             for i in range(len(out_type_info)):
-                attr_name = result_message_class._type_info.keys()[i]
-                setattr(result_message, attr_name, ctx.out_object[i])
+                attr_name = out_type_info.keys()[i]
+                setattr(out_instance, attr_name, ctx.out_object[i])
 
             # transform the results into a dict:
-            doc = {result_message_class.get_type_name():
-                           self.to_dict(result_message_class, result_message)}
-
-            out_type = result_message_class
-
-            # get rid of ``skip_depth`` number of wrappers.
-            for i in range(self.skip_depth):
-                if i == 0:
-                    doc = doc.values()[0]
-                elif len(out_type._type_info) == 1:
-                    doc = doc.values()[0]
-                    out_type = out_type._type_info[0]
-                else:
-                    doc = doc.values()
-                    break
+            doc = {out_type.get_type_name():
+                                           self.to_dict(out_type, out_instance)}
 
             ctx.out_document = doc
 
-        self.event_manager.fire_event('after_serialize', ctx)
+            self.event_manager.fire_event('after_serialize', ctx)
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):
-        ctx.out_string = [json.dumps(ctx.out_document)]
-        print ctx.out_string[0]
+        ctx.out_string = (json.dumps(o) for o in ctx.out_document)
 
     def from_dict_value(self, cls, value):
         if issubclass(cls, ComplexModelBase):

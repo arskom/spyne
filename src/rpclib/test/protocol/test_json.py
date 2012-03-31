@@ -87,6 +87,17 @@ class Test(unittest.TestCase):
 
         server = ServerBase(app)
         initial_ctx = MethodContext(server)
+        initial_ctx.in_string = ['{"some_call":{}}']
+
+        ctx, = server.generate_contexts(initial_ctx)
+        server.get_in_object(ctx)
+        server.get_out_object(ctx)
+        server.get_out_string(ctx)
+
+        assert ctx.out_string[0] == '{"some_callResponse": {"some_callResult0": 1, "some_callResult1": "s"}}'
+
+        server = ServerBase(app)
+        initial_ctx = MethodContext(server)
         initial_ctx.in_string = ['{"some_call":[]}']
 
         ctx, = server.generate_contexts(initial_ctx)
@@ -94,7 +105,7 @@ class Test(unittest.TestCase):
         server.get_out_object(ctx)
         server.get_out_string(ctx)
 
-        assert ctx.out_string[0] == '{"some_callResponse": {"some_callResult0": "1", "some_callResult1": "s"}}'
+        assert ctx.out_string[0] == '{"some_callResponse": {"some_callResult0": 1, "some_callResult1": "s"}}'
 
     def test_primitive_only(self):
         class SomeComplexModel(ComplexModel):
