@@ -73,7 +73,8 @@ class JsonObject(ProtocolBase):
         :param app: The Application definition.
         :param validator: Validator type. One of ('soft', None).
         :param skip_depth: Number of wrapper classes to ignore. This is
-        typically one of (0, 1, 2) but higher numbers may also work for your.
+        typically one of (0, 1, 2) but higher numbers may also work for your
+        case.
         """
 
         ProtocolBase.__init__(self, app, validator)
@@ -94,8 +95,8 @@ class JsonObject(ProtocolBase):
         if in_string_encoding is None:
             in_string_encoding = 'UTF-8'
 
-        ctx.in_document = json.loads(''.join(ctx.in_string) \
-                                                    .decode(in_string_encoding))
+        ctx.in_document = json.loads(''.join(ctx.in_string).decode(
+                                                            in_string_encoding))
 
     def decompose_incoming_envelope(self, ctx):
         """Sets ``ctx.in_body_doc``, ``ctx.in_header_doc`` and
@@ -137,6 +138,7 @@ class JsonObject(ProtocolBase):
 
         # get all class attributes, including the ones coming from parent classes.
         flat_type_info = inst_class.get_flat_type_info(inst_class)
+
         from pprint import pformat
 
         print inst_class
@@ -235,6 +237,7 @@ class JsonObject(ProtocolBase):
                            self.to_dict(result_message_class, result_message)}
 
             out_type = result_message_class
+
             # get rid of ``skip_depth`` number of wrappers.
             for i in range(self.skip_depth):
                 if i == 0:
