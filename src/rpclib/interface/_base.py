@@ -241,7 +241,7 @@ class InterfaceBase(object):
                                                os.__module__, os.__name__,
                                 ))
 
-        logger.info("From this point on, you're not supposed to make any changes "
+        logger.debug("From this point on, you're not supposed to make any changes "
                     "to the class & method structure of the exposed services.")
 
     tns = property(get_tns)
