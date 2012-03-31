@@ -24,11 +24,7 @@ protocol implementations.
 import logging
 logger = logging.getLogger(__name__)
 
-import rpclib.const.xml_ns
 from copy import copy
-
-_ns_xsi = rpclib.const.xml_ns.xsi
-_ns_xsd = rpclib.const.xml_ns.xsd
 
 from rpclib._base import EventManager
 

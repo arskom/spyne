@@ -17,7 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from rpclib.protocol.json import JsonObject
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
