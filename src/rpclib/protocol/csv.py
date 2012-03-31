@@ -38,7 +38,7 @@ def complex_to_csv(ctx):
     serializer, = cls._type_info.values()
 
     type_info = getattr(serializer, '_type_info',
-                                  {serializer.get_type_name(): serializer})
+                        {serializer.get_type_name(): serializer})
 
     keys = sorted(type_info.keys())
 
@@ -58,7 +58,7 @@ def complex_to_csv(ctx):
         if ctx.out_object[0] is not None:
             for v in ctx.out_object[0]:
                 d = serializer.to_dict(v)
-                row = [ ]
+                row = []
                 for k in keys:
                     val = d.get(k, [None])[0]
                     if val:
@@ -76,7 +76,7 @@ class OutCsv(ProtocolBase):
         raise Exception("not supported")
 
     def serialize(self, ctx, message):
-        assert message in (self.RESPONSE,)
+        assert message in (self.RESPONSE, )
 
         if ctx.out_object is None:
             ctx.out_object = []
@@ -87,4 +87,4 @@ class OutCsv(ProtocolBase):
 
         ctx.out_string = complex_to_csv(ctx)
         ctx.transport.resp_headers['Content-Disposition'] = (
-                    'attachment; filename=%s.csv;' % ctx.descriptor.name)
+                         'attachment; filename=%s.csv;' % ctx.descriptor.name)
