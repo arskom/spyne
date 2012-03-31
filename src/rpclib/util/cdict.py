@@ -36,19 +36,25 @@ rpclib.model api to look for classes.
 ...     pass
 ...
 >>> d=cdict({A: "fun", object: "base"})
->>> d[A]
-'fun'
->>> d[B]
-'fun'
->>> d[C]
-'base'
->>> d[D]
-__main__.D
+>>> print d[A]
+fun
+>>> print d
+{<class '__main__.A'>: 'fun', <type 'object'>: 'base'}
+>>> print d[B]
+fun
+>>> print d
+{<class '__main__.A'>: 'fun', <class '__main__.B'>: 'fun', <type 'object'>: 'base'}
+>>> print d[C]
+base
+>>> print d
+{<class '__main__.A'>: 'fun', <class '__main__.B'>: 'fun', <class '__main__.C'>: 'base', <type 'object'>: 'base'}
+>>> print d[D]
 Traceback (most recent call last):
   File "<stdin>", line 1, in <module>
-  File "/home/plq/src/github/plq/rpclib/src/rpclib/util/cdict.py", line 68, in __getitem__
+  File "/home/plq/src/github/plq/rpclib/src/rpclib/util/cdict.py", line 77, in __getitem__
     raise e
 KeyError: <class __main__.D at 0x8d92c0>
+>>>
 """
 
 import logging
@@ -69,7 +75,9 @@ class cdict(dict):
 
             for b in cls.__bases__:
                 try:
-                    return self[b]
+                    retval = self[b]
+                    self[cls] = retval
+                    return retval
                 except KeyError:
                     pass
             raise e
