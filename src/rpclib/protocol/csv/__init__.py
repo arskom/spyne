@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from __future__ import absolute_import
+
 import logging
 logger = logging.getLogger(__name__)
 
