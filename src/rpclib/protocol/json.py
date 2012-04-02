@@ -42,6 +42,7 @@ except ImportError:
 
 from rpclib.model.fault import Fault
 from rpclib.model.complex import ComplexModelBase
+from rpclib.model.complex import Array
 from rpclib.model.primitive import DateTime
 from rpclib.model.primitive import Decimal
 from rpclib.protocol import ProtocolBase
@@ -141,11 +142,6 @@ class JsonObject(ProtocolBase):
         # get all class attributes, including the ones coming from parent classes.
         flat_type_info = inst_class.get_flat_type_info(inst_class)
 
-        from pprint import pformat
-
-        print inst_class
-        print "flat_type_info:", pformat(flat_type_info)
-
         # initialize instance
         for k in flat_type_info:
             setattr(inst, k, None)
@@ -154,8 +150,6 @@ class JsonObject(ProtocolBase):
         frequencies = {}
 
         # parse input to set incoming data to related attributes.
-        print "doc:", doc
-        
         try:
             values = doc.values()
         except:
@@ -232,32 +226,32 @@ class JsonObject(ProtocolBase):
 
         if ctx.out_error is not None:
             # FIXME: There's no way to alter soap response headers for the user.
-            ctx.out_document = ctx.out_error.to_dict(ctx.out_error)
+            ctx.out_document = [ctx.out_error.to_dict(ctx.out_error)]
 
         else:
-            # instantiate the result message
+            # get the result message
             if message is self.REQUEST:
                 out_type = ctx.descriptor.in_message
             elif message is self.RESPONSE:
                 out_type = ctx.descriptor.out_message
-
             if out_type is None:
                 return
 
+            out_type_info = out_type._type_info
+
+            # instantiate the result message
             out_instance = out_type()
 
             # assign raw result to its wrapper, result_message
-            out_type_info = out_type._type_info
-
             for i in range(len(out_type_info)):
                 attr_name = out_type_info.keys()[i]
                 setattr(out_instance, attr_name, ctx.out_object[i])
 
             # transform the results into a dict:
-            doc = {out_type.get_type_name():
-                                           self.to_dict(out_type, out_instance)}
-
-            ctx.out_document = doc
+            if out_type.Attributes.max_occurs > 1:
+                ctx.out_document = (self.to_value(out_type, inst, out_type.get_type_name()) for inst in out_instance)
+            else:
+                ctx.out_document = [self.to_value(out_type, out_instance, out_type.get_type_name())]
 
             self.event_manager.fire_event('after_serialize', ctx)
 
@@ -277,31 +271,39 @@ class JsonObject(ProtocolBase):
                 yield r
 
         for k, v in cls._type_info.items():
-            mo = v.Attributes.max_occurs
             try:
-                subvalue = getattr(inst, k, None)
+                sub_value = getattr(inst, k, None)
             except: # to guard against e.g. sqlalchemy throwing NoSuchColumnError
-                subvalue = None
+                sub_value = None
 
-            if mo > 1:
-                if subvalue != None:
-                    yield (k, [v.to_string(sv) for sv in subvalue])
+
+            if v.Attributes.max_occurs > 1:
+                if sub_value != None:
+                    yield (k, [self.to_value(v,sv) for sv in sub_value])
 
             else:
-                if issubclass(v, ComplexModelBase):
-                    yield (k, self.to_dict(v, subvalue))
-                elif issubclass(v, DateTime):
-                    yield (k, v.to_string(subvalue))
-                elif issubclass(v, Decimal):
-                    if v.Attributes.format is None:
-                        yield (k, subvalue)
-                    else:
-                        yield (k, v.to_string(subvalue))
-                else:
-                    yield (k, subvalue)
+                yield (k, self.to_value(v, sub_value))
 
+    def to_value(self, cls, value, k=None):
+        if issubclass(cls, ComplexModelBase):
+            return self.to_dict(cls, value, k)
 
-    def to_dict(self, cls, value):
-        inst = cls.get_serialization_instance(value)
+        elif issubclass(cls, DateTime):
+            return cls.to_string(value)
 
-        return dict(self.get_member_pairs(cls, inst))
+        elif issubclass(cls, Decimal):
+            if cls.Attributes.format is None:
+                return value
+            else:
+                return cls.to_string(value)
+        else:
+            return value
+
+    def to_dict(self, cls, inst, field_name=None):
+        inst = cls.get_serialization_instance(inst)
+
+        if field_name is None:
+            return dict(self.get_member_pairs(cls, inst))
+        else:
+            return {field_name: dict(self.get_member_pairs(cls, inst))}
+

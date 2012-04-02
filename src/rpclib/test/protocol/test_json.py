@@ -28,6 +28,7 @@ from rpclib.decorator import srpc
 from rpclib.model.primitive import Integer
 from rpclib.model.primitive import String
 from rpclib.model.complex import ComplexModel
+from rpclib.model.complex import Iterable
 from rpclib.interface.wsdl import Wsdl11
 from rpclib.protocol.json import JsonObject
 from rpclib.service import ServiceBase
@@ -38,9 +39,9 @@ class Test(unittest.TestCase):
 
     def test_multiple_return_sd_2(self):
         class SomeService(ServiceBase):
-            @srpc(_returns=[Integer(max_occurs=2), String])
+            @srpc(_returns=Iterable(Integer))
             def some_call():
-                return [1], 's'
+                return 1, 2
 
         app = Application([SomeService], 'tns', JsonObject(), JsonObject(skip_depth=2),
                                                                        Wsdl11())
@@ -54,13 +55,13 @@ class Test(unittest.TestCase):
         server.get_out_object(ctx)
         server.get_out_string(ctx)
 
-        assert ctx.out_string[0] == '[["1"], "s"]'
+        assert list(ctx.out_string) == ['[1, 2]']
 
     def test_multiple_return_sd_1(self):
         class SomeService(ServiceBase):
-            @srpc(_returns=[Integer, String])
+            @srpc(_returns=Iterable(Integer))
             def some_call():
-                return 1, 's'
+                return 1, 2
 
         app = Application([SomeService], 'tns', JsonObject(), JsonObject(skip_depth=1),
                                                                        Wsdl11())
@@ -74,13 +75,13 @@ class Test(unittest.TestCase):
         server.get_out_object(ctx)
         server.get_out_string(ctx)
 
-        assert ctx.out_string[0] == '{"some_callResult0": "1", "some_callResult1": "s"}'
+        assert list(ctx.out_string) == ['{"integer": [1, 2]}']
 
     def test_multiple_return_sd_0(self):
         class SomeService(ServiceBase):
-            @srpc(_returns=[Integer, String])
+            @srpc(_returns=Iterable(Integer))
             def some_call():
-                return 1, 's'
+                return 1, 2
 
         app = Application([SomeService], 'tns', JsonObject(), JsonObject(),
                                                                        Wsdl11())
@@ -94,7 +95,7 @@ class Test(unittest.TestCase):
         server.get_out_object(ctx)
         server.get_out_string(ctx)
 
-        assert ctx.out_string[0] == '{"some_callResponse": {"some_callResult0": 1, "some_callResult1": "s"}}'
+        assert list(ctx.out_string) == ['{"some_callResponse": {"some_callResult": {"integer": [1, 2]}}}' ]
 
         server = ServerBase(app)
         initial_ctx = MethodContext(server)
@@ -105,7 +106,7 @@ class Test(unittest.TestCase):
         server.get_out_object(ctx)
         server.get_out_string(ctx)
 
-        assert ctx.out_string[0] == '{"some_callResponse": {"some_callResult0": 1, "some_callResult1": "s"}}'
+        assert list(ctx.out_string) == ['{"some_callResponse": {"some_callResult": {"integer": [1, 2]}}}']
 
     def test_primitive_only(self):
         class SomeComplexModel(ComplexModel):
@@ -129,7 +130,7 @@ class Test(unittest.TestCase):
         server.get_out_object(ctx)
         server.get_out_string(ctx)
 
-        assert ctx.out_string[0] == '{"some_callResponse": {"some_callResult": {"i": "5", "s": "5x"}}}'
+        assert list(ctx.out_string) == ['{"some_callResponse": {"some_callResult": {"i": 5, "s": "5x"}}}']
 
     def test_complex(self):
         class CM(ComplexModel):
@@ -158,7 +159,9 @@ class Test(unittest.TestCase):
         server.get_out_string(ctx)
 
         import json
-        ret = json.loads(ctx.out_string[0])
+        ret = json.loads(''.join(ctx.out_string))
+        print ret
+
         assert ret['some_callResponse']['some_callResult']['i'] == 4
         assert ret['some_callResponse']['some_callResult']['s'] == '4x'
         assert ret['some_callResponse']['some_callResult']['c']['i'] == 3
