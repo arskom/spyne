@@ -167,5 +167,43 @@ class Test(unittest.TestCase):
         assert ret['some_callResponse']['some_callResult']['c']['i'] == 3
         assert ret['some_callResponse']['some_callResult']['c']['s'] == '3x'
 
+    def test_multiple_list(self):
+        class SomeService(ServiceBase):
+            @srpc(String(max_occurs=float('inf')), _returns=String(max_occurs=float('inf')))
+            def some_call(s):
+                return s
+
+        app = Application([SomeService], 'tns', JsonObject(), JsonObject(), Wsdl11())
+        server = ServerBase(app)
+
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = ['{"some_call":[["a","b"]]}']
+
+        ctx, = server.generate_contexts(initial_ctx)
+        server.get_in_object(ctx)
+        server.get_out_object(ctx)
+        server.get_out_string(ctx)
+
+        assert list(ctx.out_string) == ['{"some_callResponse": {"some_callResult": ["a", "b"]}}']
+
+    def test_multiple_dict(self):
+        class SomeService(ServiceBase):
+            @srpc(String(max_occurs=float('inf')), _returns=String(max_occurs=float('inf')))
+            def some_call(s):
+                return s
+
+        app = Application([SomeService], 'tns', JsonObject(), JsonObject(), Wsdl11())
+        server = ServerBase(app)
+
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = ['{"some_call":{"s":["a","b"]}}']
+
+        ctx, = server.generate_contexts(initial_ctx)
+        server.get_in_object(ctx)
+        server.get_out_object(ctx)
+        server.get_out_string(ctx)
+
+        assert list(ctx.out_string) == ['{"some_callResponse": {"some_callResult": ["a", "b"]}}']
+
 if __name__ == '__main__':
     unittest.main()
