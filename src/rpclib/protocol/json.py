@@ -133,14 +133,23 @@ class JsonObject(ProtocolBase):
         logger.debug('\theader : %r' % (ctx.in_header_doc))
         logger.debug('\tbody   : %r' % (ctx.in_body_doc))
 
-    def dict_to_object(self, doc, inst_class):
+    def doc_to_object(self, cls, doc):
         if doc is None:
             return
 
-        inst = inst_class.get_deserialization_instance()
+        if issubclass(cls, Array):
+            retval = [ ]
+            (serializer,) = cls._type_info.values()
+
+            for child in doc:
+                retval.append(self.from_dict_value(serializer, child))
+
+            return retval
+
+        inst = cls.get_deserialization_instance()
 
         # get all class attributes, including the ones coming from parent classes.
-        flat_type_info = inst_class.get_flat_type_info(inst_class)
+        flat_type_info = cls.get_flat_type_info(cls)
 
         # initialize instance
         for k in flat_type_info:
@@ -149,17 +158,13 @@ class JsonObject(ProtocolBase):
         # this is for validating cls.Attributes.{min,max}_occurs
         frequencies = {}
 
-        # parse input to set incoming data to related attributes.
         try:
-            values = doc.values()
-        except:
-            values = doc
+            items = doc.items()
+        except AttributeError:
+            items = zip(cls._type_info.keys(), doc)
 
-        keys = inst_class._type_info.keys()
-        for i in range(len(values)):
-            k = keys[i]
-            v = values[i]
-
+        # parse input to set incoming data to related attributes.
+        for k,v in items:
             freq = frequencies.get(k, 0)
             freq += 1
             frequencies[k] = freq
@@ -211,7 +216,7 @@ class JsonObject(ProtocolBase):
             # assign raw result to its wrapper, result_message
             result_message_class = ctx.descriptor.in_message
             value = ctx.in_body_doc.get(result_message_class.get_type_name(), None)
-            result_message = self.dict_to_object(value, result_message_class)
+            result_message = self.doc_to_object(result_message_class, value)
 
             ctx.in_object = result_message
             self.event_manager.fire_event('after_deserialize', ctx)
@@ -273,7 +278,9 @@ class JsonObject(ProtocolBase):
 
     def from_dict_value(self, cls, value):
         if issubclass(cls, ComplexModelBase):
-            return self.dict_to_object(value, cls)
+            return self.doc_to_object(cls, value)
+        elif issubclass(cls, DateTime):
+            return cls.from_string(value)
         else:
             return value
 
@@ -319,4 +326,3 @@ class JsonObject(ProtocolBase):
             return dict(self.get_member_pairs(cls, inst))
         else:
             return {field_name: dict(self.get_member_pairs(cls, inst))}
-

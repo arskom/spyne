@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import json
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -27,6 +28,7 @@ from rpclib.application import Application
 from rpclib.decorator import srpc
 from rpclib.model.primitive import Integer
 from rpclib.model.primitive import String
+from rpclib.model.primitive import DateTime
 from rpclib.model.complex import ComplexModel
 from rpclib.model.complex import Iterable
 from rpclib.interface.wsdl import Wsdl11
@@ -158,7 +160,6 @@ class Test(unittest.TestCase):
         server.get_out_object(ctx)
         server.get_out_string(ctx)
 
-        import json
         ret = json.loads(''.join(ctx.out_string))
         print ret
 
@@ -204,6 +205,68 @@ class Test(unittest.TestCase):
         server.get_out_string(ctx)
 
         assert list(ctx.out_string) == ['{"some_callResponse": {"some_callResult": ["a", "b"]}}']
+
+    def test_multiple_dict_array(self):
+        class SomeService(ServiceBase):
+            @srpc(Iterable(String), _returns=Iterable(String))
+            def some_call(s):
+                return s
+
+        app = Application([SomeService], 'tns', JsonObject(), JsonObject(), Wsdl11())
+        server = ServerBase(app)
+
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = ['{"some_call":{"s":["a","b"]}}']
+
+        ctx, = server.generate_contexts(initial_ctx)
+        server.get_in_object(ctx)
+        server.get_out_object(ctx)
+        server.get_out_string(ctx)
+
+        assert list(ctx.out_string) == ['{"some_callResponse": {"some_callResult": {"string": ["a", "b"]}}}']
+
+    def test_multiple_dict_complex_array(self):
+        class CM(ComplexModel):
+            i = Integer
+            s = String
+
+        class CCM(ComplexModel):
+            c = CM
+            i = Integer
+            s = String
+
+        class ECM(CCM):
+            d = DateTime
+
+        class SomeService(ServiceBase):
+            @srpc(Iterable(ECM), _returns=Iterable(ECM))
+            def some_call(ecm):
+                return ecm
+
+        app = Application([SomeService], 'tns', JsonObject(), JsonObject(), Wsdl11())
+        server = ServerBase(app)
+
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = ['{"some_call": {"ecm": [{"c": {"i":3, "s": "3x"}, "i":4, "s": "4x", "d": "2011-12-13T14:15:16Z"}]}}']
+
+        ctx, = server.generate_contexts(initial_ctx)
+        server.get_in_object(ctx)
+        server.get_out_object(ctx)
+        print ctx.in_object
+        server.get_out_string(ctx)
+
+        ret = json.loads(''.join(ctx.out_string))
+        print ret
+        assert ret['some_callResponse']
+        assert ret['some_callResponse']['some_callResult']
+        assert ret['some_callResponse']['some_callResult']['ECM']
+        assert ret['some_callResponse']['some_callResult']['ECM'][0]
+        assert ret['some_callResponse']['some_callResult']['ECM'][0]["c"]
+        assert ret['some_callResponse']['some_callResult']['ECM'][0]["c"]["i"] == 3
+        assert ret['some_callResponse']['some_callResult']['ECM'][0]["c"]["s"] == "3x"
+        assert ret['some_callResponse']['some_callResult']['ECM'][0]["i"] == 4
+        assert ret['some_callResponse']['some_callResult']['ECM'][0]["s"] == "4x"
+        assert ret['some_callResponse']['some_callResult']['ECM'][0]["d"] == "2011-12-13T14:15:16+00:00"
 
 if __name__ == '__main__':
     unittest.main()
