@@ -247,11 +247,24 @@ class JsonObject(ProtocolBase):
                 attr_name = out_type_info.keys()[i]
                 setattr(out_instance, attr_name, ctx.out_object[i])
 
+            # strip the wrappers if asked for
+            for i in range(self.skip_depth):
+                if len(out_type._type_info) == 1:
+                    (k,out_type), = out_type._type_info.items()
+                    if issubclass(out_type, ComplexModelBase):
+                        out_instance = getattr(out_instance, k)
+                else:
+                    break
+
+            wrapper_name = None
+            if not issubclass(out_type, Array):
+                wrapper_name = out_type.get_type_name()
+
             # transform the results into a dict:
             if out_type.Attributes.max_occurs > 1:
-                ctx.out_document = (self.to_value(out_type, inst, out_type.get_type_name()) for inst in out_instance)
+                ctx.out_document = (self.to_value(out_type, inst, wrapper_name) for inst in out_instance)
             else:
-                ctx.out_document = [self.to_value(out_type, out_instance, out_type.get_type_name())]
+                ctx.out_document = [self.to_value(out_type, out_instance, wrapper_name)]
 
             self.event_manager.fire_event('after_serialize', ctx)
 

@@ -55,7 +55,7 @@ class Test(unittest.TestCase):
         server.get_out_object(ctx)
         server.get_out_string(ctx)
 
-        assert list(ctx.out_string) == ['[1, 2]']
+        assert list(ctx.out_string) == ['1','2']
 
     def test_multiple_return_sd_1(self):
         class SomeService(ServiceBase):
