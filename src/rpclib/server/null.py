@@ -59,18 +59,19 @@ class _FunctionProxy(object):
 
 class _FunctionCall(object):
     def __init__(self, app, server, key, in_header):
+        self.app = app
+
         self.__key = key
-        self.__app = app
         self.__server = server
         self.__in_header = in_header
 
     def __call__(self, *args, **kwargs):
-        initial_ctx = MethodContext(self.__app)
+        initial_ctx = MethodContext(self)
         initial_ctx.method_request_string = self.__key
         initial_ctx.in_header = self.__in_header
         initial_ctx.in_object = args
 
-        contexts = self.__app.in_protocol.generate_method_contexts(initial_ctx)
+        contexts = self.app.in_protocol.generate_method_contexts(initial_ctx)
         for ctx in contexts:
             # set logging.getLogger('rpclib.server.null').setLevel(logging.CRITICAL)
             # to hide the following
@@ -78,7 +79,7 @@ class _FunctionCall(object):
             _footer = END_COLOR + ('=' * 30)
 
             logger.warning( "%s start request %s" % (_header, _footer)  )
-            self.__app.process_request(ctx)
+            self.app.process_request(ctx)
             logger.warning( "%s  end request  %s" % (_header, _footer)  )
 
             if ctx.out_error:
