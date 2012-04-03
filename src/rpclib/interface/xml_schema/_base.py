@@ -247,9 +247,10 @@ class XmlSchema(InterfaceBase):
 
             if seq.tag == '{%s}sequence' % _ns_xsd:
                 for e in seq:
-                    pref = e.attrib['type'].split(':')[0]
-                    if is_valid_import(pref):
-                        self.imports[pref_tns].add(self.nsmap[pref])
+                    if e.tag == '{%s}element' % _ns_xsd :
+                        pref = e.attrib['type'].split(':')[0]
+                        if is_valid_import(pref):
+                            self.imports[pref_tns].add(self.nsmap[pref])
 
             elif seq.tag == '{%s}restriction' % _ns_xsd:
                 pref = seq.attrib['base'].split(':')[0]
