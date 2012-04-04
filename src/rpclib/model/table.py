@@ -70,7 +70,8 @@ _type_map = {
 
     sqlalchemy.orm.relation: complex.Array,
 
-    UUID: primitive.String
+    UUID: primitive.String(pattern="%(x)s{8}-%(x)s{4}-%(x)s{4}-%(x)s{4}-%(x)s{12}"
+                                            % {'x': '[a-fA-F0-9]'}, name='uuid')
 }
 
 
