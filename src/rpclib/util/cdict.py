@@ -66,13 +66,6 @@ class cdict(dict):
             return dict.__getitem__(self, cls)
 
         except KeyError,e:
-            try:
-                return self[cls._is_clone_of]
-            except AttributeError:
-                pass
-            except KeyError:
-                pass
-
             for b in cls.__bases__:
                 try:
                     retval = self[b]

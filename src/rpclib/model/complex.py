@@ -127,9 +127,9 @@ class ComplexModelMeta(type(ModelBase)):
 
                     if subc:
                         _type_info[k] = v
-                        if issubclass(v, Array) and v.serializer is None:
-                            raise Exception("%s.%s is an array of what?" %
-                                            (cls_name, k))
+                        if issubclass(v, Array) and len(v._type_info) != 1:
+                            raise Exception("Invalid Array definition in %s.%s."
+                                                                % (cls_name, k))
                     elif is_attr:
                         _type_info[k] = v
         else:

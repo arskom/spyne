@@ -206,28 +206,22 @@ class ModelBase(object):
 
         cls_dict = {}
 
-        for k in cls.__dict__:
-            if not (k in ("__dict__", "__weakref__")):
-                cls_dict[k] = cls.__dict__[k]
-
         class Attributes(cls.Attributes):
             pass
         cls_dict['Attributes'] = Attributes
 
         class Annotations(cls.Annotations):
             pass
+
         cls_dict['Annotations'] = Annotations
 
-        if not ('_is_clone_of' in cls_dict):
-            cls_dict['_is_clone_of'] = cls
-
         for k, v in kwargs.items():
-            if k != "doc":
-                setattr(Attributes, k, v)
-            else:
+            if k in ("doc", "appinfo"):
                 setattr(Annotations, k, v)
+            else:
+                setattr(Attributes, k, v)
 
-        return (cls.__name__, cls.__bases__, cls_dict)
+        return (cls.__name__, (cls,), cls_dict)
 
     @staticmethod
     def validate_string(cls, value):
@@ -278,11 +272,7 @@ class SimpleModel(ModelBase):
         retval = cls.customize( ** kwargs)
 
         if not retval.is_default(retval):
-            if hasattr(cls, '_is_clone_of'):
-                retval.__base_type__ = cls._is_clone_of
-            else:
-                retval.__base_type__ = cls
-
+            retval.__base_type__ = cls
             retval.__type_name__ = kwargs.get("type_name", ModelBase.Empty)
 
         return retval

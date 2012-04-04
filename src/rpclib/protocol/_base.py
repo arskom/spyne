@@ -235,9 +235,7 @@ class ProtocolBase(object):
                             member.type.validate_string(member.type, v2)):
                     raise ValidationError(v2)
 
-                if member.type is File or member.type is ByteArray or \
-                        getattr(member.type, '_is_clone_of', None) is File or \
-                        getattr(member.type, '_is_clone_of', None) is ByteArray:
+                if issubclass(member.type, (File, ByteArray)):
                     if isinstance(v2, str) or isinstance(v2, unicode):
                         native_v2 = member.type.from_string(v2)
                     else:
