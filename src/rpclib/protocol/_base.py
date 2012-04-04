@@ -271,8 +271,8 @@ class ProtocolBase(object):
             for i in range(len(member.path) - 1):
                 pkey = member.path[i]
                 if not (ctype_info[pkey].Attributes.max_occurs in (0,1)):
-                    raise Exception("HttpRpc deserializer does not support "
-                                    "non-primitives with max_occurs > 1")
+                    raise Exception("non-primitives with max_occurs > 1 are not"
+                                    "supported")
 
                 ninst = getattr(cinst, pkey, None)
                 if ninst is None:

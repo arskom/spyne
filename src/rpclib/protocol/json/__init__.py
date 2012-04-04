@@ -182,7 +182,7 @@ class JsonObject(ProtocolBase):
                 val = frequencies.get(k, 0)
                 if (val < v.Attributes.min_occurs or val > v.Attributes.max_occurs):
                     raise Fault('Client.ValidationError',
-                        '%r member does not respect frequency constraints' % k)
+                        '%r member does not respect frequency constraints.' % k)
 
         return inst
 

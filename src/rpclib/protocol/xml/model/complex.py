@@ -118,7 +118,7 @@ def complex_from_element(prot, cls, element):
             val = frequencies.get(key, 0)
             if (val < c.Attributes.min_occurs or val > c.Attributes.max_occurs):
                 raise Fault('Client.ValidationError',
-                    '%r member does not respect frequency constraints' % key)
+                    '%r member does not respect frequency constraints.' % key)
 
     return inst
 
