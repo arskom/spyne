@@ -42,11 +42,13 @@ except ImportError:
     except ImportError: # Python 3
         from io import StringIO
 
+from rpclib.error import ValidationError
 from rpclib.model.fault import Fault
 from rpclib.model.complex import ComplexModelBase
 from rpclib.model.complex import Array
 from rpclib.model.primitive import DateTime
 from rpclib.model.primitive import Decimal
+from rpclib.model.primitive import Unicode
 from rpclib.protocol import ProtocolBase
 
 
@@ -80,6 +82,11 @@ class JsonObject(ProtocolBase):
         self.skip_depth = skip_depth
 
     def set_validator(self, validator):
+        """Sets the validator for the protocol.
+
+        :param validator: one of ('soft', None)
+        """
+
         if validator == 'soft' or validator is self.SOFT_VALIDATION:
             self.validator = self.SOFT_VALIDATION
         elif validator is None:
@@ -267,12 +274,34 @@ class JsonObject(ProtocolBase):
         ctx.out_string = (json.dumps(o) for o in ctx.out_document)
 
     def from_dict_value(self, cls, value):
+        # validate raw input
+        if self.validator is self.SOFT_VALIDATION:
+            if issubclass(cls, Unicode) and not isinstance(value, unicode):
+                raise ValidationError(value)
+
+            if issubclass(cls, Decimal) and not isinstance(value, (int, long, float)):
+                raise ValidationError(value)
+
+            if issubclass(cls, DateTime) and not (isinstance(value, unicode) and
+                                            cls.validate_string(cls, value)):
+                raise ValidationError(value)
+
+        # get native type
         if issubclass(cls, ComplexModelBase):
-            return self.doc_to_object(cls, value)
+            retval = self.doc_to_object(cls, value)
+
         elif issubclass(cls, DateTime):
-            return cls.from_string(value)
+            retval = cls.from_string(value)
+
         else:
-            return value
+            retval = value
+
+        # validate native type
+        if self.validator is self.SOFT_VALIDATION and \
+                not cls.validate_native(cls, retval):
+            raise ValidationError(retval)
+
+        return retval
 
     def get_member_pairs(self, cls, inst):
         parent_cls = getattr(cls, '__extends__', None)

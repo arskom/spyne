@@ -29,6 +29,7 @@ from rpclib.decorator import srpc
 from rpclib.model.primitive import Integer
 from rpclib.model.primitive import String
 from rpclib.model.primitive import DateTime
+from rpclib.model.primitive import Mandatory
 from rpclib.model.complex import ComplexModel
 from rpclib.model.complex import Iterable
 from rpclib.interface.wsdl import Wsdl11
@@ -278,15 +279,101 @@ class Test(unittest.TestCase):
         server = ServerBase(app)
 
         initial_ctx = MethodContext(server)
-        initial_ctx.in_string = ['{"some_call": {"yay": [[]]}}']
+        initial_ctx.in_string = ['{"some_call": {"yay": ]}}']
         ctx, = server.generate_contexts(initial_ctx)
-        print ctx.in_error
-        assert ctx.in_error is None
+        assert ctx.in_error.faultcode == 'Client.JsonDecodeError'
+
+    def test_invalid_request(self):
+        class SomeService(ServiceBase):
+            @srpc(Integer, String, DateTime)
+            def yay(i,s,d):
+                print i,s,d
+                pass
+
+        app = Application([SomeService], 'tns', JsonObject(validator='soft'), JsonObject(), Wsdl11())
+        server = ServerBase(app)
 
         initial_ctx = MethodContext(server)
-        initial_ctx.in_string = ['{"some_call": {"yay": [[]]}}']
+        initial_ctx.in_string = ['{"some_call": {"yay": []}}']
         ctx, = server.generate_contexts(initial_ctx)
         print ctx.in_error
-        assert ctx.in_error is None
+        assert ctx.in_error.faultcode == 'Client.ResourceNotFound'
+        print
+
+    def test_invalid_string(self):
+        class SomeService(ServiceBase):
+            @srpc(Integer, String, DateTime)
+            def yay(i,s,d):
+                print i,s,d
+                pass
+
+        app = Application([SomeService], 'tns', JsonObject(validator='soft'),
+                                                         JsonObject(), Wsdl11())
+        server = ServerBase(app)
+
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = ['{"yay": {"s": 1}}']
+        ctx, = server.generate_contexts(initial_ctx)
+        server.get_in_object(ctx)
+
+        assert ctx.in_error.faultcode == 'Client.ValidationError'
+
+    def test_invalid_number(self):
+        class SomeService(ServiceBase):
+            @srpc(Integer, String, DateTime)
+            def yay(i,s,d):
+                print i,s,d
+                pass
+
+        app = Application([SomeService], 'tns', JsonObject(validator='soft'),
+                                                         JsonObject(), Wsdl11())
+        server = ServerBase(app)
+
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = ['{"yay": ["s", "B"]}']
+        ctx, = server.generate_contexts(initial_ctx)
+        server.get_in_object(ctx)
+
+        assert ctx.in_error.faultcode == 'Client.ValidationError'
+
+    def test_missing_value(self):
+        class SomeService(ServiceBase):
+            @srpc(Integer, String, Mandatory.DateTime)
+            def yay(i,s,d):
+                print i,s,d
+                pass
+
+        app = Application([SomeService], 'tns', JsonObject(validator='soft'),
+                                                         JsonObject(), Wsdl11())
+        server = ServerBase(app)
+
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = ['{"yay": [1, "B"]}']
+        ctx, = server.generate_contexts(initial_ctx)
+        server.get_in_object(ctx)
+
+        print ctx.in_error.faultstring
+        assert ctx.in_error.faultcode == 'Client.ValidationError'
+        assert ctx.in_error.faultstring.endswith("frequency constraints.")
+
+    def test_invalid_datetime(self):
+        class SomeService(ServiceBase):
+            @srpc(Integer, String, Mandatory.DateTime)
+            def yay(i,s,d):
+                print i,s,d
+                pass
+
+        app = Application([SomeService], 'tns', JsonObject(validator='soft'),
+                                                         JsonObject(), Wsdl11())
+        server = ServerBase(app)
+
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = ['{"yay": {"d":"a2011"}}']
+        ctx, = server.generate_contexts(initial_ctx)
+        server.get_in_object(ctx)
+
+        print ctx.in_error
+        assert ctx.in_error.faultcode == 'Client.ValidationError'
+
 if __name__ == '__main__':
     unittest.main()
