@@ -17,6 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import logging
+logger = logging.getLogger(__name__)
+
 from lxml import etree
 
 from rpclib.const import xml_ns as namespace
@@ -62,12 +65,18 @@ def complex_add(interface, cls):
 
         sequence_parent = complex_type
         if not (extends is None):
-            complex_content = etree.SubElement(complex_type,
-                                       "{%s}complexContent" % namespace.xsd)
-            extension = etree.SubElement(complex_content,
-                                       "{%s}extension" % namespace.xsd)
-            extension.set('base', extends.get_type_name_ns(interface))
-            sequence_parent = extension
+            if (extends.__type_name__ == cls.__type_name__ and
+                                    extends.__namespace__ == cls.__namespace__):
+                raise Exception("%r can't extend %r because they are all '{%s}%s'"
+                        % (cls, extends, cls.__type_name__, cls.__namespace__))
+
+            else:
+                complex_content = etree.SubElement(complex_type,
+                                           "{%s}complexContent" % namespace.xsd)
+                extension = etree.SubElement(complex_content,
+                                           "{%s}extension" % namespace.xsd)
+                extension.set('base', extends.get_type_name_ns(interface))
+                sequence_parent = extension
 
         sequence = etree.SubElement(sequence_parent, '{%s}sequence' %
                                                                   namespace.xsd)

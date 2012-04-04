@@ -80,13 +80,14 @@ XMLAttributeRef = XmlAttributeRef
 class SelfReference(object):
     pass
 
+
 class ComplexModelMeta(type(ModelBase)):
-    '''This is the metaclass that populates ComplexModel instances with the
-    appropriate datatypes for (de)serialization.
+    '''This metaclass sets ``_type_info``, ``__type_name__`` and ``__extends__``
+    which are going to be used for (de)serialization and schema generation.
     '''
 
     def __new__(cls, cls_name, cls_bases, cls_dict):
-        '''This initializes the class, and registers attributes for
+        '''This function initializes the class and registers attributes for
         serialization.
         '''
 
@@ -95,20 +96,19 @@ class ComplexModelMeta(type(ModelBase)):
             cls_dict["__type_name__"] = cls_name
 
         # get base class (if exists) and enforce single inheritance
-        extends = cls_dict.get("__extends__", None)
-
+        extends = cls_dict.get('__extends__', None)
         if extends is None:
             for b in cls_bases:
                 base_types = getattr(b, "_type_info", None)
 
                 if not (base_types is None):
-                    if not (extends is None or cls_dict["__extends__"] is b):
+                    if not (extends in (None, b)):
                         raise Exception("WSDL 1.1 does not support multiple "
                                         "inheritance")
 
                     try:
                         if len(base_types) > 0 and issubclass(b, ModelBase):
-                            cls_dict["__extends__"] = extends = b
+                            cls_dict["__extends__"] = b
                     except:
                         logger.error(repr(extends))
                         raise
@@ -368,6 +368,21 @@ class ComplexModelBase(ModelBase):
         cls_dict['_target'] = target
 
         return ComplexModelMeta(type_name, (ClassAlias,), cls_dict)
+
+    @classmethod
+    def customize(cls, **kwargs):
+        """Duplicates cls and overwrites the values in ``cls.Attributes`` with
+        ``**kwargs`` and returns the new class."""
+
+        cls_name, cls_bases, cls_dict = cls._s_customize(cls, **kwargs)
+
+        retval = type(cls_name, cls_bases, cls_dict)
+
+        e = getattr(retval, '__extends__', None)
+        if e != None:
+            retval.__extends__ = getattr(e, '__extends__', None)
+
+        return retval
 
 class ComplexModel(ComplexModelBase):
     """The general complexType factory. The __call__ method of this class will

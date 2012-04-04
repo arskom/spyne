@@ -130,19 +130,27 @@ class TableModelMeta(DeclarativeMeta, ComplexModelMeta):
         if cls_dict.get("_type_info", None) is None:
             cls_dict["_type_info"] = _type_info = TypeInfo()
 
-            # mixin inheritance
-            for b in cls_bases:
-                for k, v in vars(b).items():
-                    if _is_interesting(k, v):
-                        _type_info[k] = _process_item(v)
+            def check_mixin_inheritance(bases):
+                for b in bases:
+                    check_mixin_inheritance(b.__bases__)
 
-            # same table inheritance
-            for b in cls_bases:
-                table = getattr(b, '__table__', None)
+                    for k, v in vars(b).items():
+                        if _is_interesting(k, v):
+                            _type_info[k] = _process_item(v)
 
-                if not (table is None):
-                    for c in table.c:
-                        _type_info[c.name] = _process_item(c)
+            check_mixin_inheritance(cls_bases)
+
+            def check_same_table_inheritance(bases):
+                for b in bases:
+                    check_same_table_inheritance(b.__bases__)
+
+                    table = getattr(b, '__table__', None)
+
+                    if not (table is None):
+                        for c in table.c:
+                            _type_info[c.name] = _process_item(c)
+
+            check_same_table_inheritance(cls_bases)
 
             # include from table
             table = cls_dict.get('__table__', None)
@@ -167,16 +175,6 @@ class TableModel(ComplexModelBase):
 
     __metaclass__ = TableModelMeta
     _decl_class_registry = {}
-
-    @classmethod
-    def customize(cls, **kwargs):
-        cls_name, cls_bases, cls_dict = ComplexModelBase._s_customize(
-                                                                  cls, **kwargs)
-
-        retval = ComplexModelMeta.__new__(ComplexModelMeta, cls_name,
-                                                            cls_bases, cls_dict)
-
-        return retval
 
 TableSerializer = TableModel
 """DEPRECATED. Use TableModel instead."""

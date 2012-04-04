@@ -30,6 +30,8 @@ from rpclib.model.complex import ComplexModel
 from rpclib.model.complex import Array
 from rpclib.protocol.http import HttpRpc
 from rpclib.protocol.soap import Soap11
+from rpclib.server.wsgi import WsgiApplication
+from rpclib.server.wsgi import WsgiMethodContext
 
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -168,17 +170,15 @@ class TestSqlAlchemy(unittest.TestCase):
             out_protocol=Soap11(),
             name='Service', tns='tns'
         )
+        server = WsgiApplication(application)
 
-        from rpclib.server.wsgi import WsgiMethodContext
-
-        ctx = WsgiMethodContext(application, {
+        initial_ctx = WsgiMethodContext(server, {
+            'REQUEST_METHOD': 'GET',
             'QUERY_STRING': 'key=1&key=2&key=3',
             'PATH_INFO': '/get_values',
         }, 'some-content-type')
 
-        from rpclib.server import ServerBase
-
-        server = ServerBase(application)
+        ctx, = server.generate_contexts(initial_ctx)
         server.get_in_object(ctx)
         server.get_out_object(ctx)
         server.get_out_string(ctx)
