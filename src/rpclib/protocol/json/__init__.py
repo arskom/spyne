@@ -29,8 +29,10 @@ TEMPORARY_DIR = None
 
 try:
     import simplejson as json
+    from simplejson.decoder import JSONDecodeError
 except ImportError:
     import json
+    JSONDecodeError = ValueError
 
 try:
     from cStringIO import StringIO
@@ -50,7 +52,6 @@ from rpclib.protocol import ProtocolBase
 
 def _unwrap_messages(cls, skip_depth):
     out_type = cls
-
     for i in range(skip_depth):
         if len(out_type._type_info) == 1:
             out_type = out_type._type_info[0]
@@ -92,8 +93,11 @@ class JsonObject(ProtocolBase):
         if in_string_encoding is None:
             in_string_encoding = 'UTF-8'
 
-        ctx.in_document = json.loads(''.join(ctx.in_string).decode(
+        try:
+            ctx.in_document = json.loads(''.join(ctx.in_string).decode(
                                                             in_string_encoding))
+        except JSONDecodeError, e:
+            raise Fault('Client.JsonDecodeError', repr(e))
 
     def decompose_incoming_envelope(self, ctx):
         """Sets ``ctx.in_body_doc``, ``ctx.in_header_doc`` and

@@ -268,5 +268,25 @@ class Test(unittest.TestCase):
         assert ret['some_callResponse']['some_callResult']['ECM'][0]["s"] == "4x"
         assert ret['some_callResponse']['some_callResult']['ECM'][0]["d"] == "2011-12-13T14:15:16+00:00"
 
+    def test_invalid_input(self):
+        class SomeService(ServiceBase):
+            @srpc()
+            def yay():
+                pass
+
+        app = Application([SomeService], 'tns', JsonObject(), JsonObject(), Wsdl11())
+        server = ServerBase(app)
+
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = ['{"some_call": {"yay": [[]]}}']
+        ctx, = server.generate_contexts(initial_ctx)
+        print ctx.in_error
+        assert ctx.in_error is None
+
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = ['{"some_call": {"yay": [[]]}}']
+        ctx, = server.generate_contexts(initial_ctx)
+        print ctx.in_error
+        assert ctx.in_error is None
 if __name__ == '__main__':
     unittest.main()
