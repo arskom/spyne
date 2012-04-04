@@ -135,7 +135,7 @@ class MultipleMethods2(ServiceBase):
 
 class TestSingle(unittest.TestCase):
     def setUp(self):
-        self.app = Application([TestService], 'tns', Wsdl11(), Soap11(), Soap11())
+        self.app = Application([TestService], 'tns', Soap11(), Soap11(), Wsdl11())
         self.srv = TestService()
 
         self.app.interface.build_interface_document('URL')
@@ -155,7 +155,7 @@ class TestSingle(unittest.TestCase):
 
 class TestMultiple(unittest.TestCase):
     def setUp(self):
-        self.app = Application([MultipleReturnService], 'tns', Wsdl11(), Soap11(), Soap11())
+        self.app = Application([MultipleReturnService], 'tns', Soap11(), Soap11(), Wsdl11())
         self.app.interface.build_interface_document('url')
 
     def test_multiple_return(self):
@@ -180,7 +180,7 @@ class TestMultiple(unittest.TestCase):
 class TestMultipleMethods(unittest.TestCase):
     def test_single_method(self):
         try:
-            app = Application([MultipleMethods1,MultipleMethods2], 'tns', Wsdl11(), Soap11(), Soap11())
+            app = Application([MultipleMethods1,MultipleMethods2], 'tns', Soap11(), Soap11(), Wsdl11())
             app.interface.build_interface_document('url')
             raise Exception('must fail.')
 
@@ -196,7 +196,7 @@ class TestMultipleMethods(unittest.TestCase):
         out_protocol.supports_fanout_methods = True
 
         app = Application([MultipleMethods1,MultipleMethods2], 'tns',
-                Wsdl11(), in_protocol, out_protocol, supports_fanout_methods=True)
+                in_protocol, out_protocol, Wsdl11(), supports_fanout_methods=True)
         app.interface.build_interface_document('url')
 
         mm = app.interface.service_method_map['{tns}multi']
