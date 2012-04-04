@@ -71,11 +71,6 @@ class XmlAttributeRef(XmlAttribute):
         if self._use:
             element.set('use', self._use)
 
-XMLAttribute = XmlAttribute
-""" DEPRECATED! Use :class:`XmlAttribute` instead"""
-
-XMLAttributeRef = XmlAttributeRef
-""" DEPRECATED! Use :class:`XmlAttributeRef` instead"""
 
 class SelfReference(object):
     pass
