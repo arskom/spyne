@@ -57,20 +57,6 @@ def _unwrap_messages(cls, skip_depth):
 
     return out_type
 
-def get_stream_factory(dir=None, delete=True):
-    def stream_factory(total_content_length, filename, content_type,
-                                                               content_length=None):
-        if total_content_length >= 512 * 1024 or delete == False:
-            if delete == False:
-                retval = tempfile.NamedTemporaryFile('wb+', dir=dir, delete=delete) # You need python >= 2.6 for this.
-            else:
-                retval = tempfile.NamedTemporaryFile('wb+', dir=dir)
-        else:
-            retval = StringIO()
-
-        return retval
-    return stream_factory
-
 
 class JsonObject(ProtocolBase):
     """An implementation of the json protocol that uses simplejson or json
@@ -135,7 +121,7 @@ class JsonObject(ProtocolBase):
 
     def doc_to_object(self, cls, doc):
         if doc is None:
-            return
+            return []
 
         if issubclass(cls, Array):
             retval = [ ]
@@ -296,7 +282,6 @@ class JsonObject(ProtocolBase):
             except: # to guard against e.g. sqlalchemy throwing NoSuchColumnError
                 sub_value = None
 
-
             if v.Attributes.max_occurs > 1:
                 if sub_value != None:
                     yield (k, [self.to_value(v,sv) for sv in sub_value])
@@ -308,21 +293,22 @@ class JsonObject(ProtocolBase):
         if issubclass(cls, ComplexModelBase):
             return self.to_dict(cls, value, k)
 
-        elif issubclass(cls, DateTime):
+        if issubclass(cls, DateTime):
             return cls.to_string(value)
 
-        elif issubclass(cls, Decimal):
+        if issubclass(cls, Decimal):
             if cls.Attributes.format is None:
                 return value
             else:
                 return cls.to_string(value)
-        else:
-            return value
+
+        return value
 
     def to_dict(self, cls, inst, field_name=None):
         inst = cls.get_serialization_instance(inst)
 
+        retval = dict(self.get_member_pairs(cls, inst))
         if field_name is None:
-            return dict(self.get_member_pairs(cls, inst))
+            return retval
         else:
-            return {field_name: dict(self.get_member_pairs(cls, inst))}
+            return {field_name: retval}
