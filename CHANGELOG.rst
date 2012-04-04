@@ -6,10 +6,14 @@ rpclib-2.8.0-beta
 -----------------
  * Add support for JsonObject protocol.
  * Make DateTime string format customizable.
- * Implement the server transport that exposes Application as a
+ * Implement the server transport that exposes ``Application`` as a
    ``twisted.web.resource.Resource`` child.
  * Remove Deprecated XMLAttribute and XMLAttributeRef. Use ``XmlAttribute``
    and ``XmlAttributeRef`` instead.
+ * Add a chapter about Validation to the manual.
+ * Full change log:
+    * https://github.com/arskom/rpclib/pull/128
+    * https://github.com/arskom/rpclib/pull/129
 
 rpclib-2.7.0-beta
 -----------------
