@@ -372,6 +372,7 @@ class ComplexModelBase(ModelBase):
         cls_name, cls_bases, cls_dict = cls._s_customize(cls, **kwargs)
 
         retval = type(cls_name, cls_bases, cls_dict)
+        retval._type_info = cls._type_info
 
         e = getattr(retval, '__extends__', None)
         if e != None:
