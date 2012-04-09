@@ -294,7 +294,7 @@ class InterfaceBase(object):
 
     def get_interface_document(self, cls):
         """This function is called by server transports that try to satisfy the
-        request for the interface document. This should just return previously
+        request for the interface document. This should just return a previously
         cached interface document.
         """
 
