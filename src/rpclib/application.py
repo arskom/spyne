@@ -48,20 +48,20 @@ class Application(object):
                          which is, by default, 'Application'.
 
     Supported events:
-        * method_call
+        * method_call:
             Called right before the service method is executed
 
-        * method_return_object
+        * method_return_object:
             Called right after the service method is executed
 
-        * method_exception_object
+        * method_exception_object:
             Called when an exception occurred in a service method, before the
             exception is serialized.
 
-        * method_context_constructed
+        * method_context_constructed:
             Called from the constructor of the MethodContext instance.
 
-        * method_context_destroyed
+        * method_context_destroyed:
             Called from the destructor of the MethodContext instance.
     '''
 

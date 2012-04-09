@@ -155,9 +155,6 @@ class InterfaceBase(object):
         the used objects.
         """
 
-        # FIXME: should also somehow freeze child classes' _type_info
-        #        dictionaries, or at least warn about them.
-
         self.reset_interface()
 
         classes = []
@@ -272,6 +269,7 @@ class InterfaceBase(object):
 
         else:
             pref = self.prefmap[ns]
+
         return pref
 
     def add(self, cls):

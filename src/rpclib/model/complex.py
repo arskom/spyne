@@ -449,8 +449,10 @@ class Array(ComplexModel):
 
 
 class Iterable(Array):
-    """This class generates a ComplexModel child that has one attribute that has
-    the same name as the serialized class. It's contained in a Python iterable.
+    """This class generates a ``ComplexModel`` child that has one attribute that
+    has the same name as the serialized class. It's contained in a Python
+    iterable. The distinction with the ``Array`` is made in the protocol
+    implementation, this is just a marker.
     """
 
 class Alias(ComplexModel):
