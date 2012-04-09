@@ -370,6 +370,7 @@ class ComplexModelBase(ModelBase):
         ``**kwargs`` and returns the new class."""
 
         cls_name, cls_bases, cls_dict = cls._s_customize(cls, **kwargs)
+        cls_dict['__module__'] = cls.__module__
 
         retval = type(cls_name, cls_bases, cls_dict)
         retval._type_info = cls._type_info
