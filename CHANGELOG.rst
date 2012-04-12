@@ -10,6 +10,7 @@ rpclib-2.8.0-beta
    ``twisted.web.resource.Resource`` child.
  * Remove Deprecated XMLAttribute and XMLAttributeRef. Use ``XmlAttribute``
    and ``XmlAttributeRef`` instead.
+ * Xml Schema: Add support for the <any> tag.
  * Add a chapter about Validation to the manual.
  * Full change log:
     * https://github.com/arskom/rpclib/pull/128
