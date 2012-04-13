@@ -41,12 +41,12 @@ from sqlalchemy.ext.declarative import DeclarativeMeta
 
 from sqlalchemy.dialects.postgresql import UUID
 
-from rpclib.model.complex import TypeInfo
-from rpclib.model.complex import ComplexModelBase
-from rpclib.model.complex import ComplexModelMeta
 from rpclib.model import primitive
 from rpclib.model import binary
 from rpclib.model import complex
+from rpclib.model.complex import TypeInfo
+from rpclib.model.complex import ComplexModelBase
+from rpclib.model.complex import ComplexModelMeta
 
 
 _type_map = {
