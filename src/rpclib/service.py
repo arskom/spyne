@@ -71,7 +71,7 @@ class ServiceBase(object):
     It is a natural abstract base class, because it's of no use without any
     method definitions, hence the 'Base' suffix in the name.
 
-    The WsgiApplication class supports the following events:
+    This class supports the following events:
         * ``method_call``
             Called right before the service method is executed
 

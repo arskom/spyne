@@ -30,7 +30,7 @@ from rpclib.server import ServerBase
 
 class NullServer(ServerBase):
     """A server that doesn't support any transport at all -- it's implemented
-    for testing services without running a server.
+    to test services without having to run a server.
     """
 
     transport = 'noconn://null.rpclib'
@@ -99,8 +99,8 @@ class _FunctionCall(object):
                     try:
                         retval.__ctx__ = ctx
                     except AttributeError:
-                        # not all objects let this happen. (eg. built-in types like str)
-                        # which don't need the context anyway.
+                        # not all objects let this happen. (eg. built-in types
+                        # like str) which don't need the context anyway.
                         pass
 
                 else:
