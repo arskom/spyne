@@ -35,7 +35,7 @@ from rpclib.decorator import srpc
 from rpclib.service import ServiceBase
 from rpclib.model.complex import Iterable
 from rpclib.model.primitive import Integer
-from rpclib.model.primitive import String
+from rpclib.model.primitive import Unicode
 
 from rpclib.util.simple import wsgi_soap_application
 
@@ -68,7 +68,7 @@ Here's how to call it using suds:
 '''
 
 class HelloWorldService(ServiceBase):
-    @srpc(String, Integer, _returns=Iterable(String))
+    @srpc(Unicode, Integer, _returns=Iterable(Unicode))
     def say_hello(name, times):
         '''
         Docstrings for service methods appear as documentation in the wsdl
@@ -79,7 +79,7 @@ class HelloWorldService(ServiceBase):
         '''
 
         for i in range(times):
-            yield 'Hello, %s' % name
+            yield u'Hello, %s' % name
 
 if __name__=='__main__':
     logging.basicConfig(level=logging.DEBUG)
