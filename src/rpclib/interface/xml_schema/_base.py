@@ -216,62 +216,7 @@ class XmlSchema(InterfaceBase):
         else:
             return InterfaceBase.has_class(self, cls)
 
-    # FIXME: this is an ugly hack. we need proper dependency management
-    def __check_imports(self, cls, node):
-        pref_tns = cls.get_namespace_prefix(self)
-
-        def is_valid_import(pref):
-            return pref != pref_tns and (
-                    self.import_base_namespaces or
-                    (not (pref in rpclib.const.xml_ns.const_nsmap))
-                )
-
-        if not (pref_tns in self.imports):
-            self.imports[pref_tns] = set()
-
-        for c in node:
-            if c.tag == "{%s}complexContent" % _ns_xsd:
-                extension = c.getchildren()[0]
-
-                if extension.tag == '{%s}extension' % _ns_xsd:
-                    pref = extension.attrib['base'].split(':')[0]
-                    if is_valid_import(pref):
-                        self.imports[pref_tns].add(self.nsmap[pref])
-                    seq = extension.getchildren()[0]
-
-                else:
-                    seq = c.getchildren()[0]
-
-            else:
-                seq = c
-
-            if seq.tag == '{%s}sequence' % _ns_xsd:
-                for e in seq:
-                    if e.tag == '{%s}element' % _ns_xsd :
-                        pref = e.attrib['type'].split(':')[0]
-                        if is_valid_import(pref):
-                            self.imports[pref_tns].add(self.nsmap[pref])
-
-            elif seq.tag == '{%s}restriction' % _ns_xsd:
-                pref = seq.attrib['base'].split(':')[0]
-                if is_valid_import(pref):
-                    self.imports[pref_tns].add(self.nsmap[pref])
-
-            elif seq.tag == '{%s}attribute' % _ns_xsd:
-                typ = seq.get('type', '')
-                t_pref = typ.split(':')[0]
-
-                if t_pref and is_valid_import(t_pref):
-                    self.imports[pref_tns].add(self.nsmap[t_pref])
-
-                ref = seq.get('ref', '')
-                r_pref = ref.split(':')[0]
-
-                if r_pref and is_valid_import(r_pref):
-                    self.imports[pref_tns].add(self.nsmap[r_pref])
-
-            elif seq.tag == '{%s}annotation' % _ns_xsd:
-                pass
-
-            else:
-                raise Exception("i guess you need to hack some more")
+    def is_valid_import(self, pref):
+        return (self.import_base_namespaces or
+                (not (pref in rpclib.const.xml_ns.const_nsmap))
+            )

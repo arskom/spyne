@@ -85,14 +85,11 @@ class Application(object):
         self.out_protocol.set_app(self)
 
         if interface is None:
-            from rpclib.interface.wsdl import Wsdl11
-            interface = Wsdl11()
+            from rpclib.interface import Interface
+            interface = Interface()
 
         self.interface = interface
         self.interface.set_app(self)
-
-        self.__public_methods = {}
-        self.__classes = {}
 
         self.event_manager = EventManager(self)
         self.error_handler = None

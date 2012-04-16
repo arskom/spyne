@@ -40,7 +40,7 @@ class SchemaInfo(object):
         self.elements = odict()
         self.types = odict()
 
-class InterfaceBase(object):
+class Interface(object):
     """The base class for all interface document generators."""
 
     def __init__(self, app=None):
@@ -299,3 +299,50 @@ class InterfaceBase(object):
         """
 
         raise NotImplementedError('Extend and override.')
+
+    def add_simple_type(self, cls, node):
+        ns = cls.get_namespace()
+        tn = cls.get_type_name()
+        pref = cls.get_namespace_prefix(self)
+
+        self.__check_imports(cls, node)
+        schema_info = self.get_schema_info(pref)
+        schema_info.types[tn] = node
+
+        class_key = '{%s}%s' % (ns, tn)
+        logger.debug('\tadding class %r for %r' % (repr(cls), class_key))
+
+        self.classes[class_key] = cls
+        if ns == self.get_tns():
+            self.classes[tn] = cls
+
+    def add_complex_type(self, cls, node):
+        ns = cls.get_namespace()
+        tn = cls.get_type_name()
+        pref = cls.get_namespace_prefix(self)
+
+        self.__check_imports(cls, node)
+        schema_info = self.get_schema_info(pref)
+        schema_info.types[tn] = node
+
+        class_key = '{%s}%s' % (ns, tn)
+        logger.debug('\tadding class %r for %r' % (repr(cls), class_key))
+
+        self.classes[class_key] = cls
+        if ns == self.get_tns():
+            self.classes[tn] = cls
+
+    def is_valid_import(self, ns):
+        return True
+
+    def do_imports(self, cls):
+        own_namespace = cls.get_namespace()
+
+        if not (own_namespace in self.imports):
+            self.imports[own_namespace] = set()
+
+        for v in cls._type_info.values():
+            ns = v.get_namespace()
+
+            if ns != own_namespace and self.is_valid_import(ns):
+                self.imports[own_namespace].add(ns)

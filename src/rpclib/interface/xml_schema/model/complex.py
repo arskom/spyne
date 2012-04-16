@@ -131,9 +131,11 @@ def complex_add(interface, cls):
 
         interface.add_element(cls, element)
 
+
 def alias_add(interface, cls):
     if not interface.has_class(cls._target):
         interface.add(cls._target)
+
     element = etree.Element('{%s}element' % namespace.xsd)
     element.set('name', cls.get_type_name())
     element.set('type', cls._target.get_type_name_ns(interface.app))
