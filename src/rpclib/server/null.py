@@ -70,6 +70,7 @@ class _FunctionCall(object):
         initial_ctx.method_request_string = self.__key
         initial_ctx.in_header = self.__in_header
         initial_ctx.in_object = args
+        initial_ctx.transport.type = NullServer.transport
 
         contexts = self.app.in_protocol.generate_method_contexts(initial_ctx)
         for ctx in contexts:
