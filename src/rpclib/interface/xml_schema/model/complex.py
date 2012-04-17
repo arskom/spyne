@@ -97,16 +97,17 @@ def complex_add(interface, cls):
                 member.set('name', k)
                 member.set('type', v.get_type_name_ns(interface))
 
-            elif v.Attributes.schema_tag == '{%s}any' % namespace.xsd and \
-                    (v is AnyXml or
-                        (hasattr(v, '_is_clone_of') and v._is_clone_of is AnyXml)):
+            elif (v.Attributes.schema_tag == '{%s}any' % namespace.xsd) and \
+                                                       issubclass(v, AnyXml):
+
                 if v.Attributes.namespace is not None:
                     member.set('namespace', v.Attributes.namespace)
                 if v.Attributes.process_contents is not None:
                     member.set('processContents', v.Attributes.process_contents)
 
             else:
-                raise ValueError("Unhandled schema_tag / type combination.")
+                raise ValueError("Unhandled schema_tag / type combination. %r"
+                        % ([v, v.Attributes.schema_tag]))
 
             if v.Attributes.min_occurs != 1: # 1 is the xml schema default
                 member.set('minOccurs', str(v.Attributes.min_occurs))
