@@ -28,10 +28,12 @@ from rpclib.application import Application
 from rpclib.decorator import srpc
 from rpclib.model.primitive import Integer
 from rpclib.model.primitive import String
+from rpclib.model.complex import Array
 from rpclib.model.complex import ComplexModel
 from rpclib.interface.wsdl import Wsdl11
 from rpclib.protocol.http import HttpRpc
 from rpclib.protocol.html import HtmlMicroFormat
+from rpclib.protocol.html import HtmlTable
 from rpclib.service import ServiceBase
 from rpclib.server.wsgi import WsgiMethodContext
 from rpclib.server.wsgi import WsgiApplication
@@ -80,7 +82,6 @@ class TestHtmlMicroFormat(unittest.TestCase):
             'PATH_INFO': '/some_call',
             'REQUEST_METHOD': 'GET',
         }, 'some-content-type')
-
 
         ctx, = server.generate_contexts(initial_ctx)
         server.get_in_object(ctx)
@@ -187,6 +188,3 @@ class TestHtmlMicroFormat(unittest.TestCase):
         server.get_out_string(ctx)
 
         assert ''.join(ctx.out_string) == '<div class="some_callResponse"><div class="some_callResult">1\n2</div></div>'
-
-if __name__ == '__main__':
-    unittest.main()
