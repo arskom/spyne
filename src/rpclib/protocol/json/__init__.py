@@ -43,22 +43,17 @@ except ImportError:
         from io import StringIO
 
 from rpclib.error import ValidationError
+
 from rpclib.model.fault import Fault
 from rpclib.model.complex import ComplexModelBase
 from rpclib.model.complex import Array
 from rpclib.model.primitive import DateTime
 from rpclib.model.primitive import Decimal
 from rpclib.model.primitive import Unicode
+
 from rpclib.protocol import ProtocolBase
-
-
-def _unwrap_messages(cls, skip_depth):
-    out_type = cls
-    for i in range(skip_depth):
-        if len(out_type._type_info) == 1:
-            out_type = out_type._type_info[0]
-
-    return out_type
+from rpclib.protocol._base import unwrap_messages
+from rpclib.protocol._base import unwrap_instance
 
 
 class JsonObject(ProtocolBase):
@@ -67,19 +62,6 @@ class JsonObject(ProtocolBase):
     """
 
     mime_type = 'application/json'
-
-    def __init__(self, app=None, validator=None, skip_depth=0):
-        """
-        :param app: The Application definition.
-        :param validator: Validator type. One of ('soft', None).
-        :param skip_depth: Number of wrapper classes to ignore. This is
-        typically one of (0, 1, 2) but higher numbers may also work for your
-        case.
-        """
-
-        ProtocolBase.__init__(self, app, validator)
-
-        self.skip_depth = skip_depth
 
     def set_validator(self, validator):
         """Sets the validator for the protocol.
@@ -204,12 +186,12 @@ class JsonObject(ProtocolBase):
 
         # instantiate the result message
         if message is self.REQUEST:
-            in_type = _unwrap_messages(ctx.descriptor.in_message,
+            body_class = unwrap_messages(ctx.descriptor.in_message,
                                                                 self.skip_depth)
         elif message is self.RESPONSE:
-            in_type = _unwrap_messages(ctx.descriptor.out_message,
+            body_class = unwrap_messages(ctx.descriptor.out_message,
                                                                 self.skip_depth)
-        if in_type:
+        if body_class:
             # assign raw result to its wrapper, result_message
             result_message_class = ctx.descriptor.in_message
             value = ctx.in_body_doc.get(result_message_class.get_type_name(), None)
@@ -250,14 +232,10 @@ class JsonObject(ProtocolBase):
                 setattr(out_instance, attr_name, ctx.out_object[i])
 
             # strip the wrappers if asked for
-            for i in range(self.skip_depth):
-                if len(out_type._type_info) == 1:
-                    (k,out_type), = out_type._type_info.items()
-                    if issubclass(out_type, ComplexModelBase):
-                        out_instance = getattr(out_instance, k)
-                else:
-                    break
+            out_type, out_instance = unwrap_instance(out_type, out_instance, self.skip_depth)
 
+            # arrays get wrapped in [], whereas other objects get wrapped in
+            # {object_name: ...}
             wrapper_name = None
             if not issubclass(out_type, Array):
                 wrapper_name = out_type.get_type_name()

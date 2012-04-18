@@ -42,6 +42,31 @@ from rpclib.error import ValidationError
 
 from rpclib.model.binary import File
 from rpclib.model.binary import ByteArray
+from rpclib.model.complex import ComplexModelBase
+
+
+def unwrap_messages(cls, skip_depth):
+    out_type = cls
+    for i in range(skip_depth):
+        if len(out_type._type_info) == 1:
+            out_type = out_type._type_info[0]
+
+    return out_type
+
+
+def unwrap_instance(cls, inst, skip_depth):
+    out_type = cls
+    out_instance = inst
+
+    for i in range(skip_depth):
+        if len(out_type._type_info) == 1:
+            (k, out_type), = out_type._type_info.items()
+            if issubclass(out_type, ComplexModelBase):
+                out_instance = getattr(out_instance, k)
+        else:
+            break
+
+    return out_type, out_instance
 
 
 class ProtocolBase(object):
@@ -70,7 +95,7 @@ class ProtocolBase(object):
     REQUEST = type("request", (object,), {})
     RESPONSE = type("response", (object,), {})
 
-    def __init__(self, app=None, validator=None, mime_type=None):
+    def __init__(self, app=None, validator=None, mime_type=None, skip_depth=0):
         """The arguments the constructor takes are as follows:
 
         :param app: The application this protocol belongs to.
@@ -79,6 +104,9 @@ class ProtocolBase(object):
         :param mime_type: The mime_type this protocol should set for transports
             that support this. This is a quick way to override the mime_type by
             default instead of subclassing the releavant protocol implementation.
+        :param skip_depth: Number of wrapper classes to ignore. This is
+        typically one of (0, 1, 2) but higher numbers may also work for your
+        case.
         """
 
         self.__app = None
@@ -87,6 +115,7 @@ class ProtocolBase(object):
         self.set_app(app)
         self.event_manager = EventManager(self)
         self.set_validator(validator)
+        self.skip_depth = skip_depth
         if mime_type is not None:
             self.mime_type = mime_type
 
