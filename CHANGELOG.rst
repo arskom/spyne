@@ -12,6 +12,10 @@ rpclib-2.8.0-beta
    and ``XmlAttributeRef`` instead.
  * Xml Schema: Add support for the <any> tag.
  * Add a chapter about Validation to the manual.
+ * Interface documents are no longer subclasses of InterfaceBase. It's up
+   to the transport to expose the application using a given interface document
+   standard now. The ``interface`` argument to the ``Application`` ctor is
+   now ignored.
  * Full change log:
     * https://github.com/arskom/rpclib/pull/128
     * https://github.com/arskom/rpclib/pull/129

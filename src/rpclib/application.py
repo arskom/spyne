@@ -39,8 +39,7 @@ class Application(object):
                          the exposed services.
     :param tns:          The targetNamespace attribute of the exposed
                          service.
-    :param interface:    An :class:`InterfaceDocumentBase` instance that sets
-                         the service definition document standard.
+    :param interface:    Ignored.
     :param in_protocol:  A ProtocolBase instance that defines the input
                          protocol.
     :param out_protocol: A ProtocolBase instance that defines the output
