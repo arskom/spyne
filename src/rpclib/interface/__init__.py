@@ -18,3 +18,5 @@
 #
 
 from rpclib.interface._base import Interface
+from rpclib.interface._base import InterfaceDocumentBase
+

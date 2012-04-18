@@ -50,6 +50,7 @@ def string_get_restriction_tag(interface, cls):
 
     return restriction
 
+
 def decimal_get_restriction_tag(interface, cls):
     restriction = simple_get_restriction_tag(interface, cls)
 

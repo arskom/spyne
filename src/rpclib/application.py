@@ -27,7 +27,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 from rpclib.model.fault import Fault
+from rpclib.interface import Interface
 from rpclib._base import EventManager
+
 
 class Application(object):
     '''This class is the glue between one or more service definitions,
@@ -37,8 +39,8 @@ class Application(object):
                          the exposed services.
     :param tns:          The targetNamespace attribute of the exposed
                          service.
-    :param interface:    An InterfaceBase instance that sets the service
-                         definition document standard.
+    :param interface:    An :class:`InterfaceDocumentBase` instance that sets
+                         the service definition document standard.
     :param in_protocol:  A ProtocolBase instance that defines the input
                          protocol.
     :param out_protocol: A ProtocolBase instance that defines the output
@@ -78,21 +80,15 @@ class Application(object):
         if self.name is None:
             self.name = self.__class__.__name__.split('.')[-1]
 
-        self.in_protocol = in_protocol
-        self.in_protocol.set_app(self)
-
-        self.out_protocol = out_protocol
-        self.out_protocol.set_app(self)
-
-        if interface is None:
-            from rpclib.interface import Interface
-            interface = Interface()
-
-        self.interface = interface
-        self.interface.set_app(self)
-
         self.event_manager = EventManager(self)
         self.error_handler = None
+
+        self.interface = Interface(self)
+        self.in_protocol = in_protocol
+        self.out_protocol = out_protocol
+
+        self.in_protocol.set_app(self)
+        self.out_protocol.set_app(self)
 
     def process_request(self, ctx):
         """Takes a MethodContext instance. Returns the response to the request
@@ -116,9 +112,9 @@ class Application(object):
             if len(ctx.descriptor.out_message._type_info) == 0:
                 ctx.out_object = [None]
             elif len(ctx.descriptor.out_message._type_info) == 1:
+                # otherwise, the return value should already be wrapped in an
+                # iterable.
                 ctx.out_object = [ctx.out_object]
-            # otherwise, the return value should already be wrapped in an
-            # iterable.
 
             # fire events
             self.event_manager.fire_event('method_return_object', ctx)

@@ -17,9 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from rpclib.protocol._base import ProtocolBase
 import datetime
 import unittest
+import hashlib
 
 from lxml import etree
 
@@ -33,6 +33,7 @@ from rpclib.model.primitive import DateTime
 from rpclib.model.primitive import Float
 from rpclib.model.primitive import Integer
 from rpclib.model.primitive import String
+from rpclib.protocol import ProtocolBase
 from rpclib.protocol.xml import XmlObject
 from rpclib.test import FakeApp
 

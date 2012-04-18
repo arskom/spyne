@@ -20,49 +20,54 @@
 
 """This module contains the InterfaceBase class and its helper objects."""
 
-
 import logging
 logger = logging.getLogger(__name__)
 
 import warnings
-from rpclib.util.odict import odict
-
-import rpclib.const.xml_ns
-_ns_xsd = rpclib.const.xml_ns.xsd
 
 from rpclib import EventManager
 from rpclib.const.suffix import TYPE_SUFFIX
 from rpclib.const.suffix import RESULT_SUFFIX
 from rpclib.const.suffix import RESPONSE_SUFFIX
+from rpclib.const import xml_ns as namespace
+from rpclib.model import ModelBase
+from rpclib.model.complex import ComplexModelBase
 
-class SchemaInfo(object):
-    def __init__(self):
-        self.elements = odict()
-        self.types = odict()
 
 class Interface(object):
     """The base class for all interface document generators."""
 
-    def __init__(self, app=None):
+    def __init__(self, app=None, import_base_namespaces=False):
         self.__ns_counter = 0
+        self.import_base_namespaces = import_base_namespaces
 
         self.service_method_map = {}
         self.url = None
         self.event_manager = EventManager(self)
 
         self.__app = None
-        self.set_app(app)
+        
+        self.classes = {}
+        self.imports = {}
+        self.nsmap = {}
+        self.prefmap = {}
+        self.__app = app
 
-    def set_app(self, value):
-        assert self.__app is None, "One interface instance should belong to one " \
-                                   "application instance."
-
-        self.__app = value
+        self.reset_interface()
         self.populate_interface()
 
-    @property
-    def app(self):
+    def set_app(self, value):
+        assert self.__app is None, "One interface instance can belong to only " \
+                                   "one application instance."
+
+        self.__app = value
+        self.reset_interface()
+        self.populate_interface()
+
+    def get_app(self):
         return self.__app
+
+    app = property(get_app, set_app)
 
     @property
     def services(self):
@@ -71,10 +76,10 @@ class Interface(object):
         return []
 
     def reset_interface(self):
-        self.namespaces = odict()
         self.classes = {}
-        self.imports = {}
+        self.imports = {self.get_tns(): set()}
 
+        import rpclib.const.xml_ns
         self.nsmap = dict(rpclib.const.xml_ns.const_nsmap)
         self.prefmap = dict(rpclib.const.xml_ns.const_prefmap)
 
@@ -85,24 +90,7 @@ class Interface(object):
         """Returns true if the given class is already included in the interface
         object somewhere."""
 
-        ns_prefix = cls.get_namespace_prefix(self)
-        type_name = cls.get_type_name()
-        return ((ns_prefix in self.namespaces) and
-                           (type_name in self.namespaces[ns_prefix].types))
-
-    def get_schema_info(self, prefix):
-        """Returns the SchemaInfo object for the corresponding namespace. It
-        creates it if it doesn't exist.
-
-        The SchemaInfo object holds the simple and complex type definitions
-        for a given namespace."""
-
-        if prefix in self.namespaces:
-            schema = self.namespaces[prefix]
-        else:
-            schema = self.namespaces[prefix] = SchemaInfo()
-
-        return schema
+        return ('{%s}%s' % (cls.get_namespace(), cls.get_type_name())) in self.classes
 
     def get_class(self, key):
         """Returns the class definition that corresponds to the given key.
@@ -143,10 +131,10 @@ class Interface(object):
     def __test_type_name_validity(self, c):
         if c and  ( c.get_type_name().endswith(RESULT_SUFFIX) or
                     c.get_type_name().endswith(RESPONSE_SUFFIX) ):
-                raise Exception("You can't use any type or method name ending "
-                                "with one of %r unless you should alter the "
-                                "constants in the 'rpclib.const.suffix' module.\n"
-                                "This is for class %r."
+            raise Exception("You can't use any type or method name ending "
+                            "with one of %r unless you should alter the "
+                            "constants in the 'rpclib.const.suffix' module.\n"
+                            "This is for class %r."
                             % ((TYPE_SUFFIX, RESULT_SUFFIX, RESPONSE_SUFFIX),c))
 
     def populate_interface(self, types=None):
@@ -155,8 +143,6 @@ class Interface(object):
         the used objects.
         """
 
-        self.reset_interface()
-
         classes = []
         # populate types
         for s in self.services:
@@ -164,7 +150,6 @@ class Interface(object):
                                                 s.__name__, s.get_service_key()))
 
             for method in s.public_methods.values():
-
                 if method.in_header is None:
                     method.in_header = s.__in_header__
                 if method.out_header is None:
@@ -212,8 +197,9 @@ class Interface(object):
                                                                  self.get_tns())
                 classes.append(method.out_message)
 
+        classes.sort(key=lambda cls: (cls.get_namespace(), cls.get_type_name()))
         for c in classes:
-            self.add(c)
+            self.add_class(c)
 
         # populate call routes
         for s in self.services:
@@ -272,7 +258,7 @@ class Interface(object):
 
         return pref
 
-    def add(self, cls):
+    def add_class(self, cls):
         """This function is called by the populate_interface logic, which
         expects you to implement a way to manage incoming classes.
 
@@ -280,7 +266,52 @@ class Interface(object):
         children.
         """
 
-        raise NotImplementedError('Extend and override.')
+        if self.has_class(cls):
+            return
+
+        ns = cls.get_namespace()
+        tn = cls.get_type_name()
+
+        if not (ns in self.imports):
+            self.imports[ns] = set()
+
+        extends = getattr(cls, '__extends__', None)
+        if not (extends is None):
+            self.add_class(extends)
+            parent_ns = extends.get_namespace()
+            if not parent_ns in self.imports[ns]:
+                self.imports[ns].add(parent_ns)
+                logger.debug("\timporting %r to %r because %r extends %r" % (
+                    parent_ns, ns, cls.get_type_name(), extends.get_type_name()))
+
+        class_key = '{%s}%s' % (ns, tn)
+        logger.debug('\tadding class %r for %r' % (repr(cls), class_key))
+        self.classes[class_key] = cls
+
+        if ns == self.get_tns():
+            self.classes[tn] = cls
+
+        if issubclass(cls, ComplexModelBase):
+            # FIXME: this looks like a hack.
+            if cls.get_type_name() is ModelBase.Empty:
+                (child, ) = cls._type_info.values()
+                cls.__type_name__ = '%sArray' % child.get_type_name()
+
+            for k,v in cls._type_info.items():
+                self.add_class(v)
+                child_ns = v.get_namespace()
+                if child_ns != ns and not child_ns in self.imports[ns] and \
+                                                self.is_valid_import(child_ns):
+                    self.imports[ns].add(child_ns)
+                    logger.debug("\timporting %r to %r for %s.%s(%r)" %
+                                      (child_ns, ns, cls.get_type_name(), k, v))
+
+    def is_valid_import(self, ns):
+        return self.import_base_namespaces or not (ns in namespace.const_prefmap)
+
+class InterfaceDocumentBase(object):
+    def __init__(self, interface):
+        self.interface = interface
 
     def build_interface_document(self, cls):
         """This function is supposed to be called just once, as late as possible
@@ -299,50 +330,3 @@ class Interface(object):
         """
 
         raise NotImplementedError('Extend and override.')
-
-    def add_simple_type(self, cls, node):
-        ns = cls.get_namespace()
-        tn = cls.get_type_name()
-        pref = cls.get_namespace_prefix(self)
-
-        self.__check_imports(cls, node)
-        schema_info = self.get_schema_info(pref)
-        schema_info.types[tn] = node
-
-        class_key = '{%s}%s' % (ns, tn)
-        logger.debug('\tadding class %r for %r' % (repr(cls), class_key))
-
-        self.classes[class_key] = cls
-        if ns == self.get_tns():
-            self.classes[tn] = cls
-
-    def add_complex_type(self, cls, node):
-        ns = cls.get_namespace()
-        tn = cls.get_type_name()
-        pref = cls.get_namespace_prefix(self)
-
-        self.__check_imports(cls, node)
-        schema_info = self.get_schema_info(pref)
-        schema_info.types[tn] = node
-
-        class_key = '{%s}%s' % (ns, tn)
-        logger.debug('\tadding class %r for %r' % (repr(cls), class_key))
-
-        self.classes[class_key] = cls
-        if ns == self.get_tns():
-            self.classes[tn] = cls
-
-    def is_valid_import(self, ns):
-        return True
-
-    def do_imports(self, cls):
-        own_namespace = cls.get_namespace()
-
-        if not (own_namespace in self.imports):
-            self.imports[own_namespace] = set()
-
-        for v in cls._type_info.values():
-            ns = v.get_namespace()
-
-            if ns != own_namespace and self.is_valid_import(ns):
-                self.imports[own_namespace].add(ns)
