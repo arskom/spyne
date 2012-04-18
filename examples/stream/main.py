@@ -75,15 +75,24 @@ header_socket = "tcp://127.0.0.1:5679"
 # FIXME: Does not support audio. I imagine some small tweak to the below gst
 # pipeline would "Just Work". Patches are welcome!
 
+v4l2_pipeline = (
+    'v4l2src device=%s '
+    '! video/x-raw-yuv,width=640,height=480 '
+    '! videoscale ! video/x-raw-yuv, width=400, height=300 '
+    '! videorate ! video/x-raw-yuv,framerate=25/2 '
+    '! ffmpegcolorspace '
+    '! theoraenc quality=32 ! oggmux ! appsink name=sink sync=False' % video_device)
+
+# use this if you want to publish your screen.
+xsrc_pipeline = (
+    'ximagesrc '
+    '! video/x-raw-rgb,framerate=2/1 '
+    '! ffmpegcolorspace '
+    '! theoraenc quality=32 ! oggmux ! appsink name=sink sync=False' )
+
 def camera_publisher():
     # init gst
-    pipeline = gst.parse_launch('v4l2src device=%s '
-            '! video/x-raw-yuv,width=640,height=480 '
-            '! videoscale ! video/x-raw-yuv, width=400, height=300 '
-            '! videorate ! video/x-raw-yuv,framerate=25/2 '
-            '! ffmpegcolorspace '
-            '! theoraenc quality=32 ! oggmux ! appsink name=sink sync=False' % video_device
-        )
+    pipeline = gst.parse_launch(xsrc_pipeline)
     pipeline.set_state(gst.STATE_PLAYING)
     appsink = pipeline.get_by_name('sink')
     buffer = appsink.emit('pull-preroll')
