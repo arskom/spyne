@@ -267,9 +267,9 @@ class XmlObject(ProtocolBase):
         self.validation_schema = None
 
         if value:
-            from rpclib.interface.wsdl import Wsdl11
+            from rpclib.interface.xml_schema import XmlSchema
 
-            wsdl = Wsdl11(value)
+            wsdl = XmlSchema(value.interface)
             wsdl.build_validation_schema()
 
             self.validation_schema = wsdl.validation_schema

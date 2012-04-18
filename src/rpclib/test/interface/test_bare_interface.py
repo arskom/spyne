@@ -17,48 +17,26 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import logging
+
+from rpclib.model.primitive import UnsignedInteger16
 import unittest
 
 from rpclib.application import Application
-from rpclib.const import xml_ns as ns
 from rpclib.decorator import rpc
 from rpclib.model.complex import Array
 from rpclib.model.complex import ComplexModel
 from rpclib.model.primitive import AnyXml
-from rpclib.model.primitive import DateTime
-from rpclib.model.primitive import Integer
-from rpclib.model.primitive import Unicode
 from rpclib.model.primitive import UnsignedLong
+from rpclib.model.primitive import Integer
+from rpclib.model.primitive import DateTime
+from rpclib.model.primitive import Unicode
 from rpclib.protocol.http import HttpRpc
 from rpclib.protocol.soap import Soap11
 from rpclib.service import ServiceBase
-from rpclib.util.xml import get_schema_documents
 
 
-class TestXmlSchema(unittest.TestCase):
-    def test_any_tag(self):
-        logging.basicConfig(level=logging.DEBUG)
-
-        class SomeType(ComplexModel):
-            __namespace__ = "zo"
-
-            anything = AnyXml(schema_tag='{%s}any' % ns.xsd, namespace='##other',
-                                                         process_contents='lax')
-
-        from lxml import etree
-
-        #import ipdb; ipdb.set_trace()
-
-        docs = get_schema_documents([SomeType])
-        print etree.tostring(docs['tns'], pretty_print=True)
-        any = docs['tns'].xpath('//xsd:any', namespaces={'xsd': ns.xsd})
-
-        assert len(any) == 1
-        assert any[0].attrib['namespace'] == '##other'
-        assert any[0].attrib['processContents'] == 'lax'
-
-    def test_interface(self):
+class TestInterface(unittest.TestCase):
+    def test_imports(self):
         import logging
         logging.basicConfig(level=logging.DEBUG)
         class KeyValuePair(ComplexModel):
@@ -75,24 +53,44 @@ class TestXmlSchema(unittest.TestCase):
             __namespace__ = "3"
             a = AnyXml
             b = UnsignedLong
-            se = Something
+            s = Something
 
-        class Service(ServiceBase):
+        class BetterSomething(Something):
+            __namespace__ = "4"
+            k = UnsignedInteger16
+
+        class Service1(ServiceBase):
             @rpc(SomethingElse, _returns=Array(KeyValuePair))
             def some_call(ctx, sth):
                 pass
 
-        application = Application([Service],
+        class Service2(ServiceBase):
+            @rpc(BetterSomething, _returns=Array(KeyValuePair))
+            def some_other_call(ctx, sth):
+                pass
+
+        application = Application([Service1, Service2],
             in_protocol=HttpRpc(),
             out_protocol=Soap11(),
             name='Service', tns='target_namespace'
         )
 
         imports = application.interface.imports
+        tns = application.interface.get_tns()
         smm = application.interface.service_method_map
+        print imports
 
-        print smm
+        assert imports[tns] == set(['1','3','4'])
+        assert imports['3'] == set(['2'])
+        assert imports['4'] == set(['2'])
 
-        raise NotImplementedError('test something!')
+        assert smm['{%s}some_call' % tns]
+        assert smm['{%s}some_call' % tns][0][0] == Service1
+        assert smm['{%s}some_call' % tns][0][1].function == Service1.some_call
+
+        assert smm['{%s}some_other_call' % tns]
+        assert smm['{%s}some_other_call' % tns][0][0] == Service2
+        assert smm['{%s}some_other_call' % tns][0][1].function == Service2.some_other_call
+
 if __name__ == '__main__':
     unittest.main()

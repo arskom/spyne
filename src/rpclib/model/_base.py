@@ -160,12 +160,12 @@ class ModelBase(object):
         return retval
 
     @classmethod
-    def get_type_name_ns(cls, app):
+    def get_type_name_ns(cls, interface):
         """Returns the type name with a namespace prefix, separated by a column.
         """
 
         if cls.get_namespace() != None:
-            return "%s:%s" % (cls.get_namespace_prefix(app), cls.get_type_name())
+            return "%s:%s" % (cls.get_namespace_prefix(interface), cls.get_type_name())
 
     @classmethod
     @nillable_string

@@ -34,15 +34,6 @@ except ImportError: # Python 3
 
 from werkzeug.formparser import parse_form_data
 
-def _get_http_headers(req_env):
-    retval = {}
-
-    for k, v in req_env.items():
-        if k.startswith("HTTP_"):
-            retval[k[5:].lower()]= [v]
-
-    return retval
-
 from rpclib.server.http import HttpMethodContext
 from rpclib.server.http import HttpTransportContext
 
@@ -54,6 +45,16 @@ from rpclib.server.http import HttpBase
 from rpclib.const.http import HTTP_200
 from rpclib.const.http import HTTP_405
 from rpclib.const.http import HTTP_500
+
+
+def _get_http_headers(req_env):
+    retval = {}
+
+    for k, v in req_env.items():
+        if k.startswith("HTTP_"):
+            retval[k[5:].lower()]= [v]
+
+    return retval
 
 
 class WsgiTransportContext(HttpTransportContext):
@@ -114,6 +115,7 @@ class WsgiApplication(HttpBase):
             "POST": self.handle_rpc,
         }
         self._mtx_build_interface_document = threading.Lock()
+        self._wsdl = None
 
     def __call__(self, req_env, start_response, wsgi_url=None):
         '''This method conforms to the WSGI spec for callable wsgi applications
@@ -156,40 +158,43 @@ class WsgiApplication(HttpBase):
 
     def __handle_wsdl_request(self, req_env, start_response, url):
         ctx = WsgiMethodContext(self, req_env, 'text/xml; charset=utf-8')
-        try:
-            ctx.transport.wsdl = self.app.interface.get_interface_document()
+        
+        ctx.transport.wsdl = self._wsdl
 
-            if ctx.transport.wsdl is None:
+        if ctx.transport.wsdl is None:
+            try:
                 self._mtx_build_interface_document.acquire()
     
-                ctx.transport.wsdl = self.app.interface.get_interface_document()
+                ctx.transport.wsdl = self._wsdl
 
                 if ctx.transport.wsdl is None:
-                    self.app.interface.build_interface_document(url)
-                    ctx.transport.wsdl = self.app.interface.get_interface_document()
+                    from rpclib.interface.wsdl import Wsdl11
+                    wsdl = Wsdl11(self.app.interface)
+                    wsdl.build_interface_document(url)
+                    ctx.transport.wsdl = self._wsdl = wsdl.get_interface_document()
 
+
+            except Exception, e:
+                logger.exception(e)
+                ctx.transport.wsdl_error = e
+
+                # implementation hook
+                self.event_manager.fire_event('wsdl_exception', ctx)
+
+                start_response(HTTP_500, ctx.transport.resp_headers.items())
+
+                return [""]
+            
+            finally:
                 self._mtx_build_interface_document.release()
 
-            assert ctx.transport.wsdl != None
+        self.event_manager.fire_event('wsdl', ctx)
 
-            self.event_manager.fire_event('wsdl', ctx) # implementation hook
+        ctx.transport.resp_headers['Content-Length'] = \
+                                                str(len(ctx.transport.wsdl))
+        start_response(HTTP_200, ctx.transport.resp_headers.items())
 
-            ctx.transport.resp_headers['Content-Length'] = \
-                                                    str(len(ctx.transport.wsdl))
-            start_response(HTTP_200, ctx.transport.resp_headers.items())
-
-            return [ctx.transport.wsdl]
-
-        except Exception, e:
-            logger.exception(e)
-            ctx.transport.wsdl_error = e
-
-            # implementation hook
-            self.event_manager.fire_event('wsdl_exception', ctx)
-
-            start_response(HTTP_500, ctx.transport.resp_headers.items())
-
-            return [""]
+        return [ctx.transport.wsdl]
 
     def handle_error(self, ctx, error, start_response):
         if ctx.transport.resp_code is None:

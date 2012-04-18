@@ -24,13 +24,13 @@ from lxml import etree
 _ns_xsi = rpclib.const.xml_ns.xsi
 _ns_xsd = rpclib.const.xml_ns.xsd
 
-def simple_get_restriction_tag(interface, cls):
+def simple_get_restriction_tag(document, cls):
     simple_type = etree.Element('{%s}simpleType' % _ns_xsd)
     simple_type.set('name', cls.get_type_name())
-    interface.add_simple_type(cls, simple_type)
+    document.add_simple_type(cls, simple_type)
 
     restriction = etree.SubElement(simple_type, '{%s}restriction' % _ns_xsd)
-    restriction.set('base', cls.__base_type__.get_type_name_ns(interface))
+    restriction.set('base', cls.__base_type__.get_type_name_ns(document.interface))
 
     for v in cls.Attributes.values:
         enumeration = etree.SubElement(restriction, '{%s}enumeration' % _ns_xsd)
@@ -39,5 +39,5 @@ def simple_get_restriction_tag(interface, cls):
     return restriction
 
 def simple_add(interface, cls):
-    if not interface.has_class(cls) and not cls.is_default(cls):
+    if not cls.is_default(cls):
         interface.get_restriction_tag(cls)

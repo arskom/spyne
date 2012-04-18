@@ -19,6 +19,7 @@
 
 from lxml import etree
 
+from rpclib.interface import Interface
 from rpclib.interface.xml_schema import XmlSchema
 from rpclib.protocol.xml import XmlObject
 
@@ -43,14 +44,15 @@ def get_schema_documents(models, default_namespace=None):
     fake_app.tns = default_namespace
     fake_app.services = []
 
-    interface = XmlSchema()
-    interface.set_app(fake_app)
+    interface = Interface(fake_app)
     for m in models:
-        interface.add(m)
+        interface.add_class(m)
+    interface.populate_interface(fake_app)
 
-    interface.build_interface_document()
+    document = XmlSchema(interface)
+    document.build_interface_document()
 
-    return interface.get_interface_document()
+    return document.get_interface_document()
 
 def get_validation_schema(models, default_namespace=None):
     '''Returns the validation schema object for the given models.

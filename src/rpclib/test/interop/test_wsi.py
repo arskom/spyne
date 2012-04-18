@@ -155,5 +155,4 @@ def analyze_wsdl(config_file):
 if __name__ == '__main__':
     configure_env()
     create_config('http://localhost:9753/?wsdl', CONFIG_FILE)
-    #create_config('/home/plq/src/github/plq/rpclib/src/rpclib/test/wsdl.xml', CONFIG_FILE)
     analyze_wsdl(CONFIG_FILE)
