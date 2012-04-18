@@ -84,7 +84,7 @@ def complex_from_element(prot, cls, element):
 
         key = c.tag.split('}')[-1]
         freq = frequencies.get(key, 0)
-        freq+=1
+        freq += 1
         frequencies[key] = freq
 
         member = flat_type_info.get(key, None)

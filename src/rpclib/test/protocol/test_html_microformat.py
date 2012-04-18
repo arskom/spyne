@@ -39,8 +39,6 @@ from rpclib.server.wsgi import WsgiMethodContext
 from rpclib.server.wsgi import WsgiApplication
 
 class TestHtmlMicroFormat(unittest.TestCase):
-    '''Most of the service tests are performed through the interop tests.'''
-
     def test_simple(self):
         class SomeService(ServiceBase):
             @srpc(String, _returns=String)
