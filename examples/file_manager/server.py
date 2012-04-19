@@ -58,7 +58,7 @@ class FileServices(ServiceBase):
 
         f.close()
 
-    @rpc(String, String, File.customize(min_occurs=1, nullable=False), _returns=Unicode)
+    @rpc(Unicode, Unicode, File.customize(min_occurs=1, nullable=False), _returns=Unicode)
     def add(ctx, person_type, action, file):
         logger.info("Person Type: %r" % person_type)
         logger.info("Action: %r" % action)
@@ -99,7 +99,7 @@ def main():
 
     wsgi_app = DispatcherMiddleware(NotFound(), {'/filemgr': filemgr_app})
 
-
+    logger.info("navigate to: http://localhost:9000/index.html")
     run_simple('localhost', port, wsgi_app, static_files={'/': 'static'},
                                                                   threaded=True)
 
