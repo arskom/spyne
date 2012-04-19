@@ -77,6 +77,7 @@ class TwistedWebResource(Resource):
 
         self.http_transport = TwistedHttpTransport(app, chunked,
                                             max_content_length, block_length)
+        self._wsdl = None
 
     def render_GET(self, request):
         _ahv = self.http_transport._allowed_http_verbs
@@ -123,11 +124,13 @@ class TwistedWebResource(Resource):
         url = _reconstruct_url(request)
 
         try:
-            ctx.transport.wsdl = self.app.interface.get_interface_document()
+            ctx.transport.wsdl = self._wsdl
 
             if ctx.transport.wsdl is None:
-                self.app.interface.build_interface_document(url)
-                ctx.transport.wsdl = self.app.interface.get_interface_document()
+                from rpclib.interface.wsdl.wsdl11 import Wsdl11
+                wsdl = Wsdl11(self.app.interface)
+                wsdl.build_interface_document(url)
+                self._wsdl = ctx.transport.wsdl = wsdl.get_interface_document()
 
             assert ctx.transport.wsdl != None
 
