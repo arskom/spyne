@@ -282,44 +282,58 @@ class HtmlTable(HtmlBase):
             )
 
     def serialize_complex_model(self, cls, value):
+        sti = None
         fti = cls.get_flat_type_info(cls)
+
         first_child = iter(fti.values()).next()
-        print first_child
         if len(fti) == 1:
             fti = first_child.get_flat_type_info(first_child)
             first_child = iter(fti.values()).next()
             if len(fti) == 1 and first_child.Attributes.max_occurs > 1:
                 if issubclass(first_child, ComplexModelBase):
                     sti = first_child.get_simple_type_info(first_child)
-                else:
-                    sti = None
                 value = value[0]
             else:
                 raise Exception("Can only serialize Array(...) types")
         else:
-            raise Exception("Can only serialize Array(...) types")
+            raise Exception("Can only serialize Array(...) return types")
 
         header_row = E.tr()
+        class_name = first_child.get_type_name()
         if sti is None:
-            header_row.append(E.th(first_child.get_type_name()))
+            header_row.append(E.th(class_name))
         else:
-            for k, v in sti.items():
-                header_row.append(E.th(k))
+            if self.field_name_attr is None:
+                for k, v in sti.items():
+                    header_row.append(E.th(k))
+            else:
+                for k, v in sti.items():
+                    header_row.append(E.th(k,
+                                        **{self.field_name_attr: k}))
 
         yield header_row
 
         if sti is None:
-            for val in value:
-                row = E.tr()
-                row.append(E.td(first_child.to_string(val)))
-                yield row
+            if self.field_name_attr is None:
+                for val in value:
+                    yield E.tr(E.td(first_child.to_string(val)), )
+            else:
+                for val in value:
+                    yield E.tr(E.td(first_child.to_string(val)),
+                                           **{self.field_name_attr: class_name})
 
         else:
             for val in value:
                 row = E.tr()
+                print val
                 for k, v in sti.items():
-                    print v.path
-                    subvalue = getattr(val, v.path[-1], "`%s`" % k)
-                    row.append(E.td(v.type.to_string(subvalue)))
+                    subvalue = val
+                    for p in v.path:
+                        subvalue = getattr(subvalue, p, "`%s`" % k)
+                    if self.field_name_attr is None:
+                        row.append(E.td(v.type.to_string(subvalue)))
+                    else:
+                        row.append(E.td(v.type.to_string(subvalue),
+                                                   **{self.field_name_attr: k}))
                 yield row
 

@@ -52,9 +52,9 @@ class TestHtmlTable(unittest.TestCase):
         class SomeService(ServiceBase):
             @srpc(CCM, _returns=Array(CCM))
             def some_call(ccm):
-                return [CCM(c=ccm.c,i=ccm.i, s=ccm.s)]
+                return [ccm] * 5
 
-        app = Application([SomeService], 'tns', HttpRpc(), HtmlTable(), Wsdl11())
+        app = Application([SomeService], 'tns', HttpRpc(), HtmlTable(field_name_attr='class'), Wsdl11())
         server = WsgiApplication(app)
 
         initial_ctx = WsgiMethodContext(server, {
@@ -69,32 +69,47 @@ class TestHtmlTable(unittest.TestCase):
         server.get_out_string(ctx)
 
         out_string = ''.join(ctx.out_string)
-        print out_string
         elt = html.fromstring(out_string)
+        print html.tostring(elt, pretty_print=True)
 
         resp = elt.find_class('some_callResponse')
         assert len(resp) == 1
-        res = resp[0].find_class('some_callResult')
-        assert len(res) == 1
+        for i in range(len(elt)):
+            row = elt[i]
+            if i == 0:
+                cell = row.findall('th[@class="i"]')
+                assert len(cell) == 1
+                assert cell[0].text == 'i'
 
-        i = res[0].findall('div[@class="i"]')
-        assert len(i) == 1
-        assert i[0].text == '456'
+                cell = row.findall('th[@class="c_i"]')
+                assert len(cell) == 1
+                assert cell[0].text == 'c_i'
 
-        c = res[0].findall('div[@class="c"]')
-        assert len(c) == 1
+                cell = row.findall('th[@class="c_s"]')
+                assert len(cell) == 1
+                assert cell[0].text == 'c_s'
 
-        c_i = c[0].findall('div[@class="i"]')
-        assert len(c_i) == 1
-        assert c_i[0].text == '123'
+                cell = row.findall('th[@class="s"]')
+                assert len(cell) == 1
+                assert cell[0].text == 's'
 
-        c_s = c[0].findall('div[@class="s"]')
-        assert len(c_s) == 1
-        assert c_s[0].text == 'abc'
 
-        s = res[0].findall('div[@class="s"]')
-        assert len(s) == 1
-        assert s[0].text == 'def'
+            else:
+                cell = row.findall('td[@class="i"]')
+                assert len(cell) == 1
+                assert cell[0].text == '456'
+
+                cell = row.findall('td[@class="c_i"]')
+                assert len(cell) == 1
+                assert cell[0].text == '123'
+
+                cell = row.findall('td[@class="c_s"]')
+                assert len(cell) == 1
+                assert cell[0].text == 'abc'
+
+                cell = row.findall('td[@class="s"]')
+                assert len(cell) == 1
+                assert cell[0].text == 'def'
 
     def test_string_array(self):
         class SomeService(ServiceBase):
