@@ -123,23 +123,14 @@ class MultipleReturnService(ServiceBase):
     def multi(ctx, s):
         return s, 'a', 'b'
 
-class MultipleMethods1(ServiceBase):
-    @srpc(String)
-    def multi(s):
-        return "%r multi 1" % s
-
-class MultipleMethods2(ServiceBase):
-    @srpc(String)
-    def multi(s):
-        return "%r multi 2" % s
-
 class TestSingle(unittest.TestCase):
     def setUp(self):
-        self.app = Application([TestService], 'tns', Soap11(), Soap11(), Wsdl11())
+        self.app = Application([TestService], 'tns', Soap11(), Soap11())
         self.srv = TestService()
 
-        self.app.interface.build_interface_document('URL')
-        self.wsdl_str = self.app.interface.get_interface_document()
+        wsdl = Wsdl11(self.app.interface)
+        wsdl.build_interface_document('URL')
+        self.wsdl_str = wsdl.get_interface_document()
         self.wsdl_doc = etree.fromstring(self.wsdl_str)
 
     def test_portypes(self):
@@ -155,8 +146,9 @@ class TestSingle(unittest.TestCase):
 
 class TestMultiple(unittest.TestCase):
     def setUp(self):
-        self.app = Application([MultipleReturnService], 'tns', Soap11(), Soap11(), Wsdl11())
-        self.app.interface.build_interface_document('url')
+        self.app = Application([MultipleReturnService], 'tns', Soap11(), Soap11())
+        self.wsdl = Wsdl11(self.app.interface)
+        self.wsdl.build_interface_document('URL')
 
     def test_multiple_return(self):
         message_class = list(MultipleReturnService.public_methods.values())[0].out_message
@@ -169,7 +161,7 @@ class TestMultiple(unittest.TestCase):
                                     MultipleReturnService.get_tns(), sent_xml)
         sent_xml = sent_xml[0]
 
-        print((etree.tostring(sent_xml, pretty_print=True)))
+        print(etree.tostring(sent_xml, pretty_print=True))
         response_data = self.app.out_protocol.from_element(message_class, sent_xml)
 
         self.assertEquals(len(response_data), 3)
@@ -177,15 +169,26 @@ class TestMultiple(unittest.TestCase):
         self.assertEqual(response_data[1], 'b')
         self.assertEqual(response_data[2], 'c')
 
+class MultipleMethods1(ServiceBase):
+    @srpc(String)
+    def multi(s):
+        return "%r multi 1" % s
+
+class MultipleMethods2(ServiceBase):
+    @srpc(String)
+    def multi(s):
+        return "%r multi 2" % s
+
 class TestMultipleMethods(unittest.TestCase):
     def test_single_method(self):
         try:
-            app = Application([MultipleMethods1,MultipleMethods2], 'tns', Soap11(), Soap11(), Wsdl11())
-            app.interface.build_interface_document('url')
-            raise Exception('must fail.')
+            app = Application([MultipleMethods1,MultipleMethods2], 'tns', Soap11(), Soap11())
 
         except ValueError:
             pass
+        else:
+            raise Exception('must fail.')
+
 
     def test_multiple_methods(self):
         in_protocol = Soap11()
@@ -196,9 +199,7 @@ class TestMultipleMethods(unittest.TestCase):
         out_protocol.supports_fanout_methods = True
 
         app = Application([MultipleMethods1,MultipleMethods2], 'tns',
-                in_protocol, out_protocol, Wsdl11(), supports_fanout_methods=True)
-        app.interface.build_interface_document('url')
-
+                in_protocol, out_protocol, supports_fanout_methods=True)
         mm = app.interface.service_method_map['{tns}multi']
 
         def find_class_in_mm(c):
