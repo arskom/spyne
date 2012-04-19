@@ -204,7 +204,8 @@ class Interface(object):
         # populate call routes
         for s in self.services:
             s.__tns__ = self.get_tns()
-            logger.debug("populating '%s.%s' methods..." % (s.__module__, s.__name__))
+            logger.debug("populating '%s.%s' methods..." % (s.__module__,
+                                                                    s.__name__))
             for method in s.public_methods.values():
                 val = self.service_method_map.get(method.key, None)
                 if val is None:
@@ -214,7 +215,7 @@ class Interface(object):
 
                 else:
                     if self.app.supports_fanout_methods:
-                        self.service_method_map[method.key].append( (s, method) )
+                        self.service_method_map[method.key].append((s, method))
 
                     else:
                         os, om = val[0]
@@ -308,6 +309,7 @@ class Interface(object):
 
     def is_valid_import(self, ns):
         return self.import_base_namespaces or not (ns in namespace.const_prefmap)
+
 
 class InterfaceDocumentBase(object):
     def __init__(self, interface):

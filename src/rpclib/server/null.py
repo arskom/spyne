@@ -101,7 +101,7 @@ class _FunctionCall(object):
                         retval.__ctx__ = ctx
                     except AttributeError:
                         # not all objects let this happen. (eg. built-in types
-                        # like str) which don't need the context anyway.
+                        # like str, but they don't need the context anyway).
                         pass
 
                 else:

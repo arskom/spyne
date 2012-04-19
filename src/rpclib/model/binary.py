@@ -118,7 +118,8 @@ class File(ModelBase):
     @classmethod
     @nillable_iterable
     def to_string_iterable(cls, value):
-        assert value.path, "You need to write data to disk if you want to read it back."
+        assert value.path, "You need to write data to disk if you want to " \
+                           "read it back."
 
         if value.handle is None:
             f = open(value.path, 'rb')
@@ -142,7 +143,8 @@ class File(ModelBase):
     @classmethod
     @nillable_string
     def to_base64(cls, value):
-        assert value.path, "You need to write data to disk if you want to read it back."
+        assert value.path, "You need to write data to disk if you want to " \
+                           "read it back."
 
         f = open(value.path, 'rb')
 
@@ -159,7 +161,8 @@ class File(ModelBase):
         return File(data=[base64.b64decode(value)])
 
     def __repr__(self):
-        return "File(name=%r, path=%r, type=%r, data=%r)" % (self.name, self.path, self.type, self.data)
+        return "File(name=%r, path=%r, type=%r, data=%r)" % (self.name,
+                                                self.path, self.type, self.data)
 
 class Attachment(ModelBase):
     """**DEPRECATED!** Use ByteArray or File instead."""
@@ -215,7 +218,6 @@ class Attachment(ModelBase):
         elif not (value.file_name is None):
             # the data hasn't been loaded, but a file has been
             # specified
-
             data = open(value.file_name, 'rb').read()
 
         else:
