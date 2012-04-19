@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 import cgi
 import threading
+import itertools
 
 from rpclib.model.binary import File
 
@@ -270,10 +271,17 @@ class WsgiApplication(HttpBase):
                 ctx.transport.resp_headers['Content-Length'] = \
                                                      str(len(ctx.out_string[0]))
 
+        # this hack lets the user code run until first yield, which lets it set
+        # headers and whatnot. yes it causes an additional copy to be made, but
+        # if you know a better way of having generator functions execute until
+        # first yield, send a patch.
+        retval_iter = iter(ctx.out_string)
+        retval = retval_iter.next()
+
         # initiate the response
         start_response(ctx.transport.resp_code, ctx.transport.resp_headers.items())
 
-        return ctx.out_string
+        return itertools.chain([retval], retval_iter)
 
 
     def __reconstruct_wsgi_request(self, http_env):
