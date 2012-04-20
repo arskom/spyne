@@ -336,4 +336,3 @@ class HtmlTable(HtmlBase):
                         row.append(E.td(v.type.to_string(subvalue),
                                                    **{self.field_name_attr: k}))
                 yield row
-
