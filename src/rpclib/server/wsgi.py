@@ -221,79 +221,84 @@ class WsgiApplication(HttpBase):
         initial_ctx.in_string, in_string_charset = \
                                         self.__reconstruct_wsgi_request(req_env)
 
-        # note that in fanout mode, only the response from the last
-        # call will be returned.
-        for ctx in self.generate_contexts(initial_ctx, in_string_charset):
-            if ctx.in_error:
-                return self.handle_error(ctx, ctx.in_error, start_response)
+        contexts = self.generate_contexts(initial_ctx, in_string_charset)
+        p_ctx, others = contexts[0], contexts[1:]
 
-            self.get_in_object(ctx)
-            if ctx.in_error:
-                logger.error(ctx.in_error)
-                return self.handle_error(ctx, ctx.in_error, start_response)
+        if p_ctx.in_error:
+            return self.handle_error(p_ctx, p_ctx.in_error, start_response)
 
-            self.get_out_object(ctx)
-            if ctx.out_error:
-                return self.handle_error(ctx, ctx.out_error, start_response)
+        self.get_in_object(p_ctx)
+        if p_ctx.in_error:
+            logger.error(p_ctx.in_error)
+            return self.handle_error(p_ctx, p_ctx.in_error, start_response)
 
-            if ctx.transport.resp_code is None:
-                ctx.transport.resp_code = HTTP_200
+        self.get_out_object(p_ctx)
+        if p_ctx.out_error:
+            return self.handle_error(p_ctx, p_ctx.out_error, start_response)
 
-            self.get_out_string(ctx)
+        if p_ctx.transport.resp_code is None:
+            p_ctx.transport.resp_code = HTTP_200
 
-            if ctx.descriptor and ctx.descriptor.mtom:
-                # when there is more than one return type, the result is
-                # encapsulated inside a list. when there's just one, the result
-                # is returned in a non-encapsulated form. the apply_mtom always
-                # expects the objects to be inside an iterable, hence the
-                # following test.
-                out_type_info = ctx.descriptor.out_message._type_info
-                if len(out_type_info) == 1:
-                    out_object = [out_object]
+        self.get_out_string(p_ctx)
 
-                ctx.transport.resp_headers, ctx.out_string = apply_mtom(
-                        ctx.transport.resp_headers, ctx.out_string,
-                        ctx.descriptor.out_message._type_info.values(),
-                        out_object
-                    )
+        if p_ctx.descriptor and p_ctx.descriptor.mtom:
+            # when there is more than one return type, the result is
+            # encapsulated inside a list. when there's just one, the result
+            # is returned in a non-encapsulated form. the apply_mtom always
+            # expects the objects to be inside an iterable, hence the
+            # following test.
+            out_type_info = p_ctx.descriptor.out_message._type_info
+            if len(out_type_info) == 1:
+                out_object = [out_object]
+
+            p_ctx.transport.resp_headers, p_ctx.out_string = apply_mtom(
+                    p_ctx.transport.resp_headers, p_ctx.out_string,
+                    p_ctx.descriptor.out_message._type_info.values(),
+                    out_object
+                )
 
         # implementation hook
-        self.event_manager.fire_event('wsgi_return', ctx)
+        self.event_manager.fire_event('wsgi_return', p_ctx)
 
         # the client has not set a content-length, so we delete it as the input
         # is just an iterable.
-        if ctx.transport.resp_headers['Content-Length'] is None:
-            if self.chunked:
-                del ctx.transport.resp_headers['Content-Length']
+        if self.chunked:
+            if 'Content-Length' in p_ctx.transport.resp_headers:
+                del p_ctx.transport.resp_headers['Content-Length']
 
-            else:
-                ctx.out_string = [''.join(ctx.out_string)]
-                ctx.transport.resp_headers['Content-Length'] = \
-                                                     str(len(ctx.out_string[0]))
+        else:
+            p_ctx.out_string = [''.join(p_ctx.out_string)]
 
-        # this hack lets the user code run until first yield, which lets it set
-        # response headers and whatnot. yes it causes an additional copy of the
-        # first fragment of the response to be made, but if you know a better
-        # way of having generator functions execute until first yield, just let
-        # us know.
+        # if the out_string is a generator function, this hack lets the user
+        # code run until first yield, which lets it set response headers and
+        # whatnot beforce calling start_response. yes it causes an additional
+        # copy of the first fragment of the response to be made, but if you know
+        # a better way of having generator functions execute until first yield,
+        # just let us know.
         try:
-            len(ctx.out_string) # iterator?
-
+            len(p_ctx.out_string) # iterator?
             # nope
-            start_response(ctx.transport.resp_code,
-                                             ctx.transport.resp_headers.items())
 
-            return ctx.out_string
+            p_ctx.transport.resp_headers['Content-Length'] = \
+                                 str(sum([len(a) for a in p_ctx.out_string]))
+
+            start_response(p_ctx.transport.resp_code,
+                                            p_ctx.transport.resp_headers.items())
+
+            retval = p_ctx.out_string
 
         except TypeError:
-            retval_iter = iter(ctx.out_string)
+            retval_iter = iter(p_ctx.out_string)
             retval = retval_iter.next()
 
-            start_response(ctx.transport.resp_code,
-                                             ctx.transport.resp_headers.items())
+            start_response(p_ctx.transport.resp_code,
+                                             p_ctx.transport.resp_headers.items())
 
-            return itertools.chain([retval], retval_iter)
+            retval = itertools.chain([retval], retval_iter)
 
+        self.aux.process_contexts(others)
+
+        return retval
 
     def __reconstruct_wsgi_request(self, http_env):
         """Reconstruct http payload using information in the http header."""

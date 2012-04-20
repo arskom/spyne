@@ -19,6 +19,7 @@
 
 """This module contains the ServerBase class, the abstract base class for all
 server transport implementations."""
+import rpclib.aux.sync
 
 import logging
 logger = logging.getLogger(__name__)
@@ -41,7 +42,7 @@ class ServerBase(object):
 
     supports_fanout_methods = False
 
-    def __init__(self, app):
+    def __init__(self, app, aux='sync'):
         self.app = app
         self.app.transport = self.transport
         if app.supports_fanout_methods and not self.supports_fanout_methods:
@@ -50,6 +51,9 @@ class ServerBase(object):
             call will be returned.""")
 
         self.event_manager = EventManager(self)
+
+        # FIXME: unhardcode it.
+        self.aux = rpclib.aux.sync.SyncronousAuxProc(self)
 
     def generate_contexts(self, ctx, in_string_charset=None):
         """Calls create_in_document and decompose_incoming_envelope to get
@@ -63,10 +67,10 @@ class ServerBase(object):
             # sets ctx.in_body_doc, ctx.in_header_doc and ctx.method_request_string
             self.app.in_protocol.decompose_incoming_envelope(ctx)
 
-            # returns a list of contexts. multiple contexts are only returned
+            # returns a list of contexts. multiple contexts can be returned
             # when supports_fanout_mode=True parameter is given to the
-            # Application constructor and there's more than one method defined
-            # for the given method_request_string here.
+            # Application constructor or there are non-primary methods for the
+            # given method_request_string.
             retval = self.app.in_protocol.generate_method_contexts(ctx)
 
         except Fault, e:

@@ -21,25 +21,26 @@
 # Most of the service tests are performed through the interop tests.
 #
 
-from rpclib.server.null import NullServer
 import datetime
 import unittest
-
-from rpclib.interface.wsdl import Wsdl11
-from rpclib.protocol.soap import Soap11
 
 from lxml import etree
 
 from rpclib.application import Application
 from rpclib.decorator import rpc
 from rpclib.decorator import srpc
-from rpclib.service import ServiceBase
+from rpclib.interface.wsdl import Wsdl11
 from rpclib.model.complex import Array
 from rpclib.model.complex import ComplexModel
 from rpclib.model.primitive import DateTime
 from rpclib.model.primitive import Float
 from rpclib.model.primitive import Integer
 from rpclib.model.primitive import String
+from rpclib.protocol.soap import Soap11
+from rpclib.protocol.http import HttpRpc
+from rpclib.server.null import NullServer
+from rpclib.server.wsgi import WsgiApplication
+from rpclib.service import ServiceBase
 
 Application.transport = 'test'
 
@@ -230,7 +231,7 @@ class TestMultipleMethods(unittest.TestCase):
         assert find_function_in_mm(MultipleMethods1.multi)
         assert find_function_in_mm(MultipleMethods2.multi)
 
-    def test_simple_aux(self):
+    def test_simple_aux_nullserver(self):
         data = []
 
         class Service(ServiceBase):
@@ -245,10 +246,37 @@ class TestMultipleMethods(unittest.TestCase):
             def call(s):
                 data.append(s)
 
-        app = Application([Service, AuxService], 'tns',
-                                                             Soap11(), Soap11())
+        app = Application([Service, AuxService], 'tns', Soap11(), Soap11())
         server = NullServer(app)
         server.service.call("hey")
+
+        assert data == ['hey', 'hey']
+
+    def test_simple_aux_wsgi(self):
+        data = []
+
+        class Service(ServiceBase):
+            @srpc(String, _returns=String)
+            def call(s):
+                data.append(s)
+
+        class AuxService(ServiceBase):
+            __primary__ = False
+
+            @srpc(String, _returns=String)
+            def call(s):
+                data.append(s)
+
+        def start_response(code, headers):
+            print code, headers
+
+        app = Application([Service, AuxService], 'tns', HttpRpc(), HttpRpc())
+        server = WsgiApplication(app)
+        server({
+            'QUERY_STRING': 's=hey',
+            'PATH_INFO': '/call',
+            'REQUEST_METHOD': 'GET',
+        }, start_response, "http://null")
 
         assert data == ['hey', 'hey']
 
