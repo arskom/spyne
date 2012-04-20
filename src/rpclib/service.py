@@ -40,8 +40,9 @@ class ServiceBaseMeta(type):
 
         for k, v in cls_dict.items():
             if hasattr(v, '_is_rpc'):
-                # these three lines are needed for staticmethod wrapping to work
                 descriptor = v(_default_function_name=k)
+
+                # these two lines are needed for staticmethod wrapping to work
                 setattr(self, k, staticmethod(descriptor.function))
                 descriptor.reset_function(getattr(self, k))
 

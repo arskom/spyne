@@ -93,10 +93,11 @@ class _FunctionCall(object):
                 elif len(ctx.descriptor.out_message._type_info) == 1:
                     retval = ctx.out_object[0]
 
-                    # workaround to have the context disposed of when the caller is done
-                    # with the return value. the context is sometimes needed to fully
-                    # construct the return object (e.g. when the object is a sqlalchemy
-                    # object bound to a session that's defined in the context object).
+                    # workaround to have the context disposed of when the caller is
+                    # done with the return value. the context is sometimes needed to
+                    # fully construct the return object (e.g. when the object is a
+                    # sqlalchemy object bound to a session that's defined in the
+                    # context object).
                     try:
                         retval.__ctx__ = ctx
                     except AttributeError:
