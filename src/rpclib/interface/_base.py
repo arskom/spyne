@@ -154,6 +154,8 @@ class Interface(object):
                     method.in_header = s.__in_header__
                 if method.out_header is None:
                     method.out_header = s.__out_header__
+                if method.primary is None:
+                    method.primary = s.__primary__
 
                 if not (method.in_header is None):
                     if isinstance(method.in_header, (list, tuple)):
@@ -214,7 +216,7 @@ class Interface(object):
                     self.service_method_map[method.key] = [(s, method)]
 
                 else:
-                    if self.app.supports_fanout_methods:
+                    if self.app.supports_fanout_methods or not method.primary:
                         self.service_method_map[method.key].append((s, method))
 
                     else:

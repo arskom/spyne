@@ -124,6 +124,10 @@ class ServiceBase(object):
     __port_types__ = ()
     """WSDL-Specific portType mappings"""
 
+    __primary__ = True
+    """When set, every method defined under this service is set as primary. The
+    _primary flag in the @srpc decorator overrides this."""
+
     @classmethod
     def get_service_class_name(cls):
         return cls.__name__

@@ -21,6 +21,7 @@
 # Most of the service tests are performed through the interop tests.
 #
 
+from rpclib.server.null import NullServer
 import datetime
 import unittest
 
@@ -190,7 +191,7 @@ class TestMultipleMethods(unittest.TestCase):
             raise Exception('must fail.')
 
 
-    def test_multiple_methods(self):
+    def test_multiple_method_in_interface(self):
         in_protocol = Soap11()
         out_protocol = Soap11()
 
@@ -228,6 +229,28 @@ class TestMultipleMethods(unittest.TestCase):
 
         assert find_function_in_mm(MultipleMethods1.multi)
         assert find_function_in_mm(MultipleMethods2.multi)
+
+    def test_simple_aux(self):
+        data = []
+
+        class Service(ServiceBase):
+            @srpc(String)
+            def call(s):
+                data.append(s)
+
+        class AuxService(ServiceBase):
+            __primary__ = False
+
+            @srpc(String)
+            def call(s):
+                data.append(s)
+
+        app = Application([Service, AuxService], 'tns',
+                                                             Soap11(), Soap11())
+        server = NullServer(app)
+        server.service.call("hey")
+
+        assert data == ['hey', 'hey']
 
 if __name__ == '__main__':
     unittest.main()

@@ -239,7 +239,8 @@ class MethodDescriptor(object):
     def __init__(self, function, in_message, out_message, doc,
                  is_callback=False, is_async=False, mtom=False, in_header=None,
                  out_header=None, faults=None,
-                 port_type=None, no_ctx=False, udp=None, class_key=None):
+                 port_type=None, no_ctx=False, udp=None, class_key=None,
+                 primary=None):
 
         self.__real_function = function
         self.reset_function()
@@ -286,6 +287,15 @@ class MethodDescriptor(object):
 
         self.class_key = class_key
         """The name the function is accessible from in the class."""
+
+        self.primary = primary
+        """Boolean flag to indicate whether this is a primary method or not.
+
+        Primary methods block the request as long as they're running. Their
+        return values are returned to the client. Non-primary ones execute
+        asyncronously after the primary method returns, and their return values
+        are ignored by the rpc layer.
+        """
 
     @property
     def name(self):

@@ -296,7 +296,7 @@ class HtmlTable(HtmlBase):
             else:
                 raise Exception("Can only serialize Array(...) types")
         else:
-            raise Exception("Can only serialize Array(...) return types")
+            raise Exception("Can only serialize single Array(...) return types")
 
         header_row = E.tr()
         class_name = first_child.get_type_name()
