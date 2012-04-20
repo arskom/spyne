@@ -100,23 +100,26 @@ class TwistedWebResource(Resource):
         logger.debug("%s %s %s" % (request, request.__class__, pformat(vars(request))))
         initial_ctx.in_string = [request.content.getvalue()]
 
-        ctx, = self.http_transport.generate_contexts(initial_ctx)
-        if ctx.in_error:
-            ctx.out_object = ctx.in_error
+        contexts = self.http_transport.generate_contexts(initial_ctx)
+        p_ctx, others = contexts[0], contexts[1:]
+        if p_ctx.in_error:
+            p_ctx.out_object = p_ctx.in_error
 
         else:
-            self.http_transport.get_in_object(ctx)
+            self.http_transport.get_in_object(p_ctx)
 
-            if ctx.in_error:
-                ctx.out_object = ctx.in_error
+            if p_ctx.in_error:
+                p_ctx.out_object = p_ctx.in_error
             else:
-                self.http_transport.get_out_object(ctx)
-                if ctx.out_error:
-                    ctx.out_object = ctx.out_error
+                self.http_transport.get_out_object(p_ctx)
+                if p_ctx.out_error:
+                    p_ctx.out_object = p_ctx.out_error
 
-        self.http_transport.get_out_string(ctx)
+        self.http_transport.get_out_string(p_ctx)
 
-        return ''.join(ctx.out_string)
+        self.aux.process_contexts(others)
+
+        return ''.join(p_ctx.out_string)
 
     def __handle_wsdl_request(self, request):
         ctx = HttpMethodContext(self.http_transport, request,
