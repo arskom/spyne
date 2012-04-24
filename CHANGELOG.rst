@@ -16,6 +16,8 @@ rpclib-2.8.0-beta
    to the transport to expose the application using a given interface document
    standard now. The ``interface`` argument to the ``Application`` ctor is
    now ignored.
+ * Add support for async methods, which execute after the primary user code
+   returns. Currently, the only async execution method is via threads.
  * Full change log:
     * https://github.com/arskom/rpclib/pull/128
     * https://github.com/arskom/rpclib/pull/129
