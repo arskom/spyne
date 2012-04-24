@@ -121,7 +121,7 @@ class MethodContext(object):
         parsing error or the incoming document was representing an exception.
         """
         self.in_header = None
-        """Deserialzed incoming header -- a native object."""
+        """Deserialized incoming header -- a native object."""
         self.in_object = None
         """In the request (i.e. server) case, this contains the function
         arguments for the function in the service definition class.
@@ -199,8 +199,9 @@ class MethodContext(object):
         self.function = descriptor.function
 
     descriptor = property(get_descriptor, set_descriptor)
-    """The MethodDescriptor object representing the current method. This object
-    should not be changed by the user code."""
+    """The :class:``MethodDescriptor`` object representing the current method.
+    This object should not be changed by the user code."""
+
 
     def __setattr__(self, k, v):
         if self.frozen == False or k in self.__dict__ or k == 'descriptor':
@@ -243,10 +244,10 @@ class MethodDescriptor(object):
                  primary=None):
 
         self.__real_function = function
-        self.reset_function()
-
         """The original function object to be called when the method is remotely
         invoked."""
+
+        self.reset_function()
 
         self.in_message = in_message
         """Automatically generated complex object based on incoming arguments to
