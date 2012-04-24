@@ -19,7 +19,6 @@
 
 """This module contains the ServerBase class, the abstract base class for all
 server transport implementations."""
-import rpclib.aux.sync
 
 import logging
 logger = logging.getLogger(__name__)
@@ -52,8 +51,15 @@ class ServerBase(object):
 
         self.event_manager = EventManager(self)
 
-        # FIXME: unhardcode it.
-        self.aux = rpclib.aux.sync.SyncronousAuxProc(self)
+        if aux == 'sync':
+            import rpclib.aux.sync
+            self.aux = rpclib.aux.sync.SyncronousAuxProc(self)
+        elif aux == 'thread':
+            import rpclib.aux.thread
+            self.aux = rpclib.aux.thread.ThreadAuxProc(self)
+        else:
+            raise ValueError(aux)
+
 
     def generate_contexts(self, ctx, in_string_charset=None):
         """Calls create_in_document and decompose_incoming_envelope to get

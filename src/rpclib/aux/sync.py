@@ -20,25 +20,11 @@
 import logging
 logger = logging.getLogger(__name__)
 
-from rpclib.aux import RETRY_ERRORS
 from rpclib.aux import AuxProcBase
+from rpclib.aux import process
+
 
 class SyncronousAuxProc(AuxProcBase):
     def process_contexts(self, contexts):
         for ctx in contexts:
-            logger.debug("Executing %r" % ctx.descriptor.function)
-            self.server.get_in_object(ctx)
-            if ctx.in_error:
-                logger.exception(ctx.in_error)
-                if self.error_handling is RETRY_ERRORS:
-                    raise ctx.in_error
-
-            self.server.get_out_object(ctx)
-            if ctx.out_error:
-                logger.exception(ctx.out_error)
-                if self.error_handling is RETRY_ERRORS:
-                    raise ctx.out_error
-
-            self.server.get_out_string(ctx)
-            for s in ctx.out_string:
-                logger.debug(s)
+            process(ctx)

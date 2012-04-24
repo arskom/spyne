@@ -107,8 +107,8 @@ class WsgiApplication(HttpBase):
             Called right before returning the exception to the client.
     '''
 
-    def __init__(self, app, chunked=True):
-        HttpBase.__init__(self, app, chunked)
+    def __init__(self, app, aux='sync', chunked=True):
+        HttpBase.__init__(self, app, aux, chunked)
 
         self._allowed_http_verbs = app.in_protocol.allowed_http_verbs
         self._verb_handlers = {

@@ -280,5 +280,36 @@ class TestMultipleMethods(unittest.TestCase):
 
         assert data == ['hey', 'hey']
 
+    def test_thread_aux_wsgi(self):
+        data = set()
+
+        class Service(ServiceBase):
+            @srpc(String, _returns=String)
+            def call(s):
+                data.add(s)
+
+        class AuxService(ServiceBase):
+            __primary__ = False
+
+            @srpc(String, _returns=String)
+            def call(s):
+                data.add(s + "aux")
+
+        def start_response(code, headers):
+            print code, headers
+
+        app = Application([Service, AuxService], 'tns', HttpRpc(), HttpRpc())
+        server = WsgiApplication(app, aux='thread')
+        server({
+            'QUERY_STRING': 's=hey',
+            'PATH_INFO': '/call',
+            'REQUEST_METHOD': 'GET',
+        }, start_response, "http://null")
+
+        import time
+        time.sleep(1)
+
+        assert data == set(['hey', 'heyaux'])
+
 if __name__ == '__main__':
     unittest.main()
