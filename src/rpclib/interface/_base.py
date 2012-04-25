@@ -26,10 +26,13 @@ logger = logging.getLogger(__name__)
 import warnings
 
 from rpclib import EventManager
+from rpclib import sanitize_aux
+
+from rpclib.const import xml_ns as namespace
 from rpclib.const.suffix import TYPE_SUFFIX
 from rpclib.const.suffix import RESULT_SUFFIX
 from rpclib.const.suffix import RESPONSE_SUFFIX
-from rpclib.const import xml_ns as namespace
+
 from rpclib.model import ModelBase
 from rpclib.model.complex import ComplexModelBase
 
@@ -154,8 +157,9 @@ class Interface(object):
                     method.in_header = s.__in_header__
                 if method.out_header is None:
                     method.out_header = s.__out_header__
-                if method.primary is None:
-                    method.primary = s.__primary__
+                if method.aux is None:
+                    method.aux = s.__aux__
+                method.aux = sanitize_aux(method.aux)
 
                 if not (method.in_header is None):
                     if isinstance(method.in_header, (list, tuple)):
@@ -216,7 +220,7 @@ class Interface(object):
                     self.service_method_map[method.key] = [(s, method)]
 
                 else:
-                    if self.app.supports_fanout_methods or not method.primary:
+                    if self.app.supports_fanout_methods or method.aux is not None:
                         self.service_method_map[method.key].append((s, method))
 
                     else:

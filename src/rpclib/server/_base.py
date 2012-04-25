@@ -41,7 +41,7 @@ class ServerBase(object):
 
     supports_fanout_methods = False
 
-    def __init__(self, app, aux='sync'):
+    def __init__(self, app):
         self.app = app
         self.app.transport = self.transport
         if app.supports_fanout_methods and not self.supports_fanout_methods:
@@ -50,15 +50,6 @@ class ServerBase(object):
             call will be returned.""")
 
         self.event_manager = EventManager(self)
-
-        if aux == 'sync':
-            import rpclib.aux.sync
-            self.aux = rpclib.aux.sync.SyncronousAuxProc(self)
-        elif aux == 'thread':
-            import rpclib.aux.thread
-            self.aux = rpclib.aux.thread.ThreadAuxProc(self)
-        else:
-            raise ValueError(aux)
 
 
     def generate_contexts(self, ctx, in_string_charset=None):

@@ -20,11 +20,8 @@
 import logging
 logger = logging.getLogger(__name__)
 
-from rpclib.aux import AuxProcBase
 from rpclib.aux import process
 
 
-class SyncronousAuxProc(AuxProcBase):
-    def process_contexts(self, contexts):
-        for ctx in contexts:
-            process(ctx)
+def process_context(server, context):
+    process(server, context)

@@ -240,7 +240,7 @@ class TestMultipleMethods(unittest.TestCase):
                 data.append(s)
 
         class AuxService(ServiceBase):
-            __primary__ = False
+            __aux__ = 'sync'
 
             @srpc(String)
             def call(s):
@@ -261,7 +261,7 @@ class TestMultipleMethods(unittest.TestCase):
                 data.append(s)
 
         class AuxService(ServiceBase):
-            __primary__ = False
+            __aux__ = 'sync'
 
             @srpc(String, _returns=String)
             def call(s):
@@ -289,7 +289,7 @@ class TestMultipleMethods(unittest.TestCase):
                 data.add(s)
 
         class AuxService(ServiceBase):
-            __primary__ = False
+            __aux__ = 'thread'
 
             @srpc(String, _returns=String)
             def call(s):
@@ -299,7 +299,7 @@ class TestMultipleMethods(unittest.TestCase):
             print code, headers
 
         app = Application([Service, AuxService], 'tns', HttpRpc(), HttpRpc())
-        server = WsgiApplication(app, aux='thread')
+        server = WsgiApplication(app)
         server({
             'QUERY_STRING': 's=hey',
             'PATH_INFO': '/call',

@@ -31,6 +31,7 @@ class ServiceBaseMeta(type):
     tagged methods.
     '''
 
+
     def __init__(self, cls_name, cls_bases, cls_dict):
         super(ServiceBaseMeta, self).__init__(cls_name, cls_bases, cls_dict)
 
@@ -48,6 +49,7 @@ class ServiceBaseMeta(type):
 
                 self.public_methods[k] = descriptor
 
+
     def __get_base_event_handlers(self, cls_bases):
         handlers = {}
 
@@ -63,6 +65,7 @@ class ServiceBaseMeta(type):
                 handlers[k]=handler
 
         return handlers
+
 
 class ServiceBase(object):
     '''This class serves as the base for all service definitions. Subclasses of
@@ -125,9 +128,10 @@ class ServiceBase(object):
     __port_types__ = ()
     """WSDL-Specific portType mappings"""
 
-    __primary__ = True
-    """When set, every method defined under this service is set as primary. The
-    _primary flag in the @srpc decorator overrides this."""
+    __aux__ = None
+    """The auxiliary method type. When set, the ``aux`` property of every method
+    defined under this service is set to this value. The _aux flag in the @srpc
+    decorator overrides this."""
 
     @classmethod
     def get_service_class_name(cls):

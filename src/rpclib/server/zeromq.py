@@ -23,6 +23,7 @@ transport.
 
 import zmq
 
+from rpclib import aux
 from rpclib._base import MethodContext
 from rpclib.server import ServerBase
 
@@ -74,6 +75,6 @@ class ZeroMQServer(ServerBase):
 
             self.get_out_string(p_ctx)
 
-            self.aux.process_contexts(others)
+            aux.process_contexts(self, others)
 
             self.zmq_socket.send(''.join(p_ctx.out_string))

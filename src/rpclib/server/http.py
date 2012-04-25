@@ -78,10 +78,10 @@ class HttpMethodContext(MethodContext):
 class HttpBase(ServerBase):
     transport = 'http://schemas.xmlsoap.org/soap/http'
 
-    def __init__(self, app, aux='sync', chunked=False,
+    def __init__(self, app, chunked=False,
                 max_content_length=2 * 1024 * 1024,
                 block_length=8 * 1024):
-        ServerBase.__init__(self, app, aux)
+        ServerBase.__init__(self, app)
 
         self._allowed_http_verbs = app.in_protocol.allowed_http_verbs
 

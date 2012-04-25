@@ -21,9 +21,6 @@
 import logging
 logger = logging.getLogger(__name__)
 
-from rpclib.aux import RETRY_ERRORS
-from rpclib.aux import AuxProcBase
-
 RETRY_ERRORS = type('RETRY_ERRORS', (object,), {})
 LOG_ERRORS = type('LOG_ERRORS', (object,), {})
 
@@ -46,15 +43,14 @@ def process(server, ctx):
     for s in ctx.out_string:
         logger.debug(s)
 
+def process_contexts(server, contexts):
+    for ctx in contexts:
+        print ctx.descriptor.aux
+        ctx.descriptor.aux.process_context(server, ctx)
 
-class AuxProcBase(object):
-    ERROR_HANDLING_MAP = {
-        'log': LOG_ERRORS,
-        'retry': RETRY_ERRORS,
-        LOG_ERRORS: LOG_ERRORS,
-        RETRY_ERRORS: RETRY_ERRORS,
-    }
-
-    def __init__(self, server, error_handling='log'):
-        self.server = server
-        self.error_handling = self.ERROR_HANDLING_MAP[error_handling]
+ERROR_HANDLING_MAP = {
+    'log': LOG_ERRORS,
+    'retry': RETRY_ERRORS,
+    LOG_ERRORS: LOG_ERRORS,
+    RETRY_ERRORS: RETRY_ERRORS,
+}

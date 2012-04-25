@@ -26,6 +26,7 @@ import cgi
 import threading
 import itertools
 
+from rpclib import aux
 from rpclib.model.binary import File
 
 try:
@@ -109,8 +110,8 @@ class WsgiApplication(HttpBase):
             Called right before returning the exception to the client.
     '''
 
-    def __init__(self, app, aux='sync', chunked=True):
-        HttpBase.__init__(self, app, aux, chunked)
+    def __init__(self, app, chunked=True):
+        HttpBase.__init__(self, app, chunked)
 
         self._allowed_http_verbs = app.in_protocol.allowed_http_verbs
         self._verb_handlers = {
@@ -298,7 +299,7 @@ class WsgiApplication(HttpBase):
 
             retval = itertools.chain([retval], retval_iter)
 
-        self.aux.process_contexts(others)
+        aux.process_contexts(self, others)
 
         return retval
 

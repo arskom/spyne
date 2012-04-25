@@ -241,7 +241,7 @@ class MethodDescriptor(object):
                  is_callback=False, is_async=False, mtom=False, in_header=None,
                  out_header=None, faults=None,
                  port_type=None, no_ctx=False, udp=None, class_key=None,
-                 primary=None):
+                 aux=None):
 
         self.__real_function = function
         """The original function object to be called when the method is remotely
@@ -280,7 +280,7 @@ class MethodDescriptor(object):
 
         self.no_ctx = no_ctx
         """Whether the function receives the method context as the first
-        argument implicitly."""
+        argument implicitly or not."""
 
         self.udp = udp
         """Short for "User-Defined Properties", it's your own playground. You
@@ -289,11 +289,12 @@ class MethodDescriptor(object):
         self.class_key = class_key
         """The name the function is accessible from in the class."""
 
-        self.primary = primary
-        """Boolean flag to indicate whether this is a primary method or not.
+        self.aux = aux
+        """Value to indicate what kind of auxiliary method this is. (None means
+        primary)
 
         Primary methods block the request as long as they're running. Their
-        return values are returned to the client. Non-primary ones execute
+        return values are returned to the client. Auxiliary ones execute
         asyncronously after the primary method returns, and their return values
         are ignored by the rpc layer.
         """
@@ -354,3 +355,16 @@ class EventManager(object):
         handlers = self.handlers.get(event_name, oset())
         for handler in handlers:
             handler(ctx)
+
+def sanitize_aux(aux):
+    if aux is None:
+        return aux
+    if aux == 'sync':
+        from rpclib.aux import sync
+        return sync
+    if aux == 'thread':
+        from rpclib.aux import thread
+        return thread
+    if aux == 'twisted':
+        from rpclib.aux import twisted
+        return twisted

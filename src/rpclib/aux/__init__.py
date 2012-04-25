@@ -28,4 +28,5 @@ This package is EXPERIMENTAL. Stay away from it.
 
 from rpclib.aux._base import LOG_ERRORS
 from rpclib.aux._base import RETRY_ERRORS
-from rpclib.aux._base import AuxProcBase
+from rpclib.aux._base import process
+from rpclib.aux._base import process_contexts
