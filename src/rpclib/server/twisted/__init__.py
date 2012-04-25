@@ -31,6 +31,8 @@ from twisted.web.resource import Resource
 from rpclib.server.http import HttpMethodContext
 from rpclib.server.http import HttpBase
 
+from rpclib.const.ansi_color import LIGHT_GREEN
+from rpclib.const.ansi_color import END_COLOR
 from rpclib.const.http import HTTP_405
 
 def _reconstruct_url(request):
@@ -59,7 +61,8 @@ class TwistedHttpTransport(HttpBase):
         ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
                               request.path.split('/')[-1])
 
-        logger.debug("\033[92mMethod name: %r\033[0m" % ctx.method_request_string)
+        logger.debug("%sMethod name: %r%s" % (LIGHT_GREEN,
+                                          ctx.method_request_string, END_COLOR))
 
         ctx.in_header_doc = request.headers
         ctx.in_body_doc = request.args

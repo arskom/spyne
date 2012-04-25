@@ -43,6 +43,8 @@ from rpclib.protocol.soap.mime import apply_mtom
 from rpclib.util import reconstruct_url
 from rpclib.server.http import HttpBase
 
+from rpclib.const.ansi_color import LIGHT_GREEN
+from rpclib.const.ansi_color import END_COLOR
 from rpclib.const.http import HTTP_200
 from rpclib.const.http import HTTP_405
 from rpclib.const.http import HTTP_500
@@ -159,13 +161,13 @@ class WsgiApplication(HttpBase):
 
     def __handle_wsdl_request(self, req_env, start_response, url):
         ctx = WsgiMethodContext(self, req_env, 'text/xml; charset=utf-8')
-        
+
         ctx.transport.wsdl = self._wsdl
 
         if ctx.transport.wsdl is None:
             try:
                 self._mtx_build_interface_document.acquire()
-    
+
                 ctx.transport.wsdl = self._wsdl
 
                 if ctx.transport.wsdl is None:
@@ -185,7 +187,7 @@ class WsgiApplication(HttpBase):
                 start_response(HTTP_500, ctx.transport.resp_headers.items())
 
                 return [""]
-            
+
             finally:
                 self._mtx_build_interface_document.release()
 
@@ -351,7 +353,8 @@ class WsgiApplication(HttpBase):
         ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
                               ctx.in_document['PATH_INFO'].split('/')[-1])
 
-        logger.debug("\033[92mMethod name: %r\033[0m" % ctx.method_request_string)
+        logger.debug("%sMethod name: %r%s" % (LIGHT_GREEN,
+                                          ctx.method_request_string, END_COLOR))
 
         ctx.in_header_doc = _get_http_headers(ctx.in_document)
         ctx.in_body_doc = parse_qs(ctx.in_document['QUERY_STRING'])
