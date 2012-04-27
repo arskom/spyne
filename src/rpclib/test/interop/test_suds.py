@@ -18,6 +18,8 @@
 #
 
 import unittest
+import time
+import urllib2
 
 from suds.client import Client
 from suds import WebFault
@@ -27,9 +29,29 @@ import logging
 suds_logger = logging.getLogger('suds')
 suds_logger.setLevel(logging.INFO)
 
+_server_started = False
+
 class TestSuds(unittest.TestCase):
     def setUp(self):
-        self.client = Client("http://localhost:9753/?wsdl", cache=None)
+        global _server_started
+
+        if not _server_started:
+            def run_server():
+                from rpclib.test.interop.server.soap_http_basic import main
+                main()
+
+            import thread
+            thread.start_new_thread(run_server, ())
+
+            _server_started = True
+
+        while True:
+            try:
+                self.client = Client("http://localhost:9753/?wsdl", cache=None)
+                break
+            except urllib2.URLError:
+                time.sleep(1)
+
         self.ns = "rpclib.test.interop.server._service"
 
     def test_echo_simple_boolean_array(self):

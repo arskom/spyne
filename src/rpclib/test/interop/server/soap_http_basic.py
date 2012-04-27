@@ -31,7 +31,7 @@ from rpclib.interface.wsdl import Wsdl11
 soap_application = Application(services, 'rpclib.test.interop.server',
                                    Soap11(validator='lxml'), Soap11(), Wsdl11())
 
-if __name__ == '__main__':
+def main():
     try:
         from wsgiref.simple_server import make_server
         from wsgiref.validate import validator
@@ -45,3 +45,6 @@ if __name__ == '__main__':
 
     except ImportError:
         print("Error: example server code requires Python >= 2.5")
+
+if __name__ == '__main__':
+    main()
