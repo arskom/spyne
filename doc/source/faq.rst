@@ -142,25 +142,36 @@ What implications does Rpclib's license (LGPL) have for proprietary projects tha
 
 DISCLAIMER: This is not legal advice, but just how we think things should work.
 
-Due to the nature of LGPL, you're absolutely free to do whatever you want with
-Rpclib, as long as you don't distibute it (i.e. do on-site installs) to your
-clients.
+**Short Answer:** As long as you don't modify Rpclib itself, you can freely use
+Rpclib in your commercial projects, without any additional obligations.
+
+**Long Answer:** If you do modifications to Rpclib, the best thing to do is to
+put them on github and just send a pull request upstream. Even if your patch
+is not accepted, you've done everything the license requires you to do.
 
 If you make modifications to Rpclib and deploy a modified version to your
 client's site, the minimum you should do is to pass along the source code for
-the modified Rpclib to your clients. The sensible thing to do is to send the
-patch upstream so that we can review and include it, so that you don't have to
-maintain it separately as the mainstream project moves forward.
+the modified Rpclib to your clients. Again, you can just put your modifications
+up somewhere, or better, send them to the Rpclib maintainers, but if for some
+reason (we can't imagine any, to be honest) you can't do this, your obligation
+is to have your client have the source code with your modifications.
 
 The thing to watch out for when distributing a modified Rpclib version as
 part of your proprieatry solution is to make sure that Rpclib runs just fine by
-itself without needing your code. If your modifications to Rpclib make it
-dependant on your software, you must pass your modifications along with the code
-that Rpclib needs to the people who deploy your solution.
+itself without needing your code. Again, this will be the case if you did not
+touch Rpclib code itself.
+
+If your modifications to Rpclib make it somehow dependant on your software, you
+must pass your modifications as well as the code that Rpclib needs to the
+people who deploy your solution. In other words, if your code and Rpclib is
+tightly coupled, the license of Rpclib propagates to your code as well.
 
 Rpclib is a descendant of Soaplib, which was published by its author initially
-under LGPL. When he quit, the people who took over contemplated re-licensing to
-BSD, but were not able to reach the original author. A re-licensing is now even
-less probable today because of the number of people who've contributed code in
-the past years as we'd need to get the approval of every single person in order
-to re-license Rpclib.
+under LGPL. When he quit, the people who took over contemplated re-licensing it
+under the three-clause BSD license, but were not able to reach the original
+author. A re-licensing is now even less probable today because of the number of
+people who've contributed code in the past years as we'd need to get the
+approval of every single person in order to re-license Rpclib.
+
+It's also not possible to offer Rpclib under a dual license model for the same
+reason -- everybody would have to approve the new licensing terms.
