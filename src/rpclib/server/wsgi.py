@@ -338,7 +338,7 @@ class WsgiApplication(HttpBase):
                 raise RequestTooLongError()
 
             data = istream.read(bytes_to_read)
-            if data is None:
+            if data is None or data == '':
                 break
 
             bytes_read += len(data)
