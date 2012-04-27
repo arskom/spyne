@@ -27,18 +27,24 @@ def process_contexts(server, contexts):
 
 
 class AuxProcBase(object):
-    @staticmethod
-    def process(server, ctx):
+    def __init__(self, service):
+        self.service = service
+        self.methods = []
+
+    def initialize(self):
+        pass
+
+    def process(self, server, ctx, *args, **kwargs):
         logger.debug("Executing %r" % ctx.descriptor.function)
         server.get_in_object(ctx)
         if ctx.in_error:
             logger.exception(ctx.in_error)
-            return
+            return ctx.in_error
 
         server.get_out_object(ctx)
         if ctx.out_error:
             logger.exception(ctx.out_error)
-            return
+            return ctx.out_error
 
         server.get_out_string(ctx)
         for s in ctx.out_string:

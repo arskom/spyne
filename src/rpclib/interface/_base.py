@@ -26,7 +26,6 @@ logger = logging.getLogger(__name__)
 import warnings
 
 from rpclib import EventManager
-
 from rpclib.const import xml_ns as namespace
 from rpclib.const.suffix import TYPE_SUFFIX
 from rpclib.const.suffix import RESULT_SUFFIX
@@ -43,7 +42,6 @@ class Interface(object):
         self.__ns_counter = 0
         self.import_base_namespaces = import_base_namespaces
 
-        self.service_method_map = {}
         self.url = None
         self.event_manager = EventManager(self)
 
@@ -51,6 +49,8 @@ class Interface(object):
         
         self.classes = {}
         self.imports = {}
+        self.service_method_map = {}
+        self.method_id_map = {}
         self.nsmap = {}
         self.prefmap = {}
         self.__app = app
@@ -80,10 +80,10 @@ class Interface(object):
     def reset_interface(self):
         self.classes = {}
         self.imports = {self.get_tns(): set()}
-
-        import rpclib.const.xml_ns
-        self.nsmap = dict(rpclib.const.xml_ns.const_nsmap)
-        self.prefmap = dict(rpclib.const.xml_ns.const_prefmap)
+        self.service_method_map = {}
+        self.method_id_map = {}
+        self.nsmap = dict(namespace.const_nsmap)
+        self.prefmap = dict(namespace.const_prefmap)
 
         self.nsmap['tns'] = self.get_tns()
         self.prefmap[self.get_tns()] = 'tns'
@@ -148,7 +148,7 @@ class Interface(object):
         classes = []
         # populate types
         for s in self.services:
-            logger.debug("populating '%s.%s (%s) ' types..." % (s.__module__,
+            logger.debug("populating '%s.%s (%s)' types..." % (s.__module__,
                                                 s.__name__, s.get_service_key()))
 
             for method in s.public_methods.values():
@@ -158,7 +158,13 @@ class Interface(object):
                     method.out_header = s.__out_header__
                 if method.aux is None:
                     method.aux = s.__aux__
-                method.aux = s.sanitize_aux(method.aux)
+
+                if method.aux is not None:
+                    ret = s.sanitize_aux(method.aux, s)
+                    if ret is None:
+                        raise ValueError("%r for 'aux' property" % method.aux)
+                    method.aux = ret
+                    method.aux.methods.append(s.get_method_id(method))
 
                 if not (method.in_header is None):
                     if isinstance(method.in_header, (list, tuple)):
@@ -212,7 +218,11 @@ class Interface(object):
             logger.debug("populating '%s.%s' methods..." % (s.__module__,
                                                                     s.__name__))
             for method in s.public_methods.values():
+                assert not s.get_method_id(method) in self.method_id_map
+                self.method_id_map[s.get_method_id(method)] = (s, method)
+
                 val = self.service_method_map.get(method.key, None)
+
                 if val is None:
                     logger.debug('\tadding method %r to match %r tag.' %
                                                       (method.name, method.key))

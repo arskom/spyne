@@ -190,25 +190,31 @@ class ServiceBase(object):
             return ctx.function(ctx, *ctx.in_object)
 
     @staticmethod
-    def sanitize_aux(aux):
+    def sanitize_aux(aux, service):
         # imports are in-line to keep the module as clean (import-wise) as
         # possible. this code runs only in the initialization anyway.
 
         from rpclib.aux import AuxProcBase
 
-        if aux is None:
-            return aux
         if isinstance(aux, AuxProcBase):
             return aux
         if aux == 'sync':
             from rpclib.aux.sync import SyncAuxProc
-            return SyncAuxProc()
+            return SyncAuxProc(service)
         if aux == 'thread':
             from rpclib.aux.thread import ThreadAuxProc
-            return ThreadAuxProc()
+            return ThreadAuxProc(service)
 
-        raise ValueError("invalid value to the 'aux' property: %r" % aux)
+        return None
 
         # FIXME
         if aux == 'twisted':
             return None
+
+    @classmethod
+    def get_method_id(cls, descriptor):
+        return '.'.join([
+                cls.__module__,
+                cls.__name__,
+                descriptor.function.__name__,
+            ])

@@ -24,17 +24,11 @@ from multiprocessing.pool import ThreadPool
 
 from rpclib.aux import AuxProcBase
 
-"""In the current implementation, every single method definition has its own
-ThreadPool.
-"""
 
 class ThreadAuxProc(AuxProcBase):
-    def __init__(self, pool=None):
-        if pool is None:
-            self.__pool_size = pool._processes # FIXME: Private API?
-            self._pool = pool
-        else:
-            self.pool_size = 1
+    def __init__(self, service):
+        AuxProcBase.__init__(self, service)
+        self.pool_size = 1
 
     def get_pool_size(self):
         return self.__pool_size
@@ -45,5 +39,8 @@ class ThreadAuxProc(AuxProcBase):
 
     pool_size = property(get_pool_size, set_pool_size)
 
-    def process_context(self, server, context):
-        self._pool.apply_async(self.process, [server, context])
+    def process_context(self, server, ctx, *args, **kwargs):
+        a = [server, ctx]
+        a.extend(args)
+
+        self._pool.apply_async(self.process, a, kwargs)
