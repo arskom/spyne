@@ -24,7 +24,9 @@ from multiprocessing.pool import ThreadPool
 
 from rpclib.aux import AuxProcBase
 
-POOL_SIZE = 1
+"""In the current implementation, every single method definition has its own
+ThreadPool.
+"""
 
 class ThreadAuxProc(AuxProcBase):
     def __init__(self):
