@@ -29,8 +29,12 @@ ThreadPool.
 """
 
 class ThreadAuxProc(AuxProcBase):
-    def __init__(self):
-        self.pool_size = 1
+    def __init__(self, pool=None):
+        if pool is None:
+            self.__pool_size = pool._processes # FIXME: Private API?
+            self._pool = pool
+        else:
+            self.pool_size = 1
 
     def get_pool_size(self):
         return self.__pool_size
