@@ -134,10 +134,10 @@ generated.) Whatever global state that is accessed is initialized and frozen
 (by convention) before any rpc processing is performed.
 
 The transport implementations (i.e. the code in client and server packages) or
-the user code are responsible for assuring thread-safety when accessing the
+the user code are responsible for assuring thread-safety when accessing any
 out-of-thread data. No other parts of rpclib should be made aware of threads.
 
-What implications does Rpclib's license (LGPL) have for commercial projects that use it?
+What implications does Rpclib's license (LGPL) have for proprietary projects that use it?
 ========================================================================================
 
 DISCLAIMER: This is not legal advice, but just how we think things should work.
