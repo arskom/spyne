@@ -23,8 +23,9 @@ server transport implementations."""
 import logging
 logger = logging.getLogger(__name__)
 
+from rpclib import EventManager
 from rpclib.model.fault import Fault
-from rpclib._base import EventManager
+from rpclib.protocol import ProtocolBase
 
 
 class ServerBase(object):
@@ -63,7 +64,8 @@ class ServerBase(object):
 
             # sets ctx.in_body_doc, ctx.in_header_doc and
             # ctx.method_request_string
-            self.app.in_protocol.decompose_incoming_envelope(ctx)
+            self.app.in_protocol.decompose_incoming_envelope(ctx,
+                                                           ProtocolBase.REQUEST)
 
             # returns a list of contexts. multiple contexts can be returned
             # when supports_fanout_mode=True parameter is given to the
