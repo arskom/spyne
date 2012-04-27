@@ -281,6 +281,8 @@ class TestMultipleMethods(unittest.TestCase):
         assert data == ['hey', 'hey']
 
     def test_thread_aux_wsgi(self):
+        import logging
+        logging.basicConfig(level=logging.DEBUG)
         data = set()
 
         class Service(ServiceBase):
