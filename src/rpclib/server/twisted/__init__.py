@@ -21,13 +21,21 @@
 as transport.
 """
 
+
+from twisted.internet.interfaces import IPullProducer
 import logging
 logger = logging.getLogger(__name__)
 
-from pprint import pformat
-
+from twisted.python.log import err
 from twisted.web.resource import Resource
+from twisted.web.server import NOT_DONE_YET
+from twisted.internet.defer import Deferred
+from twisted.web.iweb import IBodyProducer
+from twisted.web.iweb import UNKNOWN_LENGTH
+from zope.interface import implements
 
+
+from rpclib import aux
 from rpclib.server.http import HttpMethodContext
 from rpclib.server.http import HttpBase
 
@@ -48,6 +56,48 @@ def _reconstruct_url(request):
         url_scheme = 'http'
 
     return ''.join([url_scheme, "://", server_name, request.uri])
+
+
+class _Producer(object):
+    implements(IPullProducer)
+
+    deferred = None
+
+    def __init__(self, body, consumer):
+        """:param body: an iterable of strings"""
+
+        # check to see if we can determine the length
+        try:
+            len(body) # iterator?
+            self.length = sum([len(fragment) for fragment in body])
+            self.body = iter(body)
+
+        except TypeError:
+            self.length = UNKNOWN_LENGTH
+
+        self.deferred = Deferred()
+        self.consumer = consumer
+
+    def resumeProducing(self):
+        try:
+            chunk = self.body.next()
+        except StopIteration, e:
+            self.consumer.unregisterProducer()
+            if self.deferred is not None:
+                self.deferred.callback(self.consumer)
+                self.deferred = None
+            return
+
+        self.consumer.write(chunk)
+
+    def pauseProducing(self):
+        pass
+
+    def stopProducing(self):
+        if self.deferred is not None:
+            self.deferred.errback(
+                               Exception("Consumer asked us to stop producing"))
+        self.deferred = None
 
 class TwistedHttpTransport(HttpBase):
     @staticmethod
@@ -97,32 +147,49 @@ class TwistedWebResource(Resource):
     def render_POST(self, request):
         return self.handle_rpc(request)
 
+    def handle_error(self, ctx, error, request):
+        resp_code = self.http_transport.app.out_protocol \
+                                            .fault_to_http_response_code(error)
+
+        request.setResponseCode(int(resp_code[:3]))
+
+        ctx.out_object = error
+        self.http_transport.get_out_string(ctx)
+
+        return ''.join(ctx.out_string)
+
     def handle_rpc(self, request):
         initial_ctx = HttpMethodContext(self.http_transport, request,
-                                    self.http_transport.app.out_protocol.mime_type)
-        logger.debug("%s %s %s" % (request, request.__class__, pformat(vars(request))))
+                                self.http_transport.app.out_protocol.mime_type)
         initial_ctx.in_string = [request.content.getvalue()]
 
         contexts = self.http_transport.generate_contexts(initial_ctx)
         p_ctx, others = contexts[0], contexts[1:]
         if p_ctx.in_error:
-            p_ctx.out_object = p_ctx.in_error
+            return self.handle_error(p_ctx, p_ctx.in_error, request)
 
         else:
             self.http_transport.get_in_object(p_ctx)
 
             if p_ctx.in_error:
-                p_ctx.out_object = p_ctx.in_error
+                return self.handle_error(p_ctx, p_ctx.in_error, request)
             else:
                 self.http_transport.get_out_object(p_ctx)
                 if p_ctx.out_error:
-                    p_ctx.out_object = p_ctx.out_error
+                    return self.handle_error(p_ctx, p_ctx.out_error, request)
 
         self.http_transport.get_out_string(p_ctx)
 
-        self.aux.process_contexts(others)
+        aux.process_contexts(self.http_transport, others)
 
-        return ''.join(p_ctx.out_string)
+        def _cb_request_finished(request):
+            request.finish()
+
+        producer = _Producer(p_ctx.out_string, request)
+        producer.deferred.addErrback(err).addCallback(_cb_request_finished)
+        request.registerProducer(producer, False)
+
+        return NOT_DONE_YET
 
     def __handle_wsdl_request(self, request):
         ctx = HttpMethodContext(self.http_transport, request,
