@@ -25,7 +25,7 @@ logger.setLevel(logging.DEBUG)
 import os
 
 from rpclib.test.interop.server.soap_http_basic import soap_application
-from rpclib.server.twisted_ import TwistedWebResource
+from rpclib.server.twisted import TwistedWebResource
 
 host = '127.0.0.1'
 port = 9754

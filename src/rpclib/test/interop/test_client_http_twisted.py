@@ -19,7 +19,7 @@
 
 from twisted.trial import unittest
 
-from rpclib.client.twisted_ import TwistedHttpClient
+from rpclib.client.twisted import TwistedHttpClient
 from rpclib.test.interop.server.soap_http_basic import soap_application
 
 class TestRpclibHttpClient(unittest.TestCase):

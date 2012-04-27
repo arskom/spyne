@@ -28,7 +28,7 @@ from rpclib.application import Application
 from rpclib.test.interop.server._service import services
 from rpclib.protocol.http import HttpRpc
 from rpclib.interface.wsdl import Wsdl11
-from rpclib.server.twisted_ import TwistedWebResource
+from rpclib.server.twisted import TwistedWebResource
 
 httprpc_soap_application = Application(services,
         'rpclib.test.interop.server.httprpc.pod', HttpRpc(), HttpRpc(), Wsdl11())

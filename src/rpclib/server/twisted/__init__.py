@@ -134,13 +134,13 @@ class TwistedWebResource(Resource):
 
             if ctx.transport.wsdl is None:
                 from rpclib.interface.wsdl.wsdl11 import Wsdl11
-                wsdl = Wsdl11(self.app.interface)
+                wsdl = Wsdl11(self.http_transport.app.interface)
                 wsdl.build_interface_document(url)
                 self._wsdl = ctx.transport.wsdl = wsdl.get_interface_document()
 
             assert ctx.transport.wsdl != None
 
-            self.event_manager.fire_event('wsdl', ctx) # implementation hook
+            self.http_transport.event_manager.fire_event('wsdl', ctx)
 
             for k,v in ctx.transport.resp_headers.items():
                 request.setHeader(k,v)
@@ -149,5 +149,5 @@ class TwistedWebResource(Resource):
         
         except Exception, e:
             ctx.transport.wsdl_error = e
-            self.event_manager.fire_event('wsdl_exception', ctx)
+            self.http_transport.event_manager.fire_event('wsdl_exception', ctx)
             raise
