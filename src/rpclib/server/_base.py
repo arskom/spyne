@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 from rpclib.model.fault import Fault
 from rpclib._base import EventManager
 
+
 class ServerBase(object):
     """This class is the abstract base class for all server transport
     implementations. Unlike the client transports, this class does not define
@@ -50,7 +51,6 @@ class ServerBase(object):
             call will be returned.""")
 
         self.event_manager = EventManager(self)
-
 
     def generate_contexts(self, ctx, in_string_charset=None):
         """Calls create_in_document and decompose_incoming_envelope to get

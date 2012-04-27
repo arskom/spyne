@@ -319,7 +319,6 @@ class MethodDescriptor(object):
             self.__real_function = val
         self.function = self.__real_function
 
-
 class EventManager(object):
     """The event manager for all rpclib events. The events are stored in an
     ordered set -- so the events are ran in the order they were added and
