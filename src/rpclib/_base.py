@@ -24,6 +24,7 @@ from time import time
 
 from collections import deque
 
+from rpclib.aux import AuxProcBase
 from rpclib.const.xml_ns import DEFAULT_NS
 from rpclib.util.oset import oset
 
@@ -359,12 +360,17 @@ class EventManager(object):
 def sanitize_aux(aux):
     if aux is None:
         return aux
+    if isinstance(aux, AuxProcBase):
+        return aux
     if aux == 'sync':
-        from rpclib.aux import sync
-        return sync
+        from rpclib.aux.sync import SyncAuxProc
+        return SyncAuxProc()
     if aux == 'thread':
-        from rpclib.aux import thread
-        return thread
+        from rpclib.aux.thread import ThreadAuxProc
+        return ThreadAuxProc()
+
+    raise ValueError("invalid value to the 'aux' property: %r" % aux)
+
+    # FIXME
     if aux == 'twisted':
-        from rpclib.aux import twisted
-        return twisted
+        return None

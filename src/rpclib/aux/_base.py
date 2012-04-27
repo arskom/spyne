@@ -21,36 +21,28 @@
 import logging
 logger = logging.getLogger(__name__)
 
-RETRY_ERRORS = type('RETRY_ERRORS', (object,), {})
-LOG_ERRORS = type('LOG_ERRORS', (object,), {})
-
-
-def process(server, ctx):
-    logger.debug("Executing %r" % ctx.descriptor.function)
-    server.get_in_object(ctx)
-    if ctx.in_error:
-        logger.exception(ctx.in_error)
-        if server.error_handling is RETRY_ERRORS:
-            raise ctx.in_error
-
-    server.get_out_object(ctx)
-    if ctx.out_error:
-        logger.exception(ctx.out_error)
-        if server.error_handling is RETRY_ERRORS:
-            raise ctx.out_error
-
-    server.get_out_string(ctx)
-    for s in ctx.out_string:
-        logger.debug(s)
 
 def process_contexts(server, contexts):
     for ctx in contexts:
         print ctx.descriptor.aux
         ctx.descriptor.aux.process_context(server, ctx)
 
-ERROR_HANDLING_MAP = {
-    'log': LOG_ERRORS,
-    'retry': RETRY_ERRORS,
-    LOG_ERRORS: LOG_ERRORS,
-    RETRY_ERRORS: RETRY_ERRORS,
-}
+# this just simplifies isinstance call.
+class AuxProcBase(object):
+    @staticmethod
+    def process(server, ctx):
+        logger.debug("Executing %r" % ctx.descriptor.function)
+        server.get_in_object(ctx)
+        if ctx.in_error:
+            logger.exception(ctx.in_error)
+            return
+
+        server.get_out_object(ctx)
+        if ctx.out_error:
+            logger.exception(ctx.out_error)
+            return
+
+        server.get_out_string(ctx)
+        for s in ctx.out_string:
+            logger.debug(s)
+

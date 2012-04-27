@@ -23,11 +23,22 @@ logger = logging.getLogger(__name__)
 
 from multiprocessing.pool import ThreadPool
 
-from rpclib.aux import process
+from rpclib.aux import AuxProcBase
 
 POOL_SIZE = 1
-_pool = ThreadPool(POOL_SIZE)
 
+class ThreadAuxProc(AuxProcBase):
+    def __init__(self):
+        self.pool_size = 1
 
-def process_context(server, context):
-    _pool.apply_async(process, [server, context])
+    def get_pool_size(self):
+        return self.__pool_size
+
+    def set_pool_size(self,what):
+        self.__pool_size = what
+        self._pool = ThreadPool(what)
+
+    pool_size = property(get_pool_size, set_pool_size)
+
+    def process_context(self, server, context):
+        self._pool.apply_async(self.process, [server, context])
