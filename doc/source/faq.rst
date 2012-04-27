@@ -136,3 +136,31 @@ generated.) Whatever global state that is accessed is initialized and frozen
 The transport implementations (i.e. the code in client and server packages) or
 the user code are responsible for assuring thread-safety when accessing the
 out-of-thread data. No other parts of rpclib should be made aware of threads.
+
+What implications does Rpclib's license (LGPL) have for commercial projects that use it?
+========================================================================================
+
+DISCLAIMER: This is not legal advice, but just how we think things should work.
+
+Due to the nature of LGPL, you're absolutely free to do whatever you want with
+Rpclib, as long as you don't distibute it (i.e. do on-site installs) to your
+clients.
+
+If you make modifications to Rpclib and deploy a modified version to your
+client's site, the minimum you should do is to pass along the source code for
+the modified Rpclib to your clients. The sensible thing to do is to send the
+patch upstream so that we can review and include it, so that you don't have to
+maintain it separately as the mainstream project moves forward.
+
+The thing to watch out for when distributing a modified Rpclib version as
+part of your proprieatry solution is to make sure that Rpclib runs just fine by
+itself without needing your code. If your modifications to Rpclib make it
+dependant on your software, you must pass your modifications along with the code
+that Rpclib needs to the people who deploy your solution.
+
+Rpclib is a descendant of Soaplib, which was published by its author initially
+under LGPL. When he quit, the people who took over contemplated re-licensing to
+BSD, but were not able to reach the original author. A re-licensing is now even
+less probable today because of the number of people who've contributed code in
+the past years as we'd need to get the approval of every single person in order
+to re-license Rpclib.
