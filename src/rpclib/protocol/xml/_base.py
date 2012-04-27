@@ -238,7 +238,7 @@ class XmlObject(ProtocolBase):
 
         if ctx.out_error is not None:
             # FIXME: There's no way to alter soap response headers for the user.
-            tmp_elt = etree.Element(ctx.out_document, 'punk')
+            tmp_elt = etree.Element('punk')
             self.to_parent_element(ctx.out_error.__class__, ctx.out_error,
                                     self.app.interface.get_tns(), tmp_elt)
             ctx.out_document = tmp_elt[0]
