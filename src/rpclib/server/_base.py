@@ -61,7 +61,8 @@ class ServerBase(object):
             # sets ctx.in_document
             self.app.in_protocol.create_in_document(ctx, in_string_charset)
 
-            # sets ctx.in_body_doc, ctx.in_header_doc and ctx.method_request_string
+            # sets ctx.in_body_doc, ctx.in_header_doc and
+            # ctx.method_request_string
             self.app.in_protocol.decompose_incoming_envelope(ctx)
 
             # returns a list of contexts. multiple contexts can be returned

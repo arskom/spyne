@@ -45,7 +45,6 @@ def _produce_input_message(f, params, _in_message_name, _in_variable_names, no_c
     param_names = f.func_code.co_varnames[arg_start:argcount]
 
     in_params = TypeInfo()
-
     try:
         for i in range(len(param_names)):
             e0 = _in_variable_names.get(param_names[i], param_names[i])

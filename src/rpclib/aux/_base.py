@@ -17,17 +17,15 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-
 import logging
 logger = logging.getLogger(__name__)
 
 
 def process_contexts(server, contexts):
     for ctx in contexts:
-        print ctx.descriptor.aux
         ctx.descriptor.aux.process_context(server, ctx)
 
-# this just simplifies isinstance call.
+
 class AuxProcBase(object):
     @staticmethod
     def process(server, ctx):
@@ -45,4 +43,3 @@ class AuxProcBase(object):
         server.get_out_string(ctx)
         for s in ctx.out_string:
             logger.debug(s)
-
