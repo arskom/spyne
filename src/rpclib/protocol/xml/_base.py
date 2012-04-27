@@ -72,15 +72,21 @@ class XmlObject(ProtocolBase):
     :param app: The owner application instance.
     :param validator: One of (None, 'soft', 'lxml', 'schema',
                 ProtocolBase.SOFT_VALIDATION, XmlObject.SCHEMA_VALIDATION).
+    :param xml_declaration: Whether to add xml_declaration to the responses
+        Default is 'True'.
+    :param cleanup_namespaces: Whether to add clean up namespace declarations
+        in the response document. Default is 'False'.
     """
 
     SCHEMA_VALIDATION = type("schema", (object,), {})
     mime_type = 'text/xml'
     allowed_http_verbs = set(['GET', 'POST'])
 
-    def __init__(self, app=None, validator=None, xml_declaration=True):
+    def __init__(self, app=None, validator=None, xml_declaration=True,
+                                                    cleanup_namespaces=False):
         ProtocolBase.__init__(self, app, validator)
         self.xml_declaration = xml_declaration
+        self.cleanup_namespaces = cleanup_namespaces
 
         self.serialization_handlers = cdict({
             ModelBase: base_to_parent_element,
@@ -258,6 +264,9 @@ class XmlObject(ProtocolBase):
             self.to_parent_element(result_message_class,
                         result_message, self.app.interface.get_tns(), tmp_elt)
             ctx.out_document = tmp_elt[0]
+
+        if self.cleanup_namespaces:
+            etree.cleanup_namespaces(ctx.out_document)
 
         self.event_manager.fire_event('after_serialize', ctx)
 

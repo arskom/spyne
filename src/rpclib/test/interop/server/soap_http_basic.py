@@ -29,7 +29,7 @@ from rpclib.protocol.soap import Soap11
 from rpclib.interface.wsdl import Wsdl11
 
 soap_application = Application(services, 'rpclib.test.interop.server',
-                                   Soap11(validator='lxml'), Soap11(), Wsdl11())
+          Soap11(validator='lxml', cleanup_namespaces=True), Soap11(), Wsdl11())
 
 def main():
     try:
