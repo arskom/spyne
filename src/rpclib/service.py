@@ -188,3 +188,27 @@ class ServiceBase(object):
             return ctx.function(*ctx.in_object)
         else:
             return ctx.function(ctx, *ctx.in_object)
+
+    @staticmethod
+    def sanitize_aux(aux):
+        # imports are in-line to keep the module as clean (import-wise) as
+        # possible. this code runs only in the initialization anyway.
+
+        from rpclib.aux import AuxProcBase
+
+        if aux is None:
+            return aux
+        if isinstance(aux, AuxProcBase):
+            return aux
+        if aux == 'sync':
+            from rpclib.aux.sync import SyncAuxProc
+            return SyncAuxProc()
+        if aux == 'thread':
+            from rpclib.aux.thread import ThreadAuxProc
+            return ThreadAuxProc()
+
+        raise ValueError("invalid value to the 'aux' property: %r" % aux)
+
+        # FIXME
+        if aux == 'twisted':
+            return None

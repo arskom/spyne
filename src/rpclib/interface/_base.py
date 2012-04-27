@@ -26,7 +26,6 @@ logger = logging.getLogger(__name__)
 import warnings
 
 from rpclib import EventManager
-from rpclib import sanitize_aux
 
 from rpclib.const import xml_ns as namespace
 from rpclib.const.suffix import TYPE_SUFFIX
@@ -159,7 +158,7 @@ class Interface(object):
                     method.out_header = s.__out_header__
                 if method.aux is None:
                     method.aux = s.__aux__
-                method.aux = sanitize_aux(method.aux)
+                method.aux = s.sanitize_aux(method.aux)
 
                 if not (method.in_header is None):
                     if isinstance(method.in_header, (list, tuple)):

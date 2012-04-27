@@ -24,7 +24,6 @@ from rpclib._base import EventContext
 from rpclib._base import MethodContext
 from rpclib._base import MethodDescriptor
 from rpclib._base import EventManager
-from rpclib._base import sanitize_aux
 
 import sys
 
