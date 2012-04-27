@@ -89,6 +89,8 @@ class Application(object):
         self.in_protocol.set_app(self)
         self.out_protocol.set_app(self)
 
+        self.reinitialize()
+
     def process_request(self, ctx):
         """Takes a MethodContext instance. Returns the response to the request
         as a native python object. If the function throws an exception, it
@@ -151,3 +153,6 @@ class Application(object):
 
     def _has_callbacks(self):
         return self.interface._has_callbacks()
+
+    def reinitialize(self):
+        pass
