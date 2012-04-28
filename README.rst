@@ -56,7 +56,7 @@ that Rpclib supports:
   :class:`rpclib.client.zeromq.ZeroMQClient` and
   :class:`rpclib.server.zeromq.ZeroMQServer`.
 * A Wsgi server of your choice to wrap :class:`rpclib.server.wsgi.WsgiApplication`.
-* `Werkzeug <http://werkzeug.pocoo.org/>` is needed for :class:`rpclib.protocol.http.HttpRpc`.
+* `Werkzeug <http://werkzeug.pocoo.org/>`_ is needed for :class:`rpclib.protocol.http.HttpRpc`.
 
 You are advised to add these as requirements to your own projects, as these are
 only optional dependencies of rpclib, thus not handled in its setup script.
