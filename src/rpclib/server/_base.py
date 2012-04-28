@@ -41,16 +41,9 @@ class ServerBase(object):
     """The transport type, conventionally defined by the URI string to its
     definition."""
 
-    supports_fanout_methods = False
-
     def __init__(self, app):
         self.app = app
         self.app.transport = self.transport
-        if app.supports_fanout_methods and not self.supports_fanout_methods:
-            logger.warning("""Your application is in fanout mode.
-            note that in fanout mode, only the response from the last
-            call will be returned.""")
-
         self.event_manager = EventManager(self)
 
     def generate_contexts(self, ctx, in_string_charset=None):

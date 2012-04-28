@@ -69,12 +69,11 @@ class Application(object):
     transport = None
 
     def __init__(self, services, tns, in_protocol, out_protocol, interface=None,
-                                        name=None, supports_fanout_methods=False):
+                                                                     name=None):
 
         self.services = services
         self.tns = tns
         self.name = name
-        self.supports_fanout_methods = supports_fanout_methods
 
         if self.name is None:
             self.name = self.__class__.__name__.split('.')[-1]

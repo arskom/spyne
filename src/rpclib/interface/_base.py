@@ -224,7 +224,7 @@ class Interface(object):
                     self.service_method_map[method.key] = [(s, method)]
 
                 else:
-                    if self.app.supports_fanout_methods or method.aux is not None:
+                    if method.aux is not None:
                         self.service_method_map[method.key].append((s, method))
 
                     else:
