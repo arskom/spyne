@@ -26,21 +26,17 @@ from rpclib.aux import AuxProcBase
 
 
 class ThreadAuxProc(AuxProcBase):
-    def __init__(self, service):
-        AuxProcBase.__init__(self, service)
-        self.pool_size = 1
+    def __init__(self, pool_size=1):
+        AuxProcBase.__init__(self)
+        self.__pool_size = pool_size
+        self.pool = ThreadPool(pool_size)
 
-    def get_pool_size(self):
+    @property
+    def pool_size(self):
         return self.__pool_size
-
-    def set_pool_size(self,what):
-        self.__pool_size = what
-        self._pool = ThreadPool(what)
-
-    pool_size = property(get_pool_size, set_pool_size)
 
     def process_context(self, server, ctx, *args, **kwargs):
         a = [server, ctx]
         a.extend(args)
 
-        self._pool.apply_async(self.process, a, kwargs)
+        self.pool.apply_async(self.process, a, kwargs)

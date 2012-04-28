@@ -27,6 +27,8 @@ import unittest
 from lxml import etree
 
 from rpclib.application import Application
+from rpclib.aux.thread import ThreadAuxProc
+from rpclib.aux.sync import SyncAuxProc
 from rpclib.decorator import rpc
 from rpclib.decorator import srpc
 from rpclib.interface.wsdl import Wsdl11
@@ -240,7 +242,7 @@ class TestMultipleMethods(unittest.TestCase):
                 data.append(s)
 
         class AuxService(ServiceBase):
-            __aux__ = 'sync'
+            __aux__ = SyncAuxProc()
 
             @srpc(String)
             def call(s):
@@ -261,7 +263,7 @@ class TestMultipleMethods(unittest.TestCase):
                 data.append(s)
 
         class AuxService(ServiceBase):
-            __aux__ = 'sync'
+            __aux__ = SyncAuxProc()
 
             @srpc(String, _returns=String)
             def call(s):
@@ -291,7 +293,7 @@ class TestMultipleMethods(unittest.TestCase):
                 data.add(s)
 
         class AuxService(ServiceBase):
-            __aux__ = 'thread'
+            __aux__ = ThreadAuxProc()
 
             @srpc(String, _returns=String)
             def call(s):

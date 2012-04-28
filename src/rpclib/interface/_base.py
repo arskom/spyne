@@ -158,12 +158,7 @@ class Interface(object):
                     method.out_header = s.__out_header__
                 if method.aux is None:
                     method.aux = s.__aux__
-
                 if method.aux is not None:
-                    ret = s.sanitize_aux(method.aux, s)
-                    if ret is None:
-                        raise ValueError("%r for 'aux' property" % method.aux)
-                    method.aux = ret
                     method.aux.methods.append(s.get_method_id(method))
 
                 if not (method.in_header is None):

@@ -27,8 +27,7 @@ def process_contexts(server, contexts):
 
 
 class AuxProcBase(object):
-    def __init__(self, service):
-        self.service = service
+    def __init__(self):
         self.methods = []
 
     def initialize(self):

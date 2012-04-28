@@ -94,7 +94,9 @@ class HttpRpc(ProtocolBase):
 
         ctx.in_document = ctx.transport.req
 
-    def decompose_incoming_envelope(self, ctx):
+    def decompose_incoming_envelope(self, ctx, message):
+        assert message == ProtocolBase.REQUEST
+
         ctx.transport.itself.decompose_incoming_envelope(self, ctx)
 
         logger.debug('\theader : %r' % (ctx.in_header_doc))

@@ -31,7 +31,6 @@ class ServiceBaseMeta(type):
     tagged methods.
     '''
 
-
     def __init__(self, cls_name, cls_bases, cls_dict):
         super(ServiceBaseMeta, self).__init__(cls_name, cls_bases, cls_dict)
 
@@ -188,28 +187,6 @@ class ServiceBase(object):
             return ctx.function(*ctx.in_object)
         else:
             return ctx.function(ctx, *ctx.in_object)
-
-    @staticmethod
-    def sanitize_aux(aux, service):
-        # imports are in-line to keep the module as clean (import-wise) as
-        # possible. this code runs only in the initialization anyway.
-
-        from rpclib.aux import AuxProcBase
-
-        if isinstance(aux, AuxProcBase):
-            return aux
-        if aux == 'sync':
-            from rpclib.aux.sync import SyncAuxProc
-            return SyncAuxProc(service)
-        if aux == 'thread':
-            from rpclib.aux.thread import ThreadAuxProc
-            return ThreadAuxProc(service)
-
-        return None
-
-        # FIXME
-        if aux == 'twisted':
-            return None
 
     @classmethod
     def get_method_id(cls, descriptor):
