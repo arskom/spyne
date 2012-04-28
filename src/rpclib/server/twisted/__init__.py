@@ -147,16 +147,18 @@ class TwistedWebResource(Resource):
     def render_POST(self, request):
         return self.handle_rpc(request)
 
-    def handle_error(self, ctx, error, request):
+    def handle_error(self, p_ctx, others, error, request):
         resp_code = self.http_transport.app.out_protocol \
                                             .fault_to_http_response_code(error)
 
         request.setResponseCode(int(resp_code[:3]))
 
-        ctx.out_object = error
-        self.http_transport.get_out_string(ctx)
+        p_ctx.out_object = error
+        self.http_transport.get_out_string(p_ctx)
 
-        return ''.join(ctx.out_string)
+        aux.process_contexts(self.http_transport, others, error=error)
+
+        return ''.join(p_ctx.out_string)
 
     def handle_rpc(self, request):
         initial_ctx = HttpMethodContext(self.http_transport, request,
@@ -166,17 +168,17 @@ class TwistedWebResource(Resource):
         contexts = self.http_transport.generate_contexts(initial_ctx)
         p_ctx, others = contexts[0], contexts[1:]
         if p_ctx.in_error:
-            return self.handle_error(p_ctx, p_ctx.in_error, request)
+            return self.handle_error(p_ctx, others, p_ctx.in_error, request)
 
         else:
             self.http_transport.get_in_object(p_ctx)
 
             if p_ctx.in_error:
-                return self.handle_error(p_ctx, p_ctx.in_error, request)
+                return self.handle_error(p_ctx, others, p_ctx.in_error, request)
             else:
                 self.http_transport.get_out_object(p_ctx)
                 if p_ctx.out_error:
-                    return self.handle_error(p_ctx, p_ctx.out_error, request)
+                    return self.handle_error(p_ctx, others, p_ctx.out_error, request)
 
         self.http_transport.get_out_string(p_ctx)
 

@@ -200,20 +200,22 @@ class WsgiApplication(HttpBase):
 
         return [ctx.transport.wsdl]
 
-    def handle_error(self, ctx, error, start_response):
-        if ctx.transport.resp_code is None:
-            ctx.transport.resp_code = \
+    def handle_error(self, p_ctx, others, error, start_response):
+        if p_ctx.transport.resp_code is None:
+            p_ctx.transport.resp_code = \
                 self.app.out_protocol.fault_to_http_response_code(error)
 
-        self.get_out_string(ctx)
-        ctx.out_string = [''.join(ctx.out_string)]
+        self.get_out_string(p_ctx)
+        p_ctx.out_string = [''.join(p_ctx.out_string)]
 
-        ctx.transport.resp_headers['Content-Length'] = str(len(ctx.out_string[0]))
-        self.event_manager.fire_event('wsgi_exception', ctx)
+        p_ctx.transport.resp_headers['Content-Length'] = str(len(p_ctx.out_string[0]))
+        self.event_manager.fire_event('wsgi_exception', p_ctx)
 
-        start_response(ctx.transport.resp_code,
-                                             ctx.transport.resp_headers.items())
-        return ctx.out_string
+        start_response(p_ctx.transport.resp_code,
+                                             p_ctx.transport.resp_headers.items())
+        aux.process_contexts(self, others, error=error)
+
+        return p_ctx.out_string
 
     def handle_rpc(self, req_env, start_response):
         initial_ctx = WsgiMethodContext(self, req_env,
@@ -228,16 +230,16 @@ class WsgiApplication(HttpBase):
         p_ctx, others = contexts[0], contexts[1:]
 
         if p_ctx.in_error:
-            return self.handle_error(p_ctx, p_ctx.in_error, start_response)
+            return self.handle_error(p_ctx, others, p_ctx.in_error, start_response)
 
         self.get_in_object(p_ctx)
         if p_ctx.in_error:
             logger.error(p_ctx.in_error)
-            return self.handle_error(p_ctx, p_ctx.in_error, start_response)
+            return self.handle_error(p_ctx, others, p_ctx.in_error, start_response)
 
         self.get_out_object(p_ctx)
         if p_ctx.out_error:
-            return self.handle_error(p_ctx, p_ctx.out_error, start_response)
+            return self.handle_error(p_ctx, others, p_ctx.out_error, start_response)
 
         if p_ctx.transport.resp_code is None:
             p_ctx.transport.resp_code = HTTP_200

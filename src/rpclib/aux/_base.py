@@ -21,19 +21,21 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def process_contexts(server, contexts):
+def process_contexts(server, contexts, error=None):
     for ctx in contexts:
-        ctx.descriptor.aux.process_context(server, ctx)
+        if error is None or ctx.descriptor.aux.process_exceptions:
+            ctx.descriptor.aux.process_context(server, ctx, error)
 
 
 class AuxProcBase(object):
-    def __init__(self):
+    def __init__(self, process_exceptions=False):
         self.methods = []
+        self.process_exceptions = process_exceptions
 
     def initialize(self):
         pass
 
-    def process(self, server, ctx, *args, **kwargs):
+    def process(self, server, ctx, error, *args, **kwargs):
         logger.debug("Executing %r" % ctx.descriptor.function)
         server.get_in_object(ctx)
         if ctx.in_error:
