@@ -213,23 +213,29 @@ class Interface(object):
             logger.debug("populating '%s.%s' methods..." % (s.__module__,
                                                                     s.__name__))
             for method in s.public_methods.values():
+                logger.debug('\tadding method %r to match %r tag.' %
+                                                      (method.name, method.key))
+
                 assert not s.get_method_id(method) in self.method_id_map
+
                 self.method_id_map[s.get_method_id(method)] = (s, method)
 
                 val = self.service_method_map.get(method.key, None)
-
                 if val is None:
-                    logger.debug('\tadding method %r to match %r tag.' %
-                                                      (method.name, method.key))
-                    self.service_method_map[method.key] = [(s, method)]
+                    val = self.service_method_map[method.key] = []
+
+                if len(val) == 0:
+                    val.append((s, method))
+
+                elif method.aux is not None:
+                    val.append((s, method))
+
+                elif val[0][1].aux is not None:
+                    val.insert((s,method), 0)
 
                 else:
-                    if method.aux is not None:
-                        self.service_method_map[method.key].append((s, method))
-
-                    else:
-                        os, om = val[0]
-                        raise ValueError("\nThe message %r defined in both '%s.%s'"
+                    os, om = val[0]
+                    raise ValueError("\nThe message %r defined in both '%s.%s'"
                                                                 " and '%s.%s'"
                                 % (method.key, s.__module__, s.__name__,
                                                os.__module__, os.__name__,
