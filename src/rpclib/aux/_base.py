@@ -38,12 +38,12 @@ class AuxProcBase(object):
     def process(self, server, ctx, p_ctx, p_error, *args, **kwargs):
         logger.debug("Executing %r" % ctx.service_class.get_method_id(ctx.descriptor))
         server.get_in_object(ctx)
-        if ctx.in_error:
+        if ctx.in_error is not None:
             logger.exception(ctx.in_error)
             return ctx.in_error
 
         server.get_out_object(ctx)
-        if ctx.out_error:
+        if ctx.out_error is not None:
             logger.exception(ctx.out_error)
             return ctx.out_error
 
