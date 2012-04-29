@@ -213,7 +213,11 @@ class WsgiApplication(HttpBase):
 
         start_response(p_ctx.transport.resp_code,
                                              p_ctx.transport.resp_headers.items())
-        aux.process_contexts(self, others, error=error)
+        try:
+            aux.process_contexts(self, others, p_ctx, error=error)
+        except Exception,e:
+            # Report but ignore any exceptions from auxiliary methods.
+            logger.exception(e)
 
         return p_ctx.out_string
 
@@ -297,11 +301,15 @@ class WsgiApplication(HttpBase):
             retval = retval_iter.next()
 
             start_response(p_ctx.transport.resp_code,
-                                             p_ctx.transport.resp_headers.items())
+                                            p_ctx.transport.resp_headers.items())
 
             retval = itertools.chain([retval], retval_iter)
 
-        aux.process_contexts(self, others)
+        try:
+            aux.process_contexts(self, others, p_ctx, error=None)
+        except Exception, e:
+            # Report but ignore any exceptions from auxiliary methods.
+            logger.exception(e)
 
         return retval
 
