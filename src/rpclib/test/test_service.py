@@ -276,5 +276,20 @@ class TestMultipleMethods(unittest.TestCase):
 
         assert data == set(['hey', 'heyaux'])
 
+    def test_mixing_primary_and_aux_methods(self):
+        try:
+            class Service(ServiceBase):
+                @srpc(String, _returns=String, _aux=ThreadAuxProc())
+                def call(s):
+                    pass
+
+                @srpc(String, _returns=String)
+                def mall(s):
+                    pass
+        except Exception:
+            pass
+        else:
+            raise Exception("must fail with 'Exception: you can't mix aux and non-aux methods in a single service definition.'")
+
 if __name__ == '__main__':
     unittest.main()

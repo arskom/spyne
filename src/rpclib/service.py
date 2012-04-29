@@ -34,6 +34,7 @@ class ServiceBaseMeta(type):
     def __init__(self, cls_name, cls_bases, cls_dict):
         super(ServiceBaseMeta, self).__init__(cls_name, cls_bases, cls_dict)
 
+        self.__has_aux_methods = self.__aux__ is not None
         self.public_methods = {}
         self.event_manager = EventManager(self,
                                       self.__get_base_event_handlers(cls_bases))
@@ -47,7 +48,12 @@ class ServiceBaseMeta(type):
                 descriptor.reset_function(getattr(self, k))
 
                 self.public_methods[k] = descriptor
-
+                if descriptor.aux is None:
+                    if self.__has_aux_methods and self.__aux__ is None:
+                        raise Exception("you can't mix aux and non-aux methods in "
+                                        "a single service definition.")
+                else:
+                    self.__has_aux_methods = True
 
     def __get_base_event_handlers(self, cls_bases):
         handlers = {}
@@ -64,6 +70,9 @@ class ServiceBaseMeta(type):
                 handlers[k]=handler
 
         return handlers
+
+    def is_auxiliary(self):
+        return self.__has_aux_methods
 
 
 class ServiceBase(object):
