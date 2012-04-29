@@ -216,16 +216,19 @@ class Wsdl11(XmlSchema):
         # create service nodes in advance. they're to be filled in subsequent
         # add_port_type calls.
         for s in self.interface.services:
-            self._get_or_create_service_node(self._get_applied_service_name(s))
+            if not s.is_auxiliary():
+                self._get_or_create_service_node(self._get_applied_service_name(s))
 
         # create portType nodes
         for s in self.interface.services:
-            self.add_port_type(s, root, service_name, types, self.url)
+            if not s.is_auxiliary():
+                self.add_port_type(s, root, service_name, types, self.url)
 
         cb_binding = None
         for s in self.interface.services:
-            cb_binding = self.add_bindings_for_methods(s, root, service_name,
-                                                       cb_binding)
+            if not s.is_auxiliary():
+                cb_binding = self.add_bindings_for_methods(s, root,
+                                                   service_name, cb_binding)
 
         if self.interface.app.transport is None:
             raise Exception("You must set the 'transport' property of the "
@@ -349,7 +352,7 @@ class Wsdl11(XmlSchema):
                                         f.get_namespace_prefix(self.interface),
                                         f.get_type_name()))
 
-        ser = self._get_or_create_service_node(applied_service_name)
+        ser = self.service_elt_dict[applied_service_name]
         for port_name, binding_name in port_binding_names:
             self._add_port_to_service(ser, port_name, binding_name)
 
