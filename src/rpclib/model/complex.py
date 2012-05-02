@@ -142,6 +142,7 @@ class ComplexModelMeta(type(ModelBase)):
 
         type(ModelBase).__init__(self, cls_name, cls_bases, cls_dict)
 
+
 class ComplexModelBase(ModelBase):
     """If you want to make a better class type, this is what you should inherit
     from.
@@ -295,8 +296,8 @@ class ComplexModelBase(ModelBase):
                 if value:
                     raise ValueError("%r.%s conflicts with %r" % (cls, k, value))
 
-                retval[key] = _SimpleTypeInfoElement(
-                                    path=tuple(new_prefix), parent=parent, type_=v)
+                retval[key] = _SimpleTypeInfoElement(path=tuple(new_prefix),
+                                                        parent=parent, type_=v)
 
             else:
                 new_prefix = list(prefix)
@@ -319,7 +320,7 @@ class ComplexModelBase(ModelBase):
     def resolve_namespace(cls, default_ns):
         if getattr(cls, '__extends__', None) != None:
             cls.__extends__.resolve_namespace(cls.__extends__, default_ns)
-
+        
         ModelBase.resolve_namespace(cls, default_ns)
 
         for k, v in cls._type_info.items():

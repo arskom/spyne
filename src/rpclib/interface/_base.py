@@ -46,7 +46,7 @@ class Interface(object):
         self.event_manager = EventManager(self)
 
         self.__app = None
-        
+
         self.classes = {}
         self.imports = {}
         self.service_method_map = {}
@@ -134,7 +134,7 @@ class Interface(object):
         if c and  ( c.get_type_name().endswith(RESULT_SUFFIX) or
                     c.get_type_name().endswith(RESPONSE_SUFFIX) ):
             raise Exception("You can't use any type or method name ending "
-                            "with one of %r unless you should alter the "
+                            "with one of %r unless you alter the "
                             "constants in the 'rpclib.const.suffix' module.\n"
                             "This is for class %r."
                             % ((TYPE_SUFFIX, RESULT_SUFFIX, RESPONSE_SUFFIX),c))
@@ -276,13 +276,6 @@ class Interface(object):
         return pref
 
     def add_class(self, cls):
-        """This function is called by the populate_interface logic, which
-        expects you to implement a way to manage incoming classes.
-
-        In normal circumstances, the incoming classes are all ComplexModel
-        children.
-        """
-
         if self.has_class(cls):
             return
 
