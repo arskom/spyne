@@ -317,6 +317,8 @@ class Interface(object):
                                       (child_ns, ns, cls.get_type_name(), k, v))
 
     def is_valid_import(self, ns):
+        if ns is None:
+            raise ValueError(ns)
         return self.import_base_namespaces or not (ns in namespace.const_prefmap)
 
 
