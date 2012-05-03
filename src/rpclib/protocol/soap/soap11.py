@@ -279,18 +279,19 @@ class Soap11(XmlObject):
                         else:
                             out_headers = (ctx.out_header,)
 
+
                         for header_class, out_header in zip(header_message_class,
                                                                 out_headers):
                             self.to_parent_element(header_class,
                                 out_header,
-                                self.app.interface.get_tns(),
+                                header_class.get_namespace(),
                                 soap_header_elt,
                                 header_class.get_type_name(),
                             )
                     else:
                         self.to_parent_element(header_message_class,
                             ctx.out_header,
-                            self.app.interface.get_tns(),
+                            header_message_class.get_namespace(),
                             soap_header_elt,
                             header_message_class.get_type_name()
                         )
@@ -319,7 +320,7 @@ class Soap11(XmlObject):
 
             # transform the results into an element
             self.to_parent_element(body_message_class, out_object,
-                                    self.app.interface.get_tns(), out_body_doc)
+                                body_message_class.get_namespace(), out_body_doc)
 
         if self.log_messages:
             if message is self.REQUEST:
