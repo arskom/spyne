@@ -43,20 +43,34 @@ class _SimpleTypeInfoElement(object):
 
 class XmlAttribute(ModelBase):
     """Items which are marshalled as attributes of the parent element."""
+    def __new__(cls, typ, use=None):
+        retval = cls.customize()
+        retval._typ = typ
+        retval._use = use
 
-    def __init__(self, typ, use=None):
-        self._typ = typ
-        self._use = use
+        return retval
 
-    def marshall(self, name, value, parent_elt):
+    @classmethod
+    def marshall(cls, name, value, parent_elt):
         if value is not None:
-            parent_elt.set(name, self._typ.to_string(value))
+            parent_elt.set(name, cls._typ.to_string(value))
 
-    def describe(self, name, element, app):
+    @classmethod
+    def describe(cls, name, element, app):
         element.set('name', name)
-        element.set('type', self._typ.get_type_name_ns(app))
-        if self._use:
-            element.set('use', self._use)
+        element.set('type', cls._typ.get_type_name_ns(app.interface))
+        if cls._use:
+            element.set('use', cls._use)
+
+    @staticmethod
+    def resolve_namespace(cls, default_ns):
+        cls._typ.resolve_namespace(cls._typ, default_ns)
+
+        if cls.__namespace__ is None:
+            cls.__namespace__ = cls._typ.get_namespace()
+
+        if cls.__namespace__ in namespace.const_prefmap:
+            cls.__namespace__ = default_ns
 
 
 class XmlAttributeRef(XmlAttribute):
@@ -114,7 +128,6 @@ class ComplexModelMeta(type(ModelBase)):
 
             for k, v in cls_dict.items():
                 if not k.startswith('__'):
-                    is_attr = isinstance(v, XmlAttribute)
                     try:
                         subc = issubclass(v, ModelBase)
                     except:
@@ -125,8 +138,6 @@ class ComplexModelMeta(type(ModelBase)):
                         if issubclass(v, Array) and len(v._type_info) != 1:
                             raise Exception("Invalid Array definition in %s.%s."
                                                                 % (cls_name, k))
-                    elif is_attr:
-                        _type_info[k] = v
         else:
             _type_info = cls_dict['_type_info']
             if not isinstance(_type_info, TypeInfo):
