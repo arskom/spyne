@@ -61,7 +61,7 @@ setup(
     maintainer='Burak Arslan',
     maintainer_email='burak+rpclib@arskom.com.tr',
     url='http://github.com/arskom/rpclib',
-    license='LGPL',
+    license='LGPL-2.1',
     zip_safe=False,
     install_requires=[
       'pytz',
