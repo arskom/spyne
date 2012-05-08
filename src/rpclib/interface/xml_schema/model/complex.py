@@ -74,7 +74,7 @@ def complex_add(document, cls):
                                                               namespace.xsd)
 
     for k, v in cls._type_info.items():
-        if isinstance(v, XmlAttribute):
+        if issubclass(v, XmlAttribute):
             attribute = etree.SubElement(complex_type,
                                         '{%s}attribute' % namespace.xsd)
             v.describe(k, attribute, document)
