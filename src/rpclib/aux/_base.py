@@ -20,11 +20,15 @@
 import logging
 logger = logging.getLogger(__name__)
 
+from rpclib import AuxMethodContext
+
 
 def process_contexts(server, contexts, p_ctx, error=None):
     for ctx in contexts:
+        ctx.aux = AuxMethodContext(p_ctx, error)
+        ctx.aux.error = error
         if error is None or ctx.descriptor.aux.process_exceptions:
-            ctx.descriptor.aux.process_context(server, ctx, p_ctx, error)
+            ctx.descriptor.aux.process_context(server, ctx)
 
 
 class AuxProcBase(object):
@@ -32,10 +36,11 @@ class AuxProcBase(object):
         self.methods = []
         self.process_exceptions = process_exceptions
 
-    def initialize(self):
+    def initialize(self, server):
+        print server.app
         pass
 
-    def process(self, server, ctx, p_ctx, p_error, *args, **kwargs):
+    def process(self, server, ctx, *args, **kwargs):
         logger.debug("Executing %r" % ctx.service_class.get_method_id(ctx.descriptor))
         server.get_in_object(ctx)
         if ctx.in_error is not None:
@@ -50,3 +55,6 @@ class AuxProcBase(object):
         server.get_out_string(ctx)
         for s in ctx.out_string:
             logger.debug(s)
+
+    def process_context(self, server, ctx, p_ctx, p_error):
+        raise NotImplementedError()

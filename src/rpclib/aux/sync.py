@@ -24,5 +24,5 @@ from rpclib.aux import AuxProcBase
 
 
 class SyncAuxProc(AuxProcBase):
-    def process_context(self, server, ctx, p_ctx, p_error):
-        self.process(server, ctx, p_ctx, p_error)
+    def process_context(self, server, ctx):
+        self.process(server, ctx)

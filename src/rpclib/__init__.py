@@ -19,6 +19,7 @@
 
 __version__ = '2.8.0-beta'
 
+from rpclib._base import AuxMethodContext
 from rpclib._base import TransportContext
 from rpclib._base import EventContext
 from rpclib._base import MethodContext

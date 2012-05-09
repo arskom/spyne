@@ -27,6 +27,15 @@ from collections import deque
 from rpclib.const.xml_ns import DEFAULT_NS
 from rpclib.util.oset import oset
 
+class AuxMethodContext(object):
+    """Generic object that holds information specific to auxiliary methods"""
+    def __init__(self, p_ctx, error):
+        self.p_ctx = p_ctx
+        """Primary context that this method was bound to."""
+
+        self.error = error
+        """Error from primary context (if any)."""
+
 class TransportContext(object):
     """Generic object that holds transport-specific context information"""
     def __init__(self, transport, type=None):
@@ -87,6 +96,11 @@ class MethodContext(object):
         """Event-specific context. Use this as you want, preferably only in
         events, as you'd probably want to separate the event data from the
         method data."""
+
+        self.aux = None
+        """Auxiliary-method specific context. You can use this to share data
+        between auxiliary sessions. This is not set in primary methods.
+        """
 
         self.method_request_string = None
         """This is used as a basis on deciding which native method to call."""
