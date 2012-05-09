@@ -89,28 +89,28 @@ class XmlObject(ProtocolBase):
         self.cleanup_namespaces = cleanup_namespaces
 
         self.serialization_handlers = cdict({
+            AnyXml: xml_to_parent_element,
+            Fault: fault_to_parent_element,
+            AnyDict: dict_to_parent_element,
+            EnumBase: enum_to_parent_element,
             ModelBase: base_to_parent_element,
             ByteArray: binary_to_parent_element,
             Attachment: binary_to_parent_element,
             ComplexModelBase: complex_to_parent_element,
-            Fault: fault_to_parent_element,
-            AnyXml: xml_to_parent_element,
-            AnyDict: dict_to_parent_element,
-            EnumBase: enum_to_parent_element,
         })
 
         self.deserialization_handlers = cdict({
+            AnyXml: xml_from_element,
+            Fault: fault_from_element,
+            AnyDict: dict_from_element,
+            EnumBase: enum_from_element,
             ModelBase: base_from_element,
             ByteArray: binary_from_element,
             Attachment: binary_from_element,
             ComplexModelBase: complex_from_element,
-            Fault: fault_from_element,
-            AnyXml: xml_from_element,
-            AnyDict: dict_from_element,
-            EnumBase: enum_from_element,
 
-            Array: array_from_element,
             Iterable: iterable_from_element,
+            Array: array_from_element,
         })
 
         self.log_messages = (logger.level == logging.DEBUG)

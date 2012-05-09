@@ -145,7 +145,8 @@ class Application(object):
     def call_wrapper(self, ctx):
         """This method calls the call_wrapper method in the service definition.
         This can be overridden to make an application-wide custom exception
-        management."""
+        management.
+        """
 
         return ctx.service_class.call_wrapper(ctx)
 

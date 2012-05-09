@@ -161,7 +161,7 @@ class XmlSchema(InterfaceDocumentBase):
 
     def get_schema_node(self, pref):
         """Return schema node for the given namespace prefix."""
-        # create schema node
+
         if not (pref in self.schema_dict):
             schema = etree.Element("{%s}schema" % _ns_xsd, nsmap=self.interface.nsmap)
 
@@ -171,7 +171,7 @@ class XmlSchema(InterfaceDocumentBase):
             self.schema_dict[pref] = schema
 
         else:
-            schema = self.schema_nodes[pref]
+            schema = self.schema_dict[pref]
 
         return schema
 
