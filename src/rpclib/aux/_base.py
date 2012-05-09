@@ -25,8 +25,7 @@ from rpclib import AuxMethodContext
 
 def process_contexts(server, contexts, p_ctx, error=None):
     for ctx in contexts:
-        ctx.aux = AuxMethodContext(p_ctx, error)
-        ctx.aux.error = error
+        ctx.descriptor.aux.initialize_context(ctx, p_ctx, error)
         if error is None or ctx.descriptor.aux.process_exceptions:
             ctx.descriptor.aux.process_context(server, ctx)
 
@@ -37,7 +36,6 @@ class AuxProcBase(object):
         self.process_exceptions = process_exceptions
 
     def initialize(self, server):
-        print server.app
         pass
 
     def process(self, server, ctx, *args, **kwargs):
@@ -58,3 +56,6 @@ class AuxProcBase(object):
 
     def process_context(self, server, ctx, p_ctx, p_error):
         raise NotImplementedError()
+
+    def intialize_context(self, ctx, p_ctx, error):
+        ctx.aux = AuxMethodContext(p_ctx, error)
