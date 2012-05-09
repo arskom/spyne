@@ -289,7 +289,8 @@ class JsonObject(ProtocolBase):
         for k, v in cls._type_info.items():
             try:
                 sub_value = getattr(inst, k, None)
-            except: # to guard against e.g. sqlalchemy throwing NoSuchColumnError
+            except Exception, e: # to guard against e.g. sqlalchemy throwing NoSuchColumnError
+                logger.error("Error getting %r: %r" %(k,e))
                 sub_value = None
 
             if v.Attributes.max_occurs > 1:
