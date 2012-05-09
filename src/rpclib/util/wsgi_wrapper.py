@@ -26,6 +26,11 @@ logger = logging.getLogger(__name__)
 from rpclib.server.wsgi import WsgiApplication
 
 class WsgiMounter(object):
+    """Simple mounter object for wsgi callables. Takes a dict where the keys are
+    uri fragments and values are :class:`rpclib.application.Application`
+    instances.
+    """
+
     @staticmethod
     def default(e, s):
         s("404 Not found", [])
