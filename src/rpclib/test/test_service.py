@@ -130,6 +130,7 @@ class MultipleReturnService(ServiceBase):
 class TestSingle(unittest.TestCase):
     def setUp(self):
         self.app = Application([TestService], 'tns', Soap11(), Soap11())
+        self.app.transport = 'null.rpclib'
         self.srv = TestService()
 
         wsdl = Wsdl11(self.app.interface)
@@ -143,14 +144,13 @@ class TestSingle(unittest.TestCase):
             len(self.srv.public_methods), len(porttype.getchildren()))
 
     def test_override_param_names(self):
-        # FIXME: This test must be rewritten.
-
         for n in ['self', 'import', 'return', 'from']:
-            self.assertTrue(n in self.wsdl_str, '"%s" not in self.wsdl_str' % n)
+            assert n in self.wsdl_str, '"%s" not in self.wsdl_str'
 
 class TestMultiple(unittest.TestCase):
     def setUp(self):
         self.app = Application([MultipleReturnService], 'tns', Soap11(), Soap11())
+        self.app.transport = 'none'
         self.wsdl = Wsdl11(self.app.interface)
         self.wsdl.build_interface_document('URL')
 
