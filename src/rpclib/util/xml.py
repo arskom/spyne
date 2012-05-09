@@ -78,7 +78,13 @@ def get_validation_schema(models, default_namespace=None):
 
     return interface.validation_schema
 
-def get_object_as_xml(value):
+
+def _dig(par):
+    for elt in par:
+        elt.tag = elt.tag.split('}')[-1]
+        _dig(elt)
+
+def get_object_as_xml(value, no_namespace=False):
     '''Returns an ElementTree representation of a :class:`rpclib.model.complex.ComplexModel`
     child.
 
@@ -89,6 +95,10 @@ def get_object_as_xml(value):
     parent = etree.Element("parent")
 
     xml_object.to_parent_element(value.__class__, value, value.get_namespace(), parent)
+
+    if no_namespace:
+        _dig(parent)
+        etree.cleanup_namespaces(parent)
 
     return parent[0]
 
