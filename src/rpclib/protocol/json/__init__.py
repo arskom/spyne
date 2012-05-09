@@ -88,7 +88,7 @@ class JsonObject(ProtocolBase):
         except JSONDecodeError, e:
             raise Fault('Client.JsonDecodeError', repr(e))
 
-    def decompose_incoming_envelope(self, ctx):
+    def decompose_incoming_envelope(self, ctx, message):
         """Sets ``ctx.in_body_doc``, ``ctx.in_header_doc`` and
         ``ctx.method_request_string`` using ``ctx.in_document``.
         """
@@ -96,7 +96,6 @@ class JsonObject(ProtocolBase):
         # set ctx.in_header
         ctx.transport.in_header_doc = None # use an rpc protocol if you want headers.
 
-        # set ctx.in_body
         doc = ctx.in_document
 
         ctx.in_header_doc = None
