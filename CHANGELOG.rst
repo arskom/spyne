@@ -18,6 +18,8 @@ rpclib-2.8.0-beta
    now ignored.
  * Add support for async methods, which execute after the primary user code
    returns. Currently, the only async execution method is via threads.
+ * Xml & friends: Start tags are now in the same namespace as the definitions
+   themselves. Intermediate tags are in the parent's namespace, just as before.
  * Full change log:
     * https://github.com/arskom/rpclib/pull/128
     * https://github.com/arskom/rpclib/pull/129
