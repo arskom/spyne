@@ -39,7 +39,6 @@ class AuxProcBase(object):
         pass
 
     def process(self, server, ctx, *args, **kwargs):
-        logger.debug("Executing %r" % ctx.service_class.get_method_id(ctx.descriptor))
         server.get_in_object(ctx)
         if ctx.in_error is not None:
             logger.exception(ctx.in_error)
@@ -52,7 +51,7 @@ class AuxProcBase(object):
 
         server.get_out_string(ctx)
         for s in ctx.out_string:
-            logger.debug(s)
+            pass
 
     def process_context(self, server, ctx, p_ctx, p_error):
         raise NotImplementedError()
