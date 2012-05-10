@@ -28,8 +28,9 @@ from rpclib.aux import AuxProcBase
 class ThreadAuxProc(AuxProcBase):
     def __init__(self, pool_size=1):
         AuxProcBase.__init__(self)
+
+        self.pool = None
         self.__pool_size = pool_size
-        self.pool = ThreadPool(pool_size)
 
     @property
     def pool_size(self):
@@ -40,3 +41,6 @@ class ThreadAuxProc(AuxProcBase):
         a.extend(args)
 
         self.pool.apply_async(self.process, a, kwargs)
+
+    def initialize(self, server):
+        self.pool = ThreadPool(self.__pool_size)
