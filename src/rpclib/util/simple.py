@@ -25,12 +25,13 @@ from rpclib.interface.wsdl import Wsdl11
 from rpclib.protocol.soap import Soap11
 from rpclib.server.wsgi import WsgiApplication
 
-def wsgi_soap11_application(services, tns='rpclib.simple.soap', validator=None):
+def wsgi_soap11_application(services, tns='rpclib.simple.soap', validator=None,
+                                                                    name=None):
     """Wraps `services` argument inside a WsgiApplication that uses Wsdl 1.1 as
     interface document and Soap 1.1 and both input and output protocols.
     """
 
-    application = Application(services, tns, interface=Wsdl11(),
+    application = Application(services, tns, name=name, interface=Wsdl11(),
                 in_protocol=Soap11(validator=validator), out_protocol=Soap11())
 
     return WsgiApplication(application)

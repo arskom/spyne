@@ -45,7 +45,6 @@ def _produce_input_message(f, params, _in_message_name, _in_variable_names, no_c
     param_names = f.func_code.co_varnames[arg_start:argcount]
 
     in_params = TypeInfo()
-
     try:
         for i in range(len(param_names)):
             e0 = _in_variable_names.get(param_names[i], param_names[i])
@@ -161,6 +160,7 @@ def srpc(*params, **kparams):
             _port_type = kparams.get('_soap_port_type', None)
             _no_ctx = kparams.get('_no_ctx', True)
             _udp = kparams.get('_udp', None)
+            _aux = kparams.get('_aux', None)
 
             _faults = None
             if ('_faults' in kparams) and ('_throws' in kparams):
@@ -184,7 +184,7 @@ def srpc(*params, **kparams):
                     in_message, out_message, doc, _is_callback, _is_async,
                     _mtom, _in_header, _out_header, _faults,
                     port_type=_port_type, no_ctx=_no_ctx, udp=_udp,
-                    class_key=function_name)
+                    class_key=function_name, aux=_aux)
 
             return retval
 

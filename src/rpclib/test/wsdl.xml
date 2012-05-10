@@ -1,12 +1,12 @@
 <?xml version='1.0' encoding='utf-8'?>
 <wsdl:definitions name="Application" targetNamespace="rpclib.test.interop.server"
                   xmlns:plink="http://schemas.xmlsoap.org/ws/2003/05/partner-link/"
-                  xmlns:s0="bar"
+                  xmlns:s0="rpclib.test.interop.server._service"
                   xmlns:s1="punk.tunk"
                   xmlns:s12enc="http://www.w3.org/2003/05/soap-encoding/"
                   xmlns:s12env="http://www.w3.org/2003/05/soap-envelope/"
-                  xmlns:s2="rpclib.test.interop.server._service"
-                  xmlns:s3="hunk.sunk"
+                  xmlns:s2="hunk.sunk"
+                  xmlns:s3="bar"
                   xmlns:senc="http://schemas.xmlsoap.org/soap/encoding/"
                   xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/"
                   xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
@@ -20,21 +20,21 @@
     <xs:schema elementFormDefault="qualified" targetNamespace="bar">
       <xs:import namespace="punk.tunk" />
       <xs:import namespace="hunk.sunk" />
-      <xs:element name="ExtensionClass" type="s0:ExtensionClass" />
+      <xs:element name="ExtensionClass" type="s3:ExtensionClass" />
       <xs:complexType name="ExtensionClass">
         <xs:complexContent>
           <xs:extension base="s1:NestedClass">
             <xs:sequence>
               <xs:element minOccurs="0" name="l" nillable="true" type="xs:dateTime" />
               <xs:element minOccurs="0" name="q" nillable="true" type="xs:integer" />
-              <xs:element minOccurs="0" name="p" nillable="true" type="s3:NonNillableClass" />
+              <xs:element minOccurs="0" name="p" nillable="true" type="s2:NonNillableClass" />
             </xs:sequence>
           </xs:extension>
         </xs:complexContent>
       </xs:complexType>
     </xs:schema>
     <xs:schema elementFormDefault="qualified" targetNamespace="hunk.sunk">
-      <xs:element name="NonNillableClass" type="s3:NonNillableClass" />
+      <xs:element name="NonNillableClass" type="s2:NonNillableClass" />
       <xs:simpleType name="NonNillableClass_sType">
         <xs:restriction base="xs:string">
           <xs:minLength value="1" />
@@ -43,7 +43,7 @@
       <xs:complexType name="NonNillableClass">
         <xs:sequence>
           <xs:element minOccurs="0" name="i" type="xs:integer" />
-          <xs:element minOccurs="0" name="s" type="s3:NonNillableClass_sType" />
+          <xs:element minOccurs="0" name="s" type="s2:NonNillableClass_sType" />
           <xs:element name="dt" type="xs:dateTime" />
         </xs:sequence>
       </xs:complexType>
@@ -56,10 +56,10 @@
       <xs:complexType name="NestedClass">
         <xs:sequence>
           <xs:element minOccurs="0" name="f" nillable="true" type="xs:float" />
-          <xs:element minOccurs="0" name="simple" nillable="true" type="s2:SimpleClassArray" />
+          <xs:element minOccurs="0" name="simple" nillable="true" type="s0:SimpleClassArray" />
           <xs:element minOccurs="0" name="i" nillable="true" type="xs:integer" />
           <xs:element minOccurs="0" name="s" nillable="true" type="xs:string" />
-          <xs:element minOccurs="0" name="other" nillable="true" type="s2:OtherClass" />
+          <xs:element minOccurs="0" name="other" nillable="true" type="s0:OtherClass" />
           <xs:element minOccurs="0" name="ai" nillable="true" type="tns:integerArray" />
         </xs:sequence>
       </xs:complexType>
@@ -74,6 +74,8 @@
       <xs:import namespace="bar" />
       <xs:import namespace="rpclib.test.interop.server._service" />
       <xs:import namespace="hunk.sunk" />
+      <xs:element name="Array" type="tns:Array" />
+      <xs:element name="ArrayArray" type="tns:ArrayArray" />
       <xs:element name="Fault" type="tns:Fault" />
       <xs:element name="InHeader" type="tns:InHeader" />
       <xs:element name="InTraceHeader" type="tns:InTraceHeader" />
@@ -82,7 +84,6 @@
       <xs:element name="RoleEnumArray" type="tns:RoleEnumArray" />
       <xs:element name="base64BinaryArray" type="tns:base64BinaryArray" />
       <xs:element name="booleanArray" type="tns:booleanArray" />
-      <xs:element name="booleanArrayArray" type="tns:booleanArrayArray" />
       <xs:element name="complex_return" type="tns:complex_return" />
       <xs:element name="complex_returnResponse" type="tns:complex_returnResponse" />
       <xs:element name="custom_messages" type="tns:custom_messages" />
@@ -191,6 +192,16 @@
           <xs:enumeration value="MEMBER" />
         </xs:restriction>
       </xs:simpleType>
+      <xs:complexType name="Array">
+        <xs:sequence>
+          <xs:element maxOccurs="unbounded" minOccurs="0" name="boolean" nillable="true" type="xs:boolean" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="ArrayArray">
+        <xs:sequence>
+          <xs:element maxOccurs="unbounded" minOccurs="0" name="Array" nillable="true" type="tns:Array" />
+        </xs:sequence>
+      </xs:complexType>
       <xs:complexType name="Fault" />
       <xs:complexType name="InHeader">
         <xs:sequence>
@@ -229,11 +240,6 @@
       <xs:complexType name="booleanArray">
         <xs:sequence>
           <xs:element maxOccurs="unbounded" minOccurs="0" name="boolean" nillable="true" type="xs:boolean" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="booleanArrayArray">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="booleanArray" nillable="true" type="tns:booleanArray" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="complex_return">
@@ -305,7 +311,7 @@
       </xs:complexType>
       <xs:complexType name="echo_array_in_arrayResponse">
         <xs:sequence>
-          <xs:element minOccurs="0" name="echo_array_in_arrayResult" nillable="true" type="tns:booleanArrayArray" />
+          <xs:element minOccurs="0" name="echo_array_in_arrayResult" nillable="true" type="tns:ArrayArray" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_attachment">
@@ -350,12 +356,12 @@
       </xs:complexType>
       <xs:complexType name="echo_class_with_self_reference">
         <xs:sequence>
-          <xs:element minOccurs="0" name="sr" nillable="true" type="s2:ClassWithSelfReference" />
+          <xs:element minOccurs="0" name="sr" nillable="true" type="s0:ClassWithSelfReference" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_class_with_self_referenceResponse">
         <xs:sequence>
-          <xs:element minOccurs="0" name="echo_class_with_self_referenceResult" nillable="true" type="s2:ClassWithSelfReference" />
+          <xs:element minOccurs="0" name="echo_class_with_self_referenceResult" nillable="true" type="s0:ClassWithSelfReference" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_date_time_array">
@@ -420,12 +426,12 @@
       </xs:complexType>
       <xs:complexType name="echo_extension_class">
         <xs:sequence>
-          <xs:element minOccurs="0" name="nc" nillable="true" type="s0:ExtensionClass" />
+          <xs:element minOccurs="0" name="nc" nillable="true" type="s3:ExtensionClass" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_extension_classResponse">
         <xs:sequence>
-          <xs:element minOccurs="0" name="echo_extension_classResult" nillable="true" type="s0:ExtensionClass" />
+          <xs:element minOccurs="0" name="echo_extension_classResult" nillable="true" type="s3:ExtensionClass" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_float">
@@ -517,22 +523,22 @@
       </xs:complexType>
       <xs:complexType name="echo_simple_class">
         <xs:sequence>
-          <xs:element minOccurs="0" name="sc" nillable="true" type="s2:SimpleClass" />
+          <xs:element minOccurs="0" name="sc" nillable="true" type="s0:SimpleClass" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_simple_classResponse">
         <xs:sequence>
-          <xs:element minOccurs="0" name="echo_simple_classResult" nillable="true" type="s2:SimpleClass" />
+          <xs:element minOccurs="0" name="echo_simple_classResult" nillable="true" type="s0:SimpleClass" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_simple_class_array">
         <xs:sequence>
-          <xs:element minOccurs="0" name="sca" nillable="true" type="s2:SimpleClassArray" />
+          <xs:element minOccurs="0" name="sca" nillable="true" type="s0:SimpleClassArray" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_simple_class_arrayResponse">
         <xs:sequence>
-          <xs:element minOccurs="0" name="echo_simple_class_arrayResult" nillable="true" type="s2:SimpleClassArray" />
+          <xs:element minOccurs="0" name="echo_simple_class_arrayResult" nillable="true" type="s0:SimpleClassArray" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_string">
@@ -598,7 +604,7 @@
       </xs:complexType>
       <xs:complexType name="non_nillable">
         <xs:sequence>
-          <xs:element minOccurs="0" name="n" nillable="true" type="s3:NonNillableClass" />
+          <xs:element minOccurs="0" name="n" nillable="true" type="s2:NonNillableClass" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="non_nillableResponse">
@@ -635,7 +641,7 @@
       </xs:complexType>
       <xs:complexType name="return_other_class_arrayResponse">
         <xs:sequence>
-          <xs:element minOccurs="0" name="return_other_class_arrayResult" nillable="true" type="s2:OtherClassArray" />
+          <xs:element minOccurs="0" name="return_other_class_arrayResult" nillable="true" type="s0:OtherClassArray" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="send_out_complex_header">
@@ -674,15 +680,15 @@
       </xs:complexType>
     </xs:schema>
     <xs:schema elementFormDefault="qualified" targetNamespace="rpclib.test.interop.server._service">
-      <xs:element name="ClassWithSelfReference" type="s2:ClassWithSelfReference" />
-      <xs:element name="OtherClass" type="s2:OtherClass" />
-      <xs:element name="OtherClassArray" type="s2:OtherClassArray" />
-      <xs:element name="SimpleClass" type="s2:SimpleClass" />
-      <xs:element name="SimpleClassArray" type="s2:SimpleClassArray" />
+      <xs:element name="ClassWithSelfReference" type="s0:ClassWithSelfReference" />
+      <xs:element name="OtherClass" type="s0:OtherClass" />
+      <xs:element name="OtherClassArray" type="s0:OtherClassArray" />
+      <xs:element name="SimpleClass" type="s0:SimpleClass" />
+      <xs:element name="SimpleClassArray" type="s0:SimpleClassArray" />
       <xs:complexType name="ClassWithSelfReference">
         <xs:sequence>
           <xs:element minOccurs="0" name="i" nillable="true" type="xs:integer" />
-          <xs:element minOccurs="0" name="sr" nillable="true" type="s2:ClassWithSelfReference" />
+          <xs:element minOccurs="0" name="sr" nillable="true" type="s0:ClassWithSelfReference" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="OtherClass">
@@ -694,7 +700,7 @@
       </xs:complexType>
       <xs:complexType name="OtherClassArray">
         <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="OtherClass" nillable="true" type="s2:OtherClass" />
+          <xs:element maxOccurs="unbounded" minOccurs="0" name="OtherClass" nillable="true" type="s0:OtherClass" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="SimpleClass">
@@ -705,7 +711,7 @@
       </xs:complexType>
       <xs:complexType name="SimpleClassArray">
         <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="SimpleClass" nillable="true" type="s2:SimpleClass" />
+          <xs:element maxOccurs="unbounded" minOccurs="0" name="SimpleClass" nillable="true" type="s0:SimpleClass" />
         </xs:sequence>
       </xs:complexType>
     </xs:schema>
@@ -1001,37 +1007,37 @@
   </wsdl:message>
   <wsdl:service name="InteropArray">
     <wsdl:port binding="tns:Application" name="Application">
-      <soap:address location="http://localhost:9753/?wsdl" />
+      <soap:address location="http://localhost:9753/" />
     </wsdl:port>
   </wsdl:service>
   <wsdl:service name="InteropClass">
     <wsdl:port binding="tns:Application" name="Application">
-      <soap:address location="http://localhost:9753/?wsdl" />
+      <soap:address location="http://localhost:9753/" />
     </wsdl:port>
   </wsdl:service>
   <wsdl:service name="InteropException">
     <wsdl:port binding="tns:Application" name="Application">
-      <soap:address location="http://localhost:9753/?wsdl" />
+      <soap:address location="http://localhost:9753/" />
     </wsdl:port>
   </wsdl:service>
   <wsdl:service name="InteropMisc">
     <wsdl:port binding="tns:Application" name="Application">
-      <soap:address location="http://localhost:9753/?wsdl" />
+      <soap:address location="http://localhost:9753/" />
     </wsdl:port>
   </wsdl:service>
   <wsdl:service name="InteropPrimitive">
     <wsdl:port binding="tns:Application" name="Application">
-      <soap:address location="http://localhost:9753/?wsdl" />
+      <soap:address location="http://localhost:9753/" />
     </wsdl:port>
   </wsdl:service>
   <wsdl:service name="InteropServiceWithComplexHeader">
     <wsdl:port binding="tns:Application" name="Application">
-      <soap:address location="http://localhost:9753/?wsdl" />
+      <soap:address location="http://localhost:9753/" />
     </wsdl:port>
   </wsdl:service>
   <wsdl:service name="InteropServiceWithHeader">
     <wsdl:port binding="tns:Application" name="Application">
-      <soap:address location="http://localhost:9753/?wsdl" />
+      <soap:address location="http://localhost:9753/" />
     </wsdl:port>
   </wsdl:service>
   <wsdl:portType name="Application">

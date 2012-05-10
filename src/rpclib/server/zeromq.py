@@ -23,6 +23,7 @@ transport.
 
 import zmq
 
+from rpclib import aux
 from rpclib._base import MethodContext
 from rpclib.server import ServerBase
 
@@ -44,8 +45,8 @@ class ZeroMQServer(ServerBase):
         self.app_url = app_url
         self.wsdl_url = wsdl_url
 
-        self.soap_socket = context.socket(zmq.REP)
-        self.soap_socket.bind(app_url)
+        self.zmq_socket = context.socket(zmq.REP)
+        self.zmq_socket.bind(app_url)
 
     def __handle_wsdl_request(self):
         return self.app.get_interface_document(self.url)
@@ -54,22 +55,31 @@ class ZeroMQServer(ServerBase):
         """Runs the ZeroMQ server."""
 
         while True:
-            initial_ctx = ZmqMethodContext(self.app)
-            initial_ctx.in_string = [self.soap_socket.recv()]
+            error = None
 
-            ctx, = self.generate_contexts(initial_ctx)
-            if ctx.in_error:
-                ctx.out_object = ctx.in_error
+            initial_ctx = ZmqMethodContext(self.app)
+            initial_ctx.in_string = [self.zmq_socket.recv()]
+
+            contexts = self.generate_contexts(initial_ctx)
+            p_ctx, others = contexts[0], contexts[1:]
+            if p_ctx.in_error:
+                p_ctx.out_object = p_ctx.in_error
+                error = p_ctx.in_error
             
             else:
-                self.get_in_object(ctx)
+                self.get_in_object(p_ctx)
 
-                if ctx.in_error:
-                    ctx.out_object = ctx.in_error
+                if p_ctx.in_error:
+                    p_ctx.out_object = p_ctx.in_error
+                    error = p_ctx.in_error
                 else:
-                    self.get_out_object(ctx)
-                    if ctx.out_error:
-                        ctx.out_object = ctx.out_error
+                    self.get_out_object(p_ctx)
+                    if p_ctx.out_error:
+                        p_ctx.out_object = p_ctx.out_error
+                        error = p_ctx.out_error
 
-            self.get_out_string(ctx)
-            self.soap_socket.send(''.join(ctx.out_string))
+            self.get_out_string(p_ctx)
+
+            aux.process_contexts(self, others, error)
+
+            self.zmq_socket.send(''.join(p_ctx.out_string))

@@ -23,14 +23,14 @@ logger = logging.getLogger('rpclib.protocol.xml')
 logger.setLevel(logging.DEBUG)
 
 from rpclib.application import Application
-from rpclib.test.interop.server._service import services
+from rpclib.interface.wsdl import Wsdl11
 from rpclib.protocol.csv import OutCsv
 from rpclib.protocol.http import HttpRpc
-from rpclib.interface.wsdl import Wsdl11
+from rpclib.server.wsgi import WsgiApplication
+from rpclib.test.interop.server._service import services
 
 httprpc_csv_application = Application(services,
-        'rpclib.test.interop.server.httprpc.csv', Wsdl11(), HttpRpc(), OutCsv())
-from rpclib.server.wsgi import WsgiApplication
+        'rpclib.test.interop.server.httprpc.csv', HttpRpc(), OutCsv(), Wsdl11())
 
 if __name__ == '__main__':
     try:

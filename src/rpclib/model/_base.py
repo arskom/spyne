@@ -80,13 +80,18 @@ class ModelBase(object):
         """Set this to false to reject null values."""
 
         min_occurs = 0
-        """Set this to 0 to make the type mandatory. Can be set to any positive
-        integer."""
+        """Set this to 1 to make this object mandatory. Can be set to any
+        positive integer. Note that an object can still be null or empty, even
+        if it's there."""
 
         max_occurs = 1
         """Can be set to any strictly positive integer. Values greater than 1
         will imply an iterable of objects as native python type. Can be set to
-        'unbounded' for arbitrary number of arguments."""
+        ``float("inf")`` for arbitrary number of arguments."""
+
+        schema_tag = '{%s}element' % rpclib.const.xml_ns.xsd
+        """The tag used to add a primitives as child to a complex type in the
+        xml schema."""
 
     class Annotations(object):
         """The class that holds the annotations for the given type."""
@@ -155,12 +160,12 @@ class ModelBase(object):
         return retval
 
     @classmethod
-    def get_type_name_ns(cls, app):
+    def get_type_name_ns(cls, interface):
         """Returns the type name with a namespace prefix, separated by a column.
         """
 
         if cls.get_namespace() != None:
-            return "%s:%s" % (cls.get_namespace_prefix(app), cls.get_type_name())
+            return "%s:%s" % (cls.get_namespace_prefix(interface), cls.get_type_name())
 
     @classmethod
     @nillable_string
@@ -179,7 +184,7 @@ class ModelBase(object):
         return [cls.to_string(value)]
 
     @classmethod
-    @nillable_string
+    @nillable_dict
     def to_dict(cls, value):
         """Returns a dict with type name as key and str(value) as value. This
         should be overridden if this is not enough."""
@@ -205,28 +210,22 @@ class ModelBase(object):
 
         cls_dict = {}
 
-        for k in cls.__dict__:
-            if not (k in ("__dict__", "__weakref__")):
-                cls_dict[k] = cls.__dict__[k]
-
         class Attributes(cls.Attributes):
             pass
         cls_dict['Attributes'] = Attributes
 
         class Annotations(cls.Annotations):
             pass
+
         cls_dict['Annotations'] = Annotations
 
-        if not ('_is_clone_of' in cls_dict):
-            cls_dict['_is_clone_of'] = cls
-
         for k, v in kwargs.items():
-            if k != "doc":
-                setattr(Attributes, k, v)
-            else:
+            if k in ("doc", "appinfo"):
                 setattr(Annotations, k, v)
+            else:
+                setattr(Attributes, k, v)
 
-        return (cls.__name__, cls.__bases__, cls_dict)
+        return (cls.__name__, (cls,), cls_dict)
 
     @staticmethod
     def validate_string(cls, value):
@@ -277,11 +276,7 @@ class SimpleModel(ModelBase):
         retval = cls.customize( ** kwargs)
 
         if not retval.is_default(retval):
-            if hasattr(cls, '_is_clone_of'):
-                retval.__base_type__ = cls._is_clone_of
-            else:
-                retval.__base_type__ = cls
-
+            retval.__base_type__ = cls
             retval.__type_name__ = kwargs.get("type_name", ModelBase.Empty)
 
         return retval

@@ -22,12 +22,13 @@
 component is integrated.
 """
 
-
 import logging
 logger = logging.getLogger(__name__)
 
 from rpclib.model.fault import Fault
+from rpclib.interface import Interface
 from rpclib._base import EventManager
+
 
 class Application(object):
     '''This class is the glue between one or more service definitions,
@@ -37,8 +38,7 @@ class Application(object):
                          the exposed services.
     :param tns:          The targetNamespace attribute of the exposed
                          service.
-    :param interface:    An InterfaceBase instance that sets the service
-                         definition document standard.
+    :param interface:    Ignored.
     :param in_protocol:  A ProtocolBase instance that defines the input
                          protocol.
     :param out_protocol: A ProtocolBase instance that defines the output
@@ -48,54 +48,46 @@ class Application(object):
                          which is, by default, 'Application'.
 
     Supported events:
-        * method_call
+        * method_call:
             Called right before the service method is executed
 
-        * method_return_object
+        * method_return_object:
             Called right after the service method is executed
 
-        * method_exception_object
+        * method_exception_object:
             Called when an exception occurred in a service method, before the
             exception is serialized.
 
-        * method_context_constructed
+        * method_context_constructed:
             Called from the constructor of the MethodContext instance.
 
-        * method_context_destroyed
+        * method_context_destroyed:
             Called from the destructor of the MethodContext instance.
     '''
 
     transport = None
 
     def __init__(self, services, tns, in_protocol, out_protocol, interface=None,
-                                        name=None, supports_fanout_methods=False):
+                                                                     name=None):
 
         self.services = services
         self.tns = tns
         self.name = name
-        self.supports_fanout_methods = supports_fanout_methods
 
         if self.name is None:
             self.name = self.__class__.__name__.split('.')[-1]
 
-        self.in_protocol = in_protocol
-        self.in_protocol.set_app(self)
-
-        self.out_protocol = out_protocol
-        self.out_protocol.set_app(self)
-
-        if interface is None:
-            from rpclib.interface.wsdl import Wsdl11
-            interface = Wsdl11()
-
-        self.interface = interface
-        self.interface.set_app(self)
-
-        self.__public_methods = {}
-        self.__classes = {}
-
         self.event_manager = EventManager(self)
         self.error_handler = None
+
+        self.interface = Interface(self)
+        self.in_protocol = in_protocol
+        self.out_protocol = out_protocol
+
+        self.in_protocol.set_app(self)
+        self.out_protocol.set_app(self)
+
+        self.reinitialize()
 
     def process_request(self, ctx):
         """Takes a MethodContext instance. Returns the response to the request
@@ -119,9 +111,9 @@ class Application(object):
             if len(ctx.descriptor.out_message._type_info) == 0:
                 ctx.out_object = [None]
             elif len(ctx.descriptor.out_message._type_info) == 1:
+                # otherwise, the return value should already be wrapped in an
+                # iterable.
                 ctx.out_object = [ctx.out_object]
-            # otherwise, the return value should already be wrapped in an
-            # iterable.
 
             # fire events
             self.event_manager.fire_event('method_return_object', ctx)
@@ -153,9 +145,20 @@ class Application(object):
     def call_wrapper(self, ctx):
         """This method calls the call_wrapper method in the service definition.
         This can be overridden to make an application-wide custom exception
-        management."""
+        management.
+        """
 
         return ctx.service_class.call_wrapper(ctx)
 
     def _has_callbacks(self):
         return self.interface._has_callbacks()
+
+    def reinitialize(self):
+        from rpclib.server import ServerBase
+
+        server = ServerBase(self)
+        aux_memo = set()
+        for s,d in self.interface.method_id_map.values():
+            if d.aux is not None and not id(d.aux) in aux_memo:
+                d.aux.initialize(server)
+                aux_memo.add(id(d.aux))

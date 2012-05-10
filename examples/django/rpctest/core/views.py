@@ -28,6 +28,8 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+from django.views.decorators.csrf import csrf_exempt
+
 from rpclib.server.django import DjangoApplication
 from rpclib.model.primitive import String, Integer
 from rpclib.model.complex import Iterable
@@ -36,18 +38,16 @@ from rpclib.interface.wsdl import Wsdl11
 from rpclib.protocol.soap import Soap11
 from rpclib.application import Application
 from rpclib.decorator import rpc
-from django.views.decorators.csrf import csrf_exempt
 
-@csrf_exempt
 class HelloWorldService(ServiceBase):
     @rpc(String, Integer, _returns=Iterable(String))
     def say_hello(ctx, name, times):
         for i in xrange(times):
             yield 'Hello, %s' % name
 
-hello_world_service = DjangoApplication(Application([HelloWorldService],
-        'localhost.tns',
-        interface=Wsdl11(),
+hello_world_service = csrf_exempt(DjangoApplication(Application([HelloWorldService],
+        'rpclib.examples.django',
         in_protocol=Soap11(),
-        out_protocol=Soap11()
-    ))
+        out_protocol=Soap11(),
+        interface=Wsdl11(),
+    )))

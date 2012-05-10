@@ -27,10 +27,23 @@ from collections import deque
 from rpclib.const.xml_ns import DEFAULT_NS
 from rpclib.util.oset import oset
 
+class AuxMethodContext(object):
+    """Generic object that holds information specific to auxiliary methods"""
+    def __init__(self, p_ctx, error):
+        self.p_ctx = p_ctx
+        """Primary context that this method was bound to."""
+
+        self.error = error
+        """Error from primary context (if any)."""
+
 class TransportContext(object):
     """Generic object that holds transport-specific context information"""
-    def __init__(self, type=None):
-        self.type=type
+    def __init__(self, transport, type=None):
+        self.itself = transport
+        """The transport itself; i.e. a ServerBase instance."""
+
+        self.type = type
+        """The protocol the transport uses."""
 
 class EventContext(object):
     """Generic object that holds event-specific context information"""
@@ -55,7 +68,7 @@ class MethodContext(object):
         else:
             return self.descriptor.name
 
-    def __init__(self, app):
+    def __init__(self, transport):
         # metadata
         self.call_start = time()
         """The time the rpc operation was initiated in seconds-since-epoch
@@ -69,13 +82,13 @@ class MethodContext(object):
 
         Useful for benchmarking purposes."""
 
-        self.app = app
+        self.app = transport.app
         """The parent application."""
 
         self.udc = None
         """The user defined context. Use it to your liking."""
 
-        self.transport = TransportContext()
+        self.transport = TransportContext(transport)
         """The transport-specific context. Transport implementors can use this
         to their liking."""
 
@@ -83,6 +96,11 @@ class MethodContext(object):
         """Event-specific context. Use this as you want, preferably only in
         events, as you'd probably want to separate the event data from the
         method data."""
+
+        self.aux = None
+        """Auxiliary-method specific context. You can use this to share data
+        between auxiliary sessions. This is not set in primary methods.
+        """
 
         self.method_request_string = None
         """This is used as a basis on deciding which native method to call."""
@@ -117,7 +135,7 @@ class MethodContext(object):
         parsing error or the incoming document was representing an exception.
         """
         self.in_header = None
-        """Deserialzed incoming header -- a native object."""
+        """Deserialized incoming header -- a native object."""
         self.in_object = None
         """In the request (i.e. server) case, this contains the function
         arguments for the function in the service definition class.
@@ -195,8 +213,9 @@ class MethodContext(object):
         self.function = descriptor.function
 
     descriptor = property(get_descriptor, set_descriptor)
-    """The MethodDescriptor object representing the current method. This object
-    should not be changed by the user code."""
+    """The :class:``MethodDescriptor`` object representing the current method.
+    This object should not be changed by the user code."""
+
 
     def __setattr__(self, k, v):
         if self.frozen == False or k in self.__dict__ or k == 'descriptor':
@@ -235,13 +254,14 @@ class MethodDescriptor(object):
     def __init__(self, function, in_message, out_message, doc,
                  is_callback=False, is_async=False, mtom=False, in_header=None,
                  out_header=None, faults=None,
-                 port_type=None, no_ctx=False, udp=None, class_key=None):
+                 port_type=None, no_ctx=False, udp=None, class_key=None,
+                 aux=None):
 
         self.__real_function = function
-        self.reset_function()
-
         """The original function object to be called when the method is remotely
         invoked."""
+
+        self.reset_function()
 
         self.in_message = in_message
         """Automatically generated complex object based on incoming arguments to
@@ -274,7 +294,7 @@ class MethodDescriptor(object):
 
         self.no_ctx = no_ctx
         """Whether the function receives the method context as the first
-        argument implicitly."""
+        argument implicitly or not."""
 
         self.udp = udp
         """Short for "User-Defined Properties", it's your own playground. You
@@ -282,6 +302,16 @@ class MethodDescriptor(object):
 
         self.class_key = class_key
         """The name the function is accessible from in the class."""
+
+        self.aux = aux
+        """Value to indicate what kind of auxiliary method this is. (None means
+        primary)
+
+        Primary methods block the request as long as they're running. Their
+        return values are returned to the client. Auxiliary ones execute
+        asyncronously after the primary method returns, and their return values
+        are ignored by the rpc layer.
+        """
 
     @property
     def name(self):
@@ -302,7 +332,6 @@ class MethodDescriptor(object):
         if val != None:
             self.__real_function = val
         self.function = self.__real_function
-
 
 class EventManager(object):
     """The event manager for all rpclib events. The events are stored in an

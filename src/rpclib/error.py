@@ -25,4 +25,4 @@ class ValidationError(Fault):
     """Raised when the input stream did not adhere to type constraints."""
     def __init__(self, faultstring):
         Fault.__init__(self, 'Client.ValidationError',
-                        'The string %r could not be validated.' % faultstring)
+                        'The value %r could not be validated.' % faultstring)

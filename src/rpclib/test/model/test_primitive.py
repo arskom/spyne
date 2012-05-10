@@ -95,6 +95,18 @@ class TestPrimitive(unittest.TestCase):
         dt = XmlObject().from_element(DateTime, element)
         self.assertEquals(n, dt)
 
+    def test_datetime_format(self):
+        n = datetime.datetime.now()
+        format = "%Y %m %d %H %M %S %f"
+
+        element = etree.Element('test')
+        XmlObject().to_parent_element(DateTime(format=format), n, ns_test, element)
+        element = element[0]
+
+        self.assertEquals(element.text, datetime.datetime.strftime(n, format))
+        dt = XmlObject().from_element(DateTime(format=format), element)
+        self.assertEquals(n, dt)
+
     def test_time(self):
         n = datetime.time(1, 2, 3, 4)
 
@@ -105,12 +117,12 @@ class TestPrimitive(unittest.TestCase):
         self.assertEquals(n, dt)
 
     def test_date(self):
-        n = datetime.time(1, 2, 3, 4)
+        n = datetime.date(2011,12,13)
 
         ret = Date.to_string(n)
         self.assertEquals(ret, n.isoformat())
 
-        dt = Time.from_string(ret)
+        dt = Date.from_string(ret)
         self.assertEquals(n, dt)
 
     def test_duration_xml_duration(self):
@@ -325,7 +337,7 @@ class TestPrimitive(unittest.TestCase):
 
         AnyXml.__type_name__ = 'anyType'
 
-        app = Application([Service], 'hey', XmlSchema(), XmlObject(), XmlObject())
+        app = Application([Service], 'hey', XmlObject(), XmlObject(), XmlSchema())
         app.interface.build_interface_document()
 
 

@@ -35,12 +35,18 @@ from rpclib.client import RemoteProcedureBase
 
 class _RemoteProcedure(RemoteProcedureBase):
     def __call__(self, *args, **kwargs):
-        # there's no point in the client making the same request over and over
-        # again.
-        self.ctx = self.contexts[0]
+        # there's no point in having a client making the same request more than
+        # once, so if there's more than just one context, it's rather a bug.
+        # the comma-in-assignment trick is a general way of getting the first
+        # and the only variable from an iterable. so if there's more than one
+        # element in the iterable, it'll fail miserably.
+        self.ctx, = self.contexts
 
-        self.get_out_object(self.ctx, args, kwargs) # sets ctx.out_object
-        self.get_out_string(self.ctx) # sets ctx.out_string
+        # sets ctx.out_object
+        self.get_out_object(self.ctx, args, kwargs)
+
+        # sets ctx.out_string
+        self.get_out_string(self.ctx)
 
         out_string = ''.join(self.ctx.out_string) # FIXME: just send the iterable to the http stream.
         request = Request(self.url, out_string)
@@ -53,6 +59,8 @@ class _RemoteProcedure(RemoteProcedureBase):
             code = e.code
             self.ctx.in_string = [e.read()]
 
+        # this sets ctx.in_error if there's an error, and ctx.in_object if
+        # there's none.
         self.get_in_object(self.ctx)
 
         if not (self.ctx.in_error is None):

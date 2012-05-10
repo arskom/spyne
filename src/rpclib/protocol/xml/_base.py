@@ -44,9 +44,9 @@ from rpclib.protocol import ProtocolBase
 
 from rpclib.protocol.xml.model import base_to_parent_element
 from rpclib.protocol.xml.model.binary import binary_to_parent_element
+from rpclib.protocol.xml.model.complex import complex_to_parent_element
 from rpclib.protocol.xml.model.enum import enum_to_parent_element
 from rpclib.protocol.xml.model.fault import fault_to_parent_element
-from rpclib.protocol.xml.model.complex import complex_to_parent_element
 from rpclib.protocol.xml.model.primitive import xml_to_parent_element
 from rpclib.protocol.xml.model.primitive import dict_to_parent_element
 
@@ -72,38 +72,45 @@ class XmlObject(ProtocolBase):
     :param app: The owner application instance.
     :param validator: One of (None, 'soft', 'lxml', 'schema',
                 ProtocolBase.SOFT_VALIDATION, XmlObject.SCHEMA_VALIDATION).
+    :param xml_declaration: Whether to add xml_declaration to the responses
+        Default is 'True'.
+    :param cleanup_namespaces: Whether to add clean up namespace declarations
+        in the response document. Default is 'False'.
     """
 
     SCHEMA_VALIDATION = type("schema", (object,), {})
     mime_type = 'text/xml'
+    allowed_http_verbs = set(['GET', 'POST'])
 
-    def __init__(self, app=None, validator=None, xml_declaration=True):
+    def __init__(self, app=None, validator=None, xml_declaration=True,
+                                                    cleanup_namespaces=False):
         ProtocolBase.__init__(self, app, validator)
         self.xml_declaration = xml_declaration
+        self.cleanup_namespaces = cleanup_namespaces
 
         self.serialization_handlers = cdict({
+            AnyXml: xml_to_parent_element,
+            Fault: fault_to_parent_element,
+            AnyDict: dict_to_parent_element,
+            EnumBase: enum_to_parent_element,
             ModelBase: base_to_parent_element,
             ByteArray: binary_to_parent_element,
             Attachment: binary_to_parent_element,
             ComplexModelBase: complex_to_parent_element,
-            Fault: fault_to_parent_element,
-            AnyXml: xml_to_parent_element,
-            AnyDict: dict_to_parent_element,
-            EnumBase: enum_to_parent_element,
         })
 
         self.deserialization_handlers = cdict({
+            AnyXml: xml_from_element,
+            Fault: fault_from_element,
+            AnyDict: dict_from_element,
+            EnumBase: enum_from_element,
             ModelBase: base_from_element,
             ByteArray: binary_from_element,
             Attachment: binary_from_element,
             ComplexModelBase: complex_from_element,
-            Fault: fault_from_element,
-            AnyXml: xml_from_element,
-            AnyDict: dict_from_element,
-            EnumBase: enum_from_element,
 
-            Array: array_from_element,
             Iterable: iterable_from_element,
+            Array: array_from_element,
         })
 
         self.log_messages = (logger.level == logging.DEBUG)
@@ -158,8 +165,8 @@ class XmlObject(ProtocolBase):
         try:
             ctx.in_document = etree.fromstring(_bytes_join(ctx.in_string))
         except ValueError:
-            ctx.in_document = etree.fromstring(_bytes_join([s.decode(charset)
-                                                        for s in ctx.in_string]))
+            ctx.in_document = etree.fromstring(_bytes_join(ctx.in_string) \
+                                                               .decode(charset))
 
     def decompose_incoming_envelope(self, ctx, message):
         assert message in (self.REQUEST, self.RESPONSE)
@@ -190,6 +197,10 @@ class XmlObject(ProtocolBase):
         assert message in (self.REQUEST, self.RESPONSE)
 
         self.event_manager.fire_event('before_deserialize', ctx)
+
+        if ctx.descriptor is None:
+            raise Fault("Client", "Method %r not found." %
+                                                      ctx.method_request_string)
 
         if message is self.REQUEST:
             body_class = ctx.descriptor.in_message
@@ -225,26 +236,37 @@ class XmlObject(ProtocolBase):
 
         self.event_manager.fire_event('before_serialize', ctx)
 
-        # instantiate the result message
-        if message is self.REQUEST:
-            result_message_class = ctx.descriptor.in_message
-        elif message is self.RESPONSE:
-            result_message_class = ctx.descriptor.out_message
+        if ctx.out_error is not None:
+            # FIXME: There's no way to alter soap response headers for the user.
+            tmp_elt = etree.Element('punk')
+            self.to_parent_element(ctx.out_error.__class__, ctx.out_error,
+                                    self.app.interface.get_tns(), tmp_elt)
+            ctx.out_document = tmp_elt[0]
 
-        result_message = result_message_class()
+        else:
+            # instantiate the result message
+            if message is self.REQUEST:
+                result_message_class = ctx.descriptor.in_message
+            elif message is self.RESPONSE:
+                result_message_class = ctx.descriptor.out_message
 
-        # assign raw result to its wrapper, result_message
-        out_type_info = result_message_class._type_info
+            result_message = result_message_class()
 
-        for i in range(len(out_type_info)):
-            attr_name = result_message_class._type_info.keys()[i]
-            setattr(result_message, attr_name, ctx.out_object[i])
+            # assign raw result to its wrapper, result_message
+            out_type_info = result_message_class._type_info
 
-        # transform the results into an element
-        tmp_elt = etree.Element('punk')
-        self.to_parent_element(result_message_class,
-                    result_message, self.app.interface.get_tns(), tmp_elt)
-        ctx.out_document = tmp_elt[0]
+            for i in range(len(out_type_info)):
+                attr_name = result_message_class._type_info.keys()[i]
+                setattr(result_message, attr_name, ctx.out_object[i])
+
+            # transform the results into an element
+            tmp_elt = etree.Element('punk')
+            self.to_parent_element(result_message_class,
+                        result_message, self.app.interface.get_tns(), tmp_elt)
+            ctx.out_document = tmp_elt[0]
+
+        if self.cleanup_namespaces:
+            etree.cleanup_namespaces(ctx.out_document)
 
         self.event_manager.fire_event('after_serialize', ctx)
 
@@ -254,9 +276,9 @@ class XmlObject(ProtocolBase):
         self.validation_schema = None
 
         if value:
-            from rpclib.interface.wsdl import Wsdl11
+            from rpclib.interface.xml_schema import XmlSchema
 
-            wsdl = Wsdl11(value)
+            wsdl = XmlSchema(value.interface)
             wsdl.build_validation_schema()
 
             self.validation_schema = wsdl.validation_schema

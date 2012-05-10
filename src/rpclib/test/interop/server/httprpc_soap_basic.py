@@ -23,15 +23,14 @@ logger = logging.getLogger('rpclib.protocol.xml')
 logger.setLevel(logging.DEBUG)
 
 from rpclib.application import Application
-from rpclib.test.interop.server._service import services
-from rpclib.protocol.soap import Soap11
-from rpclib.protocol.http import HttpRpc
 from rpclib.interface.wsdl import Wsdl11
+from rpclib.test.interop.server._service import services
+from rpclib.protocol.http import HttpRpc
+from rpclib.protocol.soap import Soap11
+from rpclib.server.wsgi import WsgiApplication
 
 httprpc_soap_application = Application(services,
     'rpclib.test.interop.server.httprpc.soap', Wsdl11(), HttpRpc(), Soap11())
-
-from rpclib.server.wsgi import WsgiApplication
 
 if __name__ == '__main__':
     try:

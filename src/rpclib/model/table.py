@@ -41,12 +41,12 @@ from sqlalchemy.ext.declarative import DeclarativeMeta
 
 from sqlalchemy.dialects.postgresql import UUID
 
-from rpclib.model.complex import TypeInfo
-from rpclib.model.complex import ComplexModelBase
-from rpclib.model.complex import ComplexModelMeta
 from rpclib.model import primitive
 from rpclib.model import binary
 from rpclib.model import complex
+from rpclib.model.complex import TypeInfo
+from rpclib.model.complex import ComplexModelBase
+from rpclib.model.complex import ComplexModelMeta
 
 
 _type_map = {
@@ -70,7 +70,8 @@ _type_map = {
 
     sqlalchemy.orm.relation: complex.Array,
 
-    UUID: primitive.String
+    UUID: primitive.String(pattern="%(x)s{8}-%(x)s{4}-%(x)s{4}-%(x)s{4}-%(x)s{12}"
+                                            % {'x': '[a-fA-F0-9]'}, name='uuid')
 }
 
 
@@ -79,10 +80,18 @@ def _process_item(v):
 
     rpc_type = None
     if isinstance(v, Column):
-        if v.type in _type_map:
+        if isinstance(v.type, sqlalchemy.Enum):
+            if v.type.convert_unicode:
+                rpc_type = primitive.Unicode(values=v.type.enums)
+            else:
+                rpc_type = primitive.String(values=v.type.enums)
+
+        elif v.type in _type_map:
             rpc_type = _type_map[v.type]
+
         elif type(v.type) in _type_map:
             rpc_type = _type_map[type(v.type)]
+
         else:
             raise Exception("soap_type was not found. maybe _type_map needs a new "
                             "entry. %r" % v)
@@ -122,19 +131,27 @@ class TableModelMeta(DeclarativeMeta, ComplexModelMeta):
         if cls_dict.get("_type_info", None) is None:
             cls_dict["_type_info"] = _type_info = TypeInfo()
 
-            # mixin inheritance
-            for b in cls_bases:
-                for k, v in vars(b).items():
-                    if _is_interesting(k, v):
-                        _type_info[k] = _process_item(v)
+            def check_mixin_inheritance(bases):
+                for b in bases:
+                    check_mixin_inheritance(b.__bases__)
 
-            # same table inheritance
-            for b in cls_bases:
-                table = getattr(b, '__table__', None)
+                    for k, v in vars(b).items():
+                        if _is_interesting(k, v):
+                            _type_info[k] = _process_item(v)
 
-                if not (table is None):
-                    for c in table.c:
-                        _type_info[c.name] = _process_item(c)
+            check_mixin_inheritance(cls_bases)
+
+            def check_same_table_inheritance(bases):
+                for b in bases:
+                    check_same_table_inheritance(b.__bases__)
+
+                    table = getattr(b, '__table__', None)
+
+                    if not (table is None):
+                        for c in table.c:
+                            _type_info[c.name] = _process_item(c)
+
+            check_same_table_inheritance(cls_bases)
 
             # include from table
             table = cls_dict.get('__table__', None)
@@ -159,16 +176,6 @@ class TableModel(ComplexModelBase):
 
     __metaclass__ = TableModelMeta
     _decl_class_registry = {}
-
-    @classmethod
-    def customize(cls, **kwargs):
-        cls_name, cls_bases, cls_dict = ComplexModelBase._s_customize(
-                                                                  cls, **kwargs)
-
-        retval = ComplexModelMeta.__new__(ComplexModelMeta, cls_name,
-                                                            cls_bases, cls_dict)
-
-        return retval
 
 TableSerializer = TableModel
 """DEPRECATED. Use TableModel instead."""

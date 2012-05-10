@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+ARRAY_SUFFIX = 'Array'
 RESPONSE_SUFFIX = 'Response'
 RESULT_SUFFIX = 'Result'
 TYPE_SUFFIX = 'Type'

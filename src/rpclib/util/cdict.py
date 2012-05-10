@@ -21,6 +21,40 @@
 the base classes of a key when the entry for the key is not found. It is not a
 generalized dictionary that can handle any type of key -- it relies on
 rpclib.model api to look for classes.
+
+>>> from rpclib.util.cdict import cdict
+>>> class A(object):
+...     pass
+...
+>>> class B(A):
+...     pass
+...
+>>> class C(object):
+...     pass
+...
+>>> class D:
+...     pass
+...
+>>> d=cdict({A: "fun", object: "base"})
+>>> print d[A]
+fun
+>>> print d
+{<class '__main__.A'>: 'fun', <type 'object'>: 'base'}
+>>> print d[B]
+fun
+>>> print d
+{<class '__main__.A'>: 'fun', <class '__main__.B'>: 'fun', <type 'object'>: 'base'}
+>>> print d[C]
+base
+>>> print d
+{<class '__main__.A'>: 'fun', <class '__main__.B'>: 'fun', <class '__main__.C'>: 'base', <type 'object'>: 'base'}
+>>> print d[D]
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+  File "/home/plq/src/github/plq/rpclib/src/rpclib/util/cdict.py", line 77, in __getitem__
+    raise e
+KeyError: <class __main__.D at 0x8d92c0>
+>>>
 """
 
 import logging
@@ -31,17 +65,12 @@ class cdict(dict):
         try:
             return dict.__getitem__(self, cls)
 
-        except KeyError, e:
-            try:
-                return dict.__getitem__(self, cls._is_clone_of)
-            except AttributeError:
-                pass
-            except KeyError:
-                pass
-
+        except KeyError,e:
             for b in cls.__bases__:
                 try:
-                    return self[b]
+                    retval = self[b]
+                    self[cls] = retval
+                    return retval
                 except KeyError:
                     pass
-            raise
+            raise e

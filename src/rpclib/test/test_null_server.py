@@ -29,28 +29,6 @@ from rpclib.service import ServiceBase
 from rpclib.server.null import NullServer
 
 class TestNullServer(unittest.TestCase):
-    def test_fanout(self):
-        arr = set()
-
-        class MessageService1(ServiceBase):
-            @srpc()
-            def send_message():
-                arr.add(1)
-
-        class MessageService2(ServiceBase):
-            @srpc()
-            def send_message():
-                arr.add(2)
-
-        application = Application([MessageService1,MessageService2], 'some_tns',
-            interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11(),
-            supports_fanout_methods=True)
-
-        server = NullServer(application)
-        server.service.send_message()
-
-        assert set([1,2]) == arr
-
     def test_call(self):
         queue = set()
 

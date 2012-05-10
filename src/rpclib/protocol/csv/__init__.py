@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from __future__ import absolute_import
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -38,7 +40,7 @@ def complex_to_csv(ctx):
     serializer, = cls._type_info.values()
 
     type_info = getattr(serializer, '_type_info',
-                                  {serializer.get_type_name(): serializer})
+                        {serializer.get_type_name(): serializer})
 
     keys = sorted(type_info.keys())
 
@@ -58,25 +60,25 @@ def complex_to_csv(ctx):
         if ctx.out_object[0] is not None:
             for v in ctx.out_object[0]:
                 d = serializer.to_dict(v)
-                row = [ ]
+                row = []
                 for k in keys:
-                    val = d.get(k, None)
+                    val = d.get(k, [None])[0]
                     if val:
-                        val=val.encode('utf8')
+                        val = val.encode('utf8')
                     row.append(val)
 
                 writer.writerow(row)
                 yield queue.getvalue()
                 queue.truncate(0)
 
-class OutCsv(ProtocolBase):
+class Csv(ProtocolBase):
     mime_type = 'text/csv'
 
     def create_in_document(self, ctx):
-        raise Exception("not supported")
+        raise NotImplementedError()
 
     def serialize(self, ctx, message):
-        assert message in (self.RESPONSE,)
+        assert message in (self.RESPONSE, )
 
         if ctx.out_object is None:
             ctx.out_object = []
@@ -87,4 +89,7 @@ class OutCsv(ProtocolBase):
 
         ctx.out_string = complex_to_csv(ctx)
         ctx.transport.resp_headers['Content-Disposition'] = (
-                    'attachment; filename=%s.csv;' % ctx.descriptor.name)
+                         'attachment; filename=%s.csv;' % ctx.descriptor.name)
+
+OutCsv = Csv
+"""DEPRECATED: Use :class:`Csv` instead."""

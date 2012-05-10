@@ -23,8 +23,10 @@ server transport implementations."""
 import logging
 logger = logging.getLogger(__name__)
 
+from rpclib import EventManager
 from rpclib.model.fault import Fault
-from rpclib._base import EventManager
+from rpclib.protocol import ProtocolBase
+
 
 class ServerBase(object):
     """This class is the abstract base class for all server transport
@@ -39,16 +41,9 @@ class ServerBase(object):
     """The transport type, conventionally defined by the URI string to its
     definition."""
 
-    supports_fanout_methods = False
-
     def __init__(self, app):
         self.app = app
         self.app.transport = self.transport
-        if app.supports_fanout_methods and not self.supports_fanout_methods:
-            logger.warning("""Your application is in fanout mode.
-            note that in fanout mode, only the response from the last
-            call will be returned.""")
-
         self.event_manager = EventManager(self)
 
     def generate_contexts(self, ctx, in_string_charset=None):
@@ -60,13 +55,15 @@ class ServerBase(object):
             # sets ctx.in_document
             self.app.in_protocol.create_in_document(ctx, in_string_charset)
 
-            # sets ctx.in_body_doc, ctx.in_header_doc and ctx.method_request_string
-            self.app.in_protocol.decompose_incoming_envelope(ctx)
+            # sets ctx.in_body_doc, ctx.in_header_doc and
+            # ctx.method_request_string
+            self.app.in_protocol.decompose_incoming_envelope(ctx,
+                                                           ProtocolBase.REQUEST)
 
-            # returns a list of contexts. multiple contexts are only returned
+            # returns a list of contexts. multiple contexts can be returned
             # when supports_fanout_mode=True parameter is given to the
-            # Application constructor and there's more than one method defined
-            # for the given method_request_string here.
+            # Application constructor or there are non-primary methods for the
+            # given method_request_string.
             retval = self.app.in_protocol.generate_method_contexts(ctx)
 
         except Fault, e:
@@ -96,10 +93,11 @@ class ServerBase(object):
         """Calls the matched method using the ctx.in_object to get
         ctx.out_object."""
 
-        assert ctx.in_error is None, "There was an error processing input string"
-
-        # event firing is done in the rpclib.application.Application
-        self.app.process_request(ctx)
+        if ctx.in_error is None:
+            # event firing is done in the rpclib.application.Application
+            self.app.process_request(ctx)
+        else:
+            raise ctx.in_error
 
     def get_out_string(self, ctx):
         """Uses the ctx.out_object to set ctx.out_document and later

@@ -1,4 +1,4 @@
-# encoding: utf-8
+
 #
 # rpclib - Copyright (C) Rpclib contributors.
 #
@@ -17,28 +17,30 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from __future__ import absolute_import
+import logging
+logger = logging.getLogger(__name__)
 
-from django.http import HttpResponse
-from rpclib.server.wsgi import WsgiApplication
+from multiprocessing.pool import ThreadPool
 
-class DjangoApplication(WsgiApplication):
-    def __call__(self, request):
-        django_response = HttpResponse()
+from rpclib.aux import AuxProcBase
 
-        def start_response(status, headers):
-            status, reason = status.split(' ', 1)
 
-            django_response.status_code = int(status)
-            for header, value in headers:
-                django_response[header] = value
+class ThreadAuxProc(AuxProcBase):
+    def __init__(self, pool_size=1):
+        AuxProcBase.__init__(self)
 
-        environ = request.META.copy()
-        environ['wsgi.input'] = request
-        environ['wsgi.multithread'] = False
+        self.pool = None
+        self.__pool_size = pool_size
 
-        response = WsgiApplication.__call__(self, environ, start_response)
+    @property
+    def pool_size(self):
+        return self.__pool_size
 
-        django_response.content = "\n".join(response)
+    def process_context(self, server, ctx, *args, **kwargs):
+        a = [server, ctx]
+        a.extend(args)
 
-        return django_response
+        self.pool.apply_async(self.process, a, kwargs)
+
+    def initialize(self, server):
+        self.pool = ThreadPool(self.__pool_size)

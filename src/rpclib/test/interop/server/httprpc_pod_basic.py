@@ -28,10 +28,10 @@ from rpclib.application import Application
 from rpclib.test.interop.server._service import services
 from rpclib.protocol.http import HttpRpc
 from rpclib.interface.wsdl import Wsdl11
+from rpclib.server.wsgi import WsgiApplication
 
 httprpc_soap_application = Application(services,
-        'rpclib.test.interop.server.httprpc.pod', Wsdl11(), HttpRpc(), HttpRpc())
-from rpclib.server.wsgi import WsgiApplication
+        'rpclib.test.interop.server.httprpc.pod', HttpRpc(), HttpRpc(), Wsdl11())
 
 if __name__ == '__main__':
     try:
