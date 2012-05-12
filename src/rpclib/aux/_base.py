@@ -35,9 +35,6 @@ class AuxProcBase(object):
         self.methods = []
         self.process_exceptions = process_exceptions
 
-    def initialize(self, server):
-        pass
-
     def process(self, server, ctx, *args, **kwargs):
         server.get_in_object(ctx)
         if ctx.in_error is not None:
@@ -56,5 +53,8 @@ class AuxProcBase(object):
     def process_context(self, server, ctx, p_ctx, p_error):
         raise NotImplementedError()
 
-    def intialize_context(self, ctx, p_ctx, error):
+    def initialize(self, server):
+        pass
+
+    def initialize_context(self, ctx, p_ctx, error):
         ctx.aux = AuxMethodContext(p_ctx, error)
