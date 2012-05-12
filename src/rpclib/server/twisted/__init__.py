@@ -215,7 +215,7 @@ class TwistedWebResource(Resource):
                 request.setHeader(k,v)
 
             return ctx.transport.wsdl
-        
+
         except Exception, e:
             ctx.transport.wsdl_error = e
             self.http_transport.event_manager.fire_event('wsdl_exception', ctx)

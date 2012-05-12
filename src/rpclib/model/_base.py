@@ -147,7 +147,7 @@ class ModelBase(object):
 
         if cls.__namespace__ is None:
             cls.__namespace__ = cls.__module__
- 
+
     @classmethod
     def get_type_name(cls):
         """Returns the class name unless the __type_name__ attribute is defined.

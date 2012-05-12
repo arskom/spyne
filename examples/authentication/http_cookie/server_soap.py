@@ -176,7 +176,7 @@ def _on_method_call(ctx):
     if not session_id in session_db:
         raise AuthenticationError(session_id[0])
     ctx.udc = session_id[0]     # user name
-    
+
 
 UserService.event_manager.add_listener('method_call', _on_method_call)
 

@@ -73,7 +73,7 @@ procedure calls to the outside world. The following is used to wrap that
 code:
 
 * **User Methods**:
-    User methods are the code that you wrote and decided to use rpclib to 
+    User methods are the code that you wrote and decided to use rpclib to
     expose to the outside world.
 
 * **Decorators**:

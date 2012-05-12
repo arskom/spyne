@@ -20,7 +20,7 @@
 """Module that contains backends that process the auxiliary contexts. These
 result from non-primary functions in service definitions.
 
-Classes from this package will have the ``AuxProc`` suffix, short for 
+Classes from this package will have the ``AuxProc`` suffix, short for
 "Auxiliary Processor". Sounds neat, huh? :)
 
 This package is EXPERIMENTAL. Stay away from it.

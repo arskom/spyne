@@ -405,7 +405,7 @@ class Wsdl11(XmlSchema):
                                      cb_binding):
 
         pref_tns = self.interface.get_namespace_prefix(service.get_tns())
-        
+
         def inner(binding):
             for method in service.public_methods.values():
                 operation = etree.Element('{%s}operation' % _ns_wsdl)
@@ -508,11 +508,11 @@ class Wsdl11(XmlSchema):
                         mid_header.set('use', 'literal')
 
                     binding.append(operation)
-        
+
         port_type_list = service.get_port_types()
         if len(port_type_list) > 0:
             for port_type_name in port_type_list:
-                
+
                 # create binding nodes
                 binding = etree.SubElement(root, '{%s}binding' % _ns_wsdl)
                 binding.set('name', port_type_name)
@@ -520,7 +520,7 @@ class Wsdl11(XmlSchema):
 
                 transport = etree.SubElement(binding, '{%s}binding' % _ns_soap)
                 transport.set('style', 'document')
-                
+
                 inner(binding)
 
         else:
@@ -533,7 +533,7 @@ class Wsdl11(XmlSchema):
                 transport = etree.SubElement(cb_binding, '{%s}binding' % _ns_soap)
                 transport.set('style', 'document')
                 transport.set('transport', self.interface.app.transport)
-            
+
             inner(cb_binding)
 
         return cb_binding

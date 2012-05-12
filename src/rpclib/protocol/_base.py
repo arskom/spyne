@@ -74,7 +74,7 @@ class ProtocolBase(object):
     classes can implement only the required subset of the public methods.
 
     The ProtocolBase class supports the following events:
-    
+
     * ``before_deserialize``:
       Called before the deserialization operation is attempted.
 

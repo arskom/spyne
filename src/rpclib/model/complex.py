@@ -338,7 +338,7 @@ class ComplexModelBase(ModelBase):
     def resolve_namespace(cls, default_ns):
         if getattr(cls, '__extends__', None) != None:
             cls.__extends__.resolve_namespace(cls.__extends__, default_ns)
-        
+
         ModelBase.resolve_namespace(cls, default_ns)
 
         for k, v in cls._type_info.items():

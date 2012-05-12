@@ -24,7 +24,7 @@ import logging
 from rpclib.server.wsgi import WsgiApplication
 from wsgiref.simple_server import make_server
 
-host = '127.0.0.1' 
+host = '127.0.0.1'
 port = 9912
 
 server = make_server(host, port, WsgiApplication(rest))

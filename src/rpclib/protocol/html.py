@@ -111,7 +111,7 @@ class HtmlBase(ProtocolBase):
                 setattr(result_message, attr_name, ctx.out_object[i])
 
             ctx.out_header_doc = None
-            ctx.out_body_doc = self.serialize_impl(result_message_class, 
+            ctx.out_body_doc = self.serialize_impl(result_message_class,
                                                                  result_message)
 
             ctx.out_document = ctx.out_body_doc

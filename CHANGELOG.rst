@@ -79,7 +79,7 @@ rpclib-2.5.1-beta
 
 rpclib-2.5.0-beta
 -----------------
- * Implemented fanout support for transports and protocols that can handle 
+ * Implemented fanout support for transports and protocols that can handle
    that.
  * Implemented a helper module that generates a Soap/Wsdl 1.1 application in
    ``rpclib.util.simple``

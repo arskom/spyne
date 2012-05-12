@@ -17,7 +17,7 @@ This is a simple, easily extendible rpc library that provides several useful
 tools for creating and publishing web services in python.  This package
 features on-demand wsdl generation for the published services, a
 wsgi-compliant web application, support for complex class structures, binary
-attachments, and a simple framework for creating additional serialization 
+attachments, and a simple framework for creating additional serialization
 mechanisms.
 
 This project uses lxml as it's XML API, providing full namespace support.

@@ -65,7 +65,7 @@ class ZeroMQServer(ServerBase):
             if p_ctx.in_error:
                 p_ctx.out_object = p_ctx.in_error
                 error = p_ctx.in_error
-            
+
             else:
                 self.get_in_object(p_ctx)
 

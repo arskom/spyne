@@ -43,24 +43,24 @@ class TestWSDLBindingBehavior(unittest.TestCase):
         sa.interface.build_interface_document(self.url)
 
         services =  sa.interface.root_elt.xpath(
-                        '/wsdl:definitions/wsdl:service', 
-                        namespaces = { 
+                        '/wsdl:definitions/wsdl:service',
+                        namespaces = {
                             'wsdl':'http://schemas.xmlsoap.org/wsdl/' })
         self.assertEqual(len(services), 1)
-        
+
         portTypes =  sa.interface.root_elt.xpath(
-                        '/wsdl:definitions/wsdl:portType', 
-                        namespaces = { 
+                        '/wsdl:definitions/wsdl:portType',
+                        namespaces = {
                             'wsdl':'http://schemas.xmlsoap.org/wsdl/' })
         self.assertEqual(len(portTypes), 1)
 
         ports =  sa.interface.root_elt.xpath(
-                        '/wsdl:definitions/wsdl:service[@name="%s"]/wsdl:port' % 
-                            "S1", 
+                        '/wsdl:definitions/wsdl:service[@name="%s"]/wsdl:port' %
+                            "S1",
                         namespaces = {
                             'wsdl':'http://schemas.xmlsoap.org/wsdl/' })
         self.assertEqual(len(ports), 1)
-        
+
 
     def test_binding_multiple(self):
         sa = build_app(
@@ -70,60 +70,59 @@ class TestWSDLBindingBehavior(unittest.TestCase):
         )
         sa.interface.build_interface_document(self.url)
 
-        # 2 Service, 
+        # 2 Service,
         # First has 1 port
         # Second has 2
-         
+
         # => need 2 service, 3 port and 3 bindings
 
         services =  sa.interface.root_elt.xpath(
-                        '/wsdl:definitions/wsdl:service', 
-                        namespaces = { 
+                        '/wsdl:definitions/wsdl:service',
+                        namespaces = {
                             'wsdl':'http://schemas.xmlsoap.org/wsdl/' })
         self.assertEqual(len(services), 2)
-        
-        
+
+
         portTypes =  sa.interface.root_elt.xpath(
-                        '/wsdl:definitions/wsdl:portType', 
-                        namespaces = { 
+                        '/wsdl:definitions/wsdl:portType',
+                        namespaces = {
                             'wsdl':'http://schemas.xmlsoap.org/wsdl/' })
         self.assertEqual(len(portTypes), 3)
 
 
         bindings =  sa.interface.root_elt.xpath(
-                        '/wsdl:definitions/wsdl:binding', 
+                        '/wsdl:definitions/wsdl:binding',
                         namespaces = {
                             'wsdl':'http://schemas.xmlsoap.org/wsdl/' })
 
         self.assertEqual(len(bindings), 3)
 
         ports =  sa.interface.root_elt.xpath(
-                        '/wsdl:definitions/wsdl:service[@name="%s"]/wsdl:port' % 
-                            SinglePortService.__service_name__, 
+                        '/wsdl:definitions/wsdl:service[@name="%s"]/wsdl:port' %
+                            SinglePortService.__service_name__,
                         namespaces = {
                             'wsdl':'http://schemas.xmlsoap.org/wsdl/' })
         self.assertEqual(len(ports), 1)
-        
+
         ports =  sa.interface.root_elt.xpath(
-                        '/wsdl:definitions/wsdl:service[@name="%s"]/wsdl:port' % 
-                            "DoublePortService", 
+                        '/wsdl:definitions/wsdl:service[@name="%s"]/wsdl:port' %
+                            "DoublePortService",
                         namespaces = {
                             'wsdl':'http://schemas.xmlsoap.org/wsdl/' })
         self.assertEqual(len(ports), 2)
-        
+
         # checking name and type
         #service SinglePortService
         for srv in ( SinglePortService, DoublePortService ):
             for port in srv.__port_types__:
                 bindings =  sa.interface.root_elt.xpath(
                                 '/wsdl:definitions/wsdl:binding[@name="%s"]' %
-                                    port, 
+                                    port,
                                 namespaces = {
                                     'wsdl':'http://schemas.xmlsoap.org/wsdl/' })
-                self.assertEqual(bindings[0].get('type'), "tns:%s" % port) 
+                self.assertEqual(bindings[0].get('type'), "tns:%s" % port)
 
 
 
-    
-    
-    
+
+
