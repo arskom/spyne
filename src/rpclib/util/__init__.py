@@ -29,64 +29,6 @@ except ImportError: # Python 3
     from urllib.parse import splithost
     from urllib.parse import quote
 
-from rpclib.const import xml_ns as ns
-
-from lxml import etree
-
-def create_relates_to_header(relatesTo, attrs={}):
-    '''Creates a 'relatesTo' header for async callbacks'''
-    relatesToElement = etree.Element(
-        '{%s}RelatesTo' % ns.wsa)
-    for k, v in attrs.items():
-        relatesToElement.set(k, v)
-    relatesToElement.text = relatesTo
-    return relatesToElement
-
-
-def create_callback_info_headers(message_id, reply_to):
-    '''Creates MessageId and ReplyTo headers for initiating an
-    async function'''
-    message_id = etree.Element('{%s}MessageID' % ns.wsa)
-    message_id.text = message_id
-
-    reply_to = etree.Element('{%s}ReplyTo' % ns.wsa)
-    address = etree.SubElement(reply_to, '{%s}Address' % ns.wsa)
-    address.text = reply_to
-
-    return message_id, reply_to
-
-def get_callback_info(request):
-    '''
-    Retrieves the messageId and replyToAddress from the message header.
-    This is used for async calls.
-    '''
-    message_id = None
-    reply_to_address = None
-    header = request.soap_req_header
-
-    if header:
-        headers = header.getchildren()
-        for header in headers:
-            if header.tag.lower().endswith("messageid"):
-                message_id = header.text
-
-            if header.tag.lower().find("replyto") != -1:
-                replyToElems = header.getchildren()
-
-                for replyTo in replyToElems:
-                    if replyTo.tag.lower().endswith("address"):
-                        reply_to_address = replyTo.text
-
-    return message_id, reply_to_address
-
-def get_relates_to_info(request):
-    '''Retrieves the relatesTo header. This is used for callbacks'''
-    header = request.soap_req_header
-    if header:
-        headers = header.getchildren()
-        for header in headers:
-            if header.tag.lower().find('relatesto') != -1:
-                return header.text
 
 def split_url(url):
     '''Splits a url into (uri_scheme, host[:port], path)'''
