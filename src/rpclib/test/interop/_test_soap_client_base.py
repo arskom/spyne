@@ -17,13 +17,55 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import time
 import unittest
 
 from rpclib.model.fault import Fault
 
 from datetime import datetime
 
+import socket
+
+server_started = {}
+
+def test_port_open(port):
+    host = '127.0.0.1'
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((host, port))
+    s.shutdown(2)
+
+    return True
+
+def run_server(server_type):
+    if server_type == 'http':
+        from rpclib.test.interop.server.soap_http_basic import main
+        from rpclib.test.interop.server.soap_http_basic import PORT
+
+    elif server_type == 'zeromq':
+        from rpclib.test.interop.server.soap_zeromq import main
+        from rpclib.test.interop.server.soap_zeromq import PORT
+
+    else:
+        raise ValueError(server_type)
+
+    if server_started.get(PORT, None) is None:
+        def run_server():
+            main()
+
+        import thread
+        thread.start_new_thread(run_server, ())
+
+        # FIXME: Does anybody have a better idea?
+        time.sleep(2)
+
+        server_started[PORT] = test_port_open(PORT)
+
+
 class RpclibClientTestBase(object):
+    def setUp(self, server_type):
+        run_server(server_type)
+
     def test_echo_boolean(self):
         val = True
         ret = self.client.service.echo_boolean(val)

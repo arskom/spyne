@@ -23,8 +23,11 @@ from rpclib.test.interop.server.soap_http_basic import soap_application
 
 from rpclib.server.zeromq import ZeroMQServer
 
-if __name__ == '__main__':
-    url = "tcp://*:5555"
+PORT = 5555
+
+def main():
+    url = "tcp://127.0.0.1:%d" % PORT
+
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('rpclib.protocol.xml').setLevel(logging.DEBUG)
 
@@ -37,3 +40,6 @@ if __name__ == '__main__':
     logging.info("************************")
 
     server.serve_forever()
+
+if __name__ == '__main__':
+    main()

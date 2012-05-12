@@ -18,12 +18,15 @@
 #
 
 from twisted.trial import unittest
+from rpclib.test.interop._test_soap_client_base import run_server
 
 from rpclib.client.twisted import TwistedHttpClient
 from rpclib.test.interop.server.soap_http_basic import soap_application
 
 class TestRpclibHttpClient(unittest.TestCase):
     def setUp(self):
+        run_server('http')
+
         self.ns = "rpclib.test.interop.server._service"
         self.client = TwistedHttpClient('http://localhost:9753/', soap_application)
 

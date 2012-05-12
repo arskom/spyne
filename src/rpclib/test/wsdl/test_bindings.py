@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+#encoding: utf8
 #
 # rpclib - Copyright (C) rpclib contributors.
 #

@@ -19,14 +19,23 @@
 
 import unittest
 
-from rpclib.test.interop._test_client_base import RpclibClientTestBase
-from rpclib.client.zeromq import ZeroMQClient
+from rpclib.client.http import HttpClient
+from rpclib.test.interop._test_soap_client_base import RpclibClientTestBase
 from rpclib.test.interop.server.soap_http_basic import soap_application
+from rpclib.util.etreeconv import root_dict_to_etree
 
-class TestRpclibZmqClient(RpclibClientTestBase, unittest.TestCase):
+class TestRpclibHttpClient(RpclibClientTestBase, unittest.TestCase):
     def setUp(self):
-        self.client = ZeroMQClient('tcp://localhost:5555', soap_application)
+        RpclibClientTestBase.setUp(self, 'http')
+
+        self.client = HttpClient('http://localhost:9753/', soap_application)
         self.ns = "rpclib.test.interop.server._service"
+
+    def test_any(self):
+        val = root_dict_to_etree(self._get_xml_test_val())
+        ret = self.client.service.echo_any(val)
+
+        self.assertEquals(ret, val)
 
 if __name__ == '__main__':
     unittest.main()

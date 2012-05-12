@@ -18,35 +18,20 @@
 #
 
 import unittest
-import time
-import urllib2
 
 from suds.client import Client
 from suds import WebFault
 from datetime import datetime
 
+from rpclib.test.interop._test_soap_client_base import RpclibClientTestBase
+
 import logging
 suds_logger = logging.getLogger('suds')
 suds_logger.setLevel(logging.INFO)
 
-_server_started = False
-
-class TestSuds(unittest.TestCase):
+class TestSuds(RpclibClientTestBase, unittest.TestCase):
     def setUp(self):
-        global _server_started
-
-        if not _server_started:
-            def run_server():
-                from rpclib.test.interop.server.soap_http_basic import main
-                main()
-
-            import thread
-            thread.start_new_thread(run_server, ())
-
-            _server_started = True
-
-            # FIXME: Does anybody have a better idea?
-            time.sleep(2)
+        RpclibClientTestBase.setUp(self, 'http')
 
         self.client = Client("http://localhost:9753/?wsdl", cache=None)
         self.ns = "rpclib.test.interop.server._service"
