@@ -33,7 +33,7 @@ from rpclib.server.wsgi import WsgiApplication
 httprpc_soap_application = Application(services,
         'rpclib.test.interop.server.httprpc.pod', HttpRpc(), HttpRpc(), Wsdl11())
 
-if __name__ == '__main__':
+def main():
     try:
         from wsgiref.simple_server import make_server
         from wsgiref.validate import validator
@@ -47,3 +47,6 @@ if __name__ == '__main__':
 
     except ImportError:
         print("Error: example server code requires Python >= 2.5")
+
+if __name__ == '__main__':
+    main()

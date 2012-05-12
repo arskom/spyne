@@ -45,13 +45,10 @@ class TestSuds(unittest.TestCase):
 
             _server_started = True
 
-        while True:
-            try:
-                self.client = Client("http://localhost:9753/?wsdl", cache=None)
-                break
-            except urllib2.URLError:
-                time.sleep(1)
+            # FIXME: Does anybody have a better idea?
+            time.sleep(2)
 
+        self.client = Client("http://localhost:9753/?wsdl", cache=None)
         self.ns = "rpclib.test.interop.server._service"
 
     def test_echo_simple_boolean_array(self):
