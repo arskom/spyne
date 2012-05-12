@@ -34,7 +34,10 @@ try:
 except ImportError: # Python 3
     from urllib.parse import parse_qs
 
-from werkzeug.formparser import parse_form_data
+try:
+    from werkzeug.formparser import parse_form_data
+except ImportError:
+    pass
 
 from rpclib.server.http import HttpMethodContext
 from rpclib.server.http import HttpTransportContext

@@ -34,13 +34,17 @@ import pickle
 
 from collections import deque
 
-from lxml import etree
 from pytz import FixedOffset
 
 from rpclib.model import SimpleModel
 from rpclib.model import nillable_string
 from rpclib.error import ValidationError
 from rpclib.error import Fault
+
+try:
+    from lxml import etree
+except ImportError:
+    pass
 
 string_encoding = 'utf8'
 
