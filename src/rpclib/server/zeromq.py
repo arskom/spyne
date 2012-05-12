@@ -57,7 +57,7 @@ class ZeroMQServer(ServerBase):
         while True:
             error = None
 
-            initial_ctx = ZmqMethodContext(self.app)
+            initial_ctx = ZmqMethodContext(self)
             initial_ctx.in_string = [self.zmq_socket.recv()]
 
             contexts = self.generate_contexts(initial_ctx)
