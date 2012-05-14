@@ -87,7 +87,8 @@ class XmlAttributeRef(XmlAttribute):
 
 
 class SelfReference(object):
-    pass
+    def __init__(self):
+        raise NotImplementedError()
 
 
 class ComplexModelMeta(type(ModelBase)):
@@ -140,12 +141,17 @@ class ComplexModelMeta(type(ModelBase)):
                                                                 % (cls_name, k))
         else:
             _type_info = cls_dict['_type_info']
+
             if not isinstance(_type_info, TypeInfo):
                 cls_dict['_type_info'] = TypeInfo(_type_info)
 
                 for k, v in _type_info.items():
-                    if not issubclass(v, ModelBase):
+                    if issubclass(v, SelfReference):
+                        pass
+
+                    elif not issubclass(v, ModelBase):
                         raise ValueError( (k,v) )
+
                     elif issubclass(v, Array) and len(v._type_info) != 1:
                         raise Exception("Invalid Array definition in %s.%s."
                                                                 % (cls_name, k))
@@ -153,10 +159,10 @@ class ComplexModelMeta(type(ModelBase)):
         return type(ModelBase).__new__(cls, cls_name, cls_bases, cls_dict)
 
     def __init__(self, cls_name, cls_bases, cls_dict):
-        for k in cls_dict:
-            if cls_dict[k] is SelfReference:
-                cls_dict[k] = self
-                self._type_info[k] = self
+        type_info = cls_dict['_type_info']
+        for k in type_info:
+            if type_info[k] is SelfReference:
+                type_info[k] = self
 
         type(ModelBase).__init__(self, cls_name, cls_bases, cls_dict)
 
@@ -256,7 +262,6 @@ class ComplexModelBase(ModelBase):
 
             else:
                 yield (k, [v.to_string(subvalue)])
-
 
     @classmethod
     @nillable_dict
