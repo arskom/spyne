@@ -146,7 +146,14 @@ class ModelBase(object):
             cls.__namespace__ = default_ns
 
         if cls.__namespace__ is None:
-            cls.__namespace__ = cls.__module__
+            ret = []
+            for f in cls.__module__.split('.'):
+                if f.startswith('_'):
+                    break
+                else:
+                    ret.append(f)
+
+            cls.__namespace__ = '.'.join(ret)
 
     @classmethod
     def get_type_name(cls):
