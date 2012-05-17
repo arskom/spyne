@@ -84,17 +84,22 @@ def _dig(par):
         elt.tag = elt.tag.split('}')[-1]
         _dig(elt)
 
-def get_object_as_xml(value, no_namespace=False):
+def get_object_as_xml(value, cls=None, root_tag_name=None, no_namespace=False):
     '''Returns an ElementTree representation of a :class:`rpclib.model.complex.ComplexModel`
     child.
 
     :param value: The instance of the class to be serialized.
+    :param value: The root tag string to use. Defaults to the output of
+        ``value.__class__.get_type_name_ns()``.
     '''
 
+    if cls is None:
+        cls = value.__class__
     xml_object = XmlObject()
     parent = etree.Element("parent")
 
-    xml_object.to_parent_element(value.__class__, value, value.get_namespace(), parent)
+    xml_object.to_parent_element(cls, value, cls.get_namespace(),
+                                                          parent, root_tag_name)
 
     if no_namespace:
         _dig(parent)
@@ -102,7 +107,7 @@ def get_object_as_xml(value, no_namespace=False):
 
     return parent[0]
 
-def get_xml_as_object(cls, value):
+def get_xml_as_object(elt, cls):
     '''Returns a native :class:`rpclib.model.complex.ComplexModel` child from an
     ElementTree representation of the same class.
 
@@ -112,4 +117,4 @@ def get_xml_as_object(cls, value):
 
     xml_object = XmlObject()
 
-    return xml_object.from_element(cls, value)
+    return xml_object.from_element(cls, elt)
