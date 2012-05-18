@@ -277,6 +277,11 @@ class Interface(object):
         return pref
 
     def add_class(self, cls):
+        if issubclass(cls, Alias):
+            if issubclass(cls._target, ComplexModelBase):
+                self.add_class(cls._target)
+            return
+
         if self.has_class(cls):
             return
 
@@ -302,11 +307,7 @@ class Interface(object):
         if ns == self.get_tns():
             self.classes[tn] = cls
 
-        if issubclass(cls, Alias):
-            if issubclass(cls._target, ComplexModelBase):
-                self.add_class(cls._target)
-
-        elif issubclass(cls, ComplexModelBase):
+        if issubclass(cls, ComplexModelBase):
             # FIXME: this looks like a hack.
             if cls.get_type_name() is ModelBase.Empty:
                 (child, ) = cls._type_info.values()

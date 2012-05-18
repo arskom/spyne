@@ -175,8 +175,8 @@ class ComplexModelBase(ModelBase):
     def __init__(self, **kwargs):
         super(ComplexModelBase, self).__init__()
 
-        # this ugliness is due to sqlalchemy's forcing relevant types for database
-        # fields
+        # this ugliness is due to sqlalchemy's forcing of relevant types for
+        # database fields
         for k in self.get_flat_type_info(self.__class__).keys():
             try:
                 delattr(self, k)
