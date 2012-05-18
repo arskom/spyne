@@ -32,6 +32,7 @@ from rpclib.util.cdict import cdict
 from rpclib.model import ModelBase
 from rpclib.model.binary import ByteArray
 from rpclib.model.binary import Attachment
+from rpclib.model.complex import Alias
 from rpclib.model.complex import Array
 from rpclib.model.complex import Iterable
 from rpclib.model.complex import ComplexModelBase
@@ -44,6 +45,7 @@ from rpclib.protocol import ProtocolBase
 
 from rpclib.protocol.xml.model import base_to_parent_element
 from rpclib.protocol.xml.model.binary import binary_to_parent_element
+from rpclib.protocol.xml.model.complex import alias_to_parent_element
 from rpclib.protocol.xml.model.complex import complex_to_parent_element
 from rpclib.protocol.xml.model.enum import enum_to_parent_element
 from rpclib.protocol.xml.model.fault import fault_to_parent_element
@@ -90,6 +92,7 @@ class XmlObject(ProtocolBase):
 
         self.serialization_handlers = cdict({
             AnyXml: xml_to_parent_element,
+            Alias: alias_to_parent_element,
             Fault: fault_to_parent_element,
             AnyDict: dict_to_parent_element,
             EnumBase: enum_to_parent_element,

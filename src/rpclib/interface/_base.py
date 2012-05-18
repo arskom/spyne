@@ -32,6 +32,7 @@ from rpclib.const.suffix import RESULT_SUFFIX
 from rpclib.const.suffix import RESPONSE_SUFFIX
 
 from rpclib.model import ModelBase
+from rpclib.model.complex import Alias
 from rpclib.model.complex import ComplexModelBase
 
 
@@ -301,7 +302,11 @@ class Interface(object):
         if ns == self.get_tns():
             self.classes[tn] = cls
 
-        if issubclass(cls, ComplexModelBase):
+        if issubclass(cls, Alias):
+            if issubclass(cls._target, ComplexModelBase):
+                self.add_class(cls._target)
+
+        elif issubclass(cls, ComplexModelBase):
             # FIXME: this looks like a hack.
             if cls.get_type_name() is ModelBase.Empty:
                 (child, ) = cls._type_info.values()

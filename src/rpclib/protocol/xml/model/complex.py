@@ -63,6 +63,12 @@ def complex_to_parent_element(prot, cls, value, tns, parent_elt, name=None):
 
     get_members_etree(prot, cls, inst, element)
 
+@nillable_value
+def alias_to_parent_element(prot, cls, value, tns, parent_elt, name=None):
+    if name is None:
+        name = cls.get_type_name()
+
+    prot.to_parent_element(cls._target, value._target, tns, parent_elt, name)
 
 @nillable_element
 def complex_from_element(prot, cls, element):

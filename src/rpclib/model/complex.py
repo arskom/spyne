@@ -383,10 +383,13 @@ class ComplexModelBase(ModelBase):
 
         cls_dict['__namespace__'] = namespace
         cls_dict['__type_name__'] = type_name
-        cls_dict['_type_info'] = getattr(target, '_type_info', ())
         cls_dict['_target'] = target
 
-        return ComplexModelMeta(type_name, (ClassAlias,), cls_dict)
+        ti = getattr(target, '_type_info', None)
+        if ti is not None:
+            cls_dict['_type_info'] = ti
+
+        return ComplexModelMeta(type_name, (Alias,), cls_dict)
 
     @classmethod
     def customize(cls, **kwargs):
