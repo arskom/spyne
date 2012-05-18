@@ -188,7 +188,8 @@ class ProtocolBase(object):
     def generate_method_contexts(self, ctx):
         call_handles = self.get_call_handles(ctx)
         if len(call_handles) == 0:
-            raise ResourceNotFoundError('Method %r not found.' % ctx.method_request_string)
+            raise ResourceNotFoundError('Method %r not found.' %
+                                                      ctx.method_request_string)
 
         retval = []
         for sc, d in call_handles:
