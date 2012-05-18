@@ -323,6 +323,8 @@ class Interface(object):
 
 
 class InterfaceDocumentBase(object):
+    """Base class for all interface document implementations"""
+
     def __init__(self, interface):
         self.interface = interface
 
@@ -334,7 +336,6 @@ class InterfaceDocumentBase(object):
         """
 
         raise NotImplementedError('Extend and override.')
-
 
     def get_interface_document(self, cls):
         """This function is called by server transports that try to satisfy the
