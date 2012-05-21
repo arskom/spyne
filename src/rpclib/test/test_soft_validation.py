@@ -108,12 +108,12 @@ class TestHttpRpcSoftValidation(unittest.TestCase):
 
 
     def __get_ctx(self, mn, qs):
-        ctx = WsgiMethodContext(self.application, {
+        server = ServerBase(self.application)
+        ctx = WsgiMethodContext(server, {
             'QUERY_STRING': qs,
             'PATH_INFO': '/%s' % mn,
         }, 'some-content-type')
 
-        server = ServerBase(self.application)
         server.get_in_object(ctx)
 
         return ctx
@@ -155,8 +155,9 @@ class TestSoap11SoftValidation(unittest.TestCase):
             out_protocol=Soap11(),
             name='Service', tns='tns',
         )
+        server = ServerBase(application)
 
-        ctx = MethodContext(application)
+        ctx = MethodContext(server)
         ctx.in_string = [u"""
             <SOAP-ENV:Envelope xmlns:ns0="tns"
                                xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
@@ -168,9 +169,7 @@ class TestSoap11SoftValidation(unittest.TestCase):
             </SOAP-ENV:Envelope>
         """]
 
-        from rpclib.server import ServerBase
 
-        server = ServerBase(application)
         server.get_in_object(ctx)
 
         self.assertEquals(isinstance(ctx.in_error, ValidationError), True)

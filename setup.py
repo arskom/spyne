@@ -17,7 +17,7 @@ This is a simple, easily extendible rpc library that provides several useful
 tools for creating and publishing web services in python.  This package
 features on-demand wsdl generation for the published services, a
 wsgi-compliant web application, support for complex class structures, binary
-attachments, and a simple framework for creating additional serialization 
+attachments, and a simple framework for creating additional serialization
 mechanisms.
 
 This project uses lxml as it's XML API, providing full namespace support.
@@ -33,34 +33,6 @@ except OSError:
 SHORT_DESC="A transport and architecture agnostic rpc (de)serialization " \
            "library that focuses on making small, rpc-oriented messaging work."
 
-class NoInteropLoader(TestLoader):
-    def loadTestsFromModule(self, module):
-        """Load unit test (skip 'interop' package).
-
-        Hacked from the version in 'setuptools.command.test.ScanningLoader'.
-        """
-        tests = []
-        tests.append(TestLoader.loadTestsFromModule(self,module))
-
-        if hasattr(module, '__path__'):
-            for file in resource_listdir(module.__name__, ''):
-                if file == 'interop':
-                    # These tests require installing a bunch of extra
-                    # code:  see 'src/soaplib/test/README'.
-                    continue
-
-                if file.endswith('.py') and file != '__init__.py':
-                    submodule = module.__name__ + '.' + file[:-3]
-                else:
-                    if resource_exists(
-                        module.__name__, file + '/__init__.py'
-                    ):
-                        submodule = module.__name__ + '.' + file
-                    else:
-                        continue
-                tests.append(self.loadTestsFromName(submodule))
-
-        return self.suiteClass(tests)
 
 setup(
     name='rpclib',
@@ -72,6 +44,11 @@ setup(
     long_description=LONG_DESC,
     classifiers=[
         'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.4',
+        'Programming Language :: Python :: 2.5',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
         'Operating System :: OS Independent',
         'Natural Language :: English',
         'Development Status :: 4 - Beta',
@@ -84,7 +61,7 @@ setup(
     maintainer='Burak Arslan',
     maintainer_email='burak+rpclib@arskom.com.tr',
     url='http://github.com/arskom/rpclib',
-    license='LGPL',
+    license='LGPL-2.1',
     zip_safe=False,
     install_requires=[
       'pytz',
@@ -98,5 +75,4 @@ setup(
     },
 
     test_suite='rpclib.test',
-    test_loader='__main__:NoInteropLoader',
 )

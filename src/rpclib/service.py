@@ -34,18 +34,26 @@ class ServiceBaseMeta(type):
     def __init__(self, cls_name, cls_bases, cls_dict):
         super(ServiceBaseMeta, self).__init__(cls_name, cls_bases, cls_dict)
 
+        self.__has_aux_methods = self.__aux__ is not None
         self.public_methods = {}
         self.event_manager = EventManager(self,
                                       self.__get_base_event_handlers(cls_bases))
 
         for k, v in cls_dict.items():
             if hasattr(v, '_is_rpc'):
-                # these three lines are needed for staticmethod wrapping to work
                 descriptor = v(_default_function_name=k)
+
+                # these two lines are needed for staticmethod wrapping to work
                 setattr(self, k, staticmethod(descriptor.function))
                 descriptor.reset_function(getattr(self, k))
 
                 self.public_methods[k] = descriptor
+                if descriptor.aux is None:
+                    if self.__has_aux_methods and self.__aux__ is None:
+                        raise Exception("you can't mix aux and non-aux methods in "
+                                        "a single service definition.")
+                else:
+                    self.__has_aux_methods = True
 
     def __get_base_event_handlers(self, cls_bases):
         handlers = {}
@@ -63,6 +71,10 @@ class ServiceBaseMeta(type):
 
         return handlers
 
+    def is_auxiliary(self):
+        return self.__has_aux_methods
+
+
 class ServiceBase(object):
     '''This class serves as the base for all service definitions. Subclasses of
     this class will use the srpc decorator or its wrappers to flag methods to be
@@ -71,7 +83,7 @@ class ServiceBase(object):
     It is a natural abstract base class, because it's of no use without any
     method definitions, hence the 'Base' suffix in the name.
 
-    The WsgiApplication class supports the following events:
+    This class supports the following events:
         * ``method_call``
             Called right before the service method is executed
 
@@ -123,6 +135,11 @@ class ServiceBase(object):
 
     __port_types__ = ()
     """WSDL-Specific portType mappings"""
+
+    __aux__ = None
+    """The auxiliary method type. When set, the ``aux`` property of every method
+    defined under this service is set to this value. The _aux flag in the @srpc
+    decorator overrides this."""
 
     @classmethod
     def get_service_class_name(cls):
@@ -179,3 +196,11 @@ class ServiceBase(object):
             return ctx.function(*ctx.in_object)
         else:
             return ctx.function(ctx, *ctx.in_object)
+
+    @classmethod
+    def get_method_id(cls, descriptor):
+        return '.'.join([
+                cls.__module__,
+                cls.__name__,
+                descriptor.function.__name__,
+            ])

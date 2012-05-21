@@ -2,6 +2,29 @@
 Changelog
 =========
 
+rpclib-2.8.0-beta
+-----------------
+ * Add support for JsonObject protocol.
+ * Make DateTime string format customizable.
+ * Implement the server transport that exposes ``Application`` as a
+   ``twisted.web.resource.Resource`` child.
+ * Remove Deprecated XMLAttribute and XMLAttributeRef. Use ``XmlAttribute``
+   and ``XmlAttributeRef`` instead.
+ * Xml Schema: Add support for the <any> tag.
+ * Add a chapter about Validation to the manual.
+ * Interface documents are no longer subclasses of InterfaceBase. It's up
+   to the transport to expose the application using a given interface document
+   standard now. The ``interface`` argument to the ``Application`` ctor is
+   now ignored.
+ * Add support for async methods, which execute after the primary user code
+   returns. Currently, the only async execution method is via threads.
+ * Xml & friends: Start tags are now in the same namespace as the definitions
+   themselves. Intermediate tags are in the parent's namespace, just as before.
+ * Full change log:
+    * https://github.com/arskom/rpclib/pull/128
+    * https://github.com/arskom/rpclib/pull/129
+    * https://github.com/arskom/rpclib/pull/133
+
 rpclib-2.7.0-beta
 -----------------
  * Add support for non-chunked encoding to Wsgi transport.
@@ -56,7 +79,7 @@ rpclib-2.5.1-beta
 
 rpclib-2.5.0-beta
 -----------------
- * Implemented fanout support for transports and protocols that can handle 
+ * Implemented fanout support for transports and protocols that can handle
    that.
  * Implemented a helper module that generates a Soap/Wsdl 1.1 application in
    ``rpclib.util.simple``

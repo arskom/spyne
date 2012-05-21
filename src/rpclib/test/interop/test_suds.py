@@ -23,12 +23,16 @@ from suds.client import Client
 from suds import WebFault
 from datetime import datetime
 
+from rpclib.test.interop._test_soap_client_base import RpclibClientTestBase
+
 import logging
 suds_logger = logging.getLogger('suds')
 suds_logger.setLevel(logging.INFO)
 
-class TestSuds(unittest.TestCase):
+class TestSuds(RpclibClientTestBase, unittest.TestCase):
     def setUp(self):
+        RpclibClientTestBase.setUp(self, 'http')
+
         self.client = Client("http://localhost:9753/?wsdl", cache=None)
         self.ns = "rpclib.test.interop.server._service"
 

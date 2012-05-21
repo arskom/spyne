@@ -1,4 +1,4 @@
-# encoding: utf-8
+#!/usr/bin/env python
 #
 # rpclib - Copyright (C) Rpclib contributors.
 #
@@ -17,28 +17,19 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from __future__ import absolute_import
+import unittest
 
-from django.http import HttpResponse
-from rpclib.server.wsgi import WsgiApplication
+from rpclib.test.interop._test_soap_client_base import RpclibClientTestBase
+from rpclib.client.zeromq import ZeroMQClient
+from rpclib.test.interop.server.soap_http_basic import soap_application
 
-class DjangoApplication(WsgiApplication):
-    def __call__(self, request):
-        django_response = HttpResponse()
 
-        def start_response(status, headers):
-            status, reason = status.split(' ', 1)
+class TestRpclibZmqClient(RpclibClientTestBase, unittest.TestCase):
+    def setUp(self):
+        RpclibClientTestBase.setUp(self, 'zeromq')
 
-            django_response.status_code = int(status)
-            for header, value in headers:
-                django_response[header] = value
+        self.client = ZeroMQClient('tcp://localhost:5555', soap_application)
+        self.ns = "rpclib.test.interop.server._service"
 
-        environ = request.META.copy()
-        environ['wsgi.input'] = request
-        environ['wsgi.multithread'] = False
-
-        response = WsgiApplication.__call__(self, environ, start_response)
-
-        django_response.content = "\n".join(response)
-
-        return django_response
+if __name__ == '__main__':
+    unittest.main()

@@ -23,22 +23,21 @@ import rpclib.const.xml_ns
 
 _ns_xsd = rpclib.const.xml_ns.xsd
 
-def fault_add(interface, cls):
-    if not interface.has_class(cls):
-        extends = getattr(cls, '__extends__', None)
-        if not (extends is None):
-            interface.add(extends)
+def fault_add(document, cls):
+    extends = getattr(cls, '__extends__', None)
+    if not (extends is None):
+        document.add(extends)
 
-        complex_type = etree.Element("{%s}complexType" % _ns_xsd)
-        complex_type.set('name', cls.get_type_name())
+    complex_type = etree.Element("{%s}complexType" % _ns_xsd)
+    complex_type.set('name', cls.get_type_name())
 
-        #sequence = etree.SubElement(complex_type, '{%s}sequence' % _ns_xsd)
+    #sequence = etree.SubElement(complex_type, '{%s}sequence' % _ns_xsd)
 
-        interface.add_complex_type(cls, complex_type)
+    document.add_complex_type(cls, complex_type)
 
-        # simple node
-        element = etree.Element('{%s}element' % _ns_xsd)
-        element.set('name', cls.get_type_name())
-        element.set('type', cls.get_type_name_ns(interface))
+    # simple node
+    element = etree.Element('{%s}element' % _ns_xsd)
+    element.set('name', cls.get_type_name())
+    element.set('type', cls.get_type_name_ns(document.interface))
 
-        interface.add_element(cls, element)
+    document.add_element(cls, element)

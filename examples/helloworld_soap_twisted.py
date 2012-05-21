@@ -62,6 +62,11 @@ class HelloWorldService(ServiceBase):
 if __name__=='__main__':
     application = Application([HelloWorldService], 'rpclib.examples.hello.twisted',
                 interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
+
+    application.interface.nsmap[None] = application.interface.nsmap['tns']
+    application.interface.prefmap[application.interface.nsmap['tns']] = None
+    del application.interface.nsmap['tns']
+
     wsgi_app = WsgiApplication(application)
 
     print('listening on 0.0.0.0:7789')

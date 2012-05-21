@@ -20,15 +20,15 @@
 xml = 'http://www.w3.org/XML/1998/namespace'
 xsd = 'http://www.w3.org/2001/XMLSchema'
 xsi = 'http://www.w3.org/2001/XMLSchema-instance'
-plink = 'http://schemas.xmlsoap.org/ws/2003/05/partner-link/'
+wsa = 'http://schemas.xmlsoap.org/ws/2003/03/addressing'
+xop = 'http://www.w3.org/2004/08/xop/include'
 soap = 'http://schemas.xmlsoap.org/wsdl/soap/'
 wsdl = 'http://schemas.xmlsoap.org/wsdl/'
+plink = 'http://schemas.xmlsoap.org/ws/2003/05/partner-link/'
 soap_enc = 'http://schemas.xmlsoap.org/soap/encoding/'
 soap_env = 'http://schemas.xmlsoap.org/soap/envelope/'
 soap12_env = 'http://www.w3.org/2003/05/soap-envelope/'
 soap12_enc = 'http://www.w3.org/2003/05/soap-encoding/'
-wsa = 'http://schemas.xmlsoap.org/ws/2003/03/addressing'
-xop = 'http://www.w3.org/2004/08/xop/include'
 
 const_nsmap = {
     'xml': xml,

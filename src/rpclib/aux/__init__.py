@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+
 #
 # rpclib - Copyright (C) Rpclib contributors.
 #
@@ -17,23 +17,14 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import unittest
+"""Module that contains backends that process the auxiliary contexts. These
+result from non-primary functions in service definitions.
 
-from rpclib.client.http import HttpClient
-from rpclib.test.interop._test_client_base import RpclibClientTestBase
-from rpclib.test.interop.server.soap_http_basic import soap_application
-from rpclib.util.etreeconv import root_dict_to_etree
+Classes from this package will have the ``AuxProc`` suffix, short for
+"Auxiliary Processor". Sounds neat, huh? :)
 
-class TestRpclibHttpClient(RpclibClientTestBase, unittest.TestCase):
-    def setUp(self):
-        self.client = HttpClient('http://localhost:9753/', soap_application)
-        self.ns = "rpclib.test.interop.server._service"
+This package is EXPERIMENTAL. Stay away from it.
+"""
 
-    def test_any(self):
-        val = root_dict_to_etree(self._get_xml_test_val())
-        ret = self.client.service.echo_any(val)
-
-        self.assertEquals(ret, val)
-
-if __name__ == '__main__':
-    unittest.main()
+from rpclib.aux._base import process_contexts
+from rpclib.aux._base import AuxProcBase

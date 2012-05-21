@@ -127,7 +127,8 @@ class Soap11(XmlObject):
     allowed_http_verbs = ['POST']
     mime_type = 'text/xml; charset=utf-8'
 
-    def __init__(self, app=None, validator=None, wrapped=True, xml_declaration=True):
+    def __init__(self, app=None, validator=None, wrapped=True,
+                                xml_declaration=True, cleanup_namespaces=False):
         """Soap 1.1 Protocol with validators.
 
         :param app: A rpclib.application.Application instance.
@@ -135,8 +136,13 @@ class Soap11(XmlObject):
             value is 'lxml'
         :param wrapped: Whether the return type should be wrapped in another
             object. Default is 'True'.
+        :param xml_declaration: Whether to add xml_declaration to the responses
+            Default is 'True'.
+        :param cleanup_namespaces: Whether to add clean up namespace declarations
+            in the response document. Default is 'False'.
         """
-        XmlObject.__init__(self, app, validator, xml_declaration)
+        XmlObject.__init__(self, app, validator, xml_declaration,
+                                                             cleanup_namespaces)
 
         self.__wrapped = wrapped
 
@@ -273,18 +279,19 @@ class Soap11(XmlObject):
                         else:
                             out_headers = (ctx.out_header,)
 
+
                         for header_class, out_header in zip(header_message_class,
                                                                 out_headers):
                             self.to_parent_element(header_class,
                                 out_header,
-                                self.app.interface.get_tns(),
+                                header_class.get_namespace(),
                                 soap_header_elt,
                                 header_class.get_type_name(),
                             )
                     else:
                         self.to_parent_element(header_message_class,
                             ctx.out_header,
-                            self.app.interface.get_tns(),
+                            header_message_class.get_namespace(),
                             soap_header_elt,
                             header_message_class.get_type_name()
                         )
@@ -313,7 +320,7 @@ class Soap11(XmlObject):
 
             # transform the results into an element
             self.to_parent_element(body_message_class, out_object,
-                                    self.app.interface.get_tns(), out_body_doc)
+                                body_message_class.get_namespace(), out_body_doc)
 
         if self.log_messages:
             if message is self.REQUEST:

@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import time
 import pytz
 import unittest
 
@@ -31,7 +32,25 @@ except ImportError:
 
 from datetime import datetime
 
+_server_started = False
+
 class TestHttpRpc(unittest.TestCase):
+    def setUp(self):
+        global _server_started
+
+        if not _server_started:
+            def run_server():
+                from rpclib.test.interop.server.httprpc_pod_basic import main
+                main()
+
+            import thread
+            thread.start_new_thread(run_server, ())
+
+            # FIXME: Does anybody have a better idea?
+            time.sleep(2)
+
+            _server_started = True
+
     def test_404(self):
         url = 'http://localhost:9757/404'
         try:

@@ -24,21 +24,25 @@
 import datetime
 import unittest
 
-from rpclib.interface.wsdl import Wsdl11
-from rpclib.protocol.soap import Soap11
-
 from lxml import etree
 
 from rpclib.application import Application
+from rpclib.aux.thread import ThreadAuxProc
+from rpclib.aux.sync import SyncAuxProc
 from rpclib.decorator import rpc
 from rpclib.decorator import srpc
-from rpclib.service import ServiceBase
+from rpclib.interface.wsdl import Wsdl11
 from rpclib.model.complex import Array
 from rpclib.model.complex import ComplexModel
 from rpclib.model.primitive import DateTime
 from rpclib.model.primitive import Float
 from rpclib.model.primitive import Integer
 from rpclib.model.primitive import String
+from rpclib.protocol.soap import Soap11
+from rpclib.protocol.http import HttpRpc
+from rpclib.server.null import NullServer
+from rpclib.server.wsgi import WsgiApplication
+from rpclib.service import ServiceBase
 
 Application.transport = 'test'
 
@@ -123,23 +127,15 @@ class MultipleReturnService(ServiceBase):
     def multi(ctx, s):
         return s, 'a', 'b'
 
-class MultipleMethods1(ServiceBase):
-    @srpc(String)
-    def multi(s):
-        return "%r multi 1" % s
-
-class MultipleMethods2(ServiceBase):
-    @srpc(String)
-    def multi(s):
-        return "%r multi 2" % s
-
 class TestSingle(unittest.TestCase):
     def setUp(self):
-        self.app = Application([TestService], 'tns', Wsdl11(), Soap11(), Soap11())
+        self.app = Application([TestService], 'tns', Soap11(), Soap11())
+        self.app.transport = 'null.rpclib'
         self.srv = TestService()
 
-        self.app.interface.build_interface_document('URL')
-        self.wsdl_str = self.app.interface.get_interface_document()
+        wsdl = Wsdl11(self.app.interface)
+        wsdl.build_interface_document('URL')
+        self.wsdl_str = wsdl.get_interface_document()
         self.wsdl_doc = etree.fromstring(self.wsdl_str)
 
     def test_portypes(self):
@@ -148,15 +144,15 @@ class TestSingle(unittest.TestCase):
             len(self.srv.public_methods), len(porttype.getchildren()))
 
     def test_override_param_names(self):
-        # FIXME: This test must be rewritten.
-
         for n in ['self', 'import', 'return', 'from']:
-            self.assertTrue(n in self.wsdl_str, '"%s" not in self.wsdl_str' % n)
+            assert n in self.wsdl_str, '"%s" not in self.wsdl_str'
 
 class TestMultiple(unittest.TestCase):
     def setUp(self):
-        self.app = Application([MultipleReturnService], 'tns', Wsdl11(), Soap11(), Soap11())
-        self.app.interface.build_interface_document('url')
+        self.app = Application([MultipleReturnService], 'tns', Soap11(), Soap11())
+        self.app.transport = 'none'
+        self.wsdl = Wsdl11(self.app.interface)
+        self.wsdl.build_interface_document('URL')
 
     def test_multiple_return(self):
         message_class = list(MultipleReturnService.public_methods.values())[0].out_message
@@ -169,7 +165,7 @@ class TestMultiple(unittest.TestCase):
                                     MultipleReturnService.get_tns(), sent_xml)
         sent_xml = sent_xml[0]
 
-        print((etree.tostring(sent_xml, pretty_print=True)))
+        print(etree.tostring(sent_xml, pretty_print=True))
         response_data = self.app.out_protocol.from_element(message_class, sent_xml)
 
         self.assertEquals(len(response_data), 3)
@@ -177,56 +173,123 @@ class TestMultiple(unittest.TestCase):
         self.assertEqual(response_data[1], 'b')
         self.assertEqual(response_data[2], 'c')
 
+class MultipleMethods1(ServiceBase):
+    @srpc(String)
+    def multi(s):
+        return "%r multi 1" % s
+
+class MultipleMethods2(ServiceBase):
+    @srpc(String)
+    def multi(s):
+        return "%r multi 2" % s
+
 class TestMultipleMethods(unittest.TestCase):
     def test_single_method(self):
         try:
-            app = Application([MultipleMethods1,MultipleMethods2], 'tns', Wsdl11(), Soap11(), Soap11())
-            app.interface.build_interface_document('url')
-            raise Exception('must fail.')
+            app = Application([MultipleMethods1,MultipleMethods2], 'tns', Soap11(), Soap11())
 
         except ValueError:
             pass
+        else:
+            raise Exception('must fail.')
 
-    def test_multiple_methods(self):
-        in_protocol = Soap11()
-        out_protocol = Soap11()
 
-        # for the sake of this test.
-        in_protocol.supports_fanout_methods = True
-        out_protocol.supports_fanout_methods = True
+    def test_simple_aux_nullserver(self):
+        data = []
 
-        app = Application([MultipleMethods1,MultipleMethods2], 'tns',
-                Wsdl11(), in_protocol, out_protocol, supports_fanout_methods=True)
-        app.interface.build_interface_document('url')
+        class Service(ServiceBase):
+            @srpc(String)
+            def call(s):
+                data.append(s)
 
-        mm = app.interface.service_method_map['{tns}multi']
+        class AuxService(ServiceBase):
+            __aux__ = SyncAuxProc()
 
-        def find_class_in_mm(c):
-            found = False
-            for s, _ in mm:
-                if s is c:
-                    found = True
-                    break
+            @srpc(String)
+            def call(s):
+                data.append(s)
 
-            return found
+        app = Application([Service, AuxService], 'tns', Soap11(), Soap11())
+        server = NullServer(app)
+        server.service.call("hey")
 
-        assert find_class_in_mm(MultipleMethods1)
-        assert find_class_in_mm(MultipleMethods2)
+        assert data == ['hey', 'hey']
 
-        def find_function_in_mm(f):
-            i = 0
-            found = False
-            for _, d in mm:
-                i+=1
-                if d.function is f:
-                    found = True
-                    print i
-                    break
+    def test_simple_aux_wsgi(self):
+        data = []
 
-            return found
+        class Service(ServiceBase):
+            @srpc(String, _returns=String)
+            def call(s):
+                data.append(s)
 
-        assert find_function_in_mm(MultipleMethods1.multi)
-        assert find_function_in_mm(MultipleMethods2.multi)
+        class AuxService(ServiceBase):
+            __aux__ = SyncAuxProc()
+
+            @srpc(String, _returns=String)
+            def call(s):
+                data.append(s)
+
+        def start_response(code, headers):
+            print code, headers
+
+        app = Application([Service, AuxService], 'tns', HttpRpc(), HttpRpc())
+        server = WsgiApplication(app)
+        server({
+            'QUERY_STRING': 's=hey',
+            'PATH_INFO': '/call',
+            'REQUEST_METHOD': 'GET',
+        }, start_response, "http://null")
+
+        assert data == ['hey', 'hey']
+
+    def test_thread_aux_wsgi(self):
+        import logging
+        logging.basicConfig(level=logging.DEBUG)
+        data = set()
+
+        class Service(ServiceBase):
+            @srpc(String, _returns=String)
+            def call(s):
+                data.add(s)
+
+        class AuxService(ServiceBase):
+            __aux__ = ThreadAuxProc()
+
+            @srpc(String, _returns=String)
+            def call(s):
+                data.add(s + "aux")
+
+        def start_response(code, headers):
+            print code, headers
+
+        app = Application([Service, AuxService], 'tns', HttpRpc(), HttpRpc())
+        server = WsgiApplication(app)
+        server({
+            'QUERY_STRING': 's=hey',
+            'PATH_INFO': '/call',
+            'REQUEST_METHOD': 'GET',
+        }, start_response, "http://null")
+
+        import time
+        time.sleep(1)
+
+        assert data == set(['hey', 'heyaux'])
+
+    def test_mixing_primary_and_aux_methods(self):
+        try:
+            class Service(ServiceBase):
+                @srpc(String, _returns=String, _aux=ThreadAuxProc())
+                def call(s):
+                    pass
+
+                @srpc(String, _returns=String)
+                def mall(s):
+                    pass
+        except Exception:
+            pass
+        else:
+            raise Exception("must fail with 'Exception: you can't mix aux and non-aux methods in a single service definition.'")
 
 if __name__ == '__main__':
     unittest.main()

@@ -39,12 +39,12 @@ def get_members_etree(prot, cls, inst, parent):
         except: # to guard against sqlalchemy throwing NoSuchColumnError
             subvalue = None
 
-        if isinstance(v, XmlAttribute):
+        if issubclass(v, XmlAttribute):
             v.marshall(k, subvalue, parent)
             continue
 
         mo = v.Attributes.max_occurs
-        if subvalue is not None and (mo == 'unbounded' or mo > 1):
+        if subvalue is not None and mo > 1:
             for sv in subvalue:
                 prot.to_parent_element(v, sv, cls.get_namespace(), parent, k)
 
@@ -63,6 +63,12 @@ def complex_to_parent_element(prot, cls, value, tns, parent_elt, name=None):
 
     get_members_etree(prot, cls, inst, element)
 
+@nillable_value
+def alias_to_parent_element(prot, cls, value, tns, parent_elt, name=None):
+    if name is None:
+        name = cls.get_type_name()
+
+    prot.to_parent_element(cls._target, value._target, tns, parent_elt, name)
 
 @nillable_element
 def complex_from_element(prot, cls, element):
@@ -84,16 +90,15 @@ def complex_from_element(prot, cls, element):
 
         key = c.tag.split('}')[-1]
         freq = frequencies.get(key, 0)
-        freq+=1
+        freq += 1
         frequencies[key] = freq
 
         member = flat_type_info.get(key, None)
         if member is None:
             continue
 
-
         mo = member.Attributes.max_occurs
-        if mo == 'unbounded' or mo > 1:
+        if mo > 1:
             value = getattr(inst, key, None)
             if value is None:
                 value = []
@@ -117,11 +122,9 @@ def complex_from_element(prot, cls, element):
     if prot.validator is prot.SOFT_VALIDATION:
         for key, c in flat_type_info.items():
             val = frequencies.get(key, 0)
-            if (        val < c.Attributes.min_occurs
-                    or  (     c.Attributes.max_occurs != 'unbounded'
-                          and val > c.Attributes.max_occurs )):
+            if (val < c.Attributes.min_occurs or val > c.Attributes.max_occurs):
                 raise Fault('Client.ValidationError',
-                    '%r member does not respect frequency constraints' % key)
+                    '%r member does not respect frequency constraints.' % key)
 
     return inst
 

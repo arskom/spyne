@@ -60,7 +60,7 @@ class RemoteProcedureBase(object):
         self.url = url
         self.app = app
 
-        initial_ctx = MethodContext(app)
+        initial_ctx = MethodContext(self)
         initial_ctx.method_request_string = name
         initial_ctx.out_header = out_header
 
@@ -149,7 +149,8 @@ class RemoteProcedureBase(object):
 
         type_info = ctx.descriptor.out_message._type_info
 
-        if len(ctx.descriptor.out_message._type_info) == 1: # TODO: Non-Wrapped Object Support
+        # TODO: Non-Wrapped Object Support
+        if len(ctx.descriptor.out_message._type_info) == 1:
             wrapper_attribute = type_info.keys()[0]
             ctx.in_object = getattr(ctx.in_object, wrapper_attribute, None)
 

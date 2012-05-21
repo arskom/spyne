@@ -37,6 +37,9 @@ the same information in different protocols.:
     http://localhost:9910/html/get_utc_time
     http://localhost:9910/rest/get_utc_time
     http://localhost:9910/soap/get_utc_time
+    http://localhost:9910/png/get_utc_time
+    http://localhost:9910/svg/get_utc_time
+    http://localhost:9910/json/get_utc_time
 """
 
 
@@ -55,6 +58,7 @@ from rpclib.protocol.xml import XmlObject
 from rpclib.protocol.soap import Soap11
 from rpclib.protocol.http import HttpRpc
 from rpclib.protocol.html import HtmlMicroFormat
+from rpclib.protocol.json import JsonObject
 
 from protocol import PngClock
 from protocol import SvgClock
@@ -87,6 +91,9 @@ if __name__ == '__main__':
     svg = Application([HelloWorldService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=SvgClock())
 
+    json = Application([HelloWorldService], tns=tns,
+            in_protocol=HttpRpc(), out_protocol=JsonObject())
+
     root = WsgiMounter({
         'rest': rest,
         'xml': xml,
@@ -94,6 +101,7 @@ if __name__ == '__main__':
         'html': html,
         'png': png,
         'svg': svg,
+        'json': json,
     })
 
     from wsgiref.simple_server import make_server

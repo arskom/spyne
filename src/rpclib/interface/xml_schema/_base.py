@@ -32,15 +32,18 @@ from lxml import etree
 
 from rpclib.util.cdict import cdict
 
-from rpclib.interface import InterfaceBase
+from rpclib.interface import InterfaceDocumentBase
 from rpclib.model import SimpleModel
-from rpclib.model.primitive import String
 from rpclib.model.primitive import Decimal
+from rpclib.model.primitive import String
 from rpclib.model.complex import ComplexModelBase
+from rpclib.model.complex import Alias
 from rpclib.model.enum import EnumBase
 from rpclib.model.fault import Fault
+from rpclib.util.odict import odict
 
 from rpclib.interface.xml_schema.model import simple_add
+from rpclib.interface.xml_schema.model.complex import alias_add
 from rpclib.interface.xml_schema.model.complex import complex_add
 from rpclib.interface.xml_schema.model.fault import fault_add
 from rpclib.interface.xml_schema.model.enum import enum_add
@@ -51,6 +54,7 @@ from rpclib.interface.xml_schema.model.primitive import decimal_get_restriction_
 
 _add_handlers = cdict({
     object: lambda interface, cls: None,
+    Alias: alias_add,
     SimpleModel: simple_add,
     ComplexModelBase: complex_add,
     Fault: fault_add,
@@ -70,17 +74,24 @@ _ns_wsdl = rpclib.const.xml_ns.wsdl
 _ns_soap = rpclib.const.xml_ns.soap
 _pref_wsa = rpclib.const.xml_ns.const_prefmap[_ns_wsa]
 
-class XmlSchema(InterfaceBase):
+
+class SchemaInfo(object):
+    def __init__(self):
+        self.elements = odict()
+        self.types = odict()
+
+
+class XmlSchema(InterfaceDocumentBase):
     """The implementation of the  Xml Schema object definition document
     standard.
     """
 
-    def __init__(self, app=None, import_base_namespaces=False):
+    def __init__(self, interface):
+        InterfaceDocumentBase.__init__(self, interface)
+
         self.schema_dict = {}
         self.validation_schema = None
-        self.import_base_namespaces = import_base_namespaces
-
-        InterfaceBase.__init__(self, app)
+        self.namespaces = odict()
 
     def add(self, cls):
         handler = _add_handlers[cls]
@@ -92,16 +103,20 @@ class XmlSchema(InterfaceBase):
 
     def build_schema_nodes(self, with_schema_location=False):
         self.schema_dict = {}
+
+        for cls in self.interface.classes.values():
+            self.add(cls)
+
         for pref in self.namespaces:
             schema = self.get_schema_node(pref)
 
             # append import tags
-            for namespace in self.imports[pref]:
+            for namespace in self.interface.imports[self.interface.nsmap[pref]]:
                 import_ = etree.SubElement(schema, "{%s}import" % _ns_xsd)
                 import_.set("namespace", namespace)
                 if with_schema_location:
                     import_.set('schemaLocation', "%s.xsd" %
-                                           self.get_namespace_prefix(namespace))
+                                   self.interface.get_namespace_prefix(namespace))
 
                 sl = rpclib.const.xml_ns.schema_location.get(namespace, None)
                 if not (sl is None):
@@ -115,25 +130,26 @@ class XmlSchema(InterfaceBase):
             for node in self.namespaces[pref].elements.values():
                 schema.append(node)
 
+        self.interface.event_manager.fire_event('document_built', self.schema_dict)
+
     def build_validation_schema(self):
         """Build application schema specifically for xml validation purposes.
         """
 
         self.build_schema_nodes(with_schema_location=True)
 
-        pref_tns = self.get_namespace_prefix(self.get_tns())
+        pref_tns = self.interface.get_namespace_prefix(self.interface.tns)
         tmp_dir_name = tempfile.mkdtemp()
         logger.debug("generating schema for targetNamespace=%r, prefix: %r in dir %r"
-                                   % (self.get_tns(), pref_tns, tmp_dir_name))
+                                   % (self.interface.tns, pref_tns, tmp_dir_name))
 
-        logger.debug
         # serialize nodes to files
         for k, v in self.schema_dict.items():
             file_name = '%s/%s.xsd' % (tmp_dir_name, k)
             f = open(file_name, 'wb')
             etree.ElementTree(v).write(f, pretty_print=True)
             f.close()
-            logger.debug("writing %r for ns %s" % (file_name, self.nsmap[k]))
+            logger.debug("writing %r for ns %s" % (file_name, self.interface.nsmap[k]))
 
         f = open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r')
 
@@ -148,17 +164,17 @@ class XmlSchema(InterfaceBase):
 
     def get_schema_node(self, pref):
         """Return schema node for the given namespace prefix."""
-        # create schema node
-        if not (pref in self.schema_dict):
-            schema = etree.Element("{%s}schema" % _ns_xsd, nsmap=self.nsmap)
 
-            schema.set("targetNamespace", self.nsmap[pref])
+        if not (pref in self.schema_dict):
+            schema = etree.Element("{%s}schema" % _ns_xsd, nsmap=self.interface.nsmap)
+
+            schema.set("targetNamespace", self.interface.nsmap[pref])
             schema.set("elementFormDefault", "qualified")
 
             self.schema_dict[pref] = schema
 
         else:
-            schema = self.schema_nodes[pref]
+            schema = self.schema_dict[pref]
 
         return schema
 
@@ -169,106 +185,35 @@ class XmlSchema(InterfaceBase):
         self.build_schema_nodes()
 
     def add_element(self, cls, node):
-        pref = cls.get_namespace_prefix(self)
+        pref = cls.get_namespace_prefix(self.interface)
 
         schema_info = self.get_schema_info(pref)
         schema_info.elements[cls.get_type_name()] = node
 
     def add_simple_type(self, cls, node):
-        ns = cls.get_namespace()
         tn = cls.get_type_name()
-        pref = cls.get_namespace_prefix(self)
+        pref = cls.get_namespace_prefix(self.interface)
 
-        self.__check_imports(cls, node)
         schema_info = self.get_schema_info(pref)
         schema_info.types[tn] = node
-
-        class_key = '{%s}%s' % (ns, tn)
-        logger.debug('\tadding class %r for %r' % (repr(cls), class_key))
-
-        self.classes[class_key] = cls
-        if ns == self.get_tns():
-            self.classes[tn] = cls
 
     def add_complex_type(self, cls, node):
-        ns = cls.get_namespace()
         tn = cls.get_type_name()
-        pref = cls.get_namespace_prefix(self)
+        pref = cls.get_namespace_prefix(self.interface)
 
-        self.__check_imports(cls, node)
         schema_info = self.get_schema_info(pref)
         schema_info.types[tn] = node
 
-        class_key = '{%s}%s' % (ns, tn)
-        logger.debug('\tadding class %r for %r' % (repr(cls), class_key))
+    def get_schema_info(self, prefix):
+        """Returns the SchemaInfo object for the corresponding namespace. It
+        creates it if it doesn't exist.
 
-        self.classes[class_key] = cls
-        if ns == self.get_tns():
-            self.classes[tn] = cls
+        The SchemaInfo object holds the simple and complex type definitions
+        for a given namespace."""
 
-    def has_class(self, cls):
-        ns_prefix = cls.get_namespace_prefix(self)
-        if ns_prefix in rpclib.const.xml_ns.const_nsmap:
-            return True
-
+        if prefix in self.namespaces:
+            schema = self.namespaces[prefix]
         else:
-            return InterfaceBase.has_class(self, cls)
+            schema = self.namespaces[prefix] = SchemaInfo()
 
-    # FIXME: this is an ugly hack. we need proper dependency management
-    def __check_imports(self, cls, node):
-        pref_tns = cls.get_namespace_prefix(self)
-
-        def is_valid_import(pref):
-            return pref != pref_tns and (
-                    self.import_base_namespaces or
-                    (not (pref in rpclib.const.xml_ns.const_nsmap))
-                )
-
-        if not (pref_tns in self.imports):
-            self.imports[pref_tns] = set()
-
-        for c in node:
-            if c.tag == "{%s}complexContent" % _ns_xsd:
-                extension = c.getchildren()[0]
-
-                if extension.tag == '{%s}extension' % _ns_xsd:
-                    pref = extension.attrib['base'].split(':')[0]
-                    if is_valid_import(pref):
-                        self.imports[pref_tns].add(self.nsmap[pref])
-                    seq = extension.getchildren()[0]
-
-                else:
-                    seq = c.getchildren()[0]
-
-            else:
-                seq = c
-
-            if seq.tag == '{%s}sequence' % _ns_xsd:
-                for e in seq:
-                    pref = e.attrib['type'].split(':')[0]
-                    if is_valid_import(pref):
-                        self.imports[pref_tns].add(self.nsmap[pref])
-
-            elif seq.tag == '{%s}restriction' % _ns_xsd:
-                pref = seq.attrib['base'].split(':')[0]
-                if is_valid_import(pref):
-                    self.imports[pref_tns].add(self.nsmap[pref])
-
-            elif seq.tag == '{%s}attribute' % _ns_xsd:
-                typ = seq.get('type', '')
-                t_pref = typ.split(':')[0]
-
-                if t_pref and is_valid_import(t_pref):
-                    self.imports[pref_tns].add(self.nsmap[t_pref])
-
-                ref = seq.get('ref', '')
-                r_pref = ref.split(':')[0]
-
-                if r_pref and is_valid_import(r_pref):
-                    self.imports[pref_tns].add(self.nsmap[r_pref])
-
-            elif seq.tag == '{%s}annotation' % _ns_xsd:
-                pass
-
-            else:
-                raise Exception("i guess you need to hack some more")
+        return schema

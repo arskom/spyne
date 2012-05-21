@@ -43,20 +43,34 @@ class _SimpleTypeInfoElement(object):
 
 class XmlAttribute(ModelBase):
     """Items which are marshalled as attributes of the parent element."""
+    def __new__(cls, typ, use=None):
+        retval = cls.customize()
+        retval._typ = typ
+        retval._use = use
 
-    def __init__(self, typ, use=None):
-        self._typ = typ
-        self._use = use
+        return retval
 
-    def marshall(self, name, value, parent_elt):
+    @classmethod
+    def marshall(cls, name, value, parent_elt):
         if value is not None:
-            parent_elt.set(name, self._typ.to_string(value))
+            parent_elt.set(name, cls._typ.to_string(value))
 
-    def describe(self, name, element, app):
+    @classmethod
+    def describe(cls, name, element, app):
         element.set('name', name)
-        element.set('type', self._typ.get_type_name_ns(app))
-        if self._use:
-            element.set('use', self._use)
+        element.set('type', cls._typ.get_type_name_ns(app.interface))
+        if cls._use:
+            element.set('use', cls._use)
+
+    @staticmethod
+    def resolve_namespace(cls, default_ns):
+        cls._typ.resolve_namespace(cls._typ, default_ns)
+
+        if cls.__namespace__ is None:
+            cls.__namespace__ = cls._typ.get_namespace()
+
+        if cls.__namespace__ in namespace.const_prefmap:
+            cls.__namespace__ = default_ns
 
 
 class XmlAttributeRef(XmlAttribute):
@@ -71,22 +85,19 @@ class XmlAttributeRef(XmlAttribute):
         if self._use:
             element.set('use', self._use)
 
-XMLAttribute = XmlAttribute
-""" DEPRECATED! Use :class:`XmlAttribute` instead"""
-
-XMLAttributeRef = XmlAttributeRef
-""" DEPRECATED! Use :class:`XmlAttributeRef` instead"""
 
 class SelfReference(object):
-    pass
+    def __init__(self):
+        raise NotImplementedError()
+
 
 class ComplexModelMeta(type(ModelBase)):
-    '''This is the metaclass that populates ComplexModel instances with the
-    appropriate datatypes for (de)serialization.
+    '''This metaclass sets ``_type_info``, ``__type_name__`` and ``__extends__``
+    which are going to be used for (de)serialization and schema generation.
     '''
 
     def __new__(cls, cls_name, cls_bases, cls_dict):
-        '''This initializes the class, and registers attributes for
+        '''This function initializes the class and registers attributes for
         serialization.
         '''
 
@@ -95,20 +106,19 @@ class ComplexModelMeta(type(ModelBase)):
             cls_dict["__type_name__"] = cls_name
 
         # get base class (if exists) and enforce single inheritance
-        extends = cls_dict.get("__extends__", None)
-
+        extends = cls_dict.get('__extends__', None)
         if extends is None:
             for b in cls_bases:
                 base_types = getattr(b, "_type_info", None)
 
                 if not (base_types is None):
-                    if not (extends is None or cls_dict["__extends__"] is b):
+                    if not (extends in (None, b)):
                         raise Exception("WSDL 1.1 does not support multiple "
                                         "inheritance")
 
                     try:
                         if len(base_types) > 0 and issubclass(b, ModelBase):
-                            cls_dict["__extends__"] = extends = b
+                            cls_dict["__extends__"] = b
                     except:
                         logger.error(repr(extends))
                         raise
@@ -119,7 +129,6 @@ class ComplexModelMeta(type(ModelBase)):
 
             for k, v in cls_dict.items():
                 if not k.startswith('__'):
-                    is_attr = isinstance(v, XmlAttribute)
                     try:
                         subc = issubclass(v, ModelBase)
                     except:
@@ -127,25 +136,36 @@ class ComplexModelMeta(type(ModelBase)):
 
                     if subc:
                         _type_info[k] = v
-                        if issubclass(v, Array) and v.serializer is None:
-                            raise Exception("%s.%s is an array of what?" %
-                                            (cls_name, k))
-                    elif is_attr:
-                        _type_info[k] = v
+                        if issubclass(v, Array) and len(v._type_info) != 1:
+                            raise Exception("Invalid Array definition in %s.%s."
+                                                                % (cls_name, k))
         else:
             _type_info = cls_dict['_type_info']
+
             if not isinstance(_type_info, TypeInfo):
                 cls_dict['_type_info'] = TypeInfo(_type_info)
+
+                for k, v in _type_info.items():
+                    if issubclass(v, SelfReference):
+                        pass
+
+                    elif not issubclass(v, ModelBase):
+                        raise ValueError( (k,v) )
+
+                    elif issubclass(v, Array) and len(v._type_info) != 1:
+                        raise Exception("Invalid Array definition in %s.%s."
+                                                                % (cls_name, k))
 
         return type(ModelBase).__new__(cls, cls_name, cls_bases, cls_dict)
 
     def __init__(self, cls_name, cls_bases, cls_dict):
-        for k in cls_dict:
-            if cls_dict[k] is SelfReference:
-                cls_dict[k] = self
-                self._type_info[k] = self
+        type_info = cls_dict['_type_info']
+        for k in type_info:
+            if type_info[k] is SelfReference:
+                type_info[k] = self
 
         type(ModelBase).__init__(self, cls_name, cls_bases, cls_dict)
+
 
 class ComplexModelBase(ModelBase):
     """If you want to make a better class type, this is what you should inherit
@@ -155,6 +175,8 @@ class ComplexModelBase(ModelBase):
     def __init__(self, **kwargs):
         super(ComplexModelBase, self).__init__()
 
+        # this ugliness is due to sqlalchemy's forcing of relevant types for
+        # database fields
         for k in self.get_flat_type_info(self.__class__).keys():
             try:
                 delattr(self, k)
@@ -178,8 +200,8 @@ class ComplexModelBase(ModelBase):
 
     def __repr__(self):
         return "%s(%s)" % (self.get_type_name(), ', '.join(
-                           ['%s=%r' % (k, getattr(self, k, None))
-                                            for k in self.__class__._type_info]))
+               ['%s=%r' % (k, getattr(self, k, None))
+                    for k in self.__class__.get_flat_type_info(self.__class__)]))
 
     @classmethod
     def get_serialization_instance(cls, value):
@@ -224,7 +246,7 @@ class ComplexModelBase(ModelBase):
     def get_members_pairs(cls, inst):
         parent_cls = getattr(cls, '__extends__', None)
         if not (parent_cls is None):
-            for r in parent_cls.get_members_pairs(inst, parent):
+            for r in parent_cls.get_members_pairs(parent_cls, inst):
                 yield r
 
         for k, v in cls._type_info.items():
@@ -234,7 +256,7 @@ class ComplexModelBase(ModelBase):
             except: # to guard against e.g. sqlalchemy throwing NoSuchColumnError
                 subvalue = None
 
-            if mo == 'unbounded' or mo > 1:
+            if mo > 1:
                 if subvalue != None:
                     yield (k, (v.to_string(sv) for sv in subvalue))
 
@@ -269,19 +291,17 @@ class ComplexModelBase(ModelBase):
                                                                     parent=None):
         """Returns a _type_info dict that includes members from all base classes
         and whose types are only primitives. It will prefix field names in
-        non-top-level complex objects with field of its parent.
+        non-top-level complex objects with field name of its parent.
 
-        For example:
+        For example, given hier_delim='_'; the following hierarchy:
 
-            {'some_object': [{'some_string': 'abc'}]}
+            {'some_object': [{'some_string': ['abc']}]}
 
-        will become:
+         would be transformed to:
 
-            {'some_object_some_string'': ['abc']}
+            {'some_object_some_string': ['abc']}
 
         """
-        from rpclib.model import SimpleModel
-        from rpclib.model.binary import ByteArray
 
         if retval is None:
             retval = {}
@@ -299,9 +319,8 @@ class ComplexModelBase(ModelBase):
                 if value:
                     raise ValueError("%r.%s conflicts with %r" % (cls, k, value))
 
-                else:
-                    retval[key] = _SimpleTypeInfoElement(
-                                        path=tuple(new_prefix), parent=parent, type_=v)
+                retval[key] = _SimpleTypeInfoElement(path=tuple(new_prefix),
+                                                        parent=parent, type_=v)
 
             else:
                 new_prefix = list(prefix)
@@ -364,10 +383,30 @@ class ComplexModelBase(ModelBase):
 
         cls_dict['__namespace__'] = namespace
         cls_dict['__type_name__'] = type_name
-        cls_dict['_type_info'] = getattr(target, '_type_info', ())
         cls_dict['_target'] = target
 
-        return ComplexModelMeta(type_name, (ClassAlias,), cls_dict)
+        ti = getattr(target, '_type_info', None)
+        if ti is not None:
+            cls_dict['_type_info'] = ti
+
+        return ComplexModelMeta(type_name, (Alias,), cls_dict)
+
+    @classmethod
+    def customize(cls, **kwargs):
+        """Duplicates cls and overwrites the values in ``cls.Attributes`` with
+        ``**kwargs`` and returns the new class."""
+
+        cls_name, cls_bases, cls_dict = cls._s_customize(cls, **kwargs)
+        cls_dict['__module__'] = cls.__module__
+
+        retval = type(cls_name, cls_bases, cls_dict)
+        retval._type_info = cls._type_info
+
+        e = getattr(retval, '__extends__', None)
+        if e != None:
+            retval.__extends__ = getattr(e, '__extends__', None)
+
+        return retval
 
 class ComplexModel(ComplexModelBase):
     """The general complexType factory. The __call__ method of this class will
@@ -390,7 +429,7 @@ class Array(ComplexModel):
         # hack to default to unbounded arrays when the user didn't specify
         # max_occurs. We should find a better way.
         if serializer.Attributes.max_occurs == 1:
-            serializer = serializer.customize(max_occurs='unbounded')
+            serializer = serializer.customize(max_occurs=float('inf'))
 
         if serializer.get_type_name() is ModelBase.Empty:
             member_name = serializer.__base_type__.get_type_name()
@@ -438,8 +477,10 @@ class Array(ComplexModel):
 
 
 class Iterable(Array):
-    """This class generates a ComplexModel child that has one attribute that has
-    the same name as the serialized class. It's contained in a Python iterable.
+    """This class generates a ``ComplexModel`` child that has one attribute that
+    has the same name as the serialized class. It's contained in a Python
+    iterable. The distinction with the ``Array`` is made in the protocol
+    implementation, this is just a marker.
     """
 
 class Alias(ComplexModel):

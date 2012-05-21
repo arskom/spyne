@@ -16,6 +16,9 @@ build
 # Mac cruft
 .DS_Store
 
+# wingware cruft
+*.wpu
+
 # emacs cruft
 *~
 *#*
@@ -60,3 +63,7 @@ pres.pdf
 *.snm
 *.toc
 *.vrb
+*.backup
+
+# twisted trial cruft
+_trial_temp

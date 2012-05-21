@@ -84,7 +84,7 @@ not cause a change in unrelated areas of rpclib. Those would increment the minor
 version number of the Rpclib version once implemented.
 
 * Support for polymorphism in XML Schema.
-* Support for the JsonObject (à la XmlObject) and JsonRpc protocols.
+* Support for the JsonRpc protocol.
 * Support for the JsonSchema interface document standard.
 * Support for the Thrift binary protocol.
 * Support for the Thrift IDL -- The Thrift Interface Definition Language.

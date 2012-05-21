@@ -47,12 +47,13 @@ def root_dict_to_etree(d):
     return retval
 
 def dict_to_etree(d, parent):
-    """Takes a the dict whose values are either dicts, odicts or iterables. The
-    iterables can contain either other dicts/odicts or text.
+    """Takes a the dict whose value is either None or an instance of dict, odict
+    or an iterable. The iterables can contain either other dicts/odicts or
+    str/unicode instances.
     """
 
     for k, v in d.items():
-        if len(v) == 0:
+        if v is None or len(v) == 0:
             etree.SubElement(parent, k)
 
         elif isinstance(v, dict) or isinstance(v, odict):

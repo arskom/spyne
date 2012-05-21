@@ -19,6 +19,7 @@
 
 import datetime
 import unittest
+import hashlib
 
 from lxml import etree
 
@@ -32,6 +33,7 @@ from rpclib.model.primitive import DateTime
 from rpclib.model.primitive import Float
 from rpclib.model.primitive import Integer
 from rpclib.model.primitive import String
+from rpclib.protocol import ProtocolBase
 from rpclib.protocol.xml import XmlObject
 from rpclib.test import FakeApp
 
@@ -134,10 +136,11 @@ class TestComplexModel(unittest.TestCase):
     def test_class_array(self):
         peeps = []
         names = ['bob', 'jim', 'peabody', 'mumblesleves']
+        dob = datetime.datetime(1979, 1, 1)
         for name in names:
             a = Person()
             a.name = name
-            a.birthdate = datetime.datetime(1979, 1, 1)
+            a.birthdate = dob
             a.age = 27
             peeps.append(a)
 
@@ -145,6 +148,7 @@ class TestComplexModel(unittest.TestCase):
         type.resolve_namespace(type, __name__)
 
         element = etree.Element('test')
+
         XmlObject().to_parent_element(type, peeps, ns_test, element)
         element = element[0]
 
@@ -153,8 +157,7 @@ class TestComplexModel(unittest.TestCase):
         peeps2 = XmlObject().from_element(type, element)
         for i in range(0, 4):
             self.assertEquals(peeps2[i].name, names[i])
-            self.assertEquals(peeps2[i].birthdate,
-                              datetime.datetime(1979, 1, 1))
+            self.assertEquals(peeps2[i].birthdate, dob)
 
     def test_class_nested_array(self):
         peeps = []
@@ -384,6 +387,27 @@ class TestSimpleTypeRestrictions(unittest.TestCase):
             pass
         else:
             raise Exception("must fail")
+
+    def test_serialization_to_simple_dict(self):
+        class CM(ComplexModel):
+            i = Integer
+            s = String
+
+        class CCM(ComplexModel):
+            c = CM
+            i = Integer
+            s = String
+
+        val = CCM(i=5, s='a', c=CM(i=7, s='b'))
+
+        d = ProtocolBase().object_to_flat_dict(CCM, val)
+
+        assert d['i'] == 5
+        assert d['s'] == 'a'
+        assert d['c_i'] == 7
+        assert d['c_s'] == 'b'
+
+        assert len(d) == 4
 
 if __name__ == '__main__':
     unittest.main()

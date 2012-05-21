@@ -34,13 +34,17 @@ import pickle
 
 from collections import deque
 
-from lxml import etree
 from pytz import FixedOffset
 
 from rpclib.model import SimpleModel
 from rpclib.model import nillable_string
 from rpclib.error import ValidationError
 from rpclib.error import Fault
+
+try:
+    from lxml import etree
+except ImportError:
+    pass
 
 string_encoding = 'utf8'
 
@@ -73,6 +77,13 @@ class AnyXml(SimpleModel):
     an ElementTree object."""
 
     __type_name__ = 'anyType'
+
+    class Attributes(SimpleModel.Attributes):
+        namespace = None
+        """Xml-Schema specific namespace attribute"""
+
+        process_contents = None
+        """Xml-Schema specific processContents attribute"""
 
     @classmethod
     @nillable_string
@@ -122,9 +133,10 @@ class Unicode(SimpleModel):
         min_len = 0
         """Minimum length of string. Can be set to any positive integer"""
 
-        max_len = "unbounded"
-        """Maximum length of string. Can be set to 'unbounded' to accept strings
-        of arbitrary sizes. Also check :const:`rpclib.server.wsgi.MAX_CONTENT_LENGTH`."""
+        max_len = float('inf')
+        """Maximum length of string. Can be set to ``float('inf')`` to accept
+        strings of arbitrary length.
+        :const:`rpclib.server.wsgi.MAX_CONTENT_LENGTH`."""
 
         pattern = None
         """A regular expression that matches the whole string. See here for more
@@ -216,10 +228,24 @@ class Decimal(SimpleModel):
     __max_str_len__ = 1024
 
     class Attributes(SimpleModel.Attributes):
+        """Customizable attributes of the :class:`rpclib.model.primitive.Decimal`
+        type."""
+
         gt = -float('inf') # minExclusive
+        """The value should be greater than this number."""
+
         ge = -float('inf') # minInclusive
+        """The value should be greater than or equal to this number."""
+
         lt =  float('inf') # maxExclusive
+        """The value should be smaller than this number."""
+
         le =  float('inf') # maxInclusive
+        """The value should be smaller than or equal to this number."""
+
+        format = None
+        """A regular python string formatting string. See here:
+        http://docs.python.org/library/stdtypes.html#string-formatting"""
 
     @staticmethod
     def is_default(cls):
@@ -244,8 +270,10 @@ class Decimal(SimpleModel):
     @nillable_string
     def to_string(cls, value):
         decimal.Decimal(value)
-
-        return str(value)
+        if cls.Attributes.format is None:
+            return str(value)
+        else:
+            return cls.Attributes.format % value
 
     @classmethod
     @nillable_string
@@ -434,33 +462,6 @@ class Time(SimpleModel):
         return datetime.time(int(fields['hr']), int(fields['min']),
                     int(fields['sec']), int(fields.get("sec_frac", '.')[1:]))
 
-class Date(SimpleModel):
-    """Just that, Date. It also supports time zones.
-
-    Native type is :class:`datetime.date`.
-    """
-
-    __type_name__ = 'date'
-
-    @classmethod
-    @nillable_string
-    def to_string(cls, value):
-        """Returns ISO formatted dates."""
-
-        return value.isoformat()
-
-    @classmethod
-    @nillable_string
-    def from_string(cls, string):
-        """Expects ISO formatted dates."""
-
-        match = _date_re.match(string)
-        if match is None:
-            raise ValidationError(string)
-
-        fields = match.groupdict(0)
-
-        return datetime.date(int(fields['year']), int(fields['month']), int(fields['day']))
 
 class DateTime(SimpleModel):
     """A compact way to represent dates and times together. Supports time zones.
@@ -469,10 +470,33 @@ class DateTime(SimpleModel):
     """
     __type_name__ = 'dateTime'
 
+    class Attributes(SimpleModel.Attributes):
+        """Customizable attributes of the :class:`rpclib.model.primitive.DateTime`
+        type."""
+
+        format = None
+        """DateTime format fed to the ``strftime`` function. See:
+        http://docs.python.org/library/datetime.html?highlight=strftime#strftime-strptime-behavior"""
+
+        string_format = None
+        """A regular python string formatting string. %s will contain the date
+        string. See here for more info:
+        http://docs.python.org/library/stdtypes.html#string-formatting"""
+
     @classmethod
     @nillable_string
     def to_string(cls, value):
-        return value.isoformat('T')
+        format = cls.Attributes.format
+        if format is None:
+            ret_str = value.isoformat('T')
+        else:
+            ret_str = datetime.datetime.strftime(value, format)
+
+        string_format = cls.Attributes.string_format
+        if string_format is None:
+            return ret_str
+        else:
+            return string_format % ret_str
 
     @staticmethod
     def parse(date_match, tz=None):
@@ -496,21 +520,45 @@ class DateTime(SimpleModel):
     @nillable_string
     def from_string(cls, string):
         """expect ISO formatted dates"""
+        format = cls.Attributes.format
 
-        match = _utc_re.match(string)
-        if match:
-            return cls.parse(match, tz=pytz.utc)
+        if format is None:
+            match = _utc_re.match(string)
+            if match:
+                return cls.parse(match, tz=pytz.utc)
 
-        match = _offset_re.match(string)
-        if match:
-            tz_hr, tz_min = [int(match.group(x)) for x in ("tz_hr", "tz_min")]
-            return cls.parse(match, tz=FixedOffset(tz_hr * 60 + tz_min, {}))
+            match = _offset_re.match(string)
+            if match:
+                tz_hr, tz_min = [int(match.group(x)) for x in ("tz_hr", "tz_min")]
+                return cls.parse(match, tz=FixedOffset(tz_hr * 60 + tz_min, {}))
 
-        match = _local_re.match(string)
-        if match is None:
-            raise ValidationError(string)
+            match = _local_re.match(string)
+            if match is None:
+                raise ValidationError(string)
 
-        return cls.parse(match)
+            return cls.parse(match)
+
+        else:
+            return datetime.datetime.strptime(string, format)
+
+
+class Date(DateTime):
+    """Just that, Date. It also supports time zones.
+
+    Native type is :class:`datetime.date`.
+    """
+
+    class Attributes(DateTime.Attributes):
+        format = '%Y-%m-%d'
+
+    __type_name__ = 'date'
+
+    @classmethod
+    @nillable_string
+    def from_string(cls, string):
+        d = datetime.datetime.strptime(string, cls.Attributes.format)
+        return datetime.date(d.year, d.month, d.day)
+
 
 # this object tries to follow ISO 8601 standard.
 class Duration(SimpleModel):
@@ -602,6 +650,8 @@ class Mandatory(object):
     """Class that contains mandatory variants of primitives."""
 
     String = String(type_name="mandatory_string", min_occurs=1, nillable=False, min_len=1)
+    Unicode = Unicode(type_name="mandatory_string", min_occurs=1, nillable=False, min_len=1)
     Integer = Integer(type_name="mandatory_integer", min_occurs=1, nillable=False)
+    DateTime = DateTime(type_name="mandatory_date_time", min_occurs=1, nillable=False)
     UnsignedInteger = UnsignedInteger(type_name="mandatory_unsigned_integer", min_occurs=1, nillable=False)
     UnsignedLong = UnsignedLong(type_name="mandatory_unsigned_integer", min_occurs=1, nillable=False)

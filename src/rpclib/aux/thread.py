@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+
 #
 # rpclib - Copyright (C) Rpclib contributors.
 #
@@ -17,16 +17,30 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import unittest
+import logging
+logger = logging.getLogger(__name__)
 
-from rpclib.test.interop._test_client_base import RpclibClientTestBase
-from rpclib.client.zeromq import ZeroMQClient
-from rpclib.test.interop.server.soap_http_basic import soap_application
+from multiprocessing.pool import ThreadPool
 
-class TestRpclibZmqClient(RpclibClientTestBase, unittest.TestCase):
-    def setUp(self):
-        self.client = ZeroMQClient('tcp://localhost:5555', soap_application)
-        self.ns = "rpclib.test.interop.server._service"
+from rpclib.aux import AuxProcBase
 
-if __name__ == '__main__':
-    unittest.main()
+
+class ThreadAuxProc(AuxProcBase):
+    def __init__(self, pool_size=1):
+        AuxProcBase.__init__(self)
+
+        self.pool = None
+        self.__pool_size = pool_size
+
+    @property
+    def pool_size(self):
+        return self.__pool_size
+
+    def process_context(self, server, ctx, *args, **kwargs):
+        a = [server, ctx]
+        a.extend(args)
+
+        self.pool.apply_async(self.process, a, kwargs)
+
+    def initialize(self, server):
+        self.pool = ThreadPool(self.__pool_size)

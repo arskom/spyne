@@ -100,7 +100,7 @@ is stored. Workers are identified by an integer. ::
                                                                  nullable=False)
 
 The consumer is a :class:`rpclib.server._base.ServerBase` child that receives
-requests by polling the database. 
+requests by polling the database.
 
 The transport is for displaying it in the Wsdl. While it's irrelevant here, it's
 nice to put it in: ::

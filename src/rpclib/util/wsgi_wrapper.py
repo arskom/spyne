@@ -19,46 +19,18 @@
 
 """A Convenience module for wsgi wrapper routines."""
 
-from rpclib.server.wsgi import WsgiApplication
 import os
 import logging
 logger = logging.getLogger(__name__)
 
-import twisted.web.server
-import twisted.web.static
-
-from twisted.web.resource import Resource
-from twisted.web.wsgi import WSGIResource
-from twisted.internet import reactor
-
-def run_twisted(apps, port, static_dir='.'):
-    """Twisted wrapper for the rpclib.server.wsgi.Application
-
-    Takes a list of tuples containing application, url pairs, and a port to
-    to listen to.
-    """
-
-    if static_dir != None:
-        static_dir = os.path.abspath(static_dir)
-        logging.info("registering static folder %r on /" % static_dir)
-        root = twisted.web.static.File(static_dir)
-    else:
-        root = Resource()
-
-    for app, url in apps:
-        resource = WSGIResource(reactor, reactor, app)
-        logging.info("registering %r on /%s" % (app, url))
-        root.putChild(url, resource)
-
-    site = twisted.web.server.Site(root)
-
-    reactor.listenTCP(port, site)
-    logging.info("listening on: 0.0.0.0:%d" % port)
-
-    return reactor.run()
-
+from rpclib.server.wsgi import WsgiApplication
 
 class WsgiMounter(object):
+    """Simple mounter object for wsgi callables. Takes a dict where the keys are
+    uri fragments and values are :class:`rpclib.application.Application`
+    instances.
+    """
+
     @staticmethod
     def default(e, s):
         s("404 Not found", [])
@@ -84,3 +56,37 @@ class WsgiMounter(object):
         environ['PATH_INFO'] = '/' + '/'.join(fragments[1:])
 
         return app(environ, start_response)
+
+
+def run_twisted(apps, port, static_dir='.'):
+    """Twisted wrapper for the rpclib.server.wsgi.WsgiApplication
+
+    Takes a list of tuples containing application, url pairs, and a port to
+    to listen to.
+    """
+
+    import twisted.web.server
+    import twisted.web.static
+
+    from twisted.web.resource import Resource
+    from twisted.web.wsgi import WSGIResource
+    from twisted.internet import reactor
+
+    if static_dir != None:
+        static_dir = os.path.abspath(static_dir)
+        logging.info("registering static folder %r on /" % static_dir)
+        root = twisted.web.static.File(static_dir)
+    else:
+        root = Resource()
+
+    for app, url in apps:
+        resource = WSGIResource(reactor, reactor, app)
+        logging.info("registering %r on /%s" % (app, url))
+        root.putChild(url, resource)
+
+    site = twisted.web.server.Site(root)
+
+    reactor.listenTCP(port, site)
+    logging.info("listening on: 0.0.0.0:%d" % port)
+
+    return reactor.run()

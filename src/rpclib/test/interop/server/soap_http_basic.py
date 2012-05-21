@@ -29,15 +29,17 @@ from rpclib.protocol.soap import Soap11
 from rpclib.interface.wsdl import Wsdl11
 
 soap_application = Application(services, 'rpclib.test.interop.server',
-                                   Wsdl11(), Soap11(validator='lxml'), Soap11())
+          Soap11(validator='lxml', cleanup_namespaces=True), Soap11(), Wsdl11())
 
-if __name__ == '__main__':
+PORT = 9753
+
+def main():
     try:
         from wsgiref.simple_server import make_server
         from wsgiref.validate import validator
 
         wsgi_application = WsgiApplication(soap_application)
-        server = make_server('0.0.0.0', 9753, validator(wsgi_application))
+        server = make_server('127.0.0.1', PORT, validator(wsgi_application))
 
         logger.info('Starting interop server at %s:%s.' % ('0.0.0.0', 9753))
         logger.info('WSDL is at: /?wsdl')
@@ -45,3 +47,6 @@ if __name__ == '__main__':
 
     except ImportError:
         print("Error: example server code requires Python >= 2.5")
+
+if __name__ == '__main__':
+    main()
