@@ -17,30 +17,14 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import logging
-logger = logging.getLogger(__name__)
+"""Module that contains backends that process the auxiliary contexts. These
+result from non-primary functions in service definitions.
 
-from multiprocessing.pool import ThreadPool
+Classes from this package will have the ``AuxProc`` suffix, short for
+"Auxiliary Processor". Sounds neat, huh? :)
 
-from rpclib.aux import AuxProcBase
+This package is EXPERIMENTAL. Stay away from it.
+"""
 
-
-class ThreadAuxProc(AuxProcBase):
-    def __init__(self, pool_size=1):
-        AuxProcBase.__init__(self)
-
-        self.pool = None
-        self.__pool_size = pool_size
-
-    @property
-    def pool_size(self):
-        return self.__pool_size
-
-    def process_context(self, server, ctx, *args, **kwargs):
-        a = [server, ctx]
-        a.extend(args)
-
-        self.pool.apply_async(self.process, a, kwargs)
-
-    def initialize(self, server):
-        self.pool = ThreadPool(self.__pool_size)
+from rpclib.auxproc._base import process_contexts
+from rpclib.auxproc._base import AuxProcBase

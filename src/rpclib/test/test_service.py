@@ -27,8 +27,8 @@ import unittest
 from lxml import etree
 
 from rpclib.application import Application
-from rpclib.aux.thread import ThreadAuxProc
-from rpclib.aux.sync import SyncAuxProc
+from rpclib.auxproc.thread import ThreadAuxProc
+from rpclib.auxproc.sync import SyncAuxProc
 from rpclib.decorator import rpc
 from rpclib.decorator import srpc
 from rpclib.interface.wsdl import Wsdl11

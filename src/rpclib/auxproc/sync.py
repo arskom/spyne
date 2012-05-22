@@ -17,14 +17,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""Module that contains backends that process the auxiliary contexts. These
-result from non-primary functions in service definitions.
+import logging
+logger = logging.getLogger(__name__)
 
-Classes from this package will have the ``AuxProc`` suffix, short for
-"Auxiliary Processor". Sounds neat, huh? :)
+from rpclib.auxproc import AuxProcBase
 
-This package is EXPERIMENTAL. Stay away from it.
-"""
 
-from rpclib.aux._base import process_contexts
-from rpclib.aux._base import AuxProcBase
+class SyncAuxProc(AuxProcBase):
+    def process_context(self, server, ctx):
+        self.process(server, ctx)
