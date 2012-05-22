@@ -359,7 +359,7 @@ class WsgiApplication(HttpBase):
             yield data
 
     @staticmethod
-    def decompose_incoming_envelope(prot, ctx):
+    def decompose_incoming_envelope(prot, ctx, message):
         """This function is only called by the HttpRpc protocol to have the wsgi
         environment parsed into ``ctx.in_body_doc`` and ``ctx.in_header_doc``.
         """

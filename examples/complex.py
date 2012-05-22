@@ -52,6 +52,7 @@ userid_seq = 1
 
 class Permission(ComplexModel):
     __namespace__ = "permission"
+
     application = String
     feature = String
 

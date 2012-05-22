@@ -135,7 +135,7 @@ class ProtocolBase(object):
     def create_in_document(self, ctx, in_string_encoding=None):
         """Uses ``ctx.in_string`` to set ``ctx.in_document``."""
 
-    def decompose_incoming_envelope(self, ctx):
+    def decompose_incoming_envelope(self, ctx, message):
         """Sets the ``ctx.method_request_string``, ``ctx.in_body_doc``,
         ``ctx.in_header_doc`` and ``ctx.service`` properties of the ctx object,
         if applicable.
