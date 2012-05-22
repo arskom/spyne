@@ -26,7 +26,7 @@ import cgi
 import threading
 import itertools
 
-from rpclib import aux
+from rpclib import auxm
 from rpclib.model.binary import File
 
 try:
@@ -217,7 +217,7 @@ class WsgiApplication(HttpBase):
         start_response(p_ctx.transport.resp_code,
                                              p_ctx.transport.resp_headers.items())
         try:
-            aux.process_contexts(self, others, p_ctx, error=error)
+            auxm.process_contexts(self, others, p_ctx, error=error)
         except Exception,e:
             # Report but ignore any exceptions from auxiliary methods.
             logger.exception(e)
@@ -309,7 +309,7 @@ class WsgiApplication(HttpBase):
             retval = itertools.chain([retval], retval_iter)
 
         try:
-            aux.process_contexts(self, others, p_ctx, error=None)
+            auxm.process_contexts(self, others, p_ctx, error=None)
         except Exception, e:
             # Report but ignore any exceptions from auxiliary methods.
             logger.exception(e)

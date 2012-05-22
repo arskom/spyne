@@ -26,5 +26,5 @@ Classes from this package will have the ``AuxProc`` suffix, short for
 This package is EXPERIMENTAL. Stay away from it.
 """
 
-from rpclib.aux._base import process_contexts
-from rpclib.aux._base import AuxProcBase
+from rpclib.auxm._base import process_contexts
+from rpclib.auxm._base import AuxProcBase
