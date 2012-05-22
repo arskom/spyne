@@ -20,7 +20,13 @@ rpclib-2.8.0-beta
    returns. Currently, the only async execution method is via threads.
  * Xml & friends: Start tags are now in the same namespace as the definitions
    themselves. Intermediate tags are in the parent's namespace, just as before.
+ * Xml & friends: Make the 'bare' mode work.
+ * rpclib.util.xml: :func:`get_object_as_xml` can also get class suggestion.
+ * rpclib.util.xml: :func:`get_xml_as_object` has argument order swapped:
+   cls, elt -> elt, cls. See ab91a3e2ad4756b71d1a2752e5b0d2af8551e061.
  * Full change log:
+    * https://github.com/arskom/rpclib/compare/rpclib-2.7.0-beta...rpclib-2.8.0-beta
+ * Relevant pull requests:
     * https://github.com/arskom/rpclib/pull/128
     * https://github.com/arskom/rpclib/pull/129
     * https://github.com/arskom/rpclib/pull/133
