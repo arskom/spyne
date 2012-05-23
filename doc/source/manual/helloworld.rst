@@ -21,7 +21,6 @@ The simpler version of this example is available here: http://github.com/arskom/
 
     from rpclib.application import Application
     from rpclib.decorator import srpc
-    from rpclib.interface.wsdl import Wsdl11
     from rpclib.protocol.soap import Soap11
     from rpclib.service import ServiceBase
     from rpclib.model.complex import Iterable
@@ -53,7 +52,7 @@ The simpler version of this example is available here: http://github.com/arskom/
         logging.getLogger('rpclib.protocol.xml').setLevel(logging.DEBUG)
 
         application = Application([HelloWorldService], 'rpclib.examples.hello.soap',
-                    interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
+                                    in_protocol=Soap11(), out_protocol=Soap11())
 
         server = make_server('127.0.0.1', 7789, WsgiApplication(application))
 
@@ -79,7 +78,6 @@ standard. The methods will use Soap 1.1 protocol to communicate with the outside
 world. They're instantiated and passed to the Application constructor. You need
 to pass fresh instances to each application instance. ::
 
-    from rpclib.interface.wsdl import Wsdl11
     from rpclib.protocol.soap import Soap11
 
 For the sake of this tutorial, we are going to use HttpRpc as well. It's a
@@ -156,11 +154,11 @@ reasons. ::
         logging.basicConfig(level=logging.DEBUG)
         logging.getLogger('rpclib.protocol.xml').setLevel(logging.DEBUG)
 
-We glue the service definition, interface document and input and output protocols
+We glue the service definition, input and output protocols
 under the targetNamespace 'rpclib.examples.hello.soap': ::
 
         application = Application([HelloWorldService], 'rpclib.examples.hello.soap',
-                    interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
+                                        in_protocol=Soap11(), out_protocol=Soap11())
 
 We then wrap the rpclib application with its wsgi wrapper: ::
 
@@ -223,19 +221,19 @@ The only difference between the SOAP and the HTTP version is the application
 instantiation line: ::
 
         application = Application([HelloWorldService], 'rpclib.examples.hello.http',
-                interface=Wsdl11(), in_protocol=HttpRpc(), out_protocol=XmlObject())
+                                    in_protocol=HttpRpc(), out_protocol=XmlObject())
 
 We still want to keep Xml as the output protocol as the HttpRpc protocol is
 not able to handle complex types.
 
-Here's how you can test your service using wget: ::
+Here's how you can test your service using curl: ::
 
-    wget "http://localhost:7789/say_hello?times=5&name=Dave" -qO -
+    curl "http://localhost:7789/say_hello?times=5&name=Dave"
 
 If you have HtmlTidy installed, you can use this command to get a more readable
 output. ::
 
-    wget "http://localhost:7789/say_hello?times=5&name=Dave" -qO - | tidy -xml -indent
+    curl "http://localhost:7789/say_hello?times=5&name=Dave" | tidy -xml -indent
 
 The command's output would be as follows: ::
 
