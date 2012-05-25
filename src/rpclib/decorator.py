@@ -155,7 +155,6 @@ def srpc(*params, **kparams):
     :param _udp: Short for UserDefinedProperties, you can use this to mark the
         method with arbitrary metadata.
     :param _aux: The auxiliary backend to run this method.
-
     '''
 
     def explain(f):
