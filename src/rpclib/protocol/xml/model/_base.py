@@ -56,7 +56,9 @@ def base_from_element(prot, cls, element):
     if prot.validator is prot.SOFT_VALIDATION and not (
                                         cls.validate_string(cls, element.text)):
         raise ValidationError(element.text)
+
     retval = cls.from_string(element.text)
+
     if prot.validator is prot.SOFT_VALIDATION and not (
                                         cls.validate_native(cls, retval)):
         raise ValidationError(element.text)
