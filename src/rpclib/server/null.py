@@ -23,8 +23,8 @@ import logging
 logger = logging.getLogger(__name__)
 
 from rpclib import MethodContext
-from rpclib import AuxMethodContext
-from rpclib.client._base import Factory
+
+from rpclib.client import Factory
 from rpclib.const.ansi_color import LIGHT_RED
 from rpclib.const.ansi_color import LIGHT_BLUE
 from rpclib.const.ansi_color import END_COLOR
@@ -95,9 +95,9 @@ class _FunctionCall(object):
             # do logging.getLogger('rpclib.server.null').setLevel(logging.CRITICAL)
             # to hide the following
 
-            logger.warning( "%s start context %s" % (_small_header, _small_footer)  )
+            logger.warning( "%s start context %s" % (_small_header, _small_footer) )
             self.app.process_request(ctx)
-            logger.warning( "%s  end context  %s" % (_small_header, _small_footer)  )
+            logger.warning( "%s  end context  %s" % (_small_header, _small_footer) )
 
             if ctx.out_error:
                 raise ctx.out_error

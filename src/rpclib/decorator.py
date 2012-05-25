@@ -145,6 +145,17 @@ def srpc(*params, **kparams):
     You should use the :class:`rpclib.server.null.NullServer` transport if you
     want to call the methods directly. You can also use the 'function' attribute
     of the returned object to call the function itself.
+
+    :param _in_header: A type or an iterable of types that that this method
+        accepts as incoming header.
+    :param _out_header: A type or an iterable of types that that this method
+        sends as outgoing header.
+    :param _port_type: SOAP Port type.
+    :param _no_ctx: Don't pass implicit ctx object to the user method.
+    :param _udp: Short for UserDefinedProperties, you can use this to mark the
+        method with arbitrary metadata.
+    :param _aux: The auxiliary backend to run this method.
+
     '''
 
     def explain(f):

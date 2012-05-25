@@ -114,7 +114,8 @@ code:
         you should also give it a targetNamespace (the ``tns`` argument to its
         constructor) string and an optional application name (the ``name``
         argument to the :class:`Application` constructor), which are used to
-        generally distinguish your application from other applications *worldwide*.
+        generally distinguish your application from other applications
+        *in the universe*.
         While it's conventionally the URL and the name of the class of your
         application, you can put ``tns="Hogwarts", name="Harry"`` there and
         just be done with it.
