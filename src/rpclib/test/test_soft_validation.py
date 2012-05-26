@@ -20,6 +20,7 @@
 #
 # Most of the service tests are performed through the interop tests.
 #
+from rpclib.server.wsgi import WsgiApplication
 import unittest
 
 from rpclib.interface.wsdl import Wsdl11
@@ -108,12 +109,14 @@ class TestHttpRpcSoftValidation(unittest.TestCase):
 
 
     def __get_ctx(self, mn, qs):
-        server = ServerBase(self.application)
+        server = WsgiApplication(self.application)
         ctx = WsgiMethodContext(server, {
             'QUERY_STRING': qs,
             'PATH_INFO': '/%s' % mn,
+            'REQUEST_METHOD': "GET",
         }, 'some-content-type')
 
+        ctx, = server.generate_contexts(ctx)
         server.get_in_object(ctx)
 
         return ctx
@@ -150,7 +153,6 @@ class TestSoap11SoftValidation(unittest.TestCase):
                 pass
 
         application = Application([SomeService],
-            interface=Wsdl11(),
             in_protocol=Soap11(validator='soft'),
             out_protocol=Soap11(),
             name='Service', tns='tns',
@@ -170,6 +172,7 @@ class TestSoap11SoftValidation(unittest.TestCase):
         """]
 
 
+        ctx, = server.generate_contexts(ctx)
         server.get_in_object(ctx)
 
         self.assertEquals(isinstance(ctx.in_error, ValidationError), True)
