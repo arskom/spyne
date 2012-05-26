@@ -130,7 +130,7 @@ class ComplexModelMeta(type(ModelBase)):
             for k, v in cls_dict.items():
                 if not k.startswith('__'):
                     try:
-                        subc = issubclass(v, ModelBase)
+                        subc = issubclass(v, ModelBase) or issubclass(v, SelfReference)
                     except:
                         subc = False
 
@@ -161,7 +161,7 @@ class ComplexModelMeta(type(ModelBase)):
     def __init__(self, cls_name, cls_bases, cls_dict):
         type_info = cls_dict['_type_info']
         for k in type_info:
-            if type_info[k] is SelfReference:
+            if issubclass(type_info[k], SelfReference):
                 type_info[k] = self
 
         type(ModelBase).__init__(self, cls_name, cls_bases, cls_dict)
