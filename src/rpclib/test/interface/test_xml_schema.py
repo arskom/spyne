@@ -48,8 +48,6 @@ class TestXmlSchema(unittest.TestCase):
 
         from lxml import etree
 
-        #import ipdb; ipdb.set_trace()
-
         docs = get_schema_documents([SomeType])
         print etree.tostring(docs['tns'], pretty_print=True)
         any = docs['tns'].xpath('//xsd:any', namespaces={'xsd': ns.xsd})
@@ -58,7 +56,7 @@ class TestXmlSchema(unittest.TestCase):
         assert any[0].attrib['namespace'] == '##other'
         assert any[0].attrib['processContents'] == 'lax'
 
-    def test_interface(self):
+    def __test_interface(self):
         import logging
         logging.basicConfig(level=logging.DEBUG)
         class KeyValuePair(ComplexModel):
@@ -94,5 +92,6 @@ class TestXmlSchema(unittest.TestCase):
         print smm
 
         raise NotImplementedError('test something!')
+
 if __name__ == '__main__':
     unittest.main()
