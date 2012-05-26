@@ -41,14 +41,13 @@ from rpclib.util.xml import get_xml_as_object
 from lxml import etree
 
 class Test(unittest.TestCase):
-    '''Most of the service tests are performed through the interop tests.'''
-
     def test_empty_string(self):
         class a(ComplexModel):
             b = Unicode
 
         elt = etree.fromstring('<a><b/></a>')
         o = get_xml_as_object(elt, a)
+
         assert o.b == ''
 
 if __name__ == '__main__':
