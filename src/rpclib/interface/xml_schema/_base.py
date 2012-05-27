@@ -43,14 +43,14 @@ from rpclib.model.fault import Fault
 from rpclib.util.odict import odict
 
 from rpclib.interface.xml_schema.model import simple_add
-from rpclib.interface.xml_schema.model.complex import alias_add
-from rpclib.interface.xml_schema.model.complex import complex_add
-from rpclib.interface.xml_schema.model.fault import fault_add
-from rpclib.interface.xml_schema.model.enum import enum_add
+from rpclib.interface.xml_schema.model import alias_add
+from rpclib.interface.xml_schema.model import complex_add
+from rpclib.interface.xml_schema.model import fault_add
+from rpclib.interface.xml_schema.model import enum_add
 
 from rpclib.interface.xml_schema.model import simple_get_restriction_tag
-from rpclib.interface.xml_schema.model.primitive import string_get_restriction_tag
-from rpclib.interface.xml_schema.model.primitive import decimal_get_restriction_tag
+from rpclib.interface.xml_schema.model import string_get_restriction_tag
+from rpclib.interface.xml_schema.model import decimal_get_restriction_tag
 
 _add_handlers = cdict({
     object: lambda interface, cls: None,

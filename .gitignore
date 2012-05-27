@@ -46,6 +46,7 @@ nbproject
 wsi-test-tools
 WSI_Test_Java_Final_1.1.zip
 src/rpclib/test/interop/config.xml
+src/rpclib/test/config.xml
 
 # kate cruft
 *.kate-swp
