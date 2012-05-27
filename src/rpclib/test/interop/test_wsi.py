@@ -152,7 +152,10 @@ def analyze_wsdl(config_file):
                             print('\nFAILURE MSG\n')
                             print((fail_det[0].text))
 
+from rpclib.test.interop._test_soap_client_base import run_server
+
 if __name__ == '__main__':
+    run_server('http')
     configure_env()
-    create_config('http://localhost:9753/?wsdl', CONFIG_FILE)
+    create_config('http://localhost:9754/?wsdl', CONFIG_FILE)
     analyze_wsdl(CONFIG_FILE)

@@ -28,7 +28,7 @@ from rpclib.test.interop.server.soap_http_basic import soap_application
 from rpclib.server.twisted import TwistedWebResource
 
 host = '127.0.0.1'
-port = 9753
+port = 9755
 
 def main(argv):
     from twisted.python import log

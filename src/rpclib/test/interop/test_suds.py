@@ -33,7 +33,7 @@ class TestSuds(RpclibClientTestBase, unittest.TestCase):
     def setUp(self):
         RpclibClientTestBase.setUp(self, 'http')
 
-        self.client = Client("http://localhost:9753/?wsdl", cache=None)
+        self.client = Client("http://localhost:9754/?wsdl", cache=None)
         self.ns = "rpclib.test.interop.server"
 
     def test_echo_simple_boolean_array(self):

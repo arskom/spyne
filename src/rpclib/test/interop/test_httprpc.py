@@ -52,34 +52,34 @@ class TestHttpRpc(unittest.TestCase):
             _server_started = True
 
     def test_404(self):
-        url = 'http://localhost:9757/404'
+        url = 'http://localhost:9751/404'
         try:
             data = urlopen(url).read()
         except HTTPError, e:
             assert e.code == 404
 
     def test_500(self):
-        url = 'http://localhost:9757/python_exception'
+        url = 'http://localhost:9751/python_exception'
         try:
             data = urlopen(url).read()
         except HTTPError, e:
             assert e.code == 500
 
     def test_500_2(self):
-        url = 'http://localhost:9757/soap_exception'
+        url = 'http://localhost:9751/soap_exception'
         try:
             data = urlopen(url).read()
         except HTTPError, e:
             assert e.code == 500
 
     def test_echo_string(self):
-        url = 'http://localhost:9757/echo_string?s=punk'
+        url = 'http://localhost:9751/echo_string?s=punk'
         data = urlopen(url).read()
 
         assert data == 'punk'
 
     def test_echo_integer(self):
-        url = 'http://localhost:9757/echo_integer?i=444'
+        url = 'http://localhost:9751/echo_integer?i=444'
         data = urlopen(url).read()
 
         assert data == '444'
@@ -91,7 +91,7 @@ class TestHttpRpc(unittest.TestCase):
         })
 
         print(params)
-        url = 'http://localhost:9757/echo_datetime?%s' % str(params)
+        url = 'http://localhost:9751/echo_datetime?%s' % str(params)
         data = urlopen(url).read()
 
         assert dt == data
@@ -103,7 +103,7 @@ class TestHttpRpc(unittest.TestCase):
         })
 
         print(params)
-        url = 'http://localhost:9757/echo_datetime?%s' % str(params)
+        url = 'http://localhost:9751/echo_datetime?%s' % str(params)
         data = urlopen(url).read()
 
         assert dt == data

@@ -28,8 +28,8 @@ class TestRpclibHttpClient(RpclibClientTestBase, unittest.TestCase):
     def setUp(self):
         RpclibClientTestBase.setUp(self, 'http')
 
-        self.client = HttpClient('http://localhost:9753/', soap_application)
-        self.ns = "rpclib.test.interop.server._service"
+        self.client = HttpClient('http://localhost:9754/', soap_application)
+        self.ns = "rpclib.test.interop.server"
 
     def test_any(self):
         val = root_dict_to_etree(self._get_xml_test_val())
