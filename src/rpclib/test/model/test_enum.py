@@ -22,15 +22,12 @@ import unittest
 
 from pprint import pprint
 
-from lxml.builder import E
-
 from rpclib.const.xml_ns import xsd as _ns_xsd
 from rpclib.protocol.xml import XmlObject
 from rpclib.protocol.soap.soap11 import Soap11
 from rpclib.interface.wsdl.wsdl11 import Wsdl11
 from rpclib.application import Application
 from rpclib.model.complex import Array
-Application.transport = 'test'
 
 from rpclib.server.wsgi import WsgiApplication
 from rpclib.service import ServiceBase
@@ -66,9 +63,13 @@ class TestService(ServiceBase):
     def get_the_day(self, day):
         return DaysOfWeekEnum.Sunday
 
+class Test(ComplexModel):
+    days = DaysOfWeekEnum(max_occurs=7)
+
 class TestEnum(unittest.TestCase):
     def setUp(self):
         self.app = Application([TestService], 'tns', Soap11(), Soap11())
+        self.app.transport = 'test'
 
         self.server = WsgiApplication(self.app)
         self.wsdl = Wsdl11(self.app.interface)
@@ -137,9 +138,6 @@ class TestEnum(unittest.TestCase):
             elt.xpath('//tns:DaysOfWeekEnum', namespaces=self.app.interface.nsmap)]
 
     def test_serialize_simple_array(self):
-        class Test(ComplexModel):
-            days = DaysOfWeekEnum(max_occurs=7)
-
         t = Test(days=[
                 DaysOfWeekEnum.Monday,
                 DaysOfWeekEnum.Tuesday,
