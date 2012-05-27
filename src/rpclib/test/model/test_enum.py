@@ -65,11 +65,12 @@ class TestEnum(unittest.TestCase):
         app = Application([TestService], 'tns',
             rpclib.protocol.soap.Soap11(),
             rpclib.protocol.soap.Soap11(),
-            rpclib.interface.wsdl.Wsdl11(),
         )
+        app.transport = 'some_transport'
 
-        app.interface.build_interface_document('punk')
-        wsdl = app.interface.get_interface_document()
+        wsdl = rpclib.interface.wsdl.Wsdl11(app.interface)
+        wsdl.build_interface_document('prot://url')
+        wsdl = wsdl.get_interface_document()
 
         elt = etree.fromstring(wsdl)
         simple_type = elt.xpath('//xs:simpleType', namespaces=app.interface.nsmap)[0]

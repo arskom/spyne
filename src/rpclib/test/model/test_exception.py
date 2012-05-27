@@ -19,6 +19,7 @@
 
 import unittest
 from rpclib.test import FakeApp
+from rpclib.interface import Interface
 from rpclib.interface.wsdl import Wsdl11
 from rpclib.protocol.xml import XmlObject
 from rpclib.model.fault import Fault
@@ -130,11 +131,13 @@ class FaultTests(unittest.TestCase):
             def get_type_name_ns(self, app):
                 return 'testing:My'
 
-        interface = Wsdl11(FakeApp())
-        interface.add(cls)
+        interface = Interface(FakeApp())
+        interface.add_class(cls)
 
         pref = cls.get_namespace_prefix(interface)
-        schema = interface.get_schema_info(pref)
+        wsdl = Wsdl11(interface)
+        wsdl.build_interface_document('prot://addr')
+        schema = wsdl.get_schema_info(pref)
 
         self.assertEqual(len(schema.types), 1)
         c_cls = interface.classes['{ns}Fault']
@@ -165,11 +168,13 @@ class FaultTests(unittest.TestCase):
             def get_type_name_ns(self, app):
                 return 'testing:My'
 
-        interface = Wsdl11(FakeApp())
-        interface.add(cls)
+        interface = Interface(FakeApp())
+        interface.add_class(cls)
 
         pref = cls.get_namespace_prefix(interface)
-        schema = interface.get_schema_info(pref)
+        wsdl = Wsdl11(interface)
+        wsdl.build_interface_document('prot://addr')
+        schema = wsdl.get_schema_info(pref)
 
         self.assertEqual(len(schema.types), 1)
         self.assertEqual(len(interface.classes), 1)

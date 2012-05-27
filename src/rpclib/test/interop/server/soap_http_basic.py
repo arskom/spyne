@@ -31,7 +31,7 @@ from rpclib.interface.wsdl import Wsdl11
 soap_application = Application(services, 'rpclib.test.interop.server',
           Soap11(validator='lxml', cleanup_namespaces=True), Soap11(), Wsdl11())
 
-PORT = 9753
+PORT = 9754
 
 def main():
     try:
@@ -41,7 +41,7 @@ def main():
         wsgi_application = WsgiApplication(soap_application)
         server = make_server('127.0.0.1', PORT, validator(wsgi_application))
 
-        logger.info('Starting interop server at %s:%s.' % ('0.0.0.0', 9753))
+        logger.info('Starting interop server at %s:%s.' % ('0.0.0.0', 9754))
         logger.info('WSDL is at: /?wsdl')
         server.serve_forever()
 

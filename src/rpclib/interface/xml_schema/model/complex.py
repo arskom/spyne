@@ -80,7 +80,7 @@ def complex_add(document, cls):
             v.describe(k, attribute, document)
             continue
 
-        if v != cls:
+        if not issubclass(v, cls):
             document.add(v)
 
         member = etree.SubElement(sequence, v.Attributes.schema_tag)

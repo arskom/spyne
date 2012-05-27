@@ -33,8 +33,8 @@ class TestSuds(RpclibClientTestBase, unittest.TestCase):
     def setUp(self):
         RpclibClientTestBase.setUp(self, 'http')
 
-        self.client = Client("http://localhost:9753/?wsdl", cache=None)
-        self.ns = "rpclib.test.interop.server._service"
+        self.client = Client("http://localhost:9754/?wsdl", cache=None)
+        self.ns = "rpclib.test.interop.server"
 
     def test_echo_simple_boolean_array(self):
         val = [False, False, False, True]
@@ -194,7 +194,7 @@ class TestSuds(RpclibClientTestBase, unittest.TestCase):
         self.assertDictEqual(dict(ret[0]), val) # FIXME: Same as above!..
 
     def test_echo_simple_class(self):
-        val = self.client.factory.create("{rpclib.test.interop.server._service}SimpleClass")
+        val = self.client.factory.create("{rpclib.test.interop.server}SimpleClass")
 
         val.i = 45
         val.s = "asd"
@@ -205,10 +205,10 @@ class TestSuds(RpclibClientTestBase, unittest.TestCase):
         assert ret.s == val.s
 
     def test_echo_class_with_self_reference(self):
-        val = self.client.factory.create("{rpclib.test.interop.server._service}ClassWithSelfReference")
+        val = self.client.factory.create("{rpclib.test.interop.server}ClassWithSelfReference")
 
         val.i = 45
-        val.sr = self.client.factory.create("{rpclib.test.interop.server._service}ClassWithSelfReference")
+        val.sr = self.client.factory.create("{rpclib.test.interop.server}ClassWithSelfReference")
         val.sr.i = 50
         val.sr.sr = None
 
@@ -226,17 +226,17 @@ class TestSuds(RpclibClientTestBase, unittest.TestCase):
         val.ai = self.client.factory.create("integerArray")
         val.ai.integer.extend([1, 2, 3, 45, 5, 3, 2, 1, 4])
 
-        val.simple = self.client.factory.create("{rpclib.test.interop.server._service}SimpleClassArray")
+        val.simple = self.client.factory.create("{rpclib.test.interop.server}SimpleClassArray")
 
-        val.simple.SimpleClass.append(self.client.factory.create("{rpclib.test.interop.server._service}SimpleClass"))
-        val.simple.SimpleClass.append(self.client.factory.create("{rpclib.test.interop.server._service}SimpleClass"))
+        val.simple.SimpleClass.append(self.client.factory.create("{rpclib.test.interop.server}SimpleClass"))
+        val.simple.SimpleClass.append(self.client.factory.create("{rpclib.test.interop.server}SimpleClass"))
 
         val.simple.SimpleClass[0].i = 45
         val.simple.SimpleClass[0].s = "asd"
         val.simple.SimpleClass[1].i = 12
         val.simple.SimpleClass[1].s = "qwe"
 
-        val.other = self.client.factory.create("{rpclib.test.interop.server._service}OtherClass");
+        val.other = self.client.factory.create("{rpclib.test.interop.server}OtherClass");
         val.other.dt = datetime.now()
         val.other.d = 123.456
         val.other.b = True
@@ -264,17 +264,17 @@ class TestSuds(RpclibClientTestBase, unittest.TestCase):
         val.s = "asd"
         val.f = 12.34
 
-        val.simple = self.client.factory.create("{rpclib.test.interop.server._service}SimpleClassArray")
+        val.simple = self.client.factory.create("{rpclib.test.interop.server}SimpleClassArray")
 
-        val.simple.SimpleClass.append(self.client.factory.create("{rpclib.test.interop.server._service}SimpleClass"))
-        val.simple.SimpleClass.append(self.client.factory.create("{rpclib.test.interop.server._service}SimpleClass"))
+        val.simple.SimpleClass.append(self.client.factory.create("{rpclib.test.interop.server}SimpleClass"))
+        val.simple.SimpleClass.append(self.client.factory.create("{rpclib.test.interop.server}SimpleClass"))
 
         val.simple.SimpleClass[0].i = 45
         val.simple.SimpleClass[0].s = "asd"
         val.simple.SimpleClass[1].i = 12
         val.simple.SimpleClass[1].s = "qwe"
 
-        val.other = self.client.factory.create("{rpclib.test.interop.server._service}OtherClass");
+        val.other = self.client.factory.create("{rpclib.test.interop.server}OtherClass");
         val.other.dt = datetime.now()
         val.other.d = 123.456
         val.other.b = True
