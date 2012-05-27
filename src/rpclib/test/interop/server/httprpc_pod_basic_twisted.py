@@ -34,7 +34,7 @@ httprpc_soap_application = Application(services,
         'rpclib.test.interop.server.httprpc.pod', HttpRpc(), HttpRpc(), Wsdl11())
 
 host = '127.0.0.1'
-port = 9758
+port = 9752
 
 def main(argv):
     from twisted.python import log

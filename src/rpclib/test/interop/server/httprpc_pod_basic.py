@@ -39,9 +39,9 @@ def main():
         from wsgiref.validate import validator
 
         wsgi_application = WsgiApplication(httprpc_soap_application)
-        server = make_server('0.0.0.0', 9757, validator(wsgi_application))
+        server = make_server('0.0.0.0', 9751, validator(wsgi_application))
 
-        logger.info('Starting interop server at %s:%s.' % ('0.0.0.0', 9757))
+        logger.info('Starting interop server at %s:%s.' % ('0.0.0.0', 9751))
         logger.info('WSDL is at: /?wsdl')
         server.serve_forever()
 

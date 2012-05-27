@@ -28,7 +28,7 @@ class TestRpclibHttpClient(unittest.TestCase):
         run_server('http')
 
         self.ns = "rpclib.test.interop.server._service"
-        self.client = TwistedHttpClient('http://localhost:9753/', soap_application)
+        self.client = TwistedHttpClient('http://localhost:9754/', soap_application)
 
     def test_echo_boolean(self):
         def eb(ret):

@@ -40,6 +40,7 @@ from rpclib.model.enum import EnumBase
 from rpclib.model.fault import Fault
 from rpclib.model.primitive import AnyXml
 from rpclib.model.primitive import AnyDict
+from rpclib.model.primitive import Unicode
 
 from rpclib.protocol import ProtocolBase
 
@@ -61,9 +62,11 @@ from rpclib.protocol.xml.model.enum import enum_from_element
 from rpclib.protocol.xml.model.fault import fault_from_element
 from rpclib.protocol.xml.model.primitive import dict_from_element
 from rpclib.protocol.xml.model.primitive import xml_from_element
+from rpclib.protocol.xml.model.primitive import unicode_from_element
 
 class SchemaValidationError(Fault):
     """Raised when the input stream could not be validated by the Xml Schema."""
+
     def __init__(self, faultstring):
         Fault.__init__(self, 'Client.SchemaValidationError', faultstring)
 
@@ -108,6 +111,7 @@ class XmlObject(ProtocolBase):
             AnyDict: dict_from_element,
             EnumBase: enum_from_element,
             ModelBase: base_from_element,
+            Unicode: unicode_from_element,
             ByteArray: binary_from_element,
             Attachment: binary_from_element,
             ComplexModelBase: complex_from_element,
@@ -244,6 +248,7 @@ class XmlObject(ProtocolBase):
             tmp_elt = etree.Element('punk')
             self.to_parent_element(ctx.out_error.__class__, ctx.out_error,
                                     self.app.interface.get_tns(), tmp_elt)
+
             ctx.out_document = tmp_elt[0]
 
         else:

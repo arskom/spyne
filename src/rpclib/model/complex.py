@@ -130,7 +130,7 @@ class ComplexModelMeta(type(ModelBase)):
             for k, v in cls_dict.items():
                 if not k.startswith('__'):
                     try:
-                        subc = issubclass(v, ModelBase)
+                        subc = issubclass(v, ModelBase) or issubclass(v, SelfReference)
                     except:
                         subc = False
 
@@ -161,7 +161,7 @@ class ComplexModelMeta(type(ModelBase)):
     def __init__(self, cls_name, cls_bases, cls_dict):
         type_info = cls_dict['_type_info']
         for k in type_info:
-            if type_info[k] is SelfReference:
+            if issubclass(type_info[k], SelfReference):
                 type_info[k] = self
 
         type(ModelBase).__init__(self, cls_name, cls_bases, cls_dict)
@@ -351,7 +351,7 @@ class ComplexModelBase(ModelBase):
                 v.__namespace__ = cls.get_namespace()
                 v.__type_name__ = "%s_%s%s" % (cls.get_type_name(), k, TYPE_SUFFIX)
 
-            if v != cls:
+            if not issubclass(v, cls):
                 v.resolve_namespace(v, default_ns)
 
         if cls._force_own_namespace is not None:

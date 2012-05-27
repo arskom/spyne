@@ -19,36 +19,24 @@
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger('rpclib.wsgi')
-logger.setLevel(logging.DEBUG)
 
-import os
+import unittest
 
-from rpclib.test.interop.server.soap_http_basic import soap_application
-from rpclib.server.twisted import TwistedWebResource
+from rpclib.model.primitive import Unicode
+from rpclib.model.complex import ComplexModel
 
-host = '127.0.0.1'
-port = 9755
+from rpclib.util.xml import get_xml_as_object
+from lxml import etree
 
-def main(argv):
-    from twisted.python import log
-    from twisted.web.server import Site
-    from twisted.web.static import File
-    from twisted.internet import reactor
-    from twisted.python import log
+class Test(unittest.TestCase):
+    def test_empty_string(self):
+        class a(ComplexModel):
+            b = Unicode
 
-    observer = log.PythonLoggingObserver('twisted')
-    log.startLoggingWithObserver(observer.emit, setStdout=False)
+        elt = etree.fromstring('<a><b/></a>')
+        o = get_xml_as_object(elt, a)
 
-    wr = TwistedWebResource(soap_application)
-    site = Site(wr)
-
-    reactor.listenTCP(port, site)
-    logging.info("listening on: %s:%d" % (host,port))
-
-    return reactor.run()
-
+        assert o.b == ''
 
 if __name__ == '__main__':
-    import sys
-    sys.exit(main(sys.argv))
+    unittest.main()

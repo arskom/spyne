@@ -45,11 +45,11 @@ The following is a quick introduction to the Rpclib way of naming things:
     reside in the
     :mod:`rpclib.model` package,
 
-* **Interfaces:**
+* **Interface Documents:**
     Interface documents provide a machine-readable description of the input
     the services expect and output they emit. It thus serves a roughly similar
     purpose as a method signature in a programming language. They are
-    children of :class:`rpclib.interface._base.InterfaceBase` class.
+    children of :class:`rpclib.interface._base.InterfaceDocumentBase` class.
 
     :mod:`rpclib.interface` package is where you can find them.
 
@@ -58,8 +58,8 @@ The following is a quick introduction to the Rpclib way of naming things:
     protocol-specific representations of a serialized python object.
 
     They can be anything between an lxml.etree.Element instance to a gzipped
-    byte stream. Apis around pickle, simplejson, YaML and the like also
-    fall in this category.
+    byte stream. Apis around pickle, simplejson, YaML and the like that serialize
+    hieararchies of dicts also fall in this category.
 
 How your code is wrapped
 ------------------------
@@ -72,7 +72,7 @@ A typical Rpclib user will just write methods that will be exposed as remote
 procedure calls to the outside world. The following is used to wrap that
 code:
 
-* **User Methods**:
+* **User Methods** or **User Code**:
     User methods are the code that you wrote and decided to use rpclib to
     expose to the outside world.
 
@@ -96,7 +96,7 @@ code:
 
 * **Application**:
     The :class:`rpclib.application.Application` class is what ties services,
-    interfaces and protocols together, ready to be wrapped by a transport.
+    and protocols together, ready to be wrapped by a transport.
     It also lets you define events and hooks like ServiceBase does, so you can
     do more general, application-wide customizations like exception management.
 
@@ -114,8 +114,9 @@ code:
         you should also give it a targetNamespace (the ``tns`` argument to its
         constructor) string and an optional application name (the ``name``
         argument to the :class:`Application` constructor), which are used to
-        generally distinguish your application from other applications. While
-        it's conventionally the URL and the name of the class of your
+        generally distinguish your application from other applications
+        *in the universe*.
+        While it's conventionally the URL and the name of the class of your
         application, you can put ``tns="Hogwarts", name="Harry"`` there and
         just be done with it.
 

@@ -4,7 +4,7 @@ class InteropTest
   require 'soap/rpc/driver'
 
   def initialize()
-    ws_url='http://127.0.0.1:9753/'
+    ws_url='http://127.0.0.1:9754/'
     ws_ns='InteropService.InteropService'
     @conn = SOAP::RPC::Driver.new(ws_url, ws_ns)
   end

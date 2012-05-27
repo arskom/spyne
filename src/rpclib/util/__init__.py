@@ -80,3 +80,18 @@ def reconstruct_url(environ):
 
 def check_pyversion(*minversion):
     return sys.version_info[:3] >= minversion
+
+
+class memoize(object):
+    def __init__(self, func):
+        self.func = func
+        self.memo = {}
+
+    def __call__(self, *args):
+        key = tuple(args[1:])
+        if not key in self.memo:
+            self.memo[key] = self.func(*args)
+        return self.memo[key]
+
+    def reset(self):
+        self.memo = {}

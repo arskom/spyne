@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from rpclib.error import ValidationError
 from lxml import etree
 
 from rpclib.util.etreeconv import etree_to_dict
@@ -54,3 +55,20 @@ def dict_from_element(prot, cls, element):
         return etree_to_dict(element)
 
     return None
+
+@nillable_element
+def unicode_from_element(prot, cls, element):
+    if prot.validator is prot.SOFT_VALIDATION and not (
+                                        cls.validate_string(cls, element.text)):
+        raise ValidationError(element.text)
+
+    s = element.text
+    if s is None:
+        s = ''
+
+    retval = cls.from_string(s)
+
+    if prot.validator is prot.SOFT_VALIDATION and not (
+                                        cls.validate_native(cls, retval)):
+        raise ValidationError(element.text)
+    return retval

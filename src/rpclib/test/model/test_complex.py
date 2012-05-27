@@ -23,18 +23,23 @@ import hashlib
 
 from lxml import etree
 
-from rpclib.const import xml_ns
+from rpclib.interface import Interface
 from rpclib.interface.wsdl import Wsdl11
+from rpclib.const import xml_ns
+
 from rpclib.model.complex import Array
 from rpclib.model.complex import ComplexModel
 from rpclib.model.complex import SelfReference
 from rpclib.model.complex import XmlAttribute
+
 from rpclib.model.primitive import DateTime
 from rpclib.model.primitive import Float
 from rpclib.model.primitive import Integer
 from rpclib.model.primitive import String
+
 from rpclib.protocol import ProtocolBase
 from rpclib.protocol.xml import XmlObject
+
 from rpclib.test import FakeApp
 
 ns_test = 'test_namespace'
@@ -322,24 +327,26 @@ class EncExtractSisMsg(SisMsg):
 class TestXmlAttribute(unittest.TestCase):
     def test_add_to_schema(self):
         class CM(ComplexModel):
-            __namespace__ = 'ns'
-
             i = Integer
             s = String
             a = XmlAttribute(String)
 
         app = FakeApp()
-        schema = Wsdl11(app)
-        schema.add(CM)
+        app.tns = 'tns'
+        CM.resolve_namespace(CM, app.tns)
+        interface = Interface(app)
+        interface.add_class(CM)
 
-        pref = CM.get_namespace_prefix(schema)
-        type_def = schema.get_schema_info(pref).types[CM.get_type_name()]
-        print etree.tostring(type_def, pretty_print=True)
+        wsdl = Wsdl11(interface)
+        wsdl.build_interface_document('http://a-aaaa.com')
+        pref = CM.get_namespace_prefix(interface)
+        type_def = wsdl.get_schema_info(pref).types[CM.get_type_name()]
         attribute_def = type_def.find('{%s}attribute' % xml_ns.xsd)
+        print etree.tostring(type_def, pretty_print=True)
 
         self.assertIsNotNone(attribute_def)
         self.assertEqual(attribute_def.get('name'), 'a')
-        self.assertEqual(attribute_def.get('type'), CM.a._typ.get_type_name_ns(schema))
+        self.assertEqual(attribute_def.get('type'), CM.a._typ.get_type_name_ns(interface))
 
 
 class TestSimpleTypeRestrictions(unittest.TestCase):
