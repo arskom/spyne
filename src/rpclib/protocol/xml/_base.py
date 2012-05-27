@@ -45,24 +45,25 @@ from rpclib.model.primitive import Unicode
 from rpclib.protocol import ProtocolBase
 
 from rpclib.protocol.xml.model import base_to_parent_element
-from rpclib.protocol.xml.model.binary import binary_to_parent_element
-from rpclib.protocol.xml.model.complex import alias_to_parent_element
-from rpclib.protocol.xml.model.complex import complex_to_parent_element
-from rpclib.protocol.xml.model.enum import enum_to_parent_element
-from rpclib.protocol.xml.model.fault import fault_to_parent_element
-from rpclib.protocol.xml.model.primitive import xml_to_parent_element
-from rpclib.protocol.xml.model.primitive import dict_to_parent_element
+from rpclib.protocol.xml.model import binary_to_parent_element
+from rpclib.protocol.xml.model import alias_to_parent_element
+from rpclib.protocol.xml.model import complex_to_parent_element
+from rpclib.protocol.xml.model import enum_to_parent_element
+from rpclib.protocol.xml.model import fault_to_parent_element
+from rpclib.protocol.xml.model import xml_to_parent_element
+from rpclib.protocol.xml.model import dict_to_parent_element
 
 from rpclib.protocol.xml.model import base_from_element
-from rpclib.protocol.xml.model.binary import binary_from_element
-from rpclib.protocol.xml.model.complex import array_from_element
-from rpclib.protocol.xml.model.complex import iterable_from_element
-from rpclib.protocol.xml.model.complex import complex_from_element
-from rpclib.protocol.xml.model.enum import enum_from_element
-from rpclib.protocol.xml.model.fault import fault_from_element
-from rpclib.protocol.xml.model.primitive import dict_from_element
-from rpclib.protocol.xml.model.primitive import xml_from_element
-from rpclib.protocol.xml.model.primitive import unicode_from_element
+from rpclib.protocol.xml.model import binary_from_element
+from rpclib.protocol.xml.model import array_from_element
+from rpclib.protocol.xml.model import iterable_from_element
+from rpclib.protocol.xml.model import complex_from_element
+from rpclib.protocol.xml.model import enum_from_element
+from rpclib.protocol.xml.model import fault_from_element
+from rpclib.protocol.xml.model import dict_from_element
+from rpclib.protocol.xml.model import xml_from_element
+from rpclib.protocol.xml.model import unicode_from_element
+
 
 class SchemaValidationError(Fault):
     """Raised when the input stream could not be validated by the Xml Schema."""
