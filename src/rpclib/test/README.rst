@@ -10,6 +10,15 @@ shift focus or change maintainers in the future. This can result in patches
 which may cause incompatibilities with your existing code base. The only way to
 detect such corner cases is to have a great test suite.
 
+run_tests.sh
+============
+
+This is a shell script to make it easier to run all tests in one go. Twisted
+tests need to be run using trial. Interop tests start their own servers in the
+background, so they (currently) need to be run one by one in separate
+processes. This simple script heeds all these little things and is the
+recommended way of running rpclib tests.
+
 Requirements
 ============
 
@@ -33,16 +42,16 @@ See `pytest documentation <http://pytest.org/latest/>`_ for more info.
 Note that you need to do several other preparations to have the interop tests
 working. See the next section for the specifics.
 
-Interoperability Tests
-======================
+SOAP Interoperability Tests
+===========================
 
 The interoperability servers require twisted.web.
 
 Python
 -------
 
-Python interop tests currently use Rpclib's own clients and suds. The suds test
-is the first thing we check and try not to break.
+Python interop tests currently use Rpclib's own clients and suds. For The suds
+test is the first thing we check and try not to break.
 
 Two tests that fail in the suds interop tests due to the lack of proper assert
 statements, so they're false alarms.
@@ -69,7 +78,7 @@ Java
 ----
 
 The WS-I test is written in Java. But unfortunately, it only focuses on Wsdl
-document and not the soap functionality itself. We're looking for volunteers
+document and not the Soap functionality itself. We're looking for volunteers
 who'd like to work on writing Java interop tests for rpclib.
 
 To run the Wsdl tests, you should first get wsi-interop-tools package from
