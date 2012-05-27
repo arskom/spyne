@@ -17,18 +17,22 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from rpclib.model.complex import ComplexModel
 import unittest
-import rpclib.protocol.soap
-import rpclib.interface.wsdl
-import rpclib.const.xml_ns
-_ns_xs = rpclib.const.xml_ns.xsd
-_ns_xsi = rpclib.const.xml_ns.xsi
-_ns_xsd = rpclib.const.xml_ns.xsd
 
+from pprint import pprint
+
+from lxml.builder import E
+
+from rpclib.const.xml_ns import xsd as _ns_xsd
 from rpclib.protocol.xml import XmlObject
+from rpclib.protocol.soap.soap11 import Soap11
+from rpclib.interface.wsdl.wsdl11 import Wsdl11
 from rpclib.application import Application
+from rpclib.model.complex import Array
 Application.transport = 'test'
 
+from rpclib.server.wsgi import WsgiApplication
 from rpclib.service import ServiceBase
 from rpclib.decorator import rpc
 
@@ -40,6 +44,7 @@ vals = [
     'Monday',
     'Tuesday',
     'Wednesday',
+    'Thursday',
     'Friday',
     'Saturday',
     'Sunday',
@@ -49,31 +54,31 @@ DaysOfWeekEnum = Enum(
     'Monday',
     'Tuesday',
     'Wednesday',
+    'Thursday',
     'Friday',
     'Saturday',
     'Sunday',
-    type_name = 'DaysOfWeekEnum'
+    type_name = 'DaysOfWeekEnum',
 )
 
 class TestService(ServiceBase):
     @rpc(DaysOfWeekEnum, _returns=DaysOfWeekEnum)
-    def remote_call(self, day):
+    def get_the_day(self, day):
         return DaysOfWeekEnum.Sunday
 
 class TestEnum(unittest.TestCase):
-    def test_wsdl(self):
-        app = Application([TestService], 'tns',
-            rpclib.protocol.soap.Soap11(),
-            rpclib.protocol.soap.Soap11(),
-        )
-        app.transport = 'some_transport'
+    def setUp(self):
+        self.app = Application([TestService], 'tns', Soap11(), Soap11())
 
-        wsdl = rpclib.interface.wsdl.Wsdl11(app.interface)
-        wsdl.build_interface_document('prot://url')
-        wsdl = wsdl.get_interface_document()
+        self.server = WsgiApplication(self.app)
+        self.wsdl = Wsdl11(self.app.interface)
+        self.wsdl.build_interface_document('prot://url')
+
+    def test_wsdl(self):
+        wsdl = self.wsdl.get_interface_document()
 
         elt = etree.fromstring(wsdl)
-        simple_type = elt.xpath('//xs:simpleType', namespaces=app.interface.nsmap)[0]
+        simple_type = elt.xpath('//xs:simpleType', namespaces=self.app.interface.nsmap)[0]
 
         print(etree.tostring(elt, pretty_print=True))
         print(simple_type)
@@ -83,7 +88,6 @@ class TestEnum(unittest.TestCase):
         self.assertEquals([e.attrib['value'] for e in simple_type[0]], vals)
 
     def test_serialize(self):
-        DaysOfWeekEnum.resolve_namespace(DaysOfWeekEnum, 'punk')
         mo = DaysOfWeekEnum.Monday
         print((repr(mo)))
 
@@ -93,6 +97,69 @@ class TestEnum(unittest.TestCase):
         ret = XmlObject().from_element(DaysOfWeekEnum, elt)
 
         self.assertEquals(mo, ret)
+
+    def test_serialize_complex_array(self):
+        days = [
+                DaysOfWeekEnum.Monday,
+                DaysOfWeekEnum.Tuesday,
+                DaysOfWeekEnum.Wednesday,
+                DaysOfWeekEnum.Thursday,
+                DaysOfWeekEnum.Friday,
+                DaysOfWeekEnum.Saturday,
+                DaysOfWeekEnum.Sunday,
+            ]
+
+        days_xml = [
+            ('{tns}DaysOfWeekEnum', 'Monday'),
+            ('{tns}DaysOfWeekEnum', 'Tuesday'),
+            ('{tns}DaysOfWeekEnum', 'Wednesday'),
+            ('{tns}DaysOfWeekEnum', 'Thursday'),
+            ('{tns}DaysOfWeekEnum', 'Friday'),
+            ('{tns}DaysOfWeekEnum', 'Saturday'),
+            ('{tns}DaysOfWeekEnum', 'Sunday'),
+        ]
+
+        DaysOfWeekEnumArray = Array(DaysOfWeekEnum)
+        DaysOfWeekEnumArray.__namespace__ = 'tns'
+
+        elt = etree.Element('test')
+        XmlObject().to_parent_element(DaysOfWeekEnumArray, days,
+                                                          'test_namespace', elt)
+
+        elt = elt[0]
+        ret = XmlObject().from_element(Array(DaysOfWeekEnum), elt)
+        assert days == ret
+
+        print(etree.tostring(elt, pretty_print=True))
+
+        pprint(self.app.interface.nsmap)
+        assert days_xml == [ (e.tag, e.text) for e in
+            elt.xpath('//tns:DaysOfWeekEnum', namespaces=self.app.interface.nsmap)]
+
+    def test_serialize_simple_array(self):
+        class Test(ComplexModel):
+            days = DaysOfWeekEnum(max_occurs=7)
+
+        t = Test(days=[
+                DaysOfWeekEnum.Monday,
+                DaysOfWeekEnum.Tuesday,
+                DaysOfWeekEnum.Wednesday,
+                DaysOfWeekEnum.Thursday,
+                DaysOfWeekEnum.Friday,
+                DaysOfWeekEnum.Saturday,
+                DaysOfWeekEnum.Sunday,
+            ])
+
+        Test.resolve_namespace(Test, 'tns')
+
+        elt = etree.Element('test')
+        XmlObject().to_parent_element(Test, t, 'test_namespace', elt)
+        elt = elt[0]
+
+        print(etree.tostring(elt, pretty_print=True))
+
+        ret = XmlObject().from_element(Test, elt)
+        self.assertEquals(t.days, ret.days)
 
 if __name__ == '__main__':
     unittest.main()
