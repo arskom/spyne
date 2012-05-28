@@ -325,7 +325,6 @@ class HtmlTable(HtmlBase):
         else:
             for val in value:
                 row = E.tr()
-                print val
                 for k, v in sti.items():
                     subvalue = val
                     for p in v.path:

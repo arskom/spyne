@@ -162,7 +162,7 @@ class Test(unittest.TestCase):
         server.get_out_string(ctx)
 
         ret = json.loads(''.join(ctx.out_string))
-        print ret
+        print(ret)
 
         assert ret['some_callResponse']['some_callResult']['i'] == 4
         assert ret['some_callResponse']['some_callResult']['s'] == '4x'
@@ -253,11 +253,11 @@ class Test(unittest.TestCase):
         ctx, = server.generate_contexts(initial_ctx)
         server.get_in_object(ctx)
         server.get_out_object(ctx)
-        print ctx.in_object
+        print(ctx.in_object)
         server.get_out_string(ctx)
 
         ret = json.loads(''.join(ctx.out_string))
-        print ret
+        print(ret)
         assert ret['some_callResponse']
         assert ret['some_callResponse']['some_callResult']
         assert ret['some_callResponse']['some_callResult']['ECM']
@@ -287,7 +287,7 @@ class Test(unittest.TestCase):
         class SomeService(ServiceBase):
             @srpc(Integer, String, DateTime)
             def yay(i,s,d):
-                print i,s,d
+                print(i,s,d)
                 pass
 
         app = Application([SomeService], 'tns', JsonObject(validator='soft'), JsonObject(), Wsdl11())
@@ -296,15 +296,15 @@ class Test(unittest.TestCase):
         initial_ctx = MethodContext(server)
         initial_ctx.in_string = ['{"some_call": {"yay": []}}']
         ctx, = server.generate_contexts(initial_ctx)
-        print ctx.in_error
+        print(ctx.in_error)
         assert ctx.in_error.faultcode == 'Client.ResourceNotFound'
-        print
+        print()
 
     def test_invalid_string(self):
         class SomeService(ServiceBase):
             @srpc(Integer, String, DateTime)
             def yay(i,s,d):
-                print i,s,d
+                print(i,s,d)
                 pass
 
         app = Application([SomeService], 'tns', JsonObject(validator='soft'),
@@ -322,7 +322,7 @@ class Test(unittest.TestCase):
         class SomeService(ServiceBase):
             @srpc(Integer, String, DateTime)
             def yay(i,s,d):
-                print i,s,d
+                print(i,s,d)
                 pass
 
         app = Application([SomeService], 'tns', JsonObject(validator='soft'),
@@ -340,7 +340,7 @@ class Test(unittest.TestCase):
         class SomeService(ServiceBase):
             @srpc(Integer, String, Mandatory.DateTime)
             def yay(i,s,d):
-                print i,s,d
+                print(i,s,d)
                 pass
 
         app = Application([SomeService], 'tns', JsonObject(validator='soft'),
@@ -352,7 +352,7 @@ class Test(unittest.TestCase):
         ctx, = server.generate_contexts(initial_ctx)
         server.get_in_object(ctx)
 
-        print ctx.in_error.faultstring
+        print(ctx.in_error.faultstring)
         assert ctx.in_error.faultcode == 'Client.ValidationError'
         assert ctx.in_error.faultstring.endswith("frequency constraints.")
 
@@ -360,7 +360,7 @@ class Test(unittest.TestCase):
         class SomeService(ServiceBase):
             @srpc(Integer, String, Mandatory.DateTime)
             def yay(i,s,d):
-                print i,s,d
+                print(i,s,d)
                 pass
 
         app = Application([SomeService], 'tns', JsonObject(validator='soft'),
@@ -372,7 +372,7 @@ class Test(unittest.TestCase):
         ctx, = server.generate_contexts(initial_ctx)
         server.get_in_object(ctx)
 
-        print ctx.in_error
+        print(ctx.in_error)
         assert ctx.in_error.faultcode == 'Client.ValidationError'
 
 if __name__ == '__main__':

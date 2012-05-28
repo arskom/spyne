@@ -165,7 +165,7 @@ class TestMultiple(unittest.TestCase):
                                     MultipleReturnService.get_tns(), sent_xml)
         sent_xml = sent_xml[0]
 
-        print(etree.tostring(sent_xml, pretty_print=True))
+        print((etree.tostring(sent_xml, pretty_print=True)))
         response_data = self.app.out_protocol.from_element(message_class, sent_xml)
 
         self.assertEquals(len(response_data), 3)
@@ -231,7 +231,7 @@ class TestMultipleMethods(unittest.TestCase):
                 data.append(s)
 
         def start_response(code, headers):
-            print code, headers
+            print(code, headers)
 
         app = Application([Service, AuxService], 'tns', HttpRpc(), HttpRpc())
         server = WsgiApplication(app)
@@ -261,7 +261,7 @@ class TestMultipleMethods(unittest.TestCase):
                 data.add(s + "aux")
 
         def start_response(code, headers):
-            print code, headers
+            print(code, headers)
 
         app = Application([Service, AuxService], 'tns', HttpRpc(), HttpRpc())
         server = WsgiApplication(app)

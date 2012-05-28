@@ -81,7 +81,7 @@ class TestEnum(unittest.TestCase):
         elt = etree.fromstring(wsdl)
         simple_type = elt.xpath('//xs:simpleType', namespaces=self.app.interface.nsmap)[0]
 
-        print(etree.tostring(elt, pretty_print=True))
+        print((etree.tostring(elt, pretty_print=True)))
         print(simple_type)
 
         self.assertEquals(simple_type.attrib['name'], 'DaysOfWeekEnum')
@@ -131,7 +131,7 @@ class TestEnum(unittest.TestCase):
         ret = XmlObject().from_element(Array(DaysOfWeekEnum), elt)
         assert days == ret
 
-        print(etree.tostring(elt, pretty_print=True))
+        print((etree.tostring(elt, pretty_print=True)))
 
         pprint(self.app.interface.nsmap)
         assert days_xml == [ (e.tag, e.text) for e in
@@ -154,7 +154,7 @@ class TestEnum(unittest.TestCase):
         XmlObject().to_parent_element(Test, t, 'test_namespace', elt)
         elt = elt[0]
 
-        print(etree.tostring(elt, pretty_print=True))
+        print((etree.tostring(elt, pretty_print=True)))
 
         ret = XmlObject().from_element(Test, elt)
         self.assertEquals(t.days, ret.days)

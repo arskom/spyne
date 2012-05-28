@@ -70,7 +70,7 @@ class TestHtmlTable(unittest.TestCase):
 
         out_string = ''.join(ctx.out_string)
         elt = html.fromstring(out_string)
-        print html.tostring(elt, pretty_print=True)
+        print(html.tostring(elt, pretty_print=True))
 
         resp = elt.find_class('some_callResponse')
         assert len(resp) == 1
