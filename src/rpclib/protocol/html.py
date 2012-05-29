@@ -38,6 +38,13 @@ from rpclib.model.complex import ComplexModelBase
 from rpclib.protocol import ProtocolBase
 from rpclib.util.cdict import cdict
 
+def translate(cls, locale, default):
+    print locale, cls, cls.Attributes.translations
+    retval = cls.Attributes.translations.get(locale, None)
+    if retval is None:
+        return default
+    return retval
+
 def serialize_null(prot, cls, name):
     return [ E(prot.child_tag, **{prot.field_name_attr: name}) ]
 
@@ -112,7 +119,7 @@ class HtmlBase(ProtocolBase):
 
             ctx.out_header_doc = None
             ctx.out_body_doc = self.serialize_impl(result_message_class,
-                                                   result_message)
+                                                   result_message, ctx.locale)
 
             ctx.out_document = ctx.out_body_doc
 
@@ -192,12 +199,12 @@ class HtmlMicroFormat(HtmlBase):
         return self.__field_name_attr
 
     @nillable_value
-    def serialize_model_base(self, cls, value, name='retval'):
+    def serialize_model_base(self, cls, value, locale, name='retval'):
         return [ E(self.child_tag, cls.to_string(value),
                                                 **{self.field_name_attr: name}) ]
 
-    def serialize_impl(self, cls, value):
-        return self.serialize_complex_model(cls, value, cls.get_type_name())
+    def serialize_impl(self, cls, value, locale):
+        return self.serialize_complex_model(cls, value, cls.get_type_name(), locale)
 
     @nillable_value
     def serialize_complex_model(self, cls, value, name='retval'):
@@ -301,7 +308,7 @@ class _HtmlTableBase(HtmlBase):
     def field_name_attr(self):
         return self.__field_name_attr
 
-    def serialize_impl(self, cls, inst):
+    def serialize_impl(self, cls, inst, locale):
         name = cls.get_type_name()
 
         if self.table_name_attr is None:
@@ -309,7 +316,7 @@ class _HtmlTableBase(HtmlBase):
         else:
             out_body_doc_header = ['<table %s="%s">' % (self.table_name_attr, name)]
 
-        out_body_doc = self.serialize_complex_model(cls, inst)
+        out_body_doc = self.serialize_complex_model(cls, inst, locale)
 
         out_body_doc_footer = ['</table>']
 
@@ -321,7 +328,7 @@ class _HtmlTableBase(HtmlBase):
 
 
 class _HtmlColumnTable(_HtmlTableBase):
-    def serialize_complex_model(self, cls, value):
+    def serialize_complex_model(self, cls, value, locale):
         sti = None
         fti = cls.get_flat_type_info(cls)
 
@@ -352,23 +359,24 @@ class _HtmlColumnTable(_HtmlTableBase):
 
         class_name = first_child.get_type_name()
         if self.produce_header:
-            header_row = E.tr( ** tr)
+            header_row = E.tr(**tr)
 
             th = {}
             if self.header_class is not None:
                 th['class'] = self.header_class
 
             if sti is None:
-                header_row.append(E.th(class_name, ** th))
+                header_row.append(E.th(class_name, **th))
 
             else:
                 if self.field_name_attr is not None:
                     for k, v in sti.items():
-                        header_row.append(E.th(k), ** th)
+                        header_row.append(E.th(k), **th)
                 else:
                     for k, v in sti.items():
                         th[self.field_name_attr] = k
-                        header_row.append(E.th(k), ** th)
+                        header_name = translate(v, locale, k)
+                        header_row.append(E.th(header_name), **th)
 
 
             yield header_row
@@ -401,16 +409,16 @@ class _HtmlColumnTable(_HtmlTableBase):
 
 
                     if self.field_name_attr is None:
-                        row.append(E.td(subvalue, ** td))
+                        row.append(E.td(subvalue, **td))
                     else:
                         td[self.field_name_attr] = k
-                        row.append(E.td(subvalue, ** td))
+                        row.append(E.td(subvalue, **td))
 
                 yield row
 
 
 class _HtmlRowTable(_HtmlTableBase):
-    def serialize_complex_model(self, cls, value):
+    def serialize_complex_model(self, cls, value, locale):
         sti = None
         fti = cls.get_flat_type_info(cls)
         is_array = False
@@ -481,11 +489,12 @@ class _HtmlRowTable(_HtmlTableBase):
                     subvalue = v.type.to_string(subvalue)
 
                 if self.produce_header:
+                    header_text = translate(v.type, locale, k)
                     if self.field_name_attr is None:
-                        row.append(E.th(k, **th))
+                        row.append(E.th(header_text, **th))
                     else:
                         th[self.field_name_attr] = k
-                        row.append(E.th(k, **th))
+                        row.append(E.th(header_text, **th))
 
                 if self.field_name_attr is None:
                     row.append(E.td(subvalue, **td))

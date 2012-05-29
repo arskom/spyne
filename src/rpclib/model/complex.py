@@ -28,10 +28,12 @@ from rpclib.model import ModelBase
 from rpclib.model import nillable_dict
 from rpclib.model import nillable_string
 
-from rpclib.util.odict import odict as TypeInfo
+from rpclib.util.odict import odict
 from rpclib.const import xml_ns as namespace
 from rpclib.const.suffix import TYPE_SUFFIX
 
+class TypeInfo(odict):
+    pass
 
 class _SimpleTypeInfoElement(object):
     __slots__ = ['path', 'parent', 'type']
