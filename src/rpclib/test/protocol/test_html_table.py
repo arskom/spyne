@@ -22,6 +22,9 @@ logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 
+from pprint import pformat
+from urllib import urlencode
+
 from lxml import html
 
 from rpclib.application import Application
@@ -37,18 +40,36 @@ from rpclib.service import ServiceBase
 from rpclib.server.wsgi import WsgiMethodContext
 from rpclib.server.wsgi import WsgiApplication
 
+def _start_response(code, headers):
+    print(code, pformat(headers))
 
-class TestHtmlTable(unittest.TestCase):
+def _call_wsgi_app_kwargs(app, **kwargs):
+    return _call_wsgi_app(app, kwargs.items())
+
+def _call_wsgi_app(app, pairs):
+    out_string = ''.join(app({
+        'QUERY_STRING': urlencode(pairs),
+        'PATH_INFO': '/some_call',
+        'REQUEST_METHOD': 'GET',
+        'SERVER_NAME': 'rpclib.test',
+        'SERVER_PORT': '0',
+        'wsgi.url_scheme': 'http',
+    }, _start_response))
+
+    return out_string
+
+
+class CM(ComplexModel):
+    i = Integer
+    s = String
+
+class CCM(ComplexModel):
+    c = CM
+    i = Integer
+    s = String
+
+class TestHtmlColumnTable(unittest.TestCase):
     def test_complex_array(self):
-        class CM(ComplexModel):
-            i = Integer
-            s = String
-
-        class CCM(ComplexModel):
-            c = CM
-            i = Integer
-            s = String
-
         class SomeService(ServiceBase):
             @srpc(CCM, _returns=Array(CCM))
             def some_call(ccm):
@@ -57,26 +78,21 @@ class TestHtmlTable(unittest.TestCase):
         app = Application([SomeService], 'tns', HttpRpc(), HtmlTable(field_name_attr='class'), Wsdl11())
         server = WsgiApplication(app)
 
-        initial_ctx = WsgiMethodContext(server, {
-            'QUERY_STRING': 'ccm_c_s=abc&ccm_c_i=123&ccm_i=456&ccm_s=def',
-            'PATH_INFO': '/some_call',
-            'REQUEST_METHOD': 'GET',
-        }, 'some-content-type')
+        out_string = _call_wsgi_app_kwargs(server,
+                ccm_i='456',
+                ccm_s='def',
+                ccm_c_i='123',
+                ccm_c_s='abc',
+            )
 
-        ctx, = server.generate_contexts(initial_ctx)
-        server.get_in_object(ctx)
-        server.get_out_object(ctx)
-        server.get_out_string(ctx)
-
-        out_string = ''.join(ctx.out_string)
         elt = html.fromstring(out_string)
-        print html.tostring(elt, pretty_print=True)
+        print(html.tostring(elt, pretty_print=True))
 
         resp = elt.find_class('some_callResponse')
         assert len(resp) == 1
         for i in range(len(elt)):
             row = elt[i]
-            if i == 0:
+            if i == 0:  # check for field names in table header
                 cell = row.findall('th[@class="i"]')
                 assert len(cell) == 1
                 assert cell[0].text == 'i'
@@ -94,7 +110,7 @@ class TestHtmlTable(unittest.TestCase):
                 assert cell[0].text == 's'
 
 
-            else:
+            else: # check for field values in table body
                 cell = row.findall('td[@class="i"]')
                 assert len(cell) == 1
                 assert cell[0].text == '456'
@@ -120,18 +136,77 @@ class TestHtmlTable(unittest.TestCase):
         app = Application([SomeService], 'tns', HttpRpc(), HtmlTable(), Wsdl11())
         server = WsgiApplication(app)
 
-        initial_ctx = WsgiMethodContext(server, {
-            'QUERY_STRING': 's=1&s=2',
-            'PATH_INFO': '/some_call',
-            'REQUEST_METHOD': 'GET',
-        }, 'some-content-type')
+        out_string = _call_wsgi_app(server, (('s', '1'), ('s', '2')) )
+        assert out_string == '<table class="some_callResponse"><tr><th>string</th></tr><tr><td>1</td></tr><tr><td>2</td></tr></table>'
 
-        ctx, = server.generate_contexts(initial_ctx)
-        server.get_in_object(ctx)
-        server.get_out_object(ctx)
-        server.get_out_string(ctx)
+class TestHtmlRowTable(unittest.TestCase):
+    def test_complex(self):
+        class SomeService(ServiceBase):
+            @srpc(CCM, _returns=CCM)
+            def some_call(ccm):
+                return ccm
 
-        assert ''.join(ctx.out_string) == '<table class="some_callResponse"><tr><th>string</th></tr><tr><td>1</td></tr><tr><td>2</td></tr></table>'
+
+        app = Application([SomeService], 'tns', HttpRpc(),
+                 HtmlTable(field_name_attr='class', fields_as='rows'), Wsdl11())
+        server = WsgiApplication(app)
+
+        out_string = _call_wsgi_app_kwargs(server,
+                         ccm_c_s='abc', ccm_c_i='123', ccm_i='456', ccm_s='def')
+
+        elt = html.fromstring(out_string)
+        print(html.tostring(elt, pretty_print=True))
+
+        # Here's what this is supposed to return
+        """
+        <table class="some_callResponse">
+            <tr>
+                <th class="i">i</th>
+                <td class="i">456</td>
+            </tr>
+            <tr>
+                <th class="c_i">c_i</th>
+                <td class="c_i">123</td>
+            </tr>
+            <tr>
+                <th class="c_s">c_s</th>
+                <td class="c_s">abc</td>
+            </tr>
+            <tr>
+                <th class="s">s</th>
+                <td class="s">def</td>
+            </tr>
+        </table>
+        """
+
+        resp = elt.find_class('some_callResponse')
+        assert len(resp) == 1
+
+        assert elt.xpath('//th[@class="i"]/text()')[0] == 'i'
+        assert elt.xpath('//td[@class="i"]/text()')[0] == '456'
+
+        assert elt.xpath('//th[@class="c_i"]/text()')[0] == 'c_i'
+        assert elt.xpath('//td[@class="c_i"]/text()')[0] == '123'
+
+        assert elt.xpath('//th[@class="c_s"]/text()')[0] == 'c_s'
+        assert elt.xpath('//td[@class="c_s"]/text()')[0] == 'abc'
+
+        assert elt.xpath('//th[@class="s"]/text()')[0] == 's'
+        assert elt.xpath('//td[@class="s"]/text()')[0] == 'def'
+
+
+    def test_string_array(self):
+        class SomeService(ServiceBase):
+            @srpc(String(max_occurs='unbounded'), _returns=Array(String))
+            def some_call(s):
+                return s
+
+        app = Application([SomeService], 'tns', HttpRpc(), HtmlTable(fields_as='rows'), Wsdl11())
+        server = WsgiApplication(app)
+
+        out_string = _call_wsgi_app(server, (('s', '1'), ('s', '2')) )
+        assert out_string == '<table class="some_callResponse"><tr><td>1</td></tr><tr><td>2</td></tr></table>'
+
 
 if __name__ == '__main__':
     unittest.main()

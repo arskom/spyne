@@ -78,7 +78,7 @@ class TestInterface(unittest.TestCase):
         imports = application.interface.imports
         tns = application.interface.get_tns()
         smm = application.interface.service_method_map
-        print imports
+        print(imports)
 
         assert imports[tns] == set(['1','3','4'])
         assert imports['3'] == set(['2'])

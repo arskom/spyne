@@ -342,7 +342,7 @@ class TestXmlAttribute(unittest.TestCase):
         pref = CM.get_namespace_prefix(interface)
         type_def = wsdl.get_schema_info(pref).types[CM.get_type_name()]
         attribute_def = type_def.find('{%s}attribute' % xml_ns.xsd)
-        print etree.tostring(type_def, pretty_print=True)
+        print(etree.tostring(type_def, pretty_print=True))
 
         self.assertIsNotNone(attribute_def)
         self.assertEqual(attribute_def.get('name'), 'a')

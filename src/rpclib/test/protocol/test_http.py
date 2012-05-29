@@ -180,7 +180,7 @@ class Test(unittest.TestCase):
 
         server.get_out_string(ctx)
 
-        print ctx.out_string
+        print(ctx.out_string)
         assert ctx.out_string == ["CCM(i=1, c=CM(i=3, s='cs'), s='s')"]
 
     def test_nested_flatten_with_multiple_values_1(self):

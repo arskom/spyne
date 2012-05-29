@@ -13,6 +13,9 @@ MANIFEST
 dist
 build
 
+# 2to3 cruft
+*.bak
+
 # Mac cruft
 .DS_Store
 

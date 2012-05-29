@@ -253,7 +253,7 @@ class TestPrimitive(unittest.TestCase):
     def test_null(self):
         element = etree.Element('test')
         XmlObject().to_parent_element(Null, None, ns_test, element)
-        print etree.tostring(element)
+        print(etree.tostring(element))
 
         element = element[0]
         self.assertTrue( bool(element.attrib.get('{%s}nil' % ns.xsi)) )

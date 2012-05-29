@@ -19,6 +19,7 @@
 
 import rpclib.const.xml_ns
 
+
 """This module contains the ModelBase class and other building blocks for
 defining models.
 """
@@ -34,6 +35,7 @@ def nillable_dict(func):
             return func(cls, element)
     return wrapper
 
+
 def nillable_string(func):
     """Decorator that retuns None if input is None."""
 
@@ -43,6 +45,7 @@ def nillable_string(func):
         else:
             return func(cls, string)
     return wrapper
+
 
 def nillable_iterable(func):
     """Decorator that retuns [] if input is None."""
@@ -92,6 +95,12 @@ class ModelBase(object):
         schema_tag = '{%s}element' % rpclib.const.xml_ns.xsd
         """The tag used to add a primitives as child to a complex type in the
         xml schema."""
+
+        translations = {}
+        """A dict that contains locale codes keys and translations of field
+        names to human language as a basestring child as values.
+        """
+
 
     class Annotations(object):
         """The class that holds the annotations for the given type."""
