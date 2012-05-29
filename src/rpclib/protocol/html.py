@@ -19,6 +19,8 @@
 
 """This module contains the EXPERIMENTAL Html protocol implementation.
 It seeks to eliminate the need for html templates.
+
+As you can tell, I haven't figured it all out yet :)
 """
 
 import logging
@@ -88,7 +90,7 @@ class HtmlBase(ProtocolBase):
         ctx.out_body_doc, ctx.out_header_doc and ctx.out_document.
         """
 
-        assert message in (self.RESPONSE,)
+        assert message in (self.RESPONSE, )
 
         self.event_manager.fire_event('before_serialize', ctx)
 
@@ -110,7 +112,7 @@ class HtmlBase(ProtocolBase):
 
             ctx.out_header_doc = None
             ctx.out_body_doc = self.serialize_impl(result_message_class,
-                                                                 result_message)
+                                                   result_message)
 
             ctx.out_document = ctx.out_body_doc
 
@@ -141,7 +143,7 @@ class HtmlMicroFormat(HtmlBase):
     mime_type = 'text/html'
 
     def __init__(self, app=None, validator=None, root_tag='div',
-            child_tag='div', field_name_attr='class', skip_depth=0):
+                 child_tag='div', field_name_attr='class', skip_depth=0):
         """Protocol that returns the response object as a html microformat. See
         https://en.wikipedia.org/wiki/Microformats for more info.
 
@@ -162,9 +164,9 @@ class HtmlMicroFormat(HtmlBase):
 
         HtmlBase.__init__(self, app, validator, skip_depth)
 
-        assert root_tag in ('div','span')
-        assert child_tag in ('div','span')
-        assert field_name_attr in ('class','id')
+        assert root_tag in ('div', 'span')
+        assert child_tag in ('div', 'span')
+        assert field_name_attr in ('class', 'id')
 
         self.__root_tag = root_tag
         self.__child_tag = child_tag
@@ -191,7 +193,8 @@ class HtmlMicroFormat(HtmlBase):
 
     @nillable_value
     def serialize_model_base(self, cls, value, name='retval'):
-        return [ E(self.child_tag, cls.to_string(value), **{self.field_name_attr: name}) ]
+        return [ E(self.child_tag, cls.to_string(value),
+                                                **{self.field_name_attr: name}) ]
 
     def serialize_impl(self, cls, value):
         return self.serialize_complex_model(cls, value, cls.get_type_name())
@@ -213,8 +216,9 @@ class HtmlMicroFormat(HtmlBase):
 
 
 def HtmlTable(app=None, validator=None, produce_header=True,
-            table_name_attr='class', field_name_attr=None, border=0,
-            fields_as='columns'):
+                    table_name_attr='class', field_name_attr=None, border=0,
+                        fields_as='columns', row_class=None, cell_class=None,
+                                                        header_cell_class=None):
     """Protocol that returns the response object as a html table.
 
     The simple flavour is like the HtmlMicroFormatprotocol, but returns data
@@ -232,6 +236,9 @@ def HtmlTable(app=None, validator=None, produce_header=True,
         field names of the complex object children for every table cell. Set
         to None to disable.
     :param fields_as: One of 'columns', 'rows'.
+    :param row_cell_class: value that goes inside the <tr class="">
+    :param cell_cell_class: value that goes inside the <td class="">
+    :param header_cell_class: value that goes inside the <th class="">
 
         "Fields as rows" returns one record per table in a table with two
         columns.
@@ -242,10 +249,12 @@ def HtmlTable(app=None, validator=None, produce_header=True,
 
     if fields_as == 'columns':
         return _HtmlColumnTable(app, validator, produce_header,
-                                       table_name_attr, field_name_attr, border)
+                                    table_name_attr, field_name_attr, border,
+                                        row_class, cell_class, header_cell_class)
     elif fields_as == 'rows':
         return _HtmlRowTable(app, validator, produce_header,
-                                       table_name_attr, field_name_attr, border)
+                                 table_name_attr, field_name_attr, border,
+                                        row_class, cell_class, header_cell_class)
 
     else:
         raise ValueError(fields_as)
@@ -254,17 +263,27 @@ class _HtmlTableBase(HtmlBase):
     mime_type = 'text/html'
 
     def __init__(self, app, validator, produce_header, table_name_attr,
-                                                       field_name_attr, border):
+                 field_name_attr, border, row_class, cell_class, header_class):
 
         HtmlBase.__init__(self, app, validator)
 
-        assert table_name_attr in (None, 'class','id')
-        assert field_name_attr in (None, 'class','id')
+        assert table_name_attr in (None, 'class', 'id')
+        assert field_name_attr in (None, 'class', 'id')
 
         self.__produce_header = produce_header
         self.__table_name_attr = table_name_attr
         self.__field_name_attr = field_name_attr
         self.__border = border
+        self.row_class = row_class
+        self.cell_class = cell_class
+        self.header_class = header_class
+
+        if self.cell_class is not None and field_name_attr == 'class':
+            raise Exception("Either 'cell_class' should be None or "
+                            "field_name_attr should be != 'class'")
+        if self.header_class is not None and field_name_attr == 'class':
+            raise Exception("Either 'header_class' should be None or "
+                            "field_name_attr should be != 'class'")
 
     @property
     def border(self):
@@ -323,32 +342,46 @@ class _HtmlColumnTable(_HtmlTableBase):
         else:
             raise NotImplementedError("Can only serialize single Array(...) return types")
 
+        tr = {}
+        if self.row_class is not None:
+            tr['class'] = self.row_class
+
+        td = {}
+        if self.cell_class is not None:
+            td['class'] = self.cell_class
+
         class_name = first_child.get_type_name()
         if self.produce_header:
-            header_row = E.tr()
+            header_row = E.tr( ** tr)
+
+            th = {}
+            if self.header_class is not None:
+                th['class'] = self.header_class
 
             if sti is None:
-                header_row.append(E.th(class_name))
+                header_row.append(E.th(class_name, ** th))
 
             else:
-                if self.field_name_attr is None:
+                if self.field_name_attr is not None:
                     for k, v in sti.items():
-                        header_row.append(E.th(k))
-
+                        header_row.append(E.th(k), ** th)
                 else:
                     for k, v in sti.items():
-                        header_row.append(E.th(k, **{self.field_name_attr: k}))
+                        th[self.field_name_attr] = k
+                        header_row.append(E.th(k), ** th)
+
 
             yield header_row
+
 
         if sti is None:
             if self.field_name_attr is None:
                 for val in value:
-                    yield E.tr(E.td(first_child.to_string(val)), )
+                    yield E.tr(E.td(first_child.to_string(val), ** td), ** tr)
             else:
                 for val in value:
-                    yield E.tr(E.td(first_child.to_string(val)),
-                                           **{self.field_name_attr: class_name})
+                    td[self.field_name_attr] = class_name
+                    yield E.tr(E.td(first_child.to_string(val), ** td), ** tr)
 
         else:
             for val in value:
@@ -356,12 +389,23 @@ class _HtmlColumnTable(_HtmlTableBase):
                 for k, v in sti.items():
                     subvalue = val
                     for p in v.path:
-                        subvalue = getattr(subvalue, p, "`%s`" % k)
-                    if self.field_name_attr is None:
-                        row.append(E.td(v.type.to_string(subvalue)))
+                        subvalue = getattr(subvalue, p, None)
+
+                    if subvalue is None:
+                        if v.type.Attributes.min_occurs == 0:
+                            continue
+                        else:
+                            subvalue = ""
                     else:
-                        row.append(E.td(v.type.to_string(subvalue),
-                                                   **{self.field_name_attr: k}))
+                        subvalue = v.type.to_string(subvalue)
+
+
+                    if self.field_name_attr is None:
+                        row.append(E.td(subvalue, ** td))
+                    else:
+                        td[self.field_name_attr] = k
+                        row.append(E.td(subvalue, ** td))
+
                 yield row
 
 
@@ -390,42 +434,64 @@ class _HtmlRowTable(_HtmlTableBase):
         else:
             raise NotImplementedError("Can only serialize single return types")
 
+        tr = {}
+        if self.row_class is not None:
+            tr['class'] = self.row_class
+
+        td = {}
+        if self.cell_class is not None:
+            td['class'] = self.cell_class
+
+        th = {}
+        if self.header_class is not None:
+            th['class'] = self.header_class
+
         class_name = first_child.get_type_name()
         if sti is None:
             if self.field_name_attr is None:
                 if is_array:
                     for val in value:
-                        yield E.tr(E.td(first_child_2.to_string(val)), )
+                        yield E.tr(E.td(first_child_2.to_string(val)),)
                 else:
-                    yield E.tr(E.td(first_child_2.to_string(value)), )
+                    yield E.tr(E.td(first_child_2.to_string(value)),)
 
             else:
+                if self.field_name_attr is not None:
+                    td[self.field_name_attr] = class_name
+
                 if is_array:
                     for val in value:
-                        yield E.tr(E.td(first_child_2.to_string(val)),
-                                           **{self.field_name_attr: class_name})
+                        yield E.tr(E.td(first_child_2.to_string(val), **td), **tr)
                 else:
-                    yield E.tr(E.td(first_child_2.to_string(value)),
-                                           **{self.field_name_attr: class_name})
+                    yield E.tr(E.td(first_child_2.to_string(value), **td), **tr)
 
         else:
             for k, v in sti.items():
-                row = E.tr()
+                row = E.tr(**tr)
                 subvalue = value
                 for p in v.path:
-                    subvalue = getattr(subvalue, p, "`%s`" % k)
+                    subvalue = getattr(subvalue, p, None)
+
+                if subvalue is None:
+                    if v.type.Attributes.min_occurs == 0:
+                        continue
+                    else:
+                        subvalue = ""
+                else:
+                    subvalue = v.type.to_string(subvalue)
 
                 if self.produce_header:
                     if self.field_name_attr is None:
-                        row.append(E.th(k))
+                        row.append(E.th(k, **th))
                     else:
-                        row.append(E.th(k, **{self.field_name_attr: k}))
+                        th[self.field_name_attr] = k
+                        row.append(E.th(k, **th))
 
                 if self.field_name_attr is None:
-                    row.append(E.td(v.type.to_string(subvalue)))
+                    row.append(E.td(subvalue, **td))
 
                 else:
-                    row.append(E.td(v.type.to_string(subvalue),
-                                               **{self.field_name_attr: k}))
+                    td[self.field_name_attr] = k
+                    row.append(E.td(subvalue, **td))
 
                 yield row
