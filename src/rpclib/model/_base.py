@@ -34,6 +34,7 @@ def nillable_dict(func):
             return func(cls, element)
     return wrapper
 
+
 def nillable_string(func):
     """Decorator that retuns None if input is None."""
 
@@ -43,6 +44,7 @@ def nillable_string(func):
         else:
             return func(cls, string)
     return wrapper
+
 
 def nillable_iterable(func):
     """Decorator that retuns [] if input is None."""
