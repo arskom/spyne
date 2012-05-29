@@ -31,6 +31,8 @@ rpclib-2.8.0-beta
     * https://github.com/arskom/rpclib/pull/129
     * https://github.com/arskom/rpclib/pull/133
     * https://github.com/arskom/rpclib/pull/137
+    * https://github.com/arskom/rpclib/pull/138
+    * https://github.com/arskom/rpclib/pull/139
 
 rpclib-2.7.0-beta
 -----------------
