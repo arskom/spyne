@@ -320,7 +320,6 @@ class Integer(Decimal):
     @classmethod
     @nillable_string
     def to_string(cls, value):
-        assert (cls.__length__ is None) or (0 <= value < 2** cls.__length__)
         int(value) # sanity check
 
         return str(value)
