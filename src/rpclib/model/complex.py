@@ -28,10 +28,12 @@ from rpclib.model import ModelBase
 from rpclib.model import nillable_dict
 from rpclib.model import nillable_string
 
-from rpclib.util.odict import odict as TypeInfo
+from rpclib.util.odict import odict
 from rpclib.const import xml_ns as namespace
 from rpclib.const.suffix import TYPE_SUFFIX
 
+class TypeInfo(odict):
+    pass
 
 class _SimpleTypeInfoElement(object):
     __slots__ = ['path', 'parent', 'type']
@@ -210,6 +212,7 @@ class ComplexModelBase(ModelBase):
             * A dict of native types
             * The native type itself.
         """
+
         # if the instance is a list, convert it to a cls instance.
         # this is only useful when deserializing method arguments for a client
         # request which is the only time when the member order is not arbitrary
@@ -276,7 +279,7 @@ class ComplexModelBase(ModelBase):
         """
 
         if retval is None:
-            retval = {}
+            retval = TypeInfo()
 
         parent = getattr(cls, '__extends__', None)
         if parent != None:
@@ -304,7 +307,7 @@ class ComplexModelBase(ModelBase):
         """
 
         if retval is None:
-            retval = {}
+            retval = TypeInfo()
         if prefix is None:
             prefix = []
 

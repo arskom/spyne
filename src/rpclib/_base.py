@@ -198,6 +198,10 @@ class MethodContext(object):
         self.function = None
         """The callable of the user code."""
 
+        self.locale = None
+        """The locale the request will use when needed for things like date
+        formatting, html rendering and such."""
+
         self.frozen = True
         """When this is set, no new attribute can be added to this class
         instance. This is mostly for internal use.

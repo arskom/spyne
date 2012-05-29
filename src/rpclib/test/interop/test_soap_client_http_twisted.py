@@ -41,7 +41,7 @@ class TestRpclibHttpClient(unittest.TestCase):
 
     def test_python_exception(self):
         def eb(ret):
-            print ret
+            print(ret)
 
         def cb(ret):
             assert False, "must fail: %r" % ret
@@ -50,7 +50,7 @@ class TestRpclibHttpClient(unittest.TestCase):
 
     def test_soap_exception(self):
         def eb(ret):
-            print type(ret)
+            print(type(ret))
 
         def cb(ret):
             assert False, "must fail: %r" % ret
@@ -59,7 +59,7 @@ class TestRpclibHttpClient(unittest.TestCase):
 
     def test_documented_exception(self):
         def eb(ret):
-            print ret
+            print(ret)
 
         def cb(ret):
             assert False, "must fail: %r" % ret

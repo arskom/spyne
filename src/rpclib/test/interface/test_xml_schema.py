@@ -49,7 +49,7 @@ class TestXmlSchema(unittest.TestCase):
         from lxml import etree
 
         docs = get_schema_documents([SomeType])
-        print etree.tostring(docs['tns'], pretty_print=True)
+        print(etree.tostring(docs['tns'], pretty_print=True))
         any = docs['tns'].xpath('//xsd:any', namespaces={'xsd': ns.xsd})
 
         assert len(any) == 1
@@ -89,7 +89,7 @@ class TestXmlSchema(unittest.TestCase):
         imports = application.interface.imports
         smm = application.interface.service_method_map
 
-        print smm
+        print(smm)
 
         raise NotImplementedError('test something!')
 

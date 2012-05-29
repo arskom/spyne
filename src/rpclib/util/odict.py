@@ -92,7 +92,7 @@ class odict(object):
         return self.__list
 
     def update(self, data):
-        if isinstance(data, dict):
+        if isinstance(data, (dict, odict)):
             data = data.items()
 
         for k, v in data:

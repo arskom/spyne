@@ -180,7 +180,7 @@ class FaultTests(unittest.TestCase):
         self.assertEqual(len(interface.classes), 1)
         c_cls = interface.classes.values()[0]
         c_elt = schema.types.values()[0]
-        print c_cls, cls
+        print(c_cls, cls)
         self.failUnless(c_cls is cls)
         self.assertEqual(c_elt.tag, '{%s}complexType' % ns_xsd)
         self.assertEqual(c_elt.get('name'), 'Fault')
