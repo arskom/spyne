@@ -495,3 +495,66 @@ class _HtmlRowTable(_HtmlTableBase):
                     row.append(E.td(subvalue, **td))
 
                 yield row
+
+
+class _HtmlPage(object):
+    """An EXPERIMENTAL protocol-ish that parses and generates a template for
+    a html file.
+    """
+
+    def __init__(self, file_name):
+        self.__frozen = False
+        self.__file_name = file_name
+        self.__html = html.fromstring(open(file_name, 'r').read())
+
+        self.__ids = {}
+        for elt in self.__html.xpath('//*[@id]'):
+            key = elt.attrib['id']
+            if key in self.__ids:
+                raise ValueError("Don't use duplicate values in id attributes in"
+                                 "template documents.")
+            self.__ids[key] = elt
+            s = "%r -> %r" % (key, elt)
+            logger.debug(s)
+
+        self.__frozen = True
+
+    @property
+    def file_name(self):
+        return self.__file_name
+
+    @property
+    def html(self):
+        return self.__html
+
+    def __getattr__(self, key):
+        try:
+            return object.__getattr__(self, key)
+
+        except AttributeError:
+            try:
+                return self.__ids[key]
+            except KeyError:
+                raise AttributeError(key)
+
+    def __setattr__(self, key, value):
+        if key.endswith('__frozen') or not self.__frozen:
+            object.__setattr__(self, key, value)
+
+        else:
+            elt = self.__ids.get(key, None)
+            if elt is None:
+                raise AttributeError(key)
+
+            # poor man's elt.clear() version that keeps the attributes
+            children = list(elt)
+            for c in children:
+                elt.remove(c)
+            elt.text = None
+            elt.tail = None
+
+            # set it in.
+            if isinstance(value, basestring):
+                elt.text = value
+            else:
+                elt.append(value)
