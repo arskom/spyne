@@ -500,6 +500,13 @@ class _HtmlRowTable(_HtmlTableBase):
 class _HtmlPage(object):
     """An EXPERIMENTAL protocol-ish that parses and generates a template for
     a html file.
+
+    >>> open('temp.html', 'w').write('<html><body><div id="some_div" /></body></html>')
+    >>> t = _HtmlPage('temp.html')
+    >>> t.some_div = "some_text"
+    >>> from lxml import html
+    >>> print html.tostring(t.html)
+    <html><body><div id="some_div">some_text</div></body></html>
     """
 
     def __init__(self, file_name):
