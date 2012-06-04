@@ -32,13 +32,6 @@ build
 # wing cruft
 *.wpr
 
-#virtualenv cruft
-bin
-lib
-include
-develop-eggs
-.installed.cfg
-
 # netbeans cruft
 nbproject
 
