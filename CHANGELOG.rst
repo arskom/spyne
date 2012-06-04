@@ -16,6 +16,12 @@ rpclib-2.8.0-beta
    to the transport to expose the application using a given interface document
    standard now. The ``interface`` argument to the ``Application`` ctor is
    now ignored.
+ * Html: Added a very simple lxml-based templating scheme called _HtmlPage.
+ * Html: Added row-based tables: They show fields in rows. It's good for
+   showing one object per table.
+ * Html: Added ImageUri support. They now render as <img> tags.
+ * Html: Added support for locales. You can now render field names as human
+   readable strings.
  * Add support for async methods, which execute after the primary user code
    returns. Currently, the only async execution method is via threads.
  * Xml & friends: Start tags are now in the same namespace as the definitions
