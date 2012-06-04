@@ -1,9 +1,12 @@
 
+Rpclib uses code from multiple projects, as well as original code. This file
+contains the license information for all of these sources.
+
 ================================================================================
 ================================================================================
 
-Rpclib, located under the src/ directory in the source distribution is covered
-under the LGPL license.
+Rpclib, located under the rpclib/ directory in the source distribution is
+covered under the LGPL license.
 
 --------------------------------------------------------------------------------
 
@@ -501,3 +504,70 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
 OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
 EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+
+================================================================================
+================================================================================
+
+Rpclib uses some code from the Twisted project at http://twistedmatrix.com.
+Here's the license:
+
+--------------------------------------------------------------------------------
+
+Copyright (c) 2001-2012
+Allen Short
+Andy Gayton
+Andrew Bennetts
+Antoine Pitrou
+Apple Computer, Inc.
+Benjamin Bruheim
+Bob Ippolito
+Canonical Limited
+Christopher Armstrong
+David Reid
+Donovan Preston
+Eric Mangold
+Eyal Lotem
+Itamar Turner-Trauring
+James Knight
+Jason A. Mobarak
+Jean-Paul Calderone
+Jessica McKellar
+Jonathan Jacobs
+Jonathan Lange
+Jonathan D. Simms
+Jürgen Hermann
+Kevin Horn
+Kevin Turner
+Mary Gardiner
+Matthew Lefkowitz
+Massachusetts Institute of Technology
+Moshe Zadka
+Paul Swartz
+Pavel Pergamenshchik
+Ralph Meijer
+Sean Riley
+Software Freedom Conservancy
+Travis B. Hartwell
+Thijs Triemstra
+Thomas Herve
+Timothy Allen
+
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of this software and associated documentation files (the
+"Software"), to deal in the Software without restriction, including
+without limitation the rights to use, copy, modify, merge, publish,
+distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to
+the following conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.

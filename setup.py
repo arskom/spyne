@@ -9,7 +9,7 @@ from pkg_resources import resource_listdir
 from setuptools import setup
 from setuptools import find_packages
 
-v = open(os.path.join(os.path.dirname(__file__), 'src', 'rpclib', '__init__.py'), 'r')
+v = open(os.path.join(os.path.dirname(__file__), 'rpclib', '__init__.py'), 'r')
 VERSION = re.match(r".*__version__ = '(.*?)'", v.read(), re.S).group(1)
 
 LONG_DESC = """\
@@ -36,8 +36,7 @@ SHORT_DESC="A transport and architecture agnostic rpc (de)serialization " \
 
 setup(
     name='rpclib',
-    packages=find_packages('src'),
-    package_dir={'':'src'},
+    packages=find_packages(),
 
     version=VERSION,
     description=SHORT_DESC,
