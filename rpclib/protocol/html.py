@@ -40,7 +40,6 @@ from rpclib.protocol import ProtocolBase
 from rpclib.util.cdict import cdict
 
 def translate(cls, locale, default):
-    print locale, cls, cls.Attributes.translations
     retval = cls.Attributes.translations.get(locale, None)
     if retval is None:
         return default
@@ -266,6 +265,7 @@ def HtmlTable(app=None, validator=None, produce_header=True,
 
     else:
         raise ValueError(fields_as)
+
 
 class _HtmlTableBase(HtmlBase):
     mime_type = 'text/html'
