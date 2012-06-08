@@ -93,10 +93,12 @@ class TestHtmlColumnTable(unittest.TestCase):
         for i in range(len(elt)):
             row = elt[i]
             if i == 0:  # check for field names in table header
-                assert len(row.findall('th[@class="i"]')) == 1
+                cell = row.findall('th[@class="i"]')
+                assert len(cell) == 1
                 assert cell[0].text == 'i'
 
-                assert len(row.findall('th[@class="c_i"]')) == 1
+                cell = row.findall('th[@class="c_i"]')
+                assert len(cell) == 1
                 assert cell[0].text == 'c_i'
 
                 cell = row.findall('th[@class="c_s"]')

@@ -272,7 +272,7 @@ class _HtmlTableBase(HtmlBase):
     mime_type = 'text/html'
 
     def __init__(self, app, validator, produce_header, table_name_attr,
-                 field_name_attr, border, row_class, cell_class, header_class):
+                 field_name_attr, border, row_class, cell_class, header_cell_class):
 
         HtmlBase.__init__(self, app, validator)
 
@@ -285,13 +285,13 @@ class _HtmlTableBase(HtmlBase):
         self.__border = border
         self.row_class = row_class
         self.cell_class = cell_class
-        self.header_class = header_class
+        self.header_cell_class = header_cell_class
 
         if self.cell_class is not None and field_name_attr == 'class':
             raise Exception("Either 'cell_class' should be None or "
                             "field_name_attr should be != 'class'")
-        if self.header_class is not None and field_name_attr == 'class':
-            raise Exception("Either 'header_class' should be None or "
+        if self.header_cell_class is not None and field_name_attr == 'class':
+            raise Exception("Either 'header_cell_class' should be None or "
                             "field_name_attr should be != 'class'")
 
     @property
@@ -364,25 +364,21 @@ class _HtmlColumnTable(_HtmlTableBase):
             header_row = E.tr(**tr)
 
             th = {}
-            if self.header_class is not None:
-                th['class'] = self.header_class
+            if self.header_cell_class is not None:
+                th['class'] = self.header_cell_class
 
             if sti is None:
                 header_row.append(E.th(class_name, **th))
 
             else:
-                if self.field_name_attr is not None:
-                    for k, v in sti.items():
-                        header_row.append(E.th(k), **th)
-                else:
-                    for k, v in sti.items():
+                for k, v in sti.items():
+                    if self.field_name_attr is not None:
                         th[self.field_name_attr] = k
-                        header_name = translate(v, locale, k)
-                        header_row.append(E.th(header_name), **th)
-
+                    th[self.field_name_attr] = k
+                    header_name = translate(v.type, locale, k)
+                    header_row.append(E.th(header_name, **th))
 
             yield header_row
-
 
         if sti is None:
             if self.field_name_attr is None:
@@ -453,27 +449,19 @@ class _HtmlRowTable(_HtmlTableBase):
             td['class'] = self.cell_class
 
         th = {}
-        if self.header_class is not None:
-            th['class'] = self.header_class
+        if self.header_cell_class is not None:
+            th['class'] = self.header_cell_class
 
         class_name = first_child.get_type_name()
         if sti is None:
-            if self.field_name_attr is None:
-                if is_array:
-                    for val in value:
-                        yield E.tr(E.td(first_child_2.to_string(val)),)
-                else:
-                    yield E.tr(E.td(first_child_2.to_string(value)),)
+            if self.field_name_attr is not None:
+                td[self.field_name_attr] = class_name
 
+            if is_array:
+                for val in value:
+                    yield E.tr(E.td(first_child_2.to_string(val), **td), **tr)
             else:
-                if self.field_name_attr is not None:
-                    td[self.field_name_attr] = class_name
-
-                if is_array:
-                    for val in value:
-                        yield E.tr(E.td(first_child_2.to_string(val), **td), **tr)
-                else:
-                    yield E.tr(E.td(first_child_2.to_string(value), **td), **tr)
+                yield E.tr(E.td(first_child_2.to_string(value), **td), **tr)
 
         else:
             for k, v in sti.items():
