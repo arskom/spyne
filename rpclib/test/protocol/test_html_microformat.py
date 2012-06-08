@@ -28,12 +28,10 @@ from rpclib.application import Application
 from rpclib.decorator import srpc
 from rpclib.model.primitive import Integer
 from rpclib.model.primitive import String
-from rpclib.model.complex import Array
 from rpclib.model.complex import ComplexModel
 from rpclib.interface.wsdl import Wsdl11
 from rpclib.protocol.http import HttpRpc
 from rpclib.protocol.html import HtmlMicroFormat
-from rpclib.protocol.html import HtmlTable
 from rpclib.service import ServiceBase
 from rpclib.server.wsgi import WsgiMethodContext
 from rpclib.server.wsgi import WsgiApplication
@@ -134,6 +132,8 @@ class TestHtmlMicroFormat(unittest.TestCase):
         #
 
         elt = html.fromstring(''.join(ctx.out_string))
+        print html.tostring(elt, pretty_print=True)
+
         resp = elt.find_class('some_callResponse')
         assert len(resp) == 1
         res = resp[0].find_class('some_callResult')

@@ -46,6 +46,8 @@ from rpclib.service import ServiceBase
 
 Application.transport = 'test'
 
+def start_response(code, headers):
+    print(code, headers)
 
 class Address(ComplexModel):
     __namespace__ = "TestService"
@@ -230,9 +232,6 @@ class TestMultipleMethods(unittest.TestCase):
             def call(s):
                 data.append(s)
 
-        def start_response(code, headers):
-            print(code, headers)
-
         app = Application([Service, AuxService], 'tns', HttpRpc(), HttpRpc())
         server = WsgiApplication(app)
         server({
@@ -259,9 +258,6 @@ class TestMultipleMethods(unittest.TestCase):
             @srpc(String, _returns=String)
             def call(s):
                 data.add(s + "aux")
-
-        def start_response(code, headers):
-            print(code, headers)
 
         app = Application([Service, AuxService], 'tns', HttpRpc(), HttpRpc())
         server = WsgiApplication(app)
@@ -290,6 +286,57 @@ class TestMultipleMethods(unittest.TestCase):
             pass
         else:
             raise Exception("must fail with 'Exception: you can't mix aux and non-aux methods in a single service definition.'")
+
+    def __run_service(self, SomeService):
+        app = Application([SomeService], 'tns', HttpRpc(), Soap11())
+        server = WsgiApplication(app)
+        return_string = ''.join(server({
+            'QUERY_STRING': '',
+            'PATH_INFO': '/some_call',
+            'REQUEST_METHOD': 'GET',
+        }, start_response, "http://null"))
+
+        elt = etree.fromstring(return_string)
+        print etree.tostring(elt, pretty_print=True)
+
+        return elt, app.interface.nsmap
+
+    def test_settings_headers_from_user_code(self):
+        class RespHeader(ComplexModel):
+            __namespace__ = 'tns'
+            Elem1 = String
+
+        class SomeService(ServiceBase):
+            __out_header__ = RespHeader
+
+            @rpc()
+            def some_call(ctx):
+                ctx.out_header = RespHeader()
+                ctx.out_header.Elem1 = 'Test1'
+
+        elt, nsmap = self.__run_service(SomeService)
+        query = '/senv:Envelope/senv:Header/tns:RespHeader/tns:Elem1/text()'
+        assert elt.xpath(query, namespaces=nsmap)[0] == 'Test1'
+
+        class SomeService(ServiceBase):
+            @rpc(_out_header=RespHeader)
+            def some_call(ctx):
+                ctx.out_header = RespHeader()
+                ctx.out_header.Elem1 = 'Test1'
+
+        elt, nsmap = self.__run_service(SomeService)
+        query = '/senv:Envelope/senv:Header/tns:RespHeader/tns:Elem1/text()'
+        assert elt.xpath(query, namespaces=nsmap)[0] == 'Test1'
+
+        class SomeService(ServiceBase):
+            @rpc()
+            def some_call(ctx):
+                ctx.out_header = RespHeader()
+                ctx.out_header.Elem1 = 'Test1'
+
+        elt, nsmap = self.__run_service(SomeService)
+        query = '/senv:Envelope/senv:Header/tns:RespHeader/tns:Elem1/text()'
+        assert len(elt.xpath(query, namespaces=nsmap)) == 0
 
 if __name__ == '__main__':
     unittest.main()

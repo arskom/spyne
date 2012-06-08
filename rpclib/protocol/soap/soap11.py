@@ -262,6 +262,32 @@ class Soap11(XmlObject):
                 header_message_class = ctx.descriptor.out_header
                 body_message_class = ctx.descriptor.out_message
 
+            # body
+            ctx.out_body_doc = out_body_doc = etree.Element(
+                                                    '{%s}Body' % ns.soap_env)
+
+            # assign raw result to its wrapper, result_message
+            out_type_info = body_message_class._type_info
+            out_object = body_message_class()
+
+            keys = iter(out_type_info)
+            values = iter(ctx.out_object)
+            while True:
+                try:
+                    k = keys.next()
+                except StopIteration:
+                    break
+                try:
+                    v = values.next()
+                except StopIteration:
+                    v = None
+
+                setattr(out_object, k, v)
+
+            # transform the results into an element
+            self.to_parent_element(body_message_class, out_object,
+                                body_message_class.get_namespace(), out_body_doc)
+
             # header
             if ctx.out_header is not None:
                 if ctx.descriptor.out_header is None:
@@ -296,31 +322,7 @@ class Soap11(XmlObject):
                             header_message_class.get_type_name()
                         )
 
-            # body
-            ctx.out_body_doc = out_body_doc = etree.SubElement(ctx.out_document,
-                                                    '{%s}Body' % ns.soap_env)
-
-            # assign raw result to its wrapper, result_message
-            out_type_info = body_message_class._type_info
-            out_object = body_message_class()
-
-            keys = iter(out_type_info)
-            values = iter(ctx.out_object)
-            while True:
-                try:
-                    k = keys.next()
-                except StopIteration:
-                    break
-                try:
-                    v = values.next()
-                except StopIteration:
-                    v = None
-
-                setattr(out_object, k, v)
-
-            # transform the results into an element
-            self.to_parent_element(body_message_class, out_object,
-                                body_message_class.get_namespace(), out_body_doc)
+            ctx.out_document.append(ctx.out_body_doc)
 
         if self.log_messages:
             if message is self.REQUEST:

@@ -45,18 +45,18 @@ def translate(cls, locale, default):
         return default
     return retval
 
-def serialize_null(prot, cls, name):
+def serialize_null(prot, cls, locale, name):
     return [ E(prot.child_tag, **{prot.field_name_attr: name}) ]
 
 def nillable_value(func):
-    def wrapper(prot, cls, value, name=None):
+    def wrapper(prot, cls, value, locale, name):
         if value is None:
             if cls.Attributes.default is None:
-                return serialize_null(prot, cls, name)
+                return serialize_null(prot, cls, locale, name)
             else:
-                return func(prot, cls, cls.Attributes.default, name)
+                return func(prot, cls, cls.Attributes.default, locale, name)
         else:
-            return func(prot, cls, value, name)
+            return func(prot, cls, value, locale, name)
 
     return wrapper
 
@@ -88,9 +88,9 @@ class HtmlBase(ProtocolBase):
 
         ProtocolBase.__init__(self, app, validator, skip_depth=skip_depth)
 
-    def serialize_class(self, cls, value, name):
+    def serialize_class(self, cls, value, locale, name):
         handler = self.serialization_handlers[cls]
-        return handler(cls, value, name)
+        return handler(cls, value, locale, name)
 
     def serialize(self, ctx, message):
         """Uses ctx.out_object, ctx.out_header or ctx.out_error to set
@@ -119,7 +119,7 @@ class HtmlBase(ProtocolBase):
 
             ctx.out_header_doc = None
             ctx.out_body_doc = self.serialize_impl(result_message_class,
-                                                   result_message, ctx.locale)
+                                                result_message, ctx.locale)
 
             ctx.out_document = ctx.out_body_doc
 
@@ -199,15 +199,15 @@ class HtmlMicroFormat(HtmlBase):
         return self.__field_name_attr
 
     @nillable_value
-    def serialize_model_base(self, cls, value, locale, name='retval'):
+    def serialize_model_base(self, cls, value, locale, name):
         return [ E(self.child_tag, cls.to_string(value),
                                                 **{self.field_name_attr: name}) ]
 
     def serialize_impl(self, cls, value, locale):
-        return self.serialize_complex_model(cls, value, cls.get_type_name(), locale)
+        return self.serialize_complex_model(cls, value, locale, cls.get_type_name())
 
     @nillable_value
-    def serialize_complex_model(self, cls, value, name='retval'):
+    def serialize_complex_model(self, cls, value, locale, name):
         yield '<%s %s="%s">' % (self.root_tag, self.field_name_attr, name)
 
         if name is None:
@@ -216,7 +216,8 @@ class HtmlMicroFormat(HtmlBase):
         inst = cls.get_serialization_instance(value)
 
         for k, v in cls.get_flat_type_info(cls).items():
-            for val in self.serialize_class(v, getattr(inst, k, None), k):
+            for val in self.serialize_class(cls=v,
+                            value=getattr(inst, k, None), locale=locale, name=k):
                 yield val
 
         yield '</%s>' % self.root_tag
@@ -271,7 +272,7 @@ class _HtmlTableBase(HtmlBase):
     mime_type = 'text/html'
 
     def __init__(self, app, validator, produce_header, table_name_attr,
-                 field_name_attr, border, row_class, cell_class, header_class):
+                 field_name_attr, border, row_class, cell_class, header_cell_class):
 
         HtmlBase.__init__(self, app, validator)
 
@@ -284,13 +285,13 @@ class _HtmlTableBase(HtmlBase):
         self.__border = border
         self.row_class = row_class
         self.cell_class = cell_class
-        self.header_class = header_class
+        self.header_cell_class = header_cell_class
 
         if self.cell_class is not None and field_name_attr == 'class':
             raise Exception("Either 'cell_class' should be None or "
                             "field_name_attr should be != 'class'")
-        if self.header_class is not None and field_name_attr == 'class':
-            raise Exception("Either 'header_class' should be None or "
+        if self.header_cell_class is not None and field_name_attr == 'class':
+            raise Exception("Either 'header_cell_class' should be None or "
                             "field_name_attr should be != 'class'")
 
     @property
@@ -363,25 +364,21 @@ class _HtmlColumnTable(_HtmlTableBase):
             header_row = E.tr(**tr)
 
             th = {}
-            if self.header_class is not None:
-                th['class'] = self.header_class
+            if self.header_cell_class is not None:
+                th['class'] = self.header_cell_class
 
             if sti is None:
                 header_row.append(E.th(class_name, **th))
 
             else:
-                if self.field_name_attr is not None:
-                    for k, v in sti.items():
-                        header_row.append(E.th(k), **th)
-                else:
-                    for k, v in sti.items():
+                for k, v in sti.items():
+                    if self.field_name_attr is not None:
                         th[self.field_name_attr] = k
-                        header_name = translate(v, locale, k)
-                        header_row.append(E.th(header_name), **th)
-
+                    th[self.field_name_attr] = k
+                    header_name = translate(v.type, locale, k)
+                    header_row.append(E.th(header_name, **th))
 
             yield header_row
-
 
         if sti is None:
             if self.field_name_attr is None:
@@ -452,27 +449,19 @@ class _HtmlRowTable(_HtmlTableBase):
             td['class'] = self.cell_class
 
         th = {}
-        if self.header_class is not None:
-            th['class'] = self.header_class
+        if self.header_cell_class is not None:
+            th['class'] = self.header_cell_class
 
         class_name = first_child.get_type_name()
         if sti is None:
-            if self.field_name_attr is None:
-                if is_array:
-                    for val in value:
-                        yield E.tr(E.td(first_child_2.to_string(val)),)
-                else:
-                    yield E.tr(E.td(first_child_2.to_string(value)),)
+            if self.field_name_attr is not None:
+                td[self.field_name_attr] = class_name
 
+            if is_array:
+                for val in value:
+                    yield E.tr(E.td(first_child_2.to_string(val), **td), **tr)
             else:
-                if self.field_name_attr is not None:
-                    td[self.field_name_attr] = class_name
-
-                if is_array:
-                    for val in value:
-                        yield E.tr(E.td(first_child_2.to_string(val), **td), **tr)
-                else:
-                    yield E.tr(E.td(first_child_2.to_string(value), **td), **tr)
+                yield E.tr(E.td(first_child_2.to_string(value), **td), **tr)
 
         else:
             for k, v in sti.items():
@@ -510,12 +499,12 @@ class _HtmlRowTable(_HtmlTableBase):
                 yield row
 
 
-class _HtmlPage(object):
+class HtmlPage(object):
     """An EXPERIMENTAL protocol-ish that parses and generates a template for
     a html file.
 
     >>> open('temp.html', 'w').write('<html><body><div id="some_div" /></body></html>')
-    >>> t = _HtmlPage('temp.html')
+    >>> t = HtmlPage('temp.html')
     >>> t.some_div = "some_text"
     >>> from lxml import html
     >>> print html.tostring(t.html)
