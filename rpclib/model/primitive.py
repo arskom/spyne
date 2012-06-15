@@ -229,7 +229,6 @@ class Decimal(SimpleModel):
     """
 
     __type_name__ = 'decimal'
-    __max_str_len__ = 1024
 
     class Attributes(SimpleModel.Attributes):
         """Customizable attributes of the :class:`rpclib.model.primitive.Decimal`
@@ -246,6 +245,9 @@ class Decimal(SimpleModel):
 
         le =  float('inf') # maxInclusive
         """The value should be smaller than or equal to this number."""
+
+        max_str_len = 1024
+        """The maximum length of string to be converted to number."""
 
         format = None
         """A regular python string formatting string. See here:
@@ -282,7 +284,7 @@ class Decimal(SimpleModel):
     @classmethod
     @nillable_string
     def from_string(cls, string):
-        if cls.__max_str_len__ is not None and len(string) > cls.__max_str_len__:
+        if cls.Attributes.max_str_len is not None and len(string) > cls.Attributes.max_str_len:
             raise ValidationError(string, 'string too long.')
 
         try:
@@ -290,7 +292,7 @@ class Decimal(SimpleModel):
         except decimal.InvalidOperation, e:
             raise ValidationError(string)
 
-class Double(SimpleModel):
+class Double(Decimal):
     """This is serialized as the python float. So this type comes with its
      gotchas."""
 
@@ -299,7 +301,11 @@ class Double(SimpleModel):
     @classmethod
     @nillable_string
     def to_string(cls, value):
-        return repr(value)
+        float(value)
+        if cls.Attributes.format is None:
+            return repr(value)
+        else:
+            return cls.Attributes.format % value
 
     @classmethod
     @nillable_string
@@ -331,9 +337,10 @@ class Integer(Decimal):
     @classmethod
     @nillable_string
     def from_string(cls, string):
-        if cls.__max_str_len__ is not None and len(string) > cls.__max_str_len__:
+        if cls.Attributes.max_str_len is not None and \
+                                       len(string) > cls.Attributes.max_str_len:
             raise Fault('Client.ValidationError', 'String longer than '
-                        '%d characters.' % cls.__max_str_len__)
+                        '%d characters.' % cls.Attributes.max_str_len)
 
         try:
             return int(string)
