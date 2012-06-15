@@ -247,7 +247,7 @@ class Decimal(SimpleModel):
         """The value should be smaller than or equal to this number."""
 
         max_str_len = 1024
-        """The maximum length of string to be converted to number."""
+        """The maximum length of string to be attempted to convert to number."""
 
         format = None
         """A regular python string formatting string. See here:
@@ -325,7 +325,6 @@ class Integer(Decimal):
 
     __type_name__ = 'integer'
     __length__ = None
-    """length of the number, in bits"""
 
     @classmethod
     @nillable_string
