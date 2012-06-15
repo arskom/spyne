@@ -214,13 +214,21 @@ class String(Unicode):
 if sys.version > '3':
     String = Unicode
 
+
 # FIXME: Support this for soft validation
 class AnyUri(String):
     """A special kind of String type designed to hold an uri."""
+
     __type_name__ = 'anyURI'
 
+    class Attributes(String.Attributes):
+        text = None
+        """The text shown in link."""
+
+
 class ImageUri(AnyUri):
-    """A special kind of String that holds an uri of an image."""
+    """A special kind of String that holds the uri of an image."""
+
 
 class Decimal(SimpleModel):
     """The primitive that corresponds to the native python Decimal.
