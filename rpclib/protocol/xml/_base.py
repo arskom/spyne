@@ -216,10 +216,10 @@ class XmlObject(ProtocolBase):
             body_class = ctx.descriptor.out_message
 
         # decode method arguments
-        if ctx.in_body_doc is not None and len(ctx.in_body_doc) > 0:
-            ctx.in_object = self.from_element(body_class, ctx.in_body_doc)
-        else:
+        if ctx.in_body_doc is None:
             ctx.in_object = [None] * len(body_class._type_info)
+        else:
+            ctx.in_object = self.from_element(body_class, ctx.in_body_doc)
 
         if self.log_messages:
             if message is self.REQUEST:
