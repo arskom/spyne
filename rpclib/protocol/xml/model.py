@@ -51,9 +51,8 @@ def nillable_value(func):
 def nillable_element(func):
     def wrapper(prot, cls, element):
         if bool(element.get('{%s}nil' % _ns_xsi)):
-            if prot.validator is prot.SOFT_VALIDATION and (
-                        not cls.Attributes.nillable or
-                                    cls.Attributes._has_non_nillable_children):
+            if (prot.validator is prot.SOFT_VALIDATION and
+                        not cls.Attributes.nillable):
                 raise ValidationError('')
             else:
                 return cls.Attributes.default
