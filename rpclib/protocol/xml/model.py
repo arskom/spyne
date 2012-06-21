@@ -21,6 +21,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from lxml import etree
+from collections import defaultdict
 
 from rpclib.const.xml_ns import xsi as _ns_xsi
 from rpclib.const.xml_ns import soap_env as _ns_soap_env
@@ -178,7 +179,7 @@ def complex_from_element(prot, cls, element):
         setattr(inst, k, None)
 
     # this is for validating cls.Attributes.{min,max}_occurs
-    frequencies = {}
+    frequencies = defaultdict(int)
 
     # parse input to set incoming data to related attributes.
     for c in element:
@@ -186,9 +187,7 @@ def complex_from_element(prot, cls, element):
             continue
 
         key = c.tag.split('}')[-1]
-        freq = frequencies.get(key, 0)
-        freq += 1
-        frequencies[key] = freq
+        frequencies[key] += 1
 
         member = flat_type_info.get(key, None)
         if member is None:

@@ -91,9 +91,9 @@ class ProtocolBase(object):
     allowed_http_verbs = None
     mime_type = 'application/octet-stream'
 
-    SOFT_VALIDATION = type("soft", (object,), {})
-    REQUEST = type("request", (object,), {})
-    RESPONSE = type("response", (object,), {})
+    SOFT_VALIDATION = type("Soft", (object,), {})
+    REQUEST = type("Request", (object,), {})
+    RESPONSE = type("Response", (object,), {})
 
     def __init__(self, app=None, validator=None, mime_type=None, skip_depth=0):
         """The arguments the constructor takes are as follows:

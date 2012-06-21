@@ -61,12 +61,12 @@ def _from_soap(in_envelope_xml, xmlids=None):
                                                             ns.soap_env)
 
     header=None
-    if len(header_envelope) > 0 and len(header_envelope[0]) > 0:
+    if len(header_envelope) > 0:
         header = header_envelope[0].getchildren()
 
     body=None
     if len(body_envelope) > 0 and len(body_envelope[0]) > 0:
-        body = body_envelope[0].getchildren()[0]
+        body = body_envelope[0][0]
 
     return header, body
 
@@ -219,14 +219,13 @@ class Soap11(XmlObject):
 
                 else:
                     header_doc = ctx.in_header_doc[0]
-                    if len(header_doc) > 0:
-                        ctx.in_header = self.from_element(header_class, header_doc)
+                    ctx.in_header = self.from_element(header_class, header_doc)
 
             # decode method arguments
-            if ctx.in_body_doc is not None and len(ctx.in_body_doc) > 0:
-                ctx.in_object = self.from_element(body_class, ctx.in_body_doc)
-            else:
+            if ctx.in_body_doc is None:
                 ctx.in_object = [None] * len(body_class._type_info)
+            else:
+                ctx.in_object = self.from_element(body_class, ctx.in_body_doc)
 
         self.event_manager.fire_event('after_deserialize', ctx)
 
