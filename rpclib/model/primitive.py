@@ -345,7 +345,7 @@ class Integer(Decimal):
     @nillable_string
     def from_string(cls, string):
         if cls.Attributes.max_str_len is not None and \
-                                       len(string) > cls.Attributes.max_str_len:
+                                 len(str(string)) > cls.Attributes.max_str_len:
             raise Fault('Client.ValidationError', 'String longer than '
                         '%d characters.' % cls.Attributes.max_str_len)
 

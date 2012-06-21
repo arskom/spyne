@@ -144,7 +144,7 @@ def get_members_etree(prot, cls, inst, parent):
                 prot.to_parent_element(v, sv, cls.get_namespace(), parent, k)
 
         # Don't include empty values for non-nillable optional attributes.
-        elif subvalue is not None or (not v.Attributes.nillable or v.Attributes.min_occurs > 0):
+        elif subvalue is not None or v.Attributes.min_occurs > 0:
             prot.to_parent_element(v, subvalue, cls.get_namespace(), parent, k)
 
 
