@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="wsi-test-tools/common/xsl/report.xsl" type="text/xsl" ?>
-<report name="WS-I Basic Profile Conformance Report."    timestamp="2012-05-27T03:12:56.484"
+<report name="WS-I Basic Profile Conformance Report."    timestamp="2012-06-15T14:02:34.651"
     xmlns="http://www.ws-i.org/testing/2004/07/report/"
     xmlns:wsi-report="http://www.ws-i.org/testing/2004/07/report/"
     xmlns:wsi-log="http://www.ws-i.org/testing/2003/03/log/"
