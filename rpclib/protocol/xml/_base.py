@@ -84,7 +84,8 @@ class XmlObject(ProtocolBase):
         in the response document. Default is 'False'.
     """
 
-    SCHEMA_VALIDATION = type("schema", (object,), {})
+    SCHEMA_VALIDATION = type("Schema", (object,), {})
+
     mime_type = 'text/xml'
     allowed_http_verbs = set(['GET', 'POST'])
 
