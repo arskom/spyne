@@ -189,13 +189,12 @@ class Unicode(SimpleModel):
     @staticmethod
     def validate_string(cls, value):
         return (     SimpleModel.validate_string(cls, value)
-                and (value is None or (
-                        len(value) >= cls.Attributes.min_len and
-                        len(value) <= cls.Attributes.max_len
+            and (value is None or (
+                    len(value) >= cls.Attributes.min_len
+                and len(value) <= cls.Attributes.max_len
                 and (cls.Attributes.pattern is None or
                             re.match(cls.Attributes.pattern, value) is not None)
-            )))
-
+                )))
 
 class String(Unicode):
     @classmethod
