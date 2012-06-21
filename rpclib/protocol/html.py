@@ -35,6 +35,7 @@ from rpclib.model import ModelBase
 from rpclib.model.binary import ByteArray
 from rpclib.model.binary import Attachment
 from rpclib.model.complex import ComplexModelBase
+from rpclib.model.primitive import AnyUri
 from rpclib.model.primitive import ImageUri
 from rpclib.protocol import ProtocolBase
 from rpclib.util.cdict import cdict
@@ -478,8 +479,16 @@ class _HtmlRowTable(_HtmlTableBase):
                 else:
                     subvalue = v.type.to_string(subvalue)
 
+                    text = getattr(v.type.Attributes,'text', None)
                     if issubclass(v.type, ImageUri):
                         subvalue = E.img(src=subvalue)
+                        if text is not None:
+                            subvalue.attrib['alt']=text
+
+                    elif issubclass(v.type, AnyUri):
+                        if text is None:
+                            text = subvalue
+                        subvalue = E.a(text, href=subvalue)
 
                 if self.produce_header:
                     header_text = translate(v.type, locale, k)
