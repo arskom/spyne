@@ -61,12 +61,12 @@ def _from_soap(in_envelope_xml, xmlids=None):
                                                             ns.soap_env)
 
     header=None
-    if len(header_envelope) > 0 and len(header_envelope[0]) > 0:
+    if len(header_envelope) > 0:
         header = header_envelope[0].getchildren()
 
     body=None
     if len(body_envelope) > 0 and len(body_envelope[0]) > 0:
-        body = body_envelope[0].getchildren()[0]
+        body = body_envelope[0][0]
 
     return header, body
 
