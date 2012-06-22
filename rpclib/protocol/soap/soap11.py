@@ -76,9 +76,11 @@ def _parse_xml_string(xml_string, charset=None):
     else:
         string = ''.join(xml_string)
 
+    parser = etree.XMLParser(remove_comments=True)
+
     try:
         try:
-            root, xmlids = etree.XMLID(string)
+            root, xmlids = etree.XMLID(string, parser)
 
         except XMLSyntaxError, e:
             logger.error(string)
@@ -87,7 +89,7 @@ def _parse_xml_string(xml_string, charset=None):
     except ValueError, e:
         logger.debug('%r -- falling back to str decoding.' % (e))
         try:
-            root, xmlids = etree.XMLID(string.encode(charset))
+            root, xmlids = etree.XMLID(string.encode(charset), parser)
         except XMLSyntaxError, e:
             logger.error(string)
             raise Fault('Client.XMLSyntaxError', str(e))
