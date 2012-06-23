@@ -38,22 +38,22 @@ import logging
 # You can install it by running easy_install py-bcrypt.
 import bcrypt
 
-from rpclib.model.complex import ComplexModel
-from rpclib.model.fault import Fault
-from rpclib.decorator import srpc
-from rpclib.error import ArgumentError
-from rpclib.protocol.soap import Soap11
-from rpclib.interface.wsdl import Wsdl11
-from rpclib.model.primitive import Mandatory
-from rpclib.model.primitive import String
-from rpclib.service import ServiceBase
-from rpclib.server.wsgi import WsgiApplication
-from rpclib.application import Application
+from spyne.model.complex import ComplexModel
+from spyne.model.fault import Fault
+from spyne.decorator import srpc
+from spyne.error import ArgumentError
+from spyne.protocol.soap import Soap11
+from spyne.interface.wsdl import Wsdl11
+from spyne.model.primitive import Mandatory
+from spyne.model.primitive import String
+from spyne.service import ServiceBase
+from spyne.server.wsgi import WsgiApplication
+from spyne.application import Application
 
 
 class PublicKeyError(Fault):
     __type_name__ = 'KeyError'
-    __namespace__ = 'rpclib.examples.authentication'
+    __namespace__ = 'spyne.examples.authentication'
 
     def __init__(self, value):
         Fault.__init__(self,
@@ -63,7 +63,7 @@ class PublicKeyError(Fault):
 
 
 class AuthenticationError(Fault):
-    __namespace__ = 'rpclib.examples.authentication'
+    __namespace__ = 'spyne.examples.authentication'
 
     def __init__(self, user_name):
         # TODO: self.transport.http.resp_code = HTTP_401
@@ -75,7 +75,7 @@ class AuthenticationError(Fault):
 
 
 class AuthorizationError(Fault):
-    __namespace__ = 'rpclib.examples.authentication'
+    __namespace__ = 'spyne.examples.authentication'
 
     def __init__(self):
         # TODO: self.transport.http.resp_code = HTTP_401
@@ -86,7 +86,7 @@ class AuthorizationError(Fault):
             )
 
 
-class RpclibDict(dict):
+class SpyneDict(dict):
     def __getitem__(self, key):
         try:
             return dict.__getitem__(self, key)
@@ -95,7 +95,7 @@ class RpclibDict(dict):
 
 
 class RequestHeader(ComplexModel):
-    __namespace__ = 'rpclib.examples.authentication'
+    __namespace__ = 'spyne.examples.authentication'
 
     session_id = Mandatory.String
     user_name = Mandatory.String
@@ -103,7 +103,7 @@ class RequestHeader(ComplexModel):
 
 
 class Preferences(ComplexModel):
-    __namespace__ = 'rpclib.examples.authentication'
+    __namespace__ = 'spyne.examples.authentication'
 
     language = String(max_len=2)
     time_zone = String
@@ -115,14 +115,14 @@ user_db = {
 
 session_db = set()
 
-preferences_db = RpclibDict({
+preferences_db = SpyneDict({
     'neo': Preferences(language='en', time_zone='Underground/Zion'),
     'smith': Preferences(language='xx', time_zone='Matrix/Core'),
 })
 
 
 class AuthenticationService(ServiceBase):
-    __tns__ = 'rpclib.examples.authentication'
+    __tns__ = 'spyne.examples.authentication'
 
     @srpc(Mandatory.String, Mandatory.String, _returns=String,
                                                     _throws=AuthenticationError)
@@ -141,7 +141,7 @@ class AuthenticationService(ServiceBase):
         return session_id[1]
 
 class UserService(ServiceBase):
-    __tns__ = 'rpclib.examples.authentication'
+    __tns__ = 'spyne.examples.authentication'
     __in_header__ = RequestHeader
 
     @srpc(Mandatory.String, _throws=PublicKeyError, _returns=Preferences)
@@ -162,14 +162,14 @@ def _on_method_call(ctx):
 UserService.event_manager.add_listener('method_call', _on_method_call)
 
 if __name__=='__main__':
-    from rpclib.util.wsgi_wrapper import run_twisted
+    from spyne.util.wsgi_wrapper import run_twisted
 
     logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('rpclib.protocol.xml').setLevel(logging.DEBUG)
+    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
     logging.getLogger('twisted').setLevel(logging.DEBUG)
 
     application = Application([AuthenticationService,UserService],
-        tns='rpclib.examples.authentication',
+        tns='spyne.examples.authentication',
         interface=Wsdl11(),
         in_protocol=Soap11(validator='lxml'),
         out_protocol=Soap11()

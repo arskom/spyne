@@ -2,58 +2,58 @@
 Models
 ======
 
-In rpclib, models are used to mark how a certain message fragment will be
+In spyne, models are used to mark how a certain message fragment will be
 converted to and from its native python format. It also holds validation
 information, and holds actually THE information interface document standards
 like WSDL are designed to exposed.
 
-Rpclib's has built-in support most common data types and provides an API to
+Spyne's has built-in support most common data types and provides an API to
 those who'd like to implement their own.
 
 Base Classes
 ------------
 
-.. automodule:: rpclib.model
+.. automodule:: spyne.model
    :members:
    :show-inheritance:
 
 
-.. automodule:: rpclib.model._base
+.. automodule:: spyne.model._base
    :members:
    :show-inheritance:
 
 Binary
 ------
 
-.. automodule:: rpclib.model.binary
+.. automodule:: spyne.model.binary
    :members:
    :show-inheritance:
 
 Complex
 -------
 
-.. automodule:: rpclib.model.complex
+.. automodule:: spyne.model.complex
    :members:
    :show-inheritance:
 
 Enum
 ----
 
-.. automodule:: rpclib.model.enum
+.. automodule:: spyne.model.enum
    :members:
    :show-inheritance:
 
 Fault
 -----
 
-.. automodule:: rpclib.model.fault
+.. automodule:: spyne.model.fault
    :members:
    :show-inheritance:
 
 Primitives
 ----------
 
-.. automodule:: rpclib.model.primitive
+.. automodule:: spyne.model.primitive
    :members:
    :show-inheritance:
    :inherited-members:
@@ -61,6 +61,6 @@ Primitives
 SQL Table
 ---------
 
-.. automodule:: rpclib.model.table
+.. automodule:: spyne.model.table
    :members:
    :show-inheritance:

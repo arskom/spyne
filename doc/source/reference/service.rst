@@ -2,7 +2,7 @@
 Service Definition
 ==================
 
-.. automodule:: rpclib.service
+.. automodule:: spyne.service
     :members:
     :inherited-members:
 

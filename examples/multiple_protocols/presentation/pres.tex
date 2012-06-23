@@ -20,7 +20,7 @@
   emph={Soap11,XmlObject,HtmlMicroFormat},emphstyle=\color{red}\textbf
 }
 
-\title{A Quick Look At Rpclib}
+\title{A Quick Look At Spyne}
 \author{Burak Arslan \\ \small burak at arskom \small{dot} com \small{dot} tr}
 \usepackage{wasysym}
 
@@ -43,12 +43,12 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{What is Rpclib?}
+  \frametitle{What is Spyne?}
 
   \LARGE
   \begin{center}
 
-    Rpclib makes it convenient to
+    Spyne makes it convenient to
 
     \bigskip
 
@@ -85,7 +85,7 @@
 
 
 \begin{frame}
-  \frametitle{What is Rpclib?}
+  \frametitle{What is Spyne?}
 
   \LARGE
   \begin{center}
@@ -160,9 +160,9 @@
 \begin{frame}[fragile]
 \begin{uncoverenv}<2->
   \begin{lstlisting}[frame=none]
-from rpclib.model.primitive import DateTime
-from rpclib.decorator import srpc
-from rpclib.service import ServiceBase
+from spyne.model.primitive import DateTime
+from spyne.decorator import srpc
+from spyne.service import ServiceBase
   \end{lstlisting}
 \end{uncoverenv}
 \begin{uncoverenv}<3->
@@ -205,8 +205,8 @@ class DateTimeService(ServiceBase):
 \begin{uncoverenv}<2->
   \vspace{-13pt}
   \begin{lstlisting}[frame=none]
-from rpclib.application import Application
-from rpclib.protocol.http import HttpRpc
+from spyne.application import Application
+from spyne.protocol.http import HttpRpc
   \end{lstlisting}
 \end{uncoverenv}
 \begin{uncoverenv}<2->
@@ -223,7 +223,7 @@ httprpc = Application(
 \begin{uncoverenv}<3->
   \vspace{-13pt}
   \begin{lstlisting}[frame=none]
-        tns='rpclib.examples.multiprot',
+        tns='spyne.examples.multiprot',
   \end{lstlisting}
 \end{uncoverenv}
 \begin{uncoverenv}<4->
@@ -253,7 +253,7 @@ httprpc = Application(
 
 \begin{frame}[fragile]
  \begin{lstlisting}
-from rpclib.server.wsgi import WsgiApplication
+from spyne.server.wsgi import WsgiApplication
 
 application = WsgiApplication(httprpc)
  \end{lstlisting}
@@ -291,12 +291,12 @@ $ curl http://localhost:9910/get_utc_time
   \frametitle{For example: SOAP}
 
   \begin{lstlisting}
-from rpclib.application import Application
-from rpclib.protocol.http import HttpRpc
-from rpclib.protocol.soap import Soap11
+from spyne.application import Application
+from spyne.protocol.http import HttpRpc
+from spyne.protocol.soap import Soap11
 
 soap = Application([DateTimeService],
-        tns='rpclib.examples.multiprot',
+        tns='spyne.examples.multiprot',
         in_protocol=HttpRpc(),
         out_protocol=Soap11()
     )
@@ -314,7 +314,7 @@ $ curl http://localhost:9910/get_utc_time \
   \begin{lstlisting}[language=xml,frame=bottomline]
   <?xml version='1.0' encoding='utf-8'?>
   <senv:Envelope xmlns:wsa="http://schemas.xmlsoap.org/ws/2003/03/addressing"
-  xmlns:tns="rpclib.examples.multiple_protocols"
+  xmlns:tns="spyne.examples.multiple_protocols"
   xmlns:plink="http://schemas.xmlsoap.org/ws/2003/05/partner-link/"
   xmlns:xop="http://www.w3.org/2004/08/xop/include"
   xmlns:senc="http://schemas.xmlsoap.org/soap/encoding/"
@@ -340,12 +340,12 @@ $ curl http://localhost:9910/get_utc_time \
   \frametitle{Or, just XML:}
 
   \begin{lstlisting}
-from rpclib.application import Application
-from rpclib.protocol.http import HttpRpc
-from rpclib.protocol.xml import XmlObject
+from spyne.application import Application
+from spyne.protocol.http import HttpRpc
+from spyne.protocol.xml import XmlObject
 
 xml = Application([DateTimeService],
-        tns='rpclib.examples.multiprot',
+        tns='spyne.examples.multiprot',
         in_protocol=HttpRpc(),
         out_protocol=XmlObject()
     )
@@ -364,7 +364,7 @@ $ curl http://localhost:9910/get_utc_time \
   \begin{lstlisting}[language=xml,frame=bottomline]
 <?xml version='1.0' encoding='utf-8'?>
 <ns0:get_utc_timeResponse
-xmlns:ns0="rpclib.examples.multiple_protocols">
+xmlns:ns0="spyne.examples.multiple_protocols">
   <ns0:get_utc_timeResult>
     2012-03-06T17:49:08.922501
   </ns0:get_utc_timeResult>
@@ -376,12 +376,12 @@ xmlns:ns0="rpclib.examples.multiple_protocols">
   \frametitle{Or, HTML:}
 
   \begin{lstlisting}
-from rpclib.application import Application
-from rpclib.protocol.http import HttpRpc
-from rpclib.protocol.xml import HtmlMicroFormat
+from spyne.application import Application
+from spyne.protocol.http import HttpRpc
+from spyne.protocol.xml import HtmlMicroFormat
 
 html = Application([DateTimeService],
-        tns='rpclib.examples.multiprot',
+        tns='spyne.examples.multiprot',
         in_protocol=HttpRpc(),
         out_protocol=HtmlMicroFormat()
     )
@@ -416,7 +416,7 @@ $ curl http://localhost:9910/get_utc_time \
 \begin{frame}
   \LARGE
   \begin{center}
-    Rpclib also makes it easy to implement
+    Spyne also makes it easy to implement
 
     \bigskip
 
@@ -463,7 +463,7 @@ $ curl http://localhost:9910/get_utc_time \
   \small
   \begin{lstlisting}[frame=none]
 from lxml import etree
-from rpclib.protocol import ProtocolBase
+from spyne.protocol import ProtocolBase
 
 class SvgClock(ProtocolBase):
   mime_type = 'image/svg+xml'
@@ -500,10 +500,10 @@ class SvgClock(ProtocolBase):
 \begin{frame}[fragile]
 \frametitle{The custom SVG protocol:}
 \begin{lstlisting}[emph={SvgClock}]
-from rpclib.application import Application
+from spyne.application import Application
 
 svg = Application([DateTimeService],
-        tns='rpclib.examples.multiprot',
+        tns='spyne.examples.multiprot',
         in_protocol=HttpRpc(),
         out_protocol=SvgClock()
     )
@@ -584,11 +584,11 @@ class NameOfMonthService(ServiceBase):
   \bigskip
 
   \begin{lstlisting}[emph=validator]
-from rpclib.application import Application
-from rpclib.protocol.http import HttpRpc
+from spyne.application import Application
+from spyne.protocol.http import HttpRpc
 
 rest = Application([NameOfMonthService],
-        tns='rpclib.examples.multiprot',
+        tns='spyne.examples.multiprot',
         in_protocol=HttpRpc(validator='soft'),
         out_protocol=HttpRpc()
     )
@@ -652,16 +652,16 @@ The string '13' could not be validated
   \begin{center}
   \huge
 
-  \href{http://github.com/arskom/rpclib}{github.com/arskom/rpclib}
+  \href{http://github.com/arskom/spyne}{github.com/arskom/spyne}
 
   \bigskip
 
   \large
 
   This example and the presentation are in:
-  \href{https://github.com/arskom/rpclib/tree/master/examples/multiple_protocols}{examples/multiple\_protocols}
+  \href{https://github.com/arskom/spyne/tree/master/examples/multiple_protocols}{examples/multiple\_protocols}
 
-  \href{https://github.com/arskom/rpclib/tree/master/examples/validation.py}{examples/validation.py}
+  \href{https://github.com/arskom/spyne/tree/master/examples/validation.py}{examples/validation.py}
 
   \bigskip
 

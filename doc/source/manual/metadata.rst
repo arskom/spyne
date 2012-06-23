@@ -9,12 +9,12 @@ so, we recommended you to read it first.
 
 In most of the real-world scenarios, an rpc request comes with additional
 baggage like authentication headers, routing history, and similar information.
-Rpclib comes with rich mechanisms that lets you deal with both protocol and
+Spyne comes with rich mechanisms that lets you deal with both protocol and
 transport metadata.
 
 At the protocol level, the input and the output of the rpc function itself
 are kept in ``ctx.in_object`` and ``ctx.out_object`` attributes of the
-:class:`rpclib.MethodContext` whereas the protocol metadata reside in
+:class:`spyne.MethodContext` whereas the protocol metadata reside in
 ``ctx.in_header`` and ``ctx.out_header`` attributes.
 
 You can set values to the header attributes in the function bodies or events.
@@ -22,11 +22,11 @@ You just need to heed the order the events are fired, so that you don't
 overwrite data.
 
 If you want to use headers in a function, you must denote it either in the
-decorator or the :class:`rpclib.service.ServiceBase` child that you use to
+decorator or the :class:`spyne.service.ServiceBase` child that you use to
 expose your functions.
 
 A full example using most of the available metadata functionality is available
-here: https://github.com/plq/rpclib/blob/master/examples/authenticate/server_soap.py
+here: https://github.com/plq/spyne/blob/master/examples/authenticate/server_soap.py
 
 Protocol Headers
 ----------------
@@ -47,7 +47,7 @@ service definition: ::
     preferences_db = {}
 
     class UserService(ServiceBase):
-        __tns__ = 'rpclib.examples.authentication'
+        __tns__ = 'spyne.examples.authentication'
         __in_header__ = RequestHeader
 
         @rpc(_returns=Preferences)
@@ -73,15 +73,15 @@ Transport Headers
 There is currently no general transport header api -- transport-specific apis
 should be used for setting headers.
 
-:class:`rpclib.server.wsgi.WsgiApplication`:
+:class:`spyne.server.wsgi.WsgiApplication`:
     The ``ctx.transport.resp_headers`` attribute is a dict made of header/value
     pairs, both strings.
 
 Exceptions
 ----------
 
-The base class for public exceptions in rpclib is
-:class:`rpclib.model.fault.Fault`. The Fault object adheres to the
+The base class for public exceptions in spyne is
+:class:`spyne.model.fault.Fault`. The Fault object adheres to the
 `SOAP 1.1 Fault definition <http://www.w3.org/TR/2000/NOTE-SOAP-20000508/#_Toc478383507>`_,
 which has three main attributes:
 
@@ -93,7 +93,7 @@ which has three main attributes:
        Protocol implementors should heed the values in ``faultcode`` to set
        proper return codes in the protocol level when necessary. E.g. HttpRpc
        protocol will return a HTTP 404 error when a
-       :class:`rpclib.error.ResourceNotFound` is raised, and a general HTTP 400
+       :class:`spyne.error.ResourceNotFound` is raised, and a general HTTP 400
        when the ``faultcode`` starts with 'Client.'.
     #. ``faultstring``: is the human-readable explanation of the exception.
     #. ``detail``: is the additional information as a valid xml document.
@@ -102,7 +102,7 @@ Here's how you define your own public exceptions: ::
 
     class PublicKeyError(Fault):
         __type_name__ = 'KeyError'
-        __namespace__ = 'rpclib.examples.authentication'
+        __namespace__ = 'spyne.examples.authentication'
 
         def __init__(self, value):
             Fault.__init__(self,
@@ -112,7 +112,7 @@ Here's how you define your own public exceptions: ::
 
 Let's modify the python dict to throw our own exception class: ::
 
-    class RpclibDict(dict):
+    class SpyneDict(dict):
         def __getitem__(self, key):
             try:
                 return dict.__getitem__(self, key)
@@ -121,10 +121,10 @@ Let's modify the python dict to throw our own exception class: ::
 
 We can now modify the decorator to expose the exception this service can throw: ::
 
-    preferences_db = RpclibDict()
+    preferences_db = SpyneDict()
 
     class UserService(ServiceBase):
-        __tns__ = 'rpclib.examples.authentication'
+        __tns__ = 'spyne.examples.authentication'
         __in_header__ = RequestHeader
 
         @rpc(_throws=PublicKeyError, _returns=Preferences)
@@ -141,7 +141,7 @@ languages like Java where exceptions are kept on a short leash.
 What's next?
 ^^^^^^^^^^^^
 
-With this document, you know most of what rpclib has to offer for application
+With this document, you know most of what spyne has to offer for application
 programmers. You can refer to the :ref:`manual-t-and-p` section if you want to
 implement your own transports and protocols.
 

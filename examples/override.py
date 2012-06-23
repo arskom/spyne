@@ -29,14 +29,14 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from rpclib.application import Application
-from rpclib.decorator import srpc
-from rpclib.interface.wsdl import Wsdl11
-from rpclib.protocol.soap import Soap11
-from rpclib.service import ServiceBase
-from rpclib.model.primitive import String
-from rpclib.model.complex import ComplexModel
-from rpclib.server.wsgi import WsgiApplication
+from spyne.application import Application
+from spyne.decorator import srpc
+from spyne.interface.wsdl import Wsdl11
+from spyne.protocol.soap import Soap11
+from spyne.service import ServiceBase
+from spyne.model.primitive import String
+from spyne.model.complex import ComplexModel
+from spyne.server.wsgi import WsgiApplication
 
 '''
 This example shows how to override the variable names for fun and profit.
@@ -65,7 +65,7 @@ if __name__=='__main__':
     except ImportError:
         print("Error: example server code requires Python >= 2.5")
 
-    application = Application([EmailManager], 'rpclib.examples.events',
+    application = Application([EmailManager], 'spyne.examples.events',
                 interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
 
     server = make_server('127.0.0.1', 7789, WsgiApplication(application))

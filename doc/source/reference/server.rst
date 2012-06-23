@@ -5,14 +5,14 @@ Server Transports
 Server Base Class
 -----------------
 
-.. automodule:: rpclib.server._base
+.. automodule:: spyne.server._base
     :members:
     :inherited-members:
 
 HTTP (WSGI)
 -----------
 
-.. automodule:: rpclib.server.wsgi
+.. automodule:: spyne.server.wsgi
     :members:
     :inherited-members:
     :undoc-members:
@@ -20,7 +20,7 @@ HTTP (WSGI)
 ZeroMQ
 ------
 
-.. automodule:: rpclib.server.zeromq
+.. automodule:: spyne.server.zeromq
     :members:
     :inherited-members:
     :undoc-members:
@@ -28,7 +28,7 @@ ZeroMQ
 NullServer
 ----------
 
-.. automodule:: rpclib.server.null
+.. automodule:: spyne.server.null
     :members:
     :inherited-members:
     :undoc-members:

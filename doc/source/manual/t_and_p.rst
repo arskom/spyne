@@ -9,7 +9,7 @@ Some preliminary information would be handy before delving into details:
 How Exactly is User Code Wrapped?
 ---------------------------------
 
-Here's what happens when a request arrives to an Rpclib server:
+Here's what happens when a request arrives to an Spyne server:
 
 The server transport decides whether this is a simple interface document request
 or a remote procedure call request. Every transport has its own way of dealing
@@ -19,16 +19,16 @@ If the incoming request was for the interface document, it's easy: The interface
 document needs to be generated and returned as a nice chunk of string to the
 client.
 The server transport first calls
-:func:`rpclib.interface._base.InterfaceBase.build_interface_document`
+:func:`spyne.interface._base.InterfaceBase.build_interface_document`
 which builds and caches the document and later calls the
-:func:`rpclib.interface._base.InterfaceBase.get_interface_document` that returns
+:func:`spyne.interface._base.InterfaceBase.get_interface_document` that returns
 the cached document.
 
 If it was an RPC request, here's what happens:
 
 #. The server must set the ``ctx.in_string`` attribute to an iterable of
    strings. This will contain the incoming byte stream.
-#. The server calls the :class:`rpclib.server._base.ServerBase.get_in_object` function
+#. The server calls the :class:`spyne.server._base.ServerBase.get_in_object` function
    from its parent class.
 #. The server then calls the ``create_in_document``,
    ``decompose_incoming_envelope``
@@ -39,16 +39,16 @@ If it was an RPC request, here's what happens:
    the native python representation by the third call.
 #. Once the protocol performs its voodoo, the server calls ``get_out_object``
    which in turn calls the
-   :func:`rpclib.application.Application.process_request`
+   :func:`spyne.application.Application.process_request`
    function.
 #. The ``process_request`` function fires relevant events and calls the
-   :func:`rpclib.application.Application.call_wrapper` function.
+   :func:`spyne.application.Application.call_wrapper` function.
    This function is overridable by user, but the overriding function must call
-   the one in :class:`rpclib.application.Application`.
+   the one in :class:`spyne.application.Application`.
 #. The ``call_wrapper`` function in
-   turn calls the :func:`rpclib.service.ServiceBase.call_wrapper` function,
+   turn calls the :func:`spyne.service.ServiceBase.call_wrapper` function,
    which has has the same requirements.
-#. The :func:`rpclib.service.ServiceBase.call_wrapper` finally calls the user
+#. The :func:`spyne.service.ServiceBase.call_wrapper` finally calls the user
    function, and the value is returned to ``process_request`` call, which sets
    the return value to ``ctx.out_object``.
 #. The server object now calls the ``get_out_string`` function to put the
@@ -66,7 +66,7 @@ A Transport Example: A DB-Backed Fan-Out Queue
 -----------------------------------------------
 
 Here's the source code in one file:
-https://github.com/arskom/rpclib/blob/master/examples/queue.py
+https://github.com/arskom/spyne/blob/master/examples/queue.py
 
 The following block of code is SQLAlchemy
 boilerplate for creating the database and other related machinery. Under normal
@@ -99,7 +99,7 @@ is stored. Workers are identified by an integer. ::
         task_id = Column(sqlalchemy.Integer, ForeignKey(TaskQueue.id),
                                                                  nullable=False)
 
-The consumer is a :class:`rpclib.server._base.ServerBase` child that receives
+The consumer is a :class:`spyne.server._base.ServerBase` child that receives
 requests by polling the database.
 
 The transport is for displaying it in the Wsdl. While it's irrelevant here, it's
@@ -143,7 +143,7 @@ Which is used to get the next tasks to process: ::
                         .filter(TaskQueue.id > last.task_id) \
                         .order_by(TaskQueue.id)
 
-Each task is an rpc request, so we create a :class:`rpclib.MethodContext`
+Each task is an rpc request, so we create a :class:`spyne.MethodContext`
 instance for each task and set transport-specific data to the ``ctx.transport``
 object: ::
 
@@ -198,11 +198,11 @@ time before polling the database for new tasks: ::
             time.sleep(10)
 
 This concludes the worker implementation. But how do we put tasks in the task
-queue? That's the job of the ``Producer`` class that is implemented as an Rpclib
+queue? That's the job of the ``Producer`` class that is implemented as an Spyne
 client.
 
 Implementing clients is a two-stage operation. The main transport logic is in
-the :class:`rpclib.client.RemoteProcedureBase` child that is a native Python
+the :class:`spyne.client.RemoteProcedureBase` child that is a native Python
 callable whose function is to serialize the arguments, send it to the server,
 receive the reply, deserialize it and pass the return value to the python
 caller. However, in our case, the client does not return anything as calls are
@@ -218,7 +218,7 @@ connection factory: ::
             self.Session = sessionmaker(bind=db)
 
 The implementation of the client is much simpler because we trust that the
-Rpclib code will do The Right Thing. Here, we serialize the arguments: ::
+Spyne code will do The Right Thing. Here, we serialize the arguments: ::
 
         def __call__(self, *args, **kwargs):
             session = self.Session()
@@ -273,7 +273,7 @@ creating the necessary sql tables: ::
 
 We then initialize our application: ::
 
-        application = Application([AsyncService], 'rpclib.async',
+        application = Application([AsyncService], 'spyne.async',
                 interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
 
 And queue some tasks: ::

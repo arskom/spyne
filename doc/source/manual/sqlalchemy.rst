@@ -7,17 +7,17 @@ SQLAlchemy Integration
 This tutorial builds on the :ref:`manual-user-manager` tutorial. If you haven't
 done so, we recommended you to read it first.
 
-In this tutorial, we talk about using Rpclib tools that make it easy to deal with
-database-related operations. We will show how to integrate SQLAlchemy and Rpclib
-object definitions, and how to do painless transaction management using Rpclib events.
+In this tutorial, we talk about using Spyne tools that make it easy to deal with
+database-related operations. We will show how to integrate SQLAlchemy and Spyne
+object definitions, and how to do painless transaction management using Spyne events.
 
-The full example is available here: http://github.com/arskom/rpclib/blob/master/examples/user_manager/server_sqlalchemy.py
+The full example is available here: http://github.com/arskom/spyne/blob/master/examples/user_manager/server_sqlalchemy.py
 
 ::
 
     import logging
     logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('rpclib.protocol.xml').setLevel(logging.DEBUG)
+    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
     logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
 
     import sqlalchemy
@@ -29,15 +29,15 @@ The full example is available here: http://github.com/arskom/rpclib/blob/master/
     from sqlalchemy import MetaData
     from sqlalchemy import Column
 
-    from rpclib.application import Application
-    from rpclib.decorator import rpc
-    from rpclib.interface.wsdl import Wsdl11
-    from rpclib.protocol.soap import Soap11
-    from rpclib.model.complex import Iterable
-    from rpclib.model.primitive import Integer
-    from rpclib.model.table import TableSerializer
-    from rpclib.server.wsgi import WsgiApplication
-    from rpclib.service import ServiceBase
+    from spyne.application import Application
+    from spyne.decorator import rpc
+    from spyne.interface.wsdl import Wsdl11
+    from spyne.protocol.soap import Soap11
+    from spyne.model.complex import Iterable
+    from spyne.model.primitive import Integer
+    from spyne.model.table import TableSerializer
+    from spyne.server.wsgi import WsgiApplication
+    from spyne.service import ServiceBase
 
     _user_database = create_engine('sqlite:///:memory:')
     metadata = MetaData(bind=_user_database)
@@ -45,8 +45,8 @@ The full example is available here: http://github.com/arskom/rpclib/blob/master/
     Session = sessionmaker(bind=_user_database)
 
     class User(TableSerializer, DeclarativeBase):
-        __namespace__ = 'rpclib.examples.user_manager'
-        __tablename__ = 'rpclib_user'
+        __namespace__ = 'spyne.examples.user_manager'
+        __tablename__ = 'spyne_user'
 
         user_id = Column(sqlalchemy.Integer, primary_key=True)
         user_name = Column(sqlalchemy.String(256))
@@ -56,7 +56,7 @@ The full example is available here: http://github.com/arskom/rpclib/blob/master/
     # this is the same as the above user object. Use this method of declaring
     # objects for tables that have to be defined elsewhere.
     class AlternativeUser(TableSerializer, DeclarativeBase):
-        __namespace__ = 'rpclib.examples.user_manager'
+        __namespace__ = 'spyne.examples.user_manager'
         __table__ = User.__table__
 
     class UserManagerService(ServiceBase):
@@ -98,7 +98,7 @@ The full example is available here: http://github.com/arskom/rpclib/blob/master/
         # the client in case the commit fails.
         ctx.udc.session.commit()
 
-    application = Application([UserManagerService], 'rpclib.examples.user_manager',
+    application = Application([UserManagerService], 'spyne.examples.user_manager',
                 interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
 
     application.event_manager.add_listener('method_call', _on_method_call)
@@ -123,20 +123,20 @@ Again, focusing on what's different from previous :ref:`manual-user-manager`
 example: ::
 
     class User(TableModel, DeclarativeBase):
-        __namespace__ = 'rpclib.examples.user_manager'
-        __tablename__ = 'rpclib_user'
+        __namespace__ = 'spyne.examples.user_manager'
+        __tablename__ = 'spyne_user'
 
         user_id = Column(sqlalchemy.Integer, primary_key=True)
         user_name = Column(sqlalchemy.String(256))
         first_name = Column(sqlalchemy.String(256))
         last_name = Column(sqlalchemy.String(256))
 
-Defined this way, SQLAlchemy objects are regular Rpclib objects that can be used
-anywhere the regular Rpclib types go. The definition for the `User` object is
+Defined this way, SQLAlchemy objects are regular Spyne objects that can be used
+anywhere the regular Spyne types go. The definition for the `User` object is
 quite similar to vanilla SQLAlchemy declarative syntax, save for two elements:
 
-    #. The object also bases on :class:`rpclib.model.table.TableModel`, which
-       bridges SQLAlchemy and Rpclib types.
+    #. The object also bases on :class:`spyne.model.table.TableModel`, which
+       bridges SQLAlchemy and Spyne types.
     #. It has a namespace declaration, which is just so the service looks good
        on wsdl.
 
@@ -147,13 +147,13 @@ The SQLAlchemy integration is far from perfect at the moment:
     * Object attributes defined by mechanisms other than Column and a limited
       form of `relationship` (no string arguments) are not supported.
 
-If you need any of the above features, you need to separate the rpclib and
+If you need any of the above features, you need to separate the spyne and
 sqlalchemy object definitions.
 
-Rpclib makes it easy to an extent with the following syntax: ::
+Spyne makes it easy to an extent with the following syntax: ::
 
     class AlternativeUser(TableSerializer, DeclarativeBase):
-        __namespace__ = 'rpclib.examples.user_manager'
+        __namespace__ = 'spyne.examples.user_manager'
         __table__ = User.__table__
 
 Here, The AlternativeUser object is automatically populated using columns from

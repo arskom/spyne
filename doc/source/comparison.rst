@@ -15,22 +15,22 @@ Ladon
 -----
 
 The Ladon project has almost the same goals and same approach to the rpc-related
-issues as rpclib.
+issues as spyne.
 
 Discussion thread: https://answers.launchpad.net/ladon/+question/171664
 
-* Supports JsonWSP protocol, which rpclib does not support.
+* Supports JsonWSP protocol, which spyne does not support.
     The main motive for designing JSON-WSP was the need for a JSON-based RPC
     protocol with a service description specification with built-in service /
     method documentation.
 * Supports both Python 2 and Python 3.
 * Auto-generates human-readable API documentation.
-  (example: http://ladonize.org/python-demos/AlbumService) In Rpclib, you need
+  (example: http://ladonize.org/python-demos/AlbumService) In Spyne, you need
   to do with the ugliness of a raw wsdl document.
 * Does not support ZeroMQ.
 * Uses standard python tools for xml parsing which is good for pure-python
-  deployments. Rpclib uses lxml, due to its excellent namespace support and
-  speed. So Rpclib-based solutions are easier to develop and faster to work with
+  deployments. Spyne uses lxml, due to its excellent namespace support and
+  speed. So Spyne-based solutions are easier to develop and faster to work with
   but more difficult to deploy.
 * Does not do input validation for SOAP.
 * Does not support events.
@@ -38,8 +38,8 @@ Discussion thread: https://answers.launchpad.net/ladon/+question/171664
 * Does not have a Soap client.
     In fact, Ladon is pure server-side software - the whole idea of supporting a
     standard protocol like SOAP is that clients are already out there.
-* Rpclib uses own classes for denoting types, whereas ladon uses Python
-  callables. This lets ladon api to be simpler, but gives the rpclib api the
+* Spyne uses own classes for denoting types, whereas ladon uses Python
+  callables. This lets ladon api to be simpler, but gives the spyne api the
   power to have declarative restrictions on input types.
 * Does not test against ws-i.org deliverables for testing soap compatibility.
 * Does not support parsing and/or modifying protocol & transport headers.
@@ -89,9 +89,9 @@ Suds
 
 * Soap 1.1 / Wsdl 1.1 Client only.
 * Excellent wsdl parser, very easy to use.
-* Recommended way to interface with rpclib services.
+* Recommended way to interface with spyne services.
 * Uses own pure-python xml implementation, so it's roughly 10 times slower
-  than rpclib.
+  than spyne.
 * Only depends on pure-python solutions, so much easier to deploy.
 
 ZSI

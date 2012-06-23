@@ -1,2 +1,2 @@
 
-.. include:: ../../src/rpclib/test/README.rst
+.. include:: ../../src/spyne/test/README.rst

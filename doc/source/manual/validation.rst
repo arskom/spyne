@@ -16,7 +16,7 @@ XML schema
     such rules are enforced by *lxml*, the underlying XML parsing library
 
 "Soft" level
-    *rpclib* itself can apply additional checks after the data were validated by
+    *spyne* itself can apply additional checks after the data were validated by
     the layer underneath
 
 The differences between them are:
@@ -25,7 +25,7 @@ The differences between them are:
   them.
 - Soft validation doesn't care about namespaces, while *lxml* validation
   rejects unexpected namespaces.
-- Soft validation works with any transport protocol supported by *rpclib*,
+- Soft validation works with any transport protocol supported by *spyne*,
   while *lxml* validation only works for XML data (i.e. just SOAP/XML).
 
 ============================== ======== =========
@@ -45,14 +45,14 @@ Supported transport protocols  SOAP/XML any
 
         #using 'soft' validation with HttpRpc
         application = Application([NameOfMonthService],
-            tns='rpclib.examples.multiprot',
+            tns='spyne.examples.multiprot',
             in_protocol=HttpRpc(validator='soft'),
             out_protocol=HttpRpc()
             )
 
         #using lxml validation with Soap
         application = Application([UserService],
-            tns='rpclib.examples.authentication',
+            tns='spyne.examples.authentication',
             interface=Wsdl11(),
             in_protocol=Soap11(validator='lxml'),
             out_protocol=Soap11()
@@ -88,7 +88,7 @@ along with their default values
   set to ``unbounded`` for arbitrary number of arguments
 
   .. NOTE::
-    As of rpclib-2.8.0, use ``float('inf')`` instead of ``unbounded``.
+    As of spyne-2.8.0, use ``float('inf')`` instead of ``unbounded``.
 
 These rules can be combined, the example below illustrates how to create a
 mandatory string:
@@ -160,7 +160,7 @@ After that, you must apply the relevant changes in the code that generates the
 XML schema, otherwise these attributes will **not** be visible in the output.
 
 Examples of how to do that:
-https://github.com/arskom/rpclib/tree/master/src/rpclib/interface/xml_schema/model
+https://github.com/arskom/spyne/tree/master/src/spyne/interface/xml_schema/model
 
 
 
@@ -168,9 +168,9 @@ https://github.com/arskom/rpclib/tree/master/src/rpclib/interface/xml_schema/mod
 
 Advanced validation
 -------------------
-*rpclib* offers several primitives for this purpose, they are defined in
+*spyne* offers several primitives for this purpose, they are defined in
 the **ModelBase** class, from which all the types are derived:
-https://github.com/arskom/rpclib/blob/master/src/rpclib/model/_base.py
+https://github.com/arskom/spyne/blob/master/src/spyne/model/_base.py
 
 These primitives are:
 
@@ -243,7 +243,7 @@ This time both flavours of validation are combined: *validate_string* to see if
 it is a number, and then *validate_native* to see if it is prime.
 
 .. NOTE::
-    *rpclib* has a primitive type called *Integer*, it is reasonable to use that
+    *spyne* has a primitive type called *Integer*, it is reasonable to use that
     one as a basis for this custom type. *Unicode* is used in this example
     simply because it is an opportunity to show both types of validation
     functions in action. This may be a good academic example, but it is
@@ -290,7 +290,7 @@ Summary
   - the pattern with which a string must comply
   - a numeric interval, etc
 
-- *rpclib* can apply arbitrary rules for the validation of input data
+- *spyne* can apply arbitrary rules for the validation of input data
   - *validate_string* is the first applied filter
   - *validate_native* is the applied at the second phase
   - Override these functions in your derived class to add new validation rules

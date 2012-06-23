@@ -2,6 +2,6 @@
 Application Definition
 ======================
 
-.. automodule:: rpclib.application
+.. automodule:: spyne.application
     :members:
     :inherited-members:

@@ -8,25 +8,25 @@ This example uses the stock simple wsgi webserver to deploy this service. You
 should probably use a full-fledged server when deploying your service for
 production purposes.
 
-Defining an Rpclib Service
+Defining an Spyne Service
 --------------------------
 
-Here we introduce the fundamental mechanisms the rpclib offers to expose your
+Here we introduce the fundamental mechanisms the spyne offers to expose your
 services.
 
-The simpler version of this example is available here: http://github.com/arskom/rpclib/blob/master/examples/helloworld_soap.py
+The simpler version of this example is available here: http://github.com/arskom/spyne/blob/master/examples/helloworld_soap.py
 ::
 
     import logging
 
-    from rpclib.application import Application
-    from rpclib.decorator import srpc
-    from rpclib.protocol.soap import Soap11
-    from rpclib.service import ServiceBase
-    from rpclib.model.complex import Iterable
-    from rpclib.model.primitive import Integer
-    from rpclib.model.primitive import String
-    from rpclib.server.wsgi import WsgiApplication
+    from spyne.application import Application
+    from spyne.decorator import srpc
+    from spyne.protocol.soap import Soap11
+    from spyne.service import ServiceBase
+    from spyne.model.complex import Iterable
+    from spyne.model.primitive import Integer
+    from spyne.model.primitive import String
+    from spyne.server.wsgi import WsgiApplication
 
     class HelloWorldService(ServiceBase):
         @srpc(String, Integer, _returns=Iterable(String))
@@ -49,9 +49,9 @@ The simpler version of this example is available here: http://github.com/arskom/
             print "Error: example server code requires Python >= 2.5"
 
         logging.basicConfig(level=logging.DEBUG)
-        logging.getLogger('rpclib.protocol.xml').setLevel(logging.DEBUG)
+        logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
-        application = Application([HelloWorldService], 'rpclib.examples.hello.soap',
+        application = Application([HelloWorldService], 'spyne.examples.hello.soap',
                                     in_protocol=Soap11(), out_protocol=Soap11())
 
         server = make_server('127.0.0.1', 7789, WsgiApplication(application))
@@ -64,48 +64,48 @@ The simpler version of this example is available here: http://github.com/arskom/
 Dissecting this example: Application is the glue between one or more service definitions,
 interface and protocol choices. ::
 
-    from rpclib.application import Application
+    from spyne.application import Application
 
 The srpc decorator exposes methods as remote procedure calls and declares the
 data types it accepts and returns. The 's' prefix is short for static. It means
 no implicit argument will be passed to the function. In the @rpc case, the
-function gets a rpclib.MethodContext instance as first argument. ::
+function gets a spyne.MethodContext instance as first argument. ::
 
-    from rpclib.decorator import srpc
+    from spyne.decorator import srpc
 
 We are going to expose the service definitions using the Wsdl 1.1 document
 standard. The methods will use Soap 1.1 protocol to communicate with the outside
 world. They're instantiated and passed to the Application constructor. You need
 to pass fresh instances to each application instance. ::
 
-    from rpclib.protocol.soap import Soap11
+    from spyne.protocol.soap import Soap11
 
 For the sake of this tutorial, we are going to use HttpRpc as well. It's a
 rest-like protocol, but it doesn't care about HTTP verbs (yet). ::
 
-    from rpclib.protocol.http import HttpRpc
+    from spyne.protocol.http import HttpRpc
 
 The HttpRpc serializer does not support complex types. So we will use the
 XmlObject serializer as the out_protocol to prevent the clients from dealing
 with Soap cruft. ::
 
-    from rpclib.protocol.http import XmlObject
+    from spyne.protocol.http import XmlObject
 
 ServiceBase is the base class for all service definitions. ::
 
-    from rpclib.service import ServiceBase
+    from spyne.service import ServiceBase
 
 The names of the needed types for implementing this service should be
 self-explanatory. ::
 
-    from rpclib.model.complex import Iterable
-    from rpclib.model.primitive import Integer
-    from rpclib.model.primitive import String
+    from spyne.model.complex import Iterable
+    from spyne.model.primitive import Integer
+    from spyne.model.primitive import String
 
 Our server is going to use HTTP as transport, so we import the WsgiApplication
 from the server.wsgi module. It's going to wrap the application instance. ::
 
-    from rpclib.server.wsgi import WsgiApplication
+    from spyne.server.wsgi import WsgiApplication
 
 We start by defining our service. The class name will be made public in the
 wsdl document unless explicitly overridden with `__service_name__` class
@@ -138,7 +138,7 @@ world.
 
 We are going to use the ubiquitious Http protocol as a transport, using a
 Wsgi-compliant http server. This example uses Python's stock simple wsgi web
-server. Rpclib has been tested with several other web servers. Any
+server. Spyne has been tested with several other web servers. Any
 WSGI-compliant server should work.
 
 This is the required import: ::
@@ -152,23 +152,23 @@ xml formatting code is run only when explicitly enabled for performance
 reasons. ::
 
         logging.basicConfig(level=logging.DEBUG)
-        logging.getLogger('rpclib.protocol.xml').setLevel(logging.DEBUG)
+        logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
 We glue the service definition, input and output protocols
-under the targetNamespace 'rpclib.examples.hello.soap': ::
+under the targetNamespace 'spyne.examples.hello.soap': ::
 
-        application = Application([HelloWorldService], 'rpclib.examples.hello.soap',
+        application = Application([HelloWorldService], 'spyne.examples.hello.soap',
                                         in_protocol=Soap11(), out_protocol=Soap11())
 
-We then wrap the rpclib application with its wsgi wrapper: ::
+We then wrap the spyne application with its wsgi wrapper: ::
 
         wsgi_app = WsgiApplication(application)
 
 The above two lines can be replaced with an easier-to-use function that covers
 this common use case: ::
 
-        from rpclib.util.simple import wsgi_soap_application
-        wsgi_app = wsgi_soap_application([HelloWorldService], 'rpclib.examples.hello.soap')
+        from spyne.util.simple import wsgi_soap_application
+        wsgi_app = wsgi_soap_application([HelloWorldService], 'spyne.examples.hello.soap')
 
 We now register the WSGI application as the handler to the wsgi server, and run
 the http server: ::
@@ -184,14 +184,14 @@ the http server: ::
 .. NOTE::
     * **Django users:** See this gist for a django wrapper example: https://gist.github.com/1242760
     * **Twisted users:** See the this example that illustrates deploying an
-      Rpclib application using twisted: http://github.com/arskom/rpclib/blob/master/examples/helloworld_soap_twisted.py
+      Spyne application using twisted: http://github.com/arskom/spyne/blob/master/examples/helloworld_soap_twisted.py
 
 You can test your service using suds. Suds is a separate project for building
 pure-python soap clients. To learn more visit the project's page:
 https://fedorahosted.org/suds/. You can simply install it using
 ``easy_install suds``.
 
-So here's how you can use suds to test your new rpclib service:
+So here's how you can use suds to test your new spyne service:
 
 ::
 
@@ -215,12 +215,12 @@ The script's output would be as follows: ::
 Deploying service using HttpRpc
 -------------------------------
 
-This example is available here: http://github.com/arskom/rpclib/blob/master/examples/helloworld_http.py.
+This example is available here: http://github.com/arskom/spyne/blob/master/examples/helloworld_http.py.
 
 The only difference between the SOAP and the HTTP version is the application
 instantiation line: ::
 
-        application = Application([HelloWorldService], 'rpclib.examples.hello.http',
+        application = Application([HelloWorldService], 'spyne.examples.hello.http',
                                     in_protocol=HttpRpc(), out_protocol=XmlObject())
 
 We still want to keep Xml as the output protocol as the HttpRpc protocol is
@@ -238,7 +238,7 @@ output. ::
 The command's output would be as follows: ::
 
     <?xml version='1.0' encoding='utf8'?>
-    <ns1:say_helloResponse xmlns:ns1="rpclib.examples.hello.http"
+    <ns1:say_helloResponse xmlns:ns1="spyne.examples.hello.http"
     xmlns:ns0="http://schemas.xmlsoap.org/soap/envelope/">
       <ns1:say_helloResult>
         <ns1:string>Hello, Dave</ns1:string>
