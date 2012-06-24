@@ -1,46 +1,46 @@
 
-Miscellanous Rpclib Utilities
+Miscellanous Spyne Utilities
 =============================
 
 Class Dictionary
 ----------------
 
-.. automodule:: rpclib.util.cdict
+.. automodule:: spyne.util.cdict
     :members:
 
 Element Tree Conversion
 -----------------------
 
-.. automodule:: rpclib.util.etreeconv
+.. automodule:: spyne.util.etreeconv
     :members:
 
 Simple Wrappers
 ---------------
 
-.. automodule:: rpclib.util.simple
+.. automodule:: spyne.util.simple
     :members:
 
 Xml Utilities
 -------------
 
-.. automodule:: rpclib.util.xml
+.. automodule:: spyne.util.xml
     :members:
 
 Ordered Dictionary
 ------------------
 
-.. automodule:: rpclib.util.odict
+.. automodule:: spyne.util.odict
     :members:
 
 Ordered Set
 -----------
 
-.. automodule:: rpclib.util.oset
+.. automodule:: spyne.util.oset
     :members:
 
 
 Helpers
 -------
 
-.. automodule:: rpclib.util.simple
+.. automodule:: spyne.util.simple
     :members:

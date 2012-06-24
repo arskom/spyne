@@ -31,7 +31,7 @@
 
 import multiprocessing
 import logging
-logger = logging.getLogger('rpclib.wsgi')
+logger = logging.getLogger('spyne.wsgi')
 logger.setLevel(logging.DEBUG)
 
 import gobject
@@ -45,12 +45,12 @@ from werkzeug.wsgi import DispatcherMiddleware
 from werkzeug.exceptions import NotFound
 from werkzeug.serving import run_simple
 
-from rpclib.application import Application
-from rpclib.decorator import rpc
-from rpclib.service import ServiceBase
-from rpclib.model.binary import ByteArray
-from rpclib.server.wsgi import WsgiApplication
-from rpclib.protocol.http import HttpRpc
+from spyne.application import Application
+from spyne.decorator import rpc
+from spyne.service import ServiceBase
+from spyne.model.binary import ByteArray
+from spyne.server.wsgi import WsgiApplication
+from spyne.protocol.http import HttpRpc
 
 port = 9000
 url = 'stream'
@@ -140,7 +140,7 @@ def main():
     p.start()
 
     stream_app = WsgiApplication(Application([StreamingService],
-            tns='rpclib.examples.streaming',
+            tns='spyne.examples.streaming',
             in_protocol=HttpRpc(),
             out_protocol=HttpRpc(mime_type='video/ogg'),
         ))

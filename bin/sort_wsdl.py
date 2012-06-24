@@ -6,6 +6,6 @@ try:
 except ImportError:
     sys.exc_clear()
 
-from rpclib.test.sort_wsdl import main
+from spyne.test.sort_wsdl import main
 
 sys.exit(main())

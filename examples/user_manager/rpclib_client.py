@@ -29,7 +29,7 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from rpclib.client.http import HttpClient
+from spyne.client.http import HttpClient
 
 from server_basic import application
 

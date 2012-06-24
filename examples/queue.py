@@ -45,17 +45,17 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 
-from rpclib import MethodContext
-from rpclib.application import Application
-from rpclib.client import Service
-from rpclib.client import RemoteProcedureBase
-from rpclib.client import ClientBase
-from rpclib.decorator import rpc
-from rpclib.interface.wsdl import Wsdl11
-from rpclib.protocol.soap import Soap11
-from rpclib.model.primitive import Integer
-from rpclib.server import ServerBase
-from rpclib.service import ServiceBase
+from spyne import MethodContext
+from spyne.application import Application
+from spyne.client import Service
+from spyne.client import RemoteProcedureBase
+from spyne.client import ClientBase
+from spyne.decorator import rpc
+from spyne.interface.wsdl import Wsdl11
+from spyne.protocol.soap import Soap11
+from spyne.model.primitive import Integer
+from spyne.server import ServerBase
+from spyne.service import ServiceBase
 
 db = create_engine('sqlite:///:memory:')
 metadata = MetaData(bind=db)
@@ -171,7 +171,7 @@ if __name__ == '__main__':
     logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
     metadata.create_all()
 
-    application = Application([AsyncService], 'rpclib.async',
+    application = Application([AsyncService], 'spyne.async',
             interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
 
     producer = Producer(db, application)

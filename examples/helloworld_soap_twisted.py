@@ -29,16 +29,16 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from rpclib.application import Application
-from rpclib.decorator import srpc
-from rpclib.interface.wsdl import Wsdl11
-from rpclib.protocol.soap import Soap11
-from rpclib.service import ServiceBase
-from rpclib.model.complex import Array
-from rpclib.model.primitive import Integer
-from rpclib.model.primitive import String
-from rpclib.server.wsgi import WsgiApplication
-from rpclib.util.wsgi_wrapper import run_twisted
+from spyne.application import Application
+from spyne.decorator import srpc
+from spyne.interface.wsdl import Wsdl11
+from spyne.protocol.soap import Soap11
+from spyne.service import ServiceBase
+from spyne.model.complex import Array
+from spyne.model.primitive import Integer
+from spyne.model.primitive import String
+from spyne.server.wsgi import WsgiApplication
+from spyne.util.wsgi_wrapper import run_twisted
 
 '''
 This is the HelloWorld example running in the twisted framework.
@@ -60,7 +60,7 @@ class HelloWorldService(ServiceBase):
         return results
 
 if __name__=='__main__':
-    application = Application([HelloWorldService], 'rpclib.examples.hello.twisted',
+    application = Application([HelloWorldService], 'spyne.examples.hello.twisted',
                 interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
 
     application.interface.nsmap[None] = application.interface.nsmap['tns']

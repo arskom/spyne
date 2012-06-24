@@ -41,8 +41,8 @@ nbproject
 # wsi-test
 wsi-test-tools
 WSI_Test_Java_Final_1.1.zip
-src/rpclib/test/interop/config.xml
-src/rpclib/test/config.xml
+spyne/test/interop/config.xml
+spyne/test/config.xml
 
 # kate cruft
 *.kate-swp
@@ -62,5 +62,5 @@ pres.pdf
 *.vrb
 *.backup
 
-# twisted trial cruft
+# trial cruft
 _trial_temp

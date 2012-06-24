@@ -1,11 +1,11 @@
 
-Rpclib uses code from multiple projects, as well as original code. This file
+Spyne uses code from multiple projects, as well as original code. This file
 contains the license information for all of these sources.
 
 ================================================================================
 ================================================================================
 
-Rpclib, located under the rpclib/ directory in the source distribution is
+Spyne, located under the Spyne/ directory in the source distribution is
 covered under the LGPL license.
 
 --------------------------------------------------------------------------------
@@ -472,7 +472,7 @@ DAMAGES.
 ================================================================================
 ================================================================================
 
-Rpclib examples located under the examples/ directory in the source distribution
+Spyne examples located under the examples/ directory in the source distribution
 are covered under the BSD License.
 
 --------------------------------------------------------------------------------
@@ -509,7 +509,7 @@ EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ================================================================================
 ================================================================================
 
-Rpclib uses some code from the Twisted project at http://twistedmatrix.com.
+Spyne uses some code from the Twisted project at http://twistedmatrix.com.
 Here's the license:
 
 --------------------------------------------------------------------------------

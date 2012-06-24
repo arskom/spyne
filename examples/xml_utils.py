@@ -37,17 +37,17 @@ from pprint import pprint
 
 from lxml import etree
 
-from rpclib.model.primitive import String
-from rpclib.model.primitive import Integer
-from rpclib.model.primitive import Decimal
-from rpclib.model.primitive import DateTime
-from rpclib.model.complex import ComplexModel
-from rpclib.model.complex import XmlAttribute
+from spyne.model.primitive import String
+from spyne.model.primitive import Integer
+from spyne.model.primitive import Decimal
+from spyne.model.primitive import DateTime
+from spyne.model.complex import ComplexModel
+from spyne.model.complex import XmlAttribute
 
-from rpclib.util.xml import get_schema_documents
-from rpclib.util.xml import get_object_as_xml
-from rpclib.util.xml import get_xml_as_object
-from rpclib.util.xml import get_validation_schema
+from spyne.util.xml import get_schema_documents
+from spyne.util.xml import get_object_as_xml
+from spyne.util.xml import get_xml_as_object
+from spyne.util.xml import get_validation_schema
 
 
 class Punk(ComplexModel):

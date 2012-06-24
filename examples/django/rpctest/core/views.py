@@ -30,14 +30,14 @@
 
 from django.views.decorators.csrf import csrf_exempt
 
-from rpclib.server.django import DjangoApplication
-from rpclib.model.primitive import String, Integer
-from rpclib.model.complex import Iterable
-from rpclib.service import ServiceBase
-from rpclib.interface.wsdl import Wsdl11
-from rpclib.protocol.soap import Soap11
-from rpclib.application import Application
-from rpclib.decorator import rpc
+from spyne.server.django import DjangoApplication
+from spyne.model.primitive import String, Integer
+from spyne.model.complex import Iterable
+from spyne.service import ServiceBase
+from spyne.interface.wsdl import Wsdl11
+from spyne.protocol.soap import Soap11
+from spyne.application import Application
+from spyne.decorator import rpc
 
 class HelloWorldService(ServiceBase):
     @rpc(String, Integer, _returns=Iterable(String))
@@ -46,7 +46,7 @@ class HelloWorldService(ServiceBase):
             yield 'Hello, %s' % name
 
 hello_world_service = csrf_exempt(DjangoApplication(Application([HelloWorldService],
-        'rpclib.examples.django',
+        'spyne.examples.django',
         in_protocol=Soap11(),
         out_protocol=Soap11(),
         interface=Wsdl11(),

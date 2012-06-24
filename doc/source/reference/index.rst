@@ -2,7 +2,7 @@
 .. _reference-index:
 
 ====================
-Rpclib API Reference
+Spyne API Reference
 ====================
 
 .. toctree::

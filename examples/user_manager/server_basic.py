@@ -31,31 +31,31 @@
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
-logging.getLogger('rpclib.protocol.xml').setLevel(logging.DEBUG)
+logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
-from rpclib.application import Application
-from rpclib.decorator import rpc
-from rpclib.interface.wsdl import Wsdl11
-from rpclib.protocol.soap import Soap11
-from rpclib.model.primitive import String
-from rpclib.model.primitive import Integer
-from rpclib.model.complex import Array
-from rpclib.model.complex import Iterable
-from rpclib.model.complex import ComplexModel
-from rpclib.server.wsgi import WsgiApplication
-from rpclib.service import ServiceBase
+from spyne.application import Application
+from spyne.decorator import rpc
+from spyne.interface.wsdl import Wsdl11
+from spyne.protocol.soap import Soap11
+from spyne.model.primitive import String
+from spyne.model.primitive import Integer
+from spyne.model.complex import Array
+from spyne.model.complex import Iterable
+from spyne.model.complex import ComplexModel
+from spyne.server.wsgi import WsgiApplication
+from spyne.service import ServiceBase
 
 _user_database = {}
 _user_id_seq = 1
 
 class Permission(ComplexModel):
-    __namespace__ = 'rpclib.examples.user_manager'
+    __namespace__ = 'spyne.examples.user_manager'
 
     application = String
     operation = String
 
 class User(ComplexModel):
-    __namespace__ = 'rpclib.examples.user_manager'
+    __namespace__ = 'spyne.examples.user_manager'
 
     user_id = Integer
     user_name = String
@@ -103,7 +103,7 @@ class UserDefinedContext(object):
 def _on_method_call(ctx):
     ctx.udc = UserDefinedContext()
 
-application = Application([UserManagerService], 'rpclib.examples.user_manager',
+application = Application([UserManagerService], 'spyne.examples.user_manager',
             interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
 
 application.event_manager.add_listener('method_call', _on_method_call)

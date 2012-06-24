@@ -35,8 +35,8 @@ import copy
 
 from lxml import etree
 
-from rpclib.protocol import ProtocolBase
-from rpclib.model.primitive import DateTime
+from spyne.protocol import ProtocolBase
+from spyne.model.primitive import DateTime
 
 clock = etree.fromstring(open('clock.svg','r').read())
 ns = {'x': 'http://www.w3.org/2000/svg'}
