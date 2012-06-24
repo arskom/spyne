@@ -183,9 +183,6 @@ def complex_from_element(prot, cls, element):
 
     # parse input to set incoming data to related attributes.
     for c in element:
-        if isinstance(c, etree._Comment):
-            continue
-
         key = c.tag.split('}')[-1]
         frequencies[key] += 1
 
