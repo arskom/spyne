@@ -15,11 +15,11 @@ Ladon
 -----
 
 The Ladon project has almost the same goals and same approach to the rpc-related
-issues as spyne.
+issues as Spyne.
 
 Discussion thread: https://answers.launchpad.net/ladon/+question/171664
 
-* Supports JsonWSP protocol, which spyne does not support.
+* Supports JsonWSP protocol, which Spyne does not support.
     The main motive for designing JSON-WSP was the need for a JSON-based RPC
     protocol with a service description specification with built-in service /
     method documentation.
@@ -39,7 +39,7 @@ Discussion thread: https://answers.launchpad.net/ladon/+question/171664
     In fact, Ladon is pure server-side software - the whole idea of supporting a
     standard protocol like SOAP is that clients are already out there.
 * Spyne uses own classes for denoting types, whereas ladon uses Python
-  callables. This lets ladon api to be simpler, but gives the spyne api the
+  callables. This lets ladon api to be simpler, but gives the Spyne api the
   power to have declarative restrictions on input types.
 * Does not test against ws-i.org deliverables for testing soap compatibility.
 * Does not support parsing and/or modifying protocol & transport headers.
@@ -89,10 +89,10 @@ Suds
 
 * Soap 1.1 / Wsdl 1.1 Client only.
 * Excellent wsdl parser, very easy to use.
-* Recommended way to interface with spyne services.
+* Recommended way to interface with Spyne's Soap services.
 * Uses own pure-python xml implementation, so it's roughly 10 times slower
-  than spyne.
-* Only depends on pure-python solutions, so much easier to deploy.
+  than Spyne's Soap client.
+* Pure-python library, so much easier to deploy.
 
 ZSI
 ---
@@ -120,4 +120,5 @@ rsl
 PyRo
 ----
 
+* Python Remote Objects
 * ???
