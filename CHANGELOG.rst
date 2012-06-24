@@ -320,7 +320,7 @@ rpclib-2.0.0-alpha
     * rpclib.model._base.Base -> rpclib.model._base.ModelBase
     * rpclib.protocol._base.Base -> rpclib.protocol._base.ProtocolBase
     * rpclib.server._base.Base -> rpclib.server._base.ServerBase
-    * rpclic.service.DefinitionBase -> rpclib.service.ServiceBase
+    * rpclib.service.DefinitionBase -> rpclib.service.ServiceBase
     * rpclib.server.wsgi.Application  -> rpclib.server.wsgi.WsgiApplication
  * Moved some classes and modules around:
     * rpclib.model.clazz -> rpclib.model.complex
