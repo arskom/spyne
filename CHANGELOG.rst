@@ -2,9 +2,9 @@
 Changelog
 =========
 
-spyne-2.8.0-rc
---------------
- * Spyne is dead. Long live Spyne!
+rpclib-2.8.0-rc -> spyne-2.8.0-rc
+---------------------------------
+ * Rpclib is dead. Long live Spyne!
  * Add support for JsonObject protocol.
  * Make DateTime string format customizable.
  * Implement the server transport that exposes ``Application`` as a
@@ -28,8 +28,8 @@ spyne-2.8.0-rc
  * Xml & friends: Start tags are now in the same namespace as the definitions
    themselves. Intermediate tags are in the parent's namespace, just as before.
  * Xml & friends: Make the 'bare' mode work.
- * spyne.util.xml: :func:`get_object_as_xml` can also get class suggestion.
- * spyne.util.xml: :func:`get_xml_as_object` has argument order swapped:
+ * rpclib.util.xml: :func:`get_object_as_xml` can also get class suggestion.
+ * rpclib.util.xml: :func:`get_xml_as_object` has argument order swapped:
    cls, elt -> elt, cls. See ab91a3e2ad4756b71d1a2752e5b0d2af8551e061.
  * Relevant pull requests:
     * https://github.com/arskom/spyne/pull/128
@@ -44,7 +44,7 @@ spyne-2.8.0-rc
     * https://github.com/arskom/spyne/pull/146
     * https://github.com/arskom/spyne/pull/145
 
-spyne-2.7.0-beta
+rpclib-2.7.0-beta
 -----------------
  * Add support for non-chunked encoding to Wsgi transport.
  * Add support for Html Microformats.
@@ -68,11 +68,11 @@ spyne-2.7.0-beta
      * https://github.com/arskom/spyne/pull/124
      * https://github.com/arskom/spyne/pull/125
 
-spyne-2.6.1-beta
+rpclib-2.6.1-beta
 -----------------
  * Fix (for real this time) the race condition in wsgi server's wsdl handler.
 
-spyne-2.6.0-beta
+rpclib-2.6.0-beta
 -----------------
  * HttpRpc now parses POST/PUT/PATCH bodies, can accept file uploads.
    Uses werkzeug to do that, which is now a soft dependency.
@@ -81,12 +81,12 @@ spyne-2.6.0-beta
  * Fix race condition in wsgi server wsdl request.
  * Full change log: https://github.com/arskom/spyne/pull/122
 
-spyne-2.5.2-beta
+rpclib-2.5.2-beta
 -----------------
  * Misc. fixes.
  * Full change log: https://github.com/arskom/spyne/pull/118
 
-spyne-2.5.1-beta
+rpclib-2.5.1-beta
 -----------------
  * Switched to magic cookie constants instead of strings in protocol logic.
  * check_validator -> set_validator in ProtocolBase
@@ -96,12 +96,12 @@ spyne-2.5.1-beta
  * Full change log: https://github.com/arskom/spyne/pull/117
                     https://github.com/arskom/spyne/pull/116
 
-spyne-2.5.0-beta
+rpclib-2.5.0-beta
 -----------------
  * Implemented fanout support for transports and protocols that can handle
    that.
  * Implemented a helper module that generates a Soap/Wsdl 1.1 application in
-   ``spyne.util.simple``
+   ``rpclib.util.simple``
  * Some work towards supporting Python3 using ``2to3``. See issue #113.
  * ``ctx.descriptor.reset_function`` implemented. It's now safe to fiddle
    with that value in event handlers.
@@ -110,19 +110,19 @@ spyne-2.5.0-beta
  * Fix Http soap client.
  * Full change log: https://github.com/arskom/spyne/pull/115
 
-spyne-2.4.7-beta
+rpclib-2.4.7-beta
 -----------------
  * Made color in logs optional
  * Fixed ByteArray serializer
 
-spyne-2.4.5-beta
+rpclib-2.4.5-beta
 -----------------
  * Time primitive was implemented.
  * Fix for multiple ports was integrated.
  * Added http cookie authentication example with suds.
  * Full change log: https://github.com/arskom/spyne/pull/109
 
-spyne-2.4.3-beta
+rpclib-2.4.3-beta
 -----------------
  * Many issues with 'soft' validation was fixed.
  * ``MethodDescriptor.udp`` added. Short for "User-Defined Properties", you can
@@ -130,72 +130,72 @@ spyne-2.4.3-beta
  * Fix HttpRpc response serialization.
  * Documentation updates.
 
-spyne-2.4.1-beta
+rpclib-2.4.1-beta
 -----------------
  * Fixed import errors in Python<=2.5.
- * A problem with spyne's String and unicode objects was fixed.
+ * A problem with rpclib's String and unicode objects was fixed.
 
-spyne-2.4.0-beta
+rpclib-2.4.0-beta
 -----------------
  * Fixed Fault publishing in Wsdl.
  * Implemented 'soft' validation.
  * Documentation improvements. It's mostly ready!
- * A bug with min/max_occurs logic was fixed. This causes spyne not to send
+ * A bug with min/max_occurs logic was fixed. This causes rpclib not to send
    null values for elements with min_occurs=0 (the default value).
- * Native value for ``spyne.model.primitive.String`` was changed to
+ * Native value for ``rpclib.model.primitive.String`` was changed to
    ``unicode``. To exchange raw data, you should use
-   ``spyne.model.binary.ByteArray``.
+   ``rpclib.model.binary.ByteArray``.
  * Full change log: https://github.com/arskom/spyne/pull/90
 
-spyne-2.3.3-beta
+rpclib-2.3.3-beta
 -----------------
  * Added MAX_CONTENT_LENGTH = 2 * 1024 * 1024 and BLOCK_LENGTH = 8 * 1024
-   constants to spyne.server.wsgi module.
- * spyne.model.binary.Attachment is deprecated, and is replaced by ByteArray.
+   constants to rpclib.server.wsgi module.
+ * rpclib.model.binary.Attachment is deprecated, and is replaced by ByteArray.
    The native format of ByteArray is an iterable of strings.
  * Exception handling was formalized. HTTP return codes can be set by exception
-   classes from spyne.error or custom exceptions.
+   classes from rpclib.error or custom exceptions.
  * Full change log: https://github.com/arskom/spyne/pull/88
 
-spyne-2.3.2-beta
+rpclib-2.3.2-beta
 -----------------
  * Limited support for sqlalchemy.orm.relationship (no string arguments)
  * Added missing event firings.
- * Documented event api and fundamental data structures (spyne._base)
+ * Documented event api and fundamental data structures (rpclib._base)
  * Full change log: https://github.com/arskom/spyne/pull/87
 
-spyne-2.3.1-beta
+rpclib-2.3.1-beta
 -----------------
  * HttpRpc protocol now returns 404 when a requested resource was not found.
  * New tests added for HttpRpc protocol.
  * Miscellanous other fixes. See: https://github.com/arskom/spyne/pull/86
 
-spyne-2.3.0-beta
+rpclib-2.3.0-beta
 -----------------
  * Documentation improvements.
- * spyne.protocol.xml.XmlObject is now working as out_protocol.
+ * rpclib.protocol.xml.XmlObject is now working as out_protocol.
  * Many fixes.
 
-spyne-2.2.3-beta
+rpclib-2.2.3-beta
 ------------------
  * Documentation improvements.
- * spyne.client.http.Client -> spyne.client.http.HttpClient
- * spyne.client.zeromq.Client -> spyne.client.zeromq.ZeroMQClient
- * spyne.server.zeromq.Server -> spyne.server.zeromq.ZeroMQServer
- * spyne.model.table.TableSerializer -> spyne.model.table.TableModel
+ * rpclib.client.http.Client -> rpclib.client.http.HttpClient
+ * rpclib.client.zeromq.Client -> rpclib.client.zeromq.ZeroMQClient
+ * rpclib.server.zeromq.Server -> rpclib.server.zeromq.ZeroMQServer
+ * rpclib.model.table.TableSerializer -> rpclib.model.table.TableModel
 
-spyne-2.2.2-beta
+rpclib-2.2.2-beta
 -----------------
- * Fixed call to spyne.application.Application.call_wrapper
+ * Fixed call to rpclib.application.Application.call_wrapper
  * Fixed HttpRpc server transport instantiation.
  * Documentation improvements.
 
-spyne-2.2.1-beta
+rpclib-2.2.1-beta
 -----------------
- * spyne.application.Application.call_wrapper introduced
+ * rpclib.application.Application.call_wrapper introduced
  * Documentation improvements.
 
-spyne-2.2.0-beta
+rpclib-2.2.0-beta
 -----------------
 
  * The serialization / deserialization logic was redesigned. Now most of the
@@ -203,19 +203,19 @@ spyne-2.2.0-beta
    children.
  * Interface generation logic was redesigned. The WSDL logic is separated to
    XmlSchema and Wsdl11 classes. 'add_to_schema' calls were renamed to just
-   'add' and were moved inside spyne.interface.xml_schema package.
- * Interface and Protocol assignment of an spyne application is now more
+   'add' and were moved inside rpclib.interface.xml_schema package.
+ * Interface and Protocol assignment of an rpclib application is now more
    explicit. Both are also configurable during instantion. This doesn't mean
    there's much to configure :)
- * WS-I Conformance is back!. See https://github.com/arskom/spyne/blob/master/spyne/test/interop/wsi-report-spyne.xml
+ * WS-I Conformance is back!. See https://github.com/arskom/spyne/blob/master/src/rpclib/test/interop/wsi-report-rpclib.xml
    for the latest conformance report.
  * Numeric types now support range restrictions. e.g. Integer(ge=0) will only
    accept positive integers.
  * Any -> AnyXml, AnyAsDict -> AnyDict. AnyAsDict is not the child of the AnyXml
    anymore.
- * spyne.model.exception -> spyne.model.fault.
+ * rpclib.model.exception -> rpclib.model.fault.
 
-spyne-2.1.0-alpha
+rpclib-2.1.0-alpha
 ------------------
 
  * The method dispatch logic was rewritten: It's now possible for the protocols
@@ -227,7 +227,7 @@ spyne-2.1.0-alpha
    attribute.
  * Added a self reference mechanism.
 
-spyne-2.0.10-alpha
+rpclib-2.0.10-alpha
 -------------------
 
  * The inclusion of base xml schemas were made optional.
@@ -239,18 +239,18 @@ spyne-2.0.10-alpha
  * SOAP/WSDL: Added support for multiple {in,out}_header objects.
  * Fix some XMLAttribute bugs.
 
-spyne-2.0.9-alpha
+rpclib-2.0.9-alpha
 ------------------
 
- * Added inheritance support to spyne.model.table.TableSerializer.
+ * Added inheritance support to rpclib.model.table.TableSerializer.
 
-spyne-2.0.8-alpha
+rpclib-2.0.8-alpha
 ------------------
 
  * The NullServer now also returns context with the return object to have it
    survive past user-defined method return.
 
-spyne-2.0.7-alpha
+rpclib-2.0.7-alpha
 ------------------
 
  * More tests are migrated to the new api.
@@ -259,35 +259,35 @@ spyne-2.0.7-alpha
    instead.
  * Base xml schemas are no longer imported.
 
-spyne-2.0.6-alpha
+rpclib-2.0.6-alpha
 ------------------
 
- * Added spyne.server.null.NullServer, which is a server class with a client
+ * Added rpclib.server.null.NullServer, which is a server class with a client
    interface that attempts to do no (de)serialization at all. It's intended to
    be used in tests.
 
-spyne-2.0.5-alpha
+rpclib-2.0.5-alpha
 ------------------
 
  * Add late mapping support to sqlalchemy table serializer.
 
-spyne-2.0.4-alpha
+rpclib-2.0.4-alpha
 ------------------
 
  * Add preliminary support for a sqlalchemy-0.7-compatible serializer.
 
-spyne-2.0.3-alpha
+rpclib-2.0.3-alpha
 ------------------
 
  * Migrate the HttpRpc serializer to the new internal api.
 
-spyne-2.0.2-alpha
+rpclib-2.0.2-alpha
 ------------------
 
  * SimpleType -> SimpleModel
  * Small bugfixes.
 
-spyne-2.0.1-alpha
+rpclib-2.0.1-alpha
 ------------------
 
  * EventManager now uses ordered sets instead of normal sets to store event
@@ -295,7 +295,7 @@ spyne-2.0.1-alpha
  * Implemented sort_wsdl, a small hack to sort wsdl output in order to ease
    debugging.
 
-spyne-2.0.0-alpha
+rpclib-2.0.0-alpha
 ------------------
 
  * Implemented EventManager and replaced hook calls with events.
@@ -305,8 +305,8 @@ spyne-2.0.0-alpha
  * The new srpc decorator doesn't force the methods to have an implicit first
    argument.
  * Fixed fault namespace resolution.
- * Moved xml constants to spyne.const.xml_ns
- * The following changes to soaplib were ported to spyne's SOAP/WSDL parts:
+ * Moved xml constants to rpclib.const.xml_ns
+ * The following changes to soaplib were ported to rpclib's SOAP/WSDL parts:
     * duration object is now compatible with Python's native timedelta.
     * WSDL: Support for multiple <service> tags in the wsdl (one for each class in the
       application)
@@ -316,23 +316,23 @@ spyne-2.0.0-alpha
     * SOAP: Xml attribute support
  * Moved all modules with packagename.base to packagename._base.
  * Renamed classes to have module name as a prefix:
-    * spyne.client._base.Base -> spyne.client._base.ClientBase
-    * spyne.model._base.Base -> spyne.model._base.ModelBase
-    * spyne.protocol._base.Base -> spyne.protocol._base.ProtocolBase
-    * spyne.server._base.Base -> spyne.server._base.ServerBase
-    * rpclic.service.DefinitionBase -> spyne.service.ServiceBase
-    * spyne.server.wsgi.Application  -> spyne.server.wsgi.WsgiApplication
+    * rpclib.client._base.Base -> rpclib.client._base.ClientBase
+    * rpclib.model._base.Base -> rpclib.model._base.ModelBase
+    * rpclib.protocol._base.Base -> rpclib.protocol._base.ProtocolBase
+    * rpclib.server._base.Base -> rpclib.server._base.ServerBase
+    * rpclic.service.DefinitionBase -> rpclib.service.ServiceBase
+    * rpclib.server.wsgi.Application  -> rpclib.server.wsgi.WsgiApplication
  * Moved some classes and modules around:
-    * spyne.model.clazz -> spyne.model.complex
-    * spyne.model.complex.ClassSerializer -> spyne.model.complex.ComplexModel
-    * spyne.Application -> spyne.application.Application
-    * spyne.service.rpc, srpc -> spyne.decorator.rpc, srpc
+    * rpclib.model.clazz -> rpclib.model.complex
+    * rpclib.model.complex.ClassSerializer -> rpclib.model.complex.ComplexModel
+    * rpclib.Application -> rpclib.application.Application
+    * rpclib.service.rpc, srpc -> rpclib.decorator.rpc, srpc
 
-soaplib-3.x -> spyne-1.1.1-alpha
+soaplib-3.x -> rpclib-1.1.1-alpha
 ---------------------------------
 
  * Soaplib is now also protocol agnostic. As it now supports protocols other
-   than soap (like Rest-minus-the-verbs HttpRpc), it's renamed to spyne. This
+   than soap (like Rest-minus-the-verbs HttpRpc), it's renamed to rpclib. This
    also means soaplib can now support multiple versions of soap and wsdl
    standards.
  * Mention of xml and soap removed from public api where it's not directly
@@ -349,7 +349,7 @@ soaplib-2.x
    http to a soap serialization/deserialization library that is architecture and
    transport agnostic.
  * Hard dependency on WSGI removed.
- * Sphinx docs with working examples: http://arskom.github.com/spyne/
+ * Sphinx docs with working examples: http://arskom.github.com/rpclib/
  * Serializers renamed to Models.
  * Standalone xsd generation for ClassSerializer objects has been added. This
    allows soaplib to be used to define generic XML schemas, without SOAP
