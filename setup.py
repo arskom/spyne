@@ -9,7 +9,7 @@ from pkg_resources import resource_listdir
 from setuptools import setup
 from setuptools import find_packages
 
-v = open(os.path.join(os.path.dirname(__file__), 'rpclib', '__init__.py'), 'r')
+v = open(os.path.join(os.path.dirname(__file__), 'spyne', '__init__.py'), 'r')
 VERSION = re.match(r".*__version__ = '(.*?)'", v.read(), re.S).group(1)
 
 LONG_DESC = """\
@@ -35,7 +35,7 @@ SHORT_DESC="A transport and architecture agnostic rpc (de)serialization " \
 
 
 setup(
-    name='rpclib',
+    name='spyne',
     packages=find_packages(),
 
     version=VERSION,
@@ -56,10 +56,10 @@ setup(
     ],
     keywords=('soap', 'wsdl', 'wsgi', 'zeromq', 'rest', 'rpc', 'json', 'http'),
     author='Burak Arslan',
-    author_email='burak+rpclib@arskom.com.tr',
+    author_email='burak+spyne@arskom.com.tr',
     maintainer='Burak Arslan',
-    maintainer_email='burak+rpclib@arskom.com.tr',
-    url='http://github.com/arskom/rpclib',
+    maintainer_email='burak+spyne@arskom.com.tr',
+    url='http://github.com/arskom/spyne',
     license='LGPL-2.1',
     zip_safe=False,
     install_requires=[
@@ -69,9 +69,9 @@ setup(
 
     entry_points = {
         'console_scripts': [
-            'sort_wsdl=rpclib.test.sort_wsdl:main',
+            'sort_wsdl=spyne.test.sort_wsdl:main',
         ]
     },
 
-    test_suite='rpclib.test',
+    test_suite='spyne.test',
 )

@@ -1,11 +1,11 @@
 
 ####################
-Rpclib Documentation
+Spyne Documentation
 ####################
 
-Welcome to Rpclib documentation! We hope you find this text useful.
+Welcome to Spyne documentation! We hope you find this text useful.
 Please do not hesitate to get in touch with us if you think you can help us
-improve Rpclib or its documentation one way or another. Contact information is
+improve Spyne or its documentation one way or another. Contact information is
 below.
 
 Have fun!

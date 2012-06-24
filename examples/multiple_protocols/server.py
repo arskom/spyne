@@ -47,23 +47,23 @@ import logging
 
 from datetime import datetime
 
-from rpclib.application import Application
-from rpclib.decorator import srpc
-from rpclib.service import ServiceBase
-from rpclib.util.wsgi_wrapper import WsgiMounter
+from spyne.application import Application
+from spyne.decorator import srpc
+from spyne.service import ServiceBase
+from spyne.util.wsgi_wrapper import WsgiMounter
 
-from rpclib.model.primitive import DateTime
+from spyne.model.primitive import DateTime
 
-from rpclib.protocol.xml import XmlObject
-from rpclib.protocol.soap import Soap11
-from rpclib.protocol.http import HttpRpc
-from rpclib.protocol.html import HtmlMicroFormat
-from rpclib.protocol.json import JsonObject
+from spyne.protocol.xml import XmlObject
+from spyne.protocol.soap import Soap11
+from spyne.protocol.http import HttpRpc
+from spyne.protocol.html import HtmlMicroFormat
+from spyne.protocol.json import JsonObject
 
 from protocol import PngClock
 from protocol import SvgClock
 
-tns = 'rpclib.examples.multiple_protocols'
+tns = 'spyne.examples.multiple_protocols'
 port = 9910
 host = '127.0.0.1'
 

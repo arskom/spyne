@@ -31,20 +31,20 @@
 
 import logging
 
-from rpclib.application import Application
-from rpclib.decorator import srpc
-from rpclib.interface.wsdl import Wsdl11
-from rpclib.protocol.xml import XmlObject
-from rpclib.protocol.http import HttpRpc
-from rpclib.service import ServiceBase
-from rpclib.model.complex import Iterable
-from rpclib.model.primitive import Integer
-from rpclib.model.primitive import String
-from rpclib.server.wsgi import WsgiApplication
+from spyne.application import Application
+from spyne.decorator import srpc
+from spyne.interface.wsdl import Wsdl11
+from spyne.protocol.xml import XmlObject
+from spyne.protocol.http import HttpRpc
+from spyne.service import ServiceBase
+from spyne.model.complex import Iterable
+from spyne.model.primitive import Integer
+from spyne.model.primitive import String
+from spyne.server.wsgi import WsgiApplication
 
 '''
 This is a simple HelloWorld example to show the basics of writing
-a webservice using rpclib, starting a server, and creating a service
+a webservice using spyne, starting a server, and creating a service
 client.
 
 Here's how to call it using suds:
@@ -85,9 +85,9 @@ if __name__=='__main__':
         print("Error: example server code requires Python >= 2.5")
 
     logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('rpclib.protocol.xml').setLevel(logging.DEBUG)
+    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
-    application = Application([HelloWorldService], 'rpclib.examples.hello.http',
+    application = Application([HelloWorldService], 'spyne.examples.hello.http',
             interface=Wsdl11(), in_protocol=HttpRpc(), out_protocol=XmlObject())
 
     server = make_server('127.0.0.1', 7789, WsgiApplication(application))

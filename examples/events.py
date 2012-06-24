@@ -33,15 +33,15 @@ import logging
 
 from time import time
 
-from rpclib.application import Application
-from rpclib.decorator import srpc
-from rpclib.interface.wsdl import Wsdl11
-from rpclib.protocol.soap import Soap11
-from rpclib.service import ServiceBase
-from rpclib.model.complex import Array
-from rpclib.model.primitive import String
-from rpclib.model.primitive import Integer
-from rpclib.server.wsgi import WsgiApplication
+from spyne.application import Application
+from spyne.decorator import srpc
+from spyne.interface.wsdl import Wsdl11
+from spyne.protocol.soap import Soap11
+from spyne.service import ServiceBase
+from spyne.model.complex import Array
+from spyne.model.primitive import String
+from spyne.model.primitive import Integer
+from spyne.server.wsgi import WsgiApplication
 
 '''
 This example is an enhanced version of the HelloWorld example that
@@ -115,9 +115,9 @@ if __name__=='__main__':
         print("Error: example server code requires Python >= 2.5")
 
     logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('rpclib.protocol.xml').setLevel(logging.DEBUG)
+    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
-    application = Application([HelloWorldService], 'rpclib.examples.events',
+    application = Application([HelloWorldService], 'spyne.examples.events',
                 interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
 
     application.event_manager.add_listener('method_call', _on_method_call)

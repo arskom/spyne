@@ -37,17 +37,17 @@ from werkzeug.wsgi import DispatcherMiddleware
 from werkzeug.exceptions import NotFound
 from werkzeug.serving import run_simple
 
-from rpclib.application import Application
-from rpclib.decorator import rpc
-from rpclib.service import ServiceBase
-from rpclib.error import ResourceNotFoundError
-from rpclib.error import ValidationError
-from rpclib.model.binary import ByteArray
-from rpclib.model.binary import File
-from rpclib.model.primitive import Unicode
-from rpclib.model.primitive import Mandatory
-from rpclib.server.wsgi import WsgiApplication
-from rpclib.protocol.http import HttpRpc
+from spyne.application import Application
+from spyne.decorator import rpc
+from spyne.service import ServiceBase
+from spyne.error import ResourceNotFoundError
+from spyne.error import ValidationError
+from spyne.model.binary import ByteArray
+from spyne.model.binary import File
+from spyne.model.primitive import Unicode
+from spyne.model.primitive import Mandatory
+from spyne.server.wsgi import WsgiApplication
+from spyne.protocol.http import HttpRpc
 
 
 BLOCK_SIZE = 8192
@@ -107,10 +107,10 @@ class FileServices(ServiceBase):
 
 def main():
     logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('rpclib.wsgi').setLevel(logging.DEBUG)
+    logging.getLogger('spyne.wsgi').setLevel(logging.DEBUG)
 
     filemgr_app = WsgiApplication(Application([FileServices],
-        'rpclib.examples.file_manager', HttpRpc(validator='soft'), HttpRpc()))
+        'spyne.examples.file_manager', HttpRpc(validator='soft'), HttpRpc()))
     try:
         os.makedirs('./files')
     except OSError:

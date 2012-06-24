@@ -37,22 +37,22 @@
 import time
 from threading import Thread
 
-from rpclib.application import Application
-from rpclib.decorator import rpc
-from rpclib.decorator import srpc
-from rpclib.interface.wsdl import Wsdl11
-from rpclib.protocol.soap import Soap11
-from rpclib.service import ServiceBase
-from rpclib.model.primitive import String
-from rpclib.model.primitive import Integer
-from rpclib.util import get_callback_info
-from rpclib.server.wsgi import WsgiApplication
+from spyne.application import Application
+from spyne.decorator import rpc
+from spyne.decorator import srpc
+from spyne.interface.wsdl import Wsdl11
+from spyne.protocol.soap import Soap11
+from spyne.service import ServiceBase
+from spyne.model.primitive import String
+from spyne.model.primitive import Integer
+from spyne.util import get_callback_info
+from spyne.server.wsgi import WsgiApplication
 
 '''
 This is a very simple async service that sleeps for a specified
 number of seconds and then call back the caller with a message.
 This kicks off a new Thread for each request, which is not recommended
-for a real-world application.  Rpclib does not provide any thread
+for a real-world application.  Spyne does not provide any thread
 management or scheduling mechanism, the service is responsible for the
 execution of the async process.
 '''
@@ -80,7 +80,7 @@ if __name__=='__main__':
     except ImportError:
         print("Error: example server code requires Python >= 2.5")
 
-    application = Application([SleepingService], 'rpclib.examples.async',
+    application = Application([SleepingService], 'spyne.examples.async',
                 interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
 
     server = make_server('127.0.0.1', 7789, WsgiApplication(application))

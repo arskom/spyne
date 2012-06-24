@@ -31,7 +31,7 @@
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
-logging.getLogger('rpclib.protocol.xml').setLevel(logging.DEBUG)
+logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
 
 import sqlalchemy
@@ -43,15 +43,15 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import MetaData
 from sqlalchemy import Column
 
-from rpclib.application import Application
-from rpclib.decorator import rpc
-from rpclib.interface.wsdl import Wsdl11
-from rpclib.protocol.soap import Soap11
-from rpclib.model.complex import Iterable
-from rpclib.model.primitive import Integer
-from rpclib.model.table import TableModel
-from rpclib.server.wsgi import WsgiApplication
-from rpclib.service import ServiceBase
+from spyne.application import Application
+from spyne.decorator import rpc
+from spyne.interface.wsdl import Wsdl11
+from spyne.protocol.soap import Soap11
+from spyne.model.complex import Iterable
+from spyne.model.primitive import Integer
+from spyne.model.table import TableModel
+from spyne.server.wsgi import WsgiApplication
+from spyne.service import ServiceBase
 
 _user_database = create_engine('sqlite:///:memory:')
 metadata = MetaData(bind=_user_database)
@@ -59,15 +59,15 @@ DeclarativeBase = declarative_base(metadata=metadata)
 Session = sessionmaker(bind=_user_database)
 
 #
-# WARNING: You should NOT confuse sqlalchemy types with rpclib types. Whenever
-# you see an rpclib service not starting due to some problem with __type_name__
-# that's probably because you did not use an rpclib type where you had to (e.g.
+# WARNING: You should NOT confuse sqlalchemy types with spyne types. Whenever
+# you see an spyne service not starting due to some problem with __type_name__
+# that's probably because you did not use an spyne type where you had to (e.g.
 # inside @rpc decorator)
 #
 
 class User(TableModel, DeclarativeBase):
-    __namespace__ = 'rpclib.examples.user_manager'
-    __tablename__ = 'rpclib_user'
+    __namespace__ = 'spyne.examples.user_manager'
+    __tablename__ = 'spyne_user'
 
     user_id = Column(sqlalchemy.Integer, primary_key=True)
     user_name = Column(sqlalchemy.String(256))
@@ -77,7 +77,7 @@ class User(TableModel, DeclarativeBase):
 # this is the same as the above user object. Use this method of declaring
 # objects for tables that have to be defined elsewhere.
 class AlternativeUser(TableModel, DeclarativeBase):
-    __namespace__ = 'rpclib.examples.user_manager'
+    __namespace__ = 'spyne.examples.user_manager'
     __table__ = User.__table__
 
 class UserManagerService(ServiceBase):
@@ -115,7 +115,7 @@ def _on_method_return_object(ctx):
     ctx.udc.session.commit()
     ctx.udc.session.close()
 
-application = Application([UserManagerService], 'rpclib.examples.user_manager',
+application = Application([UserManagerService], 'spyne.examples.user_manager',
             interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
 
 application.event_manager.add_listener('method_call', _on_method_call)

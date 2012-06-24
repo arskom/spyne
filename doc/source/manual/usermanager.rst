@@ -14,36 +14,36 @@ In this tutorial, we will talk about:
 * Defining events.
 
 The following is an simple example using complex, nested data. It's available
-here: http://github.com/arskom/rpclib/blob/master/examples/user_manager/server_basic.py
+here: http://github.com/arskom/spyne/blob/master/examples/user_manager/server_basic.py
 ::
 
     import logging
     logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('rpclib.protocol.xml').setLevel(logging.DEBUG)
+    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
-    from rpclib.application import Application
-    from rpclib.decorator import rpc
-    from rpclib.interface.wsdl import Wsdl11
-    from rpclib.protocol.soap import Soap11
-    from rpclib.model.primitive import String
-    from rpclib.model.primitive import Integer
-    from rpclib.model.complex import Array
-    from rpclib.model.complex import Iterable
-    from rpclib.model.complex import ComplexModel
-    from rpclib.server.wsgi import WsgiApplication
-    from rpclib.service import ServiceBase
+    from spyne.application import Application
+    from spyne.decorator import rpc
+    from spyne.interface.wsdl import Wsdl11
+    from spyne.protocol.soap import Soap11
+    from spyne.model.primitive import String
+    from spyne.model.primitive import Integer
+    from spyne.model.complex import Array
+    from spyne.model.complex import Iterable
+    from spyne.model.complex import ComplexModel
+    from spyne.server.wsgi import WsgiApplication
+    from spyne.service import ServiceBase
 
     _user_database = {}
     _user_id_seq = 1
 
     class Permission(ComplexModel):
-        __namespace__ = 'rpclib.examples.user_manager'
+        __namespace__ = 'spyne.examples.user_manager'
 
         application = String
         operation = String
 
     class User(ComplexModel):
-        __namespace__ = 'rpclib.examples.user_manager'
+        __namespace__ = 'spyne.examples.user_manager'
 
         user_id = Integer
         user_name = String
@@ -75,7 +75,7 @@ here: http://github.com/arskom/rpclib/blob/master/examples/user_manager/server_b
         def get_all_users(ctx):
             return ctx.udc.users.itervalues()
 
-    application = Application([UserManagerService], 'rpclib.examples.user_manager',
+    application = Application([UserManagerService], 'spyne.examples.user_manager',
                 interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
 
     def _on_method_call(ctx):
@@ -108,7 +108,7 @@ here: http://github.com/arskom/rpclib/blob/master/examples/user_manager/server_b
 
         server.serve_forever()
 
-Juping into what's new: Rpclib uses ``ComplexModel`` as a general type that when extended will produce complex
+Juping into what's new: Spyne uses ``ComplexModel`` as a general type that when extended will produce complex
 serializable types that can be used in a public service. The ``Permission`` class is a
 fairly simple class with just two members: ::
 
@@ -128,7 +128,7 @@ Nothing new so far.
 
 Below, you can see that the ``email`` member which has a regular expression
 restriction defined. The String type accepts other restrictions, please refer to
-the :class:`rpclib.model.primitive.String` documentation for more information: ::
+the :class:`spyne.model.primitive.String` documentation for more information: ::
 
         email = String(pattern=r'\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[A-Z]{2,4}\b')
 
@@ -148,7 +148,7 @@ representations. ::
 
         permissions = Permission.customize(max_occurs='unbounded')
 
-Here, we need to use the :func:`rpclib.model._base.ModelBase.customize` call
+Here, we need to use the :func:`spyne.model._base.ModelBase.customize` call
 because calling a ``ComplexModel`` child instantiates that class, whereas
 calling a ``SimpleModel`` child returns a duplicate of that class. The
 ``customize`` function just sets given arguments as class attributes to
@@ -188,7 +188,7 @@ with no specific api it should adhere to, other than your own. ::
 
 Such custom objects could be used to manage everything from transactions to
 logging or to performance measurements. You can have a look at the
-`events.py example <http://github.com/arskom/rpclib/blob/master/examples/user_manager/server_basic.py>`_
+`events.py example <http://github.com/arskom/spyne/blob/master/examples/user_manager/server_basic.py>`_
 in the examples directory in the source distribution for an example on using
 events to measure method performance)
 
@@ -197,7 +197,7 @@ What's next?
 
 This tutorial walks you through what you need to know to expose basic
 services. You can read the :ref:`manual-sqlalchemy` document where the
-:class:`rpclib.model.table.TableModel` class and its helpers are introduced.
+:class:`spyne.model.table.TableModel` class and its helpers are introduced.
 You can also have look at the :ref:`manual-metadata` section where service
 metadata management apis are introduced.
 

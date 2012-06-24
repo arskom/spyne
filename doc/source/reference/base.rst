@@ -7,14 +7,14 @@ Fundamental Data Structures
 MethodContext
 -------------
 
-.. autoclass:: rpclib.MethodContext
+.. autoclass:: spyne.MethodContext
     :members:
     :inherited-members:
 
 MethodDescriptor
 ----------------
 
-.. autoclass:: rpclib.MethodDescriptor
+.. autoclass:: spyne.MethodDescriptor
     :members:
     :inherited-members:
 
@@ -24,20 +24,20 @@ MethodDescriptor
 EventManager
 ------------
 
-Rpclib supports a simple event system that can be used to have repetitive boiler
+Spyne supports a simple event system that can be used to have repetitive boiler
 plate code that has to run for every method call nicely tucked away in one or
 more event handlers. The popular use-cases include things like database
 transaction management, logging and measuring performance.
 
-Various Rpclib components support firing events at various stages during the
+Various Spyne components support firing events at various stages during the
 processing of the request, which are documented in the relevant classes.
 
 The classes that support events are:
-    * :class:`rpclib.application.Application`
-    * :class:`rpclib.service.ServiceBase`
-    * :class:`rpclib.protocol._base.ProtocolBase`
-    * :class:`rpclib.server.wsgi.WsgiApplication`
+    * :class:`spyne.application.Application`
+    * :class:`spyne.service.ServiceBase`
+    * :class:`spyne.protocol._base.ProtocolBase`
+    * :class:`spyne.server.wsgi.WsgiApplication`
 
-.. autoclass:: rpclib.EventManager
+.. autoclass:: spyne.EventManager
     :members:
     :inherited-members:

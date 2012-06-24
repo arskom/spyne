@@ -1,12 +1,12 @@
 
 .. _manual:
 
-Rpclib Manual
+Spyne Manual
 =============
 
 The API reference is not the best resource when learning use a new software
 library. Here, you will find a collection of documents that show you various
-aspects of Rpclib by examples.
+aspects of Spyne by examples.
 
 .. toctree::
     :maxdepth: 2

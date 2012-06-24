@@ -6,14 +6,14 @@
 
 # This helper is shared by many different actual scripts.  It is not intended to
 # be packaged or installed, it is only a developer convenience.  By the time
-# Rpclib is actually installed somewhere, the environment should already be set
+# Spyne is actually installed somewhere, the environment should already be set
 # up properly without the help of this tool.
 
 import sys, os
 
 path = os.path.abspath(sys.argv[0])
 while os.path.dirname(path) != path:
-    if os.path.exists(os.path.join(path, 'rpclib', '__init__.py')):
+    if os.path.exists(os.path.join(path, 'spyne', '__init__.py')):
         sys.path.insert(0, path)
         break
     path = os.path.dirname(path)

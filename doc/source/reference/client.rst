@@ -5,14 +5,14 @@ Client Transports
 Client Base Class
 --------------------
 
-.. automodule:: rpclib.client._base
+.. automodule:: spyne.client._base
     :members:
     :inherited-members:
 
 HTTP
 ----
 
-.. automodule:: rpclib.client.http
+.. automodule:: spyne.client.http
     :members:
     :inherited-members:
     :undoc-members:
@@ -20,7 +20,7 @@ HTTP
 ZeroMQ
 ------
 
-.. automodule:: rpclib.client.zeromq
+.. automodule:: spyne.client.zeromq
     :members:
     :inherited-members:
     :undoc-members:

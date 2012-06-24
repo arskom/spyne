@@ -2,20 +2,20 @@
 Protocols
 =========
 
-The `rpclib.protocol` package contains the implementations of various remote
+The `spyne.protocol` package contains the implementations of various remote
 procedure call protocols.
 
 Protocol Base Class
 --------------------
 
-.. automodule:: rpclib.protocol._base
+.. automodule:: spyne.protocol._base
     :members:
     :inherited-members:
 
 HttRpc
 ------
 
-.. automodule:: rpclib.protocol.http
+.. automodule:: spyne.protocol.http
     :members:
     :inherited-members:
     :undoc-members:
@@ -23,6 +23,6 @@ HttRpc
 Soap 1.1
 --------
 
-.. automodule:: rpclib.protocol.soap.soap11
+.. automodule:: spyne.protocol.soap.soap11
     :members:
     :inherited-members:

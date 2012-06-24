@@ -31,13 +31,13 @@
 
 import logging
 
-from rpclib.decorator import srpc
-from rpclib.service import ServiceBase
-from rpclib.model.complex import Iterable
-from rpclib.model.primitive import Integer
-from rpclib.model.primitive import Unicode
+from spyne.decorator import srpc
+from spyne.service import ServiceBase
+from spyne.model.complex import Iterable
+from spyne.model.primitive import Integer
+from spyne.model.primitive import Unicode
 
-from rpclib.util.simple import wsgi_soap_application
+from spyne.util.simple import wsgi_soap_application
 
 try:
     from wsgiref.simple_server import make_server
@@ -47,7 +47,7 @@ except ImportError:
 
 '''
 This is a simple HelloWorld example to show the basics of writing
-a webservice using rpclib, starting a server, and creating a service
+a webservice using spyne, starting a server, and creating a service
 client.
 
 Here's how to call it using suds:
@@ -83,11 +83,11 @@ class HelloWorldService(ServiceBase):
 
 if __name__=='__main__':
     logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('rpclib.protocol.xml').setLevel(logging.DEBUG)
+    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
     logging.info("listening to http://127.0.0.1:7789")
     logging.info("wsdl is at: http://localhost:7789/?wsdl")
 
-    wsgi_app = wsgi_soap_application([HelloWorldService], 'rpclib.examples.hello.soap')
+    wsgi_app = wsgi_soap_application([HelloWorldService], 'spyne.examples.hello.soap')
     server = make_server('127.0.0.1', 7789, wsgi_app)
     server.serve_forever()

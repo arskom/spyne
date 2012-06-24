@@ -2,6 +2,6 @@
 RPC Decorators
 ==============
 
-.. automodule:: rpclib.decorator
+.. automodule:: spyne.decorator
     :members:
     :inherited-members:
