@@ -17,9 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains the HttpRpc protocol implementation. This is not exactly
-Rest, because it ignores Http verbs.
-"""
+"""This module contains the JsonObject protocol implementation."""
 
 import logging
 logger = logging.getLogger(__name__)
