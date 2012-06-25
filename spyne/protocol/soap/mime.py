@@ -1,8 +1,8 @@
 
 import logging
 logger = logging.getLogger(__name__)
-from lxml import etree
 
+from lxml import etree
 from base64 import b64encode
 
 try:
@@ -30,7 +30,7 @@ import spyne.const.xml_ns
 _ns_xop = spyne.const.xml_ns.xop
 _ns_soap_env = spyne.const.xml_ns.soap_env
 
-def join_attachment(href_id, envelope, payload, prefix=True):
+def _join_attachment(href_id, envelope, payload, prefix=True):
     '''Places the data from an attachment back into a SOAP message, replacing
     its xop:Include element or href.
 
@@ -159,11 +159,11 @@ def collapse_swa(content_type, envelope):
 
         # Check for Content-ID and make replacement
         if cid:
-            soapmsg, numreplaces = join_attachment(cid, soapmsg, payload)
+            soapmsg, numreplaces = _join_attachment(cid, soapmsg, payload)
 
         # Check for Content-Location and make replacement
         if cloc and not cid and not numreplaces:
-            soapmsg, numreplaces = join_attachment(cloc, soapmsg, payload, False)
+            soapmsg, numreplaces = _join_attachment(cloc, soapmsg, payload, False)
 
     return [soapmsg]
 
