@@ -180,7 +180,6 @@ class WsgiApplication(HttpBase):
                     wsdl.build_interface_document(url)
                     ctx.transport.wsdl = self._wsdl = wsdl.get_interface_document()
 
-
             except Exception, e:
                 logger.exception(e)
                 ctx.transport.wsdl_error = e

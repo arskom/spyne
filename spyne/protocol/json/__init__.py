@@ -111,7 +111,7 @@ class JsonObject(ProtocolBase):
         logger.debug('\theader : %r' % (ctx.in_header_doc))
         logger.debug('\tbody   : %r' % (ctx.in_body_doc))
 
-    def doc_to_object(self, cls, doc):
+    def _doc_to_object(self, cls, doc):
         if doc is None:
             return []
 
@@ -120,7 +120,7 @@ class JsonObject(ProtocolBase):
             (serializer,) = cls._type_info.values()
 
             for child in doc:
-                retval.append(self.from_dict_value(serializer, child))
+                retval.append(self._from_dict_value(serializer, child))
 
             return retval
 
@@ -158,10 +158,10 @@ class JsonObject(ProtocolBase):
                     value = []
 
                 for a in v:
-                    value.append(self.from_dict_value(member, a))
+                    value.append(self._from_dict_value(member, a))
 
             else:
-                value = self.from_dict_value(member, v)
+                value = self._from_dict_value(member, v)
 
             setattr(inst, k, value)
 
@@ -194,7 +194,7 @@ class JsonObject(ProtocolBase):
             # assign raw result to its wrapper, result_message
             result_message_class = ctx.descriptor.in_message
             value = ctx.in_body_doc.get(result_message_class.get_type_name(), None)
-            result_message = self.doc_to_object(result_message_class, value)
+            result_message = self._doc_to_object(result_message_class, value)
 
             ctx.in_object = result_message
             self.event_manager.fire_event('after_deserialize', ctx)
@@ -209,7 +209,7 @@ class JsonObject(ProtocolBase):
 
         if ctx.out_error is not None:
             # FIXME: There's no way to alter soap response headers for the user.
-            ctx.out_document = [ctx.out_error.to_dict(ctx.out_error)]
+            ctx.out_document = [ctx.out_error._to_dict(ctx.out_error)]
 
         else:
             # get the result message
@@ -241,16 +241,16 @@ class JsonObject(ProtocolBase):
 
             # transform the results into a dict:
             if out_type.Attributes.max_occurs > 1:
-                ctx.out_document = (self.to_value(out_type, inst, wrapper_name) for inst in out_instance)
+                ctx.out_document = (self._to_value(out_type, inst, wrapper_name) for inst in out_instance)
             else:
-                ctx.out_document = [self.to_value(out_type, out_instance, wrapper_name)]
+                ctx.out_document = [self._to_value(out_type, out_instance, wrapper_name)]
 
             self.event_manager.fire_event('after_serialize', ctx)
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         ctx.out_string = (json.dumps(o) for o in ctx.out_document)
 
-    def from_dict_value(self, cls, value):
+    def _from_dict_value(self, cls, value):
         # validate raw input
         if self.validator is self.SOFT_VALIDATION:
             if issubclass(cls, Unicode) and not isinstance(value, unicode):
@@ -265,7 +265,7 @@ class JsonObject(ProtocolBase):
 
         # get native type
         if issubclass(cls, ComplexModelBase):
-            retval = self.doc_to_object(cls, value)
+            retval = self._doc_to_object(cls, value)
 
         elif issubclass(cls, DateTime):
             retval = cls.from_string(value)
@@ -280,10 +280,10 @@ class JsonObject(ProtocolBase):
 
         return retval
 
-    def get_member_pairs(self, cls, inst):
+    def _get_member_pairs(self, cls, inst):
         parent_cls = getattr(cls, '__extends__', None)
         if not (parent_cls is None):
-            for r in self.get_member_pairs(parent_cls, inst):
+            for r in self._get_member_pairs(parent_cls, inst):
                 yield r
 
         for k, v in cls._type_info.items():
@@ -295,14 +295,14 @@ class JsonObject(ProtocolBase):
 
             if v.Attributes.max_occurs > 1:
                 if sub_value != None:
-                    yield (k, [self.to_value(v,sv) for sv in sub_value])
+                    yield (k, [self._to_value(v,sv) for sv in sub_value])
 
             else:
-                yield (k, self.to_value(v, sub_value))
+                yield (k, self._to_value(v, sub_value))
 
-    def to_value(self, cls, value, k=None):
+    def _to_value(self, cls, value, k=None):
         if issubclass(cls, ComplexModelBase):
-            return self.to_dict(cls, value, k)
+            return self._to_dict(cls, value, k)
 
         if issubclass(cls, DateTime):
             return cls.to_string(value)
@@ -315,10 +315,10 @@ class JsonObject(ProtocolBase):
 
         return value
 
-    def to_dict(self, cls, inst, field_name=None):
+    def _to_dict(self, cls, inst, field_name=None):
         inst = cls.get_serialization_instance(inst)
 
-        retval = dict(self.get_member_pairs(cls, inst))
+        retval = dict(self._get_member_pairs(cls, inst))
         if field_name is None:
             return retval
         else:
