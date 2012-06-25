@@ -215,13 +215,14 @@ class Soap11(XmlObject):
                     headers = [None] * len(header_class)
                     for i, (header_doc, head_class) in enumerate(
                                           zip(ctx.in_header_doc, header_class)):
-                        if len(header_doc) > 0:
+                        if len(header_doc) > i:
                             headers[i] = self.from_element(head_class, header_doc)
                     ctx.in_header = tuple(headers)
 
                 else:
-                    header_doc = ctx.in_header_doc[0]
-                    ctx.in_header = self.from_element(header_class, header_doc)
+                    if len(ctx.in_header_doc) > 0:
+                        ctx.in_header = self.from_element(header_class,
+                                                            ctx.in_header_doc[0])
 
             # decode method arguments
             if ctx.in_body_doc is None:
