@@ -17,7 +17,28 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+
 ARRAY_SUFFIX = 'Array'
 RESPONSE_SUFFIX = 'Response'
 RESULT_SUFFIX = 'Result'
 TYPE_SUFFIX = 'Type'
+
+
+def set_array_suffix(what):
+    global ARRAY_SUFFIX
+    ARRAY_SUFFIX = what
+
+
+def set_response_suffix(what):
+    global RESPONSE_SUFFIX
+    RESPONSE_SUFFIX = what
+
+
+def set_result_suffix(what):
+    global RESULT_SUFFIX
+    RESULT_SUFFIX = what
+
+
+def set_type_suffix(what):
+    global TYPE_SUFFIX
+    TYPE_SUFFIX = what

@@ -9,7 +9,8 @@
 # Spyne is actually installed somewhere, the environment should already be set
 # up properly without the help of this tool.
 
-import sys, os
+import os
+import sys
 
 path = os.path.abspath(sys.argv[0])
 while os.path.dirname(path) != path:
