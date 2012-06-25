@@ -31,7 +31,7 @@ except ImportError: # Python 3
 
 from spyne.protocol import ProtocolBase
 
-def complex_to_csv(ctx):
+def _complex_to_csv(ctx):
     cls, = ctx.descriptor.out_message._type_info.values()
 
     queue = StringIO()
@@ -87,7 +87,7 @@ class Csv(ProtocolBase):
             supports functions with exactly one return type:
             %r""" % ctx.descriptor.out_message._type_info
 
-        ctx.out_string = complex_to_csv(ctx)
+        ctx.out_string = _complex_to_csv(ctx)
         ctx.transport.resp_headers['Content-Disposition'] = (
                          'attachment; filename=%s.csv;' % ctx.descriptor.name)
 
