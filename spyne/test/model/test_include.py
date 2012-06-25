@@ -29,7 +29,7 @@ from spyne.model.complex import ComplexModel
 from spyne.model.primitive import Integer
 from spyne.model.primitive import String
 from spyne.protocol.xml import XmlObject
-from spyne.protocol.soap.mime import join_attachment
+from spyne.protocol.soap.mime import _join_attachment
 from spyne.const import xml_ns as ns
 
 # Service Classes
@@ -60,7 +60,7 @@ class TestInclude(unittest.TestCase):
             </s:Envelope>
         ''' % quote_plus(href_id)
 
-        (joinedmsg, numreplaces) = join_attachment(href_id, envelope, payload)
+        (joinedmsg, numreplaces) = _join_attachment(href_id, envelope, payload)
 
         soaptree = etree.fromstring(joinedmsg)
 
