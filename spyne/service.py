@@ -202,5 +202,5 @@ class ServiceBase(object):
         return '.'.join([
                 cls.__module__,
                 cls.__name__,
-                descriptor.function.__name__,
+                descriptor.name,
             ])
