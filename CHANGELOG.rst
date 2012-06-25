@@ -43,6 +43,9 @@ rpclib-2.8.0-rc -> spyne-2.8.0-rc
     * https://github.com/arskom/spyne/pull/144
     * https://github.com/arskom/spyne/pull/146
     * https://github.com/arskom/spyne/pull/145
+    * https://github.com/arskom/spyne/pull/147
+    * https://github.com/arskom/spyne/pull/148
+    * https://github.com/arskom/spyne/pull/149
 
 rpclib-2.7.0-beta
 -----------------

@@ -295,7 +295,7 @@ class Interface(object):
         if not (extends is None):
             self.add_class(extends)
             parent_ns = extends.get_namespace()
-            if not parent_ns in self.imports[ns]:
+            if parent_ns != ns and not not parent_ns in self.imports[ns]:
                 self.imports[ns].add(parent_ns)
                 logger.debug("\timporting %r to %r because %r extends %r" % (
                     parent_ns, ns, cls.get_type_name(), extends.get_type_name()))
