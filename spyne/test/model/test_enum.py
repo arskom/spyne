@@ -22,12 +22,12 @@ import unittest
 
 from pprint import pprint
 
+from spyne.application import Application
 from spyne.const.xml_ns import xsd as _ns_xsd
+from spyne.interface.wsdl.wsdl11 import Wsdl11
+from spyne.model.complex import Array
 from spyne.protocol.xml import XmlObject
 from spyne.protocol.soap.soap11 import Soap11
-from spyne.interface.wsdl.wsdl11 import Wsdl11
-from spyne.application import Application
-from spyne.model.complex import Array
 
 from spyne.server.wsgi import WsgiApplication
 from spyne.service import ServiceBase
