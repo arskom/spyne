@@ -467,16 +467,22 @@ class Time(SimpleModel):
     @classmethod
     @nillable_string
     def from_string(cls, string):
-        """Expects ISO formatted dates."""
+        """Expects ISO formatted times."""
 
         match = _time_re.match(string)
         if match is None:
             raise ValidationError(string)
 
         fields = match.groupdict(0)
+        print fields
+        microsec = fields.get("sec_frac")
+        if microsec is None or microsec == 0:
+            microsec = 0
+        else:
+            microsec = int(microsec[1:])
 
         return datetime.time(int(fields['hr']), int(fields['min']),
-                    int(fields['sec']), int(fields.get("sec_frac", '.')[1:]))
+                    int(fields['sec']), microsec)
 
 
 class DateTime(SimpleModel):
