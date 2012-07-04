@@ -9,12 +9,15 @@ Spyne API Reference
     :maxdepth: 2
 
     base
+    application
+    service
+    decorator
+
     model
     interface
     protocol
     client
     server
+    auxproc
+
     util
-    application
-    service
-    decorator
