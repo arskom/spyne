@@ -32,8 +32,9 @@ Discussion thread: https://answers.launchpad.net/ladon/+question/171664
   deployments. Spyne uses lxml, due to its excellent namespace support and
   speed. So Spyne-based solutions are easier to develop and faster to work with
   but more difficult to deploy.
-* Does not do input validation for SOAP.
-* Does not support events.
+* Does not do declarative input validation. Traditional (imperative) input
+  validation is possible via a code injection mechanism similar to spyne's
+  events.
 * Does not support HttpRpc.
 * Does not have a Soap client.
     In fact, Ladon is pure server-side software - the whole idea of supporting a
