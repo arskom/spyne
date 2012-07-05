@@ -52,7 +52,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'spyne'
-copyright = u'2011, Spyne Contributors'
+copyright = u'Spyne Contributors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -233,7 +233,7 @@ man_pages = [
 epub_title = u'spyne'
 epub_author = u'Spyne Contributors'
 epub_publisher = u'Spyne Contributors'
-epub_copyright = u'2011, Spyne Contributors'
+epub_copyright = u'Spyne Contributors'
 
 # The language of the text. It defaults to the language option
 # or en if the language is not set.
