@@ -65,6 +65,7 @@ Session = sessionmaker(bind=_user_database)
 # inside @rpc decorator)
 #
 
+
 class User(TableModel, DeclarativeBase):
     __namespace__ = 'spyne.examples.user_manager'
     __tablename__ = 'spyne_user'
@@ -74,11 +75,13 @@ class User(TableModel, DeclarativeBase):
     first_name = Column(sqlalchemy.String(256))
     last_name = Column(sqlalchemy.String(256))
 
+
 # this is the same as the above user object. Use this method of declaring
 # objects for tables that have to be defined elsewhere.
 class AlternativeUser(TableModel, DeclarativeBase):
     __namespace__ = 'spyne.examples.user_manager'
     __table__ = User.__table__
+
 
 class UserManagerService(ServiceBase):
     @rpc(User, _returns=Integer)
@@ -104,12 +107,15 @@ class UserManagerService(ServiceBase):
     def get_all_user(ctx):
         return ctx.udc.session.query(User)
 
+
 class UserDefinedContext(object):
     def __init__(self):
         self.session = Session()
 
+
 def _on_method_call(ctx):
     ctx.udc = UserDefinedContext()
+
 
 def _on_method_return_object(ctx):
     ctx.udc.session.commit()
@@ -125,13 +131,13 @@ if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server
     except ImportError:
-        print "Error: example server code requires Python >= 2.5"
+        logging.error("Error: example server code requires Python >= 2.5")
 
     wsgi_app = WsgiApplication(application)
     server = make_server('127.0.0.1', 7789, wsgi_app)
 
     metadata.create_all()
-    print "listening to http://127.0.0.1:7789"
-    print "wsdl is at: http://localhost:7789/?wsdl"
+    logging.info("listening to http://127.0.0.1:7789")
+    logging.info("wsdl is at: http://localhost:7789/?wsdl")
 
     server.serve_forever()

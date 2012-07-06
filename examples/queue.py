@@ -61,11 +61,13 @@ db = create_engine('sqlite:///:memory:')
 metadata = MetaData(bind=db)
 DeclarativeBase = declarative_base(metadata=metadata)
 
+
 class TaskQueue(DeclarativeBase):
     __tablename__ = 'task_queue'
 
     id = Column(sqlalchemy.Integer, primary_key=True)
     data = Column(sqlalchemy.LargeBinary, nullable=False)
+
 
 class WorkerStatus(DeclarativeBase):
     __tablename__ = 'worker_status'
@@ -74,6 +76,7 @@ class WorkerStatus(DeclarativeBase):
                                                             autoincrement=False)
     task_id = Column(sqlalchemy.Integer, ForeignKey(TaskQueue.id),
                                                             nullable=False)
+
 
 class Consumer(ServerBase):
     transport = 'http://sqlalchemy.persistent.queue/'
@@ -90,7 +93,6 @@ class Consumer(ServerBase):
         except NoResultFound:
             self.session.add(WorkerStatus(worker_id=self.id, task_id=0))
             self.session.commit()
-
 
     def serve_forever(self):
         while True:
@@ -128,6 +130,7 @@ class Consumer(ServerBase):
 
             time.sleep(10)
 
+
 class RemoteProcedure(RemoteProcedureBase):
     def __init__(self, db, app, name, out_header):
         RemoteProcedureBase.__init__(self, db, app, name, out_header)
@@ -148,17 +151,20 @@ class RemoteProcedure(RemoteProcedureBase):
         session.commit()
         session.close()
 
+
 class Producer(ClientBase):
     def __init__(self, db, app):
         ClientBase.__init__(self, db, app)
 
         self.service = Service(RemoteProcedure, db, app)
 
+
 class AsyncService(ServiceBase):
     @rpc(Integer)
     def sleep(ctx, integer):
         print("Sleeping for %d seconds..." % (integer))
         time.sleep(integer)
+
 
 def _on_method_call(ctx):
     print("This is worker id %d, processing task id %d." % (

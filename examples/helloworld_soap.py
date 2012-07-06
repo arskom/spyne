@@ -67,6 +67,7 @@ Here's how to call it using suds:
 
 '''
 
+
 class HelloWorldService(ServiceBase):
     @srpc(Unicode, Integer, _returns=Iterable(Unicode))
     def say_hello(name, times):
