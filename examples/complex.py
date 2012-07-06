@@ -29,6 +29,8 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+import logging
+
 from spyne.application import Application
 from spyne.decorator import srpc
 from spyne.interface.wsdl import Wsdl11
@@ -56,6 +58,7 @@ class Permission(ComplexModel):
     application = String
     feature = String
 
+
 class User(ComplexModel):
     __namespace__ = "user"
 
@@ -64,6 +67,7 @@ class User(ComplexModel):
     firstname = String
     lastname = String
     permissions = Array(Permission)
+
 
 class UserManager(ServiceBase):
     @srpc(User, _returns=Integer)
@@ -102,17 +106,20 @@ class UserManager(ServiceBase):
         return user_database.values()
 
 if __name__=='__main__':
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getlogger('spyne.protocol.xml').setLevel(logging.DEBUG)
+
     try:
         from wsgiref.simple_server import make_server
     except ImportError:
-        print("Error: example server code requires Python >= 2.5")
+        logging.error("Example server code requires Python >= 2.5")
 
     application = Application([UserManager], 'spyne.examples.complex',
                 interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
 
     server = make_server('127.0.0.1', 7789, WsgiApplication(application))
 
-    print("listening to http://127.0.0.1:7789")
-    print("wsdl is at: http://localhost:7789/?wsdl")
+    logging.info("listening to http://127.0.0.1:7789")
+    logging.info("wsdl is at: http://localhost:7789/?wsdl")
 
     server.serve_forever()

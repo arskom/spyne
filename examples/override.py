@@ -29,6 +29,8 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+import logging
+
 from spyne.application import Application
 from spyne.decorator import srpc
 from spyne.interface.wsdl import Wsdl11
@@ -44,11 +46,13 @@ This is very useful for situations that require the use of variable names
 that are python keywords like, from, to, import, return, etc.
 '''
 
+
 class SomeClass(ComplexModel):
     _type_info = {
         'and': String,
         'or': String
     }
+
 
 class EmailManager(ServiceBase):
     @srpc(String, String, String, _returns=String,
@@ -60,17 +64,20 @@ class EmailManager(ServiceBase):
         return repr((_to, _from, _message, 'sent!'))
 
 if __name__=='__main__':
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
+
     try:
         from wsgiref.simple_server import make_server
     except ImportError:
-        print("Error: example server code requires Python >= 2.5")
+        logging.error("Error: example server code requires Python >= 2.5")
 
     application = Application([EmailManager], 'spyne.examples.events',
                 interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
 
     server = make_server('127.0.0.1', 7789, WsgiApplication(application))
 
-    print("listening to http://127.0.0.1:7789")
-    print("wsdl is at: http://localhost:7789/?wsdl")
+    logging.info("listening to http://127.0.0.1:7789")
+    logging.info("wsdl is at: http://localhost:7789/?wsdl")
 
     server.serve_forever()
