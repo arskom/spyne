@@ -109,13 +109,15 @@ def _on_method_context_constructed(ctx):
                                                                 ctx.call_start))
 
 if __name__=='__main__':
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
+
     try:
         from wsgiref.simple_server import make_server
     except ImportError:
-        print("Error: example server code requires Python >= 2.5")
+        logging.error("Error: example server code requires Python >= 2.5")
 
-    logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
+
 
     application = Application([HelloWorldService], 'spyne.examples.events',
                 interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
@@ -134,7 +136,7 @@ if __name__=='__main__':
 
     server = make_server('127.0.0.1', 7789, wsgi_wrapper)
 
-    print("listening to http://127.0.0.1:7789")
-    print("wsdl is at: http://localhost:7789/?wsdl")
+    logger.info("listening to http://127.0.0.1:7789")
+    logger.info("wsdl is at: http://localhost:7789/?wsdl")
 
     server.serve_forever()

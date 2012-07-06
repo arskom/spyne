@@ -125,13 +125,13 @@ if __name__=='__main__':
     try:
         from wsgiref.simple_server import make_server
     except ImportError:
-        print "Error: example server code requires Python >= 2.5"
+        logging.error("Error: example server code requires Python >= 2.5")
 
     wsgi_app = WsgiApplication(application)
     server = make_server('127.0.0.1', 7789, wsgi_app)
 
     metadata.create_all()
-    print "listening to http://127.0.0.1:7789"
-    print "wsdl is at: http://localhost:7789/?wsdl"
+    logging.info("listening to http://127.0.0.1:7789")
+    logging.info("wsdl is at: http://localhost:7789/?wsdl")
 
     server.serve_forever()

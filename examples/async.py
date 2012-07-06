@@ -37,6 +37,8 @@
 import time
 from threading import Thread
 
+import logging
+
 from spyne.application import Application
 from spyne.decorator import rpc
 from spyne.decorator import srpc
@@ -75,17 +77,20 @@ class SleepingService(ServiceBase):
         pass
 
 if __name__=='__main__':
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
+
     try:
         from wsgiref.simple_server import make_server
     except ImportError:
-        print("Error: example server code requires Python >= 2.5")
+        logger.error("Error: example server code requires Python >= 2.5")
 
     application = Application([SleepingService], 'spyne.examples.async',
                 interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
 
     server = make_server('127.0.0.1', 7789, WsgiApplication(application))
 
-    print("listening to http://127.0.0.1:7789")
-    print("wsdl is at: http://localhost:7789/?wsdl")
+    logging.info("listening to http://127.0.0.1:7789")
+    logging.info("wsdl is at: http://localhost:7789/?wsdl")
 
     server.serve_forever()

@@ -29,6 +29,8 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+import logging
+
 from spyne.application import Application
 from spyne.decorator import srpc
 from spyne.interface.wsdl import Wsdl11
@@ -60,6 +62,9 @@ class HelloWorldService(ServiceBase):
         return results
 
 if __name__=='__main__':
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
+
     application = Application([HelloWorldService], 'spyne.examples.hello.twisted',
                 interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
 
@@ -69,7 +74,7 @@ if __name__=='__main__':
 
     wsgi_app = WsgiApplication(application)
 
-    print('listening on 0.0.0.0:7789')
-    print('wsdl is at: http://0.0.0.0:7789/app/?wsdl')
+    logging.info('listening on 0.0.0.0:7789')
+    logging.info('wsdl is at: http://0.0.0.0:7789/app/?wsdl')
 
     run_twisted( ( (wsgi_app, "app"),), 7789)
