@@ -46,11 +46,13 @@ This is very useful for situations that require the use of variable names
 that are python keywords like, from, to, import, return, etc.
 '''
 
+
 class SomeClass(ComplexModel):
     _type_info = {
         'and': String,
         'or': String
     }
+
 
 class EmailManager(ServiceBase):
     @srpc(String, String, String, _returns=String,

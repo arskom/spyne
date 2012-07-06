@@ -46,6 +46,7 @@ from spyne.util.wsgi_wrapper import run_twisted
 This is the HelloWorld example running in the twisted framework.
 '''
 
+
 class HelloWorldService(ServiceBase):
     @srpc(String, Integer, _returns=Array(String))
     def say_hello(name, times):
@@ -77,4 +78,4 @@ if __name__=='__main__':
     logging.info('listening on 0.0.0.0:7789')
     logging.info('wsdl is at: http://0.0.0.0:7789/app/?wsdl')
 
-    run_twisted( ( (wsgi_app, "app"),), 7789)
+    run_twisted(((wsgi_app, "app"),), 7789)

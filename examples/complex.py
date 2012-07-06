@@ -58,6 +58,7 @@ class Permission(ComplexModel):
     application = String
     feature = String
 
+
 class User(ComplexModel):
     __namespace__ = "user"
 
@@ -66,6 +67,7 @@ class User(ComplexModel):
     firstname = String
     lastname = String
     permissions = Array(Permission)
+
 
 class UserManager(ServiceBase):
     @srpc(User, _returns=Integer)
@@ -106,7 +108,7 @@ class UserManager(ServiceBase):
 if __name__=='__main__':
     logging.basicConfig(level=logging.DEBUG)
     logging.getlogger('spyne.protocol.xml').setLevel(logging.DEBUG)
-    
+
     try:
         from wsgiref.simple_server import make_server
     except ImportError:

@@ -48,11 +48,13 @@ from spyne.service import ServiceBase
 _user_database = {}
 _user_id_seq = 1
 
+
 class Permission(ComplexModel):
     __namespace__ = 'spyne.examples.user_manager'
 
     application = String
     operation = String
+
 
 class User(ComplexModel):
     __namespace__ = 'spyne.examples.user_manager'
@@ -63,6 +65,7 @@ class User(ComplexModel):
     last_name = String
     email = String(pattern=r'[a-z0-9._%+-]+@[a-z0-9.-]+\.[A-Z]{2,4}')
     permissions = Array(Permission)
+
 
 class UserManagerService(ServiceBase):
     @rpc(User, _returns=Integer)
@@ -88,6 +91,7 @@ class UserManagerService(ServiceBase):
     def get_all_user(ctx):
         return ctx.udc.users.itervalues()
 
+
 class UserDefinedContext(object):
     def __init__(self):
         self.users = _user_database
@@ -99,6 +103,7 @@ class UserDefinedContext(object):
         _user_id_seq += 1
 
         return _user_id_seq
+
 
 def _on_method_call(ctx):
     ctx.udc = UserDefinedContext()

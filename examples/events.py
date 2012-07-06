@@ -63,12 +63,14 @@ python's shallow-copying operator does not let us customize copy constructor,
 it's not possible to cleanly log this event.
 '''
 
+
 class UserDefinedContext(object):
     def __init__(self):
         self.call_start = time()
         self.call_end = None
         self.method_start = None
         self.method_end = None
+
 
 class HelloWorldService(ServiceBase):
     @srpc(String, Integer, _returns=Array(String))
@@ -80,17 +82,21 @@ class HelloWorldService(ServiceBase):
 
         return results
 
+
 def _on_wsgi_call(ctx):
     print("_on_wsgi_call")
     ctx.udc = UserDefinedContext()
+
 
 def _on_method_call(ctx):
     print("_on_method_call")
     ctx.udc.method_start = time()
 
+
 def _on_method_return_object(ctx):
     print("_on_method_return_object")
     ctx.udc.method_end = time()
+
 
 def _on_wsgi_return(ctx):
     print("_on_wsgi_return")
@@ -99,10 +105,13 @@ def _on_wsgi_return(ctx):
         ctx.udc.method_end - ctx.udc.method_start,
         call_end - ctx.udc.call_start))
 
+
 def _on_method_context_destroyed(ctx):
     print("_on_method_context_destroyed")
     print('MethodContext(%d) lived for [%0.8f] seconds' % (id(ctx),
                                                 ctx.call_end - ctx.call_start))
+
+
 def _on_method_context_constructed(ctx):
     print("_on_method_context_constructed")
     print('Hello, this is MethodContext(%d). Time now: %0.8f' % (id(ctx),
@@ -116,8 +125,6 @@ if __name__=='__main__':
         from wsgiref.simple_server import make_server
     except ImportError:
         logging.error("Error: example server code requires Python >= 2.5")
-
-
 
     application = Application([HelloWorldService], 'spyne.examples.events',
                 interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
