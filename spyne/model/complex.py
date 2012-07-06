@@ -55,16 +55,16 @@ class XmlAttribute(ModelBase):
 
     @classmethod
     def marshall(cls, name, value, parent_elt):
-        if ns is not None:
-            name = "{%s}%s" % (ns,name)
+        if cls._ns is not None:
+            name = "{%s}%s" % (cls._ns,name)
 
         if value is not None:
             parent_elt.set(name, cls._typ.to_string(value))
 
     @classmethod
     def describe(cls, name, element, app):
-        if ns is not None:
-            name = "{%s}%s" % (ns,name)
+        if cls._ns is not None:
+            name = "{%s}%s" % (cls._ns,name)
 
         element.set('name', name)
         element.set('type', cls._typ.get_type_name_ns(app.interface))
