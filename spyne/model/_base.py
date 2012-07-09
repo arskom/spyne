@@ -90,7 +90,7 @@ class ModelBase(object):
         max_occurs = 1
         """Can be set to any strictly positive integer. Values greater than 1
         will imply an iterable of objects as native python type. Can be set to
-        ``float("inf")`` for arbitrary number of arguments."""
+        ``decimal.Decimal("inf")`` for arbitrary number of arguments."""
 
         schema_tag = '{%s}element' % spyne.const.xml_ns.xsd
         """The tag used to add a primitives as child to a complex type in the
