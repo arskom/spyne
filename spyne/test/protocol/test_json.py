@@ -18,6 +18,7 @@
 #
 
 import json
+import decimal
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -171,7 +172,7 @@ class Test(unittest.TestCase):
 
     def test_multiple_list(self):
         class SomeService(ServiceBase):
-            @srpc(String(max_occurs=float('inf')), _returns=String(max_occurs=float('inf')))
+            @srpc(String(max_occurs=decimal.Decimal('inf')), _returns=String(max_occurs=decimal.Decimal('inf')))
             def some_call(s):
                 return s
 
@@ -190,7 +191,7 @@ class Test(unittest.TestCase):
 
     def test_multiple_dict(self):
         class SomeService(ServiceBase):
-            @srpc(String(max_occurs=float('inf')), _returns=String(max_occurs=float('inf')))
+            @srpc(String(max_occurs=decimal.Decimal('inf')), _returns=String(max_occurs=decimal.Decimal('inf')))
             def some_call(s):
                 return s
 
