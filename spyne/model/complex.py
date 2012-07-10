@@ -145,7 +145,7 @@ class ComplexModelMeta(type(ModelBase)):
             _type_info = cls_dict['_type_info']
 
             if not isinstance(_type_info, TypeInfo):
-                cls_dict['_type_info'] = TypeInfo(_type_info)
+                _type_info = cls_dict['_type_info'] = TypeInfo(_type_info)
 
                 for k, v in _type_info.items():
                     if issubclass(v, SelfReference):
