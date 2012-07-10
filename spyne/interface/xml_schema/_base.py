@@ -35,7 +35,7 @@ from spyne.util.cdict import cdict
 from spyne.interface import InterfaceDocumentBase
 from spyne.model import SimpleModel
 from spyne.model.primitive import Decimal
-from spyne.model.primitive import String
+from spyne.model.primitive import Unicode
 from spyne.model.complex import ComplexModelBase
 from spyne.model.complex import Alias
 from spyne.model.enum import EnumBase
@@ -49,7 +49,7 @@ from spyne.interface.xml_schema.model import fault_add
 from spyne.interface.xml_schema.model import enum_add
 
 from spyne.interface.xml_schema.model import simple_get_restriction_tag
-from spyne.interface.xml_schema.model import string_get_restriction_tag
+from spyne.interface.xml_schema.model import unicode_get_restriction_tag
 from spyne.interface.xml_schema.model import decimal_get_restriction_tag
 
 _add_handlers = cdict({
@@ -64,7 +64,7 @@ _add_handlers = cdict({
 _get_restriction_tag_handlers = cdict({
     object: lambda self, cls: None,
     SimpleModel: simple_get_restriction_tag,
-    String: string_get_restriction_tag,
+    Unicode: unicode_get_restriction_tag,
     Decimal: decimal_get_restriction_tag,
 })
 

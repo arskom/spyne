@@ -25,7 +25,7 @@ from lxml import etree
 from spyne.model.complex import XmlAttribute
 from spyne.model.primitive import AnyXml
 from spyne.util.etreeconv import dict_to_etree
-from spyne.model.primitive import String
+from spyne.model.primitive import Unicode
 from spyne.model.primitive import Decimal
 
 from spyne.const.xml_ns import xsd as _ns_xs
@@ -156,7 +156,7 @@ def enum_add(document, cls):
 
     restriction = etree.SubElement(simple_type,
                                         '{%s}restriction' % _ns_xsd)
-    restriction.set('base', '%s:string' %
+    restriction.set('base', '%s:unicode' %
                             document.interface.get_namespace_prefix(_ns_xsd))
 
     for v in cls.__values__:
@@ -187,7 +187,7 @@ def fault_add(document, cls):
     document.add_element(cls, element)
 
 
-def string_get_restriction_tag(interface, cls):
+def unicode_get_restriction_tag(interface, cls):
     restriction = simple_get_restriction_tag(interface, cls)
 
     # length
@@ -196,16 +196,16 @@ def string_get_restriction_tag(interface, cls):
         length.set('value', str(cls.Attributes.min_len))
 
     else:
-        if cls.Attributes.min_len != String.Attributes.min_len:
+        if cls.Attributes.min_len != Unicode.Attributes.min_len:
             min_l = etree.SubElement(restriction, '{%s}minLength' % _ns_xs)
             min_l.set('value', str(cls.Attributes.min_len))
 
-        if cls.Attributes.max_len != String.Attributes.max_len:
+        if cls.Attributes.max_len != Unicode.Attributes.max_len:
             max_l = etree.SubElement(restriction, '{%s}maxLength' % _ns_xs)
             max_l.set('value', str(cls.Attributes.max_len))
 
     # pattern
-    if cls.Attributes.pattern != String.Attributes.pattern:
+    if cls.Attributes.pattern != Unicode.Attributes.pattern:
         pattern = etree.SubElement(restriction, '{%s}pattern' % _ns_xs)
         pattern.set('value', cls.Attributes.pattern)
 
