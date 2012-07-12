@@ -157,7 +157,7 @@ def enum_add(document, cls):
 
     restriction = etree.SubElement(simple_type,
                                         '{%s}restriction' % _ns_xsd)
-    restriction.set('base', '%s:unicode' %
+    restriction.set('base', '%s:string' %
                             document.interface.get_namespace_prefix(_ns_xsd))
 
     for v in cls.__values__:
