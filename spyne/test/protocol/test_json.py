@@ -18,11 +18,12 @@
 #
 
 import json
-import decimal
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
 import unittest
+
+from decimal import Decimal
 
 from spyne import MethodContext
 from spyne.application import Application
@@ -172,7 +173,7 @@ class Test(unittest.TestCase):
 
     def test_multiple_list(self):
         class SomeService(ServiceBase):
-            @srpc(String(max_occurs=decimal.Decimal('inf')), _returns=String(max_occurs=decimal.Decimal('inf')))
+            @srpc(String(max_occurs=Decimal('inf')), _returns=String(max_occurs=decimal.Decimal('inf')))
             def some_call(s):
                 return s
 
