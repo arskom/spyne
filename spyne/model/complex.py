@@ -21,6 +21,7 @@
 mainly container classes that organize other values.
 """
 
+import decimal
 import logging
 logger = logging.getLogger(__name__)
 
@@ -432,7 +433,7 @@ class Array(ComplexModel):
         # hack to default to unbounded arrays when the user didn't specify
         # max_occurs. We should find a better way.
         if serializer.Attributes.max_occurs == 1:
-            serializer = serializer.customize(max_occurs=float('inf'))
+            serializer = serializer.customize(max_occurs=decimal.Decimal('inf'))
 
         if serializer.get_type_name() is ModelBase.Empty:
             member_name = serializer.__base_type__.get_type_name()

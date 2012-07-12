@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import decimal
 import logging
 logger = logging.getLogger(__name__)
 
@@ -122,7 +123,7 @@ def complex_add(document, cls):
             member.set('minOccurs', str(v.Attributes.min_occurs))
         if v.Attributes.max_occurs != 1: # 1 is the xml schema default
             val = v.Attributes.max_occurs
-            if val == float('inf'):
+            if val == decimal.Decimal('inf'):
                 val = 'unbounded'
             else:
                 val = str(val)

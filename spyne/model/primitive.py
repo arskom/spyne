@@ -133,8 +133,8 @@ class Unicode(SimpleModel):
         min_len = 0
         """Minimum length of string. Can be set to any positive integer"""
 
-        max_len = float('inf')
-        """Maximum length of string. Can be set to ``float('inf')`` to accept
+        max_len = decimal.Decimal('inf')
+        """Maximum length of string. Can be set to ``decimal.Decimal('inf')`` to accept
         strings of arbitrary length.
         :const:`spyne.server.wsgi.MAX_CONTENT_LENGTH`."""
 
@@ -241,16 +241,16 @@ class Decimal(SimpleModel):
         """Customizable attributes of the :class:`spyne.model.primitive.Decimal`
         type."""
 
-        gt = -float('inf') # minExclusive
+        gt = decimal.Decimal('-inf') # minExclusive
         """The value should be greater than this number."""
 
-        ge = -float('inf') # minInclusive
+        ge = decimal.Decimal('-inf') # minInclusive
         """The value should be greater than or equal to this number."""
 
-        lt =  float('inf') # maxExclusive
+        lt = decimal.Decimal('inf') # maxExclusive
         """The value should be smaller than this number."""
 
-        le =  float('inf') # maxInclusive
+        le = decimal.Decimal('inf') # maxInclusive
         """The value should be smaller than or equal to this number."""
 
         max_str_len = 1024

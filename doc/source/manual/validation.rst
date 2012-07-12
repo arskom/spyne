@@ -88,7 +88,7 @@ along with their default values
   set to ``unbounded`` for arbitrary number of arguments
 
   .. NOTE::
-    As of spyne-2.8.0, use ``float('inf')`` instead of ``unbounded``.
+    As of spyne-2.8.0, use ``decimal.Decimal('inf')`` instead of ``unbounded``.
 
 These rules can be combined, the example below illustrates how to create a
 mandatory string:
