@@ -19,6 +19,7 @@
 
 import spyne.const.xml_ns
 
+from decimal import Decimal
 
 """This module contains the ModelBase class and other building blocks for
 defining models.
@@ -217,7 +218,7 @@ class ModelBase(object):
         return type(cls_name, cls_bases, cls_dict)
 
     @staticmethod
-    def _s_customize(cls, ** kwargs):
+    def _s_customize(cls, **kwargs):
         """This function duplicates and customizes the class it belongs to. The
         original class remains unchanged.
 
@@ -238,6 +239,8 @@ class ModelBase(object):
         for k, v in kwargs.items():
             if k in ("doc", "appinfo"):
                 setattr(Annotations, k, v)
+            elif k == 'max_occurs' and v == 'unbounded':
+                setattr(Attributes, k, Decimal('inf'))
             else:
                 setattr(Attributes, k, v)
 
