@@ -135,6 +135,9 @@ def get_members_etree(prot, cls, inst, parent):
         except: # to guard against sqlalchemy throwing NoSuchColumnError
             subvalue = None
 
+        # This is a tight loop, so enable this only when necessary.
+        # logger.debug("get %r(%r) from %r: %r" % (k, v, inst, subvalue))
+
         if issubclass(v, XmlAttribute):
             v.marshall(k, subvalue, parent)
             continue
