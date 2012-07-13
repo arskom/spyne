@@ -38,7 +38,7 @@ class Application(object):
                          the exposed services.
     :param tns:          The targetNamespace attribute of the exposed
                          service.
-    :param interface:    Ignored.
+    :param interface:    Ignored. Kept for backwards-compatibility purposes.
     :param in_protocol:  A ProtocolBase instance that defines the input
                          protocol.
     :param out_protocol: A ProtocolBase instance that defines the output
