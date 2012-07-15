@@ -427,7 +427,7 @@ class Array(ComplexModel):
     the same name as the serialized class. It's contained in a Python list.
     """
 
-    def __new__(cls, serializer, ** kwargs):
+    def __new__(cls, serializer, **kwargs):
         retval = cls.customize(**kwargs)
 
         # hack to default to unbounded arrays when the user didn't specify

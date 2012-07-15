@@ -136,7 +136,7 @@ def get_members_etree(prot, cls, inst, parent):
             subvalue = None
 
         # This is a tight loop, so enable this only when necessary.
-        # logger.debug("get %r(%r) from %r: %r" % (k, v, inst, subvalue))
+        logger.debug("get %r(%r) from %r: %r" % (k, v, inst, subvalue))
 
         if issubclass(v, XmlAttribute):
             v.marshall(k, subvalue, parent)
@@ -262,7 +262,8 @@ def enum_from_element(prot, cls, element):
 def fault_to_parent_element(prot, cls, value, tns, parent_elt, name=None):
     element = etree.SubElement(parent_elt, "{%s}Fault" % _ns_soap_env)
 
-    etree.SubElement(element, 'faultcode').text = '%s:%s' % (_pref_soap_env, value.faultcode)
+    etree.SubElement(element, 'faultcode').text = '%s:%s' % (_pref_soap_env,
+                                                                value.faultcode)
     etree.SubElement(element, 'faultstring').text = value.faultstring
     etree.SubElement(element, 'faultactor').text = value.faultactor
     if value.detail != None:
