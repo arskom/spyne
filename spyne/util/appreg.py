@@ -1,0 +1,69 @@
+
+#
+# spyne - Copyright (C) Spyne contributors.
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
+#
+
+"""
+Module that contains the Spyne Application Registry.
+"""
+
+import logging
+logger = logging.getLogger(__name__)
+
+_applications = {}
+
+from collections import namedtuple
+
+_ApplicationMetaData = namedtuple("_ApplicationMetaData", 
+                                                  ['app', 'inst_stack', 'null'])
+
+def register_application(app):
+    """Registers application in the registration was successful and False otherwise.
+    """
+
+    key = (app.tns, app.name)
+
+    from spyne.server.null import NullServer
+
+    try:
+        import traceback
+        stack = traceback.format_stack()
+    except ImportError:
+        stack = None
+
+    prev = _applications.get(key, None)
+    
+    if prev is not None:
+        if hash(prev.app) == hash(app):
+            logger.debug("Application %r previously registered as %r is the same"
+                        " as %r. Skipping." % (prev.app, key, app))
+            prev.inst_stack.append(stack)
+        else:
+            logger.warning("Overwriting application %r(%r)." % (key, app))
+
+            if prev.inst_stack is not None:
+                logger.debug("Stack trace of the instantiation:\n%s" %
+                                                       ''.join(prev.inst_stack))
+
+    _applications[key] = _ApplicationMetaData(app=app, inst_stack=[stack],
+                                                           null=NullServer(app))
+
+    logger.debug("Registering %r as %r" % (app, key))
+
+
+def get_application(tns, name):
+    return _applications.get((tns, name), None)

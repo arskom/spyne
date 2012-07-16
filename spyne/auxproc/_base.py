@@ -32,7 +32,7 @@ Auxiliary methods are a useful abstraction for a variety of asyncronous
 execution methods like persistent or non-persistent queueing, async execution
 in another thread, process or node.
 
-Auxprocs define how an auxiliary method is going to be executed.
+AuxProcs define how an auxiliary method is going to be executed.
 """
 
 import logging
