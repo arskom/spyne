@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 from spyne.model.fault import Fault
 from spyne.interface import Interface
 from spyne._base import EventManager
+from spyne.util.appreg import register_application
 
 
 class Application(object):
@@ -38,14 +39,14 @@ class Application(object):
                          the exposed services.
     :param tns:          The targetNamespace attribute of the exposed
                          service.
-    :param interface:    Ignored.
-    :param in_protocol:  A ProtocolBase instance that defines the input
-                         protocol.
-    :param out_protocol: A ProtocolBase instance that defines the output
-                         protocol.
     :param name:         The optional name attribute of the exposed service.
                          The default is the name of the application class
                          which is, by default, 'Application'.
+    :param in_protocol:  A ProtocolBase instance that defines the input
+                         protocol. It's only optional for NullServer transport.
+    :param out_protocol: A ProtocolBase instance that defines the output
+                         protocol. It's only optional for NullServer transport.
+    :param interface:    Ignored. Kept for backwards-compatibility purposes.
 
     Supported events:
         * method_call:
@@ -67,15 +68,16 @@ class Application(object):
 
     transport = None
 
-    def __init__(self, services, tns, in_protocol, out_protocol, interface=None,
-                                                                     name=None):
-
+    def __init__(self, services, tns, name=None,
+                           in_protocol=None, out_protocol=None, interface=None):
         self.services = services
         self.tns = tns
         self.name = name
 
         if self.name is None:
             self.name = self.__class__.__name__.split('.')[-1]
+
+        register_application(self)
 
         self.event_manager = EventManager(self)
         self.error_handler = None
@@ -162,3 +164,6 @@ class Application(object):
             if d.aux is not None and not id(d.aux) in aux_memo:
                 d.aux.initialize(server)
                 aux_memo.add(id(d.aux))
+
+    def __hash__(self):
+        return hash(tuple([id(s) for s in self.services]))

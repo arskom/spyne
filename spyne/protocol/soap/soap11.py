@@ -326,6 +326,9 @@ class Soap11(XmlObject):
 
             ctx.out_document.append(ctx.out_body_doc)
 
+        if self.cleanup_namespaces:
+            etree.cleanup_namespaces(ctx.out_document)
+
         if self.log_messages:
             if message is self.REQUEST:
                 line_header = '%sRequest%s' % (LIGHT_GREEN, END_COLOR)
@@ -333,6 +336,7 @@ class Soap11(XmlObject):
                 line_header = '%sResponse%s' % (LIGHT_RED, END_COLOR)
             logger.debug('%s %s' % (line_header, etree.tostring(ctx.out_document,
                                         xml_declaration=True, pretty_print=True)))
+
         self.event_manager.fire_event('after_serialize', ctx)
 
     def fault_to_http_response_code(self, fault):
