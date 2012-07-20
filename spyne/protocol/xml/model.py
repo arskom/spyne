@@ -125,6 +125,7 @@ def binary_from_element(prot, cls, element):
 
 
 def get_members_etree(prot, cls, inst, parent):
+    delay = []
     parent_cls = getattr(cls, '__extends__', None)
     if not (parent_cls is None):
         get_members_etree(prot, parent_cls, inst, parent)
@@ -142,7 +143,10 @@ def get_members_etree(prot, cls, inst, parent):
             a_of = v._attribute_of
             if a_of is not None and a_of in cls._type_info.keys():
                 attr_parent=parent.find("{%s}%s"%(cls.__namespace__,a_of))
-                v.marshall(k,subvalue,attr_parent)
+                if attr_parent is None:
+                    delay.append(k)
+                else:
+                    v.marshall(k,subvalue,attr_parent)
             else:
                 v.marshall(k, subvalue, parent)
             continue
