@@ -139,7 +139,12 @@ def get_members_etree(prot, cls, inst, parent):
         logger.debug("get %r(%r) from %r: %r" % (k, v, inst, subvalue))
 
         if issubclass(v, XmlAttribute):
-            v.marshall(k, subvalue, parent)
+            a_of = v._attribute_of
+            if a_of is not None and a_of in cls._type_info.keys():
+                attr_parent=parent.find("{%s}%s"%(cls.__namespace__,a_of))
+                v.marshall(k,subvalue,attr_parent)
+            else:
+                v.marshall(k, subvalue, parent)
             continue
 
         mo = v.Attributes.max_occurs
@@ -159,7 +164,6 @@ def complex_to_parent_element(prot, cls, value, tns, parent_elt, name=None):
 
     element = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
     inst = cls.get_serialization_instance(value)
-
     get_members_etree(prot, cls, inst, element)
 
 
