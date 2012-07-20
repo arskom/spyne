@@ -158,7 +158,7 @@ class WsgiApplication(HttpBase):
         return (
             req_env['REQUEST_METHOD'].upper() == 'GET'
             and (
-                   req_env['QUERY_STRING'] == 'wsdl'
+                   req_env['QUERY_STRING'].lower() == 'wsdl'
                 or req_env['PATH_INFO'].endswith('.wsdl')
             )
         )
