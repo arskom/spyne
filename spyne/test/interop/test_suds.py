@@ -181,17 +181,6 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
             }
         }
 
-    def test_any(self):
-        val = self.__get_xml_test_val()
-        ret = self.client.service.echo_any(val)
-
-        self.assertDictEqual(dict(ret[0]), val) # FIXME: Bah. Somebody write this comparison code!..
-
-    def test_any_as_dict(self):
-        val = self.__get_xml_test_val()
-        ret = self.client.service.echo_any_as_dict(val)
-
-        self.assertDictEqual(dict(ret[0]), val) # FIXME: Same as above!..
 
     def test_echo_simple_class(self):
         val = self.client.factory.create("{spyne.test.interop.server}SimpleClass")

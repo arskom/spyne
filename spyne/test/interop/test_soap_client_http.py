@@ -31,11 +31,6 @@ class TestSpyneHttpClient(SpyneClientTestBase, unittest.TestCase):
         self.client = HttpClient('http://localhost:9754/', soap_application)
         self.ns = "spyne.test.interop.server"
 
-    def test_any(self):
-        val = root_dict_to_etree(self._get_xml_test_val())
-        ret = self.client.service.echo_any(val)
-
-        self.assertEquals(ret, val)
 
 if __name__ == '__main__':
     unittest.main()
