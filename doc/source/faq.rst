@@ -173,5 +173,5 @@ author. A re-licensing is now even less probable today because of the number of
 people who've contributed code in the past years as we'd need to get the
 approval of every single person in order to re-license Spyne.
 
-It's also not possible to offer Spyne under a dual license model for the same
-reason -- everybody would have to approve the new licensing terms.
+It's also not possible to distribute Spyne under a dual license model for the
+same reason -- everybody would have to approve the new licensing terms.

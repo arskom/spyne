@@ -19,6 +19,7 @@
 
 import spyne.const.xml_ns
 
+from decimal import Decimal
 
 """This module contains the ModelBase class and other building blocks for
 defining models.
@@ -90,7 +91,7 @@ class ModelBase(object):
         max_occurs = 1
         """Can be set to any strictly positive integer. Values greater than 1
         will imply an iterable of objects as native python type. Can be set to
-        ``float("inf")`` for arbitrary number of arguments."""
+        ``decimal.Decimal("inf")`` for arbitrary number of arguments."""
 
         schema_tag = '{%s}element' % spyne.const.xml_ns.xsd
         """The tag used to add a primitives as child to a complex type in the
@@ -217,7 +218,7 @@ class ModelBase(object):
         return type(cls_name, cls_bases, cls_dict)
 
     @staticmethod
-    def _s_customize(cls, ** kwargs):
+    def _s_customize(cls, **kwargs):
         """This function duplicates and customizes the class it belongs to. The
         original class remains unchanged.
 
@@ -238,6 +239,8 @@ class ModelBase(object):
         for k, v in kwargs.items():
             if k in ("doc", "appinfo"):
                 setattr(Annotations, k, v)
+            elif k == 'max_occurs' and v == 'unbounded':
+                setattr(Attributes, k, Decimal('inf'))
             else:
                 setattr(Attributes, k, v)
 

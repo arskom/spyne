@@ -17,7 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains the NullServer class and its helper objects."""
+"""This module contains the NullServer class and its helper objects.
+
+The name comes from the "null modem connection". Look it up.
+"""
 
 import logging
 logger = logging.getLogger(__name__)

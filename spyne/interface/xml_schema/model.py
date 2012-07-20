@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import decimal
 import logging
 logger = logging.getLogger(__name__)
 
@@ -25,7 +26,7 @@ from lxml import etree
 from spyne.model.complex import XmlAttribute
 from spyne.model.primitive import AnyXml
 from spyne.util.etreeconv import dict_to_etree
-from spyne.model.primitive import String
+from spyne.model.primitive import Unicode
 from spyne.model.primitive import Decimal
 
 from spyne.const.xml_ns import xsd as _ns_xs
@@ -122,7 +123,7 @@ def complex_add(document, cls):
             member.set('minOccurs', str(v.Attributes.min_occurs))
         if v.Attributes.max_occurs != 1: # 1 is the xml schema default
             val = v.Attributes.max_occurs
-            if val == float('inf'):
+            if val == decimal.Decimal('inf'):
                 val = 'unbounded'
             else:
                 val = str(val)
@@ -187,7 +188,7 @@ def fault_add(document, cls):
     document.add_element(cls, element)
 
 
-def string_get_restriction_tag(interface, cls):
+def unicode_get_restriction_tag(interface, cls):
     restriction = simple_get_restriction_tag(interface, cls)
 
     # length
@@ -196,16 +197,16 @@ def string_get_restriction_tag(interface, cls):
         length.set('value', str(cls.Attributes.min_len))
 
     else:
-        if cls.Attributes.min_len != String.Attributes.min_len:
+        if cls.Attributes.min_len != Unicode.Attributes.min_len:
             min_l = etree.SubElement(restriction, '{%s}minLength' % _ns_xs)
             min_l.set('value', str(cls.Attributes.min_len))
 
-        if cls.Attributes.max_len != String.Attributes.max_len:
+        if cls.Attributes.max_len != Unicode.Attributes.max_len:
             max_l = etree.SubElement(restriction, '{%s}maxLength' % _ns_xs)
             max_l.set('value', str(cls.Attributes.max_len))
 
     # pattern
-    if cls.Attributes.pattern != String.Attributes.pattern:
+    if cls.Attributes.pattern != Unicode.Attributes.pattern:
         pattern = etree.SubElement(restriction, '{%s}pattern' % _ns_xs)
         pattern.set('value', cls.Attributes.pattern)
 

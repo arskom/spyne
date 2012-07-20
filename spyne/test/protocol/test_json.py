@@ -23,6 +23,8 @@ logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 
+from decimal import Decimal
+
 from spyne import MethodContext
 from spyne.application import Application
 from spyne.decorator import srpc
@@ -171,7 +173,7 @@ class Test(unittest.TestCase):
 
     def test_multiple_list(self):
         class SomeService(ServiceBase):
-            @srpc(String(max_occurs=float('inf')), _returns=String(max_occurs=float('inf')))
+            @srpc(String(max_occurs=Decimal('inf')), _returns=String(max_occurs=Decimal('inf')))
             def some_call(s):
                 return s
 
@@ -190,7 +192,7 @@ class Test(unittest.TestCase):
 
     def test_multiple_dict(self):
         class SomeService(ServiceBase):
-            @srpc(String(max_occurs=float('inf')), _returns=String(max_occurs=float('inf')))
+            @srpc(String(max_occurs=Decimal('inf')), _returns=String(max_occurs=Decimal('inf')))
             def some_call(s):
                 return s
 

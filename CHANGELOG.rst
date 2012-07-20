@@ -31,6 +31,14 @@ rpclib-2.8.0-rc -> spyne-2.8.0-rc
  * rpclib.util.xml: `get_object_as_xml` can also get class suggestion.
  * rpclib.util.xml: `get_xml_as_object` has argument order swapped:
    cls, elt -> elt, cls. See ab91a3e2ad4756b71d1a2752e5b0d2af8551e061.
+ * The final argument order change in Application ctor:
+
+       in_protocol, out_protocol, interface, name
+
+   becomes:
+
+       name, in_protocol, out_protocol, interface
+
  * Relevant pull requests:
     * https://github.com/arskom/spyne/pull/128
     * https://github.com/arskom/spyne/pull/129

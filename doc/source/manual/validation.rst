@@ -88,7 +88,10 @@ along with their default values
   set to ``unbounded`` for arbitrary number of arguments
 
   .. NOTE::
-    As of spyne-2.8.0, use ``float('inf')`` instead of ``unbounded``.
+    As of spyne-2.8.0, use ``decimal.Decimal('inf')`` instead of ``unbounded``
+    as a ``max_occurs`` value.
+    You should not use float('inf') as its behavior has inconsistencies between
+    platforms and Python versions. See: https://github.com/arskom/spyne/pull/155
 
 These rules can be combined, the example below illustrates how to create a
 mandatory string:
