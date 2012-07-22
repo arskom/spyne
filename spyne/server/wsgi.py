@@ -215,6 +215,7 @@ class WsgiApplication(HttpBase):
 
         start_response(p_ctx.transport.resp_code,
                                              p_ctx.transport.resp_headers.items())
+
         try:
             process_contexts(self, others, p_ctx, error=error)
         except Exception,e:
@@ -271,18 +272,17 @@ class WsgiApplication(HttpBase):
         # implementation hook
         self.event_manager.fire_event('wsgi_return', p_ctx)
 
-        # the client has not set a content-length, so we delete it as the input
-        # is just an iterable.
         if self.chunked:
+            # the client has not set a content-length, so we delete it as the
+            # input is just an iterable.
             if 'Content-Length' in p_ctx.transport.resp_headers:
                 del p_ctx.transport.resp_headers['Content-Length']
-
         else:
             p_ctx.out_string = [''.join(p_ctx.out_string)]
 
         # if the out_string is a generator function, this hack lets the user
         # code run until first yield, which lets it set response headers and
-        # whatnot beforce calling start_response. yes it causes an additional
+        # whatnot before calling start_response. Yes it causes an additional
         # copy of the first fragment of the response to be made, but if you know
         # a better way of having generator functions execute until first yield,
         # just let us know.
