@@ -32,9 +32,6 @@ _ApplicationMetaData = namedtuple("_ApplicationMetaData",
                                                   ['app', 'inst_stack', 'null'])
 
 def register_application(app):
-    """Registers application in the registration was successful and False otherwise.
-    """
-
     key = (app.tns, app.name)
 
     from spyne.server.null import NullServer
@@ -46,7 +43,7 @@ def register_application(app):
         stack = None
 
     prev = _applications.get(key, None)
-    
+
     if prev is not None:
         if hash(prev.app) == hash(app):
             logger.debug("Application %r previously registered as %r is the same"
