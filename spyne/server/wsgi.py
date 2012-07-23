@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""An rpc server that uses http as transport, and wsgi as bridge api."""
+"""A server transport uses http as transport, and wsgi as bridge api."""
 
 import logging
 logger = logging.getLogger(__name__)
