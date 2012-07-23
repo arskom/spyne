@@ -49,15 +49,21 @@ def register_application(app):
             logger.debug("Application %r previously registered as %r is the same"
                         " as %r. Skipping." % (prev.app, key, app))
             prev.inst_stack.append(stack)
+
         else:
             logger.warning("Overwriting application %r(%r)." % (key, app))
 
             if prev.inst_stack is not None:
+                print prev.inst_stack
+                stack_traces = []
+                for s in prev.inst_stack:
+                    if s is not None:
+                        stack_traces.append(''.join(s))
                 logger.debug("Stack trace of the instantiation:\n%s" %
-                                                       ''.join(prev.inst_stack))
+                                   '====================\n'.join(stack_traces))
 
     _applications[key] = _ApplicationMetaData(app=app, inst_stack=[stack],
-                                                           null=NullServer(app))
+                                                          null=NullServer(app))
 
     logger.debug("Registering %r as %r" % (app, key))
 
