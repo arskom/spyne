@@ -73,5 +73,31 @@ class Test(unittest.TestCase):
         assert etree.fromstring(''.join(ctx.out_string)).xpath('//s0:b',
             namespaces=app.interface.nsmap)[0].attrib['c'] == "bar"
 
+    def test_attribute_ns(self):
+        class a(ComplexModel):
+            b = Unicode
+            c = XmlAttribute(Unicode, ns="spam", attribute_of="b")
+
+        class SomeService(ServiceBase):
+            @srpc(_returns=a)
+            def some_call():
+                return a(b="foo",c="bar")
+
+        app = Application([SomeService], "tns", Wsdl11(),in_protocol=XmlObject(), out_protocol=XmlObject())
+        server = ServerBase(app)
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = ['<some_call xmlns="tns"/>']
+
+        ctx, = server.generate_contexts(initial_ctx)
+        server.get_in_object(ctx)
+        server.get_out_object(ctx)
+        server.get_out_string(ctx)
+
+        assert etree.fromstring(''.join(ctx.out_string)).xpath('//s0:b',
+            namespaces=app.interface.nsmap)[0].attrib['{%s}c'%app.interface.nsmap["s1"]] == "bar"
+
+
+
+
 if __name__ == '__main__':
     unittest.main()
