@@ -510,7 +510,7 @@ class DateTime(SimpleModel):
     def to_string(cls, value):
         format = cls.Attributes.format
         if format is None:
-            ret_str = value.isoformat('T')
+            ret_str = value.isoformat()
         else:
             ret_str = datetime.datetime.strftime(value, format)
 
