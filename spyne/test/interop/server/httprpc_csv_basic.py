@@ -30,7 +30,7 @@ from spyne.server.wsgi import WsgiApplication
 from spyne.test.interop.server._service import services
 
 httprpc_csv_application = Application(services,
-        'spyne.test.interop.server.httprpc.csv', HttpRpc(), OutCsv(), Wsdl11())
+        'spyne.test.interop.server.httprpc.csv', in_protocol=HttpRpc(), out_protocol=OutCsv())
 
 if __name__ == '__main__':
     try:

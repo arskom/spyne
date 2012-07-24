@@ -68,7 +68,7 @@ class Test(ComplexModel):
 
 class TestEnum(unittest.TestCase):
     def setUp(self):
-        self.app = Application([TestService], 'tns', Soap11(), Soap11())
+        self.app = Application([TestService], 'tns', in_protocol=Soap11(), out_protocol=Soap11())
         self.app.transport = 'test'
 
         self.server = WsgiApplication(self.app)

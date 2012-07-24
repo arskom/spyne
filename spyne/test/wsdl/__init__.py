@@ -23,8 +23,8 @@ from spyne.protocol.soap import Soap11
 import spyne.const.xml_ns as ns
 
 def build_app(service_list, tns, name):
-    app = Application(service_list, tns, Wsdl11(),
-                      Soap11(), Soap11(), name=name)
+    app = Application(service_list, tns,
+                      in_protocol=Soap11(), out_protocol=Soap11(), name=name)
     app.transport = 'http://schemas.xmlsoap.org/soap/http'
     return app
 

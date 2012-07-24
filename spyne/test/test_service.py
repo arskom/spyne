@@ -131,7 +131,7 @@ class MultipleReturnService(ServiceBase):
 
 class TestSingle(unittest.TestCase):
     def setUp(self):
-        self.app = Application([TestService], 'tns', Soap11(), Soap11())
+        self.app = Application([TestService], 'tns', in_protocol=Soap11(), out_protocol=Soap11())
         self.app.transport = 'null.spyne'
         self.srv = TestService()
 
@@ -151,7 +151,7 @@ class TestSingle(unittest.TestCase):
 
 class TestMultiple(unittest.TestCase):
     def setUp(self):
-        self.app = Application([MultipleReturnService], 'tns', Soap11(), Soap11())
+        self.app = Application([MultipleReturnService], 'tns', in_protocol=Soap11(), out_protocol=Soap11())
         self.app.transport = 'none'
         self.wsdl = Wsdl11(self.app.interface)
         self.wsdl.build_interface_document('URL')
@@ -188,7 +188,7 @@ class MultipleMethods2(ServiceBase):
 class TestMultipleMethods(unittest.TestCase):
     def test_single_method(self):
         try:
-            app = Application([MultipleMethods1,MultipleMethods2], 'tns', Soap11(), Soap11())
+            app = Application([MultipleMethods1,MultipleMethods2], 'tns', in_protocol=Soap11(), out_protocol=Soap11())
 
         except ValueError:
             pass
@@ -211,7 +211,7 @@ class TestMultipleMethods(unittest.TestCase):
             def call(s):
                 data.append(s)
 
-        app = Application([Service, AuxService], 'tns', Soap11(), Soap11())
+        app = Application([Service, AuxService], 'tns', in_protocol=Soap11(), out_protocol=Soap11())
         server = NullServer(app)
         server.service.call("hey")
 
@@ -232,7 +232,7 @@ class TestMultipleMethods(unittest.TestCase):
             def call(s):
                 data.append(s)
 
-        app = Application([Service, AuxService], 'tns', HttpRpc(), HttpRpc())
+        app = Application([Service, AuxService], 'tns', in_protocol=HttpRpc(), out_protocol=HttpRpc())
         server = WsgiApplication(app)
         server({
             'QUERY_STRING': 's=hey',
@@ -259,7 +259,7 @@ class TestMultipleMethods(unittest.TestCase):
             def call(s):
                 data.add(s + "aux")
 
-        app = Application([Service, AuxService], 'tns', HttpRpc(), HttpRpc())
+        app = Application([Service, AuxService], 'tns', in_protocol=HttpRpc(), out_protocol=HttpRpc())
         server = WsgiApplication(app)
         server({
             'QUERY_STRING': 's=hey',
@@ -288,7 +288,7 @@ class TestMultipleMethods(unittest.TestCase):
             raise Exception("must fail with 'Exception: you can't mix aux and non-aux methods in a single service definition.'")
 
     def __run_service(self, SomeService):
-        app = Application([SomeService], 'tns', HttpRpc(), Soap11())
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=Soap11())
         server = WsgiApplication(app)
         return_string = ''.join(server({
             'QUERY_STRING': '',

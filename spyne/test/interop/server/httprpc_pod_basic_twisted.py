@@ -31,7 +31,7 @@ from spyne.interface.wsdl import Wsdl11
 from spyne.server.twisted import TwistedWebResource
 
 httprpc_soap_application = Application(services,
-        'spyne.test.interop.server.httprpc.pod', HttpRpc(), HttpRpc(), Wsdl11())
+        'spyne.test.interop.server.httprpc.pod', in_protocol=HttpRpc(), out_protocol=HttpRpc())
 
 host = '127.0.0.1'
 port = 9752

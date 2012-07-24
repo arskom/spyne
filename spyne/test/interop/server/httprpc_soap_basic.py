@@ -30,7 +30,7 @@ from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
 
 httprpc_soap_application = Application(services,
-    'spyne.test.interop.server.httprpc.soap', Wsdl11(), HttpRpc(), Soap11())
+    'spyne.test.interop.server.httprpc.soap', in_protocol=HttpRpc(), out_protocol=Soap11())
 
 if __name__ == '__main__':
     try:

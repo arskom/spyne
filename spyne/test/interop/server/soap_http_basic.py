@@ -29,7 +29,7 @@ from spyne.protocol.soap import Soap11
 from spyne.interface.wsdl import Wsdl11
 
 soap_application = Application(services, 'spyne.test.interop.server',
-          Soap11(validator='lxml', cleanup_namespaces=True), Soap11(), Wsdl11())
+          in_protocol=Soap11(validator='lxml', cleanup_namespaces=True), out_protocol=Soap11())
 
 PORT = 9754
 
