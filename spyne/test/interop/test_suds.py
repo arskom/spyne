@@ -97,7 +97,8 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
         in_header.i = 3
         in_trace_header = self.client.factory.create('InTraceHeader')
         in_trace_header.client = 'suds'
-        in_trace_header.callDate = datetime(year=2000, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+        in_trace_header.callDate = datetime(year=2000, month=1, day=1, hour=0,
+                                              minute=0, second=0, microsecond=0)
 
         self.client.set_options(soapheaders=(in_header, in_trace_header))
         ret = self.client.service.echo_in_complex_header()
