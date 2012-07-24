@@ -17,13 +17,25 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+
+
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 
+from spyne import MethodContext
+from spyne.service import ServiceBase
+from spyne.server import ServerBase
+from spyne.application import Application
+from spyne.decorator import srpc
 from spyne.model.primitive import Unicode
 from spyne.model.complex import ComplexModel
+from spyne.model.complex import XmlAttribute
+from spyne.service import ServiceBase
+from spyne.interface.wsdl import Wsdl11
+from spyne.protocol.xml import XmlObject
+
 
 from spyne.util.xml import get_xml_as_object
 from lxml import etree
@@ -37,6 +49,55 @@ class Test(unittest.TestCase):
         o = get_xml_as_object(elt, a)
 
         assert o.b == ''
+
+    def test_attribute_of(self):
+        class a(ComplexModel):
+            b = Unicode
+            c = XmlAttribute(Unicode, attribute_of="b")
+
+        class SomeService(ServiceBase):
+            @srpc(_returns=a)
+            def some_call():
+                return a(b="foo",c="bar")
+
+        app = Application([SomeService], "tns", Wsdl11(), in_protocol=XmlObject(), out_protocol=XmlObject())
+        server = ServerBase(app)
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = ['<some_call xmlns="tns"/>']
+
+        ctx, = server.generate_contexts(initial_ctx)
+        server.get_in_object(ctx)
+        server.get_out_object(ctx)
+        server.get_out_string(ctx)
+
+        assert etree.fromstring(''.join(ctx.out_string)).xpath('//s0:b',
+            namespaces=app.interface.nsmap)[0].attrib['c'] == "bar"
+
+    def test_attribute_ns(self):
+        class a(ComplexModel):
+            b = Unicode
+            c = XmlAttribute(Unicode, ns="spam", attribute_of="b")
+
+        class SomeService(ServiceBase):
+            @srpc(_returns=a)
+            def some_call():
+                return a(b="foo",c="bar")
+
+        app = Application([SomeService], "tns", Wsdl11(),in_protocol=XmlObject(), out_protocol=XmlObject())
+        server = ServerBase(app)
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = ['<some_call xmlns="tns"/>']
+
+        ctx, = server.generate_contexts(initial_ctx)
+        server.get_in_object(ctx)
+        server.get_out_object(ctx)
+        server.get_out_string(ctx)
+
+        assert etree.fromstring(''.join(ctx.out_string)).xpath('//s0:b',
+            namespaces=app.interface.nsmap)[0].attrib['{%s}c'%app.interface.nsmap["s1"]] == "bar"
+
+
+
 
 if __name__ == '__main__':
     unittest.main()
