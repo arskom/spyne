@@ -474,7 +474,6 @@ class Time(SimpleModel):
             raise ValidationError(string)
 
         fields = match.groupdict(0)
-        print fields
         microsec = fields.get("sec_frac")
         if microsec is None or microsec == 0:
             microsec = 0
