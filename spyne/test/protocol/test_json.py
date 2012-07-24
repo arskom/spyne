@@ -48,8 +48,7 @@ class Test(unittest.TestCase):
             def some_call():
                 return 1, 2
 
-        app = Application([SomeService], 'tns', JsonObject(), JsonObject(skip_depth=2),
-                                                                       Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=JsonObject(), out_protocol=JsonObject(skip_depth=2))
 
         server = ServerBase(app)
         initial_ctx = MethodContext(server)
@@ -68,8 +67,7 @@ class Test(unittest.TestCase):
             def some_call():
                 return 1, 2
 
-        app = Application([SomeService], 'tns', JsonObject(), JsonObject(skip_depth=1),
-                                                                       Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=JsonObject(), out_protocol=JsonObject(skip_depth=1))
 
         server = ServerBase(app)
         initial_ctx = MethodContext(server)
@@ -88,8 +86,8 @@ class Test(unittest.TestCase):
             def some_call():
                 return 1, 2
 
-        app = Application([SomeService], 'tns', JsonObject(), JsonObject(),
-                                                                       Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=JsonObject(), out_protocol=JsonObject())
+
 
         server = ServerBase(app)
         initial_ctx = MethodContext(server)
@@ -123,8 +121,8 @@ class Test(unittest.TestCase):
             def some_call(scm):
                 return SomeComplexModel(i=5, s='5x')
 
-        app = Application([SomeService], 'tns', JsonObject(), JsonObject(),
-                                                                       Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=JsonObject(),
+                                                     out_protocol=JsonObject())
 
         server = ServerBase(app)
         initial_ctx = MethodContext(server)
@@ -152,8 +150,9 @@ class Test(unittest.TestCase):
             def some_call(ccm):
                 return CCM(c=ccm.c, i=ccm.i, s=ccm.s)
 
-        app = Application([SomeService], 'tns', JsonObject(), JsonObject(),
-                                                                       Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=JsonObject(),
+                                                     out_protocol=JsonObject())
+
         server = ServerBase(app)
         initial_ctx = MethodContext(server)
         initial_ctx.in_string = ['{"some_call":{"ccm": {"c":{"i":3, "s": "3x"}, "i":4, "s": "4x"}}}']
@@ -177,7 +176,7 @@ class Test(unittest.TestCase):
             def some_call(s):
                 return s
 
-        app = Application([SomeService], 'tns', JsonObject(), JsonObject(), Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=JsonObject(), out_protocol=JsonObject())
         server = ServerBase(app)
 
         initial_ctx = MethodContext(server)
@@ -196,7 +195,7 @@ class Test(unittest.TestCase):
             def some_call(s):
                 return s
 
-        app = Application([SomeService], 'tns', JsonObject(), JsonObject(), Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=JsonObject(), out_protocol=JsonObject())
         server = ServerBase(app)
 
         initial_ctx = MethodContext(server)
@@ -215,7 +214,7 @@ class Test(unittest.TestCase):
             def some_call(s):
                 return s
 
-        app = Application([SomeService], 'tns', JsonObject(), JsonObject(), Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=JsonObject(), out_protocol=JsonObject())
         server = ServerBase(app)
 
         initial_ctx = MethodContext(server)
@@ -246,7 +245,7 @@ class Test(unittest.TestCase):
             def some_call(ecm):
                 return ecm
 
-        app = Application([SomeService], 'tns', JsonObject(), JsonObject(), Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=JsonObject(), out_protocol=JsonObject())
         server = ServerBase(app)
 
         initial_ctx = MethodContext(server)
@@ -277,7 +276,7 @@ class Test(unittest.TestCase):
             def yay():
                 pass
 
-        app = Application([SomeService], 'tns', JsonObject(), JsonObject(), Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=JsonObject(), out_protocol=JsonObject())
         server = ServerBase(app)
 
         initial_ctx = MethodContext(server)
@@ -292,7 +291,7 @@ class Test(unittest.TestCase):
                 print(i,s,d)
                 pass
 
-        app = Application([SomeService], 'tns', JsonObject(validator='soft'), JsonObject(), Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=JsonObject(validator='soft'), out_protocol=JsonObject())
         server = ServerBase(app)
 
         initial_ctx = MethodContext(server)
@@ -309,8 +308,7 @@ class Test(unittest.TestCase):
                 print(i,s,d)
                 pass
 
-        app = Application([SomeService], 'tns', JsonObject(validator='soft'),
-                                                         JsonObject(), Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=JsonObject(validator='soft'), out_protocol=JsonObject())
         server = ServerBase(app)
 
         initial_ctx = MethodContext(server)
@@ -327,8 +325,7 @@ class Test(unittest.TestCase):
                 print(i,s,d)
                 pass
 
-        app = Application([SomeService], 'tns', JsonObject(validator='soft'),
-                                                         JsonObject(), Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=JsonObject(validator='soft'), out_protocol=JsonObject())
         server = ServerBase(app)
 
         initial_ctx = MethodContext(server)
@@ -345,8 +342,7 @@ class Test(unittest.TestCase):
                 print(i,s,d)
                 pass
 
-        app = Application([SomeService], 'tns', JsonObject(validator='soft'),
-                                                         JsonObject(), Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=JsonObject(validator='soft'), out_protocol=JsonObject())
         server = ServerBase(app)
 
         initial_ctx = MethodContext(server)
@@ -365,8 +361,7 @@ class Test(unittest.TestCase):
                 print(i,s,d)
                 pass
 
-        app = Application([SomeService], 'tns', JsonObject(validator='soft'),
-                                                         JsonObject(), Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=JsonObject(validator='soft'), out_protocol=JsonObject())
         server = ServerBase(app)
 
         initial_ctx = MethodContext(server)
