@@ -46,28 +46,35 @@ class _SimpleTypeInfoElement(object):
 
 class XmlAttribute(ModelBase):
     """Items which are marshalled as attributes of the parent element."""
-    def __new__(cls, typ, use=None):
+    def __new__(cls, typ, use=None, ns=None, attribute_of=None):
         retval = cls.customize()
         retval._typ = typ
         retval._use = use
-
+        retval._ns = ns
+        retval._attribute_of = attribute_of
         return retval
 
     @classmethod
     def marshall(cls, name, value, parent_elt):
+        if cls._ns is not None:
+            name = "{%s}%s" % (cls._ns,name)
+
         if value is not None:
             parent_elt.set(name, cls._typ.to_string(value))
 
     @classmethod
-    def describe(cls, name, element, app):
+    def describe(cls, name, element, document):
         element.set('name', name)
-        element.set('type', cls._typ.get_type_name_ns(app.interface))
-        if cls._use:
+        element.set('type', cls._typ.get_type_name_ns(document.interface))
+
+        if cls._use is not None:
             element.set('use', cls._use)
 
     @staticmethod
     def resolve_namespace(cls, default_ns):
         cls._typ.resolve_namespace(cls._typ, default_ns)
+
+        cls.__namespace__ = cls._ns
 
         if cls.__namespace__ is None:
             cls.__namespace__ = cls._typ.get_namespace()
