@@ -54,7 +54,6 @@ def register_application(app):
             logger.warning("Overwriting application %r(%r)." % (key, app))
 
             if prev.inst_stack is not None:
-                print prev.inst_stack
                 stack_traces = []
                 for s in prev.inst_stack:
                     if s is not None:
