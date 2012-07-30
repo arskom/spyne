@@ -156,7 +156,7 @@ class TwistedWebResource(Resource):
         p_ctx.out_object = error
         self.http_transport.get_out_string(p_ctx)
 
-        process_contexts(self.http_transport, others, error=error)
+        process_contexts(self.http_transport, others, p_ctx, error=error)
 
         return ''.join(p_ctx.out_string)
 
@@ -182,7 +182,7 @@ class TwistedWebResource(Resource):
 
         self.http_transport.get_out_string(p_ctx)
 
-        process_contexts(self.http_transport, others)
+        process_contexts(self.http_transport, others, p_ctx)
 
         def _cb_request_finished(request):
             request.finish()
