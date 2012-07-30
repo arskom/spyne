@@ -7,8 +7,12 @@ own remote procedure call api and the application programmers the hassle of
 jumping through hoops just to expose their services using multiple protocols and
 transports.
 
+From another perspective, Spyne is framework for building distributed solutions
+hat strictly adhere to the MVC pattern, where Model = `spyne.model`,
+View = `spyne.protocol` and Controller = `user code`.
+
 Spyne comes with the implementations of popular transport, protocol and
-interface document standards along with an easy-to-use API that lets you
+interface document standards along with a well-defined API that lets you
 build on existing functionality.
 
 Spyne currently supports the WSDL 1.1 interface description standard,
@@ -25,8 +29,8 @@ The following are the primary sources of information about spyne:
   or `pypi <http://pypi.python.org/pypi/spyne>`_.
 
 Spyne is a generalized version of a soap processing library known as soaplib.
-The following legacy versions of soaplib are also available in the source repository at github
-as branches.
+The following legacy versions of soaplib are also available in the source
+repository at github as branches.
 
 * Soaplib-0.8 branch: http://github.com/arskom/spyne/tree/soaplib-0_8
 * Soaplib-1.0 branch: http://github.com/arskom/spyne/tree/soaplib-1_0
@@ -132,4 +136,3 @@ parts of spyne after submitting a pull request, please do move your work to its
 own branch and never submit a pull request from your master branch. This will
 give you the freedom to continue working on spyne while waiting for your pull
 request to be reviewed.
-
