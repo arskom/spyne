@@ -259,7 +259,7 @@ class MethodDescriptor(object):
                  is_callback=False, is_async=False, mtom=False, in_header=None,
                  out_header=None, faults=None,
                  port_type=None, no_ctx=False, udp=None, class_key=None,
-                 aux=None):
+                 aux=None, http_route=None):
 
         self.__real_function = function
         """The original function object to be called when the method is remotely
@@ -316,6 +316,9 @@ class MethodDescriptor(object):
         asyncronously after the primary method returns, and their return values
         are ignored by the rpc layer.
         """
+
+        self.http_route = http_route
+        """A URL which will be used for Http routing"""
 
     @property
     def name(self):
