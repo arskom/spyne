@@ -91,5 +91,5 @@ class Test(unittest.TestCase):
         router = HttpRouter()
         try:
             router.build("foo")
-        except Exception,e:
-            assert isinstance(e,UrlMapNotBound)
+        except UrlMapNotBound:
+            pass
