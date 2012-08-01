@@ -24,10 +24,10 @@ from spyne.model.fault import Fault
 from werkzeug.routing import Map
 from werkzeug.routing import Rule
 
-class UrlMapNotBinded(Fault):
-    """Raised when url_map is not binded to a wsgi environment"""
+class UrlMapNotBound(Fault):
+    """Raised when url_map is not bound to a wsgi environment"""
     def __init__(self, faultstring="Please bind url_map first"):
-        Fault.__init__(self, 'Server.UrlMapNotBinded', faultstring)
+        Fault.__init__(self, 'Server.UrlMapNotbound', faultstring)
 
 
 class HttpRouter(object):
@@ -52,7 +52,7 @@ class HttpRouter(object):
 
         return self.urls
 
-    def is_binded(self):
+    def is_bound(self):
 
         return self.urls != None
 
@@ -62,7 +62,7 @@ class HttpRouter(object):
         if self.urls:
             self.urls.build(end_point, kwargs, append_unknown=False)
         else:
-            raise UrlMapNotBinded
+            raise UrlMapNotBound("Please bind url_map first")
 
     def match(self, url, method_=None):
         """This function matches given url to one of patterns in url map"""
@@ -73,4 +73,4 @@ class HttpRouter(object):
             else:
                 return self.urls.match(url)
         else:
-            raise UrlMapNotBinded
+            raise UrlMapNotBound("Please bind url_map first")
