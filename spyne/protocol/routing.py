@@ -56,7 +56,7 @@ class HttpRouter(object):
 
         return self.urls != None
 
-    def build(self, end_point, method_, **kwargs):
+    def build(self, end_point, **kwargs):
         """This function generates a url from previous given patterns"""
 
         if self.urls:
