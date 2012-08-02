@@ -19,21 +19,26 @@
 
 """This module contains a server implementation that uses a Twisted Web Resource
 as transport.
+
+This module is EXPERIMENTAL. Your mileage may vary. Patches are welcome.
+
+To work around python 2's default relative import behaviour, this is a module
+disguised as a package.
 """
 
 
-from twisted.internet.interfaces import IPullProducer
 import logging
 logger = logging.getLogger(__name__)
 
 from twisted.python.log import err
-from twisted.web.resource import Resource
-from twisted.web.server import NOT_DONE_YET
+from twisted.internet.interfaces import IPullProducer
 from twisted.internet.defer import Deferred
 from twisted.web.iweb import IBodyProducer
 from twisted.web.iweb import UNKNOWN_LENGTH
-from zope.interface import implements
+from twisted.web.resource import Resource
+from twisted.web.server import NOT_DONE_YET
 
+from zope.interface import implements
 
 from spyne.auxproc import process_contexts
 from spyne.server.http import HttpMethodContext
@@ -42,6 +47,7 @@ from spyne.server.http import HttpBase
 from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
 from spyne.const.http import HTTP_405
+
 
 def _reconstruct_url(request):
     server_name = request.getRequestHostname()
