@@ -172,6 +172,7 @@ def srpc(*params, **kparams):
             _udp = kparams.get('_udp', None)
             _aux = kparams.get('_aux', None)
             _url = kparams.get("_url", None)
+            _method = kparams.get("_method", None)
 
             _faults = None
             if ('_faults' in kparams) and ('_throws' in kparams):
@@ -195,7 +196,7 @@ def srpc(*params, **kparams):
                     in_message, out_message, doc, _is_callback, _is_async,
                     _mtom, _in_header, _out_header, _faults,
                     port_type=_port_type, no_ctx=_no_ctx, udp=_udp,
-                    class_key=function_name, aux=_aux, url=_url)
+                    class_key=function_name, aux=_aux, url=_url, method=_method)
 
             return retval
 

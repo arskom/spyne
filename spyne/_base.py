@@ -259,7 +259,7 @@ class MethodDescriptor(object):
                  is_callback=False, is_async=False, mtom=False, in_header=None,
                  out_header=None, faults=None,
                  port_type=None, no_ctx=False, udp=None, class_key=None,
-                 aux=None, url=None):
+                 aux=None, url=None, method=None):
 
         self.__real_function = function
         """The original function object to be called when the method is remotely
@@ -319,6 +319,9 @@ class MethodDescriptor(object):
 
         self.url = url
         """A URL which will be used for Http routing"""
+
+        self.method = method
+        """A variable to provide method filtering for Http routing """
 
     @property
     def name(self):
