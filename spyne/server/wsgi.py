@@ -43,6 +43,8 @@ from spyne.server.http import HttpMethodContext
 from spyne.server.http import HttpTransportContext
 
 from spyne.error import RequestTooLongError
+from spyne.error import ResourceNotFoundError
+from spyne.protocol.routing import HttpRouter
 from spyne.protocol.soap.mime import apply_mtom
 from spyne.util import reconstruct_url
 from spyne.server.http import HttpBase
@@ -53,6 +55,9 @@ from spyne.const.http import HTTP_200
 from spyne.const.http import HTTP_405
 from spyne.const.http import HTTP_500
 
+router = HttpRouter()
+#Set global variable because decompose method is static it cannot reach class
+#attr via self
 
 def _get_http_headers(req_env):
     retval = {}
@@ -113,6 +118,7 @@ class WsgiApplication(HttpBase):
             Called right before returning the exception to the client.
     '''
 
+
     def __init__(self, app, chunked=True):
         HttpBase.__init__(self, app, chunked)
 
@@ -123,6 +129,11 @@ class WsgiApplication(HttpBase):
         }
         self._mtx_build_interface_document = threading.Lock()
         self._wsdl = None
+        for k,v in self.app.interface.service_method_map.items():
+            p_service_class, p_method_descriptor = v[0]
+            if p_method_descriptor.url:
+                router.add_rule(p_method_descriptor.url,k)
+
 
     def __call__(self, req_env, start_response, wsgi_url=None):
         '''This method conforms to the WSGI spec for callable wsgi applications
