@@ -17,7 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from lxml import etree
 
 from spyne.model.binary import Attachment
 from spyne.model.complex import Array
@@ -55,7 +54,6 @@ class DocumentedFault(Fault):
                 faultcode="Documented",
                 faultstring="A documented fault",
                 faultactor='http://faultactor.example.com',
-                detail=etree.Element('something')
             )
 
 class OtherClass(ComplexModel):
@@ -281,8 +279,7 @@ class InteropException(ServiceBase):
 
     @srpc()
     def soap_exception():
-        raise Fault("Plausible", "A plausible fault", 'http://faultactor.example.com',
-                                            detail=etree.Element('something'))
+        raise Fault("Plausible", "A plausible fault", 'http://faultactor.example.com')
 
     @srpc(_throws=DocumentedFault)
     def documented_exception():

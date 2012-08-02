@@ -19,21 +19,26 @@
 
 """This module contains a server implementation that uses a Twisted Web Resource
 as transport.
+
+This module is EXPERIMENTAL. Your mileage may vary. Patches are welcome.
+
+To work around python 2's default relative import behaviour, this is a module
+disguised as a package.
 """
 
 
-from twisted.internet.interfaces import IPullProducer
 import logging
 logger = logging.getLogger(__name__)
 
 from twisted.python.log import err
-from twisted.web.resource import Resource
-from twisted.web.server import NOT_DONE_YET
+from twisted.internet.interfaces import IPullProducer
 from twisted.internet.defer import Deferred
 from twisted.web.iweb import IBodyProducer
 from twisted.web.iweb import UNKNOWN_LENGTH
-from zope.interface import implements
+from twisted.web.resource import Resource
+from twisted.web.server import NOT_DONE_YET
 
+from zope.interface import implements
 
 from spyne.auxproc import process_contexts
 from spyne.server.http import HttpMethodContext
@@ -42,6 +47,7 @@ from spyne.server.http import HttpBase
 from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
 from spyne.const.http import HTTP_405
+
 
 def _reconstruct_url(request):
     server_name = request.getRequestHostname()
@@ -101,7 +107,7 @@ class _Producer(object):
 
 class TwistedHttpTransport(HttpBase):
     @staticmethod
-    def decompose_incoming_envelope(prot, ctx):
+    def decompose_incoming_envelope(prot, ctx, message):
         """This function is only called by the HttpRpc protocol to have the
         twisted web's Request object is parsed into ``ctx.in_body_doc`` and
         ``ctx.in_header_doc``.
@@ -156,7 +162,7 @@ class TwistedWebResource(Resource):
         p_ctx.out_object = error
         self.http_transport.get_out_string(p_ctx)
 
-        process_contexts(self.http_transport, others, error=error)
+        process_contexts(self.http_transport, others, p_ctx, error=error)
 
         return ''.join(p_ctx.out_string)
 
@@ -182,7 +188,7 @@ class TwistedWebResource(Resource):
 
         self.http_transport.get_out_string(p_ctx)
 
-        process_contexts(self.http_transport, others)
+        process_contexts(self.http_transport, others, p_ctx)
 
         def _cb_request_finished(request):
             request.finish()
