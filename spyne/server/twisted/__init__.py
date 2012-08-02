@@ -101,7 +101,7 @@ class _Producer(object):
 
 class TwistedHttpTransport(HttpBase):
     @staticmethod
-    def decompose_incoming_envelope(prot, ctx):
+    def decompose_incoming_envelope(prot, ctx, message):
         """This function is only called by the HttpRpc protocol to have the
         twisted web's Request object is parsed into ``ctx.in_body_doc`` and
         ``ctx.in_header_doc``.
