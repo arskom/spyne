@@ -17,11 +17,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from spyne.server.wsgi import WsgiApplication
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
 import unittest
+
+from werkzeug.exceptions import MethodNotAllowed
 
 from spyne.application import Application
 from spyne.decorator import srpc
@@ -33,6 +34,8 @@ from spyne.protocol.http import HttpRpc
 from spyne.service import ServiceBase
 from spyne.server.wsgi import WsgiApplication
 from spyne.server.wsgi import WsgiMethodContext
+from spyne.protocol.routing import HttpRouter
+
 
 class Test(unittest.TestCase):
     '''Most of the service tests are performed through the interop tests.'''
@@ -250,6 +253,44 @@ class Test(unittest.TestCase):
         else:
             raise Exception("Must fail with: Exception: HttpRpc deserializer "
                         "does not support non-primitives with max_occurs > 1")
+
+
+class TestHttpRouting(unittest.TestCase):
+    def test_rules(self):
+        _int = 5
+        _fragment = 'some_fragment'
+
+        class SomeService(ServiceBase):
+            @srpc(Integer, _returns=Integer, _url=['/%s/<some_int>' % _fragment])
+            def some_call(some_int):
+                assert some_int == _int
+
+        router = HttpRouter()
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HttpRpc())
+        server = WsgiApplication(app)
+
+        environ = {
+            'QUERY_STRING': '',
+            'PATH_INFO': '/%s/%d' % (_fragment, _int),
+            'SERVER_PATH':"/",
+            'SERVER_NAME': "banana",
+            'wsgi.url_scheme': 'http',
+            'SERVER_PORT': '9000',
+            'REQUEST_METHOD': 'GET',
+        }
+
+        initial_ctx = WsgiMethodContext(server, environ, 'some-content-type')
+
+        ctx, = server.generate_contexts(initial_ctx)
+
+        assert ctx.descriptor is not None
+
+        server.get_in_object(ctx)
+        assert ctx.in_error is None
+
+        server.get_out_object(ctx)
+        assert ctx.out_error is None
+
 
 if __name__ == '__main__':
     unittest.main()
