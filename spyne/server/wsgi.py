@@ -132,7 +132,11 @@ class WsgiApplication(HttpBase):
         for k,v in self.app.interface.service_method_map.items():
             p_service_class, p_method_descriptor = v[0]
             if p_method_descriptor.url:
-                router.add_rule(p_method_descriptor.url,k)
+                if p_method_descriptor.method:
+                    router.add_rule(p_method_descriptor.url, k,
+                                                p_method_descriptor.method )
+                else:
+                    router.add_rule(p_method_descriptor.url, k)
 
 
     def __call__(self, req_env, start_response, wsgi_url=None):
