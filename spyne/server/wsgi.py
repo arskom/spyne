@@ -380,8 +380,11 @@ class WsgiApplication(HttpBase):
         """This function is only called by the HttpRpc protocol to have the wsgi
         environment parsed into ``ctx.in_body_doc`` and ``ctx.in_header_doc``.
         """
-
-        ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
+        try:
+            mrs,params = router.match("/foo")
+            ctx.method_request_string = mrs
+        except ResourceNotFoundError:
+            ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
                               ctx.in_document['PATH_INFO'].split('/')[-1])
 
         logger.debug("%sMethod name: %r%s" % (LIGHT_GREEN,
