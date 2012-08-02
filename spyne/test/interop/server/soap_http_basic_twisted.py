@@ -22,8 +22,6 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger('spyne.wsgi')
 logger.setLevel(logging.DEBUG)
 
-import os
-
 from spyne.test.interop.server.soap_http_basic import soap_application
 from spyne.server.twisted import TwistedWebResource
 
@@ -47,7 +45,6 @@ def main(argv):
     logging.info("listening on: %s:%d" % (host,port))
 
     return reactor.run()
-
 
 if __name__ == '__main__':
     import sys

@@ -30,52 +30,74 @@
 #
 
 import logging
+import time
+import sys
+
+from twisted.python import log
+from twisted.web.server import Site
+from twisted.web.static import File
+from twisted.internet import reactor
+from twisted.python import log
 
 from spyne.application import Application
 from spyne.decorator import srpc
-from spyne.interface.wsdl import Wsdl11
-from spyne.protocol.soap import Soap11
+from spyne.protocol.http import HttpRpc
+from spyne.protocol.json import JsonObject
+from spyne.protocol.xml import XmlObject
 from spyne.service import ServiceBase
 from spyne.model.complex import Array
 from spyne.model.primitive import Integer
 from spyne.model.primitive import String
 from spyne.server.wsgi import WsgiApplication
+from spyne.server.twisted import TwistedWebResource
 from spyne.util.wsgi_wrapper import run_twisted
 
+from _service import SomeService
+
 '''
-This is the HelloWorld example running in the twisted framework.
+This is a blocking example running in a single-process twisted setup.
+
+In this example, user code runs directly in the reactor loop. So unless your
+code fully adheres to the asynchronous programming principles, you can block
+the reactor loop.
+
+    $ time curl -s "http://localhost:9752/block?seconds=10" > /dev/null & time curl -s "http://localhost:9752/block?seconds=10" > /dev/null& 
+    [1] 27559
+    [2] 27560
+
+    real    0m10.026s
+    user    0m0.005s
+    sys     0m0.008s
+
+    real    0m20.045s
+    user    0m0.009s
+    sys     0m0.005s
+
 '''
 
-
-class HelloWorldService(ServiceBase):
-    @srpc(String, Integer, _returns=Array(String))
-    def say_hello(name, times):
-        '''Docstrings for service methods appear as documentation in the wsdl.
-
-        @param name the name to say hello to
-        @param the number of times to say hello
-        @return the completed array
-        '''
-        results = []
-        for i in range(0, times):
-            results.append('Hello, %s' % name)
-
-        return results
+host = '127.0.0.1'
+port = 9752
 
 if __name__=='__main__':
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
-    application = Application([HelloWorldService], 'spyne.examples.hello.twisted',
-                interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
+    application = Application([SomeService], 'spyne.examples.hello.twisted',
+                              in_protocol=HttpRpc(), out_protocol=XmlObject())
 
     application.interface.nsmap[None] = application.interface.nsmap['tns']
     application.interface.prefmap[application.interface.nsmap['tns']] = None
     del application.interface.nsmap['tns']
 
-    wsgi_app = WsgiApplication(application)
+    observer = log.PythonLoggingObserver('twisted')
+    log.startLoggingWithObserver(observer.emit, setStdout=False)
 
-    logging.info('listening on 0.0.0.0:7789')
-    logging.info('wsdl is at: http://0.0.0.0:7789/app/?wsdl')
+    wr = TwistedWebResource(application)
+    site = Site(wr)
 
-    run_twisted(((wsgi_app, "app"),), 7789)
+    reactor.listenTCP(port, site)
+
+    logging.info("listening on: %s:%d" % (host,port))
+    logging.info('wsdl is at: http://0.0.0.0:7789/?wsdl')
+
+    sys.exit(reactor.run())
