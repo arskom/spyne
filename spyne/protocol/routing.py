@@ -20,9 +20,14 @@
 import logging
 logger = logging.getLogger(__name__)
 
+from spyne.error import ResourceNotFoundError
+from spyne.error import ArgumentError
 from spyne.model.fault import Fault
+
 from werkzeug.routing import Map
 from werkzeug.routing import Rule
+from werkzeug.routing import BuildError
+from werkzeug.exceptions import NotFound
 
 class UrlMapNotBound(Fault):
     """Raised when url_map is not bound to a wsgi environment"""
@@ -60,7 +65,10 @@ class HttpRouter(object):
         """This function generates a url from previous given patterns"""
 
         if self.urls:
-            self.urls.build(end_point, kwargs, append_unknown=False)
+            try:
+                self.urls.build(end_point, kwargs, append_unknown=False)
+            except BuildError:
+                raise ArgumentError("The given endpoint can not build")
         else:
             raise UrlMapNotBound("Please bind url_map first")
 
@@ -68,9 +76,12 @@ class HttpRouter(object):
         """This function matches given url to one of patterns in url map"""
 
         if self.urls:
-            if method_:
-                return self.urls.match(url, method=method_)
-            else:
-                return self.urls.match(url)
+            try:
+                if method_:
+                    return self.urls.match(url, method=method_)
+                else:
+                    return self.urls.match(url)
+            except NotFound:
+                raise ResourceNotFoundError("There is no such url in url_map")
         else:
             raise UrlMapNotBound("Please bind url_map first")
