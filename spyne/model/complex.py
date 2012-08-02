@@ -46,12 +46,12 @@ class _SimpleTypeInfoElement(object):
 
 class XmlAttribute(ModelBase):
     """Items which are marshalled as attributes of the parent element."""
-    def __new__(cls, typ, use=None, ns=None):
+    def __new__(cls, typ, use=None, ns=None, attribute_of=None):
         retval = cls.customize()
         retval._typ = typ
         retval._use = use
         retval._ns = ns
-
+        retval._attribute_of = attribute_of
         return retval
 
     @classmethod
@@ -63,13 +63,11 @@ class XmlAttribute(ModelBase):
             parent_elt.set(name, cls._typ.to_string(value))
 
     @classmethod
-    def describe(cls, name, element, app):
-        if cls._ns is not None:
-            name = "{%s}%s" % (cls._ns,name)
-
+    def describe(cls, name, element, document):
         element.set('name', name)
-        element.set('type', cls._typ.get_type_name_ns(app.interface))
-        if cls._use:
+        element.set('type', cls._typ.get_type_name_ns(document.interface))
+
+        if cls._use is not None:
             element.set('use', cls._use)
 
     @staticmethod
@@ -157,15 +155,15 @@ class ComplexModelMeta(type(ModelBase)):
             if not isinstance(_type_info, TypeInfo):
                 _type_info = cls_dict['_type_info'] = TypeInfo(_type_info)
 
-                for k, v in _type_info.items():
-                    if issubclass(v, SelfReference):
-                        pass
+            for k, v in _type_info.items():
+                if issubclass(v, SelfReference):
+                    pass
 
-                    elif not issubclass(v, ModelBase):
-                        raise ValueError( (k,v) )
+                elif not issubclass(v, ModelBase):
+                    raise ValueError( (k,v) )
 
-                    elif issubclass(v, Array) and len(v._type_info) != 1:
-                        raise Exception("Invalid Array definition in %s.%s."
+                elif issubclass(v, Array) and len(v._type_info) != 1:
+                    raise Exception("Invalid Array definition in %s.%s."
                                                                 % (cls_name, k))
 
         return type(ModelBase).__new__(cls, cls_name, cls_bases, cls_dict)

@@ -474,7 +474,6 @@ class Time(SimpleModel):
             raise ValidationError(string)
 
         fields = match.groupdict(0)
-        print fields
         microsec = fields.get("sec_frac")
         if microsec is None or microsec == 0:
             microsec = 0
@@ -510,7 +509,7 @@ class DateTime(SimpleModel):
     def to_string(cls, value):
         format = cls.Attributes.format
         if format is None:
-            ret_str = value.isoformat('T')
+            ret_str = value.isoformat()
         else:
             ret_str = datetime.datetime.strftime(value, format)
 
@@ -674,6 +673,7 @@ class Mandatory(object):
     String = String(type_name="mandatory_string", min_occurs=1, nillable=False, min_len=1)
     Unicode = Unicode(type_name="mandatory_string", min_occurs=1, nillable=False, min_len=1)
     Integer = Integer(type_name="mandatory_integer", min_occurs=1, nillable=False)
+    Date = Date(type_name="mandatory_date", min_occurs=1, nillable=False)
     DateTime = DateTime(type_name="mandatory_date_time", min_occurs=1, nillable=False)
     UnsignedInteger = UnsignedInteger(type_name="mandatory_unsigned_integer", min_occurs=1, nillable=False)
     UnsignedLong = UnsignedLong(type_name="mandatory_unsigned_integer", min_occurs=1, nillable=False)

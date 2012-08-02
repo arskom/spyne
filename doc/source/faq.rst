@@ -44,10 +44,11 @@ otherwise the parameter names and numbers in the interface are going to be wrong
 which will cause weird errors.
 
 Please note that if you just intend to have a convenient way to set additional
-method metadata, you can use the ``_udp`` argument to the :func:`spyne.decorator.srpc`
+method metadata, you can pass the ``_udp`` argument to the :func:`spyne.decorator.srpc`
 to your liking.
 
-So if you're hell bent on using decorators, you should use the `decorator package <http://pypi.python.org/pypi/decorator/>`_.
+So if you're hell bent on using decorators, you should use the
+`decorator package <http://pypi.python.org/pypi/decorator/>`_.
 Here's an example: ::
 
     from decorator import decorator
@@ -129,7 +130,7 @@ How does spyne behave in a multi-threaded environment?
 =======================================================
 
 Spyne code is re-entrant, thus mostly thread safe. (A notable exception to
-this rule is the Interface clasess which cache the document string once
+this rule is the Interface class that caches where the document string once
 generated.) Whatever global state that is accessed is initialized and frozen
 (by convention) before any rpc processing is performed.
 
@@ -147,7 +148,7 @@ Spyne in your commercial projects, without any additional obligations.
 
 **Long Answer:** If you do modifications to Spyne, the best thing to do is to
 put them on github and just send a pull request upstream. Even if your patch
-is not accepted, you've done everything the license requires you to do.
+is not accepted, you've done more than what the license requires you to do.
 
 If you make modifications to Spyne and deploy a modified version to your
 client's site, the minimum you should do is to pass along the source code for
