@@ -23,10 +23,11 @@ from spyne.test.interop.server.soap_http_basic import soap_application
 
 from spyne.server.zeromq import ZeroMQServer
 
-PORT = 5555
+host = '127.0.0.1'
+port = 5555
 
 def main():
-    url = "tcp://127.0.0.1:%d" % PORT
+    url = "tcp://%s:%d" % (host,port)
 
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)

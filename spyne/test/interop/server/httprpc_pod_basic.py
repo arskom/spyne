@@ -32,6 +32,8 @@ from spyne.server.wsgi import WsgiApplication
 httprpc_soap_application = Application(services,
         'spyne.test.interop.server.httprpc.pod', in_protocol=HttpRpc(),
                                                         out_protocol=HttpRpc())
+host = "127.0.0.1"
+port = 9751
 
 def main():
     try:
@@ -39,7 +41,7 @@ def main():
         from wsgiref.validate import validator
 
         wsgi_application = WsgiApplication(httprpc_soap_application)
-        server = make_server('0.0.0.0', 9751, validator(wsgi_application))
+        server = make_server(host, port, validator(wsgi_application))
 
         logger.info('Starting interop server at %s:%s.' % ('0.0.0.0', 9751))
         logger.info('WSDL is at: /?wsdl')
