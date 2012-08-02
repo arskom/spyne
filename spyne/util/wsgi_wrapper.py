@@ -59,10 +59,15 @@ class WsgiMounter(object):
 
 
 def run_twisted(apps, port, static_dir='.'):
-    """Twisted wrapper for the spyne.server.wsgi.WsgiApplication
+    """Twisted wrapper for the spyne.server.wsgi.WsgiApplication. Twisted can
+    use one thread per request to run services, so code wrapped this way does
+    not necessarily have to respect twisted way of doing things.
 
-    Takes a list of tuples containing application, url pairs, and a port to
-    to listen to.
+    :param apps: List of tuples containing (application, url) pairs
+    :param port: Port to listen to.
+    :param static_dir: The directory that contains static files. Pass `None` if
+        you don't want to server static content. Url fragments in the `apps`
+        argument take precedence.
     """
 
     import twisted.web.server
