@@ -32,13 +32,16 @@ from spyne.test.interop.server._service import services
 httprpc_csv_application = Application(services,
         'spyne.test.interop.server.httprpc.csv', HttpRpc(), OutCsv(), Wsdl11())
 
+host = '127.0.0.1'
+port = 9750
+
 if __name__ == '__main__':
     try:
         from wsgiref.simple_server import make_server
         from wsgiref.validate import validator
 
         wsgi_application = WsgiApplication(httprpc_csv_application)
-        server = make_server('0.0.0.0', 9750, validator(wsgi_application))
+        server = make_server(host, port, validator(wsgi_application))
 
         logger.info('Starting interop server at %s:%s.' % ('0.0.0.0', 9750))
         logger.info('WSDL is at: /?wsdl')
