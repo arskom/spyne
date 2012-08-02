@@ -136,6 +136,9 @@ class HttpRpc(ProtocolBase):
                     except AttributeError:
                         raise ValueError("HttpRpc protocol can only serialize "
                                          "primitives, not %r" % out_class)
+            elif len(out_type_info) == 0:
+                pass
+
             else:
                 raise ValueError("HttpRpc protocol can only serialize simple "
                                  "return values.")

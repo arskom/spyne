@@ -26,12 +26,13 @@ from spyne.server.wsgi import WsgiApplication
 from spyne.test.interop.server._service import services
 from spyne.application import Application
 from spyne.protocol.soap import Soap11
-from spyne.interface.wsdl import Wsdl11
 
 soap_application = Application(services, 'spyne.test.interop.server',
-          in_protocol=Soap11(validator='lxml', cleanup_namespaces=True), out_protocol=Soap11())
+                 in_protocol=Soap11(validator='lxml', cleanup_namespaces=True),
+                 out_protocol=Soap11())
 
-PORT = 9754
+host = '127.0.0.1'
+port = 9754
 
 def main():
     try:
@@ -39,7 +40,7 @@ def main():
         from wsgiref.validate import validator
 
         wsgi_application = WsgiApplication(soap_application)
-        server = make_server('127.0.0.1', PORT, validator(wsgi_application))
+        server = make_server(host, port, validator(wsgi_application))
 
         logger.info('Starting interop server at %s:%s.' % ('0.0.0.0', 9754))
         logger.info('WSDL is at: /?wsdl')

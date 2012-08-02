@@ -155,15 +155,15 @@ class ComplexModelMeta(type(ModelBase)):
             if not isinstance(_type_info, TypeInfo):
                 _type_info = cls_dict['_type_info'] = TypeInfo(_type_info)
 
-                for k, v in _type_info.items():
-                    if issubclass(v, SelfReference):
-                        pass
+            for k, v in _type_info.items():
+                if issubclass(v, SelfReference):
+                    pass
 
-                    elif not issubclass(v, ModelBase):
-                        raise ValueError( (k,v) )
+                elif not issubclass(v, ModelBase):
+                    raise ValueError( (k,v) )
 
-                    elif issubclass(v, Array) and len(v._type_info) != 1:
-                        raise Exception("Invalid Array definition in %s.%s."
+                elif issubclass(v, Array) and len(v._type_info) != 1:
+                    raise Exception("Invalid Array definition in %s.%s."
                                                                 % (cls_name, k))
 
         return type(ModelBase).__new__(cls, cls_name, cls_bases, cls_dict)
