@@ -672,6 +672,7 @@ class Mandatory(object):
 
     String = String(type_name="mandatory_string", min_occurs=1, nillable=False, min_len=1)
     Unicode = Unicode(type_name="mandatory_string", min_occurs=1, nillable=False, min_len=1)
+    Decimal = Decimal(type_name="mandatory_integer", min_occurs=1, nillable=False)
     Integer = Integer(type_name="mandatory_integer", min_occurs=1, nillable=False)
     Date = Date(type_name="mandatory_date", min_occurs=1, nillable=False)
     DateTime = DateTime(type_name="mandatory_date_time", min_occurs=1, nillable=False)
