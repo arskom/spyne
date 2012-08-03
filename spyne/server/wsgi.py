@@ -385,7 +385,16 @@ class WsgiApplication(HttpBase):
         environment parsed into ``ctx.in_body_doc`` and ``ctx.in_header_doc``.
         """
         try:
-            mrs,params = router.match(ctx.in_document["PATH_INFO"])
+            for x in router.url_map.iter_rules():
+                if x.rule==ctx.in_document["PATH_INFO"]:
+                    a=x.endpoint
+            p_service_class, p_method_descriptor = \
+                    ctx.app.interface.service_method_map.get(a,[])[0]
+            if p_method_descriptor.method:
+                mrs,params = router.match(ctx.in_document["PATH_INFO"],
+                                            ctx.in_document["REQUEST_METHOD"])
+            else:
+                mrs,params = router.match(ctx.in_document["PATH_INFO"])
             ctx.method_request_string = mrs
         except ResourceNotFoundError:
             ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
