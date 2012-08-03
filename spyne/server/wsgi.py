@@ -34,6 +34,8 @@ try:
 except ImportError: # Python 3
     from urllib.parse import parse_qs
 
+from werkzeug.routing import Rule
+
 try:
     from werkzeug.formparser import parse_form_data
 except ImportError:
@@ -55,9 +57,6 @@ from spyne.const.http import HTTP_200
 from spyne.const.http import HTTP_405
 from spyne.const.http import HTTP_500
 
-router = HttpRouter()
-#Set global variable because decompose method is static it cannot reach class
-#attr via self
 
 def _get_http_headers(req_env):
     retval = {}
@@ -129,15 +128,12 @@ class WsgiApplication(HttpBase):
         }
         self._mtx_build_interface_document = threading.Lock()
         self._wsdl = None
+        http_routes = app.interface.http_routes
         for k,v in self.app.interface.service_method_map.items():
             p_service_class, p_method_descriptor = v[0]
-            if p_method_descriptor.url:
-                if p_method_descriptor.method:
-                    router.add_rule(p_method_descriptor.url, k,
-                                                p_method_descriptor.method )
-                else:
-                    router.add_rule(p_method_descriptor.url, k)
-
+            for r in p_method_descriptor.http_routes:
+                http_routes.add(Rule(r.rule, endpoint=r.endpoint,
+                                            methods=r.methods))
 
     def __call__(self, req_env, start_response, wsgi_url=None):
         '''This method conforms to the WSGI spec for callable wsgi applications
