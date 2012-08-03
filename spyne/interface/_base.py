@@ -55,6 +55,7 @@ class Interface(object):
         self.nsmap = {}
         self.prefmap = {}
         self.__app = app
+        self.__http_routes = None
 
         self.reset_interface()
         self.populate_interface()
@@ -326,6 +327,14 @@ class Interface(object):
         if ns is None:
             raise ValueError(ns)
         return self.import_base_namespaces or not (ns in namespace.const_prefmap)
+
+    @property
+    def http_routes(self):
+        if self.__http_routes is None:
+            from werkzeug.routing import Map
+            self.__http_routes = Map()
+
+        return self.__http_routes
 
 
 class InterfaceDocumentBase(object):

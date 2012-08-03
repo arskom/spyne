@@ -171,8 +171,8 @@ def srpc(*params, **kparams):
             _no_ctx = kparams.get('_no_ctx', True)
             _udp = kparams.get('_udp', None)
             _aux = kparams.get('_aux', None)
-            _url = kparams.get("_url", None)
-            _method = kparams.get("_method", None)
+            _http_route = kparams.get("_http_route",None)
+            _http_routes = kparams.get("_http_routes",[])
 
             _faults = None
             if ('_faults' in kparams) and ('_throws' in kparams):
@@ -192,11 +192,14 @@ def srpc(*params, **kparams):
 
             doc = getattr(f, '__doc__')
 
+            if _http_route is not None:
+                _http_routes.append(_http_route)
+
             retval = MethodDescriptor(f,
                     in_message, out_message, doc, _is_callback, _is_async,
                     _mtom, _in_header, _out_header, _faults,
                     port_type=_port_type, no_ctx=_no_ctx, udp=_udp,
-                    class_key=function_name, aux=_aux, url=_url, method=_method)
+                    class_key=function_name, aux=_aux, http_routes=_http_routes)
 
             return retval
 
