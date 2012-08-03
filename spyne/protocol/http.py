@@ -36,6 +36,7 @@ except ImportError:
         from io import StringIO
 
 from spyne.protocol import ProtocolBase
+from spyne.util import memoize
 
 STREAM_READ_BLOCK_SIZE = 16384
 
@@ -150,3 +151,9 @@ class HttpRpc(ProtocolBase):
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         ctx.out_string = ctx.out_document
+
+    @memoize
+    def get_map_adapter(self, host, mount_point):
+        self.count = 0
+        self.count+=1
+        return self.app.interface.http_routes.bind(host, mount_point)
