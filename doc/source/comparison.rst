@@ -29,11 +29,11 @@ Discussion thread: https://answers.launchpad.net/ladon/+question/171664
   to do with the ugliness of a raw wsdl document.
 * Does not support ZeroMQ.
 * Uses standard python tools for xml parsing which is good for pure-python
-  deployments. Spyne uses lxml, due to its excellent namespace support and
+  deployments. Spyne uses lxml, due to its excellent xml namespace support and
   speed. So Spyne-based solutions are easier to develop and faster to work with
   but more difficult to deploy.
 * Does not do declarative input validation. Traditional (imperative) input
-  validation is possible via a code injection mechanism similar to spyne's
+  validation is possible via a code injection mechanism similar to Spyne's
   events.
 * Does not support HttpRpc.
 * Does not have a Soap client.
