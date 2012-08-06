@@ -108,7 +108,7 @@ here: http://github.com/arskom/spyne/blob/master/examples/user_manager/server_ba
 
         server.serve_forever()
 
-Juping into what's new: Spyne uses ``ComplexModel`` as a general type that,
+Jumping into what's new: Spyne uses ``ComplexModel`` as a general type that,
 when subclassed, will produce complex serializable types that can be used in a
 public service. The ``Permission`` class is a fairly simple class with just
 two members: ::
