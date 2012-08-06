@@ -35,6 +35,7 @@ except ImportError: # Python 3
     from urllib.parse import parse_qs
 
 from werkzeug.routing import Rule
+from werkzeug.exceptions import NotFound
 
 try:
     from werkzeug.formparser import parse_form_data
@@ -389,19 +390,16 @@ class WsgiApplication(HttpBase):
                                 params[pk] = ""
 
                         prot.map_adapter.build(r.endpoint, params)
+
         try:
-            for x in router.url_map.iter_rules():
-                if x.rule==ctx.in_document["PATH_INFO"]:
-                    a=x.endpoint
-            p_service_class, p_method_descriptor = \
-                    ctx.app.interface.service_method_map.get(a,[])[0]
-            if p_method_descriptor.method:
-                mrs,params = router.match(ctx.in_document["PATH_INFO"],
-                                            ctx.in_document["REQUEST_METHOD"])
-            else:
-                mrs,params = router.match(ctx.in_document["PATH_INFO"])
+            mrs, params = prot.map_adapter.match(ctx.in_document["PATH_INFO"],
+                                              ctx.in_document["REQUEST_METHOD"])
             ctx.method_request_string = mrs
-        except ResourceNotFoundError:
+            for k in params:
+                params[k] = [params[k]]
+
+        except NotFound:
+            params = {}
             ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
                               ctx.in_document['PATH_INFO'].split('/')[-1])
 
@@ -410,6 +408,7 @@ class WsgiApplication(HttpBase):
 
         ctx.in_header_doc = _get_http_headers(ctx.in_document)
         ctx.in_body_doc = parse_qs(ctx.in_document['QUERY_STRING'])
+        ctx.in_body_doc.update(params)
 
         if ctx.in_document['REQUEST_METHOD'].upper() in ('POST', 'PUT', 'PATCH'):
             stream, form, files = parse_form_data(ctx.in_document,
