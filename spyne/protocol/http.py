@@ -70,6 +70,7 @@ class HttpRpc(ProtocolBase):
 
         self.tmp_dir = tmp_dir
         self.tmp_delete_on_close = tmp_delete_on_close
+        self.map_adapter = None
 
     def get_tmp_delete_on_close(self):
         return self.__tmp_delete_on_close
@@ -154,6 +155,4 @@ class HttpRpc(ProtocolBase):
 
     @memoize
     def get_map_adapter(self, host, mount_point):
-        self.count = 0
-        self.count+=1
         return self.app.interface.http_routes.bind(host, mount_point)
