@@ -48,8 +48,10 @@ from spyne.model.complex import ComplexModelBase
 def unwrap_messages(cls, skip_depth):
     out_type = cls
     for i in range(skip_depth):
-        if len(out_type._type_info) == 1:
+        if hasattr(out_type, "_type_info") and len(out_type._type_info) == 1:
             out_type = out_type._type_info[0]
+        else:
+            break
 
     return out_type
 
@@ -59,7 +61,7 @@ def unwrap_instance(cls, inst, skip_depth):
     out_instance = inst
 
     for i in range(skip_depth):
-        if len(out_type._type_info) == 1:
+        if hasattr(out_type, "_type_info") and len(out_type._type_info) == 1:
             (k, out_type), = out_type._type_info.items()
             if issubclass(out_type, ComplexModelBase):
                 out_instance = getattr(out_instance, k)
