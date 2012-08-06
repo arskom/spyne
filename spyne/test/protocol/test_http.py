@@ -46,7 +46,7 @@ class Test(unittest.TestCase):
             def some_call():
                 return 1, 's'
 
-        app = Application([SomeService], 'tns', HttpRpc(), HttpRpc(), Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HttpRpc())
         server = WsgiApplication(app)
 
         initial_ctx = WsgiMethodContext(server, {
@@ -77,7 +77,7 @@ class Test(unittest.TestCase):
             def some_call(scm):
                 return SomeComplexModel(i=5, s='5x')
 
-        app = Application([SomeService], 'tns', HttpRpc(), HttpRpc(), Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HttpRpc())
         server = WsgiApplication(app)
 
         initial_ctx = WsgiMethodContext(server, {
@@ -112,7 +112,7 @@ class Test(unittest.TestCase):
             def some_call(ccm):
                 return CCM(c=ccm.c, i=ccm.i, s=ccm.s)
 
-        app = Application([SomeService], 'tns', HttpRpc(), HttpRpc(), Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HttpRpc())
         server = WsgiApplication(app)
         initial_ctx = WsgiMethodContext(server, {
             'QUERY_STRING': '',
@@ -130,7 +130,7 @@ class Test(unittest.TestCase):
             def some_call(s):
                 return '\n'.join(s)
 
-        app = Application([SomeService], 'tns', HttpRpc(), HttpRpc(), Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HttpRpc())
         server = WsgiApplication(app)
 
         initial_ctx = WsgiMethodContext(server, {
@@ -161,7 +161,7 @@ class Test(unittest.TestCase):
             def some_call(ccm):
                 return repr(ccm)
 
-        app = Application([SomeService], 'tns', HttpRpc(), HttpRpc(), Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HttpRpc())
         server = WsgiApplication(app)
 
         initial_ctx = WsgiMethodContext(server, {
@@ -198,7 +198,7 @@ class Test(unittest.TestCase):
             def some_call(ccm):
                 return repr(ccm)
 
-        app = Application([SomeService], 'tns', HttpRpc(), HttpRpc(), Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HttpRpc())
         server = WsgiApplication(app)
 
         initial_ctx = WsgiMethodContext(server, {
@@ -232,7 +232,7 @@ class Test(unittest.TestCase):
             def some_call(ccm):
                 return repr(ccm)
 
-        app = Application([SomeService], 'tns', HttpRpc(), HttpRpc(), Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HttpRpc())
         server = WsgiApplication(app)
 
         initial_ctx = WsgiMethodContext(server, {
