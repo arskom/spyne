@@ -239,13 +239,6 @@ class WsgiApplication(HttpBase):
         initial_ctx = WsgiMethodContext(self, req_env,
                                                 self.app.out_protocol.mime_type)
 
-        if not router.is_bound():
-            router.bind(req_env)
-            for k,v in self.app.interface.service_method_map.items():
-                p_service_class, p_method_descriptor = v[0]
-                if p_method_descriptor.url:
-                   router.build(k)
-
         # implementation hook
         self.event_manager.fire_event('wsgi_call', initial_ctx)
         initial_ctx.in_string, in_string_charset = \
