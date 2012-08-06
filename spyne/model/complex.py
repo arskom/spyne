@@ -419,6 +419,7 @@ class ComplexModelBase(ModelBase):
 
         return retval
 
+
 class ComplexModel(ComplexModelBase):
     """The general complexType factory. The __call__ method of this class will
     return instances, contrary to primivites where the same call will result in
@@ -493,6 +494,7 @@ class Iterable(Array):
     iterable. The distinction with the ``Array`` is made in the protocol
     implementation, this is just a marker.
     """
+
 
 class Alias(ComplexModel):
     """Different type_name, same _type_info."""

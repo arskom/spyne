@@ -145,9 +145,9 @@ class XmlObject(ProtocolBase):
         handler = self.deserialization_handlers[cls]
         return handler(self, cls, element)
 
-    def to_parent_element(self, cls, value, tns, parent_elt, * args, ** kwargs):
+    def to_parent_element(self, cls, value, tns, parent_elt, *args, **kwargs):
         handler = self.serialization_handlers[cls]
-        handler(self, cls, value, tns, parent_elt, * args, ** kwargs)
+        handler(self, cls, value, tns, parent_elt, *args, **kwargs)
 
     def validate_body(self, ctx, message):
         """Sets ctx.method_request_string and calls :func:`generate_contexts`

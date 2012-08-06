@@ -184,7 +184,6 @@ class DictObject(ProtocolBase):
         self.event_manager.fire_event('before_serialize', ctx)
 
         if ctx.out_error is not None:
-            # FIXME: There's no way to alter soap response headers for the user.
             ctx.out_document = [ctx.out_error._to_dict(ctx.out_error)]
 
         else:

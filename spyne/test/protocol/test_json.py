@@ -39,7 +39,7 @@ from spyne.protocol.json import JsonObject
 from spyne.service import ServiceBase
 from spyne.server import ServerBase
 
-class Test(unittest.TestCase):
+class TestJsonObject(unittest.TestCase):
     '''Most of the service tests are performed through the interop tests.'''
 
     def test_multiple_return_sd_2(self):
