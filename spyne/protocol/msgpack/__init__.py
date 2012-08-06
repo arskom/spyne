@@ -101,10 +101,10 @@ class MessagePackRpc(MessagePackObject):
             msgtype, msgid, msgname, msgparams = ctx.in_document
 
         if msgtype == MessagePackRpc.MSGPACK_REQUEST:
-            assert message == DictObject.REQUEST
+            assert message == MessagePackRpc.REQUEST
 
         elif msgtype == MessagePackRpc.MSGPACK_RESPONSE:
-            assert message == DictObject.RESPONSE
+            assert message == MessagePackRpc.RESPONSE
 
         elif msgtype == MessagePackRpc.MSGPACK_NOTIFY:
             raise NotImplementedError()

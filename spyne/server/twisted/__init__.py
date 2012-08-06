@@ -53,8 +53,7 @@ from spyne.const.http import HTTP_405
 def _reconstruct_url(request):
     server_name = request.getRequestHostname()
     server_port = request.getHost().port
-    if (bool(request.isSecure()), server_port) not in [
-            (True, 443), (False, 80)]:
+    if (bool(request.isSecure()), server_port) not in [(True, 443), (False, 80)]:
         server_name = '%s:%d' % (server_name, server_port)
 
     if request.isSecure():
