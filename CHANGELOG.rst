@@ -1,4 +1,3 @@
-
 Changelog
 =========
 
@@ -42,7 +41,6 @@ rpclib-2.8.0-rc -> spyne-2.8.0-rc
  * Relevant pull requests:
     * https://github.com/arskom/spyne/pull/128
     * https://github.com/arskom/spyne/pull/129
-    * https://github.com/arskom/spyne/pull/133
     * https://github.com/arskom/spyne/pull/137
     * https://github.com/arskom/spyne/pull/138
     * https://github.com/arskom/spyne/pull/139
