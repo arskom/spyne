@@ -24,6 +24,7 @@ import unittest
 try:
     from urllib import urlencode
     from urllib2 import urlopen
+    from urllib2 import Request
     from urllib2 import HTTPError
 except ImportError:
     from urllib.parse import urlencode
@@ -57,6 +58,13 @@ class TestHttpRpc(unittest.TestCase):
             data = urlopen(url).read()
         except HTTPError, e:
             assert e.code == 404
+
+    def test_413(self):
+        url = "http://localhost:9751"
+        try:
+            data = Request(url,("foo"*3*1024*1024))
+        except HTTPError,e:
+            assert e.code == 413
 
     def test_500(self):
         url = 'http://localhost:9751/python_exception'

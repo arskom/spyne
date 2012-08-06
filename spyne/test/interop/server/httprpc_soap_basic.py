@@ -30,7 +30,7 @@ from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
 
 httprpc_soap_application = Application(services,
-    'spyne.test.interop.server.httprpc.soap', Wsdl11(), HttpRpc(), Soap11())
+    'spyne.test.interop.server.httprpc.soap', in_protocol=HttpRpc(), out_protocol=Soap11())
 
 host = '127.0.0.1'
 port = 9753

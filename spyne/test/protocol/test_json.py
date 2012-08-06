@@ -372,5 +372,40 @@ class Test(unittest.TestCase):
         print(ctx.in_error)
         assert ctx.in_error.faultcode == 'Client.ValidationError'
 
+    def test_primitive_with_skip_depth(self):
+        class SomeService(ServiceBase):
+            @srpc(_returns=String)
+            def some_call():
+                return "foo"
+
+        app = Application([SomeService], 'tns',Wsdl11(), JsonObject(), JsonObject(skip_depth=2))
+
+        server = ServerBase(app)
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = ['{"some_call":[]}']
+
+        ctx, = server.generate_contexts(initial_ctx)
+        server.get_in_object(ctx)
+        server.get_out_object(ctx)
+        server.get_out_string(ctx)
+
+
+    def test_fault_to_dict(self):
+        class SomeService(ServiceBase):
+            @srpc(_returns=String)
+            def some_call():
+                raise Fault()
+
+        app = Application([SomeService], 'tns', in_protocol=JsonObject(), out_protocol=JsonObject(skip_depth=2))
+
+        server = ServerBase(app)
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = ['{"some_call":[]}']
+
+        ctx, = server.generate_contexts(initial_ctx)
+        server.get_in_object(ctx)
+        server.get_out_object(ctx)
+        server.get_out_string(ctx)
+
 if __name__ == '__main__':
     unittest.main()

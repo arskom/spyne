@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from spyne.interface.wsdl.wsdl11 import Wsdl11
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -71,7 +72,8 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
             'MissingPortApp'
         )
 
-        self.assertRaises(ValueError, app.interface.build_interface_document,
+        interface_doc = Wsdl11(app.interface)
+        self.assertRaises(ValueError, interface_doc.build_interface_document,
                                                                        self.url)
 
         app = build_app(
@@ -80,7 +82,8 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
             'MissingPort2App'
         )
 
-        self.assertRaises(ValueError, app.interface.build_interface_document,
+        interface_doc = Wsdl11(app.interface)
+        self.assertRaises(ValueError, interface_doc.build_interface_document,
                                                                        self.url)
 
 
@@ -92,7 +95,8 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
             'MissingPortApp'
         )
 
-        self.assertRaises(ValueError, app.interface.build_interface_document,
+        interface_doc = Wsdl11(app.interface)
+        self.assertRaises(ValueError, interface_doc.build_interface_document,
                                                                        self.url)
 
         app = build_app(
@@ -101,7 +105,8 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
             'MissingPortApp'
         )
 
-        self.assertRaises(ValueError, app.interface.build_interface_document,
+        interface_doc = Wsdl11(app.interface)
+        self.assertRaises(ValueError, interface_doc.build_interface_document,
                                                                        self.url)
 
 
@@ -114,7 +119,8 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
             'MissingPortApp'
         )
 
-        self.assertRaises(ValueError, app.interface.build_interface_document,
+        interface_doc = Wsdl11(app.interface)
+        self.assertRaises(ValueError, interface_doc.build_interface_document,
                                                                        self.url)
 
         app = build_app(
@@ -123,7 +129,8 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
             'MissingServicePort2App'
         )
 
-        self.assertRaises(ValueError, app.interface.build_interface_document,
+        interface_doc = Wsdl11(app.interface)
+        self.assertRaises(ValueError, interface_doc.build_interface_document,
                                                                        self.url)
 
 

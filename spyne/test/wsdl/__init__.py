@@ -23,8 +23,8 @@ from spyne.protocol.soap import Soap11
 import spyne.const.xml_ns as ns
 
 def build_app(service_list, tns, name):
-    app = Application(service_list, tns, Wsdl11(),
-                      Soap11(), Soap11(), name=name)
+    app = Application(service_list, tns,
+                      in_protocol=Soap11(), out_protocol=Soap11(), name=name)
     app.transport = 'http://schemas.xmlsoap.org/soap/http'
     return app
 
@@ -40,11 +40,13 @@ class AppTestWrapper():
         self.binding_string = '{%s}binding' % ns.wsdl
 
         self.app = application
-        self.app.interface.build_interface_document(self.url)
-        self.wsdl = self.app.interface.get_interface_document()
+        self.interface_doc = Wsdl11(self.app.interface)
+        self.interface_doc.build_interface_document(self.url)
+        self.interface_doc.build_interface_document(self.url)
+        self.wsdl = self.interface_doc.get_interface_document()
 
     def get_service_list(self):
-        return self.app.interface.root_elt.findall(self.service_string)
+        return self.interface_doc.root_elt.findall(self.service_string)
 
     def get_port_list(self, service):
         from lxml import etree
@@ -55,13 +57,13 @@ class AppTestWrapper():
         return binding.findall(self.soap_binding_string)
 
     def get_port_types(self):
-        return self.app.interface.root_elt.findall(self.port_type_string)
+        return self.interface_doc.root_elt.findall(self.port_type_string)
 
     def get_port_operations(self, port_type):
         return port_type.findall(self.operation_string)
 
     def get_bindings(self):
-        return self.app.interface.root_elt.findall(self.binding_string)
+        return self.interface_doc.root_elt.findall(self.binding_string)
 
     def get_binding_operations(self, binding):
         return [o for o in binding.iterfind(self.operation_string)]
