@@ -132,8 +132,7 @@ class WsgiApplication(HttpBase):
         for k,v in self.app.interface.service_method_map.items():
             p_service_class, p_method_descriptor = v[0]
             for r in p_method_descriptor.http_routes:
-                http_routes.add(Rule(r.rule, endpoint=r.endpoint,
-                                            methods=r.methods))
+                http_routes.add(Rule(r.rule, endpoint=k, methods=r.methods))
 
     def __call__(self, req_env, start_response, wsgi_url=None):
         '''This method conforms to the WSGI spec for callable wsgi applications
