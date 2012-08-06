@@ -20,7 +20,7 @@
 import unittest
 import json
 
-from spyne.test.protocol.test_dictobject import TDictObjectTest
+from spyne.test.protocol._test_dictobj import TDictObjectTest
 from spyne.protocol.json import JsonObject
 
 TestJsonObject = TDictObjectTest(json, JsonObject, 'Client.JsonDecodeError')

@@ -20,7 +20,7 @@
 import msgpack
 import unittest
 
-from spyne.test.protocol.test_dictobject import TDictObjectTest
+from spyne.test.protocol._test_dictobj import TDictObjectTest
 from spyne.protocol.msgpack import MessagePackObject
 
 TestMessagePackObject = TDictObjectTest(msgpack, MessagePackObject, "Client.MessagePackDecodeError" )

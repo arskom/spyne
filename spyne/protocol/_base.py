@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 from copy import copy
 
-from spyne._base import EventManager
+from spyne import EventManager
 
 from spyne.const.http import HTTP_400
 from spyne.const.http import HTTP_404
