@@ -7,8 +7,8 @@ own remote procedure call api and the application programmers the hassle of
 jumping through hoops just to expose their services using multiple protocols and
 transports.
 
-From another perspective, Spyne is framework for building distributed solutions
-hat strictly adhere to the MVC pattern, where Model = `spyne.model`,
+In other words, Spyne is framework for building distributed solutions that
+strictly follow the MVC pattern, where Model = `spyne.model`,
 View = `spyne.protocol` and Controller = `user code`.
 
 Spyne comes with the implementations of popular transport, protocol and
@@ -17,7 +17,7 @@ build on existing functionality.
 
 Spyne currently supports the WSDL 1.1 interface description standard,
 along with SOAP 1.1 and the so-called HttpRpc and JsonObject protocols which
-can be transported via HTTP or ZeroMQ. The transports can be used in a both
+can be transported via Http or ZeroMQ. The transports can be used in both a
 client or server setting.
 
 The following are the primary sources of information about spyne:
@@ -28,9 +28,9 @@ The following are the primary sources of information about spyne:
 * You can download Spyne packages from `github <http://github.com/arskom/spyne/downloads>`_
   or `pypi <http://pypi.python.org/pypi/spyne>`_.
 
-Spyne is a generalized version of a soap processing library known as soaplib.
-The following legacy versions of soaplib are also available in the source
-repository at github as branches.
+Spyne is a generalized version of a Soap library known as soaplib. The following
+legacy versions of soaplib are also available in the source repository at github
+as branches:
 
 * Soaplib-0.8 branch: http://github.com/arskom/spyne/tree/soaplib-0_8
 * Soaplib-1.0 branch: http://github.com/arskom/spyne/tree/soaplib-1_0
@@ -53,7 +53,7 @@ Spyne service at all:
 both of which are available through ``easy_install``.
 
 Additionally the following software packages are needed for various subsystems
-that Spyne supports:
+of Spyne:
 
 * `SQLAlchemy <http://sqlalchemy.org>`_ for :class:`spyne.model.table.TableModel`.
 * `pyzmq <https://github.com/zeromq/pyzmq>`_ for
@@ -63,7 +63,7 @@ that Spyne supports:
 * `Werkzeug <http://werkzeug.pocoo.org/>`_ is needed for :class:`spyne.protocol.http.HttpRpc`.
 
 You are advised to add these as requirements to your own projects, as these are
-only optional dependencies of spyne, thus not handled in its setup script.
+only optional dependencies of Spyne, thus not handled in its setup script.
 
 Installing
 ==========
@@ -94,12 +94,12 @@ use: ::
 Contributing
 ============
 
-The main developers of spyne lurk in the official soap implementors forum
-in python.org, `here <http://mail.python.org/mailman/listinfo/soap/>`_.
-That's mostly because spyne is the continuation of soaplib, but also
-because soap is an important part of spyne.
+The main developers of Spyne lurk in the `official soap implementors
+forum <http://mail.python.org/mailman/listinfo/soap/>`_. kindly operated
+by python.org. That's mostly because Spyne is the continuation of soaplib,
+but also because soap is an important part of Spyne.
 
-If you wish to contribute to spyne's development, create a personal fork
+If you wish to contribute to Spyne's development, create a personal fork
 on GitHub.  When you are ready to push to the upstream repository,
 submit a pull request to bring your work to the attention of the core
 committers. They will respond to review your patch and act accordingly.
@@ -118,7 +118,7 @@ We could also use help with the docs, which are built from
 `restructured text <http://docutils.sourceforge.net/rst.html>`_ using
 `Sphinx <http://sphinx.pocoo.org>`_.
 
-Regular contributors may be invited to join as a core spyne committer on
+Regular contributors may be invited to join as a core Spyne committer on
 GitHub. Even if this gives the core committers the power to commit directly
 to the core repository, we highly value code reviews and expect every
 significant change to be committed via pull requests.
