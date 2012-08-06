@@ -150,7 +150,7 @@ class MessagePackRpc(MessagePackObject):
         self.event_manager.fire_event('before_serialize', ctx)
 
         if ctx.out_error is not None:
-            ctx.out_document = [MessagePackObject.RESPONSE, 0,
+            ctx.out_document = [MessagePackRpc.MSGPACK_RESPONSE, 0,
                                            ctx.out_error.to_dict(ctx.out_error)]
 
         else:
