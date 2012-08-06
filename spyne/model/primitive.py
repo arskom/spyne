@@ -69,8 +69,10 @@ _duration_re = re.compile(
         r'(?:(?P<seconds>\d+(.\d+)?)S)?)?'
     )
 
+
 _ns_xs = spyne.const.xml_ns.xsd
 _ns_xsi = spyne.const.xml_ns.xsi
+
 
 class AnyXml(SimpleModel):
     """An xml node that can contain any number of sub nodes. It's represented by
@@ -98,6 +100,7 @@ class AnyXml(SimpleModel):
         except etree.XMLSyntaxError:
             raise ValidationError(string)
 
+
 class AnyDict(SimpleModel):
     """An xml node that can contain any number of sub nodes. It's represented by
     a dict instance that can contain other dicts or iterables of strings as
@@ -118,6 +121,7 @@ class AnyDict(SimpleModel):
             return pickle.loads(string)
         except:
             raise ValidationError(string)
+
 
 class Unicode(SimpleModel):
     """The type to represent human-readable data. Its native format is `unicode`.
@@ -214,7 +218,6 @@ if sys.version > '3':
     String = Unicode
 
 
-# FIXME: Support this for soft validation
 class AnyUri(String):
     """A special kind of String type designed to hold an uri."""
 
@@ -271,12 +274,12 @@ class Decimal(SimpleModel):
 
     @staticmethod
     def validate_native(cls, value):
-        return (    SimpleModel.validate_native(cls, value) and
-                value is None or (
-                    value >  cls.Attributes.gt and
-                    value >= cls.Attributes.ge and
-                    value <  cls.Attributes.lt and
-                    value <= cls.Attributes.le
+        return SimpleModel.validate_native(cls, value) and (
+            value is None or (
+                value >  cls.Attributes.gt and
+                value >= cls.Attributes.ge and
+                value <  cls.Attributes.lt and
+                value <= cls.Attributes.le
             ))
 
     @classmethod
