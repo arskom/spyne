@@ -29,6 +29,7 @@ from spyne.model.complex import ComplexModelBase
 from spyne.model.complex import Array
 from spyne.model.primitive import DateTime
 from spyne.model.primitive import Decimal
+from spyne.model.primitive import String
 from spyne.model.primitive import Unicode
 
 from spyne.protocol import ProtocolBase
@@ -228,12 +229,13 @@ class DictObject(ProtocolBase):
         # validate raw input
         if self.validator is self.SOFT_VALIDATION:
             if issubclass(cls, Unicode) and not isinstance(value, unicode):
+                if not (issubclass(cls, String) and isinstance(value, str)):
+                    raise ValidationError(value)
+
+            elif issubclass(cls, Decimal) and not isinstance(value, (int, long, float)):
                 raise ValidationError(value)
 
-            if issubclass(cls, Decimal) and not isinstance(value, (int, long, float)):
-                raise ValidationError(value)
-
-            if issubclass(cls, DateTime) and not (isinstance(value, unicode) and
+            elif issubclass(cls, DateTime) and not (isinstance(value, unicode) and
                                             cls.validate_string(cls, value)):
                 raise ValidationError(value)
 
