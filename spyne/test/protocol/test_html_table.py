@@ -75,7 +75,7 @@ class TestHtmlColumnTable(unittest.TestCase):
             def some_call(ccm):
                 return [ccm] * 5
 
-        app = Application([SomeService], 'tns', HttpRpc(), HtmlTable(field_name_attr='class'), Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HtmlTable(field_name_attr='class'))
         server = WsgiApplication(app)
 
         out_string = _call_wsgi_app_kwargs(server,
@@ -133,7 +133,7 @@ class TestHtmlColumnTable(unittest.TestCase):
             def some_call(s):
                 return s
 
-        app = Application([SomeService], 'tns', HttpRpc(), HtmlTable(), Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HtmlTable())
         server = WsgiApplication(app)
 
         out_string = _call_wsgi_app(server, (('s', '1'), ('s', '2')) )
@@ -147,8 +147,8 @@ class TestHtmlRowTable(unittest.TestCase):
                 return ccm
 
 
-        app = Application([SomeService], 'tns', HttpRpc(),
-                 HtmlTable(field_name_attr='class', fields_as='rows'), Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
+                 out_protocol=HtmlTable(field_name_attr='class', fields_as='rows'))
         server = WsgiApplication(app)
 
         out_string = _call_wsgi_app_kwargs(server,
@@ -201,7 +201,7 @@ class TestHtmlRowTable(unittest.TestCase):
             def some_call(s):
                 return s
 
-        app = Application([SomeService], 'tns', HttpRpc(), HtmlTable(fields_as='rows'), Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HtmlTable(fields_as='rows'))
         server = WsgiApplication(app)
 
         out_string = _call_wsgi_app(server, (('s', '1'), ('s', '2')) )

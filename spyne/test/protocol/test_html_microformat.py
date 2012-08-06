@@ -43,7 +43,7 @@ class TestHtmlMicroFormat(unittest.TestCase):
             def some_call(s):
                 return s
 
-        app = Application([SomeService], 'tns', HttpRpc(), HtmlMicroFormat(), Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HtmlMicroFormat())
         server = WsgiApplication(app)
 
         initial_ctx = WsgiMethodContext(server, {
@@ -70,7 +70,7 @@ class TestHtmlMicroFormat(unittest.TestCase):
             def some_call():
                 return 1, 's'
 
-        app = Application([SomeService], 'tns', HttpRpc(), HtmlMicroFormat(), Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HtmlMicroFormat())
         server = WsgiApplication(app)
 
         initial_ctx = WsgiMethodContext(server, {
@@ -102,7 +102,7 @@ class TestHtmlMicroFormat(unittest.TestCase):
             def some_call(ccm):
                 return CCM(c=ccm.c,i=ccm.i, s=ccm.s)
 
-        app = Application([SomeService], 'tns', HttpRpc(), HtmlMicroFormat(), Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HtmlMicroFormat())
         server = WsgiApplication(app)
 
         initial_ctx = WsgiMethodContext(server, {
@@ -164,7 +164,7 @@ class TestHtmlMicroFormat(unittest.TestCase):
             def some_call(s):
                 return '\n'.join(s)
 
-        app = Application([SomeService], 'tns', HttpRpc(), HtmlMicroFormat(), Wsdl11())
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HtmlMicroFormat())
         server = WsgiApplication(app)
 
         initial_ctx = WsgiMethodContext(server, {

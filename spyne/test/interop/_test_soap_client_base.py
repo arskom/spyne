@@ -155,17 +155,6 @@ class SpyneClientTestBase(object):
             }
         }
 
-    def test_any(self):
-        val = self._get_xml_test_val()
-        ret = self.client.service.echo_any(val)
-
-        self.assertDictEquals(ret, val)
-
-    def test_any_as_dict(self):
-        val=self._get_xml_test_val()
-        ret = self.client.service.echo_any_as_dict(val)
-
-        self.assertEquals(ret, val)
 
     def test_echo_simple_class(self):
         val = self.client.factory.create("{spyne.test.interop.server}SimpleClass")
