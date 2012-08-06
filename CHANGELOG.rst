@@ -6,6 +6,8 @@ rpclib-2.8.0-rc -> spyne-2.8.0-rc
 ---------------------------------
  * Rpclib is dead. Long live Spyne!
  * Add support for JsonObject protocol. This initial version is expremental.
+ * Add support for MessagePackObject and MessagePackRpc protocols. These
+   initial versions are expremental.
  * Make DateTime string format customizable.
  * Implement TwistedWebResource that exposes an ``Application`` instance as a
    ``twisted.web.resource.Resource`` child.
