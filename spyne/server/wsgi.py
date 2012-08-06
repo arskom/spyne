@@ -372,6 +372,23 @@ class WsgiApplication(HttpBase):
         """This function is only called by the HttpRpc protocol to have the wsgi
         environment parsed into ``ctx.in_body_doc`` and ``ctx.in_header_doc``.
         """
+
+        if prot.map_adapter is None:
+            req_env = ctx.transport.req_env
+            prot.map_adapter = ctx.app.in_protocol.get_map_adapter(
+                                                req_env['SERVER_NAME'], "/")
+
+            for k,v in ctx.app.interface.service_method_map.items():
+                p_service_class, p_method_descriptor = v[0]
+                for r in ctx.app.interface.http_routes.iter_rules():
+                    params = {}
+                    if r.endpoint == k:
+                        for pk,pv in p_method_descriptor.in_message.\
+                                                            _type_info.items():
+                            if pk in r.rule:
+                                params[pk] = ""
+
+                        prot.map_adapter.build(r.endpoint, params)
         try:
             for x in router.url_map.iter_rules():
                 if x.rule==ctx.in_document["PATH_INFO"]:
