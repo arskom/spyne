@@ -60,14 +60,14 @@ class MessagePackObject(DictObject):
         ctx.out_string = (msgpack.packb(o) for o in ctx.out_document)
 
 
-class MessagePackRpc(ProtocolBase):
+class MessagePackRpc(MessagePackObject):
     """An integration class for the msgpack-rpc protocol."""
 
     mime_type = 'application/x-msgpack'
 
-    REQUEST = 0
-    RESPONSE = 1
-    NOTIFY = 2
+    MSGPACK_REQUEST = 0
+    MSGPACK_RESPONSE = 1
+    MSGPACK_NOTIFY = 2
 
     def create_in_document(self, ctx, in_string_encoding=None):
         """Sets ``ctx.in_document``,  using ``ctx.in_string``.
@@ -76,37 +76,37 @@ class MessagePackRpc(ProtocolBase):
                 argument is ignored.
         """
 
+        # TODO: Use feed api
         ctx.in_document = msgpack.unpackb(''.join(ctx.in_string))
 
         try:
-            len(self.in_document)
+            len(ctx.in_document)
         except TypeError:
             raise MessagePackDecodeError("Input must be an itearble.")
 
-        # FIXME: Msgid is ignored. Is this a problem?
-        if not len(ctx.in_document in (3,4)):
+        if not (3 <= len(ctx.in_document) <= 4):
             raise MessagePackDecodeError("Length of input iterable must be "
                                                                 "either 3 or 4")
 
     def decompose_incoming_envelope(self, ctx, message):
         # FIXME: For example: {0: 0, 1: 0, 2: "some_call", 3: [1,2,3]} will also
         # work. Is this a problem?
+
+        # FIXME: Msgid is ignored. Is this a problem?
         msgparams = []
-        if len(self.in_document) == 3:
-            msgtype, msgid, msgname = self.message
+        if len(ctx.in_document) == 3:
+            msgtype, msgid, msgname = ctx.in_document
 
-        elif len(self.in_document) == 4:
-            msgtype, msgid, msgname, msgparams = self.message
+        elif len(ctx.in_document) == 4:
+            msgtype, msgid, msgname, msgparams = ctx.in_document
 
-        if msgtype == MessagePackRpc.REQUEST:
+        if msgtype == MessagePackRpc.MSGPACK_REQUEST:
             assert message == DictObject.REQUEST
-            self.on_request(message[1], message[2], message[3])
 
-        elif msgtype == MessagePackRpc.RESPONSE:
+        elif msgtype == MessagePackRpc.MSGPACK_RESPONSE:
             assert message == DictObject.RESPONSE
-            self.on_response(message[1], message[2], message[3])
 
-        elif msgtype == MessagePackRpc.NOTIFY:
+        elif msgtype == MessagePackRpc.MSGPACK_NOTIFY:
             raise NotImplementedError()
 
         else:
@@ -115,7 +115,7 @@ class MessagePackRpc(ProtocolBase):
         ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
                                                                         msgname)
 
-        ctx.in_header_doc = None # MsgPackRpc does not seem to have Header support
+        ctx.in_header_doc = None # MessagePackRpc does not seem to have Header support
         ctx.in_body_doc = msgparams
 
         logger.debug('\theader : %r' % (ctx.in_header_doc))
@@ -137,7 +137,7 @@ class MessagePackRpc(ProtocolBase):
             body_class = ctx.descriptor.out_message
 
         if body_class:
-            ctx.in_object = body_class.get_serialization_instance(self.in_body_doc)
+            ctx.in_object = body_class.get_serialization_instance(ctx.in_body_doc)
 
         else:
             ctx.in_object = []
@@ -150,7 +150,8 @@ class MessagePackRpc(ProtocolBase):
         self.event_manager.fire_event('before_serialize', ctx)
 
         if ctx.out_error is not None:
-            ctx.out_document = [ctx.out_error._to_dict(ctx.out_error)]
+            ctx.out_document = [MessagePackObject.RESPONSE, 0,
+                                           ctx.out_error.to_dict(ctx.out_error)]
 
         else:
             # get the result message
@@ -178,9 +179,13 @@ class MessagePackRpc(ProtocolBase):
 
             # transform the results into a dict:
             if out_type.Attributes.max_occurs > 1:
-                ctx.out_document = (self._to_value(out_type, inst, wrapper_name)
+                ctx.out_document = [[MessagePackRpc.MSGPACK_RESPONSE, 0, None,
+                        (self._to_value(out_type, inst, wrapper_name)
                                                        for inst in out_instance)
+                    ]]
             else:
-                ctx.out_document = [self._to_value(out_type, out_instance, wrapper_name)]
+                ctx.out_document = [[MessagePackRpc.MSGPACK_RESPONSE, 0, None,
+                            self._to_value(out_type, out_instance, wrapper_name)
+                    ]]
 
             self.event_manager.fire_event('after_serialize', ctx)
