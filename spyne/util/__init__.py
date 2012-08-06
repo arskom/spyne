@@ -116,3 +116,6 @@ class memoize(object):
         '''Support instance methods.'''
 
         return functools.partial(self.__call__, obj)
+
+    def reset(self):
+        self.memo = {}
