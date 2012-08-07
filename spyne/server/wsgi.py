@@ -34,9 +34,6 @@ try:
 except ImportError: # Python 3
     from urllib.parse import parse_qs
 
-from werkzeug.routing import Rule
-from werkzeug.exceptions import NotFound
-
 try:
     from werkzeug.formparser import parse_form_data
 except ImportError:
