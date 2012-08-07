@@ -47,7 +47,7 @@ from spyne.server.http import HttpTransportContext
 
 from spyne.error import RequestTooLongError
 from spyne.error import ResourceNotFoundError
-from spyne.protocol.routing import HttpRouter
+
 from spyne.protocol.soap.mime import apply_mtom
 from spyne.util import reconstruct_url
 from spyne.server.http import HttpBase
