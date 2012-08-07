@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+
 """This module contains a server implementation that uses a Twisted Web Resource
 as transport.
 
@@ -52,8 +53,7 @@ from spyne.const.http import HTTP_405
 def _reconstruct_url(request):
     server_name = request.getRequestHostname()
     server_port = request.getHost().port
-    if (bool(request.isSecure()), server_port) not in [
-            (True, 443), (False, 80)]:
+    if (bool(request.isSecure()), server_port) not in [(True, 443), (False, 80)]:
         server_name = '%s:%d' % (server_name, server_port)
 
     if request.isSecure():
@@ -105,6 +105,7 @@ class _Producer(object):
                                Exception("Consumer asked us to stop producing"))
         self.deferred = None
 
+
 class TwistedHttpTransport(HttpBase):
     @staticmethod
     def decompose_incoming_envelope(prot, ctx, message):
@@ -122,6 +123,7 @@ class TwistedHttpTransport(HttpBase):
 
         ctx.in_header_doc = request.headers
         ctx.in_body_doc = request.args
+
 
 class TwistedWebResource(Resource):
     """A server transport that exposes the application as a twisted web

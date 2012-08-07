@@ -25,7 +25,7 @@ here: http://github.com/arskom/spyne/blob/master/examples/user_manager/server_ba
     from spyne.decorator import rpc
     from spyne.interface.wsdl import Wsdl11
     from spyne.protocol.soap import Soap11
-    from spyne.model.primitive import String
+    from spyne.model.primitive import Unicode
     from spyne.model.primitive import Integer
     from spyne.model.complex import Array
     from spyne.model.complex import Iterable
@@ -39,16 +39,16 @@ here: http://github.com/arskom/spyne/blob/master/examples/user_manager/server_ba
     class Permission(ComplexModel):
         __namespace__ = 'spyne.examples.user_manager'
 
-        application = String
-        operation = String
+        application = Unicode
+        operation = Unicode
 
     class User(ComplexModel):
         __namespace__ = 'spyne.examples.user_manager'
 
         user_id = Integer
-        user_name = String
-        first_name = String
-        last_name = String
+        user_name = Unicode
+        first_name = Unicode
+        last_name = Unicode
         permissions = Array(Permission)
 
     class UserManagerService(ServiceBase):
@@ -108,37 +108,38 @@ here: http://github.com/arskom/spyne/blob/master/examples/user_manager/server_ba
 
         server.serve_forever()
 
-Juping into what's new: Spyne uses ``ComplexModel`` as a general type that when extended will produce complex
-serializable types that can be used in a public service. The ``Permission`` class is a
-fairly simple class with just two members: ::
+Jumping into what's new: Spyne uses ``ComplexModel`` as a general type that,
+when subclassed, will produce complex serializable types that can be used in a
+public service. The ``Permission`` class is a fairly simple class with just
+two members: ::
 
     class Permission(ComplexModel):
-        application = String
-        feature = String
+        application = Unicode
+        feature = Unicode
 
 Let's also look at the ``User`` class: ::
 
     class User(ComplexModel):
         user_id = Integer
-        username = String
-        firstname = String
-        lastname = String
+        username = Unicode
+        firstname = Unicode
+        lastname = Unicode
 
 Nothing new so far.
 
 Below, you can see that the ``email`` member which has a regular expression
-restriction defined. The String type accepts other restrictions, please refer to
-the :class:`spyne.model.primitive.String` documentation for more information: ::
+restriction defined. The ``Unicode`` type accepts other restrictions, please refer to
+the :class:`spyne.model.primitive.Unicode` documentation for more information: ::
 
-        email = String(pattern=r'\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[A-Z]{2,4}\b')
+        email = Unicode(pattern=r'\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[A-Z]{2,4}\b')
 
 The ``permissions`` attribute is an array, whose native type is a ``list`` of ``Permission``
 objects. ::
 
         permissions = Array(Permission)
 
-The following is deserialized as a generator, but looks the same from the protocol and
-interface points of view: ::
+The following is deserialized as a generator, but looks the same from the
+points of view of protocol and interface documents: ::
 
         permissions = Iterable(Permission)
 
@@ -148,16 +149,21 @@ representations. ::
 
         permissions = Permission.customize(max_occurs='unbounded')
 
+With the ``Array`` and ``Iterable`` types, a container class wraps multiple
+occurences of the inner data type.
+
 Here, we need to use the :func:`spyne.model._base.ModelBase.customize` call
-because calling a ``ComplexModel`` child instantiates that class, whereas
-calling a ``SimpleModel`` child returns a duplicate of that class. The
-``customize`` function just sets given arguments as class attributes to
+because calling a ``ComplexModel`` subclass instantiates that class, whereas
+calling a ``SimpleModel`` child implicitly calls the ``.customize`` method of
+that class.
+
+The ``customize`` function just sets given arguments as class attributes to
 ``cls.Attributes`` class. You can refer to the documentation of each class to
 see which member of the ``Attributes`` class is used for the given object.
 
 Here, we define a function to be called for every method call. It instantiates
 the ``UserDefinedContext`` class and sets it to the context object's ``udc``
-attribute, which is in fact short for 'user defined context'. ::
+attribute, which is in fact short for 'User Defined Context'. ::
 
     def _on_method_call(ctx):
         ctx.udc = UserDefinedContext()
@@ -167,11 +173,19 @@ We register it to the application's 'method_call' handler. ::
     application.event_manager.add_listener('method_call', _on_method_call)
 
 Note that registering it to the service definition's event manager would have
-the same effect: ::
+the same effect, but it'd have to be set for every service definition: ::
 
     UserManagerService.event_manager.add_listener('method_call', _on_method_call)
 
-Here, we define the UserDefinedContext object. It's just a regular python class
+You can also prefer to define your own ``ServiceBase`` class and use it as a
+base class throughout your projects: ::
+
+    class MyServiceBase(ServiceBase):
+        pass
+
+    MyServiceBase.event_manager.add_listener('method_call', _on_method_call)
+
+Next, we define the UserDefinedContext object. It's just a regular python class
 with no specific api it should adhere to, other than your own. ::
 
     class UserDefinedContext(object):
@@ -195,7 +209,7 @@ events to measure method performance)
 What's next?
 ------------
 
-This tutorial walks you through what you need to know to expose basic
+This tutorial walks you through what you need to know to expose more complex
 services. You can read the :ref:`manual-sqlalchemy` document where the
 :class:`spyne.model.table.TableModel` class and its helpers are introduced.
 You can also have look at the :ref:`manual-metadata` section where service
@@ -203,4 +217,3 @@ metadata management apis are introduced.
 
 Otherwise, please refer to the rest of the documentation or the mailing list
 if you have further questions.
-
