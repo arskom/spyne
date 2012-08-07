@@ -329,6 +329,7 @@ class WsgiApplication(HttpBase):
             logger.exception(e)
 
         return retval
+    
 
     def __reconstruct_wsgi_request(self, http_env):
         """Reconstruct http payload using information in the http header."""
@@ -377,44 +378,49 @@ class WsgiApplication(HttpBase):
         """This function is only called by the HttpRpc protocol to have the wsgi
         environment parsed into ``ctx.in_body_doc`` and ``ctx.in_header_doc``.
         """
+        if prot.has_any_http_routes(ctx.app.interface.service_method_map):
+            from werkzeug.exceptions import NotFound
+            if prot.map_adapter is None:
+                # If url map is not binded before, binds url_map
+                req_env = ctx.transport.req_env
+                prot.map_adapter = ctx.app.in_protocol.get_map_adapter(
+                                                    req_env['SERVER_NAME'], "/")
 
-        if prot.map_adapter is None:
-            # If url map is not binded before, binds url_map
-            req_env = ctx.transport.req_env
-            prot.map_adapter = ctx.app.in_protocol.get_map_adapter(
-                                                req_env['SERVER_NAME'], "/")
+                for k,v in ctx.app.interface.service_method_map.items():
+                    #Compiles url patterns
+                    p_service_class, p_method_descriptor = v[0]
+                    for r in ctx.app.interface.http_routes.iter_rules():
+                        params = {}
+                        if r.endpoint == k:
+                            for pk,pv in p_method_descriptor.in_message.\
+                                                                _type_info.items():
 
-            for k,v in ctx.app.interface.service_method_map.items():
-                #Compiles url patterns
-                p_service_class, p_method_descriptor = v[0]
-                for r in ctx.app.interface.http_routes.iter_rules():
-                    params = {}
-                    if r.endpoint == k:
-                        for pk,pv in p_method_descriptor.in_message.\
-                                                            _type_info.items():
+                                if pk in r.rule:
+                                    from spyne.model.primitive import String
+                                    from spyne.model.primitive import Unicode
+                                    from spyne.model.primitive import Integer
 
-                            if pk in r.rule:
-                                from spyne.model.primitive import String
-                                from spyne.model.primitive import Unicode
-                                from spyne.model.primitive import Integer
+                                    if issubclass(pv, String) or issubclass(pv, Unicode):
+                                        params[pk] = ""
+                                    elif issubclass(pv, Integer):
+                                        params[pk] = 0
 
-                                if issubclass(pv, String) or issubclass(pv, Unicode):
-                                    params[pk] = ""
-                                elif issubclass(pv, Integer):
-                                    params[pk] = 0
+                            prot.map_adapter.build(r.endpoint, params)
 
-                        prot.map_adapter.build(r.endpoint, params)
+            try:
+                #If PATH_INFO matches a url, Set method_request_string to mrs
+                mrs, params = prot.map_adapter.match(ctx.in_document["PATH_INFO"],
+                                                ctx.in_document["REQUEST_METHOD"])
+                ctx.method_request_string = mrs
+                for k in params:
+                    params[k] = [params[k]]
 
-        try:
-            #If PATH_INFO matches a url, Set method_request_string to mrs
-            mrs, params = prot.map_adapter.match(ctx.in_document["PATH_INFO"],
-                                              ctx.in_document["REQUEST_METHOD"])
-            ctx.method_request_string = mrs
-            for k in params:
-                params[k] = [params[k]]
-
-        except NotFound:
-            # Else set method_request_string normally
+            except NotFound:
+                # Else set method_request_string normally
+                params = {}
+                ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
+                                  ctx.in_document['PATH_INFO'].split('/')[-1])
+        else:
             params = {}
             ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
                               ctx.in_document['PATH_INFO'].split('/')[-1])
