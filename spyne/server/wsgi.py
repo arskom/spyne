@@ -133,6 +133,7 @@ class WsgiApplication(HttpBase):
         for k,v in self.app.interface.service_method_map.items():
             p_service_class, p_method_descriptor = v[0]
             for r in p_method_descriptor.http_routes:
+                # Adds url patterns and sets endpoint to method name
                 http_routes.add(Rule(r.rule, endpoint=k, methods=r.methods))
 
     def __call__(self, req_env, start_response, wsgi_url=None):
@@ -375,23 +376,34 @@ class WsgiApplication(HttpBase):
         """
 
         if prot.map_adapter is None:
+            # If url map is not binded before, binds url_map
             req_env = ctx.transport.req_env
             prot.map_adapter = ctx.app.in_protocol.get_map_adapter(
                                                 req_env['SERVER_NAME'], "/")
 
             for k,v in ctx.app.interface.service_method_map.items():
+                #Compiles url patterns
                 p_service_class, p_method_descriptor = v[0]
                 for r in ctx.app.interface.http_routes.iter_rules():
                     params = {}
                     if r.endpoint == k:
                         for pk,pv in p_method_descriptor.in_message.\
                                                             _type_info.items():
+
                             if pk in r.rule:
-                                params[pk] = ""
+                                from spyne.model.primitive import String
+                                from spyne.model.primitive import Unicode
+                                from spyne.model.primitive import Integer
+
+                                if issubclass(pv, String) or issubclass(pv, Unicode):
+                                    params[pk] = ""
+                                elif issubclass(pv, Integer):
+                                    params[pk] = 0
 
                         prot.map_adapter.build(r.endpoint, params)
 
         try:
+            #If PATH_INFO matches a url, Set method_request_string to mrs
             mrs, params = prot.map_adapter.match(ctx.in_document["PATH_INFO"],
                                               ctx.in_document["REQUEST_METHOD"])
             ctx.method_request_string = mrs
@@ -399,6 +411,7 @@ class WsgiApplication(HttpBase):
                 params[k] = [params[k]]
 
         except NotFound:
+            # Else set method_request_string normally
             params = {}
             ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
                               ctx.in_document['PATH_INFO'].split('/')[-1])

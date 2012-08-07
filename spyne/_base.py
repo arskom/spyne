@@ -318,6 +318,11 @@ class MethodDescriptor(object):
         """
 
         self.http_routes = http_routes
+        """This list stores the url patterns which will be used for url routing.
+            The elements of list must be werkzeug Rule's which can found in
+            werkzeug.routing. For further reading please go to this url.
+            http://werkzeug.pocoo.org/docs/routing/#maps-rules-and-adapters
+        """
 
     @property
     def name(self):
