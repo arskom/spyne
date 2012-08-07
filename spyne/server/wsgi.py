@@ -398,11 +398,11 @@ class WsgiApplication(HttpBase):
                                 if pk in r.rule:
                                     from spyne.model.primitive import String
                                     from spyne.model.primitive import Unicode
-                                    from spyne.model.primitive import Integer
+                                    from spyne.model.primitive import Decimal
 
-                                    if issubclass(pv, String) or issubclass(pv, Unicode):
+                                    if issubclass(pv, Unicode):
                                         params[pk] = ""
-                                    elif issubclass(pv, Integer):
+                                    elif issubclass(pv, Decimal):
                                         params[pk] = 0
 
                             prot.map_adapter.build(r.endpoint, params)
