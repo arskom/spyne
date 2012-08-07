@@ -56,6 +56,7 @@ class Interface(object):
         self.prefmap = {}
         self.__app = app
         self.__http_routes = None
+        self.has_http_routes = None
 
         self.reset_interface()
         self.populate_interface()
