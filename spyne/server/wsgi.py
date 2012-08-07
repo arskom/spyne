@@ -376,7 +376,7 @@ class WsgiApplication(HttpBase):
         """This function is only called by the HttpRpc protocol to have the wsgi
         environment parsed into ``ctx.in_body_doc`` and ``ctx.in_header_doc``.
         """
-        if prot.has_any_http_routes(ctx.app.interface.service_method_map):
+        if ctx.app.interface.has_http_routes:
             from werkzeug.exceptions import NotFound
             if prot.map_adapter is None:
                 # If url map is not binded before, binds url_map
