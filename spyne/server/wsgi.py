@@ -127,11 +127,17 @@ class WsgiApplication(HttpBase):
         self._mtx_build_interface_document = threading.Lock()
         self._wsdl = None
         http_routes = app.interface.http_routes
-        for k,v in self.app.interface.service_method_map.items():
-            p_service_class, p_method_descriptor = v[0]
-            for r in p_method_descriptor.http_routes:
-                # Adds url patterns and sets endpoint to method name
-                http_routes.add(Rule(r.rule, endpoint=k, methods=r.methods))
+        if hasattr(self.app.in_protocol, "has_any_http_routes"):
+            if self.app.in_protocol.has_any_http_routes(
+                                            self.app.interface.service_method_map):
+                from werkzeug.routing import Rule
+                from werkzeug.exceptions import NotFound
+
+                for k,v in self.app.interface.service_method_map.items():
+                    p_service_class, p_method_descriptor = v[0]
+                    for r in p_method_descriptor.http_routes:
+                        # Adds url patterns and sets endpoint to method name
+                        http_routes.add(Rule(r.rule, endpoint=k, methods=r.methods))
 
     def __call__(self, req_env, start_response, wsgi_url=None):
         '''This method conforms to the WSGI spec for callable wsgi applications
