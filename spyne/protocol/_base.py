@@ -392,3 +392,13 @@ class ProtocolBase(object):
                                              retval, new_prefix, parent=inst_cls)
 
         return retval
+    def has_any_http_routes(self,app):
+        check = False
+        for k,v in app.interface.service_method_map.items():
+            p_service_class, p_method_descriptor = v[0]
+            if p_method_descriptor != []:
+                check = True
+        if check == False:
+                return False
+        else:
+            return True
