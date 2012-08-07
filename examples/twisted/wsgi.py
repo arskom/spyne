@@ -30,28 +30,26 @@
 #
 
 import logging
+import sys
 
-from spyne.application import Application
-from spyne.decorator import srpc
-from spyne.protocol.http import HttpRpc
-from spyne.protocol.xml import XmlObject
-from spyne.service import ServiceBase
-from spyne.model.complex import Array
-from spyne.model.primitive import Integer
-from spyne.model.primitive import String
+from twisted.internet import reactor
+from twisted.web.server import Site
+from twisted.web.wsgi import WSGIResource
+
 from spyne.server.wsgi import WsgiApplication
-from spyne.util.wsgi_wrapper import run_twisted
 
-from _service import SomeService
+
+from _service import initialize
 
 '''
-This is the HelloWorld example running via twisted's wsgi wrapping machinery.
+This is a blocking example running in a multi-thread twisted setup.
 
-This is merely a way of weakly integrating with the twisted framework. Every
-request still runs in its own thread. This way, you can still use other features
-of twisted and not have to rewrite your otherwise synchronous code.
+This is a way of weakly integrating with the twisted framework -- every request
+still runs in its own thread. This way, you can still use other features of
+twisted and not have to rewrite your otherwise synchronous code.
 
-    $ time curl -s "http://localhost:9752/app/block?seconds=10" > /dev/null & time curl -s "http://localhost:9752/app/block?seconds=10" > /dev/null& 
+    $ time curl -s "http://localhost:9757/block?seconds=10" > /dev/null & \
+      time curl -s "http://localhost:9757/block?seconds=10" > /dev/null &
     [1] 27537
     [2] 27538
 
@@ -64,23 +62,18 @@ of twisted and not have to rewrite your otherwise synchronous code.
     sys     0m0.006s
 '''
 
-host = "0.0.0.0"
-port = 9752
+host = '0.0.0.0'
+port = 9757
 
 if __name__=='__main__':
-    logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
+    application = initialize()
+    wsgi_application = WsgiApplication(application)
+    resource = WSGIResource(reactor, reactor, wsgi_application)
+    site = Site(resource)
 
-    application = Application([SomeService], 'spyne.examples.hello.twisted',
-                               in_protocol=HttpRpc(), out_protocol=XmlObject())
+    reactor.listenTCP(port, site)
 
-    application.interface.nsmap[None] = application.interface.nsmap['tns']
-    application.interface.prefmap[application.interface.nsmap['tns']] = None
-    del application.interface.nsmap['tns']
+    logging.info('listening on: %s:%d' % (host,port))
+    logging.info('wsdl is at: http://%s:%d/?wsdl' % (host, port))
 
-    wsgi_app = WsgiApplication(application)
-
-    logging.info('listening on %s:%d' % (host,port))
-    logging.info('wsdl is at: http://%s:%d/app/?wsdl' % (host, port))
-
-    run_twisted(((wsgi_app, "app"),), port)
+    sys.exit(reactor.run())

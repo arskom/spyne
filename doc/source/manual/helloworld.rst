@@ -32,7 +32,7 @@ The simpler version of this example is available here: http://github.com/arskom/
         @srpc(String, Integer, _returns=Iterable(String))
         def say_hello(name, times):
             '''
-            Docstrings for service methods appear as documentation in the wsdl
+            Docstrings for service methods appear as documentation in the wsdl.
             <b>what fun</b>
             @param name the name to say hello to
             @param the number of times to say hello
@@ -73,23 +73,11 @@ function gets a spyne.MethodContext instance as first argument. ::
 
     from spyne.decorator import srpc
 
-We are going to expose the service definitions using the Wsdl 1.1 document
-standard. The methods will use Soap 1.1 protocol to communicate with the outside
+The methods will use Soap 1.1 protocol to communicate with the outside
 world. They're instantiated and passed to the Application constructor. You need
 to pass fresh instances to each application instance. ::
 
     from spyne.protocol.soap import Soap11
-
-For the sake of this tutorial, we are going to use HttpRpc as well. It's a
-rest-like protocol, but it doesn't care about HTTP verbs (yet). ::
-
-    from spyne.protocol.http import HttpRpc
-
-The HttpRpc serializer does not support complex types. So we will use the
-XmlObject serializer as the out_protocol to prevent the clients from dealing
-with Soap cruft. ::
-
-    from spyne.protocol.http import XmlObject
 
 ServiceBase is the base class for all service definitions. ::
 
@@ -130,8 +118,8 @@ and return types are standard python objects::
 When returning an iterable, you can use any type of python iterable. Here, we
 chose to use generators.
 
-Deploying the service using SOAP
---------------------------------
+Deploying the service using Soap via Wsgi
+-----------------------------------------
 
 Now that we have defined our service, we are ready to share it with the outside
 world.
@@ -180,13 +168,12 @@ the http server: ::
 
         server.serve_forever()
 
-
 .. NOTE::
-    * **Django users:** See this gist for a django wrapper example: https://gist.github.com/1242760
-    * **Twisted users:** See the this example that illustrates deploying an
-      Spyne application using twisted: http://github.com/arskom/spyne/blob/master/examples/helloworld_soap_twisted.py
+    * **Django users:** See django wrapper example: https://github.com/arskom/spyne/blob/master/examples/django
+    * **Twisted users:** See the these examples that illustrate two ways of
+      deploying a Spyne application using Twisted: http://github.com/arskom/spyne/blob/master/examples/twisted
 
-You can test your service using suds. Suds is a separate project for building
+You can test your service using suds. Suds is a separate project for implementing
 pure-python soap clients. To learn more visit the project's page:
 https://fedorahosted.org/suds/. You can simply install it using
 ``easy_install suds``.
@@ -197,43 +184,51 @@ So here's how you can use suds to test your new spyne service:
 
     from suds.client import Client
     hello_client = Client('http://localhost:7789/?wsdl')
-    result = hello_client.service.say_hello("Dave", 5)
-    print result
+    print hello_client.service.say_hello("Punk", 5)
 
 The script's output would be as follows: ::
 
     (stringArray){
         string[] =
-            "Hello, Dave",
-            "Hello, Dave",
-            "Hello, Dave",
-            "Hello, Dave",
-            "Hello, Dave",
+            "Hello, Punk",
+            "Hello, Punk",
+            "Hello, Punk",
+            "Hello, Punk",
+            "Hello, Punk",
         }
 
 
-Deploying service using HttpRpc
--------------------------------
+Deploying service using HttpRpc via Wsgi
+----------------------------------------
 
 This example is available here: http://github.com/arskom/spyne/blob/master/examples/helloworld_http.py.
 
-The only difference between the SOAP and the HTTP version is the application
-instantiation line: ::
+
+For the sake of this tutorial, we are going to use HttpRpc as well. HttpRpc is
+a rest-like protocol, but it doesn't care about HTTP verbs (yet). ::
+
+    from spyne.protocol.http import HttpRpc
+
+The HttpRpc serializer does not support complex types. So we will use the
+XmlObject serializer as the out_protocol to prevent the clients from dealing
+with Soap cruft. ::
+
+    from spyne.protocol.http import XmlObject
+
+Besides the imports, the only difference between the SOAP and the HTTP version
+is the application instantiation line: ::
 
         application = Application([HelloWorldService], 'spyne.examples.hello.http',
                                     in_protocol=HttpRpc(), out_protocol=XmlObject())
 
-We still want to keep Xml as the output protocol as the HttpRpc protocol is
-not able to handle complex types.
-
 Here's how you can test your service using curl: ::
 
-    curl "http://localhost:7789/say_hello?times=5&name=Dave"
+    curl "http://localhost:7789/say_hello?times=5&name=Punk"
 
 If you have HtmlTidy installed, you can use this command to get a more readable
 output. ::
 
-    curl "http://localhost:7789/say_hello?times=5&name=Dave" | tidy -xml -indent
+    curl "http://localhost:7789/say_hello?times=5&name=Punk" | tidy -xml -indent
 
 The command's output would be as follows: ::
 
@@ -241,11 +236,11 @@ The command's output would be as follows: ::
     <ns1:say_helloResponse xmlns:ns1="spyne.examples.hello.http"
     xmlns:ns0="http://schemas.xmlsoap.org/soap/envelope/">
       <ns1:say_helloResult>
-        <ns1:string>Hello, Dave</ns1:string>
-        <ns1:string>Hello, Dave</ns1:string>
-        <ns1:string>Hello, Dave</ns1:string>
-        <ns1:string>Hello, Dave</ns1:string>
-        <ns1:string>Hello, Dave</ns1:string>
+        <ns1:string>Hello, Punk</ns1:string>
+        <ns1:string>Hello, Punk</ns1:string>
+        <ns1:string>Hello, Punk</ns1:string>
+        <ns1:string>Hello, Punk</ns1:string>
+        <ns1:string>Hello, Punk</ns1:string>
       </ns1:say_helloResult>
     </ns1:say_helloResponse>
 

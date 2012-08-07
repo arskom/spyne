@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 from copy import copy
 
-from spyne._base import EventManager
+from spyne import EventManager
 
 from spyne.const.http import HTTP_400
 from spyne.const.http import HTTP_404
@@ -47,9 +47,11 @@ from spyne.model.complex import ComplexModelBase
 
 def unwrap_messages(cls, skip_depth):
     out_type = cls
-    for i in range(skip_depth):
-        if len(out_type._type_info) == 1:
+    for _ in range(skip_depth):
+        if hasattr(out_type, "_type_info") and len(out_type._type_info) == 1:
             out_type = out_type._type_info[0]
+        else:
+            break
 
     return out_type
 
@@ -58,8 +60,8 @@ def unwrap_instance(cls, inst, skip_depth):
     out_type = cls
     out_instance = inst
 
-    for i in range(skip_depth):
-        if len(out_type._type_info) == 1:
+    for _ in range(skip_depth):
+        if hasattr(out_type, "_type_info") and len(out_type._type_info) == 1:
             (k, out_type), = out_type._type_info.items()
             if issubclass(out_type, ComplexModelBase):
                 out_instance = getattr(out_instance, k)
