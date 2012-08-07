@@ -169,7 +169,7 @@ the http server: ::
         server.serve_forever()
 
 .. NOTE::
-    * **Django users:** See this gist for a django wrapper example: https://github.com/arskom/spyne/blog/master/examples/django
+    * **Django users:** See django wrapper example: https://github.com/arskom/spyne/blob/master/examples/django
     * **Twisted users:** See the these examples that illustrate two ways of
       deploying a Spyne application using Twisted: http://github.com/arskom/spyne/blob/master/examples/twisted
 
