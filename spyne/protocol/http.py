@@ -153,6 +153,17 @@ class HttpRpc(ProtocolBase):
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         ctx.out_string = ctx.out_document
 
+    def has_any_http_routes(self,smm):
+        check = False
+        for k,v in smm.items():
+            p_service_class, p_method_descriptor = v[0]
+            if p_method_descriptor != []:
+                check = True
+        if check == False:
+                return False
+        else:
+            return True
+
     @memoize
     def get_map_adapter(self, host, mount_point):
         return self.app.interface.http_routes.bind(host, mount_point)
