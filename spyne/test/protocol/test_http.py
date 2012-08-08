@@ -289,6 +289,12 @@ class TestHttpRouting(unittest.TestCase):
 
         ctx, = server.generate_contexts(initial_ctx)
 
+        foo = []
+        for i in ctx.app.interface.http_routes.iter_rules():
+            foo.append(i)
+        assert len(foo) == 1
+        
+
         assert ctx.descriptor is not None
 
         server.get_in_object(ctx)
