@@ -327,7 +327,6 @@ class WsgiApplication(HttpBase):
             logger.exception(e)
 
         return retval
-    
 
     def __reconstruct_wsgi_request(self, http_env):
         """Reconstruct http payload using information in the http header."""
@@ -410,8 +409,6 @@ class WsgiApplication(HttpBase):
                 mrs, params = prot.map_adapter.match(ctx.in_document["PATH_INFO"],
                                                 ctx.in_document["REQUEST_METHOD"])
                 ctx.method_request_string = mrs
-                for k in params:
-                    params[k] = [params[k]]
 
             except NotFound:
                 # Else set method_request_string normally
@@ -428,7 +425,11 @@ class WsgiApplication(HttpBase):
 
         ctx.in_header_doc = _get_http_headers(ctx.in_document)
         ctx.in_body_doc = parse_qs(ctx.in_document['QUERY_STRING'])
-        ctx.in_body_doc.update(params)
+        for k,v in params.items():
+             if k in ctx.in_body_doc:
+                 ctx.in_body_doc[k].append(v)
+             else:
+                 ctx.in_body_doc[k] = [v]
 
         if ctx.in_document['REQUEST_METHOD'].upper() in ('POST', 'PUT', 'PATCH'):
             stream, form, files = parse_form_data(ctx.in_document,
