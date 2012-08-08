@@ -57,6 +57,7 @@ class Test(unittest.TestCase):
             'PATH_INFO': '/some_call',
             'QUERY_STRING': '?s=a',
             'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': "localhost",
         }, 'some-content-type')
 
         try:
@@ -87,6 +88,7 @@ class Test(unittest.TestCase):
             'QUERY_STRING': '',
             'PATH_INFO': '/some_call',
             'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': "localhost",
         }, 'some-content-type')
         ctx, = server.generate_contexts(initial_ctx)
 
@@ -121,6 +123,7 @@ class Test(unittest.TestCase):
             'QUERY_STRING': '',
             'PATH_INFO': '/some_call',
             'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': "localhost",
         }, 'some-content-type')
         ctx, = server.generate_contexts(initial_ctx)
         server.get_in_object(ctx)
@@ -140,6 +143,7 @@ class Test(unittest.TestCase):
             'QUERY_STRING': 's=1&s=2',
             'PATH_INFO': '/some_call',
             'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': "localhost",
         }, 'some-content-type')
 
         ctx, = server.generate_contexts(initial_ctx)
@@ -171,6 +175,7 @@ class Test(unittest.TestCase):
             'QUERY_STRING': 'ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs',
             'PATH_INFO': '/some_call',
             'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': "localhost",
         }, 'some-content-type')
 
         ctx, = server.generate_contexts(initial_ctx)
@@ -208,6 +213,7 @@ class Test(unittest.TestCase):
             'QUERY_STRING': 'ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs',
             'PATH_INFO': '/some_call',
             'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': "localhost",
         }, 'some-content-type')
 
         ctx, = server.generate_contexts(initial_ctx)
@@ -242,6 +248,7 @@ class Test(unittest.TestCase):
             'QUERY_STRING': 'ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs',
             'PATH_INFO': '/some_call',
             'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': "localhost",
         }, 'some-content-type')
 
         ctx, = server.generate_contexts(initial_ctx)
@@ -272,7 +279,7 @@ class TestHttpRouting(unittest.TestCase):
             'QUERY_STRING': '',
             'PATH_INFO': '/%s/%d' % (_fragment, _int),
             'SERVER_PATH':"/",
-            'SERVER_NAME': "banana",
+            'SERVER_NAME': "localhost",
             'wsgi.url_scheme': 'http',
             'SERVER_PORT': '9000',
             'REQUEST_METHOD': 'GET',
