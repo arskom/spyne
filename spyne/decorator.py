@@ -192,6 +192,10 @@ def srpc(*params, **kparams):
 
             doc = getattr(f, '__doc__')
 
+            if _http_route is not None and _http_routes != []:
+                raise ValueError("only one of '_http_route' and '_http_routes'"
+                                                    "arguments should be given")
+
             if _http_route is not None:
                 _http_routes.append(_http_route)
 
