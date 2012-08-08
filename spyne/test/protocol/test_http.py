@@ -23,6 +23,7 @@ logging.basicConfig(level=logging.DEBUG)
 import unittest
 
 from werkzeug.exceptions import MethodNotAllowed
+from werkzeug.routing import Rule
 
 from spyne.application import Application
 from spyne.decorator import srpc
@@ -34,7 +35,6 @@ from spyne.protocol.http import HttpRpc
 from spyne.service import ServiceBase
 from spyne.server.wsgi import WsgiApplication
 from spyne.server.wsgi import WsgiMethodContext
-from spyne.protocol.routing import HttpRouter
 
 
 class Test(unittest.TestCase):
@@ -265,7 +265,6 @@ class TestHttpRouting(unittest.TestCase):
             def some_call(some_int):
                 assert some_int == _int
 
-        router = HttpRouter()
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HttpRpc())
         server = WsgiApplication(app)
 
