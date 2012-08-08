@@ -268,7 +268,8 @@ class TestHttpRouting(unittest.TestCase):
         _fragment = 'some_fragment'
 
         class SomeService(ServiceBase):
-            @srpc(Integer, _returns=Integer, _url=['/%s/<some_int>' % _fragment])
+            @srpc(Integer, _returns=Integer, _http_routes=[
+                                                    Rule('/%s/'% _fragment)])
             def some_call(some_int):
                 assert some_int == _int
 
