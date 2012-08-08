@@ -118,4 +118,4 @@ class memoize(object):
         return functools.partial(self.__call__, obj)
 
     def reset(self):
-        self.memo = {}
+        self.cache = {}
