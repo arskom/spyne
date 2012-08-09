@@ -461,9 +461,14 @@ class _HtmlRowTable(_HtmlTableBase):
         fti = cls.get_flat_type_info(cls)
         is_array = False
 
-        first_child = iter(fti.values()).next()
         if len(fti) == 1:
-            fti = first_child.get_flat_type_info(first_child)
+            first_child, = fti.values()
+
+            try:
+                fti = first_child.get_flat_type_info(first_child)
+            except AttributeError:
+                raise NotImplementedError("Can only serialize complex return types")
+
             first_child_2 = iter(fti.values()).next()
 
             if len(fti) == 1 and first_child_2.Attributes.max_occurs > 1:
@@ -509,6 +514,8 @@ class _HtmlRowTable(_HtmlTableBase):
                 subvalue = value
                 for p in v.path:
                     subvalue = getattr(subvalue, p, None)
+                    if subvalue is None:
+                        break
 
                 if subvalue is None:
                     if v.type.Attributes.min_occurs == 0:

@@ -31,13 +31,13 @@ from spyne.application import Application
 from spyne.decorator import srpc
 from spyne.model.primitive import Integer
 from spyne.model.primitive import String
+from spyne.model.primitive import AnyUri
+from spyne.model.primitive import UriValue
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
-from spyne.interface.wsdl import Wsdl11
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.html import HtmlTable
 from spyne.service import ServiceBase
-from spyne.server.wsgi import WsgiMethodContext
 from spyne.server.wsgi import WsgiApplication
 
 def _start_response(code, headers):
@@ -75,7 +75,8 @@ class TestHtmlColumnTable(unittest.TestCase):
             def some_call(ccm):
                 return [ccm] * 5
 
-        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HtmlTable(field_name_attr='class'))
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
+                                out_protocol=HtmlTable(field_name_attr='class'))
         server = WsgiApplication(app)
 
         out_string = _call_wsgi_app_kwargs(server,
@@ -139,13 +140,105 @@ class TestHtmlColumnTable(unittest.TestCase):
         out_string = _call_wsgi_app(server, (('s', '1'), ('s', '2')) )
         assert out_string == '<table class="some_callResponse"><tr><th>string</th></tr><tr><td>1</td></tr><tr><td>2</td></tr></table>'
 
+    def test_anyuri_string(self):
+        _link = "http://arskom.com.tr/"
+
+        class C(ComplexModel):
+            c = AnyUri
+
+        class SomeService(ServiceBase):
+            @srpc(_returns=Array(C))
+            def some_call():
+                return [C(c=_link)]
+
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
+                 out_protocol=HtmlTable(field_name_attr='class'))
+        server = WsgiApplication(app)
+
+        out_string = _call_wsgi_app_kwargs(server)
+
+        elt = html.fromstring(out_string)
+        print(html.tostring(elt, pretty_print=True))
+        assert elt.xpath('//td[@class="c"]')[0][0].tag == 'a'
+        assert elt.xpath('//td[@class="c"]')[0][0].attrib['href'] == _link
+
+    def test_anyuri_uri_value(self):
+        _link = "http://arskom.com.tr/"
+        _text = "Arskom"
+
+        class C(ComplexModel):
+            c = AnyUri
+
+        class SomeService(ServiceBase):
+            @srpc(_returns=Array(C))
+            def some_call():
+                return [C(c=UriValue(_link, text=_text))]
+
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
+                 out_protocol=HtmlTable(field_name_attr='class'))
+        server = WsgiApplication(app)
+
+        out_string = _call_wsgi_app_kwargs(server)
+
+        elt = html.fromstring(out_string)
+        print(html.tostring(elt, pretty_print=True))
+        assert elt.xpath('//td[@class="c"]')[0][0].tag == 'a'
+        assert elt.xpath('//td[@class="c"]')[0][0].text == _text
+        assert elt.xpath('//td[@class="c"]')[0][0].attrib['href'] == _link
+
+
 class TestHtmlRowTable(unittest.TestCase):
+    def test_anyuri_string(self):
+        _link = "http://arskom.com.tr/"
+
+        class C(ComplexModel):
+            c = AnyUri
+
+        class SomeService(ServiceBase):
+            @srpc(_returns=C)
+            def some_call():
+                return C(c=_link)
+
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
+                 out_protocol=HtmlTable(field_name_attr='class', fields_as='rows'))
+        server = WsgiApplication(app)
+
+        out_string = _call_wsgi_app_kwargs(server)
+
+        elt = html.fromstring(out_string)
+        print(html.tostring(elt, pretty_print=True))
+        assert elt.xpath('//td[@class="c"]')[0][0].tag == 'a'
+        assert elt.xpath('//td[@class="c"]')[0][0].attrib['href'] == _link
+
+    def test_anyuri_uri_value(self):
+        _link = "http://arskom.com.tr/"
+        _text = "Arskom"
+
+        class C(ComplexModel):
+            c = AnyUri
+
+        class SomeService(ServiceBase):
+            @srpc(_returns=C)
+            def some_call():
+                return C(c=UriValue(_link, text=_text))
+
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
+                 out_protocol=HtmlTable(field_name_attr='class', fields_as='rows'))
+        server = WsgiApplication(app)
+
+        out_string = _call_wsgi_app_kwargs(server)
+
+        elt = html.fromstring(out_string)
+        print(html.tostring(elt, pretty_print=True))
+        assert elt.xpath('//td[@class="c"]')[0][0].tag == 'a'
+        assert elt.xpath('//td[@class="c"]')[0][0].text == _text
+        assert elt.xpath('//td[@class="c"]')[0][0].attrib['href'] == _link
+
     def test_complex(self):
         class SomeService(ServiceBase):
             @srpc(CCM, _returns=CCM)
             def some_call(ccm):
                 return ccm
-
 
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
                  out_protocol=HtmlTable(field_name_attr='class', fields_as='rows'))

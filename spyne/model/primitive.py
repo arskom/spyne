@@ -218,6 +218,23 @@ if sys.version > '3':
     String = Unicode
 
 
+class UriValue(object):
+    """A special object that is just a better way of carrying the information
+    carried with a link.
+
+    :param href: The uri string.
+    :param text: The text data that goes with the link. This is an
+        `lxml.etree._Element` instance.
+    :param content: The structured data that goes with the link. This is a `str`
+        or a `unicode` instance.
+    """
+
+    def __init__(self, href, text=None, content=None):
+        self.href = href
+        self.text = text
+        self.content = content
+
+
 class AnyUri(String):
     """A special kind of String type designed to hold an uri."""
 
@@ -225,7 +242,7 @@ class AnyUri(String):
 
     class Attributes(String.Attributes):
         text = None
-        """The text shown in link."""
+        """The text shown in link. This is an object-wide constant."""
 
 
 class ImageUri(AnyUri):
