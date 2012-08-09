@@ -352,6 +352,8 @@ class _HtmlColumnTable(_HtmlTableBase):
         else:
             raise NotImplementedError("Can only serialize single Array(...) return types")
 
+        # Here, sti can be None when the return type does not have _type_info
+        # attribute
         tr = {}
         if self.row_class is not None:
             tr['class'] = self.row_class
@@ -376,6 +378,7 @@ class _HtmlColumnTable(_HtmlTableBase):
                     for k, v in sti.items():
                         header_name = translate(v.type, locale, k)
                         header_row.append(E.th(header_name, **th))
+
                 else:
                     for k, v in sti.items():
                         th[self.field_name_attr] = k
@@ -387,11 +390,12 @@ class _HtmlColumnTable(_HtmlTableBase):
         if sti is None:
             if self.field_name_attr is None:
                 for val in value:
-                    yield E.tr(E.td(first_child.to_string(val), ** td), ** tr)
+                    yield E.tr(E.td(first_child.to_string(val), **td), **tr)
+
             else:
                 for val in value:
                     td[self.field_name_attr] = class_name
-                    yield E.tr(E.td(first_child.to_string(val), ** td), ** tr)
+                    yield E.tr(E.td(first_child.to_string(val), **td), **tr)
 
         else:
             for val in value:

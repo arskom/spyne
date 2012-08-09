@@ -93,6 +93,7 @@ class File(ModelBase):
             self.data = File.to_string_iterable(self)
         else:
             self.data = iter(data)
+
         self.handle = handle
 
     def rollover(self):
