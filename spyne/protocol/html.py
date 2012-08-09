@@ -411,8 +411,7 @@ class _HtmlColumnTable(_HtmlTableBase):
                         else:
                             subvalue = ""
                     else:
-                        subvalue = v.type.to_string(subvalue)
-
+                        subvalue = _subvalue_to_html(v, subvalue)
 
                     if self.field_name_attr is None:
                         row.append(E.td(subvalue, **td))
@@ -422,6 +421,39 @@ class _HtmlColumnTable(_HtmlTableBase):
 
                 yield row
 
+
+def _subvalue_to_html(cls, value):
+    if issubclass(cls.type, AnyUri):
+        href = getattr(value, 'href', None)
+        if href is None: # this is not a UriValue instance.
+            href = value
+            text = getattr(cls.type.Attributes, 'text', None)
+            content = None
+
+        else:
+            text = getattr(value, 'text', None)
+            if text is None:
+                text = getattr(cls.type.Attributes, 'text', None)
+
+            content = getattr(value, 'content', None)
+
+        if issubclass(cls.type, ImageUri):
+            retval = E.img(src=href)
+
+            if text is not None:
+                retval.attrib['alt'] = text
+            # content is ignored with ImageUri.
+
+        else:
+            retval = E.a(href=href)
+            retval.text = text
+            if content is not None:
+                retval.append(content)
+
+    else:
+        retval = cls.type.to_string(value)
+
+    return retval
 
 class _HtmlRowTable(_HtmlTableBase):
     def serialize_complex_model(self, cls, value, locale):
@@ -484,18 +516,7 @@ class _HtmlRowTable(_HtmlTableBase):
                     else:
                         subvalue = ""
                 else:
-                    subvalue = v.type.to_string(subvalue)
-
-                    text = getattr(v.type.Attributes,'text', None)
-                    if issubclass(v.type, ImageUri):
-                        subvalue = E.img(src=subvalue)
-                        if text is not None:
-                            subvalue.attrib['alt']=text
-
-                    elif issubclass(v.type, AnyUri):
-                        if text is None:
-                            text = subvalue
-                        subvalue = E.a(text, href=subvalue)
+                    subvalue = _subvalue_to_html(v, subvalue)
 
                 if self.produce_header:
                     header_text = translate(v.type, locale, k)
