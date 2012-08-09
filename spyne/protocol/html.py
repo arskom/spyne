@@ -372,12 +372,15 @@ class _HtmlColumnTable(_HtmlTableBase):
                 header_row.append(E.th(class_name, **th))
 
             else:
-                for k, v in sti.items():
-                    if self.field_name_attr is not None:
+                if self.field_name_attr is None:
+                    for k, v in sti.items():
+                        header_name = translate(v.type, locale, k)
+                        header_row.append(E.th(header_name, **th))
+                else:
+                    for k, v in sti.items():
                         th[self.field_name_attr] = k
-                    th[self.field_name_attr] = k
-                    header_name = translate(v.type, locale, k)
-                    header_row.append(E.th(header_name, **th))
+                        header_name = translate(v.type, locale, k)
+                        header_row.append(E.th(header_name, **th))
 
             yield header_row
 
