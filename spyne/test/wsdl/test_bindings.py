@@ -18,16 +18,19 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from spyne.interface.wsdl.wsdl11 import Wsdl11
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
 import unittest
+
 import spyne.const.xml_ns as ns
 
 
+from spyne.interface.wsdl.wsdl11 import Wsdl11
 from . import build_app
-from .port_service_services import DoublePortService, SinglePortService, S1
+from .port_service_services import TS1
+from .port_service_services import TSinglePortService
+from .port_service_services import TDoublePortService
 
 class TestWSDLBindingBehavior(unittest.TestCase):
     def setUp(self):
@@ -40,7 +43,7 @@ class TestWSDLBindingBehavior(unittest.TestCase):
         self.port_string = '{%s}port' % ns.wsdl
 
     def test_binding_simple(self):
-        sa = build_app([S1], 'S1Port', 'TestServiceName')
+        sa = build_app([TS1()], 'S1Port', 'TestServiceName')
 
         interface_doc = Wsdl11(sa.interface)
         interface_doc.build_interface_document(self.url)
@@ -67,6 +70,8 @@ class TestWSDLBindingBehavior(unittest.TestCase):
 
 
     def test_binding_multiple(self):
+        SinglePortService, DoublePortService = TSinglePortService(), TDoublePortService()
+
         sa = build_app(
             [SinglePortService, DoublePortService],
             'MultiServiceTns',
@@ -74,6 +79,7 @@ class TestWSDLBindingBehavior(unittest.TestCase):
         )
         interface_doc = Wsdl11(sa.interface)
         interface_doc.build_interface_document(self.url)
+
 
         # 2 Service,
         # First has 1 port
@@ -117,7 +123,7 @@ class TestWSDLBindingBehavior(unittest.TestCase):
 
         # checking name and type
         #service SinglePortService
-        for srv in ( SinglePortService, DoublePortService ):
+        for srv in (SinglePortService, DoublePortService):
             for port in srv.__port_types__:
                 bindings =  interface_doc.root_elt.xpath(
                                 '/wsdl:definitions/wsdl:binding[@name="%s"]' %
