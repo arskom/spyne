@@ -17,10 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains the EXPERIMENTAL Html protocol implementation.
-It seeks to eliminate the need for html templates.
+"""This module contains various EXPERIMENTAL protocols for generating
+server-side Html. It seeks to eliminate the need for html templates.
 
-As you can tell, I haven't figured it all out yet :)
+As you can probably tell, not everything is figured out yet :)
 """
 
 import logging
