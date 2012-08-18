@@ -11,55 +11,10 @@ production purposes.
 Defining an Spyne Service
 --------------------------
 
-Here we introduce the fundamental mechanisms the spyne offers to expose your
+Here we introduce the fundamental mechanisms Spyne offers to expose your
 services.
 
 The simpler version of this example is available here: http://github.com/arskom/spyne/blob/master/examples/helloworld_soap.py
-::
-
-    import logging
-
-    from spyne.application import Application
-    from spyne.decorator import srpc
-    from spyne.protocol.soap import Soap11
-    from spyne.service import ServiceBase
-    from spyne.model.complex import Iterable
-    from spyne.model.primitive import Integer
-    from spyne.model.primitive import String
-    from spyne.server.wsgi import WsgiApplication
-
-    class HelloWorldService(ServiceBase):
-        @srpc(String, Integer, _returns=Iterable(String))
-        def say_hello(name, times):
-            '''
-            Docstrings for service methods appear as documentation in the wsdl.
-            <b>what fun</b>
-            @param name the name to say hello to
-            @param the number of times to say hello
-            @return the completed array
-            '''
-
-            for i in xrange(times):
-                yield 'Hello, %s' % name
-
-    if __name__=='__main__':
-        try:
-            from wsgiref.simple_server import make_server
-        except ImportError:
-            print "Error: example server code requires Python >= 2.5"
-
-        logging.basicConfig(level=logging.DEBUG)
-        logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
-
-        application = Application([HelloWorldService], 'spyne.examples.hello.soap',
-                                    in_protocol=Soap11(), out_protocol=Soap11())
-
-        server = make_server('127.0.0.1', 7789, WsgiApplication(application))
-
-        print "listening to http://127.0.0.1:7789"
-        print "wsdl is at: http://localhost:7789/?wsdl"
-
-        server.serve_forever()
 
 Dissecting this example: Application is the glue between one or more service definitions,
 interface and protocol choices. ::
@@ -203,9 +158,8 @@ Deploying service using HttpRpc via Wsgi
 
 This example is available here: http://github.com/arskom/spyne/blob/master/examples/helloworld_http.py.
 
-
 For the sake of this tutorial, we are going to use HttpRpc as well. HttpRpc is
-a rest-like protocol, but it doesn't care about HTTP verbs (yet). ::
+a Rest-like protocol, but it doesn't care about HTTP verbs (yet). ::
 
     from spyne.protocol.http import HttpRpc
 
