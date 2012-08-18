@@ -29,10 +29,11 @@ Xml schema validation:
 
 When validating Xml data, the differences between using "lxml" and "soft"
 validation are as follows:
+
 - Soft validation ignores unknown fields, while *lxml* validation rejects
-  them.
+    them.
 - Soft validation doesn't care about namespaces, while *lxml* validation
-  rejects unexpected namespaces.
+    rejects unexpected namespaces.
 
 ============================== ======== =========
 Criteria                       lxml     soft
@@ -46,8 +47,7 @@ Supported transport protocols  SOAP/XML any
     The two validation sybsystems operate independently, you can use either one,
     but not both at the same time. The validator is indicated when instantiating
     the protocol, by passing either ``validator='soft'`` or ``validator='lxml'``
-    to the constructor.
-    ::
+    to the constructor. ::
 
         #using 'soft' validation with HttpRpc
         application = Application([NameOfMonthService],
@@ -76,7 +76,7 @@ conditions.
     what the constraints are.
 
 Any primitive type
-~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^
 
 Certain generic restrictions can be applied to any type. They are listed below,
 along with their default values
@@ -104,7 +104,7 @@ mandatory string:
     String(min_occurs=1, min_len=1, nillable=False)
 
 Numbers
-~~~~~~~
+^^^^^^^
 
 Integers and other countable numerical data types (i.e. except Float or
 Double) can be compared with specific values, using the following keywords:
@@ -113,7 +113,7 @@ Double) can be compared with specific values, using the following keywords:
     Integer(ge=1, le=12) #an integer between 1 and 12, i.e. 1 <= x <= 12
 
 Strings
-~~~~~~~
+^^^^^^^
 
 Strings can be validated against a regular expression: ::
 
@@ -141,7 +141,7 @@ These restrictions can be combined: ::
     String(min_len=5, max_len=20, pattern='[a-z]')
 
 Possible values
-~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^
 
 Sometimes you may want to allow only a finite set of values, or values which
 can be difficult to describe in terms of an interval. If this is the case, you
@@ -151,7 +151,7 @@ can explicitly indicate the set: ::
     Unicode(values=[u"alpha", u"bravo", u"charlie"]) # note the 'u' prefix
 
 Advanced validation
--------------------
+^^^^^^^^^^^^^^^^^^^
 
 *Spyne* offers several primitives for this purpose, they are defined in the
 **ModelBase** class, from which all the types are derived:
@@ -187,13 +187,12 @@ In the example above, *number* is an actual number and can be validated with
 validated by *validate_string*.
 
 A practical example
-~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^
 
 A custom string type that can not contain the colon symbol ':'.
 
 We'll have to declare our own class, derived from *Unicode* (which, in turn, is
-derived from *SimpleModel*, which inherits from *ModelBase*).::
-
+derived from *SimpleModel*, which inherits from *ModelBase*). ::
 
     class SpecialString(Unicode):
         """Custom string type that prohibits the use of colons"""
@@ -206,14 +205,13 @@ derived from *SimpleModel*, which inherits from *ModelBase*).::
 
 
 A slightly more complicated example
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A custom numerical type that verifies if the number is prime.
 
 This time both flavours of validation are combined: *validate_string* to see if
-it is a number, and then *validate_native* to see if it is prime.
+it is a number, and then *validate_native* to see if it is prime. ::
 
-::
     import re
 
     class Prime(Integer):
@@ -245,7 +243,8 @@ it is a number, and then *validate_native* to see if it is prime.
     explicitly.
 
 Summary
-=======
+^^^^^^^
+
 - Simple checks can be applied at the XML schema level, you can control:
   - The length of a string,
   - The pattern with which a string must comply,
@@ -269,5 +268,5 @@ rows returned by database queries.
 You could also have a look at the :ref:`manual-metadata` section where service
 metadata management apis are introduced.
 
-If you have further questions, please refer to the rest of the documentation or
-the mailing list.
+Otherwise, please refer to the rest of the documentation or the mailing list
+if you have further questions.

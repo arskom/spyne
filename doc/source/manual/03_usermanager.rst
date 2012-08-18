@@ -126,8 +126,8 @@ What's next?
 This tutorial walks you through what you need to know to expose more complex
 services. You can read the :ref:`manual-sqlalchemy` document where the
 :class:`spyne.model.table.TableModel` class and its helpers are introduced.
-You can also have look at the :ref:`manual-validation` section where service
-metadata management apis are introduced.
+You can also have look at the :ref:`manual-validation` section where Spyne's
+imperative and declarative input validation features are introduced.
 
 Otherwise, please refer to the rest of the documentation or the mailing list
 if you have further questions.

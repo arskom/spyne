@@ -59,7 +59,7 @@ The following is a quick introduction to the Spyne way of naming things:
 
     They can be anything between an lxml.etree.Element instance to a gzipped
     byte stream. Apis around pickle, simplejson, YaML and the like that serialize
-    dynamic hieararchies of `dict`s also fall in this category.
+    dynamic hieararchies of "dict"s also fall in this category.
 
 How your code is wrapped
 ------------------------

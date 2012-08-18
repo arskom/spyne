@@ -1,2 +1,2 @@
 
-.. include:: ../../src/spyne/test/README.rst
+.. include:: ../../spyne/test/README.rst

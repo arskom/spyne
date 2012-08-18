@@ -93,14 +93,14 @@ Also consider thread-safety issues when altering global state.
 How do I use variable names that are also Python keywords?
 ==========================================================
 
-Due to restrictions of the python language, you can't do this:
+Due to restrictions of the python language, you can't do this: ::
 
     class SomeClass(ComplexModel):
         and = String
         or = Integer
         import = Datetime
 
-The workaround is as follows:
+The workaround is as follows: ::
 
     class SomeClass(ComplexModel):
         _type_info = {
@@ -109,13 +109,13 @@ The workaround is as follows:
             'import': Datetime
         }
 
-You also can't do this:
+You also can't do this: ::
 
     @rpc(String, String, String, _returns=String)
     def f(ctx, from, import):
         return '1234'
 
-The workaround is as follows:
+The workaround is as follows: ::
 
     @rpc(String, String, String, _returns=String,
         _in_variable_names={'from_': 'from', 'import_': 'import'},
