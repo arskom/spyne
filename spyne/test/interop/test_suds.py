@@ -36,6 +36,18 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
         self.client = Client("http://localhost:9754/?wsdl", cache=None)
         self.ns = "spyne.test.interop.server"
 
+    def test_echo_datetime(self):
+        val = datetime.now()
+        ret = self.client.service.echo_datetime(val)
+
+        assert val == ret
+
+    def test_echo_datetime_with_invalid_format(self):
+        val = datetime.now()
+        ret = self.client.service.echo_datetime_with_invalid_format(val)
+
+        assert val == ret
+
     def test_echo_simple_boolean_array(self):
         val = [False, False, False, True]
         ret = self.client.service.echo_simple_boolean_array(val)

@@ -38,7 +38,10 @@ from spyne.const.ansi_color import LIGHT_RED
 from spyne.const.ansi_color import END_COLOR
 from spyne.error import RequestNotAllowed
 from spyne.model.fault import Fault
+from spyne.model.primitive import DateTime
 from spyne.protocol.xml import XmlObject
+from spyne.protocol.xml.model import nillable_value
+from spyne.protocol.xml.model import TBaseFromElement
 from spyne.protocol.soap.mime import collapse_swa
 
 def _from_soap(in_envelope_xml, xmlids=None):
@@ -123,6 +126,13 @@ def resolve_hrefs(element, xmlids):
 
     return element
 
+@nillable_value
+def _datetime_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
+    e = etree.SubElement(parent_elt, '{%s}%s' % (tns, name))
+    e.text = value.isoformat()
+
+_datetime_from_element = TBaseFromElement(lambda cls,s: cls.default_parse(s))
+
 class Soap11(XmlObject):
     '''The base implementation of the Soap 1.1 protocol.'''
 
@@ -147,6 +157,11 @@ class Soap11(XmlObject):
                                                              cleanup_namespaces)
 
         self.__wrapped = wrapped
+
+        # SOAP requires DateTime strings to be in iso format. This function
+        # bypasses datetime formatting via DateTime(format="...") string.
+        self.serialization_handlers[DateTime] = _datetime_to_parent_element
+        self.deserialization_handlers[DateTime] = _datetime_from_element
 
     @property
     def wrapped(self):

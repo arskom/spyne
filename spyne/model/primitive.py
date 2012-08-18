@@ -558,27 +558,31 @@ class DateTime(SimpleModel):
         return datetime.datetime(year, month, day, hour, min, sec, microsec, tz)
 
     @classmethod
+    def default_parse(cls, string):
+        match = _utc_re.match(string)
+        if match:
+            return cls.parse(match, tz=pytz.utc)
+
+        match = _offset_re.match(string)
+        if match:
+            tz_hr, tz_min = [int(match.group(x)) for x in ("tz_hr", "tz_min")]
+            return cls.parse(match, tz=FixedOffset(tz_hr * 60 + tz_min, {}))
+
+        match = _local_re.match(string)
+        if match is None:
+            raise ValidationError(string)
+
+        return cls.parse(match)
+
+
+    @classmethod
     @nillable_string
     def from_string(cls, string):
         """expect ISO formatted dates"""
         format = cls.Attributes.format
 
         if format is None:
-            match = _utc_re.match(string)
-            if match:
-                return cls.parse(match, tz=pytz.utc)
-
-            match = _offset_re.match(string)
-            if match:
-                tz_hr, tz_min = [int(match.group(x)) for x in ("tz_hr", "tz_min")]
-                return cls.parse(match, tz=FixedOffset(tz_hr * 60 + tz_min, {}))
-
-            match = _local_re.match(string)
-            if match is None:
-                raise ValidationError(string)
-
-            return cls.parse(match)
-
+            return cls.default_parse(string)
         else:
             return datetime.datetime.strptime(string, format)
 
