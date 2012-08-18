@@ -139,17 +139,17 @@ So here's how you can use suds to test your new spyne service:
 
     from suds.client import Client
     hello_client = Client('http://localhost:7789/?wsdl')
-    print hello_client.service.say_hello("Punk", 5)
+    print hello_client.service.say_hello("Dave", 5)
 
 The script's output would be as follows: ::
 
     (stringArray){
         string[] =
-            "Hello, Punk",
-            "Hello, Punk",
-            "Hello, Punk",
-            "Hello, Punk",
-            "Hello, Punk",
+            "Hello, Dave",
+            "Hello, Dave",
+            "Hello, Dave",
+            "Hello, Dave",
+            "Hello, Dave",
         }
 
 
@@ -177,12 +177,12 @@ is the application instantiation line: ::
 
 Here's how you can test your service using curl: ::
 
-    curl "http://localhost:7789/say_hello?times=5&name=Punk"
+    curl "http://localhost:7789/say_hello?times=5&name=Dave"
 
 If you have HtmlTidy installed, you can use this command to get a more readable
 output. ::
 
-    curl "http://localhost:7789/say_hello?times=5&name=Punk" | tidy -xml -indent
+    curl "http://localhost:7789/say_hello?times=5&name=Dave" | tidy -xml -indent
 
 The command's output would be as follows: ::
 
@@ -190,11 +190,11 @@ The command's output would be as follows: ::
     <ns1:say_helloResponse xmlns:ns1="spyne.examples.hello.http"
     xmlns:ns0="http://schemas.xmlsoap.org/soap/envelope/">
       <ns1:say_helloResult>
-        <ns1:string>Hello, Punk</ns1:string>
-        <ns1:string>Hello, Punk</ns1:string>
-        <ns1:string>Hello, Punk</ns1:string>
-        <ns1:string>Hello, Punk</ns1:string>
-        <ns1:string>Hello, Punk</ns1:string>
+        <ns1:string>Hello, Dave</ns1:string>
+        <ns1:string>Hello, Dave</ns1:string>
+        <ns1:string>Hello, Dave</ns1:string>
+        <ns1:string>Hello, Dave</ns1:string>
+        <ns1:string>Hello, Dave</ns1:string>
       </ns1:say_helloResult>
     </ns1:say_helloResponse>
 
