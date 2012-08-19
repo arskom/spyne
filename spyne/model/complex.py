@@ -284,6 +284,9 @@ class ComplexModelBase(ModelBase):
     @staticmethod
     def get_flat_type_info(cls, retval=None):
         """Returns a _type_info dict that includes members from all base classes.
+
+        It's called a "flat" dict because it flattens all members from the
+        inheritance hierarchy into one dict.
         """
 
         if retval is None:

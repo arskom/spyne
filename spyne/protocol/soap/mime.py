@@ -17,6 +17,14 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""This module contains additional logic for using optimized encodings for
+binary when encapsulating Soap 1.1 messages in Http.
+
+The functionality in this code is not well tested and reported NOT TO WORK.
+
+Patches are welcome.
+"""
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -43,10 +51,11 @@ except ImportError:
 from email import message_from_string
 from spyne.model.binary import Attachment
 from spyne.model.binary import ByteArray
-import spyne.const.xml_ns
 
+import spyne.const.xml_ns
 _ns_xop = spyne.const.xml_ns.xop
 _ns_soap_env = spyne.const.xml_ns.soap_env
+
 
 def _join_attachment(href_id, envelope, payload, prefix=True):
     '''Places the data from an attachment back into a SOAP message, replacing

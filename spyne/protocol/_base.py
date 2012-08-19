@@ -75,6 +75,12 @@ class ProtocolBase(object):
     """This is the abstract base class for all protocol implementations. Child
     classes can implement only the required subset of the public methods.
 
+    An output protocol must implement :func:`serialize` and
+    :func:`create_out_string`.
+
+    An input protocol must implement :func:`create_in_document`,
+    :func:`decompose_incoming_envelope` and :func:`deserialize`.
+
     The ProtocolBase class supports the following events:
 
     * ``before_deserialize``:
@@ -188,6 +194,13 @@ class ProtocolBase(object):
             raise ResourceNotFoundError('Method %r not found.' % name)
 
     def generate_method_contexts(self, ctx):
+        """Generates MethodContext instances for every callable assigned to the
+        given method handle.
+
+        The first element in the returned list is always the primary method
+        context whereas the rest are all auxiliary method contexts.
+        """
+
         call_handles = self.get_call_handles(ctx)
         if len(call_handles) == 0:
             raise ResourceNotFoundError('Method %r not found.' %
@@ -222,6 +235,10 @@ class ProtocolBase(object):
         return call_handles
 
     def fault_to_http_response_code(self, fault):
+        """Special function to convert native Python exceptions to Http response
+        codes.
+        """
+
         if isinstance(fault, RequestTooLongError):
             return HTTP_413
         if isinstance(fault, ResourceNotFoundError):
@@ -243,6 +260,11 @@ class ProtocolBase(object):
         self.validator = None
 
     def flat_dict_to_object(self, doc, inst_class):
+        """Converts a flat dict to a native python object.
+
+        See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
+        """
+
         simple_type_info = inst_class.get_simple_type_info(inst_class)
         inst = inst_class.get_deserialization_instance()
 
@@ -367,6 +389,11 @@ class ProtocolBase(object):
 
     def object_to_flat_dict(self, inst_cls, value, hier_delim="_", retval=None,
                                                     prefix=None, parent=None):
+        """Converts a native python object to a flat dict.
+
+        See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
+        """
+
         if retval is None:
             retval = {}
         if prefix is None:
