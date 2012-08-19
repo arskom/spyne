@@ -2,10 +2,9 @@
 Models
 ======
 
-In spyne, models are used to mark how a certain message fragment will be
-converted to and from its native python format. It also holds validation
-information, and holds actually THE information interface document standards
-like WSDL are designed to exposed.
+In Spyne, models are used to mark how a certain message fragment will be
+converted to and from which native python format. They are also used to hold
+both declarative and imperative restrictions.
 
 Spyne's has built-in support most common data types and provides an API to
 those who'd like to implement their own.
@@ -22,10 +21,16 @@ Base Classes
    :members:
    :show-inheritance:
 
-Binary
-------
+Binary Types
+------------
 
 .. automodule:: spyne.model.binary
+
+.. autoclass:: spyne.model.binary.ByteArray
+   :members:
+   :show-inheritance:
+
+.. autoclass:: spyne.model.binary.File
    :members:
    :show-inheritance:
 
@@ -56,7 +61,6 @@ Primitives
 .. automodule:: spyne.model.primitive
    :members:
    :show-inheritance:
-   :inherited-members:
 
 SQL Table
 ---------

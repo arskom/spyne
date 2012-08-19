@@ -80,25 +80,9 @@ should be used for setting headers.
 Exceptions
 ----------
 
-The base class for public exceptions in spyne is
-:class:`spyne.model.fault.Fault`. The Fault object adheres to the
-`SOAP 1.1 Fault definition <http://www.w3.org/TR/2000/NOTE-SOAP-20000508/#_Toc478383507>`_,
-which has three main attributes:
-
-    #. ``faultcode``: is a dot-delimited string whose first fragment is either
-        'Client' or 'Server'. Just like HTTP 4xx and 5xx codes, 'Client' indicates
-        that something was wrong with the input, and 'Server' indicates something
-        went wrong during the processing of an otherwise legitimate request.
-
-        Protocol implementors should heed the values in ``faultcode`` to set
-        proper return codes in the protocol level when necessary. E.g. HttpRpc
-        protocol will return a HTTP 404 error when a
-        :class:`spyne.error.ResourceNotFound` is raised, and a general HTTP 400
-        when the ``faultcode`` starts with 'Client.'.
-        Soap would return HTTP 500 for any kind of exception, and denote the
-        nature of the exception in the Soap response body.
-    #. ``faultstring``: is the human-readable explanation of the exception.
-    #. ``detail``: is the additional information as a valid xml document.
+The base class for public exceptions in Spyne is
+:class:`spyne.model.fault.Fault`. See its docstring for more info about how it
+works.
 
 Here's how you define your own public exceptions: ::
 
