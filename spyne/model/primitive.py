@@ -690,14 +690,46 @@ class Boolean(SimpleModel):
         return (string.lower() in ['true', '1'])
 
 # a class that is really a namespace
-class Mandatory(object):
+class Mandatory:
     """Class that contains mandatory variants of primitives."""
 
-    String = String(type_name="mandatory_string", min_occurs=1, nillable=False, min_len=1)
-    Unicode = Unicode(type_name="mandatory_string", min_occurs=1, nillable=False, min_len=1)
-    Decimal = Decimal(type_name="mandatory_integer", min_occurs=1, nillable=False)
-    Integer = Integer(type_name="mandatory_integer", min_occurs=1, nillable=False)
-    Date = Date(type_name="mandatory_date", min_occurs=1, nillable=False)
-    DateTime = DateTime(type_name="mandatory_date_time", min_occurs=1, nillable=False)
-    UnsignedInteger = UnsignedInteger(type_name="mandatory_unsigned_integer", min_occurs=1, nillable=False)
-    UnsignedLong = UnsignedLong(type_name="mandatory_unsigned_integer", min_occurs=1, nillable=False)
+    Unicode = Unicode(type_name="MandatoryString", min_occurs=1, nillable=False, min_len=1)
+    String = String(type_name="MandatoryString", min_occurs=1, nillable=False, min_len=1)
+
+    AnyXml = AnyXml(type_name="MandatoryXml", min_occurs=1, nillable=False, min_len=1)
+    AnyDict = AnyDict(type_name="MandatoryDict", min_occurs=1, nillable=False, min_len=1)
+    AnyUri = AnyUri(type_name="MandatoryUri", min_occurs=1, nillable=False, min_len=1)
+    ImageUri = ImageUri(type_name="MandatoryImageUri", min_occurs=1, nillable=False, min_len=1)
+
+    Boolean = Boolean(type_name="MandatoryBoolean", min_occurs=1, nillable=False)
+
+    Date = Date(type_name="MandatoryDate", min_occurs=1, nillable=False)
+    Time = Time(type_name="MandatoryTime", min_occurs=1, nillable=False)
+    DateTime = DateTime(type_name="MandatoryDateTime", min_occurs=1, nillable=False)
+    Duration = Duration(type_name="MandatoryDuration", min_occurs=1, nillable=False)
+
+    Decimal = Decimal(type_name="MandatoryDecimal", min_occurs=1, nillable=False)
+    Double = Decimal(type_name="MandatoryDouble", min_occurs=1, nillable=False)
+    Float = Double
+
+    Integer = Integer(type_name="MandatoryInteger", min_occurs=1, nillable=False)
+    Integer64 = Integer64(type_name="MandatoryLong", min_occurs=1, nillable=False)
+    Integer32 = Integer32(type_name="MandatoryInt", min_occurs=1, nillable=False)
+    Integer16 = Integer16(type_name="MandatoryShort", min_occurs=1, nillable=False)
+    Integer8 = Integer8(type_name="MandatoryByte", min_occurs=1, nillable=False)
+
+    Long = Integer64
+    Int = Integer32
+    Short = Integer16
+    Byte = Integer8
+
+    UnsignedInteger = UnsignedInteger(type_name="MandatoryUnsignedInteger", min_occurs=1, nillable=False)
+    UnsignedInteger64 = UnsignedInteger64(type_name="MandatoryUnsignedLong", min_occurs=1, nillable=False)
+    UnsignedInteger32 = UnsignedInteger32(type_name="MandatoryUnsignedInt", min_occurs=1, nillable=False)
+    UnsignedInteger16 = UnsignedInteger16(type_name="MandatoryUnsignedShort", min_occurs=1, nillable=False)
+    UnsignedInteger8 = UnsignedInteger8(type_name="MandatoryUnsignedByte", min_occurs=1, nillable=False)
+
+    UnsignedLong = UnsignedInteger64
+    UnsignedInt = UnsignedInteger32
+    UnsignedShort = UnsignedInteger16
+    UnsignedByte = UnsignedInteger8
