@@ -228,14 +228,14 @@ class AnyUri(String):
         """The text shown in link. This is an object-wide constant."""
 
     class UriValue(object):
-        """A special object that is just a better way of carrying the information
-        carried with a link.
+        """A special object that is just a better way of carrying the
+        information carried with a link.
 
         :param href: The uri string.
         :param text: The text data that goes with the link. This is an
             `lxml.etree._Element` instance.
-        :param content: The structured data that goes with the link. This is a `str`
-            or a `unicode` instance.
+        :param content: The structured data that goes with the link. This is a
+        ``str`` or a ``unicode`` instance.
         """
 
         def __init__(self, href, text=None, content=None):
@@ -267,10 +267,10 @@ class Decimal(SimpleModel):
         """The value should be greater than or equal to this number."""
 
         lt = decimal.Decimal('inf') # maxExclusive
-        """The value should be smaller than this number."""
+        """The value should be lower than this number."""
 
         le = decimal.Decimal('inf') # maxInclusive
-        """The value should be smaller than or equal to this number."""
+        """The value should be lower than or equal to this number."""
 
         max_str_len = 1024
         """The maximum length of string to be attempted to convert to number."""
