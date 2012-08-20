@@ -9,14 +9,14 @@ MethodContext
 
 .. autoclass:: spyne.MethodContext
     :members:
-    :inherited-members:
+    :show-inheritance:
 
 MethodDescriptor
 ----------------
 
 .. autoclass:: spyne.MethodDescriptor
     :members:
-    :inherited-members:
+    :show-inheritance:
 
 .. _reference-eventmanager:
 
@@ -24,9 +24,9 @@ MethodDescriptor
 EventManager
 ------------
 
-Spyne supports a simple event system that can be used to have repetitive boiler
-plate code that has to run for every method call nicely tucked away in one or
-more event handlers. The popular use-cases include things like database
+Spyne supports a simple event system that can be used to have repetitive
+boilerplate code that has to run for every method call nicely tucked away in one
+or more event handlers. The popular use-cases include tasks like database
 transaction management, logging and measuring performance.
 
 Various Spyne components support firing events at various stages during the
@@ -40,4 +40,4 @@ The classes that support events are:
 
 .. autoclass:: spyne.EventManager
     :members:
-    :inherited-members:
+    :show-inheritance:

@@ -6,16 +6,11 @@ In Spyne, models are used to mark how a certain message fragment will be
 converted to and from which native python format. They are also used to hold
 both declarative and imperative restrictions.
 
-Spyne's has built-in support most common data types and provides an API to
+Spyne has built-in support most common data types and provides an API to
 those who'd like to implement their own.
 
 Base Classes
 ------------
-
-.. automodule:: spyne.model
-   :members:
-   :show-inheritance:
-
 
 .. automodule:: spyne.model._base
    :members:
@@ -44,14 +39,14 @@ Complex
 Enum
 ----
 
-.. automodule:: spyne.model.enum
+.. autoclass:: spyne.model.enum.Enum
    :members:
    :show-inheritance:
 
 Fault
 -----
 
-.. automodule:: spyne.model.fault
+.. autoclass:: spyne.model.fault.Fault
    :members:
    :show-inheritance:
 

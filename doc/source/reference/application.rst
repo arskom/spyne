@@ -2,6 +2,10 @@
 Application Definition
 ======================
 
-.. automodule:: spyne.application
+.. autoclass:: spyne.application.Application
+    :members:
+    :inherited-members:
+
+.. autofunction:: spyne.application.return_traceback_in_unhandled_exceptions
     :members:
     :inherited-members:

@@ -12,6 +12,7 @@ Spyne API Reference
     application
     service
     decorator
+    error
 
     model
     interface

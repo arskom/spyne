@@ -96,7 +96,7 @@ Contributing
 ============
 
 The main developers of Spyne lurk in the `official soap implementors
-forum <http://mail.python.org/mailman/listinfo/soap/>`_. kindly operated
+forum <http://mail.python.org/mailman/listinfo/soap/>`_ kindly operated
 by python.org. That's mostly because Spyne is the continuation of soaplib,
 but also because soap is an important part of Spyne.
 

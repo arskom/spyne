@@ -2,8 +2,8 @@
 Interfaces
 ==========
 
-The `spyne.interface` package contains the implementations of various schema
-definition standards.
+The `spyne.interface` package contains the implementations of various interface
+document standards.
 
 Interface Base Class
 --------------------
