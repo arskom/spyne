@@ -156,8 +156,8 @@ class RemoteProcedureBase(object):
 
 
 class ClientBase(object):
-    """The base class for all client applications. ``self.service``
-    attribute should be initialized in the constructor of the child class.
+    """The base class for all client applications. ``self.service`` attribute
+    should be initialized in the constructor of the child class.
     """
 
     def __init__(self, url, app):
