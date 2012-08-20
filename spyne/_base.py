@@ -45,6 +45,15 @@ class TransportContext(object):
         self.type = type
         """The protocol the transport uses."""
 
+class ProtocolContext(object):
+    """Generic object that holds transport-specific context information"""
+    def __init__(self, transport, type=None):
+        self.itself = transport
+        """The transport itself; i.e. a ServerBase instance."""
+
+        self.type = type
+        """The protocol the transport uses."""
+
 class EventContext(object):
     """Generic object that holds event-specific context information"""
     def __init__(self, event_id=None):
@@ -90,6 +99,10 @@ class MethodContext(object):
 
         self.transport = TransportContext(transport)
         """The transport-specific context. Transport implementors can use this
+        to their liking."""
+
+        self.protocol = ProtocolContext(transport)
+        """The protocol-specific context. Protocol implementors can use this
         to their liking."""
 
         self.event = EventContext()
