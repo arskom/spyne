@@ -251,7 +251,7 @@ class ImageUri(AnyUri):
 class Decimal(SimpleModel):
     """The primitive that corresponds to the native python Decimal.
 
-    This is also the base class for representing numbers.
+    This is also the base class for denoting numbers.
     """
 
     __type_name__ = 'decimal'
@@ -385,6 +385,7 @@ class Integer(Decimal):
 
 class UnsignedInteger(Integer):
     """The arbitrary-size unsigned integer, aka nonNegativeInteger."""
+
     __type_name__ = 'nonNegativeInteger'
 
     @staticmethod
