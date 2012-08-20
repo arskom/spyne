@@ -24,5 +24,9 @@ from spyne.auxproc import AuxProcBase
 
 
 class SyncAuxProc(AuxProcBase):
+    """SyncAuxProc processes auxiliary methods synchronously. It's useful for
+    testing purposes.
+    """
+
     def process_context(self, server, ctx):
         self.process(server, ctx)

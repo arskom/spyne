@@ -26,7 +26,16 @@ from spyne.auxproc import AuxProcBase
 
 
 class ThreadAuxProc(AuxProcBase):
+    """ThreadAuxProc processes auxiliary methods asynchronously in another
+    thread using the undocumented ``multiprocessing.pool.ThreadPool`` class.
+    This is available in Python 2.7. It can be there for 2.6 as well, it's hard
+    to tell because it's not documented.
+    """
+
     def __init__(self, pool_size=1):
+        """:param pool_size: Max. number of threads that can be used to process
+        methods in auxiliary queue.
+        """
         AuxProcBase.__init__(self)
 
         self.pool = None
