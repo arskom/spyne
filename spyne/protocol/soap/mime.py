@@ -20,7 +20,7 @@
 """This module contains additional logic for using optimized encodings for
 binary when encapsulating Soap 1.1 messages in Http.
 
-The functionality in this code is not well tested and reported NOT TO WORK.
+The functionality in this code is not well tested and is reported NOT TO WORK.
 
 Patches are welcome.
 """

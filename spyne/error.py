@@ -17,6 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""The ``spyne.error`` module contains various common exceptions that the user
+code can throw.
+"""
+
 from spyne.model.fault import Fault
 
 class ResourceNotFoundError(Fault):
