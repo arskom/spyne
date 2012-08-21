@@ -1,3 +1,4 @@
+
 Changelog
 =========
 
@@ -13,7 +14,7 @@ rpclib-2.8.0-rc -> spyne-2.8.0-rc
  * Remove Deprecated XMLAttribute and XMLAttributeRef. Use ``XmlAttribute``
    and ``XmlAttributeRef`` instead.
  * Xml Schema: Add support for the <any> tag.
- * Add a chapter about Validation to the manual.
+ * Add a chapter about Validation to the manual. Thanks Alex!
  * Interface documents are no longer subclasses of InterfaceBase. It's up
    to the transport to expose the application using a given interface document
    standard now. The ``interface`` argument to the ``Application`` constructor

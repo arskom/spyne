@@ -51,9 +51,8 @@ version number of the Spyne version once implemented.
 * Support for EXI -- The Efficient Xml Interchange as a serializer.
 * SMTP as client/server transport.
 * SPDY as client/server transport.
-* Implement converting csv output to pdf.
 * Support security extensions to Soap (maybe using `PyXMLSec <http://pypi.python.org/pypi/PyXMLSec/0.3.0>`_ ?)
 * Support addressing (routing) extensions to Soap
-* Add WSDL Parsing support to Soap client
+* Add WSDL Parsing support to Soap client.
 * Reflect transport and protocol pairs other than Soap/Http to the Wsdl.
 * etc.
