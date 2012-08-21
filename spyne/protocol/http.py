@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 import tempfile
 TEMPORARY_DIR = None
+STREAM_READ_BLOCK_SIZE = 0x4000
 
 try:
     from cStringIO import StringIO
@@ -36,8 +37,6 @@ except ImportError:
         from io import StringIO
 
 from spyne.protocol.dictobj import DictObject
-
-STREAM_READ_BLOCK_SIZE = 16384
 
 
 def get_stream_factory(dir=None, delete=True):
