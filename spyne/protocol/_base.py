@@ -17,10 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains the ProtocolBase abstract base class for all
-protocol implementations.
-"""
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -94,17 +90,8 @@ class ProtocolBase(object):
 
     * ``after_serialize``:
       Called after the serialization operation is finished.
-    """
 
-    allowed_http_verbs = None
-    mime_type = 'application/octet-stream'
-
-    SOFT_VALIDATION = type("Soft", (object,), {})
-    REQUEST = type("Request", (object,), {})
-    RESPONSE = type("Response", (object,), {})
-
-    def __init__(self, app=None, validator=None, mime_type=None, skip_depth=0):
-        """The arguments the constructor takes are as follows:
+    The arguments the constructor takes are as follows:
 
         :param app: The application this protocol belongs to.
         :param validator: The type of validation this protocol should do on
@@ -117,6 +104,14 @@ class ProtocolBase(object):
         case.
         """
 
+    allowed_http_verbs = None
+    mime_type = 'application/octet-stream'
+
+    SOFT_VALIDATION = type("Soft", (object,), {})
+    REQUEST = type("Request", (object,), {})
+    RESPONSE = type("Response", (object,), {})
+
+    def __init__(self, app=None, validator=None, mime_type=None, skip_depth=0):
         self.__app = None
         self.validator = None
 

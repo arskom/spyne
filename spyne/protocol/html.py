@@ -17,10 +17,20 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains various EXPERIMENTAL protocols for generating
-server-side Html. It seeks to eliminate the need for html templates.
+"""The ``spyne.protocol.html`` module contains various EXPERIMENTAL protocols
+for generating server-side Html. It seeks to eliminate the need for html
+templates by:
+    #. Implementing standard ways of serializing Python objects to Html
+        documents
+    #. Implementing a very basic html node manipulation api in python instead
+        of having to have pseudocode intertwined within Html. (à la PHP)
 
 As you can probably tell, not everything is figured out yet :)
+
+Ininially released in 2.8.0-rc.
+
+This module is EXPERIMENTAL. You may not recognize the code here next time you
+look at it.
 """
 
 import logging
@@ -249,11 +259,11 @@ def HtmlTable(app=None, validator=None, produce_header=True,
     :param cell_cell_class: value that goes inside the <td class="">
     :param header_cell_class: value that goes inside the <th class="">
 
-        "Fields as rows" returns one record per table in a table with two
-        columns.
+    "Fields as rows" returns one record per table in a table with two
+    columns.
 
-        "Fields as columns" returns one record per table row in a table that
-        has as many columns as field names, just like a regular spreadsheet.
+    "Fields as columns" returns one record per table row in a table that
+    has as many columns as field names, just like a regular spreadsheet.
     """
 
     if fields_as == 'columns':

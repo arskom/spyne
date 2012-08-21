@@ -17,8 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains the HttpRpc protocol implementation. This is not exactly
-Rest, because it ignores Http verbs.
+"""The ``spyne.protocol.http`` module contains the HttpRpc protocol
+implementation. This is not exactly Rest.
 """
 
 import logging
@@ -57,7 +57,7 @@ def get_stream_factory(dir=None, delete=True):
 
 class HttpRpc(DictObject):
     """The so-called ReST-ish HttpRpc protocol implementation. It only works
-    with http (wsgi and twisted) transports.
+    with Http (wsgi and twisted) transports.
     """
 
     mime_type = 'text/plain'

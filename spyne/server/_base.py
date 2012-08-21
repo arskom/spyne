@@ -17,9 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains the ServerBase class, the abstract base class for all
-server transport implementations."""
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -34,7 +31,7 @@ class ServerBase(object):
     a pure-virtual method that needs to be implemented by all base classes.
 
     If there is a call to start the main loop, it's conventionally called
-    'serve_forever()'.
+    ``serve_forever()``.
     """
 
     transport = None
@@ -129,3 +126,8 @@ class ServerBase(object):
 
         if ctx.out_string is None:
             ctx.out_string = [""]
+
+    def serve_forever():
+        """Implement your event loop here."""
+
+        raise NotImplementedError()

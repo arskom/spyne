@@ -17,7 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""Abstract protocol that deals with dicts as {in,out}_documents."""
+"""The ``spyne.protocol.dictobj.DictObject`` module contains an abstract
+protocol that deals with hierarchical dicts as {in,out}_documents.
+"""
 
 import logging
 logger = logging.getLogger(__name__)

@@ -17,13 +17,13 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains a server implementation that uses a Twisted Web Resource
-as transport.
+"""The ``spyne.server.twisted`` module contains a server transport compatible
+with the Twisted event loop. It uses the TwistedWebResource object as transport.
+
+Also see the twisted examples in the examples directory of the source
+distribution.
 
 This module is EXPERIMENTAL. Your mileage may vary. Patches are welcome.
-
-To work around python 2's default relative import behaviour, this is a module
-disguised as a package.
 """
 
 import logging
@@ -111,6 +111,7 @@ class TwistedHttpTransport(HttpBase):
         twisted web's Request object is parsed into ``ctx.in_body_doc`` and
         ``ctx.in_header_doc``.
         """
+
         request = ctx.in_document
 
         ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
