@@ -82,14 +82,15 @@ To install from source distribution, you should run its setup script as usual: :
 
     python setup.py install
 
-To run the non-interop tests use: ::
+To run the tests use: ::
 
-    python setup.py test
+    cd spyne/tests && ./run_tests.sh
 
-And if you want to make any changes to the spyne code, it's more comfortable to
-use: ::
+And if you want to make any changes to the Spyne code, just use ::
 
     python setup.py develop
+
+so that you can painlessly test your pathces.
 
 Contributing
 ============
@@ -126,13 +127,12 @@ significant change to be committed via pull requests.
 Submitting Pull Requests
 ------------------------
 
-Github's pull-request feature is awesome, but
-there's a subtlety that's not totally obvious for newcomers: If you continue
-working on the branch that you used to submit a pull request, your commits will
-"pollute" the pull request until it gets merged. This is not a bug, but a
-feature -- it gives you the ability to address reviewers' concerns without
-creating pull requests over and over again. So, if you intend to work on other
-parts of spyne after submitting a pull request, please do move your work to its
-own branch and never submit a pull request from your master branch. This will
-give you the freedom to continue working on spyne while waiting for your pull
-request to be reviewed.
+Github's pull-request feature is awesome, but there's a subtlety that's not
+totally obvious for newcomers: If you continue working on the branch that you
+used to submit a pull request, your commits will "pollute" the pull request
+until it gets merged. This is not a bug, but a feature -- it gives you the
+ability to address reviewers' concerns without creating pull requests over and
+over again. So, if you intend to work on other parts of spyne after submitting
+a pull request, please do move your work to its own branch and never submit a
+pull request from your master branch. This will give you the freedom to
+continue working on spyne while waiting for your pull request to be reviewed.

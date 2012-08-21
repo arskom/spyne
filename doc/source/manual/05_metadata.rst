@@ -31,9 +31,9 @@ here: https://github.com/plq/spyne/blob/master/examples/authenticate/server_soap
 Protocol Headers
 ----------------
 
-The protocol headers are available in ``ctx.in_header`` and ``ctx.out_header``
-objects. You should set the ``ctx.out_header`` to the native value of the
-declared type.
+As said before, the protocol headers are available in ``ctx.in_header`` and
+``ctx.out_header`` objects. You should set the ``ctx.out_header`` to the native
+value of the declared type.
 
 Header objects are defined just like any other object: ::
 
@@ -61,7 +61,7 @@ Or in the decorator: ::
         @rpc(_in_header=RequestHeader, _returns=Preferences)
 
 It's generally a better idea to set the header types in the ServiceBase child
-as it's likely that a lot of methods will use it. This will avoid cluttering the
+as it's likely that all methods will use it. This will avoid cluttering the
 service definition with header declarations. The header declaration in the
 decorator will overwrite the one in the service definition.
 
@@ -80,23 +80,9 @@ should be used for setting headers.
 Exceptions
 ----------
 
-The base class for public exceptions in spyne is
-:class:`spyne.model.fault.Fault`. The Fault object adheres to the
-`SOAP 1.1 Fault definition <http://www.w3.org/TR/2000/NOTE-SOAP-20000508/#_Toc478383507>`_,
-which has three main attributes:
-
-    #. ``faultcode``: is a dot-delimited string whose first part is either
-       'Client' or 'Server'. Just like HTTP 4xx and 5xx codes, 'Client' indicates
-       that something was wrong with the input, and 'Server' indicates something
-       went wrong during the processing of the otherwise legitimate request.
-
-       Protocol implementors should heed the values in ``faultcode`` to set
-       proper return codes in the protocol level when necessary. E.g. HttpRpc
-       protocol will return a HTTP 404 error when a
-       :class:`spyne.error.ResourceNotFound` is raised, and a general HTTP 400
-       when the ``faultcode`` starts with 'Client.'.
-    #. ``faultstring``: is the human-readable explanation of the exception.
-    #. ``detail``: is the additional information as a valid xml document.
+The base class for public exceptions in Spyne is
+:class:`spyne.model.fault.Fault`. See its docstring for more info about how it
+works.
 
 Here's how you define your own public exceptions: ::
 
@@ -138,11 +124,16 @@ still be nice to specify the exceptions your service can throw in the interface
 document. Plus, intefacing with your services will just feel more natural with
 languages like Java where exceptions are kept on a short leash.
 
+.. NOTE::
+    Spyne has common exceptions already defined and integrated to protocols.
+    So if one raises :class:`spyne.error.ResourceNotFound` from user code,
+    the HttpRpc protocol is smart enough to set the Http response code to 404.
+
 What's next?
 ^^^^^^^^^^^^
 
-With this document, you know most of what spyne has to offer for application
-programmers. You can refer to the :ref:`manual-t-and-p` section if you want to
+With this document, you know most of what Spyne has to offer for application
+developers. You can refer to the :ref:`manual-t-and-p` section if you want to
 implement your own transports and protocols.
 
 Otherwise, please refer to the rest of the documentation or the mailing list

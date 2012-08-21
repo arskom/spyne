@@ -11,10 +11,10 @@ aspects of Spyne by examples.
 .. toctree::
     :maxdepth: 2
 
-    highlevel
-    helloworld
-    usermanager
-    sqlalchemy
-    validation
-    metadata
-    t_and_p
+    01_highlevel
+    02_helloworld
+    03_usermanager
+    04-01_sqlalchemy
+    04-02_validation
+    05_metadata
+    06_t_and_p

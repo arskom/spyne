@@ -93,7 +93,7 @@ Suds
 * Recommended way to interface with Spyne's Soap services.
 * Uses own pure-python xml implementation, so it's roughly 10 times slower
   than Spyne's Soap client.
-* Pure-python library, so much easier to deploy.
+* Pure-python library, so relatively easier to deploy.
 
 ZSI
 ---

@@ -37,11 +37,6 @@ Other Goodies
    faq
    h_and_f
 
-.. toctree::
-   :hidden:
-
-   comparison
-
 ##################
 Indices and tables
 ##################

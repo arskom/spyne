@@ -39,9 +39,9 @@ to learn how to do so. They work almost the same, except for the syntax.
     argcount = f.func_code.co_argcount
     param_names = f.func_code.co_varnames[arg_start:argcount]
 
-So if ``f`` is your decorator, its signature should be the same as the user method,
-otherwise the parameter names and numbers in the interface are going to be wrong,
-which will cause weird errors.
+So if ``f`` is your decorator, its signature should be the same as the user
+method, otherwise the parameter names and numbers in the interface are going to
+be wrong, which will cause weird errors.
 
 Please note that if you just intend to have a convenient way to set additional
 method metadata, you can pass the ``_udp`` argument to the :func:`spyne.decorator.srpc`
@@ -90,17 +90,17 @@ original value.
 
 Also consider thread-safety issues when altering global state.
 
-How do I use variable names that are also python keywords?
+How do I use variable names that are also Python keywords?
 ==========================================================
 
-Due to restrictions of the python language, you can't do this:
+Due to restrictions of the python language, you can't do this: ::
 
     class SomeClass(ComplexModel):
         and = String
         or = Integer
         import = Datetime
 
-The workaround is as follows:
+The workaround is as follows: ::
 
     class SomeClass(ComplexModel):
         _type_info = {
@@ -109,19 +109,18 @@ The workaround is as follows:
             'import': Datetime
         }
 
-You also can't do this:
+You also can't do this: ::
 
     @rpc(String, String, String, _returns=String)
     def f(ctx, from, import):
         return '1234'
 
-The workaround is as follows:
+The workaround is as follows: ::
 
     @rpc(String, String, String, _returns=String,
-        _in_variable_names={'_from': 'from',
-            '_import': 'import'},
+        _in_variable_names={'from_': 'from', 'import_': 'import'},
         _out_variable_name="return"
-    def f(ctx, _from, _import):
+    def f(ctx, from_, import_):
         return '1234'
 
 See here: https://github.com/arskom/spyne/blob/spyne-2.5.0-beta/src/spyne/test/test_service.py#L114
@@ -170,7 +169,7 @@ tightly coupled, the license of Spyne propagates to your code as well.
 Spyne is a descendant of Soaplib, which was published by its author initially
 under LGPL. When he quit, the people who took over contemplated re-licensing it
 under the three-clause BSD license, but were not able to reach the original
-author. A re-licensing is now even less probable today because of the number of
+author. A re-licensing is even less probable today because of the number of
 people who've contributed code in the past years as we'd need to get the
 approval of every single person in order to re-license Spyne.
 

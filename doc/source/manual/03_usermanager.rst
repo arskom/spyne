@@ -13,100 +13,9 @@ In this tutorial, we will talk about:
 * Customizing types.
 * Defining events.
 
-The following is an simple example using complex, nested data. It's available
-here: http://github.com/arskom/spyne/blob/master/examples/user_manager/server_basic.py
-::
-
-    import logging
-    logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
-
-    from spyne.application import Application
-    from spyne.decorator import rpc
-    from spyne.interface.wsdl import Wsdl11
-    from spyne.protocol.soap import Soap11
-    from spyne.model.primitive import Unicode
-    from spyne.model.primitive import Integer
-    from spyne.model.complex import Array
-    from spyne.model.complex import Iterable
-    from spyne.model.complex import ComplexModel
-    from spyne.server.wsgi import WsgiApplication
-    from spyne.service import ServiceBase
-
-    _user_database = {}
-    _user_id_seq = 1
-
-    class Permission(ComplexModel):
-        __namespace__ = 'spyne.examples.user_manager'
-
-        application = Unicode
-        operation = Unicode
-
-    class User(ComplexModel):
-        __namespace__ = 'spyne.examples.user_manager'
-
-        user_id = Integer
-        user_name = Unicode
-        first_name = Unicode
-        last_name = Unicode
-        permissions = Array(Permission)
-
-    class UserManagerService(ServiceBase):
-        @rpc(User, _returns=Integer)
-        def add_user(ctx, user):
-            user.user_id = ctx.udc.get_next_user_id()
-            ctx.udc.users[user.user_id] = user
-
-            return user.user_id
-
-        @rpc(Integer, _returns=User)
-        def get_user(ctx, user_id):
-            return ctx.udc.users[user_id]
-
-        @rpc(User)
-        def set_user(ctx, user):
-            ctx.udc.users[user.user_id] = user
-
-        @rpc(Integer)
-        def del_user(ctx, user_id):
-            del ctx.udc.users[user_id]
-
-        @rpc(_returns=Iterable(User))
-        def get_all_users(ctx):
-            return ctx.udc.users.itervalues()
-
-    application = Application([UserManagerService], 'spyne.examples.user_manager',
-                interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
-
-    def _on_method_call(ctx):
-        ctx.udc = UserDefinedContext()
-
-    application.event_manager.add_listener('method_call', _on_method_call)
-
-    class UserDefinedContext(object):
-        def __init__(self):
-            self.users = _user_database
-
-        @staticmethod
-        def get_next_user_id():
-            global _user_id_seq
-
-            _user_id_seq += 1
-
-            return _user_id_seq
-
-    if __name__=='__main__':
-        try:
-            from wsgiref.simple_server import make_server
-        except ImportError:
-            print "Error: example server code requires Python >= 2.5"
-
-        server = make_server('127.0.0.1', 7789, WsgiApplication(application))
-
-        print "listening to http://127.0.0.1:7789"
-        print "wsdl is at: http://localhost:7789/?wsdl"
-
-        server.serve_forever()
+The simple example that we are going to be studying here using complex, nested
+data is available here:
+http://github.com/arskom/spyne/blob/master/examples/user_manager/server_basic.py
 
 Jumping into what's new: Spyne uses ``ComplexModel`` as a general type that,
 when subclassed, will produce complex serializable types that can be used in a
@@ -128,13 +37,14 @@ Let's also look at the ``User`` class: ::
 Nothing new so far.
 
 Below, you can see that the ``email`` member which has a regular expression
-restriction defined. The ``Unicode`` type accepts other restrictions, please refer to
-the :class:`spyne.model.primitive.Unicode` documentation for more information: ::
+restriction defined. The ``Unicode`` type accepts other restrictions, please
+refer to the :class:`spyne.model.primitive.Unicode` documentation for more
+information: ::
 
         email = Unicode(pattern=r'\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[A-Z]{2,4}\b')
 
-The ``permissions`` attribute is an array, whose native type is a ``list`` of ``Permission``
-objects. ::
+The ``permissions`` attribute is an array, whose native type is a ``list`` of
+``Permission`` objects. ::
 
         permissions = Array(Permission)
 
@@ -150,7 +60,11 @@ representations. ::
         permissions = Permission.customize(max_occurs='unbounded')
 
 With the ``Array`` and ``Iterable`` types, a container class wraps multiple
-occurences of the inner data type.
+occurences of the inner data type. So ``Array(Permission)`` is actually
+equivalent to: ::
+
+        class PermissionArray(ComplexModel):
+            Permisstion = Permission.customize(max_occurs='unbounded')
 
 Here, we need to use the :func:`spyne.model._base.ModelBase.customize` call
 because calling a ``ComplexModel`` subclass instantiates that class, whereas
@@ -212,8 +126,8 @@ What's next?
 This tutorial walks you through what you need to know to expose more complex
 services. You can read the :ref:`manual-sqlalchemy` document where the
 :class:`spyne.model.table.TableModel` class and its helpers are introduced.
-You can also have look at the :ref:`manual-metadata` section where service
-metadata management apis are introduced.
+You can also have look at the :ref:`manual-validation` section where Spyne's
+imperative and declarative input validation features are introduced.
 
 Otherwise, please refer to the rest of the documentation or the mailing list
 if you have further questions.
