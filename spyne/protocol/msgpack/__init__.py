@@ -18,9 +18,7 @@
 #
 
 """The ``spyne.protocol.msgpack`` module contains implementations for protocols
-that use MessagePack as serializer. Because MessagePack is designed to be very
-similar to Json, most of the serialization logic is based on
-:class:`spyne.protocol.json.JsonObject`.
+that use MessagePack as serializer.
 
 Initially released in 2.8.0-rc.
 
@@ -36,7 +34,7 @@ import msgpack
 from spyne.model.complex import Array
 from spyne.model.fault import Fault
 from spyne.protocol import ProtocolBase
-from spyne.protocol import DictObject
+from spyne.protocol.dictobj import DictObject
 
 
 class MessagePackDecodeError(Fault):

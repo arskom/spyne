@@ -57,9 +57,9 @@ from spyne.model.primitive import Decimal
 from spyne.model.primitive import Unicode
 
 from spyne.protocol import ProtocolBase
-from spyne.protocol import DictObject
 from spyne.protocol import unwrap_messages
 from spyne.protocol import unwrap_instance
+from spyne.protocol.dictobj import DictObject
 
 
 class JsonObject(DictObject):

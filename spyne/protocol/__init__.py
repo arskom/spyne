@@ -20,4 +20,3 @@
 from spyne.protocol._base import ProtocolBase
 from spyne.protocol._base import unwrap_instance
 from spyne.protocol._base import unwrap_messages
-from spyne.protocol._dictobj import DictObject
