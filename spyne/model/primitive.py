@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module defines primitives that are atomic, basic types."""
+"""The ``spyne.model.primitive`` package contains atomic, single-value types."""
 
 import sys
 if sys.version > '3':

@@ -17,8 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""You can use the constants here to add colour to your logs. You can use the
-'colorama' package to get ANSI colors in windows.
+"""You can use the constants in this package to add colour to your logs. You can
+use the "colorama" package to get ANSI colors working on windows.
 """
 
 DARK_RED = ""

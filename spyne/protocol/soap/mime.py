@@ -17,8 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains additional logic for using optimized encodings for
-binary when encapsulating Soap 1.1 messages in Http.
+"""The ``spyne.protocol.soap.mime`` module contains additional logic for using
+optimized encodings for binary when encapsulating Soap 1.1 messages in Http.
 
 The functionality in this code is not well tested and is reported NOT TO WORK.
 

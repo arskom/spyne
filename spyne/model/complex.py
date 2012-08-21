@@ -17,8 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains ComplexBase class and its helper objects that are
-mainly container classes that organize other values.
+"""The ``spyne.model`` module contains :class:`spyne.model.complex.ComplexBase`
+class and its helper objects and subclasses. These are mainly container classes.
 """
 
 import decimal

@@ -17,10 +17,15 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains implementations for protocols that use MessagePack as
-serializer.
+"""The ``spyne.protocol.msgpack`` module contains implementations for protocols
+that use MessagePack as serializer. Because MessagePack is designed to be very
+similar to Json, most of the serialization logic is based on
+:class:`spyne.protocol.json.JsonObject`.
 
-This protocol is EXPERIMENTAL.
+Initially released in 2.8.0-rc.
+
+This module is EXPERIMENTAL. You may not recognize the code here next time you
+look at it.
 """
 
 import logging

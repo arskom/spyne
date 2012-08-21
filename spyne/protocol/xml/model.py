@@ -34,6 +34,9 @@ from spyne.util.etreeconv import dict_to_etree
 import spyne.const.xml_ns
 _pref_soap_env = spyne.const.xml_ns.const_prefmap[_ns_soap_env]
 
+"""The ``spyne.protocol.xml.model`` module contains type-specific serialization
+logic.
+"""
 
 def nillable_value(func):
     def wrapper(prot, cls, value, tns, parent_elt, *args, **kwargs):

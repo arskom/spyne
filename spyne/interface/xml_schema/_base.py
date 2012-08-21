@@ -81,6 +81,13 @@ class SchemaInfo(object):
 class XmlSchema(InterfaceDocumentBase):
     """The implementation of a subset of the Xml Schema 1.0 object definition
     document standard.
+
+    The standard is available in three parts as follows:
+    http://www.w3.org/TR/xmlschema-0/
+    http://www.w3.org/TR/xmlschema-1/
+    http://www.w3.org/TR/xmlschema-2/
+
+    :param interface: A :class:`spyne.interface.InterfaceBase` instance.
     """
 
     def __init__(self, interface):

@@ -17,8 +17,13 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains the implementation of a subset of the SOAP 1.1 remote
-procedure call standard.
+"""The ``spyne.protoco.soap.soap11`` module contains the implementation of a
+subset of the Soap 1.1 standard.
+
+Except the binary optimizations that mostly **do not work**, this protocol is
+production quality.
+
+Initially released in soaplib-0.8.0.
 """
 
 import logging
@@ -134,25 +139,25 @@ def _datetime_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'
 _datetime_from_element = TBaseFromElement(lambda cls,s: cls.default_parse(s))
 
 class Soap11(XmlObject):
-    '''The base implementation of the Soap 1.1 protocol.'''
+    """The base implementation of a subset of the Soap 1.1 standard. The
+    document is available here: http://www.w3.org/TR/soap11/
+
+    :param app: A spyne.application.Application instance.
+    :param validator: The validator to use. Currently the only supported
+        value is 'lxml'
+    :param wrapped: Whether the return type should be wrapped in another
+        object. Default is 'True'.
+    :param xml_declaration: Whether to add xml_declaration to the responses
+        Default is 'True'.
+    :param cleanup_namespaces: Whether to add clean up namespace declarations
+        in the response document. Default is 'False'.
+    """
 
     allowed_http_verbs = ['POST']
     mime_type = 'text/xml; charset=utf-8'
 
     def __init__(self, app=None, validator=None, wrapped=True,
                                 xml_declaration=True, cleanup_namespaces=False):
-        """Soap 1.1 Protocol with validators.
-
-        :param app: A spyne.application.Application instance.
-        :param validator: The validator to use. Currently the only supported
-            value is 'lxml'
-        :param wrapped: Whether the return type should be wrapped in another
-            object. Default is 'True'.
-        :param xml_declaration: Whether to add xml_declaration to the responses
-            Default is 'True'.
-        :param cleanup_namespaces: Whether to add clean up namespace declarations
-            in the response document. Default is 'False'.
-        """
         XmlObject.__init__(self, app, validator, xml_declaration,
                                                              cleanup_namespaces)
 

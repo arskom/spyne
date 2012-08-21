@@ -17,4 +17,5 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""The ``spyne.const`` package contains miscellanous constant values."""
+"""The ``spyne.const`` package contains miscellanous constant values needed
+in various parts of Spyne."""
