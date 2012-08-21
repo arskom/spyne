@@ -17,7 +17,14 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains the JsonObject protocol implementation."""
+"""The ``spyne.protocol.json`` package contains the Json-related protocols.
+Currently, only :class:spyne.protocol.json.JsonObject is supported.
+
+Initially released in 2.8.0-rc.
+
+This module is EXPERIMENTAL. You may not recognize the code here next time you
+look at it.
+"""
 
 import logging
 logger = logging.getLogger(__name__)
@@ -50,9 +57,9 @@ from spyne.model.primitive import Decimal
 from spyne.model.primitive import Unicode
 
 from spyne.protocol import ProtocolBase
-from spyne.protocol import DictObject
 from spyne.protocol import unwrap_messages
 from spyne.protocol import unwrap_instance
+from spyne.protocol.dictobj import DictObject
 
 
 class JsonObject(DictObject):

@@ -87,10 +87,10 @@ class memoize(object):
         self.func = func
         self.memo = {}
 
-    def __call__(self, *args):
-        key = tuple(args[1:])
+    def __call__(self, *args, **kwargs):
+        key = (tuple(args), tuple(kwargs.items()))
         if not key in self.memo:
-            self.memo[key] = self.func(*args)
+            self.memo[key] = self.func(*args, **kwargs)
         return self.memo[key]
 
     def reset(self):

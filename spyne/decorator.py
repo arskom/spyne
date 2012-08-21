@@ -17,17 +17,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains the the @srpc decorator and its helper methods. The
-@srpc decorator is responsible for tagging methods as remote procedure calls,
-and also for dynamically defining complex objects that carry the method's input
-parameters and output value(s).
+"""The ``spyne.decorator`` module contains the the @srpc decorator and its
+helper methods. The @srpc decorator is responsible for tagging methods as remote
+procedure calls extracting method's input and output types.
 
 It's possible to create custom decorators that wrap the @srpc decorator in order
 to have a more elegant way of passing frequently-used parameter values. The @rpc
 decorator is a simple example of this.
 """
 
-from spyne._base import MethodDescriptor
+from spyne import MethodDescriptor
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import TypeInfo
 
@@ -133,6 +132,13 @@ def _produce_output_message(f, func_name, kparams):
     return message
 
 def rpc(*params, **kparams):
+    '''Method decorator to tag a method as a remote procedure call. See
+    :func:`spyne.decorator.srpc` for detailed information.
+
+    This decorator enables passing :class:`spyne.MethodContext` instance as an
+    implicit first argument to the user callable.
+    '''
+
     kparams["_no_ctx"] = False
     return srpc(*params, **kparams)
 
@@ -141,6 +147,9 @@ def srpc(*params, **kparams):
 
     The methods tagged with this decorator do not behave like a normal python
     method but return 'MethodDescriptor' object when called.
+
+    The initial "s" stands for "static". In Spyne's context, that means no
+    implicit first argument is passed to the user callable.
 
     You should use the :class:`spyne.server.null.NullServer` transport if you
     want to call the methods directly. You can also use the 'function' attribute

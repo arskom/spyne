@@ -50,8 +50,8 @@ class ServiceBaseMeta(type):
                 self.public_methods[k] = descriptor
                 if descriptor.aux is None:
                     if self.__has_aux_methods and self.__aux__ is None:
-                        raise Exception("you can't mix aux and non-aux methods in "
-                                        "a single service definition.")
+                        raise Exception("you can't mix primary and "
+                            "auxiliary methods in a single service definition.")
                 else:
                     self.__has_aux_methods = True
 

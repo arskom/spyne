@@ -43,6 +43,14 @@ class NullServer(ServerBase):
     to test services without having to run a server.
 
     It implicitly uses the 'sync' auxiliary processing mode.
+
+    Note that:
+        1) **kwargs overwrite **args.
+        2) You can do: ::
+
+                logging.getLogger('spyne.server.null').setLevel(logging.CRITICAL)
+
+            to hide context delimiters in logs.
     """
 
     transport = 'noconn://null.spyne'
@@ -80,7 +88,6 @@ class _FunctionCall(object):
         initial_ctx = MethodContext(self)
         initial_ctx.method_request_string = self.__key
         initial_ctx.in_header = self.__in_header
-        initial_ctx.in_object = args
         initial_ctx.transport.type = NullServer.transport
 
         contexts = self.app.in_protocol.generate_method_contexts(initial_ctx)
@@ -90,6 +97,18 @@ class _FunctionCall(object):
         logger.warning( "%s start request %s" % (_big_header, _big_footer)  )
 
         for ctx in contexts:
+            # this reconstruction is quite costly. I wonder if it's a problem
+            # though.
+            _type_info = ctx.descriptor.in_message._type_info
+            ctx.in_object = [None] * len(_type_info)
+            for i in range(len(args)):
+                ctx.in_object[i] = args[i]
+
+            for i,k in enumerate(_type_info.keys()):
+                val = kwargs.get(k, None)
+                if val is not None:
+                    ctx.in_object[i] = val
+
             if cnt == 0:
                 p_ctx = ctx
             else:
@@ -97,7 +116,6 @@ class _FunctionCall(object):
 
             # do logging.getLogger('spyne.server.null').setLevel(logging.CRITICAL)
             # to hide the following
-
             logger.warning( "%s start context %s" % (_small_header, _small_footer) )
             self.app.process_request(ctx)
             logger.warning( "%s  end context  %s" % (_small_header, _small_footer) )

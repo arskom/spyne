@@ -17,10 +17,13 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains implementations for protocols that use MessagePack as
-serializer.
+"""The ``spyne.protocol.msgpack`` module contains implementations for protocols
+that use MessagePack as serializer.
 
-This protocol is EXPERIMENTAL.
+Initially released in 2.8.0-rc.
+
+This module is EXPERIMENTAL. You may not recognize the code here next time you
+look at it.
 """
 
 import logging
@@ -31,7 +34,7 @@ import msgpack
 from spyne.model.complex import Array
 from spyne.model.fault import Fault
 from spyne.protocol import ProtocolBase
-from spyne.protocol import DictObject
+from spyne.protocol.dictobj import DictObject
 
 
 class MessagePackDecodeError(Fault):
