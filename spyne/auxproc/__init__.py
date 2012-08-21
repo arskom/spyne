@@ -17,15 +17,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""The spyne.auxproc package contains backends to process auxiliary method
+"""The ``spyne.auxproc`` package contains backends to process auxiliary method
 contexts.
 
 "Auxiliary Methods" are methods that run asyncronously once the
-main method returns (either successfully or not). There can be only one main
-method for a given method identifier, zero or more auxiliary methods.
+primary method returns (either successfully or not). There can be only one
+primary method for a given method identifier but zero or more auxiliary methods.
 
 To define multiple auxiliary methods for a given main method, you must use
-separate :class:`ServiceBase` children.
+separate :class:`ServiceBase` subclasses that you pass to the
+:class:`spyne.application.Application` constructor.
 
 Auxiliary methods are a useful abstraction for a variety of asyncronous
 execution methods like persistent or non-persistent queueing, async execution

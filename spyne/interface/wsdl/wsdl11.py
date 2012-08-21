@@ -17,8 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains the Wsdl 1.1 document standard implementation and
-its helper methods."""
+"""The ``spyne.interface.wsdl.wsdl11`` module contains an implementation of a
+subset of the Wsdl 1.1 document standard implementation and its helper methods.
+"""
 
 import logging
 logger = logging.getLogger(__name__)

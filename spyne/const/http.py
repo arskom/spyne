@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""Here are the HTTP Status codes that spyne needs."""
+
 HTTP_200 = '200 OK'
 HTTP_400 = '400 Bad Request'
 HTTP_404 = '404 Method Not Found'

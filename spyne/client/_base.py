@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains the ClientBase class and its helper objects."""
+"""Contains the ClientBase class and its helper objects."""
 
 from spyne._base import MethodContext
 from spyne.model.primitive import string_encoding
@@ -68,7 +68,7 @@ class RemoteProcedureBase(object):
 
     def __call__(self, *args, **kwargs):
         """Serializes its arguments, sends them, receives and deserializes the
-        response."""
+        response and returns it."""
 
         raise NotImplementedError()
 

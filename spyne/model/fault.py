@@ -42,7 +42,7 @@ class Fault(ModelBase, Exception):
         nature of the exception in the Soap response body. (because that's what
         the standard says... Yes, soap is famous for a reason :))
     :param faultstring: It's the human-readable explanation of the exception.
-    :param detail: Additional information as a valid xml document.
+    :param detail: Additional information dict.
     """
 
     __type_name__ = "Fault"

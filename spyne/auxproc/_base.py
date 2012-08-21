@@ -18,8 +18,9 @@
 #
 
 
-"""This module contains base classes for Auxiliary Method Processors ('AuxProc's
-for short). AuxProcs define how an auxiliary method is going to be executed.
+"""Base class and other helper methods for Auxiliary Method Processors
+('AuxProc's for short). AuxProcs define how an auxiliary method is going to be
+executed.
 """
 
 import logging

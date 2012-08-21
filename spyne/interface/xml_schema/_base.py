@@ -17,9 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains the implementation of the Xml Schema standard and its
-helper methods and objects."""
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -82,8 +79,8 @@ class SchemaInfo(object):
 
 
 class XmlSchema(InterfaceDocumentBase):
-    """The implementation of the  Xml Schema object definition document
-    standard.
+    """The implementation of a subset of the Xml Schema 1.0 object definition
+    document standard.
     """
 
     def __init__(self, interface):
@@ -133,8 +130,7 @@ class XmlSchema(InterfaceDocumentBase):
         self.interface.event_manager.fire_event('document_built', self.schema_dict)
 
     def build_validation_schema(self):
-        """Build application schema specifically for xml validation purposes.
-        """
+        """Build application schema specifically for xml validation purposes."""
 
         self.build_schema_nodes(with_schema_location=True)
 

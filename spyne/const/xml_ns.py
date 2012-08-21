@@ -17,6 +17,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""The ``spyne.const.xml`` module contains various XML-related constants like
+namespace prefixes, namespace values and schema uris.
+"""
+
+#SHOULDHAVEFIXEDME: These are constants, so should have been all UPPERCASE.
+
 xml = 'http://www.w3.org/XML/1998/namespace'
 xsd = 'http://www.w3.org/2001/XMLSchema'
 xsi = 'http://www.w3.org/2001/XMLSchema-instance'

@@ -18,7 +18,8 @@
 #
 
 
-"""This module contains the InterfaceBase class and its helper objects."""
+"""This module contains the Interface and InterfaceDocumentBase class and its
+helper objects."""
 
 import logging
 logger = logging.getLogger(__name__)

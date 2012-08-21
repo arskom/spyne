@@ -7,7 +7,7 @@ own remote procedure call api and the application programmers the hassle of
 jumping through hoops just to expose their services using multiple protocols and
 transports.
 
-In other words, Spyne is framework for building distributed solutions that
+In other words, Spyne is a framework for building distributed solutions that
 strictly follow the MVC pattern, where Model = `spyne.model`,
 View = `spyne.protocol` and Controller = `user code`.
 
@@ -16,9 +16,9 @@ interface document standards along with a well-defined API that lets you
 build on existing functionality.
 
 Spyne currently supports the WSDL 1.1 interface description standard,
-along with SOAP 1.1 and the so-called HttpRpc and JsonObject protocols which
-can be transported via Http or ZeroMQ. The transports can be used in both a
-client or server setting.
+along with SOAP 1.1 and the so-called HttpRpc, XmlObject, JsonObject,
+MessagePackObject and MessagePackRpc protocols which can be transported via Http
+or ZeroMQ. The transports can be used in both a client or server setting.
 
 The following are the primary sources of information about spyne:
 
