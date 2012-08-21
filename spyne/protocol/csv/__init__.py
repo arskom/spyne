@@ -17,19 +17,25 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from __future__ import absolute_import
+"""The ``spyne.protocol.csv`` package contains the Csv output protocol.
+
+This protocol is here merely for illustration purposes. While it is in a
+somewhat working state, it is not that easy to use. Expect a revamp in the
+coming versions.
+"""
 
 import logging
 logger = logging.getLogger(__name__)
 
 import csv
 
+from spyne.protocol import ProtocolBase
+
 try:
     from cStringIO import StringIO
 except ImportError: # Python 3
     from io import StringIO
 
-from spyne.protocol import ProtocolBase
 
 def _complex_to_csv(ctx):
     cls, = ctx.descriptor.out_message._type_info.values()
@@ -71,6 +77,7 @@ def _complex_to_csv(ctx):
                 yield queue.getvalue()
                 queue.truncate(0)
 
+
 class Csv(ProtocolBase):
     mime_type = 'text/csv'
 
@@ -90,6 +97,3 @@ class Csv(ProtocolBase):
         ctx.out_string = _complex_to_csv(ctx)
         ctx.transport.resp_headers['Content-Disposition'] = (
                          'attachment; filename=%s.csv;' % ctx.descriptor.name)
-
-OutCsv = Csv
-"""DEPRECATED: Use :class:`Csv` instead."""

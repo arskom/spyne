@@ -17,8 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains ComplexBase class and its helper objects that are
-mainly container classes that organize other values.
+"""The ``spyne.model`` module contains :class:`spyne.model.complex.ComplexBase`
+class and its helper objects and subclasses. These are mainly container classes.
 """
 
 import decimal
@@ -84,7 +84,7 @@ class XmlAttribute(ModelBase):
 
 
 class XmlAttributeRef(XmlAttribute):
-    """Reference to stock XML attribute."""
+    """Reference to an Xml attribute."""
 
     def __init__(self, ref, use=None):
         self._ref = ref
@@ -97,6 +97,10 @@ class XmlAttributeRef(XmlAttribute):
 
 
 class SelfReference(object):
+    '''Use this as a placeholder type in classes that contain themselves. See
+    :func:`spyne.test.model.test_complex.TestComplexModel.test_self_reference`.
+    '''
+
     def __init__(self):
         raise NotImplementedError()
 
@@ -215,7 +219,7 @@ class ComplexModelBase(ModelBase):
 
     @classmethod
     def get_serialization_instance(cls, value):
-        """The value argument can be:
+        """:param value: This argument can be:
             * A list of native types aligned with cls._type_info.
             * A dict of native types
             * The native type itself.
@@ -284,6 +288,9 @@ class ComplexModelBase(ModelBase):
     @staticmethod
     def get_flat_type_info(cls, retval=None):
         """Returns a _type_info dict that includes members from all base classes.
+
+        It's called a "flat" dict because it flattens all members from the
+        inheritance hierarchy into one dict.
         """
 
         if retval is None:
@@ -343,12 +350,12 @@ class ComplexModelBase(ModelBase):
     @classmethod
     @nillable_string
     def to_string(cls, value):
-        raise Exception("Only primitives can be serialized to string.")
+        raise ValueError("Only primitives can be serialized to string.")
 
     @classmethod
     @nillable_string
     def from_string(cls, string):
-        raise Exception("Only primitives can be deserialized from string.")
+        raise ValueError("Only primitives can be deserialized from string.")
 
     @staticmethod
     def resolve_namespace(cls, default_ns):

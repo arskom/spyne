@@ -18,21 +18,9 @@
 #
 
 
-"""Module that contains base classes for Auxiliary Method Processors (AuxProcs
-for short).
-
-What we call "Auxiliary Methods" are methods that run asyncronously once the
-main method returns (either successfully or not). There can be only one main
-method for a given method identifier, zero or more auxiliary methods.
-
-To define multiple auxiliary methods for a given main method, you must use
-separate :class:`ServiceBase` children.
-
-Auxiliary methods are a useful abstraction for a variety of asyncronous
-execution methods like persistent or non-persistent queueing, async execution
-in another thread, process or node.
-
-AuxProcs define how an auxiliary method is going to be executed.
+"""Base class and other helper methods for Auxiliary Method Processors
+('AuxProc's for short). AuxProcs define how an auxiliary method is going to be
+executed.
 """
 
 import logging

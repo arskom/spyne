@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""The ``spyne.model.binary`` package contains binary type markers."""
+
 import os
 import base64
 import tempfile
@@ -34,11 +36,11 @@ from spyne.model import SimpleModel
 
 
 class ByteArray(SimpleModel):
-    """Handles anything other than ascii or unicode-encoded data. Every protocol
-    has a different way to handle arbitrary data. E.g. xml-based protocols
-    encode this as base64, while HttpRpc just hands it over.
+    """Every protocol has a different way to handle arbitrary data.
+    E.g. xml-based protocols encode this as base64, while HttpRpc just hands it over.
 
-    Its native python format is an iterable of strings.
+    Its native python format is an sequence of ``str`` objects for Python 2.x
+    and a sequence of ``bytes`` objects for Python 3.x.
     """
 
     __type_name__ = 'base64Binary'
@@ -74,11 +76,23 @@ class ByteArray(SimpleModel):
         return [base64.b64decode(_bytes_join(value))]
 
 class File(ModelBase):
+    """This type is needed because some protocols prefer to transport file data
+    almost out-of-band.
+    """
+
     __type_name__ = 'base64Binary'
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
 
     def __init__(self, name=None, path=None, type='application/octet-stream',
-            data=None, handle=None):
+                                                        data=None, handle=None):
+        """:param name: Original name of the file
+        :param path: Current path to the file.
+        :param type: The mime type of the file's contents.
+        :param data: Optional sequence of ``str`` or ``bytes`` instances that
+        contatin the file's data.
+        :param handle: File object that contain the file's data. It is ignored
+        unless the ``path`` argument is ``None``.
+        """
         self.name = name
         if self.name is not None:
             assert os.path.basename(self.name) == self.name
@@ -97,6 +111,12 @@ class File(ModelBase):
         self.handle = handle
 
     def rollover(self):
+        """This method normalizes the file object by making ``path``, ``name``
+        and ``handle`` properties consistent. It then writes incoming data to
+        the file object and points the ``data`` iterable to the contents of
+        this file.
+        """
+
         iter(self.data)
 
         if self.path is None:
@@ -119,8 +139,8 @@ class File(ModelBase):
     @classmethod
     @nillable_iterable
     def to_string_iterable(cls, value):
-        assert value.path, "You need to write data to disk if you want to " \
-                           "read it back."
+        assert value.path, "You need to write data to persistent storage first " \
+                           "if you want to read it back."
 
         if value.handle is None:
             f = open(value.path, 'rb')
@@ -144,12 +164,12 @@ class File(ModelBase):
     @classmethod
     @nillable_string
     def to_base64(cls, value):
-        assert value.path, "You need to write data to disk if you want to " \
-                           "read it back."
+        assert value.path, "You need to write data to persistent storage first " \
+                           "if you want to read it back."
 
         f = open(value.path, 'rb')
 
-        data = f.read(0x4000)
+        data = f.read(0x4000) # this needs to be a multiple of 4
         while len(data) > 0:
             yield base64.b64encode(data)
             data = f.read(0x4000)

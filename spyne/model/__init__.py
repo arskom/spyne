@@ -17,7 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""Models are mere type markers, they are not of much use without protocols.
+"""The ``spyne.model`` package contains data types that spyne is able to
+distinguish. These are mere type markers, they are not of much use without
+protocols.
 """
 
 from spyne.model._base import ModelBase

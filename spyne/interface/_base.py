@@ -18,7 +18,8 @@
 #
 
 
-"""This module contains the InterfaceBase class and its helper objects."""
+"""This module contains the Interface and InterfaceDocumentBase class and its
+helper objects."""
 
 import logging
 logger = logging.getLogger(__name__)
@@ -329,7 +330,10 @@ class Interface(object):
 
 
 class InterfaceDocumentBase(object):
-    """Base class for all interface document implementations"""
+    """Base class for all interface document implementations.
+
+    :param interface: A :class:`spyne.interface.InterfaceBase` instance.
+    """
 
     def __init__(self, interface):
         self.interface = interface

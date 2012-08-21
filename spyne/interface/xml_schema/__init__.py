@@ -17,4 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""The spyne.interface.xml_schema package contains an implementation of a subset
+of the Xml Schema 1.0 standard. Volunteers are needed to see whether the brand
+new Xml Schema 1.1 standard is worth the trouble, and patch as necessary.
+"""
+
 from spyne.interface.xml_schema._base import XmlSchema

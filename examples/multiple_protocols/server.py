@@ -59,6 +59,8 @@ from spyne.protocol.soap import Soap11
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.html import HtmlMicroFormat
 from spyne.protocol.json import JsonObject
+from spyne.protocol.msgpack import MessagePackObject
+from spyne.protocol.msgpack import MessagePackRpc
 
 from protocol import PngClock
 from protocol import SvgClock
@@ -94,6 +96,12 @@ if __name__ == '__main__':
     json = Application([HelloWorldService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=JsonObject())
 
+    msgpack_object = Application([HelloWorldService], tns=tns,
+            in_protocol=HttpRpc(), out_protocol=MessagePackObject())
+
+    msgpack_rpc = Application([HelloWorldService], tns=tns,
+            in_protocol=HttpRpc(), out_protocol=MessagePackRpc())
+
     root = WsgiMounter({
         'rest': rest,
         'xml': xml,
@@ -102,6 +110,8 @@ if __name__ == '__main__':
         'png': png,
         'svg': svg,
         'json': json,
+        'mpo': msgpack_object,
+        'mprpc': msgpack_object,
     })
 
     from wsgiref.simple_server import make_server

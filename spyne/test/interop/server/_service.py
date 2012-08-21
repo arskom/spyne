@@ -185,6 +185,10 @@ class InteropPrimitive(ServiceBase):
     def echo_datetime(dt):
         return dt
 
+    @srpc(DateTime(format='ignored'), _returns=DateTime)
+    def echo_datetime_with_invalid_format(dt):
+        return dt
+
     @srpc(Float, _returns=Float)
     def echo_float(f):
         return f

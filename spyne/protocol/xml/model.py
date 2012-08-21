@@ -34,6 +34,9 @@ from spyne.util.etreeconv import dict_to_etree
 import spyne.const.xml_ns
 _pref_soap_env = spyne.const.xml_ns.const_prefmap[_ns_soap_env]
 
+"""The ``spyne.protocol.xml.model`` module contains type-specific serialization
+logic.
+"""
 
 def nillable_value(func):
     def wrapper(prot, cls, value, tns, parent_elt, *args, **kwargs):
@@ -62,19 +65,23 @@ def nillable_element(func):
     return wrapper
 
 
-@nillable_element
-def base_from_element(prot, cls, element):
-    if prot.validator is prot.SOFT_VALIDATION and not (
-                                        cls.validate_string(cls, element.text)):
-        raise ValidationError(element.text)
+def TBaseFromElement(callable):
+    @nillable_element
+    def base_from_element(prot, cls, element):
+        if prot.validator is prot.SOFT_VALIDATION and not (
+                                            cls.validate_string(cls, element.text)):
+            raise ValidationError(element.text)
 
-    retval = cls.from_string(element.text)
+        retval = callable(cls, element.text)
 
-    if prot.validator is prot.SOFT_VALIDATION and not (
-                                        cls.validate_native(cls, retval)):
-        raise ValidationError(element.text)
-    return retval
+        if prot.validator is prot.SOFT_VALIDATION and not (
+                                            cls.validate_native(cls, retval)):
+            raise ValidationError(element.text)
+        return retval
 
+    return base_from_element
+
+base_from_element = TBaseFromElement(lambda cls, s: cls.from_string(s))
 
 @nillable_value
 def base_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):

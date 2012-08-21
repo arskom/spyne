@@ -17,8 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains Enum object and its helper objects."""
-
 from spyne.model import SimpleModel
 
 # adapted from: http://code.activestate.com/recipes/413486/
@@ -38,8 +36,38 @@ class EnumBase(SimpleModel):
             )
 
 def Enum(*values, **kwargs):
+    """The snob enum type. Here's how it's supposed to work:
+
+    >>> from spyne.model.enum import Enum
+    >>> SomeEnum = SomeEnum("SomeValue", "SomeOtherValue", type_name="SomeEnum")
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+    NameError: name 'SomeEnum' is not defined
+    >>> SomeEnum = Enum("SomeValue", "SomeOtherValue", type_name="SomeEnum")
+    >>> SomeEnum.SomeValue == SomeEnum.SomeOtherValue
+    False
+    >>> SomeEnum.SomeValue == SomeEnum.SomeValue
+    True
+    >>> SomeEnum.SomeValue is SomeEnum.SomeValue
+    True
+    >>> SomeEnum.SomeValue == 0
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "/home/plq/src/github/plq/spyne/spyne/model/enum.py", line 61, in __cmp__
+        "Only values from the same enum are comparable"
+    >>> SomeEnum2 = Enum("SomeValue", "SomeOtherValue", type_name="SomeEnum")
+    >>> SomeEnum2.SomeValue == SomeEnum.SomeValue
+    Traceback (most recent call last):
+      File "<stdin>", line 1, in <module>
+      File "/home/plq/src/github/plq/spyne/spyne/model/enum.py", line 61, in __cmp__
+        In the above example, ``SomeEnum`` can be used as a regular Spyne model.
+    AssertionError: Only values from the same enum are comparable
+
+    In the above example, ``SomeEnum`` can be used as a regular Spyne model.
+    """
+
     type_name = kwargs.get('type_name', None)
-    docstr = kwargs.get('__doc__', '')
+    docstr = kwargs.get('doc', '')
     if type_name is None:
         raise Exception("Please specify 'type_name' as a keyword argument")
 

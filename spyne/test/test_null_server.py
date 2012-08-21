@@ -45,5 +45,30 @@ class TestNullServer(unittest.TestCase):
 
         assert set(["zabaaa"]) == queue
 
+    def test_call(self):
+        queue = set()
+
+        class MessageService(ServiceBase):
+            @srpc(String, String)
+            def send_message(s, k):
+                queue.add((s,k))
+
+        application = Application([MessageService], 'some_tns',
+            interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
+
+        server = NullServer(application)
+
+        queue.clear()
+        server.service.send_message("zabaaa", k="hobaa")
+        assert set([("zabaaa","hobaa")]) == queue
+
+        queue.clear()
+        server.service.send_message(k="hobaa")
+        assert set([(None,"hobaa")]) == queue
+
+        queue.clear()
+        server.service.send_message("zobaaa", s="hobaa")
+        assert set([("hobaa", None)]) == queue
+
 if __name__ == '__main__':
     unittest.main()
