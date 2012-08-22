@@ -1,4 +1,4 @@
-
+# encoding: utf8
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -356,7 +356,7 @@ class _HtmlColumnTable(_HtmlTableBase):
 
             else:
                 raise NotImplementedError("Can only serialize Array(...) types")
-            
+
             value = value[0]
 
         else:
@@ -489,7 +489,7 @@ class _HtmlRowTable(_HtmlTableBase):
             else:
                 if issubclass(first_child, ComplexModelBase):
                     sti = first_child.get_simple_type_info(first_child)
-            
+
             value = value[0]
 
         else:
