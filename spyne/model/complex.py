@@ -137,7 +137,7 @@ class ComplexModelMeta(type(ModelBase)):
                         logger.error(repr(extends))
                         raise
 
-        # populate soap members
+        # populate children
         if not ('_type_info' in cls_dict):
             cls_dict['_type_info'] = _type_info = TypeInfo()
 
@@ -419,6 +419,8 @@ class ComplexModelBase(ModelBase):
 
         retval = type(cls_name, cls_bases, cls_dict)
         retval._type_info = cls._type_info
+        retval.__type_name__ = cls.__type_name__
+        retval.__namespace__ = cls.__namespace__
 
         e = getattr(retval, '__extends__', None)
         if e != None:
