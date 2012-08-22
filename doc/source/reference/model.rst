@@ -39,9 +39,7 @@ Complex
 Enum
 ----
 
-.. autoclass:: spyne.model.enum.Enum
-   :members:
-   :show-inheritance:
+.. autofunc:: spyne.model.enum.Enum
 
 Fault
 -----

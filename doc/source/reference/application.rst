@@ -7,5 +7,3 @@ Application Definition
     :inherited-members:
 
 .. autofunction:: spyne.application.return_traceback_in_unhandled_exceptions
-    :members:
-    :inherited-members:
