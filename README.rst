@@ -65,10 +65,10 @@ of Spyne:
 * `Werkzeug <http://werkzeug.pocoo.org/>`_ is needed for
   :class:`spyne.protocol.http.HttpRpc`.
 * `Twisted <http://twistedmatrix.com/>`_ is needed for
-  :class:`spyne.server.twisted` and
-  :class:`spyne.client.twisted`.
+  :class:`spyne.server.twisted.TwistedWebResource` and
+  :class:`spyne.client.twisted.TwistedHttpClient`.
 * `Django <http://djangoproject.com/>`_ is needed for
-  :class:`spyne.server.django`.
+  :class:`spyne.server.django.DjangoApplication`.
 * `MessagePack <http://github.com/msgpack/msgpack-python/>`_ is needed for
   :class:`spyne.protocol.msgpack`.
 
