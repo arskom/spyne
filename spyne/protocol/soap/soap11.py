@@ -17,8 +17,13 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains the implementation of a subset of the SOAP 1.1 remote
-procedure call standard.
+"""The ``spyne.protoco.soap.soap11`` module contains the implementation of a
+subset of the Soap 1.1 standard.
+
+Except the binary optimizations that mostly **do not work**, this protocol is
+production quality.
+
+Initially released in soaplib-0.8.0.
 """
 
 import logging
@@ -38,7 +43,10 @@ from spyne.const.ansi_color import LIGHT_RED
 from spyne.const.ansi_color import END_COLOR
 from spyne.error import RequestNotAllowed
 from spyne.model.fault import Fault
+from spyne.model.primitive import DateTime
 from spyne.protocol.xml import XmlObject
+from spyne.protocol.xml.model import nillable_value
+from spyne.protocol.xml.model import TBaseFromElement
 from spyne.protocol.soap.mime import collapse_swa
 
 def _from_soap(in_envelope_xml, xmlids=None):
@@ -123,30 +131,42 @@ def resolve_hrefs(element, xmlids):
 
     return element
 
+@nillable_value
+def _datetime_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
+    e = etree.SubElement(parent_elt, '{%s}%s' % (tns, name))
+    e.text = value.isoformat()
+
+_datetime_from_element = TBaseFromElement(lambda cls,s: cls.default_parse(s))
+
 class Soap11(XmlObject):
-    '''The base implementation of the Soap 1.1 protocol.'''
+    """The base implementation of a subset of the Soap 1.1 standard. The
+    document is available here: http://www.w3.org/TR/soap11/
+
+    :param app: A spyne.application.Application instance.
+    :param validator: The validator to use. Currently the only supported
+        value is 'lxml'
+    :param wrapped: Whether the return type should be wrapped in another
+        object. Default is 'True'.
+    :param xml_declaration: Whether to add xml_declaration to the responses
+        Default is 'True'.
+    :param cleanup_namespaces: Whether to add clean up namespace declarations
+        in the response document. Default is 'False'.
+    """
 
     allowed_http_verbs = ['POST']
     mime_type = 'text/xml; charset=utf-8'
 
     def __init__(self, app=None, validator=None, wrapped=True,
                                 xml_declaration=True, cleanup_namespaces=False):
-        """Soap 1.1 Protocol with validators.
-
-        :param app: A spyne.application.Application instance.
-        :param validator: The validator to use. Currently the only supported
-            value is 'lxml'
-        :param wrapped: Whether the return type should be wrapped in another
-            object. Default is 'True'.
-        :param xml_declaration: Whether to add xml_declaration to the responses
-            Default is 'True'.
-        :param cleanup_namespaces: Whether to add clean up namespace declarations
-            in the response document. Default is 'False'.
-        """
         XmlObject.__init__(self, app, validator, xml_declaration,
                                                              cleanup_namespaces)
 
         self.__wrapped = wrapped
+
+        # SOAP requires DateTime strings to be in iso format. This function
+        # bypasses datetime formatting via DateTime(format="...") string.
+        self.serialization_handlers[DateTime] = _datetime_to_parent_element
+        self.deserialization_handlers[DateTime] = _datetime_from_element
 
     @property
     def wrapped(self):

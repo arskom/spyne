@@ -71,9 +71,15 @@ class SchemaValidationError(Fault):
     def __init__(self, faultstring):
         Fault.__init__(self, 'Client.SchemaValidationError', faultstring)
 
+
 class XmlObject(ProtocolBase):
     """The protocol that serializes python objects to xml using schema
     conventions.
+
+    See the following material for more (much much more!) information.
+    http://www.w3.org/TR/xmlschema-0/
+    http://www.w3.org/TR/xmlschema-1/
+    http://www.w3.org/TR/xmlschema-2/
 
     :param app: The owner application instance.
     :param validator: One of (None, 'soft', 'lxml', 'schema',

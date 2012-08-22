@@ -36,7 +36,7 @@ from spyne.client import RemoteProcedureBase
 class _RemoteProcedure(RemoteProcedureBase):
     def __call__(self, *args, **kwargs):
         # there's no point in having a client making the same request more than
-        # once, so if there's more than just one context, it's rather a bug.
+        # once, so if there's more than just one context, it is a bug.
         # the comma-in-assignment trick is a general way of getting the first
         # and the only variable from an iterable. so if there's more than one
         # element in the iterable, it'll fail miserably.

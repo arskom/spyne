@@ -7,8 +7,8 @@ own remote procedure call api and the application programmers the hassle of
 jumping through hoops just to expose their services using multiple protocols and
 transports.
 
-In other words, Spyne is framework for building distributed solutions that
-strictly follow the MVC pattern, where Model = `spyne.model`,
+From another perspective, Spyne is a framework for building distributed
+solutions that strictly follow the MVC pattern, where Model = `spyne.model`,
 View = `spyne.protocol` and Controller = `user code`.
 
 Spyne comes with the implementations of popular transport, protocol and
@@ -16,9 +16,9 @@ interface document standards along with a well-defined API that lets you
 build on existing functionality.
 
 Spyne currently supports the WSDL 1.1 interface description standard,
-along with SOAP 1.1 and the so-called HttpRpc, JsonObject and MessagePack
-protocols which can be transported via Http or ZeroMQ. The transports can be
-used in both a client or server setting.
+along with SOAP 1.1 and the so-called HttpRpc, XmlObject, JsonObject,
+MessagePackObject and MessagePackRpc protocols which can be transported via Http
+or ZeroMQ. The transports can be used in both a client or server setting.
 
 The following are the primary sources of information about spyne:
 
@@ -55,12 +55,22 @@ both of which are available through ``easy_install``.
 Additionally the following software packages are needed for various subsystems
 of Spyne:
 
-* `SQLAlchemy <http://sqlalchemy.org>`_ for :class:`spyne.model.table.TableModel`.
-* `pyzmq <https://github.com/zeromq/pyzmq>`_ for
+* A Wsgi server of your choice is needed to wrap
+  :class:`spyne.server.wsgi.WsgiApplication`.
+* `SQLAlchemy <http://sqlalchemy.org>`_ is needed for
+  :class:`spyne.model.table.TableModel`.
+* `pyzmq <https://github.com/zeromq/pyzmq>`_ is needed for
   :class:`spyne.client.zeromq.ZeroMQClient` and
   :class:`spyne.server.zeromq.ZeroMQServer`.
-* A Wsgi server of your choice to wrap :class:`spyne.server.wsgi.WsgiApplication`.
-* `Werkzeug <http://werkzeug.pocoo.org/>`_ is needed for :class:`spyne.protocol.http.HttpRpc`.
+* `Werkzeug <http://werkzeug.pocoo.org/>`_ is needed for
+  :class:`spyne.protocol.http.HttpRpc`.
+* `Twisted <http://twistedmatrix.com/>`_ is needed for
+  :class:`spyne.server.twisted.TwistedWebResource` and
+  :class:`spyne.client.twisted.TwistedHttpClient`.
+* `Django <http://djangoproject.com/>`_ is needed for
+  :class:`spyne.server.django.DjangoApplication`.
+* `MessagePack <http://github.com/msgpack/msgpack-python/>`_ is needed for
+  :class:`spyne.protocol.msgpack`.
 
 You are advised to add these as requirements to your own projects, as these are
 only optional dependencies of Spyne, thus not handled in its setup script.

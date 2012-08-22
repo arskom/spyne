@@ -17,8 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains a server implementation that uses ZeroMQ (zmq.REP) as
-transport.
+"""The ``spyne.server.zeromq`` module contains a server implementation that
+uses ZeroMQ (zmq.REP) as transport.
 """
 
 import zmq
