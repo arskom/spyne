@@ -56,21 +56,21 @@ Additionally the following software packages are needed for various subsystems
 of Spyne:
 
 * A Wsgi server of your choice is needed to wrap
-  :class:`spyne.server.wsgi.WsgiApplication`.
+  ``spyne.server.wsgi.WsgiApplication``
 * `SQLAlchemy <http://sqlalchemy.org>`_ is needed for
-  :class:`spyne.model.table.TableModel`.
+  ``spyne.model.table.TableModel``.
 * `pyzmq <https://github.com/zeromq/pyzmq>`_ is needed for
-  :class:`spyne.client.zeromq.ZeroMQClient` and
-  :class:`spyne.server.zeromq.ZeroMQServer`.
+  ``spyne.client.zeromq.ZeroMQClient`` and
+  ``spyne.server.zeromq.ZeroMQServer``.
 * `Werkzeug <http://werkzeug.pocoo.org/>`_ is needed for
-  :class:`spyne.protocol.http.HttpRpc`.
+  ``spyne.protocol.http.HttpRpc``.
 * `Twisted <http://twistedmatrix.com/>`_ is needed for
-  :class:`spyne.server.twisted.TwistedWebResource` and
-  :class:`spyne.client.twisted.TwistedHttpClient`.
+  ``spyne.server.twisted.TwistedWebResource`` and
+  ``spyne.client.twisted.TwistedHttpClient``.
 * `Django <http://djangoproject.com/>`_ is needed for
-  :class:`spyne.server.django.DjangoApplication`.
+  ``spyne.server.django.DjangoApplication``.
 * `MessagePack <http://github.com/msgpack/msgpack-python/>`_ is needed for
-  :class:`spyne.protocol.msgpack`.
+  ``spyne.protocol.msgpack``.
 
 You are advised to add these as requirements to your own projects, as these are
 only optional dependencies of Spyne, thus not handled in its setup script.
