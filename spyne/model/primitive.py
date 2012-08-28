@@ -574,7 +574,6 @@ class DateTime(SimpleModel):
 
         return cls.parse(match)
 
-
     @classmethod
     @nillable_string
     def from_string(cls, string):
@@ -588,7 +587,7 @@ class DateTime(SimpleModel):
 
 
 class Date(DateTime):
-    """Just that, Date. It also supports time zones.
+    """Just that, Date. No time zone support.
 
     Native type is :class:`datetime.date`.
     """
