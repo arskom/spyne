@@ -39,7 +39,7 @@ Complex
 Enum
 ----
 
-.. function:: spyne.model.enum.Enum
+.. autofunction:: spyne.model.enum.Enum
 
 Fault
 -----
