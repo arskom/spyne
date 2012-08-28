@@ -93,8 +93,8 @@ class HtmlBase(ProtocolBase):
         :param field_type_attr: The name of the attribute that will contain the
             type names of the complex object children.
         :param skip_depth: Number of wrapper classes to ignore. This is
-        typically one of (0, 1, 2) but higher numbers may also work for your
-        case.
+            typically one of (0, 1, 2) but higher numbers may also work for your
+            case.
         """
 
         ProtocolBase.__init__(self, app, validator, skip_depth=skip_depth)
@@ -435,7 +435,7 @@ class _HtmlColumnTable(_HtmlTableBase):
 def _subvalue_to_html(cls, value):
     if issubclass(cls.type, AnyUri):
         href = getattr(value, 'href', None)
-        if href is None: # this is not a UriValue instance.
+        if href is None: # this is not a AnyUri.Value instance.
             href = value
             text = getattr(cls.type.Attributes, 'text', None)
             content = None

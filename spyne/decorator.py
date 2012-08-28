@@ -162,6 +162,13 @@ def srpc(*params, **kparams):
     :param _in_message_name: The public name of the function.
     :param _in_variable_names: The public names of the function arguments. It's
         a dict that maps argument names in the code to public ones.
+    :param _out_variable_name: The public name of the function response object.
+        It's a string. Ignored when ``_body_style != 'wrapped'`` or ``_returns``
+        is a sequence.
+    :param _out_variable_names: The public name of the function response object.
+        It's a sequence of strings. Ignored when ``_body_style != 'wrapped'`` or
+        or ``_returns`` is not a sequence. Must be the same length as
+        ``_returns``.
     :param _body_style: One of ``('bare', 'wrapped')``. Default: ``'wrapped'``.
         In wrapped mode, wraps response objects in an additional class for
         protocols that support it. (e.g. Soap)

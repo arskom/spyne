@@ -36,10 +36,11 @@ from spyne.model import SimpleModel
 
 
 class ByteArray(SimpleModel):
-    """Every protocol has a different way to handle arbitrary data.
-    E.g. xml-based protocols encode this as base64, while HttpRpc just hands it over.
+    """Canonical container for arbitrary data. Every protocol has a different
+    way of encapsulating this type. E.g. xml-based protocols encode this as
+    base64, while HttpRpc just hands it over.
 
-    Its native python format is an sequence of ``str`` objects for Python 2.x
+    Its native python format is a sequence of ``str`` objects for Python 2.x
     and a sequence of ``bytes`` objects for Python 3.x.
     """
 
@@ -76,8 +77,10 @@ class ByteArray(SimpleModel):
         return [base64.b64decode(_bytes_join(value))]
 
 class File(ModelBase):
-    """This type is needed because some protocols prefer to transport file data
-    almost out-of-band.
+
+class File(SimpleModel):
+    """A compact way of dealing with incoming files for protocols with a
+    standard way of encoding file metadata along with binary data. (E.g. Http)
     """
 
     __type_name__ = 'base64Binary'
@@ -185,9 +188,8 @@ class File(ModelBase):
         return "File(name=%r, path=%r, type=%r, data=%r)" % (self.name,
                                                 self.path, self.type, self.data)
 
+# **DEPRECATED!** Use ByteArray or File instead.
 class Attachment(ModelBase):
-    """**DEPRECATED!** Use ByteArray or File instead."""
-
     __type_name__ = 'base64Binary'
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
 
