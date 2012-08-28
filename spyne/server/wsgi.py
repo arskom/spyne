@@ -91,7 +91,7 @@ class WsgiMethodContext(HttpMethodContext):
 
 
 class WsgiApplication(HttpBase):
-    '''A `PEP-3333 <http://www.python.org/dev/peps/pep-3333/#preface-for-readers-of-pep-333>`_
+    '''A `PEP-3333 <http://www.python.org/dev/peps/pep-3333>`_
     compliant callable class.
 
     Supported events:
@@ -111,6 +111,10 @@ class WsgiApplication(HttpBase):
 
         * ``wsgi_error``
             Called right before returning the exception to the client.
+
+        * ``wsgi_close``
+            Called after the whole data has been returned to the client. It's
+            called both from success and error cases.
     '''
 
     def __init__(self, app, chunked=True):

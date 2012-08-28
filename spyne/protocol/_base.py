@@ -34,10 +34,7 @@ from spyne.error import Fault
 from spyne.error import ResourceNotFoundError
 from spyne.error import RequestTooLongError
 from spyne.error import RequestNotAllowed
-from spyne.error import ValidationError
 
-from spyne.model.binary import File
-from spyne.model.binary import ByteArray
 from spyne.model.complex import ComplexModelBase
 
 
@@ -93,16 +90,16 @@ class ProtocolBase(object):
 
     The arguments the constructor takes are as follows:
 
-        :param app: The application this protocol belongs to.
-        :param validator: The type of validation this protocol should do on
-            incoming data.
-        :param mime_type: The mime_type this protocol should set for transports
-            that support this. This is a quick way to override the mime_type by
-            default instead of subclassing the releavant protocol implementation.
-        :param skip_depth: Number of wrapper classes to ignore. This is
+    :param app: The application this protocol belongs to.
+    :param validator: The type of validation this protocol should do on
+        incoming data.
+    :param mime_type: The mime_type this protocol should set for transports
+        that support this. This is a quick way to override the mime_type by
+        default instead of subclassing the releavant protocol implementation.
+    :param skip_depth: Number of wrapper classes to ignore. This is
         typically one of (0, 1, 2) but higher numbers may also work for your
         case.
-        """
+    """
 
     allowed_http_verbs = None
     mime_type = 'application/octet-stream'
@@ -124,10 +121,6 @@ class ProtocolBase(object):
 
     @property
     def app(self):
-        """The :class:`spyne.application.Application` instance this protocol
-        belongs to.
-        """
-
         return self.__app
 
     def set_app(self, value):

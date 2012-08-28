@@ -4,6 +4,8 @@
 Auxiliary Processors
 ====================
 
+.. automodule:: spyne.auxproc
+
 AuxProcBase
 -----------
 
