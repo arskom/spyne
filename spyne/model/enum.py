@@ -36,13 +36,11 @@ class EnumBase(SimpleModel):
             )
 
 def Enum(*values, **kwargs):
-    """The snob enum type. Here's how it's supposed to work:
+    """The enum type that only returns true when compared to types of own type.
+
+    Here's how it's supposed to work:
 
     >>> from spyne.model.enum import Enum
-    >>> SomeEnum = SomeEnum("SomeValue", "SomeOtherValue", type_name="SomeEnum")
-    Traceback (most recent call last):
-      File "<stdin>", line 1, in <module>
-    NameError: name 'SomeEnum' is not defined
     >>> SomeEnum = Enum("SomeValue", "SomeOtherValue", type_name="SomeEnum")
     >>> SomeEnum.SomeValue == SomeEnum.SomeOtherValue
     False
@@ -51,17 +49,10 @@ def Enum(*values, **kwargs):
     >>> SomeEnum.SomeValue is SomeEnum.SomeValue
     True
     >>> SomeEnum.SomeValue == 0
-    Traceback (most recent call last):
-      File "<stdin>", line 1, in <module>
-      File "/home/plq/src/github/plq/spyne/spyne/model/enum.py", line 61, in __cmp__
-        "Only values from the same enum are comparable"
+    False
     >>> SomeEnum2 = Enum("SomeValue", "SomeOtherValue", type_name="SomeEnum")
     >>> SomeEnum2.SomeValue == SomeEnum.SomeValue
-    Traceback (most recent call last):
-      File "<stdin>", line 1, in <module>
-      File "/home/plq/src/github/plq/spyne/spyne/model/enum.py", line 61, in __cmp__
-        In the above example, ``SomeEnum`` can be used as a regular Spyne model.
-    AssertionError: Only values from the same enum are comparable
+    False
 
     In the above example, ``SomeEnum`` can be used as a regular Spyne model.
     """
@@ -85,10 +76,7 @@ def Enum(*values, **kwargs):
             return hash(self.__value)
 
         def __cmp__(self, other):
-            assert isinstance(self, type(other)), \
-                             "Only values from the same enum are comparable"
-
-            return cmp(self.__value, other.__value)
+            return isinstance(self, type(other)) and cmp(self.__value, other.__value)
 
         def __invert__(self):
             return values[maximum - self.__value]

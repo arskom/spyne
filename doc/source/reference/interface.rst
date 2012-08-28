@@ -5,12 +5,19 @@ Interfaces
 The `spyne.interface` package contains the implementations of various interface
 document standards.
 
-Interface Base Class
+Interface Class
 --------------------
 
-.. automodule:: spyne.interface._base
+.. autoclass:: spyne.interface.Interface
     :members:
-    :inherited-members:
+    :show-inheritance:
+
+Interface Document Base Class
+-----------------------------
+
+.. autoclass:: spyne.interface.InterfaceDocumentBase
+    :members:
+    :show-inheritance:
 
 XML Schema
 ----------

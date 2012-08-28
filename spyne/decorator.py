@@ -159,11 +159,30 @@ def srpc(*params, **kparams):
         accepts as incoming header.
     :param _out_header: A type or an iterable of types that that this method
         sends as outgoing header.
-    :param _port_type: SOAP Port type.
+    :param _in_message_name: The public name of the function.
+    :param _in_variable_names: The public names of the function arguments. It's
+        a dict that maps argument names in the code to public ones.
+    :param _out_variable_name: The public name of the function response object.
+        It's a string. Ignored when ``_body_style != 'wrapped'`` or ``_returns``
+        is a sequence.
+    :param _out_variable_names: The public name of the function response object.
+        It's a sequence of strings. Ignored when ``_body_style != 'wrapped'`` or
+        or ``_returns`` is not a sequence. Must be the same length as
+        ``_returns``.
+    :param _body_style: One of ``('bare', 'wrapped')``. Default: ``'wrapped'``.
+        In wrapped mode, wraps response objects in an additional class for
+        protocols that support it. (e.g. Soap)
+    :param _soap_body_style: One of ('rpc', 'document'). Default ``'document'``.
+        ``_soap_body_style='document'`` is an alias for ``_body_style='wrapped'``.
+        ``_soap_body_style='rpc'`` is an alias for ``_body_style='bare'``.
+    :param _port_type: Soap port type string.
     :param _no_ctx: Don't pass implicit ctx object to the user method.
     :param _udp: Short for UserDefinedProperties, you can use this to mark the
         method with arbitrary metadata.
-    :param _aux: The auxiliary backend to run this method.
+    :param _aux: The auxiliary backend to run this method. ``None`` if primary.
+    :param _throws: A sequence of exceptions that this function can throw. No
+        real functionality besides publishing this information in interface
+        documents.
     '''
 
     def explain(f):

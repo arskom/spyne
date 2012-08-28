@@ -45,12 +45,12 @@ class NullServer(ServerBase):
     It implicitly uses the 'sync' auxiliary processing mode.
 
     Note that:
-        1) **kwargs overwrite **args.
+        1) ``**kwargs`` overwrite ``*args``.
         2) You can do: ::
 
-                logging.getLogger('spyne.server.null').setLevel(logging.CRITICAL)
+            logging.getLogger('spyne.server.null').setLevel(logging.CRITICAL)
 
-            to hide context delimiters in logs.
+        to hide context delimiters in logs.
     """
 
     transport = 'noconn://null.spyne'

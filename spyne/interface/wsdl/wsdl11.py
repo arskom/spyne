@@ -124,13 +124,15 @@ def _add_callbacks(service, root, types, service_name, url):
     return cb_port_type
 
 class Wsdl11(XmlSchema):
-    """The implementation of the Wsdl 1.1 interface definition document standard.
+    """The implementation of the Wsdl 1.1 interface definition document
+    standard which is avaible here: http://www.w3.org/TR/wsdl
 
     :param app: The parent application.
-    :param import_base_namespaces: Include imports for base namespaces like
-        xsd, xsi, wsdl, etc.
     :param _with_partnerlink: Include the partnerLink tag in the wsdl.
     """
+
+    #:param import_base_namespaces: Include imports for base namespaces like
+    #    xsd, xsi, wsdl, etc.
 
     def __init__(self, interface=None, _with_partnerlink=False):
         XmlSchema.__init__(self, interface)

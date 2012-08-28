@@ -17,10 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-
-"""This module contains the Interface and InterfaceDocumentBase class and its
-helper objects."""
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -38,7 +34,11 @@ from spyne.model.complex import ComplexModelBase
 
 
 class Interface(object):
-    """The base class for all interface document generators."""
+    """The ``Interface`` class holds all information needed to build an
+    interface document.
+
+    :param app: A :class:`spyne.application.Application` instance.
+    """
 
     def __init__(self, app=None, import_base_namespaces=False):
         self.__ns_counter = 0

@@ -91,7 +91,7 @@ class WsgiMethodContext(HttpMethodContext):
 
 
 class WsgiApplication(HttpBase):
-    '''A `PEP-3333 <http://www.python.org/dev/peps/pep-3333/#preface-for-readers-of-pep-333>`_
+    '''A `PEP-3333 <http://www.python.org/dev/peps/pep-3333>`_
     compliant callable class.
 
     Supported events:
@@ -111,6 +111,10 @@ class WsgiApplication(HttpBase):
 
         * ``wsgi_error``
             Called right before returning the exception to the client.
+
+        * ``wsgi_close``
+            Called after the whole data has been returned to the client. It's
+            called both from success and error cases.
     '''
 
     def __init__(self, app, chunked=True):
@@ -296,16 +300,17 @@ class WsgiApplication(HttpBase):
             start_response(p_ctx.transport.resp_code,
                                             p_ctx.transport.resp_headers.items())
 
-            retval = p_ctx.out_string
+            retval = itertools.chain(p_ctx.out_string, self.__finalize(p_ctx))
 
         except TypeError:
             retval_iter = iter(p_ctx.out_string)
-            retval = retval_iter.next()
+            first_chunk = retval_iter.next()
 
             start_response(p_ctx.transport.resp_code,
                                             p_ctx.transport.resp_headers.items())
 
-            retval = itertools.chain([retval], retval_iter)
+            retval = itertools.chain([first_chunk], retval_iter,
+                                                        self.__finalize(p_ctx))
 
         try:
             process_contexts(self, others, p_ctx, error=None)
@@ -314,6 +319,12 @@ class WsgiApplication(HttpBase):
             logger.exception(e)
 
         return retval
+
+    def __finalize(self, p_ctx):
+        self.event_manager.fire_event('wsgi_close', p_ctx)
+
+        return []
+
 
     def __reconstruct_wsgi_request(self, http_env):
         """Reconstruct http payload using information in the http header."""

@@ -32,7 +32,6 @@ from spyne.decorator import srpc
 from spyne.model.primitive import Integer
 from spyne.model.primitive import String
 from spyne.model.primitive import AnyUri
-from spyne.model.primitive import UriValue
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
 from spyne.protocol.http import HttpRpc
@@ -172,7 +171,7 @@ class TestHtmlColumnTable(unittest.TestCase):
         class SomeService(ServiceBase):
             @srpc(_returns=Array(C))
             def some_call():
-                return [C(c=UriValue(_link, text=_text))]
+                return [C(c=AnyUri.Value(_link, text=_text))]
 
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
                  out_protocol=HtmlTable(field_name_attr='class'))
@@ -220,7 +219,7 @@ class TestHtmlRowTable(unittest.TestCase):
         class SomeService(ServiceBase):
             @srpc(_returns=C)
             def some_call():
-                return C(c=UriValue(_link, text=_text))
+                return C(c=AnyUri.Value(_link, text=_text))
 
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
                  out_protocol=HtmlTable(field_name_attr='class', fields_as='rows'))

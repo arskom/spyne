@@ -131,7 +131,7 @@ class MethodContext(object):
 
         # stream
         self.in_string = None
-        """Incoming bytestream as iterable of ``str`` or ``bytes`` instances."""
+        """Incoming bytestream as a sequence of ``str`` or ``bytes`` instances."""
 
         # parsed
         self.in_document = None
@@ -155,7 +155,7 @@ class MethodContext(object):
         by the remote procedure call.
 
         It's always a sequence of objects:
-            * [None] when the function has no output (client)/input (server)
+            * ``[None]`` when the function has no output (client)/input (server)
               types.
             * A single-element list that wraps the return value when the
               function has one return type defined,
@@ -172,13 +172,13 @@ class MethodContext(object):
 
         # native
         self.out_object = None
-        """In the request (i.e. server) case, this contains the native python
+        """In the response (i.e. server) case, this contains the native python
         object(s) returned by the function in the service definition class.
-        In the response (i.e. client) case, this contains the function arguments
+        In the request (i.e. client) case, this contains the function arguments
         passed to the function call wrapper.
 
-        It's always an sequence of objects:
-            * [None] when the function has no output (server)/input (client)
+        It's always a sequence of objects:
+            * ``[None]`` when the function has no output (server)/input (client)
               types.
             * A single-element list that wraps the return value when the
               function has one return type defined,
@@ -205,7 +205,7 @@ class MethodContext(object):
 
         # stream
         self.out_string = None
-        """Outgoing bytestream (i.e. an iterable of strings)"""
+        """Outgoing bytestream (i.e. a sequence of strings)"""
 
         self.function = None
         """The callable of the user code."""
@@ -359,9 +359,23 @@ class MethodDescriptor(object):
         self.function = self.__real_function
 
 class EventManager(object):
-    """The event manager for all spyne events. The events are stored in an
-    ordered set -- so the events are ran in the order they were added and
-    adding a handler twice does not cause it to run twice.
+    """Spyne supports a simple event system that can be used to have repetitive
+    boiler plate code that has to run for every method call nicely tucked away
+    in one or more event handlers. The popular use-cases include things like
+    database transaction management, logging and measuring performance.
+
+    Various Spyne components support firing events at various stages during the
+    processing of the request, which are documented in the relevant classes.
+
+    The classes that support events are:
+        * :class:`spyne.application.Application`
+        * :class:`spyne.service.ServiceBase`
+        * :class:`spyne.protocol._base.ProtocolBase`
+        * :class:`spyne.server.wsgi.WsgiApplication`
+
+    The events are stored in an ordered set. This means that the events are ran
+    in the order they were added and adding a handler twice does not cause it to
+    run twice.
     """
 
     def __init__(self, parent, handlers={}):

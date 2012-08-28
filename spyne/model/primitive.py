@@ -124,7 +124,7 @@ class AnyDict(SimpleModel):
 
 
 class Unicode(SimpleModel):
-    """The type to represent human-readable data. Its native format is `unicode`.
+    """The type to represent human-readable data. Its native format is `unicode`
     or `str` with given encoding.
     """
 
@@ -138,8 +138,8 @@ class Unicode(SimpleModel):
         """Minimum length of string. Can be set to any positive integer"""
 
         max_len = decimal.Decimal('inf')
-        """Maximum length of string. Can be set to ``decimal.Decimal('inf')`` to accept
-        strings of arbitrary length.
+        """Maximum length of string. Can be set to ``decimal.Decimal('inf')`` to
+        accept strings of arbitrary length. Also note
         :const:`spyne.server.wsgi.MAX_CONTENT_LENGTH`."""
 
         pattern = None
@@ -150,8 +150,8 @@ class Unicode(SimpleModel):
         """The encoding of `str` objects this class may have to deal with."""
 
         unicode_errors = 'strict'
-        """The argument to the ``unicode`` builtin; one of 'strict', 'replace' or
-        'ignore'."""
+        """The argument to the ``unicode`` builtin; one of 'strict', 'replace'
+        or 'ignore'."""
 
     def __new__(cls, *args, **kwargs):
         assert len(args) <= 1
@@ -227,7 +227,7 @@ class AnyUri(String):
         text = None
         """The text shown in link. This is an object-wide constant."""
 
-    class UriValue(object):
+    class Value(object):
         """A special object that is just a better way of carrying the
         information carried with a link.
 
@@ -235,7 +235,7 @@ class AnyUri(String):
         :param text: The text data that goes with the link. This is an
             `lxml.etree._Element` instance.
         :param content: The structured data that goes with the link. This is a
-        ``str`` or a ``unicode`` instance.
+            ``str`` or a ``unicode`` instance.
         """
 
         def __init__(self, href, text=None, content=None):
@@ -319,7 +319,7 @@ class Decimal(SimpleModel):
             raise ValidationError(string)
 
 class Double(Decimal):
-    """This is serialized as the python float. So this type comes with its
+    """This is serialized as the python ``float``. So this type comes with its
      gotchas."""
 
     __type_name__ = 'double'
@@ -342,7 +342,7 @@ class Double(Decimal):
             raise ValidationError(string)
 
 class Float(Double):
-    """Synonym for Double. This is here for compatibility purposes."""
+    """Synonym for Double. It's here for compatibility reasons."""
 
     __type_name__ = 'float'
 
@@ -574,7 +574,6 @@ class DateTime(SimpleModel):
 
         return cls.parse(match)
 
-
     @classmethod
     @nillable_string
     def from_string(cls, string):
@@ -588,7 +587,7 @@ class DateTime(SimpleModel):
 
 
 class Date(DateTime):
-    """Just that, Date. It also supports time zones.
+    """Just that, Date. No time zone support.
 
     Native type is :class:`datetime.date`.
     """
@@ -599,10 +598,22 @@ class Date(DateTime):
     __type_name__ = 'date'
 
     @classmethod
+    def default_parse(cls, string):
+        try:
+            return datetime.datetime.strptime(string, '%Y-%m-%d')
+
+        except ValueError:
+            raise ValidationError(string)
+
+    @classmethod
     @nillable_string
     def from_string(cls, string):
-        d = datetime.datetime.strptime(string, cls.Attributes.format)
-        return datetime.date(d.year, d.month, d.day)
+        try:
+            d = datetime.datetime.strptime(string, cls.Attributes.format)
+            return datetime.date(d.year, d.month, d.day)
+
+        except ValueError:
+            raise ValidationError(string)
 
 
 # this object tries to follow ISO 8601 standard.

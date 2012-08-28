@@ -26,6 +26,8 @@ logger = logging.getLogger(__name__)
 
 from spyne.error import ValidationError
 
+from spyne.model.binary import ByteArray
+from spyne.model.binary import File
 from spyne.model.fault import Fault
 from spyne.model.complex import ComplexModelBase
 from spyne.model.complex import Array

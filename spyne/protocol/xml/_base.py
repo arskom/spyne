@@ -17,6 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""The ``spyne.protocol.xml`` package contains an xml-based protocol that
+serializes python objects to xml using Xml Schema conventions.
+"""
+
 import logging
 logger = logging.getLogger('spyne.protocol.xml')
 
@@ -73,13 +77,13 @@ class SchemaValidationError(Fault):
 
 
 class XmlObject(ProtocolBase):
-    """The protocol that serializes python objects to xml using schema
-    conventions.
+    """The Xml Schema serialization protocol.
 
     See the following material for more (much much more!) information.
-    http://www.w3.org/TR/xmlschema-0/
-    http://www.w3.org/TR/xmlschema-1/
-    http://www.w3.org/TR/xmlschema-2/
+
+    * http://www.w3.org/TR/xmlschema-0/
+    * http://www.w3.org/TR/xmlschema-1/
+    * http://www.w3.org/TR/xmlschema-2/
 
     :param app: The owner application instance.
     :param validator: One of (None, 'soft', 'lxml', 'schema',
