@@ -204,11 +204,12 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
         self.assertEqual(1, len(pl))
 
         da = build_app([TDoublePortService()], 'tns', name='DoublePortApp')
-        wsdl = Wsdl11(sa.interface)
+        wsdl = Wsdl11(da.interface)
         wsdl.build_interface_document(self.url)
-        da_wsdl_el = wsdl.root_elt
 
-        self.assertEquals(2, len(da_wsdl_el.findall(self.port_type_string)))
+        from lxml import etree
+        print etree.tostring(wsdl.root_elt, pretty_print=True)
+        self.assertEquals(2, len(wsdl.root_elt.findall(self.port_type_string)))
 
 if __name__ == '__main__':
     unittest.main()

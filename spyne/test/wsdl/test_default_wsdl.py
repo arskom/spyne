@@ -92,26 +92,6 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
         for op in operations:
             self.assertTrue(op.get('name') in op_names)
 
-    def test_default_service(self):
-        single_app = build_app(
-                [TDefaultPortService()],
-                'DefaultServiceTns',
-                'DefaultPortServiceApp'
-                )
-
-        single_wrapper = AppTestWrapper(single_app)
-        self._default_service(single_wrapper, "DefaultPortServiceApp")
-
-    def test_default_service_multiple_methods(self):
-        triple_app = build_app(
-                [TDefaultPortServiceMultipleMethods()],
-                'DefaultServiceTns',
-                'DefaultPortServiceApp'
-                )
-
-        triple_wrapper = AppTestWrapper(triple_app)
-        self._default_service(triple_wrapper, "DefaultPortServiceApp")
-
     def test_default_port_type(self):
         # Test the default port is created
         # Test the default port has the correct name

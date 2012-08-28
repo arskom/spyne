@@ -42,7 +42,6 @@ class AppTestWrapper():
         self.app = application
         self.interface_doc = Wsdl11(self.app.interface)
         self.interface_doc.build_interface_document(self.url)
-        self.interface_doc.build_interface_document(self.url)
         self.wsdl = self.interface_doc.get_interface_document()
 
     def get_service_list(self):
