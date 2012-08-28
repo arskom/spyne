@@ -25,19 +25,19 @@ from spyne.model.fault import Fault
 
 
 class ResourceNotFoundError(Fault):
-    """Raised when the requested resource was not found."""
+    """Raised when requested resource is not found."""
     def __init__(self, faultstring="Requested resource not found"):
         Fault.__init__(self, 'Client.ResourceNotFound', faultstring)
 
 
 class RequestTooLongError(Fault):
-    """Raised when the request is too long."""
+    """Raised when request is too long."""
     def __init__(self, faultstring=""):
         Fault.__init__(self, 'Client.RequestTooLong', faultstring)
 
 
 class RequestNotAllowed(Fault):
-    """Raised when the request is incomplete."""
+    """Raised when request is incomplete."""
     def __init__(self, faultstring=""):
         Fault.__init__(self, 'Client.RequestNotAllowed', faultstring)
 
@@ -49,7 +49,7 @@ class ArgumentError(Fault):
 
 
 class ValidationError(Fault):
-    """Raised when the input stream did not adhere to type constraints."""
+    """Raised when the input stream does not adhere to type constraints."""
     def __init__(self, faultstring):
         Fault.__init__(self, 'Client.ValidationError',
                         'The value %r could not be validated.' % faultstring)
