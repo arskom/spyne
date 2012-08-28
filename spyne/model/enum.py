@@ -36,7 +36,8 @@ class EnumBase(SimpleModel):
             )
 
 def Enum(*values, **kwargs):
-    """The enum type that only returns true when compared to types of own type.
+    """The enum type that can only return ``True`` when compared to types of
+    own type.
 
     Here's how it's supposed to work:
 
