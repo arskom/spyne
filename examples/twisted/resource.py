@@ -62,7 +62,7 @@ the reactor loop.
     sys     0m0.005s
 '''
 
-host = '0.0.0.O'
+host = '0.0.0.0'
 port = 9758
 
 if __name__=='__main__':
@@ -71,7 +71,7 @@ if __name__=='__main__':
     site = Site(resource)
 
 
-    reactor.listenTCP(port, site)
+    reactor.listenTCP(port, site, interface=host)
 
     logging.info("listening on: %s:%d" % (host,port))
     logging.info('wsdl is at: http://%s:%d/?wsdl' % (host, port))

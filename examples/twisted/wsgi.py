@@ -71,7 +71,7 @@ if __name__=='__main__':
     resource = WSGIResource(reactor, reactor, wsgi_application)
     site = Site(resource)
 
-    reactor.listenTCP(port, site)
+    reactor.listenTCP(port, site, interface=host)
 
     logging.info('listening on: %s:%d' % (host,port))
     logging.info('wsdl is at: http://%s:%d/?wsdl' % (host, port))
