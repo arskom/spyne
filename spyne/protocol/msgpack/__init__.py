@@ -49,9 +49,10 @@ class MessagePackObject(DictObject):
 
     def create_in_document(self, ctx, in_string_encoding=None):
         """Sets ``ctx.in_document``,  using ``ctx.in_string``.
-            :param ctx: The MethodContext object
-            :param in_string_encoding: MessagePack is a binary protocol. So this
-                argument is ignored.
+
+        :param ctx: The MethodContext object
+        :param in_string_encoding: MessagePack is a binary protocol. So this
+            argument is ignored.
         """
 
         ctx.in_document = msgpack.unpackb(''.join(ctx.in_string))
@@ -74,9 +75,10 @@ class MessagePackRpc(MessagePackObject):
 
     def create_in_document(self, ctx, in_string_encoding=None):
         """Sets ``ctx.in_document``,  using ``ctx.in_string``.
-            :param ctx: The MethodContext object
-            :param in_string_encoding: MessagePack is a binary protocol. So this
-                argument is ignored.
+
+        :param ctx: The MethodContext object
+        :param in_string_encoding: MessagePack is a binary protocol. So this
+            argument is ignored.
         """
 
         # TODO: Use feed api

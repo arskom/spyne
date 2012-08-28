@@ -220,10 +220,16 @@ class ComplexModelBase(ModelBase):
 
     @classmethod
     def get_serialization_instance(cls, value):
-        """:param value: This argument can be:
-            * A list of native types aligned with cls._type_info.
-            * A dict of native types
+        """Returns the native object corresponding to the serialized form passed
+        in the ``value`` argument.
+
+        :param value: This argument can be:
+            * A list or tuple of native types aligned with cls._type_info.
+            * A dict of native types.
             * The native type itself.
+
+            If the value type is not a ``list``, ``tuple`` or ``dict``, the
+            value is returned untouched.
         """
 
         # if the instance is a list, convert it to a cls instance.
