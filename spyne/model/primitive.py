@@ -227,7 +227,7 @@ class AnyUri(String):
         text = None
         """The text shown in link. This is an object-wide constant."""
 
-    class UriValue(object):
+    class Value(object):
         """A special object that is just a better way of carrying the
         information carried with a link.
 
