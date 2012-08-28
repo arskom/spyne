@@ -215,7 +215,8 @@ class ComplexModelBase(ModelBase):
     def __repr__(self):
         return "%s(%s)" % (self.get_type_name(), ', '.join(
                ['%s=%r' % (k, getattr(self, k, None))
-                    for k in self.__class__.get_flat_type_info(self.__class__)]))
+                    for k in self.__class__.get_flat_type_info(self.__class__)
+                    if getattr(self, k, None) is not None]))
 
     @classmethod
     def get_serialization_instance(cls, value):

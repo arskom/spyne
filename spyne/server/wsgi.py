@@ -296,16 +296,17 @@ class WsgiApplication(HttpBase):
             start_response(p_ctx.transport.resp_code,
                                             p_ctx.transport.resp_headers.items())
 
-            retval = p_ctx.out_string
+            retval = itertools.chain(p_ctx.out_string, self.__finalize(p_ctx))
 
         except TypeError:
             retval_iter = iter(p_ctx.out_string)
-            retval = retval_iter.next()
+            first_chunk = retval_iter.next()
 
             start_response(p_ctx.transport.resp_code,
                                             p_ctx.transport.resp_headers.items())
 
-            retval = itertools.chain([retval], retval_iter)
+            retval = itertools.chain([first_chunk], retval_iter,
+                                                        self.__finalize(p_ctx))
 
         try:
             process_contexts(self, others, p_ctx, error=None)
@@ -314,6 +315,12 @@ class WsgiApplication(HttpBase):
             logger.exception(e)
 
         return retval
+
+    def __finalize(self, p_ctx):
+        self.event_manager.fire_event('wsgi_close', p_ctx)
+
+        return []
+
 
     def __reconstruct_wsgi_request(self, http_env):
         """Reconstruct http payload using information in the http header."""
