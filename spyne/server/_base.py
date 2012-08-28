@@ -82,6 +82,8 @@ class ServerBase(object):
                                         message=self.app.in_protocol.REQUEST)
 
         except Fault, e:
+            logger.exception(e)
+
             ctx.in_object = None
             ctx.in_error = e
             ctx.out_error = e
