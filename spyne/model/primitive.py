@@ -598,10 +598,22 @@ class Date(DateTime):
     __type_name__ = 'date'
 
     @classmethod
+    def default_parse(cls, string):
+        try:
+            return datetime.datetime.strptime(string, '%Y-%m-%d')
+
+        except ValueError:
+            raise ValidationError(string)
+
+    @classmethod
     @nillable_string
     def from_string(cls, string):
-        d = datetime.datetime.strptime(string, cls.Attributes.format)
-        return datetime.date(d.year, d.month, d.day)
+        try:
+            d = datetime.datetime.strptime(string, cls.Attributes.format)
+            return datetime.date(d.year, d.month, d.day)
+
+        except ValueError:
+            raise ValidationError(string)
 
 
 # this object tries to follow ISO 8601 standard.
