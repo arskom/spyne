@@ -17,6 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""The ``spyne.protocol.xml`` package contains an xml-based protocol that
+serializes python objects to xml using Xml Schema conventions.
+"""
+
 import logging
 logger = logging.getLogger('spyne.protocol.xml')
 
@@ -71,9 +75,15 @@ class SchemaValidationError(Fault):
     def __init__(self, faultstring):
         Fault.__init__(self, 'Client.SchemaValidationError', faultstring)
 
+
 class XmlObject(ProtocolBase):
-    """The protocol that serializes python objects to xml using schema
-    conventions.
+    """The Xml Schema serialization protocol.
+
+    See the following material for more (much much more!) information.
+
+    * http://www.w3.org/TR/xmlschema-0/
+    * http://www.w3.org/TR/xmlschema-1/
+    * http://www.w3.org/TR/xmlschema-2/
 
     :param app: The owner application instance.
     :param validator: One of (None, 'soft', 'lxml', 'schema',
@@ -145,9 +155,9 @@ class XmlObject(ProtocolBase):
         handler = self.deserialization_handlers[cls]
         return handler(self, cls, element)
 
-    def to_parent_element(self, cls, value, tns, parent_elt, * args, ** kwargs):
+    def to_parent_element(self, cls, value, tns, parent_elt, *args, **kwargs):
         handler = self.serialization_handlers[cls]
-        handler(self, cls, value, tns, parent_elt, * args, ** kwargs)
+        handler(self, cls, value, tns, parent_elt, *args, **kwargs)
 
     def validate_body(self, ctx, message):
         """Sets ctx.method_request_string and calls :func:`generate_contexts`

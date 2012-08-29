@@ -2,7 +2,7 @@
 
 PYTEST_ARGS="-v --tb=short"
 
-py.test $PYTEST_ARGS test_* interface/* model/* protocol/*
+py.test $PYTEST_ARGS test_* interface/* model/* protocol/* wsdl/*
 py.test $PYTEST_ARGS interop/test_httprpc.py
 py.test $PYTEST_ARGS interop/test_soap_client_http.py
 py.test $PYTEST_ARGS interop/test_soap_client_zeromq.py

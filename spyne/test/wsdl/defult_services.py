@@ -17,24 +17,33 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+
 from spyne.model.primitive import String
 from spyne.service import ServiceBase
 from spyne.decorator import rpc
 
-class DefaultPortService(ServiceBase):
-    @rpc(String, _returns=String)
-    def echo_default_port_service(self, string):
-        return string
 
-class DefaultPortServiceMultipleMethods(ServiceBase):
-    @rpc(String, _returns=String)
-    def echo_one(self, string):
-        return string
+def TDefaultPortService():
+    class DefaultPortService(ServiceBase):
+        @rpc(String, _returns=String)
+        def echo_default_port_service(self, string):
+            return string
 
-    @rpc(String, _returns=String)
-    def echo_two(self, string):
-        return string
+    return DefaultPortService
 
-    @rpc(String, _returns=String)
-    def echo_three(self, string):
-        return string
+
+def TDefaultPortServiceMultipleMethods():
+    class DefaultPortServiceMultipleMethods(ServiceBase):
+        @rpc(String, _returns=String)
+        def echo_one(self, string):
+            return string
+
+        @rpc(String, _returns=String)
+        def echo_two(self, string):
+            return string
+
+        @rpc(String, _returns=String)
+        def echo_three(self, string):
+            return string
+
+    return DefaultPortServiceMultipleMethods

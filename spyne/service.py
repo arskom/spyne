@@ -50,8 +50,8 @@ class ServiceBaseMeta(type):
                 self.public_methods[k] = descriptor
                 if descriptor.aux is None:
                     if self.__has_aux_methods and self.__aux__ is None:
-                        raise Exception("you can't mix aux and non-aux methods in "
-                                        "a single service definition.")
+                        raise Exception("you can't mix primary and "
+                            "auxiliary methods in a single service definition.")
                 else:
                     self.__has_aux_methods = True
 
@@ -76,9 +76,12 @@ class ServiceBaseMeta(type):
 
 
 class ServiceBase(object):
-    '''This class serves as the base for all service definitions. Subclasses of
-    this class will use the srpc decorator or its wrappers to flag methods to be
-    exposed.
+    '''The ``ServiceBase`` class is the base class for all service definitions.
+
+    The convention is to have public methods defined under a subclass of this
+    class along with common properties of public methods like header classes or
+    auxiliary processors. The :func:`spyne.decorator.srpc` decorator or its
+    wrappers should be used to flag public methods.
 
     It is a natural abstract base class, because it's of no use without any
     method definitions, hence the 'Base' suffix in the name.
@@ -118,8 +121,9 @@ class ServiceBase(object):
     __metaclass__ = ServiceBaseMeta
 
     __tns__ = None
-    """For internal use only. You should use the tns argument to the Application
-    constructor to define the target namespace."""
+    """For internal use only. You should use the ``tns`` argument to the
+    :class:`spyne.application.Application` constructor to define the target
+    namespace."""
 
     __in_header__ = None
     """The incoming header object that the methods under this service definition

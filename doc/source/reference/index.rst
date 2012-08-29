@@ -6,16 +6,17 @@ Spyne API Reference
 ====================
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 3
 
     base
     application
     service
     decorator
+    error
 
     model
     interface
-    protocol
+    protocol/index
     client
     server
     auxproc

@@ -36,6 +36,18 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
         self.client = Client("http://localhost:9754/?wsdl", cache=None)
         self.ns = "spyne.test.interop.server"
 
+    def test_echo_datetime(self):
+        val = datetime.now()
+        ret = self.client.service.echo_datetime(val)
+
+        assert val == ret
+
+    def test_echo_datetime_with_invalid_format(self):
+        val = datetime.now()
+        ret = self.client.service.echo_datetime_with_invalid_format(val)
+
+        assert val == ret
+
     def test_echo_simple_boolean_array(self):
         val = [False, False, False, True]
         ret = self.client.service.echo_simple_boolean_array(val)
@@ -97,7 +109,8 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
         in_header.i = 3
         in_trace_header = self.client.factory.create('InTraceHeader')
         in_trace_header.client = 'suds'
-        in_trace_header.callDate = datetime(year=2000, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+        in_trace_header.callDate = datetime(year=2000, month=1, day=1, hour=0,
+                                              minute=0, second=0, microsecond=0)
 
         self.client.set_options(soapheaders=(in_header, in_trace_header))
         ret = self.client.service.echo_in_complex_header()
@@ -181,17 +194,6 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
             }
         }
 
-    def test_any(self):
-        val = self.__get_xml_test_val()
-        ret = self.client.service.echo_any(val)
-
-        self.assertDictEqual(dict(ret[0]), val) # FIXME: Bah. Somebody write this comparison code!..
-
-    def test_any_as_dict(self):
-        val = self.__get_xml_test_val()
-        ret = self.client.service.echo_any_as_dict(val)
-
-        self.assertDictEqual(dict(ret[0]), val) # FIXME: Same as above!..
 
     def test_echo_simple_class(self):
         val = self.client.factory.create("{spyne.test.interop.server}SimpleClass")

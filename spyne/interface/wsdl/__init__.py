@@ -17,4 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""The ``spyne.interface.wsdl`` package contains an implementation of the subset
+Wsdl 1.1 standard, and awaits for volunteers for implementing the brand new
+Wsdl 2.0 standard.
+"""
+
 from spyne.interface.wsdl.wsdl11 import Wsdl11

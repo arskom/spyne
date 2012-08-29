@@ -58,7 +58,7 @@ class WsgiMounter(object):
         return app(environ, start_response)
 
 
-def run_twisted(apps, port, static_dir='.'):
+def run_twisted(apps, port, static_dir='.', interface='0.0.0.0'):
     """Twisted wrapper for the spyne.server.wsgi.WsgiApplication. Twisted can
     use one thread per request to run services, so code wrapped this way does
     not necessarily have to respect twisted way of doing things.
@@ -68,6 +68,8 @@ def run_twisted(apps, port, static_dir='.'):
     :param static_dir: The directory that contains static files. Pass `None` if
         you don't want to server static content. Url fragments in the `apps`
         argument take precedence.
+    :param interface: The network interface to which the server binds, if not
+        specified, it will accept connections on any interface by default.
     """
 
     import twisted.web.server
@@ -90,8 +92,7 @@ def run_twisted(apps, port, static_dir='.'):
         root.putChild(url, resource)
 
     site = twisted.web.server.Site(root)
-
-    reactor.listenTCP(port, site)
-    logging.info("listening on: 0.0.0.0:%d" % port)
+    reactor.listenTCP(port, site, interface=interface)
+    logging.info("listening on: %s:%d" % (interface, port))
 
     return reactor.run()

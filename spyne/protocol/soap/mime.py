@@ -1,4 +1,30 @@
 
+#
+# spyne - Copyright (C) Spyne contributors.
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
+#
+
+"""The ``spyne.protocol.soap.mime`` module contains additional logic for using
+optimized encodings for binary when encapsulating Soap 1.1 messages in Http.
+
+The functionality in this code is not well tested and is reported NOT TO WORK.
+
+Patches are welcome.
+"""
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -25,10 +51,11 @@ except ImportError:
 from email import message_from_string
 from spyne.model.binary import Attachment
 from spyne.model.binary import ByteArray
-import spyne.const.xml_ns
 
+import spyne.const.xml_ns
 _ns_xop = spyne.const.xml_ns.xop
 _ns_soap_env = spyne.const.xml_ns.soap_env
+
 
 def _join_attachment(href_id, envelope, payload, prefix=True):
     '''Places the data from an attachment back into a SOAP message, replacing

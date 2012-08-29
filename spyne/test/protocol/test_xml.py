@@ -60,7 +60,7 @@ class Test(unittest.TestCase):
             def some_call():
                 return a(b="foo",c="bar")
 
-        app = Application([SomeService], "tns", Wsdl11(), in_protocol=XmlObject(), out_protocol=XmlObject())
+        app = Application([SomeService], "tns", in_protocol=XmlObject(), out_protocol=XmlObject())
         server = ServerBase(app)
         initial_ctx = MethodContext(server)
         initial_ctx.in_string = ['<some_call xmlns="tns"/>']
@@ -83,7 +83,7 @@ class Test(unittest.TestCase):
             def some_call():
                 return a(b="foo",c="bar")
 
-        app = Application([SomeService], "tns", Wsdl11(),in_protocol=XmlObject(), out_protocol=XmlObject())
+        app = Application([SomeService], "tns", in_protocol=XmlObject(), out_protocol=XmlObject())
         server = ServerBase(app)
         initial_ctx = MethodContext(server)
         initial_ctx.in_string = ['<some_call xmlns="tns"/>']

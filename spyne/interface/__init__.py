@@ -17,6 +17,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""The ``spyne.interface`` package contains implementations of various interface
+definition document standards along with the
+:class:`spyne.interface.Interface` class which holds all the information needed
+to generate those documents.
+"""
+
 from spyne.interface._base import Interface
 from spyne.interface._base import InterfaceDocumentBase
-

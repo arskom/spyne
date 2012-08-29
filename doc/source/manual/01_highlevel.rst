@@ -16,7 +16,7 @@ The following is a quick introduction to the Spyne way of naming things:
 
 * **Protocols:**
     Protocols define the rules for transmission of structured data. They are
-    children of :class:`spyne.protocol._base.ProtocolBase` class. In an MVC
+    subclasses of :class:`spyne.protocol._base.ProtocolBase` class. In an MVC
     world, you would call them "Views".
 
     For example: Spyne implements a subset of the Soap 1.1 protocol.
@@ -59,7 +59,7 @@ The following is a quick introduction to the Spyne way of naming things:
 
     They can be anything between an lxml.etree.Element instance to a gzipped
     byte stream. Apis around pickle, simplejson, YaML and the like that serialize
-    dynamic hieararchies of `dict`s also fall in this category.
+    dynamic hieararchies of "dict"s also fall in this category.
 
 How your code is wrapped
 ------------------------
@@ -102,7 +102,7 @@ throughout Spyne would be very useful:
     exception management.
 
     .. NOTE::
-        You may know that spyne is a generalized version of a soap library.
+        You may know that Spyne is a generalized version of a Soap library.
         So inevitably, some artifacts of the Soap world creep in from here and
         there.
 
@@ -123,7 +123,7 @@ throughout Spyne would be very useful:
 
         Every object in the Spyne world has a name and belongs to a namespace.
         Public functions (and the implicit :class:`spyne.model.complex.ComplexModel`
-        children that are created for the input and output types of the
+        subclasses that are created for the input and output types of the
         functions you defined) are forced to be in the tns of the `Application`
         and have whatever you give them as `public_name` in the
         :func:`spyne.decorator.srpc` decorator. Spyne-defined types generally
@@ -139,8 +139,8 @@ In a nutshell
 Your code is inside @rpc-wrapped methods in `ServiceBase` subclasses. The
 `ServiceBase` subclasses in turn are wrapped by an Application instance. The
 `Application` instantiation is used to assign input and output protocols to the
-exposed methods. The `Application` is finally wrapped by a client or server
-transport that takes the responsibility of moving the bits around.
+exposed methods. The `Application` instance is finally wrapped by a client or
+server transport that takes the responsibility of moving the bits around.
 
 In case you'd like to read about how *exactly* your code is wrapped, you can
 refer to the relevant part in the :ref:`manual-t-and-p` section.

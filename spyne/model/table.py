@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module aims to bridge SQLAlchemy and spyne types by building a
+"""This module aims to bridge SQLAlchemy and Spyne types by building a
 _type_info dictionary using the information held in class attributes by
 sqlalchemy.Column instances.
 
@@ -26,7 +26,7 @@ flexibility of SQLAlchemy and complexity of its internals leave much to be
 tested. Also considering the vast amount of non-supported sqlalchemy and spyne
 features, this module should be treated as EXPERIMENTAL. Please use with care
 and do bring up any issues you experience with this module to the attention of
-spyne or SQLAlchemy developers.
+Spyne or SQLAlchemy developers.
 """
 
 import logging

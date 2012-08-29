@@ -17,8 +17,15 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""The ``spyne.server.django`` package contains a Django-compatible Http
+transport. It's a thin wrapper around
+:class:`spyne.server.wsgi.WsgiApplication`.
+"""
+
+
 from django.http import HttpResponse
 from spyne.server.wsgi import WsgiApplication
+
 
 class DjangoApplication(WsgiApplication):
     def __call__(self, request):

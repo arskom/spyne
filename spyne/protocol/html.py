@@ -1,4 +1,4 @@
-
+# encoding: utf8
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -17,10 +17,20 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains the EXPERIMENTAL Html protocol implementation.
-It seeks to eliminate the need for html templates.
+"""The ``spyne.protocol.html`` module contains various EXPERIMENTAL protocols
+for generating server-side Html. It seeks to eliminate the need for html
+templates by:
+    #. Implementing standard ways of serializing Python objects to Html
+        documents
+    #. Implementing a very basic html node manipulation api in python instead
+        of having to have pseudocode intertwined within Html. (à la PHP)
 
-As you can tell, I haven't figured it all out yet :)
+As you can probably tell, not everything is figured out yet :)
+
+Ininially released in 2.8.0-rc.
+
+This module is EXPERIMENTAL. You may not recognize the code here next time you
+look at it.
 """
 
 import logging
@@ -83,8 +93,8 @@ class HtmlBase(ProtocolBase):
         :param field_type_attr: The name of the attribute that will contain the
             type names of the complex object children.
         :param skip_depth: Number of wrapper classes to ignore. This is
-        typically one of (0, 1, 2) but higher numbers may also work for your
-        case.
+            typically one of (0, 1, 2) but higher numbers may also work for your
+            case.
         """
 
         ProtocolBase.__init__(self, app, validator, skip_depth=skip_depth)
@@ -249,11 +259,11 @@ def HtmlTable(app=None, validator=None, produce_header=True,
     :param cell_cell_class: value that goes inside the <td class="">
     :param header_cell_class: value that goes inside the <th class="">
 
-        "Fields as rows" returns one record per table in a table with two
-        columns.
+    "Fields as rows" returns one record per table in a table with two
+    columns.
 
-        "Fields as columns" returns one record per table row in a table that
-        has as many columns as field names, just like a regular spreadsheet.
+    "Fields as columns" returns one record per table row in a table that
+    has as many columns as field names, just like a regular spreadsheet.
     """
 
     if fields_as == 'columns':
@@ -346,12 +356,14 @@ class _HtmlColumnTable(_HtmlTableBase):
 
             else:
                 raise NotImplementedError("Can only serialize Array(...) types")
-            
+
             value = value[0]
 
         else:
             raise NotImplementedError("Can only serialize single Array(...) return types")
 
+        # Here, sti can be None when the return type does not have _type_info
+        # attribute
         tr = {}
         if self.row_class is not None:
             tr['class'] = self.row_class
@@ -372,23 +384,28 @@ class _HtmlColumnTable(_HtmlTableBase):
                 header_row.append(E.th(class_name, **th))
 
             else:
-                for k, v in sti.items():
-                    if self.field_name_attr is not None:
+                if self.field_name_attr is None:
+                    for k, v in sti.items():
+                        header_name = translate(v.type, locale, k)
+                        header_row.append(E.th(header_name, **th))
+
+                else:
+                    for k, v in sti.items():
                         th[self.field_name_attr] = k
-                    th[self.field_name_attr] = k
-                    header_name = translate(v.type, locale, k)
-                    header_row.append(E.th(header_name, **th))
+                        header_name = translate(v.type, locale, k)
+                        header_row.append(E.th(header_name, **th))
 
             yield header_row
 
         if sti is None:
             if self.field_name_attr is None:
                 for val in value:
-                    yield E.tr(E.td(first_child.to_string(val), ** td), ** tr)
+                    yield E.tr(E.td(first_child.to_string(val), **td), **tr)
+
             else:
                 for val in value:
                     td[self.field_name_attr] = class_name
-                    yield E.tr(E.td(first_child.to_string(val), ** td), ** tr)
+                    yield E.tr(E.td(first_child.to_string(val), **td), **tr)
 
         else:
             for val in value:
@@ -404,8 +421,7 @@ class _HtmlColumnTable(_HtmlTableBase):
                         else:
                             subvalue = ""
                     else:
-                        subvalue = v.type.to_string(subvalue)
-
+                        subvalue = _subvalue_to_html(v, subvalue)
 
                     if self.field_name_attr is None:
                         row.append(E.td(subvalue, **td))
@@ -416,15 +432,53 @@ class _HtmlColumnTable(_HtmlTableBase):
                 yield row
 
 
+def _subvalue_to_html(cls, value):
+    if issubclass(cls.type, AnyUri):
+        href = getattr(value, 'href', None)
+        if href is None: # this is not a AnyUri.Value instance.
+            href = value
+            text = getattr(cls.type.Attributes, 'text', None)
+            content = None
+
+        else:
+            text = getattr(value, 'text', None)
+            if text is None:
+                text = getattr(cls.type.Attributes, 'text', None)
+
+            content = getattr(value, 'content', None)
+
+        if issubclass(cls.type, ImageUri):
+            retval = E.img(src=href)
+
+            if text is not None:
+                retval.attrib['alt'] = text
+            # content is ignored with ImageUri.
+
+        else:
+            retval = E.a(href=href)
+            retval.text = text
+            if content is not None:
+                retval.append(content)
+
+    else:
+        retval = cls.type.to_string(value)
+
+    return retval
+
 class _HtmlRowTable(_HtmlTableBase):
     def serialize_complex_model(self, cls, value, locale):
         sti = None
         fti = cls.get_flat_type_info(cls)
         is_array = False
 
-        first_child = iter(fti.values()).next()
         if len(fti) == 1:
-            fti = first_child.get_flat_type_info(first_child)
+            first_child, = fti.values()
+
+            try:
+                fti = first_child.get_flat_type_info(first_child)
+            except AttributeError:
+                raise NotImplementedError("Can only serialize complex return types")
+
             first_child_2 = iter(fti.values()).next()
 
             if len(fti) == 1 and first_child_2.Attributes.max_occurs > 1:
@@ -435,7 +489,7 @@ class _HtmlRowTable(_HtmlTableBase):
             else:
                 if issubclass(first_child, ComplexModelBase):
                     sti = first_child.get_simple_type_info(first_child)
-            
+
             value = value[0]
 
         else:
@@ -470,6 +524,8 @@ class _HtmlRowTable(_HtmlTableBase):
                 subvalue = value
                 for p in v.path:
                     subvalue = getattr(subvalue, p, None)
+                    if subvalue is None:
+                        break
 
                 if subvalue is None:
                     if v.type.Attributes.min_occurs == 0:
@@ -477,18 +533,7 @@ class _HtmlRowTable(_HtmlTableBase):
                     else:
                         subvalue = ""
                 else:
-                    subvalue = v.type.to_string(subvalue)
-
-                    text = getattr(v.type.Attributes,'text', None)
-                    if issubclass(v.type, ImageUri):
-                        subvalue = E.img(src=subvalue)
-                        if text is not None:
-                            subvalue.attrib['alt']=text
-
-                    elif issubclass(v.type, AnyUri):
-                        if text is None:
-                            text = subvalue
-                        subvalue = E.a(text, href=subvalue)
+                    subvalue = _subvalue_to_html(v, subvalue)
 
                 if self.produce_header:
                     header_text = translate(v.type, locale, k)

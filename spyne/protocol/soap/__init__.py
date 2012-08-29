@@ -17,6 +17,13 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""The ``spyne.protocol.soap`` package contains an implementation of a subset
+of the Soap 1.1 standard and awaits for volunteers for implementing the
+brand new Soap 1.2 standard.
+
+Patches are welcome.
+"""
+
 from spyne.protocol.soap.soap11 import Soap11
 from spyne.protocol.soap.soap11 import _from_soap
 from spyne.protocol.soap.soap11 import _parse_xml_string

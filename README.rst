@@ -7,8 +7,8 @@ own remote procedure call api and the application programmers the hassle of
 jumping through hoops just to expose their services using multiple protocols and
 transports.
 
-In other words, Spyne is framework for building distributed solutions that
-strictly follow the MVC pattern, where Model = `spyne.model`,
+From another perspective, Spyne is a framework for building distributed
+solutions that strictly follow the MVC pattern, where Model = `spyne.model`,
 View = `spyne.protocol` and Controller = `user code`.
 
 Spyne comes with the implementations of popular transport, protocol and
@@ -16,9 +16,9 @@ interface document standards along with a well-defined API that lets you
 build on existing functionality.
 
 Spyne currently supports the WSDL 1.1 interface description standard,
-along with SOAP 1.1 and the so-called HttpRpc and JsonObject protocols which
-can be transported via Http or ZeroMQ. The transports can be used in both a
-client or server setting.
+along with SOAP 1.1 and the so-called HttpRpc, XmlObject, JsonObject,
+MessagePackObject and MessagePackRpc protocols which can be transported via Http
+or ZeroMQ. The transports can be used in both a client or server setting.
 
 The following are the primary sources of information about spyne:
 
@@ -55,12 +55,22 @@ both of which are available through ``easy_install``.
 Additionally the following software packages are needed for various subsystems
 of Spyne:
 
-* `SQLAlchemy <http://sqlalchemy.org>`_ for :class:`spyne.model.table.TableModel`.
-* `pyzmq <https://github.com/zeromq/pyzmq>`_ for
-  :class:`spyne.client.zeromq.ZeroMQClient` and
-  :class:`spyne.server.zeromq.ZeroMQServer`.
-* A Wsgi server of your choice to wrap :class:`spyne.server.wsgi.WsgiApplication`.
-* `Werkzeug <http://werkzeug.pocoo.org/>`_ is needed for :class:`spyne.protocol.http.HttpRpc`.
+* A Wsgi server of your choice is needed to wrap
+  ``spyne.server.wsgi.WsgiApplication``
+* `SQLAlchemy <http://sqlalchemy.org>`_ is needed for
+  ``spyne.model.table.TableModel``.
+* `pyzmq <https://github.com/zeromq/pyzmq>`_ is needed for
+  ``spyne.client.zeromq.ZeroMQClient`` and
+  ``spyne.server.zeromq.ZeroMQServer``.
+* `Werkzeug <http://werkzeug.pocoo.org/>`_ is needed for
+  ``spyne.protocol.http.HttpRpc``.
+* `Twisted <http://twistedmatrix.com/>`_ is needed for
+  ``spyne.server.twisted.TwistedWebResource`` and
+  ``spyne.client.twisted.TwistedHttpClient``.
+* `Django <http://djangoproject.com/>`_ is needed for
+  ``spyne.server.django.DjangoApplication``.
+* `MessagePack <http://github.com/msgpack/msgpack-python/>`_ is needed for
+  ``spyne.protocol.msgpack``.
 
 You are advised to add these as requirements to your own projects, as these are
 only optional dependencies of Spyne, thus not handled in its setup script.
@@ -82,20 +92,21 @@ To install from source distribution, you should run its setup script as usual: :
 
     python setup.py install
 
-To run the non-interop tests use: ::
+To run the tests use: ::
 
-    python setup.py test
+    cd spyne/tests && ./run_tests.sh
 
-And if you want to make any changes to the spyne code, it's more comfortable to
-use: ::
+And if you want to make any changes to the Spyne code, just use ::
 
     python setup.py develop
+
+so that you can painlessly test your pathces.
 
 Contributing
 ============
 
 The main developers of Spyne lurk in the `official soap implementors
-forum <http://mail.python.org/mailman/listinfo/soap/>`_. kindly operated
+forum <http://mail.python.org/mailman/listinfo/soap/>`_ kindly operated
 by python.org. That's mostly because Spyne is the continuation of soaplib,
 but also because soap is an important part of Spyne.
 
@@ -126,13 +137,12 @@ significant change to be committed via pull requests.
 Submitting Pull Requests
 ------------------------
 
-Github's pull-request feature is awesome, but
-there's a subtlety that's not totally obvious for newcomers: If you continue
-working on the branch that you used to submit a pull request, your commits will
-"pollute" the pull request until it gets merged. This is not a bug, but a
-feature -- it gives you the ability to address reviewers' concerns without
-creating pull requests over and over again. So, if you intend to work on other
-parts of spyne after submitting a pull request, please do move your work to its
-own branch and never submit a pull request from your master branch. This will
-give you the freedom to continue working on spyne while waiting for your pull
-request to be reviewed.
+Github's pull-request feature is awesome, but there's a subtlety that's not
+totally obvious for newcomers: If you continue working on the branch that you
+used to submit a pull request, your commits will "pollute" the pull request
+until it gets merged. This is not a bug, but a feature -- it gives you the
+ability to address reviewers' concerns without creating pull requests over and
+over again. So, if you intend to work on other parts of spyne after submitting
+a pull request, please do move your work to its own branch and never submit a
+pull request from your master branch. This will give you the freedom to
+continue working on spyne while waiting for your pull request to be reviewed.

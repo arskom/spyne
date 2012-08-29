@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from spyne.interface.wsdl.wsdl11 import Wsdl11
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -26,11 +27,11 @@ import spyne.const.xml_ns as ns
 
 from spyne.test.wsdl import AppTestWrapper
 from spyne.test.wsdl import build_app
-from spyne.test.wsdl.port_service_services import BadRPCPortService
-from spyne.test.wsdl.port_service_services import DoublePortService
-from spyne.test.wsdl.port_service_services import MissingRPCPortService
-from spyne.test.wsdl.port_service_services import MissingServicePortService
-from spyne.test.wsdl.port_service_services import SinglePortService
+from spyne.test.wsdl.port_service_services import TBadRPCPortService
+from spyne.test.wsdl.port_service_services import TDoublePortService
+from spyne.test.wsdl.port_service_services import TMissingRPCPortService
+from spyne.test.wsdl.port_service_services import TMissingServicePortService
+from spyne.test.wsdl.port_service_services import TSinglePortService
 
 class TestWSDLPortServiceBehavior(unittest.TestCase):
     def setUp(self):
@@ -43,21 +44,23 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
         self.port_string = '{%s}port' % ns.wsdl
 
     def test_tns(self):
-        sa = build_app([SinglePortService], 'SinglePort', 'TestServiceName')
+        sa = build_app([TSinglePortService()], 'SinglePort', 'TestServiceName')
 
-        sa.interface.build_interface_document(self.url)
-        sa_el = sa.interface.root_elt
+        wsdl = Wsdl11(sa.interface)
+        wsdl.build_interface_document(self.url)
+        sa_el = wsdl.root_elt
         tns = sa_el.get('targetNamespace')
         self.assertEqual('SinglePort', tns)
 
         sa = build_app(
-            [SinglePortService, DoublePortService],
+            [TSinglePortService(), TDoublePortService()],
             'MultiServiceTns',
             'AppName'
         )
 
-        sa.interface.build_interface_document(self.url)
-        tns = sa.interface.root_elt.get('targetNamespace')
+        wsdl = Wsdl11(sa.interface)
+        wsdl.build_interface_document(self.url)
+        tns = wsdl.root_elt.get('targetNamespace')
 
         self.assertEqual(tns, 'MultiServiceTns')
 
@@ -66,42 +69,46 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
         # but the rpc method does not declare a port.
 
         app = build_app(
-            [MissingRPCPortService],
+            [TMissingRPCPortService()],
             'MisingPortTns',
             'MissingPortApp'
         )
 
-        self.assertRaises(ValueError, app.interface.build_interface_document,
+        interface_doc = Wsdl11(app.interface)
+        self.assertRaises(ValueError, interface_doc.build_interface_document,
                                                                        self.url)
 
         app = build_app(
-            [SinglePortService, MissingRPCPortService],
+            [TSinglePortService(), TMissingRPCPortService()],
             'MissingPort2Tns',
             'MissingPort2App'
         )
 
-        self.assertRaises(ValueError, app.interface.build_interface_document,
+        interface_doc = Wsdl11(app.interface)
+        self.assertRaises(ValueError, interface_doc.build_interface_document,
                                                                        self.url)
 
 
     def test_raise_invalid_port(self):
 
         app = build_app(
-            [BadRPCPortService],
+            [TBadRPCPortService()],
             'MisingPortTns',
             'MissingPortApp'
         )
 
-        self.assertRaises(ValueError, app.interface.build_interface_document,
+        interface_doc = Wsdl11(app.interface)
+        self.assertRaises(ValueError, interface_doc.build_interface_document,
                                                                        self.url)
 
         app = build_app(
-            [BadRPCPortService, SinglePortService],
+            [TBadRPCPortService(), TSinglePortService()],
             'MissingPort2Tns',
             'MissingPortApp'
         )
 
-        self.assertRaises(ValueError, app.interface.build_interface_document,
+        interface_doc = Wsdl11(app.interface)
+        self.assertRaises(ValueError, interface_doc.build_interface_document,
                                                                        self.url)
 
 
@@ -109,28 +116,31 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
     def test_raise_no_service_port(self):
 
         app = build_app(
-            [MissingServicePortService],
+            [TMissingServicePortService()],
             'MisingPortTns',
             'MissingPortApp'
         )
 
-        self.assertRaises(ValueError, app.interface.build_interface_document,
+        interface_doc = Wsdl11(app.interface)
+        self.assertRaises(ValueError, interface_doc.build_interface_document,
                                                                        self.url)
 
         app = build_app(
-            [SinglePortService, MissingServicePortService],
+            [TSinglePortService(), TMissingServicePortService()],
             'MissingServicePort2Tns',
             'MissingServicePort2App'
         )
 
-        self.assertRaises(ValueError, app.interface.build_interface_document,
+        interface_doc = Wsdl11(app.interface)
+        self.assertRaises(ValueError, interface_doc.build_interface_document,
                                                                        self.url)
 
 
     def test_service_name(self):
-        sa = build_app([SinglePortService], 'SinglePort', 'TestServiceName')
-        sa.interface.build_interface_document(self.url)
-        sa_el = sa.interface.root_elt
+        sa = build_app([TSinglePortService()], 'SinglePort', 'TestServiceName')
+        wsdl = Wsdl11(sa.interface)
+        wsdl.build_interface_document(self.url)
+        sa_el = wsdl.root_elt
 
         sl = [s for s in sa_el.iterfind(self.service_string)]
         name = sl[0].get('name')
@@ -144,13 +154,14 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
         # Check that the element for the service has the correct port names
 
         app = build_app(
-            [SinglePortService],
+            [TSinglePortService()],
             'SinglePortTns',
             'SinglePortApp'
         )
 
         wrapper = AppTestWrapper(app)
         service = wrapper.get_service_list()[0]
+
         # verify that there is only one port
         ports = wrapper.get_port_list(service)
         self.assertEquals(1, len(ports))
@@ -162,18 +173,20 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
         self.assertEquals('FirstPortType', port.get('name'))
 
     def test_port_name(self):
-        sa = build_app([SinglePortService], 'tns', name='SinglePortApp')
-        sa.interface.build_interface_document(self.url)
-        sa_wsdl_el = sa.interface.root_elt
+        sa = build_app([TSinglePortService()], 'tns', name='SinglePortApp')
+        wsdl = Wsdl11(sa.interface)
+        wsdl.build_interface_document(self.url)
+        sa_wsdl_el = wsdl.root_elt
 
         pl = sa_wsdl_el.findall(self.port_type_string)
         print(('\n', pl, pl[0].attrib))
         self.assertEqual('FirstPortType', pl[0].get('name'))
 
-        da = build_app([DoublePortService], 'tns', name='DoublePortApp')
+        da = build_app([TDoublePortService()], 'tns', name='DoublePortApp')
 
-        da.interface.build_interface_document(self.url)
-        da_wsdl_el = da.interface.root_elt
+        wsdl = Wsdl11(da.interface)
+        wsdl.build_interface_document(self.url)
+        da_wsdl_el = wsdl.root_elt
 
         pl2 = da_wsdl_el.findall(self.port_type_string)
         self.assertEqual('FirstPort', pl2[0].get('name'))
@@ -181,20 +194,22 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
 
 
     def test_port_count(self):
-        sa = build_app([SinglePortService], 'tns', name='SinglePortApp')
-        sa.interface.build_interface_document(self.url)
-        sa_wsdl_el = sa.interface.root_elt
+        sa = build_app([TSinglePortService()], 'tns', name='SinglePortApp')
+        wsdl = Wsdl11(sa.interface)
+        wsdl.build_interface_document(self.url)
+        sa_wsdl_el = wsdl.root_elt
 
         self.assertEquals(1, len(sa_wsdl_el.findall(self.port_type_string)))
         pl = sa_wsdl_el.findall(self.port_type_string)
         self.assertEqual(1, len(pl))
 
+        da = build_app([TDoublePortService()], 'tns', name='DoublePortApp')
+        wsdl = Wsdl11(da.interface)
+        wsdl.build_interface_document(self.url)
 
-        da = build_app([DoublePortService], 'tns', name='DoublePortApp')
-        da_wsdl_string = da.interface.build_interface_document(self.url)
-        da_wsdl_el = da.interface.root_elt
-
-        self.assertEquals(2, len(da_wsdl_el.findall(self.port_type_string)))
+        from lxml import etree
+        print etree.tostring(wsdl.root_elt, pretty_print=True)
+        self.assertEquals(2, len(wsdl.root_elt.findall(self.port_type_string)))
 
 if __name__ == '__main__':
     unittest.main()

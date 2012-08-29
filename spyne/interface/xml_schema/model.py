@@ -17,6 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""The ``spyne.interface.xml_schema.model`` module contains type-specific logic
+for schema generation."""
+
 import decimal
 import logging
 logger = logging.getLogger(__name__)

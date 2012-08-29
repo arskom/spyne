@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""The ``spyne.model.binary`` package contains binary type markers."""
+
 import os
 import base64
 import tempfile
@@ -34,11 +36,12 @@ from spyne.model import SimpleModel
 
 
 class ByteArray(SimpleModel):
-    """Handles anything other than ascii or unicode-encoded data. Every protocol
-    has a different way to handle arbitrary data. E.g. xml-based protocols
-    encode this as base64, while HttpRpc just hands it over.
+    """Canonical container for arbitrary data. Every protocol has a different
+    way of encapsulating this type. E.g. xml-based protocols encode this as
+    base64, while HttpRpc just hands it over.
 
-    Its native python format is an iterable of strings.
+    Its native python format is a sequence of ``str`` objects for Python 2.x
+    and a sequence of ``bytes`` objects for Python 3.x.
     """
 
     __type_name__ = 'base64Binary'
@@ -73,53 +76,77 @@ class ByteArray(SimpleModel):
     def from_base64(cls, value):
         return [base64.b64decode(_bytes_join(value))]
 
-class File(ModelBase):
+
+class File(SimpleModel):
+    """A compact way of dealing with incoming files for protocols with a
+    standard way of encoding file metadata along with binary data. (E.g. Http)
+    """
+
     __type_name__ = 'base64Binary'
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
 
-    def __init__(self, name=None, path=None, type='application/octet-stream',
-            data=None, handle=None):
-        self.name = name
-        if self.name is not None:
-            assert os.path.basename(self.name) == self.name
+    class Value(object):
+        def __init__(self, name=None, path=None, type='application/octet-stream',
+                                                            data=None, handle=None):
+            """The class for values marked as ``File``.
 
-        self.path = path
-        if self.path is not None:
-            assert os.path.isabs(self.path)
+            :param name: Original name of the file
+            :param path: Current path to the file.
+            :param type: The mime type of the file's contents.
+            :param data: Optional sequence of ``str`` or ``bytes`` instances
+            that contain the file's data.
+            :param handle: :class:`file` object that contains the file's data.
+            It is ignored unless the ``path`` argument is ``None``.
+            """
 
-        self.type = type
+            self.name = name
+            if self.name is not None:
+                assert os.path.basename(self.name) == self.name
 
-        if data is None:
+            self.path = path
+            if self.path is not None:
+                assert os.path.isabs(self.path)
+
+            self.type = type
+
+            if data is None:
+                self.data = File.to_string_iterable(self)
+            else:
+                self.data = iter(data)
+
+            self.handle = handle
+
+        def rollover(self):
+            """This method normalizes the file object by making ``path``,
+            ``name`` and ``handle`` properties consistent. It writes
+            incoming data to the file object and points the ``data`` iterable
+            to the contents of this file.
+            """
+
+            iter(self.data)
+
+            if self.path is None:
+                handle, self.path = tempfile.mkstemp()
+                f = os.fdopen(handle, 'wb')
+            else:
+                assert os.path.isabs(self.path)
+                f = open(self.path, 'wb')
+
+            if self.name is None:
+                self.name = os.path.basename(self.path)
+
+            for data in self.data:
+                f.write(data)
+
+            f.close()
+
             self.data = File.to_string_iterable(self)
-        else:
-            self.data = iter(data)
-        self.handle = handle
-
-    def rollover(self):
-        iter(self.data)
-
-        if self.path is None:
-            handle, self.path = tempfile.mkstemp()
-            f = os.fdopen(handle, 'wb')
-        else:
-            assert os.path.isabs(self.path)
-            f = open(self.path, 'wb')
-
-        if self.name is None:
-            self.name = os.path.basename(self.path)
-
-        for data in self.data:
-            f.write(data)
-
-        f.close()
-
-        self.data = File.to_string_iterable(self)
 
     @classmethod
     @nillable_iterable
     def to_string_iterable(cls, value):
-        assert value.path, "You need to write data to disk if you want to " \
-                           "read it back."
+        assert value.path, "You need to write data to persistent storage first " \
+                           "if you want to read it back."
 
         if value.handle is None:
             f = open(value.path, 'rb')
@@ -143,12 +170,12 @@ class File(ModelBase):
     @classmethod
     @nillable_string
     def to_base64(cls, value):
-        assert value.path, "You need to write data to disk if you want to " \
-                           "read it back."
+        assert value.path, "You need to write data to persistent storage first " \
+                           "if you want to read it back."
 
         f = open(value.path, 'rb')
 
-        data = f.read(0x4000)
+        data = f.read(0x4000) # this needs to be a multiple of 4
         while len(data) > 0:
             yield base64.b64encode(data)
             data = f.read(0x4000)
@@ -164,9 +191,8 @@ class File(ModelBase):
         return "File(name=%r, path=%r, type=%r, data=%r)" % (self.name,
                                                 self.path, self.type, self.data)
 
+# **DEPRECATED!** Use ByteArray or File instead.
 class Attachment(ModelBase):
-    """**DEPRECATED!** Use ByteArray or File instead."""
-
     __type_name__ = 'base64Binary'
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
 

@@ -23,7 +23,7 @@ from spyne.server import ServerBase
 
 class HttpTransportContext(TransportContext):
     """The abstract base class that is used in the transport attribute of the
-    :class:`HttpMethodContext` class and its children."""
+    :class:`HttpMethodContext` class and its subclasses."""
 
     def __init__(self, transport, request, content_type):
         TransportContext.__init__(self, transport, 'http')

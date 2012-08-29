@@ -6,13 +6,15 @@ rpclib-2.8.0-rc -> spyne-2.8.0-rc
 ---------------------------------
  * Rpclib is dead. Long live Spyne!
  * Add support for JsonObject protocol. This initial version is expremental.
+ * Add support for MessagePackObject and MessagePackRpc protocols. These
+   initial versions are expremental.
  * Make DateTime string format customizable.
  * Implement TwistedWebResource that exposes an ``Application`` instance as a
    ``twisted.web.resource.Resource`` child.
  * Remove Deprecated XMLAttribute and XMLAttributeRef. Use ``XmlAttribute``
    and ``XmlAttributeRef`` instead.
  * Xml Schema: Add support for the <any> tag.
- * Add a chapter about Validation to the manual.
+ * Add a chapter about Validation to the manual. Thanks Alex!
  * Interface documents are no longer subclasses of InterfaceBase. It's up
    to the transport to expose the application using a given interface document
    standard now. The ``interface`` argument to the ``Application`` constructor
@@ -39,21 +41,14 @@ rpclib-2.8.0-rc -> spyne-2.8.0-rc
 
        name, in_protocol, out_protocol, interface
 
- * Relevant pull requests:
+ * Relevant pull requests with new features and behavioral changes:
     * https://github.com/arskom/spyne/pull/128
     * https://github.com/arskom/spyne/pull/129
-    * https://github.com/arskom/spyne/pull/133
-    * https://github.com/arskom/spyne/pull/137
-    * https://github.com/arskom/spyne/pull/138
     * https://github.com/arskom/spyne/pull/139
-    * https://github.com/arskom/spyne/pull/141
     * https://github.com/arskom/spyne/pull/142
-    * https://github.com/arskom/spyne/pull/144
-    * https://github.com/arskom/spyne/pull/146
-    * https://github.com/arskom/spyne/pull/145
-    * https://github.com/arskom/spyne/pull/147
     * https://github.com/arskom/spyne/pull/148
-    * https://github.com/arskom/spyne/pull/149
+    * https://github.com/arskom/spyne/pull/157
+    * https://github.com/arskom/spyne/pull/173
 
 rpclib-2.7.0-beta
 -----------------
@@ -425,3 +420,4 @@ soaplib-0.8.0
 -------------
 
  * First public stable release.
+

@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This package contains the client transports."""
+"""The ``spyne.client`` package contains the client transports."""
 
 from spyne.client._base import Factory
 from spyne.client._base import Service

@@ -17,12 +17,33 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module defines the Fault class."""
-
 from spyne.model import ModelBase
 
 class Fault(ModelBase, Exception):
-    """Use this class as a base for public exceptions."""
+    """Use this class as a base for all public exceptions.
+    The Fault object adheres to the
+    `SOAP 1.1 Fault definition <http://www.w3.org/TR/2000/NOTE-SOAP-20000508/#_Toc478383507>`_,
+
+    which has three main attributes:
+
+    :param faultcode: It's a dot-delimited string whose first fragment is
+        either 'Client' or 'Server'. Just like HTTP 4xx and 5xx codes,
+        'Client' indicates that something was wrong with the input, and 'Server'
+        indicates something went wrong during the processing of an otherwise
+        legitimate request.
+
+        Protocol implementors should heed the values in ``faultcode`` to set
+        proper return codes in the protocol level when necessary. E.g. HttpRpc
+        protocol will return a HTTP 404 error when a
+        :class:`spyne.error.ResourceNotFound` is raised, and a general HTTP 400
+        when the ``faultcode`` starts with ``'Client.'`` or is ``'Client'``.
+
+        Soap would return Http 500 for any kind of exception, and denote the
+        nature of the exception in the Soap response body. (because that's what
+        the standard says... Yes, soap is famous for a reason :))
+    :param faultstring: It's the human-readable explanation of the exception.
+    :param detail: Additional information dict.
+    """
 
     __type_name__ = "Fault"
 
@@ -42,3 +63,11 @@ class Fault(ModelBase, Exception):
     @classmethod
     def to_string_iterable(cls, value):
         return [value.faultcode, '\n\n', value.faultstring]
+
+    @classmethod
+    def to_dict(cls, value):
+        return {cls.get_type_name(): {
+            "faultcode": value.faultcode,
+            "faultstring": value.faultstring,
+            "detail": value.detail,
+        }}

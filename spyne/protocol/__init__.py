@@ -17,4 +17,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""The ``spyne.protocol`` package contains the
+:class:`spyne.protocol.ProtocolBase`` abstract base class. Every protocol
+implementation is a subclass of ``ProtocolBase``.
+"""
+
 from spyne.protocol._base import ProtocolBase
+from spyne.protocol._base import unwrap_instance
+from spyne.protocol._base import unwrap_messages
