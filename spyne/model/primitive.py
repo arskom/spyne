@@ -232,10 +232,10 @@ class AnyUri(String):
         information carried with a link.
 
         :param href: The uri string.
-        :param text: The text data that goes with the link. This is an
-            `lxml.etree._Element` instance.
-        :param content: The structured data that goes with the link. This is a
+        :param text: The text data that goes with the link. This is a
             ``str`` or a ``unicode`` instance.
+        :param content: The structured data that goes with the link. This is an
+            `lxml.etree.Element` instance.
         """
 
         def __init__(self, href, text=None, content=None):
