@@ -399,11 +399,11 @@ class WsgiApplication(HttpBase):
 
                 path = getattr(v.stream, 'name', None)
                 if path is None:
-                    val.append(File(name=v.filename, type=mime_type,
+                    val.append(File.Value(name=v.filename, type=mime_type,
                                                     data=[v.stream.getvalue()]))
                 else:
                     v.stream.seek(0)
-                    val.append(File(name=v.filename, type=mime_type, path=path,
-                                                               handle=v.stream))
+                    val.append(File.Value(name=v.filename, type=mime_type,
+                                                    path=path, handle=v.stream))
 
                 ctx.in_body_doc[k] = val
