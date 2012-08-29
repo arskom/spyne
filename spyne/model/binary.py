@@ -165,14 +165,13 @@ class File(SimpleModel):
     @classmethod
     @nillable_string
     def from_string(cls, value):
-        return File(data=[value])
+        return File.Value(data=[value])
 
     @classmethod
     @nillable_string
     def to_base64(cls, value):
         assert value.path, "You need to write data to persistent storage first " \
                            "if you want to read it back."
-
         f = open(value.path, 'rb')
 
         data = f.read(0x4000) # this needs to be a multiple of 4
@@ -185,7 +184,7 @@ class File(SimpleModel):
     @classmethod
     @nillable_string
     def from_base64(cls, value):
-        return File(data=[base64.b64decode(value)])
+        return File.Value(data=[base64.b64decode(value)])
 
     def __repr__(self):
         return "File(name=%r, path=%r, type=%r, data=%r)" % (self.name,

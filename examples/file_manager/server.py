@@ -110,7 +110,7 @@ def main():
     logging.getLogger('spyne.wsgi').setLevel(logging.DEBUG)
 
     filemgr_app = WsgiApplication(Application([FileServices],
-        'spyne.examples.file_manager', HttpRpc(validator='soft'), HttpRpc()))
+        'spyne.examples.file_manager', in_protocol=HttpRpc(validator='soft'), out_protocol=HttpRpc()))
     try:
         os.makedirs('./files')
     except OSError:
