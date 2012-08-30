@@ -15,12 +15,13 @@ VERSION = re.match(r".*__version__ = '(.*?)'", v.read(), re.S).group(1)
 LONG_DESC = """Spyne aims to save the protocol implementers the hassle of
 implementing their own remote procedure call api and the application programmers
 the hassle of jumping through hoops just to expose their services using multiple
-protocols and transports."""
+protocols and transports.
+"""
 
 
 try:
     os.stat('CHANGELOG.rst')
-    LONG_DESC += open('CHANGELOG.rst', 'r').read()
+    LONG_DESC += "\n\n" + open('CHANGELOG.rst', 'r').read()
 except OSError:
     pass
 
