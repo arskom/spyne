@@ -64,3 +64,6 @@ pres.pdf
 
 # trial cruft
 _trial_temp
+
+# output from examples/stream scripts
+*.ogg

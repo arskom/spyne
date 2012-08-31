@@ -18,8 +18,6 @@
 #
 
 import sys
-import collections
-import functools
 
 try:
     from urllib import splittype
@@ -83,39 +81,17 @@ def reconstruct_url(environ):
 def check_pyversion(*minversion):
     return sys.version_info[:3] >= minversion
 
-# http://wiki.python.org/moin/PythonDecoratorLibrary#Memoize
-class memoize(object):
-    '''Decorator. Caches a function's return value each time it is called.
-    If called later with the same arguments, the cached value is returned
-    (not reevaluated).
-    '''
 
+class memoize(object):
     def __init__(self, func):
         self.func = func
-        self.cache = {}
+        self.memo = {}
 
-    def __call__(self, *args):
-        if not isinstance(args, collections.Hashable):
-            # uncacheable. a list, for instance.
-            # better to not cache than blow up.
-            return self.func(*args)
-
-        if args in self.cache:
-            return self.cache[args]
-
-        else:
-            value = self.func(*args)
-            self.cache[args] = value
-            return value
-
-    def __repr__(self):
-        '''Return the function's docstring.'''
-        return self.func.__doc__
-
-    def __get__(self, obj, objtype):
-        '''Support instance methods.'''
-
-        return functools.partial(self.__call__, obj)
+    def __call__(self, *args, **kwargs):
+        key = (tuple(args), tuple(kwargs.items()))
+        if not key in self.memo:
+            self.memo[key] = self.func(*args, **kwargs)
+        return self.memo[key]
 
     def reset(self):
-        self.cache = {}
+        self.memo = {}

@@ -45,14 +45,23 @@ class TransportContext(object):
         self.type = type
         """The protocol the transport uses."""
 
+class ProtocolContext(object):
+    """Generic object that holds transport-specific context information"""
+    def __init__(self, transport, type=None):
+        self.itself = transport
+        """The transport itself; i.e. a ServerBase instance."""
+
+        self.type = type
+        """The protocol the transport uses."""
+
 class EventContext(object):
     """Generic object that holds event-specific context information"""
     def __init__(self, event_id=None):
         self.event_id=event_id
 
 class MethodContext(object):
-    """The base class for all RPC Contexts. Holds crucial information about the
-    lifetime of a document.
+    """The base class for all RPC Contexts. Holds all information about the
+    current state of execution of a remote procedure call.
     """
 
     frozen = False
@@ -92,6 +101,10 @@ class MethodContext(object):
         """The transport-specific context. Transport implementors can use this
         to their liking."""
 
+        self.protocol = ProtocolContext(transport)
+        """The protocol-specific context. Protocol implementors can use this
+        to their liking."""
+
         self.event = EventContext()
         """Event-specific context. Use this as you want, preferably only in
         events, as you'd probably want to separate the event data from the
@@ -99,17 +112,16 @@ class MethodContext(object):
 
         self.aux = None
         """Auxiliary-method specific context. You can use this to share data
-        between auxiliary sessions. This is not set in primary methods.
+        between auxiliary sessions. This is not set in primary contexts.
         """
 
         self.method_request_string = None
-        """This is used as a basis on deciding which native method to call."""
+        """This is used to decide which native method to call. It is set by
+        the protocol classes."""
 
         self.__descriptor = None
 
-        #
-        # The following are set based on the value of the descriptor.
-        #
+        # This is set based on the value of the descriptor.
         self.service_class = None
         """The service definition class the method belongs to."""
 
@@ -119,7 +131,7 @@ class MethodContext(object):
 
         # stream
         self.in_string = None
-        """Incoming bytestream (i.e. an iterable of strings)"""
+        """Incoming bytestream as a sequence of ``str`` or ``bytes`` instances."""
 
         # parsed
         self.in_document = None
@@ -138,20 +150,20 @@ class MethodContext(object):
         """Deserialized incoming header -- a native object."""
         self.in_object = None
         """In the request (i.e. server) case, this contains the function
-        arguments for the function in the service definition class.
+        argument sequence for the function in the service definition class.
         In the response (i.e. client) case, this contains the object returned
         by the remote procedure call.
 
-        It's always an iterable of objects:
-            * [None] when the function has no output (client)/input (server)
+        It's always a sequence of objects:
+            * ``[None]`` when the function has no output (client)/input (server)
               types.
             * A single-element list that wraps the return value when the
               function has one return type defined,
-            * Left untouched even when the function has more than one return
-              values.
+            * A tuple of return values in case of the function having more than
+              one return value.
 
-        The objects never contain the instances but lists of values. The order
-        is in line with ``self.descriptor.in_class._type_info.keys()``.
+        The order of the argument sequence is in line with
+        ``self.descriptor.in_message._type_info.keys()``.
         """
 
         #
@@ -160,21 +172,21 @@ class MethodContext(object):
 
         # native
         self.out_object = None
-        """In the request (i.e. server) case, this is the native python object
-        returned by the function in the service definition class.
-        In the response (i.e. client) case, this contains the function arguments
+        """In the response (i.e. server) case, this contains the native python
+        object(s) returned by the function in the service definition class.
+        In the request (i.e. client) case, this contains the function arguments
         passed to the function call wrapper.
 
-        It's always an iterable of objects:
-            * [None] when the function has no output (server)/input (client)
+        It's always a sequence of objects:
+            * ``[None]`` when the function has no output (server)/input (client)
               types.
             * A single-element list that wraps the return value when the
               function has one return type defined,
-            * Left untouched even when the function has more than one return
-              values.
+            * A tuple of return values in case of the function having more than
+              one return value.
 
-        The objects never contain the instances but lists of values. The order
-        is in line with ``self.descriptor.out_class._type_info.keys()``.
+        The order of the argument sequence is in line with
+        ``self.descriptor.out_message._type_info.keys()``.
         """
         self.out_header = None
         """Native python object set by the function in the service definition
@@ -193,7 +205,7 @@ class MethodContext(object):
 
         # stream
         self.out_string = None
-        """Outgoing bytestream (i.e. an iterable of strings)"""
+        """Outgoing bytestream (i.e. a sequence of strings)"""
 
         self.function = None
         """The callable of the user code."""
@@ -218,8 +230,10 @@ class MethodContext(object):
 
     descriptor = property(get_descriptor, set_descriptor)
     """The :class:``MethodDescriptor`` object representing the current method.
-    This object should not be changed by the user code."""
-
+    It is only set when the incoming request was successfully mapped to a method
+    in the public interface. The contents of this property should not be changed
+    by the user code.
+    """
 
     def __setattr__(self, k, v):
         if self.frozen == False or k in self.__dict__ or k == 'descriptor':
@@ -251,8 +265,8 @@ class MethodContext(object):
         self.app.event_manager.fire_event("method_context_destroyed", self)
 
 class MethodDescriptor(object):
-    '''This class represents the method signature of a soap method,
-    and is returned by the rpc decorator.
+    '''This class represents the method signature of an exposed service. It is
+    produced by the :func:`spyne.decorator.srpc` decorator.
     '''
 
     def __init__(self, function, in_message, out_message, doc,
@@ -262,50 +276,57 @@ class MethodDescriptor(object):
                  aux=None, http_routes=None):
 
         self.__real_function = function
-        """The original function object to be called when the method is remotely
-        invoked."""
+        """The original callable for the user code."""
 
         self.reset_function()
 
         self.in_message = in_message
-        """Automatically generated complex object based on incoming arguments to
-        the function."""
+        """A :class:`spyne.model.complex.ComplexModel` subclass that defines the
+        input signature of the user function and that was automatically
+        generated by the ``@srpc`` decorator."""
 
         self.out_message = out_message
-        """Automatically generated complex object based on the return type of
-        the function."""
+        """A :class:`spyne.model.complex.ComplexModel` subclass that defines the
+        output signature of the user function and that was automatically
+        generated by the ``@srpc`` decorator."""
 
         self.doc = doc
         """The function docstring."""
 
+        # these are not working, so they are not documented.
         self.is_callback = is_callback
         self.is_async = is_async
-
         self.mtom = mtom
-        """Flag to indicate whether to use MTOM transport with SOAP."""
+        #"""Flag to indicate whether to use MTOM transport with SOAP."""
+        self.port_type = port_type
+        #"""The portType this function belongs to."""
 
         self.in_header = in_header
-        """The incoming header object this function could accept."""
+        """An iterable of :class:`spyne.model.complex.ComplexModel`
+        subclasses to denote the types of header objects that this method can
+        accept."""
 
         self.out_header = out_header
-        """The outgoing header object this function could send."""
+        """An iterable of :class:`spyne.model.complex.ComplexModel`
+        subclasses to denote the types of header objects that this method can
+        emit along with its return value."""
 
         self.faults = faults
-        """The exceptions that this function can throw."""
-
-        self.port_type = port_type
-        """The portType this function belongs to."""
+        """An iterable of :class:`spyne.model.fault.Fault` subclasses to denote
+        the types of exceptions that this method can throw."""
 
         self.no_ctx = no_ctx
-        """Whether the function receives the method context as the first
-        argument implicitly or not."""
+        """no_ctx: Boolean flag to denote whether the user code gets an
+        implicit :class:`spyne.MethodContext` instance as first argument."""
 
         self.udp = udp
-        """Short for "User-Defined Properties", it's your own playground. You
-        can use it to store custom metadata about the method."""
+        """Short for "User Defined Properties", this is just an arbitrary python
+        object set by the user to pass arbitrary metadata via the ``@srpc``
+        decorator."""
 
         self.class_key = class_key
-        """The name the function is accessible from in the class."""
+        """ The identifier of this method in its parent
+        :class:`spyne.service.ServiceBase` subclass."""
 
         self.aux = aux
         """Value to indicate what kind of auxiliary method this is. (None means
@@ -345,9 +366,23 @@ class MethodDescriptor(object):
         self.function = self.__real_function
 
 class EventManager(object):
-    """The event manager for all spyne events. The events are stored in an
-    ordered set -- so the events are ran in the order they were added and
-    adding a handler twice does not cause it to run twice.
+    """Spyne supports a simple event system that can be used to have repetitive
+    boiler plate code that has to run for every method call nicely tucked away
+    in one or more event handlers. The popular use-cases include things like
+    database transaction management, logging and measuring performance.
+
+    Various Spyne components support firing events at various stages during the
+    processing of the request, which are documented in the relevant classes.
+
+    The classes that support events are:
+        * :class:`spyne.application.Application`
+        * :class:`spyne.service.ServiceBase`
+        * :class:`spyne.protocol._base.ProtocolBase`
+        * :class:`spyne.server.wsgi.WsgiApplication`
+
+    The events are stored in an ordered set. This means that the events are ran
+    in the order they were added and adding a handler twice does not cause it to
+    run twice.
     """
 
     def __init__(self, parent, handlers={}):

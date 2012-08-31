@@ -17,28 +17,45 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""The ```spyne.const.suffix``` module contains  various suffixes that Spyne
+uses when automatically generating complex types."""
 
 ARRAY_SUFFIX = 'Array'
+"""The suffix for Array wrapper objects"""
+
 RESPONSE_SUFFIX = 'Response'
+"""The suffix for function response objects"""
+
 RESULT_SUFFIX = 'Result'
+"""The suffix for function response wrapper objects"""
+
 TYPE_SUFFIX = 'Type'
+"""The suffix for primitives with unnamed constraints."""
 
 
 def set_array_suffix(what):
+    """Sets the array suffix to its argument."""
+
     global ARRAY_SUFFIX
     ARRAY_SUFFIX = what
 
 
 def set_response_suffix(what):
+    """Sets the response suffix to its argument."""
+
     global RESPONSE_SUFFIX
     RESPONSE_SUFFIX = what
 
 
 def set_result_suffix(what):
+    """Sets the result suffix to its argument."""
+
     global RESULT_SUFFIX
     RESULT_SUFFIX = what
 
 
 def set_type_suffix(what):
+    """Sets the type suffix to its argument."""
+
     global TYPE_SUFFIX
     TYPE_SUFFIX = what

@@ -38,9 +38,3 @@ Ordered Set
 .. automodule:: spyne.util.oset
     :members:
 
-
-Helpers
--------
-
-.. automodule:: spyne.util.simple
-    :members:

@@ -18,10 +18,6 @@
 #
 
 
-"""This module contains the Application class, to which every other spyne
-component is integrated.
-"""
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -31,9 +27,24 @@ from spyne._base import EventManager
 from spyne.util.appreg import register_application
 
 
+def get_fault_string_from_exception(e):
+    return str(e)
+
+def return_traceback_in_unhandled_exceptions():
+    """Call this function first thing in your main function to return tracebacks
+    to your clients in case of unhandled exceptions.
+    """
+
+    global get_fault_string_from_exception
+
+    import traceback
+    def _get_fault_string_from_exception(e):
+        return traceback.format_exc()
+    get_fault_string_from_exception = _get_fault_string_from_exception
+
 class Application(object):
-    '''This class is the glue between one or more service definitions,
-    interface and protocol choices.
+    '''The Application class is the glue between one or more service
+    definitions, input and output protocols.
 
     :param services:     An iterable of ServiceBase subclasses that define
                          the exposed services.
@@ -41,10 +52,10 @@ class Application(object):
                          service.
     :param name:         The optional name attribute of the exposed service.
                          The default is the name of the application class
-                         which is, by default, 'Application'.
-    :param in_protocol:  A ProtocolBase instance that defines the input
+                         which is by default 'Application'.
+    :param in_protocol:  A ProtocolBase instance that denotes the input
                          protocol. It's only optional for NullServer transport.
-    :param out_protocol: A ProtocolBase instance that defines the output
+    :param out_protocol: A ProtocolBase instance that denotes the output
                          protocol. It's only optional for NullServer transport.
     :param interface:    Ignored. Kept for backwards-compatibility purposes.
 
@@ -136,7 +147,7 @@ class Application(object):
         except Exception, e:
             logger.exception(e)
 
-            ctx.out_error = Fault('Server', str(e))
+            ctx.out_error = Fault('Server', get_fault_string_from_exception(e))
 
             # fire events
             self.event_manager.fire_event('method_exception_object', ctx)

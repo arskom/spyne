@@ -5,33 +5,35 @@ Changelog
 rpclib-2.8.0-rc -> spyne-2.8.0-rc
 ---------------------------------
  * Rpclib is dead. Long live Spyne!
- * Add support for JsonObject protocol.
+ * Add support for JsonObject protocol. This initial version is expremental.
+ * Add support for MessagePackObject and MessagePackRpc protocols. These
+   initial versions are expremental.
  * Make DateTime string format customizable.
- * Implement the server transport that exposes ``Application`` as a
+ * Implement TwistedWebResource that exposes an ``Application`` instance as a
    ``twisted.web.resource.Resource`` child.
  * Remove Deprecated XMLAttribute and XMLAttributeRef. Use ``XmlAttribute``
    and ``XmlAttributeRef`` instead.
  * Xml Schema: Add support for the <any> tag.
- * Add a chapter about Validation to the manual.
+ * Add a chapter about Validation to the manual. Thanks Alex!
  * Interface documents are no longer subclasses of InterfaceBase. It's up
    to the transport to expose the application using a given interface document
-   standard now. The ``interface`` argument to the ``Application`` ctor is
-   now ignored.
- * Html: Added a very simple lxml-based templating scheme called _HtmlPage.
+   standard now. The ``interface`` argument to the ``Application`` constructor
+   is now ignored.
+ * Html: Added a very simple lxml-based templating scheme: ``HtmlPage``.
  * Html: Added row-based tables: They show fields in rows. It's good for
    showing one object per table.
- * Html: Added ImageUri support. They now render as <img> tags.
- * Html: Added support for locales. You can now render field names as human
+ * Html: Added ImageUri support. They render as <img> tags in Html output.
+ * Html: Added support for locales. You can now render field names as human-
    readable strings.
  * Add support for async methods, which execute after the primary user code
    returns. Currently, the only async execution method is via threads.
  * Xml & friends: Start tags are now in the same namespace as the definitions
    themselves. Intermediate tags are in the parent's namespace, just as before.
  * Xml & friends: Make the 'bare' mode work.
- * rpclib.util.xml: `get_object_as_xml` can also get class suggestion.
- * rpclib.util.xml: `get_xml_as_object` has argument order swapped:
+ * spyne.util.xml: `get_object_as_xml` can also get class suggestion.
+ * spyne.util.xml: `get_xml_as_object` has argument order swapped:
    cls, elt -> elt, cls. See ab91a3e2ad4756b71d1a2752e5b0d2af8551e061.
- * The final argument order change in Application ctor:
+ * There's a final argument order change in Application ctor:
 
        in_protocol, out_protocol, interface, name
 
@@ -39,21 +41,14 @@ rpclib-2.8.0-rc -> spyne-2.8.0-rc
 
        name, in_protocol, out_protocol, interface
 
- * Relevant pull requests:
+ * Relevant pull requests with new features and behavioral changes:
     * https://github.com/arskom/spyne/pull/128
     * https://github.com/arskom/spyne/pull/129
-    * https://github.com/arskom/spyne/pull/133
-    * https://github.com/arskom/spyne/pull/137
-    * https://github.com/arskom/spyne/pull/138
     * https://github.com/arskom/spyne/pull/139
-    * https://github.com/arskom/spyne/pull/141
     * https://github.com/arskom/spyne/pull/142
-    * https://github.com/arskom/spyne/pull/144
-    * https://github.com/arskom/spyne/pull/146
-    * https://github.com/arskom/spyne/pull/145
-    * https://github.com/arskom/spyne/pull/147
     * https://github.com/arskom/spyne/pull/148
-    * https://github.com/arskom/spyne/pull/149
+    * https://github.com/arskom/spyne/pull/157
+    * https://github.com/arskom/spyne/pull/173
 
 rpclib-2.7.0-beta
 -----------------
@@ -425,3 +420,4 @@ soaplib-0.8.0
 -------------
 
  * First public stable release.
+

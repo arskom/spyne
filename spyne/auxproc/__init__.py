@@ -17,13 +17,25 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""Module that contains backends that process the auxiliary contexts. These
-result from non-primary functions in service definitions.
+"""The ``spyne.auxproc`` package contains backends to process auxiliary method
+contexts.
+
+"Auxiliary Methods" are methods that run asyncronously once the
+primary method returns (either successfully or not). There can be only one
+primary method for a given method identifier but zero or more auxiliary methods.
+
+To define multiple auxiliary methods for a given main method, you must use
+separate :class:`ServiceBase` subclasses that you pass to the
+:class:`spyne.application.Application` constructor.
+
+Auxiliary methods are a useful abstraction for a variety of asyncronous
+execution methods like persistent or non-persistent queueing, async execution
+in another thread, process or node.
 
 Classes from this package will have the ``AuxProc`` suffix, short for
-"Auxiliary Processor". Sounds neat, huh? :)
+"Auxiliary Processor".
 
-This package is EXPERIMENTAL. Stay away from it.
+This package is EXPERIMENTAL.
 """
 
 from spyne.auxproc._base import process_contexts

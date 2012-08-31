@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -x
 
 make clean -C doc || exit 1
 make html -C doc || exit 1

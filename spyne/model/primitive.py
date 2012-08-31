@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module defines primitives that are atomic, basic types."""
+"""The ``spyne.model.primitive`` package contains atomic, single-value types."""
 
 import sys
 if sys.version > '3':
@@ -69,8 +69,10 @@ _duration_re = re.compile(
         r'(?:(?P<seconds>\d+(.\d+)?)S)?)?'
     )
 
+
 _ns_xs = spyne.const.xml_ns.xsd
 _ns_xsi = spyne.const.xml_ns.xsi
+
 
 class AnyXml(SimpleModel):
     """An xml node that can contain any number of sub nodes. It's represented by
@@ -98,6 +100,7 @@ class AnyXml(SimpleModel):
         except etree.XMLSyntaxError:
             raise ValidationError(string)
 
+
 class AnyDict(SimpleModel):
     """An xml node that can contain any number of sub nodes. It's represented by
     a dict instance that can contain other dicts or iterables of strings as
@@ -119,8 +122,9 @@ class AnyDict(SimpleModel):
         except:
             raise ValidationError(string)
 
+
 class Unicode(SimpleModel):
-    """The type to represent human-readable data. Its native format is `unicode`.
+    """The type to represent human-readable data. Its native format is `unicode`
     or `str` with given encoding.
     """
 
@@ -134,8 +138,8 @@ class Unicode(SimpleModel):
         """Minimum length of string. Can be set to any positive integer"""
 
         max_len = decimal.Decimal('inf')
-        """Maximum length of string. Can be set to ``decimal.Decimal('inf')`` to accept
-        strings of arbitrary length.
+        """Maximum length of string. Can be set to ``decimal.Decimal('inf')`` to
+        accept strings of arbitrary length. Also note
         :const:`spyne.server.wsgi.MAX_CONTENT_LENGTH`."""
 
         pattern = None
@@ -146,8 +150,8 @@ class Unicode(SimpleModel):
         """The encoding of `str` objects this class may have to deal with."""
 
         unicode_errors = 'strict'
-        """The argument to the ``unicode`` builtin; one of 'strict', 'replace' or
-        'ignore'."""
+        """The argument to the ``unicode`` builtin; one of 'strict', 'replace'
+        or 'ignore'."""
 
     def __new__(cls, *args, **kwargs):
         assert len(args) <= 1
@@ -214,7 +218,6 @@ if sys.version > '3':
     String = Unicode
 
 
-# FIXME: Support this for soft validation
 class AnyUri(String):
     """A special kind of String type designed to hold an uri."""
 
@@ -222,7 +225,23 @@ class AnyUri(String):
 
     class Attributes(String.Attributes):
         text = None
-        """The text shown in link."""
+        """The text shown in link. This is an object-wide constant."""
+
+    class Value(object):
+        """A special object that is just a better way of carrying the
+        information carried with a link.
+
+        :param href: The uri string.
+        :param text: The text data that goes with the link. This is a
+            ``str`` or a ``unicode`` instance.
+        :param content: The structured data that goes with the link. This is an
+            `lxml.etree.Element` instance.
+        """
+
+        def __init__(self, href, text=None, content=None):
+            self.href = href
+            self.text = text
+            self.content = content
 
 
 class ImageUri(AnyUri):
@@ -232,7 +251,7 @@ class ImageUri(AnyUri):
 class Decimal(SimpleModel):
     """The primitive that corresponds to the native python Decimal.
 
-    This is also the base class for representing numbers.
+    This is also the base class for denoting numbers.
     """
 
     __type_name__ = 'decimal'
@@ -248,10 +267,10 @@ class Decimal(SimpleModel):
         """The value should be greater than or equal to this number."""
 
         lt = decimal.Decimal('inf') # maxExclusive
-        """The value should be smaller than this number."""
+        """The value should be lower than this number."""
 
         le = decimal.Decimal('inf') # maxInclusive
-        """The value should be smaller than or equal to this number."""
+        """The value should be lower than or equal to this number."""
 
         max_str_len = 1024
         """The maximum length of string to be attempted to convert to number."""
@@ -271,12 +290,12 @@ class Decimal(SimpleModel):
 
     @staticmethod
     def validate_native(cls, value):
-        return (    SimpleModel.validate_native(cls, value) and
-                value is None or (
-                    value >  cls.Attributes.gt and
-                    value >= cls.Attributes.ge and
-                    value <  cls.Attributes.lt and
-                    value <= cls.Attributes.le
+        return SimpleModel.validate_native(cls, value) and (
+            value is None or (
+                value >  cls.Attributes.gt and
+                value >= cls.Attributes.ge and
+                value <  cls.Attributes.lt and
+                value <= cls.Attributes.le
             ))
 
     @classmethod
@@ -300,7 +319,7 @@ class Decimal(SimpleModel):
             raise ValidationError(string)
 
 class Double(Decimal):
-    """This is serialized as the python float. So this type comes with its
+    """This is serialized as the python ``float``. So this type comes with its
      gotchas."""
 
     __type_name__ = 'double'
@@ -323,7 +342,7 @@ class Double(Decimal):
             raise ValidationError(string)
 
 class Float(Double):
-    """Synonym for Double. This is here for compatibility purposes."""
+    """Synonym for Double. It's here for compatibility reasons."""
 
     __type_name__ = 'float'
 
@@ -366,6 +385,7 @@ class Integer(Decimal):
 
 class UnsignedInteger(Integer):
     """The arbitrary-size unsigned integer, aka nonNegativeInteger."""
+
     __type_name__ = 'nonNegativeInteger'
 
     @staticmethod
@@ -538,33 +558,36 @@ class DateTime(SimpleModel):
         return datetime.datetime(year, month, day, hour, min, sec, microsec, tz)
 
     @classmethod
+    def default_parse(cls, string):
+        match = _utc_re.match(string)
+        if match:
+            return cls.parse(match, tz=pytz.utc)
+
+        match = _offset_re.match(string)
+        if match:
+            tz_hr, tz_min = [int(match.group(x)) for x in ("tz_hr", "tz_min")]
+            return cls.parse(match, tz=FixedOffset(tz_hr * 60 + tz_min, {}))
+
+        match = _local_re.match(string)
+        if match is None:
+            raise ValidationError(string)
+
+        return cls.parse(match)
+
+    @classmethod
     @nillable_string
     def from_string(cls, string):
         """expect ISO formatted dates"""
         format = cls.Attributes.format
 
         if format is None:
-            match = _utc_re.match(string)
-            if match:
-                return cls.parse(match, tz=pytz.utc)
-
-            match = _offset_re.match(string)
-            if match:
-                tz_hr, tz_min = [int(match.group(x)) for x in ("tz_hr", "tz_min")]
-                return cls.parse(match, tz=FixedOffset(tz_hr * 60 + tz_min, {}))
-
-            match = _local_re.match(string)
-            if match is None:
-                raise ValidationError(string)
-
-            return cls.parse(match)
-
+            return cls.default_parse(string)
         else:
             return datetime.datetime.strptime(string, format)
 
 
 class Date(DateTime):
-    """Just that, Date. It also supports time zones.
+    """Just that, Date. No time zone support.
 
     Native type is :class:`datetime.date`.
     """
@@ -575,10 +598,22 @@ class Date(DateTime):
     __type_name__ = 'date'
 
     @classmethod
+    def default_parse(cls, string):
+        try:
+            return datetime.datetime.strptime(string, '%Y-%m-%d')
+
+        except ValueError:
+            raise ValidationError(string)
+
+    @classmethod
     @nillable_string
     def from_string(cls, string):
-        d = datetime.datetime.strptime(string, cls.Attributes.format)
-        return datetime.date(d.year, d.month, d.day)
+        try:
+            d = datetime.datetime.strptime(string, cls.Attributes.format)
+            return datetime.date(d.year, d.month, d.day)
+
+        except ValueError:
+            raise ValidationError(string)
 
 
 # this object tries to follow ISO 8601 standard.
@@ -667,13 +702,46 @@ class Boolean(SimpleModel):
         return (string.lower() in ['true', '1'])
 
 # a class that is really a namespace
-class Mandatory(object):
+class Mandatory:
     """Class that contains mandatory variants of primitives."""
 
-    String = String(type_name="mandatory_string", min_occurs=1, nillable=False, min_len=1)
-    Unicode = Unicode(type_name="mandatory_string", min_occurs=1, nillable=False, min_len=1)
-    Integer = Integer(type_name="mandatory_integer", min_occurs=1, nillable=False)
-    Date = Date(type_name="mandatory_date", min_occurs=1, nillable=False)
-    DateTime = DateTime(type_name="mandatory_date_time", min_occurs=1, nillable=False)
-    UnsignedInteger = UnsignedInteger(type_name="mandatory_unsigned_integer", min_occurs=1, nillable=False)
-    UnsignedLong = UnsignedLong(type_name="mandatory_unsigned_integer", min_occurs=1, nillable=False)
+    Unicode = Unicode(type_name="MandatoryString", min_occurs=1, nillable=False, min_len=1)
+    String = String(type_name="MandatoryString", min_occurs=1, nillable=False, min_len=1)
+
+    AnyXml = AnyXml(type_name="MandatoryXml", min_occurs=1, nillable=False, min_len=1)
+    AnyDict = AnyDict(type_name="MandatoryDict", min_occurs=1, nillable=False, min_len=1)
+    AnyUri = AnyUri(type_name="MandatoryUri", min_occurs=1, nillable=False, min_len=1)
+    ImageUri = ImageUri(type_name="MandatoryImageUri", min_occurs=1, nillable=False, min_len=1)
+
+    Boolean = Boolean(type_name="MandatoryBoolean", min_occurs=1, nillable=False)
+
+    Date = Date(type_name="MandatoryDate", min_occurs=1, nillable=False)
+    Time = Time(type_name="MandatoryTime", min_occurs=1, nillable=False)
+    DateTime = DateTime(type_name="MandatoryDateTime", min_occurs=1, nillable=False)
+    Duration = Duration(type_name="MandatoryDuration", min_occurs=1, nillable=False)
+
+    Decimal = Decimal(type_name="MandatoryDecimal", min_occurs=1, nillable=False)
+    Double = Decimal(type_name="MandatoryDouble", min_occurs=1, nillable=False)
+    Float = Double
+
+    Integer = Integer(type_name="MandatoryInteger", min_occurs=1, nillable=False)
+    Integer64 = Integer64(type_name="MandatoryLong", min_occurs=1, nillable=False)
+    Integer32 = Integer32(type_name="MandatoryInt", min_occurs=1, nillable=False)
+    Integer16 = Integer16(type_name="MandatoryShort", min_occurs=1, nillable=False)
+    Integer8 = Integer8(type_name="MandatoryByte", min_occurs=1, nillable=False)
+
+    Long = Integer64
+    Int = Integer32
+    Short = Integer16
+    Byte = Integer8
+
+    UnsignedInteger = UnsignedInteger(type_name="MandatoryUnsignedInteger", min_occurs=1, nillable=False)
+    UnsignedInteger64 = UnsignedInteger64(type_name="MandatoryUnsignedLong", min_occurs=1, nillable=False)
+    UnsignedInteger32 = UnsignedInteger32(type_name="MandatoryUnsignedInt", min_occurs=1, nillable=False)
+    UnsignedInteger16 = UnsignedInteger16(type_name="MandatoryUnsignedShort", min_occurs=1, nillable=False)
+    UnsignedInteger8 = UnsignedInteger8(type_name="MandatoryUnsignedByte", min_occurs=1, nillable=False)
+
+    UnsignedLong = UnsignedInteger64
+    UnsignedInt = UnsignedInteger32
+    UnsignedShort = UnsignedInteger16
+    UnsignedByte = UnsignedInteger8

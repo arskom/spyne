@@ -4,6 +4,8 @@
 Auxiliary Processors
 ====================
 
+.. automodule:: spyne.auxproc
+
 AuxProcBase
 -----------
 
@@ -18,7 +20,7 @@ SyncAuxProc
 
 .. autoclass:: spyne.auxproc.sync.SyncAuxProc
     :members:
-    :inherited-members:
+    :show-inheritance:
 
 .. _reference-auxproc-thread:
 
@@ -27,4 +29,4 @@ ThreadAuxProc
 
 .. autoclass:: spyne.auxproc.thread.ThreadAuxProc
     :members:
-    :inherited-members:
+    :show-inheritance:

@@ -17,17 +17,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains the the @srpc decorator and its helper methods. The
-@srpc decorator is responsible for tagging methods as remote procedure calls,
-and also for dynamically defining complex objects that carry the method's input
-parameters and output value(s).
+"""The ``spyne.decorator`` module contains the the @srpc decorator and its
+helper methods. The @srpc decorator is responsible for tagging methods as remote
+procedure calls extracting method's input and output types.
 
 It's possible to create custom decorators that wrap the @srpc decorator in order
 to have a more elegant way of passing frequently-used parameter values. The @rpc
 decorator is a simple example of this.
 """
 
-from spyne._base import MethodDescriptor
+from spyne import MethodDescriptor
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import TypeInfo
 
@@ -133,6 +132,13 @@ def _produce_output_message(f, func_name, kparams):
     return message
 
 def rpc(*params, **kparams):
+    '''Method decorator to tag a method as a remote procedure call. See
+    :func:`spyne.decorator.srpc` for detailed information.
+
+    This decorator enables passing :class:`spyne.MethodContext` instance as an
+    implicit first argument to the user callable.
+    '''
+
     kparams["_no_ctx"] = False
     return srpc(*params, **kparams)
 
@@ -142,6 +148,9 @@ def srpc(*params, **kparams):
     The methods tagged with this decorator do not behave like a normal python
     method but return 'MethodDescriptor' object when called.
 
+    The initial "s" stands for "static". In Spyne's context, that means no
+    implicit first argument is passed to the user callable.
+
     You should use the :class:`spyne.server.null.NullServer` transport if you
     want to call the methods directly. You can also use the 'function' attribute
     of the returned object to call the function itself.
@@ -150,11 +159,30 @@ def srpc(*params, **kparams):
         accepts as incoming header.
     :param _out_header: A type or an iterable of types that that this method
         sends as outgoing header.
-    :param _port_type: SOAP Port type.
+    :param _in_message_name: The public name of the function.
+    :param _in_variable_names: The public names of the function arguments. It's
+        a dict that maps argument names in the code to public ones.
+    :param _out_variable_name: The public name of the function response object.
+        It's a string. Ignored when ``_body_style != 'wrapped'`` or ``_returns``
+        is a sequence.
+    :param _out_variable_names: The public name of the function response object.
+        It's a sequence of strings. Ignored when ``_body_style != 'wrapped'`` or
+        or ``_returns`` is not a sequence. Must be the same length as
+        ``_returns``.
+    :param _body_style: One of ``('bare', 'wrapped')``. Default: ``'wrapped'``.
+        In wrapped mode, wraps response objects in an additional class for
+        protocols that support it. (e.g. Soap)
+    :param _soap_body_style: One of ('rpc', 'document'). Default ``'document'``.
+        ``_soap_body_style='document'`` is an alias for ``_body_style='wrapped'``.
+        ``_soap_body_style='rpc'`` is an alias for ``_body_style='bare'``.
+    :param _port_type: Soap port type string.
     :param _no_ctx: Don't pass implicit ctx object to the user method.
     :param _udp: Short for UserDefinedProperties, you can use this to mark the
         method with arbitrary metadata.
-    :param _aux: The auxiliary backend to run this method.
+    :param _aux: The auxiliary backend to run this method. ``None`` if primary.
+    :param _throws: A sequence of exceptions that this function can throw. No
+        real functionality besides publishing this information in interface
+        documents.
     '''
 
     def explain(f):

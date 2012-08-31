@@ -16,7 +16,7 @@ run_tests.sh
 This is a shell script to make it easier to run all tests in one go. Twisted
 tests need to be run using trial. Interop tests start their own servers in the
 background, so they (currently) need to be run one by one in separate
-processes. This simple script heeds all these little things and is the
+processes. This simple script considers all these little things and is the
 recommended way of running spyne tests.
 
 Requirements
@@ -53,9 +53,6 @@ Python
 Python interop tests currently use Spyne's own clients and suds. For The suds
 test is the first thing we check and try not to break.
 
-Two tests that fail in the suds interop tests due to the lack of proper assert
-statements, so they're false alarms.
-
 Ruby
 ----
 
@@ -71,7 +68,7 @@ increasing test coverage for other use cases.
 .Net
 ----
 
-There isn't any .Net tests for spyne. WS-I test compliance reportedly covers
+There isn't any .Net tests for Spyne. WS-I test compliance reportedly covers
 .Net use cases as well. Patches are welcome!
 
 Java

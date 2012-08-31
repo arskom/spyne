@@ -9,14 +9,14 @@ Some preliminary information would be handy before delving into details:
 How Exactly is User Code Wrapped?
 ---------------------------------
 
-Here's what happens when a request arrives to an Spyne server:
+Here's what happens when a request arrives to a Spyne server:
 
 The server transport decides whether this is a simple interface document request
 or a remote procedure call request. Every transport has its own way of dealing
 with this.
 
 If the incoming request was for the interface document, it's easy: The interface
-document needs to be generated and returned as a nice chunk of string to the
+document needs to be generated and returned as a nice chunk of strings to the
 client.
 The server transport first calls
 :func:`spyne.interface._base.InterfaceBase.build_interface_document`
@@ -28,8 +28,8 @@ If it was an RPC request, here's what happens:
 
 #. The server must set the ``ctx.in_string`` attribute to an iterable of
    strings. This will contain the incoming byte stream.
-#. The server calls the :class:`spyne.server._base.ServerBase.get_in_object` function
-   from its parent class.
+#. The server calls the :class:`spyne.server._base.ServerBase.get_in_object`
+   function from its parent class.
 #. The server then calls the ``create_in_document``,
    ``decompose_incoming_envelope``
    and ``deserialize`` functions from the protocol class in the ``in_protocol``
@@ -37,8 +37,7 @@ If it was an RPC request, here's what happens:
    incoming stream to the protocol serializer's internal representation. This
    is then split to header and body parts by the second call and deserialized to
    the native python representation by the third call.
-#. Once the protocol performs its voodoo, the server calls ``get_out_object``
-   which in turn calls the
+#. The server then calls ``get_out_object`` which in turn calls the
    :func:`spyne.application.Application.process_request`
    function.
 #. The ``process_request`` function fires relevant events and calls the
@@ -53,8 +52,8 @@ If it was an RPC request, here's what happens:
    the return value to ``ctx.out_object``.
 #. The server object now calls the ``get_out_string`` function to put the
    response as an iterable of strings in ``ctx.out_string``. The
-   ``get_out_string`` function calls the ``serialize`` and ``create_out_string``
-   functions of the protocol class.
+   ``get_out_string`` function in turn calls the ``serialize`` and
+   ``create_out_string`` functions of the protocol class.
 #. The server pushes the stream from ctx.out_string back to the client.
 
 The same logic applies to client transports, in reverse.
@@ -68,12 +67,11 @@ A Transport Example: A DB-Backed Fan-Out Queue
 Here's the source code in one file:
 https://github.com/arskom/spyne/blob/master/examples/queue.py
 
-The following block of code is SQLAlchemy
-boilerplate for creating the database and other related machinery. Under normal
-conditions, you should pass the sqlalchemy url to the Producer and Consumer
-instances instead of the connection object itself, but here as we deal with an
-in-memory database, global variable ugliness is just a nicer way to pass
-database handles. ::
+The following block of code is SQLAlchemy boilerplate for creating the database
+and other related machinery. Under normal conditions, you should pass the
+sqlalchemy url to the Producer and Consumer instances instead of the connection
+object itself, but here as we deal with an in-memory database, global variable
+ugliness is just a nicer way to pass database handles. ::
 
     db = create_engine('sqlite:///:memory:')
     metadata = MetaData(bind=db)
@@ -118,7 +116,7 @@ We set the incoming values, create a database connection and set it to
             self.id = consumer_id
 
 We also query the worker status table and get the id for the first task. If
-there is no record for own worker id, the server starts from the beginning: ::
+there is no record for own worker id, the server bootstraps its state: ::
 
             try:
                 self.session.query(WorkerStatus) \
@@ -173,7 +171,7 @@ the task: ::
                     self.get_out_object(ctx)
 
 The server should not care whether the error was an expected or unexpected one.
-So the error is logged and the server  continues to process the next task in
+So the error is logged and the server continues to process the next task in
 queue. ::
 
                     if ctx.out_error:
@@ -198,7 +196,7 @@ time before polling the database for new tasks: ::
             time.sleep(10)
 
 This concludes the worker implementation. But how do we put tasks in the task
-queue? That's the job of the ``Producer`` class that is implemented as an Spyne
+queue? That's the job of the ``Producer`` class that is implemented as a Spyne
 client.
 
 Implementing clients is a two-stage operation. The main transport logic is in
@@ -206,7 +204,7 @@ the :class:`spyne.client.RemoteProcedureBase` child that is a native Python
 callable whose function is to serialize the arguments, send it to the server,
 receive the reply, deserialize it and pass the return value to the python
 caller. However, in our case, the client does not return anything as calls are
-processed asyncronously.
+processed asyncronously and the return values are ignored.
 
 We start with the constructor, where we initialize the SQLAlchemy database
 connection factory: ::
@@ -234,7 +232,7 @@ And put the resulting bytestream to the database: ::
             session.commit()
             session.close()
 
-Again here the function does not return anything because this is an asyncronous
+Again, here the function does not return anything because this is an asyncronous
 client.
 
 Here's the ``Producer`` class whose sole purpose is to initialize the right
@@ -297,4 +295,3 @@ What's Next?
 
 Start hacking! Good luck, and be sure to pop out to the mailing list if you have
 questions.
-

@@ -40,16 +40,16 @@ def test_port_open(port):
 def run_server(server_type):
     if server_type == 'http':
         from spyne.test.interop.server.soap_http_basic import main
-        from spyne.test.interop.server.soap_http_basic import PORT
+        from spyne.test.interop.server.soap_http_basic import port
 
     elif server_type == 'zeromq':
         from spyne.test.interop.server.soap_zeromq import main
-        from spyne.test.interop.server.soap_zeromq import PORT
+        from spyne.test.interop.server.soap_zeromq import port
 
     else:
         raise ValueError(server_type)
 
-    if server_started.get(PORT, None) is None:
+    if server_started.get(port, None) is None:
         def run_server():
             main()
 
@@ -59,7 +59,7 @@ def run_server(server_type):
         # FIXME: Does anybody have a better idea?
         time.sleep(2)
 
-        server_started[PORT] = test_port_open(PORT)
+        server_started[port] = test_port_open(port)
 
 
 class SpyneClientTestBase(object):

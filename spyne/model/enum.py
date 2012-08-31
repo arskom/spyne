@@ -17,8 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains Enum object and its helper objects."""
-
 from spyne.model import SimpleModel
 
 # adapted from: http://code.activestate.com/recipes/413486/
@@ -38,8 +36,30 @@ class EnumBase(SimpleModel):
             )
 
 def Enum(*values, **kwargs):
+    """The enum type that can only return ``True`` when compared to types of
+    own type.
+
+    Here's how it's supposed to work:
+
+    >>> from spyne.model.enum import Enum
+    >>> SomeEnum = Enum("SomeValue", "SomeOtherValue", type_name="SomeEnum")
+    >>> SomeEnum.SomeValue == SomeEnum.SomeOtherValue
+    False
+    >>> SomeEnum.SomeValue == SomeEnum.SomeValue
+    True
+    >>> SomeEnum.SomeValue is SomeEnum.SomeValue
+    True
+    >>> SomeEnum.SomeValue == 0
+    False
+    >>> SomeEnum2 = Enum("SomeValue", "SomeOtherValue", type_name="SomeEnum")
+    >>> SomeEnum2.SomeValue == SomeEnum.SomeValue
+    False
+
+    In the above example, ``SomeEnum`` can be used as a regular Spyne model.
+    """
+
     type_name = kwargs.get('type_name', None)
-    docstr = kwargs.get('__doc__', '')
+    docstr = kwargs.get('doc', '')
     if type_name is None:
         raise Exception("Please specify 'type_name' as a keyword argument")
 
@@ -57,10 +77,7 @@ def Enum(*values, **kwargs):
             return hash(self.__value)
 
         def __cmp__(self, other):
-            assert isinstance(self, type(other)), \
-                             "Only values from the same enum are comparable"
-
-            return cmp(self.__value, other.__value)
+            return isinstance(self, type(other)) and cmp(self.__value, other.__value)
 
         def __invert__(self):
             return values[maximum - self.__value]

@@ -17,8 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains the HttpRpc protocol implementation. This is not exactly
-Rest, because it ignores Http verbs.
+"""The ``spyne.protocol.http`` module contains the HttpRpc protocol
+implementation. This is not exactly Rest.
 """
 
 import logging
@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 import tempfile
 TEMPORARY_DIR = None
+STREAM_READ_BLOCK_SIZE = 0x4000
 
 try:
     from cStringIO import StringIO
@@ -35,10 +36,7 @@ except ImportError:
     except ImportError: # Python 3
         from io import StringIO
 
-from spyne.protocol import ProtocolBase
-from spyne.util import memoize
-
-STREAM_READ_BLOCK_SIZE = 16384
+from spyne.protocol.dictobj import DictObject
 
 
 def get_stream_factory(dir=None, delete=True):
@@ -56,9 +54,9 @@ def get_stream_factory(dir=None, delete=True):
     return stream_factory
 
 
-class HttpRpc(ProtocolBase):
+class HttpRpc(DictObject):
     """The so-called ReST-ish HttpRpc protocol implementation. It only works
-    with http (wsgi and twisted) transports.
+    with Http (wsgi and twisted) transports.
     """
 
     mime_type = 'text/plain'
@@ -66,11 +64,10 @@ class HttpRpc(ProtocolBase):
 
     def __init__(self, app=None, validator=None, mime_type=None, tmp_dir=None,
                                                       tmp_delete_on_close=True):
-        ProtocolBase.__init__(self, app, validator, mime_type)
+        DictObject.__init__(self, app, validator, mime_type)
 
         self.tmp_dir = tmp_dir
         self.tmp_delete_on_close = tmp_delete_on_close
-        self.map_adapter = None
 
     def get_tmp_delete_on_close(self):
         return self.__tmp_delete_on_close
@@ -97,7 +94,7 @@ class HttpRpc(ProtocolBase):
         ctx.in_document = ctx.transport.req
 
     def decompose_incoming_envelope(self, ctx, message):
-        assert message == ProtocolBase.REQUEST
+        assert message == DictObject.REQUEST
 
         ctx.transport.itself.decompose_incoming_envelope(self, ctx, message)
 
@@ -152,7 +149,3 @@ class HttpRpc(ProtocolBase):
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         ctx.out_string = ctx.out_document
-
-    @memoize
-    def get_map_adapter(self, host, mount_point):
-        return self.app.interface.http_routes.bind(host, mount_point)
