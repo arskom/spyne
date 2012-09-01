@@ -4,18 +4,14 @@ import os
 import re
 import sys
 
-from subprocess import call
-
 from setuptools import setup
 from setuptools import find_packages
 from setuptools.command.test import test as TestCommand
 
-from pkg_resources import resource_exists
-from pkg_resources import resource_listdir
-
 
 v = open(os.path.join(os.path.dirname(__file__), 'spyne', '__init__.py'), 'r')
 VERSION = re.match(r".*__version__ = '(.*?)'", v.read(), re.S).group(1)
+
 
 LONG_DESC = """Spyne aims to save the protocol implementers the hassle of
 implementing their own remote procedure call api and the application programmers
@@ -60,7 +56,12 @@ def call_test(f, a, tests):
 
 def _wrapper(f):
     def _(args, queue):
-        retval = f(args)
+        try:
+            retval = f(args)
+        except TypeError as e:
+            sys.argv = ['trial']
+            sys.argv.extend(args)
+            retval = f()
         queue.put(retval)
     return _
 
@@ -71,7 +72,22 @@ def call_pytest(*tests):
 
 
 def call_trial(*tests):
-    return call_test(lambda x: 0, [], tests)
+    from twisted.scripts.trial import usage
+    from twisted.scripts.trial import Options
+    from twisted.scripts.trial import _makeRunner
+    from twisted.scripts.trial import _getSuite
+
+    def run():
+        config = Options()
+        config.parseOptions()
+
+        trialRunner = _makeRunner(config)
+        suite = _getSuite(config)
+        test_result = trialRunner.run(suite)
+
+        return int(not test_result.wasSuccessful())
+
+    return call_test(run, [], tests)
 
 
 class RunTests(TestCommand):
