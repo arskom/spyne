@@ -105,6 +105,7 @@ if sys.version_info < (2,6):
     test_reqs.append('twisted<12')
     test_reqs.append('pyzmq<2.2')
     test_reqs.append('multiprocessing')
+    test_reqs.append('simplejson')
 else:
     test_reqs.append('twisted')
     test_reqs.append('pyzmq')
