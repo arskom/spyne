@@ -58,7 +58,7 @@ def _wrapper(f):
     def _(args, queue):
         try:
             retval = f(args)
-        except TypeError as e:
+        except TypeError:
             sys.argv = ['trial']
             sys.argv.extend(args)
             retval = f()
