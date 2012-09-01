@@ -325,6 +325,13 @@ class EncExtractSisMsg(SisMsg):
 
 
 class TestXmlAttribute(unittest.TestCase):
+    def assertIsNotNone(self, obj, msg=None):
+        """Stolen from Python 2.7 stdlib."""
+
+        if obj is None:
+            standardMsg = 'unexpectedly None'
+            self.fail(self._formatMessage(msg, standardMsg))
+
     def test_add_to_schema(self):
         class CM(ComplexModel):
             i = Integer
