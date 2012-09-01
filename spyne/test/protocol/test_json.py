@@ -18,12 +18,18 @@
 #
 
 import unittest
-import json
+try:
+    import simplejson as json
+except ImportError:
+    import json
+
 
 from spyne.test.protocol._test_dictobj import TDictObjectTest
 from spyne.protocol.json import JsonObject
 
+
 TestJsonObject = TDictObjectTest(json, JsonObject, 'Client.JsonDecodeError')
+
 
 if __name__ == '__main__':
     unittest.main()
