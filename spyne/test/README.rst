@@ -10,8 +10,20 @@ shift focus or change maintainers in the future. This can result in patches
 which may cause incompatibilities with your existing code base. The only way to
 detect such corner cases is to have a great test suite.
 
-run_tests.sh
-============
+Travis-ci.org
+=============
+
+Spyne's master repository is already integrated with travis-ci.org. Head over to
+http://travis-ci.org/arskom/spyne to see it for yourself.
+
+As the necessary configuration is already done, It's very simple to integrate
+your own fork of Spyne. Just sign in with your Github account and follow shown
+instructions.
+
+If you want to run the tests yourself, you can use
+
+python setup.py test
+====================
 
 This is a shell script to make it easier to run all tests in one go. Twisted
 tests need to be run using trial. Interop tests start their own servers in the

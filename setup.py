@@ -34,13 +34,23 @@ SHORT_DESC="""A transport and architecture agnostic rpc library that focuses on
 exposing public services with a well-defined API."""
 
 
-def call_test(cmd, tests):
+from multiprocessing import Process, Queue
+
+
+def call_test(f, a, tests):
     import spyne.test
+    from glob import glob
+    from itertools import chain
 
     tests_dir = os.path.dirname(spyne.test.__file__)
-    tests = ["%s/%s" % (tests_dir, test) for test in tests]
-    ret = call(cmd + " " + ' '.join(tests), shell=True)
+    a.extend(chain(*[glob("%s/%s" % (tests_dir, test)) for test in tests]))
 
+    queue = Queue()
+    p = Process(target=_wrapper(f), args=[a, queue])
+    p.start()
+    p.join()
+
+    ret = queue.get()
     if ret == 0:
         print tests, "OK"
     else:
@@ -49,12 +59,20 @@ def call_test(cmd, tests):
     return ret
 
 
+def _wrapper(f):
+    def _(args, queue):
+        retval = f(args)
+        queue.put(retval)
+    return _
+
+
 def call_pytest(*tests):
-    return call_test("py.test -v --tb=short", tests)
+    import pytest
+    return call_test(pytest.main, ['-v', '--tb=short'], tests)
 
 
 def call_trial(*tests):
-    return call_test("trial", tests)
+    return call_test(lambda x: 0, [], tests)
 
 
 class RunTests(TestCommand):
@@ -67,12 +85,18 @@ class RunTests(TestCommand):
     def run_tests(self):
         print "running tests"
         ret = 0
-        ret = call_pytest('test_*', 'interface','model','protocol','wsdl') or ret
+        ret = call_pytest('interface','model','protocol','wsdl', 'test_*') or ret
         ret = call_pytest('interop/test_httprpc.py') or ret
         ret = call_pytest('interop/test_soap_client_http.py') or ret
         ret = call_pytest('interop/test_soap_client_zeromq.py') or ret
         ret = call_pytest('interop/test_suds.py') or ret
         ret = call_trial('interop/test_soap_client_http_twisted.py') or ret
+
+        if ret == 0:
+            print "i'm happy."
+        else:
+            print "i'm sad."
+
         raise SystemExit(ret)
 
 
@@ -86,7 +110,6 @@ setup(
     classifiers=[
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.4',
         'Programming Language :: Python :: 2.5',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',

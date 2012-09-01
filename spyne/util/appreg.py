@@ -26,10 +26,18 @@ logger = logging.getLogger(__name__)
 
 _applications = {}
 
-from collections import namedtuple
+try:
+    from collections import namedtuple
 
-_ApplicationMetaData = namedtuple("_ApplicationMetaData", 
+    _ApplicationMetaData = namedtuple("_ApplicationMetaData",
                                                   ['app', 'inst_stack', 'null'])
+except ImportError: # python 2.5
+    class _ApplicationMetaData:
+        def __init__(self, app, inst_stack, null):
+            self.app = app
+            self.inst_stack = inst_stack
+            self.null = null
+
 
 def register_application(app):
     key = (app.tns, app.name)
