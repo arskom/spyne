@@ -34,13 +34,11 @@ SHORT_DESC="""A transport and architecture agnostic rpc library that focuses on
 exposing public services with a well-defined API."""
 
 
-from multiprocessing import Process, Queue
-
-
 def call_test(f, a, tests):
     import spyne.test
     from glob import glob
     from itertools import chain
+    from multiprocessing import Process, Queue
 
     tests_dir = os.path.dirname(spyne.test.__file__)
     a.extend(chain(*[glob("%s/%s" % (tests_dir, test)) for test in tests]))
