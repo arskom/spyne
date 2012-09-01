@@ -2,6 +2,7 @@
 
 import os
 import re
+import sys
 
 from subprocess import call
 
@@ -97,6 +98,15 @@ class RunTests(TestCommand):
 
         raise SystemExit(ret)
 
+test_reqs = ['pytest', 'werkzeug', 'pytest', 'sqlalchemy', 'suds', 'msgpack-python']
+
+if sys.version_info < (2,6):
+    test_reqs.append('twisted<12')
+    test_reqs.append('pyzmq<2.2')
+    test_reqs.append('multiprocessing')
+else:
+    test_reqs.append('twisted')
+    test_reqs.append('pyzmq')
 
 setup(
     name='spyne',
@@ -137,6 +147,6 @@ setup(
         ]
     },
 
-    tests_require=['pytest'],
+    tests_require = test_reqs,
     cmdclass = {'test': RunTests},
 )

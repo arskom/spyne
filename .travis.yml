@@ -5,6 +5,6 @@ python:
   - "2.7"
 install:
   - python setup.py install
-  - if [[ $FULL == 'true' ]]; then if [[ $TRAVIS_PYTHON_VERSION == '2.5' ]]; then pip install --use-mirrors 'twisted<12' 'zope.interface<4.0' 'pyzmq<2.2' multiprocessing; else pip install --use-mirrors twisted pyzmq; fi; fi
+  - if [[ $FULL == 'true' && $TRAVIS_PYTHON_VERSION == '2.5' ]]; then pip install 'zope.interface<4.0'; fi
   - pip install werkzeug pytest sqlalchemy suds msgpack-python
 script: python setup.py test
