@@ -18,7 +18,7 @@
 #
 
 """The ``spyne.protocol.http`` module contains the HttpRpc protocol
-implementation. This is not exactly Rest.
+implementation.
 """
 
 import logging

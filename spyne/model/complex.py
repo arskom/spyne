@@ -144,7 +144,8 @@ class ComplexModelMeta(type(ModelBase)):
             for k, v in cls_dict.items():
                 if not k.startswith('__'):
                     try:
-                        subc = issubclass(v, ModelBase) or issubclass(v, SelfReference)
+                        subc = issubclass(v, ModelBase) or \
+                                                    issubclass(v, SelfReference)
                     except:
                         subc = False
 

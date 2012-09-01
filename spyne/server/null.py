@@ -97,8 +97,9 @@ class _FunctionCall(object):
         logger.warning( "%s start request %s" % (_big_header, _big_footer)  )
 
         for ctx in contexts:
-            # this reconstruction is quite costly. I wonder if it's a problem
-            # though.
+            # this reconstruction is quite costly. I wonder whether it's a
+            # problem though.
+
             _type_info = ctx.descriptor.in_message._type_info
             ctx.in_object = [None] * len(_type_info)
             for i in range(len(args)):
