@@ -3,3 +3,5 @@ werkzeug
 pytest
 sqlalchemy
 suds
+msgpack-python
+pyzmq
