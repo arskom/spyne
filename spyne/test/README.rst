@@ -10,49 +10,24 @@ shift focus or change maintainers in the future. This can result in patches
 which may cause incompatibilities with your existing code base. The only way to
 detect such corner cases is to have a great test suite.
 
-Travis-ci.org
-=============
-
 Spyne's master repository is already integrated with travis-ci.org. Head over to
 http://travis-ci.org/arskom/spyne to see it for yourself.
 
 As the necessary configuration is already done, It's very simple to integrate
-your own fork of Spyne. Just sign in with your Github account and follow shown
+your own fork of Spyne. Just sign in with your Github account and follow
 instructions.
 
-If you want to run the tests yourself, you can use
+If you want to run the tests yourself, `pytest <http://pytest.org/latest/>`_ : ::
 
-python setup.py test
-====================
+    python setup.py test
 
-This is a shell script to make it easier to run all tests in one go. Twisted
-tests need to be run using trial. Interop tests start their own servers in the
-background, so they (currently) need to be run one by one in separate
-processes. This simple script considers all these little things and is the
-recommended way of running spyne tests.
+or you can run individiual tests with py.test: ::
 
-Requirements
-============
+    py.test -v --tb=short spyne/test/protocol/test_json.py
 
-While simply executing test modules is normally enough to run Python tests,
-using py.test from pytest package is just a more pleasant way to run them.
-Simply easy_install pytest to get it. You can run the following command in the
-test directory: ::
+or directly by executing them: ::
 
-    py.test -v --tb=short
-
-You can use the module name as an argument: ::
-
-    py.test -v --tb=short test_sqla.py
-
-You can also choose which test to run: ::
-
-    py.test -v --tb=short test_sqla.py -k test_same_table_inheritance
-
-See `pytest documentation <http://pytest.org/latest/>`_ for more info.
-
-Note that you need to do several other preparations to have the interop tests
-working. See the next section for the specifics.
+    spyne/test/protocol/test_json.py
 
 SOAP Interoperability Tests
 ===========================
