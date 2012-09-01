@@ -101,6 +101,7 @@ class RunTests(TestCommand):
 test_reqs = ['pytest', 'werkzeug', 'pytest', 'sqlalchemy', 'suds', 'msgpack-python']
 
 if sys.version_info < (2,6):
+    test_reqs.append('zope.interface<4')
     test_reqs.append('twisted<12')
     test_reqs.append('pyzmq<2.2')
     test_reqs.append('multiprocessing')

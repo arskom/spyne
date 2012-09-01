@@ -3,7 +3,5 @@ python:
   - "2.5"
   - "2.6"
   - "2.7"
-install:
-  - python setup.py install
-  - if [[ $FULL == 'true' && $TRAVIS_PYTHON_VERSION == '2.5' ]]; then pip install 'zope.interface<4.0'; fi
-script: python setup.py test
+install: python setup.py develop
+script:  python setup.py test
