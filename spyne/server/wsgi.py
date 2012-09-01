@@ -30,7 +30,7 @@ from spyne.auxproc import process_contexts
 from spyne.model.binary import File
 
 try:
-    from urlparse import parse_qs
+    from cgi import parse_qs
 except ImportError: # Python 3
     from urllib.parse import parse_qs
 

@@ -34,3 +34,8 @@ if sys.version > '3':
 else:
     def _bytes_join(val, joiner=''):
         return joiner.join(val)
+
+if not hasattr(sys, "version_info") or sys.version_info < (2, 5):
+    raise RuntimeError("Spyne requires Python 2.5 or later.")
+
+del sys

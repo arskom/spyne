@@ -2,12 +2,17 @@
 
 import os
 import re
+import sys
 
-from unittest import TestLoader
-from pkg_resources import resource_exists
-from pkg_resources import resource_listdir
+from subprocess import call
+
 from setuptools import setup
 from setuptools import find_packages
+from setuptools.command.test import test as TestCommand
+
+from pkg_resources import resource_exists
+from pkg_resources import resource_listdir
+
 
 v = open(os.path.join(os.path.dirname(__file__), 'spyne', '__init__.py'), 'r')
 VERSION = re.match(r".*__version__ = '(.*?)'", v.read(), re.S).group(1)
@@ -30,6 +35,81 @@ SHORT_DESC="""A transport and architecture agnostic rpc library that focuses on
 exposing public services with a well-defined API."""
 
 
+def call_test(f, a, tests):
+    import spyne.test
+    from glob import glob
+    from itertools import chain
+    from multiprocessing import Process, Queue
+
+    tests_dir = os.path.dirname(spyne.test.__file__)
+    a.extend(chain(*[glob("%s/%s" % (tests_dir, test)) for test in tests]))
+
+    queue = Queue()
+    p = Process(target=_wrapper(f), args=[a, queue])
+    p.start()
+    p.join()
+
+    ret = queue.get()
+    if ret == 0:
+        print tests, "OK"
+    else:
+        print tests, "FAIL"
+
+    return ret
+
+
+def _wrapper(f):
+    def _(args, queue):
+        retval = f(args)
+        queue.put(retval)
+    return _
+
+
+def call_pytest(*tests):
+    import pytest
+    return call_test(pytest.main, ['-v', '--tb=short'], tests)
+
+
+def call_trial(*tests):
+    return call_test(lambda x: 0, [], tests)
+
+
+class RunTests(TestCommand):
+    def finalize_options(self):
+        TestCommand.finalize_options(self)
+
+        self.test_args = []
+        self.test_suite = True
+
+    def run_tests(self):
+        print "running tests"
+        ret = 0
+        ret = call_pytest('interface','model','protocol','wsdl', 'test_*') or ret
+        ret = call_pytest('interop/test_httprpc.py') or ret
+        ret = call_pytest('interop/test_soap_client_http.py') or ret
+        ret = call_pytest('interop/test_soap_client_zeromq.py') or ret
+        ret = call_pytest('interop/test_suds.py') or ret
+        ret = call_trial('interop/test_soap_client_http_twisted.py') or ret
+
+        if ret == 0:
+            print "i'm happy."
+        else:
+            print "i'm sad."
+
+        raise SystemExit(ret)
+
+test_reqs = ['pytest', 'werkzeug', 'pytest', 'sqlalchemy', 'suds', 'msgpack-python']
+
+if sys.version_info < (2,6):
+    test_reqs.append('zope.interface<4')
+    test_reqs.append('twisted<12')
+    test_reqs.append('pyzmq<2.2')
+    test_reqs.append('multiprocessing')
+    test_reqs.append('simplejson')
+else:
+    test_reqs.append('twisted')
+    test_reqs.append('pyzmq')
+
 setup(
     name='spyne',
     packages=find_packages(),
@@ -40,7 +120,6 @@ setup(
     classifiers=[
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.4',
         'Programming Language :: Python :: 2.5',
         'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
@@ -69,4 +148,7 @@ setup(
             'sort_wsdl=spyne.test.sort_wsdl:main',
         ]
     },
+
+    tests_require = test_reqs,
+    cmdclass = {'test': RunTests},
 )
