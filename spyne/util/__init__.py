@@ -83,6 +83,8 @@ def check_pyversion(*minversion):
 
 
 class memoize(object):
+    """A memoization decorator that keeps caching until reset."""
+
     def __init__(self, func):
         self.func = func
         self.memo = {}
