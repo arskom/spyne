@@ -33,6 +33,7 @@ from soaplib.etimport import ElementTree
 
 string_encoding = 'utf-8'
 
+_time_pattern = (r'(?P<hour>\d{2}):(?P<minute>\d{2}):(?P<second>\d{2})')
 _date_pattern = (r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})')
 _datetime_pattern = (r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})[T ]'
     r'(?P<hr>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})(?P<fractional_sec>\.\d+)?')
@@ -95,6 +96,23 @@ def _element_to_date(element):
         return parse_date(match)
     raise Exception("Date [%s] not in known format" % text)
 
+def _element_to_time(element):
+    # expect ISO formatted times
+    #
+    text = element.text
+    if not text:
+        return None
+    
+    def parse_time(time_match):
+        fields = time_match.groupdict(0)
+        hour, minute, second = [int(fields[x]) for x in
+           ("hour", "minute", "second")]
+        return datetime.date(hour, minute, second)
+    
+    match = _time_pattern.match(text)
+    if match:
+        return parse_time(match)
+    raise Exception("Time [%s] not in known format" % text)
 
 def _element_to_string(element):
     text = element.text
@@ -443,6 +461,34 @@ class Date(BasePrimitive):
     @classmethod
     def get_datatype(cls, nsmap=None):
         return _get_datatype(cls, 'date', nsmap)
+
+    @classmethod
+    def get_namespace_id(cls):
+        return 'xs'
+
+    @classmethod
+    def add_to_schema(cls, added_params, nsmap):
+        pass
+
+class Time(BasePrimitive):
+
+    @classmethod
+    @nillable
+    def to_xml(cls, value, name='retval', nsmap=ns):
+        if isinstance(value, datetime.datetime):
+            value = datetime.time(value.hour, vale.minute, value.second)
+        if isinstance(value, datetime.time):
+            value = value.isoformat()
+        e = _generic_to_xml(value, name, cls, nsmap)
+        return e
+
+    @classmethod
+    def from_xml(cls, element):
+        return _element_to_time(element)
+
+    @classmethod
+    def get_datatype(cls, nsmap=None):
+        return _get_datatype(cls, 'time', nsmap)
 
     @classmethod
     def get_namespace_id(cls):
