@@ -88,8 +88,6 @@ class Application(object):
         if self.name is None:
             self.name = self.__class__.__name__.split('.')[-1]
 
-        register_application(self)
-
         self.event_manager = EventManager(self)
         self.error_handler = None
 
@@ -99,6 +97,8 @@ class Application(object):
 
         self.in_protocol.set_app(self)
         self.out_protocol.set_app(self)
+
+        register_application(self)
 
         self.reinitialize()
 

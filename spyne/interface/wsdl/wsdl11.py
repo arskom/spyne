@@ -235,7 +235,8 @@ class Wsdl11(XmlSchema):
             raise Exception("You must set the 'transport' property of the "
                             "parent 'Application' instance")
 
-        self.interface.event_manager.fire_event('document_built', root)
+        self.event_manager.fire_event('document_built', self)
+        self.event_manager.fire_event('wsdl_document_built', self)
 
         self.__wsdl = etree.tostring(root, xml_declaration=True,
                                                                encoding="UTF-8")
