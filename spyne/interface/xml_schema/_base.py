@@ -88,6 +88,16 @@ class XmlSchema(InterfaceDocumentBase):
     http://www.w3.org/TR/xmlschema-2/
 
     :param interface: A :class:`spyne.interface.InterfaceBase` instance.
+
+    Supported events:
+        * document_built:
+            Called right after the document is built. The handler gets the
+            ``XmlSchema`` instance as the only argument.
+
+        * xmn_document_built:
+            Called right after the document is built. The handler gets the
+            ``XmlSchema`` instance as the only argument. Only called from this
+            class.
     """
 
     def __init__(self, interface):

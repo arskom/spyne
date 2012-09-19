@@ -129,6 +129,17 @@ class Wsdl11(XmlSchema):
 
     :param app: The parent application.
     :param _with_partnerlink: Include the partnerLink tag in the wsdl.
+
+    Supported events:
+        * document_built:
+            Called right after the document is built. The handler gets the
+            ``Wsdl11`` instance as the only argument. Also called by XmlSchema
+            class.
+
+        * wsdl_document_built:
+            Called right after the document is built. The handler gets the
+            ``Wsdl11`` instance as the only argument. Only called from this
+            class.
     """
 
     #:param import_base_namespaces: Include imports for base namespaces like
