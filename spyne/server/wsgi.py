@@ -149,7 +149,7 @@ class WsgiApplication(HttpBase):
                 ('Content-Type', ''),
                 ('Allow', ', '.join(self._allowed_http_verbs)),
             ])
-            return ['']
+            return [HTTP_405]
 
         else:
             return self._verb_handlers[verb](req_env, start_response)
@@ -193,7 +193,7 @@ class WsgiApplication(HttpBase):
 
                 start_response(HTTP_500, ctx.transport.resp_headers.items())
 
-                return [""]
+                return [HTTP_500]
 
             finally:
                 self._mtx_build_interface_document.release()
