@@ -88,6 +88,16 @@ class XmlSchema(InterfaceDocumentBase):
     http://www.w3.org/TR/xmlschema-2/
 
     :param interface: A :class:`spyne.interface.InterfaceBase` instance.
+
+    Supported events:
+        * document_built:
+            Called right after the document is built. The handler gets the
+            ``XmlSchema`` instance as the only argument.
+
+        * xmn_document_built:
+            Called right after the document is built. The handler gets the
+            ``XmlSchema`` instance as the only argument. Only called from this
+            class.
     """
 
     def __init__(self, interface):
@@ -134,7 +144,8 @@ class XmlSchema(InterfaceDocumentBase):
             for node in self.namespaces[pref].elements.values():
                 schema.append(node)
 
-        self.interface.event_manager.fire_event('document_built', self.schema_dict)
+        self.event_manager.fire_event('document_built', self)
+        self.event_manager.fire_event('xml_document_built', self)
 
     def build_validation_schema(self):
         """Build application schema specifically for xml validation purposes."""

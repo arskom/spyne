@@ -25,3 +25,10 @@ to generate those documents.
 
 from spyne.interface._base import Interface
 from spyne.interface._base import InterfaceDocumentBase
+from spyne.interface._base import AllYourInterfaceDocuments
+
+try:
+    from spyne.interface.wsdl.wsdl11 import Wsdl11
+    HAS_WSDL = True
+except ImportError:
+    HAS_WSDL = False

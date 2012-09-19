@@ -25,13 +25,13 @@ import unittest
 
 import spyne.const.xml_ns as ns
 
-from spyne.test.wsdl import AppTestWrapper
-from spyne.test.wsdl import build_app
-from spyne.test.wsdl.port_service_services import TBadRPCPortService
-from spyne.test.wsdl.port_service_services import TDoublePortService
-from spyne.test.wsdl.port_service_services import TMissingRPCPortService
-from spyne.test.wsdl.port_service_services import TMissingServicePortService
-from spyne.test.wsdl.port_service_services import TSinglePortService
+from spyne.test.interface.wsdl import AppTestWrapper
+from spyne.test.interface.wsdl import build_app
+from spyne.test.interface.wsdl.port_service_services import TBadRPCPortService
+from spyne.test.interface.wsdl.port_service_services import TDoublePortService
+from spyne.test.interface.wsdl.port_service_services import TMissingRPCPortService
+from spyne.test.interface.wsdl.port_service_services import TMissingServicePortService
+from spyne.test.interface.wsdl.port_service_services import TSinglePortService
 
 class TestWSDLPortServiceBehavior(unittest.TestCase):
     def setUp(self):

@@ -21,6 +21,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 import warnings
+import spyne.interface
 
 from spyne import EventManager
 from spyne.const import xml_ns as namespace
@@ -45,7 +46,6 @@ class Interface(object):
         self.import_base_namespaces = import_base_namespaces
 
         self.url = None
-        self.event_manager = EventManager(self)
 
         self.__app = None
 
@@ -329,6 +329,15 @@ class Interface(object):
         return self.import_base_namespaces or not (ns in namespace.const_prefmap)
 
 
+class AllYourInterfaceDocuments(object):
+    def __init__(self, interface):
+        if spyne.interface.HAS_WSDL:
+            from spyne.interface.wsdl import Wsdl11
+            self.wsdl11 = Wsdl11(interface)
+        else:
+            self.wsdl11 = None
+
+
 class InterfaceDocumentBase(object):
     """Base class for all interface document implementations.
 
@@ -337,6 +346,7 @@ class InterfaceDocumentBase(object):
 
     def __init__(self, interface):
         self.interface = interface
+        self.event_manager = EventManager(self)
 
     def build_interface_document(self, cls):
         """This function is supposed to be called just once, as late as possible
