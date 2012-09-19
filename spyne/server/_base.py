@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 from spyne import EventManager
 from spyne.model.fault import Fault
 from spyne.protocol import ProtocolBase
+from spyne.interface import AllYourInterfaceDocuments
 
 
 class ServerBase(object):
@@ -42,6 +43,7 @@ class ServerBase(object):
         self.app = app
         self.app.transport = self.transport
         self.event_manager = EventManager(self)
+        self.doc = AllYourInterfaceDocuments(app.interface)
 
     def generate_contexts(self, ctx, in_string_charset=None):
         """Calls create_in_document and decompose_incoming_envelope to get

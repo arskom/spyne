@@ -23,10 +23,10 @@ logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 
-from spyne.test.wsdl import AppTestWrapper
-from spyne.test.wsdl import build_app
-from spyne.test.wsdl.defult_services import TDefaultPortService
-from spyne.test.wsdl.defult_services import TDefaultPortServiceMultipleMethods
+from spyne.test.interface.wsdl import AppTestWrapper
+from spyne.test.interface.wsdl import build_app
+from spyne.test.interface.wsdl.defult_services import TDefaultPortService
+from spyne.test.interface.wsdl.defult_services import TDefaultPortServiceMultipleMethods
 
 
 class TestDefaultWSDLBehavior(unittest.TestCase):
