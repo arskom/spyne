@@ -50,6 +50,7 @@ from spyne.server.http import HttpBase
 from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
 from spyne.const.http import HTTP_200
+from spyne.const.http import HTTP_404
 from spyne.const.http import HTTP_405
 from spyne.const.http import HTTP_500
 
@@ -149,7 +150,7 @@ class WsgiApplication(HttpBase):
                 ('Content-Type', ''),
                 ('Allow', ', '.join(self._allowed_http_verbs)),
             ])
-            return ['']
+            return [HTTP_405]
 
         else:
             return self._verb_handlers[verb](req_env, start_response)
@@ -170,6 +171,10 @@ class WsgiApplication(HttpBase):
     def __handle_wsdl_request(self, req_env, start_response, url):
         ctx = WsgiMethodContext(self, req_env, 'text/xml; charset=utf-8')
 
+        if self.doc.wsdl11 is None:
+            start_response(HTTP_404, ctx.transport.resp_headers.items())
+            return [HTTP_404]
+
         ctx.transport.wsdl = self._wsdl
 
         if ctx.transport.wsdl is None:
@@ -179,10 +184,8 @@ class WsgiApplication(HttpBase):
                 ctx.transport.wsdl = self._wsdl
 
                 if ctx.transport.wsdl is None:
-                    from spyne.interface.wsdl import Wsdl11
-                    wsdl = Wsdl11(self.app.interface)
-                    wsdl.build_interface_document(url)
-                    ctx.transport.wsdl = self._wsdl = wsdl.get_interface_document()
+                    self.doc.wsdl11.build_interface_document(url)
+                    ctx.transport.wsdl = self._wsdl = self.doc.wsdl11.get_interface_document()
 
             except Exception, e:
                 logger.exception(e)
@@ -193,7 +196,7 @@ class WsgiApplication(HttpBase):
 
                 start_response(HTTP_500, ctx.transport.resp_headers.items())
 
-                return [""]
+                return [HTTP_500]
 
             finally:
                 self._mtx_build_interface_document.release()

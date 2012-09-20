@@ -19,7 +19,7 @@ The following is a quick introduction to the Spyne way of naming things:
     subclasses of :class:`spyne.protocol._base.ProtocolBase` class. In an MVC
     world, you would call them "Views".
 
-    For example: Spyne implements a subset of the Soap 1.1 protocol.
+    For example, Spyne implements a subset of the Soap 1.1 protocol.
 
 * **Transports:**
     Transports, also protocols themselves, encapsulate protocol data in their
@@ -30,9 +30,9 @@ The following is a quick introduction to the Spyne way of naming things:
     For example, Http is used as a transport for Soap, by
     tucking a Soap message in the arbitrary byte-stream part of a Http POST
     request. The same Http is exposed as a protocol via the
-    :class:`spyne.protocol.http.HttpRpc`
-    class. One could use Soap as a transport by tucking a protocol message in
-    its base64-encoded ByteArray container.
+    :class:`spyne.protocol.http.HttpRpc` class to decode Rest-like request
+    parameters. One could use Soap as a transport by tucking a protocol message
+    in its base64-encoded ByteArray container.
 
     Transports appear under two packages in Spyne source code:
     :mod:`spyne.client` and :mod:`spyne.server`.

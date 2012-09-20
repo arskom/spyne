@@ -42,8 +42,8 @@ as branches:
 Requirements
 ============
 
-Spyne reportedly runs on any version of Python from 2.4 through 2.7. We're also
-looking for volunteers to test Python 3.x.
+Spyne runs on any version of Python from 2.5 through 2.7. We're also looking for
+volunteers to test Python 3.x.
 
 While the aim is to have no requirements besides the standard Python library for
 the Spyne core, the following packages are needed if you want to run any

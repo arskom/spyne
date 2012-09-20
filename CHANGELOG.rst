@@ -2,6 +2,25 @@
 Changelog
 =========
 
+spyne-2.9.0
+-----------
+ * Spyne is now stable!
+ * Fix document_built events by adding a ``doc`` attribute to the ServerBase
+   class. You can now do ``some_server.doc.wsdl11.event_manager.add_listener``
+   to add events to interface documents.
+ * Add wsdl_document_built and xml_document_built events to relevant classes.
+
+spyne-2.8.2-rc
+--------------
+ * travis-ci.org integration! See for yourself: http://travis-ci.org/arskom/spyne
+ * Python 2.4 compatibility claim was dropped, because this particular Python
+   version is nowhere to be found.
+ * Many issues with Python 2.5 compatibility are fixed.
+
+spyne-2.8.1-rc
+--------------
+ * Misc fixes regarding the spyne.model.binary.File api.
+
 rpclib-2.8.0-rc -> spyne-2.8.0-rc
 ---------------------------------
  * Rpclib is dead. Long live Spyne!
