@@ -25,8 +25,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 import tempfile
+
 TEMPORARY_DIR = None
 STREAM_READ_BLOCK_SIZE = 0x4000
+SWAP_DATA_TO_FILE_THRESHOLD = 512 * 1024
 
 try:
     from cStringIO import StringIO
@@ -42,7 +44,7 @@ from spyne.protocol.dictobj import DictObject
 def get_stream_factory(dir=None, delete=True):
     def stream_factory(total_content_length, filename, content_type,
                                                            content_length=None):
-        if total_content_length >= 512 * 1024 or delete == False:
+        if total_content_length >= SWAP_DATA_TO_FILE_THRESHOLD or delete == False:
             if delete == False:
                 retval = tempfile.NamedTemporaryFile('wb+', dir=dir, delete=delete) # You need python >= 2.6 for this.
             else:
