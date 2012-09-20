@@ -36,6 +36,7 @@ def split_url(url):
     host, path = splithost(remainder)
     return scheme.lower(), host, path
 
+
 def reconstruct_url(environ):
     '''
     Rebuilds the calling url from values found in the
@@ -77,6 +78,7 @@ def reconstruct_url(environ):
         url += '?' + environ['QUERY_STRING']
 
     return url
+
 
 def check_pyversion(*minversion):
     return sys.version_info[:3] >= minversion
