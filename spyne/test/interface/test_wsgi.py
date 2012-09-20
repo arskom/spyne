@@ -77,7 +77,7 @@ class Test(unittest.TestCase):
             'REQUEST_METHOD': 'GET',
             'wsgi.url_scheme': 'http',
             'wsgi.input': StringIO(),
-        }, lambda x,y: start_response))
+        }, start_response))
 
         from lxml import etree
 
