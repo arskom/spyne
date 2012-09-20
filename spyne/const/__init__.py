@@ -19,3 +19,7 @@
 
 """The ``spyne.const`` package contains miscellanous constant values needed
 in various parts of Spyne."""
+
+
+MAX_STRING_FIELD_LENGTH = 64
+"""Maximum length of a string field for :func:`spyne.util.safe_repr`"""

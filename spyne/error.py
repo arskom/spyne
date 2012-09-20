@@ -22,6 +22,7 @@ code can throw.
 """
 
 from spyne.model.fault import Fault
+from spyne.util import safe_repr
 
 
 class ResourceNotFoundError(Fault):
@@ -50,6 +51,6 @@ class ArgumentError(Fault):
 
 class ValidationError(Fault):
     """Raised when the input stream does not adhere to type constraints."""
-    def __init__(self, faultstring):
+    def __init__(self, obj):
         Fault.__init__(self, 'Client.ValidationError',
-                        'The value %r could not be validated.' % faultstring)
+                        'The value %r could not be validated.' % safe_repr(obj))
