@@ -102,7 +102,7 @@ And if you want to make any changes to the Spyne code, just use ::
 
     python setup.py develop
 
-so that you can painlessly test your pathces.
+so that you can painlessly test your patches.
 
 Contributing
 ============
