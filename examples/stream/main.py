@@ -77,7 +77,7 @@ header_socket = "tcp://127.0.0.1:5679"
 
 v4l2_pipeline = (
     'v4l2src device=%s '
-    '! video/x-raw-yuv,width=640,height=480 '
+    '! video/x-raw-yuv '
     '! videoscale ! video/x-raw-yuv, width=400, height=300 '
     '! videorate ! video/x-raw-yuv,framerate=25/2 '
     '! ffmpegcolorspace '
@@ -92,7 +92,7 @@ xsrc_pipeline = (
 
 def camera_publisher():
     # init gst
-    pipeline = gst.parse_launch(xsrc_pipeline)
+    pipeline = gst.parse_launch(v4l2_pipeline)
     pipeline.set_state(gst.STATE_PLAYING)
     appsink = pipeline.get_by_name('sink')
     buffer = appsink.emit('pull-preroll')
