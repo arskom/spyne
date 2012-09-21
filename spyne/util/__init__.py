@@ -102,24 +102,24 @@ class memoize(object):
     def reset(self):
         self.memo = {}
 
-def safe_repr(obj):
+def safe_repr(obj, cls=None):
     """Use this function if you want to echo a ComplexModel subclass. It will
-    limit output size of the String types, thus somewhat ease your burden if you
-    face flooding-type DoS attacks.
+    limit output size of the String types, thus make your logs smaller.
     """
 
     retval = []
-
-    for k,t in obj.__class__.get_flat_type_info(obj.__class__).items():
+    if cls is None:
+        cls = obj.__class__
+    for k,t in cls.get_flat_type_info(cls).items():
         v = getattr(obj, k, None)
         if v is not None:
-            if len(v) > MAX_STRING_FIELD_LENGTH and issubclass(t, Unicode):
+            if issubclass(t, Unicode) and len(v) > MAX_STRING_FIELD_LENGTH:
                 s = '%s=%r%s' % (k, v[:MAX_STRING_FIELD_LENGTH] , "(...)")
             else:
                 s = '%s=%r' % (k, v)
 
             retval.append(s)
 
-    return "%s(%s)" % (obj.get_type_name(), ', '.join(retval))
+    return "%s(%s)" % (cls.get_type_name(), ', '.join(retval))
 
 from spyne.model.primitive import Unicode
