@@ -29,8 +29,9 @@ except ImportError: # Python 3
     from urllib.parse import splithost
     from urllib.parse import quote
 
+from spyne.model.complex import Array
 from spyne.const import MAX_STRING_FIELD_LENGTH
-
+from spyne.const import MAX_ARRAY_ELEMENT_NUM
 
 def split_url(url):
     '''Splits a url into (uri_scheme, host[:port], path)'''
@@ -107,9 +108,27 @@ def safe_repr(obj, cls=None):
     limit output size of the String types, thus make your logs smaller.
     """
 
-    retval = []
     if cls is None:
         cls = obj.__class__
+
+    if issubclass(cls, Array):
+        retval = []
+
+        cls, = cls._type_info.values()
+        for i,o in enumerate(obj):
+            retval.append(_safe_repr_obj(o, cls))
+
+            if i > MAX_ARRAY_ELEMENT_NUM:
+                retval.append("(...)")
+                break
+
+        return "%s([%s])" % (cls.get_type_name(), ', '.join(retval))
+
+    else:
+        return _safe_repr_obj(obj, cls)
+
+def _safe_repr_obj(obj, cls):
+    retval = []
     for k,t in cls.get_flat_type_info(cls).items():
         v = getattr(obj, k, None)
         if v is not None:
