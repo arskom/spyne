@@ -78,13 +78,12 @@ def _from_soap(in_envelope_xml, xmlids=None):
 
     return header, body
 
-def _parse_xml_string(xml_string, charset=None):
+def _parse_xml_string(xml_string, charset=None,
+                                  parser=etree.XMLParser(remove_comments=True)):
     if charset:
         string = ''.join([s.decode(charset) for s in xml_string])
     else:
         string = ''.join(xml_string)
-
-    parser = etree.XMLParser(remove_comments=True)
 
     try:
         try:
