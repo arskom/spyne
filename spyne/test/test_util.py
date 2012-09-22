@@ -48,7 +48,8 @@ class TestSafeRepr(unittest.TestCase):
         class Z(ComplexModel):
             z=String
 
-        assert safe_repr(Z(z="a"*128)) == "Z(z='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'(...))"
+        assert 128 > MAX_STRING_FIELD_LENGTH
+        assert safe_repr(Z(z="a"*128)) == "Z(z='%s'(...))" % ('a' * MAX_STRING_FIELD_LENGTH)
 
 class TestDeserialize(unittest.TestCase):
     def test_deserialize(self):

@@ -39,8 +39,6 @@ from spyne.server import ServerBase
 
 def TDictObjectTest(serializer, _DictObjectChild, decode_error):
     class Test(unittest.TestCase):
-        '''Most of the service tests are performed through the interop tests.'''
-
         def test_multiple_return_sd_2(self):
             class SomeService(ServiceBase):
                 @srpc(_returns=Iterable(Integer))
