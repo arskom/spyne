@@ -34,10 +34,12 @@ from spyne.const.ansi_color import LIGHT_BLUE
 from spyne.const.ansi_color import END_COLOR
 from spyne.server import ServerBase
 
+
 _big_header = ('=' * 40) + LIGHT_RED
 _big_footer = END_COLOR + ('=' * 40)
 _small_header = ('-' * 20) + LIGHT_BLUE
 _small_footer = END_COLOR + ('-' * 20)
+
 
 class NullServer(ServerBase):
     """A server that doesn't support any transport at all -- it's implemented
