@@ -17,7 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""This module contains the NullServer class and its helper objects.
+"""The ``spyne.server.null`` module contains the NullServer class and its helper
+objects.
 
 The name comes from the "null modem connection". Look it up.
 """
@@ -67,6 +68,7 @@ class NullServer(ServerBase):
     def set_options(self, **kwargs):
         self.service.in_header = kwargs.get('soapheaders', self.service.in_header)
 
+
 class _FunctionProxy(object):
     def __init__(self, server, app):
         self.__app = app
@@ -75,6 +77,7 @@ class _FunctionProxy(object):
 
     def __getattr__(self, key):
         return _FunctionCall(self.__app, self.__server, key, self.in_header)
+
 
 class _FunctionCall(object):
     def __init__(self, app, server, key, in_header):
@@ -131,11 +134,11 @@ class _FunctionCall(object):
                 elif len(ctx.descriptor.out_message._type_info) == 1:
                     _retval = ctx.out_object[0]
 
-                    # workaround to have the context disposed of when the caller is
-                    # done with the return value. the context is sometimes needed to
-                    # fully construct the return object (e.g. when the object is a
-                    # sqlalchemy object bound to a session that's defined in the
-                    # context object).
+                    # workaround to have the context disposed of when the caller
+                    # is done with the return value. the context is sometimes
+                    # needed to fully construct the return object (e.g. when the
+                    # object is a sqlalchemy object bound to a session that's
+                    # defined in the context object).
                     try:
                         _retval.__ctx__ = ctx
                     except AttributeError:
