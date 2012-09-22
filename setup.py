@@ -114,17 +114,22 @@ class RunTests(TestCommand):
 
         raise SystemExit(ret)
 
-test_reqs = ['pytest', 'werkzeug', 'pytest', 'sqlalchemy', 'suds', 'msgpack-python']
+test_reqs = ['pytest', 'werkzeug', 'sqlalchemy', 'suds', 'msgpack-python']
 
 if sys.version_info < (2,6):
-    test_reqs.append('zope.interface<4')
-    test_reqs.append('twisted<12')
-    test_reqs.append('pyzmq<2.2')
-    test_reqs.append('multiprocessing')
-    test_reqs.append('simplejson')
+    test_reqs.extend([
+        'zope.interface<4',
+        'twisted<12',
+        'pyzmq<2.2',
+        'multiprocessing',
+        'simplejson',
+    ])
+
 else:
-    test_reqs.append('twisted')
-    test_reqs.append('pyzmq')
+    test_reqs.extend([
+        'twisted',
+        'pyzmq',
+    ])
 
 setup(
     name='spyne',
@@ -156,7 +161,7 @@ setup(
     zip_safe=False,
     install_requires=[
       'pytz',
-      'lxml<3',
+      'lxml<2.9999',
     ],
 
     entry_points = {

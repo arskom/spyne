@@ -60,9 +60,7 @@ class ServerBase(object):
                                                            ProtocolBase.REQUEST)
 
             # returns a list of contexts. multiple contexts can be returned
-            # when supports_fanout_mode=True parameter is given to the
-            # Application constructor or there are non-primary methods for the
-            # given method_request_string.
+            # when the requested method also has bound auxiliary methods.
             retval = self.app.in_protocol.generate_method_contexts(ctx)
 
         except Fault, e:
