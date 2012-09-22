@@ -29,7 +29,11 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-"""This is a simple db-backed persistent task queue implementation."""
+"""This is a simple db-backed persistent task queue implementation.
+
+The producer (client) writes requests to a database table. The consumer (server)
+polls the database every 10 seconds and processes new requests.
+"""
 
 import time
 import logging
@@ -43,7 +47,6 @@ from sqlalchemy import create_engine
 
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm.exc import NoResultFound
 
 from spyne import MethodContext
 from spyne.application import Application
@@ -61,6 +64,9 @@ db = create_engine('sqlite:///:memory:')
 metadata = MetaData(bind=db)
 DeclarativeBase = declarative_base(metadata=metadata)
 
+#
+# The database tables used to store tasks and worker status
+#
 
 class TaskQueue(DeclarativeBase):
     __tablename__ = 'task_queue'
@@ -77,6 +83,9 @@ class WorkerStatus(DeclarativeBase):
     task_id = Column(sqlalchemy.Integer, ForeignKey(TaskQueue.id),
                                                             nullable=False)
 
+#
+# The consumer (server) implementation
+#
 
 class Consumer(ServerBase):
     transport = 'http://sqlalchemy.persistent.queue/'
@@ -87,29 +96,42 @@ class Consumer(ServerBase):
         self.session = sessionmaker(bind=db)()
         self.id = consumer_id
 
-        try:
-            self.session.query(WorkerStatus) \
-                          .filter_by(worker_id=self.id).one()
-        except NoResultFound:
+        
+        worker_status = self.session.query(WorkerStatus) \
+                          .filter_by(worker_id=self.id).first()
+
+        if worker_status is None:
             self.session.add(WorkerStatus(worker_id=self.id, task_id=0))
             self.session.commit()
 
     def serve_forever(self):
         while True:
+            # get the id of the last processed job
             last = self.session.query(WorkerStatus).with_lockmode("update") \
                           .filter_by(worker_id=self.id).one()
 
+            # get new tasks
             task_queue = self.session.query(TaskQueue) \
                     .filter(TaskQueue.id > last.task_id) \
                     .order_by(TaskQueue.id)
 
             for task in task_queue:
-                initial_ctx = MethodContext(self.app)
+                initial_ctx = MethodContext(self)
+
+                # this is the critical bit, where the request bytestream is put
+                # in the context so that the protocol can deserialize it.
                 initial_ctx.in_string = [task.data]
+
+                # these two lines are purely for logging
                 initial_ctx.transport.consumer_id = self.id
                 initial_ctx.transport.task_id = task.id
 
+                # The ``generate_contexts`` call parses the incoming stream and
+                # splits the request into header and body parts.
+                # There will be only one context here because no auxiliary
+                # methods are defined.
                 for ctx in self.generate_contexts(initial_ctx, 'utf8'):
+                    # This is standard boilerplate for invoking services.
                     self.get_in_object(ctx)
                     if ctx.in_error:
                         self.get_out_string(ctx)
@@ -130,6 +152,9 @@ class Consumer(ServerBase):
 
             time.sleep(10)
 
+#
+# The producer (client) implementation
+#
 
 class RemoteProcedure(RemoteProcedureBase):
     def __init__(self, db, app, name, out_header):
@@ -158,6 +183,9 @@ class Producer(ClientBase):
 
         self.service = Service(RemoteProcedure, db, app)
 
+#
+# The service to call.
+#
 
 class AsyncService(ServiceBase):
     @rpc(Integer)
@@ -172,6 +200,10 @@ def _on_method_call(ctx):
 
 AsyncService.event_manager.add_listener('method_call', _on_method_call)
 
+#
+# Boilerplate
+#
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
@@ -184,5 +216,5 @@ if __name__ == '__main__':
     for i in range(10):
         producer.service.sleep(i)
 
-    consumer = Consumer(db, application, 1)
+    consumer = Consumer(db, application, consumer_id=1)
     consumer.serve_forever()
