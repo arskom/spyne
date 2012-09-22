@@ -38,3 +38,8 @@ Ordered Set
 .. automodule:: spyne.util.oset
     :members:
 
+Protocol Helpers
+----------------
+
+.. automodule:: spyne.util.protocol
+    :members:
