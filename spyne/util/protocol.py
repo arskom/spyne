@@ -17,12 +17,21 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""The ``spyne.const`` package contains miscellanous constant values needed
-in various parts of Spyne."""
+"""Helpers for protocol boilerplate."""
+
+from spyne import MethodContext
+from spyne.server import ServerBase
 
 
-MAX_STRING_FIELD_LENGTH = 64
-"""Maximum length of a string field for :func:`spyne.util.safe_repr`"""
+def deserialize_request_string(string, app):
+    """Deserialize request string using in_protocol in application definition.
+    Returns the corresponding native python object.
+    """
 
-MAX_ARRAY_ELEMENT_NUM = 2
-"""Maximum number of array members for :func:`spyne.util.safe_repr`"""
+    server = ServerBase(app)
+    initial_ctx = MethodContext(server)
+    initial_ctx.in_string = [string]
+
+    ctx = server.generate_contexts(initial_ctx)[0]
+    server.get_in_object(ctx)
+    return ctx.in_object

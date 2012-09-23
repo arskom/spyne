@@ -25,6 +25,7 @@ import logging
 logger = logging.getLogger('spyne.protocol.xml')
 
 from lxml import etree
+from lxml.etree import XMLSyntaxError
 
 from spyne import _bytes_join
 
@@ -133,6 +134,8 @@ class XmlObject(ProtocolBase):
         })
 
         self.log_messages = (logger.level == logging.DEBUG)
+        self.parser = etree.XMLParser(remove_comments=True)
+
 
     def set_validator(self, validator):
         if validator in ('lxml', 'schema') or \
@@ -181,14 +184,24 @@ class XmlObject(ProtocolBase):
         """Uses the iterable of string fragments in ``ctx.in_string`` to set
         ``ctx.in_document``."""
 
-        parser = etree.XMLParser(remove_comments=True)
 
+        string = _bytes_join(ctx.in_string)
         try:
-            ctx.in_document = etree.fromstring(_bytes_join(ctx.in_string), parser)
+            try:
+                ctx.in_document = etree.fromstring(string, self.parser)
+
+            except XMLSyntaxError, e:
+                logger.error(string)
+                raise Fault('Client.XMLSyntaxError', str(e))
+
         except ValueError:
-            ctx.in_document = etree.fromstring(_bytes_join(ctx.in_string) \
-                                                               .decode(charset),
-                                               parser)
+            try:
+                ctx.in_document = etree.fromstring(string.decode(charset),
+                                                                    self.parser)
+            except XMLSyntaxError, e:
+                logger.error(string)
+                raise Fault('Client.XMLSyntaxError', str(e))
+
 
     def decompose_incoming_envelope(self, ctx, message):
         assert message in (self.REQUEST, self.RESPONSE)
