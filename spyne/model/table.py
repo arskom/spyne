@@ -179,6 +179,3 @@ class TableModel(ComplexModelBase):
 
     __metaclass__ = TableModelMeta
     _decl_class_registry = {}
-
-TableSerializer = TableModel
-"""DEPRECATED. Use TableModel instead."""

@@ -25,7 +25,7 @@ import unittest
 from spyne.application import Application
 from spyne.decorator import rpc
 from spyne.interface.wsdl import Wsdl11
-from spyne.model.table import TableSerializer
+from spyne.model.table import TableModel
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import Array
 from spyne.protocol.http import HttpRpc
@@ -58,7 +58,7 @@ class TestSqlAlchemy(unittest.TestCase):
         from sqlalchemy import Integer
         from sqlalchemy import String
 
-        class DbObject(TableSerializer, self.DeclarativeBase):
+        class DbObject(TableModel, self.DeclarativeBase):
             __tablename__ = 'db_object'
 
             id = Column(Integer, primary_key=True)
@@ -123,7 +123,7 @@ class TestSqlAlchemy(unittest.TestCase):
         import sqlalchemy
         from sqlalchemy import sql
 
-        class KeyValuePair(TableSerializer, self.DeclarativeBase):
+        class KeyValuePair(TableModel, self.DeclarativeBase):
             __tablename__ = 'key_value_store'
             __namespace__ = 'punk'
 
@@ -208,7 +208,7 @@ class TestSqlAlchemy(unittest.TestCase):
              Column('name',  sqlalchemy.String),
         )
 
-        class User(TableSerializer, self.DeclarativeBase):
+        class User(TableModel, self.DeclarativeBase):
             __table__ = user_t
 
         self.assertEquals(User._type_info['id'].__type_name__, 'integer')
@@ -223,7 +223,7 @@ class TestSqlAlchemy(unittest.TestCase):
             id = Column(sqlalchemy.Integer, primary_key=True)
             name = Column(sqlalchemy.String(256))
 
-        class User1(self.DeclarativeBase, TableSerializer, User1Mixin):
+        class User1(self.DeclarativeBase, TableModel, User1Mixin):
             __tablename__ = 'spyne_user1'
 
             mail = Column(sqlalchemy.String(256))
@@ -238,7 +238,7 @@ class TestSqlAlchemy(unittest.TestCase):
             id = Column(sqlalchemy.Integer, primary_key=True)
             name = Column(sqlalchemy.String(256))
 
-        class User2(TableSerializer, self.DeclarativeBase, User2Mixin):
+        class User2(TableModel, self.DeclarativeBase, User2Mixin):
             __tablename__ = 'spyne_user2'
 
             mail = Column(sqlalchemy.String(256))
@@ -256,7 +256,7 @@ class TestSqlAlchemy(unittest.TestCase):
             id = Column(sqlalchemy.Integer, primary_key=True)
             name = Column(sqlalchemy.String(256))
 
-        class User(self.DeclarativeBase, TableSerializer, UserMixin):
+        class User(self.DeclarativeBase, TableModel, UserMixin):
             __tablename__ = 'spyne_user_mixin'
 
             mail = Column(sqlalchemy.String(256))
@@ -268,7 +268,7 @@ class TestSqlAlchemy(unittest.TestCase):
     def test_same_table_inheritance(self):
         import sqlalchemy
 
-        class User(self.DeclarativeBase, TableSerializer):
+        class User(self.DeclarativeBase, TableModel):
             __tablename__ = 'spyne_user_sti'
 
             id = Column(sqlalchemy.Integer, primary_key=True)
@@ -284,13 +284,13 @@ class TestSqlAlchemy(unittest.TestCase):
     def test_relationship(self):
         import sqlalchemy
 
-        class User(self.DeclarativeBase, TableSerializer):
+        class User(self.DeclarativeBase, TableModel):
             __tablename__ = 'spyne_user'
 
             id = Column(sqlalchemy.Integer, primary_key=True)
             name = Column(sqlalchemy.String(256))
 
-        class Address(self.DeclarativeBase, TableSerializer):
+        class Address(self.DeclarativeBase, TableModel):
             __tablename__ = 'spyne_address'
 
             id = Column(sqlalchemy.Integer, primary_key=True)
