@@ -301,10 +301,6 @@ class TestSqlAlchemy(unittest.TestCase):
         assert 'user' in Address._type_info
         assert Address._type_info['user'] is User
 
-        u = User()
-        a = Address()
-        a.user = u
-
     def test_relationship_array(self):
         import sqlalchemy
         class Permission(TableModel, self.DeclarativeBase):
@@ -320,9 +316,20 @@ class TestSqlAlchemy(unittest.TestCase):
             id = Column(sqlalchemy.Integer, primary_key=True)
             permissions = relationship(Permission)
 
+        class Address(self.DeclarativeBase, TableModel):
+            __tablename__ = 'spyne_address'
+
+            id = Column(sqlalchemy.Integer, primary_key=True)
+            address = Column(sqlalchemy.String(256))
+            user_id = Column(sqlalchemy.Integer, ForeignKey(User.id), nullable=False)
+            user = relationship(User)
+
         assert 'permissions' in User._type_info
         assert issubclass(User._type_info['permissions'], Array)
         assert issubclass(User._type_info['permissions']._type_info.values()[0], Permission)
+
+        #Address().user = None
+        #User().permissions = None # This fails, and actually is supposed to fail.
 
 if __name__ == '__main__':
     unittest.main()

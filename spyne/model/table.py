@@ -94,11 +94,13 @@ def _process_item(v):
             rpc_type = _type_map[type(v.type)]
 
         else:
-            raise Exception("soap_type was not found. maybe _type_map needs a new "
-                            "entry. %r" % v)
+            raise Exception("soap_type was not found. maybe _type_map needs a "
+                            "new entry. %r" % v)
 
     elif isinstance(v, RelationshipProperty):
         v.enable_typechecks = False
+        # FIXME: Distinguish between *ToMany and *ToOne relationship.
+        # rpc_type = v.argument
         rpc_type = Array(v.argument)
 
     return rpc_type
