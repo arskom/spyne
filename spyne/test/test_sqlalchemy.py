@@ -281,7 +281,7 @@ class TestSqlAlchemy(unittest.TestCase):
         assert 'name' in UserMail._type_info
         assert 'id' in UserMail._type_info
 
-    def test_relationship(self):
+    def test_relationship_single(self):
         import sqlalchemy
 
         class User(self.DeclarativeBase, TableModel):
@@ -305,7 +305,24 @@ class TestSqlAlchemy(unittest.TestCase):
         a = Address()
         a.user = u
 
+    def test_relationship_array(self):
+        import sqlalchemy
+        class Permission(TableModel, self.DeclarativeBase):
+            __tablename__ = 'spyne_user_permission'
 
+            id = Column(sqlalchemy.Integer, primary_key=True)
+            user_id = Column(sqlalchemy.Integer, ForeignKey("spyne_user.id"))
+
+
+        class User(TableModel, self.DeclarativeBase):
+            __tablename__ = 'spyne_user'
+
+            id = Column(sqlalchemy.Integer, primary_key=True)
+            permissions = relationship(Permission)
+
+        assert 'permissions' in User._type_info
+        assert issubclass(User._type_info['permissions'], Array)
+        assert issubclass(User._type_info['permissions']._type_info.values()[0], Permission)
 
 if __name__ == '__main__':
     unittest.main()

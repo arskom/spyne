@@ -171,7 +171,7 @@ def get_members_etree(prot, cls, inst, parent):
         v = cls._type_info[k]
         subvalue = getattr(inst, k, None)
         a_of = v._attribute_of
-        attr_parent=parent.find("{%s}%s"%(cls.__namespace__,a_of))
+        attr_parent = parent.find("{%s}%s"%(cls.__namespace__,a_of))
         v.marshall(k,subvalue,attr_parent)
 
 @nillable_value
