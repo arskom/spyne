@@ -39,6 +39,26 @@ from spyne.server import ServerBase
 
 def TDictObjectTest(serializer, _DictObjectChild, decode_error):
     class Test(unittest.TestCase):
+        def test_multiple_return_sd_3(self):
+            class SomeService(ServiceBase):
+                @srpc(_returns=Iterable(Integer))
+                def some_call():
+                    return 1, 2
+
+            app = Application([SomeService], 'tns', in_protocol=_DictObjectChild(), out_protocol=_DictObjectChild(skip_depth=3))
+
+            server = ServerBase(app)
+            initial_ctx = MethodContext(server)
+            initial_ctx.in_string = [serializer.dumps({"some_call":[]})]
+
+            ctx, = server.generate_contexts(initial_ctx)
+            server.get_in_object(ctx)
+            server.get_out_object(ctx)
+            server.get_out_string(ctx)
+
+            out_string = ''.join(ctx.out_string)
+            assert out_string == serializer.dumps([1,2])
+
         def test_multiple_return_sd_2(self):
             class SomeService(ServiceBase):
                 @srpc(_returns=Iterable(Integer))
@@ -56,7 +76,8 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
             server.get_out_object(ctx)
             server.get_out_string(ctx)
 
-            assert list(ctx.out_string) == [serializer.dumps(1),serializer.dumps(2)]
+            out_string = ''.join(ctx.out_string)
+            assert out_string == serializer.dumps({"integer": [1,2]})
 
         def test_multiple_return_sd_1(self):
             class SomeService(ServiceBase):
@@ -77,7 +98,9 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
             server.get_out_object(ctx)
             server.get_out_string(ctx)
 
-            assert list(ctx.out_string) == [serializer.dumps({"integer": [1, 2]})]
+            out_string = ''.join(ctx.out_string)
+
+            assert out_string == serializer.dumps({"some_callResult": {"integer": [1, 2]}})
 
         def test_multiple_return_sd_0(self):
             class SomeService(ServiceBase):

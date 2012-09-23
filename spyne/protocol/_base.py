@@ -35,8 +35,6 @@ from spyne.error import ResourceNotFoundError
 from spyne.error import RequestTooLongError
 from spyne.error import RequestNotAllowed
 
-from spyne.model.complex import ComplexModelBase
-
 
 def unwrap_messages(cls, skip_depth):
     out_type = cls
@@ -56,8 +54,7 @@ def unwrap_instance(cls, inst, skip_depth):
     for _ in range(skip_depth):
         if hasattr(out_type, "_type_info") and len(out_type._type_info) == 1:
             (k, out_type), = out_type._type_info.items()
-            if issubclass(out_type, ComplexModelBase):
-                out_instance = getattr(out_instance, k)
+            out_instance = getattr(out_instance, k)
         else:
             break
 
