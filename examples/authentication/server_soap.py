@@ -29,35 +29,39 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import sys
-import random
-import logging
 
-# bcrypt is the latest consensus on cryptograpic circles on storing passwords.
+import logging
+import random
+import sys
+
+# bcrypt seems to be among the latest consensus around cryptograpic circles on
+# storing passwords.
 # You need the package from http://code.google.com/p/py-bcrypt/
 # You can install it by running easy_install py-bcrypt.
-import bcrypt
+try:
+    import bcrypt
+except ImportError:
+    print('easy_install --user py-bcrypt to get it.')
+    raise
 
-from spyne.model.complex import ComplexModel
-from spyne.model.fault import Fault
+from spyne.application import Application
 from spyne.decorator import srpc
 from spyne.error import ArgumentError
-from spyne.protocol.soap import Soap11
-from spyne.interface.wsdl import Wsdl11
+from spyne.error import ResourceNotFoundError
+from spyne.model.complex import ComplexModel
+from spyne.model.fault import Fault
 from spyne.model.primitive import Mandatory
 from spyne.model.primitive import String
-from spyne.service import ServiceBase
+from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
-from spyne.application import Application
+from spyne.service import ServiceBase
 
 
-class PublicKeyError(Fault):
-    __type_name__ = 'KeyError'
+class PublicKeyError(ResourceNotFoundError):
     __namespace__ = 'spyne.examples.authentication'
 
     def __init__(self, value):
-        Fault.__init__(self,
-                faultcode='Client.KeyError',
+        ResourceNotFoundError.__init__(self,
                 faultstring='Value %r not found' % value
             )
 
@@ -101,7 +105,6 @@ class RequestHeader(ComplexModel):
     user_name = Mandatory.String
 
 
-
 class Preferences(ComplexModel):
     __namespace__ = 'spyne.examples.authentication'
 
@@ -133,12 +136,13 @@ class AuthenticationService(ServiceBase):
            raise AuthenticationError(user_name)
 
         if bcrypt.hashpw(password, password_hash) == password_hash:
-            session_id = (user_name, '%x' % random.randint(1<<128, (1<<132)-1))
+            session_id = (user_name, '%x' % random.randint(1<<124, (1<<128)-1))
             session_db.add(session_id)
         else:
            raise AuthenticationError(user_name)
 
         return session_id[1]
+
 
 class UserService(ServiceBase):
     __tns__ = 'spyne.examples.authentication'
@@ -161,6 +165,7 @@ def _on_method_call(ctx):
 
 UserService.event_manager.add_listener('method_call', _on_method_call)
 
+
 if __name__=='__main__':
     from spyne.util.wsgi_wrapper import run_twisted
 
@@ -170,7 +175,6 @@ if __name__=='__main__':
 
     application = Application([AuthenticationService,UserService],
         tns='spyne.examples.authentication',
-        interface=Wsdl11(),
         in_protocol=Soap11(validator='lxml'),
         out_protocol=Soap11()
     )

@@ -29,33 +29,35 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import sys
-import random
 import logging
+import random
+import sys
 import base64
 
 from Cookie import SimpleCookie
 
-# bcrypt is the latest consensus on cryptograpic circles on storing passwords.
+# bcrypt seems to be among the latest consensus around cryptograpic circles on
+# storing passwords.
 # You need the package from http://code.google.com/p/py-bcrypt/
 # You can install it by running easy_install py-bcrypt.
-import bcrypt
+try:
+    import bcrypt
+except ImportError:
+    print('easy_install --user py-bcrypt to get it.')
+    raise
 
+from spyne.application import Application
+from spyne.decorator import rpc
+from spyne.error import ResourceNotFoundError
 from spyne.model.complex import ComplexModel
 from spyne.model.fault import Fault
-from spyne.decorator import srpc, rpc
-from spyne.error import ArgumentError
-from spyne.protocol.soap import Soap11
-from spyne.interface.wsdl import Wsdl11
 from spyne.model.primitive import Mandatory
 from spyne.model.primitive import String
-from spyne.service import ServiceBase
+from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
-from spyne.application import Application
+from spyne.service import ServiceBase
 
-
-class PublicKeyError(Fault):
-    __type_name__ = 'KeyError'
+class PublicKeyError(ResourceNotFoundError):
     __namespace__ = 'spyne.examples.authentication'
 
     def __init__(self, value):
@@ -189,7 +191,6 @@ if __name__=='__main__':
 
     application = Application([UserService],
         tns='spyne.examples.authentication',
-        interface=Wsdl11(),
         in_protocol=Soap11(validator='lxml'),
         out_protocol=Soap11()
     )

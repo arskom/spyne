@@ -37,19 +37,22 @@ c = Client('http://localhost:7789/app/?wsdl')
 user_name = 'neo'
 
 session_id = c.service.authenticate(user_name, 'Wh1teR@bbit')
+print ('Authentication for %r successful. Session id: %r' % (user_name, session_id))
 
 request_header = c.factory.create('RequestHeader')
 request_header.session_id = session_id
 request_header.user_name = user_name
-
 c.set_options(soapheaders=request_header)
-print c.service.get_preferences('neo')
-try:
-    print c.service.get_preferences('trinity')
-except WebFault, e:
-    print e
+
+print('Preferences for %r:' % user_name)
+print(c.service.get_preferences(user_name))
 
 try:
-    print c.service.get_preferences('smith')
+    print(c.service.get_preferences('trinity'))
 except WebFault, e:
-    print e
+    print(e)
+
+try:
+    print(c.service.get_preferences('smith'))
+except WebFault, e:
+    print(e)
