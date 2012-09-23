@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from spyne.model.complex import ComplexModel
 import sys
 
 try:
@@ -122,10 +123,18 @@ def safe_repr(obj, cls=None):
                 retval.append("(...)")
                 break
 
-        return "%s([%s])" % (cls.get_type_name(), ', '.join(retval))
+        retval = "%s([%s])" % (cls.get_type_name(), ', '.join(retval))
 
+    elif issubclass(cls, ComplexModel):
+        retval = _safe_repr_obj(obj, cls)
     else:
-        return _safe_repr_obj(obj, cls)
+        retval = repr(obj)
+
+        if len(retval) > MAX_STRING_FIELD_LENGTH:
+            retval = retval[:MAX_STRING_FIELD_LENGTH] + "(...)"
+
+    return retval
+
 
 def _safe_repr_obj(obj, cls):
     retval = []
