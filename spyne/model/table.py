@@ -44,6 +44,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from spyne.model import primitive
 from spyne.model import binary
 from spyne.model import complex
+from spyne.model.complex import Array
 from spyne.model.complex import TypeInfo
 from spyne.model.complex import ComplexModelBase
 from spyne.model.complex import ComplexModelMeta
@@ -95,8 +96,10 @@ def _process_item(v):
         else:
             raise Exception("soap_type was not found. maybe _type_map needs a new "
                             "entry. %r" % v)
+
     elif isinstance(v, RelationshipProperty):
-        rpc_type = v.argument
+        v.enable_typechecks = False
+        rpc_type = Array(v.argument)
 
     return rpc_type
 

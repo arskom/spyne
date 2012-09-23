@@ -29,6 +29,8 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+from pprint import pprint
+
 from spyne.client.http import HttpClient
 
 from server_basic import application
@@ -53,10 +55,8 @@ permission.application = 'table'
 permission.operation = 'read'
 u.permissions.append(permission)
 
-print u
-
 retval = c.service.add_user(u)
 print retval
 
-print c.service.get_user(retval)
-print c.service.get_all_user()
+pprint(c.service.get_user(retval))
+pprint(list(c.service.get_all_user()))

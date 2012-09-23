@@ -39,21 +39,18 @@ u = c.factory.create("User")
 u.user_name = 'dave'
 u.first_name = 'david'
 u.last_name = 'smith'
-try:
-    u.permissions = c.factory.create("PermissionArray")
-except TypeNotFound:
-    has_permissions = False
 
-if has_permissions:
-    permission = c.factory.create("Permission")
-    permission.application = 'table'
-    permission.operation = 'write'
-    u.permissions.Permission.append(permission)
+u.permissions = c.factory.create("PermissionArray")
 
-    permission = c.factory.create("Permission")
-    permission.application = 'table'
-    permission.operation = 'read'
-    u.permissions.Permission.append(permission)
+permission = c.factory.create("Permission")
+permission.application = 'table'
+permission.operation = 'write'
+u.permissions.Permission.append(permission)
+
+permission = c.factory.create("Permission")
+permission.application = 'table'
+permission.operation = 'read'
+u.permissions.Permission.append(permission)
 
 print u
 

@@ -197,10 +197,6 @@ def complex_from_element(prot, cls, element):
 
     flat_type_info = cls.get_flat_type_info(cls)
 
-    # initialize instance
-    for k in flat_type_info:
-        setattr(inst, k, None)
-
     # this is for validating cls.Attributes.{min,max}_occurs
     frequencies = defaultdict(int)
 

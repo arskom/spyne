@@ -121,7 +121,7 @@ if __name__=='__main__':
 
     server = make_server('127.0.0.1', 7789, WsgiApplication(application))
 
-    logging.info("listening to http://127.0.0.1:7789"
+    logging.info("listening to http://127.0.0.1:7789")
     logging.info("wsdl is at: http://localhost:7789/?wsdl")
 
     server.serve_forever()

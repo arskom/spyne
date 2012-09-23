@@ -37,11 +37,12 @@ logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
 import sqlalchemy
 
 from sqlalchemy import create_engine
+from sqlalchemy import MetaData
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-
-from sqlalchemy import MetaData
-from sqlalchemy import Column
+from sqlalchemy.orm import relationship
+from sqlalchemy.schema import Column
+from sqlalchemy.schema import ForeignKey
 
 from spyne.application import Application
 from spyne.decorator import rpc
@@ -60,10 +61,20 @@ Session = sessionmaker(bind=_user_database)
 
 #
 # WARNING: You should NOT confuse sqlalchemy types with spyne types. Whenever
-# you see an spyne service not starting due to some problem with __type_name__
+# you see a spyne service not starting due to some problem with __type_name__
 # that's probably because you did not use an spyne type where you had to (e.g.
 # inside @rpc decorator)
 #
+
+
+class Permission(TableModel, DeclarativeBase):
+    __tablename__ = 'spyne_user_permission'
+    __namespace__ = 'spyne.examples.user_manager'
+
+    permission_id = Column(sqlalchemy.Integer, primary_key=True)
+    application = Column(sqlalchemy.String)
+    operation = Column(sqlalchemy.String)
+    user_id = Column(sqlalchemy.Integer, ForeignKey("spyne_user.user_id"))
 
 
 class User(TableModel, DeclarativeBase):
@@ -74,6 +85,8 @@ class User(TableModel, DeclarativeBase):
     user_name = Column(sqlalchemy.String(256))
     first_name = Column(sqlalchemy.String(256))
     last_name = Column(sqlalchemy.String(256))
+    permissions = relationship(Permission)
+
 
 
 # this is the same as the above user object. Use this method of declaring
@@ -87,6 +100,7 @@ class UserManagerService(ServiceBase):
     @rpc(User, _returns=Integer)
     def add_user(ctx, user):
         ctx.udc.session.add(user)
+        print user.permissions
         ctx.udc.session.flush()
 
         return user.user_id
@@ -128,10 +142,7 @@ application.event_manager.add_listener('method_call', _on_method_call)
 application.event_manager.add_listener('method_return_object', _on_method_return_object)
 
 if __name__=='__main__':
-    try:
-        from wsgiref.simple_server import make_server
-    except ImportError:
-        logging.error("Error: example server code requires Python >= 2.5")
+    from wsgiref.simple_server import make_server
 
     wsgi_app = WsgiApplication(application)
     server = make_server('127.0.0.1', 7789, wsgi_app)
