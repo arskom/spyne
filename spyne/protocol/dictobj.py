@@ -440,7 +440,7 @@ class DictObject(ProtocolBase):
 
 
     def object_to_flat_dict(self, inst_cls, value, hier_delim="_", retval=None,
-                                                    prefix=None, parent=None):
+                                                      prefix=None, parent=None):
         """Converts a native python object to a flat dict.
 
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.

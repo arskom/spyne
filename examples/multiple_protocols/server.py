@@ -39,7 +39,11 @@ the same information in different protocols.:
     http://localhost:9910/soap/get_utc_time
     http://localhost:9910/png/get_utc_time
     http://localhost:9910/svg/get_utc_time
-    http://localhost:9910/json/get_utc_time
+    http://localhost:9910/json0/get_utc_time
+    http://localhost:9910/json1/get_utc_time
+    http://localhost:9910/json2/get_utc_time
+    http://localhost:9910/mpo/get_utc_time
+    http://localhost:9910/mprpc/get_utc_time
 """
 
 
@@ -93,8 +97,17 @@ if __name__ == '__main__':
     svg = Application([HelloWorldService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=SvgClock())
 
-    json = Application([HelloWorldService], tns=tns,
+    json0 = Application([HelloWorldService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=JsonObject())
+
+    json1 = Application([HelloWorldService], tns=tns,
+            in_protocol=HttpRpc(), out_protocol=JsonObject(skip_depth=1))
+
+    json2 = Application([HelloWorldService], tns=tns,
+            in_protocol=HttpRpc(), out_protocol=JsonObject(skip_depth=2))
+
+    json3 = Application([HelloWorldService], tns=tns,
+            in_protocol=HttpRpc(), out_protocol=JsonObject(skip_depth=3))
 
     msgpack_object = Application([HelloWorldService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=MessagePackObject())
@@ -109,9 +122,13 @@ if __name__ == '__main__':
         'html': html,
         'png': png,
         'svg': svg,
-        'json': json,
+        'json': json0,
+        'json0': json0,
+        'json1': json1,
+        'json2': json2,
+        'json3': json3,
         'mpo': msgpack_object,
-        'mprpc': msgpack_object,
+        'mprpc': msgpack_rpc,
     })
 
     from wsgiref.simple_server import make_server
