@@ -29,22 +29,6 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import logging
-
-from spyne.decorator import srpc
-from spyne.service import ServiceBase
-from spyne.model.complex import Iterable
-from spyne.model.primitive import Integer
-from spyne.model.primitive import Unicode
-
-from spyne.util.simple import wsgi_soap_application
-
-try:
-    from wsgiref.simple_server import make_server
-except ImportError:
-    print("Error: example server code requires Python >= 2.5")
-    raise
-
 '''
 This is a simple HelloWorld example to show the basics of writing
 a webservice using spyne, starting a server, and creating a service
@@ -68,6 +52,17 @@ Here's how to call it using suds:
 '''
 
 
+import logging
+
+from spyne.decorator import srpc
+from spyne.service import ServiceBase
+from spyne.model.complex import Iterable
+from spyne.model.primitive import Integer
+from spyne.model.primitive import Unicode
+
+from spyne.util.simple import wsgi_soap_application
+
+
 class HelloWorldService(ServiceBase):
     @srpc(Unicode, Integer, _returns=Iterable(Unicode))
     def say_hello(name, times):
@@ -82,7 +77,10 @@ class HelloWorldService(ServiceBase):
         for i in range(times):
             yield u'Hello, %s' % name
 
+
 if __name__=='__main__':
+    from wsgiref.simple_server import make_server
+
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
