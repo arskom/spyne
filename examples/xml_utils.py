@@ -29,6 +29,7 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -57,6 +58,7 @@ class Punk(ComplexModel):
     b = Integer
     c = Decimal
     d = DateTime
+
 
 class Foo(ComplexModel):
     __namespace__ = 'some_other_namespace'

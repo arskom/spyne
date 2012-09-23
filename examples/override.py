@@ -29,51 +29,50 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+
+'''
+This example shows how to override the variable names for fun and profit.
+This is very useful for situations that require the use of variable names
+that are python keywords like, from, import, return, etc.
+'''
+
+
 import logging
 
 from spyne.application import Application
 from spyne.decorator import srpc
-from spyne.interface.wsdl import Wsdl11
 from spyne.protocol.soap import Soap11
 from spyne.service import ServiceBase
 from spyne.model.primitive import String
 from spyne.model.complex import ComplexModel
 from spyne.server.wsgi import WsgiApplication
 
-'''
-This example shows how to override the variable names for fun and profit.
-This is very useful for situations that require the use of variable names
-that are python keywords like, from, to, import, return, etc.
-'''
+from spyne.util.odict import odict
 
 
 class SomeClass(ComplexModel):
-    _type_info = {
-        'and': String,
-        'or': String
-    }
+    _type_info = odict([
+        ('and', String),
+        ('or', String),
+    ])
 
 
 class EmailManager(ServiceBase):
     @srpc(String, String, String, _returns=String,
-        _in_variable_names={'_to': 'to', '_from': 'from',
-            '_message': 'message'},
-        _out_variable_name = 'return')
-    def send_email(_to, _from, _message):
+        _in_variable_names={'from_': 'from'},
+        _out_variable_name='return')
+    def send_email(to, from_, message):
         # do email sending here
-        return repr((_to, _from, _message, 'sent!'))
+        return repr((to, from_, message, 'sent!'))
 
 if __name__=='__main__':
+    from wsgiref.simple_server import make_server
+
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
-    try:
-        from wsgiref.simple_server import make_server
-    except ImportError:
-        logging.error("Error: example server code requires Python >= 2.5")
-
     application = Application([EmailManager], 'spyne.examples.events',
-                interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
+                                    in_protocol=Soap11(), out_protocol=Soap11())
 
     server = make_server('127.0.0.1', 7789, WsgiApplication(application))
 
