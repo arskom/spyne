@@ -110,7 +110,11 @@ def main():
     logging.getLogger('spyne.wsgi').setLevel(logging.DEBUG)
 
     filemgr_app = WsgiApplication(Application([FileServices],
-        'spyne.examples.file_manager', in_protocol=HttpRpc(validator='soft'), out_protocol=HttpRpc()))
+            tns='spyne.examples.file_manager',
+            in_protocol=HttpRpc(validator='soft'),
+            out_protocol=HttpRpc()
+        ))
+
     try:
         os.makedirs('./files')
     except OSError:
@@ -119,7 +123,7 @@ def main():
     wsgi_app = DispatcherMiddleware(NotFound(), {'/filemgr': filemgr_app})
 
     logger.info("navigate to: http://localhost:9000/index.html")
-    run_simple('localhost', port, wsgi_app, static_files={'/': 'static'},
+    return run_simple('localhost', port, wsgi_app, static_files={'/': 'static'},
                                                                   threaded=True)
 
 if __name__ == '__main__':
