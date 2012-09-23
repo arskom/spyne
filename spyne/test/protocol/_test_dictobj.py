@@ -57,7 +57,7 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
             server.get_out_string(ctx)
 
             out_string = ''.join(ctx.out_string)
-            assert out_string == serializer.dumps([1,2])
+            assert out_string == serializer.dumps([1, 2])
 
         def test_multiple_return_sd_2(self):
             class SomeService(ServiceBase):

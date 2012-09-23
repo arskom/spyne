@@ -292,6 +292,7 @@ class TestSqlAlchemy(unittest.TestCase):
 
         class Address(self.DeclarativeBase, TableSerializer):
             __tablename__ = 'spyne_address'
+
             id = Column(sqlalchemy.Integer, primary_key=True)
             address = Column(sqlalchemy.String(256))
             user_id = Column(sqlalchemy.Integer, ForeignKey(User.id), nullable=False)

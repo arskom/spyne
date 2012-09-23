@@ -461,7 +461,7 @@ class DictObject(ProtocolBase):
 
                 if retval.get(key, None) is not None:
                     raise ValueError("%r.%s conflicts with previous value %r" %
-                                                        (inst_cls, k, retval[key]))
+                                                     (inst_cls, k, retval[key]))
 
                 try:
                     retval[key] = subvalue
