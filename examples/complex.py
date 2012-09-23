@@ -29,6 +29,13 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+
+'''
+This example shows how to define and use complex structures
+in spyne.  This example uses an extremely simple in-memory
+dictionary to store the User objects.
+'''
+
 import logging
 
 from spyne.application import Application
@@ -41,12 +48,8 @@ from spyne.model.complex import ComplexModel
 from spyne.model.primitive import Integer
 from spyne.model.primitive import String
 from spyne.server.wsgi import WsgiApplication
+from spyne.error import ResourceNotFoundError
 
-'''
-This example shows how to define and use complex structures
-in spyne.  This example uses an extremely simple in-memory
-dictionary to store the User objects.
-'''
 
 user_database = {}
 userid_seq = 1
@@ -55,8 +58,8 @@ userid_seq = 1
 class Permission(ComplexModel):
     __namespace__ = "permission"
 
-    application = String
-    feature = String
+    app = String(values=['library', 'delivery', 'accounting'])
+    perms = String(min_occurs=1, max_occurs=2, values=['read','write'])
 
 
 class User(ComplexModel):
@@ -69,6 +72,20 @@ class User(ComplexModel):
     permissions = Array(Permission)
 
 
+# add superuser to the 'database'
+user_database[0] = User(
+    userid=0,
+    username='root',
+    firstname='Super',
+    lastname='User',
+    permissions=[
+        Permission(app='library', perms=['read', 'write']),
+        Permission(app='delivery', perms=['read', 'write']),
+        Permission(app='accounting', perms=['read', 'write']),
+    ]
+)
+
+
 class UserManager(ServiceBase):
     @srpc(User, _returns=Integer)
     def add_user(user):
@@ -76,14 +93,28 @@ class UserManager(ServiceBase):
         global userid_seq
 
         user.userid = userid_seq
-        userid_seq = userid_seq+1
+        userid_seq = userid_seq + 1
         user_database[user.userid] = user
 
         return user.userid
 
+    @srpc(_returns=User)
+    def super_user():
+        return user_database[0]
+
     @srpc(Integer, _returns=User)
     def get_user(userid):
         global user_database
+
+        # If rely on dict lookup raising KeyError here, you'll return an
+        # internal error to the client, which tells the client that there's
+        # something wrong in the server. However in this case, KeyError means
+        # invalid request, so it's best to return a client error.
+
+        # For the HttpRpc case, internal error is 500 whereas
+        # ResourceNotFoundError is 404.
+        if not (userid in user_database):
+            raise ResourceNotFoundError(userid)
 
         return user_database[userid]
 
@@ -91,11 +122,17 @@ class UserManager(ServiceBase):
     def modify_user(user):
         global user_database
 
+        if not (user.userid in user_database):
+            raise ResourceNotFoundError(user.userid)
+
         user_database[user.userid] = user
 
     @srpc(Integer)
     def delete_user(userid):
         global user_database
+
+        if not (userid in user_database):
+            raise ResourceNotFoundError(userid)
 
         del user_database[userid]
 
@@ -106,13 +143,10 @@ class UserManager(ServiceBase):
         return user_database.values()
 
 if __name__=='__main__':
-    logging.basicConfig(level=logging.DEBUG)
-    logging.getlogger('spyne.protocol.xml').setLevel(logging.DEBUG)
+    from wsgiref.simple_server import make_server
 
-    try:
-        from wsgiref.simple_server import make_server
-    except ImportError:
-        logging.error("Example server code requires Python >= 2.5")
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
     application = Application([UserManager], 'spyne.examples.complex',
                 interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
