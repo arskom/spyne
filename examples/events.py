@@ -29,20 +29,6 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import logging
-
-from time import time
-
-from spyne.application import Application
-from spyne.decorator import srpc
-from spyne.interface.wsdl import Wsdl11
-from spyne.protocol.soap import Soap11
-from spyne.service import ServiceBase
-from spyne.model.complex import Array
-from spyne.model.primitive import String
-from spyne.model.primitive import Integer
-from spyne.server.wsgi import WsgiApplication
-
 '''
 This example is an enhanced version of the HelloWorld example that
 uses event listeners to apply cross-cutting behavior to the service.
@@ -57,11 +43,33 @@ uses the user-defined context (udc) attribute of the MethodContext object
 to hold the data points for this request.
 
 You may notice that one construction of MethodContext instance is followed by
-two destructions. This is because the fanout code creates shallow copies of
+two destructions. This is because the auxproc code creates shallow copies of
 the context instance in an early stage of the method processing pipeline. As the
 python's shallow-copying operator does not let us customize copy constructor,
-it's not possible to cleanly log this event.
+it's not possible to cleanly log this event. You can use the ``wsgi_close``
+event to reliably fire events when the request processing is completed.
+
+Use:
+
+    curl 'http://localhost:7789/say_hello?name=Dave&times=5'
+
+to query this code. You can play with the ``skip_depth`` parameter to adjust the
+response dict, or choose another protocol altogether.
+
 '''
+
+import logging
+
+from time import time
+
+from spyne.application import Application
+from spyne.decorator import srpc
+from spyne.protocol.json import JsonObject
+from spyne.protocol.http import HttpRpc
+from spyne.service import ServiceBase
+from spyne.model.primitive import String
+from spyne.model.primitive import Integer
+from spyne.server.wsgi import WsgiApplication
 
 
 class UserDefinedContext(object):
@@ -73,7 +81,7 @@ class UserDefinedContext(object):
 
 
 class HelloWorldService(ServiceBase):
-    @srpc(String, Integer, _returns=Array(String))
+    @srpc(String, Integer, _returns=String(max_occurs='unbounded'))
     def say_hello(name, times):
         results = []
 
@@ -105,6 +113,8 @@ def _on_wsgi_return(ctx):
         ctx.udc.method_end - ctx.udc.method_start,
         call_end - ctx.udc.call_start))
 
+def _on_wsgi_close(ctx):
+    print("_on_wsgi_close: request processing completed.")
 
 def _on_method_context_destroyed(ctx):
     print("_on_method_context_destroyed")
@@ -127,7 +137,7 @@ if __name__=='__main__':
         logging.error("Error: example server code requires Python >= 2.5")
 
     application = Application([HelloWorldService], 'spyne.examples.events',
-                interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
+                   in_protocol=HttpRpc(), out_protocol=JsonObject(skip_depth=2))
 
     application.event_manager.add_listener('method_call', _on_method_call)
     application.event_manager.add_listener('method_return_object',
@@ -140,10 +150,11 @@ if __name__=='__main__':
     wsgi_wrapper = WsgiApplication(application)
     wsgi_wrapper.event_manager.add_listener('wsgi_call', _on_wsgi_call)
     wsgi_wrapper.event_manager.add_listener('wsgi_return', _on_wsgi_return)
+    wsgi_wrapper.event_manager.add_listener('wsgi_close', _on_wsgi_close)
 
     server = make_server('127.0.0.1', 7789, wsgi_wrapper)
 
-    logger.info("listening to http://127.0.0.1:7789")
-    logger.info("wsdl is at: http://localhost:7789/?wsdl")
+    logging.info("listening to http://127.0.0.1:7789")
+    logging.info("wsdl is at: http://localhost:7789/?wsdl")
 
     server.serve_forever()
