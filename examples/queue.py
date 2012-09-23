@@ -200,21 +200,23 @@ def _on_method_call(ctx):
 
 AsyncService.event_manager.add_listener('method_call', _on_method_call)
 
-#
-# Boilerplate
-#
-
 if __name__ == '__main__':
+    # set up logging
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
+
+    # create database tables
     metadata.create_all()
 
+    # create application
     application = Application([AsyncService], 'spyne.async',
-            interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
+                                in_protocol=Soap11(), out_protocol=Soap11())
 
+    # make requests
     producer = Producer(db, application)
     for i in range(10):
         producer.service.sleep(i)
 
+    # process requests. it'd make most sense if this was in another process.
     consumer = Consumer(db, application, consumer_id=1)
     consumer.serve_forever()
