@@ -165,7 +165,6 @@ class TestSqlAlchemy(unittest.TestCase):
                 )).order_by(KeyValuePair.key)
 
         application = Application([Service],
-            interface=Wsdl11(),
             in_protocol=HttpRpc(),
             out_protocol=Soap11(),
             name='Service', tns='tns'
@@ -280,26 +279,6 @@ class TestSqlAlchemy(unittest.TestCase):
         assert 'mail' in UserMail._type_info
         assert 'name' in UserMail._type_info
         assert 'id' in UserMail._type_info
-
-    def test_relationship_single(self):
-        import sqlalchemy
-
-        class User(self.DeclarativeBase, TableModel):
-            __tablename__ = 'spyne_user'
-
-            id = Column(sqlalchemy.Integer, primary_key=True)
-            name = Column(sqlalchemy.String(256))
-
-        class Address(self.DeclarativeBase, TableModel):
-            __tablename__ = 'spyne_address'
-
-            id = Column(sqlalchemy.Integer, primary_key=True)
-            address = Column(sqlalchemy.String(256))
-            user_id = Column(sqlalchemy.Integer, ForeignKey(User.id), nullable=False)
-            user = relationship(User)
-
-        assert 'user' in Address._type_info
-        assert Address._type_info['user'] is User
 
     def test_relationship_array(self):
         import sqlalchemy
