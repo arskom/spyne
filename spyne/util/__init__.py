@@ -17,7 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from spyne.model.complex import ComplexModel
 import sys
 
 try:
@@ -30,9 +29,6 @@ except ImportError: # Python 3
     from urllib.parse import splithost
     from urllib.parse import quote
 
-from spyne.model.complex import Array
-from spyne.const import MAX_STRING_FIELD_LENGTH
-from spyne.const import MAX_ARRAY_ELEMENT_NUM
 
 def split_url(url):
     '''Splits a url into (uri_scheme, host[:port], path)'''
@@ -103,51 +99,3 @@ class memoize(object):
 
     def reset(self):
         self.memo = {}
-
-def safe_repr(obj, cls=None):
-    """Use this function if you want to echo a ComplexModel subclass. It will
-    limit output size of the String types, thus make your logs smaller.
-    """
-
-    if cls is None:
-        cls = obj.__class__
-
-    if issubclass(cls, Array):
-        retval = []
-
-        cls, = cls._type_info.values()
-        for i,o in enumerate(obj):
-            retval.append(_safe_repr_obj(o, cls))
-
-            if i > MAX_ARRAY_ELEMENT_NUM:
-                retval.append("(...)")
-                break
-
-        retval = "%s([%s])" % (cls.get_type_name(), ', '.join(retval))
-
-    elif issubclass(cls, ComplexModel):
-        retval = _safe_repr_obj(obj, cls)
-    else:
-        retval = repr(obj)
-
-        if len(retval) > MAX_STRING_FIELD_LENGTH:
-            retval = retval[:MAX_STRING_FIELD_LENGTH] + "(...)"
-
-    return retval
-
-
-def _safe_repr_obj(obj, cls):
-    retval = []
-    for k,t in cls.get_flat_type_info(cls).items():
-        v = getattr(obj, k, None)
-        if v is not None:
-            if issubclass(t, Unicode) and len(v) > MAX_STRING_FIELD_LENGTH:
-                s = '%s=%r%s' % (k, v[:MAX_STRING_FIELD_LENGTH] , "(...)")
-            else:
-                s = '%s=%r' % (k, v)
-
-            retval.append(s)
-
-    return "%s(%s)" % (cls.get_type_name(), ', '.join(retval))
-
-from spyne.model.primitive import Unicode

@@ -43,7 +43,7 @@ class TestSafeRepr(unittest.TestCase):
         from spyne.model.complex import ComplexModel
         from spyne.model.primitive import Integer
         from spyne.model.primitive import String
-        from spyne.util import safe_repr
+        from spyne.model.complex import safe_repr
 
         class Z(ComplexModel):
             z=String

@@ -32,6 +32,10 @@ from spyne.model import nillable_string
 from spyne.util.odict import odict
 from spyne.const import xml_ns as namespace
 from spyne.const.suffix import TYPE_SUFFIX
+from spyne.const import MAX_STRING_FIELD_LENGTH
+from spyne.const import MAX_ARRAY_ELEMENT_NUM
+from spyne.model.primitive import NATIVE_MAP
+from spyne.model.primitive import Unicode
 
 class TypeInfo(odict):
     pass
@@ -447,6 +451,7 @@ class ComplexModel(ComplexModelBase):
 
     __metaclass__ = ComplexModelMeta
 
+
 class Array(ComplexModel):
     """This class generates a ComplexModel child that has one attribute that has
     the same name as the serialized class. It's contained in a Python list.
@@ -515,3 +520,51 @@ class Iterable(Array):
 
 class Alias(ComplexModel):
     """Different type_name, same _type_info."""
+
+
+def safe_repr(obj, cls=None):
+    """Use this function if you want to echo a ComplexModel subclass. It will
+    limit output size of the String types, thus make your logs smaller.
+    """
+
+    if cls is None:
+        cls = obj.__class__
+
+    if issubclass(cls, Array):
+        retval = []
+
+        cls, = cls._type_info.values()
+        for i,o in enumerate(obj):
+            retval.append(_safe_repr_obj(o, cls))
+
+            if i > MAX_ARRAY_ELEMENT_NUM:
+                retval.append("(...)")
+                break
+
+        retval = "%s([%s])" % (cls.get_type_name(), ', '.join(retval))
+
+    elif issubclass(cls, ComplexModel):
+        retval = _safe_repr_obj(obj, cls)
+    else:
+        retval = repr(obj)
+
+        if len(retval) > MAX_STRING_FIELD_LENGTH:
+            retval = retval[:MAX_STRING_FIELD_LENGTH] + "(...)"
+
+    return retval
+
+
+def _safe_repr_obj(obj, cls):
+    retval = []
+    for k,t in cls.get_flat_type_info(cls).items():
+        v = getattr(obj, k, None)
+        if v is not None:
+            if issubclass(t, Unicode) and len(v) > MAX_STRING_FIELD_LENGTH:
+                s = '%s=%r%s' % (k, v[:MAX_STRING_FIELD_LENGTH] , "(...)")
+            else:
+                s = '%s=%r' % (k, v)
+
+            retval.append(s)
+
+    return "%s(%s)" % (cls.get_type_name(), ', '.join(retval))
+
