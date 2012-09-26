@@ -9,6 +9,12 @@ spyne-2.9.0
    class. You can now do ``some_server.doc.wsdl11.event_manager.add_listener``
    to add events to interface documents.
  * Add wsdl_document_built and xml_document_built events to relevant classes.
+ * Behavioral change for TableModel's relationship handling: It's now an array
+   by default. The TableModel is deprecated, long live __metadata__ on
+   ComplexModel!
+ * Behavioral change in skip_depth handling in DictObject protocols: skip_depth
+   now only strips the dictionaries and does it *after* serialization and not
+   *before*. This change was needed to fix some corner cases.
 
 spyne-2.8.2-rc
 --------------
