@@ -442,7 +442,7 @@ class ComplexModel(ComplexModelBase):
     return instances, contrary to primivites where the same call will result in
     customized duplicates of the original class definition.
     Those who'd like to customize the class should use the customize method.
-    (see spyne.model.base.ModelBase).
+    (see :class:``spyne.model.ModelBase``).
     """
 
     __metaclass__ = ComplexModelMeta
