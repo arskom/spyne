@@ -27,7 +27,7 @@ logger = logging.getLogger('spyne.protocol.xml')
 from lxml import etree
 from lxml.etree import XMLSyntaxError
 
-from spyne import _bytes_join
+from spyne.util import _bytes_join
 
 from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import LIGHT_RED

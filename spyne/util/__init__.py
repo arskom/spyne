@@ -99,3 +99,11 @@ class memoize(object):
 
     def reset(self):
         self.memo = {}
+
+
+if sys.version > '3':
+    def _bytes_join(val, joiner=''):
+        return bytes(joiner).join(val)
+else:
+    def _bytes_join(val, joiner=''):
+        return joiner.join(val)

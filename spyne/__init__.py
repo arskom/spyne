@@ -28,13 +28,6 @@ from spyne._base import EventManager
 
 import sys
 
-if sys.version > '3':
-    def _bytes_join(val, joiner=''):
-        return bytes(joiner).join(val)
-else:
-    def _bytes_join(val, joiner=''):
-        return joiner.join(val)
-
 if not hasattr(sys, "version_info") or sys.version_info < (2, 5):
     raise RuntimeError("Spyne requires Python 2.5 or later.")
 

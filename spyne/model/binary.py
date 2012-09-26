@@ -28,7 +28,7 @@ try:
 except ImportError: # Python 3
     from io import StringIO
 
-from spyne import _bytes_join
+from spyne.util import _bytes_join
 from spyne.model import nillable_string
 from spyne.model import nillable_iterable
 from spyne.model import ModelBase
