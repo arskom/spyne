@@ -23,6 +23,8 @@
 
 import unittest
 
+import spyne.model.primitive
+
 from lxml import etree
 
 from spyne.application import Application
@@ -208,6 +210,26 @@ class TestMultipleMethods(unittest.TestCase):
         elt, nsmap = self.__run_service(SomeService)
         query = '/senv:Envelope/senv:Header/tns:RespHeader/tns:Elem1/text()'
         assert len(elt.xpath(query, namespaces=nsmap)) == 0
+
+class TestNativeTypes(unittest.TestCase):
+    def test_native_types(self):
+        for t in spyne.model.primitive.NATIVE_MAP:
+            class SomeService(ServiceBase):
+                @rpc(t)
+                def some_call(ctx, arg):
+                    pass
+            nt, = SomeService.public_methods['some_call'].in_message._type_info.values()
+            assert issubclass(nt, spyne.model.primitive.NATIVE_MAP[t])
+
+    def test_native_types_in_arrays(self):
+        for t in spyne.model.primitive.NATIVE_MAP:
+            class SomeService(ServiceBase):
+                @rpc(Array(t))
+                def some_call(ctx, arg):
+                    pass
+            nt, = SomeService.public_methods['some_call'].in_message._type_info.values()
+            nt, = nt._type_info.values()
+            assert issubclass(nt, spyne.model.primitive.NATIVE_MAP[t])
 
 if __name__ == '__main__':
     unittest.main()

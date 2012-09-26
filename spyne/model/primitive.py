@@ -745,3 +745,28 @@ class Mandatory:
     UnsignedInt = UnsignedInteger32
     UnsignedShort = UnsignedInteger16
     UnsignedByte = UnsignedInteger8
+
+NATIVE_MAP = {
+    float: Double,
+    bool: Boolean,
+    datetime.datetime: DateTime,
+    datetime.time: Time,
+    datetime.date: Date,
+    datetime.timedelta: Duration,
+    decimal.Decimal: Decimal,
+}
+
+if sys.version > '3':
+    NATIVE_MAP.update({
+        str: Unicode,
+        unicode: Unicode,
+        int: Integer,
+    })
+
+else:
+    NATIVE_MAP.update({
+        str: String,
+        unicode: Unicode,
+        int: Integer64,
+        long: Integer,
+    })

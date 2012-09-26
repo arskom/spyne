@@ -109,6 +109,22 @@ class SelfReference(object):
         raise NotImplementedError()
 
 
+def _get_spyne_type(v):
+    try:
+        v = NATIVE_MAP.get(v, v)
+    except TypeError:
+        return
+
+    try:
+        subc = issubclass(v, ModelBase) or issubclass(v, SelfReference)
+    except:
+        subc = False
+
+    if subc:
+        if issubclass(v, Array) and len(v._type_info) != 1:
+            raise Exception("Invalid Array definition in %s.%s."% (cls_name, k))
+        return v
+
 class ComplexModelMeta(type(ModelBase)):
     '''This metaclass sets ``_type_info``, ``__type_name__`` and ``__extends__``
     which are going to be used for (de)serialization and schema generation.
@@ -147,17 +163,10 @@ class ComplexModelMeta(type(ModelBase)):
 
             for k, v in cls_dict.items():
                 if not k.startswith('__'):
-                    try:
-                        subc = issubclass(v, ModelBase) or \
-                                                    issubclass(v, SelfReference)
-                    except:
-                        subc = False
-
-                    if subc:
+                    v = _get_spyne_type(v)
+                    if v is not None:
                         _type_info[k] = v
-                        if issubclass(v, Array) and len(v._type_info) != 1:
-                            raise Exception("Invalid Array definition in %s.%s."
-                                                                % (cls_name, k))
+
         else:
             _type_info = cls_dict['_type_info']
 
@@ -169,7 +178,10 @@ class ComplexModelMeta(type(ModelBase)):
                     pass
 
                 elif not issubclass(v, ModelBase):
-                    raise ValueError( (k,v) )
+                    v = _get_spyne_type(v)
+                    if v is None:
+                        raise ValueError( (cls_name,k,v) )
+                    _type_info[k] = v
 
                 elif issubclass(v, Array) and len(v._type_info) != 1:
                     raise Exception("Invalid Array definition in %s.%s."
@@ -459,6 +471,10 @@ class Array(ComplexModel):
 
     def __new__(cls, serializer, **kwargs):
         retval = cls.customize(**kwargs)
+
+        serializer = _get_spyne_type(serializer)
+        if serializer is None:
+            raise ValueError(serializer)
 
         # hack to default to unbounded arrays when the user didn't specify
         # max_occurs. We should find a better way.
