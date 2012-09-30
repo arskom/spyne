@@ -17,7 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from spyne.model.fault import Fault
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -28,16 +27,102 @@ from decimal import Decimal
 from spyne import MethodContext
 from spyne.application import Application
 from spyne.decorator import srpc
+from spyne.model.complex import Array
+from spyne.model.complex import ComplexModel
+from spyne.model.complex import Iterable
+from spyne.model.fault import Fault
 from spyne.model.primitive import Integer
 from spyne.model.primitive import String
 from spyne.model.primitive import DateTime
 from spyne.model.primitive import Mandatory
-from spyne.model.complex import ComplexModel
-from spyne.model.complex import Iterable
+from spyne.protocol import unwrap_instance
 from spyne.service import ServiceBase
 from spyne.server import ServerBase
 
+
+class TestUnwrap(unittest.TestCase):
+    def test_unwrap_primitive(self):
+        class SomeClass(ComplexModel):
+            i = Integer
+
+        inst = SomeClass(i=5)
+
+        t, c = unwrap_instance(SomeClass, inst, 0)
+        assert t == SomeClass
+        assert c.i == 5
+
+        t, c = unwrap_instance(SomeClass, inst, 1)
+        assert t == Integer
+        assert c == 5
+
+        t, c = unwrap_instance(SomeClass, inst, 2)
+        assert t == Integer
+        assert c == 5
+
+    def test_unwrap_array(self):
+        class SomeClass(ComplexModel):
+            i = Array(Integer)
+
+        inst = SomeClass(i=[5,6,7])
+
+        t, c = unwrap_instance(SomeClass, inst, 0)
+        assert t == SomeClass
+        assert c.i == [5,6,7]
+
+        t, c = unwrap_instance(SomeClass, inst, 1)
+        assert issubclass(t, Array)
+        assert c == [5,6,7]
+
+        t, c = unwrap_instance(SomeClass, inst, 2)
+        assert issubclass(t, Integer)
+        assert c == [5,6,7]
+
+        t, c = unwrap_instance(SomeClass, inst, 3)
+        assert issubclass(t, Integer)
+        assert c == [5,6,7]
+
+        inst = SomeClass()
+
+        t, c = unwrap_instance(SomeClass, inst, 0)
+        assert t == SomeClass
+        assert c.i == None
+
+        t, c = unwrap_instance(SomeClass, inst, 1)
+        assert issubclass(t, Array)
+        assert c == None
+
+        t, c = unwrap_instance(SomeClass, inst, 2)
+        assert issubclass(t, Integer)
+        assert c == None
+
+        t, c = unwrap_instance(SomeClass, inst, 3)
+        assert issubclass(t, Integer)
+        assert c == None
+
+
 def TDictObjectTest(serializer, _DictObjectChild, decode_error):
+    class Test(unittest.TestCase):
+        def test_multiple_return_sd_3(self):
+            class SomeService(ServiceBase):
+                @srpc(_returns=Iterable(Integer))
+                def some_call():
+                    return 1, 2
+
+            app = Application([SomeService], 'tns',
+                                    in_protocol=_DictObjectChild(),
+                                    out_protocol=_DictObjectChild(skip_depth=3))
+
+            server = ServerBase(app)
+            initial_ctx = MethodContext(server)
+            initial_ctx.in_string = [serializer.dumps({"some_call":[]})]
+
+            ctx, = server.generate_contexts(initial_ctx)
+            server.get_in_object(ctx)
+            server.get_out_object(ctx)
+            server.get_out_string(ctx)
+
+            assert list(ctx.out_string) == [serializer.dumps(1),serializer.dumps(2)]
+
     class Test(unittest.TestCase):
         def test_multiple_return_sd_2(self):
             class SomeService(ServiceBase):
@@ -56,7 +141,10 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
             server.get_out_object(ctx)
             server.get_out_string(ctx)
 
-            assert list(ctx.out_string) == [serializer.dumps(1),serializer.dumps(2)]
+            out_strings = list(ctx.out_string)
+            print out_strings
+            assert out_strings == [
+                serializer.dumps(1),serializer.dumps(2)]
 
         def test_multiple_return_sd_1(self):
             class SomeService(ServiceBase):
@@ -77,7 +165,10 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
             server.get_out_object(ctx)
             server.get_out_string(ctx)
 
-            assert list(ctx.out_string) == [serializer.dumps({"integer": [1, 2]})]
+            out_strings = list(ctx.out_string)
+            print out_strings
+            assert out_strings == [serializer.dumps(
+                {"integer": [1, 2]})]
 
         def test_multiple_return_sd_0(self):
             class SomeService(ServiceBase):
@@ -97,18 +188,10 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
             server.get_out_object(ctx)
             server.get_out_string(ctx)
 
-            assert list(ctx.out_string) == [serializer.dumps({"some_callResponse": {"some_callResult": {"integer": [1, 2]}}})]
-
-            server = ServerBase(app)
-            initial_ctx = MethodContext(server)
-            initial_ctx.in_string = [serializer.dumps({"some_call":[]})]
-
-            ctx, = server.generate_contexts(initial_ctx)
-            server.get_in_object(ctx)
-            server.get_out_object(ctx)
-            server.get_out_string(ctx)
-
-            assert list(ctx.out_string) == [serializer.dumps({"some_callResponse": {"some_callResult": {"integer": [1, 2]}}})]
+            out_strings = list(ctx.out_string)
+            print out_strings
+            assert out_strings == [serializer.dumps(
+                {"some_callResponse": {"some_callResult": {"integer": [1, 2]}}})]
 
         def test_primitive_only(self):
             class SomeComplexModel(ComplexModel):
