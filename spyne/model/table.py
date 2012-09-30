@@ -29,6 +29,7 @@ and do bring up any issues you experience with this module to the attention of
 Spyne or SQLAlchemy developers.
 """
 
+
 import logging
 logger = logging.getLogger(__name__)
 

@@ -31,7 +31,6 @@ import decimal
 import datetime
 
 import spyne.const.xml_ns
-import pickle
 
 from collections import deque
 
@@ -729,8 +728,8 @@ class Mandatory:
     Unicode = Unicode(type_name="MandatoryString", min_occurs=1, nillable=False, min_len=1)
     String = String(type_name="MandatoryString", min_occurs=1, nillable=False, min_len=1)
 
-    AnyXml = AnyXml(type_name="MandatoryXml", min_occurs=1, nillable=False, min_len=1)
-    AnyDict = AnyDict(type_name="MandatoryDict", min_occurs=1, nillable=False, min_len=1)
+    AnyXml = AnyXml(type_name="MandatoryXml", min_occurs=1, nillable=False)
+    AnyDict = AnyDict(type_name="MandatoryDict", min_occurs=1, nillable=False)
     AnyUri = AnyUri(type_name="MandatoryUri", min_occurs=1, nillable=False, min_len=1)
     ImageUri = ImageUri(type_name="MandatoryImageUri", min_occurs=1, nillable=False, min_len=1)
 
