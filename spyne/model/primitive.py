@@ -105,25 +105,11 @@ class AnyXml(SimpleModel):
 
 
 class AnyDict(SimpleModel):
-    """An xml node that can contain any number of sub nodes. It's represented by
-    a dict instance that can contain other dicts or iterables of strings as
-    values.
+    """A dict instance that can contain other dicts, iterables or primitive
+    types. Its serialization is protocol-dependent.
     """
 
     __type_name__ = 'anyType'
-
-    @classmethod
-    @nillable_string
-    def to_string(cls, value):
-        return pickle.dumps(value)
-
-    @classmethod
-    @nillable_string
-    def from_string(cls, string):
-        try:
-            return pickle.loads(string)
-        except:
-            raise ValidationError(string)
 
 
 class Unicode(SimpleModel):
