@@ -159,6 +159,12 @@ class Unicode(SimpleModel):
         if len(args) == 1:
             kwargs['max_len'] = args[0]
 
+        pattern = kwargs.get('pattern', None)
+        if pattern is None:
+            cls.Attributes._pattern_re = None
+        else:
+            cls.Attributes._pattern_re = re.compile(pattern)
+
         retval = SimpleModel.__new__(cls,  ** kwargs)
 
         return retval
@@ -196,9 +202,17 @@ class Unicode(SimpleModel):
             and (value is None or (
                     len(value) >= cls.Attributes.min_len
                 and len(value) <= cls.Attributes.max_len
-                and (cls.Attributes.pattern is None or
-                            re.match(cls.Attributes.pattern, value) is not None)
-                )))
+                and _re_match_with_span(cls.Attributes, value)
+            )))
+
+
+def _re_match_with_span(attr, value):
+    if attr.pattern is None:
+        return True
+
+    m = attr._pattern_re.match(value)
+    return (m is not None) and (m.span() == (0, len(value)))
+
 
 class String(Unicode):
     @classmethod

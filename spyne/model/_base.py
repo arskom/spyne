@@ -236,7 +236,9 @@ class ModelBase(object):
         cls_dict['Annotations'] = Annotations
 
         for k, v in kwargs.items():
-            if k in ("doc", "appinfo"):
+            if k.startswith('_'):
+                continue
+            elif k in ("doc", "appinfo"):
                 setattr(Annotations, k, v)
             elif k == 'max_occurs' and v == 'unbounded':
                 setattr(Attributes, k, Decimal('inf'))

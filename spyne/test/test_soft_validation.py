@@ -58,10 +58,11 @@ class TestValidationString(unittest.TestCase):
         self.assertEquals(StrictType.validate_string(StrictType, 'aaaa'), False)
 
     def test_pattern(self):
-        StrictType = String(pattern='a')
+        StrictType = String(pattern='[a-z]')
 
         self.assertEquals(StrictType.validate_string(StrictType, 'a'), True)
-        self.assertEquals(StrictType.validate_string(StrictType, 'b'), False)
+        self.assertEquals(StrictType.validate_string(StrictType, 'a1'), False)
+        self.assertEquals(StrictType.validate_string(StrictType, '1'), False)
 
 
 class TestValidationInteger(unittest.TestCase):
