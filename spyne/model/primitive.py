@@ -25,6 +25,7 @@ if sys.version > '3':
 
 import re
 import math
+import uuid
 import pytz
 import decimal
 import datetime
@@ -52,6 +53,8 @@ DATE_PATTERN = r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})'
 TIME_PATTERN = r'(?P<hr>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})(?P<sec_frac>\.\d+)?'
 OFFSET_PATTERN = r'(?P<tz_hr>[+-]\d{2}):(?P<tz_min>\d{2})'
 DATETIME_PATTERN = DATE_PATTERN + '[T ]' + TIME_PATTERN
+UUID_PATTERN = "%(x)s{8}-%(x)s{4}-%(x)s{4}-%(x)s{4}-%(x)s{12}" % \
+                                                            {'x': '[a-fA-F0-9]'}
 
 _local_re = re.compile(DATETIME_PATTERN)
 _utc_re = re.compile(DATETIME_PATTERN + 'Z')
@@ -729,6 +732,10 @@ class Boolean(SimpleModel):
     def from_string(cls, string):
         return (string.lower() in ['true', '1'])
 
+
+Uuid = Unicode(pattern=UUID_PATTERN, type_name='Uuid')
+"""String subclass for Universially-Unique Identifiers."""
+
 # a class that is really a namespace
 class Mandatory:
     """Class that contains mandatory variants of primitives."""
@@ -774,6 +781,9 @@ class Mandatory:
     UnsignedShort = UnsignedInteger16
     UnsignedByte = UnsignedInteger8
 
+    Uuid = Unicode(type_name="MandatoryUuid", min_occurs=1, nillable=False, min_len=1, pattern=UUID_PATTERN)
+
+
 NATIVE_MAP = {
     float: Double,
     bool: Boolean,
@@ -782,6 +792,7 @@ NATIVE_MAP = {
     datetime.date: Date,
     datetime.timedelta: Duration,
     decimal.Decimal: Decimal,
+    uuid.UUID: Uuid,
 }
 
 if sys.version > '3':
