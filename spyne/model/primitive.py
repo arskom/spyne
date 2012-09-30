@@ -221,7 +221,7 @@ if sys.version > '3':
     String = Unicode
 
 
-class AnyUri(String):
+class AnyUri(Unicode):
     """A special kind of String type designed to hold an uri."""
 
     __type_name__ = 'anyURI'
