@@ -36,6 +36,7 @@ class AuxMethodContext(object):
         self.error = error
         """Error from primary context (if any)."""
 
+
 class TransportContext(object):
     """Generic object that holds transport-specific context information"""
     def __init__(self, transport, type=None):
@@ -44,6 +45,7 @@ class TransportContext(object):
 
         self.type = type
         """The protocol the transport uses."""
+
 
 class ProtocolContext(object):
     """Generic object that holds transport-specific context information"""
@@ -54,10 +56,12 @@ class ProtocolContext(object):
         self.type = type
         """The protocol the transport uses."""
 
+
 class EventContext(object):
     """Generic object that holds event-specific context information"""
     def __init__(self, event_id=None):
         self.event_id=event_id
+
 
 class MethodContext(object):
     """The base class for all RPC Contexts. Holds all information about the
@@ -264,6 +268,7 @@ class MethodContext(object):
         self.call_end = time()
         self.app.event_manager.fire_event("method_context_destroyed", self)
 
+
 class MethodDescriptor(object):
     '''This class represents the method signature of an exposed service. It is
     produced by the :func:`spyne.decorator.srpc` decorator.
@@ -357,6 +362,7 @@ class MethodDescriptor(object):
         if val != None:
             self.__real_function = val
         self.function = self.__real_function
+
 
 class EventManager(object):
     """Spyne supports a simple event system that can be used to have repetitive

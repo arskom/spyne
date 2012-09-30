@@ -48,16 +48,16 @@ except ImportError:
 
 string_encoding = 'utf8'
 
-_date_pattern = r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})'
-_time_pattern = r'(?P<hr>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})(?P<sec_frac>\.\d+)?'
-_offset_pattern = r'(?P<tz_hr>[+-]\d{2}):(?P<tz_min>\d{2})'
-_datetime_pattern = _date_pattern + '[T ]' + _time_pattern
+DATE_PATTERN = r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})'
+TIME_PATTERN = r'(?P<hr>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})(?P<sec_frac>\.\d+)?'
+OFFSET_PATTERN = r'(?P<tz_hr>[+-]\d{2}):(?P<tz_min>\d{2})'
+DATETIME_PATTERN = DATE_PATTERN + '[T ]' + TIME_PATTERN
 
-_local_re = re.compile(_datetime_pattern)
-_utc_re = re.compile(_datetime_pattern + 'Z')
-_offset_re = re.compile(_datetime_pattern + _offset_pattern)
-_date_re = re.compile(_date_pattern)
-_time_re = re.compile(_time_pattern)
+_local_re = re.compile(DATETIME_PATTERN)
+_utc_re = re.compile(DATETIME_PATTERN + 'Z')
+_offset_re = re.compile(DATETIME_PATTERN + OFFSET_PATTERN)
+_date_re = re.compile(DATE_PATTERN)
+_time_re = re.compile(TIME_PATTERN)
 _duration_re = re.compile(
         r'(?P<sign>-?)'
         r'P'
@@ -139,7 +139,7 @@ class Unicode(SimpleModel):
 
         max_len = decimal.Decimal('inf')
         """Maximum length of string. Can be set to ``decimal.Decimal('inf')`` to
-        accept strings of arbitrary length. Also note
+        accept strings of arbitrary length. You may also need to adjust
         :const:`spyne.server.wsgi.MAX_CONTENT_LENGTH`."""
 
         pattern = None
@@ -318,6 +318,7 @@ class Decimal(SimpleModel):
         except decimal.InvalidOperation, e:
             raise ValidationError(string)
 
+
 class Double(Decimal):
     """This is serialized as the python ``float``. So this type comes with its
      gotchas."""
@@ -341,10 +342,12 @@ class Double(Decimal):
         except ValueError:
             raise ValidationError(string)
 
+
 class Float(Double):
     """Synonym for Double. It's here for compatibility reasons."""
 
     __type_name__ = 'float'
+
 
 class Integer(Decimal):
     """The arbitrary-size signed integer."""
@@ -383,6 +386,7 @@ class Integer(Decimal):
                 )
             )
 
+
 class UnsignedInteger(Integer):
     """The arbitrary-size unsigned integer, aka nonNegativeInteger."""
 
@@ -397,6 +401,7 @@ class UnsignedInteger(Integer):
 
 NonNegativeInteger = UnsignedInteger
 
+
 class Integer64(Integer):
     """The 64-bit signed integer, aka long."""
 
@@ -405,6 +410,7 @@ class Integer64(Integer):
     __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
 
 Long = Integer64
+
 
 class Integer32(Integer):
     """The 32-bit signed integer, aka int."""
@@ -415,6 +421,7 @@ class Integer32(Integer):
 
 Int = Integer32
 
+
 class Integer16(Integer):
     """The 8-bit signed integer, aka short."""
 
@@ -423,6 +430,7 @@ class Integer16(Integer):
     __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
 
 Short = Integer64
+
 
 class Integer8(Integer):
     """The 8-bit signed integer, aka byte."""
@@ -433,6 +441,7 @@ class Integer8(Integer):
 
 Byte = Integer8
 
+
 class UnsignedInteger64(UnsignedInteger):
     """The 64-bit unsigned integer, aka unsignedLong."""
 
@@ -441,6 +450,7 @@ class UnsignedInteger64(UnsignedInteger):
     __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
 
 UnsignedLong = UnsignedInteger64
+
 
 class UnsignedInteger32(UnsignedInteger):
     """The 32-bit unsigned integer, aka unsignedInt."""
@@ -451,6 +461,7 @@ class UnsignedInteger32(UnsignedInteger):
 
 UnsignedInt = UnsignedInteger32
 
+
 class UnsignedInteger16(Integer):
     """The 16-bit unsigned integer, aka unsignedShort."""
 
@@ -460,6 +471,7 @@ class UnsignedInteger16(Integer):
 
 UnsignedShort = UnsignedInteger16
 
+
 class UnsignedInteger8(Integer):
     """The 8-bit unsigned integer, aka unsignedByte."""
 
@@ -468,6 +480,7 @@ class UnsignedInteger8(Integer):
     __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
 
 UnsignedByte = UnsignedInteger8
+
 
 class Time(SimpleModel):
     """Just that, Time. No time zone support.
@@ -685,6 +698,7 @@ class Duration(SimpleModel):
                 ])
 
         return ''.join(retval)
+
 
 class Boolean(SimpleModel):
     """Life is simple here. Just true or false."""

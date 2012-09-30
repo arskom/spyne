@@ -119,7 +119,6 @@ Strings can be validated against a regular expression: ::
 
     Unicode(pattern = "[0-9]+") #must contain at least one digit, digits only
 
-
 Length checks can be enforced as well: ::
 
     Unicode(min_len = 5, max_len = 10)

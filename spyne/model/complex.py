@@ -17,13 +17,15 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""The ``spyne.model`` module contains :class:`spyne.model.complex.ComplexBase`
-class and its helper objects and subclasses. These are mainly container classes.
+"""The ``spyne.model.complex`` module contains
+:class:`spyne.model.complex.ComplexBase` class and its helper objects and
+subclasses. These are mainly container classes.
 """
 
-import decimal
 import logging
 logger = logging.getLogger(__name__)
+
+import decimal
 
 from spyne.model import ModelBase
 from spyne.model import nillable_dict
@@ -39,6 +41,7 @@ from spyne.model.primitive import Unicode
 
 class TypeInfo(odict):
     pass
+
 
 class _SimpleTypeInfoElement(object):
     __slots__ = ['path', 'parent', 'type']
@@ -125,6 +128,7 @@ def _get_spyne_type(v):
             raise Exception("Invalid Array definition in %s.%s."% (cls_name, k))
         return v
 
+
 class ComplexModelMeta(type(ModelBase)):
     '''This metaclass sets ``_type_info``, ``__type_name__`` and ``__extends__``
     which are going to be used for (de)serialization and schema generation.
@@ -153,9 +157,11 @@ class ComplexModelMeta(type(ModelBase)):
                     try:
                         if len(base_types) > 0 and issubclass(b, ModelBase):
                             cls_dict["__extends__"] = b
+
                     except:
                         logger.error(repr(extends))
                         raise
+
 
         # populate children
         if not ('_type_info' in cls_dict):
@@ -347,6 +353,7 @@ class ComplexModelBase(ModelBase):
 
         if retval is None:
             retval = TypeInfo()
+
         if prefix is None:
             prefix = []
 
@@ -561,6 +568,7 @@ def safe_repr(obj, cls=None):
 
     elif issubclass(cls, ComplexModel):
         retval = _safe_repr_obj(obj, cls)
+
     else:
         retval = repr(obj)
 
@@ -572,15 +580,15 @@ def safe_repr(obj, cls=None):
 
 def _safe_repr_obj(obj, cls):
     retval = []
+
     for k,t in cls.get_flat_type_info(cls).items():
         v = getattr(obj, k, None)
         if v is not None:
             if issubclass(t, Unicode) and len(v) > MAX_STRING_FIELD_LENGTH:
-                s = '%s=%r%s' % (k, v[:MAX_STRING_FIELD_LENGTH] , "(...)")
+                s = '%s=%r(...)' % (k, v[:MAX_STRING_FIELD_LENGTH])
             else:
                 s = '%s=%r' % (k, v)
 
             retval.append(s)
 
     return "%s(%s)" % (cls.get_type_name(), ', '.join(retval))
-

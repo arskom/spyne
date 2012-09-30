@@ -98,8 +98,8 @@ class ModelBase(object):
         xml schema."""
 
         translations = {}
-        """A dict that contains locale codes keys and translations of field
-        names to human language as a basestring child as values.
+        """A dict that contains locale codes as keys and translations of field
+        names to that language as values.
         """
 
 
@@ -233,7 +233,6 @@ class ModelBase(object):
 
         class Annotations(cls.Annotations):
             pass
-
         cls_dict['Annotations'] = Annotations
 
         for k, v in kwargs.items():
@@ -292,7 +291,7 @@ class SimpleModel(ModelBase):
         See spyne.model.base.ModelBase for more information.
         """
 
-        retval = cls.customize( ** kwargs)
+        retval = cls.customize(**kwargs)
 
         if not retval.is_default(retval):
             retval.__base_type__ = cls
