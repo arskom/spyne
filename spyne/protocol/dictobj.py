@@ -38,16 +38,7 @@ from spyne.model.primitive import Unicode
 
 from spyne.protocol import ProtocolBase
 from spyne.protocol._base import unwrap_messages
-
-
-def _unwrap_dict(d, skip_depth):
-    for _ in range(skip_depth):
-        print d
-        if isinstance(d, dict) and len(d) == 1:
-            d, = d.values()
-        else:
-            break
-    return d
+from spyne.protocol._base import unwrap_instance
 
 
 class DictObject(ProtocolBase):
@@ -219,20 +210,22 @@ class DictObject(ProtocolBase):
                 attr_name = out_type_info.keys()[i]
                 setattr(out_instance, attr_name, ctx.out_object[i])
 
+            # strip the wrappers if asked for
+            out_type, out_instance = unwrap_instance(out_type, out_instance,
+                                                                self.skip_depth)
+
             # arrays get wrapped in [], whereas other objects get wrapped in
             # {object_name: ...}
             wrapper_name = None
             if not issubclass(out_type, Array):
                 wrapper_name = out_type.get_type_name()
 
-            # serialize the results
+            # transform the results into a dict:
             if out_type.Attributes.max_occurs > 1:
-                ctx.out_document = (_unwrap_dict(self._to_value(out_type,
-                                        inst, wrapper_name), self.skip_depth)
+                ctx.out_document = (self._to_value(out_type, inst, wrapper_name)
                                                        for inst in out_instance)
             else:
-                ctx.out_document = [_unwrap_dict(self._to_value(out_type,
-                                out_instance, wrapper_name), self.skip_depth)]
+                ctx.out_document = [self._to_value(out_type, out_instance, wrapper_name)]
 
             self.event_manager.fire_event('after_serialize', ctx)
 
