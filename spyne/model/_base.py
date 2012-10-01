@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import re
+
 import spyne.const.xml_ns
 
 from decimal import Decimal
@@ -256,6 +258,11 @@ class ModelBase(object):
                 del kwargs[k]
             elif k == 'max_occurs' and v == 'unbounded':
                 setattr(Attributes, k, Decimal('inf'))
+
+            elif k == 'pattern':
+                Attributes._pattern_re = re.compile(kwargs[k])
+                setattr(Attributes, k, v)
+
             else:
                 setattr(Attributes, k, v)
 
@@ -299,6 +306,8 @@ class SimpleModel(ModelBase):
 
         values = set()
         """The set of possible values for this type."""
+
+        _pattern_re = None
 
     def __new__(cls, **kwargs):
         """Overriden so that any attempt to instantiate a primitive will return

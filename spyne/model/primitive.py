@@ -147,12 +147,6 @@ class Unicode(SimpleModel):
         if len(args) == 1:
             kwargs['max_len'] = args[0]
 
-        pattern = kwargs.get('pattern', None)
-        if pattern is None:
-            cls.Attributes._pattern_re = None
-        else:
-            cls.Attributes._pattern_re = re.compile(pattern)
-
         retval = SimpleModel.__new__(cls,  ** kwargs)
 
         return retval
@@ -280,6 +274,10 @@ class Decimal(SimpleModel):
         format = None
         """A regular python string formatting string. See here:
         http://docs.python.org/library/stdtypes.html#string-formatting"""
+
+        pattern = None
+        """A regular expression that matches the whole time. See here for more
+        info: http://www.regular-expressions.info/xml.html"""
 
     @staticmethod
     def is_default(cls):

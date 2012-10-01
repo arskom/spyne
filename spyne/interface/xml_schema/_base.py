@@ -50,10 +50,12 @@ from spyne.interface.xml_schema.model import enum_add
 
 from spyne.interface.xml_schema.model import simple_get_restriction_tag
 from spyne.interface.xml_schema.model import unicode_get_restriction_tag
-from spyne.interface.xml_schema.model import decimal_get_restriction_tag
-from spyne.interface.xml_schema.model import time_get_restriction_tag
-from spyne.interface.xml_schema.model import datetime_get_restriction_tag
-from spyne.interface.xml_schema.model import date_get_restriction_tag
+from spyne.interface.xml_schema.model import Tget_range_restriction_tag
+
+from spyne.model.primitive import Decimal
+from spyne.model.primitive import DateTime
+from spyne.model.primitive import Date
+from spyne.model.primitive import Time
 
 _add_handlers = cdict({
     object: lambda interface, cls: None,
@@ -68,10 +70,10 @@ _get_restriction_tag_handlers = cdict({
     object: lambda self, cls: None,
     SimpleModel: simple_get_restriction_tag,
     Unicode: unicode_get_restriction_tag,
-    Decimal: decimal_get_restriction_tag,
-    Time: time_get_restriction_tag,
-    DateTime: datetime_get_restriction_tag,
-    Date: date_get_restriction_tag,
+    Decimal: Tget_range_restriction_tag(Decimal),
+    DateTime: Tget_range_restriction_tag(DateTime),
+    Time: Tget_range_restriction_tag(Time),
+    Date: Tget_range_restriction_tag(Date),
 })
 
 _ns_xsd = spyne.const.xml_ns.xsd
