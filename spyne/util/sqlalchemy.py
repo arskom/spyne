@@ -159,6 +159,10 @@ def _get_col_o2m(cls):
 
     return col
 
+def _get_cols_m2m(cls, k, v):
+    child, = v._type_info.values()
+    return _get_col_o2m(cls), _get_col_o2o(k, child)
+
 
 @memoize
 def get_sqlalchemy_table(cls, map_class_to_table=True):
@@ -184,6 +188,14 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
                     child.__mapper__.add_property(col.name, col)
                     rels[k] = relationship(child)
 
+                elif v.Attributes.store_as == 'table_multi':
+                    col_own, col_child = _get_cols_m2m(cls, k, v)
+
+                    rel_t = Table('_'.join([cls.__tablename__, k]), metadata,
+                            *(col_own, col_child)
+                        )
+
+                    rels[k] = relationship(child, secondary=rel_t)
 
             elif issubclass(v, ComplexModelBase): # one to one
                 col = _get_col_o2o(k, v)
