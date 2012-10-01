@@ -97,7 +97,7 @@ class ModelBase(object):
         """The tag used to add a primitives as child to a complex type in the
         xml schema."""
 
-        translations = {}
+        translations = None
         """A dict that contains locale codes as keys and translations of field
         names to that language as values.
         """
@@ -228,7 +228,7 @@ class ModelBase(object):
         cls_dict = {}
 
         class Attributes(cls.Attributes):
-            pass
+            translations = {}
         cls_dict['Attributes'] = Attributes
 
         class Annotations(cls.Annotations):
