@@ -718,7 +718,8 @@ class Boolean(SimpleModel):
 
 
 Uuid = Unicode(pattern=UUID_PATTERN, type_name='Uuid')
-"""String subclass for Universially-Unique Identifiers."""
+"""Unicode subclass for Universially-Unique Identifiers."""
+
 
 # a class that is really a namespace
 class Mandatory:
