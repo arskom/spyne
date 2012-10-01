@@ -62,30 +62,11 @@ from spyne.model.primitive import Time
 from spyne.model.primitive import Uuid
 
 from spyne.util import memoize
-from spyne.util.cdict import cdict
 
 
-_generic_type_map = cdict({
-    Float: FLOAT,
-    Double: DOUBLE_PRECISION,
-    Integer: sqlalchemy.DECIMAL,
-    Integer64: sqlalchemy.BigInteger,
-    Integer32: sqlalchemy.Integer,
-    Integer16: sqlalchemy.SmallInteger,
-    Integer8: sqlalchemy.SmallInteger,
 
-    Date: sqlalchemy.Date,
-    Time: sqlalchemy.Time,
-    DateTime: sqlalchemy.DateTime,
 
-    Uuid: sqlalchemy.String,
-    Boolean: sqlalchemy.Boolean,
-})
 
-_psql_type_map = dict(_generic_type_map)
-_psql_type_map.update({
-    Uuid : UUID,
-})
 
 
 @memoize
@@ -114,8 +95,29 @@ def get_sqlalchemy_type(cls):
     elif issubclass(cls, (Integer8, UnsignedInteger8)):
         return sqlalchemy.SmallInteger
 
+    elif issubclass(cls, Float):
+        return FLOAT
+
+    elif issubclass(cls, Double):
+        return DOUBLE_PRECISION
+
     elif issubclass(cls, (Integer, UnsignedInteger, Decimal)):
         return sqlalchemy.DECIMAL
+
+    elif issubclass(cls, Boolean):
+        return sqlalchemy.Boolean
+
+    elif issubclass(cls, DateTime):
+        return sqlalchemy.DateTime
+
+    elif issubclass(cls, Date):
+        return sqlalchemy.Date
+
+    elif issubclass(cls, Time):
+        return sqlalchemy.Time
+
+    elif issubclass(cls, Uuid):
+        return PGUuid
 
 def get_pk_columns(cls):
     retval = []
