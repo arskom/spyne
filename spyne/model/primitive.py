@@ -361,7 +361,8 @@ class Integer(Decimal):
     @classmethod
     @nillable_string
     def to_string(cls, value):
-        assert int(value) # sanity check
+        int(value) # sanity check
+
         return str(value)
 
     @classmethod
