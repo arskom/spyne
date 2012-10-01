@@ -22,17 +22,6 @@ logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 
-from spyne.application import Application
-from spyne.decorator import rpc
-from spyne.interface.wsdl import Wsdl11
-from spyne.model.table import TableModel
-from spyne.model.complex import ComplexModel
-from spyne.model.complex import Array
-from spyne.protocol.http import HttpRpc
-from spyne.protocol.soap import Soap11
-from spyne.server.wsgi import WsgiApplication
-from spyne.server.wsgi import WsgiMethodContext
-
 from sqlalchemy.ext.declarative import declarative_base
 
 from sqlalchemy import create_engine
@@ -44,6 +33,24 @@ from sqlalchemy import ForeignKey
 from sqlalchemy.orm import mapper
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import sessionmaker
+
+from sqlalchemy.schema import ForeignKeyConstraint
+from sqlalchemy.schema import UniqueConstraint
+
+from spyne.application import Application
+from spyne.decorator import rpc
+from spyne.model.primitive import Integer
+from spyne.model.table import TableModel
+from spyne.model.complex import ComplexModel
+from spyne.model.complex import Array
+from spyne.model.primitive import Integer32
+from spyne.model.primitive import Unicode
+from spyne.protocol.http import HttpRpc
+from spyne.protocol.soap import Soap11
+from spyne.server.wsgi import WsgiApplication
+from spyne.server.wsgi import WsgiMethodContext
+from spyne.util.sqlalchemy import get_sqlalchemy_table
+
 
 class TestSqlAlchemy(unittest.TestCase):
     def set_up(self):
@@ -274,6 +281,7 @@ class TestSqlAlchemy(unittest.TestCase):
             name = Column(sqlalchemy.String(256))
 
         class UserMail(User):
+            __table_args__ = {'extend_existing': True}
             mail = Column(sqlalchemy.String(256))
 
         assert 'mail' in UserMail._type_info

@@ -130,7 +130,9 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
                 def some_call():
                     return 1, 2
 
-            app = Application([SomeService], 'tns', in_protocol=_DictObjectChild(), out_protocol=_DictObjectChild(skip_depth=2))
+            app = Application([SomeService], 'tns',
+                                    in_protocol=_DictObjectChild(),
+                                    out_protocol=_DictObjectChild(skip_depth=2))
 
             server = ServerBase(app)
             initial_ctx = MethodContext(server)
@@ -176,7 +178,9 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
                 def some_call():
                     return 1, 2
 
-            app = Application([SomeService], 'tns', in_protocol=_DictObjectChild(), out_protocol=_DictObjectChild())
+            app = Application([SomeService], 'tns',
+                                    in_protocol=_DictObjectChild(),
+                                    out_protocol=_DictObjectChild())
 
 
             server = ServerBase(app)
@@ -203,8 +207,9 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
                 def some_call(scm):
                     return SomeComplexModel(i=5, s='5x')
 
-            app = Application([SomeService], 'tns', in_protocol=_DictObjectChild(),
-                                                 out_protocol=_DictObjectChild())
+            app = Application([SomeService], 'tns',
+                                    in_protocol=_DictObjectChild(),
+                                    out_protocol=_DictObjectChild())
 
             server = ServerBase(app)
             initial_ctx = MethodContext(server)
@@ -215,7 +220,8 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
             server.get_out_object(ctx)
             server.get_out_string(ctx)
 
-            assert list(ctx.out_string) == [serializer.dumps({"some_callResponse": {"some_callResult": {"i": 5, "s": "5x"}}})]
+            assert list(ctx.out_string) == [serializer.dumps(
+                {"some_callResponse": {"some_callResult": {"i": 5, "s": "5x"}}})]
 
         def test_complex(self):
             class CM(ComplexModel):
@@ -232,8 +238,9 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
                 def some_call(ccm):
                     return CCM(c=ccm.c, i=ccm.i, s=ccm.s)
 
-            app = Application([SomeService], 'tns', in_protocol=_DictObjectChild(),
-                                                         out_protocol=_DictObjectChild())
+            app = Application([SomeService], 'tns',
+                                    in_protocol=_DictObjectChild(),
+                                    out_protocol=_DictObjectChild())
 
             server = ServerBase(app)
             initial_ctx = MethodContext(server)
@@ -258,8 +265,10 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
                 def some_call(s):
                     return s
 
-            app = Application([SomeService], 'tns', in_protocol=_DictObjectChild(),
-                                                    out_protocol=_DictObjectChild())
+            app = Application([SomeService], 'tns',
+                                    in_protocol=_DictObjectChild(),
+                                    out_protocol=_DictObjectChild())
+
             server = ServerBase(app)
 
             initial_ctx = MethodContext(server)
@@ -270,7 +279,8 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
             server.get_out_object(ctx)
             server.get_out_string(ctx)
 
-            assert list(ctx.out_string) == [serializer.dumps({"some_callResponse": {"some_callResult": ["a", "b"]}})]
+            assert list(ctx.out_string) == [serializer.dumps(
+                        {"some_callResponse": {"some_callResult": ["a", "b"]}})]
 
         def test_multiple_dict(self):
             class SomeService(ServiceBase):
@@ -290,7 +300,8 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
             server.get_out_object(ctx)
             server.get_out_string(ctx)
 
-            assert list(ctx.out_string) == [serializer.dumps({"some_callResponse": {"some_callResult": ["a", "b"]}})]
+            assert list(ctx.out_string) == [serializer.dumps(
+                        {"some_callResponse": {"some_callResult": ["a", "b"]}})]
 
         def test_multiple_dict_array(self):
             class SomeService(ServiceBase):
@@ -310,7 +321,8 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
             server.get_out_object(ctx)
             server.get_out_string(ctx)
 
-            assert list(ctx.out_string) == [serializer.dumps({"some_callResponse": {"some_callResult": {"string": ["a", "b"]}}})]
+            assert list(ctx.out_string) == [serializer.dumps(
+                {"some_callResponse": {"some_callResult": {"string": ["a", "b"]}}})]
 
         def test_multiple_dict_complex_array(self):
             class CM(ComplexModel):
@@ -334,7 +346,14 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
             server = ServerBase(app)
 
             initial_ctx = MethodContext(server)
-            initial_ctx.in_string = [serializer.dumps({"some_call": {"ecm": [{"c": {"i":3, "s": "3x"}, "i":4, "s": "4x", "d": "2011-12-13T14:15:16Z"}]}})]
+            initial_ctx.in_string = [serializer.dumps(
+                    {"some_call": {"ecm": [{
+                        "c": {"i":3, "s": "3x"},
+                        "i":4,
+                        "s": "4x",
+                        "d": "2011-12-13T14:15:16Z"
+                    }]
+                }})]
 
             ctx, = server.generate_contexts(initial_ctx)
             server.get_in_object(ctx)

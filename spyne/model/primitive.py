@@ -346,7 +346,8 @@ class Double(Decimal):
 
 
 class Float(Double):
-    """Synonym for Double. It's here for compatibility reasons."""
+    """Synonym for Double (as far as python side of things are concerned).
+    It's here for compatibility reasons."""
 
     __type_name__ = 'float'
 
