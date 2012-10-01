@@ -1,5 +1,4 @@
-.. image:: http://travis-ci.org/arskom/spyne.png?branch=master
-        :target: http://travis-ci.org/arskom/spyne
+[![Build Status](https://secure.travis-ci.org/arskom/spyne.png)](http://travis-ci.org/arskom/spyne)
 
 About
 =====
