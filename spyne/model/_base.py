@@ -106,6 +106,10 @@ class ModelBase(object):
     class Annotations(object):
         """The class that holds the annotations for the given type."""
 
+        __use_parent_doc__ = False
+        """If set to True Annotations will use __doc__ from parent,
+        this is convenience option"""
+
         doc = ""
         """The documentation for the given type."""
 
