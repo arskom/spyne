@@ -58,11 +58,14 @@ def complex_add(document, cls):
     complex_type = etree.Element("{%s}complexType" % _ns_xsd)
     complex_type.set('name', cls.get_type_name())
 
-    if cls.Annotations.doc != '' or cls.Annotations.appinfo != None:
+    if cls.Annotations.doc != '' or cls.Annotations.appinfo != None or cls.Annotations.__use_parent_doc__:
         annotation = etree.SubElement(complex_type, "{%s}annotation" % _ns_xsd)
-        if cls.Annotations.doc != '':
+        if cls.Annotations.doc != '' or cls.Annotations.__use_parent_doc__:
             doc = etree.SubElement(annotation, "{%s}documentation" % _ns_xsd)
-            doc.text = cls.Annotations.doc
+            if cls.Annotations.__use_parent_doc__:
+                doc.text = getattr(cls, '__doc__')
+            else:
+                doc.text = cls.Annotations.doc
 
         _ai = cls.Annotations.appinfo;
         if _ai != None:
