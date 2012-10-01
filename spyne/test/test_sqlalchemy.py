@@ -365,7 +365,7 @@ class TestSqlAlchemyNested(unittest.TestCase):
 
         engine = create_engine('sqlite:///:memory:')
         session = sessionmaker(bind=engine)()
-        metadata = TableModel.Attributes.sqla_metadata
+        metadata = TableModel.Attributes.sqla_metadata = MetaData()
         metadata.bind = engine
 
         class SomeOtherClass(TableModel):
@@ -408,6 +408,90 @@ class TestSqlAlchemyNested(unittest.TestCase):
         sc_db = session.query(SomeClass).get(1)
         assert sc_db.o == None
         assert sc_db.o_id == None
+
+    def test_nested_sql_array_as_table(self):
+        from spyne.model.complex import TableModel
+
+        engine = create_engine('sqlite:///:memory:')
+        session = sessionmaker(bind=engine)()
+        metadata = TableModel.Attributes.sqla_metadata = MetaData()
+        metadata.bind = engine
+
+        class SomeOtherClass(TableModel):
+            __tablename__ = 'some_other_class'
+            __table_args__ = {"sqlite_autoincrement": True}
+
+            id = Integer32(primary_key=True)
+            s = Unicode(64)
+
+        class SomeClass(TableModel):
+            __tablename__ = 'some_class'
+            __table_args__ = {"sqlite_autoincrement": True}
+
+            id = Integer32(primary_key=True)
+            others = Array(SomeOtherClass, store_as='table')
+
+        get_sqlalchemy_table(SomeOtherClass)
+        get_sqlalchemy_table(SomeClass)
+
+        metadata.create_all()
+
+        soc1 = SomeOtherClass(s='ehe1')
+        soc2 = SomeOtherClass(s='ehe2')
+        sc = SomeClass(others=[soc1, soc2])
+
+        session.add(sc)
+        session.commit()
+        session.close()
+
+        sc_db = session.query(SomeClass).get(1)
+
+        assert sc_db.others[0].s == 'ehe1'
+        assert sc_db.others[1].s == 'ehe2'
+
+        session.close()
+
+    def test_nested_sql_array_as_multi_table(self):
+        from spyne.model.complex import TableModel
+
+        engine = create_engine('sqlite:///:memory:')
+        session = sessionmaker(bind=engine)()
+        metadata = TableModel.Attributes.sqla_metadata = MetaData()
+        metadata.bind = engine
+
+        class SomeOtherClass(TableModel):
+            __tablename__ = 'some_other_class'
+            __table_args__ = {"sqlite_autoincrement": True}
+
+            id = Integer32(primary_key=True)
+            s = Unicode(64)
+
+        class SomeClass(TableModel):
+            __tablename__ = 'some_class'
+            __table_args__ = {"sqlite_autoincrement": True}
+
+            id = Integer32(primary_key=True)
+            others = Array(SomeOtherClass, store_as='table_multi')
+
+        get_sqlalchemy_table(SomeOtherClass)
+        get_sqlalchemy_table(SomeClass)
+
+        metadata.create_all()
+
+        soc1 = SomeOtherClass(s='ehe1')
+        soc2 = SomeOtherClass(s='ehe2')
+        sc = SomeClass(others=[soc1, soc2])
+
+        session.add(sc)
+        session.commit()
+        session.close()
+
+        sc_db = session.query(SomeClass).get(1)
+
+        assert sc_db.others[0].s == 'ehe1'
+        assert sc_db.others[1].s == 'ehe2'
+
+        session.close()
 
 if __name__ == '__main__':
     unittest.main()

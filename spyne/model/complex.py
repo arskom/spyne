@@ -41,7 +41,7 @@ from spyne.util import memoize
 from spyne.util.odict import odict
 
 
-PSSM_VALUES = ('json', 'xml', 'msgpack', 'table')
+PSSM_VALUES = ('json', 'xml', 'msgpack', 'table', 'table_multi')
 """Persistent storage serialization method values"""
 
 

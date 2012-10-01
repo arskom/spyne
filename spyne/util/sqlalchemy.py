@@ -21,7 +21,6 @@
 
 from __future__ import absolute_import
 
-from spyne.model.complex import sanitize_args
 import logging
 logger = logging.getLogger(__name__)
 
@@ -29,6 +28,7 @@ import sqlalchemy
 
 from sqlalchemy.schema import Column
 from sqlalchemy.schema import Table
+from sqlalchemy.schema import ForeignKey
 
 from sqlalchemy.dialects.postgresql import FLOAT
 from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION
@@ -37,8 +37,7 @@ from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import mapper
 
-from sqlalchemy.schema import ForeignKeyConstraint
-
+from spyne.model.complex import sanitize_args
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModelBase
 from spyne.model.primitive import Decimal
@@ -125,42 +124,92 @@ def get_pk_columns(cls):
             retval.append((k,v))
     return tuple(retval) if len(retval) > 0 else None
 
+def _get_col_o2o(k, v):
+    """Gets key and child type and returns a column that points to the primary
+    key of the child.
+    """
+
+    # get pkeys from child class
+    pk_column, = get_pk_columns(v) # FIXME: Support multi-col keys
+
+    pk_key, pk_spyne_type = pk_column
+    pk_sqla_type = get_sqlalchemy_type(pk_spyne_type)
+
+    # generate a fk to it from the current object (cls)
+    fk_col_name = k + "_" + pk_key
+    fk = ForeignKey('%s.%s' % (v.__tablename__, pk_key))
+
+    return Column(fk_col_name, pk_sqla_type, fk)
+
+def _get_col_o2m(cls):
+    """Gets parent class, key and child type and returns a column that points to
+    the primary key of the parent.
+    """
+    # get pkeys from current class
+    pk_column, = get_pk_columns(cls) # FIXME: Support multi-col keys
+
+    pk_key, pk_spyne_type = pk_column
+    pk_sqla_type = get_sqlalchemy_type(pk_spyne_type)
+
+    # generate a fk from child to the current class
+    fk_col_name = '_'.join([cls.__tablename__, pk_key])
+
+    col = Column(fk_col_name, pk_sqla_type,
+                             ForeignKey('%s.%s' % (cls.__tablename__, pk_key)))
+
+    return col
+
+def _get_cols_m2m(cls, k, v):
+    child, = v._type_info.values()
+    return _get_col_o2m(cls), _get_col_o2o(k, child)
+
+
 @memoize
 def get_sqlalchemy_table(cls, map_class_to_table=True):
-    props = {}
-    columns = []
+    rels = {}
+    cols = []
     constraints = []
+    metadata = cls.Attributes.sqla_metadata
 
     # For each Spyne field
     for k, v in cls._type_info.items():
-        print cls, k, v
         t = get_sqlalchemy_type(v)
 
         if t is None:
             if issubclass(v, Array): # one to many
-                props[k] = relationship(v)
+                child, = v._type_info.values()
+                if child.__orig__ is not None:
+                    child = child.__orig__
+
+                if v.Attributes.store_as == 'table':
+                    col = _get_col_o2m(cls)
+
+                    child.__table__.append_column(col)
+                    child.__mapper__.add_property(col.name, col)
+                    rels[k] = relationship(child)
+
+                elif v.Attributes.store_as == 'table_multi':
+                    col_own, col_child = _get_cols_m2m(cls, k, v)
+
+                    rel_t = Table('_'.join([cls.__tablename__, k]), metadata,
+                            *(col_own, col_child)
+                        )
+
+                    rels[k] = relationship(child, secondary=rel_t)
 
             elif issubclass(v, ComplexModelBase): # one to one
-                # get pk column of the sub-object (v) ...
-                pk_column, = get_pk_columns(v) # FIXME: Support multi-col pkeys
+                col = _get_col_o2o(k, v)
 
-                pk_key, pk_spyne_type = pk_column
-                pk_sqla_type = get_sqlalchemy_type(pk_spyne_type)
-
-                # ... generate a fk to it from the current object (cls)
-                fk_col_name = k + "_" + pk_key
-                columns.append(Column(fk_col_name, pk_sqla_type))
-
-                fk_args = [fk_col_name], ['%s.%s' % (v.__table__, pk_key)]
-                constraints.append(ForeignKeyConstraint(*fk_args))
-
-                # ... and finally create the relationship.
+                # create the relationship.
                 if v.__orig__ is None:
                     # vanilla class
-                    props[k] = relationship(v, uselist=False)
+                    rel = relationship(v, uselist=False)
                 else:
                     # customized class
-                    props[k] = relationship(v.__orig__, uselist=False)
+                    rel = relationship(v.__orig__, uselist=False)
+
+                cols.append(col)
+                rels[k] = rel
 
             else:
                 logger.debug("Skipping %s.%s.%s: %r" % (
@@ -170,20 +219,20 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
         else:
             col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
             col = Column(k, t, *col_args, **col_kwargs)
-            columns.append(col)
-            props[k] = col
+            cols.append(col)
+            rels[k] = col
 
     # Create table
     table_args, table_kwargs = sanitize_args(cls.Attributes.sqla_table_args)
-    table = Table(cls.__tablename__, cls.Attributes.sqla_metadata,
-                        *(tuple(columns) + tuple(constraints) + tuple(table_args)),
+    table = Table(cls.__tablename__, metadata,
+                        *(tuple(cols) + tuple(constraints) + tuple(table_args)),
                         **table_kwargs)
 
     # Map the table to the object
     if map_class_to_table:
         mapper_args, mapper_kwargs = sanitize_args(cls.Attributes.sqla_mapper_args)
-        mapper_kwargs['properties'] = props
-        mapper(cls, table, *mapper_args, **mapper_kwargs)
+        mapper_kwargs['properties'] = rels
+        cls.__mapper__ = mapper(cls, table, *mapper_args, **mapper_kwargs)
         cls.__table__ = table
 
     return table
