@@ -102,6 +102,10 @@ class ModelBase(object):
         names to that language as values.
         """
 
+        sqla_column_args = None
+        """A dict that will be passed to SQLAlchemy's ``Column`` constructor as
+        ``**kwargs``
+        """
 
     class Annotations(object):
         """The class that holds the annotations for the given type."""
@@ -229,6 +233,7 @@ class ModelBase(object):
 
         class Attributes(cls.Attributes):
             translations = {}
+            sqla_column_args = (), {}
         cls_dict['Attributes'] = Attributes
 
         class Annotations(cls.Annotations):
@@ -240,6 +245,9 @@ class ModelBase(object):
                 continue
             elif k in ("doc", "appinfo"):
                 setattr(Annotations, k, v)
+            elif k in ('primary_key',):
+                Attributes.sqla_column_args[-1][k] = v
+                del kwargs[k]
             elif k == 'max_occurs' and v == 'unbounded':
                 setattr(Attributes, k, Decimal('inf'))
             else:

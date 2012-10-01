@@ -21,6 +21,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 import unittest
+import sqlalchemy
 
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -317,6 +318,89 @@ class TestSqlAlchemy(unittest.TestCase):
 
         #Address().user = None
         #User().permissions = None # This fails, and actually is supposed to fail.
+
+
+class TestSpyne2Sqlalchemy(unittest.TestCase):
+    def test_table(self):
+        class SomeClass(ComplexModel):
+            __metadata__ = MetaData()
+            __tablename__ = 'some_class'
+
+            i = Integer(primary_key=True)
+
+
+        t = get_sqlalchemy_table(SomeClass)
+
+        assert t.c['i'].type.__class__ is sqlalchemy.DECIMAL
+
+    def test_table_args(self):
+        class SomeClass(ComplexModel):
+            __metadata__ = MetaData()
+            __tablename__ = 'some_class'
+            __table_args__ = (
+                UniqueConstraint('j'),
+            )
+
+            i = Integer(primary_key=True)
+            j = Unicode(64)
+
+        t = get_sqlalchemy_table(SomeClass)
+
+        assert t.c['j'].type.__class__ is sqlalchemy.Unicode
+        for c in t.constraints:
+            if isinstance(c, UniqueConstraint):
+                assert list(c.columns) == [t.c.j]
+                break
+        else:
+            raise Exception("UniqueConstraint is missing.")
+
+
+class TestSqlAlchemyNested(unittest.TestCase):
+    def setUp(self):
+        import logging
+        logging.getLogger('sqlalchemy').setLevel(logging.DEBUG)
+
+
+    def test_nested_sql(self):
+        engine = create_engine('sqlite:///:memory:')
+        metadata = MetaData(bind=engine)
+        session = sessionmaker(bind=engine)()
+
+        TableModel = ComplexModel.customize(sqla_metadata=metadata)
+
+        class SomeOtherClass(TableModel):
+            __tablename__ = 'some_other_class'
+            __table_args__ = {"sqlite_autoincrement":True}
+
+            id = Integer32(primary_key=True)
+            s = Unicode(64)
+
+        class SomeClass(TableModel):
+            __tablename__ = 'some_class'
+            __table_args__ = (
+                ForeignKeyConstraint(['o_id'], ['some_other_class.id']),
+                {"sqlite_autoincrement":True},
+            )
+
+            id = Integer32(primary_key=True)
+            o_id = Integer32
+            o = SomeOtherClass
+
+        get_sqlalchemy_table(SomeOtherClass)
+        get_sqlalchemy_table(SomeClass)
+
+        metadata.create_all()
+
+        soc = SomeOtherClass(s='ehe')
+        sc = SomeClass(o=soc)
+
+        session.add(sc)
+        session.commit()
+        session.close()
+
+        sc_db = session.query(SomeClass).get(1)
+        print sc_db
+        assert sc_db.o.s == 'ehe'
 
 if __name__ == '__main__':
     unittest.main()

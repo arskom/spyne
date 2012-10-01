@@ -31,13 +31,19 @@ from spyne.model import ModelBase
 from spyne.model import nillable_dict
 from spyne.model import nillable_string
 
-from spyne.util.odict import odict
 from spyne.const import xml_ns as namespace
 from spyne.const.suffix import TYPE_SUFFIX
 from spyne.const import MAX_STRING_FIELD_LENGTH
 from spyne.const import MAX_ARRAY_ELEMENT_NUM
 from spyne.model.primitive import NATIVE_MAP
 from spyne.model.primitive import Unicode
+from spyne.util import memoize
+from spyne.util.odict import odict
+
+
+PSSM_VALUES = ('json', 'xml', 'msgpack', 'table')
+"""Persistent storage serialization method values"""
+
 
 class TypeInfo(odict):
     pass
@@ -112,6 +118,7 @@ class SelfReference(object):
         raise NotImplementedError()
 
 
+@memoize
 def _get_spyne_type(v):
     try:
         v = NATIVE_MAP.get(v, v)
@@ -127,6 +134,27 @@ def _get_spyne_type(v):
         if issubclass(v, Array) and len(v._type_info) != 1:
             raise Exception("Invalid Array definition in %s.%s."% (cls_name, k))
         return v
+
+
+def sanitize_args(a):
+    try:
+        args, kwargs = a
+        if isinstance(args, tuple) and isinstance(kwargs, dict):
+            return a
+
+    except (TypeError, ValueError):
+        args, kwargs = (), {}
+
+    if a is not None:
+        if isinstance(a, dict):
+            kwargs = a
+        elif isinstance(a, tuple):
+            if isinstance(a[-1], dict):
+                args, kwargs = a[0:-1], a[-1]
+            else:
+                args = a
+
+    return args, kwargs
 
 
 class ComplexModelMeta(type(ModelBase)):
@@ -193,6 +221,29 @@ class ComplexModelMeta(type(ModelBase)):
                     raise Exception("Invalid Array definition in %s.%s."
                                                                 % (cls_name, k))
 
+        # Initialize Attributes
+        attrs = cls_dict.get('Attributes', None)
+        if attrs is None:
+            for b in cls_bases:
+                if hasattr(b, 'Attributes'):
+                    class Attributes(b.Attributes):
+                        pass
+                    attrs = cls_dict['Attributes'] = Attributes
+                    break
+            else:
+                raise Exception("No ModelBase subclass in bases? Huh?")
+
+        # Move sqlalchemy types
+        margs = cls_dict.get('__mapper_args__', None)
+        attrs.sqla_mapper_args = sanitize_args(margs)
+
+        targs = cls_dict.get('__table_args__', None)
+        attrs.sqla_table_args = sanitize_args(targs)
+
+        metadata = cls_dict.get('__metadata__', None)
+        if metadata is not None:
+            attrs.sqla_metadata = metadata
+
         return type(ModelBase).__new__(cls, cls_name, cls_bases, cls_dict)
 
     def __init__(self, cls_name, cls_bases, cls_dict):
@@ -208,6 +259,24 @@ class ComplexModelBase(ModelBase):
     """If you want to make a better class type, this is what you should inherit
     from.
     """
+
+    __tablename__ = None
+
+    class Attributes(ModelBase.Attributes):
+        """ComplexModel-specific attributes"""
+
+        sqla_metadata = None
+        """None or :class:`sqlalchemy.MetaData` instance."""
+
+        sqla_table_args = None
+        """A dict that will be passed to :class:`sqlalchemy.schema.Table`
+        constructor as ``**kwargs``.
+        """
+
+        sqla_mapper_args = None
+        """A dict that will be passed to :func:`sqlalchemy.orm.mapper`
+        constructor as. ``**kwargs``.
+        """
 
     def __init__(self, **kwargs):
         super(ComplexModelBase, self).__init__()
@@ -592,3 +661,12 @@ def _safe_repr_obj(obj, cls):
             retval.append(s)
 
     return "%s(%s)" % (cls.get_type_name(), ', '.join(retval))
+
+
+try:
+    import sqlalchemy
+
+    TableModel = ComplexModel.customize(sqla_metadata=sqlalchemy.MetaData())
+
+except ImportError:
+    pass
