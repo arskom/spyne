@@ -234,6 +234,8 @@ class ModelBase(object):
         """
 
         cls_dict = {}
+        if getattr(cls, '__orig__', None) is None:
+            cls_dict['__orig__'] = cls
 
         class Attributes(cls.Attributes):
             translations = {}

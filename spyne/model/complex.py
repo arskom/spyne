@@ -265,6 +265,11 @@ class ComplexModelBase(ModelBase):
     class Attributes(ModelBase.Attributes):
         """ComplexModel-specific attributes"""
 
+        store_as = None
+        """Method for serializing to persistent storage. One of %r. It makes
+        sense to specify this only when this object is a child of another
+        ComplexModel sublass.""" % (PSSM_VALUES,)
+
         sqla_metadata = None
         """None or :class:`sqlalchemy.MetaData` instance."""
 
@@ -514,6 +519,11 @@ class ComplexModelBase(ModelBase):
         """Duplicates cls and overwrites the values in ``cls.Attributes`` with
         ``**kwargs`` and returns the new class."""
 
+        store_as = kwargs.get('store_as', None)
+        if store_as is not None:
+            assert store_as in PSSM_VALUES, \
+                              "'store_as' should be one of: %r" % (PSSM_VALUES,)
+
         cls_name, cls_bases, cls_dict = cls._s_customize(cls, **kwargs)
         cls_dict['__module__'] = cls.__module__
 
@@ -663,10 +673,25 @@ def _safe_repr_obj(obj, cls):
     return "%s(%s)" % (cls.get_type_name(), ', '.join(retval))
 
 
-try:
+def TTableModel(metadata=None):
+    """A TableModel templates that generates a new TableModel class for each
+    call. If metadata is not supplied, a new one is instantiated.
+    """
+
     import sqlalchemy
 
-    TableModel = ComplexModel.customize(sqla_metadata=sqlalchemy.MetaData())
+    if metadata is None:
+        metadata = sqlalchemy.MetaData()
 
+    class TableModel(ComplexModelBase):
+        __metaclass__ = ComplexModelMeta
+
+        class Attributes(ComplexModelBase.Attributes):
+            sqla_metadata = metadata
+
+    return TableModel
+
+try:
+    TableModel = TTableModel()
 except ImportError:
     pass

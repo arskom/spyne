@@ -35,7 +35,6 @@ from sqlalchemy.orm import mapper
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import sessionmaker
 
-from sqlalchemy.schema import ForeignKeyConstraint
 from sqlalchemy.schema import UniqueConstraint
 
 from spyne.application import Application
@@ -362,15 +361,16 @@ class TestSqlAlchemyNested(unittest.TestCase):
 
 
     def test_nested_sql(self):
-        engine = create_engine('sqlite:///:memory:')
-        metadata = MetaData(bind=engine)
-        session = sessionmaker(bind=engine)()
+        from spyne.model.complex import TableModel
 
-        TableModel = ComplexModel.customize(sqla_metadata=metadata)
+        engine = create_engine('sqlite:///:memory:')
+        session = sessionmaker(bind=engine)()
+        metadata = TableModel.Attributes.sqla_metadata
+        metadata.bind = engine
 
         class SomeOtherClass(TableModel):
             __tablename__ = 'some_other_class'
-            __table_args__ = {"sqlite_autoincrement":True}
+            __table_args__ = {"sqlite_autoincrement": True}
 
             id = Integer32(primary_key=True)
             s = Unicode(64)
@@ -378,13 +378,11 @@ class TestSqlAlchemyNested(unittest.TestCase):
         class SomeClass(TableModel):
             __tablename__ = 'some_class'
             __table_args__ = (
-                ForeignKeyConstraint(['o_id'], ['some_other_class.id']),
-                {"sqlite_autoincrement":True},
+                {"sqlite_autoincrement": True},
             )
 
             id = Integer32(primary_key=True)
-            o_id = Integer32
-            o = SomeOtherClass
+            o = SomeOtherClass.customize(store_as='table')
 
         get_sqlalchemy_table(SomeOtherClass)
         get_sqlalchemy_table(SomeClass)
@@ -401,6 +399,15 @@ class TestSqlAlchemyNested(unittest.TestCase):
         sc_db = session.query(SomeClass).get(1)
         print sc_db
         assert sc_db.o.s == 'ehe'
+        assert sc_db.o_id == 1
+
+        sc_db.o = None
+        session.commit()
+        session.close()
+
+        sc_db = session.query(SomeClass).get(1)
+        assert sc_db.o == None
+        assert sc_db.o_id == None
 
 if __name__ == '__main__':
     unittest.main()
