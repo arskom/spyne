@@ -31,6 +31,7 @@ from spyne.model.primitive import AnyXml
 from spyne.util.etreeconv import dict_to_etree
 from spyne.model.primitive import Unicode
 from spyne.model.primitive import Decimal
+from spyne.model.primitive import DateTime
 
 from spyne.const.xml_ns import xsd as _ns_xs
 from spyne.const.xml_ns import xsd as _ns_xsd
@@ -238,4 +239,79 @@ def decimal_get_restriction_tag(interface, cls):
         min_l = etree.SubElement(restriction, '{%s}maxInclusive' % _ns_xs)
         min_l.set('value', str(cls.Attributes.le))
 
+    return restriction
+
+def time_get_restriction_tag(interface, cls):
+    restriction = simple_get_restriction_tag(interface, cls)
+
+    if cls.Attributes.gt != Time.Attributes.gt:
+        min_l = etree.SubElement(restriction, '{%s}minExclusive' % _ns_xs)
+        min_l.set('value', cls.to_string(cls.Attributes.gt))
+
+    if cls.Attributes.ge != Time.Attributes.ge:
+        min_l = etree.SubElement(restriction, '{%s}minInclusive' % _ns_xs)
+        min_l.set('value', cls.to_string(cls.Attributes.ge))
+
+    if cls.Attributes.lt != Time.Attributes.lt:
+        min_l = etree.SubElement(restriction, '{%s}maxExclusive' % _ns_xs)
+        min_l.set('value', cls.to_string(cls.Attributes.lt))
+
+    if cls.Attributes.le != Time.Attributes.le:
+        min_l = etree.SubElement(restriction, '{%s}maxInclusive' % _ns_xs)
+        min_l.set('value', cls.to_string(cls.Attributes.le))
+
+    if cls.Attributes.pattern != Time.Attributes.pattern:
+        pattern = etree.SubElement(restriction, '{%s}pattern' % _ns_xs)
+        pattern.set('value', cls.Attributes.pattern)
+    
+    return restriction
+
+def datetime_get_restriction_tag(interface, cls):
+    restriction = simple_get_restriction_tag(interface, cls)
+
+    if cls.Attributes.gt != DateTime.Attributes.gt:
+        min_l = etree.SubElement(restriction, '{%s}minExclusive' % _ns_xs)
+        min_l.set('value', cls.to_string(cls.Attributes.gt))
+
+    if cls.Attributes.ge != DateTime.Attributes.ge:
+        min_l = etree.SubElement(restriction, '{%s}minInclusive' % _ns_xs)
+        min_l.set('value', cls.to_string(cls.Attributes.ge))
+
+    if cls.Attributes.lt != DateTime.Attributes.lt:
+        min_l = etree.SubElement(restriction, '{%s}maxExclusive' % _ns_xs)
+        min_l.set('value', cls.to_string(cls.Attributes.lt))
+
+    if cls.Attributes.le != DateTime.Attributes.le:
+        min_l = etree.SubElement(restriction, '{%s}maxInclusive' % _ns_xs)
+        min_l.set('value', cls.to_string(cls.Attributes.le))
+
+    if cls.Attributes.pattern != DateTime.Attributes.pattern:
+        pattern = etree.SubElement(restriction, '{%s}pattern' % _ns_xs)
+        pattern.set('value', cls.Attributes.pattern)
+    
+    return restriction
+
+def date_get_restriction_tag(interface, cls):
+    restriction = simple_get_restriction_tag(interface, cls)
+
+    if cls.Attributes.gt != Date.Attributes.gt:
+        min_l = etree.SubElement(restriction, '{%s}minExclusive' % _ns_xs)
+        min_l.set('value', cls.to_string(cls.Attributes.gt))
+
+    if cls.Attributes.ge != Date.Attributes.ge:
+        min_l = etree.SubElement(restriction, '{%s}minInclusive' % _ns_xs)
+        min_l.set('value', cls.to_string(cls.Attributes.ge))
+
+    if cls.Attributes.lt != Date.Attributes.lt:
+        min_l = etree.SubElement(restriction, '{%s}maxExclusive' % _ns_xs)
+        min_l.set('value', cls.to_string(cls.Attributes.lt))
+
+    if cls.Attributes.le != Date.Attributes.le:
+        min_l = etree.SubElement(restriction, '{%s}maxInclusive' % _ns_xs)
+        min_l.set('value', cls.to_string(cls.Attributes.le))
+
+    if cls.Attributes.pattern != Date.Attributes.pattern:
+        pattern = etree.SubElement(restriction, '{%s}pattern' % _ns_xs)
+        pattern.set('value', cls.Attributes.pattern)
+    
     return restriction
