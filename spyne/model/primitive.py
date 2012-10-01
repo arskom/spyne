@@ -539,7 +539,7 @@ class Time(SimpleModel):
 
     @staticmethod
     def is_default(cls):
-        return (SimpleModel.is_default(cls)
+        return (    SimpleModel.is_default(cls)
                 and cls.Attributes.gt == Time.Attributes.gt
                 and cls.Attributes.ge == Time.Attributes.ge
                 and cls.Attributes.lt == Time.Attributes.lt
@@ -656,7 +656,7 @@ class DateTime(SimpleModel):
 
     @staticmethod
     def is_default(cls):
-        return (SimpleModel.is_default(cls)
+        return (    SimpleModel.is_default(cls)
                 and cls.Attributes.gt == DateTime.Attributes.gt
                 and cls.Attributes.ge == DateTime.Attributes.ge
                 and cls.Attributes.lt == DateTime.Attributes.lt

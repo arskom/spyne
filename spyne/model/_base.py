@@ -251,11 +251,13 @@ class ModelBase(object):
         for k, v in kwargs.items():
             if k.startswith('_'):
                 continue
+
             elif k in ("doc", "appinfo"):
                 setattr(Annotations, k, v)
+
             elif k in ('primary_key',):
                 Attributes.sqla_column_args[-1][k] = v
-                del kwargs[k]
+
             elif k == 'max_occurs' and v == 'unbounded':
                 setattr(Attributes, k, Decimal('inf'))
 
