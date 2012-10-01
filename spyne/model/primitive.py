@@ -730,6 +730,15 @@ class Date(DateTime):
         except ValueError:
             raise ValidationError(string)
 
+    @staticmethod
+    def is_default(cls):
+        return (    SimpleModel.is_default(cls)
+                and cls.Attributes.gt == Date.Attributes.gt
+                and cls.Attributes.ge == Date.Attributes.ge
+                and cls.Attributes.lt == Date.Attributes.lt
+                and cls.Attributes.le == Date.Attributes.le
+                and cls.Attributes.pattern == Date.Attributes.pattern
+        )
 
 # this object tries to follow ISO 8601 standard.
 class Duration(SimpleModel):
