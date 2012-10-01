@@ -569,16 +569,16 @@ class DateTime(SimpleModel):
         """Customizable attributes of the :class:`spyne.model.primitive.DateTime`
         type."""
 
-        gt = datetime.datetime(1, 1, 1, 0, 0, 0, 0, pytz.utc) # minExclusive
+        gt = datetime.datetime(datetime.MINYEAR, 1, 1, 0, 0, 0, 0, pytz.utc) # minExclusive
         """The datetime should be greater than this datetime."""
 
-        ge = datetime.datetime(1, 1, 1, 0, 0, 0, 0, pytz.utc) # minInclusive
+        ge = datetime.datetime(datetime.MINYEAR, 1, 1, 0, 0, 0, 0, pytz.utc) # minInclusive
         """The datetime should be greater than or equal to this datetime."""
 
-        lt = datetime.datetime(9999, 12, 31, 23, 59, 59, 999999, pytz.utc) # maxExclusive
+        lt = datetime.datetime(datetime.MAXYEAR, 12, 31, 23, 59, 59, 999999, pytz.utc) # maxExclusive
         """The datetime should be lower than this datetime."""
 
-        le = datetime.datetime(9999, 12, 31, 23, 59, 59, 999999, pytz.utc) # maxInclusive
+        le = datetime.datetime(datetime.MAXYEAR, 12, 31, 23, 59, 59, 999999, pytz.utc) # maxInclusive
         """The datetime should be lower than or equal to this datetime."""
 
         pattern = None
@@ -694,10 +694,10 @@ class Date(DateTime):
         ge = datetime.date(1, 1, 1) # minInclusive
         """The date should be greater than or equal to this date."""
 
-        lt = datetime.date(9999, 12, 31) # maxExclusive
+        lt = datetime.date(datetime.MAXYEAR, 12, 31) # maxExclusive
         """The date should be lower than this date."""
 
-        le = datetime.date(9999, 12, 31) # maxInclusive
+        le = datetime.date(datetime.MAXYEAR, 12, 31) # maxInclusive
         """The date should be lower than or equal to this date."""
 
         format = '%Y-%m-%d'
