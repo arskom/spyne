@@ -33,6 +33,9 @@ from spyne.interface import InterfaceDocumentBase
 from spyne.model import SimpleModel
 from spyne.model.primitive import Decimal
 from spyne.model.primitive import Unicode
+from spyne.model.primitive import Time
+from spyne.model.primitive import DateTime
+from spyne.model.primitive import Date
 from spyne.model.complex import ComplexModelBase
 from spyne.model.complex import Alias
 from spyne.model.enum import EnumBase
@@ -48,6 +51,9 @@ from spyne.interface.xml_schema.model import enum_add
 from spyne.interface.xml_schema.model import simple_get_restriction_tag
 from spyne.interface.xml_schema.model import unicode_get_restriction_tag
 from spyne.interface.xml_schema.model import decimal_get_restriction_tag
+from spyne.interface.xml_schema.model import time_get_restriction_tag
+from spyne.interface.xml_schema.model import datetime_get_restriction_tag
+from spyne.interface.xml_schema.model import date_get_restriction_tag
 
 _add_handlers = cdict({
     object: lambda interface, cls: None,
@@ -63,6 +69,9 @@ _get_restriction_tag_handlers = cdict({
     SimpleModel: simple_get_restriction_tag,
     Unicode: unicode_get_restriction_tag,
     Decimal: decimal_get_restriction_tag,
+    Time: time_get_restriction_tag,
+    DateTime: datetime_get_restriction_tag,
+    Date: date_get_restriction_tag,
 })
 
 _ns_xsd = spyne.const.xml_ns.xsd

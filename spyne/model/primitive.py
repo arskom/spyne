@@ -492,6 +492,26 @@ class Time(SimpleModel):
 
     __type_name__ = 'time'
 
+    class Attributes(SimpleModel.Attributes):
+        """Customizable attributes of the :class:`spyne.model.primitive.Time`
+        type."""
+
+        gt = datetime.time(0, 0, 0, 0) # minExclusive
+        """The time should be greater than this time."""
+
+        ge = datetime.time(0, 0, 0, 0) # minInclusive
+        """The time should be greater than or equal to this time."""
+
+        lt = datetime.time(23, 59, 59, 999999) # maxExclusive
+        """The time should be lower than this time."""
+
+        le = datetime.time(23, 59, 59, 999999) # maxInclusive
+        """The time should be lower than or equal to this time."""
+
+        pattern = None
+        """A regular expression that matches the whole time. See here for more
+        info: http://www.regular-expressions.info/xml.html"""
+
     @classmethod
     @nillable_string
     def to_string(cls, value):
@@ -518,6 +538,25 @@ class Time(SimpleModel):
         return datetime.time(int(fields['hr']), int(fields['min']),
                     int(fields['sec']), microsec)
 
+    @staticmethod
+    def is_default(cls):
+        return (SimpleModel.is_default(cls)
+                and cls.Attributes.gt == Time.Attributes.gt
+                and cls.Attributes.ge == Time.Attributes.ge
+                and cls.Attributes.lt == Time.Attributes.lt
+                and cls.Attributes.le == Time.Attributes.le
+                and cls.Attributes.pattern == Time.Attributes.pattern
+        )
+
+    @staticmethod
+    def validate_native(cls, value):
+        return SimpleModel.validate_native(cls, value) and (
+            value is None or (
+                value >  cls.Attributes.gt and
+                value >= cls.Attributes.ge and
+                value <  cls.Attributes.lt and
+                value <= cls.Attributes.le
+            ))
 
 class DateTime(SimpleModel):
     """A compact way to represent dates and times together. Supports time zones.
@@ -529,6 +568,22 @@ class DateTime(SimpleModel):
     class Attributes(SimpleModel.Attributes):
         """Customizable attributes of the :class:`spyne.model.primitive.DateTime`
         type."""
+
+        gt = datetime.datetime(1, 1, 1, 0, 0, 0, 0, pytz.utc) # minExclusive
+        """The datetime should be greater than this datetime."""
+
+        ge = datetime.datetime(1, 1, 1, 0, 0, 0, 0, pytz.utc) # minInclusive
+        """The datetime should be greater than or equal to this datetime."""
+
+        lt = datetime.datetime(9999, 12, 31, 23, 59, 59, 999999, pytz.utc) # maxExclusive
+        """The datetime should be lower than this datetime."""
+
+        le = datetime.datetime(9999, 12, 31, 23, 59, 59, 999999, pytz.utc) # maxInclusive
+        """The datetime should be lower than or equal to this datetime."""
+
+        pattern = None
+        """A regular expression that matches the whole datetime. See here for more
+        info: http://www.regular-expressions.info/xml.html"""
 
         format = None
         """DateTime format fed to the ``strftime`` function. See:
@@ -600,6 +655,26 @@ class DateTime(SimpleModel):
         else:
             return datetime.datetime.strptime(string, format)
 
+    @staticmethod
+    def is_default(cls):
+        return (SimpleModel.is_default(cls)
+                and cls.Attributes.gt == DateTime.Attributes.gt
+                and cls.Attributes.ge == DateTime.Attributes.ge
+                and cls.Attributes.lt == DateTime.Attributes.lt
+                and cls.Attributes.le == DateTime.Attributes.le
+                and cls.Attributes.pattern == DateTime.Attributes.pattern
+        )
+
+    @staticmethod
+    def validate_native(cls, value):
+        return SimpleModel.validate_native(cls, value) and (
+            value is None or (
+                value >  cls.Attributes.gt and
+                value >= cls.Attributes.ge and
+                value <  cls.Attributes.lt and
+                value <= cls.Attributes.le
+            ))
+
 
 class Date(DateTime):
     """Just that, Date. No time zone support.
@@ -607,10 +682,36 @@ class Date(DateTime):
     Native type is :class:`datetime.date`.
     """
 
+    __type_name__ = 'date'
+
     class Attributes(DateTime.Attributes):
+        """Customizable attributes of the :class:`spyne.model.primitive.Date`
+        type."""
+
+        gt = datetime.date(1, 1, 1) # minExclusive
+        """The date should be greater than this date."""
+
+        ge = datetime.date(1, 1, 1) # minInclusive
+        """The date should be greater than or equal to this date."""
+
+        lt = datetime.date(9999, 12, 31) # maxExclusive
+        """The date should be lower than this date."""
+
+        le = datetime.date(9999, 12, 31) # maxInclusive
+        """The date should be lower than or equal to this date."""
+
         format = '%Y-%m-%d'
 
-    __type_name__ = 'date'
+        pattern = None
+        """A regular expression that matches the whole date. See here for more
+        info: http://www.regular-expressions.info/xml.html"""
+
+    @classmethod
+    @nillable_string
+    def to_string(cls, value):
+        """Returns ISO formatted date."""
+
+        return value.isoformat()
 
     @classmethod
     def default_parse(cls, string):
