@@ -37,6 +37,8 @@ from spyne.const import MAX_STRING_FIELD_LENGTH
 from spyne.const import MAX_ARRAY_ELEMENT_NUM
 from spyne.model.primitive import NATIVE_MAP
 from spyne.model.primitive import Unicode
+
+from spyne.util import sanitize_args
 from spyne.util.odict import odict
 
 
@@ -134,27 +136,6 @@ def _get_spyne_type(v):
         return v
 
 
-def sanitize_args(a):
-    try:
-        args, kwargs = a
-        if isinstance(args, tuple) and isinstance(kwargs, dict):
-            return a
-
-    except (TypeError, ValueError):
-        args, kwargs = (), {}
-
-    if a is not None:
-        if isinstance(a, dict):
-            kwargs = a
-        elif isinstance(a, tuple):
-            if isinstance(a[-1], dict):
-                args, kwargs = a[0:-1], a[-1]
-            else:
-                args = a
-
-    return args, kwargs
-
-
 class ComplexModelMeta(type(ModelBase)):
     '''This metaclass sets ``_type_info``, ``__type_name__`` and ``__extends__``
     which are going to be used for (de)serialization and schema generation.
@@ -231,16 +212,19 @@ class ComplexModelMeta(type(ModelBase)):
             else:
                 raise Exception("No ModelBase subclass in bases? Huh?")
 
-        # Move sqlalchemy types
+        # Move sqlalchemy parameters
+        table_name = cls_dict.get('__tablename__', None)
+        attrs.table_name = table_name
+
+        metadata = cls_dict.get('__metadata__', None)
+        if metadata is not None:
+            attrs.sqla_metadata = metadata
+
         margs = cls_dict.get('__mapper_args__', None)
         attrs.sqla_mapper_args = sanitize_args(margs)
 
         targs = cls_dict.get('__table_args__', None)
         attrs.sqla_table_args = sanitize_args(targs)
-
-        metadata = cls_dict.get('__metadata__', None)
-        if metadata is not None:
-            attrs.sqla_metadata = metadata
 
         return type(ModelBase).__new__(cls, cls_name, cls_bases, cls_dict)
 
@@ -250,6 +234,11 @@ class ComplexModelMeta(type(ModelBase)):
             if issubclass(type_info[k], SelfReference):
                 type_info[k] = self
 
+        if self.Attributes.table_name is not None and \
+                                      self.Attributes.sqla_metadata is not None:
+            from spyne.util.sqlalchemy import get_sqlalchemy_table
+            get_sqlalchemy_table(self)
+
         type(ModelBase).__init__(self, cls_name, cls_bases, cls_dict)
 
 
@@ -257,8 +246,6 @@ class ComplexModelBase(ModelBase):
     """If you want to make a better class type, this is what you should inherit
     from.
     """
-
-    __tablename__ = None
 
     class Attributes(ModelBase.Attributes):
         """ComplexModel-specific attributes"""
@@ -280,6 +267,10 @@ class ComplexModelBase(ModelBase):
         """A dict that will be passed to :func:`sqlalchemy.orm.mapper`
         constructor as. ``**kwargs``.
         """
+
+        table_name = None
+        """The name of the table this object will be stored under."""
+
 
     def __init__(self, **kwargs):
         super(ComplexModelBase, self).__init__()
@@ -357,7 +348,10 @@ class ComplexModelBase(ModelBase):
         """Get an empty native type so that the deserialization logic can set
         its attributes.
         """
-        return cls()
+        if cls.__orig__ is None:
+            return cls()
+        else:
+            return cls.__orig__()
 
     @classmethod
     def get_members_pairs(cls, inst):

@@ -67,6 +67,7 @@ class ModelBase(object):
     mainly used for defining constraints on input values.
     """
 
+    __orig__ = None
     __namespace__ = None
     __type_name__ = None
 

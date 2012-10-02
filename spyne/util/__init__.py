@@ -100,6 +100,27 @@ class memoize(object):
     def reset(self):
         self.memo = {}
 
+def sanitize_args(a):
+    try:
+        args, kwargs = a
+        if isinstance(args, tuple) and isinstance(kwargs, dict):
+            return a
+
+    except (TypeError, ValueError):
+        args, kwargs = (), {}
+
+    if a is not None:
+        if isinstance(a, dict):
+            kwargs = a
+        elif isinstance(a, tuple):
+            if isinstance(a[-1], dict):
+                args, kwargs = a[0:-1], a[-1]
+            else:
+                args = a
+
+    return args, kwargs
+
+
 
 if sys.version > '3':
     def _bytes_join(val, joiner=''):

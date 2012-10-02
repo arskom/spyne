@@ -17,7 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""Just for postgresql, just for fun. As of yet, at least."""
+"""Just for Postgresql, just for fun. As of yet, at least.
+
+In case it's not obvious, this module is EXPERIMENTAL.
+"""
 
 from __future__ import absolute_import
 
@@ -48,13 +51,18 @@ from sqlalchemy.orm import mapper
 
 from sqlalchemy.types import UserDefinedType
 
-from spyne.model.complex import sanitize_args
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModelBase
-from spyne.model.primitive import Decimal
+from spyne.model.primitive import Uuid
+from spyne.model.primitive import Date
+from spyne.model.primitive import Time
+from spyne.model.primitive import DateTime
+from spyne.model.primitive import Float
 from spyne.model.primitive import Double
+from spyne.model.primitive import Decimal
 from spyne.model.primitive import String
 from spyne.model.primitive import Unicode
+from spyne.model.primitive import Boolean
 from spyne.model.primitive import Integer
 from spyne.model.primitive import Integer8
 from spyne.model.primitive import Integer16
@@ -65,14 +73,9 @@ from spyne.model.primitive import UnsignedInteger8
 from spyne.model.primitive import UnsignedInteger16
 from spyne.model.primitive import UnsignedInteger32
 from spyne.model.primitive import UnsignedInteger64
-from spyne.model.primitive import Float
-from spyne.model.primitive import Boolean
-from spyne.model.primitive import DateTime
-from spyne.model.primitive import Date
-from spyne.model.primitive import Time
-from spyne.model.primitive import Uuid
 
 from spyne.util import memoize
+from spyne.util import sanitize_args
 
 from spyne.util.xml import get_object_as_xml
 from spyne.util.xml import get_xml_as_object
@@ -191,6 +194,7 @@ def get_pk_columns(cls):
             retval.append((k,v))
     return tuple(retval) if len(retval) > 0 else None
 
+
 def _get_col_o2o(k, v):
     """Gets key and child type and returns a column that points to the primary
     key of the child.
@@ -204,9 +208,10 @@ def _get_col_o2o(k, v):
 
     # generate a fk to it from the current object (cls)
     fk_col_name = k + "_" + pk_key
-    fk = ForeignKey('%s.%s' % (v.__tablename__, pk_key))
+    fk = ForeignKey('%s.%s' % (v.Attributes.table_name, pk_key))
 
     return Column(fk_col_name, pk_sqla_type, fk)
+
 
 def _get_col_o2m(cls):
     """Gets the parent class and returns a column that points to the primary key
@@ -220,12 +225,13 @@ def _get_col_o2m(cls):
     pk_sqla_type = get_sqlalchemy_type(pk_spyne_type)
 
     # generate a fk from child to the current class
-    fk_col_name = '_'.join([cls.__tablename__, pk_key])
+    fk_col_name = '_'.join([cls.Attributes.table_name, pk_key])
 
     col = Column(fk_col_name, pk_sqla_type,
-                             ForeignKey('%s.%s' % (cls.__tablename__, pk_key)))
+                        ForeignKey('%s.%s' % (cls.Attributes.table_name, pk_key)))
 
     return col
+
 
 def _get_cols_m2m(cls, k, v):
     """Gets the parent and child classes and returns foreign keys to both
@@ -237,6 +243,11 @@ def _get_cols_m2m(cls, k, v):
 
 @memoize
 def get_sqlalchemy_table(cls, map_class_to_table=True):
+    """Return sqlalchemy table object corresponding to the passed spyne object.
+    Also maps given class to returned table when ``map_class_to_table`` is true.
+    (this is the default)
+    """
+
     rels = {}
     cols = []
     constraints = []
@@ -262,8 +273,8 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
                 elif v.Attributes.store_as == 'table_multi': # many to many
                     col_own, col_child = _get_cols_m2m(cls, k, v)
 
-                    rel_t = Table('_'.join([cls.__tablename__, k]), metadata,
-                            *(col_own, col_child)
+                    rel_t = Table('_'.join([cls.Attributes.table_name, k]),
+                            metadata, *(col_own, col_child)
                         )
 
                     rels[k] = relationship(child, secondary=rel_t)
@@ -276,8 +287,8 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
                     real_v = v.__orig__
 
                 if v.Attributes.store_as == 'table_multi':
-                    raise ValueError('Storing a single element-type using a '
-                                     'relation table is pointless.')
+                    raise Exception('Storing a single element-type using a '
+                                    'relation table is pointless.')
 
                 if v.Attributes.store_as == 'table':
                     col = _get_col_o2o(k, v)
@@ -307,7 +318,7 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
 
     # Create table
     table_args, table_kwargs = sanitize_args(cls.Attributes.sqla_table_args)
-    table = Table(cls.__tablename__, metadata,
+    table = Table(cls.Attributes.table_name, metadata,
                         *(tuple(cols) + tuple(constraints) + tuple(table_args)),
                         **table_kwargs)
 
@@ -315,7 +326,10 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
     if map_class_to_table:
         mapper_args, mapper_kwargs = sanitize_args(cls.Attributes.sqla_mapper_args)
         mapper_kwargs['properties'] = rels
-        cls.__mapper__ = mapper(cls, table, *mapper_args, **mapper_kwargs)
-        cls.__table__ = table
+        cls_mapper = mapper(cls, table, *mapper_args, **mapper_kwargs)
+
+        cls.__tablename__ = cls.Attributes.table_name
+        cls.Attributes.sqla_mapper = cls.__mapper__ = cls_mapper
+        cls.Attributes.sqla_table = cls.__table__ = table
 
     return table
