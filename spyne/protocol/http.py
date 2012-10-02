@@ -110,10 +110,10 @@ class HttpRpc(DictObject):
 
         if ctx.descriptor.in_header:
             ctx.in_header = self.flat_dict_to_object(ctx.in_header_doc,
-                                                    ctx.descriptor.in_header)
+                                      ctx.descriptor.in_header, self.validator)
         if ctx.descriptor.in_message:
             ctx.in_object = self.flat_dict_to_object(ctx.in_body_doc,
-                                                    ctx.descriptor.in_message)
+                                      ctx.descriptor.in_message, self.validator)
 
         self.event_manager.fire_event('after_deserialize', ctx)
 

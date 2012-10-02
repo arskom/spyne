@@ -39,7 +39,7 @@ from sqlalchemy.schema import ForeignKey
 
 from sqlalchemy.dialects.postgresql import FLOAT
 from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION
-from sqlalchemy.dialects.postgresql import PGUuid
+from sqlalchemy.dialects.postgresql.base import PGUuid
 
 from sqlalchemy.ext.compiler import compiles
 
@@ -181,7 +181,10 @@ def get_sqlalchemy_type(cls):
     elif issubclass(cls, Uuid):
         return PGUuid
 
+
 def get_pk_columns(cls):
+    """Return primary key fields of a Spyne object."""
+
     retval = []
     for k, v in cls._type_info.items():
         if v.Attributes.sqla_column_args[-1].get('primary_key', False):
@@ -206,9 +209,10 @@ def _get_col_o2o(k, v):
     return Column(fk_col_name, pk_sqla_type, fk)
 
 def _get_col_o2m(cls):
-    """Gets parent class, key and child type and returns a column that points to
-    the primary key of the parent.
+    """Gets the parent class and returns a column that points to the primary key
+    of the parent.
     """
+
     # get pkeys from current class
     pk_column, = get_pk_columns(cls) # FIXME: Support multi-col keys
 
@@ -224,6 +228,9 @@ def _get_col_o2m(cls):
     return col
 
 def _get_cols_m2m(cls, k, v):
+    """Gets the parent and child classes and returns foreign keys to both
+    tables. These columns can be used to create a relation table."""
+
     child, = v._type_info.values()
     return _get_col_o2m(cls), _get_col_o2o(k, child)
 

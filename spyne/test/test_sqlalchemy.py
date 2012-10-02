@@ -509,7 +509,7 @@ class TestSqlAlchemyNested(unittest.TestCase):
             __tablename__ = 'some_class'
             __table_args__ = {"sqlite_autoincrement": True}
 
-            id = Integer32(primary_key=True)
+            id = Integer32
             others = Array(SomeOtherClass, store_as='xml')
 
         get_sqlalchemy_table(SomeClass)
