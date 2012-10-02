@@ -37,7 +37,6 @@ from spyne.const import MAX_STRING_FIELD_LENGTH
 from spyne.const import MAX_ARRAY_ELEMENT_NUM
 from spyne.model.primitive import NATIVE_MAP
 from spyne.model.primitive import Unicode
-from spyne.util import memoize
 from spyne.util.odict import odict
 
 
@@ -118,7 +117,6 @@ class SelfReference(object):
         raise NotImplementedError()
 
 
-@memoize
 def _get_spyne_type(v):
     try:
         v = NATIVE_MAP.get(v, v)
