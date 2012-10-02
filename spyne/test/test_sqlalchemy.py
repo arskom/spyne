@@ -502,14 +502,14 @@ class TestSqlAlchemyNested(unittest.TestCase):
         metadata.bind = engine
 
         class SomeOtherClass(ComplexModel):
-            id = Integer32(primary_key=True)
+            id = Integer32
             s = Unicode(64)
 
         class SomeClass(TableModel):
             __tablename__ = 'some_class'
             __table_args__ = {"sqlite_autoincrement": True}
 
-            id = Integer32
+            id = Integer32(primary_key=True)
             others = Array(SomeOtherClass, store_as='xml')
 
         get_sqlalchemy_table(SomeClass)
