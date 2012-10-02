@@ -123,7 +123,6 @@ class TestHttpRpcSoftValidation(unittest.TestCase):
         return ctx
 
     def test_http_rpc(self):
-
         ctx = self.__get_ctx('some_method', 's=1')
         self.assertEquals(ctx.in_error.faultcode, 'Client.ValidationError')
 
