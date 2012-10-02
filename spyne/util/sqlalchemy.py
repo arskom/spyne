@@ -26,6 +26,11 @@ from spyne.util.xml import get_xml_as_object
 import logging
 logger = logging.getLogger(__name__)
 
+try:
+    import simplejson as json
+except ImportError:
+    import json
+
 import sqlalchemy
 
 from lxml import etree
@@ -71,6 +76,8 @@ from spyne.model.primitive import Uuid
 
 from spyne.util import memoize
 
+from spyne.util.dictobj import get_dict_as_object
+from spyne.util.dictobj import get_object_as_dict
 
 @compiles(PGUuid, "sqlite")
 def compile_uuid_sqlite(type_, compiler, **kw):
@@ -97,6 +104,27 @@ class PGObjectXml(UserDefinedType):
         return process
 
 sqlalchemy.dialects.postgresql.base.ischema_names['xml'] = PGObjectXml
+
+
+class PGObjectJson(UserDefinedType):
+    def __init__(self, cls):
+        self.cls = cls
+
+    def get_col_spec(self):
+        return "json"
+
+    def bind_processor(self, dialect):
+        def process(value):
+            return json.dumps(get_object_as_dict(value, self.cls))
+        return process
+
+    def result_processor(self, dialect, col_type):
+        def process(value):
+            if value is not None:
+                return get_dict_as_object(json.loads(value), self.cls)
+        return process
+
+sqlalchemy.dialects.postgresql.base.ischema_names['json'] = PGObjectJson
 
 
 @memoize
@@ -249,6 +277,10 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
 
                 elif v.Attributes.store_as == 'xml':
                     col = Column(k, PGObjectXml(v))
+                    cols.append(col)
+
+                elif v.Attributes.store_as == 'json':
+                    col = Column(k, PGObjectJson(v))
                     cols.append(col)
 
             else:

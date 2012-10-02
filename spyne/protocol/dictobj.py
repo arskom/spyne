@@ -91,35 +91,36 @@ class DictObject(ProtocolBase):
         logger.debug('\theader : %r' % (ctx.in_header_doc))
         logger.debug('\tbody   : %r' % (ctx.in_body_doc))
 
-    def _doc_to_object(self, cls, doc):
+    @classmethod
+    def _doc_to_object(cls, class_, doc, validator=None):
         if doc is None:
             return []
 
-        if issubclass(cls, Array):
+        if issubclass(class_, Array):
             retval = [ ]
-            (serializer,) = cls._type_info.values()
+            (serializer,) = class_._type_info.values()
 
             for child in doc:
-                retval.append(self._from_dict_value(serializer, child))
+                retval.append(cls._from_dict_value(serializer, child, validator))
 
             return retval
 
-        inst = cls.get_deserialization_instance()
+        inst = class_.get_deserialization_instance()
 
         # get all class attributes, including the ones coming from parent classes.
-        flat_type_info = cls.get_flat_type_info(cls)
+        flat_type_info = class_.get_flat_type_info(class_)
 
         # initialize instance
         for k in flat_type_info:
             setattr(inst, k, None)
 
-        # this is for validating cls.Attributes.{min,max}_occurs
+        # this is for validating class_.Attributes.{min,max}_occurs
         frequencies = {}
 
         try:
             items = doc.items()
         except AttributeError:
-            items = zip(cls._type_info.keys(), doc)
+            items = zip(class_._type_info.keys(), doc)
 
         # parse input to set incoming data to related attributes.
         for k,v in items:
@@ -138,14 +139,14 @@ class DictObject(ProtocolBase):
                     value = []
 
                 for a in v:
-                    value.append(self._from_dict_value(member, a))
+                    value.append(cls._from_dict_value(member, a, validator))
 
             else:
-                value = self._from_dict_value(member, v)
+                value = cls._from_dict_value(member, v, validator)
 
             setattr(inst, k, value)
 
-        if self.validator is self.SOFT_VALIDATION:
+        if validator is cls.SOFT_VALIDATION:
             for k, v in flat_type_info.items():
                 val = frequencies.get(k, 0)
                 if (val < v.Attributes.min_occurs or val > v.Attributes.max_occurs):
@@ -174,7 +175,7 @@ class DictObject(ProtocolBase):
             # assign raw result to its wrapper, result_message
             result_message_class = ctx.descriptor.in_message
             value = ctx.in_body_doc.get(result_message_class.get_type_name(), None)
-            result_message = self._doc_to_object(result_message_class, value)
+            result_message = self._doc_to_object(result_message_class, value, self.validator)
 
             ctx.in_object = result_message
 
@@ -214,59 +215,63 @@ class DictObject(ProtocolBase):
             out_type, out_instance = unwrap_instance(out_type, out_instance,
                                                                 self.skip_depth)
 
-            # arrays get wrapped in [], whereas other objects get wrapped in
-            # {object_name: ...}
-            wrapper_name = None
-            if not issubclass(out_type, Array):
-                wrapper_name = out_type.get_type_name()
-
-            # transform the results into a dict:
-            if out_type.Attributes.max_occurs > 1:
-                ctx.out_document = (self._to_value(out_type, inst, wrapper_name)
-                                                       for inst in out_instance)
-            else:
-                ctx.out_document = [self._to_value(out_type, out_instance, wrapper_name)]
-
+            ctx.out_document = self._object_to_doc(out_type, out_instance)
             self.event_manager.fire_event('after_serialize', ctx)
 
-    def _from_dict_value(self, cls, value):
+    @classmethod
+    def _object_to_doc(cls, class_, value, wrapper_name=None):
+        # arrays get wrapped in [], whereas other objects get wrapped in
+        # {object_name: ...}
+        if wrapper_name is None and not issubclass(class_, Array):
+            wrapper_name = class_.get_type_name()
+
+        # transform the results into a dict:
+        if class_.Attributes.max_occurs > 1:
+            return (cls._to_value(class_, inst, wrapper_name) for inst in value)
+        else:
+            return [cls._to_value(class_, value, wrapper_name)]
+
+
+    @classmethod
+    def _from_dict_value(cls, class_, value, validator):
         # validate raw input
-        if self.validator is self.SOFT_VALIDATION:
-            if issubclass(cls, Unicode) and not isinstance(value, unicode):
-                if not (issubclass(cls, String) and isinstance(value, str)):
+        if validator is cls.SOFT_VALIDATION:
+            if issubclass(class_, Unicode) and not isinstance(value, unicode):
+                if not (issubclass(class_, String) and isinstance(value, str)):
                     raise ValidationError(value)
 
-            elif issubclass(cls, Decimal) and not isinstance(value, (int, long, float)):
+            elif issubclass(class_, Decimal) and not isinstance(value, (int, long, float)):
                 raise ValidationError(value)
 
-            elif issubclass(cls, DateTime) and not (isinstance(value, unicode) and
-                                            cls.validate_string(cls, value)):
+            elif issubclass(class_, DateTime) and not (isinstance(value, unicode) and
+                                            class_.validate_string(class_, value)):
                 raise ValidationError(value)
 
         # get native type
-        if issubclass(cls, ComplexModelBase):
-            retval = self._doc_to_object(cls, value)
+        if issubclass(class_, ComplexModelBase):
+            retval = cls._doc_to_object(class_, value, validator)
 
-        elif issubclass(cls, DateTime):
-            retval = cls.from_string(value)
+        elif issubclass(class_, DateTime):
+            retval = class_.from_string(value)
 
         else:
             retval = value
 
         # validate native type
-        if self.validator is self.SOFT_VALIDATION and \
-                not cls.validate_native(cls, retval):
+        if validator is cls.SOFT_VALIDATION and \
+                not class_.validate_native(class_, retval):
             raise ValidationError(retval)
 
         return retval
 
-    def _get_member_pairs(self, cls, inst):
-        parent_cls = getattr(cls, '__extends__', None)
+    @classmethod
+    def _get_member_pairs(cls, class_, inst):
+        parent_cls = getattr(class_, '__extends__', None)
         if not (parent_cls is None):
-            for r in self._get_member_pairs(parent_cls, inst):
+            for r in cls._get_member_pairs(parent_cls, inst):
                 yield r
 
-        for k, v in cls._type_info.items():
+        for k, v in class_._type_info.items():
             try:
                 sub_value = getattr(inst, k, None)
             except Exception, e: # to guard against e.g. sqlalchemy throwing NoSuchColumnError
@@ -275,36 +280,39 @@ class DictObject(ProtocolBase):
 
             if v.Attributes.max_occurs > 1:
                 if sub_value != None:
-                    yield (k, [self._to_value(v,sv) for sv in sub_value])
+                    yield (k, [cls._to_value(v,sv) for sv in sub_value])
 
             else:
-                yield (k, self._to_value(v, sub_value))
+                yield (k, cls._to_value(v, sub_value))
 
-    def _to_value(self, cls, value, k=None):
-        if issubclass(cls, ComplexModelBase):
-            return self._to_dict(cls, value, k)
+    @classmethod
+    def _to_value(cls, class_, value, k=None):
+        if issubclass(class_, ComplexModelBase):
+            return cls._to_dict(class_, value, k)
 
-        if issubclass(cls, DateTime):
-            return cls.to_string(value)
+        if issubclass(class_, DateTime):
+            return class_.to_string(value)
 
-        if issubclass(cls, Decimal):
-            if cls.Attributes.format is None:
+        if issubclass(class_, Decimal):
+            if class_.Attributes.format is None:
                 return value
             else:
-                return cls.to_string(value)
+                return class_.to_string(value)
 
         return value
 
-    def _to_dict(self, cls, inst, field_name=None):
-        inst = cls.get_serialization_instance(inst)
+    @classmethod
+    def _to_dict(cls, class_, inst, field_name=None):
+        inst = class_.get_serialization_instance(inst)
 
-        retval = dict(self._get_member_pairs(cls, inst))
+        retval = dict(cls._get_member_pairs(class_, inst))
         if field_name is None:
             return retval
         else:
             return {field_name: retval}
 
-    def flat_dict_to_object(self, doc, inst_class):
+    @classmethod
+    def flat_dict_to_object(cls, doc, inst_class, validator=None):
         """Converts a flat dict to a native python object.
 
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
@@ -327,10 +335,10 @@ class DictObject(ProtocolBase):
             if value is None:
                 value = []
 
-            # extract native values from the list of strings that comes from the
+            # extract native values from the list of strings that come from the
             # http dict.
             for v2 in v:
-                if (self.validator is self.SOFT_VALIDATION and not
+                if (validator is cls.SOFT_VALIDATION and not
                             member.type.validate_string(member.type, v2)):
                     raise ValidationError(v2)
 
@@ -342,7 +350,7 @@ class DictObject(ProtocolBase):
                 else:
                     native_v2 = member.type.from_string(v2)
 
-                if (self.validator is self.SOFT_VALIDATION and not
+                if (validator is cls.SOFT_VALIDATION and not
                             member.type.validate_native(member.type, native_v2)):
                     raise ValidationError(v2)
 
@@ -390,7 +398,7 @@ class DictObject(ProtocolBase):
                 logger.debug("\tset default %r(%r) = %r" %
                                                     (member.path, pkey, value))
 
-        if self.validator is self.SOFT_VALIDATION:
+        if validator is cls.SOFT_VALIDATION:
             sti = simple_type_info.values()
             sti.sort(key=lambda x: (len(x.path), x.path))
             pfrag = None
@@ -432,7 +440,8 @@ class DictObject(ProtocolBase):
         return inst
 
 
-    def object_to_flat_dict(self, inst_cls, value, hier_delim="_", retval=None,
+    @classmethod
+    def object_to_flat_dict(cls, inst_cls, value, hier_delim="_", retval=None,
                                                       prefix=None, parent=None):
         """Converts a native python object to a flat dict.
 
@@ -462,7 +471,7 @@ class DictObject(ProtocolBase):
                     retval[key] = None
 
             else:
-                self.object_to_flat_dict(fti[k], subvalue, hier_delim,
+                cls.object_to_flat_dict(fti[k], subvalue, hier_delim,
                                              retval, new_prefix, parent=inst_cls)
 
         return retval
