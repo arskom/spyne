@@ -21,8 +21,6 @@
 
 from __future__ import absolute_import
 
-from spyne.util.xml import get_object_as_xml
-from spyne.util.xml import get_xml_as_object
 import logging
 logger = logging.getLogger(__name__)
 
@@ -76,8 +74,11 @@ from spyne.model.primitive import Uuid
 
 from spyne.util import memoize
 
+from spyne.util.xml import get_object_as_xml
+from spyne.util.xml import get_xml_as_object
 from spyne.util.dictobj import get_dict_as_object
 from spyne.util.dictobj import get_object_as_dict
+
 
 @compiles(PGUuid, "sqlite")
 def compile_uuid_sqlite(type_, compiler, **kw):
@@ -85,15 +86,18 @@ def compile_uuid_sqlite(type_, compiler, **kw):
 
 
 class PGObjectXml(UserDefinedType):
-    def __init__(self, cls):
+    def __init__(self, cls, root_tag_name=None, no_namespace=False):
         self.cls = cls
+        self.root_tag_name = root_tag_name
+        self.no_namespace = no_namespace
 
     def get_col_spec(self):
         return "xml"
 
     def bind_processor(self, dialect):
         def process(value):
-            return etree.tostring(get_object_as_xml(value, self.cls),
+            return etree.tostring(get_object_as_xml(value, self.cls,
+                                        self.root_tag_name, self.no_namespace),
                      pretty_print=False, encoding='utf8', xml_declaration=False)
         return process
 
