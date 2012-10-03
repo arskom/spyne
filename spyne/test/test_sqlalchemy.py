@@ -569,5 +569,6 @@ class TestSqlAlchemyNested(unittest.TestCase):
 
         session.close()
 
+
 if __name__ == '__main__':
     unittest.main()

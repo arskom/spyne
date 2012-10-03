@@ -308,7 +308,8 @@ class SimpleModel(ModelBase):
     """The base class for primitives."""
 
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
-    __base_type__ = None
+    __base_type__ = None # this is different from __orig__ because it's only set
+                         # when cls.is_default(cls) == False
 
     class Attributes(ModelBase.Attributes):
         """The class that holds the constraints for the given type."""

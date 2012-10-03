@@ -105,7 +105,7 @@ class XmlSchema(InterfaceDocumentBase):
             Called right after the document is built. The handler gets the
             ``XmlSchema`` instance as the only argument.
 
-        * xmn_document_built:
+        * xml_document_built:
             Called right after the document is built. The handler gets the
             ``XmlSchema`` instance as the only argument. Only called from this
             class.
