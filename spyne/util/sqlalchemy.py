@@ -267,12 +267,15 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
                 if child.__orig__ is not None:
                     child = child.__orig__
 
-                if p.multi: # many to many
+                if p.multi != False: # many to many
                     col_own, col_child = _get_cols_m2m(cls, k, v)
 
-                    rel_t = Table('_'.join([cls.Attributes.table_name, k]),
-                            metadata, *(col_own, col_child)
-                        )
+                    if p.multi == True:
+                        rel_table_name = '_'.join([cls.Attributes.table_name, k])
+                    else:
+                        rel_table_name = p.multi
+
+                    rel_t = Table(rel_table_name, metadata, *(col_own, col_child))
 
                     rels[k] = relationship(child, secondary=rel_t)
 

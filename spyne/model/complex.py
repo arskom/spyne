@@ -67,7 +67,9 @@ class table:
     :param multi: When false, configures a one-to-many relationship where the
         child table has a foreign key to the parent. When true, configures a
         many-to-many relationship by creating an intermediate relation table
-        that has foreign keys to both parent and child classes.
+        that has foreign keys to both parent and child classes and generates
+        a table name automatically. When it's a string, the value is used as the
+        table name.
     """
 
     def __init__(self, multi=False):
