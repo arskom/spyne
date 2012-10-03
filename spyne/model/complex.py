@@ -30,13 +30,13 @@ import decimal
 from spyne.model import ModelBase
 from spyne.model import nillable_dict
 from spyne.model import nillable_string
-
-from spyne.const import xml_ns as namespace
-from spyne.const.suffix import TYPE_SUFFIX
-from spyne.const import MAX_STRING_FIELD_LENGTH
-from spyne.const import MAX_ARRAY_ELEMENT_NUM
 from spyne.model.primitive import NATIVE_MAP
 from spyne.model.primitive import Unicode
+
+from spyne.const import xml_ns as namespace
+from spyne.const import MAX_STRING_FIELD_LENGTH
+from spyne.const import MAX_ARRAY_ELEMENT_NUM
+from spyne.const.suffix import TYPE_SUFFIX
 
 from spyne.util import sanitize_args
 from spyne.util.odict import odict
@@ -178,6 +178,7 @@ class ComplexModelMeta(type(ModelBase)):
         if type_name is None:
             cls_dict["__type_name__"] = cls_name
 
+        base_type_info = {}
         # get base class (if exists) and enforce single inheritance
         extends = cls_dict.get('__extends__', None)
         if extends is None:
@@ -185,22 +186,26 @@ class ComplexModelMeta(type(ModelBase)):
                 base_types = getattr(b, "_type_info", None)
 
                 if not (base_types is None):
-                    if not (extends in (None, b)):
-                        raise Exception("WSDL 1.1 does not support multiple "
-                                        "inheritance")
+                    if getattr(b, '__abstract__', False) == True:
+                        base_type_info = b._type_info
+                    else:
+                        if not (extends in (None, b)):
+                            raise Exception("WSDL 1.1 does not support multiple"
+                                            " inheritance")
 
-                    try:
-                        if len(base_types) > 0 and issubclass(b, ModelBase):
-                            cls_dict["__extends__"] = b
+                        try:
+                            if len(base_types) > 0 and issubclass(b, ModelBase):
+                                cls_dict["__extends__"] = b
 
-                    except:
-                        logger.error(repr(extends))
-                        raise
+                        except:
+                            logger.error(repr(extends))
+                            raise
 
 
         # populate children
         if not ('_type_info' in cls_dict):
             cls_dict['_type_info'] = _type_info = TypeInfo()
+            _type_info.update(base_type_info)
 
             for k, v in cls_dict.items():
                 if not k.startswith('__'):
@@ -274,6 +279,8 @@ class ComplexModelBase(ModelBase):
     """If you want to make a better class type, this is what you should inherit
     from.
     """
+
+    __abstract__ = False
 
     class Attributes(ModelBase.Attributes):
         """ComplexModel-specific attributes"""
