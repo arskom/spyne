@@ -51,6 +51,8 @@ from sqlalchemy.orm import mapper
 
 from sqlalchemy.types import UserDefinedType
 
+from spyne.model.complex import table
+from spyne.model.complex import xml
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModelBase
 from spyne.model.primitive import Uuid
@@ -190,7 +192,8 @@ def get_pk_columns(cls):
 
     retval = []
     for k, v in cls._type_info.items():
-        if v.Attributes.sqla_column_args[-1].get('primary_key', False):
+        if v.Attributes.sqla_column_args is not None and \
+                    v.Attributes.sqla_column_args[-1].get('primary_key', False):
             retval.append((k,v))
     return tuple(retval) if len(retval) > 0 else None
 
@@ -202,7 +205,7 @@ def _get_col_o2o(k, v):
 
     # get pkeys from child class
     pk_column, = get_pk_columns(v) # FIXME: Support multi-col keys
-
+    print v, pk_column
     pk_key, pk_spyne_type = pk_column
     pk_sqla_type = get_sqlalchemy_type(pk_spyne_type)
 
@@ -241,7 +244,6 @@ def _get_cols_m2m(cls, k, v):
     return _get_col_o2m(cls), _get_col_o2o(k, child)
 
 
-@memoize
 def get_sqlalchemy_table(cls, map_class_to_table=True):
     """Return sqlalchemy table object corresponding to the passed spyne object.
     Also maps given class to returned table when ``map_class_to_table`` is true.
@@ -250,6 +252,7 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
 
     rels = {}
     cols = []
+    exc = []
     constraints = []
     metadata = cls.Attributes.sqla_metadata
 
@@ -258,19 +261,13 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
         t = get_sqlalchemy_type(v)
 
         if t is None:
-            if issubclass(v, Array) and v.Attributes.store_as.startswith('table'):
+            p = getattr(v.Attributes, 'store_as', None)
+            if issubclass(v, Array) and (p == 'table' or isinstance(p, table)):
                 child, = v._type_info.values()
                 if child.__orig__ is not None:
                     child = child.__orig__
 
-                if v.Attributes.store_as == 'table': # one to many
-                    col = _get_col_o2m(cls)
-
-                    child.__table__.append_column(col)
-                    child.__mapper__.add_property(col.name, col)
-                    rels[k] = relationship(child)
-
-                elif v.Attributes.store_as == 'table_multi': # many to many
+                if p.multi: # many to many
                     col_own, col_child = _get_cols_m2m(cls, k, v)
 
                     rel_t = Table('_'.join([cls.Attributes.table_name, k]),
@@ -279,31 +276,42 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
 
                     rels[k] = relationship(child, secondary=rel_t)
 
+                else: # one to many
+                    col = _get_col_o2m(cls)
+
+                    child.__table__.append_column(col)
+                    child.__mapper__.add_property(col.name, col)
+
+                    rels[k] = relationship(child)
+
             elif issubclass(v, ComplexModelBase):
-                # create the relationship.
+                # v has the Attribute values we need whereas real_v is what the
+                # user instantiates (thus what sqlalchemy needs)
                 if v.__orig__ is None: # vanilla class
                     real_v = v
                 else: # customized class
                     real_v = v.__orig__
 
-                if v.Attributes.store_as == 'table_multi':
-                    raise Exception('Storing a single element-type using a '
-                                    'relation table is pointless.')
+                if p == 'table' or isinstance(p, table):
+                    if getattr(p, 'multi', False):
+                        raise Exception('Storing a single element-type using a '
+                                        'relation table is pointless.')
 
-                if v.Attributes.store_as == 'table':
                     col = _get_col_o2o(k, v)
                     rel = relationship(real_v, uselist=False)
 
-                    cols.append(col)
                     rels[k] = rel
 
-                elif v.Attributes.store_as == 'xml':
+                elif p == 'xml':
                     col = Column(k, PGObjectXml(v))
-                    cols.append(col)
 
-                elif v.Attributes.store_as == 'json':
+                elif isinstance(p, xml):
+                    col = Column(k, PGObjectXml(v, p.root_tag, p.no_ns))
+
+                elif p == 'json':
                     col = Column(k, PGObjectJson(v))
-                    cols.append(col)
+
+                cols.append(col)
 
             else:
                 logger.debug("Skipping %s.%s.%s: %r" % (
@@ -316,9 +324,19 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
             cols.append(col)
             rels[k] = col
 
+            if v.Attributes.private:
+                exc.append(k)
+            else:
+                rels[k] = col
+
     # Create table
     table_args, table_kwargs = sanitize_args(cls.Attributes.sqla_table_args)
-    table = Table(cls.Attributes.table_name, metadata,
+    table_name = cls.Attributes.table_name
+
+    if table_name in metadata.tables:
+        t = metadata.tables[table_name]
+    else:
+        t = Table(cls.Attributes.table_name, metadata,
                         *(tuple(cols) + tuple(constraints) + tuple(table_args)),
                         **table_kwargs)
 
@@ -326,10 +344,11 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
     if map_class_to_table:
         mapper_args, mapper_kwargs = sanitize_args(cls.Attributes.sqla_mapper_args)
         mapper_kwargs['properties'] = rels
-        cls_mapper = mapper(cls, table, *mapper_args, **mapper_kwargs)
+        mapper_kwargs['exclude_properties'] = exc
+        cls_mapper = mapper(cls, t, *mapper_args, **mapper_kwargs)
 
         cls.__tablename__ = cls.Attributes.table_name
         cls.Attributes.sqla_mapper = cls.__mapper__ = cls_mapper
-        cls.Attributes.sqla_table = cls.__table__ = table
+        cls.Attributes.sqla_table = cls.__table__ = t
 
-    return table
+    return t

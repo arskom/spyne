@@ -42,8 +42,36 @@ from spyne.util import sanitize_args
 from spyne.util.odict import odict
 
 
-PSSM_VALUES = ('json', 'xml', 'msgpack', 'table', 'table_multi')
+PSSM_VALUES = ('json', 'xml', 'msgpack', 'table')
 """Persistent storage serialization method values"""
+
+
+class xml:
+    """Complex argument to ``ComplexModelBase.Attributes.store_as`` for xml
+    serialization.
+
+    :param root_tag: Root tag of the xml element that contains the field values.
+    :param no_ns: When true, the xml document is stripped from namespace
+        information. use with caution.
+    """
+
+    def __init__(self, root_tag=None, no_ns=False):
+        self.root_tag = root_tag
+        self.no_ns = no_ns
+
+
+class table:
+    """Complex argument to ``ComplexModelBase.Attributes.store_as`` for storing
+    the class instance as a row in a table in a relational database.
+
+    :param multi: When false, configures a one-to-many relationship where the
+        child table has a foreign key to the parent. When true, configures a
+        many-to-many relationship by creating an intermediate relation table
+        that has foreign keys to both parent and child classes.
+    """
+
+    def __init__(self, multi=False):
+        self.multi = multi
 
 
 class TypeInfo(odict):
@@ -271,6 +299,8 @@ class ComplexModelBase(ModelBase):
         table_name = None
         """The name of the table this object will be stored under."""
 
+        sqla_table = None
+        sqla_mapper = None
 
     def __init__(self, **kwargs):
         super(ComplexModelBase, self).__init__()
@@ -513,7 +543,7 @@ class ComplexModelBase(ModelBase):
 
         store_as = kwargs.get('store_as', None)
         if store_as is not None:
-            assert store_as in PSSM_VALUES, \
+            assert store_as in PSSM_VALUES or isinstance(store_as,(table, xml)), \
                               "'store_as' should be one of: %r" % (PSSM_VALUES,)
 
         cls_name, cls_bases, cls_dict = cls._s_customize(cls, **kwargs)
@@ -529,6 +559,10 @@ class ComplexModelBase(ModelBase):
             retval.__extends__ = getattr(e, '__extends__', None)
 
         return retval
+
+    @classmethod
+    def store_as(cls, what):
+        return cls.customize(store_as=what)
 
 
 class ComplexModel(ComplexModelBase):
