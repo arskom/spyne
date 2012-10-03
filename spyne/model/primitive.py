@@ -830,7 +830,8 @@ class Boolean(SimpleModel):
 class Uuid(Unicode):
     """Unicode subclass for Universially-Unique Identifiers."""
 
-    __type_name__ = 'Uuid'
+    __type_name__ = 'uuid'
+    __base_type__ = Unicode
 
     class Attributes(Unicode.Attributes):
         pattern = UUID_PATTERN
