@@ -827,8 +827,23 @@ class Boolean(SimpleModel):
         return (string.lower() in ['true', '1'])
 
 
-Uuid = Unicode(pattern=UUID_PATTERN, type_name='Uuid')
-"""Unicode subclass for Universially-Unique Identifiers."""
+class Uuid(Unicode):
+    """Unicode subclass for Universially-Unique Identifiers."""
+
+    __type_name__ = 'Uuid'
+
+    class Attributes(Unicode.Attributes):
+        pattern = UUID_PATTERN
+
+    @classmethod
+    @nillable_string
+    def to_string(cls, value):
+        return str(value)
+
+    @classmethod
+    @nillable_string
+    def from_string(cls, string):
+        return uuid.UUID(string)
 
 
 # a class that is really a namespace
