@@ -292,6 +292,9 @@ class ComplexModelBase(ModelBase):
         sense to specify this only when this object is a child of another
         ComplexModel sublass.""" % (PSSM_VALUES,)
 
+        table_name = None
+        """Table name."""
+
         sqla_metadata = None
         """None or :class:`sqlalchemy.MetaData` instance."""
 
@@ -305,11 +308,11 @@ class ComplexModelBase(ModelBase):
         constructor as. ``**kwargs``.
         """
 
-        table_name = None
-        """The name of the table this object will be stored under."""
-
         sqla_table = None
+        """The sqlalchemy table object"""
+
         sqla_mapper = None
+        """The sqlalchemy mapper object"""
 
     def __init__(self, **kwargs):
         super(ComplexModelBase, self).__init__()

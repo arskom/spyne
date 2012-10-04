@@ -28,9 +28,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 try:
-    import simplejson as json
+    import simplejson
 except ImportError:
-    import json
+    import json as simplejson
 
 import sqlalchemy
 
@@ -124,13 +124,13 @@ class PGObjectJson(UserDefinedType):
 
     def bind_processor(self, dialect):
         def process(value):
-            return json.dumps(get_object_as_dict(value, self.cls))
+            return simplejson.dumps(get_object_as_dict(value, self.cls))
         return process
 
     def result_processor(self, dialect, col_type):
         def process(value):
             if value is not None:
-                return get_dict_as_object(json.loads(value), self.cls)
+                return get_dict_as_object(simplejson.loads(value), self.cls)
         return process
 
 sqlalchemy.dialects.postgresql.base.ischema_names['json'] = PGObjectJson
