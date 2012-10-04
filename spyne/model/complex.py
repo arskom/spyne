@@ -576,8 +576,14 @@ class ComplexModelBase(ModelBase):
 
         store_as = kwargs.get('store_as', None)
         if store_as is not None:
-            assert store_as in PSSM_VALUES or isinstance(store_as,(table, xml)), \
-                              "'store_as' should be one of: %r" % (PSSM_VALUES,)
+            val = PSSM_VALUES.get(store_as, None)
+            if val is None:
+                assert isinstance(store_as, tuple(PSSM_VALUES.values())), \
+                 "'store_as' should be one of: %r or an instance of %r not %r" \
+                 % (tuple(PSSM_VALUES.keys()), tuple(PSSM_VALUES.values()),
+                                                                        store_as)
+            else:
+                kwargs['store_as'] = val()
 
         cls_name, cls_bases, cls_dict = cls._s_customize(cls, **kwargs)
         cls_dict['__module__'] = cls.__module__

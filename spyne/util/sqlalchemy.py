@@ -28,9 +28,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 try:
-    import simplejson
+    import simplejson as json
 except ImportError:
-    import json as simplejson
+    import json
 
 import sqlalchemy
 
@@ -53,7 +53,9 @@ from sqlalchemy.types import UserDefinedType
 
 from spyne.model.complex import table
 from spyne.model.complex import xml
-from spyne.model.complex import json
+from spyne.model.complex import json as c_json
+from spyne.model.complex import msgpack as c_msgpack
+
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModelBase
 from spyne.model.primitive import Uuid
@@ -125,13 +127,13 @@ class PGObjectJson(UserDefinedType):
 
     def bind_processor(self, dialect):
         def process(value):
-            return simplejson.dumps(get_object_as_dict(value, self.cls))
+            return json.dumps(get_object_as_dict(value, self.cls))
         return process
 
     def result_processor(self, dialect, col_type):
         def process(value):
             if value is not None:
-                return get_dict_as_object(simplejson.loads(value), self.cls)
+                return get_dict_as_object(json.loads(value), self.cls)
         return process
 
 sqlalchemy.dialects.postgresql.base.ischema_names['json'] = PGObjectJson
@@ -314,6 +316,12 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
 
                 elif isinstance(p, json):
                     col = Column(k, PGObjectJson(v))
+
+                elif isinstance(p, msgpack):
+                    raise NotImplementedError()
+
+                else:
+                    raise ValueError(p)
 
                 cols.append(col)
 
