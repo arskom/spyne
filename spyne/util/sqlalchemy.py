@@ -201,7 +201,7 @@ def get_pk_columns(cls):
     return tuple(retval) if len(retval) > 0 else None
 
 
-def _get_col_o2o(k, v):
+def _get_col_o2o(k, v, fk_col_name):
     """Gets key and child type and returns a column that points to the primary
     key of the child.
     """
@@ -209,18 +209,20 @@ def _get_col_o2o(k, v):
 
     # get pkeys from child class
     pk_column, = get_pk_columns(v) # FIXME: Support multi-col keys
-    print v, pk_column
+
     pk_key, pk_spyne_type = pk_column
     pk_sqla_type = get_sqlalchemy_type(pk_spyne_type)
 
     # generate a fk to it from the current object (cls)
-    fk_col_name = k + "_" + pk_key
+    if fk_col_name is None:
+        fk_col_name = k + "_" + pk_key
+
     fk = ForeignKey('%s.%s' % (v.Attributes.table_name, pk_key))
 
     return Column(fk_col_name, pk_sqla_type, fk)
 
 
-def _get_col_o2m(cls):
+def _get_col_o2m(cls, fk_col_name):
     """Gets the parent class and returns a column that points to the primary key
     of the parent.
     """
@@ -234,7 +236,8 @@ def _get_col_o2m(cls):
     pk_sqla_type = get_sqlalchemy_type(pk_spyne_type)
 
     # generate a fk from child to the current class
-    fk_col_name = '_'.join([cls.Attributes.table_name, pk_key])
+    if fk_col_name is None:
+        fk_col_name = '_'.join([cls.Attributes.table_name, pk_key])
 
     col = Column(fk_col_name, pk_sqla_type,
                         ForeignKey('%s.%s' % (cls.Attributes.table_name, pk_key)))
@@ -242,12 +245,12 @@ def _get_col_o2m(cls):
     return col
 
 
-def _get_cols_m2m(cls, k, v):
+def _get_cols_m2m(cls, k, v, left_fk_col_name, right_fk_col_name):
     """Gets the parent and child classes and returns foreign keys to both
     tables. These columns can be used to create a relation table."""
 
     child, = v._type_info.values()
-    return _get_col_o2m(cls), _get_col_o2o(k, child)
+    return _get_col_o2m(cls, left_fk_col_name), _get_col_o2o(k, child, right_fk_col_name)
 
 
 def get_sqlalchemy_table(cls, map_class_to_table=True):
@@ -274,7 +277,7 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
                     child = child.__orig__
 
                 if p.multi != False: # many to many
-                    col_own, col_child = _get_cols_m2m(cls, k, v)
+                    col_own, col_child = _get_cols_m2m(cls, k, v, p.left, p.right)
 
                     if p.multi == True:
                         rel_table_name = '_'.join([cls.Attributes.table_name, k])
@@ -286,7 +289,7 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
                     rels[k] = relationship(child, secondary=rel_t)
 
                 else: # one to many
-                    col = _get_col_o2m(cls)
+                    col = _get_col_o2m(cls, p.right)
 
                     child.__table__.append_column(col)
                     child.__mapper__.add_property(col.name, col)
@@ -305,8 +308,7 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
                     if getattr(p, 'multi', False):
                         raise Exception('Storing a single element-type using a '
                                         'relation table is pointless.')
-
-                    col = _get_col_o2o(k, v)
+                    col = _get_col_o2o(k, v, p.left)
                     rel = relationship(real_v, uselist=False)
 
                     rels[k] = rel

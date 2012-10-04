@@ -68,8 +68,12 @@ class table:
         table name.
     """
 
-    def __init__(self, multi=False):
+    def __init__(self, multi=False, left=None, right=None):
         self.multi = multi
+        self.left = left
+        self.right = right
+
+
 class json:
     """Complex argument to ``ComplexModelBase.Attributes.store_as`` for storing
     the class instance as a json document.
