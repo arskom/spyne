@@ -42,10 +42,6 @@ from spyne.util import sanitize_args
 from spyne.util.odict import odict
 
 
-PSSM_VALUES = ('json', 'xml', 'msgpack', 'table')
-"""Persistent storage serialization method values"""
-
-
 class xml:
     """Complex argument to ``ComplexModelBase.Attributes.store_as`` for xml
     serialization.
@@ -74,6 +70,24 @@ class table:
 
     def __init__(self, multi=False):
         self.multi = multi
+class json:
+    """Complex argument to ``ComplexModelBase.Attributes.store_as`` for storing
+    the class instance as a json document.
+
+    Make sure you don't mix this with the json package when importing.
+    """
+
+
+class msgpack:
+    """Complex argument to ``ComplexModelBase.Attributes.store_as`` for storing
+    the class instance as a MessagePack document.
+
+    Make sure you don't mix this with the msgpack package when importing.
+    """
+
+
+PSSM_VALUES = {'json': json, 'xml': xml, 'msgpack': msgpack, 'table': table}
+"""Persistent storage serialization method values"""
 
 
 class TypeInfo(odict):

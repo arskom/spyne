@@ -53,6 +53,7 @@ from sqlalchemy.types import UserDefinedType
 
 from spyne.model.complex import table
 from spyne.model.complex import xml
+from spyne.model.complex import json
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModelBase
 from spyne.model.primitive import Uuid
@@ -298,7 +299,7 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
                 else: # customized class
                     real_v = v.__orig__
 
-                if p == 'table' or isinstance(p, table):
+                if isinstance(p, table):
                     if getattr(p, 'multi', False):
                         raise Exception('Storing a single element-type using a '
                                         'relation table is pointless.')
@@ -308,13 +309,10 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
 
                     rels[k] = rel
 
-                elif p == 'xml':
-                    col = Column(k, PGObjectXml(v))
-
                 elif isinstance(p, xml):
                     col = Column(k, PGObjectXml(v, p.root_tag, p.no_ns))
 
-                elif p == 'json':
+                elif isinstance(p, json):
                     col = Column(k, PGObjectJson(v))
 
                 cols.append(col)
