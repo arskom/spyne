@@ -202,6 +202,7 @@ def _get_col_o2o(k, v):
     """Gets key and child type and returns a column that points to the primary
     key of the child.
     """
+    assert v.Attributes.table_name is not None, "%r has no table name." % v
 
     # get pkeys from child class
     pk_column, = get_pk_columns(v) # FIXME: Support multi-col keys
@@ -220,6 +221,8 @@ def _get_col_o2m(cls):
     """Gets the parent class and returns a column that points to the primary key
     of the parent.
     """
+
+    assert cls.Attributes.table_name is not None, "%r has no table name." % cls
 
     # get pkeys from current class
     pk_column, = get_pk_columns(cls) # FIXME: Support multi-col keys

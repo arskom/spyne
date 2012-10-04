@@ -249,17 +249,24 @@ class ComplexModelMeta(type(ModelBase)):
 
         # Move sqlalchemy parameters
         table_name = cls_dict.get('__tablename__', None)
-        attrs.table_name = table_name
+        if attrs.table_name is None:
+            attrs.table_name = table_name
+
+        table = cls_dict.get('__table__', None)
+        if attrs.sqla_table is None:
+            attrs.sqla_table = table
 
         metadata = cls_dict.get('__metadata__', None)
         if metadata is not None:
             attrs.sqla_metadata = metadata
 
         margs = cls_dict.get('__mapper_args__', None)
-        attrs.sqla_mapper_args = sanitize_args(margs)
+        if attrs.sqla_mapper_args is None:
+            attrs.sqla_mapper_args = sanitize_args(margs)
 
         targs = cls_dict.get('__table_args__', None)
-        attrs.sqla_table_args = sanitize_args(targs)
+        if attrs.sqla_table_args is None:
+            attrs.sqla_mapper_args = sanitize_args(targs)
 
         return type(ModelBase).__new__(cls, cls_name, cls_bases, cls_dict)
 
