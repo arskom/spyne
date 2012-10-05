@@ -259,11 +259,17 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
     (this is the default)
     """
 
+    metadata = cls.Attributes.sqla_metadata
+
+    table_name = cls.Attributes.table_name
+    retval = None
+    if table_name in metadata.tables:
+        return metadata.tables[table_name]
+
     rels = {}
     cols = []
     exc = []
     constraints = []
-    metadata = cls.Attributes.sqla_metadata
 
     # For each Spyne field
     for k, v in cls._type_info.items():
@@ -308,7 +314,7 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
                     if getattr(p, 'multi', False):
                         raise Exception('Storing a single element-type using a '
                                         'relation table is pointless.')
-                    col = _get_col_o2o(k, v, p.left)
+                    col = _get_col_o2o(k, v, p.right)
                     rel = relationship(real_v, uselist=False)
 
                     rels[k] = rel
@@ -316,15 +322,16 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
                 elif isinstance(p, xml):
                     col = Column(k, PGObjectXml(v, p.root_tag, p.no_ns))
 
-                elif isinstance(p, json):
+                elif isinstance(p, c_json):
                     col = Column(k, PGObjectJson(v))
 
-                elif isinstance(p, msgpack):
+                elif isinstance(p, c_msgpack):
                     raise NotImplementedError()
 
                 else:
                     raise ValueError(p)
 
+                rels[col.name] = col
                 cols.append(col)
 
             else:
@@ -336,7 +343,6 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
             col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
             col = Column(k, t, *col_args, **col_kwargs)
             cols.append(col)
-            rels[k] = col
 
             if v.Attributes.private:
                 exc.append(k)
@@ -344,13 +350,9 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
                 rels[k] = col
 
     # Create table
-    table_args, table_kwargs = sanitize_args(cls.Attributes.sqla_table_args)
-    table_name = cls.Attributes.table_name
-
-    if table_name in metadata.tables:
-        t = metadata.tables[table_name]
-    else:
-        t = Table(cls.Attributes.table_name, metadata,
+    if retval is None:
+        table_args, table_kwargs = sanitize_args(cls.Attributes.sqla_table_args)
+        retval = Table(cls.Attributes.table_name, metadata,
                         *(tuple(cols) + tuple(constraints) + tuple(table_args)),
                         **table_kwargs)
 
@@ -359,10 +361,10 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
         mapper_args, mapper_kwargs = sanitize_args(cls.Attributes.sqla_mapper_args)
         mapper_kwargs['properties'] = rels
         mapper_kwargs['exclude_properties'] = exc
-        cls_mapper = mapper(cls, t, *mapper_args, **mapper_kwargs)
+        cls_mapper = mapper(cls, retval, *mapper_args, **mapper_kwargs)
 
         cls.__tablename__ = cls.Attributes.table_name
         cls.Attributes.sqla_mapper = cls.__mapper__ = cls_mapper
-        cls.Attributes.sqla_table = cls.__table__ = t
+        cls.Attributes.sqla_table = cls.__table__ = retval
 
-    return t
+    return retval
