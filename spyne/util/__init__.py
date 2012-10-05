@@ -100,6 +100,7 @@ class memoize(object):
     def reset(self):
         self.memo = {}
 
+
 def sanitize_args(a):
     try:
         args, kwargs = a
