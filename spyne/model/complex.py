@@ -184,6 +184,20 @@ def _get_spyne_type(v):
         return v
 
 
+def _join_args(x, y):
+    if x is None:
+        return y
+    if y is None:
+        return x
+
+    xa, xk = x
+    ya, yk = y
+
+    xk.update(yk)
+
+    return xa+ya, xk
+
+
 class ComplexModelMeta(type(ModelBase)):
     '''This metaclass sets ``_type_info``, ``__type_name__`` and ``__extends__``
     which are going to be used for (de)serialization and schema generation.
@@ -207,7 +221,7 @@ class ComplexModelMeta(type(ModelBase)):
 
                 if not (base_types is None):
                     if getattr(b, '__abstract__', False) == True:
-                        base_type_info = b._type_info
+                        base_type_info.update(b._type_info)
                     else:
                         if not (extends in (None, b)):
                             raise Exception("WSDL 1.1 does not support multiple"
@@ -275,16 +289,14 @@ class ComplexModelMeta(type(ModelBase)):
             attrs.sqla_table = table
 
         metadata = cls_dict.get('__metadata__', None)
-        if metadata is not None:
+        if attrs.sqla_metadata is None:
             attrs.sqla_metadata = metadata
 
-        margs = cls_dict.get('__mapper_args__', None)
-        if attrs.sqla_mapper_args is None:
-            attrs.sqla_mapper_args = sanitize_args(margs)
+        margs = sanitize_args(cls_dict.get('__mapper_args__', None))
+        attrs.sqla_mapper_args = _join_args(attrs.sqla_mapper_args, margs)
 
-        targs = cls_dict.get('__table_args__', None)
-        if attrs.sqla_table_args is None:
-            attrs.sqla_mapper_args = sanitize_args(targs)
+        targs = sanitize_args(cls_dict.get('__table_args__', None))
+        attrs.sqla_table_args = _join_args(attrs.sqla_table_args, targs)
 
         return type(ModelBase).__new__(cls, cls_name, cls_bases, cls_dict)
 
@@ -297,6 +309,7 @@ class ComplexModelMeta(type(ModelBase)):
         if self.Attributes.table_name is not None and \
                                       self.Attributes.sqla_metadata is not None:
             from spyne.util.sqlalchemy import get_sqlalchemy_table
+
             get_sqlalchemy_table(self)
 
         type(ModelBase).__init__(self, cls_name, cls_bases, cls_dict)
