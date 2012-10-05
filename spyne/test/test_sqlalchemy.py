@@ -41,6 +41,7 @@ from spyne.application import Application
 from spyne.decorator import rpc
 from spyne.model.primitive import Integer
 from spyne.model.table import TableModel
+from spyne.model.complex import table
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import Array
 from spyne.model.primitive import Integer32
@@ -53,13 +54,17 @@ from spyne.util.sqlalchemy import get_sqlalchemy_table
 
 
 class TestSqlAlchemy(unittest.TestCase):
-    def set_up(self):
+    def setUp(self):
         self.metadata = MetaData()
         self.DeclarativeBase = declarative_base(metadata=self.metadata)
         self.engine = create_engine('sqlite:///:memory:', echo=True)
         self.Session = sessionmaker(bind=self.engine)
 
-    setUp=set_up
+    def tearDown(self):
+        del self.metadata
+        del self.DeclarativeBase
+        del self.engine
+        del self.Session
 
     def test_declarative(self):
         from sqlalchemy import Integer
@@ -281,7 +286,6 @@ class TestSqlAlchemy(unittest.TestCase):
             name = Column(sqlalchemy.String(256))
 
         class UserMail(User):
-            __table_args__ = {'extend_existing': True}
             mail = Column(sqlalchemy.String(256))
 
         assert 'mail' in UserMail._type_info
@@ -327,7 +331,6 @@ class TestSpyne2Sqlalchemy(unittest.TestCase):
 
             i = Integer(primary_key=True)
 
-
         t = get_sqlalchemy_table(SomeClass)
 
         assert t.c['i'].type.__class__ is sqlalchemy.DECIMAL
@@ -345,7 +348,8 @@ class TestSpyne2Sqlalchemy(unittest.TestCase):
 
         t = get_sqlalchemy_table(SomeClass)
 
-        assert t.c['j'].type.__class__ is sqlalchemy.Unicode
+        assert isinstance(t.c['j'].type, sqlalchemy.Unicode)
+
         for c in t.constraints:
             if isinstance(c, UniqueConstraint):
                 assert list(c.columns) == [t.c.j]
@@ -471,7 +475,7 @@ class TestSqlAlchemyNested(unittest.TestCase):
             __table_args__ = {"sqlite_autoincrement": True}
 
             id = Integer32(primary_key=True)
-            others = Array(SomeOtherClass, store_as='table_multi')
+            others = Array(SomeOtherClass, store_as=table(multi=True))
 
         get_sqlalchemy_table(SomeOtherClass)
         get_sqlalchemy_table(SomeClass)
