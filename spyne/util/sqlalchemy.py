@@ -206,6 +206,7 @@ def _get_col_o2o(k, v, fk_col_name):
     key of the child.
     """
     assert v.Attributes.table_name is not None, "%r has no table name." % v
+    col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
 
     # get pkeys from child class
     pk_column, = get_pk_columns(v) # FIXME: Support multi-col keys
@@ -219,7 +220,7 @@ def _get_col_o2o(k, v, fk_col_name):
 
     fk = ForeignKey('%s.%s' % (v.Attributes.table_name, pk_key))
 
-    return Column(fk_col_name, pk_sqla_type, fk)
+    return Column(fk_col_name, pk_sqla_type, fk, *col_args, **col_kwargs)
 
 
 def _get_col_o2m(cls, fk_col_name):
@@ -228,6 +229,7 @@ def _get_col_o2m(cls, fk_col_name):
     """
 
     assert cls.Attributes.table_name is not None, "%r has no table name." % cls
+    col_args, col_kwargs = sanitize_args(cls.Attributes.sqla_column_args)
 
     # get pkeys from current class
     pk_column, = get_pk_columns(cls) # FIXME: Support multi-col keys
@@ -240,7 +242,8 @@ def _get_col_o2m(cls, fk_col_name):
         fk_col_name = '_'.join([cls.Attributes.table_name, pk_key])
 
     col = Column(fk_col_name, pk_sqla_type,
-                        ForeignKey('%s.%s' % (cls.Attributes.table_name, pk_key)))
+                    ForeignKey('%s.%s' % (cls.Attributes.table_name, pk_key)),
+                                                        *col_args, **col_kwargs)
 
     return col
 
@@ -250,7 +253,8 @@ def _get_cols_m2m(cls, k, v, left_fk_col_name, right_fk_col_name):
     tables. These columns can be used to create a relation table."""
 
     child, = v._type_info.values()
-    return _get_col_o2m(cls, left_fk_col_name), _get_col_o2o(k, child, right_fk_col_name)
+    return _get_col_o2m(cls, left_fk_col_name), \
+                                       _get_col_o2o(k, child, right_fk_col_name)
 
 
 def get_sqlalchemy_table(cls, map_class_to_table=True):
@@ -273,6 +277,10 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
 
     # For each Spyne field
     for k, v in cls._type_info.items():
+        col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
+        if v.Attributes.nullable == False:
+            col_kwargs['nullable'] = False
+
         t = get_sqlalchemy_type(v)
 
         if t is None:
@@ -320,10 +328,11 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
                     rels[k] = rel
 
                 elif isinstance(p, xml):
-                    col = Column(k, PGObjectXml(v, p.root_tag, p.no_ns))
+                    col = Column(k, PGObjectXml(v, p.root_tag, p.no_ns),
+                                                        *col_args, **col_kwargs)
 
                 elif isinstance(p, c_json):
-                    col = Column(k, PGObjectJson(v))
+                    col = Column(k, PGObjectJson(v), *col_args, **col_kwargs)
 
                 elif isinstance(p, c_msgpack):
                     raise NotImplementedError()
@@ -340,7 +349,6 @@ def get_sqlalchemy_table(cls, map_class_to_table=True):
                                                     cls.get_type_name(), k, v))
 
         else:
-            col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
             col = Column(k, t, *col_args, **col_kwargs)
             cols.append(col)
 
