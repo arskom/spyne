@@ -220,7 +220,7 @@ class ComplexModelMeta(type(ModelBase)):
                 base_types = getattr(b, "_type_info", None)
 
                 if not (base_types is None):
-                    if getattr(b, '__abstract__', False) == True:
+                    if getattr(b, '__mixin__', False) == True:
                         base_type_info.update(b._type_info)
                     else:
                         if not (extends in (None, b)):
@@ -320,7 +320,7 @@ class ComplexModelBase(ModelBase):
     from.
     """
 
-    __abstract__ = False
+    __mixin__ = False
 
     class Attributes(ModelBase.Attributes):
         """ComplexModel-specific attributes"""
