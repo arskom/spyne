@@ -61,6 +61,35 @@ def nillable_iterable(func):
     return wrapper
 
 
+class AttributesMeta(type(object)):
+    """I hate quirks. So this is a 10-minute attempt to get rid of a one-letter
+    quirk."""
+
+    def __init__(self, cls_name, cls_bases, cls_dict):
+        nullable = cls_dict.get('nullable', None)
+        nillable = cls_dict.get('nillable', None)
+
+        assert nullable is None or nillable is None or nullable == nillable
+
+        self.__nullable = nullable or nillable
+
+        type(object).__init__(self, cls_name, cls_bases, cls_dict)
+
+    @property
+    def nullable(self):
+        return self.__nullable
+    @nullable.setter
+    def nullable(self, what):
+        self.__nullable = what
+
+    @property
+    def nillable(self):
+        return self.__nullable
+    @nillable.setter
+    def nillable(self, what):
+        self.__nullable = what
+
+
 class ModelBase(object):
     """The base class for type markers. It defines the model interface for the
     interface generators to use and also manages class customizations that are
@@ -79,6 +108,7 @@ class ModelBase(object):
     # ComplexModelBase deserializer.
     class Attributes(object):
         """The class that holds the constraints for the given type."""
+        __metaclass__ = AttributesMeta
 
         default = None
         """The default value if the input is None"""
