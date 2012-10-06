@@ -193,6 +193,9 @@ def _join_args(x, y):
     xa, xk = x
     ya, yk = y
 
+    xa, xk = xa, dict(xk)
+    ya, yk = ya, dict(yk)
+
     xk.update(yk)
 
     return xa+ya, xk

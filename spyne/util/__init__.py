@@ -105,7 +105,7 @@ def sanitize_args(a):
     try:
         args, kwargs = a
         if isinstance(args, tuple) and isinstance(kwargs, dict):
-            return a
+            return args, dict(kwargs)
 
     except (TypeError, ValueError):
         args, kwargs = (), {}
