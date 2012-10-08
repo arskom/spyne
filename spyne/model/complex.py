@@ -81,6 +81,9 @@ class json:
     Make sure you don't mix this with the json package when importing.
     """
 
+    def __init__(self):
+        pass
+
 
 class msgpack:
     """Complex argument to ``ComplexModelBase.Attributes.store_as`` for storing
@@ -88,6 +91,8 @@ class msgpack:
 
     Make sure you don't mix this with the msgpack package when importing.
     """
+    def __init__(self):
+        pass
 
 
 PSSM_VALUES = {'json': json, 'xml': xml, 'msgpack': msgpack, 'table': table}
@@ -193,8 +198,8 @@ def _join_args(x, y):
     xa, xk = x
     ya, yk = y
 
-    xa, xk = xa, dict(xk)
-    ya, yk = ya, dict(yk)
+    xk = dict(xk)
+    yk = dict(yk)
 
     xk.update(yk)
 
@@ -759,20 +764,17 @@ def _safe_repr_obj(obj, cls):
 
 
 def TTableModel(metadata=None):
-    """A TableModel templates that generates a new TableModel class for each
+    """A TableModel template that generates a new TableModel class for each
     call. If metadata is not supplied, a new one is instantiated.
     """
 
     import sqlalchemy
 
-    if metadata is None:
-        metadata = sqlalchemy.MetaData()
-
     class TableModel(ComplexModelBase):
         __metaclass__ = ComplexModelMeta
 
         class Attributes(ComplexModelBase.Attributes):
-            sqla_metadata = metadata
+            sqla_metadata = metadata or sqlalchemy.MetaData()
 
     return TableModel
 

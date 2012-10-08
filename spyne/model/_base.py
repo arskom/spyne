@@ -114,7 +114,8 @@ class ModelBase(object):
         """The default value if the input is None"""
 
         nillable = True
-        """Set this to false to reject null values."""
+        """Set this to false to reject null values. Synonyms with
+        ``nullable``."""
 
         min_occurs = 0
         """Set this to 1 to make this object mandatory. Can be set to any
@@ -292,7 +293,7 @@ class ModelBase(object):
             elif k in ('foreign_key','fk'):
                 from sqlalchemy.schema import ForeignKey
                 t, d = Attributes.sqla_column_args
-                fkt = ForeignKey(v),
+                fkt = (ForeignKey(v),)
                 Attributes.sqla_column_args = (t + fkt, d)
 
             elif k == 'max_occurs' and v == 'unbounded':
