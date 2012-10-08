@@ -50,7 +50,7 @@ from spyne.protocol.http import HttpRpc
 from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
 from spyne.server.wsgi import WsgiMethodContext
-from spyne.util.sqlalchemy import get_sqlalchemy_table
+from spyne.util.sqlalchemy import gen_sqla_info
 
 
 class TestSqlAlchemy(unittest.TestCase):
@@ -331,7 +331,7 @@ class TestSpyne2Sqlalchemy(unittest.TestCase):
 
             i = Integer(primary_key=True)
 
-        t = get_sqlalchemy_table(SomeClass)
+        t = gen_sqla_info(SomeClass)
 
         assert t.c['i'].type.__class__ is sqlalchemy.DECIMAL
 
@@ -346,7 +346,7 @@ class TestSpyne2Sqlalchemy(unittest.TestCase):
             i = Integer(primary_key=True)
             j = Unicode(64)
 
-        t = get_sqlalchemy_table(SomeClass)
+        t = gen_sqla_info(SomeClass)
 
         assert isinstance(t.c['j'].type, sqlalchemy.Unicode)
 
@@ -388,8 +388,8 @@ class TestSqlAlchemyNested(unittest.TestCase):
             id = Integer32(primary_key=True)
             o = SomeOtherClass.customize(store_as='table')
 
-        get_sqlalchemy_table(SomeOtherClass)
-        get_sqlalchemy_table(SomeClass)
+        gen_sqla_info(SomeOtherClass)
+        gen_sqla_info(SomeClass)
 
         metadata.create_all()
 
@@ -435,8 +435,8 @@ class TestSqlAlchemyNested(unittest.TestCase):
             id = Integer32(primary_key=True)
             others = Array(SomeOtherClass, store_as='table')
 
-        get_sqlalchemy_table(SomeOtherClass)
-        get_sqlalchemy_table(SomeClass)
+        gen_sqla_info(SomeOtherClass)
+        gen_sqla_info(SomeClass)
 
         metadata.create_all()
 
@@ -477,8 +477,8 @@ class TestSqlAlchemyNested(unittest.TestCase):
             id = Integer32(primary_key=True)
             others = Array(SomeOtherClass, store_as=table(multi=True))
 
-        get_sqlalchemy_table(SomeOtherClass)
-        get_sqlalchemy_table(SomeClass)
+        gen_sqla_info(SomeOtherClass)
+        gen_sqla_info(SomeClass)
 
         metadata.create_all()
 
@@ -516,7 +516,7 @@ class TestSqlAlchemyNested(unittest.TestCase):
             id = Integer32(primary_key=True)
             others = Array(SomeOtherClass, store_as='xml')
 
-        get_sqlalchemy_table(SomeClass)
+        gen_sqla_info(SomeClass)
 
         metadata.create_all()
 
@@ -554,7 +554,7 @@ class TestSqlAlchemyNested(unittest.TestCase):
             id = Integer32(primary_key=True)
             others = Array(SomeOtherClass, store_as='json')
 
-        get_sqlalchemy_table(SomeClass)
+        gen_sqla_info(SomeClass)
 
         metadata.create_all()
 

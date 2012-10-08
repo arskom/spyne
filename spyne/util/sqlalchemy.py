@@ -257,7 +257,7 @@ def _get_cols_m2m(cls, k, v, left_fk_col_name, right_fk_col_name):
                                        _get_col_o2o(k, child, right_fk_col_name)
 
 
-def get_sqlalchemy_table(cls, map_class_to_table=True):
+def gen_sqla_info(cls, map_class_to_table=True):
     """Return sqlalchemy table object corresponding to the passed spyne object.
     Also maps given class to returned table when ``map_class_to_table`` is true.
     (this is the default)
