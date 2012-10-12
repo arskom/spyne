@@ -51,8 +51,8 @@ from sqlalchemy.orm import mapper
 
 from sqlalchemy.types import UserDefinedType
 
-from spyne.model.complex import table
-from spyne.model.complex import xml
+from spyne.model.complex import table as c_table
+from spyne.model.complex import xml as c_xml
 from spyne.model.complex import json as c_json
 from spyne.model.complex import msgpack as c_msgpack
 
@@ -86,6 +86,14 @@ from spyne.util.xml import get_object_as_xml
 from spyne.util.xml import get_xml_as_object
 from spyne.util.dictobj import get_dict_as_object
 from spyne.util.dictobj import get_object_as_dict
+
+
+# Inheritance type constants.
+class _SINGLE:
+    pass
+
+class _JOINED:
+    pass
 
 
 @compiles(PGUuid, "sqlite")
@@ -171,7 +179,10 @@ def get_sqlalchemy_type(cls):
     elif issubclass(cls, Double):
         return DOUBLE_PRECISION
 
-    elif issubclass(cls, (Integer, UnsignedInteger, Decimal)):
+    elif issubclass(cls, (Integer, UnsignedInteger)):
+        return sqlalchemy.DECIMAL
+
+    elif issubclass(cls, Decimal):
         return sqlalchemy.DECIMAL
 
     elif issubclass(cls, Boolean):
@@ -257,23 +268,58 @@ def _get_cols_m2m(cls, k, v, left_fk_col_name, right_fk_col_name):
                                        _get_col_o2o(k, child, right_fk_col_name)
 
 
-def gen_sqla_info(cls, map_class_to_table=True):
-    """Return sqlalchemy table object corresponding to the passed spyne object.
-    Also maps given class to returned table when ``map_class_to_table`` is true.
-    (this is the default)
+class _FakeTable(object):
+    def __init__(self):
+        self.columns = []
+        self.c = {}
+
+    def append_column(self, col):
+        self.columns.append(col)
+        self.c[col.name] = col
+
+
+def gen_sqla_info(cls, cls_bases=()):
+    """Return SQLAlchemy table object corresponding to the passed Spyne object.
+    Also maps given class to the returned table.
     """
 
+    print cls
     metadata = cls.Attributes.sqla_metadata
-
     table_name = cls.Attributes.table_name
-    retval = None
+
+    # check inheritance
+    inheritance = None
+    base_class = getattr(cls, '__extends__', None)
+    if base_class is None:
+        for b in cls_bases:
+            if getattr(b, '_type_info', None) is not None:
+                base_class = b
+
+    if base_class is not None:
+        base_table_name = base_class.Attributes.table_name
+        if base_table_name is not None:
+            if base_table_name == table_name:
+                inheritance = _SINGLE
+            else:
+                inheritance = _JOINED
+                raise NotImplementedError("Joined table inheritance is not yet "
+                                          "implemented.")
+
+    # check whether the object is already mapped
+    table = None
     if table_name in metadata.tables:
-        return metadata.tables[table_name]
+        if inheritance is None:
+            return metadata.tables[table_name]
+        else:
+            table = base_class.Attributes.sqla_table
+    else:
+        # We need FakeTable because table_args can contain all sorts of stuff
+        # that can require a fully-constructed table, and we don't have that
+        # information here yet.
+        table = _FakeTable()
 
     rels = {}
-    cols = []
     exc = []
-    constraints = []
 
     # For each Spyne field
     for k, v in cls._type_info.items():
@@ -281,11 +327,14 @@ def gen_sqla_info(cls, map_class_to_table=True):
         if v.Attributes.nullable == False:
             col_kwargs['nullable'] = False
 
+        if k in table.c:
+            continue
+
         t = get_sqlalchemy_type(v)
 
         if t is None:
             p = getattr(v.Attributes, 'store_as', None)
-            if issubclass(v, Array) and (p == 'table' or isinstance(p, table)):
+            if p is not None and issubclass(v, Array) and isinstance(p, c_table):
                 child, = v._type_info.values()
                 if child.__orig__ is not None:
                     child = child.__orig__
@@ -298,11 +347,14 @@ def gen_sqla_info(cls, map_class_to_table=True):
                     else:
                         rel_table_name = p.multi
 
+                    # FIXME: Handle the case where the table already exists.
                     rel_t = Table(rel_table_name, metadata, *(col_own, col_child))
 
                     rels[k] = relationship(child, secondary=rel_t)
 
                 else: # one to many
+                    assert p.left is None, "'left' is ignored."
+
                     col = _get_col_o2m(cls, p.right)
 
                     child.__table__.append_column(col)
@@ -310,7 +362,7 @@ def gen_sqla_info(cls, map_class_to_table=True):
 
                     rels[k] = relationship(child)
 
-            elif issubclass(v, ComplexModelBase):
+            elif p is not None and issubclass(v, ComplexModelBase):
                 # v has the Attribute values we need whereas real_v is what the
                 # user instantiates (thus what sqlalchemy needs)
                 if v.__orig__ is None: # vanilla class
@@ -318,16 +370,19 @@ def gen_sqla_info(cls, map_class_to_table=True):
                 else: # customized class
                     real_v = v.__orig__
 
-                if isinstance(p, table):
+                if isinstance(p, c_table):
                     if getattr(p, 'multi', False):
                         raise Exception('Storing a single element-type using a '
                                         'relation table is pointless.')
-                    col = _get_col_o2o(k, v, p.right)
+
+                    assert p.right is None, "'right' is ignored"
+
+                    col = _get_col_o2o(k, v, p.left)
                     rel = relationship(real_v, uselist=False)
 
                     rels[k] = rel
 
-                elif isinstance(p, xml):
+                elif isinstance(p, c_xml):
                     col = Column(k, PGObjectXml(v, p.root_tag, p.no_ns),
                                                         *col_args, **col_kwargs)
 
@@ -341,38 +396,43 @@ def gen_sqla_info(cls, map_class_to_table=True):
                     raise ValueError(p)
 
                 rels[col.name] = col
-                cols.append(col)
+                table.append_column(col)
 
             else:
-                logger.debug("Skipping %s.%s.%s: %r" % (
-                                                    cls.get_namespace(),
-                                                    cls.get_type_name(), k, v))
+                logger.debug("Skipping %s.%s.%s: %r, store_as: %r" % (
+                                                cls.get_namespace(),
+                                                cls.get_type_name(), k, v, p))
 
         else:
             col = Column(k, t, *col_args, **col_kwargs)
-            cols.append(col)
+            table.append_column(col)
 
             if v.Attributes.private:
                 exc.append(k)
             else:
                 rels[k] = col
 
-    # Create table
-    if retval is None:
+        print '%32s'%k, '%-44r'%v, '->', t
+
+    if isinstance(table, _FakeTable):
         table_args, table_kwargs = sanitize_args(cls.Attributes.sqla_table_args)
-        retval = Table(cls.Attributes.table_name, metadata,
-                        *(tuple(cols) + tuple(constraints) + tuple(table_args)),
-                        **table_kwargs)
+        table = Table(table_name, metadata,
+                           *(tuple(table.columns) + table_args), **table_kwargs)
 
     # Map the table to the object
-    if map_class_to_table:
-        mapper_args, mapper_kwargs = sanitize_args(cls.Attributes.sqla_mapper_args)
-        mapper_kwargs['properties'] = rels
-        mapper_kwargs['exclude_properties'] = exc
-        cls_mapper = mapper(cls, retval, *mapper_args, **mapper_kwargs)
+    mapper_args, mapper_kwargs = sanitize_args(cls.Attributes.sqla_mapper_args)
+    mapper_kwargs['properties'] = rels
+    mapper_kwargs['exclude_properties'] = exc
+    po = mapper_kwargs.get('polymorphic_on', None)
+    if po is not None:
+        mapper_kwargs['polymorphic_on'] = table.c[po]
 
-        cls.__tablename__ = cls.Attributes.table_name
-        cls.Attributes.sqla_mapper = cls.__mapper__ = cls_mapper
-        cls.Attributes.sqla_table = cls.__table__ = retval
+    if getattr(cls, '__extends__', None) is not None:
+        mapper_kwargs['inherits'] = cls.__extends__.Attributes.sqla_mapper
+    cls_mapper = mapper(cls, table, *mapper_args, **mapper_kwargs)
 
-    return retval
+    cls.__tablename__ = cls.Attributes.table_name
+    cls.Attributes.sqla_mapper = cls.__mapper__ = cls_mapper
+    cls.Attributes.sqla_table = cls.__table__ = table
+
+    return table
