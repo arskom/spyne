@@ -21,9 +21,7 @@
 combinations"""
 
 from spyne.application import Application
-from spyne.interface.wsdl import Wsdl11
-from spyne.protocol.soap import Soap11
-from spyne.server.wsgi import WsgiApplication
+
 
 def wsgi_soap11_application(services, tns='spyne.simple.soap', validator=None,
                                                                     name=None):
@@ -31,10 +29,27 @@ def wsgi_soap11_application(services, tns='spyne.simple.soap', validator=None,
     interface document and Soap 1.1 and both input and output protocols.
     """
 
-    application = Application(services, tns, name=name, interface=Wsdl11(),
+    from spyne.protocol.soap import Soap11
+    from spyne.server.wsgi import WsgiApplication
+
+    application = Application(services, tns, name=name,
                 in_protocol=Soap11(validator=validator), out_protocol=Soap11())
 
     return WsgiApplication(application)
 
 wsgi_soap_application = wsgi_soap11_application
 """DEPRECATED! Use :func:`wsgi_soap11_application` instead."""
+
+
+def pyramid_soap11_application(services, tns='spyne.simple.soap', validator=None,
+                                                                    name=None):
+    """Wraps `services` argument inside a PyramidApplication that uses Wsdl 1.1 as
+    interface document and Soap 1.1 and both input and output protocols.
+    """
+
+    from spyne.server.pyramid import PyramidApplication
+
+    application = Application(services, tns, name=name,
+                in_protocol=Soap11(validator=validator), out_protocol=Soap11())
+
+    return PyramidApplication(application)
