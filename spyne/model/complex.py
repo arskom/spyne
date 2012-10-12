@@ -728,6 +728,12 @@ def safe_repr(obj, cls=None):
         retval = []
 
         cls, = cls._type_info.values()
+
+        if not cls.Attributes.logged:
+            retval ="[%s (...)]" % cls.get_type_name()
+        else:
+            retval = _safe_repr_obj(obj, cls)
+
         for i,o in enumerate(obj):
             retval.append(_safe_repr_obj(o, cls))
 
@@ -738,7 +744,10 @@ def safe_repr(obj, cls=None):
         retval = "%s([%s])" % (cls.get_type_name(), ', '.join(retval))
 
     elif issubclass(cls, ComplexModel):
-        retval = _safe_repr_obj(obj, cls)
+        if cls.Attributes.logged:
+            retval = _safe_repr_obj(obj, cls)
+        else:
+            retval ="%s(...)" % cls.get_type_name()
 
     else:
         retval = repr(obj)
@@ -754,7 +763,7 @@ def _safe_repr_obj(obj, cls):
 
     for k,t in cls.get_flat_type_info(cls).items():
         v = getattr(obj, k, None)
-        if v is not None:
+        if v is not None and t.Attributes.logged:
             if issubclass(t, Unicode) and len(v) > MAX_STRING_FIELD_LENGTH:
                 s = '%s=%r(...)' % (k, v[:MAX_STRING_FIELD_LENGTH])
             else:

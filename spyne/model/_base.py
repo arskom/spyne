@@ -141,6 +141,10 @@ class ModelBase(object):
         ``**kwargs``
         """
 
+        logged = True
+        """If false, this object will be ignored in ``safe_repr``, mostly used
+        for logging purposes."""
+
     class Annotations(object):
         """The class that holds the annotations for the given type."""
 
