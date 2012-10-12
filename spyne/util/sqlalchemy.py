@@ -283,7 +283,6 @@ def gen_sqla_info(cls, cls_bases=()):
     Also maps given class to the returned table.
     """
 
-    print cls
     metadata = cls.Attributes.sqla_metadata
     table_name = cls.Attributes.table_name
 
@@ -411,8 +410,6 @@ def gen_sqla_info(cls, cls_bases=()):
                 exc.append(k)
             else:
                 rels[k] = col
-
-        print '%32s'%k, '%-44r'%v, '->', t
 
     if isinstance(table, _FakeTable):
         table_args, table_kwargs = sanitize_args(cls.Attributes.sqla_table_args)
