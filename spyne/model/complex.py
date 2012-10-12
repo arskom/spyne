@@ -318,7 +318,7 @@ class ComplexModelMeta(type(ModelBase)):
                                       self.Attributes.sqla_metadata is not None:
             from spyne.util.sqlalchemy import gen_sqla_info
 
-            gen_sqla_info(self, bases)
+            gen_sqla_info(self, cls_bases)
 
         type(ModelBase).__init__(self, cls_name, cls_bases, cls_dict)
 
