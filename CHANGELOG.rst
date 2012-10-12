@@ -12,9 +12,7 @@ spyne-2.9.0
  * Behavioral change for TableModel's relationship handling: It's now an array
    by default. The TableModel is deprecated, long live __metadata__ on
    ComplexModel!
- * Behavioral change in skip_depth handling in DictObject protocols: skip_depth
-   now only strips the dictionaries and does it *after* serialization and not
-   *before*. This change was needed to fix some corner cases.
+ * First-class integration with Pyramid.
 
 spyne-2.8.2-rc
 --------------
@@ -136,7 +134,7 @@ rpclib-2.5.0-beta
  * Some work towards supporting Python3 using ``2to3``. See issue #113.
  * ``ctx.descriptor.reset_function`` implemented. It's now safe to fiddle
    with that value in event handlers.
- * Incorporated a cleaned-up version of the Django wrapper: https://gist.github.com/1316025
+ * Added a cleaned-up version of the Django wrapper: https://gist.github.com/1316025
  * Fix most of the tests that fail due to api changes.
  * Fix Http soap client.
  * Full change log: https://github.com/arskom/spyne/pull/115
