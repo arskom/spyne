@@ -71,7 +71,7 @@ class AttributesMeta(type(object)):
 
         assert nullable is None or nillable is None or nullable == nillable
 
-        self.__nullable = nullable or nillable
+        self.__nullable = nullable or nillable or True
 
         type(object).__init__(self, cls_name, cls_bases, cls_dict)
 
