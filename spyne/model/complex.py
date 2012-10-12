@@ -86,6 +86,8 @@ class json:
 
 
 class msgpack:
+    pass  # TODO: not implemented
+
     """Complex argument to ``ComplexModelBase.Attributes.store_as`` for storing
     the class instance as a MessagePack document.
 
@@ -195,8 +197,8 @@ def _join_args(x, y):
     if y is None:
         return x
 
-    xa, xk = x
-    ya, yk = y
+    xa, xk = sanitize_args(x)
+    ya, yk = sanitize_args(y)
 
     xk = dict(xk)
     yk = dict(yk)
@@ -300,10 +302,10 @@ class ComplexModelMeta(type(ModelBase)):
         if attrs.sqla_metadata is None:
             attrs.sqla_metadata = metadata
 
-        margs = sanitize_args(cls_dict.get('__mapper_args__', None))
+        margs = cls_dict.get('__mapper_args__', None)
         attrs.sqla_mapper_args = _join_args(attrs.sqla_mapper_args, margs)
 
-        targs = sanitize_args(cls_dict.get('__table_args__', None))
+        targs = cls_dict.get('__table_args__', None)
         attrs.sqla_table_args = _join_args(attrs.sqla_table_args, targs)
 
         return type(ModelBase).__new__(cls, cls_name, cls_bases, cls_dict)
