@@ -145,6 +145,10 @@ class ModelBase(object):
         """If false, this object will be ignored in ``safe_repr``, mostly used
         for logging purposes."""
 
+        private = False
+        """If true, this object won't be published in the interface documents.
+        """
+
     class Annotations(object):
         """The class that holds the annotations for the given type."""
 
