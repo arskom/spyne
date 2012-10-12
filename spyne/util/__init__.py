@@ -122,7 +122,6 @@ def sanitize_args(a):
     return args, kwargs
 
 
-
 if sys.version > '3':
     def _bytes_join(val, joiner=''):
         return bytes(joiner).join(val)
