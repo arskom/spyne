@@ -279,6 +279,27 @@ class Decimal(SimpleModel):
         """A regular expression that matches the whole time. See here for more
         info: http://www.regular-expressions.info/xml.html"""
 
+        total_digits = decimal.Decimal('inf')
+        """Maximum number of digits."""
+
+        fraction_digits = decimal.Decimal('inf')
+        """Maximum number of digits after the decimal separator."""
+
+    def __new__(cls, *args, **kwargs):
+        assert len(args) <= 2
+
+        if len(args) >= 1:
+            kwargs['total_digits'] = args[0]
+            kwargs['fraction_digits'] = 0
+            if len(args) == 2:
+                kwargs['fraction_digits'] = args[1]
+                assert args[0] < args[1], "Total digits should be greater than" \
+                                          " fraction digits."
+
+        retval = SimpleModel.__new__(cls,  ** kwargs)
+
+        return retval
+
     @staticmethod
     def is_default(cls):
         return (    SimpleModel.is_default(cls)
@@ -286,7 +307,20 @@ class Decimal(SimpleModel):
                 and cls.Attributes.ge == Decimal.Attributes.ge
                 and cls.Attributes.lt == Decimal.Attributes.lt
                 and cls.Attributes.le == Decimal.Attributes.le
+                and cls.Attributes.total_digits == \
+                                            Decimal.Attributes.total_digits
+                and cls.Attributes.fraction_digits == \
+                                            Decimal.Attributes.fraction_digits
             )
+
+    @staticmethod
+    def validate_string(cls, value):
+        return SimpleModel.validate_string(cls, value) and (
+            value is None or (
+                len(value) <= (cls.Attributes.total_digits +
+                                             cls.Attributes.fraction_digits + 1)
+                                                  # + 1 is for decimal separator
+            ))
 
     @staticmethod
     def validate_native(cls, value):
@@ -354,7 +388,6 @@ class Integer(Decimal):
     """The arbitrary-size signed integer."""
 
     __type_name__ = 'integer'
-    __length__ = None
 
     @classmethod
     @nillable_string
@@ -379,14 +412,6 @@ class Integer(Decimal):
             except ValueError:
                 raise ValidationError(string)
 
-    @staticmethod
-    def validate_native(cls, value):
-        return (     Decimal.validate_native(cls, value)
-                and (cls.__length__ is None or
-                    (-2**( cls.__length__ -1) <= value < 2 ** (cls.__length__ - 1))
-                )
-            )
-
 
 class UnsignedInteger(Integer):
     """The arbitrary-size unsigned integer, aka nonNegativeInteger."""
@@ -397,8 +422,8 @@ class UnsignedInteger(Integer):
     def validate_native(cls, value):
         return (     Integer.validate_native(cls, value)
                 and value >= 0
-                and (cls.__length__ is None or (value < 2 ** cls.__length__))
             )
+
 
 NonNegativeInteger = UnsignedInteger
 
@@ -407,8 +432,15 @@ class Integer64(Integer):
     """The 64-bit signed integer, aka long."""
 
     __type_name__ = 'long'
-    __length__ = 64
-    __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
+
+    class Attributes(Integer.Attributes):
+        max_str_len = math.ceil(math.log(2**64, 10)) + 1 # +1 for negatives
+
+    @staticmethod
+    def validate_native(cls, value):
+        return (     Integer.validate_native(cls, value)
+                and -0x8000000000000000 <= value < 0x8000000000000000
+            )
 
 Long = Integer64
 
@@ -417,8 +449,15 @@ class Integer32(Integer):
     """The 32-bit signed integer, aka int."""
 
     __type_name__ = 'int'
-    __length__ = 32
-    __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
+
+    class Attributes(Integer.Attributes):
+        max_str_len = math.ceil(math.log(2**32, 10)) + 1 # +1 for negatives
+
+    @staticmethod
+    def validate_native(cls, value):
+        return (     Integer.validate_native(cls, value)
+                and -0x80000000 <= value < 0x80000000
+            )
 
 Int = Integer32
 
@@ -427,8 +466,15 @@ class Integer16(Integer):
     """The 8-bit signed integer, aka short."""
 
     __type_name__ = 'short'
-    __length__ = 16
-    __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
+
+    class Attributes(Integer.Attributes):
+        max_str_len = math.ceil(math.log(2**16, 10)) + 1 # +1 for negatives
+
+    @staticmethod
+    def validate_native(cls, value):
+        return (     Integer.validate_native(cls, value)
+                and -0x8000 <= value < 0x8000
+            )
 
 Short = Integer64
 
@@ -437,8 +483,16 @@ class Integer8(Integer):
     """The 8-bit signed integer, aka byte."""
 
     __type_name__ = 'byte'
-    __length__ = 16
-    __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
+
+    class Attributes(Integer.Attributes):
+        max_str_len = math.ceil(math.log(2**8, 10)) + 1 # +1 for negatives
+
+
+    @staticmethod
+    def validate_native(cls, value):
+        return (     Integer.validate_native(cls, value)
+                and -0x80 <= value < 0x80
+            )
 
 Byte = Integer8
 
@@ -447,8 +501,15 @@ class UnsignedInteger64(UnsignedInteger):
     """The 64-bit unsigned integer, aka unsignedLong."""
 
     __type_name__ = 'unsignedLong'
-    __length__ = 64
-    __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
+
+    class Attributes(Integer.Attributes):
+        max_str_len = math.ceil(math.log(2**64, 10))
+
+    @staticmethod
+    def validate_native(cls, value):
+        return (     UnsignedInteger.validate_native(cls, value)
+                and  value <= 0xFFFFFFFFFFFFFFFF
+            )
 
 UnsignedLong = UnsignedInteger64
 
@@ -457,8 +518,15 @@ class UnsignedInteger32(UnsignedInteger):
     """The 32-bit unsigned integer, aka unsignedInt."""
 
     __type_name__ = 'unsignedInt'
-    __length__ = 32
-    __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
+
+    class Attributes(Integer.Attributes):
+        max_str_len = math.ceil(math.log(2**32, 10))
+
+    @staticmethod
+    def validate_native(cls, value):
+        return (     UnsignedInteger.validate_native(cls, value)
+                and  value <= 0xFFFFFFFF
+            )
 
 UnsignedInt = UnsignedInteger32
 
@@ -467,8 +535,15 @@ class UnsignedInteger16(Integer):
     """The 16-bit unsigned integer, aka unsignedShort."""
 
     __type_name__ = 'unsignedShort'
-    __length__ = 16
-    __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
+
+    class Attributes(Integer.Attributes):
+        max_str_len = math.ceil(math.log(2**16, 10))
+
+    @staticmethod
+    def validate_native(cls, value):
+        return (     UnsignedInteger.validate_native(cls, value)
+                and  value <= 0xFFFF
+            )
 
 UnsignedShort = UnsignedInteger16
 
@@ -477,8 +552,15 @@ class UnsignedInteger8(Integer):
     """The 8-bit unsigned integer, aka unsignedByte."""
 
     __type_name__ = 'unsignedByte'
-    __length__ = 8
-    __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
+
+    class Attributes(Integer.Attributes):
+        max_str_len = math.ceil(math.log(2**8, 10))
+
+    @staticmethod
+    def validate_native(cls, value):
+        return (     UnsignedInteger.validate_native(cls, value)
+                and  value <= 0xFF
+            )
 
 UnsignedByte = UnsignedInteger8
 
@@ -905,6 +987,7 @@ NATIVE_MAP = {
     decimal.Decimal: Decimal,
     uuid.UUID: Uuid,
 }
+
 
 if sys.version > '3':
     NATIVE_MAP.update({
