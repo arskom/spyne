@@ -47,6 +47,7 @@ def pyramid_soap11_application(services, tns='spyne.simple.soap', validator=None
     interface document and Soap 1.1 and both input and output protocols.
     """
 
+    from spyne.protocol.soap import Soap11
     from spyne.server.pyramid import PyramidApplication
 
     application = Application(services, tns, name=name,
