@@ -141,13 +141,19 @@ class ModelBase(object):
         ``**kwargs``
         """
 
+        exc_mapper = False
+        """If true, this field will be excluded from the table mapper of the
+        parent class.
+        """
+
+        exc_table = False
+        """If true, this field will be excluded from the table of the parent
+        class.
+        """
+
         logged = True
         """If false, this object will be ignored in ``log_repr``, mostly used
         for logging purposes."""
-
-        private = False
-        """If true, this object won't be published in the interface documents.
-        """
 
     class Annotations(object):
         """The class that holds the annotations for the given type."""

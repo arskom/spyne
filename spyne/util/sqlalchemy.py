@@ -351,6 +351,9 @@ def gen_sqla_info(cls, cls_bases=()):
 
     # For each Spyne field
     for k, v in cls._type_info.items():
+        if v.Attributes.exc_table:
+            continue
+
         col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
         if v.Attributes.nullable == False:
             col_kwargs['nullable'] = False
@@ -435,7 +438,7 @@ def gen_sqla_info(cls, cls_bases=()):
             col = Column(k, t, *col_args, **col_kwargs)
             table.append_column(col)
 
-            if v.Attributes.private:
+            if v.Attributes.exc_mapper:
                 exc.append(k)
             else:
                 rels[k] = col
@@ -490,7 +493,6 @@ def get_spyne_type(v):
         rpc_type = String
 
     elif isinstance(v.type, (sqlalchemy.Numeric)):
-        print v.type.precision, v.type.scale
         rpc_type = Decimal(v.type.precision, v.type.scale)
 
     elif type(v.type) in _sq2sp_type_map:
