@@ -56,6 +56,8 @@ from spyne.model.complex import xml as c_xml
 from spyne.model.complex import json as c_json
 from spyne.model.complex import msgpack as c_msgpack
 
+from spyne.model.enum import Enum
+from spyne.model.binary import ByteArray
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModelBase
 from spyne.model.primitive import Uuid
@@ -94,6 +96,29 @@ class _SINGLE:
 
 class _JOINED:
     pass
+
+
+_sq2sp_type_map = {
+    sqlalchemy.Text: String,
+    sqlalchemy.String: String,
+    sqlalchemy.Unicode: String,
+    sqlalchemy.UnicodeText: String,
+
+    sqlalchemy.Float: Float,
+    sqlalchemy.Numeric: Decimal,
+    sqlalchemy.BigInteger: Integer,
+    sqlalchemy.Integer: Integer,
+    sqlalchemy.SmallInteger: Integer,
+
+    sqlalchemy.Binary: ByteArray,
+    sqlalchemy.LargeBinary: ByteArray,
+    sqlalchemy.Boolean: Boolean,
+    sqlalchemy.DateTime: DateTime,
+    sqlalchemy.Date: Date,
+    sqlalchemy.Time: Time,
+
+    PGUuid: Uuid
+}
 
 
 @compiles(PGUuid, "sqlite")
@@ -283,6 +308,7 @@ def gen_sqla_info(cls, cls_bases=()):
     Also maps given class to the returned table.
     """
 
+    print cls
     metadata = cls.Attributes.sqla_metadata
     table_name = cls.Attributes.table_name
 
@@ -319,6 +345,9 @@ def gen_sqla_info(cls, cls_bases=()):
 
     rels = {}
     exc = []
+
+    if len(cls._type_info) == 0 and cls.Attributes.sqla_table is not None and cls.__orig__ is None:
+        print "T" * 10, cls
 
     # For each Spyne field
     for k, v in cls._type_info.items():
@@ -411,6 +440,8 @@ def gen_sqla_info(cls, cls_bases=()):
             else:
                 rels[k] = col
 
+        #print '%32s'%k, '%-44r'%v, '->', t
+
     if isinstance(table, _FakeTable):
         table_args, table_kwargs = sanitize_args(cls.Attributes.sqla_table_args)
         table = Table(table_name, metadata,
@@ -433,3 +464,54 @@ def gen_sqla_info(cls, cls_bases=()):
     cls.Attributes.sqla_table = cls.__table__ = table
 
     return table
+
+
+def get_spyne_type(v):
+    """This function maps sqlalchemy types to spyne types."""
+
+    rpc_type = None
+
+    if isinstance(v.type, sqlalchemy.Enum):
+        if v.type.convert_unicode:
+            rpc_type = Unicode(values=v.type.enums)
+        else:
+            rpc_type = Enum(*v.type.enums, **{'type_name': v.type.name})
+
+    elif isinstance(v.type, sqlalchemy.Unicode):
+        rpc_type = Unicode(v.type.length)
+
+    elif isinstance(v.type, sqlalchemy.String):
+        rpc_type = String(v.type.length)
+
+    elif isinstance(v.type, sqlalchemy.UnicodeText):
+        rpc_type = Unicode
+
+    elif isinstance(v.type, sqlalchemy.Text):
+        rpc_type = String
+
+    elif isinstance(v.type, (sqlalchemy.Numeric)):
+        print v.type.precision, v.type.scale
+        rpc_type = Decimal(v.type.precision, v.type.scale)
+
+    elif type(v.type) in _sq2sp_type_map:
+        rpc_type = _sq2sp_type_map[type(v.type)]
+
+    else:
+        raise Exception("soap_type was not found. maybe _type_map needs a "
+                        "new entry. %r" % v)
+
+    return rpc_type
+
+
+def gen_spyne_info(cls):
+    table = cls.Attributes.sqla_table
+    _type_info = cls._type_info
+
+    for c in table.c:
+        _type_info[c.name] = get_spyne_type(c)
+
+    # Map the table to the object
+    mapper_args, mapper_kwargs = sanitize_args(cls.Attributes.sqla_mapper_args)
+    cls_mapper = mapper(cls, table, *mapper_args, **mapper_kwargs)
+    cls.Attributes.table_name = cls.__tablename__ = table.name
+    cls.Attributes.sqla_mapper = cls.__mapper__ = cls_mapper
