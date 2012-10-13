@@ -288,13 +288,14 @@ class Decimal(SimpleModel):
     def __new__(cls, *args, **kwargs):
         assert len(args) <= 2
 
-        if len(args) >= 1:
+        if len(args) >= 1 and args[0] is not None:
             kwargs['total_digits'] = args[0]
             kwargs['fraction_digits'] = 0
-            if len(args) == 2:
+            if len(args) == 2 and args[1] is not None:
                 kwargs['fraction_digits'] = args[1]
-                assert args[0] < args[1], "Total digits should be greater than" \
-                                          " fraction digits."
+                assert args[0] <= args[1], "Total digits should be greater than" \
+                                          " or equal to fraction digits." \
+                                          " %r ! <= %r" % (args[0], args[1])
 
         retval = SimpleModel.__new__(cls,  ** kwargs)
 
