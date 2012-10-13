@@ -721,7 +721,7 @@ class Alias(ComplexModel):
     """Different type_name, same _type_info."""
 
 
-def safe_repr(obj, cls=None):
+def log_repr(obj, cls=None):
     """Use this function if you want to echo a ComplexModel subclass. It will
     limit output size of the String types, thus make your logs smaller.
     """
@@ -737,10 +737,10 @@ def safe_repr(obj, cls=None):
         if not cls.Attributes.logged:
             retval ="[%s (...)]" % cls.get_type_name()
         else:
-            retval = _safe_repr_obj(obj, cls)
+            retval = _log_repr_obj(obj, cls)
 
         for i,o in enumerate(obj):
-            retval.append(_safe_repr_obj(o, cls))
+            retval.append(_log_repr_obj(o, cls))
 
             if i > MAX_ARRAY_ELEMENT_NUM:
                 retval.append("(...)")
@@ -750,7 +750,7 @@ def safe_repr(obj, cls=None):
 
     elif issubclass(cls, ComplexModel):
         if cls.Attributes.logged:
-            retval = _safe_repr_obj(obj, cls)
+            retval = _log_repr_obj(obj, cls)
         else:
             retval ="%s(...)" % cls.get_type_name()
 
@@ -763,7 +763,7 @@ def safe_repr(obj, cls=None):
     return retval
 
 
-def _safe_repr_obj(obj, cls):
+def _log_repr_obj(obj, cls):
     retval = []
 
     for k,t in cls.get_flat_type_info(cls).items():

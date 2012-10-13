@@ -142,7 +142,7 @@ class ModelBase(object):
         """
 
         logged = True
-        """If false, this object will be ignored in ``safe_repr``, mostly used
+        """If false, this object will be ignored in ``log_repr``, mostly used
         for logging purposes."""
 
         private = False
