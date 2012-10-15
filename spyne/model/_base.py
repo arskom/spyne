@@ -138,7 +138,7 @@ class ModelBase(object):
 
         sqla_column_args = None
         """A dict that will be passed to SQLAlchemy's ``Column`` constructor as
-        ``**kwargs``
+        ``**kwargs``.
         """
 
         exc_mapper = False
@@ -160,10 +160,10 @@ class ModelBase(object):
 
         __use_parent_doc__ = False
         """If set to True Annotations will use __doc__ from parent,
-        this is convenience option"""
+        This is a convenience option"""
 
         doc = ""
-        """The documentation for the given type."""
+        """The public documentation for the given type."""
 
         appinfo = None
         """Any object that carries app-specific info."""
