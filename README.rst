@@ -71,6 +71,8 @@ of Spyne:
   ``spyne.client.twisted.TwistedHttpClient``.
 * `Django <http://djangoproject.com/>`_ is needed for
   ``spyne.server.django.DjangoApplication``.
+* `Pyramid <http://pylonsproject.org/>`_ is needed for
+  ``spyne.server.pyramid.PyramidApplication``.
 * `MessagePack <http://github.com/msgpack/msgpack-python/>`_ is needed for
   ``spyne.protocol.msgpack``.
 
