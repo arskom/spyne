@@ -75,6 +75,8 @@ of Spyne:
   ``spyne.server.pyramid.PyramidApplication``.
 * `MessagePack <http://github.com/msgpack/msgpack-python/>`_ is needed for
   ``spyne.protocol.msgpack``.
+* `simplejson <http://github.com/simplejson/simplejson>`_ is used when found
+   for ``spyne.protocol.json``.
 
 You are advised to add these as requirements to your own projects, as these are
 only optional dependencies of Spyne, thus not handled in its setup script.
