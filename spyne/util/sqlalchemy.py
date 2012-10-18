@@ -308,9 +308,10 @@ def gen_sqla_info(cls, cls_bases=()):
     Also maps given class to the returned table.
     """
 
-    print cls
     metadata = cls.Attributes.sqla_metadata
     table_name = cls.Attributes.table_name
+
+    inc = [] # include_properties
 
     # check inheritance
     inheritance = None
@@ -329,6 +330,9 @@ def gen_sqla_info(cls, cls_bases=()):
                 inheritance = _JOINED
                 raise NotImplementedError("Joined table inheritance is not yet "
                                           "implemented.")
+            inc_prop = base_class.Attributes.sqla_mapper.include_properties
+            if inc_prop is not None:
+                inc.extend(inc_prop)
 
     # check whether the object is already mapped
     table = None
@@ -343,11 +347,7 @@ def gen_sqla_info(cls, cls_bases=()):
         # information here yet.
         table = _FakeTable()
 
-    rels = {}
-    exc = []
-
-    if len(cls._type_info) == 0 and cls.Attributes.sqla_table is not None and cls.__orig__ is None:
-        print "T" * 10, cls
+    props = {}
 
     # For each Spyne field
     for k, v in cls._type_info.items():
@@ -381,7 +381,7 @@ def gen_sqla_info(cls, cls_bases=()):
                     # FIXME: Handle the case where the table already exists.
                     rel_t = Table(rel_table_name, metadata, *(col_own, col_child))
 
-                    rels[k] = relationship(child, secondary=rel_t)
+                    props[k] = relationship(child, secondary=rel_t)
 
                 else: # one to many
                     assert p.left is None, "'left' is ignored."
@@ -391,7 +391,7 @@ def gen_sqla_info(cls, cls_bases=()):
                     child.__table__.append_column(col)
                     child.__mapper__.add_property(col.name, col)
 
-                    rels[k] = relationship(child)
+                    props[k] = relationship(child)
 
             elif p is not None and issubclass(v, ComplexModelBase):
                 # v has the Attribute values we need whereas real_v is what the
@@ -411,7 +411,7 @@ def gen_sqla_info(cls, cls_bases=()):
                     col = _get_col_o2o(k, v, p.left)
                     rel = relationship(real_v, uselist=False)
 
-                    rels[k] = rel
+                    props[k] = rel
 
                 elif isinstance(p, c_xml):
                     col = Column(k, PGObjectXml(v, p.root_tag, p.no_ns),
@@ -426,7 +426,7 @@ def gen_sqla_info(cls, cls_bases=()):
                 else:
                     raise ValueError(p)
 
-                rels[col.name] = col
+                props[col.name] = col
                 table.append_column(col)
 
             else:
@@ -438,12 +438,8 @@ def gen_sqla_info(cls, cls_bases=()):
             col = Column(k, t, *col_args, **col_kwargs)
             table.append_column(col)
 
-            if v.Attributes.exc_mapper:
-                exc.append(k)
-            else:
-                rels[k] = col
-
-        #print '%32s'%k, '%-44r'%v, '->', t
+            if not v.Attributes.exc_mapper:
+                props[k] = col
 
     if isinstance(table, _FakeTable):
         table_args, table_kwargs = sanitize_args(cls.Attributes.sqla_table_args)
@@ -452,15 +448,35 @@ def gen_sqla_info(cls, cls_bases=()):
 
     # Map the table to the object
     mapper_args, mapper_kwargs = sanitize_args(cls.Attributes.sqla_mapper_args)
-    mapper_kwargs['properties'] = rels
-    mapper_kwargs['exclude_properties'] = exc
+
+    _props = mapper_kwargs.get('properties', None)
+    if _props is None:
+        mapper_kwargs['properties'] = props
+    else:
+        _props.update(props)
+
+    _inc = mapper_kwargs.get('include_properties', None)
+    if _inc is None:
+        mapper_kwargs['include_properties'] = inc + props.keys()
+    else:
+        _inc.extend(inc)
+        _inc.extend(props.keys())
+
     po = mapper_kwargs.get('polymorphic_on', None)
     if po is not None:
-        mapper_kwargs['polymorphic_on'] = table.c[po]
+        if not isinstance(po, Column):
+            mapper_kwargs['polymorphic_on'] = table.c[po]
+        else:
+            del mapper_kwargs['polymorphic_on']
 
-    if getattr(cls, '__extends__', None) is not None:
+    if inheritance is not None:
         mapper_kwargs['inherits'] = cls.__extends__.Attributes.sqla_mapper
-    cls_mapper = mapper(cls, table, *mapper_args, **mapper_kwargs)
+
+    if inheritance is not _SINGLE:
+        mapper_args = (table,) + mapper_args
+
+
+    cls_mapper = mapper(cls, *mapper_args, **mapper_kwargs)
 
     cls.__tablename__ = cls.Attributes.table_name
     cls.Attributes.sqla_mapper = cls.__mapper__ = cls_mapper

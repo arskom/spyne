@@ -112,12 +112,15 @@ def sanitize_args(a):
 
     if a is not None:
         if isinstance(a, dict):
+            args = tuple()
             kwargs = a
+
         elif isinstance(a, tuple):
             if isinstance(a[-1], dict):
                 args, kwargs = a[0:-1], a[-1]
             else:
                 args = a
+                kwargs = {}
 
     return args, kwargs
 
