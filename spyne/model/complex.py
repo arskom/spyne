@@ -320,7 +320,7 @@ class ComplexModelMeta(type(ModelBase)):
 
                 gen_spyne_info(self)
 
-        elif self.Attributes.sqla_metadata is not None:
+        elif self.Attributes.sqla_metadata is not None and len(self._type_info) > 0:
             from spyne.util.sqlalchemy import gen_sqla_info
 
             gen_sqla_info(self, cls_bases)

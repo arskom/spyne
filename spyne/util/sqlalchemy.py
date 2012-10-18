@@ -318,7 +318,7 @@ def gen_sqla_info(cls, cls_bases=()):
     base_class = getattr(cls, '__extends__', None)
     if base_class is None:
         for b in cls_bases:
-            if getattr(b, '_type_info', None) is not None:
+            if getattr(b, '_type_info', None) is not None and b.__mixin__:
                 base_class = b
 
     if base_class is not None:
@@ -470,7 +470,7 @@ def gen_sqla_info(cls, cls_bases=()):
             del mapper_kwargs['polymorphic_on']
 
     if inheritance is not None:
-        mapper_kwargs['inherits'] = cls.__extends__.Attributes.sqla_mapper
+        mapper_kwargs['inherits'] = base_class.Attributes.sqla_mapper
 
     if inheritance is not _SINGLE:
         mapper_args = (table,) + mapper_args
