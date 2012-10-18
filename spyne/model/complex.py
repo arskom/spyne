@@ -201,11 +201,9 @@ def _join_args(x, y):
     ya, yk = sanitize_args(y)
 
     xk = dict(xk)
-    yk = dict(yk)
-
     xk.update(yk)
 
-    return xa+ya, xk
+    return xa + ya, xk
 
 
 class ComplexModelMeta(type(ModelBase)):
@@ -241,10 +239,10 @@ class ComplexModelMeta(type(ModelBase)):
                             if len(base_types) > 0 and issubclass(b, ModelBase):
                                 cls_dict["__extends__"] = b
 
-                        except:
+                        except Exception,e:
+                            logger.exception(e)
                             logger.error(repr(extends))
                             raise
-
 
         # populate children
         if not ('_type_info' in cls_dict):
