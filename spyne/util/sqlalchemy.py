@@ -236,6 +236,10 @@ def get_sqlalchemy_type(cls):
         else:
             return sqlalchemy.String(cls.Attributes.max_len)
 
+    # must be above Unicode, because Uuid is Unicode's subclass
+    elif issubclass(cls, Uuid):
+        return PGUuid
+
     # must be above Unicode, because Point is Unicode's subclass
     elif issubclass(cls, Point):
         return PGGeometry("POINT", dimension=cls.Attributes.dim)
@@ -281,9 +285,6 @@ def get_sqlalchemy_type(cls):
 
     elif issubclass(cls, Time):
         return sqlalchemy.Time
-
-    elif issubclass(cls, Uuid):
-        return PGUuid
 
 
 def get_pk_columns(cls):
