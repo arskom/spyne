@@ -143,6 +143,10 @@ class Unicode(SimpleModel):
         """The argument to the ``unicode`` builtin; one of 'strict', 'replace'
         or 'ignore'."""
 
+        format = None
+        """A regular python string formatting string. See here:
+        http://docs.python.org/library/stdtypes.html#string-formatting"""
+
     def __new__(cls, *args, **kwargs):
         assert len(args) <= 1
 
@@ -171,7 +175,10 @@ class Unicode(SimpleModel):
         retval = value
         if cls.Attributes.encoding is not None and isinstance(value, unicode):
             retval = value.encode(cls.Attributes.encoding)
-        return retval
+        if cls.Attributes.format is None:
+            return retval
+        else:
+            return cls.Attributes.format % retval
 
     @staticmethod
     def is_default(cls):
