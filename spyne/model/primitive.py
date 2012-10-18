@@ -285,7 +285,7 @@ class Decimal(SimpleModel):
         http://docs.python.org/library/stdtypes.html#string-formatting"""
 
         pattern = None
-        """A regular expression that matches the whole time. See here for more
+        """A regular expression that matches the whole field. See here for more
         info: http://www.regular-expressions.info/xml.html"""
 
         total_digits = decimal.Decimal('inf')
