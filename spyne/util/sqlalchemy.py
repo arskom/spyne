@@ -453,14 +453,12 @@ def gen_sqla_info(cls, cls_bases=()):
     if _props is None:
         mapper_kwargs['properties'] = props
     else:
-        _props.update(props)
+        props.update(_props)
+        mapper_kwargs['properties'] = props
 
     _inc = mapper_kwargs.get('include_properties', None)
     if _inc is None:
         mapper_kwargs['include_properties'] = inc + props.keys()
-    else:
-        _inc.extend(inc)
-        _inc.extend(props.keys())
 
     po = mapper_kwargs.get('polymorphic_on', None)
     if po is not None:
