@@ -36,6 +36,7 @@ import sqlalchemy
 
 from lxml import etree
 
+from sqlalchemy import sql
 from sqlalchemy.schema import Column
 from sqlalchemy.schema import Table
 from sqlalchemy.schema import ForeignKey
@@ -75,6 +76,7 @@ from spyne.model.primitive import Integer8
 from spyne.model.primitive import Integer16
 from spyne.model.primitive import Integer32
 from spyne.model.primitive import Integer64
+from spyne.model.primitive import Point
 from spyne.model.primitive import UnsignedInteger
 from spyne.model.primitive import UnsignedInteger8
 from spyne.model.primitive import UnsignedInteger16
@@ -125,6 +127,60 @@ _sq2sp_type_map = {
 def compile_uuid_sqlite(type_, compiler, **kw):
     return "BLOB"
 
+
+class PGGeometry(UserDefinedType):
+    """Geometry type for Postgis 2"""
+
+    class PlainWkt(str):
+        pass
+
+    class PlainWkb(str):
+        pass
+
+    def __init__(self, geometry_type='GEOMETRY', srid=4326, dimension=2,
+                                                                format='wkt'):
+        self.geometry_type = geometry_type.upper()
+        self.srid = int(srid)
+        self.dimension = dimension
+        self.format = format
+
+        if self.format == 'wkt':
+            self.format = PGGeometry.PlainWkt
+        elif self.format == 'wkb':
+            self.format = PGGeometry.PlainWkb
+
+    def get_col_spec(self):
+        return '%s(%s,%d)' % (self.name, self.geometry_type, self.srid)
+
+    def column_expression(self, col):
+        if self.format is PGGeometry.PlainWkb:
+            return sql.func.ST_AsBinary(col, type_=self)
+        if self.format is PGGeometry.PlainWkt:
+            return sql.func.ST_AsText(col, type_=self)
+
+    def result_processor(self, dialect, coltype):
+        if self.format is PGGeometry.PlainWkt:
+            def process(value):
+                if value is not None:
+                    return self.format(value)
+
+        if self.format is PGGeometry.PlainWkb:
+            def process(value):
+                if value is not None:
+                    return sql.func.ST_AsBinary(value, self.srid)
+
+        return process
+
+    def bind_processor(self, bindvalue):
+        if self.format is PGGeometry.PlainWkt:
+            def process(value):
+                return sql.func.ST_GeomFromText(value, self.srid)
+
+        if self.format is PGGeometry.PlainWkb:
+            def process(value):
+                return value
+
+        return process
 
 class PGObjectXml(UserDefinedType):
     def __init__(self, cls, root_tag_name=None, no_namespace=False):
@@ -179,6 +235,10 @@ def get_sqlalchemy_type(cls):
             return sqlalchemy.Text
         else:
             return sqlalchemy.String(cls.Attributes.max_len)
+
+    # must be above Unicode, because Point is Unicode's subclass
+    elif issubclass(cls, Point):
+        return PGGeometry("POINT", dimension=cls.Attributes.dim)
 
     elif issubclass(cls, Unicode):
         if cls.Attributes.max_len == Unicode.Attributes.max_len: # Default is arbitrary-length

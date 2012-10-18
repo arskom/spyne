@@ -48,6 +48,8 @@ except ImportError:
 
 string_encoding = 'utf8'
 
+FLOAT_PATTERN = '-?[0-9]+\.?[0-9]*'
+
 DATE_PATTERN = r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})'
 TIME_PATTERN = r'(?P<hr>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})(?P<sec_frac>\.\d+)?'
 OFFSET_PATTERN = r'(?P<tz_hr>[+-]\d{2}):(?P<tz_min>\d{2})'
@@ -928,6 +930,25 @@ class Uuid(Unicode):
     @nillable_string
     def from_string(cls, string):
         return uuid.UUID(string)
+
+
+class Point(Unicode):
+    """An experimental point type whose native format is WKT. You can use
+    :func:`shapely.wkt.loads` to get a proper point type."""
+
+    __base_type__ = Unicode
+
+    class Attributes(Unicode.Attributes):
+        dim = None
+
+    def __new__(cls, dim, **kwargs):
+        assert dim in (2,3)
+
+        kwargs['dim'] = dim
+        kwargs['pattern'] = 'POINT\\(%s\\)' % ( ('(%s ?)' % FLOAT_PATTERN) * dim)
+        kwargs['type_name'] = 'point%dd' % dim
+
+        return SimpleModel.__new__(cls,  ** kwargs)
 
 
 # a class that is really a namespace

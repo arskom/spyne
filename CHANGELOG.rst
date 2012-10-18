@@ -13,6 +13,7 @@ spyne-2.9.0
    by default. The TableModel is deprecated, long live __metadata__ on
    ComplexModel!
  * First-class integration with Pyramid.
+ * First geospatial type: Point.
 
 spyne-2.8.2-rc
 --------------

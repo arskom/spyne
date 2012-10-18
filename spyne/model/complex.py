@@ -32,6 +32,7 @@ from spyne.model import nillable_dict
 from spyne.model import nillable_string
 from spyne.model.primitive import NATIVE_MAP
 from spyne.model.primitive import Unicode
+from spyne.model.primitive import Point
 
 from spyne.const import xml_ns as namespace
 from spyne.const import MAX_STRING_FIELD_LENGTH
@@ -188,6 +189,8 @@ def _get_spyne_type(v):
     if subc:
         if issubclass(v, Array) and len(v._type_info) != 1:
             raise Exception("Invalid Array definition in %s.%s."% (cls_name, k))
+        elif issubclass(v, Point) and v.Attributes.dim is None:
+            raise Exception("Please specify the number of dimensions")
         return v
 
 
