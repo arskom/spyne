@@ -20,9 +20,10 @@
 """The ``spyne.interface.xml_schema.model`` module contains type-specific logic
 for schema generation."""
 
-import decimal
 import logging
 logger = logging.getLogger(__name__)
+
+import decimal
 
 from lxml import etree
 
@@ -34,6 +35,7 @@ from spyne.util import memoize
 
 from spyne.const.xml_ns import xsd as _ns_xs
 from spyne.const.xml_ns import xsd as _ns_xsd
+
 
 def simple_get_restriction_tag(document, cls):
     simple_type = etree.Element('{%s}simpleType' % _ns_xsd)
@@ -92,7 +94,7 @@ def complex_add(document, cls):
             raise Exception("%r can't extend %r because they are both '{%s}%s'"
                     % (cls, extends, cls.get_type_name(), cls.get_namespace()))
 
-        if extends.Attributes.private:
+        if extends.Attributes.exc_interface:
             # If the parent class is private, it won't be in the schema, so we
             # need to act as if its attributes are part of cls as well.
             type_info = cls.get_simple_type_info(cls)
@@ -111,6 +113,9 @@ def complex_add(document, cls):
             attribute = etree.SubElement(complex_type,
                                         '{%s}attribute' % _ns_xsd)
             v.describe(k, attribute, document)
+            continue
+
+        if v.Attributes.exc_interface:
             continue
 
         if not issubclass(v, cls):
