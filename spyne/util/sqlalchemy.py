@@ -77,6 +77,7 @@ from spyne.model.primitive import Integer16
 from spyne.model.primitive import Integer32
 from spyne.model.primitive import Integer64
 from spyne.model.primitive import Point
+from spyne.model.primitive import Polygon
 from spyne.model.primitive import UnsignedInteger
 from spyne.model.primitive import UnsignedInteger8
 from spyne.model.primitive import UnsignedInteger16
@@ -230,19 +231,23 @@ sqlalchemy.dialects.postgresql.base.ischema_names['json'] = PGObjectJson
 
 @memoize
 def get_sqlalchemy_type(cls):
-    if issubclass(cls, String):
-        if cls.Attributes.max_len == String.Attributes.max_len: # Default is arbitrary-length
-            return sqlalchemy.Text
-        else:
-            return sqlalchemy.String(cls.Attributes.max_len)
-
     # must be above Unicode, because Uuid is Unicode's subclass
-    elif issubclass(cls, Uuid):
+    if issubclass(cls, Uuid):
         return PGUuid
 
     # must be above Unicode, because Point is Unicode's subclass
     elif issubclass(cls, Point):
         return PGGeometry("POINT", dimension=cls.Attributes.dim)
+
+    # must be above Unicode, because Polygon is Unicode's subclass
+    elif issubclass(cls, Polygon):
+        return PGGeometry("POLYGON", dimension=cls.Attributes.dim)
+
+    elif issubclass(cls, String):
+        if cls.Attributes.max_len == String.Attributes.max_len: # Default is arbitrary-length
+            return sqlalchemy.Text
+        else:
+            return sqlalchemy.String(cls.Attributes.max_len)
 
     elif issubclass(cls, Unicode):
         if cls.Attributes.max_len == Unicode.Attributes.max_len: # Default is arbitrary-length

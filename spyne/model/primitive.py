@@ -49,13 +49,33 @@ except ImportError:
 string_encoding = 'utf8'
 
 FLOAT_PATTERN = '-?[0-9]+\.?[0-9]*'
-
 DATE_PATTERN = r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})'
 TIME_PATTERN = r'(?P<hr>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})(?P<sec_frac>\.\d+)?'
 OFFSET_PATTERN = r'(?P<tz_hr>[+-]\d{2}):(?P<tz_min>\d{2})'
 DATETIME_PATTERN = DATE_PATTERN + '[T ]' + TIME_PATTERN
 UUID_PATTERN = "%(x)s{8}-%(x)s{4}-%(x)s{4}-%(x)s{4}-%(x)s{12}" % \
                                                             {'x': '[a-fA-F0-9]'}
+
+def _get_one_point_pattern(dim):
+    return '%s' % ' *'.join([FLOAT_PATTERN] * dim)
+
+def _get_point_pattern(dim):
+    return 'POINT\\(%s\\)' % _get_one_point_pattern(dim)
+
+def _get_one_line_pattern(dim):
+    one_point = _get_one_point_pattern(dim)
+    return '\\(%s *(, *%s)*\\)' % (one_point, one_point)
+
+def _get_linestring_pattern(dim):
+    return 'LINESTRING%s' % _get_one_line_pattern(dim)
+
+def _get_one_polygon_pattern(dim):
+    one_line = _get_one_line_pattern(dim)
+    return '\\(%s *(, *%s)*\\)' % (one_line, one_line)
+
+def _get_polygon_pattern(dim):
+    return 'POLYGON%s' % _get_one_polygon_pattern(dim)
+
 
 _local_re = re.compile(DATETIME_PATTERN)
 _utc_re = re.compile(DATETIME_PATTERN + 'Z')
@@ -939,6 +959,25 @@ class Uuid(Unicode):
         return uuid.UUID(string)
 
 
+class Polygon(Unicode):
+    """An experimental point type whose native format is WKT. You can use
+    :func:`shapely.wkt.loads` to get a proper point type."""
+
+    __base_type__ = Unicode
+
+    class Attributes(Unicode.Attributes):
+        dim = None
+
+    def __new__(cls, dim=None, **kwargs):
+        assert dim in (None,2,3)
+        if dim is not None:
+            kwargs['dim'] = dim
+            kwargs['pattern'] = _get_polygon_pattern(dim)
+            kwargs['type_name'] = 'polygon%dd' % dim
+
+        return SimpleModel.__new__(cls,  ** kwargs)
+
+
 class Point(Unicode):
     """An experimental point type whose native format is WKT. You can use
     :func:`shapely.wkt.loads` to get a proper point type."""
@@ -948,12 +987,12 @@ class Point(Unicode):
     class Attributes(Unicode.Attributes):
         dim = None
 
-    def __new__(cls, dim, **kwargs):
-        assert dim in (2,3)
-
-        kwargs['dim'] = dim
-        kwargs['pattern'] = 'POINT\\(%s\\)' % ( ('(%s ?)' % FLOAT_PATTERN) * dim)
-        kwargs['type_name'] = 'point%dd' % dim
+    def __new__(cls, dim=None, **kwargs):
+        assert dim in (None,2,3)
+        if dim is not None:
+            kwargs['dim'] = dim
+            kwargs['pattern'] = _get_point_pattern(dim)
+            kwargs['type_name'] = 'point%dd' % dim
 
         return SimpleModel.__new__(cls,  ** kwargs)
 
