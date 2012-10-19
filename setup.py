@@ -58,7 +58,7 @@ def _wrapper(f):
     def _(args, queue):
         try:
             retval = f(args)
-        except TypeError:
+        except TypeError: # it's a pain to call trial.
             sys.argv = ['trial']
             sys.argv.extend(args)
             retval = f()
@@ -161,7 +161,7 @@ setup(
     zip_safe=False,
     install_requires=[
       'pytz',
-      'lxml<2.9999',
+      'lxml<2.9',
     ],
 
     entry_points = {

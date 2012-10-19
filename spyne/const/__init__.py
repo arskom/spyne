@@ -22,7 +22,7 @@ in various parts of Spyne."""
 
 
 MAX_STRING_FIELD_LENGTH = 64
-"""Maximum length of a string field for :func:`spyne.util.safe_repr`"""
+"""Maximum length of a string field for :func:`spyne.util.log_repr`"""
 
 MAX_ARRAY_ELEMENT_NUM = 2
-"""Maximum number of array members for :func:`spyne.util.safe_repr`"""
+"""Maximum number of array members for :func:`spyne.util.log_repr`"""

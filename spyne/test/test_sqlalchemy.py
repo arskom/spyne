@@ -42,6 +42,7 @@ from spyne.decorator import rpc
 from spyne.model.primitive import Integer
 from spyne.model.table import TableModel
 from spyne.model.complex import ComplexModel
+from spyne.model.complex import xml
 from spyne.model.complex import Array
 from spyne.model.primitive import Integer32
 from spyne.model.primitive import Unicode
@@ -49,17 +50,24 @@ from spyne.protocol.http import HttpRpc
 from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
 from spyne.server.wsgi import WsgiMethodContext
-from spyne.util.sqlalchemy import get_sqlalchemy_table
+from spyne.util.sqlalchemy import gen_sqla_info
 
+#
+# Deprecated Table Model Tests
+#
 
 class TestSqlAlchemy(unittest.TestCase):
-    def set_up(self):
+    def setUp(self):
         self.metadata = MetaData()
         self.DeclarativeBase = declarative_base(metadata=self.metadata)
         self.engine = create_engine('sqlite:///:memory:', echo=True)
         self.Session = sessionmaker(bind=self.engine)
 
-    setUp=set_up
+    def tearDown(self):
+        del self.metadata
+        del self.DeclarativeBase
+        del self.engine
+        del self.Session
 
     def test_declarative(self):
         from sqlalchemy import Integer
@@ -281,7 +289,6 @@ class TestSqlAlchemy(unittest.TestCase):
             name = Column(sqlalchemy.String(256))
 
         class UserMail(User):
-            __table_args__ = {'extend_existing': True}
             mail = Column(sqlalchemy.String(256))
 
         assert 'mail' in UserMail._type_info
@@ -327,8 +334,7 @@ class TestSpyne2Sqlalchemy(unittest.TestCase):
 
             i = Integer(primary_key=True)
 
-
-        t = get_sqlalchemy_table(SomeClass)
+        t = gen_sqla_info(SomeClass)
 
         assert t.c['i'].type.__class__ is sqlalchemy.DECIMAL
 
@@ -343,9 +349,10 @@ class TestSpyne2Sqlalchemy(unittest.TestCase):
             i = Integer(primary_key=True)
             j = Unicode(64)
 
-        t = get_sqlalchemy_table(SomeClass)
+        t = gen_sqla_info(SomeClass)
 
-        assert t.c['j'].type.__class__ is sqlalchemy.Unicode
+        assert isinstance(t.c['j'].type, sqlalchemy.Unicode)
+
         for c in t.constraints:
             if isinstance(c, UniqueConstraint):
                 assert list(c.columns) == [t.c.j]
@@ -353,6 +360,15 @@ class TestSpyne2Sqlalchemy(unittest.TestCase):
         else:
             raise Exception("UniqueConstraint is missing.")
 
+#
+# New Table Model Tests
+#
+
+from spyne.model.complex import TTableModel
+from spyne.model.complex import table
+
+class NewTableModel:pass
+NewTableModel = TTableModel()
 
 class TestSqlAlchemyNested(unittest.TestCase):
     def setUp(self):
@@ -361,21 +377,19 @@ class TestSqlAlchemyNested(unittest.TestCase):
 
 
     def test_nested_sql(self):
-        from spyne.model.complex import TableModel
-
         engine = create_engine('sqlite:///:memory:')
         session = sessionmaker(bind=engine)()
-        metadata = TableModel.Attributes.sqla_metadata = MetaData()
+        metadata = NewTableModel.Attributes.sqla_metadata = MetaData()
         metadata.bind = engine
 
-        class SomeOtherClass(TableModel):
+        class SomeOtherClass(NewTableModel):
             __tablename__ = 'some_other_class'
             __table_args__ = {"sqlite_autoincrement": True}
 
             id = Integer32(primary_key=True)
             s = Unicode(64)
 
-        class SomeClass(TableModel):
+        class SomeClass(NewTableModel):
             __tablename__ = 'some_class'
             __table_args__ = (
                 {"sqlite_autoincrement": True},
@@ -384,8 +398,8 @@ class TestSqlAlchemyNested(unittest.TestCase):
             id = Integer32(primary_key=True)
             o = SomeOtherClass.customize(store_as='table')
 
-        get_sqlalchemy_table(SomeOtherClass)
-        get_sqlalchemy_table(SomeClass)
+        gen_sqla_info(SomeOtherClass)
+        gen_sqla_info(SomeClass)
 
         metadata.create_all()
 
@@ -410,29 +424,27 @@ class TestSqlAlchemyNested(unittest.TestCase):
         assert sc_db.o_id == None
 
     def test_nested_sql_array_as_table(self):
-        from spyne.model.complex import TableModel
-
         engine = create_engine('sqlite:///:memory:')
         session = sessionmaker(bind=engine)()
-        metadata = TableModel.Attributes.sqla_metadata = MetaData()
+        metadata = NewTableModel.Attributes.sqla_metadata = MetaData()
         metadata.bind = engine
 
-        class SomeOtherClass(TableModel):
+        class SomeOtherClass(NewTableModel):
             __tablename__ = 'some_other_class'
             __table_args__ = {"sqlite_autoincrement": True}
 
             id = Integer32(primary_key=True)
             s = Unicode(64)
 
-        class SomeClass(TableModel):
+        class SomeClass(NewTableModel):
             __tablename__ = 'some_class'
             __table_args__ = {"sqlite_autoincrement": True}
 
             id = Integer32(primary_key=True)
             others = Array(SomeOtherClass, store_as='table')
 
-        get_sqlalchemy_table(SomeOtherClass)
-        get_sqlalchemy_table(SomeClass)
+        gen_sqla_info(SomeOtherClass)
+        gen_sqla_info(SomeClass)
 
         metadata.create_all()
 
@@ -452,29 +464,27 @@ class TestSqlAlchemyNested(unittest.TestCase):
         session.close()
 
     def test_nested_sql_array_as_multi_table(self):
-        from spyne.model.complex import TableModel
-
         engine = create_engine('sqlite:///:memory:')
         session = sessionmaker(bind=engine)()
-        metadata = TableModel.Attributes.sqla_metadata = MetaData()
+        metadata = NewTableModel.Attributes.sqla_metadata = MetaData()
         metadata.bind = engine
 
-        class SomeOtherClass(TableModel):
+        class SomeOtherClass(NewTableModel):
             __tablename__ = 'some_other_class'
             __table_args__ = {"sqlite_autoincrement": True}
 
             id = Integer32(primary_key=True)
             s = Unicode(64)
 
-        class SomeClass(TableModel):
+        class SomeClass(NewTableModel):
             __tablename__ = 'some_class'
             __table_args__ = {"sqlite_autoincrement": True}
 
             id = Integer32(primary_key=True)
-            others = Array(SomeOtherClass, store_as='table_multi')
+            others = Array(SomeOtherClass, store_as=table(multi=True))
 
-        get_sqlalchemy_table(SomeOtherClass)
-        get_sqlalchemy_table(SomeClass)
+        gen_sqla_info(SomeOtherClass)
+        gen_sqla_info(SomeClass)
 
         metadata.create_all()
 
@@ -494,25 +504,23 @@ class TestSqlAlchemyNested(unittest.TestCase):
         session.close()
 
     def test_nested_sql_array_as_xml(self):
-        from spyne.model.complex import TableModel
-
         engine = create_engine('sqlite:///:memory:')
         session = sessionmaker(bind=engine)()
-        metadata = TableModel.Attributes.sqla_metadata = MetaData()
+        metadata = NewTableModel.Attributes.sqla_metadata = MetaData()
         metadata.bind = engine
 
         class SomeOtherClass(ComplexModel):
             id = Integer32
             s = Unicode(64)
 
-        class SomeClass(TableModel):
+        class SomeClass(NewTableModel):
             __tablename__ = 'some_class'
             __table_args__ = {"sqlite_autoincrement": True}
 
             id = Integer32(primary_key=True)
             others = Array(SomeOtherClass, store_as='xml')
 
-        get_sqlalchemy_table(SomeClass)
+        gen_sqla_info(SomeClass)
 
         metadata.create_all()
 
@@ -531,26 +539,151 @@ class TestSqlAlchemyNested(unittest.TestCase):
 
         session.close()
 
-    def test_nested_sql_array_as_json(self):
-        from spyne.model.complex import TableModel
-
+    def test_inheritance(self):
         engine = create_engine('sqlite:///:memory:')
         session = sessionmaker(bind=engine)()
-        metadata = TableModel.Attributes.sqla_metadata = MetaData()
+        metadata = NewTableModel.Attributes.sqla_metadata = MetaData(bind=engine)
+
+        class SomeOtherClass(NewTableModel):
+            __tablename__ = 'some_class'
+            __table_args__ = {"sqlite_autoincrement": True}
+            id = Integer32(primary_key=True)
+            s = Unicode(64)
+
+        class SomeClass(SomeOtherClass):
+            numbers = Array(Integer32).store_as(xml(no_ns=True, root_tag='a'))
+
+        metadata.create_all()
+
+        sc = SomeClass(id=5, s='s', numbers=[1,2,3,4])
+
+        session.add(sc)
+        session.commit()
+        session.close()
+
+        sc_db = session.query(SomeClass).get(5)
+        assert sc_db.numbers == [1,2,3,4]
+        session.close()
+
+        sc_db = session.query(SomeOtherClass).get(5)
+        assert sc_db.id == 5
+        try:
+            sc_db.numbers
+        except AttributeError:
+            pass
+        else:
+            raise Exception("must fail")
+
+        session.close()
+
+    def test_sqlalchemy_inheritance(self):
+        # this is just a test for sqlalchemy behavior. no spyne code is involved
+        # here.
+        engine = create_engine('sqlite:///:memory:')
+        session = sessionmaker(bind=engine)()
+        metadata = MetaData(bind=engine)
+
+        class Employee(object):
+            def __init__(self, name):
+                self.name = name
+            def __repr__(self):
+                return self.__class__.__name__ + " " + self.name
+
+        class Manager(Employee):
+            def __init__(self, name, manager_data):
+                self.name = name
+                self.manager_data = manager_data
+            def __repr__(self):
+                return (
+                    self.__class__.__name__ + " " +
+                    self.name + " " +  self.manager_data
+                )
+
+        class Engineer(Employee):
+            def __init__(self, name, engineer_info):
+                self.name = name
+                self.engineer_info = engineer_info
+            def __repr__(self):
+                return (
+                    self.__class__.__name__ + " " +
+                    self.name + " " +  self.engineer_info
+                )
+
+        employees_table = Table('employees', metadata,
+            Column('employee_id', sqlalchemy.Integer, primary_key=True),
+            Column('name', sqlalchemy.String(50)),
+            Column('manager_data', sqlalchemy.String(50)),
+            Column('engineer_info', sqlalchemy.String(50)),
+            Column('type', sqlalchemy.String(20), nullable=False)
+        )
+
+        employee_mapper = mapper(Employee, employees_table,
+            polymorphic_on=employees_table.c.type, polymorphic_identity='employee')
+        manager_mapper = mapper(Manager, inherits=employee_mapper,
+                                            polymorphic_identity='manager')
+        engineer_mapper = mapper(Engineer, inherits=employee_mapper,
+                                            polymorphic_identity='engineer')
+
+        metadata.create_all()
+
+        manager = Manager('name', 'data')
+        session.add(manager)
+        session.commit()
+        session.close()
+
+        assert session.query(Employee).with_polymorphic('*').get(1).type == 'manager'
+
+
+    def test_inheritance_polymorphic_identity(self):
+        engine = create_engine('sqlite:///:memory:')
+        session = sessionmaker(bind=engine)()
+        metadata = NewTableModel.Attributes.sqla_metadata = MetaData(bind=engine)
+
+        class SomeOtherClass(NewTableModel):
+            __tablename__ = 'some_class'
+            __table_args__ = {"sqlite_autoincrement": True} # this is sqlite-specific
+            __mapper_args__ = {'polymorphic_on': 't', 'polymorphic_identity': 1}
+
+            id = Integer32(primary_key=True)
+            s = Unicode(64)
+            t = Integer32
+
+        class SomeClass(SomeOtherClass):
+            __mapper_args__ = {'polymorphic_identity': 2}
+            numbers = Array(Integer32).store_as(xml(no_ns=True, root_tag='a'))
+
+        metadata.create_all()
+
+        from pprint import pprint
+        print "!!!!!!!!!!!!!!!!", pprint(vars(SomeClass.Attributes.sqla_mapper))
+
+        sc = SomeClass(id=5, s='s', numbers=[1,2,3,4])
+
+        session.add(sc)
+        session.commit()
+        session.close()
+
+        sc_db = session.query(SomeOtherClass).with_polymorphic('*').get(5).t == 1
+        session.close()
+
+    def test_nested_sql_array_as_json(self):
+        engine = create_engine('sqlite:///:memory:')
+        session = sessionmaker(bind=engine)()
+        metadata = NewTableModel.Attributes.sqla_metadata = MetaData()
         metadata.bind = engine
 
         class SomeOtherClass(ComplexModel):
             id = Integer32
             s = Unicode(64)
 
-        class SomeClass(TableModel):
+        class SomeClass(NewTableModel):
             __tablename__ = 'some_class'
             __table_args__ = {"sqlite_autoincrement": True}
 
             id = Integer32(primary_key=True)
             others = Array(SomeOtherClass, store_as='json')
 
-        get_sqlalchemy_table(SomeClass)
+        gen_sqla_info(SomeClass)
 
         metadata.create_all()
 

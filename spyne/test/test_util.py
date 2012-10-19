@@ -39,17 +39,17 @@ class TestCDict(unittest.TestCase):
             raise Exception("Must fail.")
 
 class TestSafeRepr(unittest.TestCase):
-    def test_safe_repr(self):
+    def test_log_repr(self):
         from spyne.model.complex import ComplexModel
         from spyne.model.primitive import Integer
         from spyne.model.primitive import String
-        from spyne.model.complex import safe_repr
+        from spyne.model.complex import log_repr
 
         class Z(ComplexModel):
             z=String
 
         assert 128 > MAX_STRING_FIELD_LENGTH
-        assert safe_repr(Z(z="a"*128)) == "Z(z='%s'(...))" % ('a' * MAX_STRING_FIELD_LENGTH)
+        assert log_repr(Z(z="a"*128)) == "Z(z='%s'(...))" % ('a' * MAX_STRING_FIELD_LENGTH)
 
 class TestDeserialize(unittest.TestCase):
     def test_deserialize(self):

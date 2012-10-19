@@ -25,6 +25,6 @@ not cause a change in unrelated areas of Spyne.
 * Add WSDL Parsing support to Soap client.
 * Implement Soap 1.2 standard.
 * Implement Wsdl 2.0 standard.
-* Reflect transport and protocol pairs other than Soap/Http to the Wsdl.
+* Reflect transport and protocol pairs other than Soap/Http in the Wsdl.
 * etc.
 

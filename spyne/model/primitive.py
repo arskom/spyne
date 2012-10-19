@@ -49,12 +49,34 @@ except ImportError:
 
 string_encoding = 'utf8'
 
+FLOAT_PATTERN = '-?[0-9]+\.?[0-9]*'
 DATE_PATTERN = r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})'
 TIME_PATTERN = r'(?P<hr>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})(?P<sec_frac>\.\d+)?'
 OFFSET_PATTERN = r'(?P<tz_hr>[+-]\d{2}):(?P<tz_min>\d{2})'
 DATETIME_PATTERN = DATE_PATTERN + '[T ]' + TIME_PATTERN
 UUID_PATTERN = "%(x)s{8}-%(x)s{4}-%(x)s{4}-%(x)s{4}-%(x)s{12}" % \
                                                             {'x': '[a-fA-F0-9]'}
+
+def _get_one_point_pattern(dim):
+    return '%s' % ' *'.join([FLOAT_PATTERN] * dim)
+
+def _get_point_pattern(dim):
+    return 'POINT\\(%s\\)' % _get_one_point_pattern(dim)
+
+def _get_one_line_pattern(dim):
+    one_point = _get_one_point_pattern(dim)
+    return '\\(%s *(, *%s)*\\)' % (one_point, one_point)
+
+def _get_linestring_pattern(dim):
+    return 'LINESTRING%s' % _get_one_line_pattern(dim)
+
+def _get_one_polygon_pattern(dim):
+    one_line = _get_one_line_pattern(dim)
+    return '\\(%s *(, *%s)*\\)' % (one_line, one_line)
+
+def _get_polygon_pattern(dim):
+    return 'POLYGON%s' % _get_one_polygon_pattern(dim)
+
 
 _local_re = re.compile(DATETIME_PATTERN)
 _utc_re = re.compile(DATETIME_PATTERN + 'Z')
@@ -142,6 +164,10 @@ class Unicode(SimpleModel):
         """The argument to the ``unicode`` builtin; one of 'strict', 'replace'
         or 'ignore'."""
 
+        format = None
+        """A regular python string formatting string. See here:
+        http://docs.python.org/library/stdtypes.html#string-formatting"""
+
     def __new__(cls, *args, **kwargs):
         assert len(args) <= 1
 
@@ -170,7 +196,10 @@ class Unicode(SimpleModel):
         retval = value
         if cls.Attributes.encoding is not None and isinstance(value, unicode):
             retval = value.encode(cls.Attributes.encoding)
-        return retval
+        if cls.Attributes.format is None:
+            return retval
+        else:
+            return cls.Attributes.format % retval
 
     @staticmethod
     def is_default(cls):
@@ -277,8 +306,30 @@ class Decimal(SimpleModel):
         http://docs.python.org/library/stdtypes.html#string-formatting"""
 
         pattern = None
-        """A regular expression that matches the whole time. See here for more
+        """A regular expression that matches the whole field. See here for more
         info: http://www.regular-expressions.info/xml.html"""
+
+        total_digits = decimal.Decimal('inf')
+        """Maximum number of digits."""
+
+        fraction_digits = decimal.Decimal('inf')
+        """Maximum number of digits after the decimal separator."""
+
+    def __new__(cls, *args, **kwargs):
+        assert len(args) <= 2
+
+        if len(args) >= 1 and args[0] is not None:
+            kwargs['total_digits'] = args[0]
+            kwargs['fraction_digits'] = 0
+            if len(args) == 2 and args[1] is not None:
+                kwargs['fraction_digits'] = args[1]
+                assert args[0] <= args[1], "Total digits should be greater than" \
+                                          " or equal to fraction digits." \
+                                          " %r ! <= %r" % (args[0], args[1])
+
+        retval = SimpleModel.__new__(cls,  ** kwargs)
+
+        return retval
 
     @staticmethod
     def is_default(cls):
@@ -287,7 +338,20 @@ class Decimal(SimpleModel):
                 and cls.Attributes.ge == Decimal.Attributes.ge
                 and cls.Attributes.lt == Decimal.Attributes.lt
                 and cls.Attributes.le == Decimal.Attributes.le
+                and cls.Attributes.total_digits == \
+                                            Decimal.Attributes.total_digits
+                and cls.Attributes.fraction_digits == \
+                                            Decimal.Attributes.fraction_digits
             )
+
+    @staticmethod
+    def validate_string(cls, value):
+        return SimpleModel.validate_string(cls, value) and (
+            value is None or (
+                len(value) <= (cls.Attributes.total_digits +
+                                             cls.Attributes.fraction_digits + 1)
+                                                  # + 1 is for decimal separator
+            ))
 
     @staticmethod
     def validate_native(cls, value):
@@ -355,7 +419,6 @@ class Integer(Decimal):
     """The arbitrary-size signed integer."""
 
     __type_name__ = 'integer'
-    __length__ = None
 
     @classmethod
     @nillable_string
@@ -380,14 +443,6 @@ class Integer(Decimal):
             except ValueError:
                 raise ValidationError(string)
 
-    @staticmethod
-    def validate_native(cls, value):
-        return (     Decimal.validate_native(cls, value)
-                and (cls.__length__ is None or
-                    (-2**( cls.__length__ -1) <= value < 2 ** (cls.__length__ - 1))
-                )
-            )
-
 
 class UnsignedInteger(Integer):
     """The arbitrary-size unsigned integer, aka nonNegativeInteger."""
@@ -398,8 +453,8 @@ class UnsignedInteger(Integer):
     def validate_native(cls, value):
         return (     Integer.validate_native(cls, value)
                 and value >= 0
-                and (cls.__length__ is None or (value < 2 ** cls.__length__))
             )
+
 
 NonNegativeInteger = UnsignedInteger
 
@@ -408,8 +463,15 @@ class Integer64(Integer):
     """The 64-bit signed integer, aka long."""
 
     __type_name__ = 'long'
-    __length__ = 64
-    __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
+
+    class Attributes(Integer.Attributes):
+        max_str_len = math.ceil(math.log(2**64, 10)) + 1 # +1 for negatives
+
+    @staticmethod
+    def validate_native(cls, value):
+        return (     Integer.validate_native(cls, value)
+                and -0x8000000000000000 <= value < 0x8000000000000000
+            )
 
 Long = Integer64
 
@@ -418,8 +480,15 @@ class Integer32(Integer):
     """The 32-bit signed integer, aka int."""
 
     __type_name__ = 'int'
-    __length__ = 32
-    __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
+
+    class Attributes(Integer.Attributes):
+        max_str_len = math.ceil(math.log(2**32, 10)) + 1 # +1 for negatives
+
+    @staticmethod
+    def validate_native(cls, value):
+        return (     Integer.validate_native(cls, value)
+                and -0x80000000 <= value < 0x80000000
+            )
 
 Int = Integer32
 
@@ -428,8 +497,15 @@ class Integer16(Integer):
     """The 8-bit signed integer, aka short."""
 
     __type_name__ = 'short'
-    __length__ = 16
-    __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
+
+    class Attributes(Integer.Attributes):
+        max_str_len = math.ceil(math.log(2**16, 10)) + 1 # +1 for negatives
+
+    @staticmethod
+    def validate_native(cls, value):
+        return (     Integer.validate_native(cls, value)
+                and -0x8000 <= value < 0x8000
+            )
 
 Short = Integer64
 
@@ -438,8 +514,16 @@ class Integer8(Integer):
     """The 8-bit signed integer, aka byte."""
 
     __type_name__ = 'byte'
-    __length__ = 16
-    __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
+
+    class Attributes(Integer.Attributes):
+        max_str_len = math.ceil(math.log(2**8, 10)) + 1 # +1 for negatives
+
+
+    @staticmethod
+    def validate_native(cls, value):
+        return (     Integer.validate_native(cls, value)
+                and -0x80 <= value < 0x80
+            )
 
 Byte = Integer8
 
@@ -448,8 +532,15 @@ class UnsignedInteger64(UnsignedInteger):
     """The 64-bit unsigned integer, aka unsignedLong."""
 
     __type_name__ = 'unsignedLong'
-    __length__ = 64
-    __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
+
+    class Attributes(Integer.Attributes):
+        max_str_len = math.ceil(math.log(2**64, 10))
+
+    @staticmethod
+    def validate_native(cls, value):
+        return (     UnsignedInteger.validate_native(cls, value)
+                and  value <= 0xFFFFFFFFFFFFFFFF
+            )
 
 UnsignedLong = UnsignedInteger64
 
@@ -458,8 +549,15 @@ class UnsignedInteger32(UnsignedInteger):
     """The 32-bit unsigned integer, aka unsignedInt."""
 
     __type_name__ = 'unsignedInt'
-    __length__ = 32
-    __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
+
+    class Attributes(Integer.Attributes):
+        max_str_len = math.ceil(math.log(2**32, 10))
+
+    @staticmethod
+    def validate_native(cls, value):
+        return (     UnsignedInteger.validate_native(cls, value)
+                and  value <= 0xFFFFFFFF
+            )
 
 UnsignedInt = UnsignedInteger32
 
@@ -468,8 +566,15 @@ class UnsignedInteger16(Integer):
     """The 16-bit unsigned integer, aka unsignedShort."""
 
     __type_name__ = 'unsignedShort'
-    __length__ = 16
-    __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
+
+    class Attributes(Integer.Attributes):
+        max_str_len = math.ceil(math.log(2**16, 10))
+
+    @staticmethod
+    def validate_native(cls, value):
+        return (     UnsignedInteger.validate_native(cls, value)
+                and  value <= 0xFFFF
+            )
 
 UnsignedShort = UnsignedInteger16
 
@@ -478,8 +583,15 @@ class UnsignedInteger8(Integer):
     """The 8-bit unsigned integer, aka unsignedByte."""
 
     __type_name__ = 'unsignedByte'
-    __length__ = 8
-    __max_str_len__ = math.ceil(math.log(2**__length__, 10)) + 1
+
+    class Attributes(Integer.Attributes):
+        max_str_len = math.ceil(math.log(2**8, 10))
+
+    @staticmethod
+    def validate_native(cls, value):
+        return (     UnsignedInteger.validate_native(cls, value)
+                and  value <= 0xFF
+            )
 
 UnsignedByte = UnsignedInteger8
 
@@ -828,8 +940,62 @@ class Boolean(SimpleModel):
         return (string.lower() in ['true', '1'])
 
 
-Uuid = Unicode(pattern=UUID_PATTERN, type_name='Uuid')
-"""Unicode subclass for Universially-Unique Identifiers."""
+class Uuid(Unicode):
+    """Unicode subclass for Universially-Unique Identifiers."""
+
+    __type_name__ = 'uuid'
+    __base_type__ = Unicode
+
+    class Attributes(Unicode.Attributes):
+        pattern = UUID_PATTERN
+
+    @classmethod
+    @nillable_string
+    def to_string(cls, value):
+        return str(value)
+
+    @classmethod
+    @nillable_string
+    def from_string(cls, string):
+        return uuid.UUID(string)
+
+
+class Polygon(Unicode):
+    """An experimental point type whose native format is WKT. You can use
+    :func:`shapely.wkt.loads` to get a proper point type."""
+
+    __base_type__ = Unicode
+
+    class Attributes(Unicode.Attributes):
+        dim = None
+
+    def __new__(cls, dim=None, **kwargs):
+        assert dim in (None,2,3)
+        if dim is not None:
+            kwargs['dim'] = dim
+            kwargs['pattern'] = _get_polygon_pattern(dim)
+            kwargs['type_name'] = 'polygon%dd' % dim
+
+        return SimpleModel.__new__(cls,  ** kwargs)
+
+
+class Point(Unicode):
+    """An experimental point type whose native format is WKT. You can use
+    :func:`shapely.wkt.loads` to get a proper point type."""
+
+    __base_type__ = Unicode
+
+    class Attributes(Unicode.Attributes):
+        dim = None
+
+    def __new__(cls, dim=None, **kwargs):
+        assert dim in (None,2,3)
+        if dim is not None:
+            kwargs['dim'] = dim
+            kwargs['pattern'] = _get_point_pattern(dim)
+            kwargs['type_name'] = 'point%dd' % dim
+
+        return SimpleModel.__new__(cls,  ** kwargs)
 
 
 # a class that is really a namespace
@@ -890,6 +1056,7 @@ NATIVE_MAP = {
     decimal.Decimal: Decimal,
     uuid.UUID: Uuid,
 }
+
 
 if sys.version > '3':
     NATIVE_MAP.update({

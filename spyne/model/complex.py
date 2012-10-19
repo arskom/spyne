@@ -30,18 +30,75 @@ import decimal
 from spyne.model import ModelBase
 from spyne.model import nillable_dict
 from spyne.model import nillable_string
-
-from spyne.const import xml_ns as namespace
-from spyne.const.suffix import TYPE_SUFFIX
-from spyne.const import MAX_STRING_FIELD_LENGTH
-from spyne.const import MAX_ARRAY_ELEMENT_NUM
 from spyne.model.primitive import NATIVE_MAP
 from spyne.model.primitive import Unicode
-from spyne.util import memoize
+from spyne.model.primitive import Point
+
+from spyne.const import xml_ns as namespace
+from spyne.const import MAX_STRING_FIELD_LENGTH
+from spyne.const import MAX_ARRAY_ELEMENT_NUM
+from spyne.const.suffix import TYPE_SUFFIX
+
+from spyne.util import sanitize_args
 from spyne.util.odict import odict
 
 
-PSSM_VALUES = ('json', 'xml', 'msgpack', 'table', 'table_multi')
+class xml:
+    """Complex argument to ``ComplexModelBase.Attributes.store_as`` for xml
+    serialization.
+
+    :param root_tag: Root tag of the xml element that contains the field values.
+    :param no_ns: When true, the xml document is stripped from namespace
+        information. use with caution.
+    """
+
+    def __init__(self, root_tag=None, no_ns=False):
+        self.root_tag = root_tag
+        self.no_ns = no_ns
+
+
+class table:
+    """Complex argument to ``ComplexModelBase.Attributes.store_as`` for storing
+    the class instance as a row in a table in a relational database.
+
+    :param multi: When false, configures a one-to-many relationship where the
+        child table has a foreign key to the parent. When true, configures a
+        many-to-many relationship by creating an intermediate relation table
+        that has foreign keys to both parent and child classes and generates
+        a table name automatically. When it's a string, the value is used as the
+        table name.
+    """
+
+    def __init__(self, multi=False, left=None, right=None):
+        self.multi = multi
+        self.left = left
+        self.right = right
+
+
+class json:
+    """Complex argument to ``ComplexModelBase.Attributes.store_as`` for storing
+    the class instance as a json document.
+
+    Make sure you don't mix this with the json package when importing.
+    """
+
+    def __init__(self):
+        pass
+
+
+class msgpack:
+    pass  # TODO: not implemented
+
+    """Complex argument to ``ComplexModelBase.Attributes.store_as`` for storing
+    the class instance as a MessagePack document.
+
+    Make sure you don't mix this with the msgpack package when importing.
+    """
+    def __init__(self):
+        pass
+
+
+PSSM_VALUES = {'json': json, 'xml': xml, 'msgpack': msgpack, 'table': table}
 """Persistent storage serialization method values"""
 
 
@@ -118,7 +175,6 @@ class SelfReference(object):
         raise NotImplementedError()
 
 
-@memoize
 def _get_spyne_type(v):
     try:
         v = NATIVE_MAP.get(v, v)
@@ -133,28 +189,24 @@ def _get_spyne_type(v):
     if subc:
         if issubclass(v, Array) and len(v._type_info) != 1:
             raise Exception("Invalid Array definition in %s.%s."% (cls_name, k))
+        elif issubclass(v, Point) and v.Attributes.dim is None:
+            raise Exception("Please specify the number of dimensions")
         return v
 
 
-def sanitize_args(a):
-    try:
-        args, kwargs = a
-        if isinstance(args, tuple) and isinstance(kwargs, dict):
-            return a
+def _join_args(x, y):
+    if x is None:
+        return y
+    if y is None:
+        return x
 
-    except (TypeError, ValueError):
-        args, kwargs = (), {}
+    xa, xk = sanitize_args(x)
+    ya, yk = sanitize_args(y)
 
-    if a is not None:
-        if isinstance(a, dict):
-            kwargs = a
-        elif isinstance(a, tuple):
-            if isinstance(a[-1], dict):
-                args, kwargs = a[0:-1], a[-1]
-            else:
-                args = a
+    xk = dict(xk)
+    xk.update(yk)
 
-    return args, kwargs
+    return xa + ya, xk
 
 
 class ComplexModelMeta(type(ModelBase)):
@@ -171,6 +223,7 @@ class ComplexModelMeta(type(ModelBase)):
         if type_name is None:
             cls_dict["__type_name__"] = cls_name
 
+        base_type_info = {}
         # get base class (if exists) and enforce single inheritance
         extends = cls_dict.get('__extends__', None)
         if extends is None:
@@ -178,22 +231,26 @@ class ComplexModelMeta(type(ModelBase)):
                 base_types = getattr(b, "_type_info", None)
 
                 if not (base_types is None):
-                    if not (extends in (None, b)):
-                        raise Exception("WSDL 1.1 does not support multiple "
-                                        "inheritance")
+                    if getattr(b, '__mixin__', False) == True:
+                        base_type_info.update(b._type_info)
+                    else:
+                        if not (extends in (None, b)):
+                            raise Exception("WSDL 1.1 does not support multiple"
+                                            " inheritance")
 
-                    try:
-                        if len(base_types) > 0 and issubclass(b, ModelBase):
-                            cls_dict["__extends__"] = b
+                        try:
+                            if len(base_types) > 0 and issubclass(b, ModelBase):
+                                cls_dict["__extends__"] = b
 
-                    except:
-                        logger.error(repr(extends))
-                        raise
-
+                        except Exception,e:
+                            logger.exception(e)
+                            logger.error(repr(extends))
+                            raise
 
         # populate children
         if not ('_type_info' in cls_dict):
             cls_dict['_type_info'] = _type_info = TypeInfo()
+            _type_info.update(base_type_info)
 
             for k, v in cls_dict.items():
                 if not k.startswith('__'):
@@ -233,16 +290,24 @@ class ComplexModelMeta(type(ModelBase)):
             else:
                 raise Exception("No ModelBase subclass in bases? Huh?")
 
-        # Move sqlalchemy types
-        margs = cls_dict.get('__mapper_args__', None)
-        attrs.sqla_mapper_args = sanitize_args(margs)
+        # Move sqlalchemy parameters
+        table_name = cls_dict.get('__tablename__', None)
+        if attrs.table_name is None:
+            attrs.table_name = table_name
 
-        targs = cls_dict.get('__table_args__', None)
-        attrs.sqla_table_args = sanitize_args(targs)
+        table = cls_dict.get('__table__', None)
+        if attrs.sqla_table is None:
+            attrs.sqla_table = table
 
         metadata = cls_dict.get('__metadata__', None)
-        if metadata is not None:
+        if attrs.sqla_metadata is None:
             attrs.sqla_metadata = metadata
+
+        margs = cls_dict.get('__mapper_args__', None)
+        attrs.sqla_mapper_args = _join_args(attrs.sqla_mapper_args, margs)
+
+        targs = cls_dict.get('__table_args__', None)
+        attrs.sqla_table_args = _join_args(attrs.sqla_table_args, targs)
 
         return type(ModelBase).__new__(cls, cls_name, cls_bases, cls_dict)
 
@@ -252,6 +317,17 @@ class ComplexModelMeta(type(ModelBase)):
             if issubclass(type_info[k], SelfReference):
                 type_info[k] = self
 
+        if self.Attributes.table_name is None:
+            if self.Attributes.sqla_table is not None and len(self._type_info) == 0:
+                from spyne.util.sqlalchemy import gen_spyne_info
+
+                gen_spyne_info(self)
+
+        elif self.Attributes.sqla_metadata is not None and len(self._type_info) > 0:
+            from spyne.util.sqlalchemy import gen_sqla_info
+
+            gen_sqla_info(self, cls_bases)
+
         type(ModelBase).__init__(self, cls_name, cls_bases, cls_dict)
 
 
@@ -260,7 +336,7 @@ class ComplexModelBase(ModelBase):
     from.
     """
 
-    __tablename__ = None
+    __mixin__ = False
 
     class Attributes(ModelBase.Attributes):
         """ComplexModel-specific attributes"""
@@ -269,6 +345,9 @@ class ComplexModelBase(ModelBase):
         """Method for serializing to persistent storage. One of %r. It makes
         sense to specify this only when this object is a child of another
         ComplexModel sublass.""" % (PSSM_VALUES,)
+
+        table_name = None
+        """Table name."""
 
         sqla_metadata = None
         """None or :class:`sqlalchemy.MetaData` instance."""
@@ -282,6 +361,12 @@ class ComplexModelBase(ModelBase):
         """A dict that will be passed to :func:`sqlalchemy.orm.mapper`
         constructor as. ``**kwargs``.
         """
+
+        sqla_table = None
+        """The sqlalchemy table object"""
+
+        sqla_mapper = None
+        """The sqlalchemy mapper object"""
 
     def __init__(self, **kwargs):
         super(ComplexModelBase, self).__init__()
@@ -359,7 +444,10 @@ class ComplexModelBase(ModelBase):
         """Get an empty native type so that the deserialization logic can set
         its attributes.
         """
-        return cls()
+        if cls.__orig__ is None:
+            return cls()
+        else:
+            return cls.__orig__()
 
     @classmethod
     def get_members_pairs(cls, inst):
@@ -521,8 +609,14 @@ class ComplexModelBase(ModelBase):
 
         store_as = kwargs.get('store_as', None)
         if store_as is not None:
-            assert store_as in PSSM_VALUES, \
-                              "'store_as' should be one of: %r" % (PSSM_VALUES,)
+            val = PSSM_VALUES.get(store_as, None)
+            if val is None:
+                assert isinstance(store_as, tuple(PSSM_VALUES.values())), \
+                 "'store_as' should be one of: %r or an instance of %r not %r" \
+                 % (tuple(PSSM_VALUES.keys()), tuple(PSSM_VALUES.values()),
+                                                                        store_as)
+            else:
+                kwargs['store_as'] = val()
 
         cls_name, cls_bases, cls_dict = cls._s_customize(cls, **kwargs)
         cls_dict['__module__'] = cls.__module__
@@ -537,6 +631,10 @@ class ComplexModelBase(ModelBase):
             retval.__extends__ = getattr(e, '__extends__', None)
 
         return retval
+
+    @classmethod
+    def store_as(cls, what):
+        return cls.customize(store_as=what)
 
 
 class ComplexModel(ComplexModelBase):
@@ -624,7 +722,7 @@ class Alias(ComplexModel):
     """Different type_name, same _type_info."""
 
 
-def safe_repr(obj, cls=None):
+def log_repr(obj, cls=None):
     """Use this function if you want to echo a ComplexModel subclass. It will
     limit output size of the String types, thus make your logs smaller.
     """
@@ -636,8 +734,14 @@ def safe_repr(obj, cls=None):
         retval = []
 
         cls, = cls._type_info.values()
+
+        if not cls.Attributes.logged:
+            retval ="[%s (...)]" % cls.get_type_name()
+        else:
+            retval = _log_repr_obj(obj, cls)
+
         for i,o in enumerate(obj):
-            retval.append(_safe_repr_obj(o, cls))
+            retval.append(_log_repr_obj(o, cls))
 
             if i > MAX_ARRAY_ELEMENT_NUM:
                 retval.append("(...)")
@@ -646,7 +750,10 @@ def safe_repr(obj, cls=None):
         retval = "%s([%s])" % (cls.get_type_name(), ', '.join(retval))
 
     elif issubclass(cls, ComplexModel):
-        retval = _safe_repr_obj(obj, cls)
+        if cls.Attributes.logged:
+            retval = _log_repr_obj(obj, cls)
+        else:
+            retval ="%s(...)" % cls.get_type_name()
 
     else:
         retval = repr(obj)
@@ -657,12 +764,12 @@ def safe_repr(obj, cls=None):
     return retval
 
 
-def _safe_repr_obj(obj, cls):
+def _log_repr_obj(obj, cls):
     retval = []
 
     for k,t in cls.get_flat_type_info(cls).items():
         v = getattr(obj, k, None)
-        if v is not None:
+        if v is not None and t.Attributes.logged:
             if issubclass(t, Unicode) and len(v) > MAX_STRING_FIELD_LENGTH:
                 s = '%s=%r(...)' % (k, v[:MAX_STRING_FIELD_LENGTH])
             else:
@@ -674,20 +781,17 @@ def _safe_repr_obj(obj, cls):
 
 
 def TTableModel(metadata=None):
-    """A TableModel templates that generates a new TableModel class for each
+    """A TableModel template that generates a new TableModel class for each
     call. If metadata is not supplied, a new one is instantiated.
     """
 
     import sqlalchemy
 
-    if metadata is None:
-        metadata = sqlalchemy.MetaData()
-
     class TableModel(ComplexModelBase):
         __metaclass__ = ComplexModelMeta
 
         class Attributes(ComplexModelBase.Attributes):
-            sqla_metadata = metadata
+            sqla_metadata = metadata or sqlalchemy.MetaData()
 
     return TableModel
 
