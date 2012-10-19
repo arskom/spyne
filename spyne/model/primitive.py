@@ -29,6 +29,7 @@ import uuid
 import pytz
 import decimal
 import datetime
+import time
 
 import spyne.const.xml_ns
 
@@ -827,7 +828,7 @@ class Date(DateTime):
     @classmethod
     def default_parse(cls, string):
         try:
-            return datetime.datetime.strptime(string, '%Y-%m-%d')
+            return datetime.date(*(time.strptime(string, cls.Attributes.format)[0:3]))
 
         except ValueError:
             raise ValidationError(string)
