@@ -699,7 +699,9 @@ class DateTime(SimpleModel):
 
         format = None
         """DateTime format fed to the ``strftime`` function. See:
-        http://docs.python.org/library/datetime.html?highlight=strftime#strftime-strptime-behavior"""
+        http://docs.python.org/library/datetime.html?highlight=strftime#strftime-strptime-behavior
+        Ignored by protocols like SOAP which have their own ideas about how
+        DateTime objects should be serialized."""
 
         string_format = None
         """A regular python string formatting string. %s will contain the date
@@ -813,6 +815,10 @@ class Date(DateTime):
         """The date should be lower than or equal to this date."""
 
         format = '%Y-%m-%d'
+        """DateTime format fed to the ``strftime`` function. See:
+        http://docs.python.org/library/datetime.html?highlight=strftime#strftime-strptime-behavior
+        Ignored by protocols like SOAP which have their own ideas about how
+        Date objects should be serialized."""
 
         pattern = None
         """A regular expression that matches the whole date. See here for more
@@ -830,7 +836,6 @@ class Date(DateTime):
         """This is used by protocols like SOAP who need ISO8601-formatted dates
         no matter what.
         """
-
         try:
             return datetime.date(*(time.strptime(string, '%Y-%m-%d')[0:3]))
 
