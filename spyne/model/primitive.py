@@ -832,7 +832,7 @@ class Date(DateTime):
         """
 
         try:
-            return datetime.date(*(time.strptime(string, cls.Attributes.format)[0:3]))
+            return datetime.date(*(time.strptime(string, '%Y-%m-%d')[0:3]))
 
         except ValueError:
             raise ValidationError(string)
