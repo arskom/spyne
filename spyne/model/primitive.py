@@ -827,6 +827,10 @@ class Date(DateTime):
 
     @classmethod
     def default_parse(cls, string):
+        """This is used by protocols like SOAP who need ISO8601-formatted dates
+        no matter what.
+        """
+
         try:
             return datetime.date(*(time.strptime(string, cls.Attributes.format)[0:3]))
 
