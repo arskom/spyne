@@ -61,12 +61,42 @@ def nillable_iterable(func):
     return wrapper
 
 
+class AttributesMeta(type(object)):
+    """I hate quirks. So this is a 10-minute attempt to get rid of a one-letter
+    quirk."""
+
+    def __init__(self, cls_name, cls_bases, cls_dict):
+        nullable = cls_dict.get('nullable', None)
+        nillable = cls_dict.get('nillable', None)
+
+        assert nullable is None or nillable is None or nullable == nillable
+
+        self.__nullable = nullable or nillable or True
+
+        type(object).__init__(self, cls_name, cls_bases, cls_dict)
+
+    @property
+    def nullable(self):
+        return self.__nullable
+    @nullable.setter
+    def nullable(self, what):
+        self.__nullable = what
+
+    @property
+    def nillable(self):
+        return self.__nullable
+    @nillable.setter
+    def nillable(self, what):
+        self.__nullable = what
+
+
 class ModelBase(object):
     """The base class for type markers. It defines the model interface for the
     interface generators to use and also manages class customizations that are
     mainly used for defining constraints on input values.
     """
 
+    __orig__ = None
     __namespace__ = None
     __type_name__ = None
 
@@ -78,12 +108,14 @@ class ModelBase(object):
     # ComplexModelBase deserializer.
     class Attributes(object):
         """The class that holds the constraints for the given type."""
+        __metaclass__ = AttributesMeta
 
         default = None
         """The default value if the input is None"""
 
         nillable = True
-        """Set this to false to reject null values."""
+        """Set this to false to reject null values. Synonyms with
+        ``nullable``."""
 
         min_occurs = 0
         """Set this to 1 to make this object mandatory. Can be set to any
@@ -106,18 +138,35 @@ class ModelBase(object):
 
         sqla_column_args = None
         """A dict that will be passed to SQLAlchemy's ``Column`` constructor as
-        ``**kwargs``
+        ``**kwargs``.
         """
+
+        exc_mapper = False
+        """If true, this field will be excluded from the table mapper of the
+        parent class.
+        """
+
+        exc_table = False
+        """If true, this field will be excluded from the table of the parent
+        class.
+        """
+
+        exc_interface = False
+        """If true, this field will be excluded from the interface document."""
+
+        logged = True
+        """If false, this object will be ignored in ``log_repr``, mostly used
+        for logging purposes."""
 
     class Annotations(object):
         """The class that holds the annotations for the given type."""
 
         __use_parent_doc__ = False
         """If set to True Annotations will use __doc__ from parent,
-        this is convenience option"""
+        This is a convenience option"""
 
         doc = ""
-        """The documentation for the given type."""
+        """The public documentation for the given type."""
 
         appinfo = None
         """Any object that carries app-specific info."""
@@ -255,8 +304,14 @@ class ModelBase(object):
             elif k in ("doc", "appinfo"):
                 setattr(Annotations, k, v)
 
-            elif k in ('primary_key',):
-                Attributes.sqla_column_args[-1][k] = v
+            elif k in ('primary_key','pk'):
+                Attributes.sqla_column_args[-1]['primary_key'] = v
+
+            elif k in ('foreign_key','fk'):
+                from sqlalchemy.schema import ForeignKey
+                t, d = Attributes.sqla_column_args
+                fkt = (ForeignKey(v),)
+                Attributes.sqla_column_args = (t + fkt, d)
 
             elif k == 'max_occurs' and v == 'unbounded':
                 setattr(Attributes, k, Decimal('inf'))
@@ -301,7 +356,8 @@ class SimpleModel(ModelBase):
     """The base class for primitives."""
 
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
-    __base_type__ = None
+    __base_type__ = None # this is different from __orig__ because it's only set
+                         # when cls.is_default(cls) == False
 
     class Attributes(ModelBase.Attributes):
         """The class that holds the constraints for the given type."""

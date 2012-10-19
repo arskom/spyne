@@ -46,10 +46,7 @@ class ThreadAuxProc(AuxProcBase):
         return self.__pool_size
 
     def process_context(self, server, ctx, *args, **kwargs):
-        a = [server, ctx]
-        a.extend(args)
-
-        self.pool.apply_async(self.process, a, kwargs)
+        self.pool.apply_async(self.process, (server, ctx) + args, kwargs)
 
     def initialize(self, server):
         self.pool = ThreadPool(self.__pool_size)

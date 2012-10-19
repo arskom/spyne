@@ -61,11 +61,8 @@ class SvgClock(ProtocolBase):
         # this protocol can only handle DateTime types.
         return_type = ctx.descriptor.out_message._type_info[0]
 
-        assert (
-            return_type is DateTime or # check if this is a vanilla DateTime
-            (hasattr(return_type, '_is_clone_of') and # ... or a customized one.
-                                    return_type._is_clone_of is DateTime)
-            ), "This protocol only supports functions with %r as return " \
+        assert issubclass(return_type, DateTime), \
+               "This protocol only supports functions with %r as return " \
                "type" % DateTime
 
         # Finally, start serialization.

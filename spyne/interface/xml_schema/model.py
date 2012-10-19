@@ -20,9 +20,10 @@
 """The ``spyne.interface.xml_schema.model`` module contains type-specific logic
 for schema generation."""
 
-import decimal
 import logging
 logger = logging.getLogger(__name__)
+
+import decimal
 
 from lxml import etree
 
@@ -34,6 +35,7 @@ from spyne.util import memoize
 
 from spyne.const.xml_ns import xsd as _ns_xs
 from spyne.const.xml_ns import xsd as _ns_xsd
+
 
 def simple_get_restriction_tag(document, cls):
     simple_type = etree.Element('{%s}simpleType' % _ns_xsd)
@@ -84,27 +86,36 @@ def complex_add(document, cls):
 
     sequence_parent = complex_type
     extends = getattr(cls, '__extends__', None)
-    if not (extends is None):
+
+    type_info = cls._type_info
+    if extends is not None:
         if (extends.get_type_name() == cls.get_type_name() and
                                 extends.get_namespace() == cls.get_namespace()):
-            raise Exception("%r can't extend %r because they are all '{%s}%s'"
+            raise Exception("%r can't extend %r because they are both '{%s}%s'"
                     % (cls, extends, cls.get_type_name(), cls.get_namespace()))
 
+        if extends.Attributes.exc_interface:
+            # If the parent class is private, it won't be in the schema, so we
+            # need to act as if its attributes are part of cls as well.
+            type_info = cls.get_simple_type_info(cls)
         else:
             complex_content = etree.SubElement(complex_type,
-                                       "{%s}complexContent" % _ns_xsd)
+                                                "{%s}complexContent" % _ns_xsd)
             extension = etree.SubElement(complex_content,
-                                       "{%s}extension" % _ns_xsd)
+                                                    "{%s}extension" % _ns_xsd)
             extension.set('base', extends.get_type_name_ns(document.interface))
             sequence_parent = extension
 
     sequence = etree.SubElement(sequence_parent, '{%s}sequence' % _ns_xsd)
 
-    for k, v in cls._type_info.items():
+    for k, v in type_info.items():
         if issubclass(v, XmlAttribute):
             attribute = etree.SubElement(complex_type,
                                         '{%s}attribute' % _ns_xsd)
             v.describe(k, attribute, document)
+            continue
+
+        if v.Attributes.exc_interface:
             continue
 
         if not issubclass(v, cls):

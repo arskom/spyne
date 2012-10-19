@@ -34,73 +34,60 @@ logging.basicConfig(level=logging.DEBUG)
 logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
 
-import sqlalchemy
-
 from sqlalchemy import create_engine
 from sqlalchemy import MetaData
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.orm import relationship
-from sqlalchemy.schema import Column
-from sqlalchemy.schema import ForeignKey
 
 from spyne.application import Application
 from spyne.decorator import rpc
-from spyne.interface.wsdl import Wsdl11
 from spyne.protocol.soap import Soap11
+from spyne.model.primitive import Unicode
+from spyne.model.complex import Array
 from spyne.model.complex import Iterable
+from spyne.model.complex import ComplexModelBase
+from spyne.model.complex import ComplexModelMeta
 from spyne.model.primitive import Integer
-from spyne.model.table import TableModel
+from spyne.model.primitive import Integer32
 from spyne.server.wsgi import WsgiApplication
 from spyne.service import ServiceBase
 
-_user_database = create_engine('sqlite:///:memory:')
-metadata = MetaData(bind=_user_database)
-DeclarativeBase = declarative_base(metadata=metadata)
-Session = sessionmaker(bind=_user_database)
 
-#
-# WARNING: You should NOT confuse sqlalchemy types with spyne types. Whenever
-# you see a spyne service not starting due to some problem with __type_name__
-# that's probably because you did not use an spyne type where you had to (e.g.
-# inside @rpc decorator)
-#
+db = create_engine('sqlite:///:memory:')
+Session = sessionmaker(bind=db)
 
 
-class Permission(TableModel, DeclarativeBase):
+class TableModel(ComplexModelBase):
+    __metaclass__ = ComplexModelMeta
+    __metadata__ = MetaData(bind=db)
+
+
+class Permission(TableModel):
     __tablename__ = 'spyne_user_permission'
     __namespace__ = 'spyne.examples.user_manager'
+    __table_args__ = {"sqlite_autoincrement": True}
 
-    permission_id = Column(sqlalchemy.Integer, primary_key=True)
-    application = Column(sqlalchemy.String)
-    operation = Column(sqlalchemy.String)
-    user_id = Column(sqlalchemy.Integer, ForeignKey("spyne_user.user_id"))
+    permission_id = Integer32(primary_key=True)
+    application = Unicode(256)
+    operation = Unicode(256)
 
 
-class User(TableModel, DeclarativeBase):
-    __namespace__ = 'spyne.examples.user_manager'
+class User(TableModel):
     __tablename__ = 'spyne_user'
-
-    user_id = Column(sqlalchemy.Integer, primary_key=True)
-    user_name = Column(sqlalchemy.String(256))
-    first_name = Column(sqlalchemy.String(256))
-    last_name = Column(sqlalchemy.String(256))
-    permissions = relationship(Permission)
-
-
-
-# this is the same as the above user object. Use this method of declaring
-# objects for tables that have to be defined elsewhere.
-class AlternativeUser(TableModel, DeclarativeBase):
     __namespace__ = 'spyne.examples.user_manager'
-    __table__ = User.__table__
+    __table_args__ = {"sqlite_autoincrement": True}
+
+    user_id = Integer32(primary_key=True)
+    user_name = Unicode(256)
+    first_name = Unicode(256)
+    last_name = Unicode(256)
+    permissions = Array(Permission, store_as='table')
 
 
 class UserManagerService(ServiceBase):
     @rpc(User, _returns=Integer)
     def add_user(ctx, user):
+        print id(user.permissions[0].__class__), id(Permission)
         ctx.udc.session.add(user)
-        print user.permissions
         ctx.udc.session.flush()
 
         return user.user_id
@@ -117,7 +104,7 @@ class UserManagerService(ServiceBase):
     def del_user(ctx, user_id):
         ctx.udc.session.query(User).filter_by(user_id=user_id).delete()
 
-    @rpc(_returns=Iterable(AlternativeUser))
+    @rpc(_returns=Iterable(User))
     def get_all_user(ctx):
         return ctx.udc.session.query(User)
 
@@ -136,7 +123,7 @@ def _on_method_return_object(ctx):
     ctx.udc.session.close()
 
 application = Application([UserManagerService], 'spyne.examples.user_manager',
-            interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
+                                    in_protocol=Soap11(), out_protocol=Soap11())
 
 application.event_manager.add_listener('method_call', _on_method_call)
 application.event_manager.add_listener('method_return_object', _on_method_return_object)
@@ -147,7 +134,7 @@ if __name__=='__main__':
     wsgi_app = WsgiApplication(application)
     server = make_server('127.0.0.1', 7789, wsgi_app)
 
-    metadata.create_all()
+    TableModel.Attributes.sqla_metadata.create_all()
     logging.info("listening to http://127.0.0.1:7789")
     logging.info("wsdl is at: http://localhost:7789/?wsdl")
 
