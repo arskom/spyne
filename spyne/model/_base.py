@@ -75,19 +75,17 @@ class AttributesMeta(type(object)):
 
         type(object).__init__(self, cls_name, cls_bases, cls_dict)
 
-    @property
-    def nullable(self):
+    def get_nullable(self):
         return self.__nullable
-    @nullable.setter
-    def nullable(self, what):
+    def set_nullable(self, what):
         self.__nullable = what
+    nullable = property(get_nullable, set_nullable)
 
-    @property
-    def nillable(self):
+    def get_nillable(self):
         return self.__nullable
-    @nillable.setter
-    def nillable(self, what):
+    def set_nillable(self, what):
         self.__nullable = what
+    nillable = property(get_nillable, set_nillable)
 
 
 class ModelBase(object):
