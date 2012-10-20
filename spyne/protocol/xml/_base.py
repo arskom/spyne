@@ -314,10 +314,10 @@ class XmlObject(ProtocolBase):
         if value:
             from spyne.interface.xml_schema import XmlSchema
 
-            wsdl = XmlSchema(value.interface)
-            wsdl.build_validation_schema()
+            xml_schema = XmlSchema(value.interface)
+            xml_schema.build_validation_schema()
 
-            self.validation_schema = wsdl.validation_schema
+            self.validation_schema = xml_schema.validation_schema
 
     def __validate_lxml(self, payload):
         ret = self.validation_schema.validate(payload)
