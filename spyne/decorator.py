@@ -77,6 +77,8 @@ def _validate_body_style(kparams):
         _body_style = 'bare'
     elif _soap_body_style == 'rpc':
         _body_style = 'wrapped'
+    elif _soap_body_style is None:
+        pass
     else:
         raise ValueError("soap_body_style must be one of ('rpc', 'document')")
 
@@ -170,8 +172,7 @@ def srpc(*params, **kparams):
         or ``_returns`` is not a sequence. Must be the same length as
         ``_returns``.
     :param _body_style: One of ``('bare', 'wrapped')``. Default: ``'wrapped'``.
-        In wrapped mode, wraps response objects in an additional class for
-        protocols that support it. (e.g. Soap)
+        In wrapped mode, wraps response objects in an additional class.
     :param _soap_body_style: One of ('rpc', 'document'). Default ``'document'``.
         ``_soap_body_style='document'`` is an alias for ``_body_style='wrapped'``.
         ``_soap_body_style='rpc'`` is an alias for ``_body_style='bare'``.
