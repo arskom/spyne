@@ -28,6 +28,8 @@ from spyne.model.fault import Fault
 from spyne.model.primitive import AnyXml
 from spyne.model.primitive import AnyDict
 from spyne.model.primitive import Boolean
+from spyne.model.primitive import Time
+from spyne.model.primitive import Date
 from spyne.model.primitive import DateTime
 from spyne.model.primitive import Float
 from spyne.model.primitive import Integer
@@ -188,6 +190,22 @@ class InteropPrimitive(ServiceBase):
     @srpc(DateTime(format='ignored'), _returns=DateTime)
     def echo_datetime_with_invalid_format(dt):
         return dt
+
+    @srpc(Date, _returns=Date)
+    def echo_date(d):
+        return d
+
+    @srpc(Date(format='ignored'), _returns=Date)
+    def echo_date_with_invalid_format(d):
+        return d
+
+    @srpc(Time, _returns=Time)
+    def echo_time(t):
+        return t
+
+    @srpc(Time(format='ignored'), _returns=Time)
+    def echo_time_with_invalid_format(t):
+        return t
 
     @srpc(Float, _returns=Float)
     def echo_float(f):

@@ -48,6 +48,30 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
 
         assert val == ret
 
+    def test_echo_date(self):
+        val = datetime.now().date()
+        ret = self.client.service.echo_date(val)
+
+        assert val == ret
+
+    def test_echo_date_with_invalid_format(self):
+        val = datetime.now().date()
+        ret = self.client.service.echo_date_with_invalid_format(val)
+
+        assert val == ret
+
+    def test_echo_time(self):
+        val = datetime.now().time()
+        ret = self.client.service.echo_time(val)
+
+        assert val == ret
+
+    def test_echo_time_with_invalid_format(self):
+        val = datetime.now().time()
+        ret = self.client.service.echo_time_with_invalid_format(val)
+
+        assert val == ret
+
     def test_echo_simple_boolean_array(self):
         val = [False, False, False, True]
         ret = self.client.service.echo_simple_boolean_array(val)
