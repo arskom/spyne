@@ -34,3 +34,4 @@ from suds.client import Client
 client = Client('http://localhost:7789/?wsdl')
 
 print client.service.say_hello(u'Jérôme', 5)
+print client.service.say_hello2(u'Jérôme', 5)

@@ -71,8 +71,6 @@
       <xs:import namespace="punk.tunk" />
       <xs:import namespace="bar" />
       <xs:import namespace="hunk.sunk" />
-      <xs:element name="Array" type="tns:Array" />
-      <xs:element name="ArrayArray" type="tns:ArrayArray" />
       <xs:element name="ClassWithSelfReference" type="tns:ClassWithSelfReference" />
       <xs:element name="Fault" type="tns:Fault" />
       <xs:element name="InHeader" type="tns:InHeader" />
@@ -86,6 +84,7 @@
       <xs:element name="SimpleClassArray" type="tns:SimpleClassArray" />
       <xs:element name="base64BinaryArray" type="tns:base64BinaryArray" />
       <xs:element name="booleanArray" type="tns:booleanArray" />
+      <xs:element name="booleanArrayArray" type="tns:booleanArrayArray" />
       <xs:element name="complex_return" type="tns:complex_return" />
       <xs:element name="complex_returnResponse" type="tns:complex_returnResponse" />
       <xs:element name="custom_messages" type="tns:custom_messages" />
@@ -111,10 +110,16 @@
       <xs:element name="echo_boolean_arrayResponse" type="tns:echo_boolean_arrayResponse" />
       <xs:element name="echo_class_with_self_reference" type="tns:echo_class_with_self_reference" />
       <xs:element name="echo_class_with_self_referenceResponse" type="tns:echo_class_with_self_referenceResponse" />
+      <xs:element name="echo_date" type="tns:echo_date" />
+      <xs:element name="echo_dateResponse" type="tns:echo_dateResponse" />
       <xs:element name="echo_date_time_array" type="tns:echo_date_time_array" />
       <xs:element name="echo_date_time_arrayResponse" type="tns:echo_date_time_arrayResponse" />
+      <xs:element name="echo_date_with_invalid_format" type="tns:echo_date_with_invalid_format" />
+      <xs:element name="echo_date_with_invalid_formatResponse" type="tns:echo_date_with_invalid_formatResponse" />
       <xs:element name="echo_datetime" type="tns:echo_datetime" />
       <xs:element name="echo_datetimeResponse" type="tns:echo_datetimeResponse" />
+      <xs:element name="echo_datetime_with_invalid_format" type="tns:echo_datetime_with_invalid_format" />
+      <xs:element name="echo_datetime_with_invalid_formatResponse" type="tns:echo_datetime_with_invalid_formatResponse" />
       <xs:element name="echo_double" type="tns:echo_double" />
       <xs:element name="echo_doubleResponse" type="tns:echo_doubleResponse" />
       <xs:element name="echo_double_array" type="tns:echo_double_array" />
@@ -194,16 +199,6 @@
           <xs:enumeration value="MEMBER" />
         </xs:restriction>
       </xs:simpleType>
-      <xs:complexType name="Array">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="boolean" nillable="true" type="xs:boolean" />
-        </xs:sequence>
-      </xs:complexType>
-      <xs:complexType name="ArrayArray">
-        <xs:sequence>
-          <xs:element maxOccurs="unbounded" minOccurs="0" name="Array" nillable="true" type="tns:Array" />
-        </xs:sequence>
-      </xs:complexType>
       <xs:complexType name="ClassWithSelfReference">
         <xs:sequence>
           <xs:element minOccurs="0" name="i" nillable="true" type="xs:integer" />
@@ -271,6 +266,11 @@
       <xs:complexType name="booleanArray">
         <xs:sequence>
           <xs:element maxOccurs="unbounded" minOccurs="0" name="boolean" nillable="true" type="xs:boolean" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="booleanArrayArray">
+        <xs:sequence>
+          <xs:element maxOccurs="unbounded" minOccurs="0" name="booleanArray" nillable="true" type="tns:booleanArray" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="complex_return">
@@ -342,7 +342,7 @@
       </xs:complexType>
       <xs:complexType name="echo_array_in_arrayResponse">
         <xs:sequence>
-          <xs:element minOccurs="0" name="echo_array_in_arrayResult" nillable="true" type="tns:ArrayArray" />
+          <xs:element minOccurs="0" name="echo_array_in_arrayResult" nillable="true" type="tns:booleanArrayArray" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_attachment">
@@ -395,6 +395,16 @@
           <xs:element minOccurs="0" name="echo_class_with_self_referenceResult" nillable="true" type="tns:ClassWithSelfReference" />
         </xs:sequence>
       </xs:complexType>
+      <xs:complexType name="echo_date">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="d" nillable="true" type="xs:date" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_dateResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="echo_dateResult" nillable="true" type="xs:date" />
+        </xs:sequence>
+      </xs:complexType>
       <xs:complexType name="echo_date_time_array">
         <xs:sequence>
           <xs:element minOccurs="0" name="dta" nillable="true" type="tns:dateTimeArray" />
@@ -405,6 +415,16 @@
           <xs:element minOccurs="0" name="echo_date_time_arrayResult" nillable="true" type="tns:dateTimeArray" />
         </xs:sequence>
       </xs:complexType>
+      <xs:complexType name="echo_date_with_invalid_format">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="d" nillable="true" type="xs:date" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_date_with_invalid_formatResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="echo_date_with_invalid_formatResult" nillable="true" type="xs:date" />
+        </xs:sequence>
+      </xs:complexType>
       <xs:complexType name="echo_datetime">
         <xs:sequence>
           <xs:element minOccurs="0" name="dt" nillable="true" type="xs:dateTime" />
@@ -413,6 +433,16 @@
       <xs:complexType name="echo_datetimeResponse">
         <xs:sequence>
           <xs:element minOccurs="0" name="echo_datetimeResult" nillable="true" type="xs:dateTime" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_datetime_with_invalid_format">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="dt" nillable="true" type="xs:dateTime" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_datetime_with_invalid_formatResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="echo_datetime_with_invalid_formatResult" nillable="true" type="xs:dateTime" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="echo_double">
@@ -789,17 +819,35 @@
   <wsdl:message name="echo_class_with_self_referenceResponse">
     <wsdl:part element="tns:echo_class_with_self_referenceResponse" name="echo_class_with_self_referenceResponse" />
   </wsdl:message>
+  <wsdl:message name="echo_date">
+    <wsdl:part element="tns:echo_date" name="echo_date" />
+  </wsdl:message>
+  <wsdl:message name="echo_dateResponse">
+    <wsdl:part element="tns:echo_dateResponse" name="echo_dateResponse" />
+  </wsdl:message>
   <wsdl:message name="echo_date_time_array">
     <wsdl:part element="tns:echo_date_time_array" name="echo_date_time_array" />
   </wsdl:message>
   <wsdl:message name="echo_date_time_arrayResponse">
     <wsdl:part element="tns:echo_date_time_arrayResponse" name="echo_date_time_arrayResponse" />
   </wsdl:message>
+  <wsdl:message name="echo_date_with_invalid_format">
+    <wsdl:part element="tns:echo_date_with_invalid_format" name="echo_date_with_invalid_format" />
+  </wsdl:message>
+  <wsdl:message name="echo_date_with_invalid_formatResponse">
+    <wsdl:part element="tns:echo_date_with_invalid_formatResponse" name="echo_date_with_invalid_formatResponse" />
+  </wsdl:message>
   <wsdl:message name="echo_datetime">
     <wsdl:part element="tns:echo_datetime" name="echo_datetime" />
   </wsdl:message>
   <wsdl:message name="echo_datetimeResponse">
     <wsdl:part element="tns:echo_datetimeResponse" name="echo_datetimeResponse" />
+  </wsdl:message>
+  <wsdl:message name="echo_datetime_with_invalid_format">
+    <wsdl:part element="tns:echo_datetime_with_invalid_format" name="echo_datetime_with_invalid_format" />
+  </wsdl:message>
+  <wsdl:message name="echo_datetime_with_invalid_formatResponse">
+    <wsdl:part element="tns:echo_datetime_with_invalid_formatResponse" name="echo_datetime_with_invalid_formatResponse" />
   </wsdl:message>
   <wsdl:message name="echo_double">
     <wsdl:part element="tns:echo_double" name="echo_double" />
@@ -1085,13 +1133,25 @@
       <wsdl:input message="tns:echo_class_with_self_reference" name="echo_class_with_self_reference" />
       <wsdl:output message="tns:echo_class_with_self_referenceResponse" name="echo_class_with_self_referenceResponse" />
     </wsdl:operation>
+    <wsdl:operation name="echo_date" parameterOrder="echo_date">
+      <wsdl:input message="tns:echo_date" name="echo_date" />
+      <wsdl:output message="tns:echo_dateResponse" name="echo_dateResponse" />
+    </wsdl:operation>
     <wsdl:operation name="echo_date_time_array" parameterOrder="echo_date_time_array">
       <wsdl:input message="tns:echo_date_time_array" name="echo_date_time_array" />
       <wsdl:output message="tns:echo_date_time_arrayResponse" name="echo_date_time_arrayResponse" />
     </wsdl:operation>
+    <wsdl:operation name="echo_date_with_invalid_format" parameterOrder="echo_date_with_invalid_format">
+      <wsdl:input message="tns:echo_date_with_invalid_format" name="echo_date_with_invalid_format" />
+      <wsdl:output message="tns:echo_date_with_invalid_formatResponse" name="echo_date_with_invalid_formatResponse" />
+    </wsdl:operation>
     <wsdl:operation name="echo_datetime" parameterOrder="echo_datetime">
       <wsdl:input message="tns:echo_datetime" name="echo_datetime" />
       <wsdl:output message="tns:echo_datetimeResponse" name="echo_datetimeResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_datetime_with_invalid_format" parameterOrder="echo_datetime_with_invalid_format">
+      <wsdl:input message="tns:echo_datetime_with_invalid_format" name="echo_datetime_with_invalid_format" />
+      <wsdl:output message="tns:echo_datetime_with_invalid_formatResponse" name="echo_datetime_with_invalid_formatResponse" />
     </wsdl:operation>
     <wsdl:operation name="echo_double" parameterOrder="echo_double">
       <wsdl:input message="tns:echo_double" name="echo_double" />
@@ -1327,6 +1387,15 @@
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
+    <wsdl:operation name="echo_date">
+      <soap:operation soapAction="echo_date" style="document" />
+      <wsdl:input name="echo_date">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_dateResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
     <wsdl:operation name="echo_date_time_array">
       <soap:operation soapAction="echo_date_time_array" style="document" />
       <wsdl:input name="echo_date_time_array">
@@ -1336,12 +1405,30 @@
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
+    <wsdl:operation name="echo_date_with_invalid_format">
+      <soap:operation soapAction="echo_date_with_invalid_format" style="document" />
+      <wsdl:input name="echo_date_with_invalid_format">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_date_with_invalid_formatResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
     <wsdl:operation name="echo_datetime">
       <soap:operation soapAction="echo_datetime" style="document" />
       <wsdl:input name="echo_datetime">
         <soap:body use="literal" />
       </wsdl:input>
       <wsdl:output name="echo_datetimeResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_datetime_with_invalid_format">
+      <soap:operation soapAction="echo_datetime_with_invalid_format" style="document" />
+      <wsdl:input name="echo_datetime_with_invalid_format">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_datetime_with_invalid_formatResponse">
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>

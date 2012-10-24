@@ -130,12 +130,14 @@ def resolve_hrefs(element, xmlids):
 
     return element
 
+
 @nillable_value
 def _datetime_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     e = etree.SubElement(parent_elt, '{%s}%s' % (tns, name))
     e.text = value.isoformat()
 
-_datetime_from_element = TBaseFromElement(lambda cls,s: cls.default_parse(s))
+_datetime_from_element = TBaseFromElement(lambda cls, s: cls.default_parse(s))
+
 
 class Soap11(XmlObject):
     """The base implementation of a subset of the Soap 1.1 standard. The
