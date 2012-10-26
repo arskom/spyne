@@ -278,12 +278,6 @@ class Interface(object):
         return pref
 
     def add_class(self, cls):
-        if issubclass(cls, Alias):
-            t, = cls._type_info.values()
-            if t is not None and issubclass(t, ComplexModelBase):
-                self.add_class(t)
-            return
-
         if self.has_class(cls):
             return
 
