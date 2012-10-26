@@ -37,6 +37,7 @@ from spyne.model.primitive import Point
 from spyne.const import xml_ns as namespace
 from spyne.const import MAX_STRING_FIELD_LENGTH
 from spyne.const import MAX_ARRAY_ELEMENT_NUM
+from spyne.const.suffix import ARRAY_SUFFIX
 from spyne.const.suffix import TYPE_SUFFIX
 
 from spyne.util import sanitize_args
@@ -574,13 +575,11 @@ class ComplexModelBase(ModelBase):
     def produce(namespace, type_name, members):
         """Lets you create a class programmatically."""
 
-        cls_dict = {}
-
-        cls_dict['__namespace__'] = namespace
-        cls_dict['__type_name__'] = type_name
-        cls_dict['_type_info'] = TypeInfo(members)
-
-        return ComplexModelMeta(type_name, (ComplexModel,), cls_dict)
+        return ComplexModelMeta(type_name, (ComplexModel,), {
+            '__namespace__': namespace,
+            '__type_name__': type_name,
+            '_type_info': TypeInfo(members),
+        })
 
     @staticmethod
     def alias(type_name, namespace, target):
@@ -590,17 +589,13 @@ class ComplexModelBase(ModelBase):
         borrow the target's _type_info.
         """
 
-        cls_dict = {}
+        retval = Alias.customize()
 
-        cls_dict['__namespace__'] = namespace
-        cls_dict['__type_name__'] = type_name
-        cls_dict['_target'] = target
+        retval.__type_name__ = type_name
+        retval.__namespace__ = namespace
+        retval._type_info = {"_target": target}
 
-        ti = getattr(target, '_type_info', None)
-        if ti is not None:
-            cls_dict['_type_info'] = ti
-
-        return ComplexModelMeta(type_name, (Alias,), cls_dict)
+        return retval
 
     @classmethod
     def customize(cls, **kwargs):
@@ -648,10 +643,11 @@ class ComplexModel(ComplexModelBase):
     __metaclass__ = ComplexModelMeta
 
 
-class Array(ComplexModel):
+class Array(ComplexModelBase):
     """This class generates a ComplexModel child that has one attribute that has
     the same name as the serialized class. It's contained in a Python list.
     """
+    __metaclass__ = ComplexModelMeta
 
     def __new__(cls, serializer, **kwargs):
         retval = cls.customize(**kwargs)
@@ -673,7 +669,8 @@ class Array(ComplexModel):
         else:
             member_name = serializer.get_type_name()
             if cls.__type_name__ is None:
-                cls.__type_name__ = '%sArray' % serializer.get_type_name()
+                cls.__type_name__ = '%s%s' % (serializer.get_type_name(),
+                                                                    ARRAY_SUFFIX)
 
         retval.__type_name__ = '%sArray' % member_name
         retval._type_info = {member_name: serializer}
@@ -718,9 +715,10 @@ class Iterable(Array):
     """
 
 
-class Alias(ComplexModel):
+class Alias(ComplexModelBase):
     """Different type_name, same _type_info."""
 
+    __metaclass__ = ComplexModelMeta
 
 def log_repr(obj, cls=None):
     """Use this function if you want to echo a ComplexModel subclass. It will

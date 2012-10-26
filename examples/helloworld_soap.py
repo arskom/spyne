@@ -77,19 +77,6 @@ class HelloWorldService(ServiceBase):
         for i in range(times):
             yield u'Hello, %s' % name
 
-    @srpc(Unicode, Integer, _returns=Iterable(Unicode), _soap_body_style='document',_body_style='bare')
-    def say_hello_2(name, times):
-        '''
-        Docstrings for service methods appear as documentation in the wsdl
-        <b>what fun</b>
-        @param name the name to say hello to
-        @param the number of times to say hello
-        @return the completed array
-        '''
-
-        for i in range(times):
-            yield u'Hello, %s' % name
-
 
 if __name__=='__main__':
     from wsgiref.simple_server import make_server

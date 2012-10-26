@@ -59,7 +59,7 @@ def _produce_input_message(f, params, _in_message_name, _in_variable_names, no_c
     if _in_message_name.startswith("{"):
         ns = _in_message_name[1:].partition("}")[0]
 
-    message=ComplexModel.produce(type_name=_in_message_name, namespace=ns,
+    message = ComplexModel.produce(type_name=_in_message_name, namespace=ns,
                                             members=in_params)
     message.__namespace__ = ns
 
@@ -122,14 +122,14 @@ def _produce_output_message(f, func_name, kparams):
     if _out_message_name.startswith("{"):
         ns = _out_message_name[1:].partition("}")[0]
 
-    if _body_style == 'wrapped':
+    if _body_style == 'bare' and _returns is not None:
+        message = ComplexModel.alias(_out_message_name, ns, _returns)
+    else:
         message = ComplexModel.produce(type_name=_out_message_name,
                                         namespace=ns,
                                         members=out_params)
         message.__namespace__ = ns # FIXME: is this necessary?
 
-    else:
-        message = ComplexModel.alias(_out_message_name, ns, _returns)
 
     return message
 
