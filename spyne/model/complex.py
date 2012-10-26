@@ -37,6 +37,7 @@ from spyne.model.primitive import Point
 from spyne.const import xml_ns as namespace
 from spyne.const import MAX_STRING_FIELD_LENGTH
 from spyne.const import MAX_ARRAY_ELEMENT_NUM
+from spyne.const.suffix import ARRAY_SUFFIX
 from spyne.const.suffix import TYPE_SUFFIX
 
 from spyne.util import sanitize_args
@@ -671,7 +672,8 @@ class Array(ComplexModel):
         else:
             member_name = serializer.get_type_name()
             if cls.__type_name__ is None:
-                cls.__type_name__ = '%sArray' % serializer.get_type_name()
+                cls.__type_name__ = '%s%s' % (serializer.get_type_name(),
+                                                                    ARRAY_SUFFIX)
 
         retval.__type_name__ = '%sArray' % member_name
         retval._type_info = {member_name: serializer}
