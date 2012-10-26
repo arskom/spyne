@@ -23,10 +23,15 @@ logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 
+from spyne.application import Application
+
 from spyne.test.interface.wsdl import AppTestWrapper
 from spyne.test.interface.wsdl import build_app
 from spyne.test.interface.wsdl.defult_services import TDefaultPortService
 from spyne.test.interface.wsdl.defult_services import TDefaultPortServiceMultipleMethods
+
+from spyne.const.suffix import RESPONSE_SUFFIX
+from spyne.const.suffix import ARRAY_SUFFIX
 
 
 class TestDefaultWSDLBehavior(unittest.TestCase):
@@ -152,20 +157,50 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
             ['echo_default_port_service']
         )
 
-    def test_default_binding_methods_multiple(self):
-        app = build_app(
-                [TDefaultPortServiceMultipleMethods()],
-                'DefaultBindingMethodsTns',
-                'MultipleDefaultBindMethodsApp'
-        )
+    def test_bare(self):
+        ns = {
+            'wsdl':'http://schemas.xmlsoap.org/wsdl/',
+            'xs':'http://www.w3.org/2001/XMLSchema',
+        }
 
-        wrapper = AppTestWrapper(app)
+        from spyne.model.complex import Array
+        from spyne.model.primitive import String
+        from spyne.protocol.soap import Soap11
+        from spyne.service import ServiceBase
+        from spyne.decorator import srpc
+        from spyne.interface.wsdl import Wsdl11
 
-        self._default_binding_methods(
-                wrapper,
-                3,
-                ['echo_one', 'echo_two', 'echo_three']
-        )
+        from lxml import etree
+
+        class InteropBare(ServiceBase):
+            @srpc(String, _returns=String, _body_style='bare')
+            def echo_simple_bare(ss):
+                return ss
+
+            @srpc(Array(String), _returns=Array(String), _body_style='bare')
+            def echo_complex_bare(ss):
+                return ss
+
+        app = Application([InteropBare], tns='tns',
+                      in_protocol=Soap11(), out_protocol=Soap11())
+        app.transport = 'None'
+
+        wsdl = Wsdl11(app.interface)
+        wsdl.build_interface_document('url')
+        wsdl = etree.fromstring(wsdl.get_interface_document())
+
+        schema = wsdl.xpath(
+                '/wsdl:definitions/wsdl:types/xs:schema[@targetNamespace]',
+                namespaces=ns
+            )
+        assert len(schema[0].xpath(
+            'xs:complexType[@name="string%s"]' % ARRAY_SUFFIX, namespaces=ns)) > 0
+        elts = schema[0].xpath(
+            'xs:element[@name="echo_complex_bare%s"]' % RESPONSE_SUFFIX, namespaces=ns)
+
+        assert len(elts) > 0
+        assert elts[0].attrib['type'] == 'tns:stringArray'
+
 
 if __name__ == '__main__':
     unittest.main()
