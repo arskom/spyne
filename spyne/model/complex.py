@@ -574,13 +574,11 @@ class ComplexModelBase(ModelBase):
     def produce(namespace, type_name, members):
         """Lets you create a class programmatically."""
 
-        cls_dict = {}
-
-        cls_dict['__namespace__'] = namespace
-        cls_dict['__type_name__'] = type_name
-        cls_dict['_type_info'] = TypeInfo(members)
-
-        return ComplexModelMeta(type_name, (ComplexModel,), cls_dict)
+        return ComplexModelMeta(type_name, (ComplexModel,), {
+            '__namespace__': namespace,
+            '__type_name__': type_name,
+            '_type_info': TypeInfo(members),
+        })
 
     @staticmethod
     def alias(type_name, namespace, target):
