@@ -164,7 +164,7 @@ def complex_add(document, cls):
 def alias_add(document, cls):
     element = etree.Element('{%s}element' % _ns_xsd)
     element.set('name', cls.get_type_name())
-    element.set('type', cls._target.get_type_name_ns(document.interface))
+    element.set('type', cls.__alias__.get_type_name_ns(document.interface))
 
     document.add_element(cls, element)
 

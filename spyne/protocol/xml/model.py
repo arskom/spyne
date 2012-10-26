@@ -174,6 +174,7 @@ def get_members_etree(prot, cls, inst, parent):
         attr_parent = parent.find("{%s}%s"%(cls.__namespace__,a_of))
         v.marshall(k,subvalue,attr_parent)
 
+
 @nillable_value
 def complex_to_parent_element(prot, cls, value, tns, parent_elt, name=None):
     if name is None:
@@ -188,9 +189,18 @@ def alias_to_parent_element(prot, cls, value, tns, parent_elt, name=None):
     if name is None:
         name = cls.get_type_name()
 
-    t = cls._target
+    (k,t), = cls._type_info.items()
     if t is not None:
-        prot.to_parent_element(t, value._target, tns, parent_elt, name)
+        subvalue = getattr(value, k, None)
+        mo = t.Attributes.max_occurs
+
+        if subvalue is not None and mo > 1:
+            for sv in subvalue:
+                prot.to_parent_element(t, sv, tns, parent_elt, name)
+
+        # Don't include empty values for non-nillable optional attributes.
+        elif subvalue is not None or t.Attributes.min_occurs > 0:
+            prot.to_parent_element(t, subvalue, tns, parent_elt, name)
 
 
 @nillable_element
