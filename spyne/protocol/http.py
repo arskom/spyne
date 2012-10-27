@@ -151,3 +151,20 @@ class HttpRpc(DictObject):
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         ctx.out_string = ctx.out_document
+
+class Route(object):
+    """Experimental. Stay away.
+
+    :param address: Address pattern
+    :param verb: HTTP Verb pattern
+    :param host: HTTP "Host:" header pattern
+    """
+
+    def __init__(self, address, verb=None, host=None):
+        self.address = address
+        self.host = host
+        self.verb = verb
+
+    def for_werkzeug(self):
+        from werkzeug.routing import Rule
+        return Rule(self.pattern, host=self.host)
