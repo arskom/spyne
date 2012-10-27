@@ -1,4 +1,4 @@
-# 
+#
 # invRegex.py
 #
 # Copyright 2008, Paul McGuire
@@ -11,29 +11,43 @@
 # - () grouping
 # - | alternation
 #
-__all__ = ["count","invert"]
 
-from pyparsing import (Literal, oneOf, printables, ParserElement, Combine, 
-    SkipTo, operatorPrecedence, ParseFatalException, Word, nums, opAssoc,
-    Suppress, ParseResults, srange)
+__all__ = ["count", "invert"]
+
+from pyparsing import Combine
+from pyparsing import Literal
+from pyparsing import ParseFatalException
+from pyparsing import ParseResults
+from pyparsing import ParserElement
+from pyparsing import SkipTo
+from pyparsing import Suppress
+from pyparsing import Word
+from pyparsing import nums
+from pyparsing import oneOf
+from pyparsing import opAssoc
+from pyparsing import operatorPrecedence
+from pyparsing import printables
+from pyparsing import srange
+
 
 class CharacterRangeEmitter(object):
-    def __init__(self,chars):
+    def __init__(self, chars):
         # remove duplicate chars in character range, but preserve original order
         seen = set()
-        self.charset = "".join( seen.add(c) or c for c in chars if c not in seen )
+        self.charset = "".join(seen.add(c) or c for c in chars if c not in seen)
     def __str__(self):
-        return '['+self.charset+']'
+        return '[' + self.charset + ']'
     def __repr__(self):
-        return '['+self.charset+']'
+        return '[' + self.charset + ']'
     def makeGenerator(self):
         def genChars():
             for s in self.charset:
                 yield s
         return genChars
 
+
 class OptionalEmitter(object):
-    def __init__(self,expr):
+    def __init__(self, expr):
         self.expr = expr
     def makeGenerator(self):
         def optionalGen():
@@ -42,6 +56,7 @@ class OptionalEmitter(object):
                 yield s
         return optionalGen
 
+
 class DotEmitter(object):
     def makeGenerator(self):
         def dotGen():
@@ -49,13 +64,14 @@ class DotEmitter(object):
                 yield c
         return dotGen
 
+
 class GroupEmitter(object):
-    def __init__(self,exprs):
+    def __init__(self, exprs):
         self.exprs = ParseResults(exprs)
     def makeGenerator(self):
         def groupGen():
             def recurseList(elist):
-                if len(elist)==1:
+                if len(elist) == 1:
                     for s in elist[0].makeGenerator()():
                         yield s
                 else:
@@ -67,8 +83,9 @@ class GroupEmitter(object):
                     yield s
         return groupGen
 
+
 class AlternativeEmitter(object):
-    def __init__(self,exprs):
+    def __init__(self, exprs):
         self.exprs = exprs
     def makeGenerator(self):
         def altGen():
@@ -76,26 +93,29 @@ class AlternativeEmitter(object):
                 for s in e.makeGenerator()():
                     yield s
         return altGen
-        
+
+
 class LiteralEmitter(object):
-    def __init__(self,lit):
+    def __init__(self, lit):
         self.lit = lit
     def __str__(self):
-        return "Lit:"+self.lit
+        return "Lit:" + self.lit
     def __repr__(self):
-        return "Lit:"+self.lit
+        return "Lit:" + self.lit
     def makeGenerator(self):
         def litGen():
             yield self.lit
         return litGen
 
+
 def handleRange(toks):
     return CharacterRangeEmitter(srange(toks[0]))
-    
+
+
 def handleRepetition(toks):
-    toks=toks[0]
+    toks = toks[0]
     if toks[1] in "*+":
-        raise ParseFatalException("",0,"unbounded repetition operators not supported")
+        raise ParseFatalException("", 0, "unbounded repetition operators not supported")
     if toks[1] == "?":
         return OptionalEmitter(toks[0])
     if "count" in toks:
@@ -106,12 +126,13 @@ def handleRepetition(toks):
         optcount = maxcount - mincount
         if optcount:
             opt = OptionalEmitter(toks[0])
-            for i in range(1,optcount):
-                opt = OptionalEmitter(GroupEmitter([toks[0],opt]))
+            for i in range(1, optcount):
+                opt = OptionalEmitter(GroupEmitter([toks[0], opt]))
             return GroupEmitter([toks[0]] * mincount + [opt])
         else:
             return [toks[0]] * mincount
-            
+
+
 def handleLiteral(toks):
     lit = ""
     for t in toks:
@@ -122,7 +143,8 @@ def handleLiteral(toks):
                 lit += t[1]
         else:
             lit += t
-    return LiteralEmitter(lit)    
+    return LiteralEmitter(lit)
+
 
 def handleMacro(toks):
     macroChar = toks[0][1]
@@ -133,13 +155,16 @@ def handleMacro(toks):
     elif macroChar == "s":
         return LiteralEmitter(" ")
     else:
-        raise ParseFatalException("",0,"unsupported macro character (" + macroChar + ")")
+        raise ParseFatalException("", 0, "unsupported macro character (" + macroChar + ")")
+
 
 def handleSequence(toks):
     return GroupEmitter(toks[0])
 
+
 def handleDot():
     return CharacterRangeEmitter(printables)
+
 
 def handleAlternative(toks):
     return AlternativeEmitter(toks[0])
@@ -150,37 +175,37 @@ def parser():
     global _parser
     if _parser is None:
         ParserElement.setDefaultWhitespaceChars("")
-        lbrack,rbrack,lbrace,rbrace,lparen,rparen = map(Literal,"[]{}()")
+        lbrack, rbrack, lbrace, rbrace, lparen, rparen = map(Literal, "[]{}()")
 
         reMacro = Combine("\\" + oneOf(list("dws")))
-        escapedChar = ~reMacro + Combine("\\" + oneOf(list(printables)))
+        escapedChar = ~ reMacro + Combine("\\" + oneOf(list(printables)))
         reLiteralChar = "".join(c for c in printables if c not in r"\[]{}().*?+|") + " \t"
 
-        reRange = Combine(lbrack + SkipTo(rbrack,ignore=escapedChar) + rbrack)
-        reLiteral = ( escapedChar | oneOf(list(reLiteralChar)) )
+        reRange = Combine(lbrack + SkipTo(rbrack, ignore=escapedChar) + rbrack)
+        reLiteral = (escapedChar | oneOf(list(reLiteralChar)))
         reDot = Literal(".")
         repetition = (
-            ( lbrace + Word(nums).setResultsName("count") + rbrace ) |
-            ( lbrace + Word(nums).setResultsName("minCount")+","+ Word(nums).setResultsName("maxCount") + rbrace ) |
-            oneOf(list("*+?")) 
-            )
+                      (lbrace + Word(nums).setResultsName("count") + rbrace) |
+                      (lbrace + Word(nums).setResultsName("minCount") + "," + Word(nums).setResultsName("maxCount") + rbrace) |
+                      oneOf(list("*+?"))
+                      )
 
         reRange.setParseAction(handleRange)
         reLiteral.setParseAction(handleLiteral)
         reMacro.setParseAction(handleMacro)
         reDot.setParseAction(handleDot)
-        
-        reTerm = ( reLiteral | reRange | reMacro | reDot )
-        reExpr = operatorPrecedence( reTerm,
-            [
-            (repetition, 1, opAssoc.LEFT, handleRepetition),
-            (None, 2, opAssoc.LEFT, handleSequence),
-            (Suppress('|'), 2, opAssoc.LEFT, handleAlternative),
-            ]
-            )
+
+        reTerm = (reLiteral | reRange | reMacro | reDot)
+        reExpr = operatorPrecedence(reTerm, [
+                (repetition, 1, opAssoc.LEFT, handleRepetition),
+                (None, 2, opAssoc.LEFT, handleSequence),
+                (Suppress('|'), 2, opAssoc.LEFT, handleAlternative),
+            ])
+
         _parser = reExpr
-        
+
     return _parser
+
 
 def count(gen):
     """Simple function to count the number of elements returned by a generator."""
@@ -188,6 +213,7 @@ def count(gen):
     for s in gen:
         i += 1
     return i
+
 
 def invert(regex):
     """Call this routine as a generator to return all the strings that
@@ -197,6 +223,7 @@ def invert(regex):
     """
     invReGenerator = GroupEmitter(parser().parseString(regex)).makeGenerator()
     return invReGenerator()
+
 
 def main():
     tests = r"""
@@ -230,11 +257,11 @@ def main():
     (a|b)|(x|y)
     (a|b) (x|y)
     """.split('\n')
-    
+
     for t in tests:
         t = t.strip()
         if not t: continue
-        print '-'*50
+        print '-' * 50
         print t
         try:
             print count(invert(t))

@@ -167,4 +167,4 @@ class Route(object):
 
     def for_werkzeug(self):
         from werkzeug.routing import Rule
-        return Rule(self.pattern, host=self.host)
+        return Rule(self.address, host=self.host, )
