@@ -35,84 +35,96 @@ class CharacterRangeEmitter(object):
         # remove duplicate chars in character range, but preserve original order
         seen = set()
         self.charset = "".join(seen.add(c) or c for c in chars if c not in seen)
+
     def __str__(self):
         return '[' + self.charset + ']'
+
     def __repr__(self):
         return '[' + self.charset + ']'
-    def makeGenerator(self):
-        def genChars():
+
+    def make_generator(self):
+        def gen_chars():
             for s in self.charset:
                 yield s
-        return genChars
+        return gen_chars
 
 
 class OptionalEmitter(object):
     def __init__(self, expr):
         self.expr = expr
-    def makeGenerator(self):
-        def optionalGen():
+
+    def make_generator(self):
+        def optional_gen():
             yield ""
-            for s in self.expr.makeGenerator()():
+            for s in self.expr.make_generator()():
                 yield s
-        return optionalGen
+        return optional_gen
 
 
 class DotEmitter(object):
-    def makeGenerator(self):
-        def dotGen():
+    def make_generator(self):
+        def dot_gen():
             for c in printables:
                 yield c
-        return dotGen
+        return dot_gen
 
 
 class GroupEmitter(object):
     def __init__(self, exprs):
         self.exprs = ParseResults(exprs)
-    def makeGenerator(self):
-        def groupGen():
-            def recurseList(elist):
+
+    def make_generator(self):
+        def group_gen():
+            def recurse_list(elist):
                 if len(elist) == 1:
-                    for s in elist[0].makeGenerator()():
+                    for s in elist[0].make_generator()():
                         yield s
                 else:
-                    for s in elist[0].makeGenerator()():
-                        for s2 in recurseList(elist[1:]):
+                    for s in elist[0].make_generator()():
+                        for s2 in recurse_list(elist[1:]):
                             yield s + s2
             if self.exprs:
-                for s in recurseList(self.exprs):
+                for s in recurse_list(self.exprs):
                     yield s
-        return groupGen
+
+        return group_gen
 
 
 class AlternativeEmitter(object):
     def __init__(self, exprs):
         self.exprs = exprs
-    def makeGenerator(self):
-        def altGen():
+
+    def make_generator(self):
+        def alt_gen():
             for e in self.exprs:
-                for s in e.makeGenerator()():
+                for s in e.make_generator()():
                     yield s
-        return altGen
+
+        return alt_gen
 
 
 class LiteralEmitter(object):
     def __init__(self, lit):
         self.lit = lit
+
     def __str__(self):
         return "Lit:" + self.lit
+
     def __repr__(self):
         return "Lit:" + self.lit
-    def makeGenerator(self):
-        def litGen():
+
+    def make_generator(self):
+        def lit_gen():
             yield self.lit
-        return litGen
+
+        return lit_gen
 
 
-def handleRange(toks):
+def handle_range(toks):
     return CharacterRangeEmitter(srange(toks[0]))
 
 
-def handleRepetition(toks):
+def handle_repetition(toks):
     toks = toks[0]
     if toks[1] in "*+":
         raise ParseFatalException("", 0, "unbounded repetition operators not supported")
@@ -133,7 +145,7 @@ def handleRepetition(toks):
             return [toks[0]] * mincount
 
 
-def handleLiteral(toks):
+def handle_literal(toks):
     lit = ""
     for t in toks:
         if t[0] == "\\":
@@ -146,7 +158,7 @@ def handleLiteral(toks):
     return LiteralEmitter(lit)
 
 
-def handleMacro(toks):
+def handle_macro(toks):
     macroChar = toks[0][1]
     if macroChar == "d":
         return CharacterRangeEmitter("0123456789")
@@ -158,15 +170,15 @@ def handleMacro(toks):
         raise ParseFatalException("", 0, "unsupported macro character (" + macroChar + ")")
 
 
-def handleSequence(toks):
+def handle_sequence(toks):
     return GroupEmitter(toks[0])
 
 
-def handleDot():
+def handle_dot():
     return CharacterRangeEmitter(printables)
 
 
-def handleAlternative(toks):
+def handle_alternative(toks):
     return AlternativeEmitter(toks[0])
 
 
@@ -190,16 +202,16 @@ def parser():
                       oneOf(list("*+?"))
                       )
 
-        reRange.setParseAction(handleRange)
-        reLiteral.setParseAction(handleLiteral)
-        reMacro.setParseAction(handleMacro)
-        reDot.setParseAction(handleDot)
+        reRange.setParseAction(handle_range)
+        reLiteral.setParseAction(handle_literal)
+        reMacro.setParseAction(handle_macro)
+        reDot.setParseAction(handle_dot)
 
         reTerm = (reLiteral | reRange | reMacro | reDot)
         reExpr = operatorPrecedence(reTerm, [
-                (repetition, 1, opAssoc.LEFT, handleRepetition),
-                (None, 2, opAssoc.LEFT, handleSequence),
-                (Suppress('|'), 2, opAssoc.LEFT, handleAlternative),
+                (repetition, 1, opAssoc.LEFT, handle_repetition),
+                (None, 2, opAssoc.LEFT, handle_sequence),
+                (Suppress('|'), 2, opAssoc.LEFT, handle_alternative),
             ])
 
         _parser = reExpr
@@ -221,7 +233,7 @@ def invert(regex):
            for s in invert("[A-Z]{3}\d{3}"):
                print s
     """
-    invReGenerator = GroupEmitter(parser().parseString(regex)).makeGenerator()
+    invReGenerator = GroupEmitter(parser().parseString(regex)).make_generator()
     return invReGenerator()
 
 
@@ -260,18 +272,23 @@ def main():
 
     for t in tests:
         t = t.strip()
-        if not t: continue
+        if not t:
+            continue
+
         print '-' * 50
         print t
         try:
             print count(invert(t))
             for s in invert(t):
                 print s
+
         except ParseFatalException,pfe:
             print pfe.msg
             print
             continue
+
         print
+
 
 if __name__ == "__main__":
     main()
