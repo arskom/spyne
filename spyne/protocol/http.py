@@ -44,9 +44,12 @@ from spyne.protocol.dictobj import DictObject
 def get_stream_factory(dir=None, delete=True):
     def stream_factory(total_content_length, filename, content_type,
                                                            content_length=None):
-        if total_content_length >= SWAP_DATA_TO_FILE_THRESHOLD or delete == False:
+        if total_content_length >= SWAP_DATA_TO_FILE_THRESHOLD or \
+                                                                delete == False:
             if delete == False:
-                retval = tempfile.NamedTemporaryFile('wb+', dir=dir, delete=delete) # You need python >= 2.6 for this.
+                # You need python >= 2.6 for this.
+                retval = tempfile.NamedTemporaryFile('wb+', dir=dir,
+                                                                  delete=delete)
             else:
                 retval = tempfile.NamedTemporaryFile('wb+', dir=dir)
         else:
@@ -76,9 +79,11 @@ class HttpRpc(DictObject):
 
     def set_tmp_delete_on_close(self, val):
         self.__tmp_delete_on_close = val
-        self.stream_factory = get_stream_factory(self.tmp_dir, self.__tmp_delete_on_close)
+        self.stream_factory = get_stream_factory(self.tmp_dir,
+                                                     self.__tmp_delete_on_close)
 
-    tmp_delete_on_close = property(get_tmp_delete_on_close, set_tmp_delete_on_close)
+    tmp_delete_on_close = property(get_tmp_delete_on_close,
+                                                        set_tmp_delete_on_close)
 
     def set_validator(self, validator):
         if validator == 'soft' or validator is self.SOFT_VALIDATION:
@@ -151,6 +156,7 @@ class HttpRpc(DictObject):
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         ctx.out_string = ctx.out_document
+
 
 class Route(object):
     """Experimental. Stay away.
