@@ -37,7 +37,7 @@ except ImportError: # Python 3
 try:
     from werkzeug.formparser import parse_form_data
 except ImportError:
-    pass
+    parse_form_data = None
 
 from spyne.server.http import HttpMethodContext
 from spyne.server.http import HttpTransportContext
@@ -294,14 +294,14 @@ class WsgiApplication(HttpBase):
         # a better way of having generator functions execute until first yield,
         # just let us know.
         try:
-            len(p_ctx.out_string) # iterator?
-            # nope
+            len(p_ctx.out_string) # generator?
 
+            # nope
             p_ctx.transport.resp_headers['Content-Length'] = \
-                                 str(sum([len(a) for a in p_ctx.out_string]))
+                                    str(sum([len(a) for a in p_ctx.out_string]))
 
             start_response(p_ctx.transport.resp_code,
-                                            p_ctx.transport.resp_headers.items())
+                                           p_ctx.transport.resp_headers.items())
 
             retval = itertools.chain(p_ctx.out_string, self.__finalize(p_ctx))
 
