@@ -158,7 +158,7 @@ class HttpRpc(DictObject):
         ctx.out_string = ctx.out_document
 
 
-class Route(object):
+class HttpRoute(object):
     """Experimental. Stay away.
 
     :param address: Address pattern
@@ -170,7 +170,15 @@ class Route(object):
         self.address = address
         self.host = host
         self.verb = verb
+        self._callable = None
 
     def for_werkzeug(self):
         from werkzeug.routing import Rule
-        return Rule(self.address, host=self.host, )
+        from spyne.util.invregex import invregex
+
+        if self.verb is None:
+            for v in invregex(self.verb):
+                yield Rule(self.address, host=self.host, endpoint=self._callable,
+                                                                         verb=v)
+        else:
+            yield Rule(self.address, host=self.host, endpoint=self._callable)
