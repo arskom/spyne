@@ -278,7 +278,7 @@ class MethodDescriptor(object):
                  is_callback=False, is_async=False, mtom=False, in_header=None,
                  out_header=None, faults=None,
                  port_type=None, no_ctx=False, udp=None, class_key=None,
-                 aux=None):
+                 aux=None, patterns=None):
 
         self.__real_function = function
         """The original callable for the user code."""
@@ -341,6 +341,14 @@ class MethodDescriptor(object):
         return values are returned to the client. Auxiliary ones execute
         asyncronously after the primary method returns, and their return values
         are ignored by the rpc layer.
+        """
+
+        self.patterns = patterns
+        """This list stores patterns which will match this callable using
+        various elements of the request protocol.
+
+        Currently, the only object supported here is the
+        :class:`spyne.protocol.http.HttpRoute` object.
         """
 
     @property
