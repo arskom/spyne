@@ -12,7 +12,7 @@
 # - | alternation
 #
 
-__all__ = ["count", "invregex"]
+__all__ = ["count", "invregexp"]
 
 from pyparsing import Combine
 from pyparsing import Literal
@@ -227,10 +227,10 @@ def count(gen):
     return i
 
 
-def invregex(regex):
+def invregexp(regex):
     """Call this routine as a generator to return all the strings that
        match the input regular expression.
-           for s in invregex("[A-Z]{3}\d{3}"):
+           for s in invregexp("[A-Z]{3}\d{3}"):
                print s
     """
     invReGenerator = GroupEmitter(parser().parseString(regex)).make_generator()
@@ -278,8 +278,8 @@ def main():
         print '-' * 50
         print t
         try:
-            print count(invregex(t))
-            for s in invregex(t):
+            print count(invregexp(t))
+            for s in invregexp(t):
                 print s
 
         except ParseFatalException,pfe:

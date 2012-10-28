@@ -173,11 +173,11 @@ class HttpPattern(object):
 
     def as_werkzeug_rule(self):
         from werkzeug.routing import Rule
-        from spyne.util.invregex import invregex
+        from spyne.util.invregexp import invregexp
 
         methods = None
         if self.verb is not None:
-            methods = invregex(self.verb)
+            methods = invregexp(self.verb)
 
         return Rule(self.address, host=self.host, endpoint=self.endpoint,
                                                                 methods=methods)
