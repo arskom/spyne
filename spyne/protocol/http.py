@@ -40,7 +40,6 @@ except ImportError:
 
 from spyne.protocol.dictobj import DictObject
 
-
 def get_stream_factory(dir=None, delete=True):
     def stream_factory(total_content_length, filename, content_type,
                                                            content_length=None):
@@ -158,7 +157,7 @@ class HttpRpc(DictObject):
         ctx.out_string = ctx.out_document
 
 
-class HttpRoute(object):
+class HttpPattern(object):
     """Experimental. Stay away.
 
     :param address: Address pattern
@@ -166,19 +165,19 @@ class HttpRoute(object):
     :param host: HTTP "Host:" header pattern
     """
 
-    def __init__(self, address, verb=None, host=None):
+    def __init__(self, address, verb=None, host=None, endpoint=None):
         self.address = address
         self.host = host
         self.verb = verb
-        self._callable = None
+        self.endpoint = endpoint
 
-    def for_werkzeug(self):
+    def as_werkzeug_rule(self):
         from werkzeug.routing import Rule
         from spyne.util.invregex import invregex
 
-        if self.verb is None:
-            for v in invregex(self.verb):
-                yield Rule(self.address, host=self.host, endpoint=self._callable,
-                                                                         verb=v)
-        else:
-            yield Rule(self.address, host=self.host, endpoint=self._callable)
+        methods = None
+        if self.verb is not None:
+            methods = invregex(self.verb)
+
+        return Rule(self.address, host=self.host, endpoint=self.endpoint,
+                                                                methods=methods)

@@ -348,7 +348,7 @@ class MethodDescriptor(object):
         various elements of the request protocol.
 
         Currently, the only object supported here is the
-        :class:`spyne.protocol.http.HttpRoute` object.
+        :class:`spyne.protocol.http.HttpPattern` object.
         """
 
     @property
