@@ -294,6 +294,7 @@ class InteropClass(ServiceBase):
     def echo_attachment_array(aa):
         return aa
 
+
 class InteropBare(ServiceBase):
     @srpc(String, _returns=String, _body_style='bare')
     def echo_simple_bare(ss):
@@ -303,9 +304,6 @@ class InteropBare(ServiceBase):
     def echo_complex_bare(ss):
         return ss
 
-    @srpc(String(max_occurs='unbounded'), _returns=String(max_occurs='unbounded'), _body_style='bare')
-    def echo_complex_bare_unwrapped_array(ss):
-        return ss
 
 class InteropException(ServiceBase):
     @srpc()

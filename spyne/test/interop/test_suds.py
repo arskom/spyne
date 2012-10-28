@@ -371,24 +371,5 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
 
         assert ret == val
 
-    def test_echo_complex_bare_unwrapped_array(self):
-        val = ['abc','def']
-        ret = self.client.service.echo_complex_bare_unwrapped_array(val)
-
-        #
-        # Here's the soap response to this request.
-        #
-        # <senv:Envelope xmlns:tns="spyne.test.interop.server"
-        #               xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/">
-        #  <senv:Body>
-        #    <tns:echo_complex_bare_unwrapped_arrayResponse>abc</tns:echo_complex_bare_unwrapped_arrayResponse>
-        #    <tns:echo_complex_bare_unwrapped_arrayResponse>def</tns:echo_complex_bare_unwrapped_arrayResponse>
-        #  </senv:Body>
-        # </senv:Envelope>
-
-        # FIXME: I'm not sure whether this is this the right behavior given the
-        #        above output.
-        assert ret == val[0]
-
 if __name__ == '__main__':
     unittest.main()

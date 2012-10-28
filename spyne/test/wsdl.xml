@@ -110,6 +110,8 @@
       <xs:element name="echo_boolean_arrayResponse" type="tns:echo_boolean_arrayResponse" />
       <xs:element name="echo_class_with_self_reference" type="tns:echo_class_with_self_reference" />
       <xs:element name="echo_class_with_self_referenceResponse" type="tns:echo_class_with_self_referenceResponse" />
+      <xs:element name="echo_complex_bare" type="tns:echo_complex_bare" />
+      <xs:element name="echo_complex_bareResponse" type="tns:stringArray" />
       <xs:element name="echo_date" type="tns:echo_date" />
       <xs:element name="echo_dateResponse" type="tns:echo_dateResponse" />
       <xs:element name="echo_date_time_array" type="tns:echo_date_time_array" />
@@ -146,6 +148,8 @@
       <xs:element name="echo_nested_classResponse" type="tns:echo_nested_classResponse" />
       <xs:element name="echo_nested_class_array" type="tns:echo_nested_class_array" />
       <xs:element name="echo_nested_class_arrayResponse" type="tns:echo_nested_class_arrayResponse" />
+      <xs:element name="echo_simple_bare" type="tns:echo_simple_bare" />
+      <xs:element name="echo_simple_bareResponse" type="xs:string" />
       <xs:element name="echo_simple_boolean_array" type="tns:echo_simple_boolean_array" />
       <xs:element name="echo_simple_boolean_arrayResponse" type="tns:echo_simple_boolean_arrayResponse" />
       <xs:element name="echo_simple_class" type="tns:echo_simple_class" />
@@ -156,6 +160,10 @@
       <xs:element name="echo_stringResponse" type="tns:echo_stringResponse" />
       <xs:element name="echo_string_array" type="tns:echo_string_array" />
       <xs:element name="echo_string_arrayResponse" type="tns:echo_string_arrayResponse" />
+      <xs:element name="echo_time" type="tns:echo_time" />
+      <xs:element name="echo_timeResponse" type="tns:echo_timeResponse" />
+      <xs:element name="echo_time_with_invalid_format" type="tns:echo_time_with_invalid_format" />
+      <xs:element name="echo_time_with_invalid_formatResponse" type="tns:echo_time_with_invalid_formatResponse" />
       <xs:element name="floatArray" type="tns:floatArray" />
       <xs:element name="getCustomMessagesMsgOut" type="tns:getCustomMessagesMsgOut" />
       <xs:element name="huge_number" type="tns:huge_number" />
@@ -395,6 +403,11 @@
           <xs:element minOccurs="0" name="echo_class_with_self_referenceResult" nillable="true" type="tns:ClassWithSelfReference" />
         </xs:sequence>
       </xs:complexType>
+      <xs:complexType name="echo_complex_bare">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="ss" nillable="true" type="tns:stringArray" />
+        </xs:sequence>
+      </xs:complexType>
       <xs:complexType name="echo_date">
         <xs:sequence>
           <xs:element minOccurs="0" name="d" nillable="true" type="xs:date" />
@@ -572,6 +585,11 @@
           <xs:element minOccurs="0" name="echo_nested_class_arrayResult" nillable="true" type="s0:NestedClassArray" />
         </xs:sequence>
       </xs:complexType>
+      <xs:complexType name="echo_simple_bare">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="ss" nillable="true" type="xs:string" />
+        </xs:sequence>
+      </xs:complexType>
       <xs:complexType name="echo_simple_boolean_array">
         <xs:sequence>
           <xs:element maxOccurs="unbounded" minOccurs="0" name="ba" nillable="true" type="xs:boolean" />
@@ -620,6 +638,26 @@
       <xs:complexType name="echo_string_arrayResponse">
         <xs:sequence>
           <xs:element minOccurs="0" name="echo_string_arrayResult" nillable="true" type="tns:stringArray" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_time">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="t" nillable="true" type="xs:time" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_timeResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="echo_timeResult" nillable="true" type="xs:time" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_time_with_invalid_format">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="t" nillable="true" type="xs:time" />
+        </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="echo_time_with_invalid_formatResponse">
+        <xs:sequence>
+          <xs:element minOccurs="0" name="echo_time_with_invalid_formatResult" nillable="true" type="xs:time" />
         </xs:sequence>
       </xs:complexType>
       <xs:complexType name="floatArray">
@@ -819,6 +857,12 @@
   <wsdl:message name="echo_class_with_self_referenceResponse">
     <wsdl:part element="tns:echo_class_with_self_referenceResponse" name="echo_class_with_self_referenceResponse" />
   </wsdl:message>
+  <wsdl:message name="echo_complex_bare">
+    <wsdl:part element="tns:echo_complex_bare" name="echo_complex_bare" />
+  </wsdl:message>
+  <wsdl:message name="echo_complex_bareResponse">
+    <wsdl:part element="tns:echo_complex_bareResponse" name="echo_complex_bareResponse" />
+  </wsdl:message>
   <wsdl:message name="echo_date">
     <wsdl:part element="tns:echo_date" name="echo_date" />
   </wsdl:message>
@@ -935,6 +979,12 @@
   <wsdl:message name="echo_nested_class_arrayResponse">
     <wsdl:part element="tns:echo_nested_class_arrayResponse" name="echo_nested_class_arrayResponse" />
   </wsdl:message>
+  <wsdl:message name="echo_simple_bare">
+    <wsdl:part element="tns:echo_simple_bare" name="echo_simple_bare" />
+  </wsdl:message>
+  <wsdl:message name="echo_simple_bareResponse">
+    <wsdl:part element="tns:echo_simple_bareResponse" name="echo_simple_bareResponse" />
+  </wsdl:message>
   <wsdl:message name="echo_simple_boolean_array">
     <wsdl:part element="tns:echo_simple_boolean_array" name="echo_simple_boolean_array" />
   </wsdl:message>
@@ -964,6 +1014,18 @@
   </wsdl:message>
   <wsdl:message name="echo_string_arrayResponse">
     <wsdl:part element="tns:echo_string_arrayResponse" name="echo_string_arrayResponse" />
+  </wsdl:message>
+  <wsdl:message name="echo_time">
+    <wsdl:part element="tns:echo_time" name="echo_time" />
+  </wsdl:message>
+  <wsdl:message name="echo_timeResponse">
+    <wsdl:part element="tns:echo_timeResponse" name="echo_timeResponse" />
+  </wsdl:message>
+  <wsdl:message name="echo_time_with_invalid_format">
+    <wsdl:part element="tns:echo_time_with_invalid_format" name="echo_time_with_invalid_format" />
+  </wsdl:message>
+  <wsdl:message name="echo_time_with_invalid_formatResponse">
+    <wsdl:part element="tns:echo_time_with_invalid_formatResponse" name="echo_time_with_invalid_formatResponse" />
   </wsdl:message>
   <wsdl:message name="getCustomMessagesMsgOut">
     <wsdl:part element="tns:getCustomMessagesMsgOut" name="getCustomMessagesMsgOut" />
@@ -1053,6 +1115,11 @@
       <soap:address location="http://localhost:9754/" />
     </wsdl:port>
   </wsdl:service>
+  <wsdl:service name="InteropBare">
+    <wsdl:port binding="tns:Application" name="Application">
+      <soap:address location="http://localhost:9754/" />
+    </wsdl:port>
+  </wsdl:service>
   <wsdl:service name="InteropClass">
     <wsdl:port binding="tns:Application" name="Application">
       <soap:address location="http://localhost:9754/" />
@@ -1133,6 +1200,10 @@
       <wsdl:input message="tns:echo_class_with_self_reference" name="echo_class_with_self_reference" />
       <wsdl:output message="tns:echo_class_with_self_referenceResponse" name="echo_class_with_self_referenceResponse" />
     </wsdl:operation>
+    <wsdl:operation name="echo_complex_bare" parameterOrder="echo_complex_bare">
+      <wsdl:input message="tns:echo_complex_bare" name="echo_complex_bare" />
+      <wsdl:output message="tns:echo_complex_bareResponse" name="echo_complex_bareResponse" />
+    </wsdl:operation>
     <wsdl:operation name="echo_date" parameterOrder="echo_date">
       <wsdl:input message="tns:echo_date" name="echo_date" />
       <wsdl:output message="tns:echo_dateResponse" name="echo_dateResponse" />
@@ -1205,6 +1276,10 @@
       <wsdl:input message="tns:echo_nested_class_array" name="echo_nested_class_array" />
       <wsdl:output message="tns:echo_nested_class_arrayResponse" name="echo_nested_class_arrayResponse" />
     </wsdl:operation>
+    <wsdl:operation name="echo_simple_bare" parameterOrder="echo_simple_bare">
+      <wsdl:input message="tns:echo_simple_bare" name="echo_simple_bare" />
+      <wsdl:output message="tns:echo_simple_bareResponse" name="echo_simple_bareResponse" />
+    </wsdl:operation>
     <wsdl:operation name="echo_simple_boolean_array" parameterOrder="echo_simple_boolean_array">
       <wsdl:input message="tns:echo_simple_boolean_array" name="echo_simple_boolean_array" />
       <wsdl:output message="tns:echo_simple_boolean_arrayResponse" name="echo_simple_boolean_arrayResponse" />
@@ -1224,6 +1299,14 @@
     <wsdl:operation name="echo_string_array" parameterOrder="echo_string_array">
       <wsdl:input message="tns:echo_string_array" name="echo_string_array" />
       <wsdl:output message="tns:echo_string_arrayResponse" name="echo_string_arrayResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_time" parameterOrder="echo_time">
+      <wsdl:input message="tns:echo_time" name="echo_time" />
+      <wsdl:output message="tns:echo_timeResponse" name="echo_timeResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="echo_time_with_invalid_format" parameterOrder="echo_time_with_invalid_format">
+      <wsdl:input message="tns:echo_time_with_invalid_format" name="echo_time_with_invalid_format" />
+      <wsdl:output message="tns:echo_time_with_invalid_formatResponse" name="echo_time_with_invalid_formatResponse" />
     </wsdl:operation>
     <wsdl:operation name="huge_number" parameterOrder="huge_number">
       <wsdl:input message="tns:huge_number" name="huge_number" />
@@ -1384,6 +1467,15 @@
         <soap:body use="literal" />
       </wsdl:input>
       <wsdl:output name="echo_class_with_self_referenceResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_complex_bare">
+      <soap:operation soapAction="echo_complex_bare" style="document" />
+      <wsdl:input name="echo_complex_bare">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_complex_bareResponse">
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
@@ -1555,6 +1647,15 @@
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
+    <wsdl:operation name="echo_simple_bare">
+      <soap:operation soapAction="echo_simple_bare" style="document" />
+      <wsdl:input name="echo_simple_bare">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_simple_bareResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
     <wsdl:operation name="echo_simple_boolean_array">
       <soap:operation soapAction="echo_simple_boolean_array" style="document" />
       <wsdl:input name="echo_simple_boolean_array">
@@ -1597,6 +1698,24 @@
         <soap:body use="literal" />
       </wsdl:input>
       <wsdl:output name="echo_string_arrayResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_time">
+      <soap:operation soapAction="echo_time" style="document" />
+      <wsdl:input name="echo_time">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_timeResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="echo_time_with_invalid_format">
+      <soap:operation soapAction="echo_time_with_invalid_format" style="document" />
+      <wsdl:input name="echo_time_with_invalid_format">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="echo_time_with_invalid_formatResponse">
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>
