@@ -200,6 +200,8 @@ def srpc(*params, **kparams):
             _no_ctx = kparams.get('_no_ctx', True)
             _udp = kparams.get('_udp', None)
             _aux = kparams.get('_aux', None)
+            _pattern = kparams.get("_pattern",None)
+            _patterns = kparams.get("_patterns",[])
 
             _faults = None
             if ('_faults' in kparams) and ('_throws' in kparams):
@@ -219,11 +221,18 @@ def srpc(*params, **kparams):
 
             doc = getattr(f, '__doc__')
 
+            if _pattern is not None and _patterns != []:
+                raise ValueError("only one of '_pattern' and '__patterns' "
+                                                    "arguments should be given")
+
+            if _pattern is not None:
+                _patterns = [_pattern]
+
             retval = MethodDescriptor(f,
                     in_message, out_message, doc, _is_callback, _is_async,
                     _mtom, _in_header, _out_header, _faults,
                     port_type=_port_type, no_ctx=_no_ctx, udp=_udp,
-                    class_key=function_name, aux=_aux)
+                    class_key=function_name, aux=_aux, patterns=_patterns)
 
             return retval
 
