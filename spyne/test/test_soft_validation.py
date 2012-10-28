@@ -115,6 +115,7 @@ class TestHttpRpcSoftValidation(unittest.TestCase):
             'QUERY_STRING': qs,
             'PATH_INFO': '/%s' % mn,
             'REQUEST_METHOD': "GET",
+            'SERVER_NAME': 'localhost',
         }, 'some-content-type')
 
         ctx, = server.generate_contexts(ctx)

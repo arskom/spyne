@@ -30,7 +30,6 @@ from spyne.const.suffix import RESULT_SUFFIX
 from spyne.const.suffix import RESPONSE_SUFFIX
 
 from spyne.model import ModelBase
-from spyne.model.complex import Alias
 from spyne.model.complex import ComplexModelBase
 
 
