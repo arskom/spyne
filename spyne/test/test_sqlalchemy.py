@@ -190,6 +190,7 @@ class TestSqlAlchemy(unittest.TestCase):
             'REQUEST_METHOD': 'GET',
             'QUERY_STRING': 'key=1&key=2&key=3',
             'PATH_INFO': '/get_values',
+            'SERVER_NAME': 'localhost',
         }, 'some-content-type')
 
         ctx, = server.generate_contexts(initial_ctx)

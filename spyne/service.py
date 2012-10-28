@@ -17,9 +17,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from spyne._base import BODY_STYLE_EMPTY
 import logging
 logger = logging.getLogger(__name__)
 
+from spyne._base import BODY_STYLE_BARE
 from spyne._base import EventManager
 from spyne.util.oset import oset
 
@@ -54,6 +56,9 @@ class ServiceBaseMeta(type):
                             "auxiliary methods in a single service definition.")
                 else:
                     self.__has_aux_methods = True
+
+                for p in descriptor.patterns:
+                    p.endpoint = k
 
     def __get_base_event_handlers(self, cls_bases):
         handlers = {}
@@ -195,6 +200,11 @@ class ServiceBase(object):
 
         The overriding function must call this function by convention.
         '''
+
+        if ctx.descriptor.body_style is BODY_STYLE_BARE:
+            ctx.in_object = [ctx.in_object]
+        elif ctx.descriptor.body_style is BODY_STYLE_EMPTY:
+            ctx.in_object = []
 
         if ctx.descriptor.no_ctx:
             return ctx.function(*ctx.in_object)

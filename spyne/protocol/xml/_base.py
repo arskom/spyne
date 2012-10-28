@@ -58,6 +58,7 @@ from spyne.protocol.xml.model import fault_to_parent_element
 from spyne.protocol.xml.model import xml_to_parent_element
 from spyne.protocol.xml.model import dict_to_parent_element
 
+from spyne.protocol.xml.model import alias_from_element
 from spyne.protocol.xml.model import base_from_element
 from spyne.protocol.xml.model import binary_from_element
 from spyne.protocol.xml.model import array_from_element
@@ -129,6 +130,7 @@ class XmlObject(ProtocolBase):
             Attachment: binary_from_element,
             ComplexModelBase: complex_from_element,
 
+            Alias: alias_from_element,
             Iterable: iterable_from_element,
             Array: array_from_element,
         })

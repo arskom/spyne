@@ -1,5 +1,3 @@
-from spyne.const.suffix import RESPONSE_SUFFIX
-import spyne.const.suffix
 #!/usr/bin/env python
 #
 # spyne - Copyright (C) Spyne contributors.
@@ -28,10 +26,11 @@ logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 
-import spyne.model.primitive
-
 from lxml import etree
 from StringIO import StringIO
+
+from spyne.const.suffix import RESPONSE_SUFFIX
+from spyne.model.primitive import NATIVE_MAP
 
 from spyne.application import Application
 from spyne.auxproc.sync import SyncAuxProc
@@ -119,6 +118,7 @@ class TestMultipleMethods(unittest.TestCase):
             'QUERY_STRING': 's=hey',
             'PATH_INFO': '/call',
             'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': 'localhost',
         }, start_response, "http://null")
 
         assert data == ['hey', 'hey']
@@ -146,6 +146,7 @@ class TestMultipleMethods(unittest.TestCase):
             'QUERY_STRING': 's=hey',
             'PATH_INFO': '/call',
             'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': 'localhost',
         }, start_response, "http://null")
 
         import time
@@ -175,6 +176,7 @@ class TestMultipleMethods(unittest.TestCase):
             'QUERY_STRING': '',
             'PATH_INFO': '/some_call',
             'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': 'localhost',
         }, start_response, "http://null"))
 
         elt = etree.fromstring(return_string)
@@ -225,23 +227,23 @@ class TestMultipleMethods(unittest.TestCase):
 
 class TestNativeTypes(unittest.TestCase):
     def test_native_types(self):
-        for t in spyne.model.primitive.NATIVE_MAP:
+        for t in NATIVE_MAP:
             class SomeService(ServiceBase):
                 @rpc(t)
                 def some_call(ctx, arg):
                     pass
             nt, = SomeService.public_methods['some_call'].in_message._type_info.values()
-            assert issubclass(nt, spyne.model.primitive.NATIVE_MAP[t])
+            assert issubclass(nt, NATIVE_MAP[t])
 
     def test_native_types_in_arrays(self):
-        for t in spyne.model.primitive.NATIVE_MAP:
+        for t in NATIVE_MAP:
             class SomeService(ServiceBase):
                 @rpc(Array(t))
                 def some_call(ctx, arg):
                     pass
             nt, = SomeService.public_methods['some_call'].in_message._type_info.values()
             nt, = nt._type_info.values()
-            assert issubclass(nt, spyne.model.primitive.NATIVE_MAP[t])
+            assert issubclass(nt, NATIVE_MAP[t])
 
 
 class TestBodyStyle(unittest.TestCase):
@@ -258,7 +260,7 @@ class TestBodyStyle(unittest.TestCase):
         <senv:Envelope  xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/"
                         xmlns:tns="tns">
             <senv:Body>
-                <tns:some_call><tns:s>abc</tns:s></tns:some_call>
+                <tns:some_call>abc</tns:some_call>
             </senv:Body>
         </senv:Envelope>
         """
@@ -268,6 +270,7 @@ class TestBodyStyle(unittest.TestCase):
             'QUERY_STRING': '',
             'PATH_INFO': '/call',
             'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': 'localhost',
             'wsgi.input': StringIO(req)
         }, start_response, "http://null")))
 
@@ -301,13 +304,14 @@ class TestBodyStyle(unittest.TestCase):
             'QUERY_STRING': '',
             'PATH_INFO': '/call',
             'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': 'localhost',
             'wsgi.input': StringIO(req)
         }, start_response, "http://null")))
 
         print etree.tostring(resp, pretty_print=True)
 
         assert resp[0].tag == '{http://schemas.xmlsoap.org/soap/envelope/}Body'
-        assert resp[0][0].tag == '{tns}some_call' + spyne.const.suffix.RESPONSE_SUFFIX
+        assert resp[0][0].tag == '{tns}some_call' + RESPONSE_SUFFIX
         assert resp[0][0].text == 'abc'
 
     def test_soap_bare_wrapped_array_output(self):
@@ -339,50 +343,10 @@ class TestBodyStyle(unittest.TestCase):
         print etree.tostring(resp, pretty_print=True)
 
         assert resp[0].tag == '{http://schemas.xmlsoap.org/soap/envelope/}Body'
-        assert resp[0][0].tag == '{tns}some_call' + spyne.const.suffix.RESPONSE_SUFFIX
+        assert resp[0][0].tag == '{tns}some_call' + RESPONSE_SUFFIX
         assert resp[0][0][0].text == 'abc'
         assert resp[0][0][1].text == 'def'
 
-    def test_soap_bare_unwrapped_array_output(self):
-        class SomeService(ServiceBase):
-            @rpc(_body_style='bare', _returns=String(max_occurs='unbounded'))
-            def some_call(ctx):
-                return ['abc', 'def']
-
-        app = Application([SomeService], 'tns', in_protocol=Soap11(),
-                                                out_protocol=Soap11(cleanup_namespaces=True))
-
-        req = """
-        <senv:Envelope  xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/"
-                        xmlns:tns="tns">
-            <senv:Body>
-                <tns:some_call/>
-            </senv:Body>
-        </senv:Envelope>
-        """
-
-        server = WsgiApplication(app)
-        resp = etree.fromstring(''.join(server({
-            'QUERY_STRING': '',
-            'PATH_INFO': '/call',
-            'REQUEST_METHOD': 'GET',
-            'wsgi.input': StringIO(req)
-        }, start_response, "http://null")))
-
-        print etree.tostring(resp, pretty_print=True)
-
-        assert resp[0].tag == '{http://schemas.xmlsoap.org/soap/envelope/}Body'
-        assert resp[0][0].tag == '{tns}some_call' + spyne.const.suffix.RESPONSE_SUFFIX
-        assert resp[0][0].text == 'abc'
-        assert resp[0][1].text == 'def'
-
-        # here's the expected output:
-        # <senv:Envelope xmlns:tns="tns" xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/">
-        #   <senv:Body>
-        #     <tns:some_callResponse>abc</tns:some_callResponse>
-        #     <tns:some_callResponse>def</tns:some_callResponse>
-        #   </senv:Body>
-        # </senv:Envelope>
 
 if __name__ == '__main__':
     unittest.main()

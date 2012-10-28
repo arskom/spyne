@@ -117,6 +117,7 @@ class XmlSchema(InterfaceDocumentBase):
         self.schema_dict = {}
         self.validation_schema = None
         self.namespaces = odict()
+        self.complex_types = set()
 
     def add(self, cls):
         handler = _add_handlers[cls]

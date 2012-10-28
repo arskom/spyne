@@ -61,7 +61,8 @@ def complex_add(document, cls):
     complex_type = etree.Element("{%s}complexType" % _ns_xsd)
     complex_type.set('name', cls.get_type_name())
 
-    if cls.Annotations.doc != '' or cls.Annotations.appinfo != None or cls.Annotations.__use_parent_doc__:
+    if cls.Annotations.doc != '' or cls.Annotations.appinfo != None or \
+                                             cls.Annotations.__use_parent_doc__:
         annotation = etree.SubElement(complex_type, "{%s}annotation" % _ns_xsd)
         if cls.Annotations.doc != '' or cls.Annotations.__use_parent_doc__:
             doc = etree.SubElement(annotation, "{%s}documentation" % _ns_xsd)
@@ -165,7 +166,10 @@ def alias_add(document, cls):
     t, = cls._type_info.values()
     element = etree.Element('{%s}element' % _ns_xsd)
     element.set('name', cls.get_type_name())
-    element.set('type', t.get_type_name_ns(document.interface))
+    if t is None:
+        etree.SubElement(element, "{%s}complexType" % _ns_xsd)
+    else:
+        element.set('type', t.get_type_name_ns(document.interface))
 
     document.add_element(cls, element)
 

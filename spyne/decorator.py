@@ -26,7 +26,10 @@ to have a more elegant way of passing frequently-used parameter values. The @rpc
 decorator is a simple example of this.
 """
 
+from spyne._base import BODY_STYLE_EMPTY
 from spyne import MethodDescriptor
+from spyne._base import BODY_STYLE_WRAPPED
+from spyne._base import BODY_STYLE_BARE
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import TypeInfo
 
@@ -34,7 +37,9 @@ from spyne.const.xml_ns import DEFAULT_NS
 from spyne.const.suffix import RESPONSE_SUFFIX
 from spyne.const.suffix import RESULT_SUFFIX
 
-def _produce_input_message(f, params, _in_message_name, _in_variable_names, no_ctx):
+def _produce_input_message(f, params, kparams, _in_message_name, _in_variable_names, no_ctx):
+    _body_style = _validate_body_style(kparams)
+
     if no_ctx is True:
         arg_start=0
     else:
@@ -59,9 +64,20 @@ def _produce_input_message(f, params, _in_message_name, _in_variable_names, no_c
     if _in_message_name.startswith("{"):
         ns = _in_message_name[1:].partition("}")[0]
 
-    message = ComplexModel.produce(type_name=_in_message_name, namespace=ns,
-                                            members=in_params)
-    message.__namespace__ = ns
+    if _body_style == 'bare':
+        if len(in_params) > 1:
+            raise Exception("body_style='bare' can handle at most one function "
+                                                                    "argument.")
+        in_param = None
+        if len(in_params) == 1:
+            in_param, = in_params.values()
+
+        message = ComplexModel.alias(_in_message_name, ns, in_param)
+    else:
+        message = ComplexModel.produce(type_name=_in_message_name, namespace=ns,
+                                                              members=in_params)
+        message.__namespace__ = ns
+
 
     return message
 
@@ -200,6 +216,8 @@ def srpc(*params, **kparams):
             _no_ctx = kparams.get('_no_ctx', True)
             _udp = kparams.get('_udp', None)
             _aux = kparams.get('_aux', None)
+            _pattern = kparams.get("_pattern",None)
+            _patterns = kparams.get("_patterns",[])
 
             _faults = None
             if ('_faults' in kparams) and ('_throws' in kparams):
@@ -212,18 +230,33 @@ def srpc(*params, **kparams):
 
             _in_message_name = kparams.get('_in_message_name', function_name)
             _in_variable_names = kparams.get('_in_variable_names', {})
-            in_message = _produce_input_message(f, params, _in_message_name,
-                                                    _in_variable_names, _no_ctx)
+            in_message = _produce_input_message(f, params, kparams, 
+                                _in_message_name, _in_variable_names, _no_ctx)
 
             out_message = _produce_output_message(f, function_name, kparams)
 
             doc = getattr(f, '__doc__')
 
+            if _pattern is not None and _patterns != []:
+                raise ValueError("only one of '_pattern' and '__patterns' "
+                                                    "arguments should be given")
+
+            if _pattern is not None:
+                _patterns = [_pattern]
+
+            body_style = BODY_STYLE_WRAPPED
+            if _validate_body_style(kparams) == 'bare':
+                body_style = BODY_STYLE_BARE
+                t, = in_message._type_info.values()
+                if t is None:
+                    body_style = BODY_STYLE_EMPTY
+
             retval = MethodDescriptor(f,
                     in_message, out_message, doc, _is_callback, _is_async,
                     _mtom, _in_header, _out_header, _faults,
                     port_type=_port_type, no_ctx=_no_ctx, udp=_udp,
-                    class_key=function_name, aux=_aux)
+                    class_key=function_name, aux=_aux, patterns=_patterns,
+                    body_style=body_style)
 
             return retval
 
