@@ -43,6 +43,8 @@ from spyne.server.http import HttpMethodContext
 from spyne.server.http import HttpTransportContext
 
 from spyne.error import RequestTooLongError
+
+from spyne.protocol.http import HttpPattern
 from spyne.protocol.soap.mime import apply_mtom
 from spyne.util import reconstruct_url
 from spyne.server.http import HttpBase
@@ -118,6 +120,7 @@ class WsgiApplication(HttpBase):
             called both from success and error cases.
     '''
 
+
     def __init__(self, app, chunked=True):
         HttpBase.__init__(self, app, chunked)
 
@@ -128,6 +131,29 @@ class WsgiApplication(HttpBase):
         }
         self._mtx_build_interface_document = threading.Lock()
         self._wsdl = None
+
+        # Initialize HTTP Patterns
+        self._http_patterns = None
+        self._map_adapter = None
+        self._mtx_build_map_adapter = threading.Lock()
+
+        for k,v in self.app.interface.service_method_map.items():
+            p_service_class, p_method_descriptor = v[0]
+            for p in p_method_descriptor.patterns:
+                if isinstance(p, HttpPattern):
+                    r = p.as_werkzeug_rule()
+
+                    # We do this here because we don't want to import
+                    # Werkzeug until the last moment.
+                    if self._http_patterns is None:
+                        from werkzeug.routing import Map
+                        self._http_patterns = Map()
+
+                    self._http_patterns.add(r)
+
+    @property
+    def has_patterns(self):
+        return self._http_patterns is not None
 
     def __call__(self, req_env, start_response, wsgi_url=None):
         '''This method conforms to the WSGI spec for callable wsgi applications
@@ -371,13 +397,62 @@ class WsgiApplication(HttpBase):
 
             yield data
 
-    @staticmethod
-    def decompose_incoming_envelope(prot, ctx, message):
+    def generate_map_adapter(self, ctx):
+        try:
+            self._mtx_build_map_adapter.acquire()
+            if self._map_adapter is None:
+                # If url map is not binded before, binds url_map
+                req_env = ctx.transport.req_env
+                self._map_adapter = self._http_patterns.bind(
+                                                    req_env['SERVER_NAME'], "/")
+
+                for k,v in ctx.app.interface.service_method_map.items():
+                    #Compiles url patterns
+                    p_service_class, p_method_descriptor = v[0]
+                    for r in self._http_patterns.iter_rules():
+                        params = {}
+                        if r.endpoint == k:
+                            for pk, pv in p_method_descriptor.in_message.\
+                                                             _type_info.items():
+                                if pk in r.rule:
+                                    from spyne.model.primitive import String
+                                    from spyne.model.primitive import Unicode
+                                    from spyne.model.primitive import Decimal
+
+                                    if issubclass(pv, Unicode):
+                                        params[pk] = ""
+                                    elif issubclass(pv, Decimal):
+                                        params[pk] = 0
+
+                            self._map_adapter.build(r.endpoint, params)
+
+        finally:
+            self._mtx_build_map_adapter.release()
+
+
+    def decompose_incoming_envelope(self, prot, ctx, message):
         """This function is only called by the HttpRpc protocol to have the wsgi
         environment parsed into ``ctx.in_body_doc`` and ``ctx.in_header_doc``.
         """
+        if self.has_patterns:
+            from werkzeug.exceptions import NotFound
+            if self._map_adapter is None:
+                self.generate_map_adapter(ctx)
 
-        ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
+            try:
+                #If PATH_INFO matches a url, Set method_request_string to mrs
+                mrs, params = self._map_adapter.match(ctx.in_document["PATH_INFO"],
+                                                ctx.in_document["REQUEST_METHOD"])
+                ctx.method_request_string = mrs
+
+            except NotFound:
+                # Else set method_request_string normally
+                params = {}
+                ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
+                                  ctx.in_document['PATH_INFO'].split('/')[-1])
+        else:
+            params = {}
+            ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
                               ctx.in_document['PATH_INFO'].split('/')[-1])
 
         logger.debug("%sMethod name: %r%s" % (LIGHT_GREEN,
@@ -385,6 +460,11 @@ class WsgiApplication(HttpBase):
 
         ctx.in_header_doc = _get_http_headers(ctx.in_document)
         ctx.in_body_doc = parse_qs(ctx.in_document['QUERY_STRING'])
+        for k,v in params.items():
+             if k in ctx.in_body_doc:
+                 ctx.in_body_doc[k].append(v)
+             else:
+                 ctx.in_body_doc[k] = [v]
 
         if ctx.in_document['REQUEST_METHOD'].upper() in ('POST', 'PUT', 'PATCH'):
             stream, form, files = parse_form_data(ctx.in_document,

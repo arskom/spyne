@@ -118,6 +118,7 @@ class TestMultipleMethods(unittest.TestCase):
             'QUERY_STRING': 's=hey',
             'PATH_INFO': '/call',
             'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': 'localhost',
         }, start_response, "http://null")
 
         assert data == ['hey', 'hey']
@@ -145,6 +146,7 @@ class TestMultipleMethods(unittest.TestCase):
             'QUERY_STRING': 's=hey',
             'PATH_INFO': '/call',
             'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': 'localhost',
         }, start_response, "http://null")
 
         import time
@@ -174,6 +176,7 @@ class TestMultipleMethods(unittest.TestCase):
             'QUERY_STRING': '',
             'PATH_INFO': '/some_call',
             'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': 'localhost',
         }, start_response, "http://null"))
 
         elt = etree.fromstring(return_string)
@@ -267,6 +270,7 @@ class TestBodyStyle(unittest.TestCase):
             'QUERY_STRING': '',
             'PATH_INFO': '/call',
             'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': 'localhost',
             'wsgi.input': StringIO(req)
         }, start_response, "http://null")))
 
@@ -300,6 +304,7 @@ class TestBodyStyle(unittest.TestCase):
             'QUERY_STRING': '',
             'PATH_INFO': '/call',
             'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': 'localhost',
             'wsgi.input': StringIO(req)
         }, start_response, "http://null")))
 
@@ -365,6 +370,7 @@ class TestBodyStyle(unittest.TestCase):
             'QUERY_STRING': '',
             'PATH_INFO': '/call',
             'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': 'localhost',
             'wsgi.input': StringIO(req)
         }, start_response, "http://null")))
 

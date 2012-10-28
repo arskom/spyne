@@ -50,6 +50,7 @@ class TestHtmlMicroFormat(unittest.TestCase):
             'QUERY_STRING': 's=s',
             'PATH_INFO': '/some_call',
             'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': 'localhost',
         }, 'some-content-type')
 
         ctx, = server.generate_contexts(initial_ctx)
@@ -77,6 +78,7 @@ class TestHtmlMicroFormat(unittest.TestCase):
             'QUERY_STRING': '',
             'PATH_INFO': '/some_call',
             'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': 'localhost',
         }, 'some-content-type')
 
         ctx, = server.generate_contexts(initial_ctx)
@@ -109,6 +111,7 @@ class TestHtmlMicroFormat(unittest.TestCase):
             'QUERY_STRING': 'ccm_c_s=abc&ccm_c_i=123&ccm_i=456&ccm_s=def',
             'PATH_INFO': '/some_call',
             'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': 'localhost',
         }, 'some-content-type')
 
         ctx, = server.generate_contexts(initial_ctx)
@@ -171,6 +174,7 @@ class TestHtmlMicroFormat(unittest.TestCase):
             'QUERY_STRING': 's=1&s=2',
             'PATH_INFO': '/some_call',
             'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': 'localhost',
         }, 'some-content-type')
 
         ctx, = server.generate_contexts(initial_ctx)
