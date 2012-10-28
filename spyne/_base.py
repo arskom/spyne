@@ -27,6 +27,10 @@ from collections import deque
 from spyne.const.xml_ns import DEFAULT_NS
 from spyne.util.oset import oset
 
+class BODY_STYLE_WRAPPED: pass
+class BODY_STYLE_EMPTY: pass
+class BODY_STYLE_BARE: pass
+
 class AuxMethodContext(object):
     """Generic object that holds information specific to auxiliary methods"""
     def __init__(self, p_ctx, error):
@@ -278,7 +282,7 @@ class MethodDescriptor(object):
                  is_callback=False, is_async=False, mtom=False, in_header=None,
                  out_header=None, faults=None,
                  port_type=None, no_ctx=False, udp=None, class_key=None,
-                 aux=None, patterns=None):
+                 aux=None, patterns=None, body_style=None):
 
         self.__real_function = function
         """The original callable for the user code."""
@@ -350,6 +354,9 @@ class MethodDescriptor(object):
         Currently, the only object supported here is the
         :class:`spyne.protocol.http.HttpPattern` object.
         """
+
+        self.body_style = body_style
+        """One of (BODY_STYLE_EMPTY, BODY_STYLE_BARE, BODY_STYLE_WRAPPED)."""
 
     @property
     def name(self):

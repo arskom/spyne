@@ -559,6 +559,9 @@ class ComplexModelBase(ModelBase):
         ModelBase.resolve_namespace(cls, default_ns)
 
         for k, v in cls._type_info.items():
+            if v is None:
+                continue
+
             if v.__type_name__ is ModelBase.Empty:
                 v.__namespace__ = cls.get_namespace()
                 v.__type_name__ = "%s_%s%s" % (cls.get_type_name(), k, TYPE_SUFFIX)
@@ -719,6 +722,7 @@ class Alias(ComplexModelBase):
     """Different type_name, same _type_info."""
 
     __metaclass__ = ComplexModelMeta
+
 
 def log_repr(obj, cls=None):
     """Use this function if you want to echo a ComplexModel subclass. It will

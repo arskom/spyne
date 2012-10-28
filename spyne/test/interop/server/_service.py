@@ -304,6 +304,14 @@ class InteropBare(ServiceBase):
     def echo_complex_bare(ss):
         return ss
 
+    @srpc(_returns=String, _body_style='bare')
+    def empty_input_bare():
+        return "empty"
+
+    @srpc(String, _body_style='bare')
+    def empty_output_bare(ss):
+        assert ss is not None
+
 
 class InteropException(ServiceBase):
     @srpc()

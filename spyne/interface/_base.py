@@ -31,6 +31,7 @@ from spyne.const.suffix import RESPONSE_SUFFIX
 
 from spyne.model import ModelBase
 from spyne.model.complex import ComplexModelBase
+from spyne.model.complex import Alias
 
 
 class Interface(object):
@@ -167,6 +168,7 @@ class Interface(object):
                         in_headers = method.in_header
                     else:
                         in_headers = (method.in_header,)
+
                     for in_header in in_headers:
                         self.__test_type_name_validity(in_header)
                         in_header.resolve_namespace(in_header, self.get_tns())
@@ -297,6 +299,10 @@ class Interface(object):
 
         class_key = '{%s}%s' % (ns, tn)
         logger.debug('\tadding class %r for %r' % (repr(cls), class_key))
+
+        assert class_key not in self.classes, ("Somehow, you're trying to "
+            "overwrite %r by %r for class key %r." %
+                                      (self.classes[class_key], cls, class_key))
         self.classes[class_key] = cls
 
         if ns == self.get_tns():
@@ -309,6 +315,9 @@ class Interface(object):
                 cls.__type_name__ = '%sArray' % child.get_type_name()
 
             for k,v in cls._type_info.items():
+                if v is None:
+                    continue
+
                 self.add_class(v)
                 child_ns = v.get_namespace()
                 if child_ns != ns and not child_ns in self.imports[ns] and \

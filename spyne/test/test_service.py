@@ -260,7 +260,7 @@ class TestBodyStyle(unittest.TestCase):
         <senv:Envelope  xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/"
                         xmlns:tns="tns">
             <senv:Body>
-                <tns:some_call><tns:s>abc</tns:s></tns:some_call>
+                <tns:some_call>abc</tns:some_call>
             </senv:Body>
         </senv:Envelope>
         """

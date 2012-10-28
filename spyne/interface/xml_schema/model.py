@@ -166,7 +166,10 @@ def alias_add(document, cls):
     t, = cls._type_info.values()
     element = etree.Element('{%s}element' % _ns_xsd)
     element.set('name', cls.get_type_name())
-    element.set('type', t.get_type_name_ns(document.interface))
+    if t is None:
+        etree.SubElement(element, "{%s}complexType" % _ns_xsd)
+    else:
+        element.set('type', t.get_type_name_ns(document.interface))
 
     document.add_element(cls, element)
 

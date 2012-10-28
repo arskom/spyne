@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?xml-stylesheet href="wsi-test-tools/common/xsl/report.xsl" type="text/xsl" ?>
-<report name="WS-I Basic Profile Conformance Report."    timestamp="2012-08-28T21:50:20.673"
+<report name="WS-I Basic Profile Conformance Report."    timestamp="2012-10-28T06:24:34.728"
     xmlns="http://www.ws-i.org/testing/2004/07/report/"
     xmlns:wsi-report="http://www.ws-i.org/testing/2004/07/report/"
     xmlns:wsi-log="http://www.ws-i.org/testing/2003/03/log/"
@@ -11,7 +11,7 @@
   <analyzer version="1.0.0" releaseDate="2005-07-04">
     <implementer name="WS-I Organization" location="http://www.ws-i.org"/>
     <environment>
-      <runtime name="Java(TM) SE Runtime Environment" version="1.6.0_33-b03"/>
+      <runtime name="Java(TM) SE Runtime Environment" version="1.6.0_35-b10"/>
       <operatingSystem name="Linux" version="3.2.12-gentoo"/>
       <xmlParser name="Apache Xerces" version="Xerces-J 2.6.2"/>
     </environment>
@@ -141,18 +141,6 @@
       <assertionResult id="SSBP2403" result="passed">
       </assertionResult>
     </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}send_out_complex_headerOutHeaderMsg">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}InHeader">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
     <entry type="message" referenceID="{spyne.test.interop.server}send_out_complex_headerInHeaderMsg">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
@@ -165,13 +153,25 @@
       <assertionResult id="BP2116" result="passed">
       </assertionResult>
     </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}OutHeader">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}InHeader">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
     <entry type="message" referenceID="{spyne.test.interop.server}echo_in_complex_headerInHeaderMsg">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
       </assertionResult>
     </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}OutHeader">
+    <entry type="message" referenceID="{spyne.test.interop.server}send_out_complex_headerOutHeaderMsg">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
@@ -187,7 +187,7 @@
       <assertionResult id="BP2014" result="notApplicable">
       </assertionResult>
     </entry>
-    <entry type="operation" referenceID="echo_enum">
+    <entry type="operation" referenceID="echo_time">
       <assertionResult id="BP2208" result="passed">
       </assertionResult>
       <assertionResult id="BP2014" result="notApplicable">
@@ -199,13 +199,37 @@
       <assertionResult id="BP2014" result="notApplicable">
       </assertionResult>
     </entry>
+    <entry type="operation" referenceID="echo_date">
+      <assertionResult id="BP2208" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2014" result="notApplicable">
+      </assertionResult>
+    </entry>
     <entry type="operation" referenceID="echo_double">
       <assertionResult id="BP2208" result="passed">
       </assertionResult>
       <assertionResult id="BP2014" result="notApplicable">
       </assertionResult>
     </entry>
+    <entry type="operation" referenceID="echo_time_with_invalid_format">
+      <assertionResult id="BP2208" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2014" result="notApplicable">
+      </assertionResult>
+    </entry>
     <entry type="operation" referenceID="echo_any">
+      <assertionResult id="BP2208" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2014" result="notApplicable">
+      </assertionResult>
+    </entry>
+    <entry type="operation" referenceID="echo_date_with_invalid_format">
+      <assertionResult id="BP2208" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2014" result="notApplicable">
+      </assertionResult>
+    </entry>
+    <entry type="operation" referenceID="echo_enum">
       <assertionResult id="BP2208" result="passed">
       </assertionResult>
       <assertionResult id="BP2014" result="notApplicable">
@@ -451,103 +475,43 @@
       <assertionResult id="BP2014" result="notApplicable">
       </assertionResult>
     </entry>
+    <entry type="operation" referenceID="empty_input_bare">
+      <assertionResult id="BP2208" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2014" result="notApplicable">
+      </assertionResult>
+    </entry>
+    <entry type="operation" referenceID="echo_complex_bare">
+      <assertionResult id="BP2208" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2014" result="notApplicable">
+      </assertionResult>
+    </entry>
+    <entry type="operation" referenceID="empty_output_bare">
+      <assertionResult id="BP2208" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2014" result="notApplicable">
+      </assertionResult>
+    </entry>
+    <entry type="operation" referenceID="echo_simple_bare">
+      <assertionResult id="BP2208" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2014" result="notApplicable">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_double_arrayResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}empty_input_bareResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
     <entry type="message" referenceID="{spyne.test.interop.server}echo_datetimeResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}send_out_complex_header">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_nested_class_arrayResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_in_complex_headerResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_integer_arrayResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_attachment_array">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_in_complex_header">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}non_nillableResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_datetime_with_invalid_format">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_simple_boolean_arrayResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}return_binary_dataResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_float">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_float_arrayResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}multi_paramResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_simple_class">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_string">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_simple_class_arrayResponse">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
@@ -559,415 +523,7 @@
       <assertionResult id="BP2116" result="passed">
       </assertionResult>
     </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}return_invalid_dataResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_class_with_self_reference">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_any_as_dictResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_integer_array">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_attachment">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_nested_class_array">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_stringResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_simple_class_array">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_extension_classResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_double_arrayResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_nested_classResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_string_arrayResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}send_out_headerResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}custom_messages">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}complex_returnResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}long_string">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_integerResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}long_stringResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}return_other_class_arrayResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_anyResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_array_in_array">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_simple_classResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}documented_exceptionResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_enum">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_extension_class">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}soap_exceptionResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_duration">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_datetime_with_invalid_formatResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}python_exceptionResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}return_invalid_data">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}send_out_header">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_integer">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}test_emptyResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_durationResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}send_out_complex_headerResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}do_something_else">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_double">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
     <entry type="message" referenceID="{spyne.test.interop.server}echo_boolean_array">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}documented_exception">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_boolean_arrayResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_any">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_booleanResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}return_other_class_array">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}soap_exception">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}non_nillable">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_simple_boolean_array">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_attachment_arrayResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}do_something_elseResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}huge_number">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_array_in_arrayResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}test_empty">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}getCustomMessagesMsgOut">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}return_binary_data">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_in_header">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_boolean">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_in_headerResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_string_array">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_floatResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_nested_class">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_date_time_arrayResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_double_array">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}Fault">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}multi_param">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_doubleResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_enumResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_float_array">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_class_with_self_referenceResponse">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}python_exception">
-      <assertionResult id="BP2115" result="passed">
-      </assertionResult>
-      <assertionResult id="BP2116" result="passed">
-      </assertionResult>
-    </entry>
-    <entry type="message" referenceID="{spyne.test.interop.server}echo_date_time_array">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
@@ -979,7 +535,259 @@
       <assertionResult id="BP2116" result="passed">
       </assertionResult>
     </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_float_arrayResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_doubleResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_class_with_self_reference">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}python_exception">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}return_invalid_dataResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_time_with_invalid_format">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_nested_classResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_complex_bareResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}empty_output_bareResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}return_binary_dataResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_attachment">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_duration">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}send_out_headerResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_in_complex_header">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_integerResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_durationResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_float_array">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}test_emptyResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_string">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_in_header">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_double_array">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}long_string">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_array_in_arrayResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}Fault">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_any">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}documented_exceptionResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_stringResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
     <entry type="message" referenceID="{spyne.test.interop.server}echo_any_as_dict">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_nested_class_arrayResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}non_nillableResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_attachment_arrayResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}return_invalid_data">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_simple_boolean_arrayResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_simple_class">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}empty_input_bare">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_simple_classResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_timeResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_complex_bare">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_float">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_in_complex_headerResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_double">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_time">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_string_arrayResponse">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">
@@ -991,7 +799,343 @@
       <assertionResult id="BP2116" result="passed">
       </assertionResult>
     </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_date_with_invalid_format">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_in_headerResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}soap_exception">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_extension_classResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}long_stringResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_dateResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}python_exceptionResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}multi_paramResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}return_binary_data">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_boolean">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}soap_exceptionResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_class_with_self_referenceResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_attachment_array">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}getCustomMessagesMsgOut">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_nested_class">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}multi_param">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_anyResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_datetime_with_invalid_format">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_extension_class">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_simple_class_array">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_datetime_with_invalid_formatResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}send_out_complex_header">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_date_time_arrayResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_simple_bare">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_floatResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_integer">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_enum">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_integer_array">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_date_time_array">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_enumResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_time_with_invalid_formatResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}complex_returnResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_string_array">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}send_out_complex_headerResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_booleanResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}test_empty">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}custom_messages">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_boolean_arrayResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_array_in_array">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_date">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_simple_bareResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_any_as_dictResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
     <entry type="message" referenceID="{spyne.test.interop.server}complex_return">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_date_with_invalid_formatResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_simple_boolean_array">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}do_something_else">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}do_something_elseResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_nested_class_array">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_simple_class_arrayResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}documented_exception">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}non_nillable">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}send_out_header">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}empty_output_bare">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}return_other_class_array">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}huge_number">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}echo_integer_arrayResponse">
+      <assertionResult id="BP2115" result="passed">
+      </assertionResult>
+      <assertionResult id="BP2116" result="passed">
+      </assertionResult>
+    </entry>
+    <entry type="message" referenceID="{spyne.test.interop.server}return_other_class_arrayResponse">
       <assertionResult id="BP2115" result="passed">
       </assertionResult>
       <assertionResult id="BP2116" result="passed">

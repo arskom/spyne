@@ -110,7 +110,7 @@
       <xs:element name="echo_boolean_arrayResponse" type="tns:echo_boolean_arrayResponse" />
       <xs:element name="echo_class_with_self_reference" type="tns:echo_class_with_self_reference" />
       <xs:element name="echo_class_with_self_referenceResponse" type="tns:echo_class_with_self_referenceResponse" />
-      <xs:element name="echo_complex_bare" type="tns:echo_complex_bare" />
+      <xs:element name="echo_complex_bare" type="tns:stringArray" />
       <xs:element name="echo_complex_bareResponse" type="tns:stringArray" />
       <xs:element name="echo_date" type="tns:echo_date" />
       <xs:element name="echo_dateResponse" type="tns:echo_dateResponse" />
@@ -148,7 +148,7 @@
       <xs:element name="echo_nested_classResponse" type="tns:echo_nested_classResponse" />
       <xs:element name="echo_nested_class_array" type="tns:echo_nested_class_array" />
       <xs:element name="echo_nested_class_arrayResponse" type="tns:echo_nested_class_arrayResponse" />
-      <xs:element name="echo_simple_bare" type="tns:echo_simple_bare" />
+      <xs:element name="echo_simple_bare" type="xs:string" />
       <xs:element name="echo_simple_bareResponse" type="xs:string" />
       <xs:element name="echo_simple_boolean_array" type="tns:echo_simple_boolean_array" />
       <xs:element name="echo_simple_boolean_arrayResponse" type="tns:echo_simple_boolean_arrayResponse" />
@@ -164,6 +164,12 @@
       <xs:element name="echo_timeResponse" type="tns:echo_timeResponse" />
       <xs:element name="echo_time_with_invalid_format" type="tns:echo_time_with_invalid_format" />
       <xs:element name="echo_time_with_invalid_formatResponse" type="tns:echo_time_with_invalid_formatResponse" />
+      <xs:element name="empty_input_bare">
+        <xs:complexType />
+      </xs:element>
+      <xs:element name="empty_input_bareResponse" type="xs:string" />
+      <xs:element name="empty_output_bare" type="xs:string" />
+      <xs:element name="empty_output_bareResponse" type="tns:empty_output_bareResponse" />
       <xs:element name="floatArray" type="tns:floatArray" />
       <xs:element name="getCustomMessagesMsgOut" type="tns:getCustomMessagesMsgOut" />
       <xs:element name="huge_number" type="tns:huge_number" />
@@ -403,11 +409,6 @@
           <xs:element minOccurs="0" name="echo_class_with_self_referenceResult" nillable="true" type="tns:ClassWithSelfReference" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="echo_complex_bare">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="ss" nillable="true" type="tns:stringArray" />
-        </xs:sequence>
-      </xs:complexType>
       <xs:complexType name="echo_date">
         <xs:sequence>
           <xs:element minOccurs="0" name="d" nillable="true" type="xs:date" />
@@ -585,11 +586,6 @@
           <xs:element minOccurs="0" name="echo_nested_class_arrayResult" nillable="true" type="s0:NestedClassArray" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="echo_simple_bare">
-        <xs:sequence>
-          <xs:element minOccurs="0" name="ss" nillable="true" type="xs:string" />
-        </xs:sequence>
-      </xs:complexType>
       <xs:complexType name="echo_simple_boolean_array">
         <xs:sequence>
           <xs:element maxOccurs="unbounded" minOccurs="0" name="ba" nillable="true" type="xs:boolean" />
@@ -659,6 +655,9 @@
         <xs:sequence>
           <xs:element minOccurs="0" name="echo_time_with_invalid_formatResult" nillable="true" type="xs:time" />
         </xs:sequence>
+      </xs:complexType>
+      <xs:complexType name="empty_output_bareResponse">
+        <xs:sequence />
       </xs:complexType>
       <xs:complexType name="floatArray">
         <xs:sequence>
@@ -1027,6 +1026,18 @@
   <wsdl:message name="echo_time_with_invalid_formatResponse">
     <wsdl:part element="tns:echo_time_with_invalid_formatResponse" name="echo_time_with_invalid_formatResponse" />
   </wsdl:message>
+  <wsdl:message name="empty_input_bare">
+    <wsdl:part element="tns:empty_input_bare" name="empty_input_bare" />
+  </wsdl:message>
+  <wsdl:message name="empty_input_bareResponse">
+    <wsdl:part element="tns:empty_input_bareResponse" name="empty_input_bareResponse" />
+  </wsdl:message>
+  <wsdl:message name="empty_output_bare">
+    <wsdl:part element="tns:empty_output_bare" name="empty_output_bare" />
+  </wsdl:message>
+  <wsdl:message name="empty_output_bareResponse">
+    <wsdl:part element="tns:empty_output_bareResponse" name="empty_output_bareResponse" />
+  </wsdl:message>
   <wsdl:message name="getCustomMessagesMsgOut">
     <wsdl:part element="tns:getCustomMessagesMsgOut" name="getCustomMessagesMsgOut" />
   </wsdl:message>
@@ -1307,6 +1318,14 @@
     <wsdl:operation name="echo_time_with_invalid_format" parameterOrder="echo_time_with_invalid_format">
       <wsdl:input message="tns:echo_time_with_invalid_format" name="echo_time_with_invalid_format" />
       <wsdl:output message="tns:echo_time_with_invalid_formatResponse" name="echo_time_with_invalid_formatResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="empty_input_bare" parameterOrder="empty_input_bare">
+      <wsdl:input message="tns:empty_input_bare" name="empty_input_bare" />
+      <wsdl:output message="tns:empty_input_bareResponse" name="empty_input_bareResponse" />
+    </wsdl:operation>
+    <wsdl:operation name="empty_output_bare" parameterOrder="empty_output_bare">
+      <wsdl:input message="tns:empty_output_bare" name="empty_output_bare" />
+      <wsdl:output message="tns:empty_output_bareResponse" name="empty_output_bareResponse" />
     </wsdl:operation>
     <wsdl:operation name="huge_number" parameterOrder="huge_number">
       <wsdl:input message="tns:huge_number" name="huge_number" />
@@ -1716,6 +1735,24 @@
         <soap:body use="literal" />
       </wsdl:input>
       <wsdl:output name="echo_time_with_invalid_formatResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="empty_input_bare">
+      <soap:operation soapAction="empty_input_bare" style="document" />
+      <wsdl:input name="empty_input_bare">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="empty_input_bareResponse">
+        <soap:body use="literal" />
+      </wsdl:output>
+    </wsdl:operation>
+    <wsdl:operation name="empty_output_bare">
+      <soap:operation soapAction="empty_output_bare" style="document" />
+      <wsdl:input name="empty_output_bare">
+        <soap:body use="literal" />
+      </wsdl:input>
+      <wsdl:output name="empty_output_bareResponse">
         <soap:body use="literal" />
       </wsdl:output>
     </wsdl:operation>

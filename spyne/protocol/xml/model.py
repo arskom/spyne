@@ -192,15 +192,16 @@ def alias_to_parent_element(prot, cls, value, tns, parent_elt, name=None):
     (k,t), = cls._type_info.items()
     if t is not None:
         subvalue = getattr(value, k, None)
-        mo = t.Attributes.max_occurs
-
-        if subvalue is not None and mo > 1:
-            for sv in subvalue:
-                prot.to_parent_element(t, sv, tns, parent_elt, name)
-
         # Don't include empty values for non-nillable optional attributes.
-        elif subvalue is not None or t.Attributes.min_occurs > 0:
+        if subvalue is not None:
             prot.to_parent_element(t, subvalue, tns, parent_elt, name)
+
+
+@nillable_element
+def alias_from_element(prot, cls, element):
+    t, = cls._type_info.values()
+    if t is not None:
+        return prot.from_element(t, element)
 
 
 @nillable_element
