@@ -43,6 +43,8 @@ from spyne.server.http import HttpMethodContext
 from spyne.server.http import HttpTransportContext
 
 from spyne.error import RequestTooLongError
+from spyne.error import ResourceNotFoundError
+
 from spyne.protocol.soap.mime import apply_mtom
 from spyne.util import reconstruct_url
 from spyne.server.http import HttpBase
@@ -118,6 +120,7 @@ class WsgiApplication(HttpBase):
             called both from success and error cases.
     '''
 
+
     def __init__(self, app, chunked=True):
         HttpBase.__init__(self, app, chunked)
 
@@ -128,6 +131,16 @@ class WsgiApplication(HttpBase):
         }
         self._mtx_build_interface_document = threading.Lock()
         self._wsdl = None
+        http_routes = app.interface.http_routes
+        self.app.interface.has_http_routes = self.app.in_protocol.has_any_http_routes(self.app)
+        if self.app.interface.has_http_routes:
+            from werkzeug.routing import Rule
+
+            for k,v in self.app.interface.service_method_map.items():
+                p_service_class, p_method_descriptor = v[0]
+                for r in p_method_descriptor.http_routes:
+                    # Adds url patterns and sets endpoint to method name
+                    http_routes.add(Rule(r.rule, endpoint=k, methods=r.methods))
 
     def __call__(self, req_env, start_response, wsgi_url=None):
         '''This method conforms to the WSGI spec for callable wsgi applications
@@ -376,8 +389,49 @@ class WsgiApplication(HttpBase):
         """This function is only called by the HttpRpc protocol to have the wsgi
         environment parsed into ``ctx.in_body_doc`` and ``ctx.in_header_doc``.
         """
+        if ctx.app.interface.has_http_routes:
+            from werkzeug.exceptions import NotFound
+            if prot.map_adapter is None:
+                # If url map is not binded before, binds url_map
+                req_env = ctx.transport.req_env
+                prot.map_adapter = ctx.app.in_protocol.get_map_adapter(
+                                                    req_env['SERVER_NAME'], "/")
 
-        ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
+                for k,v in ctx.app.interface.service_method_map.items():
+                    #Compiles url patterns
+                    p_service_class, p_method_descriptor = v[0]
+                    for r in ctx.app.interface.http_routes.iter_rules():
+                        params = {}
+                        if r.endpoint == k:
+                            for pk,pv in p_method_descriptor.in_message.\
+                                                                _type_info.items():
+
+                                if pk in r.rule:
+                                    from spyne.model.primitive import String
+                                    from spyne.model.primitive import Unicode
+                                    from spyne.model.primitive import Decimal
+
+                                    if issubclass(pv, Unicode):
+                                        params[pk] = ""
+                                    elif issubclass(pv, Decimal):
+                                        params[pk] = 0
+
+                            prot.map_adapter.build(r.endpoint, params)
+
+            try:
+                #If PATH_INFO matches a url, Set method_request_string to mrs
+                mrs, params = prot.map_adapter.match(ctx.in_document["PATH_INFO"],
+                                                ctx.in_document["REQUEST_METHOD"])
+                ctx.method_request_string = mrs
+
+            except NotFound:
+                # Else set method_request_string normally
+                params = {}
+                ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
+                                  ctx.in_document['PATH_INFO'].split('/')[-1])
+        else:
+            params = {}
+            ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
                               ctx.in_document['PATH_INFO'].split('/')[-1])
 
         logger.debug("%sMethod name: %r%s" % (LIGHT_GREEN,
@@ -385,6 +439,11 @@ class WsgiApplication(HttpBase):
 
         ctx.in_header_doc = _get_http_headers(ctx.in_document)
         ctx.in_body_doc = parse_qs(ctx.in_document['QUERY_STRING'])
+        for k,v in params.items():
+             if k in ctx.in_body_doc:
+                 ctx.in_body_doc[k].append(v)
+             else:
+                 ctx.in_body_doc[k] = [v]
 
         if ctx.in_document['REQUEST_METHOD'].upper() in ('POST', 'PUT', 'PATCH'):
             stream, form, files = parse_form_data(ctx.in_document,

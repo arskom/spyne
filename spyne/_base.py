@@ -278,7 +278,7 @@ class MethodDescriptor(object):
                  is_callback=False, is_async=False, mtom=False, in_header=None,
                  out_header=None, faults=None,
                  port_type=None, no_ctx=False, udp=None, class_key=None,
-                 aux=None):
+                 aux=None, http_routes=None):
 
         self.__real_function = function
         """The original callable for the user code."""
@@ -341,6 +341,13 @@ class MethodDescriptor(object):
         return values are returned to the client. Auxiliary ones execute
         asyncronously after the primary method returns, and their return values
         are ignored by the rpc layer.
+        """
+
+        self.http_routes = http_routes
+        """This list stores the url patterns which will be used for url routing.
+            The elements of list must be werkzeug Rule's which can found in
+            werkzeug.routing. For further reading please go to this url.
+            http://werkzeug.pocoo.org/docs/routing/#maps-rules-and-adapters
         """
 
     @property
