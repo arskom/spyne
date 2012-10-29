@@ -63,7 +63,7 @@ from spyne.protocol.soap import Soap11
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.html import HtmlMicroFormat
 from spyne.protocol.json import JsonDocument
-from spyne.protocol.msgpack import MessagePackObject
+from spyne.protocol.msgpack import MessagePackDocument
 from spyne.protocol.msgpack import MessagePackRpc
 
 from protocol import PngClock
@@ -110,7 +110,7 @@ if __name__ == '__main__':
             in_protocol=HttpRpc(), out_protocol=JsonDocument(skip_depth=3))
 
     msgpack_object = Application([HelloWorldService], tns=tns,
-            in_protocol=HttpRpc(), out_protocol=MessagePackObject())
+            in_protocol=HttpRpc(), out_protocol=MessagePackDocument())
 
     msgpack_rpc = Application([HelloWorldService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=MessagePackRpc())

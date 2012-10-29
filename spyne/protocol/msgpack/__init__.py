@@ -42,7 +42,7 @@ class MessagePackDecodeError(Fault):
         Fault.__init__(self, "Client.MessagePackDecodeError", data)
 
 
-class MessagePackObject(DictDocument):
+class MessagePackDocument(DictDocument):
     """An integration class for the msgpack protocol."""
 
     mime_type = 'application/x-msgpack'
@@ -64,7 +64,7 @@ class MessagePackObject(DictDocument):
         ctx.out_string = (msgpack.packb(o) for o in ctx.out_document)
 
 
-class MessagePackRpc(MessagePackObject):
+class MessagePackRpc(MessagePackDocument):
     """An integration class for the msgpack-rpc protocol."""
 
     mime_type = 'application/x-msgpack'
@@ -194,3 +194,7 @@ class MessagePackRpc(MessagePackObject):
                     ]]
 
             self.event_manager.fire_event('after_serialize', ctx)
+
+
+MessagePackObject = MessagePackDocument
+"""DEPRECATED. Use :class:`spyne.protocol.msgpack.MessagePackDocument` instead"""
