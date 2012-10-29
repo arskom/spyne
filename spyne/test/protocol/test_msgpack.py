@@ -33,9 +33,9 @@ from spyne.protocol.msgpack import MessagePackObject
 from spyne.protocol.msgpack import MessagePackRpc
 from spyne.server.wsgi import WsgiApplication
 from spyne.server.wsgi import WsgiMethodContext
-from spyne.test.protocol._test_dictobj import TDictObjectTest
+from spyne.test.protocol._test_dictobj import TDictDocumentTest
 
-TestMessagePackObject = TDictObjectTest(msgpack, MessagePackObject,
+TestMessagePackObject = TDictDocumentTest(msgpack, MessagePackObject,
                                             "Client.MessagePackDecodeError")
 from spyne.test.test_service import start_response
 

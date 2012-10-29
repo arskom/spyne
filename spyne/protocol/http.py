@@ -38,7 +38,7 @@ except ImportError:
     except ImportError: # Python 3
         from io import StringIO
 
-from spyne.protocol.dictobj import DictObject
+from spyne.protocol.dictobj import DictDocument
 
 def get_stream_factory(dir=None, delete=True):
     def stream_factory(total_content_length, filename, content_type,
@@ -58,7 +58,7 @@ def get_stream_factory(dir=None, delete=True):
     return stream_factory
 
 
-class HttpRpc(DictObject):
+class HttpRpc(DictDocument):
     """The so-called ReST-ish HttpRpc protocol implementation. It only works
     with Http (wsgi and twisted) transports.
     """
@@ -68,7 +68,7 @@ class HttpRpc(DictObject):
 
     def __init__(self, app=None, validator=None, mime_type=None, tmp_dir=None,
                                                       tmp_delete_on_close=True):
-        DictObject.__init__(self, app, validator, mime_type)
+        DictDocument.__init__(self, app, validator, mime_type)
 
         self.tmp_dir = tmp_dir
         self.tmp_delete_on_close = tmp_delete_on_close
@@ -100,7 +100,7 @@ class HttpRpc(DictObject):
         ctx.in_document = ctx.transport.req
 
     def decompose_incoming_envelope(self, ctx, message):
-        assert message == DictObject.REQUEST
+        assert message == DictDocument.REQUEST
 
         ctx.transport.itself.decompose_incoming_envelope(self, ctx, message)
 

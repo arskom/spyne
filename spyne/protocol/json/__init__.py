@@ -59,10 +59,10 @@ from spyne.model.primitive import Unicode
 from spyne.protocol import ProtocolBase
 from spyne.protocol import unwrap_messages
 from spyne.protocol import unwrap_instance
-from spyne.protocol.dictobj import DictObject
+from spyne.protocol.dictobj import DictDocument
 
 
-class JsonDocument(DictObject):
+class JsonDocument(DictDocument):
     """An implementation of the json protocol that uses simplejson package when
     available, json package otherwise.
     """

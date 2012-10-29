@@ -100,7 +100,7 @@ class TestUnwrap(unittest.TestCase):
         assert c == None
 
 
-def TDictObjectTest(serializer, _DictObjectChild, decode_error):
+def TDictDocumentTest(serializer, _DictDocumentChild, decode_error):
     class Test(unittest.TestCase):
         def test_multiple_return_sd_3(self):
             class SomeService(ServiceBase):
@@ -109,8 +109,8 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
                     return 1, 2
 
             app = Application([SomeService], 'tns',
-                                    in_protocol=_DictObjectChild(),
-                                    out_protocol=_DictObjectChild(skip_depth=3))
+                                    in_protocol=_DictDocumentChild(),
+                                    out_protocol=_DictDocumentChild(skip_depth=3))
 
             server = ServerBase(app)
             initial_ctx = MethodContext(server)
@@ -131,8 +131,8 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
                     return 1, 2
 
             app = Application([SomeService], 'tns',
-                                    in_protocol=_DictObjectChild(),
-                                    out_protocol=_DictObjectChild(skip_depth=2))
+                                    in_protocol=_DictDocumentChild(),
+                                    out_protocol=_DictDocumentChild(skip_depth=2))
 
             server = ServerBase(app)
             initial_ctx = MethodContext(server)
@@ -155,8 +155,8 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
                     return 1, 2
 
             app = Application([SomeService], 'tns',
-                                    in_protocol=_DictObjectChild(),
-                                    out_protocol=_DictObjectChild(skip_depth=1))
+                                    in_protocol=_DictDocumentChild(),
+                                    out_protocol=_DictDocumentChild(skip_depth=1))
 
             server = ServerBase(app)
             initial_ctx = MethodContext(server)
@@ -179,8 +179,8 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
                     return 1, 2
 
             app = Application([SomeService], 'tns',
-                                    in_protocol=_DictObjectChild(),
-                                    out_protocol=_DictObjectChild())
+                                    in_protocol=_DictDocumentChild(),
+                                    out_protocol=_DictDocumentChild())
 
 
             server = ServerBase(app)
@@ -208,8 +208,8 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
                     return SomeComplexModel(i=5, s='5x')
 
             app = Application([SomeService], 'tns',
-                                    in_protocol=_DictObjectChild(),
-                                    out_protocol=_DictObjectChild())
+                                    in_protocol=_DictDocumentChild(),
+                                    out_protocol=_DictDocumentChild())
 
             server = ServerBase(app)
             initial_ctx = MethodContext(server)
@@ -239,8 +239,8 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
                     return CCM(c=ccm.c, i=ccm.i, s=ccm.s)
 
             app = Application([SomeService], 'tns',
-                                    in_protocol=_DictObjectChild(),
-                                    out_protocol=_DictObjectChild())
+                                    in_protocol=_DictDocumentChild(),
+                                    out_protocol=_DictDocumentChild())
 
             server = ServerBase(app)
             initial_ctx = MethodContext(server)
@@ -266,8 +266,8 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
                     return s
 
             app = Application([SomeService], 'tns',
-                                    in_protocol=_DictObjectChild(),
-                                    out_protocol=_DictObjectChild())
+                                    in_protocol=_DictDocumentChild(),
+                                    out_protocol=_DictDocumentChild())
 
             server = ServerBase(app)
 
@@ -288,8 +288,8 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
                 def some_call(s):
                     return s
 
-            app = Application([SomeService], 'tns', in_protocol=_DictObjectChild(),
-                                                    out_protocol=_DictObjectChild())
+            app = Application([SomeService], 'tns', in_protocol=_DictDocumentChild(),
+                                                    out_protocol=_DictDocumentChild())
             server = ServerBase(app)
 
             initial_ctx = MethodContext(server)
@@ -309,8 +309,8 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
                 def some_call(s):
                     return s
 
-            app = Application([SomeService], 'tns', in_protocol=_DictObjectChild(),
-                                                    out_protocol=_DictObjectChild())
+            app = Application([SomeService], 'tns', in_protocol=_DictDocumentChild(),
+                                                    out_protocol=_DictDocumentChild())
             server = ServerBase(app)
 
             initial_ctx = MethodContext(server)
@@ -342,7 +342,7 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
                 def some_call(ecm):
                     return ecm
 
-            app = Application([SomeService], 'tns', in_protocol=_DictObjectChild(), out_protocol=_DictObjectChild())
+            app = Application([SomeService], 'tns', in_protocol=_DictDocumentChild(), out_protocol=_DictDocumentChild())
             server = ServerBase(app)
 
             initial_ctx = MethodContext(server)
@@ -381,8 +381,8 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
                     pass
 
             app = Application([SomeService], 'tns',
-                                    in_protocol=_DictObjectChild(),
-                                    out_protocol=_DictObjectChild())
+                                    in_protocol=_DictDocumentChild(),
+                                    out_protocol=_DictDocumentChild())
 
             server = ServerBase(app)
 
@@ -399,8 +399,8 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
                     pass
 
             app = Application([SomeService], 'tns',
-                                    in_protocol=_DictObjectChild(validator='soft'),
-                                    out_protocol=_DictObjectChild())
+                                    in_protocol=_DictDocumentChild(validator='soft'),
+                                    out_protocol=_DictDocumentChild())
 
             server = ServerBase(app)
 
@@ -420,8 +420,8 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
                     pass
 
             app = Application([SomeService], 'tns',
-                                    in_protocol=_DictObjectChild(validator='soft'),
-                                    out_protocol=_DictObjectChild())
+                                    in_protocol=_DictDocumentChild(validator='soft'),
+                                    out_protocol=_DictDocumentChild())
             server = ServerBase(app)
 
             initial_ctx = MethodContext(server)
@@ -439,8 +439,8 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
                     pass
 
             app = Application([SomeService], 'tns',
-                                    in_protocol=_DictObjectChild(validator='soft'),
-                                    out_protocol=_DictObjectChild())
+                                    in_protocol=_DictDocumentChild(validator='soft'),
+                                    out_protocol=_DictDocumentChild())
 
             server = ServerBase(app)
 
@@ -459,8 +459,8 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
                     pass
 
             app = Application([SomeService], 'tns',
-                                    in_protocol=_DictObjectChild(validator='soft'),
-                                    out_protocol=_DictObjectChild()
+                                    in_protocol=_DictDocumentChild(validator='soft'),
+                                    out_protocol=_DictDocumentChild()
                                 )
             server = ServerBase(app)
 
@@ -481,8 +481,8 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
                     pass
 
             app = Application([SomeService], 'tns',
-                    in_protocol=_DictObjectChild(validator='soft'),
-                    out_protocol=_DictObjectChild()
+                    in_protocol=_DictDocumentChild(validator='soft'),
+                    out_protocol=_DictDocumentChild()
                 )
 
             server = ServerBase(app)
@@ -501,8 +501,8 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
                     return "foo"
 
             app = Application([SomeService], 'tns',
-                    in_protocol=_DictObjectChild(),
-                    out_protocol=_DictObjectChild(skip_depth=2)
+                    in_protocol=_DictDocumentChild(),
+                    out_protocol=_DictDocumentChild(skip_depth=2)
                 )
 
             server = ServerBase(app)
@@ -521,8 +521,8 @@ def TDictObjectTest(serializer, _DictObjectChild, decode_error):
                     raise Fault()
 
             app = Application([SomeService], 'tns',
-                                in_protocol=_DictObjectChild(),
-                                out_protocol=_DictObjectChild(skip_depth=2))
+                                in_protocol=_DictDocumentChild(),
+                                out_protocol=_DictDocumentChild(skip_depth=2))
 
             server = ServerBase(app)
             initial_ctx = MethodContext(server)

@@ -34,7 +34,7 @@ import msgpack
 from spyne.model.complex import Array
 from spyne.model.fault import Fault
 from spyne.protocol import ProtocolBase
-from spyne.protocol.dictobj import DictObject
+from spyne.protocol.dictobj import DictDocument
 
 
 class MessagePackDecodeError(Fault):
@@ -42,7 +42,7 @@ class MessagePackDecodeError(Fault):
         Fault.__init__(self, "Client.MessagePackDecodeError", data)
 
 
-class MessagePackObject(DictObject):
+class MessagePackObject(DictDocument):
     """An integration class for the msgpack protocol."""
 
     mime_type = 'application/x-msgpack'

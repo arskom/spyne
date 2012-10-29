@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""The ``spyne.protocol.dictobj.DictObject`` module contains an abstract
+"""The ``spyne.protocol.dictobj.DictDocument`` module contains an abstract
 protocol that deals with hierarchical dicts as {in,out}_documents.
 """
 
@@ -41,7 +41,7 @@ from spyne.protocol._base import unwrap_messages
 from spyne.protocol._base import unwrap_instance
 
 
-class DictObject(ProtocolBase):
+class DictDocument(ProtocolBase):
     """An abstract protocol that uses dicts as input and output documents.
 
     Implement ``create_in_document`` and ``create_out_string`` to use this.
