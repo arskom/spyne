@@ -330,4 +330,4 @@ class XmlDocument(ProtocolBase):
                                str(self.validation_schema.error_log.last_error))
 
 XmlObject = XmlDocument
-"""DEPRECATED. Use XmlDocument instead"""
+"""DEPRECATED. Use :class:`spyne.protocol.xml.XmlDocument` instead"""

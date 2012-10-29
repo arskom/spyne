@@ -20,7 +20,7 @@ issues as Spyne.
 Discussion thread: https://answers.launchpad.net/ladon/+question/171664
 
 * Supports JsonWSP protocol, which is JsonRpc with interface description. Spyne
-  supports JsonObject which serializes complex object hierarchies as nested
+  supports JsonDocument which serializes complex object hierarchies as nested
   dict objects.
 * Supports both Python 2 and Python 3. Spyne is Python 2 only.
 * Auto-generates human-readable API documentation.

@@ -25,10 +25,10 @@ except ImportError:
 
 
 from spyne.test.protocol._test_dictobj import TDictObjectTest
-from spyne.protocol.json import JsonObject
+from spyne.protocol.json import JsonDocument
 
 
-TestJsonObject = TDictObjectTest(json, JsonObject, 'Client.JsonDecodeError')
+TestJsonDocument = TDictObjectTest(json, JsonDocument, 'Client.JsonDecodeError')
 
 
 if __name__ == '__main__':

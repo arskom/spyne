@@ -62,7 +62,7 @@ from spyne.protocol.xml import XmlDocument
 from spyne.protocol.soap import Soap11
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.html import HtmlMicroFormat
-from spyne.protocol.json import JsonObject
+from spyne.protocol.json import JsonDocument
 from spyne.protocol.msgpack import MessagePackObject
 from spyne.protocol.msgpack import MessagePackRpc
 
@@ -98,16 +98,16 @@ if __name__ == '__main__':
             in_protocol=HttpRpc(), out_protocol=SvgClock())
 
     json0 = Application([HelloWorldService], tns=tns,
-            in_protocol=HttpRpc(), out_protocol=JsonObject())
+            in_protocol=HttpRpc(), out_protocol=JsonDocument())
 
     json1 = Application([HelloWorldService], tns=tns,
-            in_protocol=HttpRpc(), out_protocol=JsonObject(skip_depth=1))
+            in_protocol=HttpRpc(), out_protocol=JsonDocument(skip_depth=1))
 
     json2 = Application([HelloWorldService], tns=tns,
-            in_protocol=HttpRpc(), out_protocol=JsonObject(skip_depth=2))
+            in_protocol=HttpRpc(), out_protocol=JsonDocument(skip_depth=2))
 
     json3 = Application([HelloWorldService], tns=tns,
-            in_protocol=HttpRpc(), out_protocol=JsonObject(skip_depth=3))
+            in_protocol=HttpRpc(), out_protocol=JsonDocument(skip_depth=3))
 
     msgpack_object = Application([HelloWorldService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=MessagePackObject())
