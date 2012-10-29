@@ -14,6 +14,7 @@ spyne-2.9.0
    ComplexModel!
  * First-class integration with Pyramid.
  * First geospatial types: Point and Polygon.
+ * Initial revision of the url routing support via ``werkzeug.routing``
 
 spyne-2.8.2-rc
 --------------
