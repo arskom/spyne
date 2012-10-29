@@ -58,7 +58,7 @@ from spyne.util.wsgi_wrapper import WsgiMounter
 
 from spyne.model.primitive import DateTime
 
-from spyne.protocol.xml import XmlObject
+from spyne.protocol.xml import XmlDocument
 from spyne.protocol.soap import Soap11
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.html import HtmlMicroFormat
@@ -83,7 +83,7 @@ if __name__ == '__main__':
             in_protocol=HttpRpc(), out_protocol=HttpRpc())
 
     xml = Application([HelloWorldService], tns=tns,
-            in_protocol=HttpRpc(), out_protocol=XmlObject())
+            in_protocol=HttpRpc(), out_protocol=XmlDocument())
 
     soap = Application([HelloWorldService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=Soap11())

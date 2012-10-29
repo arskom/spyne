@@ -37,7 +37,7 @@ from twisted.python import log
 from spyne.application import Application
 from spyne.decorator import srpc
 from spyne.protocol.http import HttpRpc
-from spyne.protocol.xml import XmlObject
+from spyne.protocol.xml import XmlDocument
 from spyne.service import ServiceBase
 from spyne.model.primitive import Integer
 
@@ -59,7 +59,7 @@ def initialize():
 
 
     application = Application([SomeService], 'spyne.examples.hello.twisted',
-                                in_protocol=HttpRpc(), out_protocol=XmlObject())
+                                in_protocol=HttpRpc(), out_protocol=XmlDocument())
 
     application.interface.nsmap[None] = application.interface.nsmap['tns']
     application.interface.prefmap[application.interface.nsmap['tns']] = None

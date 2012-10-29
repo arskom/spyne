@@ -51,7 +51,7 @@ from spyne.model.primitive import UnsignedInteger64
 from spyne.model.primitive import UnsignedInteger32
 from spyne.model.primitive import UnsignedInteger16
 from spyne.model.primitive import UnsignedInteger8
-from spyne.protocol.xml import XmlObject
+from spyne.protocol.xml import XmlDocument
 
 from spyne.application import Application
 from spyne.decorator import srpc
@@ -68,7 +68,7 @@ class TestPrimitive(unittest.TestCase):
                 pass
 
         try:
-            app = Application([Service], 'hey', XmlSchema(), XmlObject(), XmlObject())
+            app = Application([Service], 'hey', XmlSchema(), XmlDocument(), XmlDocument())
         except:
             pass
         else:
@@ -77,22 +77,22 @@ class TestPrimitive(unittest.TestCase):
     def test_string(self):
         s = String()
         element = etree.Element('test')
-        XmlObject().to_parent_element(String, 'value', ns_test, element)
+        XmlDocument().to_parent_element(String, 'value', ns_test, element)
         element=element[0]
 
         self.assertEquals(element.text, 'value')
-        value = XmlObject().from_element(String, element)
+        value = XmlDocument().from_element(String, element)
         self.assertEquals(value, 'value')
 
     def test_datetime(self):
         n = datetime.datetime.now()
 
         element = etree.Element('test')
-        XmlObject().to_parent_element(DateTime, n, ns_test, element)
+        XmlDocument().to_parent_element(DateTime, n, ns_test, element)
         element = element[0]
 
         self.assertEquals(element.text, n.isoformat())
-        dt = XmlObject().from_element(DateTime, element)
+        dt = XmlDocument().from_element(DateTime, element)
         self.assertEquals(n, dt)
 
     def test_datetime_format(self):
@@ -100,11 +100,11 @@ class TestPrimitive(unittest.TestCase):
         format = "%Y %m %d %H %M %S"
 
         element = etree.Element('test')
-        XmlObject().to_parent_element(DateTime(format=format), n, ns_test, element)
+        XmlDocument().to_parent_element(DateTime(format=format), n, ns_test, element)
         element = element[0]
 
         self.assertEquals(element.text, datetime.datetime.strftime(n, format))
-        dt = XmlObject().from_element(DateTime(format=format), element)
+        dt = XmlDocument().from_element(DateTime(format=format), element)
         self.assertEquals(n, dt)
 
     def test_time(self):
@@ -142,7 +142,7 @@ class TestPrimitive(unittest.TestCase):
         e = etree.Element('test')
         e.text = datestring
 
-        dt = XmlObject().from_element(DateTime, e)
+        dt = XmlDocument().from_element(DateTime, e)
 
         self.assertEquals(dt.year, 2007)
         self.assertEquals(dt.month, 5)
@@ -152,7 +152,7 @@ class TestPrimitive(unittest.TestCase):
         e = etree.Element('test')
         e.text = datestring
 
-        dt = XmlObject().from_element(DateTime, e)
+        dt = XmlDocument().from_element(DateTime, e)
 
         self.assertEquals(dt.year, 2007)
         self.assertEquals(dt.month, 5)
@@ -163,11 +163,11 @@ class TestPrimitive(unittest.TestCase):
         integer = Integer()
 
         element = etree.Element('test')
-        XmlObject().to_parent_element(Integer, i, ns_test, element)
+        XmlDocument().to_parent_element(Integer, i, ns_test, element)
         element = element[0]
 
         self.assertEquals(element.text, '12')
-        value = XmlObject().from_element(integer, element)
+        value = XmlDocument().from_element(integer, element)
         self.assertEquals(value, i)
 
     def test_limits(self):
@@ -192,23 +192,23 @@ class TestPrimitive(unittest.TestCase):
         integer = Integer()
 
         element = etree.Element('test')
-        XmlObject().to_parent_element(Integer, i, ns_test, element)
+        XmlDocument().to_parent_element(Integer, i, ns_test, element)
         element = element[0]
 
         self.assertEquals(element.text, '128375873458473')
-        value = XmlObject().from_element(integer, element)
+        value = XmlDocument().from_element(integer, element)
         self.assertEquals(value, i)
 
     def test_float(self):
         f = 1.22255645
 
         element = etree.Element('test')
-        XmlObject().to_parent_element(Float, f, ns_test, element)
+        XmlDocument().to_parent_element(Float, f, ns_test, element)
         element = element[0]
 
         self.assertEquals(element.text, repr(f))
 
-        f2 = XmlObject().from_element(Float, element)
+        f2 = XmlDocument().from_element(Float, element)
         self.assertEquals(f2, f)
 
     def test_array(self):
@@ -218,12 +218,12 @@ class TestPrimitive(unittest.TestCase):
         values = ['a', 'b', 'c', 'd', 'e', 'f']
 
         element = etree.Element('test')
-        XmlObject().to_parent_element(type, values, ns_test, element)
+        XmlDocument().to_parent_element(type, values, ns_test, element)
         element = element[0]
 
         self.assertEquals(len(values), len(element.getchildren()))
 
-        values2 = XmlObject().from_element(type, element)
+        values2 = XmlDocument().from_element(type, element)
         self.assertEquals(values[3], values2[3])
 
     def test_array_empty(self):
@@ -233,66 +233,66 @@ class TestPrimitive(unittest.TestCase):
         values = []
 
         element = etree.Element('test')
-        XmlObject().to_parent_element(type, values, ns_test, element)
+        XmlDocument().to_parent_element(type, values, ns_test, element)
         element = element[0]
 
         self.assertEquals(len(values), len(element.getchildren()))
 
-        values2 = XmlObject().from_element(type, element)
+        values2 = XmlDocument().from_element(type, element)
         self.assertEquals(len(values2), 0)
 
     def test_unicode(self):
         s = u'\x34\x55\x65\x34'
         self.assertEquals(4, len(s))
         element = etree.Element('test')
-        XmlObject().to_parent_element(String, s, 'test_ns', element)
+        XmlDocument().to_parent_element(String, s, 'test_ns', element)
         element = element[0]
-        value = XmlObject().from_element(String, element)
+        value = XmlDocument().from_element(String, element)
         self.assertEquals(value, s)
 
     def test_null(self):
         element = etree.Element('test')
-        XmlObject().to_parent_element(Null, None, ns_test, element)
+        XmlDocument().to_parent_element(Null, None, ns_test, element)
         print(etree.tostring(element))
 
         element = element[0]
         self.assertTrue( bool(element.attrib.get('{%s}nil' % ns.xsi)) )
-        value = XmlObject().from_element(Null, element)
+        value = XmlDocument().from_element(Null, element)
         self.assertEquals(None, value)
 
     def test_boolean(self):
         b = etree.Element('test')
-        XmlObject().to_parent_element(Boolean, True, ns_test, b)
+        XmlDocument().to_parent_element(Boolean, True, ns_test, b)
         b = b[0]
         self.assertEquals('true', b.text)
 
         b = etree.Element('test')
-        XmlObject().to_parent_element(Boolean, 0, ns_test, b)
+        XmlDocument().to_parent_element(Boolean, 0, ns_test, b)
         b = b[0]
         self.assertEquals('false', b.text)
 
         b = etree.Element('test')
-        XmlObject().to_parent_element(Boolean, 1, ns_test, b)
+        XmlDocument().to_parent_element(Boolean, 1, ns_test, b)
         b = b[0]
         self.assertEquals('true', b.text)
 
-        b = XmlObject().from_element(Boolean, b)
+        b = XmlDocument().from_element(Boolean, b)
         self.assertEquals(b, True)
 
         b = etree.Element('test')
-        XmlObject().to_parent_element(Boolean, False, ns_test, b)
+        XmlDocument().to_parent_element(Boolean, False, ns_test, b)
         b = b[0]
         self.assertEquals('false', b.text)
 
-        b = XmlObject().from_element(Boolean, b)
+        b = XmlDocument().from_element(Boolean, b)
         self.assertEquals(b, False)
 
         b = etree.Element('test')
-        XmlObject().to_parent_element(Boolean, None, ns_test, b)
+        XmlDocument().to_parent_element(Boolean, None, ns_test, b)
         b = b[0]
         self.assertEquals('true', b.get('{%s}nil' % ns.xsi))
 
-        b = XmlObject().from_element(Boolean, b)
+        b = XmlDocument().from_element(Boolean, b)
         self.assertEquals(b, None)
 
     def test_type_names(self):
@@ -337,7 +337,7 @@ class TestPrimitive(unittest.TestCase):
 
         AnyXml.__type_name__ = 'anyType'
 
-        app = Application([Service], 'hey', in_protocol=XmlObject(), out_protocol=XmlObject())
+        app = Application([Service], 'hey', in_protocol=XmlDocument(), out_protocol=XmlDocument())
         XmlSchema(app.interface).build_interface_document()
 
 

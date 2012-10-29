@@ -44,7 +44,7 @@ from spyne.const.ansi_color import END_COLOR
 from spyne.error import RequestNotAllowed
 from spyne.model.fault import Fault
 from spyne.model.primitive import DateTime
-from spyne.protocol.xml import XmlObject
+from spyne.protocol.xml import XmlDocument
 from spyne.protocol.xml.model import nillable_value
 from spyne.protocol.xml.model import TBaseFromElement
 from spyne.protocol.soap.mime import collapse_swa
@@ -139,7 +139,7 @@ def _datetime_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'
 _datetime_from_element = TBaseFromElement(lambda cls, s: cls.default_parse(s))
 
 
-class Soap11(XmlObject):
+class Soap11(XmlDocument):
     """The base implementation of a subset of the Soap 1.1 standard. The
     document is available here: http://www.w3.org/TR/soap11/
 
@@ -159,7 +159,7 @@ class Soap11(XmlObject):
 
     def __init__(self, app=None, validator=None, wrapped=True,
                                 xml_declaration=True, cleanup_namespaces=False):
-        XmlObject.__init__(self, app, validator, xml_declaration,
+        XmlDocument.__init__(self, app, validator, xml_declaration,
                                                              cleanup_namespaces)
 
         self.__wrapped = wrapped
@@ -190,7 +190,7 @@ class Soap11(XmlObject):
 
         ctx.in_document = _parse_xml_string(ctx.in_string, charset)
 
-    def decompose_incoming_envelope(self, ctx, message=XmlObject.REQUEST):
+    def decompose_incoming_envelope(self, ctx, message=XmlDocument.REQUEST):
         envelope_xml, xmlids = ctx.in_document
         header_document, body_document = _from_soap(envelope_xml, xmlids)
 
