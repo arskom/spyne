@@ -17,7 +17,7 @@
   keywordstyle=\color{keywords},
   commentstyle=\color{comments}\emph,
   stringstyle=\ttfamily\color{darkgreen},
-  emph={Soap11,XmlObject,HtmlMicroFormat},emphstyle=\color{red}\textbf
+  emph={Soap11,XmlDocument,HtmlMicroFormat},emphstyle=\color{red}\textbf
 }
 
 \title{A Quick Look At Spyne}
@@ -342,12 +342,12 @@ $ curl http://localhost:9910/get_utc_time \
   \begin{lstlisting}
 from spyne.application import Application
 from spyne.protocol.http import HttpRpc
-from spyne.protocol.xml import XmlObject
+from spyne.protocol.xml import XmlDocument
 
 xml = Application([DateTimeService],
         tns='spyne.examples.multiprot',
         in_protocol=HttpRpc(),
-        out_protocol=XmlObject()
+        out_protocol=XmlDocument()
     )
   \end{lstlisting}
 \end{frame}

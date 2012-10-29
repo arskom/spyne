@@ -78,7 +78,7 @@ class SchemaValidationError(Fault):
         Fault.__init__(self, 'Client.SchemaValidationError', faultstring)
 
 
-class XmlObject(ProtocolBase):
+class XmlDocument(ProtocolBase):
     """The Xml Schema serialization protocol.
 
     See the following material for more (much much more!) information.
@@ -89,7 +89,7 @@ class XmlObject(ProtocolBase):
 
     :param app: The owner application instance.
     :param validator: One of (None, 'soft', 'lxml', 'schema',
-                ProtocolBase.SOFT_VALIDATION, XmlObject.SCHEMA_VALIDATION).
+                ProtocolBase.SOFT_VALIDATION, XmlDocument.SCHEMA_VALIDATION).
     :param xml_declaration: Whether to add xml_declaration to the responses
         Default is 'True'.
     :param cleanup_namespaces: Whether to add clean up namespace declarations
@@ -328,3 +328,6 @@ class XmlObject(ProtocolBase):
         if ret == False:
             raise SchemaValidationError(
                                str(self.validation_schema.error_log.last_error))
+
+XmlObject = XmlDocument
+"""DEPRECATED. Use :class:`spyne.protocol.xml.XmlDocument` instead"""

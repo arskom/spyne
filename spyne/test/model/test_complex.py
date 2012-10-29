@@ -37,8 +37,8 @@ from spyne.model.primitive import Float
 from spyne.model.primitive import Integer
 from spyne.model.primitive import String
 
-from spyne.protocol.dictobj import DictObject
-from spyne.protocol.xml import XmlObject
+from spyne.protocol.dictobj import DictDocument
+from spyne.protocol.xml import XmlDocument
 
 from spyne.test import FakeApp
 
@@ -108,17 +108,17 @@ class TestComplexModel(unittest.TestCase):
         a.longitude = 88.0
 
         element = etree.Element('test')
-        XmlObject().to_parent_element(Address, a, ns_test, element)
+        XmlDocument().to_parent_element(Address, a, ns_test, element)
         element = element[0]
         self.assertEquals(5, len(element.getchildren()))
 
         a.since = datetime.datetime(year=2011, month=12, day=31)
         element = etree.Element('test')
-        XmlObject().to_parent_element(Address, a, ns_test, element)
+        XmlDocument().to_parent_element(Address, a, ns_test, element)
         element = element[0]
         self.assertEquals(6, len(element.getchildren()))
 
-        r = XmlObject().from_element(Address, element)
+        r = XmlDocument().from_element(Address, element)
 
         self.assertEquals(a.street, r.street)
         self.assertEquals(a.city, r.city)
@@ -130,7 +130,7 @@ class TestComplexModel(unittest.TestCase):
     def test_nested_class(self): # FIXME: this test is incomplete
         p = Person()
         element = etree.Element('test')
-        XmlObject().to_parent_element(Person, p, ns_test, element)
+        XmlDocument().to_parent_element(Person, p, ns_test, element)
         element = element[0]
 
         self.assertEquals(None, p.name)
@@ -154,12 +154,12 @@ class TestComplexModel(unittest.TestCase):
 
         element = etree.Element('test')
 
-        XmlObject().to_parent_element(type, peeps, ns_test, element)
+        XmlDocument().to_parent_element(type, peeps, ns_test, element)
         element = element[0]
 
         self.assertEquals(4, len(element.getchildren()))
 
-        peeps2 = XmlObject().from_element(type, element)
+        peeps2 = XmlDocument().from_element(type, element)
         for i in range(0, 4):
             self.assertEquals(peeps2[i].name, names[i])
             self.assertEquals(peeps2[i].birthdate, dob)
@@ -185,12 +185,12 @@ class TestComplexModel(unittest.TestCase):
         type = Array(Person)
         type.resolve_namespace(type, __name__)
         element = etree.Element('test')
-        XmlObject().to_parent_element(type, peeps, ns_test, element)
+        XmlDocument().to_parent_element(type, peeps, ns_test, element)
         element = element[0]
 
         self.assertEquals(4, len(element.getchildren()))
 
-        peeps2 = XmlObject().from_element(type, element)
+        peeps2 = XmlDocument().from_element(type, element)
         for peep in peeps2:
             self.assertEquals(27, peep.age)
             self.assertEquals(25, len(peep.addresses))
@@ -215,9 +215,9 @@ class TestComplexModel(unittest.TestCase):
             l.level4.append(a)
 
         element = etree.Element('test')
-        XmlObject().to_parent_element(Level1, l, ns_test, element)
+        XmlDocument().to_parent_element(Level1, l, ns_test, element)
         element = element[0]
-        l1 = XmlObject().from_element(Level1, element)
+        l1 = XmlDocument().from_element(Level1, element)
 
         self.assertEquals(l1.level2.arg1, l.level2.arg1)
         self.assertEquals(l1.level2.arg2, l.level2.arg2)
@@ -274,18 +274,18 @@ class TestIncompleteInput(unittest.TestCase):
         x = X()
         x.x = [1, 2]
         element = etree.Element('test')
-        XmlObject().to_parent_element(X, x, 'tns', element)
+        XmlDocument().to_parent_element(X, x, 'tns', element)
         msg = element[0]
-        r = XmlObject().from_element(X, msg)
+        r = XmlDocument().from_element(X, msg)
         self.assertEqual(r.x, [1, 2])
 
     def test_y_fromxml(self):
         x = X()
         x.x = [1, 2]
         element = etree.Element('test')
-        XmlObject().to_parent_element(X, x, 'tns', element)
+        XmlDocument().to_parent_element(X, x, 'tns', element)
         msg = element[0]
-        r = XmlObject().from_element(Y, msg)
+        r = XmlDocument().from_element(Y, msg)
         self.assertEqual(r.x, [1, 2])
 
     def test_y_toxml(self):
@@ -293,9 +293,9 @@ class TestIncompleteInput(unittest.TestCase):
         y.x = [1, 2]
         y.y = 38
         element = etree.Element('test')
-        XmlObject().to_parent_element(Y, y, 'tns', element)
+        XmlDocument().to_parent_element(Y, y, 'tns', element)
         msg = element[0]
-        r = XmlObject().from_element(Y, msg)
+        r = XmlDocument().from_element(Y, msg)
 
 class SisMsg(ComplexModel):
     """Container with metadata for Jiva integration messages
@@ -318,7 +318,7 @@ class EncExtractSisMsg(SisMsg):
     """Message indicating a Jiva episode needs to be extracted.
 
     Desirable API: Will it work?
-    >>> msg = XmlObject().from_element(EncExtractSisMsg, raw_xml)
+    >>> msg = XmlDocument().from_element(EncExtractSisMsg, raw_xml)
     >>> msg.body.mbr_idn
     """
     body = EncExtractXs
@@ -414,7 +414,7 @@ class TestSimpleTypeRestrictions(unittest.TestCase):
 
         val = CCM(i=5, s='a', c=CM(i=7, s='b'))
 
-        d = DictObject.object_to_flat_dict(CCM, val)
+        d = DictDocument.object_to_flat_dict(CCM, val)
 
         assert d['i'] == 5
         assert d['s'] == 'a'

@@ -64,7 +64,7 @@ from time import time
 
 from spyne.application import Application
 from spyne.decorator import srpc
-from spyne.protocol.json import JsonObject
+from spyne.protocol.json import JsonDocument
 from spyne.protocol.http import HttpRpc
 from spyne.service import ServiceBase
 from spyne.model.primitive import String
@@ -137,7 +137,7 @@ if __name__=='__main__':
         logging.error("Error: example server code requires Python >= 2.5")
 
     application = Application([HelloWorldService], 'spyne.examples.events',
-                   in_protocol=HttpRpc(), out_protocol=JsonObject(skip_depth=2))
+                   in_protocol=HttpRpc(), out_protocol=JsonDocument(skip_depth=2))
 
     application.event_manager.add_listener('method_call', _on_method_call)
     application.event_manager.add_listener('method_return_object',

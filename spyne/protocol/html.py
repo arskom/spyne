@@ -81,7 +81,7 @@ class HtmlBase(ProtocolBase):
         """Protocol that returns the response object as a html microformat. See
         https://en.wikipedia.org/wiki/Microformats for more info.
 
-        The simple flavour is like the XmlObject protocol, but returns data in
+        The simple flavour is like the XmlDocument protocol, but returns data in
         <div> or <span> tags.
 
         :param app: A spyne.application.Application instance.
@@ -167,7 +167,7 @@ class HtmlMicroFormat(HtmlBase):
         """Protocol that returns the response object as a html microformat. See
         https://en.wikipedia.org/wiki/Microformats for more info.
 
-        The simple flavour is like the XmlObject protocol, but returns data in
+        The simple flavour is like the XmlDocument protocol, but returns data in
         <div> or <span> tags.
 
         :param app: A spyne.application.Application instance.

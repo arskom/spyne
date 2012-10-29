@@ -28,7 +28,7 @@ from lxml import etree
 from spyne.model.complex import ComplexModel
 from spyne.model.primitive import Integer
 from spyne.model.primitive import String
-from spyne.protocol.xml import XmlObject
+from spyne.protocol.xml import XmlDocument
 from spyne.protocol.soap.mime import _join_attachment
 from spyne.const import xml_ns as ns
 
@@ -67,7 +67,7 @@ class TestInclude(unittest.TestCase):
         body = soaptree.find("{%s}Body" % ns.soap_env)
         response = body.getchildren()[0]
         result = response.getchildren()[0]
-        r = XmlObject().from_element(DownloadPartFileResult, result)
+        r = XmlDocument().from_element(DownloadPartFileResult, result)
 
         self.assertEquals(payload, r.Data)
 

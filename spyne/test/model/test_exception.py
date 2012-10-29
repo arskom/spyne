@@ -21,7 +21,7 @@ import unittest
 from spyne.test import FakeApp
 from spyne.interface import Interface
 from spyne.interface.wsdl import Wsdl11
-from spyne.protocol.xml import XmlObject
+from spyne.protocol.xml import XmlDocument
 from spyne.model.fault import Fault
 
 class FaultTests(unittest.TestCase):
@@ -60,7 +60,7 @@ class FaultTests(unittest.TestCase):
         fault = Fault()
         cls = Fault
 
-        XmlObject().to_parent_element(cls, fault, 'urn:ignored', element)
+        XmlDocument().to_parent_element(cls, fault, 'urn:ignored', element)
 
         (child,) = element.getchildren()
         self.assertEqual(child.tag, '{%s}Fault' % ns_soap_env)
@@ -76,7 +76,7 @@ class FaultTests(unittest.TestCase):
         fault = Fault(detail=detail)
         cls = Fault
 
-        XmlObject().to_parent_element(cls, fault, 'urn:ignored', element)
+        XmlDocument().to_parent_element(cls, fault, 'urn:ignored', element)
 
         (child,) = element.getchildren()
         self.failUnless(child.find('detail').find('something') is detail)
@@ -95,7 +95,7 @@ class FaultTests(unittest.TestCase):
         actor = SubElement(element, 'faultactor')
         actor.text = 'phreddy'
 
-        fault = XmlObject().from_element(Fault, element)
+        fault = XmlDocument().from_element(Fault, element)
 
         self.assertEqual(fault.faultcode, 'senv:other')
         self.assertEqual(fault.faultstring, 'Testing')
@@ -117,7 +117,7 @@ class FaultTests(unittest.TestCase):
         actor.text = 'phreddy'
         detail = SubElement(element, 'detail')
 
-        fault = XmlObject().from_element(Fault, element)
+        fault = XmlDocument().from_element(Fault, element)
 
         self.failUnless(fault.detail is detail)
 

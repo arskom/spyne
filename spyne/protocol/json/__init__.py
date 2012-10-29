@@ -18,7 +18,7 @@
 #
 
 """The ``spyne.protocol.json`` package contains the Json-related protocols.
-Currently, only :class:`spyne.protocol.json.JsonObject` is supported.
+Currently, only :class:`spyne.protocol.json.JsonDocument` is supported.
 
 Initially released in 2.8.0-rc.
 
@@ -59,10 +59,10 @@ from spyne.model.primitive import Unicode
 from spyne.protocol import ProtocolBase
 from spyne.protocol import unwrap_messages
 from spyne.protocol import unwrap_instance
-from spyne.protocol.dictobj import DictObject
+from spyne.protocol.dictobj import DictDocument
 
 
-class JsonObject(DictObject):
+class JsonDocument(DictDocument):
     """An implementation of the json protocol that uses simplejson package when
     available, json package otherwise.
     """
@@ -84,3 +84,6 @@ class JsonObject(DictObject):
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         """Sets ``ctx.out_string`` using ``ctx.out_document``."""
         ctx.out_string = (json.dumps(o) for o in ctx.out_document)
+
+JsonObject = JsonDocument
+"""DEPRECATED. Use :class:`spyne.protocol.json.JsonDocument` instead"""

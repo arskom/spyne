@@ -34,7 +34,7 @@ from spyne.model.complex import ComplexModel
 from spyne.model.complex import XmlAttribute
 from spyne.service import ServiceBase
 from spyne.interface.wsdl import Wsdl11
-from spyne.protocol.xml import XmlObject
+from spyne.protocol.xml import XmlDocument
 
 
 from spyne.util.xml import get_xml_as_object
@@ -60,7 +60,7 @@ class Test(unittest.TestCase):
             def some_call():
                 return a(b="foo",c="bar")
 
-        app = Application([SomeService], "tns", in_protocol=XmlObject(), out_protocol=XmlObject())
+        app = Application([SomeService], "tns", in_protocol=XmlDocument(), out_protocol=XmlDocument())
         server = ServerBase(app)
         initial_ctx = MethodContext(server)
         initial_ctx.in_string = ['<some_call xmlns="tns"/>']
@@ -83,7 +83,7 @@ class Test(unittest.TestCase):
             def some_call():
                 return a(b="foo",c="bar")
 
-        app = Application([SomeService], "tns", in_protocol=XmlObject(), out_protocol=XmlObject())
+        app = Application([SomeService], "tns", in_protocol=XmlDocument(), out_protocol=XmlDocument())
         server = ServerBase(app)
         initial_ctx = MethodContext(server)
         initial_ctx.in_string = ['<some_call xmlns="tns"/>']

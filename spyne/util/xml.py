@@ -21,7 +21,7 @@ from lxml import etree
 
 from spyne.interface import Interface
 from spyne.interface.xml_schema import XmlSchema
-from spyne.protocol.xml import XmlObject
+from spyne.protocol.xml import XmlDocument
 
 """Module that contains various xml utilities."""
 
@@ -95,7 +95,7 @@ def get_object_as_xml(value, cls=None, root_tag_name=None, no_namespace=False):
 
     if cls is None:
         cls = value.__class__
-    xml_object = XmlObject()
+    xml_object = XmlDocument()
     parent = etree.Element("parent")
 
     xml_object.to_parent_element(cls, value, cls.get_namespace(),
@@ -115,6 +115,6 @@ def get_xml_as_object(elt, cls):
     :param value: The xml document to be deserialized.
     '''
 
-    xml_object = XmlObject()
+    xml_object = XmlDocument()
 
     return xml_object.from_element(cls, elt)

@@ -164,16 +164,16 @@ a Rest-like protocol, but it doesn't care about HTTP verbs (yet). ::
     from spyne.protocol.http import HttpRpc
 
 The HttpRpc serializer does not support complex types. So we will use the
-XmlObject serializer as the out_protocol to prevent the clients from dealing
+XmlDocument serializer as the out_protocol to prevent the clients from dealing
 with Soap cruft. ::
 
-    from spyne.protocol.http import XmlObject
+    from spyne.protocol.http import XmlDocument
 
 Besides the imports, the only difference between the SOAP and the HTTP version
 is the application instantiation line: ::
 
         application = Application([HelloWorldService], 'spyne.examples.hello.http',
-                                    in_protocol=HttpRpc(), out_protocol=XmlObject())
+                                    in_protocol=HttpRpc(), out_protocol=XmlDocument())
 
 Here's how you can test your service using curl: ::
 

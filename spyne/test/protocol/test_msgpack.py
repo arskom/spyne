@@ -29,13 +29,13 @@ from spyne.model.complex import Array
 from spyne.model.primitive import String
 from spyne.model.complex import ComplexModel
 from spyne.model.primitive import Unicode
-from spyne.protocol.msgpack import MessagePackObject
+from spyne.protocol.msgpack import MessagePackDocument
 from spyne.protocol.msgpack import MessagePackRpc
 from spyne.server.wsgi import WsgiApplication
 from spyne.server.wsgi import WsgiMethodContext
-from spyne.test.protocol._test_dictobj import TDictObjectTest
+from spyne.test.protocol._test_dictobj import TDictDocumentTest
 
-TestMessagePackObject = TDictObjectTest(msgpack, MessagePackObject,
+TestMessagePackDocument = TDictDocumentTest(msgpack, MessagePackDocument,
                                             "Client.MessagePackDecodeError")
 from spyne.test.test_service import start_response
 
