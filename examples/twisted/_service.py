@@ -61,8 +61,4 @@ def initialize():
     application = Application([SomeService], 'spyne.examples.hello.twisted',
                                 in_protocol=HttpRpc(), out_protocol=XmlDocument())
 
-    application.interface.nsmap[None] = application.interface.nsmap['tns']
-    application.interface.prefmap[application.interface.nsmap['tns']] = None
-    del application.interface.nsmap['tns']
-
     return application
