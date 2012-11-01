@@ -62,12 +62,15 @@ class table:
     """Complex argument to ``ComplexModelBase.Attributes.store_as`` for storing
     the class instance as a row in a table in a relational database.
 
-    :param multi: When false, configures a one-to-many relationship where the
-        child table has a foreign key to the parent. When true, configures a
+    :param multi: When False, configures a one-to-many relationship where the
+        child table has a foreign key to the parent. When != False, configures a
         many-to-many relationship by creating an intermediate relation table
         that has foreign keys to both parent and child classes and generates
-        a table name automatically. When it's a string, the value is used as the
-        table name.
+        a table name automatically. When True, the table name is generated
+        automatically. Otherwise, it should be a string, as the value is used as
+        the name of the intermediate table.
+    :param left: Name of the left join column.
+    :param right: Name of the right join column.
     """
 
     def __init__(self, multi=False, left=None, right=None):
