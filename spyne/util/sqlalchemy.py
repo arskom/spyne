@@ -209,21 +209,24 @@ sqlalchemy.dialects.postgresql.base.ischema_names['xml'] = PGObjectXml
 
 
 class PGObjectJson(UserDefinedType):
-    def __init__(self, cls):
+    def __init__(self, cls, skip_depth):
         self.cls = cls
+        self.skip_depth = skip_depth
 
     def get_col_spec(self):
         return "json"
 
     def bind_processor(self, dialect):
         def process(value):
-            return json.dumps(get_object_as_dict(value, self.cls))
+            return json.dumps(get_object_as_dict(value, self.cls,
+                                                    skip_depth=self.skip_depth))
         return process
 
     def result_processor(self, dialect, col_type):
         def process(value):
             if value is not None:
-                return get_dict_as_object(json.loads(value), self.cls)
+                return get_dict_as_object(json.loads(value), self.cls,
+                                                    skip_depth=self.skip_depth)
         return process
 
 sqlalchemy.dialects.postgresql.base.ischema_names['json'] = PGObjectJson
@@ -484,7 +487,7 @@ def gen_sqla_info(cls, cls_bases=()):
                                                         *col_args, **col_kwargs)
 
                 elif isinstance(p, c_json):
-                    col = Column(k, PGObjectJson(v), *col_args, **col_kwargs)
+                    col = Column(k, PGObjectJson(v, p.skip_depth), *col_args, **col_kwargs)
 
                 elif isinstance(p, c_msgpack):
                     raise NotImplementedError()

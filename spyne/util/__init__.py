@@ -92,13 +92,22 @@ class memoize(object):
         self.memo = {}
 
     def __call__(self, *args, **kwargs):
-        key = (tuple(args), tuple(kwargs.items()))
+        key = self.get_key(args, kwargs)
         if not key in self.memo:
             self.memo[key] = self.func(*args, **kwargs)
         return self.memo[key]
 
+    def get_key(self, args, kwargs):
+        return tuple(args), tuple(kwargs.items())
+
     def reset(self):
         self.memo = {}
+
+
+class memoize_id(memoize):
+    def get_key(self, args, kwargs):
+        return tuple([id(a) for a in args]), \
+                                    tuple([ (k,id(v)) for k,v in kwargs.items()])
 
 
 def sanitize_args(a):

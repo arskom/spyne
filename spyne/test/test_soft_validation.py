@@ -172,7 +172,6 @@ class TestSoap11SoftValidation(unittest.TestCase):
             </SOAP-ENV:Envelope>
         """]
 
-
         ctx, = server.generate_contexts(ctx)
         server.get_in_object(ctx)
 

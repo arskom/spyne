@@ -22,12 +22,12 @@ from spyne.model.complex import Array
 from spyne.protocol.dictobj import DictDocument
 
 
-def get_dict_as_object(d, cls):
+def get_dict_as_object(d, cls, skip_depth=0):
     if issubclass(cls, Array):
         d = list(d.values())[0] # FIXME: Hack!
 
-    return DictDocument._doc_to_object(cls, d)
+    return DictDocument._doc_to_object(cls, d, skip_depth)
     
 
-def get_object_as_dict(o, cls, wrapper_name=None):
-    return list(DictDocument._object_to_doc(cls, o, wrapper_name))[0]
+def get_object_as_dict(o, cls, wrapper_name=None, skip_depth=0):
+    return list(DictDocument._object_to_doc(cls, o, wrapper_name, skip_depth))[0]
