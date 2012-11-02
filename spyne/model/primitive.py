@@ -949,14 +949,8 @@ class Boolean(SimpleModel):
         return (string.lower() in ['true', '1'])
 
 
-class Uuid(Unicode):
+class Uuid(Unicode(pattern=UUID_PATTERN, type_name='uuid')):
     """Unicode subclass for Universially-Unique Identifiers."""
-
-    __type_name__ = 'uuid'
-    __base_type__ = Unicode
-
-    class Attributes(Unicode.Attributes):
-        pattern = UUID_PATTERN
 
     @classmethod
     @nillable_string
