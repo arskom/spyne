@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -222,7 +221,7 @@ def _re_match_with_span(attr, value):
     if attr.pattern is None:
         return True
 
-    m = attr._pattern_re.match(value)
+    m = re.match(attr.pattern, value)
     return (m is not None) and (m.span() == (0, len(value)))
 
 
