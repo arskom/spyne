@@ -664,7 +664,7 @@ class TestSqlAlchemyNested(unittest.TestCase):
         session.commit()
         session.close()
 
-        sc_db = session.query(SomeOtherClass).with_polymorphic('*').get(5).t == 1
+        session.query(SomeOtherClass).with_polymorphic('*').get(5).t == 1
         session.close()
 
     def test_nested_sql_array_as_json(self):
@@ -702,6 +702,7 @@ class TestSqlAlchemyNested(unittest.TestCase):
         assert sc_db.others[1].s == 'ehe2'
 
         session.close()
+
 
 if __name__ == '__main__':
     unittest.main()
