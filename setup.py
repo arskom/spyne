@@ -108,9 +108,9 @@ class RunTests(TestCommand):
         ret = call_trial('interop/test_soap_client_http_twisted.py') or ret
 
         if ret == 0:
-            print "i'm happy."
+            print "All that glisters is not gold."
         else:
-            print "i'm sad."
+            print "Something is rotten in the state of Denmark."
 
         raise SystemExit(ret)
 
@@ -161,7 +161,7 @@ setup(
     zip_safe=False,
     install_requires=[
       'pytz',
-      'lxml<2.9',
+      'lxml',
     ],
 
     entry_points = {

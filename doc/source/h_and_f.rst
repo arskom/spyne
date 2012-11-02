@@ -15,7 +15,8 @@ dependencies. Assuming the current version of spyne is 2.4.8,
 you can use the following as dependency string:
 
 * ``spyne`` if you feel adventurous or are willing to work on spyne itself.
-* ``spyne<3`` if you only want backwards-compatible bug fixes and new features.
+* ``spyne<2.99`` if you only want backwards-compatible bug fixes and new
+  features.
 * ``spyne<2.5`` if you only want backwards-compatible bug fixes.
 * ``spyne=2.4.8`` if you rather like that version.
 
