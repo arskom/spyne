@@ -314,10 +314,6 @@ class ModelBase(object):
             elif k == 'max_occurs' and v == 'unbounded':
                 setattr(Attributes, k, Decimal('inf'))
 
-            elif k == 'pattern':
-                Attributes._pattern_re = re.compile(kwargs[k])
-                setattr(Attributes, k, v)
-
             else:
                 setattr(Attributes, k, v)
 
@@ -359,6 +355,18 @@ class SimpleModel(ModelBase):
 
     class Attributes(ModelBase.Attributes):
         """The class that holds the constraints for the given type."""
+
+        class __metaclass__(AttributesMeta):
+            def __init__(self, cls_name, cls_bases, cls_dict):
+                AttributesMeta.__init__(self, cls_name, cls_bases, cls_dict)
+                self.__pattern = None
+            def get_pattern(self):
+                return self.__pattern
+            def set_pattern(self, pattern):
+                self.__pattern = pattern
+                if pattern is not None:
+                    self._pattern_re = re.compile(pattern)
+            pattern = property(get_pattern, set_pattern)
 
         values = set()
         """The set of possible values for this type."""
