@@ -2,6 +2,13 @@
 Changelog
 =========
 
+spyne-2.9.2
+-----------
+ * Fix Array serialization for Html Microformats
+ * Fix deserialization of Fault objects for Soap11
+ * Fix Uuid not playing well with soft validation.
+ * Fix Uuid not playing well with Xml Schema document.
+
 spyne-2.9.0
 -----------
  * Spyne is now stable!
