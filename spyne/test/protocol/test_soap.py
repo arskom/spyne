@@ -35,6 +35,7 @@ from spyne.model.primitive import DateTime
 from spyne.model.primitive import Float
 from spyne.model.primitive import Integer
 from spyne.model.primitive import String
+from spyne.model.fault import Fault
 from spyne.protocol.soap import Soap11
 from spyne.service import ServiceBase
 
@@ -277,7 +278,7 @@ class TestSoap(unittest.TestCase):
         self.assertEquals(
               len(element[0].find('{%s}addresses' % Person.get_namespace())), 0)
 
-        p1 = Soap11().from_element(m,element)[0]
+        p1 = Soap11().from_element(m, element)[0]
 
         self.assertEquals(p1.name, m_inst.p.name)
         self.assertEquals(p1.age, m_inst.p.age)
@@ -315,7 +316,28 @@ class TestSoap(unittest.TestCase):
 
         addresses = element[0].find('{%s}addresses' % Person.get_namespace())
         self.assertEquals(100, len(addresses))
-        self.assertEquals('0', addresses[0].find('{%s}zip' % Address.get_namespace()).text)
+        self.assertEquals('0', addresses[0].find('{%s}zip' %
+                                                Address.get_namespace()).text)
+
+    def test_fault_deserialization_missing_fault_actor(self):
+        element = etree.fromstring("""<soap:Envelope
+                        xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+  <soap:Body>
+    <soap:Fault>
+      <faultcode>soap:Client</faultcode>
+      <faultstring>Some String</faultstring>
+      <detail>
+        <Detail xmlns="some_ns">
+          <Policy>Some_Policy</Policy>
+        </Detail>
+      </detail>
+    </soap:Fault>
+  </soap:Body>
+</soap:Envelope>""")
+
+        ret = Soap11().from_element(Fault, element[0][0])
+        assert ret.faultcode == "soap:Client"
+
 
 if __name__ == '__main__':
     unittest.main()

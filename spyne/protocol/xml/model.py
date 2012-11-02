@@ -302,7 +302,9 @@ def fault_to_parent_element(prot, cls, value, tns, parent_elt, name=None):
 def fault_from_element(prot, cls, element):
     code = element.find('faultcode').text
     string = element.find('faultstring').text
-    factor = element.find('faultactor').text
+    factor = element.find('faultactor')
+    if factor is not None:
+        factor = factor.text
     detail = element.find('detail')
 
     return cls(faultcode=code, faultstring=string, faultactor=factor,
