@@ -151,14 +151,14 @@ class Soap11(XmlDocument):
     :param xml_declaration: Whether to add xml_declaration to the responses
         Default is 'True'.
     :param cleanup_namespaces: Whether to add clean up namespace declarations
-        in the response document. Default is 'False'.
+        in the response document. Default is 'True'.
     """
 
     allowed_http_verbs = ['POST']
     mime_type = 'text/xml; charset=utf-8'
 
     def __init__(self, app=None, validator=None, wrapped=True,
-                                xml_declaration=True, cleanup_namespaces=False):
+                                xml_declaration=True, cleanup_namespaces=True):
         XmlDocument.__init__(self, app, validator, xml_declaration,
                                                              cleanup_namespaces)
 
