@@ -55,6 +55,7 @@ def get_stream_factory(dir=None, delete=True):
             retval = StringIO()
 
         return retval
+
     return stream_factory
 
 
