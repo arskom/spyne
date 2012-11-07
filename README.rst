@@ -24,7 +24,7 @@ or ZeroMQ. The transports can be used in both a client or server setting.
 
 The following are the primary sources of information about spyne:
 
-* The latest documentation for Spyne can be found at: http://arskom.github.com/spyne
+* Spyne's home page (that also has the latest documentation) is: http://spyne.io/
 * The official source code repository is at: https://github.com/arskom/spyne
 * The official spyne discussion forum is at: http://mail.python.org/mailman/listinfo/soap
 * You can download Spyne packages from `github <http://github.com/arskom/spyne/downloads>`_
