@@ -2,6 +2,10 @@
 Changelog
 =========
 
+spyne-2.10.0
+------------
+ * XmlDocument and friends: cleanup_namespaces is now True by default.
+
 spyne-2.9.2
 -----------
  * Fix Array serialization for Html Microformats

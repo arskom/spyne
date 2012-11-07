@@ -5,10 +5,42 @@ import unittest
 from spyne.application import Application
 from spyne.const import MAX_STRING_FIELD_LENGTH
 from spyne.decorator import srpc
+from spyne.model.complex import ComplexModel
 from spyne.model.complex import Iterable
 from spyne.model.primitive import Integer
+from spyne.model.primitive import Unicode
 from spyne.service import ServiceBase
 from spyne.util.protocol import deserialize_request_string
+
+
+class TestXml(unittest.TestCase):
+    def test_serialize(self):
+        from spyne.util.xml import get_object_as_xml
+        from lxml import etree
+
+        class C(ComplexModel):
+            __namespace__ = "tns"
+            i = Integer
+            s = Unicode
+
+        c = C(i=5, s="x")
+
+        ret = get_object_as_xml(c, C)
+        print etree.tostring(ret)
+        assert ret.tag == "{tns}C"
+
+        ret = get_object_as_xml(c, C, "X")
+        print etree.tostring(ret)
+        assert ret.tag == "{tns}X"
+
+        ret = get_object_as_xml(c, C, "X", no_namespace=True)
+        print etree.tostring(ret)
+        assert ret.tag == "X"
+
+        ret = get_object_as_xml(c, C, no_namespace=True)
+        print etree.tostring(ret)
+        assert ret.tag == "C"
+
 
 class TestCDict(unittest.TestCase):
     def test_cdict(self):

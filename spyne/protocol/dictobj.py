@@ -211,15 +211,15 @@ class DictDocument(ProtocolBase):
                 attr_name = out_type_info.keys()[i]
                 setattr(out_instance, attr_name, ctx.out_object[i])
 
-            # strip the wrappers if asked for
-            out_type, out_instance = unwrap_instance(out_type, out_instance,
-                                                                self.skip_depth)
-
-            ctx.out_document = self._object_to_doc(out_type, out_instance)
+            ctx.out_document = self._object_to_doc(out_type, out_instance,
+                                                    skip_depth=self.skip_depth)
             self.event_manager.fire_event('after_serialize', ctx)
 
     @classmethod
-    def _object_to_doc(cls, class_, value, wrapper_name=None):
+    def _object_to_doc(cls, class_, value, wrapper_name=None, skip_depth=0):
+        # strip the wrappers if asked for
+        class_, value = unwrap_instance(class_, value, skip_depth)
+
         # arrays get wrapped in [], whereas other objects get wrapped in
         # {object_name: ...}
         if wrapper_name is None and not issubclass(class_, Array):

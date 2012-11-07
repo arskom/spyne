@@ -23,10 +23,13 @@ from spyne.interface import Interface
 from spyne.interface.xml_schema import XmlSchema
 from spyne.protocol.xml import XmlDocument
 
+
 """Module that contains various xml utilities."""
+
 
 class FakeApplication(object):
     pass
+
 
 def get_schema_documents(models, default_namespace=None):
     '''Returns the schema documents in a dict whose keys are namespace prefixes
@@ -53,6 +56,7 @@ def get_schema_documents(models, default_namespace=None):
     document.build_interface_document()
 
     return document.get_interface_document()
+
 
 def get_validation_schema(models, default_namespace=None):
     '''Returns the validation schema object for the given models.
@@ -84,6 +88,7 @@ def _dig(par):
         elt.tag = elt.tag.split('}')[-1]
         _dig(elt)
 
+
 def get_object_as_xml(value, cls=None, root_tag_name=None, no_namespace=False):
     '''Returns an ElementTree representation of a :class:`spyne.model.complex.ComplexModel`
     child.
@@ -106,6 +111,7 @@ def get_object_as_xml(value, cls=None, root_tag_name=None, no_namespace=False):
         etree.cleanup_namespaces(parent)
 
     return parent[0]
+
 
 def get_xml_as_object(elt, cls):
     '''Returns a native :class:`spyne.model.complex.ComplexModel` child from an

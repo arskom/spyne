@@ -86,8 +86,10 @@ class json:
     Make sure you don't mix this with the json package when importing.
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, skip_depth=0):
+        if skip_depth > 0:
+            raise NotImplementedError("skip_depth > 0")
+        self.skip_depth = skip_depth
 
 
 class msgpack:

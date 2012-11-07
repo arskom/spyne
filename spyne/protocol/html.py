@@ -27,7 +27,7 @@ templates by:
 
 As you can probably tell, not everything is figured out yet :)
 
-Ininially released in 2.8.0-rc.
+Initially released in 2.8.0-rc.
 
 This module is EXPERIMENTAL. You may not recognize the code here next time you
 look at it.
@@ -44,6 +44,7 @@ from lxml.html.builder import E
 from spyne.model import ModelBase
 from spyne.model.binary import ByteArray
 from spyne.model.binary import Attachment
+from spyne.model.complex import Array
 from spyne.model.complex import ComplexModelBase
 from spyne.model.primitive import AnyUri
 from spyne.model.primitive import ImageUri
@@ -115,7 +116,6 @@ class HtmlBase(ProtocolBase):
         self.event_manager.fire_event('before_serialize', ctx)
 
         if ctx.out_error is not None:
-            # FIXME: There's no way to alter soap response headers for the user.
             ctx.out_document = [ctx.out_error.to_string(ctx.out_error)]
 
         else:
@@ -197,6 +197,7 @@ class HtmlMicroFormat(HtmlBase):
             ByteArray: not_supported,
             Attachment: not_supported,
             ComplexModelBase: self.serialize_complex_model,
+            Array: self.serialize_array,
         })
 
     @property
@@ -217,7 +218,19 @@ class HtmlMicroFormat(HtmlBase):
                                                 **{self.field_name_attr: name}) ]
 
     def serialize_impl(self, cls, value, locale):
-        return self.serialize_complex_model(cls, value, locale, cls.get_type_name())
+        return self.serialize_class(cls, value, locale, cls.get_type_name())
+
+    @nillable_value
+    def serialize_array(self, cls, value, locale, name):
+        yield '<%s %s="%s">' % (self.root_tag, self.field_name_attr, name)
+
+        (k,v), = cls._type_info.items()
+        for subval in value:
+            for val in self.serialize_class(cls=v,
+                            value=subval, locale=locale, name=k):
+                yield val
+
+        yield '</%s>' % self.root_tag
 
     @nillable_value
     def serialize_complex_model(self, cls, value, locale, name):

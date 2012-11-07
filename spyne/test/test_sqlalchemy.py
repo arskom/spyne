@@ -540,6 +540,42 @@ class TestSqlAlchemyNested(unittest.TestCase):
 
         session.close()
 
+    def test_nested_sql_array_as_xml_no_ns(self):
+        engine = create_engine('sqlite:///:memory:')
+        session = sessionmaker(bind=engine)()
+        metadata = NewTableModel.Attributes.sqla_metadata = MetaData()
+        metadata.bind = engine
+
+        class SomeOtherClass(ComplexModel):
+            id = Integer32
+            s = Unicode(64)
+
+        class SomeClass(NewTableModel):
+            __tablename__ = 'some_class'
+            __table_args__ = {"sqlite_autoincrement": True}
+
+            id = Integer32(primary_key=True)
+            others = Array(SomeOtherClass, store_as=xml(no_ns=True))
+
+        gen_sqla_info(SomeClass)
+
+        metadata.create_all()
+
+        soc1 = SomeOtherClass(s='ehe1')
+        soc2 = SomeOtherClass(s='ehe2')
+        sc = SomeClass(others=[soc1, soc2])
+
+        session.add(sc)
+        session.commit()
+        session.close()
+
+        sc_xml = session.connection().execute("select others from some_class") \
+                                                               .fetchall()[0][0]
+
+        assert sc_xml == "False"
+
+        session.close()
+
     def test_inheritance(self):
         engine = create_engine('sqlite:///:memory:')
         session = sessionmaker(bind=engine)()

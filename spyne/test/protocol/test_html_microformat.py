@@ -28,8 +28,8 @@ from spyne.application import Application
 from spyne.decorator import srpc
 from spyne.model.primitive import Integer
 from spyne.model.primitive import String
+from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
-from spyne.interface.wsdl import Wsdl11
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.html import HtmlMicroFormat
 from spyne.service import ServiceBase
@@ -190,3 +190,69 @@ class TestHtmlMicroFormat(unittest.TestCase):
         server.get_out_string(ctx)
 
         assert ''.join(ctx.out_string) == '<div class="some_callResponse"><div class="some_callResult">1\n2</div></div>'
+
+    def test_complex_array(self):
+        class CM(ComplexModel):
+            i = Integer
+            s = String
+
+        class CCM(ComplexModel):
+            c = CM
+            i = Integer
+            s = String
+
+        class SomeService(ServiceBase):
+            @srpc(CCM, _returns=Array(CCM))
+            def some_call(ccm):
+                return [CCM(c=ccm.c,i=ccm.i, s=ccm.s)] * 2
+
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HtmlMicroFormat())
+        server = WsgiApplication(app)
+
+        initial_ctx = WsgiMethodContext(server, {
+            'QUERY_STRING': 'ccm_c_s=abc&ccm_c_i=123&ccm_i=456&ccm_s=def',
+            'PATH_INFO': '/some_call',
+            'REQUEST_METHOD': 'GET',
+            'SERVER_NAME': 'localhost',
+        }, 'some-content-type')
+
+        ctx, = server.generate_contexts(initial_ctx)
+        server.get_in_object(ctx)
+        server.get_out_object(ctx)
+        server.get_out_string(ctx)
+
+        #
+        # Here's what this is supposed to return:
+        #
+        # <div class="some_callResponse"><div class="some_callResult">
+        #     <div class="CCM">
+        #         <div class="i">456</div>
+        #         <div class="c">
+        #             <div class="i">123</div>
+        #             <div class="s">abc</div>
+        #         </div>
+        #         <div class="s">def</div>
+        #     </div>
+        #     <div class="CCM">
+        #         <div class="i">456</div>
+        #         <div class="c">
+        #             <div class="i">123</div>
+        #             <div class="s">abc</div>
+        #         </div>
+        #         <div class="s">def</div>
+        #     </div>
+        # </div></div>
+        #
+
+        elt = html.fromstring(''.join(ctx.out_string))
+        print html.tostring(elt, pretty_print=True)
+
+        resp = elt.find_class('some_callResponse')
+        assert len(resp) == 1
+        res = resp[0].find_class('some_callResult')
+        assert len(res) == 1
+
+        assert len(res[0].find_class("CCM")) == 2
+
+        # We don't need to test the rest as the test_complex test takes care of
+        # that
