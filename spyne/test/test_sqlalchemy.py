@@ -572,7 +572,8 @@ class TestSqlAlchemyNested(unittest.TestCase):
         sc_xml = session.connection().execute("select others from some_class") \
                                                                .fetchall()[0][0]
 
-        assert sc_xml == "False"
+        from lxml import etree
+        assert etree.fromstring(sc_xml).tag == 'SomeOtherClassArray'
 
         session.close()
 
@@ -691,8 +692,8 @@ class TestSqlAlchemyNested(unittest.TestCase):
 
         metadata.create_all()
 
-        from pprint import pprint
-        print "!!!!!!!!!!!!!!!!", pprint(vars(SomeClass.Attributes.sqla_mapper))
+        from pprint import pformat
+        print "!!!!!!!!!!!!!!!!", pformat(vars(SomeClass.Attributes.sqla_mapper))
 
         sc = SomeClass(id=5, s='s', numbers=[1,2,3,4])
 
