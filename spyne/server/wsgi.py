@@ -333,7 +333,10 @@ class WsgiApplication(HttpBase):
 
         except TypeError:
             retval_iter = iter(p_ctx.out_string)
-            first_chunk = retval_iter.next()
+            try:
+                first_chunk = retval_iter.next()
+            except StopIteration:
+                first_chunk = ''
 
             start_response(p_ctx.transport.resp_code,
                                             p_ctx.transport.resp_headers.items())
