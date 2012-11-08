@@ -116,15 +116,15 @@ DaysOfWeekEnum = Enum(
 class InHeader(ComplexModel):
     __namespace__ = "spyne.test.interop.server"
 
-    s=String
-    i=Integer
+    s = String
+    i = Integer
 
 
 class OutHeader(ComplexModel):
     __namespace__ = "spyne.test.interop.server"
 
-    dt=DateTime
-    f=Float
+    f = Float
+    dt = DateTime
 
 
 class InTraceHeader(ComplexModel):
@@ -137,8 +137,8 @@ class InTraceHeader(ComplexModel):
 class OutTraceHeader(ComplexModel):
     __namespace__ = "spyne.test.interop.server"
 
-    receiptDate=DateTime
-    returnDate=DateTime
+    receiptDate = DateTime
+    returnDate = DateTime
 
 
 class InteropServiceWithHeader(ServiceBase):
