@@ -311,28 +311,22 @@ class Soap11(XmlDocument):
 
             # header
             if ctx.out_header is not None:
-                if ctx.descriptor.out_header is None:
-                    logger.warning(
-                        "Skipping soap response header as %r method is not "
-                        "declared to have one." % ctx.method_name)
+                ctx.out_header_doc = soap_header_elt = etree.SubElement(
+                                ctx.out_document, '{%s}Header' % ns.soap_env)
 
+                if isinstance(ctx.out_header, (list, tuple)):
+                    out_headers = ctx.out_header
                 else:
-                    ctx.out_header_doc = soap_header_elt = etree.SubElement(
-                                    ctx.out_document, '{%s}Header' % ns.soap_env)
+                    out_headers = (ctx.out_header,)
 
-                    if isinstance(ctx.out_header, (list, tuple)):
-                        out_headers = ctx.out_header
-                    else:
-                        out_headers = (ctx.out_header,)
-
-                    for header_class, out_header in zip(header_message_class,
-                                                            out_headers):
-                        self.to_parent_element(header_class,
-                            out_header,
-                            header_class.get_namespace(),
-                            soap_header_elt,
-                            header_class.get_type_name(),
-                        )
+                for header_class, out_header in zip(header_message_class,
+                                                        out_headers):
+                    self.to_parent_element(header_class,
+                        out_header,
+                        header_class.get_namespace(),
+                        soap_header_elt,
+                        header_class.get_type_name(),
+                    )
 
             ctx.out_document.append(ctx.out_body_doc)
 
