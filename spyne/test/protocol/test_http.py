@@ -20,6 +20,7 @@
 import unittest
 
 from spyne.application import Application
+from spyne.decorator import rpc
 from spyne.decorator import srpc
 from spyne.model.primitive import Integer
 from spyne.model.primitive import String
@@ -187,6 +188,38 @@ class Test(unittest.TestCase):
         else:
             raise Exception("Must fail with: Exception: HttpRpc deserializer "
                         "does not support non-primitives with max_occurs > 1")
+
+    def test_http_headers(self):
+        class RequestHeader(ComplexModel):
+            _type_info = {
+                'Cookie': String(max_occurs='unbounded')
+            }
+
+        class ResponseHeader(ComplexModel):
+            _type_info = {
+                'Set-Cookie': String(max_occurs='unbounded')
+            }
+
+        class SomeService(ServiceBase):
+            __in_header__ = RequestHeader
+            __out_header__ = ResponseHeader
+
+            @rpc(String, _returns=String)
+            def some_call(ctx, s):
+                ctx.out_header = ResponseHeader(**{'Set-Cookie': s})
+
+        def start_response(code, headers):
+            assert dict(headers)['Set-Cookie'] == 's=hey'
+
+        ret = WsgiApplication(Application([SomeService], 'tns',
+            in_protocol=HttpRpc(), out_protocol=HttpRpc()))({
+                'QUERY_STRING': 's=hey',
+                'PATH_INFO': '/some_call',
+                'REQUEST_METHOD': 'GET',
+                'SERVER_NAME': 'localhost',
+            }, start_response, "http://null")
+
+        assert ret is None
 
 
 class TestHttpPatterns(unittest.TestCase):
