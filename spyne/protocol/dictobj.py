@@ -313,7 +313,7 @@ class DictDocument(ProtocolBase):
             return {field_name: retval}
 
     @classmethod
-    def flat_dict_to_object(cls, doc, inst_class, validator=None):
+    def flat_dict_to_object(cls, doc, inst_class, validator=None, hier_delim="_"):
         """Converts a flat dict to a native python object.
 
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
@@ -417,12 +417,12 @@ class DictDocument(ProtocolBase):
                         if val < min_o:
                             raise Fault('Client.ValidationError',
                                 '"%s" member must occur at least %d times'
-                                              % ('_'.join(pfrag[:i+1]), min_o))
+                                        % (hier_delim.join(pfrag[:i+1]), min_o))
 
                         if val > max_o:
                             raise Fault('Client.ValidationError',
                                 '"%s" member must occur at most %d times'
-                                              % ('_'.join(pfrag[:i+1]), max_o))
+                                        % (hier_delim.join(pfrag[:i+1]), max_o))
 
                         ctype_info = ntype_info.get_flat_type_info(ntype_info)
 
@@ -432,11 +432,12 @@ class DictDocument(ProtocolBase):
                 if val < min_o:
                     raise Fault('Client.ValidationError',
                                 '"%s" member must occur at least %d times'
-                                                    % ('_'.join(s.path), min_o))
+                                            % (hier_delim.join(s.path), min_o))
+
                 if val > max_o:
                     raise Fault('Client.ValidationError',
                                 '"%s" member must occur at most %d times'
-                                                    % ('_'.join(s.path), max_o))
+                                            % (hier_delim.join(s.path), max_o))
 
         return inst
 
