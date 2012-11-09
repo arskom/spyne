@@ -109,7 +109,7 @@ class Test(unittest.TestCase):
             def some_call(ccm):
                 return repr(CCM(c=ccm.c, i=ccm.i, s=ccm.s))
 
-        ctx = _test([SomeService], 'ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs')
+        ctx = _test([SomeService], '&ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs')
 
         assert ctx.out_string[0] == "CCM(i=1, c=CM(i=3, s='cs'), s='s')"
 
@@ -119,7 +119,7 @@ class Test(unittest.TestCase):
             def some_call(s):
                 return '\n'.join(s)
 
-        ctx = _test([SomeService], 's=1&s=2')
+        ctx = _test([SomeService], '&s=1&s=2')
         assert ctx.out_string == ['1\n2']
 
     def test_nested_flatten(self):
@@ -137,7 +137,7 @@ class Test(unittest.TestCase):
             def some_call(ccm):
                 return repr(ccm)
 
-        ctx = _test([SomeService], 'ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs')
+        ctx = _test([SomeService], '&ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs')
 
         print(ctx.out_string)
         assert ctx.out_string == ["CCM(i=1, c=CM(i=3, s='cs'), s='s')"]
@@ -158,7 +158,7 @@ class Test(unittest.TestCase):
                 return repr(ccm)
 
         try:
-            ctx = _test([SomeService], 'ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs')
+            ctx = _test([SomeService], '&ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs')
         except:
             pass
         else:
@@ -182,7 +182,7 @@ class Test(unittest.TestCase):
 
 
         try:
-            ctx = _test([SomeService], 'ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs')
+            ctx = _test([SomeService], '&ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs')
         except:
             pass
         else:
