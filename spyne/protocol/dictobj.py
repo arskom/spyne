@@ -25,6 +25,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from spyne.error import ValidationError
+from spyne.error import ResourceNotFoundError
 
 from spyne.model.binary import ByteArray
 from spyne.model.binary import File
@@ -161,8 +162,7 @@ class DictDocument(ProtocolBase):
         self.event_manager.fire_event('before_deserialize', ctx)
 
         if ctx.descriptor is None:
-            raise Fault("Client", "Method %r not found." %
-                                                      ctx.method_request_string)
+            raise ResourceNotFoundError(ctx.method_request_string)
 
         # instantiate the result message
         if message is self.REQUEST:
