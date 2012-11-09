@@ -283,7 +283,7 @@ class DictDocument(ProtocolBase):
 
             else:
                 val = cls._to_value(v, sub_value)
-                if val is not None or cls.Attributes.min_occurs > 0:
+                if val is not None or class_.Attributes.min_occurs > 0:
                     yield (k, val)
 
     @classmethod
