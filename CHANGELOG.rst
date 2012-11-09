@@ -5,6 +5,8 @@ Changelog
 spyne-2.10.0
 ------------
  * XmlDocument and friends: cleanup_namespaces is now True by default.
+ * You can now set Http response headers via ctx.out_object when
+   out_protocol is HttpRpc. https://github.com/arskom/spyne/pull/201
 
 spyne-2.9.2
 -----------
