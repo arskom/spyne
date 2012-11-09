@@ -310,7 +310,7 @@ class Soap11(XmlDocument):
                                 body_message_class.get_namespace(), out_body_doc)
 
             # header
-            if ctx.out_header is not None:
+            if ctx.out_header is not None and header_message_class is not None:
                 ctx.out_header_doc = soap_header_elt = etree.SubElement(
                                 ctx.out_document, '{%s}Header' % ns.soap_env)
 
