@@ -100,7 +100,26 @@ class TestUnwrap(unittest.TestCase):
         assert c == None
 
 
-def TDictDocumentTest(serializer, _DictDocumentChild, decode_error):
+def TDictDocumentTest(serializer, _DictDocumentChild):
+    def _dry_me(services, d, skip_depth=0, just_ctx=False,
+                                          just_in_object=False, validator=None):
+        app = Application(services, 'tns',
+                            in_protocol=_DictDocumentChild(validator=validator),
+                            out_protocol=_DictDocumentChild(skip_depth=skip_depth))
+
+        server = ServerBase(app)
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = [serializer.dumps(d)]
+
+        ctx, = server.generate_contexts(initial_ctx)
+        if not just_ctx:
+            server.get_in_object(ctx)
+            if not just_in_object:
+                server.get_out_object(ctx)
+                server.get_out_string(ctx)
+
+        return ctx
+
     class Test(unittest.TestCase):
         def test_multiple_return_sd_3(self):
             class SomeService(ServiceBase):
@@ -108,18 +127,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, decode_error):
                 def some_call():
                     return 1, 2
 
-            app = Application([SomeService], 'tns',
-                                    in_protocol=_DictDocumentChild(),
-                                    out_protocol=_DictDocumentChild(skip_depth=3))
-
-            server = ServerBase(app)
-            initial_ctx = MethodContext(server)
-            initial_ctx.in_string = [serializer.dumps({"some_call":[]})]
-
-            ctx, = server.generate_contexts(initial_ctx)
-            server.get_in_object(ctx)
-            server.get_out_object(ctx)
-            server.get_out_string(ctx)
+            ctx = _dry_me([SomeService], {"some_call":[]}, skip_depth=3)
 
             assert list(ctx.out_string) == [serializer.dumps(1),serializer.dumps(2)]
 
@@ -130,18 +138,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, decode_error):
                 def some_call():
                     return 1, 2
 
-            app = Application([SomeService], 'tns',
-                                    in_protocol=_DictDocumentChild(),
-                                    out_protocol=_DictDocumentChild(skip_depth=2))
-
-            server = ServerBase(app)
-            initial_ctx = MethodContext(server)
-            initial_ctx.in_string = [serializer.dumps({"some_call":[]})]
-
-            ctx, = server.generate_contexts(initial_ctx)
-            server.get_in_object(ctx)
-            server.get_out_object(ctx)
-            server.get_out_string(ctx)
+            ctx = _dry_me([SomeService], {"some_call":[]}, skip_depth=2)
 
             out_strings = list(ctx.out_string)
             print out_strings
@@ -154,18 +151,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, decode_error):
                 def some_call():
                     return 1, 2
 
-            app = Application([SomeService], 'tns',
-                                    in_protocol=_DictDocumentChild(),
-                                    out_protocol=_DictDocumentChild(skip_depth=1))
-
-            server = ServerBase(app)
-            initial_ctx = MethodContext(server)
-            initial_ctx.in_string = [serializer.dumps({"some_call":[]})]
-
-            ctx, = server.generate_contexts(initial_ctx)
-            server.get_in_object(ctx)
-            server.get_out_object(ctx)
-            server.get_out_string(ctx)
+            ctx = _dry_me([SomeService], {"some_call":[]}, skip_depth=1)
 
             out_strings = list(ctx.out_string)
             print out_strings
@@ -178,19 +164,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, decode_error):
                 def some_call():
                     return 1, 2
 
-            app = Application([SomeService], 'tns',
-                                    in_protocol=_DictDocumentChild(),
-                                    out_protocol=_DictDocumentChild())
-
-
-            server = ServerBase(app)
-            initial_ctx = MethodContext(server)
-            initial_ctx.in_string = [serializer.dumps({"some_call":{}})]
-
-            ctx, = server.generate_contexts(initial_ctx)
-            server.get_in_object(ctx)
-            server.get_out_object(ctx)
-            server.get_out_string(ctx)
+            ctx = _dry_me([SomeService], {"some_call":[]}, skip_depth=0)
 
             out_strings = list(ctx.out_string)
             print out_strings
@@ -207,18 +181,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, decode_error):
                 def some_call(scm):
                     return SomeComplexModel(i=5, s='5x')
 
-            app = Application([SomeService], 'tns',
-                                    in_protocol=_DictDocumentChild(),
-                                    out_protocol=_DictDocumentChild())
-
-            server = ServerBase(app)
-            initial_ctx = MethodContext(server)
-            initial_ctx.in_string = [serializer.dumps({"some_call":[]})]
-
-            ctx, = server.generate_contexts(initial_ctx)
-            server.get_in_object(ctx)
-            server.get_out_object(ctx)
-            server.get_out_string(ctx)
+            ctx = _dry_me([SomeService], {"some_call":[]})
 
             assert list(ctx.out_string) == [serializer.dumps(
                 {"some_callResponse": {"some_callResult": {"i": 5, "s": "5x"}}})]
@@ -238,20 +201,12 @@ def TDictDocumentTest(serializer, _DictDocumentChild, decode_error):
                 def some_call(ccm):
                     return CCM(c=ccm.c, i=ccm.i, s=ccm.s)
 
-            app = Application([SomeService], 'tns',
-                                    in_protocol=_DictDocumentChild(),
-                                    out_protocol=_DictDocumentChild())
-
-            server = ServerBase(app)
-            initial_ctx = MethodContext(server)
-            initial_ctx.in_string = [serializer.dumps({"some_call":{"ccm": {"c":{"i":3, "s": "3x"}, "i":4, "s": "4x"}}})]
-
-            ctx, = server.generate_contexts(initial_ctx)
-            server.get_in_object(ctx)
-            server.get_out_object(ctx)
-            server.get_out_string(ctx)
+            ctx = _dry_me([SomeService], {"some_call":
+                    {"ccm": {"c":{"i":3, "s": "3x"}, "i":4, "s": "4x"}}
+                })
 
             ret = serializer.loads(''.join(ctx.out_string))
+
             print(ret)
 
             assert ret['some_callResponse']['some_callResult']['i'] == 4
@@ -261,44 +216,24 @@ def TDictDocumentTest(serializer, _DictDocumentChild, decode_error):
 
         def test_multiple_list(self):
             class SomeService(ServiceBase):
-                @srpc(String(max_occurs=Decimal('inf')), _returns=String(max_occurs=Decimal('inf')))
+                @srpc(String(max_occurs=Decimal('inf')),
+                                     _returns=String(max_occurs=Decimal('inf')))
                 def some_call(s):
                     return s
 
-            app = Application([SomeService], 'tns',
-                                    in_protocol=_DictDocumentChild(),
-                                    out_protocol=_DictDocumentChild())
-
-            server = ServerBase(app)
-
-            initial_ctx = MethodContext(server)
-            initial_ctx.in_string = [serializer.dumps({"some_call":[["a","b"]]})]
-
-            ctx, = server.generate_contexts(initial_ctx)
-            server.get_in_object(ctx)
-            server.get_out_object(ctx)
-            server.get_out_string(ctx)
+            ctx = _dry_me([SomeService], {"some_call":[["a","b"]]})
 
             assert list(ctx.out_string) == [serializer.dumps(
                         {"some_callResponse": {"some_callResult": ["a", "b"]}})]
 
         def test_multiple_dict(self):
             class SomeService(ServiceBase):
-                @srpc(String(max_occurs=Decimal('inf')), _returns=String(max_occurs=Decimal('inf')))
+                @srpc(String(max_occurs=Decimal('inf')),
+                                     _returns=String(max_occurs=Decimal('inf')))
                 def some_call(s):
                     return s
 
-            app = Application([SomeService], 'tns', in_protocol=_DictDocumentChild(),
-                                                    out_protocol=_DictDocumentChild())
-            server = ServerBase(app)
-
-            initial_ctx = MethodContext(server)
-            initial_ctx.in_string = [serializer.dumps({"some_call":{"s":["a","b"]}})]
-
-            ctx, = server.generate_contexts(initial_ctx)
-            server.get_in_object(ctx)
-            server.get_out_object(ctx)
-            server.get_out_string(ctx)
+            ctx = _dry_me([SomeService], {"some_call":{"s":["a","b"]}})
 
             assert list(ctx.out_string) == [serializer.dumps(
                         {"some_callResponse": {"some_callResult": ["a", "b"]}})]
@@ -309,17 +244,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, decode_error):
                 def some_call(s):
                     return s
 
-            app = Application([SomeService], 'tns', in_protocol=_DictDocumentChild(),
-                                                    out_protocol=_DictDocumentChild())
-            server = ServerBase(app)
-
-            initial_ctx = MethodContext(server)
-            initial_ctx.in_string = [serializer.dumps({"some_call":{"s":["a","b"]}})]
-
-            ctx, = server.generate_contexts(initial_ctx)
-            server.get_in_object(ctx)
-            server.get_out_object(ctx)
-            server.get_out_string(ctx)
+            ctx = _dry_me([SomeService], {"some_call":{"s":["a","b"]}})
 
             assert list(ctx.out_string) == [serializer.dumps(
                 {"some_callResponse": {"some_callResult": {"string": ["a", "b"]}}})]
@@ -342,24 +267,16 @@ def TDictDocumentTest(serializer, _DictDocumentChild, decode_error):
                 def some_call(ecm):
                     return ecm
 
-            app = Application([SomeService], 'tns', in_protocol=_DictDocumentChild(), out_protocol=_DictDocumentChild())
-            server = ServerBase(app)
-
-            initial_ctx = MethodContext(server)
-            initial_ctx.in_string = [serializer.dumps(
-                    {"some_call": {"ecm": [{
+            ctx = _dry_me([SomeService], {
+                "some_call": {"ecm": [{
                         "c": {"i":3, "s": "3x"},
                         "i":4,
                         "s": "4x",
                         "d": "2011-12-13T14:15:16Z"
                     }]
-                }})]
+                }})
 
-            ctx, = server.generate_contexts(initial_ctx)
-            server.get_in_object(ctx)
-            server.get_out_object(ctx)
             print(ctx.in_object)
-            server.get_out_string(ctx)
 
             ret = serializer.loads(''.join(ctx.out_string))
             print(ret)
@@ -374,22 +291,6 @@ def TDictDocumentTest(serializer, _DictDocumentChild, decode_error):
             assert ret['some_callResponse']['some_callResult']['ECM'][0]["s"] == "4x"
             assert ret['some_callResponse']['some_callResult']['ECM'][0]["d"] == "2011-12-13T14:15:16+00:00"
 
-        def test_invalid_input(self):
-            class SomeService(ServiceBase):
-                @srpc()
-                def yay():
-                    pass
-
-            app = Application([SomeService], 'tns',
-                                    in_protocol=_DictDocumentChild(),
-                                    out_protocol=_DictDocumentChild())
-
-            server = ServerBase(app)
-
-            initial_ctx = MethodContext(server)
-            initial_ctx.in_string = ['{"some_call": {"yay": ]}}']
-            ctx, = server.generate_contexts(initial_ctx)
-            assert ctx.in_error.faultcode == decode_error
 
         def test_invalid_request(self):
             class SomeService(ServiceBase):
@@ -398,19 +299,11 @@ def TDictDocumentTest(serializer, _DictDocumentChild, decode_error):
                     print(i,s,d)
                     pass
 
-            app = Application([SomeService], 'tns',
-                                    in_protocol=_DictDocumentChild(validator='soft'),
-                                    out_protocol=_DictDocumentChild())
-
-            server = ServerBase(app)
-
-            initial_ctx = MethodContext(server)
-            initial_ctx.in_string = [serializer.dumps({"some_call": {"yay": []}})]
-            ctx, = server.generate_contexts(initial_ctx)
+            ctx = _dry_me([SomeService], {"some_call": {"yay": []}},
+                                                            just_in_object=True)
 
             print(ctx.in_error)
             assert ctx.in_error.faultcode == 'Client.ResourceNotFound'
-            print()
 
         def test_invalid_string(self):
             class SomeService(ServiceBase):
@@ -419,15 +312,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, decode_error):
                     print(i,s,d)
                     pass
 
-            app = Application([SomeService], 'tns',
-                                    in_protocol=_DictDocumentChild(validator='soft'),
-                                    out_protocol=_DictDocumentChild())
-            server = ServerBase(app)
-
-            initial_ctx = MethodContext(server)
-            initial_ctx.in_string = [serializer.dumps({"yay": {"s": 1}})]
-            ctx, = server.generate_contexts(initial_ctx)
-            server.get_in_object(ctx)
+            ctx = _dry_me([SomeService], {"yay": {"s": 1}}, validator='soft',
+                                                            just_in_object=True)
 
             assert ctx.in_error.faultcode == 'Client.ValidationError'
 
@@ -438,16 +324,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, decode_error):
                     print(i,s,d)
                     pass
 
-            app = Application([SomeService], 'tns',
-                                    in_protocol=_DictDocumentChild(validator='soft'),
-                                    out_protocol=_DictDocumentChild())
-
-            server = ServerBase(app)
-
-            initial_ctx = MethodContext(server)
-            initial_ctx.in_string = [serializer.dumps({"yay": ["s", "B"]})]
-            ctx, = server.generate_contexts(initial_ctx)
-            server.get_in_object(ctx)
+            ctx = _dry_me([SomeService], {"yay": ["s", "B"]}, validator='soft',
+                                                            just_in_object=True)
 
             assert ctx.in_error.faultcode == 'Client.ValidationError'
 
@@ -458,16 +336,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, decode_error):
                     print(i,s,d)
                     pass
 
-            app = Application([SomeService], 'tns',
-                                    in_protocol=_DictDocumentChild(validator='soft'),
-                                    out_protocol=_DictDocumentChild()
-                                )
-            server = ServerBase(app)
-
-            initial_ctx = MethodContext(server)
-            initial_ctx.in_string = [serializer.dumps({"yay": [1, "B"]})]
-            ctx, = server.generate_contexts(initial_ctx)
-            server.get_in_object(ctx)
+            ctx = _dry_me([SomeService], {"yay": [1, "B"]}, validator='soft',
+                                                            just_in_object=True)
 
             print(ctx.in_error.faultstring)
             assert ctx.in_error.faultcode == 'Client.ValidationError'
@@ -478,19 +348,9 @@ def TDictDocumentTest(serializer, _DictDocumentChild, decode_error):
                 @srpc(Integer, String, Mandatory.DateTime)
                 def yay(i,s,d):
                     print(i,s,d)
-                    pass
 
-            app = Application([SomeService], 'tns',
-                    in_protocol=_DictDocumentChild(validator='soft'),
-                    out_protocol=_DictDocumentChild()
-                )
-
-            server = ServerBase(app)
-
-            initial_ctx = MethodContext(server)
-            initial_ctx.in_string = serializer.dumps({"yay": {"d":"a2011"}})
-            ctx, = server.generate_contexts(initial_ctx)
-            server.get_in_object(ctx)
+            ctx = _dry_me([SomeService],{"yay": {"d":"a2011"}},validator='soft',
+                                                            just_in_object=True)
 
             assert ctx.in_error.faultcode == 'Client.ValidationError'
 
@@ -500,19 +360,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, decode_error):
                 def some_call():
                     return "foo"
 
-            app = Application([SomeService], 'tns',
-                    in_protocol=_DictDocumentChild(),
-                    out_protocol=_DictDocumentChild(skip_depth=2)
-                )
-
-            server = ServerBase(app)
-            initial_ctx = MethodContext(server)
-            initial_ctx.in_string = [serializer.dumps({"some_call":[]})]
-
-            ctx, = server.generate_contexts(initial_ctx)
-            server.get_in_object(ctx)
-            server.get_out_object(ctx)
-            server.get_out_string(ctx)
+            ctx = _dry_me([SomeService], {"some_call":[]}, skip_depth=2)
 
         def test_fault_to_dict(self):
             class SomeService(ServiceBase):
@@ -520,17 +368,16 @@ def TDictDocumentTest(serializer, _DictDocumentChild, decode_error):
                 def some_call():
                     raise Fault()
 
-            app = Application([SomeService], 'tns',
-                                in_protocol=_DictDocumentChild(),
-                                out_protocol=_DictDocumentChild(skip_depth=2))
+            ctx = _dry_me([SomeService], {"some_call":[]}, skip_depth=2)
 
-            server = ServerBase(app)
-            initial_ctx = MethodContext(server)
-            initial_ctx.in_string = serializer.dumps({"some_call":[]})
+        def test_prune_none_and_optional(self):
+            class SomeObject(ComplexModel):
+                i = Integer
+                s = String(min_occurs=1)
 
-            ctx, = server.generate_contexts(initial_ctx)
-            server.get_in_object(ctx)
-            server.get_out_object(ctx)
-            server.get_out_string(ctx)
+            class SomeService(ServiceBase):
+                @srpc(_returns=SomeObject)
+                def some_call():
+                    raise SomeObject()
 
     return Test

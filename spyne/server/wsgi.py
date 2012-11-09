@@ -28,6 +28,7 @@ import itertools
 
 from spyne.auxproc import process_contexts
 from spyne.model.binary import File
+from spyne.protocol.http import HttpRpc
 
 try:
     from cgi import parse_qs
@@ -211,7 +212,8 @@ class WsgiApplication(HttpBase):
 
                 if ctx.transport.wsdl is None:
                     self.doc.wsdl11.build_interface_document(url)
-                    ctx.transport.wsdl = self._wsdl = self.doc.wsdl11.get_interface_document()
+                    ctx.transport.wsdl = self._wsdl = \
+                                        self.doc.wsdl11.get_interface_document()
 
             except Exception, e:
                 logger.exception(e)
@@ -270,21 +272,29 @@ class WsgiApplication(HttpBase):
         p_ctx, others = contexts[0], contexts[1:]
 
         if p_ctx.in_error:
-            return self.handle_error(p_ctx, others, p_ctx.in_error, start_response)
+            return self.handle_error(p_ctx, others, p_ctx.in_error,
+                                                                 start_response)
 
         self.get_in_object(p_ctx)
         if p_ctx.in_error:
             logger.error(p_ctx.in_error)
-            return self.handle_error(p_ctx, others, p_ctx.in_error, start_response)
+            return self.handle_error(p_ctx, others, p_ctx.in_error,
+                                                                 start_response)
 
         self.get_out_object(p_ctx)
         if p_ctx.out_error:
-            return self.handle_error(p_ctx, others, p_ctx.out_error, start_response)
+            return self.handle_error(p_ctx, others, p_ctx.out_error,
+                                                                 start_response)
 
         if p_ctx.transport.resp_code is None:
             p_ctx.transport.resp_code = HTTP_200
 
         self.get_out_string(p_ctx)
+
+        #import ipdb; ipdb.set_trace()
+        if isinstance(self.app.out_protocol, HttpRpc) and \
+                                               p_ctx.out_header_doc is not None:
+            p_ctx.transport.resp_headers.update(p_ctx.out_header_doc)
 
         if p_ctx.descriptor and p_ctx.descriptor.mtom:
             # when there is more than one return type, the result is
@@ -333,7 +343,10 @@ class WsgiApplication(HttpBase):
 
         except TypeError:
             retval_iter = iter(p_ctx.out_string)
-            first_chunk = retval_iter.next()
+            try:
+                first_chunk = retval_iter.next()
+            except StopIteration:
+                first_chunk = ''
 
             start_response(p_ctx.transport.resp_code,
                                             p_ctx.transport.resp_headers.items())
@@ -478,7 +491,8 @@ class WsgiApplication(HttpBase):
             for k, v in files.items():
                 val = ctx.in_body_doc.get(k, [])
 
-                mime_type = v.headers.get('Content-Type', 'application/octet-stream')
+                mime_type = v.headers.get('Content-Type',
+                                                     'application/octet-stream')
 
                 path = getattr(v.stream, 'name', None)
                 if path is None:

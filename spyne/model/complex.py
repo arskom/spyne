@@ -40,8 +40,19 @@ from spyne.const import MAX_ARRAY_ELEMENT_NUM
 from spyne.const.suffix import ARRAY_SUFFIX
 from spyne.const.suffix import TYPE_SUFFIX
 
+from spyne.util import memoize
 from spyne.util import sanitize_args
 from spyne.util.odict import odict
+
+
+def _get_flat_type_info(cls, retval):
+    parent = getattr(cls, '__extends__', None)
+    if parent != None:
+        _get_flat_type_info(parent, retval)
+
+    retval.update(cls._type_info)
+
+    return retval
 
 
 class xml:
@@ -484,23 +495,14 @@ class ComplexModelBase(ModelBase):
         return dict(cls.get_members_pairs(inst))
 
     @staticmethod
-    def get_flat_type_info(cls, retval=None):
+    @memoize
+    def get_flat_type_info(cls):
         """Returns a _type_info dict that includes members from all base classes.
 
         It's called a "flat" dict because it flattens all members from the
         inheritance hierarchy into one dict.
         """
-
-        if retval is None:
-            retval = TypeInfo()
-
-        parent = getattr(cls, '__extends__', None)
-        if parent != None:
-            cls.get_flat_type_info(parent, retval)
-
-        retval.update(cls._type_info)
-
-        return retval
+        return _get_flat_type_info(cls, TypeInfo())
 
     @staticmethod
     def get_simple_type_info(cls, hier_delim="_", retval=None, prefix=None,
