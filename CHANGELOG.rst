@@ -8,6 +8,10 @@ spyne-2.10.0
  * You can now set Http response headers via ctx.out_object when
    out_protocol is HttpRpc. https://github.com/arskom/spyne/pull/201
 
+spyne-2.9.3
+-----------
+ * Fix WsgiApplication choking on empty string return value.
+
 spyne-2.9.2
 -----------
  * Fix Array serialization for Html Microformats
@@ -27,7 +31,8 @@ spyne-2.9.0
    ComplexModel!
  * First-class integration with Pyramid.
  * First geospatial types: Point and Polygon.
- * Initial revision of the url routing support via ``werkzeug.routing``
+ * Initial revision of the http request pattern matching support via
+   ``werkzeug.routing``
  * ``XmlObject`` -> ``XmlDocument``, ``JsonObject`` -> ``JsonDocument``,
    ``MessagePackObject`` -> ``MessagePackDocument``,
    ``DictObject -> DictDocument``.
