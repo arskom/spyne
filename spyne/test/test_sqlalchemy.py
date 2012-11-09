@@ -128,12 +128,6 @@ class TestSqlAlchemy(unittest.TestCase):
 
         AddressDetail.mapper(self.metadata)
 
-    #def test_serialize(self):
-    #    raise Exception("Test Something!")
-
-    #def test_deserialize(self):
-    #    raise Exception("Test Something!")
-
     def test_rpc(self):
         import sqlalchemy
         from sqlalchemy import sql

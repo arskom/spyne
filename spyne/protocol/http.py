@@ -115,12 +115,12 @@ class HttpRpc(DictDocument):
 
         self.event_manager.fire_event('before_deserialize', ctx)
 
-        if ctx.descriptor.in_header:
+        if ctx.descriptor.in_header is not None:
             # HttpRpc supports only one header class
             in_header_class = ctx.descriptor.in_header[0]
             ctx.in_header = self.flat_dict_to_object(ctx.in_header_doc,
                                                 in_header_class, self.validator)
-        if ctx.descriptor.in_message:
+        if ctx.descriptor.in_message is not None:
             ctx.in_object = self.flat_dict_to_object(ctx.in_body_doc,
                                       ctx.descriptor.in_message, self.validator)
 
@@ -130,18 +130,18 @@ class HttpRpc(DictDocument):
         assert message in (self.RESPONSE,)
 
         if ctx.out_error is None:
-            result_message_class = ctx.descriptor.out_message
+            result_class = ctx.descriptor.out_message
             header_class = ctx.descriptor.out_header
             if header_class is not None:
                 header_class = header_class[0] # HttpRpc supports only one header class
 
             # assign raw result to its wrapper, result_message
-            out_type_info = result_message_class.get_flat_type_info(
-                                                           result_message_class)
+            out_type_info = result_class.get_flat_type_info(result_class)
             if len(out_type_info) == 1:
                 out_class = out_type_info.values()[0]
                 if ctx.out_object is None:
                     ctx.out_document = ['']
+
                 else:
                     try:
                         ctx.out_document = out_class.to_string_iterable(
@@ -149,6 +149,7 @@ class HttpRpc(DictDocument):
                     except AttributeError:
                         raise ValueError("HttpRpc protocol can only serialize "
                                          "primitives, not %r" % out_class)
+
             elif len(out_type_info) == 0:
                 pass
 
