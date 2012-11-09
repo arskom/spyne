@@ -169,8 +169,8 @@ class TestMultipleMethods(unittest.TestCase):
         else:
             raise Exception("must fail with 'Exception: you can't mix aux and non-aux methods in a single service definition.'")
 
-    def __run_service(self, SomeService):
-        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=Soap11())
+    def __run_service(self, service):
+        app = Application([service], 'tns', in_protocol=HttpRpc(), out_protocol=Soap11())
         server = WsgiApplication(app)
         return_string = ''.join(server({
             'QUERY_STRING': '',
@@ -179,7 +179,7 @@ class TestMultipleMethods(unittest.TestCase):
             'SERVER_NAME': 'localhost',
         }, start_response, "http://null"))
 
-        elt = etree.fromstring(return_string)
+        elt = etree.fromstring(''.join(return_string))
         print etree.tostring(elt, pretty_print=True)
 
         return elt, app.interface.nsmap

@@ -232,18 +232,16 @@ class Soap11(XmlDocument):
 
             # decode header objects
             if (ctx.in_header_doc is not None and header_class is not None):
-                if isinstance(header_class, (list, tuple)):
-                    headers = [None] * len(header_class)
-                    for i, (header_doc, head_class) in enumerate(
+                headers = [None] * len(header_class)
+                for i, (header_doc, head_class) in enumerate(
                                           zip(ctx.in_header_doc, header_class)):
-                        if len(header_doc) > i:
-                            headers[i] = self.from_element(head_class, header_doc)
-                    ctx.in_header = tuple(headers)
+                    if i < len(header_doc):
+                        headers[i] = self.from_element(head_class, header_doc)
 
+                if len(headers) == 1:
+                    ctx.in_header = headers[0]
                 else:
-                    if len(ctx.in_header_doc) > 0:
-                        ctx.in_header = self.from_element(header_class,
-                                                            ctx.in_header_doc[0])
+                    ctx.in_header = headers
 
             # decode method arguments
             if ctx.in_body_doc is None:
@@ -312,38 +310,23 @@ class Soap11(XmlDocument):
                                 body_message_class.get_namespace(), out_body_doc)
 
             # header
-            if ctx.out_header is not None:
-                if ctx.descriptor.out_header is None:
-                    logger.warning(
-                        "Skipping soap response header as %r method is not "
-                        "declared to have one." % ctx.method_name)
+            if ctx.out_header is not None and header_message_class is not None:
+                ctx.out_header_doc = soap_header_elt = etree.SubElement(
+                                ctx.out_document, '{%s}Header' % ns.soap_env)
 
+                if isinstance(ctx.out_header, (list, tuple)):
+                    out_headers = ctx.out_header
                 else:
-                    ctx.out_header_doc = soap_header_elt = etree.SubElement(
-                                    ctx.out_document, '{%s}Header' % ns.soap_env)
+                    out_headers = (ctx.out_header,)
 
-                    if isinstance(header_message_class, (list, tuple)):
-                        if isinstance(ctx.out_header, (list, tuple)):
-                            out_headers = ctx.out_header
-                        else:
-                            out_headers = (ctx.out_header,)
-
-
-                        for header_class, out_header in zip(header_message_class,
-                                                                out_headers):
-                            self.to_parent_element(header_class,
-                                out_header,
-                                header_class.get_namespace(),
-                                soap_header_elt,
-                                header_class.get_type_name(),
-                            )
-                    else:
-                        self.to_parent_element(header_message_class,
-                            ctx.out_header,
-                            header_message_class.get_namespace(),
-                            soap_header_elt,
-                            header_message_class.get_type_name()
-                        )
+                for header_class, out_header in zip(header_message_class,
+                                                                   out_headers):
+                    self.to_parent_element(header_class,
+                        out_header,
+                        header_class.get_namespace(),
+                        soap_header_elt,
+                        header_class.get_type_name(),
+                    )
 
             ctx.out_document.append(ctx.out_body_doc)
 

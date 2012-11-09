@@ -164,23 +164,19 @@ class Interface(object):
                     method.aux.methods.append(s.get_method_id(method))
 
                 if not (method.in_header is None):
-                    if isinstance(method.in_header, (list, tuple)):
-                        in_headers = method.in_header
-                    else:
-                        in_headers = (method.in_header,)
+                    if not isinstance(method.in_header, (list, tuple)):
+                        method.in_header = (method.in_header,)
 
-                    for in_header in in_headers:
+                    for in_header in method.in_header:
                         self.__test_type_name_validity(in_header)
                         in_header.resolve_namespace(in_header, self.get_tns())
                         classes.append(in_header)
 
                 if not (method.out_header is None):
-                    if isinstance(method.out_header, (list, tuple)):
-                        out_headers = method.out_header
-                    else:
-                        out_headers = (method.out_header,)
+                    if not isinstance(method.out_header, (list, tuple)):
+                        method.out_header = (method.out_header,)
 
-                    for out_header in out_headers:
+                    for out_header in method.out_header:
                         self.__test_type_name_validity(out_header)
                         out_header.resolve_namespace(out_header, self.get_tns())
                         classes.append(out_header)

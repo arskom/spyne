@@ -25,6 +25,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from spyne.error import ValidationError
+from spyne.error import ResourceNotFoundError
 
 from spyne.model.binary import ByteArray
 from spyne.model.binary import File
@@ -161,8 +162,7 @@ class DictDocument(ProtocolBase):
         self.event_manager.fire_event('before_deserialize', ctx)
 
         if ctx.descriptor is None:
-            raise Fault("Client", "Method %r not found." %
-                                                      ctx.method_request_string)
+            raise ResourceNotFoundError(ctx.method_request_string)
 
         # instantiate the result message
         if message is self.REQUEST:
@@ -173,9 +173,9 @@ class DictDocument(ProtocolBase):
                                                                 self.skip_depth)
         if body_class:
             # assign raw result to its wrapper, result_message
-            result_message_class = ctx.descriptor.in_message
-            value = ctx.in_body_doc.get(result_message_class.get_type_name(), None)
-            result_message = self._doc_to_object(result_message_class, value, self.validator)
+            result_class = ctx.descriptor.in_message
+            value = ctx.in_body_doc.get(result_class.get_type_name(), None)
+            result_message = self._doc_to_object(result_class, value, self.validator)
 
             ctx.in_object = result_message
 
@@ -231,7 +231,6 @@ class DictDocument(ProtocolBase):
         else:
             return [cls._to_value(class_, value, wrapper_name)]
 
-
     @classmethod
     def _from_dict_value(cls, class_, value, validator):
         # validate raw input
@@ -267,7 +266,7 @@ class DictDocument(ProtocolBase):
     @classmethod
     def _get_member_pairs(cls, class_, inst):
         parent_cls = getattr(class_, '__extends__', None)
-        if not (parent_cls is None):
+        if parent_cls is not None:
             for r in cls._get_member_pairs(parent_cls, inst):
                 yield r
 
@@ -283,7 +282,9 @@ class DictDocument(ProtocolBase):
                     yield (k, [cls._to_value(v,sv) for sv in sub_value])
 
             else:
-                yield (k, cls._to_value(v, sub_value))
+                val = cls._to_value(v, sub_value)
+                if val is not None or class_.Attributes.min_occurs > 0:
+                    yield (k, val)
 
     @classmethod
     def _to_value(cls, class_, value, k=None):
@@ -312,7 +313,7 @@ class DictDocument(ProtocolBase):
             return {field_name: retval}
 
     @classmethod
-    def flat_dict_to_object(cls, doc, inst_class, validator=None):
+    def flat_dict_to_object(cls, doc, inst_class, validator=None, hier_delim="_"):
         """Converts a flat dict to a native python object.
 
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
@@ -416,12 +417,12 @@ class DictDocument(ProtocolBase):
                         if val < min_o:
                             raise Fault('Client.ValidationError',
                                 '"%s" member must occur at least %d times'
-                                              % ('_'.join(pfrag[:i+1]), min_o))
+                                        % (hier_delim.join(pfrag[:i+1]), min_o))
 
                         if val > max_o:
                             raise Fault('Client.ValidationError',
                                 '"%s" member must occur at most %d times'
-                                              % ('_'.join(pfrag[:i+1]), max_o))
+                                        % (hier_delim.join(pfrag[:i+1]), max_o))
 
                         ctype_info = ntype_info.get_flat_type_info(ntype_info)
 
@@ -431,14 +432,14 @@ class DictDocument(ProtocolBase):
                 if val < min_o:
                     raise Fault('Client.ValidationError',
                                 '"%s" member must occur at least %d times'
-                                                    % ('_'.join(s.path), min_o))
+                                            % (hier_delim.join(s.path), min_o))
+
                 if val > max_o:
                     raise Fault('Client.ValidationError',
                                 '"%s" member must occur at most %d times'
-                                                    % ('_'.join(s.path), max_o))
+                                            % (hier_delim.join(s.path), max_o))
 
         return inst
-
 
     @classmethod
     def object_to_flat_dict(cls, inst_cls, value, hier_delim="_", retval=None,
