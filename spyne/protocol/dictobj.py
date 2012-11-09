@@ -282,7 +282,9 @@ class DictDocument(ProtocolBase):
                     yield (k, [cls._to_value(v,sv) for sv in sub_value])
 
             else:
-                yield (k, cls._to_value(v, sub_value))
+                val = cls._to_value(v, sub_value)
+                if val is not None or cls.Attributes.min_occurs > 0:
+                    yield (k, val)
 
     @classmethod
     def _to_value(cls, class_, value, k=None):
