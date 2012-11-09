@@ -173,9 +173,9 @@ class DictDocument(ProtocolBase):
                                                                 self.skip_depth)
         if body_class:
             # assign raw result to its wrapper, result_message
-            result_message_class = ctx.descriptor.in_message
-            value = ctx.in_body_doc.get(result_message_class.get_type_name(), None)
-            result_message = self._doc_to_object(result_message_class, value, self.validator)
+            result_class = ctx.descriptor.in_message
+            value = ctx.in_body_doc.get(result_class.get_type_name(), None)
+            result_message = self._doc_to_object(result_class, value, self.validator)
 
             ctx.in_object = result_message
 
@@ -231,7 +231,6 @@ class DictDocument(ProtocolBase):
         else:
             return [cls._to_value(class_, value, wrapper_name)]
 
-
     @classmethod
     def _from_dict_value(cls, class_, value, validator):
         # validate raw input
@@ -267,7 +266,7 @@ class DictDocument(ProtocolBase):
     @classmethod
     def _get_member_pairs(cls, class_, inst):
         parent_cls = getattr(class_, '__extends__', None)
-        if not (parent_cls is None):
+        if parent_cls is not None:
             for r in cls._get_member_pairs(parent_cls, inst):
                 yield r
 
@@ -438,7 +437,6 @@ class DictDocument(ProtocolBase):
                                                     % ('_'.join(s.path), max_o))
 
         return inst
-
 
     @classmethod
     def object_to_flat_dict(cls, inst_cls, value, hier_delim="_", retval=None,
