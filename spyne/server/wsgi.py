@@ -28,6 +28,7 @@ import itertools
 
 from spyne.auxproc import process_contexts
 from spyne.model.binary import File
+from spyne.protocol.http import HttpRpc
 
 try:
     from cgi import parse_qs
@@ -285,6 +286,10 @@ class WsgiApplication(HttpBase):
             p_ctx.transport.resp_code = HTTP_200
 
         self.get_out_string(p_ctx)
+
+        if isinstance(self.app.out_protocol, HttpRpc) and \
+                                               p_ctx.out_header_doc is not None:
+            p_ctx.transport.resp_headers.update(p_ctx.out_header_doc)
 
         if p_ctx.descriptor and p_ctx.descriptor.mtom:
             # when there is more than one return type, the result is

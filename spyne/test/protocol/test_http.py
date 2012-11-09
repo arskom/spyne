@@ -204,16 +204,16 @@ class Test(unittest.TestCase):
             __in_header__ = RequestHeader
             __out_header__ = ResponseHeader
 
-            @rpc(String, _returns=String)
+            @rpc(String)
             def some_call(ctx, s):
                 ctx.out_header = ResponseHeader(**{'Set-Cookie': s})
 
         def start_response(code, headers):
-            assert dict(headers)['Set-Cookie'] == 's=hey'
+            assert dict(headers)['Set-Cookie'] == 'hey'
 
         ret = WsgiApplication(Application([SomeService], 'tns',
             in_protocol=HttpRpc(), out_protocol=HttpRpc()))({
-                'QUERY_STRING': 's=hey',
+                'QUERY_STRING': '&s=hey',
                 'PATH_INFO': '/some_call',
                 'REQUEST_METHOD': 'GET',
                 'SERVER_NAME': 'localhost',
