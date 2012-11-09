@@ -206,20 +206,21 @@ class Test(unittest.TestCase):
 
             @rpc(String)
             def some_call(ctx, s):
+                assert s is not None
                 ctx.out_header = ResponseHeader(**{'Set-Cookie': s})
 
         def start_response(code, headers):
             assert dict(headers)['Set-Cookie'] == 'hey'
 
-        ret = WsgiApplication(Application([SomeService], 'tns',
+        ret = ''.join(WsgiApplication(Application([SomeService], 'tns',
             in_protocol=HttpRpc(), out_protocol=HttpRpc()))({
                 'QUERY_STRING': '&s=hey',
                 'PATH_INFO': '/some_call',
                 'REQUEST_METHOD': 'GET',
                 'SERVER_NAME': 'localhost',
-            }, start_response, "http://null")
+            }, start_response, "http://null"))
 
-        assert ret is None
+        assert ret == ''
 
 
 class TestHttpPatterns(unittest.TestCase):

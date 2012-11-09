@@ -159,9 +159,8 @@ class HttpRpc(DictDocument):
 
             # header
             if ctx.out_header is not None:
+                out_header = ctx.out_header
                 if isinstance(ctx.out_header, (list, tuple)):
-                    out_header = ctx.out_header
-                else:
                     out_header = ctx.out_header[0]
 
                 ctx.out_header_doc = self.object_to_flat_dict(header_class,
