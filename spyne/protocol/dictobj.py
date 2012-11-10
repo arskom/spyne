@@ -470,10 +470,12 @@ class DictDocument(ProtocolBase):
                     raise ValueError("%r.%s conflicts with previous value %r" %
                                                      (inst_cls, k, retval[key]))
 
-                try:
-                    retval[key] = subvalue
-                except:
-                    retval[key] = None
+                if subvalue is not None or v.Attributes.min_occurs > 0:
+                    try:
+                        retval[key] = subvalue
+                    except: # FIXME: What?
+                        if v.Attributes.min_occurs > 0:
+                            retval[key] = None
 
             else:
                 cls.object_to_flat_dict(fti[k], subvalue, hier_delim,
