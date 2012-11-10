@@ -551,12 +551,12 @@ class ComplexModelBase(ModelBase):
     @classmethod
     @nillable_string
     def to_string(cls, value):
-        raise ValueError("Only primitives can be serialized to string.")
+        raise TypeError("Only primitives can be serialized to string.")
 
     @classmethod
     @nillable_string
     def from_string(cls, string):
-        raise ValueError("Only primitives can be deserialized from string.")
+        raise TypeError("Only primitives can be deserialized from string.")
 
     @staticmethod
     def resolve_namespace(cls, default_ns):
