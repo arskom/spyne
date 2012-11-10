@@ -175,7 +175,8 @@ class DictDocument(ProtocolBase):
             # assign raw result to its wrapper, result_message
             result_class = ctx.descriptor.in_message
             value = ctx.in_body_doc.get(result_class.get_type_name(), None)
-            result_message = self._doc_to_object(result_class, value, self.validator)
+            result_message = self._doc_to_object(result_class, value,
+                                                                 self.validator)
 
             ctx.in_object = result_message
 
@@ -213,6 +214,7 @@ class DictDocument(ProtocolBase):
 
             ctx.out_document = self._object_to_doc(out_type, out_instance,
                                                     skip_depth=self.skip_depth)
+
             self.event_manager.fire_event('after_serialize', ctx)
 
     @classmethod
@@ -221,7 +223,7 @@ class DictDocument(ProtocolBase):
         class_, value = unwrap_instance(class_, value, skip_depth)
 
         # arrays get wrapped in [], whereas other objects get wrapped in
-        # {object_name: ...}
+        # {wrapper_name: ...}
         if wrapper_name is None and not issubclass(class_, Array):
             wrapper_name = class_.get_type_name()
 
@@ -239,11 +241,13 @@ class DictDocument(ProtocolBase):
                 if not (issubclass(class_, String) and isinstance(value, str)):
                     raise ValidationError(value)
 
-            elif issubclass(class_, Decimal) and not isinstance(value, (int, long, float)):
+            elif issubclass(class_, Decimal) and not isinstance(value,
+                                                            (int, long, float)):
                 raise ValidationError(value)
 
-            elif issubclass(class_, DateTime) and not (isinstance(value, unicode) and
-                                            class_.validate_string(class_, value)):
+            elif issubclass(class_, DateTime) and not (
+                                isinstance(value, unicode) and
+                                         class_.validate_string(class_, value)):
                 raise ValidationError(value)
 
         # get native type
@@ -258,7 +262,7 @@ class DictDocument(ProtocolBase):
 
         # validate native type
         if validator is cls.SOFT_VALIDATION and \
-                not class_.validate_native(class_, retval):
+                                     not class_.validate_native(class_, retval):
             raise ValidationError(retval)
 
         return retval
