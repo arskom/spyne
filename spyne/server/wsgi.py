@@ -68,6 +68,15 @@ def _get_http_headers(req_env):
     return retval
 
 
+def _gen_http_headers(headers):
+    for k,v in headers.items():
+        if isinstance(v, (list,tuple)):
+            for v2 in v:
+                yield (k,v2)
+        else:
+            yield (k,v)
+
+
 class WsgiTransportContext(HttpTransportContext):
     """The class that is used in the transport attribute of the
     :class:`WsgiMethodContext` class."""
@@ -199,7 +208,8 @@ class WsgiApplication(HttpBase):
         ctx = WsgiMethodContext(self, req_env, 'text/xml; charset=utf-8')
 
         if self.doc.wsdl11 is None:
-            start_response(HTTP_404, ctx.transport.resp_headers.items())
+            start_response(HTTP_404,
+                                  _gen_http_headers(ctx.transport.resp_headers))
             return [HTTP_404]
 
         ctx.transport.wsdl = self._wsdl
@@ -222,7 +232,8 @@ class WsgiApplication(HttpBase):
                 # implementation hook
                 self.event_manager.fire_event('wsdl_exception', ctx)
 
-                start_response(HTTP_500, ctx.transport.resp_headers.items())
+                start_response(HTTP_500,
+                                  _gen_http_headers(ctx.transport.resp_headers))
 
                 return [HTTP_500]
 
@@ -233,7 +244,7 @@ class WsgiApplication(HttpBase):
 
         ctx.transport.resp_headers['Content-Length'] = \
                                                     str(len(ctx.transport.wsdl))
-        start_response(HTTP_200, ctx.transport.resp_headers.items())
+        start_response(HTTP_200, _gen_http_headers(ctx.transport.resp_headers))
 
         return [ctx.transport.wsdl]
 
@@ -245,11 +256,12 @@ class WsgiApplication(HttpBase):
         self.get_out_string(p_ctx)
         p_ctx.out_string = [''.join(p_ctx.out_string)]
 
-        p_ctx.transport.resp_headers['Content-Length'] = str(len(p_ctx.out_string[0]))
+        p_ctx.transport.resp_headers['Content-Length'] = \
+                                                   str(len(p_ctx.out_string[0]))
         self.event_manager.fire_event('wsgi_exception', p_ctx)
 
         start_response(p_ctx.transport.resp_code,
-                                             p_ctx.transport.resp_headers.items())
+                                _gen_http_headers(p_ctx.transport.resp_headers))
 
         try:
             process_contexts(self, others, p_ctx, error=error)
@@ -333,7 +345,7 @@ class WsgiApplication(HttpBase):
                                     str(sum([len(a) for a in p_ctx.out_string]))
 
             start_response(p_ctx.transport.resp_code,
-                                           p_ctx.transport.resp_headers.items())
+                                _gen_http_headers(p_ctx.transport.resp_headers))
 
             retval = itertools.chain(p_ctx.out_string, self.__finalize(p_ctx))
 
@@ -345,7 +357,7 @@ class WsgiApplication(HttpBase):
                 first_chunk = ''
 
             start_response(p_ctx.transport.resp_code,
-                                            p_ctx.transport.resp_headers.items())
+                                _gen_http_headers(p_ctx.transport.resp_headers))
 
             retval = itertools.chain([first_chunk], retval_iter,
                                                         self.__finalize(p_ctx))
