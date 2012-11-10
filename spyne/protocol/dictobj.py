@@ -455,6 +455,7 @@ class DictDocument(ProtocolBase):
 
         if retval is None:
             retval = {}
+
         if prefix is None:
             prefix = []
 
@@ -479,6 +480,6 @@ class DictDocument(ProtocolBase):
 
             else:
                 cls.object_to_flat_dict(fti[k], subvalue, hier_delim,
-                                             retval, new_prefix, parent=inst_cls)
+                                            retval, new_prefix, parent=inst_cls)
 
         return retval
