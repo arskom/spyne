@@ -69,9 +69,10 @@ class HttpRpc(DictDocument):
     mime_type = 'text/plain'
     allowed_http_verbs = None
 
-    def __init__(self, app=None, validator=None, mime_type=None, tmp_dir=None,
-                                                      tmp_delete_on_close=True):
-        DictDocument.__init__(self, app, validator, mime_type)
+    def __init__(self, app=None, validator=None, mime_type=None,
+                    tmp_dir=None, tmp_delete_on_close=True, ignore_uncap=False):
+        DictDocument.__init__(self, app, validator, mime_type,
+                                                      ignore_uncap=ignore_uncap)
 
         self.tmp_dir = tmp_dir
         self.tmp_delete_on_close = tmp_delete_on_close
@@ -146,9 +147,10 @@ class HttpRpc(DictDocument):
                     try:
                         ctx.out_document = out_class.to_string_iterable(
                                                               ctx.out_object[0])
-                    except AttributeError:
-                        raise ValueError("HttpRpc protocol can only serialize "
-                                         "primitives, not %r" % out_class)
+                    except (AttributeError, TypeError), e:
+                        if not self.ignore_uncap:
+                            raise ValueError("HttpRpc protocol can only "
+                                     "serialize primitives, not %r" % out_class)
 
             elif len(out_type_info) == 0:
                 pass
