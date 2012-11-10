@@ -219,7 +219,12 @@ class TwistedWebResource(Resource):
             self.http_transport.event_manager.fire_event('wsdl', ctx)
 
             for k,v in ctx.transport.resp_headers.items():
-                request.setHeader(k,v)
+                if isinstance(v, (list,tuple)):
+                    for v2 in v:
+                        request.setHeader(k,v2)
+                else:
+                    request.setHeader(k,v)
+
 
             return ctx.transport.wsdl
 
