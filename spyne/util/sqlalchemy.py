@@ -255,6 +255,9 @@ def get_sqlalchemy_type(cls):
         else:
             return sqlalchemy.Unicode(cls.Attributes.max_len)
 
+    elif issubclass(cls, ByteArray):
+        return sqlalchemy.LargeBinary
+
     elif issubclass(cls, (Integer64, UnsignedInteger64)):
         return sqlalchemy.BigInteger
 
