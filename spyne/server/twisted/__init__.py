@@ -115,7 +115,7 @@ class TwistedHttpTransport(HttpBase):
         request = ctx.in_document
 
         ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
-                              request.path.split('/')[-1])
+                                                    request.path.split('/')[-1])
 
         logger.debug("%sMethod name: %r%s" % (LIGHT_GREEN,
                                           ctx.method_request_string, END_COLOR))
@@ -174,6 +174,7 @@ class TwistedWebResource(Resource):
 
         contexts = self.http_transport.generate_contexts(initial_ctx)
         p_ctx, others = contexts[0], contexts[1:]
+
         if p_ctx.in_error:
             return self.handle_error(p_ctx, others, p_ctx.in_error, request)
 
@@ -185,7 +186,8 @@ class TwistedWebResource(Resource):
             else:
                 self.http_transport.get_out_object(p_ctx)
                 if p_ctx.out_error:
-                    return self.handle_error(p_ctx, others, p_ctx.out_error, request)
+                    return self.handle_error(p_ctx, others, p_ctx.out_error,
+                                                                        request)
 
         self.http_transport.get_out_string(p_ctx)
 

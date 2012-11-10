@@ -232,7 +232,7 @@ class WsgiApplication(HttpBase):
         self.event_manager.fire_event('wsdl', ctx)
 
         ctx.transport.resp_headers['Content-Length'] = \
-                                                str(len(ctx.transport.wsdl))
+                                                    str(len(ctx.transport.wsdl))
         start_response(HTTP_200, ctx.transport.resp_headers.items())
 
         return [ctx.transport.wsdl]
@@ -291,7 +291,6 @@ class WsgiApplication(HttpBase):
 
         self.get_out_string(p_ctx)
 
-        #import ipdb; ipdb.set_trace()
         if isinstance(self.app.out_protocol, HttpRpc) and \
                                                p_ctx.out_header_doc is not None:
             p_ctx.transport.resp_headers.update(p_ctx.out_header_doc)
@@ -325,10 +324,7 @@ class WsgiApplication(HttpBase):
 
         # if the out_string is a generator function, this hack lets the user
         # code run until first yield, which lets it set response headers and
-        # whatnot before calling start_response. Yes it causes an additional
-        # copy of the first fragment of the response to be made, but if you know
-        # a better way of having generator functions execute until first yield,
-        # just let us know.
+        # whatnot before calling start_response. Is there a better way?
         try:
             len(p_ctx.out_string) # generator?
 
