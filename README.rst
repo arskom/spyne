@@ -24,10 +24,10 @@ or ZeroMQ. The transports can be used in both a client or server setting.
 
 The following are the primary sources of information about spyne:
 
-* The latest documentation for Spyne can be found at: http://arskom.github.com/spyne
+* The latest documentation for Spyne can be found at: http://spyne.io/docs
 * The official source code repository is at: https://github.com/arskom/spyne
 * The official spyne discussion forum is at: http://mail.python.org/mailman/listinfo/soap
-* You can download Spyne packages from `github <http://github.com/arskom/spyne/downloads>`_
+* You can download Spyne releases from `github <http://github.com/arskom/spyne/downloads>`_
   or `pypi <http://pypi.python.org/pypi/spyne>`_.
 
 Spyne is a generalized version of a Soap library known as soaplib. The following
@@ -66,6 +66,8 @@ of Spyne:
   ``spyne.server.zeromq.ZeroMQServer``.
 * `Werkzeug <http://werkzeug.pocoo.org/>`_ is needed for
   ``spyne.protocol.http.HttpRpc``.
+* `PyParsing <http://pypi.python.org/pypi/pyparsing>`_ is needed for
+  using HttpPatterns with ``spyne.protocol.http.HttpRpc``.
 * `Twisted <http://twistedmatrix.com/>`_ is needed for
   ``spyne.server.twisted.TwistedWebResource`` and
   ``spyne.client.twisted.TwistedHttpClient``.
