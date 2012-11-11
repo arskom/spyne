@@ -11,6 +11,8 @@ spyne-2.10.0
 spyne-2.9.3
 -----------
  * Fix WsgiApplication choking on empty string return value.
+ * Fix TwistedWebResource choking on generators as return values.
+ * Fix Csv serializer.
 
 spyne-2.9.2
 -----------
