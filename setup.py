@@ -161,7 +161,7 @@ setup(
     zip_safe=False,
     install_requires=[
       'pytz',
-      'lxml',
+      'lxml>=2.3',
     ],
 
     entry_points = {
