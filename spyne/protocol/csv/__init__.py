@@ -32,7 +32,7 @@ import csv
 from spyne.protocol import ProtocolBase
 
 try:
-    from cStringIO import StringIO
+    from StringIO import StringIO
 except ImportError: # Python 3
     from io import StringIO
 
@@ -41,7 +41,6 @@ def _complex_to_csv(ctx):
     cls, = ctx.descriptor.out_message._type_info.values()
 
     queue = StringIO()
-    writer = csv.writer(queue, dialect=csv.excel)
 
     serializer, = cls._type_info.values()
 
@@ -51,6 +50,7 @@ def _complex_to_csv(ctx):
     keys = sorted(type_info.keys())
 
     if ctx.out_error is None and ctx.out_object is None:
+        writer = csv.writer(queue, dialect=csv.excel)
         writer.writerow(['Error in generating the document'])
         for r in ctx.out_error.to_string_iterable(ctx.out_error):
             writer.writerow([r])
@@ -59,22 +59,18 @@ def _complex_to_csv(ctx):
         queue.truncate(0)
 
     elif ctx.out_error is None:
-        writer.writerow(keys)
+        writer = csv.DictWriter(queue, dialect=csv.excel, fieldnames=keys)
+        writer.writerow(dict(((k,k) for k in keys)))
+
         yield queue.getvalue()
         queue.truncate(0)
 
         if ctx.out_object[0] is not None:
             for v in ctx.out_object[0]:
                 d = serializer.to_dict(v)
-                row = []
-                for k in keys:
-                    val = d.get(k, [None])[0]
-                    if val:
-                        val = val.encode('utf8')
-                    row.append(val)
-
-                writer.writerow(row)
-                yield queue.getvalue()
+                writer.writerow(d)
+                yval = queue.getvalue()
+                yield yval
                 queue.truncate(0)
 
 
