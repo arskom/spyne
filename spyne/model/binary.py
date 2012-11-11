@@ -48,16 +48,6 @@ class ByteArray(SimpleModel):
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
 
     @classmethod
-    @nillable_string
-    def from_string(cls, value):
-        return [value]
-
-    @classmethod
-    @nillable_string
-    def to_string(cls, value):
-        return ''.join(value)
-
-    @classmethod
     @nillable_iterable
     def to_string_iterable(cls, value):
         for v in value:
@@ -164,11 +154,6 @@ class File(SimpleModel):
 
     @classmethod
     @nillable_string
-    def from_string(cls, value):
-        return File.Value(data=[value])
-
-    @classmethod
-    @nillable_string
     def to_base64(cls, value):
         assert value.path, "You need to write data to persistent storage first " \
                            "if you want to read it back."
@@ -226,29 +211,6 @@ class Attachment(ModelBase):
         f = open(self.file_name, 'rb')
         self.data = f.read()
         f.close()
-
-    @classmethod
-    @nillable_string
-    def from_string(cls, value):
-        return Attachment(data=value)
-
-    @classmethod
-    @nillable_string
-    def to_string(cls, value):
-        if not (value.data is None):
-            # the data has already been loaded, just encode
-            # and return the element
-            data = value.data
-
-        elif not (value.file_name is None):
-            # the data hasn't been loaded, but a file has been
-            # specified
-            data = open(value.file_name, 'rb').read()
-
-        else:
-            raise ValueError("Neither data nor a file_name has been specified")
-
-        return data
 
     @classmethod
     @nillable_string

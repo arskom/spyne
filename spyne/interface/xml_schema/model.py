@@ -175,25 +175,7 @@ def enum_add(document, cls):
     document.add_simple_type(cls, simple_type)
 
 
-def fault_add(document, cls):
-    extends = getattr(cls, '__extends__', None)
-    if not (extends is None):
-        document.add(extends)
-
-    complex_type = etree.Element("{%s}complexType" % _ns_xsd)
-    complex_type.set('name', cls.get_type_name())
-
-    #sequence = etree.SubElement(complex_type, '{%s}sequence' % _ns_xsd)
-
-    document.add_complex_type(cls, complex_type)
-
-    # simple node
-    element = etree.Element('{%s}element' % _ns_xsd)
-    element.set('name', cls.get_type_name())
-    element.set('type', cls.get_type_name_ns(document.interface))
-
-    document.add_element(cls, element)
-
+fault_add = complex_add
 
 def unicode_get_restriction_tag(interface, cls):
     restriction = simple_get_restriction_tag(interface, cls)

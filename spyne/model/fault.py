@@ -18,6 +18,8 @@
 #
 
 from spyne.model import ModelBase
+from spyne.model.complex import ComplexModelMeta
+from spyne.const.suffix import TYPE_SUFFIX
 
 class Fault(ModelBase, Exception):
     """Use this class as a base for all public exceptions.
@@ -45,6 +47,7 @@ class Fault(ModelBase, Exception):
     :param detail: Additional information dict.
     """
 
+    __metaclass__ = ComplexModelMeta
     __type_name__ = "Fault"
 
     def __init__(self, faultcode='Server', faultstring="", faultactor="",
@@ -71,3 +74,23 @@ class Fault(ModelBase, Exception):
             "faultstring": value.faultstring,
             "detail": value.detail,
         }}
+
+    @staticmethod
+    def resolve_namespace(cls, default_ns):
+        if getattr(cls, '__extends__', None) != None:
+            cls.__extends__.resolve_namespace(cls.__extends__, default_ns)
+
+        ModelBase.resolve_namespace(cls, default_ns)
+
+        for k, v in cls._type_info.items():
+            if v.__type_name__ is ModelBase.Empty:
+                v.__namespace__ = cls.get_namespace()
+                v.__type_name__ = "%s_%s%s" % (cls.get_type_name(), k, TYPE_SUFFIX)
+
+            if not issubclass(v, cls):
+                v.resolve_namespace(v, default_ns)
+
+        if cls._force_own_namespace is not None:
+            for c in cls._force_own_namespace:
+                c.__namespace__ = cls.get_namespace()
+                Fault.resolve_namespace(c, cls.get_namespace())

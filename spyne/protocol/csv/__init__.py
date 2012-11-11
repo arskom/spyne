@@ -37,7 +37,7 @@ except ImportError: # Python 3
     from io import StringIO
 
 
-def _complex_to_csv(ctx):
+def _complex_to_csv(prot, ctx):
     cls, = ctx.descriptor.out_message._type_info.values()
 
     queue = StringIO()
@@ -65,7 +65,7 @@ def _complex_to_csv(ctx):
 
         if ctx.out_object[0] is not None:
             for v in ctx.out_object[0]:
-                d = serializer.to_dict(v)
+                d = prot.to_dict(serializer, v)
                 row = []
                 for k in keys:
                     val = d.get(k, [None])[0]
@@ -94,6 +94,6 @@ class Csv(ProtocolBase):
             supports functions with exactly one return type:
             %r""" % ctx.descriptor.out_message._type_info
 
-        ctx.out_string = _complex_to_csv(ctx)
+        ctx.out_string = _complex_to_csv(self, ctx)
         ctx.transport.resp_headers['Content-Disposition'] = (
                          'attachment; filename=%s.csv;' % ctx.descriptor.name)

@@ -72,7 +72,7 @@ def TBaseFromElement(callable):
                                             cls.validate_string(cls, element.text)):
             raise ValidationError(element.text)
 
-        retval = callable(cls, element.text)
+        retval = callable(prot, cls, element.text)
 
         if prot.validator is prot.SOFT_VALIDATION and not (
                                             cls.validate_native(cls, retval)):
@@ -81,7 +81,7 @@ def TBaseFromElement(callable):
 
     return base_from_element
 
-base_from_element = TBaseFromElement(lambda cls, s: cls.from_string(s))
+base_from_element = TBaseFromElement(lambda prot, cls, s: prot.from_string(cls, s))
 
 @nillable_value
 def base_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
@@ -153,9 +153,9 @@ def get_members_etree(prot, cls, inst, parent):
                 if attr_parent is None:
                     delay.add(k)
                 else:
-                    v.marshall(k,subvalue,attr_parent)
+                    v.marshall(prot, k, subvalue, attr_parent)
             else:
-                v.marshall(k, subvalue, parent)
+                v.marshall(prot, k, subvalue, parent)
             continue
 
         mo = v.Attributes.max_occurs
@@ -172,7 +172,7 @@ def get_members_etree(prot, cls, inst, parent):
         subvalue = getattr(inst, k, None)
         a_of = v._attribute_of
         attr_parent = parent.find("{%s}%s"%(cls.__namespace__,a_of))
-        v.marshall(k,subvalue,attr_parent)
+        v.marshall(prot, k, subvalue, attr_parent)
 
 @nillable_value
 def complex_to_parent_element(prot, cls, value, tns, parent_elt, name=None):
@@ -227,7 +227,7 @@ def complex_from_element(prot, cls, element):
         if member is None:
             continue
 
-        value = member._typ.from_string(element.attrib[key])
+        value = prot.from_string(member._typ, element.attrib[key])
 
         setattr(inst, key, value)
 
@@ -285,6 +285,8 @@ def fault_to_parent_element(prot, cls, value, tns, parent_elt, name=None):
     if value.detail != None:
         etree.SubElement(element, 'detail').append(value.detail)
 
+    # add other nonstandard fault subelements
+    get_members_etree(prot, cls, value, element)
 
 def fault_from_element(prot, cls, element):
     code = element.find('faultcode').text
@@ -341,7 +343,7 @@ def unicode_from_element(prot, cls, element):
     if s is None:
         s = ''
 
-    retval = cls.from_string(s)
+    retval = prot.from_string(cls, s)
 
     if prot.validator is prot.SOFT_VALIDATION and not (
                                         cls.validate_native(cls, retval)):
