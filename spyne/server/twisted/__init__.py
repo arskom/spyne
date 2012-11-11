@@ -78,6 +78,7 @@ class _Producer(object):
 
         except TypeError:
             self.length = UNKNOWN_LENGTH
+            self.body = body
 
         self.deferred = Deferred()
         self.consumer = consumer
