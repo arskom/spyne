@@ -27,9 +27,32 @@ except ImportError:
 from spyne.test.protocol._test_dictobj import TDictDocumentTest
 from spyne.protocol.json import JsonDocument
 
+from spyne import MethodContext
+from spyne.application import Application
+from spyne.decorator import srpc
+from spyne.service import ServiceBase
+from spyne.server import ServerBase
 
-TestJsonDocument = TDictDocumentTest(json, JsonDocument, 'Client.JsonDecodeError')
+TestJsonDocument = TDictDocumentTest(json, JsonDocument)
 
+
+class Test(unittest.TestCase):
+    def test_invalid_input(self):
+        class SomeService(ServiceBase):
+            @srpc()
+            def yay():
+                pass
+
+        app = Application([SomeService], 'tns',
+                                in_protocol=JsonDocument(),
+                                out_protocol=JsonDocument())
+
+        server = ServerBase(app)
+
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = ['{']
+        ctx, = server.generate_contexts(initial_ctx)
+        assert ctx.in_error.faultcode == 'Client.JsonDecodeError'
 
 if __name__ == '__main__':
     unittest.main()

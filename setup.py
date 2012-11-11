@@ -156,7 +156,7 @@ setup(
     author_email='burak+spyne@arskom.com.tr',
     maintainer='Burak Arslan',
     maintainer_email='burak+spyne@arskom.com.tr',
-    url='http://github.com/arskom/spyne',
+    url='http://spyne.io',
     license='LGPL-2.1',
     zip_safe=False,
     install_requires=[

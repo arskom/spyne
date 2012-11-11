@@ -46,9 +46,11 @@ from datetime import datetime
 import logging
 logger = logging.getLogger(__name__)
 
+
 class SimpleClass(ComplexModel):
     i = Integer
     s = String
+
 
 class DocumentedFault(Fault):
     def __init__(self):
@@ -58,14 +60,17 @@ class DocumentedFault(Fault):
                 faultactor='http://faultactor.example.com',
             )
 
+
 class OtherClass(ComplexModel):
     dt = DateTime
     d = Double
     b = Boolean
 
+
 class ClassWithSelfReference(ComplexModel):
     i = Integer
     sr = SelfReference
+
 
 class NestedClass(ComplexModel):
     __namespace__ = "punk.tunk"
@@ -77,6 +82,7 @@ class NestedClass(ComplexModel):
     other = OtherClass
     ai = Array(Integer)
 
+
 class NonNillableClass(ComplexModel):
     __namespace__ = "hunk.sunk"
 
@@ -87,12 +93,14 @@ class NonNillableClass(ComplexModel):
     i = Integer(nillable=False)
     s = String(min_len=1, nillable=False)
 
+
 class ExtensionClass(NestedClass):
     __namespace__ = "bar"
 
     p = NonNillableClass
     l = DateTime
     q = Integer
+
 
 DaysOfWeekEnum = Enum(
     'Monday',
@@ -104,17 +112,20 @@ DaysOfWeekEnum = Enum(
     type_name = 'DaysOfWeekEnum'
 )
 
+
 class InHeader(ComplexModel):
     __namespace__ = "spyne.test.interop.server"
 
-    s=String
-    i=Integer
+    s = String
+    i = Integer
+
 
 class OutHeader(ComplexModel):
     __namespace__ = "spyne.test.interop.server"
 
-    dt=DateTime
-    f=Float
+    f = Float
+    dt = DateTime
+
 
 class InTraceHeader(ComplexModel):
     __namespace__ = "spyne.test.interop.server"
@@ -122,11 +133,13 @@ class InTraceHeader(ComplexModel):
     client=String
     callDate=DateTime
 
+
 class OutTraceHeader(ComplexModel):
     __namespace__ = "spyne.test.interop.server"
 
-    receiptDate=DateTime
-    returnDate=DateTime
+    receiptDate = DateTime
+    returnDate = DateTime
+
 
 class InteropServiceWithHeader(ServiceBase):
     __in_header__ = InHeader
@@ -143,6 +156,7 @@ class InteropServiceWithHeader(ServiceBase):
         ctx.out_header.f = 3.141592653
 
         return ctx.out_header
+
 
 class InteropServiceWithComplexHeader(ServiceBase):
     __in_header__ = (InHeader, InTraceHeader)
@@ -165,6 +179,7 @@ class InteropServiceWithComplexHeader(ServiceBase):
         ctx.out_header = (out_header, out_trace_header)
 
         return ctx.out_header
+
 
 class InteropPrimitive(ServiceBase):
     @srpc(AnyXml, _returns=AnyXml)
@@ -227,6 +242,7 @@ class InteropPrimitive(ServiceBase):
     def echo_duration(dur):
         return dur
 
+
 class InteropArray(ServiceBase):
     @srpc(Array(Integer), _returns=Array(Integer))
     def echo_integer_array(ia):
@@ -259,6 +275,7 @@ class InteropArray(ServiceBase):
     @srpc(Array(Boolean), _returns=Array(Array(Boolean)))
     def echo_array_in_array(baa):
         return baa
+
 
 class InteropClass(ServiceBase):
     @srpc(SimpleClass, _returns=SimpleClass)
@@ -326,6 +343,7 @@ class InteropException(ServiceBase):
     def documented_exception():
         raise DocumentedFault()
 
+
 class InteropMisc(ServiceBase):
     @srpc(
         _returns=[
@@ -389,6 +407,7 @@ class InteropMisc(ServiceBase):
           _returns=String)
     def custom_messages(s):
         return s
+
 
 services = [
     InteropPrimitive,

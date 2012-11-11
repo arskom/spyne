@@ -78,6 +78,7 @@ class _Producer(object):
 
         except TypeError:
             self.length = UNKNOWN_LENGTH
+            self.body = body
 
         self.deferred = Deferred()
         self.consumer = consumer
@@ -115,7 +116,7 @@ class TwistedHttpTransport(HttpBase):
         request = ctx.in_document
 
         ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
-                              request.path.split('/')[-1])
+                                                    request.path.split('/')[-1])
 
         logger.debug("%sMethod name: %r%s" % (LIGHT_GREEN,
                                           ctx.method_request_string, END_COLOR))
@@ -174,6 +175,7 @@ class TwistedWebResource(Resource):
 
         contexts = self.http_transport.generate_contexts(initial_ctx)
         p_ctx, others = contexts[0], contexts[1:]
+
         if p_ctx.in_error:
             return self.handle_error(p_ctx, others, p_ctx.in_error, request)
 
@@ -185,7 +187,8 @@ class TwistedWebResource(Resource):
             else:
                 self.http_transport.get_out_object(p_ctx)
                 if p_ctx.out_error:
-                    return self.handle_error(p_ctx, others, p_ctx.out_error, request)
+                    return self.handle_error(p_ctx, others, p_ctx.out_error,
+                                                                        request)
 
         self.http_transport.get_out_string(p_ctx)
 
@@ -219,7 +222,12 @@ class TwistedWebResource(Resource):
             self.http_transport.event_manager.fire_event('wsdl', ctx)
 
             for k,v in ctx.transport.resp_headers.items():
-                request.setHeader(k,v)
+                if isinstance(v, (list,tuple)):
+                    for v2 in v:
+                        request.setHeader(k,v2)
+                else:
+                    request.setHeader(k,v)
+
 
             return ctx.transport.wsdl
 

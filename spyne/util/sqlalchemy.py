@@ -84,9 +84,7 @@ from spyne.model.primitive import UnsignedInteger16
 from spyne.model.primitive import UnsignedInteger32
 from spyne.model.primitive import UnsignedInteger64
 
-from spyne.util import memoize
 from spyne.util import sanitize_args
-
 from spyne.util.xml import get_object_as_xml
 from spyne.util.xml import get_xml_as_object
 from spyne.util.dictobj import get_dict_as_object
@@ -232,7 +230,6 @@ class PGObjectJson(UserDefinedType):
 sqlalchemy.dialects.postgresql.base.ischema_names['json'] = PGObjectJson
 
 
-@memoize
 def get_sqlalchemy_type(cls):
     # must be above Unicode, because Uuid is Unicode's subclass
     if issubclass(cls, Uuid):
@@ -257,6 +254,9 @@ def get_sqlalchemy_type(cls):
             return sqlalchemy.UnicodeText
         else:
             return sqlalchemy.Unicode(cls.Attributes.max_len)
+
+    elif issubclass(cls, ByteArray):
+        return sqlalchemy.LargeBinary
 
     elif issubclass(cls, (Integer64, UnsignedInteger64)):
         return sqlalchemy.BigInteger

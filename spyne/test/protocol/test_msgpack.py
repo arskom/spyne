@@ -22,8 +22,10 @@ import unittest
 
 from StringIO import StringIO
 
+from spyne import MethodContext
 from spyne.application import Application
 from spyne.decorator import rpc
+from spyne.decorator import srpc
 from spyne.service import ServiceBase
 from spyne.model.complex import Array
 from spyne.model.primitive import String
@@ -31,18 +33,33 @@ from spyne.model.complex import ComplexModel
 from spyne.model.primitive import Unicode
 from spyne.protocol.msgpack import MessagePackDocument
 from spyne.protocol.msgpack import MessagePackRpc
+from spyne.server import ServerBase
 from spyne.server.wsgi import WsgiApplication
-from spyne.server.wsgi import WsgiMethodContext
 from spyne.test.protocol._test_dictobj import TDictDocumentTest
 
-TestMessagePackDocument = TDictDocumentTest(msgpack, MessagePackDocument,
-                                            "Client.MessagePackDecodeError")
+TestMessagePackDocument = TDictDocumentTest(msgpack, MessagePackDocument)
 from spyne.test.test_service import start_response
 
 class TestMessagePackRpc(unittest.TestCase):
+    def test_invalid_input(self):
+        class SomeService(ServiceBase):
+            @srpc()
+            def yay():
+                pass
+
+        app = Application([SomeService], 'tns',
+                                in_protocol=MessagePackDocument(),
+                                out_protocol=MessagePackDocument())
+
+        server = ServerBase(app)
+
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = ['{']
+        ctx, = server.generate_contexts(initial_ctx)
+        assert ctx.in_error.faultcode == 'Client.MessagePackDecodeError'
+
     def test_rpc(self):
         data = {"a":"b", "c": "d"}
-
 
         class KeyValuePair(ComplexModel):
             key = Unicode

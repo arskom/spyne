@@ -101,6 +101,8 @@ class ProtocolBase(object):
     :param skip_depth: Number of wrapper classes to ignore. This is
         typically one of (0, 1, 2) but higher numbers may also work for your
         case.
+    :param ignore_uncap: Silently ignore cases when the protocol is not capable
+        of serializing return values instead of raising a TypeError.
     """
 
     allowed_http_verbs = None
@@ -110,7 +112,7 @@ class ProtocolBase(object):
     REQUEST = type("Request", (object,), {})
     RESPONSE = type("Response", (object,), {})
 
-    def __init__(self, app=None, validator=None, mime_type=None, skip_depth=0):
+    def __init__(self, app=None, validator=None, mime_type=None, skip_depth=0, ignore_uncap=False):
         self.__app = None
         self.validator = None
 
@@ -118,6 +120,7 @@ class ProtocolBase(object):
         self.event_manager = EventManager(self)
         self.set_validator(validator)
         self.skip_depth = skip_depth
+        self.ignore_uncap=ignore_uncap
         if mime_type is not None:
             self.mime_type = mime_type
 

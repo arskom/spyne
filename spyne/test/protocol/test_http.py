@@ -20,6 +20,7 @@
 import unittest
 
 from spyne.application import Application
+from spyne.decorator import rpc
 from spyne.decorator import srpc
 from spyne.model.primitive import Integer
 from spyne.model.primitive import String
@@ -33,10 +34,31 @@ from spyne.server.wsgi import WsgiMethodContext
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
+def _test(services, qs):
+    app = Application(services, 'tns', in_protocol=HttpRpc(),
+                                            out_protocol=HttpRpc())
+    server = WsgiApplication(app)
+
+    initial_ctx = WsgiMethodContext(server, {
+        'QUERY_STRING': qs,
+        'PATH_INFO': '/some_call',
+        'REQUEST_METHOD': 'GET',
+        'SERVER_NAME': "localhost",
+    }, 'some-content-type')
+
+    ctx, = server.generate_contexts(initial_ctx)
+
+    server.get_in_object(ctx)
+    assert ctx.in_error is None
+
+    server.get_out_object(ctx)
+    assert ctx.out_error is None
+
+    server.get_out_string(ctx)
+
+    return ctx
 
 class Test(unittest.TestCase):
-    '''Most of the service tests are performed through the interop tests.'''
-
     def test_multiple_return(self):
         class SomeNotSoComplexModel(ComplexModel):
             s = String
@@ -46,23 +68,8 @@ class Test(unittest.TestCase):
             def some_call():
                 return 1, 's'
 
-        app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
-                                                out_protocol=HttpRpc())
-        server = WsgiApplication(app)
-
-        initial_ctx = WsgiMethodContext(server, {
-            'QUERY_STRING': '',
-            'PATH_INFO': '/some_call',
-            'QUERY_STRING': '?s=a',
-            'REQUEST_METHOD': 'GET',
-            'SERVER_NAME': "localhost",
-        }, 'some-content-type')
-
         try:
-            ctx, = server.generate_contexts(initial_ctx)
-            server.get_in_object(ctx)
-            server.get_out_object(ctx)
-            server.get_out_string(ctx)
+            _test([SomeService], '')
         except ValueError:
             pass
         else:
@@ -79,21 +86,8 @@ class Test(unittest.TestCase):
             def some_call(scm):
                 return SomeComplexModel(i=5, s='5x')
 
-        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HttpRpc())
-        server = WsgiApplication(app)
-
-        initial_ctx = WsgiMethodContext(server, {
-            'QUERY_STRING': '',
-            'PATH_INFO': '/some_call',
-            'REQUEST_METHOD': 'GET',
-            'SERVER_NAME': "localhost",
-        }, 'some-content-type')
-        ctx, = server.generate_contexts(initial_ctx)
-
-        server.get_in_object(ctx)
-        server.get_out_object(ctx)
         try:
-            server.get_out_string(ctx)
+            _test([SomeService], '')
         except:
             pass
         else:
@@ -111,22 +105,13 @@ class Test(unittest.TestCase):
             s = String
 
         class SomeService(ServiceBase):
-            @srpc(CCM, _returns=CCM)
+            @srpc(CCM, _returns=String)
             def some_call(ccm):
-                return CCM(c=ccm.c, i=ccm.i, s=ccm.s)
+                return repr(CCM(c=ccm.c, i=ccm.i, s=ccm.s))
 
-        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HttpRpc())
-        server = WsgiApplication(app)
-        initial_ctx = WsgiMethodContext(server, {
-            'QUERY_STRING': '',
-            'PATH_INFO': '/some_call',
-            'REQUEST_METHOD': 'GET',
-            'SERVER_NAME': "localhost",
-        }, 'some-content-type')
-        ctx, = server.generate_contexts(initial_ctx)
-        server.get_in_object(ctx)
-        server.get_out_object(ctx)
-        server.get_out_string(ctx)
+        ctx = _test([SomeService], '&ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs')
+
+        assert ctx.out_string[0] == "CCM(i=1, c=CM(i=3, s='cs'), s='s')"
 
     def test_multiple(self):
         class SomeService(ServiceBase):
@@ -134,21 +119,7 @@ class Test(unittest.TestCase):
             def some_call(s):
                 return '\n'.join(s)
 
-        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HttpRpc())
-        server = WsgiApplication(app)
-
-        initial_ctx = WsgiMethodContext(server, {
-            'QUERY_STRING': 's=1&s=2',
-            'PATH_INFO': '/some_call',
-            'REQUEST_METHOD': 'GET',
-            'SERVER_NAME': "localhost",
-        }, 'some-content-type')
-
-        ctx, = server.generate_contexts(initial_ctx)
-        server.get_in_object(ctx)
-        server.get_out_object(ctx)
-        server.get_out_string(ctx)
-
+        ctx = _test([SomeService], '&s=1&s=2')
         assert ctx.out_string == ['1\n2']
 
     def test_nested_flatten(self):
@@ -166,25 +137,7 @@ class Test(unittest.TestCase):
             def some_call(ccm):
                 return repr(ccm)
 
-        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HttpRpc())
-        server = WsgiApplication(app)
-
-        initial_ctx = WsgiMethodContext(server, {
-            'QUERY_STRING': 'ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs',
-            'PATH_INFO': '/some_call',
-            'REQUEST_METHOD': 'GET',
-            'SERVER_NAME': "localhost",
-        }, 'some-content-type')
-
-        ctx, = server.generate_contexts(initial_ctx)
-
-        server.get_in_object(ctx)
-        assert ctx.in_error is None
-
-        server.get_out_object(ctx)
-        assert ctx.out_error is None
-
-        server.get_out_string(ctx)
+        ctx = _test([SomeService], '&ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs')
 
         print(ctx.out_string)
         assert ctx.out_string == ["CCM(i=1, c=CM(i=3, s='cs'), s='s')"]
@@ -204,20 +157,8 @@ class Test(unittest.TestCase):
             def some_call(ccm):
                 return repr(ccm)
 
-        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HttpRpc())
-        server = WsgiApplication(app)
-
-        initial_ctx = WsgiMethodContext(server, {
-            'QUERY_STRING': 'ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs',
-            'PATH_INFO': '/some_call',
-            'REQUEST_METHOD': 'GET',
-            'SERVER_NAME': "localhost",
-        }, 'some-content-type')
-
-        ctx, = server.generate_contexts(initial_ctx)
-
         try:
-            server.get_in_object(ctx)
+            ctx = _test([SomeService], '&ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs')
         except:
             pass
         else:
@@ -239,35 +180,57 @@ class Test(unittest.TestCase):
             def some_call(ccm):
                 return repr(ccm)
 
-        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HttpRpc())
-        server = WsgiApplication(app)
-
-        initial_ctx = WsgiMethodContext(server, {
-            'QUERY_STRING': 'ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs',
-            'PATH_INFO': '/some_call',
-            'REQUEST_METHOD': 'GET',
-            'SERVER_NAME': "localhost",
-        }, 'some-content-type')
-
-        ctx, = server.generate_contexts(initial_ctx)
 
         try:
-            server.get_in_object(ctx)
+            ctx = _test([SomeService], '&ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs')
         except:
             pass
         else:
             raise Exception("Must fail with: Exception: HttpRpc deserializer "
                         "does not support non-primitives with max_occurs > 1")
 
+    def test_http_headers(self):
+        class RequestHeader(ComplexModel):
+            _type_info = {
+                'Cookie': String(max_occurs='unbounded')
+            }
 
-class TestHttpRouting(unittest.TestCase):
+        class ResponseHeader(ComplexModel):
+            _type_info = {
+                'Set-Cookie': String(max_occurs='unbounded')
+            }
+
+        class SomeService(ServiceBase):
+            __in_header__ = RequestHeader
+            __out_header__ = ResponseHeader
+
+            @rpc(String)
+            def some_call(ctx, s):
+                assert s is not None
+                ctx.out_header = ResponseHeader(**{'Set-Cookie': s})
+
+        def start_response(code, headers):
+            assert dict(headers)['Set-Cookie'] == 'hey'
+
+        ret = ''.join(WsgiApplication(Application([SomeService], 'tns',
+            in_protocol=HttpRpc(), out_protocol=HttpRpc()))({
+                'QUERY_STRING': '&s=hey',
+                'PATH_INFO': '/some_call',
+                'REQUEST_METHOD': 'GET',
+                'SERVER_NAME': 'localhost',
+            }, start_response, "http://null"))
+
+        assert ret == ''
+
+
+class TestHttpPatterns(unittest.TestCase):
     def test_rules(self):
         _int = 5
         _fragment = 'some_fragment'
 
         class SomeService(ServiceBase):
             @srpc(Integer, _returns=Integer, _patterns=[
-                                            HttpPattern('/%s/<some_int>'% _fragment)])
+                                      HttpPattern('/%s/<some_int>'% _fragment)])
             def some_call(some_int):
                 assert some_int == _int
 
