@@ -69,13 +69,16 @@ def _get_http_headers(req_env):
 
 
 def _gen_http_headers(headers):
+    retval = []
+
     for k,v in headers.items():
         if isinstance(v, (list,tuple)):
             for v2 in v:
-                yield (k,v2)
+                retval.append((k,v2))
         else:
-            yield (k,v)
+            retval.append((k,v))
 
+    return retval
 
 class WsgiTransportContext(HttpTransportContext):
     """The class that is used in the transport attribute of the
