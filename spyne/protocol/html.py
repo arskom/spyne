@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+
 """The ``spyne.protocol.html`` module contains various EXPERIMENTAL protocols
 for generating server-side Html. It seeks to eliminate the need for html
 templates by:
@@ -51,6 +52,7 @@ from spyne.model.primitive import ImageUri
 from spyne.protocol import ProtocolBase
 from spyne.util.cdict import cdict
 
+
 def translate(cls, locale, default):
     retval = None
     if cls.Attributes.translations is not None:
@@ -59,8 +61,10 @@ def translate(cls, locale, default):
         return default
     return retval
 
+
 def serialize_null(prot, cls, locale, name):
     return [ E(prot.child_tag, **{prot.field_name_attr: name}) ]
+
 
 def nillable_value(func):
     def wrapper(prot, cls, value, locale, name):
@@ -74,8 +78,10 @@ def nillable_value(func):
 
     return wrapper
 
+
 def not_supported(prot, cls, *args, **kwargs):
     raise Exception("Serializing %r Not Supported!" % cls)
+
 
 class HtmlBase(ProtocolBase):
     def __init__(self, app=None, validator=None, skip_depth=0):
@@ -298,7 +304,7 @@ class _HtmlTableBase(HtmlBase):
     mime_type = 'text/html'
 
     def __init__(self, app, validator, produce_header, table_name_attr,
-                 field_name_attr, border, row_class, cell_class, header_cell_class):
+             field_name_attr, border, row_class, cell_class, header_cell_class):
 
         HtmlBase.__init__(self, app, validator)
 
@@ -479,6 +485,7 @@ def _subvalue_to_html(cls, value):
         retval = cls.type.to_string(value)
 
     return retval
+
 
 class _HtmlRowTable(_HtmlTableBase):
     def serialize_complex_model(self, cls, value, locale):
