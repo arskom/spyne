@@ -130,6 +130,10 @@ class _SimpleTypeInfoElement(object):
         self.parent = parent
         self.type = type_
 
+    def __repr__(self):
+        return "SimpleTypeInfoElement(path=%r, parent=%r, type=%r)" % (
+                                              self.path, self.parent, self.type)
+
 
 class XmlAttribute(ModelBase):
     """Items which are marshalled as attributes of the parent element."""
