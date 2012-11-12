@@ -27,6 +27,8 @@ logger = logging.getLogger(__name__)
 
 import decimal
 
+from collections import deque
+
 from spyne.model import ModelBase
 from spyne.model import nillable_dict
 from spyne.model import nillable_string
@@ -529,26 +531,26 @@ class ComplexModelBase(ModelBase):
             retval = TypeInfo()
 
         if prefix is None:
-            prefix = []
+            prefix = deque()
 
         fti = cls.get_flat_type_info(cls)
         for k, v in fti.items():
-            if getattr(v, 'get_flat_type_info', None) is None:
-                new_prefix = list(prefix)
-                new_prefix.append(k)
-                key = hier_delim.join(new_prefix)
+            if not issubclass(v, ComplexModelBase):
+                prefix.append(k)
+                key = hier_delim.join(prefix)
                 value = retval.get(key, None)
 
                 if value:
                     raise ValueError("%r.%s conflicts with %r" % (cls, k, value))
 
-                retval[key] = _SimpleTypeInfoElement(path=tuple(new_prefix),
+                retval[key] = _SimpleTypeInfoElement(path=tuple(prefix),
                                                         parent=parent, type_=v)
+                prefix.pop()
 
             else:
-                new_prefix = list(prefix)
-                new_prefix.append(k)
-                v.get_simple_type_info(v, hier_delim, retval, new_prefix, parent=cls)
+                prefix.append(k)
+                v.get_simple_type_info(v, hier_delim, retval, prefix, parent=cls)
+                prefix.pop()
 
         return retval
 
