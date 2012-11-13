@@ -335,7 +335,6 @@ class DictDocument(ProtocolBase):
                 logger.debug("discarding field %r" % k)
                 continue
 
-            mo = member.type.Attributes.max_occurs
             value = getattr(inst, k, None)
             if value is None:
                 value = []
@@ -372,6 +371,7 @@ class DictDocument(ProtocolBase):
                 frequencies[member.path] = freq
                 logger.debug("\tset freq %r = %d" % (member.path, freq))
 
+            mo = member.type.Attributes.max_occurs
             if mo == 1:
                 value = value[0]
 

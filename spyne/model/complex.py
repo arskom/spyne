@@ -126,15 +126,16 @@ class TypeInfo(odict):
 
 
 class _SimpleTypeInfoElement(object):
-    __slots__ = ['path', 'parent', 'type']
-    def __init__(self, path, parent, type_):
+    __slots__ = ['path', 'parent', 'type', 'is_array']
+    def __init__(self, path, parent, type_, is_array):
         self.path = path
         self.parent = parent
         self.type = type_
+        self.is_array = is_array
 
     def __repr__(self):
-        return "SimpleTypeInfoElement(path=%r, parent=%r, type=%r)" % (
-                                              self.path, self.parent, self.type)
+        return "SimpleTypeInfoElement(path=%r, parent=%r, type=%r, is_array=%r)" \
+                            % (self.path, self.parent, self.type, self.is_array)
 
 
 class XmlAttribute(ModelBase):
@@ -512,7 +513,7 @@ class ComplexModelBase(ModelBase):
 
     @staticmethod
     def get_simple_type_info(cls, hier_delim="_", retval=None, prefix=None,
-                                                                    parent=None):
+                                                    parent=None, is_array=None):
         """Returns a _type_info dict that includes members from all base classes
         and whose types are only primitives. It will prefix field names in
         non-top-level complex objects with field name of its parent.
@@ -533,10 +534,15 @@ class ComplexModelBase(ModelBase):
         if prefix is None:
             prefix = deque()
 
+        if is_array is None:
+            is_array = deque()
+
         fti = cls.get_flat_type_info(cls)
         for k, v in fti.items():
+            prefix.append(k)
+            is_array.append(v.Attributes.max_occurs > 1)
+
             if not issubclass(v, ComplexModelBase):
-                prefix.append(k)
                 key = hier_delim.join(prefix)
                 value = retval.get(key, None)
 
@@ -544,13 +550,14 @@ class ComplexModelBase(ModelBase):
                     raise ValueError("%r.%s conflicts with %r" % (cls, k, value))
 
                 retval[key] = _SimpleTypeInfoElement(path=tuple(prefix),
-                                                        parent=parent, type_=v)
-                prefix.pop()
+                               parent=parent, type_=v, is_array=tuple(is_array))
 
             else:
-                prefix.append(k)
-                v.get_simple_type_info(v, hier_delim, retval, prefix, parent=cls)
-                prefix.pop()
+                v.get_simple_type_info(v, hier_delim, retval, prefix, cls,
+                                                                       is_array)
+
+            prefix.pop()
+            is_array.pop()
 
         return retval
 
