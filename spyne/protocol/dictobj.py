@@ -21,6 +21,7 @@
 protocol that deals with hierarchical dicts as {in,out}_documents.
 """
 
+from pprint import pprint
 import logging
 logger = logging.getLogger(__name__)
 
@@ -338,6 +339,9 @@ class DictDocument(ProtocolBase):
         simple_type_info = inst_class.get_simple_type_info(inst_class)
         inst = inst_class.get_deserialization_instance()
 
+        # this is for validating cls.Attributes.{min,max}_occurs
+        frequencies = defaultdict(lambda: defaultdict(int))
+
         for orig_k, v in doc.items():
             k = RE_HTTP_ARRAY_INDEX.sub("", orig_k)
             member = simple_type_info.get(k, None)
@@ -370,30 +374,29 @@ class DictDocument(ProtocolBase):
 
                 value.append(native_v2)
 
-            mo = member.type.Attributes.max_occurs
-            if mo == 1:
-                value = value[0]
-
             # assign the native value to the relevant class in the nested object
             # structure.
-
             ccls, cinst = inst_class, inst
             ctype_info = inst_class.get_flat_type_info(inst_class)
 
             idx, nidx = 0, 0
             pkey = member.path[0]
+            cfreq_key = inst_class, idx
 
             indexes = deque(RE_HTTP_ARRAY_INDEX.findall(orig_k))
             for i in range(len(member.path) - 1):
                 pkey = member.path[i]
+                nidx = 0
 
                 ncls, ninst = ctype_info[pkey], getattr(cinst, pkey, None)
+
                 mo = ncls.Attributes.max_occurs
                 if ninst is None:
                     ninst = ncls.get_deserialization_instance()
                     if mo > 1:
                         ninst = [ninst]
                     setattr(cinst, pkey, ninst)
+                    frequencies[cfreq_key][pkey] += 1
 
                 if mo > 1:
                     if len(indexes) == 0:
@@ -408,23 +411,36 @@ class DictDocument(ProtocolBase):
 
                     if nidx == len(ninst):
                         ninst.append(ncls.get_deserialization_instance())
+                        frequencies[cfreq_key][pkey] += 1
 
                     cinst = ninst[nidx]
 
                 else:
                     cinst = ninst
 
+                cfreq_key = cfreq_key + (ncls, nidx)
                 ccls, idx = ncls, nidx
                 ctype_info = ncls._type_info
 
-            if isinstance(cinst, list):
-                cinst.extend(value)
+            frequencies[cfreq_key][member.path[-1]] += len(value)
+
+            if member.type.Attributes.max_occurs > 1:
+                v = getattr(cinst, member.path[-1], None)
+                if v is None:
+                    setattr(cinst, member.path[-1], value)
+                else:
+                    v.extend(value)
                 logger.debug("\tset array   %r(%r) = %r" %
                                                     (member.path, pkey, value))
             else:
-                setattr(cinst, member.path[-1], value)
+                setattr(cinst, member.path[-1], value[0])
                 logger.debug("\tset default %r(%r) = %r" %
                                                     (member.path, pkey, value))
+
+        if validator is cls.SOFT_VALIDATION:
+            pprint(dict(frequencies.items()))
+            for k, d in frequencies.items():
+                check_freq_dict(k[-2], d)
 
         return inst
 

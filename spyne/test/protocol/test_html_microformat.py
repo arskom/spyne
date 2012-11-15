@@ -165,6 +165,7 @@ class TestHtmlMicroFormat(unittest.TestCase):
         class SomeService(ServiceBase):
             @srpc(String(max_occurs='unbounded'), _returns=String)
             def some_call(s):
+                print s
                 return '\n'.join(s)
 
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HtmlMicroFormat())
@@ -182,7 +183,8 @@ class TestHtmlMicroFormat(unittest.TestCase):
         server.get_out_object(ctx)
         server.get_out_string(ctx)
 
-        assert ''.join(ctx.out_string) == '<div class="some_callResponse"><div class="some_callResult">1\n2</div></div>'
+        assert ''.join(ctx.out_string) == ('<div class="some_callResponse">'
+                                '<div class="some_callResult">1\n2</div></div>')
 
         ctx, = server.generate_contexts(initial_ctx)
         server.get_in_object(ctx)
