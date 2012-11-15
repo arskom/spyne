@@ -169,13 +169,13 @@ class Test(unittest.TestCase):
             def some_call(ccm):
                 return repr(ccm)
 
-        try:
-            ctx = _test([SomeService], '&ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs')
-        except:
-            pass
-        else:
-            raise Exception("Must fail with: Exception: HttpRpc deserializer "
-                        "does not support non-primitives with max_occurs > 1")
+        ctx = _test([SomeService],  'ccm[0]_i=1&ccm[0]_s=s'
+                                   '&ccm[0]_c_i=1&ccm[0]_c_s=a'
+                                   '&ccm[1]_c_i=2&ccm[1]_c_s=b')
+
+        s = ''.join(ctx.out_string)
+
+        assert s == "[CCM(i=1, c=CM(i=1, s='a'), s='s'), CCM(c=CM(i=2, s='b'))]"
 
     def test_nested_flatten_with_multiple_values_2(self):
         class CM(ComplexModel):
@@ -196,14 +196,12 @@ class Test(unittest.TestCase):
             def some_call(ccm):
                 return repr(ccm)
 
+        ctx = _test([SomeService],  'ccm_i=1&ccm_s=s'
+                                   '&ccm_c[0]_i=1&ccm_c[0]_s=a'
+                                   '&ccm_c[1]_i=2&ccm_c[1]_s=b')
 
-        try:
-            ctx = _test([SomeService], '&ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs')
-        except:
-            pass
-        else:
-            raise Exception("Must fail with: Exception: HttpRpc deserializer "
-                        "does not support non-primitives with max_occurs > 1")
+        s = ''.join(list(ctx.out_string))
+        assert s == "CCM(i=1, c=[CM(i=1, s='a'), CM(i=2, s='b')], s='s')"
 
     def test_http_headers(self):
         class RequestHeader(ComplexModel):

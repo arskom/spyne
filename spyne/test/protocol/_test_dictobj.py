@@ -341,7 +341,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild):
 
             print(ctx.in_error.faultstring)
             assert ctx.in_error.faultcode == 'Client.ValidationError'
-            assert ctx.in_error.faultstring.endswith("frequency constraints.")
+            assert ctx.in_error.faultstring.endswith("at least 1 times.")
 
         def test_invalid_datetime(self):
             class SomeService(ServiceBase):

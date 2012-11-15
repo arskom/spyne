@@ -24,6 +24,12 @@ protocol that deals with hierarchical dicts as {in,out}_documents.
 import logging
 logger = logging.getLogger(__name__)
 
+import re
+RE_HTTP_ARRAY_INDEX = re.compile("\\[([0-9]+)\\]")
+
+from collections import deque
+from collections import defaultdict
+
 from spyne.error import ValidationError
 from spyne.error import ResourceNotFoundError
 
@@ -40,6 +46,22 @@ from spyne.model.primitive import Unicode
 from spyne.protocol import ProtocolBase
 from spyne.protocol._base import unwrap_messages
 from spyne.protocol._base import unwrap_instance
+
+
+def check_freq_dict(cls, d, fti=None):
+    if fti is None:
+        fti = cls.get_flat_type_info(cls)
+
+    for k,v in fti.items():
+        val = d[k]
+
+        min_o, max_o = v.Attributes.min_occurs, v.Attributes.max_occurs
+        if val < min_o:
+            raise ValidationError(k,
+                        '%%r member must occur at least %d times.' % min_o)
+        elif val > max_o:
+            raise ValidationError(k,
+                        '%%r member must occur at most %d times.' % max_o)
 
 
 class DictDocument(ProtocolBase):
@@ -111,12 +133,8 @@ class DictDocument(ProtocolBase):
         # get all class attributes, including the ones coming from parent classes.
         flat_type_info = class_.get_flat_type_info(class_)
 
-        # initialize instance
-        for k in flat_type_info:
-            setattr(inst, k, None)
-
         # this is for validating class_.Attributes.{min,max}_occurs
-        frequencies = {}
+        frequencies = defaultdict(int)
 
         try:
             items = doc.items()
@@ -125,10 +143,6 @@ class DictDocument(ProtocolBase):
 
         # parse input to set incoming data to related attributes.
         for k,v in items:
-            freq = frequencies.get(k, 0)
-            freq += 1
-            frequencies[k] = freq
-
             member = flat_type_info.get(k, None)
             if member is None:
                 continue
@@ -147,12 +161,10 @@ class DictDocument(ProtocolBase):
 
             setattr(inst, k, value)
 
+            frequencies[k] += 1
+
         if validator is cls.SOFT_VALIDATION:
-            for k, v in flat_type_info.items():
-                val = frequencies.get(k, 0)
-                if (val < v.Attributes.min_occurs or val > v.Attributes.max_occurs):
-                    raise Fault('Client.ValidationError',
-                        '%r member does not respect frequency constraints.' % k)
+            check_freq_dict(class_, frequencies, flat_type_info)
 
         return inst
 
@@ -326,10 +338,8 @@ class DictDocument(ProtocolBase):
         simple_type_info = inst_class.get_simple_type_info(inst_class)
         inst = inst_class.get_deserialization_instance()
 
-        # this is for validating cls.Attributes.{min,max}_occurs
-        frequencies = {}
-
-        for k, v in doc.items():
+        for orig_k, v in doc.items():
+            k = RE_HTTP_ARRAY_INDEX.sub("", orig_k)
             member = simple_type_info.get(k, None)
             if member is None:
                 logger.debug("discarding field %r" % k)
@@ -343,7 +353,7 @@ class DictDocument(ProtocolBase):
             # http dict.
             for v2 in v:
                 if (validator is cls.SOFT_VALIDATION and not
-                            member.type.validate_string(member.type, v2)):
+                                  member.type.validate_string(member.type, v2)):
                     raise ValidationError(v2)
 
                 if issubclass(member.type, (File, ByteArray)):
@@ -360,39 +370,52 @@ class DictDocument(ProtocolBase):
 
                 value.append(native_v2)
 
-                # set frequencies of parents.
-                if not (member.path[:-1] in frequencies):
-                    for i in range(1,len(member.path)):
-                        logger.debug("\tset freq %r = 1" % (member.path[:i],))
-                        frequencies[member.path[:i]] = 1
-
-                freq = frequencies.get(member.path, 0)
-                freq += 1
-                frequencies[member.path] = freq
-                logger.debug("\tset freq %r = %d" % (member.path, freq))
-
             mo = member.type.Attributes.max_occurs
             if mo == 1:
                 value = value[0]
 
             # assign the native value to the relevant class in the nested object
             # structure.
-            cinst = inst
+
+            ccls, cinst = inst_class, inst
             ctype_info = inst_class.get_flat_type_info(inst_class)
+
+            idx, nidx = 0, 0
             pkey = member.path[0]
+
+            indexes = deque(RE_HTTP_ARRAY_INDEX.findall(orig_k))
             for i in range(len(member.path) - 1):
                 pkey = member.path[i]
-                if not (ctype_info[pkey].Attributes.max_occurs in (0,1)):
-                    raise Exception("non-primitives with max_occurs > 1 are not"
-                                    "supported")
 
-                ninst = getattr(cinst, pkey, None)
+                ncls, ninst = ctype_info[pkey], getattr(cinst, pkey, None)
+                mo = ncls.Attributes.max_occurs
                 if ninst is None:
-                    ninst = ctype_info[pkey].get_deserialization_instance()
+                    ninst = ncls.get_deserialization_instance()
+                    if mo > 1:
+                        ninst = [ninst]
                     setattr(cinst, pkey, ninst)
-                cinst = ninst
 
-                ctype_info = ctype_info[pkey]._type_info
+                if mo > 1:
+                    if len(indexes) == 0:
+                        raise ValidationError(orig_k,
+                                               "%r requires index information.")
+
+                    nidx = int(indexes.popleft())
+
+                    if nidx > len(ninst):
+                        raise ValidationError(orig_k,
+                                            "%%r Invalid array index %d." % idx)
+
+                    if nidx == len(ninst):
+                        ninst.append(ncls.get_deserialization_instance())
+
+                    cinst = ninst[nidx]
+
+                else:
+                    cinst = ninst
+
+                ccls, idx = ncls, nidx
+                ctype_info = ncls._type_info
 
             if isinstance(cinst, list):
                 cinst.extend(value)
@@ -402,46 +425,6 @@ class DictDocument(ProtocolBase):
                 setattr(cinst, member.path[-1], value)
                 logger.debug("\tset default %r(%r) = %r" %
                                                     (member.path, pkey, value))
-
-        if validator is cls.SOFT_VALIDATION:
-            sti = simple_type_info.values()
-            sti.sort(key=lambda x: (len(x.path), x.path))
-            pfrag = None
-            for s in sti:
-                if len(s.path) > 1 and pfrag != s.path[:-1]:
-                    pfrag = s.path[:-1]
-                    ctype_info = inst_class.get_flat_type_info(inst_class)
-                    for i in range(len(pfrag)):
-                        f = pfrag[i]
-                        ntype_info = ctype_info[f]
-
-                        min_o = ctype_info[f].Attributes.min_occurs
-                        max_o = ctype_info[f].Attributes.max_occurs
-                        val = frequencies.get(pfrag[:i+1], 0)
-                        if val < min_o:
-                            raise Fault('Client.ValidationError',
-                                '"%s" member must occur at least %d times'
-                                        % (hier_delim.join(pfrag[:i+1]), min_o))
-
-                        if val > max_o:
-                            raise Fault('Client.ValidationError',
-                                '"%s" member must occur at most %d times'
-                                        % (hier_delim.join(pfrag[:i+1]), max_o))
-
-                        ctype_info = ntype_info.get_flat_type_info(ntype_info)
-
-                val = frequencies.get(s.path, 0)
-                min_o = s.type.Attributes.min_occurs
-                max_o = s.type.Attributes.max_occurs
-                if val < min_o:
-                    raise Fault('Client.ValidationError',
-                                '"%s" member must occur at least %d times'
-                                            % (hier_delim.join(s.path), min_o))
-
-                if val > max_o:
-                    raise Fault('Client.ValidationError',
-                                '"%s" member must occur at most %d times'
-                                            % (hier_delim.join(s.path), max_o))
 
         return inst
 
