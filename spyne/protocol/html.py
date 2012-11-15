@@ -381,7 +381,8 @@ class _HtmlColumnTable(_HtmlTableBase):
             value = value[0]
 
         else:
-            raise NotImplementedError("Can only serialize single Array(...) return types")
+            raise NotImplementedError("Can only serialize single Array(...) "
+                                                                 "return types")
 
         # Here, sti can be None when the return type does not have _type_info
         # attribute

@@ -35,8 +35,8 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 def _test(services, qs):
-    app = Application(services, 'tns', in_protocol=HttpRpc(),
-                                            out_protocol=HttpRpc())
+    app = Application(services, 'tns', in_protocol=HttpRpc(validator='soft'),
+                                       out_protocol=HttpRpc())
     server = WsgiApplication(app)
 
     initial_ctx = WsgiMethodContext(server, {
@@ -96,13 +96,17 @@ class Test(unittest.TestCase):
 
     def test_complex(self):
         class CM(ComplexModel):
-            i = Integer
-            s = String
+            _type_info = [
+                ("i", Integer),
+                ("s", String),
+            ]
 
         class CCM(ComplexModel):
-            c = CM
-            i = Integer
-            s = String
+            _type_info = [
+                ("i", Integer),
+                ("c", CM),
+                ("s", String),
+            ]
 
         class SomeService(ServiceBase):
             @srpc(CCM, _returns=String)
@@ -124,13 +128,17 @@ class Test(unittest.TestCase):
 
     def test_nested_flatten(self):
         class CM(ComplexModel):
-            i = Integer
-            s = String
+            _type_info = [
+                ("i", Integer),
+                ("s", String),
+            ]
 
         class CCM(ComplexModel):
-            c = CM
-            i = Integer
-            s = String
+            _type_info = [
+                ("i", Integer),
+                ("c", CM),
+                ("s", String),
+            ]
 
         class SomeService(ServiceBase):
             @srpc(CCM, _returns=String)
@@ -144,13 +152,17 @@ class Test(unittest.TestCase):
 
     def test_nested_flatten_with_multiple_values_1(self):
         class CM(ComplexModel):
-            i = Integer
-            s = String
+            _type_info = [
+                ("i", Integer),
+                ("s", String),
+            ]
 
         class CCM(ComplexModel):
-            c = CM
-            i = Integer
-            s = String
+            _type_info = [
+                ("i", Integer),
+                ("c", CM),
+                ("s", String),
+            ]
 
         class SomeService(ServiceBase):
             @srpc(CCM.customize(max_occurs=2), _returns=String)
@@ -167,13 +179,17 @@ class Test(unittest.TestCase):
 
     def test_nested_flatten_with_multiple_values_2(self):
         class CM(ComplexModel):
-            i = Integer
-            s = String
+            _type_info = [
+                ("i", Integer),
+                ("s", String),
+            ]
 
         class CCM(ComplexModel):
-            c = CM.customize(max_occurs=2)
-            i = Integer
-            s = String
+            _type_info = [
+                ("i", Integer),
+                ("c", CM.customize(max_occurs=2)),
+                ("s", String),
+            ]
 
         class SomeService(ServiceBase):
             @srpc(CCM, _returns=String)
