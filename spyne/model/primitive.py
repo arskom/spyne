@@ -659,6 +659,7 @@ class Date(DateTime):
         """A regular expression that matches the whole date. See here for more
         info: http://www.regular-expressions.info/xml.html"""
 
+
     @staticmethod
     def is_default(cls):
         return (    SimpleModel.is_default(cls)
@@ -668,6 +669,18 @@ class Date(DateTime):
                 and cls.Attributes.le == Date.Attributes.le
                 and cls.Attributes.pattern == Date.Attributes.pattern
         )
+
+
+    @classmethod
+    def default_parse(cls, string):
+        """This is used by protocols like SOAP who need ISO8601-formatted dates
+        no matter what.
+        """
+        try:
+            return datetime.date(*(time.strptime(string, '%Y-%m-%d')[0:3]))
+
+        except ValueError:
+            raise ValidationError(string)
 
 
 # this object tries to follow ISO 8601 standard.

@@ -153,7 +153,6 @@ class ProtocolBase(object):
             Integer: integer_to_string,
             Time: time_to_string,
             DateTime: datetime_to_string,
-            Date: date_to_string,
             Duration: duration_to_string,
             Boolean: boolean_to_string,
             ByteArray: byte_array_to_string,
