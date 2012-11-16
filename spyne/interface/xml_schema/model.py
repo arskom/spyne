@@ -30,7 +30,7 @@ from lxml import etree
 from spyne.model.complex import XmlAttribute
 from spyne.model.primitive import AnyXml
 from spyne.model.primitive import Unicode
-from spyne.protocol import ProtocolBase
+from spyne.protocol.xml._base import XmlDocument
 from spyne.util import memoize
 from spyne.util.etreeconv import dict_to_etree
 
@@ -38,7 +38,7 @@ from spyne.const.xml_ns import xsd as _ns_xs
 from spyne.const.xml_ns import xsd as _ns_xsd
 
 
-_prot = ProtocolBase()
+_prot = XmlDocument()
 
 
 def simple_get_restriction_tag(document, cls):
