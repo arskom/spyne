@@ -48,7 +48,7 @@ __all__ = [
     'integer_to_string', 'integer_from_string',
     'time_to_string', 'time_from_string',
     'datetime_to_string', 'datetime_from_string',
-    'date_to_string', 'date_from_string',
+    'date_from_string',
     'duration_to_string', 'duration_from_string',
     'boolean_to_string', 'boolean_from_string',
     'byte_array_to_string', 'byte_array_from_string',
