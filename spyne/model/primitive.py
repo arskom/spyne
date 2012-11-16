@@ -965,7 +965,7 @@ class Uuid(Unicode(pattern=UUID_PATTERN, type_name='uuid')):
 
 class Polygon(Unicode):
     """An experimental point type whose native format is WKT. You can use
-    :func:`shapely.wkt.loads` to get a proper point type."""
+    :func:`shapely.wkt.loads` to get a proper polygon type."""
 
     __base_type__ = Unicode
 
