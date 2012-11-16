@@ -29,18 +29,11 @@ import uuid
 import pytz
 import decimal
 import datetime
-import time
-
-import spyne.const.xml_ns
-
-from collections import deque
 
 from pytz import FixedOffset
 
+import spyne.const.xml_ns
 from spyne.model import SimpleModel
-from spyne.model import nillable_string
-from spyne.error import ValidationError
-from spyne.error import Fault
 
 try:
     from lxml import etree
@@ -112,19 +105,6 @@ class AnyXml(SimpleModel):
         process_contents = None
         """Xml-Schema specific processContents attribute"""
 
-    @classmethod
-    @nillable_string
-    def to_string(cls, value):
-        return etree.tostring(value)
-
-    @classmethod
-    @nillable_string
-    def from_string(cls, string):
-        try:
-            return etree.fromstring(string)
-        except etree.XMLSyntaxError:
-            raise ValidationError(string)
-
 
 class AnyDict(SimpleModel):
     """A dict instance that can contain other dicts, iterables or primitive
@@ -178,29 +158,6 @@ class Unicode(SimpleModel):
 
         return retval
 
-    @classmethod
-    @nillable_string
-    def from_string(cls, value):
-        retval = value
-        if isinstance(value, str):
-            if cls.Attributes.encoding is None:
-                retval = unicode(value, errors=cls.Attributes.unicode_errors)
-            else:
-                retval = unicode(value, cls.Attributes.encoding,
-                                        errors=cls.Attributes.unicode_errors)
-        return retval
-
-    @classmethod
-    @nillable_string
-    def to_string(cls, value):
-        retval = value
-        if cls.Attributes.encoding is not None and isinstance(value, unicode):
-            retval = value.encode(cls.Attributes.encoding)
-        if cls.Attributes.format is None:
-            return retval
-        else:
-            return cls.Attributes.format % retval
-
     @staticmethod
     def is_default(cls):
         return (    SimpleModel.is_default(cls)
@@ -227,18 +184,7 @@ def _re_match_with_span(attr, value):
 
 
 class String(Unicode):
-    @classmethod
-    @nillable_string
-    def from_string(cls, value):
-        retval = value
-        if isinstance(value, unicode):
-            if cls.Attributes.encoding is None:
-                raise Exception("You need to define an encoding to convert the "
-                                "incoming unicode values to.")
-            else:
-                retval = value.encode(cls.Attributes.encoding)
-
-        return retval
+    pass
 
 if sys.version > '3':
     String = Unicode
@@ -363,49 +309,12 @@ class Decimal(SimpleModel):
                 value <= cls.Attributes.le
             ))
 
-    @classmethod
-    @nillable_string
-    def to_string(cls, value):
-        decimal.Decimal(value)
-        if cls.Attributes.format is None:
-            return str(value)
-        else:
-            return cls.Attributes.format % value
-
-    @classmethod
-    @nillable_string
-    def from_string(cls, string):
-        if cls.Attributes.max_str_len is not None and len(string) > cls.Attributes.max_str_len:
-            raise ValidationError(string, 'string too long.')
-
-        try:
-            return decimal.Decimal(string)
-        except decimal.InvalidOperation, e:
-            raise ValidationError(string)
-
 
 class Double(Decimal):
     """This is serialized as the python ``float``. So this type comes with its
      gotchas."""
 
     __type_name__ = 'double'
-
-    @classmethod
-    @nillable_string
-    def to_string(cls, value):
-        float(value)
-        if cls.Attributes.format is None:
-            return repr(value)
-        else:
-            return cls.Attributes.format % value
-
-    @classmethod
-    @nillable_string
-    def from_string(cls, string):
-        try:
-            return float(string)
-        except ValueError:
-            raise ValidationError(string)
 
 
 class Float(Double):
@@ -420,30 +329,6 @@ class Integer(Decimal):
 
     __type_name__ = 'integer'
 
-    @classmethod
-    @nillable_string
-    def to_string(cls, value):
-        int(value) # sanity check
-
-        return str(value)
-
-    @classmethod
-    @nillable_string
-    def from_string(cls, string):
-        if cls.Attributes.max_str_len is not None and \
-                                 len(str(string)) > cls.Attributes.max_str_len:
-            raise Fault('Client.ValidationError', 'String longer than '
-                        '%d characters.' % cls.Attributes.max_str_len)
-
-        try:
-            return int(string)
-        except ValueError:
-            try:
-                return int(string)
-            except ValueError:
-                raise ValidationError(string)
-
-
 class UnsignedInteger(Integer):
     """The arbitrary-size unsigned integer, aka nonNegativeInteger."""
 
@@ -451,7 +336,7 @@ class UnsignedInteger(Integer):
 
     @staticmethod
     def validate_native(cls, value):
-        return (     Integer.validate_native(cls, value)
+        return (    Integer.validate_native(cls, value)
                 and value >= 0
             )
 
@@ -624,32 +509,6 @@ class Time(SimpleModel):
         """A regular expression that matches the whole time. See here for more
         info: http://www.regular-expressions.info/xml.html"""
 
-    @classmethod
-    @nillable_string
-    def to_string(cls, value):
-        """Returns ISO formatted dates."""
-
-        return value.isoformat()
-
-    @classmethod
-    @nillable_string
-    def from_string(cls, string):
-        """Expects ISO formatted times."""
-
-        match = _time_re.match(string)
-        if match is None:
-            raise ValidationError(string)
-
-        fields = match.groupdict(0)
-        microsec = fields.get("sec_frac")
-        if microsec is None or microsec == 0:
-            microsec = 0
-        else:
-            microsec = int(microsec[1:])
-
-        return datetime.time(int(fields['hr']), int(fields['min']),
-                    int(fields['sec']), microsec)
-
     @staticmethod
     def is_default(cls):
         return (    SimpleModel.is_default(cls)
@@ -669,6 +528,7 @@ class Time(SimpleModel):
                 value <  cls.Attributes.lt and
                 value <= cls.Attributes.le
             ))
+
 
 class DateTime(SimpleModel):
     """A compact way to represent dates and times together. Supports time zones.
@@ -708,21 +568,6 @@ class DateTime(SimpleModel):
         string. See here for more info:
         http://docs.python.org/library/stdtypes.html#string-formatting"""
 
-    @classmethod
-    @nillable_string
-    def to_string(cls, value):
-        format = cls.Attributes.format
-        if format is None:
-            ret_str = value.isoformat()
-        else:
-            ret_str = datetime.datetime.strftime(value, format)
-
-        string_format = cls.Attributes.string_format
-        if string_format is None:
-            return ret_str
-        else:
-            return string_format % ret_str
-
     @staticmethod
     def parse(date_match, tz=None):
         fields = date_match.groupdict()
@@ -754,20 +599,10 @@ class DateTime(SimpleModel):
 
         match = _local_re.match(string)
         if match is None:
-            raise ValidationError(string)
+            raise ValueError("time data '%s' does not match any of these regex:\n'%s'\n'%s'\n'%s'"
+                             %(string, _utc_re.pattern, _offset_re.pattern, _local_re.pattern))
 
         return cls.parse(match)
-
-    @classmethod
-    @nillable_string
-    def from_string(cls, string):
-        """expect ISO formatted dates"""
-        format = cls.Attributes.format
-
-        if format is None:
-            return cls.default_parse(string)
-        else:
-            return datetime.datetime.strptime(string, format)
 
     @staticmethod
     def is_default(cls):
@@ -824,34 +659,6 @@ class Date(DateTime):
         """A regular expression that matches the whole date. See here for more
         info: http://www.regular-expressions.info/xml.html"""
 
-    @classmethod
-    @nillable_string
-    def to_string(cls, value):
-        """Returns ISO formatted date."""
-
-        return value.isoformat()
-
-    @classmethod
-    def default_parse(cls, string):
-        """This is used by protocols like SOAP who need ISO8601-formatted dates
-        no matter what.
-        """
-        try:
-            return datetime.date(*(time.strptime(string, '%Y-%m-%d')[0:3]))
-
-        except ValueError:
-            raise ValidationError(string)
-
-    @classmethod
-    @nillable_string
-    def from_string(cls, string):
-        try:
-            d = datetime.datetime.strptime(string, cls.Attributes.format)
-            return datetime.date(d.year, d.month, d.day)
-
-        except ValueError:
-            raise ValidationError(string)
-
     @staticmethod
     def is_default(cls):
         return (    SimpleModel.is_default(cls)
@@ -862,75 +669,12 @@ class Date(DateTime):
                 and cls.Attributes.pattern == Date.Attributes.pattern
         )
 
+
 # this object tries to follow ISO 8601 standard.
 class Duration(SimpleModel):
     """Native type is :class:`datetime.timedelta`."""
 
     __type_name__ = 'duration'
-
-    @classmethod
-    @nillable_string
-    def from_string(cls, string):
-        duration = _duration_re.match(string).groupdict(0)
-        if duration is None:
-            ValidationError(string)
-
-        days = int(duration['days'])
-        days += int(duration['months']) * 30
-        days += int(duration['years']) * 365
-        hours = int(duration['hours'])
-        minutes = int(duration['minutes'])
-        seconds = float(duration['seconds'])
-        f, i = math.modf(seconds)
-        seconds = i
-        microseconds = int(1e6 * f)
-
-        delta = datetime.timedelta(days=days, hours=hours, minutes=minutes,
-                                    seconds=seconds, microseconds=microseconds)
-
-        if duration['sign'] == "-":
-            delta *= -1
-
-        return delta
-
-    @classmethod
-    def to_string(cls, value):
-        if value.days < 0:
-            value = -value
-            negative = True
-        else:
-            negative = False
-
-        seconds = value.seconds % 60
-        minutes = value.seconds / 60
-        hours = minutes / 60
-        minutes = minutes % 60
-        seconds = float(seconds) + value.microseconds / 1e6
-
-        retval = deque()
-        if negative:
-            retval.append("-")
-
-        retval = ['P']
-        if value.days > 0:
-            retval.extend([
-                    "%iD" % value.days,
-                ])
-
-        if hours > 0 and minutes > 0 and seconds > 0:
-            retval.extend([
-                    "T",
-                    "%iH" % hours,
-                    "%iM" % minutes,
-                    "%fS" % seconds,
-                ])
-
-        else:
-            retval.extend([
-                    "0S",
-                ])
-
-        return ''.join(retval)
 
 
 class Boolean(SimpleModel):
@@ -938,29 +682,9 @@ class Boolean(SimpleModel):
 
     __type_name__ = 'boolean'
 
-    @classmethod
-    @nillable_string
-    def to_string(cls, value):
-        return str(bool(value)).lower()
-
-    @classmethod
-    @nillable_string
-    def from_string(cls, string):
-        return (string.lower() in ['true', '1'])
-
 
 class Uuid(Unicode(pattern=UUID_PATTERN, type_name='uuid')):
     """Unicode subclass for Universially-Unique Identifiers."""
-
-    @classmethod
-    @nillable_string
-    def to_string(cls, value):
-        return str(value)
-
-    @classmethod
-    @nillable_string
-    def from_string(cls, string):
-        return uuid.UUID(string)
 
 
 class Polygon(Unicode):

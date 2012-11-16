@@ -17,39 +17,47 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+
 """The ``spyne.error`` module contains various common exceptions that the user
 code can throw.
 """
 
+
 from spyne.model.fault import Fault
 from spyne.const import MAX_STRING_FIELD_LENGTH
 
+
 class ResourceNotFoundError(Fault):
     """Raised when requested resource is not found."""
+
     def __init__(self, faultstring="Requested resource not found"):
         Fault.__init__(self, 'Client.ResourceNotFound', faultstring)
 
 
 class RequestTooLongError(Fault):
     """Raised when request is too long."""
+
     def __init__(self, faultstring=""):
         Fault.__init__(self, 'Client.RequestTooLong', faultstring)
 
 
 class RequestNotAllowed(Fault):
     """Raised when request is incomplete."""
+
     def __init__(self, faultstring=""):
         Fault.__init__(self, 'Client.RequestNotAllowed', faultstring)
 
 
 class ArgumentError(Fault):
     """Raised when there is a general problem with input data."""
+
     def __init__(self, faultstring=""):
         Fault.__init__(self, 'Client.ArgumentError', faultstring)
 
 
 class ValidationError(Fault):
     """Raised when the input stream does not adhere to type constraints."""
+
     def __init__(self, obj, custom_msg='The value %r could not be validated.'):
         s = repr(obj)
 

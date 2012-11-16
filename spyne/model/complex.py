@@ -150,12 +150,12 @@ class XmlAttribute(ModelBase):
         return retval
 
     @classmethod
-    def marshall(cls, name, value, parent_elt):
+    def marshall(cls, prot, name, value, parent_elt):
         if cls._ns is not None:
             name = "{%s}%s" % (cls._ns,name)
 
         if value is not None:
-            parent_elt.set(name, cls._typ.to_string(value))
+            parent_elt.set(name, prot.to_string(cls._typ, value))
 
     @classmethod
     def describe(cls, name, element, document):
@@ -561,16 +561,6 @@ class ComplexModelBase(ModelBase):
             is_array.pop()
 
         return retval
-
-    @classmethod
-    @nillable_string
-    def to_string(cls, value):
-        raise TypeError("Only primitives can be serialized to string.")
-
-    @classmethod
-    @nillable_string
-    def from_string(cls, string):
-        raise TypeError("Only primitives can be deserialized from string.")
 
     @staticmethod
     def resolve_namespace(cls, default_ns):

@@ -188,6 +188,7 @@ class Interface(object):
 
                 for fault in method.faults:
                     fault.__namespace__ = self.get_tns()
+                    fault.resolve_namespace(fault, self.get_tns())
                     classes.append(fault)
 
                 self.__test_type_name_validity(method.in_message)
