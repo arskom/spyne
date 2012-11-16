@@ -29,12 +29,16 @@ from lxml import etree
 
 from spyne.model.complex import XmlAttribute
 from spyne.model.primitive import AnyXml
-from spyne.util.etreeconv import dict_to_etree
 from spyne.model.primitive import Unicode
+from spyne.protocol import ProtocolBase
 from spyne.util import memoize
+from spyne.util.etreeconv import dict_to_etree
 
 from spyne.const.xml_ns import xsd as _ns_xs
 from spyne.const.xml_ns import xsd as _ns_xsd
+
+
+_prot = ProtocolBase()
 
 
 def simple_get_restriction_tag(document, cls):
@@ -225,19 +229,19 @@ def Tget_range_restriction_tag(T):
 
         if cls.Attributes.gt != T.Attributes.gt:
             min_l = etree.SubElement(restriction, '{%s}minExclusive' % _ns_xs)
-            min_l.set('value', cls.to_string(cls.Attributes.gt))
+            min_l.set('value', _prot.to_string(cls.Attributes.gt))
 
         if cls.Attributes.ge != T.Attributes.ge:
             min_l = etree.SubElement(restriction, '{%s}minInclusive' % _ns_xs)
-            min_l.set('value', cls.to_string(cls.Attributes.ge))
+            min_l.set('value', _prot.to_string(cls.Attributes.ge))
 
         if cls.Attributes.lt != T.Attributes.lt:
             min_l = etree.SubElement(restriction, '{%s}maxExclusive' % _ns_xs)
-            min_l.set('value', cls.to_string(cls.Attributes.lt))
+            min_l.set('value', _prot.to_string(cls.Attributes.lt))
 
         if cls.Attributes.le != T.Attributes.le:
             min_l = etree.SubElement(restriction, '{%s}maxInclusive' % _ns_xs)
-            min_l.set('value', cls.to_string(cls.Attributes.le))
+            min_l.set('value', _prot.to_string(cls.Attributes.le))
 
         if cls.Attributes.pattern != T.Attributes.pattern:
             pattern = etree.SubElement(restriction, '{%s}pattern' % _ns_xs)
