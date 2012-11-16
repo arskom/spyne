@@ -1072,6 +1072,10 @@ else:
     NATIVE_MAP.update({
         str: String,
         unicode: Unicode,
-        int: Integer64,
         long: Integer,
     })
+
+    if isinstance (0x80000000, long): # 32-bit architecture
+        NATIVE_MAP[int] = Integer32
+    else: # not 32-bit (so most probably 64-bit) architecture
+        NATIVE_MAP[int] = Integer64
