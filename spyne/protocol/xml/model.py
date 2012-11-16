@@ -100,7 +100,7 @@ def base_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     '''
 
     elt = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
-    elt.text = cls.to_string(value)
+    elt.text = prot.to_string(cls, value)
 
 
 def null_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
