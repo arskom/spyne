@@ -102,10 +102,11 @@ class ServerBase(object):
         """Uses the ctx.out_object to set ctx.out_document and later
         ctx.out_object."""
 
-        assert ctx.out_document is None
-        assert ctx.out_string is None
+        if ctx.out_string is not None:
+            return
 
-        self.app.out_protocol.serialize(ctx,
+        if ctx.out_document is None:
+            self.app.out_protocol.serialize(ctx,
                                         message=self.app.out_protocol.RESPONSE)
 
         if ctx.service_class != None:
