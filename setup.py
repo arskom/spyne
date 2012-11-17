@@ -114,7 +114,7 @@ class RunTests(TestCommand):
 
         raise SystemExit(ret)
 
-test_reqs = ['pytest', 'werkzeug', 'sqlalchemy', 'suds', 'msgpack-python', 'pyparsing']
+test_reqs = ['pytest', 'werkzeug', 'sqlalchemy', 'suds', 'msgpack-python', 'pyparsing', 'lxml>=2.3']
 
 if sys.version_info < (2,6):
     test_reqs.extend([
@@ -161,7 +161,6 @@ setup(
     zip_safe=False,
     install_requires=[
       'pytz',
-      'lxml>=2.3',
     ],
 
     entry_points = {
