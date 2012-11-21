@@ -353,7 +353,7 @@ class TestXmlAttribute(unittest.TestCase):
 
         self.assertIsNotNone(attribute_def)
         self.assertEqual(attribute_def.get('name'), 'a')
-        self.assertEqual(attribute_def.get('type'), CM.a._typ.get_type_name_ns(interface))
+        self.assertEqual(attribute_def.get('type'), CM.a.type.get_type_name_ns(interface))
 
 
 class TestSimpleTypeRestrictions(unittest.TestCase):
