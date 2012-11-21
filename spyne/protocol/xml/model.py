@@ -147,7 +147,7 @@ def get_members_etree(prot, cls, inst, parent):
         # logger.debug("get %r(%r) from %r: %r" % (k, v, inst, subvalue))
 
         if issubclass(v, XmlAttribute):
-            a_of = v._attribute_of
+            a_of = v.attribute_of
             if a_of is not None and a_of in cls._type_info.keys():
                 attr_parent=parent.find("{%s}%s"%(cls.__namespace__,a_of))
                 if attr_parent is None:
@@ -170,7 +170,7 @@ def get_members_etree(prot, cls, inst, parent):
     for k in delay:
         v = cls._type_info[k]
         subvalue = getattr(inst, k, None)
-        a_of = v._attribute_of
+        a_of = v.attribute_of
         attr_parent = parent.find("{%s}%s"%(cls.__namespace__,a_of))
         v.marshall(k,subvalue,attr_parent)
 

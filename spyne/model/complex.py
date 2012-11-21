@@ -141,12 +141,12 @@ class _SimpleTypeInfoElement(object):
 class XmlAttribute(ModelBase):
     """Items which are marshalled as attributes of the parent element."""
 
-    def __new__(cls, typ, use=None, ns=None, attribute_of=None):
+    def __new__(cls, type, use=None, ns=None, attribute_of=None):
         retval = cls.customize()
-        retval._typ = typ
+        retval.type = type
         retval._use = use
         retval._ns = ns
-        retval._attribute_of = attribute_of
+        retval.attribute_of = attribute_of
         return retval
 
     @classmethod
@@ -155,24 +155,24 @@ class XmlAttribute(ModelBase):
             name = "{%s}%s" % (cls._ns,name)
 
         if value is not None:
-            parent_elt.set(name, cls._typ.to_string(value))
+            parent_elt.set(name, cls.type.to_string(value))
 
     @classmethod
     def describe(cls, name, element, document):
         element.set('name', name)
-        element.set('type', cls._typ.get_type_name_ns(document.interface))
+        element.set('type', cls.type.get_type_name_ns(document.interface))
 
         if cls._use is not None:
             element.set('use', cls._use)
 
     @staticmethod
     def resolve_namespace(cls, default_ns):
-        cls._typ.resolve_namespace(cls._typ, default_ns)
+        cls.type.resolve_namespace(cls.type, default_ns)
 
         cls.__namespace__ = cls._ns
 
         if cls.__namespace__ is None:
-            cls.__namespace__ = cls._typ.get_namespace()
+            cls.__namespace__ = cls.type.get_namespace()
 
         if cls.__namespace__ in namespace.const_prefmap:
             cls.__namespace__ = default_ns

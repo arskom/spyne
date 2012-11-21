@@ -23,6 +23,8 @@ logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 
+from lxml import etree
+
 from spyne.application import Application
 
 from spyne.test.interface.wsdl import AppTestWrapper
@@ -32,6 +34,16 @@ from spyne.test.interface.wsdl.defult_services import TDefaultPortServiceMultipl
 
 from spyne.const.suffix import RESPONSE_SUFFIX
 from spyne.const.suffix import ARRAY_SUFFIX
+
+from spyne.decorator import srpc
+from spyne.service import ServiceBase
+from spyne.interface.wsdl import Wsdl11
+from spyne.model.complex import Array
+from spyne.model.complex import ComplexModel
+from spyne.model.complex import XmlAttribute
+from spyne.model.primitive import Integer
+from spyne.model.primitive import String
+from spyne.protocol.soap import Soap11
 
 
 class TestDefaultWSDLBehavior(unittest.TestCase):
@@ -162,15 +174,6 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
             'wsdl':'http://schemas.xmlsoap.org/wsdl/',
             'xs':'http://www.w3.org/2001/XMLSchema',
         }
-
-        from spyne.model.complex import Array
-        from spyne.model.primitive import String
-        from spyne.protocol.soap import Soap11
-        from spyne.service import ServiceBase
-        from spyne.decorator import srpc
-        from spyne.interface.wsdl import Wsdl11
-
-        from lxml import etree
 
         class InteropBare(ServiceBase):
             @srpc(String, _returns=String, _body_style='bare')

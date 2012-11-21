@@ -27,6 +27,7 @@ import decimal
 
 from lxml import etree
 
+
 from spyne.model.complex import XmlAttribute
 from spyne.model.primitive import AnyXml
 from spyne.util.etreeconv import dict_to_etree
@@ -111,8 +112,8 @@ def complex_add(document, cls):
 
     for k, v in type_info.items():
         if issubclass(v, XmlAttribute):
-            attribute = etree.SubElement(complex_type,
-                                        '{%s}attribute' % _ns_xsd)
+            attribute = etree.SubElement(complex_type,'{%s}attribute' % _ns_xsd)
+
             v.describe(k, attribute, document)
             continue
 
