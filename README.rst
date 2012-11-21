@@ -46,20 +46,15 @@ Requirements
 Spyne runs on any version of Python from 2.5 through 2.7. We're also looking for
 volunteers to test Python 3.x.
 
-While the aim is to have no requirements besides the standard Python library for
-the Spyne core, the following packages are needed if you want to run any
-Spyne service at all:
-
-* `lxml <http://codespeak.net/lxml/>`_
-* `pytz <http://pytz.sourceforge.net/>`_
-
-both of which are available through ``easy_install``.
+The only hard requirement is `pytz <http://pytz.sourceforge.net/>`_ which is
+available via pypi.
 
 Additionally the following software packages are needed for various subsystems
 of Spyne:
 
 * A Wsgi server of your choice is needed to wrap
   ``spyne.server.wsgi.WsgiApplication``
+* `lxml>=2.3 <http://lxml.de`_ is needed for any xml or html related operation.
 * `SQLAlchemy <http://sqlalchemy.org>`_ is needed for
   ``spyne.model.table.TableModel``.
 * `pyzmq <https://github.com/zeromq/pyzmq>`_ is needed for

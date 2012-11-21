@@ -42,6 +42,7 @@ def return_traceback_in_unhandled_exceptions():
         return traceback.format_exc()
     get_fault_string_from_exception = _get_fault_string_from_exception
 
+
 class Application(object):
     '''The Application class is the glue between one or more service
     definitions, input and output protocols.

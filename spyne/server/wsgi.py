@@ -46,9 +46,14 @@ from spyne.server.http import HttpTransportContext
 from spyne.error import RequestTooLongError
 
 from spyne.protocol.http import HttpPattern
-from spyne.protocol.soap.mime import apply_mtom
 from spyne.util import reconstruct_url
 from spyne.server.http import HttpBase
+
+try:
+    from spyne.protocol.soap.mime import apply_mtom
+except ImportError, e:
+    def apply_mtom(*args, **kwargs):
+        raise f
 
 from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
@@ -377,7 +382,6 @@ class WsgiApplication(HttpBase):
         self.event_manager.fire_event('wsgi_close', p_ctx)
 
         return []
-
 
     def __reconstruct_wsgi_request(self, http_env):
         """Reconstruct http payload using information in the http header."""

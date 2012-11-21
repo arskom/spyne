@@ -27,6 +27,8 @@ import decimal
 
 from lxml import etree
 
+from collections import deque
+
 from spyne.model.complex import XmlAttribute
 from spyne.model.primitive import AnyXml
 from spyne.model.primitive import Unicode
@@ -113,11 +115,16 @@ def complex_add(document, cls):
 
     sequence = etree.SubElement(sequence_parent, '{%s}sequence' % _ns_xsd)
 
+    deferred_a_of = deque()
     for k, v in type_info.items():
         if issubclass(v, XmlAttribute):
-            attribute = etree.SubElement(complex_type,
-                                        '{%s}attribute' % _ns_xsd)
-            v.describe(k, attribute, document)
+            if v.attribute_of is None: # others will be added at a later loop
+                attribute = etree.SubElement(complex_type,'{%s}attribute' % _ns_xsd)
+
+                v.describe(k, attribute, document)
+            else:
+                deferred_a_of.append((k,v))
+
             continue
 
         if v.Attributes.exc_interface:
@@ -155,6 +162,32 @@ def complex_add(document, cls):
 
         if bool(v.Attributes.nillable) != False: # False is the xml schema default
             member.set('nillable', 'true')
+
+
+    for k,v in deferred_a_of:
+        ao = v.attribute_of
+        elts = complex_type.xpath("//xsd:element[@name='%s']" % ao,
+                                                    namespaces={'xsd': _ns_xsd})
+
+        if len(elts) == 0:
+            raise ValueError("Element %r not found for XmlAttribute %r." %
+                                                                        (ao, k))
+        elif len(elts) > 1:
+            raise Exception("Xpath returned more than one element %r "
+                          "for %r. Not sure what's going on here." % (elts, ao))
+
+        else:
+            elt = elts[0]
+
+        _ct = etree.SubElement(elt, '{%s}complexType' % _ns_xsd)
+        _sc = etree.SubElement(_ct, '{%s}simpleContent' % _ns_xsd)
+        _ext = etree.SubElement(_sc, '{%s}extension' % _ns_xsd)
+        _ext.attrib['base'] = elt.attrib['type']
+        del elt.attrib['type']
+
+        attribute = etree.SubElement(_ext, '{%s}attribute' % _ns_xsd)
+        v.describe(k, attribute, document)
+
 
     document.add_complex_type(cls, complex_type)
 

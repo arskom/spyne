@@ -53,7 +53,7 @@ import logging
 
 from spyne.application import Application
 from spyne.decorator import srpc
-from spyne.protocol.xml import XmlDocument
+from spyne.protocol.json import JsonDocument
 from spyne.protocol.http import HttpRpc
 from spyne.service import ServiceBase
 from spyne.model.complex import Iterable
@@ -80,10 +80,9 @@ if __name__=='__main__':
     from wsgiref.simple_server import make_server
 
     logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
     application = Application([HelloWorldService], 'spyne.examples.hello.http',
-                                in_protocol=HttpRpc(), out_protocol=XmlDocument())
+                                in_protocol=HttpRpc(), out_protocol=JsonDocument())
 
     server = make_server('127.0.0.1', 7789, WsgiApplication(application))
 
