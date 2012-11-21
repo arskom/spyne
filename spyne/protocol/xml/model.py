@@ -149,11 +149,7 @@ def get_members_etree(prot, cls, inst, parent):
         if issubclass(v, XmlAttribute):
             a_of = v.attribute_of
             if a_of is not None and a_of in cls._type_info.keys():
-                attr_parent=parent.find("{%s}%s"%(cls.__namespace__,a_of))
-                if attr_parent is None:
-                    delay.add(k)
-                else:
-                    v.marshall(k,subvalue,attr_parent)
+                delay.add(k)
             else:
                 v.marshall(k, subvalue, parent)
             continue
@@ -171,8 +167,9 @@ def get_members_etree(prot, cls, inst, parent):
         v = cls._type_info[k]
         subvalue = getattr(inst, k, None)
         a_of = v.attribute_of
-        attr_parent = parent.find("{%s}%s"%(cls.__namespace__,a_of))
-        v.marshall(k,subvalue,attr_parent)
+        attr_parents = parent.findall("{%s}%s"%(cls.__namespace__,a_of))
+        for attr_parent in attr_parents:
+            v.marshall(k,subvalue,attr_parent)
 
 
 @nillable_value
