@@ -237,7 +237,7 @@ def complex_from_element(prot, cls, element):
         if member is None:
             continue
 
-        value = member._typ.from_string(element.attrib[key])
+        value = member.type.from_string(element.attrib[key])
 
         setattr(inst, key, value)
 
