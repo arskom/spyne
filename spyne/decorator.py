@@ -102,7 +102,7 @@ def _validate_body_style(kparams):
 
     return _body_style
 
-def _produce_output_message(f, func_name, kparams):
+def _produce_output_message(func_name, kparams):
     """Generate an output message for "rpc"-style API methods.
 
     This message is a wrapper to the declared return type.
@@ -145,7 +145,6 @@ def _produce_output_message(f, func_name, kparams):
                                         namespace=ns,
                                         members=out_params)
         message.__namespace__ = ns # FIXME: is this necessary?
-
 
     return message
 
@@ -233,7 +232,7 @@ def srpc(*params, **kparams):
             in_message = _produce_input_message(f, params, kparams, 
                                 _in_message_name, _in_variable_names, _no_ctx)
 
-            out_message = _produce_output_message(f, function_name, kparams)
+            out_message = _produce_output_message(function_name, kparams)
 
             doc = getattr(f, '__doc__')
 

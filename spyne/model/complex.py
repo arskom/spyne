@@ -747,13 +747,13 @@ class Alias(ComplexModelBase):
 
 def log_repr(obj, cls=None):
     """Use this function if you want to echo a ComplexModel subclass. It will
-    limit output size of the String types, thus make your logs smaller.
+    limit output size of the String types, making your logs smaller.
     """
 
     if cls is None:
         cls = obj.__class__
 
-    if issubclass(cls, Array):
+    if issubclass(cls, Array) or cls.Attributes.max_occurs > 1:
         retval = []
 
         cls, = cls._type_info.values()

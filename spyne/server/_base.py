@@ -68,7 +68,7 @@ class ServerBase(object):
             ctx.in_error = e
             ctx.out_error = e
 
-            retval = [ctx]
+            retval = (ctx,)
 
         return retval
 
@@ -131,6 +131,6 @@ class ServerBase(object):
             ctx.out_string = [""]
 
     def serve_forever():
-        """Implement your event loop here."""
+        """Implement your event loop here, if needed."""
 
         raise NotImplementedError()
