@@ -11,6 +11,9 @@ spyne-2.10.0
  * 'attribute_of' added to ModelBase to add attribute support for
    primitives. This is currently supported by Xml & and friends and
    ignored by (and mostly irrelevant to) other protocols.
+ * Add support for exposing existing whose source code via the _args
+   argument to the srpc decorator. See the existing_api example for
+   usage examples.
 
 spyne-2.9.3
 -----------
