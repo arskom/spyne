@@ -37,11 +37,13 @@ dictionary to store the User objects.
 '''
 
 import logging
+import random
 
 from spyne.application import Application
 from spyne.decorator import srpc
 from spyne.interface.wsdl import Wsdl11
-from spyne.protocol.soap import Soap11
+from spyne.protocol.xml import XmlDocument
+from spyne.protocol.http import HttpRpc
 from spyne.service import ServiceBase
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
@@ -53,6 +55,10 @@ from spyne.error import ResourceNotFoundError
 
 user_database = {}
 userid_seq = 1
+chars = [chr(i) for i in range(ord('a'), ord('z'))]
+
+def randchars(n):
+    return ''.join(random.choice(chars) for _ in range(n))
 
 
 class Permission(ComplexModel):
@@ -73,34 +79,57 @@ class User(ComplexModel):
 
 
 # add superuser to the 'database'
+
+all_permissions = (
+    Permission(app='library', perms=['read', 'write']),
+    Permission(app='delivery', perms=['read', 'write']),
+    Permission(app='accounting', perms=['read', 'write']),
+)
+
+def randperms(n):
+    for p in random.sample(all_permissions, n   ):
+        yield Permission(app=p.app, perms=random.sample(p.perms, random.randint(1,2)))
+
+
 user_database[0] = User(
     userid=0,
     username='root',
     firstname='Super',
     lastname='User',
-    permissions=[
-        Permission(app='library', perms=['read', 'write']),
-        Permission(app='delivery', perms=['read', 'write']),
-        Permission(app='accounting', perms=['read', 'write']),
-    ]
+    permissions=all_permissions
 )
 
+
+def add_user(user):
+    global user_database
+    global userid_seq
+
+    user.userid = userid_seq
+    userid_seq = userid_seq + 1
+    user_database[user.userid] = user
 
 class UserManager(ServiceBase):
     @srpc(User, _returns=Integer)
     def add_user(user):
-        global user_database
-        global userid_seq
-
-        user.userid = userid_seq
-        userid_seq = userid_seq + 1
-        user_database[user.userid] = user
-
+        add_user(user)
         return user.userid
 
     @srpc(_returns=User)
     def super_user():
         return user_database[0]
+
+    @srpc(_returns=User)
+    def random_user():
+        retval = User(
+            username=randchars(random.randrange(3,12)),
+            firstname=randchars(random.randrange(3,12)).title(),
+            lastname=randchars(random.randrange(3,12)).title(),
+            permissions=randperms(random.randint(1,len(all_permissions)))
+        )
+
+        add_user(retval)
+
+        return retval
 
     @srpc(Integer, _returns=User)
     def get_user(userid):
@@ -149,7 +178,7 @@ if __name__=='__main__':
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
     application = Application([UserManager], 'spyne.examples.complex',
-                interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
+                interface=Wsdl11(), in_protocol=HttpRpc(), out_protocol=XmlDocument())
 
     server = make_server('127.0.0.1', 7789, WsgiApplication(application))
 
