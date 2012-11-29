@@ -24,6 +24,8 @@ logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 
+from lxml import etree
+
 from spyne import MethodContext
 from spyne.service import ServiceBase
 from spyne.server import ServerBase
@@ -33,12 +35,9 @@ from spyne.model.primitive import Unicode
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import XmlAttribute
 from spyne.service import ServiceBase
-from spyne.interface.wsdl import Wsdl11
 from spyne.protocol.xml import XmlDocument
 
-
 from spyne.util.xml import get_xml_as_object
-from lxml import etree
 
 
 class TestXml(unittest.TestCase):
@@ -52,27 +51,40 @@ class TestXml(unittest.TestCase):
         assert o.b == ''
 
     def test_attribute_of(self):
-        class a(ComplexModel):
-            b = Unicode
-            c = XmlAttribute(Unicode, attribute_of="b")
+        class C(ComplexModel):
+            a = Unicode
+            b = XmlAttribute(Unicode, attribute_of="a")
 
         class SomeService(ServiceBase):
-            @srpc(_returns=a)
-            def some_call():
-                return a(b="foo",c="bar")
+            @srpc(C, _returns=C)
+            def some_call(c):
+                assert c.a == 'a'
+                assert c.b == 'b'
+                return c
 
-        app = Application([SomeService], "tns", in_protocol=XmlDocument(), out_protocol=XmlDocument())
+        app = Application([SomeService], "tns", name="test_attribute_of",
+                        in_protocol=XmlDocument(), out_protocol=XmlDocument())
         server = ServerBase(app)
         initial_ctx = MethodContext(server)
-        initial_ctx.in_string = ['<some_call xmlns="tns"/>']
+        initial_ctx.in_string = [
+            '<some_call xmlns="tns">'
+                '<c>'
+                    '<a b="b">a</a>'
+                '</c>'
+            '</some_call>'
+        ]
 
         ctx, = server.generate_contexts(initial_ctx)
         server.get_in_object(ctx)
         server.get_out_object(ctx)
         server.get_out_string(ctx)
 
-        assert etree.fromstring(''.join(ctx.out_string)).xpath('//s0:b',
-            namespaces=app.interface.nsmap)[0].attrib['c'] == "bar"
+        ret = etree.fromstring(''.join(ctx.out_string)).xpath('//s0:a',
+            namespaces=app.interface.nsmap)[0]
+        print etree.tostring(ret, pretty_print=True)
+
+        assert ret.text == "a"
+        assert ret.attrib['b'] == "b"
 
     def test_attribute_ns(self):
         class a(ComplexModel):
