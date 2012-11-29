@@ -122,7 +122,9 @@ PSSM_VALUES = {'json': json, 'xml': xml, 'msgpack': msgpack, 'table': table}
 
 
 class TypeInfo(odict):
-    pass
+    def __init__(self, *args, **kwargs):
+        odict.__init__(self, *args, **kwargs)
+        self.attributes = {}
 
 
 class _SimpleTypeInfoElement(object):
@@ -338,9 +340,14 @@ class ComplexModelMeta(type(ModelBase)):
 
     def __init__(self, cls_name, cls_bases, cls_dict):
         type_info = cls_dict['_type_info']
-        for k in type_info:
-            if issubclass(type_info[k], SelfReference):
+        for k,v in type_info.items():
+
+            if issubclass(v, SelfReference):
                 type_info[k] = self
+            if isinstance(XmlAttribute, v):
+                a_of = v.Attributes.attribute_of
+                if a_of is not None:
+                    type_info.attributes[k] = type_info[a_of]
 
         if self.Attributes.table_name is None:
             if self.Attributes.sqla_table is not None and len(self._type_info) == 0:
@@ -750,6 +757,9 @@ def log_repr(obj, cls=None):
     limit output size of the String types, making your logs smaller.
     """
 
+    if obj is None:
+        return 'None'
+
     if cls is None:
         cls = obj.__class__
 
@@ -759,16 +769,14 @@ def log_repr(obj, cls=None):
         cls, = cls._type_info.values()
 
         if not cls.Attributes.logged:
-            retval ="[%s (...)]" % cls.get_type_name()
+            retval.append("[%s (...)]" % cls.get_type_name())
         else:
-            retval = _log_repr_obj(obj, cls)
+            for i,o in enumerate(obj):
+                retval.append(_log_repr_obj(o, cls))
 
-        for i,o in enumerate(obj):
-            retval.append(_log_repr_obj(o, cls))
-
-            if i > MAX_ARRAY_ELEMENT_NUM:
-                retval.append("(...)")
-                break
+                if i > MAX_ARRAY_ELEMENT_NUM:
+                    retval.append("(...)")
+                    break
 
         retval = "%s([%s])" % (cls.get_type_name(), ', '.join(retval))
 
