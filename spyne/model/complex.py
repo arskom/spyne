@@ -776,7 +776,7 @@ def log_repr(obj, cls=None):
         if cls.Attributes.logged:
             retval = _log_repr_obj(obj, cls)
         else:
-            retval ="%s(...)" % cls.get_type_name()
+            retval = "%s(...)" % cls.get_type_name()
 
     else:
         retval = repr(obj)
