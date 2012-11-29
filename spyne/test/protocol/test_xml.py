@@ -40,7 +40,8 @@ from spyne.protocol.xml import XmlDocument
 from spyne.util.xml import get_xml_as_object
 from lxml import etree
 
-class Test(unittest.TestCase):
+
+class TestXml(unittest.TestCase):
     def test_empty_string(self):
         class a(ComplexModel):
             b = Unicode
@@ -95,8 +96,6 @@ class Test(unittest.TestCase):
 
         assert etree.fromstring(''.join(ctx.out_string)).xpath('//s0:b',
             namespaces=app.interface.nsmap)[0].attrib['{%s}c'%app.interface.nsmap["s1"]] == "bar"
-
-
 
 
 if __name__ == '__main__':

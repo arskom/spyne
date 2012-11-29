@@ -57,8 +57,8 @@ def _produce_input_message(f, params, kparams, _in_message_name,
         except AttributeError,e:
             raise TypeError("It's not possible to instrospect builtins. You "
                             "must pass a sequence of argument names as the "
-                            "'_args' argument to the rpc decorator to denote "
-                            "the arguments that this function accepts."
+                            "'_args' argument to the rpc decorator to manually "
+                            "denote the arguments that this function accepts."
                         )
     else:
         argcount = len(args)
@@ -72,7 +72,6 @@ def _produce_input_message(f, params, kparams, _in_message_name,
                 e0 = _in_variable_names.get(n,n)
                 e1 = params[i]
 
-                print i, n, e0, e1
                 in_params[e0] = e1
                 i += 1
 
