@@ -152,6 +152,13 @@ def complex_add(document, cls):
         if bool(v.Attributes.nillable) != False: # False is the xml schema default
             member.set('nillable', 'true')
 
+	if v.Annotations.doc != '':
+            # Doesn't support multi-language documentation
+            annotation = etree.SubElement(member, "{%s}annotation" % _ns_xsd)
+            
+            doc = etree.SubElement(annotation, "{%s}documentation" % _ns_xsd)
+            doc.text = v.Annotations.doc
+
     document.add_complex_type(cls, complex_type)
 
     # simple node
