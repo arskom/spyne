@@ -52,8 +52,9 @@ def _get_flat_type_info(cls, retval):
     if parent != None:
         _get_flat_type_info(parent, retval)
 
+    print "cls", cls, cls._type_info
     retval.update(cls._type_info)
-
+    print retval
     return retval
 
 
@@ -149,6 +150,7 @@ class XmlAttribute(ModelBase):
         retval._use = use
         retval._ns = ns
         retval.attribute_of = attribute_of
+
         return retval
 
     @classmethod
@@ -344,8 +346,8 @@ class ComplexModelMeta(type(ModelBase)):
 
             if issubclass(v, SelfReference):
                 type_info[k] = self
-            if isinstance(XmlAttribute, v):
-                a_of = v.Attributes.attribute_of
+            if issubclass(v, XmlAttribute):
+                a_of = v.attribute_of
                 if a_of is not None:
                     type_info.attributes[k] = type_info[a_of]
 

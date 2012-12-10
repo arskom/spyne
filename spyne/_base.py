@@ -222,6 +222,12 @@ class MethodContext(object):
         """The locale the request will use when needed for things like date
         formatting, html rendering and such."""
 
+        self.in_protocol = None
+        """The protocol that will be used to (de)serialize incoming input"""
+
+        self.out_protocol = None
+        """The protocol that will be used to (de)serialize outgoing input"""
+
         self.frozen = True
         """When this is set, no new attribute can be added to this class
         instance. This is mostly for internal use.
