@@ -232,6 +232,16 @@ def complex_from_element(prot, cls, element):
 
         setattr(inst, key, value)
 
+        for key in c.attrib:
+            member = flat_type_info.get(key, None)
+            if member is None or (not issubclass(member, XmlAttribute)) or \
+                                                     member.attribute_of == key:
+                continue
+
+            value = member.type.from_string(c.attrib[key])
+
+            setattr(inst, key, value)
+
     for key in element.attrib:
         member = flat_type_info.get(key, None)
         if member is None:

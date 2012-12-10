@@ -65,6 +65,7 @@ class TestXml(unittest.TestCase):
         app = Application([SomeService], "tns", name="test_attribute_of",
                         in_protocol=XmlDocument(), out_protocol=XmlDocument())
         server = ServerBase(app)
+
         initial_ctx = MethodContext(server)
         initial_ctx.in_string = [
             '<some_call xmlns="tns">'
@@ -80,7 +81,8 @@ class TestXml(unittest.TestCase):
         server.get_out_string(ctx)
 
         ret = etree.fromstring(''.join(ctx.out_string)).xpath('//s0:a',
-            namespaces=app.interface.nsmap)[0]
+                                              namespaces=app.interface.nsmap)[0]
+
         print etree.tostring(ret, pretty_print=True)
 
         assert ret.text == "a"
