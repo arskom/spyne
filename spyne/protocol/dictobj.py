@@ -21,7 +21,6 @@
 protocol that deals with hierarchical dicts as {in,out}_documents.
 """
 
-from pprint import pprint
 import logging
 logger = logging.getLogger(__name__)
 
@@ -438,7 +437,6 @@ class DictDocument(ProtocolBase):
                                                     (member.path, pkey, value))
 
         if validator is cls.SOFT_VALIDATION:
-            pprint(dict(frequencies.items()))
             for k, d in frequencies.items():
                 check_freq_dict(k[-2], d)
 

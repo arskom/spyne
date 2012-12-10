@@ -23,7 +23,6 @@
 from spyne.server.wsgi import WsgiApplication
 import unittest
 
-from spyne.interface.wsdl import Wsdl11
 from spyne.protocol.soap import Soap11
 
 from spyne.application import Application
@@ -102,7 +101,6 @@ class TestHttpRpcSoftValidation(unittest.TestCase):
                 pass
 
         self.application = Application([SomeService],
-            interface=Wsdl11(),
             in_protocol=HttpRpc(validator='soft'),
             out_protocol=Soap11(),
             name='Service', tns='tns',
