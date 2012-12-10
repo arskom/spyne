@@ -54,7 +54,7 @@ of Spyne:
 
 * A Wsgi server of your choice is needed to wrap
   ``spyne.server.wsgi.WsgiApplication``
-* `lxml>=2.3 <http://lxml.de`_ is needed for any xml or html related operation.
+* `lxml>=2.3 <http://lxml.de>`_ is needed for any xml or html related operation.
 * `SQLAlchemy <http://sqlalchemy.org>`_ is needed for
   ``spyne.model.table.TableModel``.
 * `pyzmq <https://github.com/zeromq/pyzmq>`_ is needed for
@@ -98,7 +98,11 @@ To install from source distribution, you should run its setup script as usual: :
 
 To run the tests use: ::
 
-    cd spyne/tests && ./run_tests.sh
+    pyhon setup.py test
+
+The test script first installs every single library that Spyne integrates with,
+so be ready to do some fiddling with your distro's package manager (or have a
+fully functional python development environment ready).
 
 And if you want to make any changes to the Spyne code, just use ::
 
@@ -106,13 +110,21 @@ And if you want to make any changes to the Spyne code, just use ::
 
 so that you can painlessly test your patches.
 
-Contributing
-============
+
+Getting Support
+===============
 
 The main developers of Spyne lurk in the `official soap implementors
 forum <http://mail.python.org/mailman/listinfo/soap/>`_ kindly operated
 by python.org. That's mostly because Spyne is the continuation of soaplib,
 but also because soap is an important part of Spyne.
+
+You can also use the 'spyne' tag to ask questions on
+`Stack Overflow <http://stackoverflow.com>`_.
+
+
+Contributing
+============
 
 If you wish to contribute to Spyne's development, create a personal fork
 on GitHub.  When you are ready to push to the upstream repository,
@@ -123,7 +135,7 @@ To save both parties time, make sure the existing tests pass. If you are
 adding new functionality or fixing a bug, please have the accompanying test.
 This will both help us increase test coverage and insure your use-case
 is immune to feature code changes. You could also summarize in one or
-two lines how your work will affect the life of spyne users in the
+two lines how your work will affect the life of Spyne users in the
 CHANGELOG file.
 
 Please follow the `PEP 8 <http://www.python.org/dev/peps/pep-0008/>`_
@@ -138,8 +150,9 @@ GitHub. Even if this gives the core committers the power to commit directly
 to the core repository, we highly value code reviews and expect every
 significant change to be committed via pull requests.
 
-Submitting Pull Requests
-------------------------
+
+A small note Submitting Pull Requests
+-------------------------------------
 
 Github's pull-request feature is awesome, but there's a subtlety that's not
 totally obvious for newcomers: If you continue working on the branch that you
@@ -149,4 +162,4 @@ ability to address reviewers' concerns without creating pull requests over and
 over again. So, if you intend to work on other parts of spyne after submitting
 a pull request, please do move your work to its own branch and never submit a
 pull request from your master branch. This will give you the freedom to
-continue working on spyne while waiting for your pull request to be reviewed.
+continue working on Spyne while waiting for your pull request to be reviewed.

@@ -257,28 +257,61 @@ def unicode_get_restriction_tag(interface, cls):
 
 @memoize
 def Tget_range_restriction_tag(T):
+    """The get_range_restriction template function. Takes a primitive, returns
+    a function that generates range restriction tags.
+    """
+
+    from spyne.model.primitive import Decimal
+    from spyne.model.primitive import Integer
+
+    if issubclass(T, Decimal):
+        def _get_float_restrictions(restriction, cls):
+            if cls.Attributes.fraction_digits != T.Attributes.fraction_digits:
+                elt = etree.SubElement(restriction, '{%s}fractionDigits' % _ns_xs)
+                elt.set('value', cls.Attributes.total_digits)
+
+        def _get_integer_restrictions(restriction, cls):
+            if cls.Attributes.total_digits != T.Attributes.total_digits:
+                elt = etree.SubElement(restriction, '{%s}totalDigits' % _ns_xs)
+                elt.set('value', cls.Attributes.total_digits)
+
+        if issubclass(T, Integer):
+            def _get_additional_restrictions(restriction, cls):
+                _get_integer_restrictions(restriction, cls)
+
+        else:
+            def _get_additional_restrictions(restriction, cls):
+                _get_integer_restrictions(restriction, cls)
+                _get_float_restrictions(restriction, cls)
+
+    else:
+        def _get_additional_restrictions(restriction, cls):
+            pass
+
     def _get_range_restriction_tag(interface, cls):
         restriction = simple_get_restriction_tag(interface, cls)
 
         if cls.Attributes.gt != T.Attributes.gt:
-            min_l = etree.SubElement(restriction, '{%s}minExclusive' % _ns_xs)
-            min_l.set('value', _prot.to_string(cls.Attributes.gt))
+            elt = etree.SubElement(restriction, '{%s}minExclusive' % _ns_xs)
+            elt.set('value', cls.to_string(cls.Attributes.gt))
 
         if cls.Attributes.ge != T.Attributes.ge:
-            min_l = etree.SubElement(restriction, '{%s}minInclusive' % _ns_xs)
-            min_l.set('value', _prot.to_string(cls.Attributes.ge))
+            elt = etree.SubElement(restriction, '{%s}minInclusive' % _ns_xs)
+            elt.set('value', cls.to_string(cls.Attributes.ge))
 
         if cls.Attributes.lt != T.Attributes.lt:
-            min_l = etree.SubElement(restriction, '{%s}maxExclusive' % _ns_xs)
-            min_l.set('value', _prot.to_string(cls.Attributes.lt))
+            elt = etree.SubElement(restriction, '{%s}maxExclusive' % _ns_xs)
+            elt.set('value', cls.to_string(cls.Attributes.lt))
 
         if cls.Attributes.le != T.Attributes.le:
-            min_l = etree.SubElement(restriction, '{%s}maxInclusive' % _ns_xs)
-            min_l.set('value', _prot.to_string(cls.Attributes.le))
+            elt = etree.SubElement(restriction, '{%s}maxInclusive' % _ns_xs)
+            elt.set('value', cls.to_string(cls.Attributes.le))
 
         if cls.Attributes.pattern != T.Attributes.pattern:
-            pattern = etree.SubElement(restriction, '{%s}pattern' % _ns_xs)
-            pattern.set('value', cls.Attributes.pattern)
+            elt = etree.SubElement(restriction, '{%s}pattern' % _ns_xs)
+            elt.set('value', cls.Attributes.pattern)
+
+        _get_additional_restrictions(restriction, cls)
 
         return restriction
 

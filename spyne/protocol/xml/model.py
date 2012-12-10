@@ -190,7 +190,7 @@ def alias_to_parent_element(prot, cls, value, tns, parent_elt, name=None):
     if t is not None:
         subvalue = getattr(value, k, None)
         # Don't include empty values for non-nillable optional attributes.
-        if subvalue is not None:
+        if subvalue is not None or t.Attributes.min_occurs > 0:
             prot.to_parent_element(t, subvalue, tns, parent_elt, name)
 
 
@@ -231,6 +231,16 @@ def complex_from_element(prot, cls, element):
             value = prot.from_element(member, c)
 
         setattr(inst, key, value)
+
+        for key in c.attrib:
+            member = flat_type_info.get(key, None)
+            if member is None or (not issubclass(member, XmlAttribute)) or \
+                                                     member.attribute_of == key:
+                continue
+
+            value = member.type.from_string(c.attrib[key])
+
+            setattr(inst, key, value)
 
     for key in element.attrib:
         member = flat_type_info.get(key, None)

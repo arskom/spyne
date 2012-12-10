@@ -52,8 +52,9 @@ def _get_flat_type_info(cls, retval):
     if parent != None:
         _get_flat_type_info(parent, retval)
 
+    print "cls", cls, cls._type_info
     retval.update(cls._type_info)
-
+    print retval
     return retval
 
 
@@ -122,7 +123,9 @@ PSSM_VALUES = {'json': json, 'xml': xml, 'msgpack': msgpack, 'table': table}
 
 
 class TypeInfo(odict):
-    pass
+    def __init__(self, *args, **kwargs):
+        odict.__init__(self, *args, **kwargs)
+        self.attributes = {}
 
 
 class _SimpleTypeInfoElement(object):
@@ -147,6 +150,7 @@ class XmlAttribute(ModelBase):
         retval._use = use
         retval._ns = ns
         retval.attribute_of = attribute_of
+
         return retval
 
     @classmethod
@@ -338,9 +342,14 @@ class ComplexModelMeta(type(ModelBase)):
 
     def __init__(self, cls_name, cls_bases, cls_dict):
         type_info = cls_dict['_type_info']
-        for k in type_info:
-            if issubclass(type_info[k], SelfReference):
+        for k,v in type_info.items():
+
+            if issubclass(v, SelfReference):
                 type_info[k] = self
+            if issubclass(v, XmlAttribute):
+                a_of = v.attribute_of
+                if a_of is not None:
+                    type_info.attributes[k] = type_info[a_of]
 
         if self.Attributes.table_name is None:
             if self.Attributes.sqla_table is not None and len(self._type_info) == 0:
@@ -737,28 +746,29 @@ class Alias(ComplexModelBase):
 
 def log_repr(obj, cls=None):
     """Use this function if you want to echo a ComplexModel subclass. It will
-    limit output size of the String types, thus make your logs smaller.
+    limit output size of the String types, making your logs smaller.
     """
+
+    if obj is None:
+        return 'None'
 
     if cls is None:
         cls = obj.__class__
 
-    if issubclass(cls, Array):
+    if issubclass(cls, Array) or cls.Attributes.max_occurs > 1:
         retval = []
 
         cls, = cls._type_info.values()
 
         if not cls.Attributes.logged:
-            retval ="[%s (...)]" % cls.get_type_name()
+            retval.append("[%s (...)]" % cls.get_type_name())
         else:
-            retval = _log_repr_obj(obj, cls)
+            for i,o in enumerate(obj):
+                retval.append(_log_repr_obj(o, cls))
 
-        for i,o in enumerate(obj):
-            retval.append(_log_repr_obj(o, cls))
-
-            if i > MAX_ARRAY_ELEMENT_NUM:
-                retval.append("(...)")
-                break
+                if i > MAX_ARRAY_ELEMENT_NUM:
+                    retval.append("(...)")
+                    break
 
         retval = "%s([%s])" % (cls.get_type_name(), ', '.join(retval))
 
@@ -766,7 +776,7 @@ def log_repr(obj, cls=None):
         if cls.Attributes.logged:
             retval = _log_repr_obj(obj, cls)
         else:
-            retval ="%s(...)" % cls.get_type_name()
+            retval = "%s(...)" % cls.get_type_name()
 
     else:
         retval = repr(obj)

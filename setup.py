@@ -163,7 +163,7 @@ setup(
       'pytz',
     ],
 
-    entry_points = {
+    entry_points={
         'console_scripts': [
             'sort_wsdl=spyne.test.sort_wsdl:main',
         ]

@@ -31,7 +31,6 @@ from spyne.const.suffix import RESPONSE_SUFFIX
 
 from spyne.model import ModelBase
 from spyne.model.complex import ComplexModelBase
-from spyne.model.complex import Alias
 
 
 class Interface(object):

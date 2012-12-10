@@ -26,10 +26,13 @@ to have a more elegant way of passing frequently-used parameter values. The @rpc
 decorator is a simple example of this.
 """
 
-from spyne._base import BODY_STYLE_EMPTY
+
 from spyne import MethodDescriptor
+
+from spyne._base import BODY_STYLE_EMPTY
 from spyne._base import BODY_STYLE_WRAPPED
 from spyne._base import BODY_STYLE_BARE
+
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import TypeInfo
 
@@ -37,7 +40,9 @@ from spyne.const.xml_ns import DEFAULT_NS
 from spyne.const.suffix import RESPONSE_SUFFIX
 from spyne.const.suffix import RESULT_SUFFIX
 
-def _produce_input_message(f, params, kparams, _in_message_name, _in_variable_names, no_ctx):
+
+def _produce_input_message(f, params, kparams, _in_message_name,
+                                            _in_variable_names, no_ctx, args):
     _body_style = _validate_body_style(kparams)
 
     if no_ctx is True:
@@ -45,16 +50,30 @@ def _produce_input_message(f, params, kparams, _in_message_name, _in_variable_na
     else:
         arg_start=1
 
-    argcount = f.func_code.co_argcount
-    param_names = f.func_code.co_varnames[arg_start:argcount]
+    if args is None:
+        try:
+            argcount = f.func_code.co_argcount
+            param_names = f.func_code.co_varnames[arg_start:argcount]
+        except AttributeError,e:
+            raise TypeError("It's not possible to instrospect builtins. You "
+                            "must pass a sequence of argument names as the "
+                            "'_args' argument to the rpc decorator to manually "
+                            "denote the arguments that this function accepts."
+                        )
+    else:
+        argcount = len(args)
+        param_names = args
 
     in_params = TypeInfo()
     try:
-        for i in range(len(param_names)):
-            e0 = _in_variable_names.get(param_names[i], param_names[i])
-            e1 = params[i]
+        i=0
+        for n in param_names:
+            if args is None or n in args:
+                e0 = _in_variable_names.get(n,n)
+                e1 = params[i]
 
-            in_params[e0] = e1
+                in_params[e0] = e1
+                i += 1
 
     except IndexError, e:
         raise Exception("The parameter numbers of the %r function and its "
@@ -102,7 +121,7 @@ def _validate_body_style(kparams):
 
     return _body_style
 
-def _produce_output_message(f, func_name, kparams):
+def _produce_output_message(func_name, kparams):
     """Generate an output message for "rpc"-style API methods.
 
     This message is a wrapper to the declared return type.
@@ -145,7 +164,6 @@ def _produce_output_message(f, func_name, kparams):
                                         namespace=ns,
                                         members=out_params)
         message.__namespace__ = ns # FIXME: is this necessary?
-
 
     return message
 
@@ -200,6 +218,7 @@ def srpc(*params, **kparams):
     :param _throws: A sequence of exceptions that this function can throw. No
         real functionality besides publishing this information in interface
         documents.
+    :param _args: the name of the arguments to expose.
     '''
 
     def explain(f):
@@ -218,6 +237,7 @@ def srpc(*params, **kparams):
             _aux = kparams.get('_aux', None)
             _pattern = kparams.get("_pattern",None)
             _patterns = kparams.get("_patterns",[])
+            _args = kparams.get("_args",None)
 
             _faults = None
             if ('_faults' in kparams) and ('_throws' in kparams):
@@ -231,9 +251,9 @@ def srpc(*params, **kparams):
             _in_message_name = kparams.get('_in_message_name', function_name)
             _in_variable_names = kparams.get('_in_variable_names', {})
             in_message = _produce_input_message(f, params, kparams, 
-                                _in_message_name, _in_variable_names, _no_ctx)
+                           _in_message_name, _in_variable_names, _no_ctx, _args)
 
-            out_message = _produce_output_message(f, function_name, kparams)
+            out_message = _produce_output_message(function_name, kparams)
 
             doc = getattr(f, '__doc__')
 
@@ -256,7 +276,7 @@ def srpc(*params, **kparams):
                     _mtom, _in_header, _out_header, _faults,
                     port_type=_port_type, no_ctx=_no_ctx, udp=_udp,
                     class_key=function_name, aux=_aux, patterns=_patterns,
-                    body_style=body_style)
+                    body_style=body_style, args=_args)
 
             return retval
 
