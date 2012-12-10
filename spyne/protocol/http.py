@@ -21,6 +21,7 @@
 implementation.
 """
 
+from spyne.error import ResourceNotFoundError
 import logging
 logger = logging.getLogger(__name__)
 
@@ -115,6 +116,9 @@ class HttpRpc(DictDocument):
         assert message in (self.REQUEST,)
 
         self.event_manager.fire_event('before_deserialize', ctx)
+
+        if ctx.descriptor is None:
+            raise ResourceNotFoundError(ctx.method_request_string)
 
         if ctx.descriptor.in_header is not None:
             # HttpRpc supports only one header class
