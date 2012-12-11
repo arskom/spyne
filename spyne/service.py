@@ -48,6 +48,7 @@ class ServiceBaseMeta(type):
                 # these two lines are needed for staticmethod wrapping to work
                 setattr(self, k, staticmethod(descriptor.function))
                 descriptor.reset_function(getattr(self, k))
+                getattr(self, k).descriptor = descriptor
 
                 self.public_methods[k] = descriptor
                 if descriptor.aux is None:
@@ -175,6 +176,7 @@ class ServiceBase(object):
             return cls.__tns__
 
         retval = cls.__module__
+
         if cls.__module__ == '__main__':
             service_name = cls.get_service_class_name().split('.')[-1]
             retval = '.'.join((service_name, service_name))
