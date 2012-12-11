@@ -17,63 +17,17 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from django.test.client import Client
-
-from spyne.client import Service
-from spyne.client import ClientBase
-from spyne.client import RemoteProcedureBase
-
-
-class _RemoteProcedure(RemoteProcedureBase):
-    def __call__(self, *args, **kwargs):
-        # there's no point in having a client making the same request more than
-        # once, so if there's more than just one context, it is a bug.
-        # the comma-in-assignment trick is a general way of getting the first
-        # and the only variable from an iterable. so if there's more than one
-        # element in the iterable, it'll fail miserably.
-        self.ctx, = self.contexts
-
-        # sets ctx.out_object
-        self.get_out_object(self.ctx, args, kwargs)
-
-        # sets ctx.out_string
-        self.get_out_string(self.ctx)
-
-        out_string = ''.join(self.ctx.out_string)
-        # Hack
-        client = Client()
-        response = client.post(self.url, content_type='text/xml', data=out_string)
-        code = response.status_code
-        self.ctx.in_string = [response.content]
-
-        # this sets ctx.in_error if there's an error, and ctx.in_object if
-        # there's none.
-        self.get_in_object(self.ctx)
-
-        if not (self.ctx.in_error is None):
-            raise self.ctx.in_error
-        elif code >= 400:
-            raise self.ctx.in_error
-        else:
-            return self.ctx.in_object
-
-
-class DjangoClient(ClientBase):
-    """The Django test client transport."""
-
-    def __init__(self, url, app):
-        super(DjangoClient, self).__init__(url, app)
-
-        self.service = Service(_RemoteProcedure, url, app)
-
 
 from django.test import TransactionTestCase
+
+from spyne.client.django import DjangoTestClient
+
 from views import hello_world_service
 
 
 class SpyneTestCase(TransactionTestCase):
     def setUp(self):
-        self.client = DjangoClient('/hello_world/', hello_world_service.app)
+        self.client = DjangoTestClient('/hello_world/', hello_world_service.app)
 
     def _test_say_hello(self):
         resp =  self.client.service.say_hello('Joe',5)
