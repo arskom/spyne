@@ -52,9 +52,7 @@ def _get_flat_type_info(cls, retval):
     if parent != None:
         _get_flat_type_info(parent, retval)
 
-    print "cls", cls, cls._type_info
     retval.update(cls._type_info)
-    print retval
     return retval
 
 
