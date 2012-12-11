@@ -88,6 +88,48 @@ class TestXml(unittest.TestCase):
         assert ret.text == "a"
         assert ret.attrib['b'] == "b"
 
+    def test_attribute_of_multi(self):
+        class C(ComplexModel):
+            a = Unicode(max_occurs='unbounded')
+            b = XmlAttribute(Unicode, attribute_of="a")
+
+        class SomeService(ServiceBase):
+            @srpc(C, _returns=C)
+            def some_call(c):
+                assert c.a == ['a0', 'a1']
+                assert c.b == ['b0', 'b1']
+                return c
+
+        app = Application([SomeService], "tns", name="test_attribute_of",
+                        in_protocol=XmlDocument(), out_protocol=XmlDocument())
+        server = ServerBase(app)
+
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = [
+            '<some_call xmlns="tns">'
+                '<c>'
+                    '<a b="b0">a0</a>'
+                    '<a b="b1">a1</a>'
+                '</c>'
+            '</some_call>'
+        ]
+
+        ctx, = server.generate_contexts(initial_ctx)
+        server.get_in_object(ctx)
+        server.get_out_object(ctx)
+        server.get_out_string(ctx)
+
+        ret = etree.fromstring(''.join(ctx.out_string)).xpath('//s0:a',
+                                              namespaces=app.interface.nsmap)
+
+        print etree.tostring(ret[0], pretty_print=True)
+        print etree.tostring(ret[1], pretty_print=True)
+
+        assert ret[0].text == "a0"
+        assert ret[0].attrib['b'] == "b0"
+        assert ret[1].text == "a1"
+        assert ret[1].attrib['b'] == "b1"
+
     def test_attribute_ns(self):
         class a(ComplexModel):
             b = Unicode
