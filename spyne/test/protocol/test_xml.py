@@ -101,7 +101,7 @@ class TestXml(unittest.TestCase):
                 return c
 
         app = Application([SomeService], "tns", name="test_attribute_of",
-                        in_protocol=XmlDocument(), out_protocol=XmlDocument())
+                          in_protocol=XmlDocument(), out_protocol=XmlDocument())
         server = ServerBase(app)
 
         initial_ctx = MethodContext(server)
@@ -120,7 +120,7 @@ class TestXml(unittest.TestCase):
         server.get_out_string(ctx)
 
         ret = etree.fromstring(''.join(ctx.out_string)).xpath('//s0:a',
-                                              namespaces=app.interface.nsmap)
+                                                 namespaces=app.interface.nsmap)
 
         print etree.tostring(ret[0], pretty_print=True)
         print etree.tostring(ret[1], pretty_print=True)
@@ -140,7 +140,8 @@ class TestXml(unittest.TestCase):
             def some_call():
                 return a(b="foo",c="bar")
 
-        app = Application([SomeService], "tns", in_protocol=XmlDocument(), out_protocol=XmlDocument())
+        app = Application([SomeService], "tns", in_protocol=XmlDocument(),
+                                                out_protocol=XmlDocument())
         server = ServerBase(app)
         initial_ctx = MethodContext(server)
         initial_ctx.in_string = ['<some_call xmlns="tns"/>']
@@ -150,8 +151,9 @@ class TestXml(unittest.TestCase):
         server.get_out_object(ctx)
         server.get_out_string(ctx)
 
-        assert etree.fromstring(''.join(ctx.out_string)).xpath('//s0:b',
-            namespaces=app.interface.nsmap)[0].attrib['{%s}c'%app.interface.nsmap["s1"]] == "bar"
+        elt = etree.fromstring(''.join(ctx.out_string))
+        target = elt.xpath('//s0:b', namespaces=app.interface.nsmap)[0]
+        target.attrib['{%s}c' % app.interface.nsmap["s1"]] == "bar"
 
 
 if __name__ == '__main__':
