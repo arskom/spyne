@@ -29,6 +29,7 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+
 '''
 This is a simple HelloWorld example to show the basics of writing
 a webservice using spyne, starting a server, and creating a service
@@ -63,11 +64,12 @@ from spyne.model.primitive import Unicode
 
 from spyne.util.simple import wsgi_soap_application
 
+
 class SomeObject(ComplexModel):
     __namespace__ = 'aaa'
 
-    i=Integer
-    s=Unicode
+    i = Integer
+    s = Unicode
 
 
 class HelloWorldService(ServiceBase):
