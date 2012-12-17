@@ -70,6 +70,13 @@ def _get_one_polygon_pattern(dim):
 def _get_polygon_pattern(dim):
     return 'POLYGON *%s' % _get_one_polygon_pattern(dim)
 
+def _get_one_multipolygon_pattern(dim):
+    one_line = _get_one_polygon_pattern(dim)
+    return '\\(%s *(, *%s)*\\)' % (one_line, one_line)
+
+def _get_multipolygon_pattern(dim):
+    return 'MULTIPOLYGON *%s' % _get_one_multipolygon_pattern(dim)
+
 
 _local_re = re.compile(DATETIME_PATTERN)
 _utc_re = re.compile(DATETIME_PATTERN + 'Z')
@@ -716,6 +723,24 @@ class Polygon(Unicode):
             kwargs['dim'] = dim
             kwargs['pattern'] = _get_polygon_pattern(dim)
             kwargs['type_name'] = 'polygon%dd' % dim
+
+        return SimpleModel.__new__(cls,  ** kwargs)
+
+class MultiPolygon(Unicode):
+    """An experimental point type whose native format is WKT. You can use
+    :func:`shapely.wkt.loads` to get a proper multipolygon type."""
+
+    __base_type__ = Unicode
+
+    class Attributes(Unicode.Attributes):
+        dim = None
+
+    def __new__(cls, dim=None, **kwargs):
+        assert dim in (None,2,3)
+        if dim is not None:
+            kwargs['dim'] = dim
+            kwargs['pattern'] = _get_multipolygon_pattern(dim)
+            kwargs['type_name'] = 'multipolygon%dd' % dim
 
         return SimpleModel.__new__(cls,  ** kwargs)
 

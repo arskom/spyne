@@ -78,6 +78,7 @@ from spyne.model.primitive import Integer32
 from spyne.model.primitive import Integer64
 from spyne.model.primitive import Point
 from spyne.model.primitive import Polygon
+from spyne.model.primitive import MultiPolygon
 from spyne.model.primitive import UnsignedInteger
 from spyne.model.primitive import UnsignedInteger8
 from spyne.model.primitive import UnsignedInteger16
@@ -242,6 +243,9 @@ def get_sqlalchemy_type(cls):
     # must be above Unicode, because Polygon is Unicode's subclass
     elif issubclass(cls, Polygon):
         return PGGeometry("POLYGON", dimension=cls.Attributes.dim)
+
+    elif issubclass(cls, MultiPolygon):
+        return PGGeometry("MULTIPOLYGON", dimension=cls.Attributes.dim)
 
     elif issubclass(cls, String):
         if cls.Attributes.max_len == String.Attributes.max_len: # Default is arbitrary-length

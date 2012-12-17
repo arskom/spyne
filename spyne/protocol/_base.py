@@ -226,26 +226,6 @@ class ProtocolBase(object):
         validation on the parsed input document.
         """
 
-    def set_method_descriptor(self, ctx):
-        """DEPRECATED! Use :func:`generate_method_contexts` instead.
-
-        Method to be overriden to perform any sort of custom matching between
-        the method_request_string and the methods.
-        """
-
-        name = ctx.method_request_string
-        if not name.startswith("{"):
-            name = '{%s}%s' % (self.app.interface.get_tns(), name)
-
-        ctx.service_class = self.app.interface.service_mapping.get(name, None)
-        if ctx.service_class is None:
-            raise ResourceNotFoundError('Method %r not bound to a service class.'
-                                                                        % name)
-
-        ctx.descriptor = ctx.app.interface.method_mapping.get(name, None)
-        if ctx.descriptor is None:
-            raise ResourceNotFoundError('Method %r not found.' % name)
-
     def generate_method_contexts(self, ctx):
         """Generates MethodContext instances for every callable assigned to the
         given method handle.

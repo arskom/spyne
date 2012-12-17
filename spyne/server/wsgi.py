@@ -53,7 +53,7 @@ try:
     from spyne.protocol.soap.mime import apply_mtom
 except ImportError, e:
     def apply_mtom(*args, **kwargs):
-        raise f
+        raise e
 
 from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
