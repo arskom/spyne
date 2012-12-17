@@ -116,7 +116,7 @@ class FileServices(ServiceBase):
 
 def main():
     logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('spyne.wsgi').setLevel(logging.DEBUG)
+    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
     filemgr_app = WsgiApplication(Application([FileServices],
             tns='spyne.examples.file_manager',
