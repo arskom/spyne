@@ -972,7 +972,7 @@ class Uuid(Unicode(pattern=UUID_PATTERN, type_name='uuid')):
 
 
 class Polygon(Unicode):
-    """An experimental point type whose native format is WKT. You can use
+    """A Polygon type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper polygon type."""
 
     __base_type__ = Unicode
@@ -989,8 +989,9 @@ class Polygon(Unicode):
 
         return SimpleModel.__new__(cls,  ** kwargs)
 
+
 class MultiPolygon(Unicode):
-    """An experimental point type whose native format is WKT. You can use
+    """A Multipolygon type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper multipolygon type."""
 
     __base_type__ = Unicode
@@ -1009,7 +1010,7 @@ class MultiPolygon(Unicode):
 
 
 class Point(Unicode):
-    """An experimental point type whose native format is WKT. You can use
+    """A point type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper point type."""
 
     __base_type__ = Unicode
