@@ -393,20 +393,20 @@ class Wsdl11(XmlSchema):
                                     method.out_message.get_type_name())
 
             if method.in_header is not None:
-                if isinstance(method.in_header, (list, tuple)):
+                if len(method.in_header) > 1:
                     in_header_message_name = ''.join((method.name,
                                                       _in_header_msg_suffix))
                 else:
-                    in_header_message_name = method.in_header.get_type_name()
+                    in_header_message_name = method.in_header[0].get_type_name()
                 self._add_message_for_object(root, messages,
                                     method.in_header, in_header_message_name)
 
             if method.out_header is not None:
-                if isinstance(method.out_header, (list, tuple)):
+                if len(method.out_header) > 1:
                     out_header_message_name = ''.join((method.name,
                                                        _out_header_msg_suffix))
                 else:
-                    out_header_message_name = method.out_header.get_type_name()
+                    out_header_message_name = method.out_header[0].get_type_name()
                 self._add_message_for_object(root, messages,
                                     method.out_header, out_header_message_name)
 
@@ -443,11 +443,14 @@ class Wsdl11(XmlSchema):
             if not (in_header is None):
                 if isinstance(in_header, (list, tuple)):
                     in_headers = in_header
+                else:
+                    in_headers = (in_header,)
+
+                if len(in_headers) > 1:
                     in_header_message_name = ''.join((method.name,
                                                       _in_header_msg_suffix))
                 else:
-                    in_headers = (in_header,)
-                    in_header_message_name = in_header.get_type_name()
+                    in_header_message_name = in_headers[0].get_type_name()
 
                 for header in in_headers:
                     soap_header = etree.SubElement(input, '{%s}header' % _ns_soap)
@@ -472,11 +475,14 @@ class Wsdl11(XmlSchema):
                 if not (out_header is None):
                     if isinstance(out_header, (list, tuple)):
                         out_headers = out_header
+                    else:
+                        out_headers = (out_header,)
+
+                    if len(out_headers) > 1:
                         out_header_message_name = ''.join((method.name,
                                                         _out_header_msg_suffix))
                     else:
-                        out_headers = (out_header,)
-                        out_header_message_name = out_header.get_type_name()
+                        out_header_message_name = out_headers[0].get_type_name()
 
                     for header in out_headers:
                         soap_header = etree.SubElement(output, '{%s}header'
