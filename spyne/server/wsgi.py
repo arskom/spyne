@@ -28,6 +28,7 @@ import itertools
 
 from spyne.auxproc import process_contexts
 from spyne.model.binary import File
+from spyne.protocol.http import HttpRpc
 
 try:
     from cgi import parse_qs
@@ -45,9 +46,14 @@ from spyne.server.http import HttpTransportContext
 from spyne.error import RequestTooLongError
 
 from spyne.protocol.http import HttpPattern
-from spyne.protocol.soap.mime import apply_mtom
 from spyne.util import reconstruct_url
 from spyne.server.http import HttpBase
+
+try:
+    from spyne.protocol.soap.mime import apply_mtom
+except ImportError, e:
+    def apply_mtom(*args, **kwargs):
+        raise e
 
 from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
@@ -66,6 +72,18 @@ def _get_http_headers(req_env):
 
     return retval
 
+
+def _gen_http_headers(headers):
+    retval = []
+
+    for k,v in headers.items():
+        if isinstance(v, (list,tuple)):
+            for v2 in v:
+                retval.append((k,v2))
+        else:
+            retval.append((k,v))
+
+    return retval
 
 class WsgiTransportContext(HttpTransportContext):
     """The class that is used in the transport attribute of the
@@ -198,7 +216,8 @@ class WsgiApplication(HttpBase):
         ctx = WsgiMethodContext(self, req_env, 'text/xml; charset=utf-8')
 
         if self.doc.wsdl11 is None:
-            start_response(HTTP_404, ctx.transport.resp_headers.items())
+            start_response(HTTP_404,
+                                  _gen_http_headers(ctx.transport.resp_headers))
             return [HTTP_404]
 
         ctx.transport.wsdl = self._wsdl
@@ -211,7 +230,8 @@ class WsgiApplication(HttpBase):
 
                 if ctx.transport.wsdl is None:
                     self.doc.wsdl11.build_interface_document(url)
-                    ctx.transport.wsdl = self._wsdl = self.doc.wsdl11.get_interface_document()
+                    ctx.transport.wsdl = self._wsdl = \
+                                        self.doc.wsdl11.get_interface_document()
 
             except Exception, e:
                 logger.exception(e)
@@ -220,7 +240,8 @@ class WsgiApplication(HttpBase):
                 # implementation hook
                 self.event_manager.fire_event('wsdl_exception', ctx)
 
-                start_response(HTTP_500, ctx.transport.resp_headers.items())
+                start_response(HTTP_500,
+                                  _gen_http_headers(ctx.transport.resp_headers))
 
                 return [HTTP_500]
 
@@ -230,8 +251,8 @@ class WsgiApplication(HttpBase):
         self.event_manager.fire_event('wsdl', ctx)
 
         ctx.transport.resp_headers['Content-Length'] = \
-                                                str(len(ctx.transport.wsdl))
-        start_response(HTTP_200, ctx.transport.resp_headers.items())
+                                                    str(len(ctx.transport.wsdl))
+        start_response(HTTP_200, _gen_http_headers(ctx.transport.resp_headers))
 
         return [ctx.transport.wsdl]
 
@@ -243,11 +264,12 @@ class WsgiApplication(HttpBase):
         self.get_out_string(p_ctx)
         p_ctx.out_string = [''.join(p_ctx.out_string)]
 
-        p_ctx.transport.resp_headers['Content-Length'] = str(len(p_ctx.out_string[0]))
+        p_ctx.transport.resp_headers['Content-Length'] = \
+                                                   str(len(p_ctx.out_string[0]))
         self.event_manager.fire_event('wsgi_exception', p_ctx)
 
         start_response(p_ctx.transport.resp_code,
-                                             p_ctx.transport.resp_headers.items())
+                                _gen_http_headers(p_ctx.transport.resp_headers))
 
         try:
             process_contexts(self, others, p_ctx, error=error)
@@ -270,21 +292,28 @@ class WsgiApplication(HttpBase):
         p_ctx, others = contexts[0], contexts[1:]
 
         if p_ctx.in_error:
-            return self.handle_error(p_ctx, others, p_ctx.in_error, start_response)
+            return self.handle_error(p_ctx, others, p_ctx.in_error,
+                                                                 start_response)
 
         self.get_in_object(p_ctx)
         if p_ctx.in_error:
             logger.error(p_ctx.in_error)
-            return self.handle_error(p_ctx, others, p_ctx.in_error, start_response)
+            return self.handle_error(p_ctx, others, p_ctx.in_error,
+                                                                 start_response)
 
         self.get_out_object(p_ctx)
         if p_ctx.out_error:
-            return self.handle_error(p_ctx, others, p_ctx.out_error, start_response)
+            return self.handle_error(p_ctx, others, p_ctx.out_error,
+                                                                 start_response)
 
         if p_ctx.transport.resp_code is None:
             p_ctx.transport.resp_code = HTTP_200
 
         self.get_out_string(p_ctx)
+
+        if isinstance(self.app.out_protocol, HttpRpc) and \
+                                               p_ctx.out_header_doc is not None:
+            p_ctx.transport.resp_headers.update(p_ctx.out_header_doc)
 
         if p_ctx.descriptor and p_ctx.descriptor.mtom:
             # when there is more than one return type, the result is
@@ -315,10 +344,7 @@ class WsgiApplication(HttpBase):
 
         # if the out_string is a generator function, this hack lets the user
         # code run until first yield, which lets it set response headers and
-        # whatnot before calling start_response. Yes it causes an additional
-        # copy of the first fragment of the response to be made, but if you know
-        # a better way of having generator functions execute until first yield,
-        # just let us know.
+        # whatnot before calling start_response. Is there a better way?
         try:
             len(p_ctx.out_string) # generator?
 
@@ -327,7 +353,7 @@ class WsgiApplication(HttpBase):
                                     str(sum([len(a) for a in p_ctx.out_string]))
 
             start_response(p_ctx.transport.resp_code,
-                                           p_ctx.transport.resp_headers.items())
+                                _gen_http_headers(p_ctx.transport.resp_headers))
 
             retval = itertools.chain(p_ctx.out_string, self.__finalize(p_ctx))
 
@@ -339,7 +365,7 @@ class WsgiApplication(HttpBase):
                 first_chunk = ''
 
             start_response(p_ctx.transport.resp_code,
-                                            p_ctx.transport.resp_headers.items())
+                                _gen_http_headers(p_ctx.transport.resp_headers))
 
             retval = itertools.chain([first_chunk], retval_iter,
                                                         self.__finalize(p_ctx))
@@ -356,7 +382,6 @@ class WsgiApplication(HttpBase):
         self.event_manager.fire_event('wsgi_close', p_ctx)
 
         return []
-
 
     def __reconstruct_wsgi_request(self, http_env):
         """Reconstruct http payload using information in the http header."""
@@ -481,7 +506,8 @@ class WsgiApplication(HttpBase):
             for k, v in files.items():
                 val = ctx.in_body_doc.get(k, [])
 
-                mime_type = v.headers.get('Content-Type', 'application/octet-stream')
+                mime_type = v.headers.get('Content-Type',
+                                                     'application/octet-stream')
 
                 path = getattr(v.stream, 'name', None)
                 if path is None:

@@ -27,6 +27,8 @@ import decimal
 
 from lxml import etree
 
+from collections import deque
+
 from spyne.model.complex import XmlAttribute
 from spyne.model.primitive import AnyXml
 from spyne.util.etreeconv import dict_to_etree
@@ -109,11 +111,16 @@ def complex_add(document, cls):
 
     sequence = etree.SubElement(sequence_parent, '{%s}sequence' % _ns_xsd)
 
+    deferred_a_of = deque()
     for k, v in type_info.items():
         if issubclass(v, XmlAttribute):
-            attribute = etree.SubElement(complex_type,
-                                        '{%s}attribute' % _ns_xsd)
-            v.describe(k, attribute, document)
+            if v.attribute_of is None: # others will be added at a later loop
+                attribute = etree.SubElement(complex_type,'{%s}attribute' % _ns_xsd)
+
+                v.describe(k, attribute, document)
+            else:
+                deferred_a_of.append((k,v))
+
             continue
 
         if v.Attributes.exc_interface:
@@ -151,6 +158,32 @@ def complex_add(document, cls):
 
         if bool(v.Attributes.nillable) != False: # False is the xml schema default
             member.set('nillable', 'true')
+
+
+    for k,v in deferred_a_of:
+        ao = v.attribute_of
+        elts = complex_type.xpath("//xsd:element[@name='%s']" % ao,
+                                                    namespaces={'xsd': _ns_xsd})
+
+        if len(elts) == 0:
+            raise ValueError("Element %r not found for XmlAttribute %r." %
+                                                                        (ao, k))
+        elif len(elts) > 1:
+            raise Exception("Xpath returned more than one element %r "
+                          "for %r. Not sure what's going on here." % (elts, ao))
+
+        else:
+            elt = elts[0]
+
+        _ct = etree.SubElement(elt, '{%s}complexType' % _ns_xsd)
+        _sc = etree.SubElement(_ct, '{%s}simpleContent' % _ns_xsd)
+        _ext = etree.SubElement(_sc, '{%s}extension' % _ns_xsd)
+        _ext.attrib['base'] = elt.attrib['type']
+        del elt.attrib['type']
+
+        attribute = etree.SubElement(_ext, '{%s}attribute' % _ns_xsd)
+        v.describe(k, attribute, document)
+
 
     document.add_complex_type(cls, complex_type)
 
@@ -238,28 +271,61 @@ def unicode_get_restriction_tag(interface, cls):
 
 @memoize
 def Tget_range_restriction_tag(T):
+    """The get_range_restriction template function. Takes a primitive, returns
+    a function that generates range restriction tags.
+    """
+
+    from spyne.model.primitive import Decimal
+    from spyne.model.primitive import Integer
+
+    if issubclass(T, Decimal):
+        def _get_float_restrictions(restriction, cls):
+            if cls.Attributes.fraction_digits != T.Attributes.fraction_digits:
+                elt = etree.SubElement(restriction, '{%s}fractionDigits' % _ns_xs)
+                elt.set('value', cls.Attributes.total_digits)
+
+        def _get_integer_restrictions(restriction, cls):
+            if cls.Attributes.total_digits != T.Attributes.total_digits:
+                elt = etree.SubElement(restriction, '{%s}totalDigits' % _ns_xs)
+                elt.set('value', cls.Attributes.total_digits)
+
+        if issubclass(T, Integer):
+            def _get_additional_restrictions(restriction, cls):
+                _get_integer_restrictions(restriction, cls)
+
+        else:
+            def _get_additional_restrictions(restriction, cls):
+                _get_integer_restrictions(restriction, cls)
+                _get_float_restrictions(restriction, cls)
+
+    else:
+        def _get_additional_restrictions(restriction, cls):
+            pass
+
     def _get_range_restriction_tag(interface, cls):
         restriction = simple_get_restriction_tag(interface, cls)
 
         if cls.Attributes.gt != T.Attributes.gt:
-            min_l = etree.SubElement(restriction, '{%s}minExclusive' % _ns_xs)
-            min_l.set('value', cls.to_string(cls.Attributes.gt))
+            elt = etree.SubElement(restriction, '{%s}minExclusive' % _ns_xs)
+            elt.set('value', cls.to_string(cls.Attributes.gt))
 
         if cls.Attributes.ge != T.Attributes.ge:
-            min_l = etree.SubElement(restriction, '{%s}minInclusive' % _ns_xs)
-            min_l.set('value', cls.to_string(cls.Attributes.ge))
+            elt = etree.SubElement(restriction, '{%s}minInclusive' % _ns_xs)
+            elt.set('value', cls.to_string(cls.Attributes.ge))
 
         if cls.Attributes.lt != T.Attributes.lt:
-            min_l = etree.SubElement(restriction, '{%s}maxExclusive' % _ns_xs)
-            min_l.set('value', cls.to_string(cls.Attributes.lt))
+            elt = etree.SubElement(restriction, '{%s}maxExclusive' % _ns_xs)
+            elt.set('value', cls.to_string(cls.Attributes.lt))
 
         if cls.Attributes.le != T.Attributes.le:
-            min_l = etree.SubElement(restriction, '{%s}maxInclusive' % _ns_xs)
-            min_l.set('value', cls.to_string(cls.Attributes.le))
+            elt = etree.SubElement(restriction, '{%s}maxInclusive' % _ns_xs)
+            elt.set('value', cls.to_string(cls.Attributes.le))
 
         if cls.Attributes.pattern != T.Attributes.pattern:
-            pattern = etree.SubElement(restriction, '{%s}pattern' % _ns_xs)
-            pattern.set('value', cls.Attributes.pattern)
+            elt = etree.SubElement(restriction, '{%s}pattern' % _ns_xs)
+            elt.set('value', cls.Attributes.pattern)
+
+        _get_additional_restrictions(restriction, cls)
 
         return restriction
 

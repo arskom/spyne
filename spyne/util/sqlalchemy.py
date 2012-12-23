@@ -78,15 +78,14 @@ from spyne.model.primitive import Integer32
 from spyne.model.primitive import Integer64
 from spyne.model.primitive import Point
 from spyne.model.primitive import Polygon
+from spyne.model.primitive import MultiPolygon
 from spyne.model.primitive import UnsignedInteger
 from spyne.model.primitive import UnsignedInteger8
 from spyne.model.primitive import UnsignedInteger16
 from spyne.model.primitive import UnsignedInteger32
 from spyne.model.primitive import UnsignedInteger64
 
-from spyne.util import memoize
 from spyne.util import sanitize_args
-
 from spyne.util.xml import get_object_as_xml
 from spyne.util.xml import get_xml_as_object
 from spyne.util.dictobj import get_dict_as_object
@@ -232,7 +231,6 @@ class PGObjectJson(UserDefinedType):
 sqlalchemy.dialects.postgresql.base.ischema_names['json'] = PGObjectJson
 
 
-@memoize
 def get_sqlalchemy_type(cls):
     # must be above Unicode, because Uuid is Unicode's subclass
     if issubclass(cls, Uuid):
@@ -246,6 +244,9 @@ def get_sqlalchemy_type(cls):
     elif issubclass(cls, Polygon):
         return PGGeometry("POLYGON", dimension=cls.Attributes.dim)
 
+    elif issubclass(cls, MultiPolygon):
+        return PGGeometry("MULTIPOLYGON", dimension=cls.Attributes.dim)
+
     elif issubclass(cls, String):
         if cls.Attributes.max_len == String.Attributes.max_len: # Default is arbitrary-length
             return sqlalchemy.Text
@@ -257,6 +258,9 @@ def get_sqlalchemy_type(cls):
             return sqlalchemy.UnicodeText
         else:
             return sqlalchemy.Unicode(cls.Attributes.max_len)
+
+    elif issubclass(cls, ByteArray):
+        return sqlalchemy.LargeBinary
 
     elif issubclass(cls, (Integer64, UnsignedInteger64)):
         return sqlalchemy.BigInteger

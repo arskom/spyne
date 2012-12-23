@@ -30,6 +30,7 @@ from spyne.util.appreg import register_application
 def get_fault_string_from_exception(e):
     return str(e)
 
+
 def return_traceback_in_unhandled_exceptions():
     """Call this function first thing in your main function to return tracebacks
     to your clients in case of unhandled exceptions.
@@ -41,6 +42,7 @@ def return_traceback_in_unhandled_exceptions():
     def _get_fault_string_from_exception(e):
         return traceback.format_exc()
     get_fault_string_from_exception = _get_fault_string_from_exception
+
 
 class Application(object):
     '''The Application class is the glue between one or more service

@@ -93,7 +93,7 @@ class XmlDocument(ProtocolBase):
     :param xml_declaration: Whether to add xml_declaration to the responses
         Default is 'True'.
     :param cleanup_namespaces: Whether to add clean up namespace declarations
-        in the response document. Default is 'False'.
+        in the response document. Default is 'True'.
     """
 
     SCHEMA_VALIDATION = type("Schema", (object,), {})
@@ -102,7 +102,7 @@ class XmlDocument(ProtocolBase):
     allowed_http_verbs = set(['GET', 'POST'])
 
     def __init__(self, app=None, validator=None, xml_declaration=True,
-                                                    cleanup_namespaces=False):
+                                                    cleanup_namespaces=True):
         ProtocolBase.__init__(self, app, validator)
         self.xml_declaration = xml_declaration
         self.cleanup_namespaces = cleanup_namespaces

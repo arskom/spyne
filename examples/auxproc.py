@@ -29,74 +29,61 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-
-'''
-This is a simple HelloWorld example to show the basics of writing
-a webservice using spyne, starting a server, and creating a service
-client.
-
-Here's how to call it using suds:
-
->>> from suds.client import Client
->>> c = Client('http://localhost:7789/?wsdl')
->>> c.service.say_hello('punk', 5)
-(stringArray){
-   string[] =
-      "Hello, punk",
-      "Hello, punk",
-      "Hello, punk",
-      "Hello, punk",
-      "Hello, punk",
- }
->>>
-
-'''
-
-
+import sys
+import time
 import logging
 
+from wsgiref.simple_server import make_server
+
+from spyne.application import Application
 from spyne.decorator import srpc
-from spyne.service import ServiceBase
-from spyne.model.complex import ComplexModel
-from spyne.model.complex import Iterable
 from spyne.model.primitive import Integer
-from spyne.model.primitive import Unicode
+from spyne.protocol.http import HttpRpc
+from spyne.protocol.xml import XmlDocument
+from spyne.server.wsgi import WsgiApplication
+from spyne.service import ServiceBase
 
-from spyne.util.simple import wsgi_soap_application
-
-
-class SomeObject(ComplexModel):
-    __namespace__ = 'aaa'
-
-    i = Integer
-    s = Unicode
+# Requires Python >=2.7
+from spyne.auxproc.thread import ThreadAuxProc
+from spyne.auxproc.sync import SyncAuxProc
 
 
-class HelloWorldService(ServiceBase):
-    __out_header__ = SomeObject
-    @srpc(Unicode, Integer, _returns=Iterable(Unicode))
-    def say_hello(name, times):
-        '''
-        Docstrings for service methods appear as documentation in the wsdl
-        <b>what fun</b>
-        @param name the name to say hello to
-        @param the number of times to say hello
-        @return the completed array
-        '''
-
-        for i in range(times):
-            yield u'Hello, %s' % name
+host = '127.0.0.1'
+port = 9753
 
 
-if __name__=='__main__':
-    from wsgiref.simple_server import make_server
+class SomeService(ServiceBase):
+    @srpc(Integer)
+    def block(seconds):
+        """Blocks the reactor for given number of seconds."""
+        logging.info("Primary sleeping for %d seconds." % seconds)
+        time.sleep(seconds)
 
+
+class SomeAuxService(ServiceBase):
+    __aux__ = SyncAuxProc() # change this to SyncAuxProc to see the difference
+
+    @srpc(Integer)
+    def block(seconds):
+        """Blocks the reactor for given number of seconds."""
+        logging.info("Auxiliary sleeping for %d seconds." % (seconds * 2))
+        time.sleep(seconds * 2)
+
+
+def main():
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
-    logging.info("listening to http://127.0.0.1:7789")
-    logging.info("wsdl is at: http://localhost:7789/?wsdl")
+    services = (SomeService, SomeAuxService)
+    application = Application(services, 'spyne.examples.auxproc',
+                                in_protocol=HttpRpc(), out_protocol=XmlDocument())
 
-    wsgi_app = wsgi_soap_application([HelloWorldService], 'spyne.examples.hello.soap')
-    server = make_server('127.0.0.1', 7789, wsgi_app)
+    server = make_server(host, port, WsgiApplication(application))
+
+    logging.info("listening to http://%s:%d" % (host, port))
+
     server.serve_forever()
+
+
+if __name__ == '__main__':
+    sys.exit(main())

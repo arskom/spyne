@@ -27,6 +27,8 @@ logger = logging.getLogger(__name__)
 
 import decimal
 
+from collections import deque
+
 from spyne.model import ModelBase
 from spyne.model import nillable_dict
 from spyne.model import nillable_string
@@ -40,8 +42,18 @@ from spyne.const import MAX_ARRAY_ELEMENT_NUM
 from spyne.const.suffix import ARRAY_SUFFIX
 from spyne.const.suffix import TYPE_SUFFIX
 
+from spyne.util import memoize
 from spyne.util import sanitize_args
 from spyne.util.odict import odict
+
+
+def _get_flat_type_info(cls, retval):
+    parent = getattr(cls, '__extends__', None)
+    if parent != None:
+        _get_flat_type_info(parent, retval)
+
+    retval.update(cls._type_info)
+    return retval
 
 
 class xml:
@@ -113,21 +125,28 @@ class TypeInfo(odict):
 
 
 class _SimpleTypeInfoElement(object):
-    __slots__ = ['path', 'parent', 'type']
-    def __init__(self, path, parent, type_):
+    __slots__ = ['path', 'parent', 'type', 'is_array']
+    def __init__(self, path, parent, type_, is_array):
         self.path = path
         self.parent = parent
         self.type = type_
+        self.is_array = is_array
+
+    def __repr__(self):
+        return "SimpleTypeInfoElement(path=%r, parent=%r, type=%r, is_array=%r)" \
+                            % (self.path, self.parent, self.type, self.is_array)
 
 
 class XmlAttribute(ModelBase):
     """Items which are marshalled as attributes of the parent element."""
-    def __new__(cls, typ, use=None, ns=None, attribute_of=None):
+
+    def __new__(cls, type, use=None, ns=None, attribute_of=None):
         retval = cls.customize()
-        retval._typ = typ
+        retval.type = type
         retval._use = use
         retval._ns = ns
-        retval._attribute_of = attribute_of
+        retval.attribute_of = attribute_of
+
         return retval
 
     @classmethod
@@ -136,24 +155,24 @@ class XmlAttribute(ModelBase):
             name = "{%s}%s" % (cls._ns,name)
 
         if value is not None:
-            parent_elt.set(name, cls._typ.to_string(value))
+            parent_elt.set(name, cls.type.to_string(value))
 
     @classmethod
     def describe(cls, name, element, document):
         element.set('name', name)
-        element.set('type', cls._typ.get_type_name_ns(document.interface))
+        element.set('type', cls.type.get_type_name_ns(document.interface))
 
         if cls._use is not None:
             element.set('use', cls._use)
 
     @staticmethod
     def resolve_namespace(cls, default_ns):
-        cls._typ.resolve_namespace(cls._typ, default_ns)
+        cls.type.resolve_namespace(cls.type, default_ns)
 
         cls.__namespace__ = cls._ns
 
         if cls.__namespace__ is None:
-            cls.__namespace__ = cls._typ.get_namespace()
+            cls.__namespace__ = cls.type.get_namespace()
 
         if cls.__namespace__ in namespace.const_prefmap:
             cls.__namespace__ = default_ns
@@ -484,27 +503,18 @@ class ComplexModelBase(ModelBase):
         return dict(cls.get_members_pairs(inst))
 
     @staticmethod
-    def get_flat_type_info(cls, retval=None):
+    @memoize
+    def get_flat_type_info(cls):
         """Returns a _type_info dict that includes members from all base classes.
 
         It's called a "flat" dict because it flattens all members from the
         inheritance hierarchy into one dict.
         """
-
-        if retval is None:
-            retval = TypeInfo()
-
-        parent = getattr(cls, '__extends__', None)
-        if parent != None:
-            cls.get_flat_type_info(parent, retval)
-
-        retval.update(cls._type_info)
-
-        return retval
+        return _get_flat_type_info(cls, TypeInfo())
 
     @staticmethod
     def get_simple_type_info(cls, hier_delim="_", retval=None, prefix=None,
-                                                                    parent=None):
+                                                    parent=None, is_array=None):
         """Returns a _type_info dict that includes members from all base classes
         and whose types are only primitives. It will prefix field names in
         non-top-level complex objects with field name of its parent.
@@ -523,38 +533,44 @@ class ComplexModelBase(ModelBase):
             retval = TypeInfo()
 
         if prefix is None:
-            prefix = []
+            prefix = deque()
+
+        if is_array is None:
+            is_array = deque()
 
         fti = cls.get_flat_type_info(cls)
         for k, v in fti.items():
-            if getattr(v, 'get_flat_type_info', None) is None:
-                new_prefix = list(prefix)
-                new_prefix.append(k)
-                key = hier_delim.join(new_prefix)
+            prefix.append(k)
+            is_array.append(v.Attributes.max_occurs > 1)
+
+            if not issubclass(v, ComplexModelBase):
+                key = hier_delim.join(prefix)
                 value = retval.get(key, None)
 
                 if value:
                     raise ValueError("%r.%s conflicts with %r" % (cls, k, value))
 
-                retval[key] = _SimpleTypeInfoElement(path=tuple(new_prefix),
-                                                        parent=parent, type_=v)
+                retval[key] = _SimpleTypeInfoElement(path=tuple(prefix),
+                               parent=parent, type_=v, is_array=tuple(is_array))
 
             else:
-                new_prefix = list(prefix)
-                new_prefix.append(k)
-                v.get_simple_type_info(v, hier_delim, retval, new_prefix, parent=cls)
+                v.get_simple_type_info(v, hier_delim, retval, prefix, cls,
+                                                                       is_array)
+
+            prefix.pop()
+            is_array.pop()
 
         return retval
 
     @classmethod
     @nillable_string
     def to_string(cls, value):
-        raise ValueError("Only primitives can be serialized to string.")
+        raise TypeError("Only primitives can be serialized to string.")
 
     @classmethod
     @nillable_string
     def from_string(cls, string):
-        raise ValueError("Only primitives can be deserialized from string.")
+        raise TypeError("Only primitives can be deserialized from string.")
 
     @staticmethod
     def resolve_namespace(cls, default_ns):
@@ -731,28 +747,29 @@ class Alias(ComplexModelBase):
 
 def log_repr(obj, cls=None):
     """Use this function if you want to echo a ComplexModel subclass. It will
-    limit output size of the String types, thus make your logs smaller.
+    limit output size of the String types, making your logs smaller.
     """
+
+    if obj is None:
+        return 'None'
 
     if cls is None:
         cls = obj.__class__
 
-    if issubclass(cls, Array):
+    if issubclass(cls, Array) or cls.Attributes.max_occurs > 1:
         retval = []
 
         cls, = cls._type_info.values()
 
         if not cls.Attributes.logged:
-            retval ="[%s (...)]" % cls.get_type_name()
+            retval.append("[%s (...)]" % cls.get_type_name())
         else:
-            retval = _log_repr_obj(obj, cls)
+            for i,o in enumerate(obj):
+                retval.append(_log_repr_obj(o, cls))
 
-        for i,o in enumerate(obj):
-            retval.append(_log_repr_obj(o, cls))
-
-            if i > MAX_ARRAY_ELEMENT_NUM:
-                retval.append("(...)")
-                break
+                if i > MAX_ARRAY_ELEMENT_NUM:
+                    retval.append("(...)")
+                    break
 
         retval = "%s([%s])" % (cls.get_type_name(), ', '.join(retval))
 
@@ -760,7 +777,7 @@ def log_repr(obj, cls=None):
         if cls.Attributes.logged:
             retval = _log_repr_obj(obj, cls)
         else:
-            retval ="%s(...)" % cls.get_type_name()
+            retval = "%s(...)" % cls.get_type_name()
 
     else:
         retval = repr(obj)

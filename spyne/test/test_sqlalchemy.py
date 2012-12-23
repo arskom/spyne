@@ -128,12 +128,6 @@ class TestSqlAlchemy(unittest.TestCase):
 
         AddressDetail.mapper(self.metadata)
 
-    #def test_serialize(self):
-    #    raise Exception("Test Something!")
-
-    #def test_deserialize(self):
-    #    raise Exception("Test Something!")
-
     def test_rpc(self):
         import sqlalchemy
         from sqlalchemy import sql
@@ -540,6 +534,43 @@ class TestSqlAlchemyNested(unittest.TestCase):
 
         session.close()
 
+    def test_nested_sql_array_as_xml_no_ns(self):
+        engine = create_engine('sqlite:///:memory:')
+        session = sessionmaker(bind=engine)()
+        metadata = NewTableModel.Attributes.sqla_metadata = MetaData()
+        metadata.bind = engine
+
+        class SomeOtherClass(ComplexModel):
+            id = Integer32
+            s = Unicode(64)
+
+        class SomeClass(NewTableModel):
+            __tablename__ = 'some_class'
+            __table_args__ = {"sqlite_autoincrement": True}
+
+            id = Integer32(primary_key=True)
+            others = Array(SomeOtherClass, store_as=xml(no_ns=True))
+
+        gen_sqla_info(SomeClass)
+
+        metadata.create_all()
+
+        soc1 = SomeOtherClass(s='ehe1')
+        soc2 = SomeOtherClass(s='ehe2')
+        sc = SomeClass(others=[soc1, soc2])
+
+        session.add(sc)
+        session.commit()
+        session.close()
+
+        sc_xml = session.connection().execute("select others from some_class") \
+                                                               .fetchall()[0][0]
+
+        from lxml import etree
+        assert etree.fromstring(sc_xml).tag == 'SomeOtherClassArray'
+
+        session.close()
+
     def test_inheritance(self):
         engine = create_engine('sqlite:///:memory:')
         session = sessionmaker(bind=engine)()
@@ -654,9 +685,6 @@ class TestSqlAlchemyNested(unittest.TestCase):
             numbers = Array(Integer32).store_as(xml(no_ns=True, root_tag='a'))
 
         metadata.create_all()
-
-        from pprint import pprint
-        print "!!!!!!!!!!!!!!!!", pprint(vars(SomeClass.Attributes.sqla_mapper))
 
         sc = SomeClass(id=5, s='s', numbers=[1,2,3,4])
 

@@ -222,6 +222,12 @@ class MethodContext(object):
         """The locale the request will use when needed for things like date
         formatting, html rendering and such."""
 
+        self.in_protocol = None
+        """The protocol that will be used to (de)serialize incoming input"""
+
+        self.out_protocol = None
+        """The protocol that will be used to (de)serialize outgoing input"""
+
         self.frozen = True
         """When this is set, no new attribute can be added to this class
         instance. This is mostly for internal use.
@@ -282,7 +288,7 @@ class MethodDescriptor(object):
                  is_callback=False, is_async=False, mtom=False, in_header=None,
                  out_header=None, faults=None,
                  port_type=None, no_ctx=False, udp=None, class_key=None,
-                 aux=None, patterns=None, body_style=None):
+                 aux=None, patterns=None, body_style=None, args=None):
 
         self.__real_function = function
         """The original callable for the user code."""
@@ -357,6 +363,9 @@ class MethodDescriptor(object):
 
         self.body_style = body_style
         """One of (BODY_STYLE_EMPTY, BODY_STYLE_BARE, BODY_STYLE_WRAPPED)."""
+
+        self.args = args
+        """A sequence of the names of the exposed arguments, or None."""
 
     @property
     def name(self):

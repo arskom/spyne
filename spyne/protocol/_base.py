@@ -101,6 +101,8 @@ class ProtocolBase(object):
     :param skip_depth: Number of wrapper classes to ignore. This is
         typically one of (0, 1, 2) but higher numbers may also work for your
         case.
+    :param ignore_uncap: Silently ignore cases when the protocol is not capable
+        of serializing return values instead of raising a TypeError.
     """
 
     allowed_http_verbs = None
@@ -110,7 +112,7 @@ class ProtocolBase(object):
     REQUEST = type("Request", (object,), {})
     RESPONSE = type("Response", (object,), {})
 
-    def __init__(self, app=None, validator=None, mime_type=None, skip_depth=0):
+    def __init__(self, app=None, validator=None, mime_type=None, skip_depth=0, ignore_uncap=False):
         self.__app = None
         self.validator = None
 
@@ -118,6 +120,7 @@ class ProtocolBase(object):
         self.event_manager = EventManager(self)
         self.set_validator(validator)
         self.skip_depth = skip_depth
+        self.ignore_uncap=ignore_uncap
         if mime_type is not None:
             self.mime_type = mime_type
 
@@ -162,26 +165,6 @@ class ProtocolBase(object):
         """Method to be overriden to perform any sort of custom input
         validation on the parsed input document.
         """
-
-    def set_method_descriptor(self, ctx):
-        """DEPRECATED! Use :func:`generate_method_contexts` instead.
-
-        Method to be overriden to perform any sort of custom matching between
-        the method_request_string and the methods.
-        """
-
-        name = ctx.method_request_string
-        if not name.startswith("{"):
-            name = '{%s}%s' % (self.app.interface.get_tns(), name)
-
-        ctx.service_class = self.app.interface.service_mapping.get(name, None)
-        if ctx.service_class is None:
-            raise ResourceNotFoundError('Method %r not bound to a service class.'
-                                                                        % name)
-
-        ctx.descriptor = ctx.app.interface.method_mapping.get(name, None)
-        if ctx.descriptor is None:
-            raise ResourceNotFoundError('Method %r not found.' % name)
 
     def generate_method_contexts(self, ctx):
         """Generates MethodContext instances for every callable assigned to the

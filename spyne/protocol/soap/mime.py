@@ -37,16 +37,10 @@ except ImportError: # Python 3
     from urllib.parse import unquote
 
 # import email data format related stuff
-try:
-    # python >= 2.5
-    from email.mime.multipart import MIMEMultipart
-    from email.mime.application import MIMEApplication
-    from email.encoders import encode_7or8bit
-except ImportError:
-    # python 2.4
-    from email.MIMENonMultipart import MIMENonMultipart
-    from email.MIMEMultipart import MIMEMultipart
-    from email.Encoders import encode_7or8bit
+
+from email.mime.multipart import MIMEMultipart
+from email.mime.application import MIMEApplication
+from email.encoders import encode_7or8bit
 
 from email import message_from_string
 from spyne.model.binary import Attachment
@@ -243,14 +237,7 @@ def apply_mtom(headers, envelope, params, paramvals):
 
     # Set up initial MIME parts.
     mtompkg = MIMEMultipart('related', boundary='?//<><>spyne_MIME_boundary<>')
-    rootpkg = None
-    try:
-        rootpkg = MIMEApplication(envelope, 'xop+xml', encode_7or8bit)
-
-    except NameError:
-        rootpkg = MIMENonMultipart("application", "xop+xml")
-        rootpkg.set_payload(envelope)
-        encode_7or8bit(rootpkg)
+    rootpkg = MIMEApplication(envelope, 'xop+xml', encode_7or8bit)
 
     # Set up multipart headers.
     del(mtompkg['mime-version'])
@@ -293,13 +280,7 @@ def apply_mtom(headers, envelope, params, paramvals):
                 data = ''.join(paramvals[i])
             attachment = None
 
-            try:
-                attachment = MIMEApplication(data, _encoder=encode_7or8bit)
-
-            except NameError:
-                attachment = MIMENonMultipart("application", "octet-stream")
-                attachment.set_payload(data)
-                encode_7or8bit(attachment)
+            attachment = MIMEApplication(data, _encoder=encode_7or8bit)
 
             del(attachment['mime-version'])
 

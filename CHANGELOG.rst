@@ -2,6 +2,19 @@
 Changelog
 =========
 
+spyne-2.10.0
+------------
+ * XmlDocument and friends: cleanup_namespaces is now True by default.
+ * You can now set Http response headers via ctx.out_object when
+   out_protocol is HttpRpc. https://github.com/arskom/spyne/pull/201
+ * lxml is not a hard requirement anymore.
+ * 'attribute_of' added to ModelBase to add attribute support for
+   primitives. This is currently supported by Xml & and friends and
+   ignored by (and mostly irrelevant to) other protocols.
+ * Add support for exposing existing whose source code via the _args
+   argument to the srpc decorator. See the existing_api example for
+   usage examples.
+
 spyne-2.9.3
 -----------
  * Fix WsgiApplication choking on empty string return value.

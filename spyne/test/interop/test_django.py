@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -17,18 +17,20 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-__version__ = '2.10.0'
 
-from spyne._base import AuxMethodContext
-from spyne._base import TransportContext
-from spyne._base import EventContext
-from spyne._base import MethodContext
-from spyne._base import MethodDescriptor
-from spyne._base import EventManager
+from django.test import TransactionTestCase
 
-import sys
+from spyne.client.django import DjangoTestClient
 
-if not hasattr(sys, "version_info") or sys.version_info < (2, 5):
-    raise RuntimeError("Spyne requires Python 2.5 or later.")
+from views import hello_world_service
 
-del sys
+
+class SpyneTestCase(TransactionTestCase):
+    def setUp(self):
+        self.client = DjangoTestClient('/hello_world/', hello_world_service.app)
+
+    def _test_say_hello(self):
+        resp =  self.client.service.say_hello('Joe',5)
+        list_resp = list(resp)
+        self.assertEqual(len(list_resp), 5)
+        self.assertEqual(list_resp,['Hello, Joe']*5)

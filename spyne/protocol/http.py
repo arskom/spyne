@@ -26,9 +26,7 @@ logger = logging.getLogger(__name__)
 
 import tempfile
 
-TEMPORARY_DIR = None
-STREAM_READ_BLOCK_SIZE = 0x4000
-SWAP_DATA_TO_FILE_THRESHOLD = 512 * 1024
+from spyne.protocol.dictobj import DictDocument
 
 try:
     from cStringIO import StringIO
@@ -38,7 +36,11 @@ except ImportError:
     except ImportError: # Python 3
         from io import StringIO
 
-from spyne.protocol.dictobj import DictDocument
+
+TEMPORARY_DIR = None
+STREAM_READ_BLOCK_SIZE = 0x4000
+SWAP_DATA_TO_FILE_THRESHOLD = 512 * 1024
+
 
 def get_stream_factory(dir=None, delete=True):
     def stream_factory(total_content_length, filename, content_type,
@@ -55,6 +57,7 @@ def get_stream_factory(dir=None, delete=True):
             retval = StringIO()
 
         return retval
+
     return stream_factory
 
 
@@ -66,9 +69,10 @@ class HttpRpc(DictDocument):
     mime_type = 'text/plain'
     allowed_http_verbs = None
 
-    def __init__(self, app=None, validator=None, mime_type=None, tmp_dir=None,
-                                                      tmp_delete_on_close=True):
-        DictDocument.__init__(self, app, validator, mime_type)
+    def __init__(self, app=None, validator=None, mime_type=None,
+                    tmp_dir=None, tmp_delete_on_close=True, ignore_uncap=False):
+        DictDocument.__init__(self, app, validator, mime_type,
+                                                      ignore_uncap=ignore_uncap)
 
         self.tmp_dir = tmp_dir
         self.tmp_delete_on_close = tmp_delete_on_close
@@ -112,10 +116,12 @@ class HttpRpc(DictDocument):
 
         self.event_manager.fire_event('before_deserialize', ctx)
 
-        if ctx.descriptor.in_header:
+        if ctx.descriptor.in_header is not None:
+            # HttpRpc supports only one header class
+            in_header_class = ctx.descriptor.in_header[0]
             ctx.in_header = self.flat_dict_to_object(ctx.in_header_doc,
-                                      ctx.descriptor.in_header, self.validator)
-        if ctx.descriptor.in_message:
+                                                in_header_class, self.validator)
+        if ctx.descriptor.in_message is not None:
             ctx.in_object = self.flat_dict_to_object(ctx.in_body_doc,
                                       ctx.descriptor.in_message, self.validator)
 
@@ -125,28 +131,43 @@ class HttpRpc(DictDocument):
         assert message in (self.RESPONSE,)
 
         if ctx.out_error is None:
-            result_message_class = ctx.descriptor.out_message
+            result_class = ctx.descriptor.out_message
+            header_class = ctx.descriptor.out_header
+            if header_class is not None:
+                header_class = header_class[0] # HttpRpc supports only one header class
 
             # assign raw result to its wrapper, result_message
-            out_type_info = result_message_class.get_flat_type_info(
-                                                           result_message_class)
+            out_type_info = result_class.get_flat_type_info(result_class)
             if len(out_type_info) == 1:
                 out_class = out_type_info.values()[0]
                 if ctx.out_object is None:
                     ctx.out_document = ['']
+
                 else:
                     try:
                         ctx.out_document = out_class.to_string_iterable(
                                                               ctx.out_object[0])
-                    except AttributeError:
-                        raise ValueError("HttpRpc protocol can only serialize "
-                                         "primitives, not %r" % out_class)
+                    except (AttributeError, TypeError), e:
+                        if not self.ignore_uncap:
+                            raise ValueError("HttpRpc protocol can only "
+                                     "serialize primitives, not %r" % out_class)
+
             elif len(out_type_info) == 0:
                 pass
 
             else:
                 raise ValueError("HttpRpc protocol can only serialize simple "
                                  "return values.")
+
+            # header
+            if ctx.out_header is not None:
+                out_header = ctx.out_header
+                if isinstance(ctx.out_header, (list, tuple)):
+                    out_header = ctx.out_header[0]
+
+                ctx.out_header_doc = self.object_to_flat_dict(header_class,
+                                                                     out_header)
+
         else:
             ctx.transport.mime_type = 'text/plain'
             ctx.out_document = ctx.out_error.to_string_iterable(ctx.out_error)

@@ -50,11 +50,10 @@ class ArgumentError(Fault):
 
 class ValidationError(Fault):
     """Raised when the input stream does not adhere to type constraints."""
-    def __init__(self, obj):
+    def __init__(self, obj, custom_msg='The value %r could not be validated.'):
         s = repr(obj)
 
         if len(s) > MAX_STRING_FIELD_LENGTH:
             s = s[:MAX_STRING_FIELD_LENGTH] + "(...)"
 
-        Fault.__init__(self, 'Client.ValidationError',
-                                    'The value %r could not be validated.' % s)
+        Fault.__init__(self, 'Client.ValidationError', custom_msg % s)

@@ -147,13 +147,9 @@ def get_members_etree(prot, cls, inst, parent):
         # logger.debug("get %r(%r) from %r: %r" % (k, v, inst, subvalue))
 
         if issubclass(v, XmlAttribute):
-            a_of = v._attribute_of
+            a_of = v.attribute_of
             if a_of is not None and a_of in cls._type_info.keys():
-                attr_parent=parent.find("{%s}%s"%(cls.__namespace__,a_of))
-                if attr_parent is None:
-                    delay.add(k)
-                else:
-                    v.marshall(k,subvalue,attr_parent)
+                delay.add(k)
             else:
                 v.marshall(k, subvalue, parent)
             continue
@@ -170,9 +166,10 @@ def get_members_etree(prot, cls, inst, parent):
     for k in delay:
         v = cls._type_info[k]
         subvalue = getattr(inst, k, None)
-        a_of = v._attribute_of
-        attr_parent = parent.find("{%s}%s"%(cls.__namespace__,a_of))
-        v.marshall(k,subvalue,attr_parent)
+        a_of = v.attribute_of
+        attr_parents = parent.findall("{%s}%s"%(cls.__namespace__,a_of))
+        for attr_parent in attr_parents:
+            v.marshall(k,subvalue,attr_parent)
 
 
 @nillable_value
@@ -193,7 +190,7 @@ def alias_to_parent_element(prot, cls, value, tns, parent_elt, name=None):
     if t is not None:
         subvalue = getattr(value, k, None)
         # Don't include empty values for non-nillable optional attributes.
-        if subvalue is not None:
+        if subvalue is not None or t.Attributes.min_occurs > 0:
             prot.to_parent_element(t, subvalue, tns, parent_elt, name)
 
 
@@ -235,12 +232,22 @@ def complex_from_element(prot, cls, element):
 
         setattr(inst, key, value)
 
+        for key in c.attrib:
+            member = flat_type_info.get(key, None)
+            if member is None or (not issubclass(member, XmlAttribute)) or \
+                                                     member.attribute_of == key:
+                continue
+
+            value = member.type.from_string(c.attrib[key])
+
+            setattr(inst, key, value)
+
     for key in element.attrib:
         member = flat_type_info.get(key, None)
         if member is None:
             continue
 
-        value = member._typ.from_string(element.attrib[key])
+        value = member.type.from_string(element.attrib[key])
 
         setattr(inst, key, value)
 

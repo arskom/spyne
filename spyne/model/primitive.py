@@ -77,6 +77,13 @@ def _get_one_polygon_pattern(dim):
 def _get_polygon_pattern(dim):
     return 'POLYGON *%s' % _get_one_polygon_pattern(dim)
 
+def _get_one_multipolygon_pattern(dim):
+    one_line = _get_one_polygon_pattern(dim)
+    return '\\(%s *(, *%s)*\\)' % (one_line, one_line)
+
+def _get_multipolygon_pattern(dim):
+    return 'MULTIPOLYGON *%s' % _get_one_multipolygon_pattern(dim)
+
 
 _local_re = re.compile(DATETIME_PATTERN)
 _utc_re = re.compile(DATETIME_PATTERN + 'Z')
@@ -323,8 +330,10 @@ class Decimal(SimpleModel):
             kwargs['fraction_digits'] = 0
             if len(args) == 2 and args[1] is not None:
                 kwargs['fraction_digits'] = args[1]
-                assert args[1] <= args[0], "Total digits should be greater than" \
-                                          " or equal to fraction digits." \
+
+                assert args[0] > 0, "'total_digits' must be positive."
+                assert args[1] <= args[0], "'total_digits' must be greater than" \
+                                          " or equal to 'fraction_digits'." \
                                           " %r ! <= %r" % (args[1], args[0])
 
         retval = SimpleModel.__new__(cls,  ** kwargs)
@@ -964,7 +973,7 @@ class Uuid(Unicode(pattern=UUID_PATTERN, type_name='uuid')):
 
 
 class Polygon(Unicode):
-    """An experimental point type whose native format is WKT. You can use
+    """A Polygon type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper polygon type."""
 
     __base_type__ = Unicode
@@ -982,8 +991,27 @@ class Polygon(Unicode):
         return SimpleModel.__new__(cls,  ** kwargs)
 
 
+class MultiPolygon(Unicode):
+    """A Multipolygon type whose native format is a WKT string. You can use
+    :func:`shapely.wkt.loads` to get a proper multipolygon type."""
+
+    __base_type__ = Unicode
+
+    class Attributes(Unicode.Attributes):
+        dim = None
+
+    def __new__(cls, dim=None, **kwargs):
+        assert dim in (None,2,3)
+        if dim is not None:
+            kwargs['dim'] = dim
+            kwargs['pattern'] = _get_multipolygon_pattern(dim)
+            kwargs['type_name'] = 'multipolygon%dd' % dim
+
+        return SimpleModel.__new__(cls,  ** kwargs)
+
+
 class Point(Unicode):
-    """An experimental point type whose native format is WKT. You can use
+    """A point type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper point type."""
 
     __base_type__ = Unicode
@@ -1072,6 +1100,10 @@ else:
     NATIVE_MAP.update({
         str: String,
         unicode: Unicode,
-        int: Integer64,
         long: Integer,
     })
+
+    if isinstance (0x80000000, long): # 32-bit architecture
+        NATIVE_MAP[int] = Integer32
+    else: # not 32-bit (so most probably 64-bit) architecture
+        NATIVE_MAP[int] = Integer64

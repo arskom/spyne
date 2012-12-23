@@ -21,10 +21,18 @@
 protocol that deals with hierarchical dicts as {in,out}_documents.
 """
 
+from pprint import pprint
 import logging
 logger = logging.getLogger(__name__)
 
+import re
+RE_HTTP_ARRAY_INDEX = re.compile("\\[([0-9]+)\\]")
+
+from collections import deque
+from collections import defaultdict
+
 from spyne.error import ValidationError
+from spyne.error import ResourceNotFoundError
 
 from spyne.model.binary import ByteArray
 from spyne.model.binary import File
@@ -39,6 +47,22 @@ from spyne.model.primitive import Unicode
 from spyne.protocol import ProtocolBase
 from spyne.protocol._base import unwrap_messages
 from spyne.protocol._base import unwrap_instance
+
+
+def check_freq_dict(cls, d, fti=None):
+    if fti is None:
+        fti = cls.get_flat_type_info(cls)
+
+    for k,v in fti.items():
+        val = d[k]
+
+        min_o, max_o = v.Attributes.min_occurs, v.Attributes.max_occurs
+        if val < min_o:
+            raise ValidationError(k,
+                        '%%r member must occur at least %d times.' % min_o)
+        elif val > max_o:
+            raise ValidationError(k,
+                        '%%r member must occur at most %d times.' % max_o)
 
 
 class DictDocument(ProtocolBase):
@@ -110,12 +134,8 @@ class DictDocument(ProtocolBase):
         # get all class attributes, including the ones coming from parent classes.
         flat_type_info = class_.get_flat_type_info(class_)
 
-        # initialize instance
-        for k in flat_type_info:
-            setattr(inst, k, None)
-
         # this is for validating class_.Attributes.{min,max}_occurs
-        frequencies = {}
+        frequencies = defaultdict(int)
 
         try:
             items = doc.items()
@@ -124,10 +144,6 @@ class DictDocument(ProtocolBase):
 
         # parse input to set incoming data to related attributes.
         for k,v in items:
-            freq = frequencies.get(k, 0)
-            freq += 1
-            frequencies[k] = freq
-
             member = flat_type_info.get(k, None)
             if member is None:
                 continue
@@ -146,12 +162,10 @@ class DictDocument(ProtocolBase):
 
             setattr(inst, k, value)
 
+            frequencies[k] += 1
+
         if validator is cls.SOFT_VALIDATION:
-            for k, v in flat_type_info.items():
-                val = frequencies.get(k, 0)
-                if (val < v.Attributes.min_occurs or val > v.Attributes.max_occurs):
-                    raise Fault('Client.ValidationError',
-                        '%r member does not respect frequency constraints.' % k)
+            check_freq_dict(class_, frequencies, flat_type_info)
 
         return inst
 
@@ -161,8 +175,7 @@ class DictDocument(ProtocolBase):
         self.event_manager.fire_event('before_deserialize', ctx)
 
         if ctx.descriptor is None:
-            raise Fault("Client", "Method %r not found." %
-                                                      ctx.method_request_string)
+            raise ResourceNotFoundError(ctx.method_request_string)
 
         # instantiate the result message
         if message is self.REQUEST:
@@ -173,9 +186,10 @@ class DictDocument(ProtocolBase):
                                                                 self.skip_depth)
         if body_class:
             # assign raw result to its wrapper, result_message
-            result_message_class = ctx.descriptor.in_message
-            value = ctx.in_body_doc.get(result_message_class.get_type_name(), None)
-            result_message = self._doc_to_object(result_message_class, value, self.validator)
+            result_class = ctx.descriptor.in_message
+            value = ctx.in_body_doc.get(result_class.get_type_name(), None)
+            result_message = self._doc_to_object(result_class, value,
+                                                                 self.validator)
 
             ctx.in_object = result_message
 
@@ -213,6 +227,7 @@ class DictDocument(ProtocolBase):
 
             ctx.out_document = self._object_to_doc(out_type, out_instance,
                                                     skip_depth=self.skip_depth)
+
             self.event_manager.fire_event('after_serialize', ctx)
 
     @classmethod
@@ -221,7 +236,7 @@ class DictDocument(ProtocolBase):
         class_, value = unwrap_instance(class_, value, skip_depth)
 
         # arrays get wrapped in [], whereas other objects get wrapped in
-        # {object_name: ...}
+        # {wrapper_name: ...}
         if wrapper_name is None and not issubclass(class_, Array):
             wrapper_name = class_.get_type_name()
 
@@ -231,7 +246,6 @@ class DictDocument(ProtocolBase):
         else:
             return [cls._to_value(class_, value, wrapper_name)]
 
-
     @classmethod
     def _from_dict_value(cls, class_, value, validator):
         # validate raw input
@@ -240,11 +254,13 @@ class DictDocument(ProtocolBase):
                 if not (issubclass(class_, String) and isinstance(value, str)):
                     raise ValidationError(value)
 
-            elif issubclass(class_, Decimal) and not isinstance(value, (int, long, float)):
+            elif issubclass(class_, Decimal) and not isinstance(value,
+                                                            (int, long, float)):
                 raise ValidationError(value)
 
-            elif issubclass(class_, DateTime) and not (isinstance(value, unicode) and
-                                            class_.validate_string(class_, value)):
+            elif issubclass(class_, DateTime) and not (
+                                isinstance(value, unicode) and
+                                         class_.validate_string(class_, value)):
                 raise ValidationError(value)
 
         # get native type
@@ -259,7 +275,7 @@ class DictDocument(ProtocolBase):
 
         # validate native type
         if validator is cls.SOFT_VALIDATION and \
-                not class_.validate_native(class_, retval):
+                                     not class_.validate_native(class_, retval):
             raise ValidationError(retval)
 
         return retval
@@ -267,7 +283,7 @@ class DictDocument(ProtocolBase):
     @classmethod
     def _get_member_pairs(cls, class_, inst):
         parent_cls = getattr(class_, '__extends__', None)
-        if not (parent_cls is None):
+        if parent_cls is not None:
             for r in cls._get_member_pairs(parent_cls, inst):
                 yield r
 
@@ -283,7 +299,9 @@ class DictDocument(ProtocolBase):
                     yield (k, [cls._to_value(v,sv) for sv in sub_value])
 
             else:
-                yield (k, cls._to_value(v, sub_value))
+                val = cls._to_value(v, sub_value)
+                if val is not None or class_.Attributes.min_occurs > 0:
+                    yield (k, val)
 
     @classmethod
     def _to_value(cls, class_, value, k=None):
@@ -312,7 +330,7 @@ class DictDocument(ProtocolBase):
             return {field_name: retval}
 
     @classmethod
-    def flat_dict_to_object(cls, doc, inst_class, validator=None):
+    def flat_dict_to_object(cls, doc, inst_class, validator=None, hier_delim="_"):
         """Converts a flat dict to a native python object.
 
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
@@ -322,15 +340,15 @@ class DictDocument(ProtocolBase):
         inst = inst_class.get_deserialization_instance()
 
         # this is for validating cls.Attributes.{min,max}_occurs
-        frequencies = {}
+        frequencies = defaultdict(lambda: defaultdict(int))
 
-        for k, v in doc.items():
+        for orig_k, v in doc.items():
+            k = RE_HTTP_ARRAY_INDEX.sub("", orig_k)
             member = simple_type_info.get(k, None)
             if member is None:
                 logger.debug("discarding field %r" % k)
                 continue
 
-            mo = member.type.Attributes.max_occurs
             value = getattr(inst, k, None)
             if value is None:
                 value = []
@@ -339,7 +357,7 @@ class DictDocument(ProtocolBase):
             # http dict.
             for v2 in v:
                 if (validator is cls.SOFT_VALIDATION and not
-                            member.type.validate_string(member.type, v2)):
+                                  member.type.validate_string(member.type, v2)):
                     raise ValidationError(v2)
 
                 if issubclass(member.type, (File, ByteArray)):
@@ -356,89 +374,75 @@ class DictDocument(ProtocolBase):
 
                 value.append(native_v2)
 
-                # set frequencies of parents.
-                if not (member.path[:-1] in frequencies):
-                    for i in range(1,len(member.path)):
-                        logger.debug("\tset freq %r = 1" % (member.path[:i],))
-                        frequencies[member.path[:i]] = 1
-
-                freq = frequencies.get(member.path, 0)
-                freq += 1
-                frequencies[member.path] = freq
-                logger.debug("\tset freq %r = %d" % (member.path, freq))
-
-            if mo == 1:
-                value = value[0]
-
             # assign the native value to the relevant class in the nested object
             # structure.
-            cinst = inst
+            ccls, cinst = inst_class, inst
             ctype_info = inst_class.get_flat_type_info(inst_class)
+
+            idx, nidx = 0, 0
             pkey = member.path[0]
+            cfreq_key = inst_class, idx
+
+            indexes = deque(RE_HTTP_ARRAY_INDEX.findall(orig_k))
             for i in range(len(member.path) - 1):
                 pkey = member.path[i]
-                if not (ctype_info[pkey].Attributes.max_occurs in (0,1)):
-                    raise Exception("non-primitives with max_occurs > 1 are not"
-                                    "supported")
+                nidx = 0
 
-                ninst = getattr(cinst, pkey, None)
+                ncls, ninst = ctype_info[pkey], getattr(cinst, pkey, None)
+
+                mo = ncls.Attributes.max_occurs
                 if ninst is None:
-                    ninst = ctype_info[pkey].get_deserialization_instance()
+                    ninst = ncls.get_deserialization_instance()
+                    if mo > 1:
+                        ninst = [ninst]
                     setattr(cinst, pkey, ninst)
-                cinst = ninst
+                    frequencies[cfreq_key][pkey] += 1
 
-                ctype_info = ctype_info[pkey]._type_info
+                if mo > 1:
+                    if len(indexes) == 0:
+                        raise ValidationError(orig_k,
+                                               "%r requires index information.")
 
-            if isinstance(cinst, list):
-                cinst.extend(value)
+                    nidx = int(indexes.popleft())
+
+                    if nidx > len(ninst):
+                        raise ValidationError(orig_k,
+                                            "%%r Invalid array index %d." % idx)
+
+                    if nidx == len(ninst):
+                        ninst.append(ncls.get_deserialization_instance())
+                        frequencies[cfreq_key][pkey] += 1
+
+                    cinst = ninst[nidx]
+
+                else:
+                    cinst = ninst
+
+                cfreq_key = cfreq_key + (ncls, nidx)
+                ccls, idx = ncls, nidx
+                ctype_info = ncls._type_info
+
+            frequencies[cfreq_key][member.path[-1]] += len(value)
+
+            if member.type.Attributes.max_occurs > 1:
+                v = getattr(cinst, member.path[-1], None)
+                if v is None:
+                    setattr(cinst, member.path[-1], value)
+                else:
+                    v.extend(value)
                 logger.debug("\tset array   %r(%r) = %r" %
                                                     (member.path, pkey, value))
             else:
-                setattr(cinst, member.path[-1], value)
+                setattr(cinst, member.path[-1], value[0])
                 logger.debug("\tset default %r(%r) = %r" %
                                                     (member.path, pkey, value))
 
         if validator is cls.SOFT_VALIDATION:
-            sti = simple_type_info.values()
-            sti.sort(key=lambda x: (len(x.path), x.path))
-            pfrag = None
-            for s in sti:
-                if len(s.path) > 1 and pfrag != s.path[:-1]:
-                    pfrag = s.path[:-1]
-                    ctype_info = inst_class.get_flat_type_info(inst_class)
-                    for i in range(len(pfrag)):
-                        f = pfrag[i]
-                        ntype_info = ctype_info[f]
-
-                        min_o = ctype_info[f].Attributes.min_occurs
-                        max_o = ctype_info[f].Attributes.max_occurs
-                        val = frequencies.get(pfrag[:i+1], 0)
-                        if val < min_o:
-                            raise Fault('Client.ValidationError',
-                                '"%s" member must occur at least %d times'
-                                              % ('_'.join(pfrag[:i+1]), min_o))
-
-                        if val > max_o:
-                            raise Fault('Client.ValidationError',
-                                '"%s" member must occur at most %d times'
-                                              % ('_'.join(pfrag[:i+1]), max_o))
-
-                        ctype_info = ntype_info.get_flat_type_info(ntype_info)
-
-                val = frequencies.get(s.path, 0)
-                min_o = s.type.Attributes.min_occurs
-                max_o = s.type.Attributes.max_occurs
-                if val < min_o:
-                    raise Fault('Client.ValidationError',
-                                '"%s" member must occur at least %d times'
-                                                    % ('_'.join(s.path), min_o))
-                if val > max_o:
-                    raise Fault('Client.ValidationError',
-                                '"%s" member must occur at most %d times'
-                                                    % ('_'.join(s.path), max_o))
+            pprint(dict(frequencies.items()))
+            for k, d in frequencies.items():
+                check_freq_dict(k[-2], d)
 
         return inst
-
 
     @classmethod
     def object_to_flat_dict(cls, inst_cls, value, hier_delim="_", retval=None,
@@ -450,6 +454,7 @@ class DictDocument(ProtocolBase):
 
         if retval is None:
             retval = {}
+
         if prefix is None:
             prefix = []
 
@@ -465,13 +470,15 @@ class DictDocument(ProtocolBase):
                     raise ValueError("%r.%s conflicts with previous value %r" %
                                                      (inst_cls, k, retval[key]))
 
-                try:
-                    retval[key] = subvalue
-                except:
-                    retval[key] = None
+                if subvalue is not None or v.Attributes.min_occurs > 0:
+                    try:
+                        retval[key] = subvalue
+                    except: # FIXME: What?
+                        if v.Attributes.min_occurs > 0:
+                            retval[key] = None
 
             else:
                 cls.object_to_flat_dict(fti[k], subvalue, hier_delim,
-                                             retval, new_prefix, parent=inst_cls)
+                                            retval, new_prefix, parent=inst_cls)
 
         return retval

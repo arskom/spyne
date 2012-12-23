@@ -178,3 +178,14 @@ approval of every single person in order to re-license Spyne.
 
 It's also not possible to distribute Spyne under a dual license model for the
 same reason -- everybody would have to approve the new licensing terms.
+
+My app freezes under mod_wsgi! Help!
+====================================
+
+**Short answer:** Add this to the relevant fragment of your Apache configuration:
+
+```
+WSGIApplicationGroup %{GLOBAL}
+```
+
+**Long answer:** See here: https://techknowhow.library.emory.edu/blogs/branker/2010/07/30/django-lxml-wsgi-and-python-sub-interpreter-magic
