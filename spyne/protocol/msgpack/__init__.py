@@ -55,7 +55,10 @@ class MessagePackDocument(DictDocument):
             argument is ignored.
         """
 
-        ctx.in_document = msgpack.unpackb(''.join(ctx.in_string))
+        try:
+            ctx.in_document = msgpack.unpackb(''.join(ctx.in_string))
+        except ValueError, e:
+            raise MessagePackDecodeError(''.join(e.args))
 
         if not isinstance(ctx.in_document, dict):
             raise MessagePackDecodeError("Request object must be a dictionary")
@@ -82,12 +85,15 @@ class MessagePackRpc(MessagePackDocument):
         """
 
         # TODO: Use feed api
-        ctx.in_document = msgpack.unpackb(''.join(ctx.in_string))
+        try:
+            ctx.in_document = msgpack.unpackb(''.join(ctx.in_string))
+        except ValueError, e:
+            raise MessagePackDecodeError(''.join(e.args))
 
         try:
             len(ctx.in_document)
         except TypeError:
-            raise MessagePackDecodeError("Input must be an itearble.")
+            raise MessagePackDecodeError("Input must be a sequence.")
 
         if not (3 <= len(ctx.in_document) <= 4):
             raise MessagePackDecodeError("Length of input iterable must be "
