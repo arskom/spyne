@@ -276,7 +276,7 @@ class Decimal(SimpleModel):
             kwargs['fraction_digits'] = 0
             if len(args) == 2 and args[1] is not None:
                 kwargs['fraction_digits'] = args[1]
-                assert args[0] > 0, "Total digist must be positive."
+                assert args[0] > 0, "'total_digits' must be positive."
                 assert args[1] <= args[0], "'total_digits' must be greater than" \
                                           " or equal to 'fraction_digits'." \
                                           " %r ! <= %r" % (args[1], args[0])
