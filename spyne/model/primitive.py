@@ -58,24 +58,24 @@ UUID_PATTERN = "%(x)s{8}-%(x)s{4}-%(x)s{4}-%(x)s{4}-%(x)s{12}" % \
                                                             {'x': '[a-fA-F0-9]'}
 
 def _get_one_point_pattern(dim):
-    return '%s' % ' *'.join([FLOAT_PATTERN] * dim)
+    return ' +'.join([FLOAT_PATTERN] * dim)
 
 def _get_point_pattern(dim):
-    return 'POINT\\(%s\\)' % _get_one_point_pattern(dim)
+    return 'POINT *\\(%s\\)' % _get_one_point_pattern(dim)
 
 def _get_one_line_pattern(dim):
     one_point = _get_one_point_pattern(dim)
     return '\\(%s *(, *%s)*\\)' % (one_point, one_point)
 
 def _get_linestring_pattern(dim):
-    return 'LINESTRING%s' % _get_one_line_pattern(dim)
+    return 'LINESTRING *%s' % _get_one_line_pattern(dim)
 
 def _get_one_polygon_pattern(dim):
     one_line = _get_one_line_pattern(dim)
     return '\\(%s *(, *%s)*\\)' % (one_line, one_line)
 
 def _get_polygon_pattern(dim):
-    return 'POLYGON%s' % _get_one_polygon_pattern(dim)
+    return 'POLYGON *%s' % _get_one_polygon_pattern(dim)
 
 
 _local_re = re.compile(DATETIME_PATTERN)
@@ -323,9 +323,9 @@ class Decimal(SimpleModel):
             kwargs['fraction_digits'] = 0
             if len(args) == 2 and args[1] is not None:
                 kwargs['fraction_digits'] = args[1]
-                assert args[0] <= args[1], "Total digits should be greater than" \
+                assert args[1] <= args[0], "Total digits should be greater than" \
                                           " or equal to fraction digits." \
-                                          " %r ! <= %r" % (args[0], args[1])
+                                          " %r ! <= %r" % (args[1], args[0])
 
         retval = SimpleModel.__new__(cls,  ** kwargs)
 
@@ -965,7 +965,7 @@ class Uuid(Unicode(pattern=UUID_PATTERN, type_name='uuid')):
 
 class Polygon(Unicode):
     """An experimental point type whose native format is WKT. You can use
-    :func:`shapely.wkt.loads` to get a proper point type."""
+    :func:`shapely.wkt.loads` to get a proper polygon type."""
 
     __base_type__ = Unicode
 
