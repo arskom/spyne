@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -52,21 +51,16 @@ def dict_to_etree(d, parent):
     str/unicode instances.
     """
 
-    for k, v in d.items():
-        if v is None or len(v) == 0:
-            etree.SubElement(parent, k)
-
-        elif isinstance(v, dict) or isinstance(v, odict):
+    if isinstance(d, dict) or isinstance(d, odict):
+        for k, v in d.items():
             child = etree.SubElement(parent, k)
-            dict_to_etree(v, child)
-
-        else:
-            for e in v:
-                child=etree.SubElement(parent, k)
-                if isinstance(e, dict) or isinstance(e, odict):
-                    dict_to_etree(e, child)
-                else:
-                    child.text=str(e)
+            dict_to_etree(v, child, k)
+    elif (isinstance(d, list) or isinstance(d, tuple)) and parent_key:
+        for e in d:
+            child = etree.SubElement(parent, parent_key)
+            child.text = str(e)
+    else:
+        parent.text = '' if d is None else str(d)
 
 def root_etree_to_dict(element, iterable=(list, list.append)):
     """Takes an xml root element and returns the corresponding dict. The second
