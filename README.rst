@@ -9,7 +9,7 @@ own remote procedure call api and the application programmers the hassle of
 jumping through hoops just to expose their services using multiple protocols and
 transports.
 
-From another perspective, Spyne is a framework for building distributed
+In other words, Spyne is a framework for building distributed
 solutions that strictly follow the MVC pattern, where Model = `spyne.model`,
 View = `spyne.protocol` and Controller = `user code`.
 
