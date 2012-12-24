@@ -1,3 +1,4 @@
+
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -37,11 +38,7 @@ def root_dict_to_etree(d):
     for val in d.values():
         break
 
-    if isinstance(val, dict) or isinstance(val, odict):
-        dict_to_etree(val, retval)
-    else:
-        for a in val:
-            dict_to_etree(a, retval)
+    dict_to_etree(val, retval)
 
     return retval
 
@@ -54,13 +51,13 @@ def dict_to_etree(d, parent):
     if isinstance(d, dict) or isinstance(d, odict):
         for k, v in d.items():
             child = etree.SubElement(parent, k)
-            dict_to_etree(v, child, k)
-    elif (isinstance(d, list) or isinstance(d, tuple)) and parent_key:
+            dict_to_etree(v, child)
+    elif isinstance(d, list) or isinstance(d, tuple):
         for e in d:
-            child = etree.SubElement(parent, parent_key)
-            child.text = str(e)
-    else:
-        parent.text = '' if d is None else str(d)
+            child = etree.SubElement(parent, parent.tag)
+            dict_to_etree(e, child)
+    elif d is not None:
+        parent.text = str(d)
 
 def root_etree_to_dict(element, iterable=(list, list.append)):
     """Takes an xml root element and returns the corresponding dict. The second
