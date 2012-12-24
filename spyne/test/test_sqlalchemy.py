@@ -655,9 +655,6 @@ class TestSqlAlchemyNested(unittest.TestCase):
 
         metadata.create_all()
 
-        from pprint import pprint
-        print "!!!!!!!!!!!!!!!!", pprint(vars(SomeClass.Attributes.sqla_mapper))
-
         sc = SomeClass(id=5, s='s', numbers=[1,2,3,4])
 
         session.add(sc)
