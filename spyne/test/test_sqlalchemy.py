@@ -370,7 +370,6 @@ class TestSqlAlchemyNested(unittest.TestCase):
         import logging
         logging.getLogger('sqlalchemy').setLevel(logging.DEBUG)
 
-
     def test_nested_sql(self):
         engine = create_engine('sqlite:///:memory:')
         session = sessionmaker(bind=engine)()
