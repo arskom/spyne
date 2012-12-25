@@ -745,7 +745,7 @@ class Alias(ComplexModelBase):
     __metaclass__ = ComplexModelMeta
 
 
-def log_repr(obj, cls=None):
+def log_repr(obj, cls=None, given_len=None):
     """Use this function if you want to echo a ComplexModel subclass. It will
     limit output size of the String types, making your logs smaller.
     """
@@ -762,7 +762,19 @@ def log_repr(obj, cls=None):
         cls, = cls._type_info.values()
 
         if not cls.Attributes.logged:
-            retval.append("[%s (...)]" % cls.get_type_name())
+            retval.append("%s (...)" % cls.get_type_name())
+
+        elif cls.Attributes.logged == 'len':
+            l = '?'
+
+            try:
+                l = str(len(obj))
+            except TypeError, e:
+                if given_len is not None:
+                    l = str(given_len)
+
+            retval.append("%s[%s] (...)" % (cls.get_type_name(), l))
+
         else:
             for i,o in enumerate(obj):
                 retval.append(_log_repr_obj(o, cls))
