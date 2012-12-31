@@ -25,11 +25,11 @@ if sys.version > '3':
 
 import re
 import math
-import uuid
+import time
 import pytz
+import uuid
 import decimal
 import datetime
-import time
 
 import spyne.const.xml_ns
 
