@@ -379,7 +379,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
             __tablename__ = 'some_class'
             __table_args__ = {"sqlite_autoincrement": True}
 
-            id = Integer32(primary_key=True)
+            id = Integer32(primary_key=True, autoincrement=False)
             s = Unicode(64, unique=True)
             i = Integer32(64, index=True)
 
@@ -388,12 +388,14 @@ class TestSqlAlchemySchema(unittest.TestCase):
         metadata.create_all() # not needed, just nice to see.
 
         assert t.c.id.primary_key == True
+        assert t.c.id.autoincrement == False
         indexes = list(t.indexes)
         indexes.sort(key=lambda idx: idx.columns)
         for idx in indexes:
             assert 'i' in idx.columns or 's' in idx.columns
             if 's' in idx.columns:
                 assert idx.unique
+
 
 
 class TestSqlAlchemyNested(unittest.TestCase):
