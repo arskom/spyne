@@ -140,6 +140,7 @@ class PGGeometry(UserDefinedType):
     def __init__(self, geometry_type='GEOMETRY', srid=4326, dimension=2,
                                                                 format='wkt'):
         self.geometry_type = geometry_type.upper()
+        self.name = 'geometry'
         self.srid = int(srid)
         self.dimension = dimension
         self.format = format
@@ -244,6 +245,7 @@ def get_sqlalchemy_type(cls):
     elif issubclass(cls, Polygon):
         return PGGeometry("POLYGON", dimension=cls.Attributes.dim)
 
+    # must be above Unicode, because MultiPolygon is Unicode's subclass
     elif issubclass(cls, MultiPolygon):
         return PGGeometry("MULTIPOLYGON", dimension=cls.Attributes.dim)
 
