@@ -385,11 +385,15 @@ class TestSqlAlchemySchema(unittest.TestCase):
 
         gen_sqla_info(SomeClass)
         t = SomeClass.__table__
-        metadata.create_all() # not needed,
+        metadata.create_all() # not needed, just nice to see.
 
         assert t.c.id.primary_key == True
-        assert t.c.s.unique == True
-        assert t.c.i.index == True
+        indexes = list(t.indexes)
+        indexes.sort(key=lambda idx: idx.columns)
+        for idx in indexes:
+            assert 'i' in idx.columns or 's' in idx.columns
+            if 's' in idx.columns:
+                assert idx.unique
 
 
 class TestSqlAlchemyNested(unittest.TestCase):

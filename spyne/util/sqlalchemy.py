@@ -38,6 +38,7 @@ from lxml import etree
 
 from sqlalchemy import sql
 from sqlalchemy.schema import Column
+from sqlalchemy.schema import Index
 from sqlalchemy.schema import Table
 from sqlalchemy.schema import ForeignKey
 
@@ -372,6 +373,7 @@ class _FakeTable(object):
     def __init__(self):
         self.columns = []
         self.c = {}
+        self.indexes = []
 
     def append_column(self, col):
         self.columns.append(col)
@@ -510,16 +512,47 @@ def gen_sqla_info(cls, cls_bases=()):
                                                 cls.get_type_name(), k, v, p))
 
         else:
+            unique = v.Attributes.unique
+            index = v.Attributes.index
+            if unique and not index:
+                index = True
+
+            try:
+                index_name, index_method = v.Attributes.index
+            except (TypeError, ValueError):
+                index_name = "%s_%s%s" % (table_name, k, '_unique' if unique else '')
+                index_method = v.Attributes.index
+
             col = Column(k, t, *col_args, **col_kwargs)
             table.append_column(col)
+
+            if index in (False, None):
+                pass
+            else:
+                if index == True:
+                    index_args = (index_name, col), dict(unique=unique)
+                else:
+                    index_args = (index_name, col), dict(unique=unique, postgresql_using=index_method)
+
+                if isinstance(table, _FakeTable):
+                    table.indexes.append(index_args)
+                else:
+                    Index(*index_args[0], **index_args[1])
 
             if not v.Attributes.exc_mapper:
                 props[k] = col
 
     if isinstance(table, _FakeTable):
+        _table = table
         table_args, table_kwargs = sanitize_args(cls.Attributes.sqla_table_args)
         table = Table(table_name, metadata,
                            *(tuple(table.columns) + table_args), **table_kwargs)
+
+        for index_args, index_kwargs in _table.indexes:
+            print index_args, index_kwargs
+            Index(*index_args, **index_kwargs)
+        del _table
+
 
     # Map the table to the object
     mapper_args, mapper_kwargs = sanitize_args(cls.Attributes.sqla_mapper_args)
