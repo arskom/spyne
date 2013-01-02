@@ -62,6 +62,7 @@ from spyne.model.enum import Enum
 from spyne.model.binary import ByteArray
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModelBase
+from spyne.model.primitive import AnyXml
 from spyne.model.primitive import Uuid
 from spyne.model.primitive import Date
 from spyne.model.primitive import Time
@@ -184,6 +185,35 @@ class PGGeometry(UserDefinedType):
 
         return process
 
+
+class PGXml(UserDefinedType):
+    def __init__(self, pretty_print=False, xml_declaration=False,
+                                                             encoding='UTF-8'):
+        self.xml_declaration = xml_declaration
+        self.pretty_print = pretty_print
+        self.encoding = encoding
+
+    def get_col_spec(self):
+        return "xml"
+
+    def bind_processor(self, dialect):
+        def process(value):
+            if isinstance(value, str) or value is None:
+                return value
+            else:
+                return etree.tostring(value, pretty_print=self.pretty_print,
+                                 encoding=self.encoding, xml_declaration=False)
+        return process
+
+    def result_processor(self, dialect, col_type):
+        def process(value):
+            if value is not None:
+                return etree.fromstring(value)
+            else:
+                return value
+        return process
+
+
 class PGObjectXml(UserDefinedType):
     def __init__(self, cls, root_tag_name=None, no_namespace=False):
         self.cls = cls
@@ -250,6 +280,7 @@ def get_sqlalchemy_type(cls):
     elif issubclass(cls, MultiPolygon):
         return PGGeometry("MULTIPOLYGON", dimension=cls.Attributes.dim)
 
+    # must be above Unicode, because String is Unicode's subclass
     elif issubclass(cls, String):
         if cls.Attributes.max_len == String.Attributes.max_len: # Default is arbitrary-length
             return sqlalchemy.Text
@@ -261,6 +292,9 @@ def get_sqlalchemy_type(cls):
             return sqlalchemy.UnicodeText
         else:
             return sqlalchemy.Unicode(cls.Attributes.max_len)
+
+    elif issubclass(cls, AnyXml):
+        return PGXml
 
     elif issubclass(cls, ByteArray):
         return sqlalchemy.LargeBinary
@@ -616,6 +650,9 @@ def get_spyne_type(v):
 
     elif isinstance(v.type, (sqlalchemy.Numeric)):
         rpc_type = Decimal(v.type.precision, v.type.scale)
+
+    elif isinstance(v.type, (PGXml)):
+        rpc_type = AnyXml
 
     elif type(v.type) in _sq2sp_type_map:
         rpc_type = _sq2sp_type_map[type(v.type)]
