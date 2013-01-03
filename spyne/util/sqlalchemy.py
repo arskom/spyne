@@ -469,9 +469,6 @@ def gen_sqla_info(cls, cls_bases=()):
         if v.Attributes.nullable == False:
             col_kwargs['nullable'] = False
 
-        if k in table.c:
-            continue
-
         t = get_sqlalchemy_type(v)
 
         if t is None:
@@ -495,12 +492,22 @@ def gen_sqla_info(cls, cls_bases=()):
                     props[k] = relationship(child, secondary=rel_t)
 
                 else: # one to many
-                    assert p.left is None, "'left' is ignored."
+                    assert p.left is None, "'left' is ignored in one-to-many " \
+                                            "relationships."
 
-                    col = _get_col_o2m(cls, p.right)
-
-                    child.__table__.append_column(col)
-                    child.__mapper__.add_property(col.name, col)
+                    child_t = child.__table__
+                    if p.right in child_t.c:
+                        assert col.type == child_t.c[p.right].type # FIXME: This case MUST be tested.
+                        # if the column is there, the decision about whether
+                        # it should be in child's mapper should also have been
+                        # made.
+                        #
+                        # so, not adding the child column to to child mapper
+                        # here.
+                    else:
+                        col = _get_col_o2m(cls, p.right)
+                        child_t.append_column(col)
+                        child.__mapper__.add_property(col.name, col)
 
                     props[k] = relationship(child)
 
@@ -513,11 +520,12 @@ def gen_sqla_info(cls, cls_bases=()):
                     real_v = v.__orig__
 
                 if isinstance(p, c_table):
-                    if getattr(p, 'multi', False):
-                        raise Exception('Storing a single element-type using a '
+                    assert not getattr(p, 'multi', False), (
+                                        'Storing a single element-type using a '
                                         'relation table is pointless.')
 
-                    assert p.right is None, "'right' is ignored"
+                    assert p.right is None, "'right' is ignored in a one-to-one " \
+                                            "relationship"
 
                     col = _get_col_o2o(k, v, p.left)
                     rel = relationship(real_v, uselist=False)
@@ -525,11 +533,18 @@ def gen_sqla_info(cls, cls_bases=()):
                     props[k] = rel
 
                 elif isinstance(p, c_xml):
-                    col = Column(k, PGObjectXml(v, p.root_tag, p.no_ns),
+                    if k in table.c:
+                        col = table.c[k]
+                    else:
+                        col = Column(k, PGObjectXml(v, p.root_tag, p.no_ns),
                                                         *col_args, **col_kwargs)
 
                 elif isinstance(p, c_json):
-                    col = Column(k, PGObjectJson(v, p.skip_depth), *col_args, **col_kwargs)
+                    if k in table.c:
+                        col = table.c[k]
+                    else:
+                        col = Column(k, PGObjectJson(v, p.skip_depth),
+                                                        *col_args, **col_kwargs)
 
                 elif isinstance(p, c_msgpack):
                     raise NotImplementedError()
@@ -538,7 +553,8 @@ def gen_sqla_info(cls, cls_bases=()):
                     raise ValueError(p)
 
                 props[col.name] = col
-                table.append_column(col)
+                if not k in table.c:
+                    table.append_column(col)
 
             else:
                 logger.debug("Skipping %s.%s.%s: %r, store_as: %r" % (
@@ -557,21 +573,25 @@ def gen_sqla_info(cls, cls_bases=()):
                 index_name = "%s_%s%s" % (table_name, k, '_unique' if unique else '')
                 index_method = v.Attributes.index
 
-            col = Column(k, t, *col_args, **col_kwargs)
-            table.append_column(col)
+            if k in table.c:
+                col = table.c[k]
 
-            if index in (False, None):
-                pass
             else:
-                if index == True:
-                    index_args = (index_name, col), dict(unique=unique)
-                else:
-                    index_args = (index_name, col), dict(unique=unique, postgresql_using=index_method)
+                col = Column(k, t, *col_args, **col_kwargs)
+                table.append_column(col)
 
-                if isinstance(table, _FakeTable):
-                    table.indexes.append(index_args)
+                if index in (False, None):
+                    pass
                 else:
-                    Index(*index_args[0], **index_args[1])
+                    if index == True:
+                        index_args = (index_name, col), dict(unique=unique)
+                    else:
+                        index_args = (index_name, col), dict(unique=unique, postgresql_using=index_method)
+
+                    if isinstance(table, _FakeTable):
+                        table.indexes.append(index_args)
+                    else:
+                        Index(*index_args[0], **index_args[1])
 
             if not v.Attributes.exc_mapper:
                 props[k] = col
