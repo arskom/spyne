@@ -342,13 +342,21 @@ class ComplexModelMeta(type(ModelBase)):
             if issubclass(type_info[k], SelfReference):
                 type_info[k] = self
 
-        if self.Attributes.table_name is None:
-            if self.Attributes.sqla_table is not None and len(self._type_info) == 0:
+        tn = self.Attributes.table_name
+        meta = self.Attributes.sqla_metadata
+        t = self.Attributes.sqla_table
+
+        # for spyne objects reflecting an existing db table
+        if tn is None:
+            if t is not None and len(self._type_info) == 0:
+                self.Attributes.sqla_metadata = t.metadata
                 from spyne.util.sqlalchemy import gen_spyne_info
 
                 gen_spyne_info(self)
 
-        elif self.Attributes.sqla_metadata is not None and len(self._type_info) > 0:
+        # for spyne objects that is being converted to a
+        elif meta is not None and (tn is not None or t is not None) and \
+                                                       len(self._type_info) > 0:
             from spyne.util.sqlalchemy import gen_sqla_info
 
             gen_sqla_info(self, cls_bases)

@@ -20,13 +20,14 @@
 """Contains functions that implement the most common protocol and transport
 combinations"""
 
+
 from spyne.application import Application
 
 
 def wsgi_soap11_application(services, tns='spyne.simple.soap', validator=None,
-                                                                    name=None):
-    """Wraps `services` argument inside a WsgiApplication that uses Wsdl 1.1 as
-    interface document and Soap 1.1 and both input and output protocols.
+                                                                     name=None):
+    """Wraps `services` argument inside a WsgiApplication that uses Soap 1.1 for
+    both input and output protocols.
     """
 
     from spyne.protocol.soap import Soap11
@@ -41,10 +42,10 @@ wsgi_soap_application = wsgi_soap11_application
 """DEPRECATED! Use :func:`wsgi_soap11_application` instead."""
 
 
-def pyramid_soap11_application(services, tns='spyne.simple.soap', validator=None,
-                                                                    name=None):
-    """Wraps `services` argument inside a PyramidApplication that uses Wsdl 1.1 as
-    interface document and Soap 1.1 and both input and output protocols.
+def pyramid_soap11_application(services, tns='spyne.simple.soap',
+                                                     validator=None, name=None):
+    """Wraps `services` argument inside a PyramidApplication that uses Soap 1.1
+    for both input and output protocols.
     """
 
     from spyne.protocol.soap import Soap11
