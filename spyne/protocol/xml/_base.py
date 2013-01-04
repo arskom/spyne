@@ -43,6 +43,7 @@ from spyne.model.complex import Iterable
 from spyne.model.complex import ComplexModelBase
 from spyne.model.enum import EnumBase
 from spyne.model.fault import Fault
+from spyne.model.primitive import AnyHtml
 from spyne.model.primitive import AnyXml
 from spyne.model.primitive import AnyDict
 from spyne.model.primitive import Unicode
@@ -56,6 +57,7 @@ from spyne.protocol.xml.model import complex_to_parent_element
 from spyne.protocol.xml.model import enum_to_parent_element
 from spyne.protocol.xml.model import fault_to_parent_element
 from spyne.protocol.xml.model import xml_to_parent_element
+from spyne.protocol.xml.model import html_to_parent_element
 from spyne.protocol.xml.model import dict_to_parent_element
 
 from spyne.protocol.xml.model import alias_from_element
@@ -112,6 +114,7 @@ class XmlDocument(ProtocolBase):
             Alias: alias_to_parent_element,
             Fault: fault_to_parent_element,
             AnyDict: dict_to_parent_element,
+            AnyHtml: html_to_parent_element,
             EnumBase: enum_to_parent_element,
             ModelBase: base_to_parent_element,
             ByteArray: binary_to_parent_element,

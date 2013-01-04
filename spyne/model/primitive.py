@@ -45,8 +45,10 @@ from spyne.util import memoize
 
 try:
     from lxml import etree
+    from lxml import html
 except ImportError:
-    pass
+    etree = None
+    html = None
 
 string_encoding = 'utf8'
 
@@ -132,6 +134,19 @@ class AnyXml(SimpleModel):
             return etree.fromstring(string)
         except etree.XMLSyntaxError:
             raise ValidationError(string)
+
+
+# EXPERIMENTAL
+class AnyHtml(SimpleModel):
+    @classmethod
+    @nillable_string
+    def to_string(cls, value):
+        return html.tostring(value)
+
+    @classmethod
+    @nillable_string
+    def from_string(cls, string):
+        return html.fromstring(string)
 
 
 class AnyDict(SimpleModel):

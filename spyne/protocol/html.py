@@ -47,6 +47,7 @@ from spyne.model.binary import ByteArray
 from spyne.model.binary import Attachment
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModelBase
+from spyne.model.primitive import AnyHtml
 from spyne.model.primitive import AnyUri
 from spyne.model.primitive import ImageUri
 from spyne.protocol import ProtocolBase
@@ -455,7 +456,11 @@ class _HtmlColumnTable(_HtmlTableBase):
 
 
 def _subvalue_to_html(cls, value):
-    if issubclass(cls.type, AnyUri):
+    #import ipdb; ipdb.set_trace()
+    if issubclass(cls.type, AnyHtml):
+        retval = value
+
+    elif issubclass(cls.type, AnyUri):
         href = getattr(value, 'href', None)
         if href is None: # this is not a AnyUri.Value instance.
             href = value
