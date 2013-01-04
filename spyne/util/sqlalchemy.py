@@ -353,6 +353,8 @@ def _get_col_o2o(k, v, fk_col_name):
     """
     assert v.Attributes.table_name is not None, "%r has no table name." % v
     col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
+    if v.Attributes.nullable == False:
+        col_kwargs['nullable'] = False
 
     # get pkeys from child class
     pk_column, = get_pk_columns(v) # FIXME: Support multi-col keys
