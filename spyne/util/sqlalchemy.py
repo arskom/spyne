@@ -374,6 +374,8 @@ def _get_col_o2o(k, v, fk_col_name):
 def _get_col_o2m(cls, fk_col_name):
     """Gets the parent class and returns a column that points to the primary key
     of the parent.
+
+    Funky implementation. Yes.
     """
 
     assert cls.Attributes.table_name is not None, "%r has no table name." % cls
@@ -389,11 +391,16 @@ def _get_col_o2m(cls, fk_col_name):
     if fk_col_name is None:
         fk_col_name = '_'.join([cls.Attributes.table_name, pk_key])
 
-    col = Column(fk_col_name, pk_sqla_type,
-                    ForeignKey('%s.%s' % (cls.Attributes.table_name, pk_key)),
-                                                        *col_args, **col_kwargs)
+    # we jump through all these hoops because we must instantiate the Column
+    # only after we're sure that it doesn't already exist and also because
+    # tinkering with functors is always fun :)
+    yield [(fk_col_name, pk_sqla_type)]
 
-    return col
+    col = Column(fk_col_name, pk_sqla_type,
+                ForeignKey('%s.%s' % (cls.Attributes.table_name, pk_key)),
+                                                    *col_args, **col_kwargs)
+
+    yield col
 
 
 def _get_cols_m2m(cls, k, v, left_fk_col_name, right_fk_col_name):
@@ -401,8 +408,8 @@ def _get_cols_m2m(cls, k, v, left_fk_col_name, right_fk_col_name):
     tables. These columns can be used to create a relation table."""
 
     child, = v._type_info.values()
-    return _get_col_o2m(cls, left_fk_col_name), \
-                                       _get_col_o2o(k, child, right_fk_col_name)
+    col_info, col = _get_col_o2m(cls, left_fk_col_name)
+    return col, _get_col_o2o(k, child, right_fk_col_name)
 
 
 class _FakeTable(object):
@@ -498,16 +505,24 @@ def gen_sqla_info(cls, cls_bases=()):
                                             "relationships."
 
                     child_t = child.__table__
+                    _gen_col = _get_col_o2m(cls, p.right)
+
+                    col_info = _gen_col.next() # gets the column name
+                    p.right, col_type = col_info[0] # FIXME: Add support for multi-column primary keys.
+
                     if p.right in child_t.c:
-                        assert col.type == child_t.c[p.right].type # FIXME: This case MUST be tested.
+                        # FIXME: This branch MUST be tested.
+                        assert col_type == child_t.c[p.right].type
+
                         # if the column is there, the decision about whether
                         # it should be in child's mapper should also have been
                         # made.
                         #
                         # so, not adding the child column to to child mapper
                         # here.
+
                     else:
-                        col = _get_col_o2m(cls, p.right)
+                        col = _gen_col.next()
                         child_t.append_column(col)
                         child.__mapper__.add_property(col.name, col)
 
