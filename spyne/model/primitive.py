@@ -37,10 +37,11 @@ from collections import deque
 
 from pytz import FixedOffset
 
-from spyne.model import SimpleModel
-from spyne.model import nillable_string
 from spyne.error import ValidationError
 from spyne.error import Fault
+from spyne.model import SimpleModel
+from spyne.model import nillable_string
+from spyne.util import memoize
 
 try:
     from lxml import etree
@@ -454,9 +455,19 @@ class Integer(Decimal):
 
 
 class UnsignedInteger(Integer):
-    """The arbitrary-size unsigned integer, aka nonNegativeInteger."""
+    """The arbitrary-size unsigned integer, also known as nonNegativeInteger."""
 
     __type_name__ = 'nonNegativeInteger'
+
+    class Attributes(Integer.Attributes):
+        """Customizable attributes of the :class:`spyne.model.primitive.Decimal`
+        type."""
+
+        gt = 0
+        """The value should be greater than this number."""
+
+        ge = 0
+        """The value should be greater than or equal to this number."""
 
     @staticmethod
     def validate_native(cls, value):
@@ -464,145 +475,109 @@ class UnsignedInteger(Integer):
                 and value >= 0
             )
 
-
 NonNegativeInteger = UnsignedInteger
+"""The arbitrary-size unsigned integer, alias for UnsignedInteger."""
 
+@memoize
+def TBoundedInteger(num_bits, type_name):
+    _min_b = -(0x8<<(num_bits-4))     # 0x8 is 4 bits.
+    _max_b =  (0x8<<(num_bits-4)) - 1 # -1? c'est la vie ;)
 
-class Integer64(Integer):
-    """The 64-bit signed integer, aka long."""
+    class _BoundedInteger(Integer):
+        __type_name__ = type_name
 
-    __type_name__ = 'long'
+        class Attributes(Integer.Attributes):
+            max_str_len = math.ceil(math.log(2**num_bits, 10))
+            _min_bound = _min_b
+            _max_bound = _max_b
 
-    class Attributes(Integer.Attributes):
-        max_str_len = math.ceil(math.log(2**64, 10)) + 1 # +1 for negatives
-
-    @staticmethod
-    def validate_native(cls, value):
-        return (     Integer.validate_native(cls, value)
-                and -0x8000000000000000 <= value < 0x8000000000000000
+        @staticmethod
+        def validate_native(cls, value):
+            return (
+                    _min_b <= value <= _max_b
+                and Integer.validate_native(cls, value)
             )
+
+    return _BoundedInteger
+
+
+@memoize
+def TBoundedUnsignedInteger(num_bits, type_name):
+    _min_b = 0
+    _max_b = 2**num_bits - 1 # -1? c'est la vie ;)
+
+    class _BoundedUnsignedInteger(UnsignedInteger):
+        __type_name__ = type_name
+
+        class Attributes(UnsignedInteger.Attributes):
+            max_str_len = math.ceil(math.log(2**num_bits, 10))
+            _min_bound = _min_b
+            _max_bound = _max_b
+
+        @staticmethod
+        def validate_native(cls, value):
+            return (
+                    _min_b <= value < _max_b
+                and UnsignedInteger.validate_native(cls, value)
+            )
+
+    return _BoundedUnsignedInteger
+
+
+Integer64 = TBoundedInteger(64, 'long')
+"""The 64-bit signed integer, also known as long."""
 
 Long = Integer64
+"""The 64-bit signed integer, alias for Integer64."""
 
 
-class Integer32(Integer):
-    """The 32-bit signed integer, aka int."""
-
-    __type_name__ = 'int'
-
-    class Attributes(Integer.Attributes):
-        max_str_len = math.ceil(math.log(2**32, 10)) + 1 # +1 for negatives
-
-    @staticmethod
-    def validate_native(cls, value):
-        return (     Integer.validate_native(cls, value)
-                and -0x80000000 <= value < 0x80000000
-            )
+Integer32 = TBoundedInteger(32, 'int')
+"""The 64-bit signed integer, also known as int."""
 
 Int = Integer32
+"""The 32-bit signed integer, alias for Integer32."""
 
 
-class Integer16(Integer):
-    """The 8-bit signed integer, aka short."""
+Integer16 = TBoundedInteger(16, 'short')
+"""The 16-bit signed integer, also known as short."""
 
-    __type_name__ = 'short'
-
-    class Attributes(Integer.Attributes):
-        max_str_len = math.ceil(math.log(2**16, 10)) + 1 # +1 for negatives
-
-    @staticmethod
-    def validate_native(cls, value):
-        return (     Integer.validate_native(cls, value)
-                and -0x8000 <= value < 0x8000
-            )
-
-Short = Integer64
+Short = Integer16
+"""The 16-bit signed integer, alias for Integer16."""
 
 
-class Integer8(Integer):
-    """The 8-bit signed integer, aka byte."""
-
-    __type_name__ = 'byte'
-
-    class Attributes(Integer.Attributes):
-        max_str_len = math.ceil(math.log(2**8, 10)) + 1 # +1 for negatives
-
-
-    @staticmethod
-    def validate_native(cls, value):
-        return (     Integer.validate_native(cls, value)
-                and -0x80 <= value < 0x80
-            )
+Integer8 = TBoundedInteger(8, 'byte')
+"""The 8-bit signed integer, also known as byte."""
 
 Byte = Integer8
+"""The 8-bit signed integer, alias for Integer8."""
 
 
-class UnsignedInteger64(UnsignedInteger):
-    """The 64-bit unsigned integer, aka unsignedLong."""
+UnsignedInteger64 = TBoundedUnsignedInteger(64, 'unsignedLong')
+"""The 64-bit unsigned integer, also known as unsignedLong."""
 
-    __type_name__ = 'unsignedLong'
-
-    class Attributes(Integer.Attributes):
-        max_str_len = math.ceil(math.log(2**64, 10))
-
-    @staticmethod
-    def validate_native(cls, value):
-        return (     UnsignedInteger.validate_native(cls, value)
-                and  value <= 0xFFFFFFFFFFFFFFFF
-            )
-
-UnsignedLong = UnsignedInteger64
+Long = UnsignedInteger64
+"""The 64-bit unsigned integer, alias for UnsignedInteger64."""
 
 
-class UnsignedInteger32(UnsignedInteger):
-    """The 32-bit unsigned integer, aka unsignedInt."""
+UnsignedInteger32 = TBoundedUnsignedInteger(32, 'unsignedInt')
+"""The 64-bit unsigned integer, also known as unsignedInt."""
 
-    __type_name__ = 'unsignedInt'
-
-    class Attributes(Integer.Attributes):
-        max_str_len = math.ceil(math.log(2**32, 10))
-
-    @staticmethod
-    def validate_native(cls, value):
-        return (     UnsignedInteger.validate_native(cls, value)
-                and  value <= 0xFFFFFFFF
-            )
-
-UnsignedInt = UnsignedInteger32
+Int = UnsignedInteger32
+"""The 32-bit unsigned integer, alias for UnsignedInteger32."""
 
 
-class UnsignedInteger16(Integer):
-    """The 16-bit unsigned integer, aka unsignedShort."""
+UnsignedInteger16 = TBoundedUnsignedInteger(16, 'unsignedShort')
+"""The 16-bit unsigned integer, also known as unsignedShort."""
 
-    __type_name__ = 'unsignedShort'
-
-    class Attributes(Integer.Attributes):
-        max_str_len = math.ceil(math.log(2**16, 10))
-
-    @staticmethod
-    def validate_native(cls, value):
-        return (     UnsignedInteger.validate_native(cls, value)
-                and  value <= 0xFFFF
-            )
-
-UnsignedShort = UnsignedInteger16
+Short = UnsignedInteger16
+"""The 16-bit unsigned integer, alias for UnsignedInteger16."""
 
 
-class UnsignedInteger8(Integer):
-    """The 8-bit unsigned integer, aka unsignedByte."""
+UnsignedInteger8 = TBoundedUnsignedInteger(8, 'unsignedByte')
+"""The 8-bit unsigned integer, also known as unsignedByte."""
 
-    __type_name__ = 'unsignedByte'
-
-    class Attributes(Integer.Attributes):
-        max_str_len = math.ceil(math.log(2**8, 10))
-
-    @staticmethod
-    def validate_native(cls, value):
-        return (     UnsignedInteger.validate_native(cls, value)
-                and  value <= 0xFF
-            )
-
-UnsignedByte = UnsignedInteger8
+Byte = UnsignedInteger8
+"""The 8-bit unsigned integer, alias for UnsignedInteger8."""
 
 
 class Time(SimpleModel):
