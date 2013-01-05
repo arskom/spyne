@@ -474,16 +474,6 @@ class UnsignedInteger(Integer):
 
     __type_name__ = 'nonNegativeInteger'
 
-    class Attributes(Integer.Attributes):
-        """Customizable attributes of the :class:`spyne.model.primitive.Decimal`
-        type."""
-
-        gt = 0
-        """The value should be greater than this number."""
-
-        ge = 0
-        """The value should be greater than or equal to this number."""
-
     @staticmethod
     def validate_native(cls, value):
         return (     Integer.validate_native(cls, value)
