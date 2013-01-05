@@ -490,6 +490,9 @@ def gen_sqla_info(cls, cls_bases=()):
                 if p.multi != False: # many to many
                     col_own, col_child = _get_cols_m2m(cls, k, v, p.left, p.right)
 
+                    p.left = col_own.key
+                    p.right = col_child.key
+
                     if p.multi == True:
                         rel_table_name = '_'.join([cls.Attributes.table_name, k])
                     else:
@@ -547,6 +550,7 @@ def gen_sqla_info(cls, cls_bases=()):
                     col = _get_col_o2o(k, v, p.left)
                     rel = relationship(real_v, uselist=False)
 
+                    p.left = col.key
                     props[k] = rel
 
                 elif isinstance(p, c_xml):
