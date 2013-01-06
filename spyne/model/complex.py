@@ -348,13 +348,21 @@ class ComplexModelMeta(type(ModelBase)):
                 if a_of is not None:
                     type_info.attributes[k] = type_info[a_of]
 
-        if self.Attributes.table_name is None:
-            if self.Attributes.sqla_table is not None and len(self._type_info) == 0:
+        tn = self.Attributes.table_name
+        meta = self.Attributes.sqla_metadata
+        t = self.Attributes.sqla_table
+
+        # for spyne objects reflecting an existing db table
+        if tn is None:
+            if t is not None and len(self._type_info) == 0:
+                self.Attributes.sqla_metadata = t.metadata
                 from spyne.util.sqlalchemy import gen_spyne_info
 
                 gen_spyne_info(self)
 
-        elif self.Attributes.sqla_metadata is not None and len(self._type_info) > 0:
+        # for spyne objects that is being converted to a
+        elif meta is not None and (tn is not None or t is not None) and \
+                                                       len(self._type_info) > 0:
             from spyne.util.sqlalchemy import gen_sqla_info
 
             gen_sqla_info(self, cls_bases)
@@ -690,9 +698,9 @@ class Array(ComplexModelBase):
             member_name = serializer.get_type_name()
             if cls.__type_name__ is None:
                 cls.__type_name__ = '%s%s' % (serializer.get_type_name(),
-                                                                    ARRAY_SUFFIX)
+                                                                ARRAY_SUFFIX)
 
-        retval.__type_name__ = '%sArray' % member_name
+        retval.__type_name__ = '%s%s' % (member_name, ARRAY_SUFFIX)
         retval._type_info = {member_name: serializer}
 
         return retval
@@ -741,7 +749,7 @@ class Alias(ComplexModelBase):
     __metaclass__ = ComplexModelMeta
 
 
-def log_repr(obj, cls=None):
+def log_repr(obj, cls=None, given_len=None):
     """Use this function if you want to echo a ComplexModel subclass. It will
     limit output size of the String types, making your logs smaller.
     """
@@ -758,7 +766,19 @@ def log_repr(obj, cls=None):
         cls, = cls._type_info.values()
 
         if not cls.Attributes.logged:
-            retval.append("[%s (...)]" % cls.get_type_name())
+            retval.append("%s (...)" % cls.get_type_name())
+
+        elif cls.Attributes.logged == 'len':
+            l = '?'
+
+            try:
+                l = str(len(obj))
+            except TypeError, e:
+                if given_len is not None:
+                    l = str(given_len)
+
+            retval.append("%s[%s] (...)" % (cls.get_type_name(), l))
+
         else:
             for i,o in enumerate(obj):
                 retval.append(_log_repr_obj(o, cls))

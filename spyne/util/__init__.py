@@ -37,45 +37,52 @@ def split_url(url):
     return scheme.lower(), host, path
 
 
-def reconstruct_url(environ):
-    '''
-    Rebuilds the calling url from values found in the
+def reconstruct_url(environ, protocol=True, server_name=True, path=True,
+                                                             query_string=True):
+
+    '''Rebuilds the calling url from values found in the
     environment.
 
     This algorithm was found via PEP 333, the wsgi spec and
     contributed by Ian Bicking.
     '''
 
-    url = environ['wsgi.url_scheme'] + '://'
+    url = ''
+    if protocol:
+        url = environ['wsgi.url_scheme'] + '://'
 
-    if environ.get('HTTP_HOST'):
-        url += environ['HTTP_HOST']
-
-    else:
-        url += environ['SERVER_NAME']
-
-        if environ['wsgi.url_scheme'] == 'https':
-            if environ['SERVER_PORT'] != '443':
-                url += ':' + environ['SERVER_PORT']
+    if server_name:
+        if environ.get('HTTP_HOST'):
+            url += environ['HTTP_HOST']
 
         else:
-            if environ['SERVER_PORT'] != '80':
-                url += ':' + environ['SERVER_PORT']
+            url += environ['SERVER_NAME']
 
-    if (quote(environ.get('SCRIPT_NAME', '')) == '/' and
-        quote(environ.get('PATH_INFO', ''))[0] == '/'):
-        #skip this if it is only a slash
-        pass
+            if environ['wsgi.url_scheme'] == 'https':
+                if environ['SERVER_PORT'] != '443':
+                    url += ':' + environ['SERVER_PORT']
 
-    elif quote(environ.get('SCRIPT_NAME', ''))[0:2] == '//':
-        url += quote(environ.get('SCRIPT_NAME', ''))[1:]
+            else:
+                if environ['SERVER_PORT'] != '80':
+                    url += ':' + environ['SERVER_PORT']
 
-    else:
-        url += quote(environ.get('SCRIPT_NAME', ''))
+    if path:
+        if (quote(environ.get('SCRIPT_NAME', '')) == '/' and
+            quote(environ.get('PATH_INFO', ''))[0] == '/'):
+            #skip this if it is only a slash
+            pass
 
-    url += quote(environ.get('PATH_INFO', ''))
-    if environ.get('QUERY_STRING'):
-        url += '?' + environ['QUERY_STRING']
+        elif quote(environ.get('SCRIPT_NAME', ''))[0:2] == '//':
+            url += quote(environ.get('SCRIPT_NAME', ''))[1:]
+
+        else:
+            url += quote(environ.get('SCRIPT_NAME', ''))
+
+        url += quote(environ.get('PATH_INFO', ''))
+
+    if query_string:
+        if environ.get('QUERY_STRING'):
+            url += '?' + environ['QUERY_STRING']
 
     return url
 
@@ -107,7 +114,7 @@ class memoize(object):
 class memoize_id(memoize):
     def get_key(self, args, kwargs):
         return tuple([id(a) for a in args]), \
-                                    tuple([ (k,id(v)) for k,v in kwargs.items()])
+                                   tuple([ (k,id(v)) for k,v in kwargs.items()])
 
 
 def sanitize_args(a):

@@ -85,6 +85,7 @@ def _gen_http_headers(headers):
 
     return retval
 
+
 class WsgiTransportContext(HttpTransportContext):
     """The class that is used in the transport attribute of the
     :class:`WsgiMethodContext` class."""
@@ -137,7 +138,6 @@ class WsgiApplication(HttpBase):
             Called after the whole data has been returned to the client. It's
             called both from success and error cases.
     '''
-
 
     def __init__(self, app, chunked=True):
         HttpBase.__init__(self, app, chunked)
@@ -496,7 +496,7 @@ class WsgiApplication(HttpBase):
 
         if ctx.in_document['REQUEST_METHOD'].upper() in ('POST', 'PUT', 'PATCH'):
             stream, form, files = parse_form_data(ctx.in_document,
-                                        stream_factory=prot.stream_factory)
+                                            stream_factory=prot.stream_factory)
 
             for k, v in form.lists():
                 val = ctx.in_body_doc.get(k, [])

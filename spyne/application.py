@@ -133,7 +133,7 @@ class Application(object):
             # fire events
             self.event_manager.fire_event('method_return_object', ctx)
             ctx.service_class.event_manager.fire_event(
-                                                    'method_return_object', ctx)
+                                                   'method_return_object', ctx)
 
         except Fault, e:
             logger.exception(e)
@@ -142,9 +142,9 @@ class Application(object):
 
             # fire events
             self.event_manager.fire_event('method_exception_object', ctx)
-            if ctx.service_class != None:
+            if ctx.service_class is not None:
                 ctx.service_class.event_manager.fire_event(
-                                                'method_exception_object', ctx)
+                                               'method_exception_object', ctx)
 
         except Exception, e:
             logger.exception(e)
@@ -153,7 +153,7 @@ class Application(object):
 
             # fire events
             self.event_manager.fire_event('method_exception_object', ctx)
-            if ctx.service_class != None:
+            if ctx.service_class is not None:
                 ctx.service_class.event_manager.fire_event(
                                                 'method_exception_object', ctx)
 

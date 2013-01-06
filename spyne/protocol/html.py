@@ -47,6 +47,7 @@ from spyne.model.binary import ByteArray
 from spyne.model.binary import Attachment
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModelBase
+from spyne.model.primitive import AnyHtml
 from spyne.model.primitive import AnyUri
 from spyne.model.primitive import ImageUri
 from spyne.protocol import ProtocolBase
@@ -455,7 +456,11 @@ class _HtmlColumnTable(_HtmlTableBase):
 
 
 def _subvalue_to_html(cls, value):
-    if issubclass(cls.type, AnyUri):
+    #import ipdb; ipdb.set_trace()
+    if issubclass(cls.type, AnyHtml):
+        retval = value
+
+    elif issubclass(cls.type, AnyUri):
         href = getattr(value, 'href', None)
         if href is None: # this is not a AnyUri.Value instance.
             href = value
@@ -588,6 +593,8 @@ class HtmlPage(object):
     <html><body><div id="some_div">some_text</div></body></html>
     """
 
+    reserved = ('html', 'file_name')
+
     def __init__(self, file_name):
         self.__frozen = False
         self.__file_name = file_name
@@ -599,6 +606,13 @@ class HtmlPage(object):
             if key in self.__ids:
                 raise ValueError("Don't use duplicate values in id attributes in"
                                  "template documents.")
+            if key in HtmlPage.reserved:
+                raise ValueError("id attribute values %r are reserved." % HtmlPage.reserved)
+
+            if key.startswith('_'):
+                logger.debug('%r is ignored because it starts with an underscore' % key)
+                continue
+
             self.__ids[key] = elt
             s = "%r -> %r" % (key, elt)
             logger.debug(s)
@@ -632,15 +646,11 @@ class HtmlPage(object):
             if elt is None:
                 raise AttributeError(key)
 
-            # poor man's elt.clear() version that keeps the attributes
-            children = list(elt)
-            for c in children:
-                elt.remove(c)
-            elt.text = None
-            elt.tail = None
-
             # set it in.
             if isinstance(value, basestring):
                 elt.text = value
             else:
-                elt.append(value)
+                elt.addnext(value)
+                parent = elt.getparent()
+                parent.remove(elt)
+                self.__ids[key] = value

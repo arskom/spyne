@@ -156,6 +156,24 @@ class ModelBase(object):
         """If false, this object will be ignored in ``log_repr``, mostly used
         for logging purposes."""
 
+        unique = None
+        """If True, this object will be set as unique in the database schema
+        with default indexing options. If the value is a string, it will be used
+        as the indexing method to create the unique index.
+        """
+
+        index = None
+        """Can be ``True``, a string, or a tuple of two strings.
+
+        * If True, this object will be set as indexed in the database schema
+          with default options.
+        * If the value is a string, the value will denote the indexing method
+          used by the database. See: http://www.postgresql.org/docs/9.2/static/indexes-types.html
+        * If the vale is a tuple of two strings, the first value will denote the
+          index name and the second value will denote the indexing method as
+          above.
+        """
+
     class Annotations(object):
         """The class that holds the annotations for the given type."""
 
@@ -266,6 +284,9 @@ class ModelBase(object):
             translations = {}
             sqla_column_args = (), {}
         cls_dict['Attributes'] = Attributes
+        # as nillable is a property, it gets reset everytime a new class is
+        # defined.
+        Attributes.nillable = cls.Attributes.nillable
 
         class Annotations(cls.Annotations):
             pass
@@ -280,6 +301,9 @@ class ModelBase(object):
 
             elif k in ('primary_key','pk'):
                 Attributes.sqla_column_args[-1]['primary_key'] = v
+
+            elif k in ('autoincrement'):
+                Attributes.sqla_column_args[-1][k] = v
 
             elif k in ('foreign_key','fk'):
                 from sqlalchemy.schema import ForeignKey

@@ -38,6 +38,7 @@ from lxml import etree
 
 from sqlalchemy import sql
 from sqlalchemy.schema import Column
+from sqlalchemy.schema import Index
 from sqlalchemy.schema import Table
 from sqlalchemy.schema import ForeignKey
 
@@ -61,6 +62,7 @@ from spyne.model.enum import Enum
 from spyne.model.binary import ByteArray
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModelBase
+from spyne.model.primitive import AnyXml
 from spyne.model.primitive import Uuid
 from spyne.model.primitive import Date
 from spyne.model.primitive import Time
@@ -140,6 +142,7 @@ class PGGeometry(UserDefinedType):
     def __init__(self, geometry_type='GEOMETRY', srid=4326, dimension=2,
                                                                 format='wkt'):
         self.geometry_type = geometry_type.upper()
+        self.name = 'geometry'
         self.srid = int(srid)
         self.dimension = dimension
         self.format = format
@@ -181,6 +184,35 @@ class PGGeometry(UserDefinedType):
                 return value
 
         return process
+
+
+class PGXml(UserDefinedType):
+    def __init__(self, pretty_print=False, xml_declaration=False,
+                                                             encoding='UTF-8'):
+        self.xml_declaration = xml_declaration
+        self.pretty_print = pretty_print
+        self.encoding = encoding
+
+    def get_col_spec(self):
+        return "xml"
+
+    def bind_processor(self, dialect):
+        def process(value):
+            if isinstance(value, str) or value is None:
+                return value
+            else:
+                return etree.tostring(value, pretty_print=self.pretty_print,
+                                 encoding=self.encoding, xml_declaration=False)
+        return process
+
+    def result_processor(self, dialect, col_type):
+        def process(value):
+            if value is not None:
+                return etree.fromstring(value)
+            else:
+                return value
+        return process
+
 
 class PGObjectXml(UserDefinedType):
     def __init__(self, cls, root_tag_name=None, no_namespace=False):
@@ -244,9 +276,11 @@ def get_sqlalchemy_type(cls):
     elif issubclass(cls, Polygon):
         return PGGeometry("POLYGON", dimension=cls.Attributes.dim)
 
+    # must be above Unicode, because MultiPolygon is Unicode's subclass
     elif issubclass(cls, MultiPolygon):
         return PGGeometry("MULTIPOLYGON", dimension=cls.Attributes.dim)
 
+    # must be above Unicode, because String is Unicode's subclass
     elif issubclass(cls, String):
         if cls.Attributes.max_len == String.Attributes.max_len: # Default is arbitrary-length
             return sqlalchemy.Text
@@ -258,6 +292,9 @@ def get_sqlalchemy_type(cls):
             return sqlalchemy.UnicodeText
         else:
             return sqlalchemy.Unicode(cls.Attributes.max_len)
+
+    elif issubclass(cls, AnyXml):
+        return PGXml
 
     elif issubclass(cls, ByteArray):
         return sqlalchemy.LargeBinary
@@ -316,6 +353,8 @@ def _get_col_o2o(k, v, fk_col_name):
     """
     assert v.Attributes.table_name is not None, "%r has no table name." % v
     col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
+    if v.Attributes.nullable == False:
+        col_kwargs['nullable'] = False
 
     # get pkeys from child class
     pk_column, = get_pk_columns(v) # FIXME: Support multi-col keys
@@ -335,6 +374,8 @@ def _get_col_o2o(k, v, fk_col_name):
 def _get_col_o2m(cls, fk_col_name):
     """Gets the parent class and returns a column that points to the primary key
     of the parent.
+
+    Funky implementation. Yes.
     """
 
     assert cls.Attributes.table_name is not None, "%r has no table name." % cls
@@ -350,11 +391,16 @@ def _get_col_o2m(cls, fk_col_name):
     if fk_col_name is None:
         fk_col_name = '_'.join([cls.Attributes.table_name, pk_key])
 
-    col = Column(fk_col_name, pk_sqla_type,
-                    ForeignKey('%s.%s' % (cls.Attributes.table_name, pk_key)),
-                                                        *col_args, **col_kwargs)
+    # we jump through all these hoops because we must instantiate the Column
+    # only after we're sure that it doesn't already exist and also because
+    # tinkering with functors is always fun :)
+    yield [(fk_col_name, pk_sqla_type)]
 
-    return col
+    col = Column(fk_col_name, pk_sqla_type,
+                ForeignKey('%s.%s' % (cls.Attributes.table_name, pk_key)),
+                                                    *col_args, **col_kwargs)
+
+    yield col
 
 
 def _get_cols_m2m(cls, k, v, left_fk_col_name, right_fk_col_name):
@@ -362,14 +408,15 @@ def _get_cols_m2m(cls, k, v, left_fk_col_name, right_fk_col_name):
     tables. These columns can be used to create a relation table."""
 
     child, = v._type_info.values()
-    return _get_col_o2m(cls, left_fk_col_name), \
-                                       _get_col_o2o(k, child, right_fk_col_name)
+    col_info, col = _get_col_o2m(cls, left_fk_col_name)
+    return col, _get_col_o2o(k, child, right_fk_col_name)
 
 
 class _FakeTable(object):
     def __init__(self):
         self.columns = []
         self.c = {}
+        self.indexes = []
 
     def append_column(self, col):
         self.columns.append(col)
@@ -431,20 +478,22 @@ def gen_sqla_info(cls, cls_bases=()):
         if v.Attributes.nullable == False:
             col_kwargs['nullable'] = False
 
-        if k in table.c:
-            continue
-
         t = get_sqlalchemy_type(v)
 
         if t is None:
             p = getattr(v.Attributes, 'store_as', None)
             if p is not None and issubclass(v, Array) and isinstance(p, c_table):
-                child, = v._type_info.values()
-                if child.__orig__ is not None:
-                    child = child.__orig__
+                child_cust, = v._type_info.values()
+                if child_cust.__orig__ is not None:
+                    child = child_cust.__orig__
+                else:
+                    child = child_cust
 
                 if p.multi != False: # many to many
                     col_own, col_child = _get_cols_m2m(cls, k, v, p.left, p.right)
+
+                    p.left = col_own.key
+                    p.right = col_child.key
 
                     if p.multi == True:
                         rel_table_name = '_'.join([cls.Attributes.table_name, k])
@@ -457,12 +506,35 @@ def gen_sqla_info(cls, cls_bases=()):
                     props[k] = relationship(child, secondary=rel_t)
 
                 else: # one to many
-                    assert p.left is None, "'left' is ignored."
+                    assert p.left is None, "'left' is ignored in one-to-many " \
+                                            "relationships. You probebly meant " \
+                                            "to use 'right'."
 
-                    col = _get_col_o2m(cls, p.right)
+                    child_t = child.__table__
+                    _gen_col = _get_col_o2m(cls, p.right)
 
-                    child.__table__.append_column(col)
-                    child.__mapper__.add_property(col.name, col)
+                    col_info = _gen_col.next() # gets the column name
+                    p.right, col_type = col_info[0] # FIXME: Add support for multi-column primary keys.
+
+                    if p.right in child_t.c:
+                        # FIXME: This branch MUST be tested.
+                        assert col_type == child_t.c[p.right].type
+
+                        # if the column is there, the decision about whether
+                        # it should be in child's mapper should also have been
+                        # made.
+                        #
+                        # so, not adding the child column to to child mapper
+                        # here.
+
+                    else:
+                        col = _gen_col.next()
+
+                        if child_cust.Attributes.nullable == False:
+                            col.nullable = False
+
+                        child_t.append_column(col)
+                        child.__mapper__.add_property(col.name, col)
 
                     props[k] = relationship(child)
 
@@ -475,23 +547,32 @@ def gen_sqla_info(cls, cls_bases=()):
                     real_v = v.__orig__
 
                 if isinstance(p, c_table):
-                    if getattr(p, 'multi', False):
-                        raise Exception('Storing a single element-type using a '
+                    assert not getattr(p, 'multi', False), (
+                                        'Storing a single element-type using a '
                                         'relation table is pointless.')
 
-                    assert p.right is None, "'right' is ignored"
+                    assert p.right is None, "'right' is ignored in a one-to-one " \
+                                            "relationship"
 
                     col = _get_col_o2o(k, v, p.left)
                     rel = relationship(real_v, uselist=False)
 
+                    p.left = col.key
                     props[k] = rel
 
                 elif isinstance(p, c_xml):
-                    col = Column(k, PGObjectXml(v, p.root_tag, p.no_ns),
+                    if k in table.c:
+                        col = table.c[k]
+                    else:
+                        col = Column(k, PGObjectXml(v, p.root_tag, p.no_ns),
                                                         *col_args, **col_kwargs)
 
                 elif isinstance(p, c_json):
-                    col = Column(k, PGObjectJson(v, p.skip_depth), *col_args, **col_kwargs)
+                    if k in table.c:
+                        col = table.c[k]
+                    else:
+                        col = Column(k, PGObjectJson(v, p.skip_depth),
+                                                        *col_args, **col_kwargs)
 
                 elif isinstance(p, c_msgpack):
                     raise NotImplementedError()
@@ -500,7 +581,8 @@ def gen_sqla_info(cls, cls_bases=()):
                     raise ValueError(p)
 
                 props[col.name] = col
-                table.append_column(col)
+                if not k in table.c:
+                    table.append_column(col)
 
             else:
                 logger.debug("Skipping %s.%s.%s: %r, store_as: %r" % (
@@ -508,16 +590,50 @@ def gen_sqla_info(cls, cls_bases=()):
                                                 cls.get_type_name(), k, v, p))
 
         else:
-            col = Column(k, t, *col_args, **col_kwargs)
-            table.append_column(col)
+            unique = v.Attributes.unique
+            index = v.Attributes.index
+            if unique and not index:
+                index = True
+
+            try:
+                index_name, index_method = v.Attributes.index
+            except (TypeError, ValueError):
+                index_name = "%s_%s%s" % (table_name, k, '_unique' if unique else '')
+                index_method = v.Attributes.index
+
+            if k in table.c:
+                col = table.c[k]
+
+            else:
+                col = Column(k, t, *col_args, **col_kwargs)
+                table.append_column(col)
+
+                if index in (False, None):
+                    pass
+                else:
+                    if index == True:
+                        index_args = (index_name, col), dict(unique=unique)
+                    else:
+                        index_args = (index_name, col), dict(unique=unique, postgresql_using=index_method)
+
+                    if isinstance(table, _FakeTable):
+                        table.indexes.append(index_args)
+                    else:
+                        Index(*index_args[0], **index_args[1])
 
             if not v.Attributes.exc_mapper:
                 props[k] = col
 
     if isinstance(table, _FakeTable):
+        _table = table
         table_args, table_kwargs = sanitize_args(cls.Attributes.sqla_table_args)
         table = Table(table_name, metadata,
                            *(tuple(table.columns) + table_args), **table_kwargs)
+
+        for index_args, index_kwargs in _table.indexes:
+            Index(*index_args, **index_kwargs)
+        del _table
+
 
     # Map the table to the object
     mapper_args, mapper_kwargs = sanitize_args(cls.Attributes.sqla_mapper_args)
@@ -581,6 +697,9 @@ def get_spyne_type(v):
 
     elif isinstance(v.type, (sqlalchemy.Numeric)):
         rpc_type = Decimal(v.type.precision, v.type.scale)
+
+    elif isinstance(v.type, (PGXml)):
+        rpc_type = AnyXml
 
     elif type(v.type) in _sq2sp_type_map:
         rpc_type = _sq2sp_type_map[type(v.type)]

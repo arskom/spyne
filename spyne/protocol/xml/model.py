@@ -20,8 +20,10 @@
 import logging
 logger = logging.getLogger(__name__)
 
-from lxml import etree
 from collections import defaultdict
+
+from lxml import etree
+from lxml import html
 
 from spyne.const.xml_ns import xsi as _ns_xsi
 from spyne.const.xml_ns import soap_env as _ns_soap_env
@@ -335,6 +337,14 @@ def xml_from_element(prot, cls, element):
 def xml_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     if isinstance(value, str) or isinstance(value, unicode):
         value = etree.fromstring(value)
+
+    e = etree.SubElement(parent_elt, '{%s}%s' % (tns, name))
+    e.append(value)
+
+@nillable_value
+def html_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
+    if isinstance(value, str) or isinstance(value, unicode):
+        value = html.fromstring(value)
 
     e = etree.SubElement(parent_elt, '{%s}%s' % (tns, name))
     e.append(value)

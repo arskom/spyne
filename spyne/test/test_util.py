@@ -70,6 +70,7 @@ class TestCDict(unittest.TestCase):
         else:
             raise Exception("Must fail.")
 
+
 class TestSafeRepr(unittest.TestCase):
     def test_log_repr(self):
         from spyne.model.complex import ComplexModel
@@ -82,6 +83,7 @@ class TestSafeRepr(unittest.TestCase):
 
         assert 128 > MAX_STRING_FIELD_LENGTH
         assert log_repr(Z(z="a"*128)) == "Z(z='%s'(...))" % ('a' * MAX_STRING_FIELD_LENGTH)
+
 
 class TestDeserialize(unittest.TestCase):
     def test_deserialize(self):
@@ -110,6 +112,15 @@ class TestDeserialize(unittest.TestCase):
         obj = deserialize_request_string(string, app)
 
         assert obj.yo == meat
+
+
+class TestEtreeDict(unittest.TestCase):
+    def test_simple(self):
+        from lxml.etree import tostring
+        from spyne.util.etreeconv import root_dict_to_etree
+
+        assert tostring(root_dict_to_etree({'a':{'b':'c'}})) == '<a><b>c</b></a>'
+
 
 if __name__ == '__main__':
     unittest.main()

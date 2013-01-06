@@ -223,7 +223,6 @@ class TestSqlAlchemy(unittest.TestCase):
         self.assertEquals(User._type_info['id'].__type_name__, 'integer')
         self.assertEquals(User._type_info['name'].__type_name__, 'string')
 
-        Array(User)
 
     def test_default_ctor(self):
         import sqlalchemy
@@ -365,11 +364,44 @@ from spyne.model.complex import table
 class NewTableModel:pass
 NewTableModel = TTableModel()
 
-class TestSqlAlchemyNested(unittest.TestCase):
+class TestSqlAlchemySchema(unittest.TestCase):
     def setUp(self):
         import logging
         logging.getLogger('sqlalchemy').setLevel(logging.DEBUG)
 
+    def test_schema(self):
+        engine = create_engine('sqlite:///:memory:')
+        session = sessionmaker(bind=engine)()
+        metadata = NewTableModel.Attributes.sqla_metadata = MetaData()
+        metadata.bind = engine
+
+        class SomeClass(NewTableModel):
+            __tablename__ = 'some_class'
+            __table_args__ = {"sqlite_autoincrement": True}
+
+            id = Integer32(primary_key=True, autoincrement=False)
+            s = Unicode(64, unique=True)
+            i = Integer32(64, index=True)
+
+        gen_sqla_info(SomeClass)
+        t = SomeClass.__table__
+        metadata.create_all() # not needed, just nice to see.
+
+        assert t.c.id.primary_key == True
+        assert t.c.id.autoincrement == False
+        indexes = list(t.indexes)
+        indexes.sort(key=lambda idx: idx.columns)
+        for idx in indexes:
+            assert 'i' in idx.columns or 's' in idx.columns
+            if 's' in idx.columns:
+                assert idx.unique
+
+
+
+class TestSqlAlchemyNested(unittest.TestCase):
+    def setUp(self):
+        import logging
+        logging.getLogger('sqlalchemy').setLevel(logging.DEBUG)
 
     def test_nested_sql(self):
         engine = create_engine('sqlite:///:memory:')
