@@ -631,7 +631,6 @@ def gen_sqla_info(cls, cls_bases=()):
                            *(tuple(table.columns) + table_args), **table_kwargs)
 
         for index_args, index_kwargs in _table.indexes:
-            print index_args, index_kwargs
             Index(*index_args, **index_kwargs)
         del _table
 
