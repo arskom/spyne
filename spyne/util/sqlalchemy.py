@@ -483,9 +483,11 @@ def gen_sqla_info(cls, cls_bases=()):
         if t is None:
             p = getattr(v.Attributes, 'store_as', None)
             if p is not None and issubclass(v, Array) and isinstance(p, c_table):
-                child, = v._type_info.values()
-                if child.__orig__ is not None:
-                    child = child.__orig__
+                child_cust, = v._type_info.values()
+                if child_cust.__orig__ is not None:
+                    child = child_cust.__orig__
+                else:
+                    child = child_cust
 
                 if p.multi != False: # many to many
                     col_own, col_child = _get_cols_m2m(cls, k, v, p.left, p.right)
@@ -527,6 +529,10 @@ def gen_sqla_info(cls, cls_bases=()):
 
                     else:
                         col = _gen_col.next()
+
+                        if child_cust.Attributes.nullable == False:
+                            col.nullable = False
+
                         child_t.append_column(col)
                         child.__mapper__.add_property(col.name, col)
 
