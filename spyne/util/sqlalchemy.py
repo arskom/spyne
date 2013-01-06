@@ -505,7 +505,8 @@ def gen_sqla_info(cls, cls_bases=()):
 
                 else: # one to many
                     assert p.left is None, "'left' is ignored in one-to-many " \
-                                            "relationships."
+                                            "relationships. You probebly meant " \
+                                            "to use 'right'."
 
                     child_t = child.__table__
                     _gen_col = _get_col_o2m(cls, p.right)
