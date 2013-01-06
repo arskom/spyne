@@ -702,9 +702,9 @@ class Array(ComplexModelBase):
             member_name = serializer.get_type_name()
             if cls.__type_name__ is None:
                 cls.__type_name__ = '%s%s' % (serializer.get_type_name(),
-                                                                    ARRAY_SUFFIX)
+                                                                ARRAY_SUFFIX)
 
-        retval.__type_name__ = '%sArray' % member_name
+        retval.__type_name__ = '%s%s' % (member_name, ARRAY_SUFFIX)
         retval._type_info = {member_name: serializer}
 
         return retval
