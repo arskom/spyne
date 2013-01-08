@@ -95,8 +95,15 @@ class ModelBase(object):
     """
 
     __orig__ = None
+    """This holds the original class the class .customize()d from. """
+
     __namespace__ = None
+    """The public namespace of this class. Use ``get_namespace()`` instead of
+    accessing it directly."""
+
     __type_name__ = None
+    """The public type name of the class. Use ``get_type_name()`` instead of
+    accessing it directly."""
 
     # These are not the xml schema defaults. The xml schema defaults are
     # considered in ComplexModel's add_to_schema method. the defaults here
