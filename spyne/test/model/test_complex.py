@@ -19,12 +19,15 @@
 
 import datetime
 import unittest
-import hashlib
 
 from lxml import etree
 
+from spyne.application import Application
+from spyne.decorator import rpc
+from spyne.service import ServiceBase
 from spyne.interface import Interface
 from spyne.interface.wsdl import Wsdl11
+from spyne.protocol import ProtocolBase
 from spyne.const import xml_ns
 
 from spyne.model.complex import Array
@@ -425,6 +428,15 @@ class TestSelfRefence(unittest.TestCase):
 
         assert (TestSelfReference._type_info['self_reference'] is TestSelfReference)
 
+        class SoapService(ServiceBase):
+            @rpc(_returns=TestSelfReference)
+            def view_categories(ctx):
+                pass
+
+        Application([SoapService], 'service.soap',
+                            in_protocol=ProtocolBase(),
+                            out_protocol=ProtocolBase())
+
     def test_self_referential_array_workaround(self):
         from spyne.util.dictobj import get_object_as_dict
         from pprint import pprint
@@ -440,6 +452,15 @@ class TestSelfRefence(unittest.TestCase):
         pprint(d)
         assert d['Category']['children']['Category'][0]['id'] == 0
         assert d['Category']['children']['Category'][1]['id'] == 1
+
+        class SoapService(ServiceBase):
+            @rpc(_returns=Category)
+            def view_categories(ctx):
+                pass
+
+        Application([SoapService], 'service.soap',
+                            in_protocol=ProtocolBase(),
+                            out_protocol=ProtocolBase())
 
     def test_canonical_array(self):
         class Category(ComplexModel):
