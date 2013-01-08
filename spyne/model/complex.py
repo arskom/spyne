@@ -166,8 +166,8 @@ class XmlAttribute(ModelBase):
             element.set('use', cls._use)
 
     @staticmethod
-    def resolve_namespace(cls, default_ns):
-        cls.type.resolve_namespace(cls.type, default_ns)
+    def resolve_namespace(cls, default_ns, tags=None):
+        cls.type.resolve_namespace(cls.type, default_ns, tags)
 
         cls.__namespace__ = cls._ns
 
@@ -581,11 +581,19 @@ class ComplexModelBase(ModelBase):
         raise TypeError("Only primitives can be deserialized from string.")
 
     @staticmethod
-    def resolve_namespace(cls, default_ns):
-        if getattr(cls, '__extends__', None) != None:
-            cls.__extends__.resolve_namespace(cls.__extends__, default_ns)
+    def resolve_namespace(cls, default_ns, tags=None):
+        if tags is None:
+            tags = set()
 
-        ModelBase.resolve_namespace(cls, default_ns)
+        if cls in tags:
+            return
+        else:
+            tags.add(cls)
+
+        if getattr(cls, '__extends__', None) != None:
+            cls.__extends__.resolve_namespace(cls.__extends__, default_ns, tags)
+
+        ModelBase.resolve_namespace(cls, default_ns, tags)
 
         for k, v in cls._type_info.items():
             if v is None:
@@ -595,13 +603,12 @@ class ComplexModelBase(ModelBase):
                 v.__namespace__ = cls.get_namespace()
                 v.__type_name__ = "%s_%s%s" % (cls.get_type_name(), k, TYPE_SUFFIX)
 
-            if not issubclass(v, cls):
-                v.resolve_namespace(v, default_ns)
+            v.resolve_namespace(v, default_ns, tags)
 
         if cls._force_own_namespace is not None:
             for c in cls._force_own_namespace:
                 c.__namespace__ = cls.get_namespace()
-                ComplexModel.resolve_namespace(c, cls.get_namespace())
+                ComplexModel.resolve_namespace(c, cls.get_namespace(), tags)
 
     @staticmethod
     def produce(namespace, type_name, members):
@@ -712,10 +719,10 @@ class Array(ComplexModelBase):
     # the array belongs to its child's namespace, it doesn't have its own
     # namespace.
     @staticmethod
-    def resolve_namespace(cls, default_ns):
+    def resolve_namespace(cls, default_ns, tags=None):
         (serializer,) = cls._type_info.values()
 
-        serializer.resolve_namespace(serializer, default_ns)
+        serializer.resolve_namespace(serializer, default_ns, tags)
 
         if cls.__namespace__ is None:
             cls.__namespace__ = serializer.get_namespace()
@@ -723,7 +730,7 @@ class Array(ComplexModelBase):
         if cls.__namespace__ in namespace.const_prefmap:
             cls.__namespace__ = default_ns
 
-        ComplexModel.resolve_namespace(cls, default_ns)
+        ComplexModel.resolve_namespace(cls, default_ns, tags)
 
     @classmethod
     def get_serialization_instance(cls, value):

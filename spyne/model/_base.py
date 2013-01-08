@@ -217,7 +217,7 @@ class ModelBase(object):
         return cls.__namespace__
 
     @staticmethod
-    def resolve_namespace(cls, default_ns):
+    def resolve_namespace(cls, default_ns, tags=None):
         """This call finalizes the namespace assignment. The default namespace
         is not available until the application calls populate_interface method
         of the interface generator.

@@ -58,7 +58,7 @@ from spyne.model.primitive import Date
 from spyne.model.primitive import Time
 
 _add_handlers = cdict({
-    object: lambda interface, cls: None,
+    object: lambda interface, cls, tags: None,
     Alias: alias_add,
     SimpleModel: simple_add,
     ComplexModelBase: complex_add,
@@ -119,9 +119,12 @@ class XmlSchema(InterfaceDocumentBase):
         self.namespaces = odict()
         self.complex_types = set()
 
-    def add(self, cls):
-        handler = _add_handlers[cls]
-        handler(self, cls)
+    def add(self, cls, tags):
+        if not (cls in tags):
+            tags.add(cls)
+
+            handler = _add_handlers[cls]
+            handler(self, cls, tags)
 
     def get_restriction_tag(self, cls):
         handler = _get_restriction_tag_handlers[cls]
@@ -131,7 +134,7 @@ class XmlSchema(InterfaceDocumentBase):
         self.schema_dict = {}
 
         for cls in self.interface.classes.values():
-            self.add(cls)
+            self.add(cls, set())
 
         for pref in self.namespaces:
             schema = self.get_schema_node(pref)
