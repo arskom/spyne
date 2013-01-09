@@ -52,7 +52,7 @@ class WsgiMounter(object):
 
         original_script_name = environ.get('SCRIPT_NAME', '')
 
-        environ['SCRIPT_NAME'] = original_script_name + script
+        environ['SCRIPT_NAME'] = "/" + original_script_name + script
         environ['PATH_INFO'] = '/' + '/'.join(fragments[1:])
 
         return app(environ, start_response)
