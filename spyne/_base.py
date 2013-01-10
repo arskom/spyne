@@ -233,7 +233,7 @@ class MethodContext(object):
         instance. This is mostly for internal use.
         """
 
-        self.app.event_manager.fire_event("method_context_constructed", self)
+        self.app.event_manager.fire_event("method_context_created", self)
 
     def get_descriptor(self):
         return self.__descriptor
@@ -274,9 +274,9 @@ class MethodContext(object):
 
         return ''.join((self.__class__.__name__, '(', ', '.join(retval), ')'))
 
-    def __del__(self):
+    def close(self):
         self.call_end = time()
-        self.app.event_manager.fire_event("method_context_destroyed", self)
+        self.app.event_manager.fire_event("method_context_closed", self)
 
 
 class MethodDescriptor(object):

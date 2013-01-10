@@ -72,11 +72,14 @@ class Application(object):
             Called when an exception occurred in a service method, before the
             exception is serialized.
 
-        * method_context_constructed:
+        * method_context_created:
             Called from the constructor of the MethodContext instance.
 
-        * method_context_destroyed:
-            Called from the destructor of the MethodContext instance.
+        * method_context_closed:
+            Called from the ``close()`` function of the MethodContext instance,
+            which in turn is called by the transport when the response is fully
+            sent to the client (or in the client case, the response is fully
+            received from server).
     '''
 
     transport = None
