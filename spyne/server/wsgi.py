@@ -379,9 +379,10 @@ class WsgiApplication(HttpBase):
         return retval
 
     def __finalize(self, p_ctx):
+        p_ctx.close()
         self.event_manager.fire_event('wsgi_close', p_ctx)
 
-        return []
+        return ()
 
     def __reconstruct_wsgi_request(self, http_env):
         """Reconstruct http payload using information in the http header."""

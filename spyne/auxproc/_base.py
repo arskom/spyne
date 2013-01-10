@@ -68,6 +68,8 @@ class AuxProcBase(object):
         for s in ctx.out_string:
             pass
 
+        ctx.close()
+
     def process_context(self, server, ctx, p_ctx, p_error):
         """Override this to implement your own auxiliary processor."""
 

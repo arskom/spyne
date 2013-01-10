@@ -162,6 +162,11 @@ class _FunctionCall(object):
                 retval = _retval
             cnt += 1
 
+            if ctx != p_ctx:
+                ctx.close()
+
+        p_ctx.close()
+
         logger.warning( "%s  end request  %s" % (_big_header, _big_footer)  )
 
         return retval

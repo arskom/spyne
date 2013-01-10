@@ -167,7 +167,10 @@ class TwistedWebResource(Resource):
 
         process_contexts(self.http_transport, others, p_ctx, error=error)
 
-        return ''.join(p_ctx.out_string)
+        retval = ''.join(p_ctx.out_string)
+        p_ctx.close()
+
+        return retval
 
     def handle_rpc(self, request):
         initial_ctx = HttpMethodContext(self.http_transport, request,
@@ -197,9 +200,14 @@ class TwistedWebResource(Resource):
 
         def _cb_request_finished(request):
             request.finish()
+            p_ctx.close()
+
+        def _eb_request_finished(request):
+            err(request)
+            p_ctx.close()
 
         producer = _Producer(p_ctx.out_string, request)
-        producer.deferred.addErrback(err).addCallback(_cb_request_finished)
+        producer.deferred.addErrback(_eb_request_finished).addCallback(_cb_request_finished)
         request.registerProducer(producer, False)
 
         return NOT_DONE_YET
@@ -236,3 +244,6 @@ class TwistedWebResource(Resource):
             ctx.transport.wsdl_error = e
             self.http_transport.event_manager.fire_event('wsdl_exception', ctx)
             raise
+
+        finally:
+            ctx.close()
