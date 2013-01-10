@@ -17,28 +17,35 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""The ``spyne.server.pyramid`` package contains a Pyramid-compatible Http
+"""The ``spyne.server.django`` package contains a Django-compatible Http
 transport. It's a thin wrapper around
 :class:`spyne.server.wsgi.WsgiApplication`.
 """
 
-from pyramid.response import Response
+from __future__ import absolute_import
+
+from django.http import HttpResponse
+
 from spyne.server.wsgi import WsgiApplication
 
-class PyramidApplication(WsgiApplication):
-    """Pyramid View Wrapper"""
+
+class DjangoApplication(WsgiApplication):
     def __call__(self, request):
-        pyramid_response = Response()
+        django_response = HttpResponse()
+
         def start_response(status, headers):
             status, reason = status.split(' ', 1)
 
-            pyramid_response.status_int = int(status)
-            pyramid_response.headers["Cache-Control"] = "no-cache, must-revalidate"
-            pyramid_response.headers["Expires"] = "Sat, 26 Jul 1997 05:00:00 GMT"
+            django_response.status_code = int(status)
             for header, value in headers:
-                pyramid_response.headers[header] = value
+                django_response[header] = value
 
-        response = WsgiApplication.__call__(self, request, start_response)
-        pyramid_response.body = "\n".join(response)
-        return pyramid_response
+        environ = request.META.copy()
+        environ['wsgi.input'] = request
+        environ['wsgi.multithread'] = False
 
+        response = WsgiApplication.__call__(self, environ, start_response)
+
+        django_response.content = "\n".join(response)
+
+        return django_response

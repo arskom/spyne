@@ -26,13 +26,14 @@ distribution.
 This module is EXPERIMENTAL. Your mileage may vary. Patches are welcome.
 """
 
+from __future__ import absolute_import
+
 import logging
 logger = logging.getLogger(__name__)
 
 from twisted.python.log import err
 from twisted.internet.interfaces import IPullProducer
 from twisted.internet.defer import Deferred
-from twisted.web.iweb import IBodyProducer
 from twisted.web.iweb import UNKNOWN_LENGTH
 from twisted.web.resource import Resource
 from twisted.web.server import NOT_DONE_YET
