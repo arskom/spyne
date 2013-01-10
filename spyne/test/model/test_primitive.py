@@ -107,6 +107,19 @@ class TestPrimitive(unittest.TestCase):
         dt = XmlDocument().from_element(DateTime(format=format), element)
         self.assertEquals(n, dt)
 
+    def test_datetime_timezone(self):
+        import pytz
+
+        n = datetime.datetime.now(pytz.timezone('EST'))
+        element = etree.Element('test')
+        XmlDocument().to_parent_element(DateTime(as_time_zone=pytz.utc), n, ns_test, element)
+        element = element[0]
+
+        c = n.astimezone(pytz.utc).replace(tzinfo=None)
+        self.assertEquals(element.text, c.isoformat())
+        dt = XmlDocument().from_element(DateTime, element)
+        self.assertEquals(c, dt)
+
     def test_time(self):
         n = datetime.time(1, 2, 3, 4)
 

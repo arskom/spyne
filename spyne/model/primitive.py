@@ -697,9 +697,18 @@ class DateTime(SimpleModel):
         string. See here for more info:
         http://docs.python.org/library/stdtypes.html#string-formatting"""
 
+        as_time_zone = None
+        """When not None, call astimezone(val); replace(tzinfo=None) on the
+        native value. Either None or a return value of pytz.timezone()
+        """
+
     @classmethod
     @nillable_string
     def to_string(cls, value):
+        if cls.Attributes.as_time_zone is not None and value.tzinfo is not None:
+            value = value.astimezone(cls.Attributes.as_time_zone) \
+                                                        .replace(tzinfo=None)
+
         format = cls.Attributes.format
         if format is None:
             ret_str = value.isoformat()
@@ -754,9 +763,15 @@ class DateTime(SimpleModel):
         format = cls.Attributes.format
 
         if format is None:
-            return cls.default_parse(string)
+            retval = cls.default_parse(string)
         else:
-            return datetime.datetime.strptime(string, format)
+            retval = datetime.datetime.strptime(string, format)
+
+        if cls.Attributes.as_time_zone is not None and retval.tzinfo is not None:
+            retval = retval.astimezone(cls.Attributes.as_time_zone) \
+                                                        .replace(tzinfo=None)
+
+        return retval
 
     @staticmethod
     def is_default(cls):
