@@ -177,7 +177,8 @@ class PGGeometry(UserDefinedType):
     def bind_processor(self, bindvalue):
         if self.format is PGGeometry.PlainWkt:
             def process(value):
-                return sql.func.ST_GeomFromText(value, self.srid)
+                if value is not None:
+                    return sql.func.ST_GeomFromText(value, self.srid)
 
         if self.format is PGGeometry.PlainWkb:
             def process(value):
