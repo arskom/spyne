@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""The ``spyne.server.pyramid`` package contains a Pyramid-compatible Http
+"""The ``spyne.server.pyramid`` module contains a Pyramid-compatible Http
 transport. It's a thin wrapper around
 :class:`spyne.server.wsgi.WsgiApplication`.
 """
@@ -25,23 +25,33 @@ transport. It's a thin wrapper around
 from __future__ import absolute_import
 
 from pyramid.response import Response
-
 from spyne.server.wsgi import WsgiApplication
 
 
 class PyramidApplication(WsgiApplication):
-    """Pyramid View Wrapper"""
+    """Pyramid View Wrapper. Use this for regular RPC"""
+
     def __call__(self, request):
-        pyramid_response = Response()
+        retval = Response()
+
         def start_response(status, headers):
             status, reason = status.split(' ', 1)
 
-            pyramid_response.status_int = int(status)
-            pyramid_response.headers["Cache-Control"] = "no-cache, must-revalidate"
-            pyramid_response.headers["Expires"] = "Sat, 26 Jul 1997 05:00:00 GMT"
+            retval.status_int = int(status)
             for header, value in headers:
-                pyramid_response.headers[header] = value
+                retval.headers[header] = value
 
         response = WsgiApplication.__call__(self, request, start_response)
-        pyramid_response.body = "\n".join(response)
-        return pyramid_response
+        retval.body = "".join(response)
+
+        return retval
+
+    def set_response(self, retval, response):
+        retval.body = "".join(response)
+
+
+class StreamingPyramidApplication(WsgiApplication):
+    """You should use this when you're generating HUGE data as response."""
+
+    def set_response(self, retval, response):
+        retval.app_iter = response
