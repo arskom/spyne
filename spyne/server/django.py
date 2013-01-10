@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""The ``spyne.server.django`` package contains a Django-compatible Http
+"""The ``spyne.server.django`` module contains a Django-compatible Http
 transport. It's a thin wrapper around
 :class:`spyne.server.wsgi.WsgiApplication`.
 """
@@ -25,27 +25,42 @@ transport. It's a thin wrapper around
 from __future__ import absolute_import
 
 from django.http import HttpResponse
+from django.http import StreamingHttpResponse
 
 from spyne.server.wsgi import WsgiApplication
 
 
 class DjangoApplication(WsgiApplication):
+    """You should use this for regular RPC."""
+
+    HttpResponseObject = HttpResponse
+
     def __call__(self, request):
-        django_response = HttpResponse()
+        retval = self.HttpResponse
 
         def start_response(status, headers):
             status, reason = status.split(' ', 1)
 
-            django_response.status_code = int(status)
+            retval.status_code = int(status)
             for header, value in headers:
-                django_response[header] = value
+                retval[header] = value
 
         environ = request.META.copy()
         environ['wsgi.input'] = request
         environ['wsgi.multithread'] = False
 
         response = WsgiApplication.__call__(self, environ, start_response)
+        self.set_response(self, retval, response)
 
-        django_response.content = "\n".join(response)
+        return retval
 
-        return django_response
+    def set_response(self, retval, response):
+        retval.content = ''.join(response)
+
+
+class StreamingDjangoApplication(DjangoApplication):
+    """You should use this when you're generating HUGE data as response."""
+
+    HttpResponseObject = StreamingHttpResponse
+    def set_response(self, retval, response):
+        retval.streaming_content = response
