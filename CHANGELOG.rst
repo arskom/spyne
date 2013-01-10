@@ -4,16 +4,34 @@ Changelog
 
 spyne-2.10.0
 ------------
- * XmlDocument and friends: cleanup_namespaces is now True by default.
  * You can now set Http response headers via ctx.out_object when
    out_protocol is HttpRpc. https://github.com/arskom/spyne/pull/201
  * lxml is not a hard requirement anymore.
- * 'attribute_of' added to ModelBase to add attribute support for
-   primitives. This is currently supported by Xml & and friends and
-   ignored by (and mostly irrelevant to) other protocols.
- * Add support for exposing existing whose source code via the _args
-   argument to the srpc decorator. See the existing_api example for
-   usage examples.
+ * XmlDocument and friends: cleanup_namespaces is now True by default.
+ * XmlDocument and friends:'attribute_of' added to ModelBase to add attribute
+   support for primitives. This is currently ignored by (and mostly irrelevant
+   to) other protocols.
+ * XmlDocument and friends: Attribute serialization is working for arrays.
+ * Add support for exposing existing whose source code via the _args argument
+   to the srpc decorator. See the existing_api example for usage examples.
+ * Add Streaming versions of Pyramid and Django bridge objects.
+ * Remove destructor from ``MethodContext``. Now transports need to call
+   ``.close()`` explicitly to close object and fire relevant events.
+ * Application event 'method_context_constructed' was renamed to
+   ``'method_context_created'``
+ * Application event 'method_context_destroyed' was removed. The
+   ``'method_context_closed'`` event can be used instead.
+ * SQLAlchemy integration now supports advanced features like specifying
+   indexing methods.
+ * The object composition graph can now be cyclic.
+ * Integers were overhauled. Now boundary values of limited-size types are
+   accessible via ``Attributes._{min,max}_bounds``
+ * Added ``MultiPolygon`` spatial type.
+ * The deprecated ``ProtocolBase.set_method_descriptor`` function was removed.
+ * It's now possible to override serialization in service implementations.
+   You can set ``ctx.out_document`` to have the return value from user funtion
+   ignored. You can also set ``ctx.out_string`` to have the ``ctx.out_document``
+   ignored as well.
 
 spyne-2.9.3
 -----------
