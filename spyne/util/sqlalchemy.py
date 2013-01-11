@@ -507,7 +507,7 @@ def gen_sqla_info(cls, cls_bases=()):
                     # FIXME: Handle the case where the table already exists.
                     rel_t = Table(rel_table_name, metadata, *(col_own, col_child))
 
-                    props[k] = relationship(child, secondary=rel_t)
+                    props[k] = relationship(child, secondary=rel_t, backref=p.backref)
 
                 else: # one to many
                     assert p.left is None, "'left' is ignored in one-to-many " \

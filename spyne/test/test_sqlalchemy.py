@@ -530,6 +530,43 @@ class TestSqlAlchemyNested(unittest.TestCase):
 
         session.close()
 
+    def test_nested_sql_array_as_multi_table_with_backref(self):
+        engine = create_engine('sqlite:///:memory:')
+        session = sessionmaker(bind=engine)()
+        metadata = NewTableModel.Attributes.sqla_metadata = MetaData()
+        metadata.bind = engine
+
+        class SomeOtherClass(NewTableModel):
+            __tablename__ = 'some_other_class'
+            __table_args__ = {"sqlite_autoincrement": True}
+
+            id = Integer32(primary_key=True)
+            s = Unicode(64)
+
+        class SomeClass(NewTableModel):
+            __tablename__ = 'some_class'
+            __table_args__ = {"sqlite_autoincrement": True}
+
+            id = Integer32(primary_key=True)
+            others = Array(SomeOtherClass, store_as=table(multi=True, backref='some_classes'))
+
+        metadata.create_all()
+
+        soc1 = SomeOtherClass(s='ehe1')
+        soc2 = SomeOtherClass(s='ehe2')
+        sc = SomeClass(others=[soc1, soc2])
+
+        session.add(sc)
+        session.commit()
+        session.close()
+
+        soc_db = session.query(SomeOtherClass).all()
+
+        assert soc_db[0].some_classes[0].id == 1
+        assert soc_db[1].some_classes[0].id == 1
+
+        session.close()
+
     def test_nested_sql_array_as_xml(self):
         engine = create_engine('sqlite:///:memory:')
         session = sessionmaker(bind=engine)()
