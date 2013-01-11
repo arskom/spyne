@@ -412,8 +412,10 @@ def _get_cols_m2m(cls, k, v, left_fk_col_name, right_fk_col_name):
     tables. These columns can be used to create a relation table."""
 
     child, = v._type_info.values()
-    col_info, col = _get_col_o2m(cls, left_fk_col_name)
-    return col, _get_col_o2o(k, child, right_fk_col_name)
+    col_info, left_col = _get_col_o2m(cls, left_fk_col_name)
+    right_col = _get_col_o2o(k, child, right_fk_col_name)
+    left_col.primary_key = right_col.primary_key = True
+    return left_col, right_col
 
 
 class _FakeTable(object):
