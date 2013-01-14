@@ -8,7 +8,7 @@ This example uses the stock simple wsgi webserver to deploy this service. You
 should probably use a full-fledged server when deploying your service for
 production purposes.
 
-Defining an Spyne Service
+Defining a Spyne Service
 --------------------------
 
 Here we introduce the fundamental mechanisms Spyne offers to expose your
