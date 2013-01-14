@@ -65,15 +65,7 @@ from spyne.model.primitive import Unicode
 from spyne.util.simple import wsgi_soap_application
 
 
-class SomeObject(ComplexModel):
-    __namespace__ = 'aaa'
-
-    i = Integer
-    s = Unicode
-
-
 class HelloWorldService(ServiceBase):
-    __out_header__ = SomeObject
     @srpc(Unicode, Integer, _returns=Iterable(Unicode))
     def say_hello(name, times):
         '''
