@@ -189,3 +189,9 @@ WSGIApplicationGroup %{GLOBAL}
 ```
 
 **Long answer:** See here: https://techknowhow.library.emory.edu/blogs/branker/2010/07/30/django-lxml-wsgi-and-python-sub-interpreter-magic
+
+
+You mock my pain!
+=================
+
+Life is pain, Highness. Anyone who says differently is selling something. 
