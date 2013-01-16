@@ -460,6 +460,10 @@ def gen_sqla_info(cls, cls_bases=()):
             if inc_prop is not None:
                 inc.extend(inc_prop)
 
+            exc_prop = base_class.Attributes.sqla_mapper.exclude_properties
+            if exc_prop is not None:
+                inc = [_p for _p in inc if not _p in exc_prop]
+
     # check whether the object is already mapped
     table = None
     if table_name in metadata.tables:
