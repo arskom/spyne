@@ -125,6 +125,15 @@ _sq2sp_type_map = {
 }
 
 
+def _sp_attrs_to_sqla_constraints(cls, col_kwargs=None, col=None):
+    if cls.Attributes.nullable == False:
+        if col is None:
+            col_kwargs['nullable'] = False
+        else:
+            col.nullable = False
+
+
+
 @compiles(PGUuid, "sqlite")
 def compile_uuid_sqlite(type_, compiler, **kw):
     return "BLOB"
@@ -357,8 +366,7 @@ def _get_col_o2o(k, v, fk_col_name):
     """
     assert v.Attributes.table_name is not None, "%r has no table name." % v
     col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
-    if v.Attributes.nullable == False:
-        col_kwargs['nullable'] = False
+    _sp_attrs_to_sqla_constraints(v, col_kwargs)
 
     # get pkeys from child class
     pk_column, = get_pk_columns(v) # FIXME: Support multi-col keys
@@ -485,8 +493,7 @@ def gen_sqla_info(cls, cls_bases=()):
             continue
 
         col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
-        if v.Attributes.nullable == False:
-            col_kwargs['nullable'] = False
+        _sp_attrs_to_sqla_constraints(v, col_kwargs)
 
         t = get_sqlalchemy_type(v)
 
@@ -540,8 +547,7 @@ def gen_sqla_info(cls, cls_bases=()):
                     else:
                         col = _gen_col.next()
 
-                        if child_cust.Attributes.nullable == False:
-                            col.nullable = False
+                        _sp_attrs_to_sqla_constraints(child_cust, col=col)
 
                         child_t.append_column(col)
                         child.__mapper__.add_property(col.name, col)
