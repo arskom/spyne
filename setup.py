@@ -156,7 +156,8 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
     keywords=('soap', 'wsdl', 'wsgi', 'zeromq', 'rest', 'rpc', 'json', 'http',
-              'msgpack', 'xml'),
+              'msgpack', 'xml', 'django', 'pyramid', 'postgresql', 'sqlalchemy'
+              'werkzeug', 'twisted'),
     author='Burak Arslan',
     author_email='burak+spyne@arskom.com.tr',
     maintainer='Burak Arslan',
