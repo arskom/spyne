@@ -447,7 +447,7 @@ def gen_sqla_info(cls, cls_bases=()):
             if getattr(b, '_type_info', None) is not None and b.__mixin__:
                 base_class = b
 
-    if base_class is not None:
+    else:
         base_table_name = base_class.Attributes.table_name
         if base_table_name is not None:
             if base_table_name == table_name:
@@ -711,8 +711,8 @@ def get_spyne_type(v):
         rpc_type = _sq2sp_type_map[type(v.type)]
 
     else:
-        raise Exception("soap_type was not found. maybe _type_map needs a "
-                        "new entry. %r" % v)
+        raise Exception("Spyne type was not found. Probably _sq2sp_type_map "
+                        "needs a new entry. %r" % v)
 
     return rpc_type
 

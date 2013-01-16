@@ -361,7 +361,7 @@ class TestSpyne2Sqlalchemy(unittest.TestCase):
 from spyne.model.complex import TTableModel
 from spyne.model.complex import table
 
-class NewTableModel:pass
+class NewTableModel:pass # prevents netbeans from whining about undefined base class.
 NewTableModel = TTableModel()
 
 class TestSqlAlchemySchema(unittest.TestCase):
