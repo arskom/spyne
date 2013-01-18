@@ -125,13 +125,13 @@ _sq2sp_type_map = {
 }
 
 
-def _sp_attrs_to_sqla_constraints(cls, col_kwargs=None, col=None):
-    if cls.Attributes.nullable == False:
+def _sp_attrs_to_sqla_constraints(cls, v, col_kwargs=None, col=None):
+    # cls is the parent class of v
+    if v.Attributes.nullable == False and cls.__extends__ is None:
         if col is None:
             col_kwargs['nullable'] = False
         else:
             col.nullable = False
-
 
 
 @compiles(PGUuid, "sqlite")
@@ -360,13 +360,13 @@ def get_pk_columns(cls):
     return tuple(retval) if len(retval) > 0 else None
 
 
-def _get_col_o2o(k, v, fk_col_name):
+def _get_col_o2o(parent, k, v, fk_col_name):
     """Gets key and child type and returns a column that points to the primary
     key of the child.
     """
     assert v.Attributes.table_name is not None, "%r has no table name." % v
     col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
-    _sp_attrs_to_sqla_constraints(v, col_kwargs)
+    _sp_attrs_to_sqla_constraints(parent, v, col_kwargs)
 
     # get pkeys from child class
     pk_column, = get_pk_columns(v) # FIXME: Support multi-col keys
@@ -421,7 +421,7 @@ def _get_cols_m2m(cls, k, v, left_fk_col_name, right_fk_col_name):
 
     child, = v._type_info.values()
     col_info, left_col = _get_col_o2m(cls, left_fk_col_name)
-    right_col = _get_col_o2o(k, child, right_fk_col_name)
+    right_col = _get_col_o2o(cls, k, child, right_fk_col_name)
     left_col.primary_key = right_col.primary_key = True
     return left_col, right_col
 
@@ -493,7 +493,7 @@ def gen_sqla_info(cls, cls_bases=()):
             continue
 
         col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
-        _sp_attrs_to_sqla_constraints(v, col_kwargs)
+        _sp_attrs_to_sqla_constraints(cls, v, col_kwargs)
 
         t = get_sqlalchemy_type(v)
 
@@ -547,7 +547,7 @@ def gen_sqla_info(cls, cls_bases=()):
                     else:
                         col = _gen_col.next()
 
-                        _sp_attrs_to_sqla_constraints(child_cust, col=col)
+                        _sp_attrs_to_sqla_constraints(cls, child_cust, col=col)
 
                         child_t.append_column(col)
                         child.__mapper__.add_property(col.name, col)
@@ -570,7 +570,7 @@ def gen_sqla_info(cls, cls_bases=()):
                     assert p.right is None, "'right' is ignored in a one-to-one " \
                                             "relationship"
 
-                    col = _get_col_o2o(k, v, p.left)
+                    col = _get_col_o2o(cls, k, v, p.left)
                     rel = relationship(real_v, uselist=False)
 
                     p.left = col.key

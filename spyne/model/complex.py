@@ -371,6 +371,7 @@ class ComplexModelBase(ModelBase):
     """
 
     __mixin__ = False
+    __extends__ = None
 
     class Attributes(ModelBase.Attributes):
         """ComplexModel-specific attributes"""
