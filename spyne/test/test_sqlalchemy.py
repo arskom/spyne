@@ -361,7 +361,7 @@ class TestSpyne2Sqlalchemy(unittest.TestCase):
 from spyne.model.complex import TTableModel
 from spyne.model.complex import table
 
-class NewTableModel:pass
+class NewTableModel:pass # prevents netbeans from whining about undefined base class.
 NewTableModel = TTableModel()
 
 class TestSqlAlchemySchema(unittest.TestCase):
@@ -530,6 +530,43 @@ class TestSqlAlchemyNested(unittest.TestCase):
 
         session.close()
 
+    def test_nested_sql_array_as_multi_table_with_backref(self):
+        engine = create_engine('sqlite:///:memory:')
+        session = sessionmaker(bind=engine)()
+        metadata = NewTableModel.Attributes.sqla_metadata = MetaData()
+        metadata.bind = engine
+
+        class SomeOtherClass(NewTableModel):
+            __tablename__ = 'some_other_class'
+            __table_args__ = {"sqlite_autoincrement": True}
+
+            id = Integer32(primary_key=True)
+            s = Unicode(64)
+
+        class SomeClass(NewTableModel):
+            __tablename__ = 'some_class'
+            __table_args__ = {"sqlite_autoincrement": True}
+
+            id = Integer32(primary_key=True)
+            others = Array(SomeOtherClass, store_as=table(multi=True, backref='some_classes'))
+
+        metadata.create_all()
+
+        soc1 = SomeOtherClass(s='ehe1')
+        soc2 = SomeOtherClass(s='ehe2')
+        sc = SomeClass(others=[soc1, soc2])
+
+        session.add(sc)
+        session.commit()
+        session.close()
+
+        soc_db = session.query(SomeOtherClass).all()
+
+        assert soc_db[0].some_classes[0].id == 1
+        assert soc_db[1].some_classes[0].id == 1
+
+        session.close()
+
     def test_nested_sql_array_as_xml(self):
         engine = create_engine('sqlite:///:memory:')
         session = sessionmaker(bind=engine)()
@@ -626,7 +663,7 @@ class TestSqlAlchemyNested(unittest.TestCase):
         session.close()
 
         sc_db = session.query(SomeClass).get(5)
-        assert sc_db.numbers == [1,2,3,4]
+        assert sc_db.numbers == [1, 2, 3, 4]
         session.close()
 
         sc_db = session.query(SomeOtherClass).get(5)
@@ -641,8 +678,8 @@ class TestSqlAlchemyNested(unittest.TestCase):
         session.close()
 
     def test_sqlalchemy_inheritance(self):
-        # this is just a test for sqlalchemy behavior. no spyne code is involved
-        # here.
+        # no spyne code is involved here.
+        # this is just to test test the sqlalchemy behavior that we rely on.
         engine = create_engine('sqlite:///:memory:')
         session = sessionmaker(bind=engine)()
         metadata = MetaData(bind=engine)
@@ -697,8 +734,64 @@ class TestSqlAlchemyNested(unittest.TestCase):
 
         assert session.query(Employee).with_polymorphic('*').get(1).type == 'manager'
 
+    def test_inheritance_polymorphic_with_non_nullables_in_subclasses(self):
+        engine = create_engine('sqlite:///:memory:')
+        session = sessionmaker(bind=engine)()
+        metadata = NewTableModel.Attributes.sqla_metadata = MetaData(bind=engine)
 
-    def test_inheritance_polymorphic_identity(self):
+        class SomeOtherClass(NewTableModel):
+            __tablename__ = 'some_class'
+            __table_args__ = {"sqlite_autoincrement": True} # this is sqlite-specific
+            __mapper_args__ = (
+                (),
+                {'polymorphic_on': 't', 'polymorphic_identity': 1},
+            )
+
+            id = Integer32(primary_key=True)
+            t = Integer32(nillable=False)
+            s = Unicode(64, nillable=False)
+
+        class SomeClass(SomeOtherClass):
+            __mapper_args__ = (
+                (),
+                {'polymorphic_identity': 2},
+            )
+
+            i = Integer(nillable=False)
+
+        metadata.create_all()
+
+        assert SomeOtherClass.__table__.c.s.nullable == False
+
+        # this should be nullable to let other classes be added.
+        # spyne still checks this constraint when doing input validation.
+        # should spyne generate a trigger to check this at database level as well?
+        assert SomeOtherClass.__table__.c.i.nullable == True
+
+        soc = SomeOtherClass(s='s')
+        session.add(soc)
+        session.commit()
+        soc_id = soc.id
+
+        try:
+            sc = SomeClass(i=5)
+            session.add(sc)
+            session.commit()
+        except IntegrityError:
+            session.rollback()
+        else:
+            raise Exception("Must fail with IntegrityError.")
+
+        sc2 = SomeClass(s='s') # this won't fail. should it?
+        session.add(sc2)
+        session.commit()
+
+        session.expunge_all()
+
+        session.query(SomeOtherClass).with_polymorphic('*').get(soc_id).t == 1
+        session.close()
+
+    def test_inheritance_polymorphic(self):
         engine = create_engine('sqlite:///:memory:')
         session = sessionmaker(bind=engine)()
         metadata = NewTableModel.Attributes.sqla_metadata = MetaData(bind=engine)
@@ -710,7 +803,7 @@ class TestSqlAlchemyNested(unittest.TestCase):
 
             id = Integer32(primary_key=True)
             s = Unicode(64)
-            t = Integer32
+            t = Integer32(nillable=False)
 
         class SomeClass(SomeOtherClass):
             __mapper_args__ = {'polymorphic_identity': 2}

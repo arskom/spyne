@@ -124,7 +124,7 @@ The workaround is as follows: ::
     def f(ctx, from_, import_):
         return '1234'
 
-See here: https://github.com/arskom/spyne/blob/spyne-2.5.0-beta/src/spyne/test/test_service.py#L114
+See here: https://github.com/arskom/spyne/blob/rpclib-2.5.0-beta/src/rpclib/test/test_service.py#L114
 
 How does Spyne behave in a multi-threaded environment?
 =======================================================
@@ -189,3 +189,9 @@ WSGIApplicationGroup %{GLOBAL}
 ```
 
 **Long answer:** See here: https://techknowhow.library.emory.edu/blogs/branker/2010/07/30/django-lxml-wsgi-and-python-sub-interpreter-magic
+
+
+You mock my pain!
+=================
+
+Life is pain, Highness. Anyone who says differently is selling something. 

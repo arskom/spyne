@@ -228,6 +228,10 @@ def time_from_string(cls, string):
 
 @nillable_string
 def datetime_to_string(cls, value):
+    if cls.Attributes.as_time_zone is not None and value.tzinfo is not None:
+        value = value.astimezone(cls.Attributes.as_time_zone) \
+                                                    .replace(tzinfo=None)
+
     format = cls.Attributes.format
     if format is None:
         ret_str = value.isoformat()
@@ -243,7 +247,6 @@ def datetime_to_string(cls, value):
 
 @nillable_string
 def datetime_from_string(cls, string):
-    """expect ISO formatted dates"""
     format = cls.Attributes.format
 
     if format is None:
@@ -256,6 +259,12 @@ def datetime_from_string(cls, string):
             return datetime.datetime.strptime(string, format)
         except ValueError, e:
             raise ValidationError(string, "%%r: %r" % e)
+
+    if cls.Attributes.as_time_zone is not None and retval.tzinfo is not None:
+        retval = retval.astimezone(cls.Attributes.as_time_zone) \
+                                                    .replace(tzinfo=None)
+
+    return retval
 
 
 @nillable_string

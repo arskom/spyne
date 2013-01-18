@@ -83,3 +83,5 @@ class ZeroMQServer(ServerBase):
             process_contexts(self, others, error)
 
             self.zmq_socket.send(''.join(p_ctx.out_string))
+
+            p_ctx.close()

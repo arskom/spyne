@@ -123,6 +123,7 @@ class _FunctionCall(object):
             # do logging.getLogger('spyne.server.null').setLevel(logging.CRITICAL)
             # to hide the following
             logger.warning( "%s start context %s" % (_small_header, _small_footer) )
+            logger.warning( "%r.%r" % (ctx.service_class, ctx.descriptor.function) )
             self.app.process_request(ctx)
             logger.warning( "%s  end context  %s" % (_small_header, _small_footer) )
 
@@ -160,6 +161,11 @@ class _FunctionCall(object):
             if cnt == 0:
                 retval = _retval
             cnt += 1
+
+            if ctx != p_ctx:
+                ctx.close()
+
+        p_ctx.close()
 
         logger.warning( "%s  end request  %s" % (_big_header, _big_footer)  )
 

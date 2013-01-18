@@ -19,12 +19,15 @@
 
 import datetime
 import unittest
-import hashlib
 
 from lxml import etree
 
+from spyne.application import Application
+from spyne.decorator import rpc
+from spyne.service import ServiceBase
 from spyne.interface import Interface
 from spyne.interface.wsdl import Wsdl11
+from spyne.protocol import ProtocolBase
 from spyne.const import xml_ns
 
 from spyne.model.complex import Array
@@ -93,11 +96,6 @@ class Level1(ComplexModel):
 Level1.resolve_namespace(Level1, __name__)
 
 class TestComplexModel(unittest.TestCase):
-    def test_self_reference(self):
-        class TestSelfReference(ComplexModel):
-            self_reference = SelfReference
-
-        assert (TestSelfReference._type_info['self_reference'] is TestSelfReference)
 
     def test_simple_class(self):
         a = Address()
@@ -422,6 +420,57 @@ class TestSimpleTypeRestrictions(unittest.TestCase):
         assert d['c_s'] == 'b'
 
         assert len(d) == 4
+
+class TestSelfRefence(unittest.TestCase):
+    def test_canonical_case(self):
+        class TestSelfReference(ComplexModel):
+            self_reference = SelfReference
+
+        assert (TestSelfReference._type_info['self_reference'] is TestSelfReference)
+
+        class SoapService(ServiceBase):
+            @rpc(_returns=TestSelfReference)
+            def view_categories(ctx):
+                pass
+
+        Application([SoapService], 'service.soap',
+                            in_protocol=ProtocolBase(),
+                            out_protocol=ProtocolBase())
+
+    def test_self_referential_array_workaround(self):
+        from spyne.util.dictobj import get_object_as_dict
+        from pprint import pprint
+        class Category(ComplexModel):
+            id = Integer(min_occurs=1, max_occurs=1, nillable=False)
+
+        Category._type_info['children'] = Array(Category)
+
+        parent = Category()
+        parent.children = [Category(id=0), Category(id=1)]
+
+        d = get_object_as_dict(parent, Category)
+        pprint(d)
+        assert d['Category']['children']['Category'][0]['id'] == 0
+        assert d['Category']['children']['Category'][1]['id'] == 1
+
+        class SoapService(ServiceBase):
+            @rpc(_returns=Category)
+            def view_categories(ctx):
+                pass
+
+        Application([SoapService], 'service.soap',
+                            in_protocol=ProtocolBase(),
+                            out_protocol=ProtocolBase())
+
+    def test_canonical_array(self):
+        class Category(ComplexModel):
+            id = Integer(min_occurs=1, max_occurs=1, nillable=False)
+            children = Array(SelfReference)
+
+        parent = Category()
+        parent.children = [Category(id=1), Category(id=2)]
+
+        assert Category._type_info['children']._type_info.values()[0] is Category
 
 if __name__ == '__main__':
     unittest.main()

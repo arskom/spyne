@@ -58,12 +58,12 @@ def simple_get_restriction_tag(document, cls):
     return restriction
 
 
-def simple_add(interface, cls):
+def simple_add(interface, cls, tags):
     if not cls.is_default(cls):
         interface.get_restriction_tag(cls)
 
 
-def complex_add(document, cls):
+def complex_add(document, cls, tags):
     complex_type = etree.Element("{%s}complexType" % _ns_xsd)
     complex_type.set('name', cls.get_type_name())
 
@@ -130,8 +130,7 @@ def complex_add(document, cls):
         if v.Attributes.exc_interface:
             continue
 
-        if not issubclass(v, cls):
-            document.add(v)
+        document.add(v, tags)
 
         member = etree.SubElement(sequence, v.Attributes.schema_tag)
         if v.Attributes.schema_tag == '{%s}element' % _ns_xsd:
@@ -204,7 +203,7 @@ def complex_add(document, cls):
     document.add_element(cls, element)
 
 
-def alias_add(document, cls):
+def alias_add(document, cls, tags):
     t, = cls._type_info.values()
     element = etree.Element('{%s}element' % _ns_xsd)
     element.set('name', cls.get_type_name())
@@ -216,7 +215,7 @@ def alias_add(document, cls):
     document.add_element(cls, element)
 
 
-def enum_add(document, cls):
+def enum_add(document, cls, tags):
     simple_type = etree.Element('{%s}simpleType' % _ns_xsd)
     simple_type.set('name', cls.get_type_name())
 
@@ -231,7 +230,6 @@ def enum_add(document, cls):
         enumeration.set('value', v)
 
     document.add_simple_type(cls, simple_type)
-
 
 fault_add = complex_add
 

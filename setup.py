@@ -67,9 +67,13 @@ def _wrapper(f):
     return _
 
 
+_ctr = 0
+
 def call_pytest(*tests):
+    global _ctr
     import pytest
-    return call_test(pytest.main, ['-v', '--tb=short'], tests)
+    _ctr += 1
+    return call_test(pytest.main, ['-v', '--tb=short', '--junitxml=test_result.%d.xml' % _ctr], tests)
 
 
 def call_trial(*tests):
@@ -152,7 +156,8 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
     keywords=('soap', 'wsdl', 'wsgi', 'zeromq', 'rest', 'rpc', 'json', 'http',
-              'msgpack', 'xml'),
+              'msgpack', 'xml', 'django', 'pyramid', 'postgresql', 'sqlalchemy'
+              'werkzeug', 'twisted'),
     author='Burak Arslan',
     author_email='burak+spyne@arskom.com.tr',
     maintainer='Burak Arslan',

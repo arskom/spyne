@@ -66,4 +66,9 @@ pres.pdf
 _trial_temp
 
 # output from examples/stream scripts
+examples/file_manager/files/
 *.ogg
+
+# test output
+coverage.xml
+test_result.*

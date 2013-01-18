@@ -125,6 +125,15 @@ _sq2sp_type_map = {
 }
 
 
+def _sp_attrs_to_sqla_constraints(cls, v, col_kwargs=None, col=None):
+    # cls is the parent class of v
+    if v.Attributes.nullable == False and cls.__extends__ is None:
+        if col is None:
+            col_kwargs['nullable'] = False
+        else:
+            col.nullable = False
+
+
 @compiles(PGUuid, "sqlite")
 def compile_uuid_sqlite(type_, compiler, **kw):
     return "BLOB"
@@ -177,7 +186,8 @@ class PGGeometry(UserDefinedType):
     def bind_processor(self, bindvalue):
         if self.format is PGGeometry.PlainWkt:
             def process(value):
-                return sql.func.ST_GeomFromText(value, self.srid)
+                if value is not None:
+                    return sql.func.ST_GeomFromText(value, self.srid)
 
         if self.format is PGGeometry.PlainWkb:
             def process(value):
@@ -327,7 +337,10 @@ def get_sqlalchemy_type(cls):
         return sqlalchemy.Boolean
 
     elif issubclass(cls, DateTime):
-        return sqlalchemy.DateTime
+        if cls.Attributes.as_time_zone is None:
+            return sqlalchemy.DateTime(timezone=False)
+        else:
+            return sqlalchemy.DateTime
 
     elif issubclass(cls, Date):
         return sqlalchemy.Date
@@ -347,14 +360,13 @@ def get_pk_columns(cls):
     return tuple(retval) if len(retval) > 0 else None
 
 
-def _get_col_o2o(k, v, fk_col_name):
+def _get_col_o2o(parent, k, v, fk_col_name):
     """Gets key and child type and returns a column that points to the primary
     key of the child.
     """
     assert v.Attributes.table_name is not None, "%r has no table name." % v
     col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
-    if v.Attributes.nullable == False:
-        col_kwargs['nullable'] = False
+    _sp_attrs_to_sqla_constraints(parent, v, col_kwargs)
 
     # get pkeys from child class
     pk_column, = get_pk_columns(v) # FIXME: Support multi-col keys
@@ -408,8 +420,10 @@ def _get_cols_m2m(cls, k, v, left_fk_col_name, right_fk_col_name):
     tables. These columns can be used to create a relation table."""
 
     child, = v._type_info.values()
-    col_info, col = _get_col_o2m(cls, left_fk_col_name)
-    return col, _get_col_o2o(k, child, right_fk_col_name)
+    col_info, left_col = _get_col_o2m(cls, left_fk_col_name)
+    right_col = _get_col_o2o(cls, k, child, right_fk_col_name)
+    left_col.primary_key = right_col.primary_key = True
+    return left_col, right_col
 
 
 class _FakeTable(object):
@@ -441,7 +455,7 @@ def gen_sqla_info(cls, cls_bases=()):
             if getattr(b, '_type_info', None) is not None and b.__mixin__:
                 base_class = b
 
-    if base_class is not None:
+    else:
         base_table_name = base_class.Attributes.table_name
         if base_table_name is not None:
             if base_table_name == table_name:
@@ -453,6 +467,10 @@ def gen_sqla_info(cls, cls_bases=()):
             inc_prop = base_class.Attributes.sqla_mapper.include_properties
             if inc_prop is not None:
                 inc.extend(inc_prop)
+
+            exc_prop = base_class.Attributes.sqla_mapper.exclude_properties
+            if exc_prop is not None:
+                inc = [_p for _p in inc if not _p in exc_prop]
 
     # check whether the object is already mapped
     table = None
@@ -475,8 +493,7 @@ def gen_sqla_info(cls, cls_bases=()):
             continue
 
         col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
-        if v.Attributes.nullable == False:
-            col_kwargs['nullable'] = False
+        _sp_attrs_to_sqla_constraints(cls, v, col_kwargs)
 
         t = get_sqlalchemy_type(v)
 
@@ -503,7 +520,7 @@ def gen_sqla_info(cls, cls_bases=()):
                     # FIXME: Handle the case where the table already exists.
                     rel_t = Table(rel_table_name, metadata, *(col_own, col_child))
 
-                    props[k] = relationship(child, secondary=rel_t)
+                    props[k] = relationship(child, secondary=rel_t, backref=p.backref)
 
                 else: # one to many
                     assert p.left is None, "'left' is ignored in one-to-many " \
@@ -530,8 +547,7 @@ def gen_sqla_info(cls, cls_bases=()):
                     else:
                         col = _gen_col.next()
 
-                        if child_cust.Attributes.nullable == False:
-                            col.nullable = False
+                        _sp_attrs_to_sqla_constraints(cls, child_cust, col=col)
 
                         child_t.append_column(col)
                         child.__mapper__.add_property(col.name, col)
@@ -554,7 +570,7 @@ def gen_sqla_info(cls, cls_bases=()):
                     assert p.right is None, "'right' is ignored in a one-to-one " \
                                             "relationship"
 
-                    col = _get_col_o2o(k, v, p.left)
+                    col = _get_col_o2o(cls, k, v, p.left)
                     rel = relationship(real_v, uselist=False)
 
                     p.left = col.key
@@ -614,7 +630,8 @@ def gen_sqla_info(cls, cls_bases=()):
                     if index == True:
                         index_args = (index_name, col), dict(unique=unique)
                     else:
-                        index_args = (index_name, col), dict(unique=unique, postgresql_using=index_method)
+                        index_args = (index_name, col), dict(unique=unique,
+                                                postgresql_using=index_method)
 
                     if isinstance(table, _FakeTable):
                         table.indexes.append(index_args)
@@ -662,7 +679,6 @@ def gen_sqla_info(cls, cls_bases=()):
     if inheritance is not _SINGLE:
         mapper_args = (table,) + mapper_args
 
-
     cls_mapper = mapper(cls, *mapper_args, **mapper_kwargs)
 
     cls.__tablename__ = cls.Attributes.table_name
@@ -705,8 +721,8 @@ def get_spyne_type(v):
         rpc_type = _sq2sp_type_map[type(v.type)]
 
     else:
-        raise Exception("soap_type was not found. maybe _type_map needs a "
-                        "new entry. %r" % v)
+        raise Exception("Spyne type was not found. Probably _sq2sp_type_map "
+                        "needs a new entry. %r" % v)
 
     return rpc_type
 

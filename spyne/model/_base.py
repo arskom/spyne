@@ -95,8 +95,15 @@ class ModelBase(object):
     """
 
     __orig__ = None
+    """This holds the original class the class .customize()d from. """
+
     __namespace__ = None
+    """The public namespace of this class. Use ``get_namespace()`` instead of
+    accessing it directly."""
+
     __type_name__ = None
+    """The public type name of the class. Use ``get_type_name()`` instead of
+    accessing it directly."""
 
     # These are not the xml schema defaults. The xml schema defaults are
     # considered in ComplexModel's add_to_schema method. the defaults here
@@ -217,7 +224,7 @@ class ModelBase(object):
         return cls.__namespace__
 
     @staticmethod
-    def resolve_namespace(cls, default_ns):
+    def resolve_namespace(cls, default_ns, tags=None):
         """This call finalizes the namespace assignment. The default namespace
         is not available until the application calls populate_interface method
         of the interface generator.
