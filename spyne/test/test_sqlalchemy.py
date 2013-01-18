@@ -632,7 +632,7 @@ class TestSqlAlchemyNested(unittest.TestCase):
         metadata = NewTableModel.Attributes.sqla_metadata = MetaData(bind=engine)
 
         class SomeOtherClass(NewTableModel):
-            __tablename__ = 'some_class'
+            __tablename__ = 'some_other_class'
             __table_args__ = {"sqlite_autoincrement": True}
             id = Integer32(primary_key=True)
             s = Unicode(64)
@@ -726,7 +726,7 @@ class TestSqlAlchemyNested(unittest.TestCase):
         metadata = NewTableModel.Attributes.sqla_metadata = MetaData(bind=engine)
 
         class SomeOtherClass(NewTableModel):
-            __tablename__ = 'some_class'
+            __tablename__ = 'some_other_class'
             __table_args__ = {"sqlite_autoincrement": True} # this is sqlite-specific
             __mapper_args__ = (
                 (),
