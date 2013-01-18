@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 import decimal
 
 from collections import deque
+from inspect import isclass
 
 from spyne.model import ModelBase
 from spyne.model import nillable_dict
@@ -406,22 +407,11 @@ class ComplexModelBase(ModelBase):
     def __init__(self, **kwargs):
         super(ComplexModelBase, self).__init__()
 
-        # this ugliness is due to sqlalchemy's forcing of relevant types for
-        # database fields
-        for k in self.get_flat_type_info(self.__class__).keys():
-            try:
-                delattr(self, k)
-            except:
-                try:
-                    setattr(self, k, None)
-                except:
-                    try:
-                        setattr(self, k, [])
-                    except:
-                        pass
-
-        for k,v in kwargs.items():
-            setattr(self, k, v)
+        for k in self.get_flat_type_info(self.__class__):
+            v = kwargs.get(k, None)
+            v2 = getattr(self, k, None)
+            if (isclass(v2) and issubclass(v2, ModelBase)) or v is not None:
+                setattr(self, k, v)
 
     def __len__(self):
         return len(self._type_info)

@@ -30,6 +30,7 @@ from sqlalchemy import MetaData
 from sqlalchemy import Column
 from sqlalchemy import Table
 from sqlalchemy import ForeignKey
+from sqlalchemy.exc import IntegrityError
 
 from sqlalchemy.orm import mapper
 from sqlalchemy.orm import relationship
@@ -734,6 +735,62 @@ class TestSqlAlchemyNested(unittest.TestCase):
 
         assert session.query(Employee).with_polymorphic('*').get(1).type == 'manager'
 
+    def test_inheritance_polymorphic_with_non_nullables_in_subclasses(self):
+        engine = create_engine('sqlite:///:memory:')
+        session = sessionmaker(bind=engine)()
+        metadata = NewTableModel.Attributes.sqla_metadata = MetaData(bind=engine)
+
+        class SomeOtherClass(NewTableModel):
+            __tablename__ = 'some_class'
+            __table_args__ = {"sqlite_autoincrement": True} # this is sqlite-specific
+            __mapper_args__ = (
+                (),
+                {'polymorphic_on': 't', 'polymorphic_identity': 1},
+            )
+
+            id = Integer32(primary_key=True)
+            t = Integer32(nillable=False)
+            s = Unicode(64, nillable=False)
+
+        class SomeClass(SomeOtherClass):
+            __mapper_args__ = (
+                (),
+                {'polymorphic_identity': 2},
+            )
+
+            i = Integer(nillable=False)
+
+        metadata.create_all()
+
+        assert SomeOtherClass.__table__.c.s.nullable == False
+
+        # this should be nullable to let other classes be added.
+        # spyne still checks this constraint when doing input validation.
+        # should spyne generate a trigger to check this at database level as well?
+        assert SomeOtherClass.__table__.c.i.nullable == True
+
+        soc = SomeOtherClass(s='s')
+        session.add(soc)
+        session.commit()
+        soc_id = soc.id
+
+        try:
+            sc = SomeClass(i=5)
+            session.add(sc)
+            session.commit()
+        except IntegrityError:
+            session.rollback()
+        else:
+            raise Exception("Must fail with IntegrityError.")
+
+        sc2 = SomeClass(s='s') # this won't fail. should it?
+        session.add(sc2)
+        session.commit()
+
+        session.expunge_all()
+
+        session.query(SomeOtherClass).with_polymorphic('*').get(soc_id).t == 1
+        session.close()
 
     def test_inheritance_polymorphic(self):
         engine = create_engine('sqlite:///:memory:')
@@ -747,7 +804,7 @@ class TestSqlAlchemyNested(unittest.TestCase):
 
             id = Integer32(primary_key=True)
             s = Unicode(64)
-            t = Integer32
+            t = Integer32(nillable=False)
 
         class SomeClass(SomeOtherClass):
             __mapper_args__ = {'polymorphic_identity': 2}
