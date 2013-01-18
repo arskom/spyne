@@ -509,7 +509,7 @@ def TBoundedInteger(num_bits, type_name):
 @memoize
 def TBoundedUnsignedInteger(num_bits, type_name):
     _min_b = 0
-    _max_b = 2**num_bits - 1 # -1? c'est la vie ;)
+    _max_b = 2 ** num_bits - 1 # -1? c'est la vie ;)
 
     class _BoundedUnsignedInteger(UnsignedInteger):
         __type_name__ = type_name
@@ -530,59 +530,59 @@ def TBoundedUnsignedInteger(num_bits, type_name):
 
 
 Integer64 = TBoundedInteger(64, 'long')
-"""The 64-bit signed integer, also known as long."""
+"""The 64-bit signed integer, also known as ``long``."""
 
 Long = Integer64
-"""The 64-bit signed integer, alias for Integer64."""
+"""The 64-bit signed integer, alias for :class:`Integer64`."""
 
 
 Integer32 = TBoundedInteger(32, 'int')
-"""The 64-bit signed integer, also known as int."""
+"""The 64-bit signed integer, also known as ``int``."""
 
 Int = Integer32
-"""The 32-bit signed integer, alias for Integer32."""
+"""The 32-bit signed integer, alias for :class:`Integer32`."""
 
 
 Integer16 = TBoundedInteger(16, 'short')
-"""The 16-bit signed integer, also known as short."""
+"""The 16-bit signed integer, also known as ``short``."""
 
 Short = Integer16
-"""The 16-bit signed integer, alias for Integer16."""
+"""The 16-bit signed integer, alias for :class:`Integer16`."""
 
 
 Integer8 = TBoundedInteger(8, 'byte')
-"""The 8-bit signed integer, also known as byte."""
+"""The 8-bit signed integer, also known as ``byte``."""
 
 Byte = Integer8
-"""The 8-bit signed integer, alias for Integer8."""
+"""The 8-bit signed integer, alias for :class:`Integer8`."""
 
 
 UnsignedInteger64 = TBoundedUnsignedInteger(64, 'unsignedLong')
-"""The 64-bit unsigned integer, also known as unsignedLong."""
+"""The 64-bit unsigned integer, also known as ``unsignedLong``."""
 
-Long = UnsignedInteger64
-"""The 64-bit unsigned integer, alias for UnsignedInteger64."""
+UnsignedLong = UnsignedInteger64
+"""The 64-bit unsigned integer, alias for :class:`UnsignedInteger64`."""
 
 
 UnsignedInteger32 = TBoundedUnsignedInteger(32, 'unsignedInt')
-"""The 64-bit unsigned integer, also known as unsignedInt."""
+"""The 64-bit unsigned integer, also known as ``unsignedInt``."""
 
-Int = UnsignedInteger32
-"""The 32-bit unsigned integer, alias for UnsignedInteger32."""
+UnsignedInt = UnsignedInteger32
+"""The 32-bit unsigned integer, alias for :class:`UnsignedInteger32`."""
 
 
 UnsignedInteger16 = TBoundedUnsignedInteger(16, 'unsignedShort')
-"""The 16-bit unsigned integer, also known as unsignedShort."""
+"""The 16-bit unsigned integer, also known as ``unsignedShort``."""
 
-Short = UnsignedInteger16
-"""The 16-bit unsigned integer, alias for UnsignedInteger16."""
+UnsignedShort = UnsignedInteger16
+"""The 16-bit unsigned integer, alias for :class:`UnsignedInteger16`."""
 
 
 UnsignedInteger8 = TBoundedUnsignedInteger(8, 'unsignedByte')
-"""The 8-bit unsigned integer, also known as unsignedByte."""
+"""The 8-bit unsigned integer, also known as ``unsignedByte``."""
 
-Byte = UnsignedInteger8
-"""The 8-bit unsigned integer, alias for UnsignedInteger8."""
+UnsignedByte = UnsignedInteger8
+"""The 8-bit unsigned integer, alias for :class:`UnsignedInteger8`."""
 
 
 class Time(SimpleModel):

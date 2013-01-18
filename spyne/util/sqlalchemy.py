@@ -630,7 +630,8 @@ def gen_sqla_info(cls, cls_bases=()):
                     if index == True:
                         index_args = (index_name, col), dict(unique=unique)
                     else:
-                        index_args = (index_name, col), dict(unique=unique, postgresql_using=index_method)
+                        index_args = (index_name, col), dict(unique=unique,
+                                                postgresql_using=index_method)
 
                     if isinstance(table, _FakeTable):
                         table.indexes.append(index_args)
@@ -677,7 +678,6 @@ def gen_sqla_info(cls, cls_bases=()):
 
     if inheritance is not _SINGLE:
         mapper_args = (table,) + mapper_args
-
 
     cls_mapper = mapper(cls, *mapper_args, **mapper_kwargs)
 

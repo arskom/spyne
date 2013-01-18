@@ -663,7 +663,7 @@ class TestSqlAlchemyNested(unittest.TestCase):
         session.close()
 
         sc_db = session.query(SomeClass).get(5)
-        assert sc_db.numbers == [1,2,3,4]
+        assert sc_db.numbers == [1, 2, 3, 4]
         session.close()
 
         sc_db = session.query(SomeOtherClass).get(5)
@@ -678,8 +678,8 @@ class TestSqlAlchemyNested(unittest.TestCase):
         session.close()
 
     def test_sqlalchemy_inheritance(self):
-        # this is just a test for sqlalchemy behavior. no spyne code is involved
-        # here.
+        # no spyne code is involved here.
+        # this is just to test test the sqlalchemy behavior that we rely on.
         engine = create_engine('sqlite:///:memory:')
         session = sessionmaker(bind=engine)()
         metadata = MetaData(bind=engine)
@@ -735,7 +735,7 @@ class TestSqlAlchemyNested(unittest.TestCase):
         assert session.query(Employee).with_polymorphic('*').get(1).type == 'manager'
 
 
-    def test_inheritance_polymorphic_identity(self):
+    def test_inheritance_polymorphic(self):
         engine = create_engine('sqlite:///:memory:')
         session = sessionmaker(bind=engine)()
         metadata = NewTableModel.Attributes.sqla_metadata = MetaData(bind=engine)
