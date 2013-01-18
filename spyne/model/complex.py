@@ -86,11 +86,12 @@ class table:
     :param right: Name of the right join column.
     """
 
-    def __init__(self, multi=False, left=None, right=None, backref=None):
+    def __init__(self, multi=False, left=None, right=None, backref=None, id_backref=None):
         self.multi = multi
         self.left = left
         self.right = right
         self.backref = backref
+        self.id_backref = id_backref
 
 
 class json:
@@ -407,11 +408,12 @@ class ComplexModelBase(ModelBase):
     def __init__(self, **kwargs):
         super(ComplexModelBase, self).__init__()
 
-        for k in self.get_flat_type_info(self.__class__):
-            v = kwargs.get(k, None)
-            v2 = getattr(self, k, None)
-            if (isclass(v2) and issubclass(v2, ModelBase)) or v is not None:
-                setattr(self, k, v)
+        for k, v in self.get_flat_type_info(self.__class__).items():
+            d = v.Attributes.default
+            kv = kwargs.get(k, d)
+            av = getattr(self, k, None)
+            if (isclass(av) and issubclass(av, ModelBase)) or kv is not None:
+                setattr(self, k, kv)
 
     def __len__(self):
         return len(self._type_info)

@@ -259,7 +259,8 @@ class PGObjectJson(UserDefinedType):
 
     def bind_processor(self, dialect):
         def process(value):
-            return json.dumps(get_object_as_dict(value, self.cls,
+            if value is not None:
+                return json.dumps(get_object_as_dict(value, self.cls,
                                                     skip_depth=self.skip_depth))
         return process
 

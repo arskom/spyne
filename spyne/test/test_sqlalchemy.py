@@ -840,6 +840,57 @@ class TestSqlAlchemyNested(unittest.TestCase):
 
         session.close()
 
+    def test_default_ctor(self):
+        engine = create_engine('sqlite:///:memory:')
+        session = sessionmaker(bind=engine)()
+        metadata = NewTableModel.Attributes.sqla_metadata = MetaData()
+        metadata.bind = engine
+
+        class SomeOtherClass(ComplexModel):
+            id = Integer32
+            s = Unicode(64)
+
+        class SomeClass(NewTableModel):
+            __tablename__ = 'some_class'
+            __table_args__ = {"sqlite_autoincrement": True}
+
+            id = Integer32(primary_key=True)
+            others = Array(SomeOtherClass, store_as='json')
+            f = Unicode(32, default='uuu')
+
+        metadata.create_all()
+        session.add(SomeClass())
+        session.commit()
+        session.expunge_all()
+
+        assert session.query(SomeClass).get(1).f == 'uuu'
+
+    def test_default_ctor_with_sql_relationship(self):
+        engine = create_engine('sqlite:///:memory:')
+        session = sessionmaker(bind=engine)()
+        metadata = NewTableModel.Attributes.sqla_metadata = MetaData()
+        metadata.bind = engine
+
+        class SomeOtherClass(NewTableModel):
+            __tablename__ = 'some_other_class'
+            __table_args__ = {"sqlite_autoincrement": True}
+
+            id = Integer32(primary_key=True)
+            s = Unicode(64)
+
+        class SomeClass(NewTableModel):
+            __tablename__ = 'some_class'
+            __table_args__ = (
+                {"sqlite_autoincrement": True},
+            )
+
+            id = Integer32(primary_key=True)
+            o = SomeOtherClass.customize(store_as='table')
+
+        metadata.create_all()
+        session.add(SomeClass())
+        session.commit()
+
 
 if __name__ == '__main__':
     unittest.main()
