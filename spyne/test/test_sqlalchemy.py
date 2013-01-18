@@ -384,7 +384,6 @@ class TestSqlAlchemySchema(unittest.TestCase):
             s = Unicode(64, unique=True)
             i = Integer32(64, index=True)
 
-        gen_sqla_info(SomeClass)
         t = SomeClass.__table__
         metadata.create_all() # not needed, just nice to see.
 
@@ -396,7 +395,6 @@ class TestSqlAlchemySchema(unittest.TestCase):
             assert 'i' in idx.columns or 's' in idx.columns
             if 's' in idx.columns:
                 assert idx.unique
-
 
 
 class TestSqlAlchemyNested(unittest.TestCase):
@@ -425,9 +423,6 @@ class TestSqlAlchemyNested(unittest.TestCase):
 
             id = Integer32(primary_key=True)
             o = SomeOtherClass.customize(store_as='table')
-
-        gen_sqla_info(SomeOtherClass)
-        gen_sqla_info(SomeClass)
 
         metadata.create_all()
 
@@ -471,9 +466,6 @@ class TestSqlAlchemyNested(unittest.TestCase):
             id = Integer32(primary_key=True)
             others = Array(SomeOtherClass, store_as='table')
 
-        gen_sqla_info(SomeOtherClass)
-        gen_sqla_info(SomeClass)
-
         metadata.create_all()
 
         soc1 = SomeOtherClass(s='ehe1')
@@ -510,9 +502,6 @@ class TestSqlAlchemyNested(unittest.TestCase):
 
             id = Integer32(primary_key=True)
             others = Array(SomeOtherClass, store_as=table(multi=True))
-
-        gen_sqla_info(SomeOtherClass)
-        gen_sqla_info(SomeClass)
 
         metadata.create_all()
 
@@ -585,8 +574,6 @@ class TestSqlAlchemyNested(unittest.TestCase):
             id = Integer32(primary_key=True)
             others = Array(SomeOtherClass, store_as='xml')
 
-        gen_sqla_info(SomeClass)
-
         metadata.create_all()
 
         soc1 = SomeOtherClass(s='ehe1')
@@ -620,8 +607,6 @@ class TestSqlAlchemyNested(unittest.TestCase):
 
             id = Integer32(primary_key=True)
             others = Array(SomeOtherClass, store_as=xml(no_ns=True))
-
-        gen_sqla_info(SomeClass)
 
         metadata.create_all()
 
@@ -837,8 +822,6 @@ class TestSqlAlchemyNested(unittest.TestCase):
 
             id = Integer32(primary_key=True)
             others = Array(SomeOtherClass, store_as='json')
-
-        gen_sqla_info(SomeClass)
 
         metadata.create_all()
 
