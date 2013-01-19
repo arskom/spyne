@@ -357,7 +357,7 @@ class ComplexModelMeta(type(ModelBase)):
 
                 gen_spyne_info(self)
 
-        # for spyne objects that is being converted to a
+        # for spyne objects being converted to a sqlalchemy table
         elif meta is not None and (tn is not None or t is not None) and \
                                                        len(self._type_info) > 0:
             from spyne.util.sqlalchemy import gen_sqla_info
