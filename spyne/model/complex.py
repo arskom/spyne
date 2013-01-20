@@ -129,6 +129,7 @@ class TypeInfo(odict):
 
 class _SimpleTypeInfoElement(object):
     __slots__ = ['path', 'parent', 'type', 'is_array']
+
     def __init__(self, path, parent, type_, is_array):
         self.path = path
         self.parent = parent
@@ -414,6 +415,11 @@ class ComplexModelBase(ModelBase):
             av = getattr(self, k, None)
             if (isclass(av) and issubclass(av, ModelBase)) or kv is not None:
                 setattr(self, k, kv)
+            else: # so that the ctor assignment doesn't conceal user errors.
+                try:
+                    setattr(self, k, None)
+                except:
+                    pass
 
     def __len__(self):
         return len(self._type_info)
