@@ -67,3 +67,6 @@ _trial_temp
 
 # output from examples/stream scripts
 *.ogg
+
+# vim cruft
+*.swp
