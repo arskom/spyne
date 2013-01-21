@@ -430,7 +430,7 @@ class EventManager(object):
 
         :param event_name: The event identifier, indicated by the documentation.
                            Usually, this is a string.
-        :param handler: The method context. Event-related data is conventionally
+        :param ctx: The method context. Event-related data is conventionally
                         stored in ctx.event attribute.
         """
 
