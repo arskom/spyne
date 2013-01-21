@@ -163,7 +163,7 @@ class Wsdl11(XmlSchema):
         return port_type_name # subclasses override to control port names.
 
     def _get_or_create_port_type(self, pt_name):
-        """ Creates a wsdl:portType element. """
+        """Creates a wsdl:portType element."""
 
         pt = None
 
@@ -178,7 +178,7 @@ class Wsdl11(XmlSchema):
         return pt
 
     def _get_or_create_service_node(self, service_name):
-        ''' Builds a wsdl:service element. '''
+        '''Builds a wsdl:service element.'''
 
         ser = None
         if not service_name in self.service_elt_dict:
