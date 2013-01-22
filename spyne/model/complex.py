@@ -415,7 +415,10 @@ class ComplexModelBase(ModelBase):
             av = getattr(self, k, None)
             if (isclass(av) and issubclass(av, ModelBase)) or kv is not None:
                 setattr(self, k, kv)
-            else: # so that the ctor assignment doesn't conceal user errors.
+            elif not hasattr(self, k):
+                # this is to detach implicit assignment and explicit assignment
+                # so that the user erros don't get concealed by implicit's
+                # try-except block.
                 try:
                     setattr(self, k, None)
                 except:
