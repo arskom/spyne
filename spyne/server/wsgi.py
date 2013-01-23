@@ -254,6 +254,8 @@ class WsgiApplication(HttpBase):
                                                     str(len(ctx.transport.wsdl))
         start_response(HTTP_200, _gen_http_headers(ctx.transport.resp_headers))
 
+        ctx.close()
+
         return [ctx.transport.wsdl]
 
     def handle_error(self, p_ctx, others, error, start_response):
@@ -277,7 +279,7 @@ class WsgiApplication(HttpBase):
             # Report but ignore any exceptions from auxiliary methods.
             logger.exception(e)
 
-        return p_ctx.out_string
+        return itertools.chain(p_ctx.out_string, self.__finalize(p_ctx))
 
     def handle_rpc(self, req_env, start_response):
         initial_ctx = WsgiMethodContext(self, req_env,
