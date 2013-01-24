@@ -698,8 +698,11 @@ class DateTime(SimpleModel):
         http://docs.python.org/library/stdtypes.html#string-formatting"""
 
         as_time_zone = None
-        """When not None, call astimezone(val); replace(tzinfo=None) on the
-        native value. Either None or a return value of pytz.timezone()
+        """When not None, converts incoming and outgoing values to the given
+        time zone (by calling ``astimezone()``) and strips time zone information
+        from the native value (by calling ``replace(tzinfo=None)``).
+
+        Either None or a return value of pytz.timezone()
         """
 
     @classmethod
@@ -759,7 +762,6 @@ class DateTime(SimpleModel):
     @classmethod
     @nillable_string
     def from_string(cls, string):
-        """expect ISO formatted dates"""
         format = cls.Attributes.format
 
         if format is None:
