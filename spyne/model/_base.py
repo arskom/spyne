@@ -62,8 +62,16 @@ def nillable_iterable(func):
 
 
 class AttributesMeta(type(object)):
-    """I hate quirks. So this is a 10-minute attempt to get rid of a one-letter
+    """I hate quirks. This is a 10-minute attempt to get rid of a one-letter
     quirk."""
+
+
+    def __new__(cls, cls_name, cls_bases, cls_dict):
+        # Mapper args should not be inherited.
+        if not 'sqla_mapper_args' in cls_dict:
+            cls_dict['sqla_mapper_args'] = None
+
+        return type(object).__new__(cls, cls_name, cls_bases, cls_dict)
 
     def __init__(self, cls_name, cls_bases, cls_dict):
         nullable = cls_dict.get('nullable', None)
