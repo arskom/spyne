@@ -26,10 +26,6 @@ import cgi
 import threading
 import itertools
 
-from spyne.auxproc import process_contexts
-from spyne.model.binary import File
-from spyne.protocol.http import HttpRpc
-
 try:
     from cgi import parse_qs
 except ImportError: # Python 3
@@ -40,14 +36,18 @@ try:
 except ImportError:
     parse_form_data = None
 
+from spyne.application import get_fault_string_from_exception
+from spyne.auxproc import process_contexts
+from spyne.error import RequestTooLongError
+from spyne.model.binary import File
+from spyne.model.fault import Fault
+from spyne.protocol.http import HttpRpc
+from spyne.protocol.http import HttpPattern
+from spyne.server.http import HttpBase
 from spyne.server.http import HttpMethodContext
 from spyne.server.http import HttpTransportContext
-
-from spyne.error import RequestTooLongError
-
-from spyne.protocol.http import HttpPattern
 from spyne.util import reconstruct_url
-from spyne.server.http import HttpBase
+
 
 try:
     from spyne.protocol.soap.mime import apply_mtom
@@ -311,7 +311,14 @@ class WsgiApplication(HttpBase):
         if p_ctx.transport.resp_code is None:
             p_ctx.transport.resp_code = HTTP_200
 
-        self.get_out_string(p_ctx)
+        try:
+            self.get_out_string(p_ctx)
+
+        except Exception, e:
+            logger.exception(e)
+            p_ctx.out_error = Fault('Server', get_fault_string_from_exception(e))
+            return self.handle_error(p_ctx, others, p_ctx.out_error, start_response)
+
 
         if isinstance(self.app.out_protocol, HttpRpc) and \
                                                p_ctx.out_header_doc is not None:
