@@ -756,6 +756,8 @@ class Iterable(Array):
     implementation, this is just a marker.
     """
 
+    class Attributes(Array.Attributes):
+        logged = False
 
 class Alias(ComplexModelBase):
     """Different type_name, same _type_info."""
@@ -775,33 +777,37 @@ def log_repr(obj, cls=None, given_len=None):
         cls = obj.__class__
 
     if issubclass(cls, Array) or cls.Attributes.max_occurs > 1:
-        retval = []
-
-        cls, = cls._type_info.values()
-
         if not cls.Attributes.logged:
-            retval.append("%s (...)" % cls.get_type_name())
-
-        elif cls.Attributes.logged == 'len':
-            l = '?'
-
-            try:
-                l = str(len(obj))
-            except TypeError, e:
-                if given_len is not None:
-                    l = str(given_len)
-
-            retval.append("%s[%s] (...)" % (cls.get_type_name(), l))
+            retval = "%s(...)" % cls.get_type_name()
 
         else:
-            for i,o in enumerate(obj):
-                retval.append(_log_repr_obj(o, cls))
+            retval = []
 
-                if i > MAX_ARRAY_ELEMENT_NUM:
-                    retval.append("(...)")
-                    break
+            cls, = cls._type_info.values()
 
-        retval = "%s([%s])" % (cls.get_type_name(), ', '.join(retval))
+            if not cls.Attributes.logged:
+                retval.append("%s (...)" % cls.get_type_name())
+
+            elif cls.Attributes.logged == 'len':
+                l = '?'
+
+                try:
+                    l = str(len(obj))
+                except TypeError, e:
+                    if given_len is not None:
+                        l = str(given_len)
+
+                retval.append("%s[%s] (...)" % (cls.get_type_name(), l))
+
+            else:
+                for i,o in enumerate(obj):
+                    retval.append(_log_repr_obj(o, cls))
+
+                    if i > MAX_ARRAY_ELEMENT_NUM:
+                        retval.append("(...)")
+                        break
+
+            retval = "%s([%s])" % (cls.get_type_name(), ', '.join(retval))
 
     elif issubclass(cls, ComplexModel):
         if cls.Attributes.logged:
