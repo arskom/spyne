@@ -143,11 +143,8 @@ def compile_uuid_sqlite(type_, compiler, **kw):
 class PGGeometry(UserDefinedType):
     """Geometry type for Postgis 2"""
 
-    class PlainWkt(str):
-        pass
-
-    class PlainWkb(str):
-        pass
+    class PlainWkt:pass
+    class PlainWkb:pass
 
     def __init__(self, geometry_type='GEOMETRY', srid=4326, dimension=2,
                                                                 format='wkt'):
@@ -175,7 +172,7 @@ class PGGeometry(UserDefinedType):
         if self.format is PGGeometry.PlainWkt:
             def process(value):
                 if value is not None:
-                    return self.format(value)
+                    return value
 
         if self.format is PGGeometry.PlainWkb:
             def process(value):
@@ -184,17 +181,9 @@ class PGGeometry(UserDefinedType):
 
         return process
 
-    def bind_processor(self, bindvalue):
+    def bind_expression(self, bindvalue):
         if self.format is PGGeometry.PlainWkt:
-            def process(value):
-                if value is not None:
-                    return sql.func.ST_GeomFromText(value, self.srid)
-
-        if self.format is PGGeometry.PlainWkb:
-            def process(value):
-                return value
-
-        return process
+            return sql.func.ST_GeomFromText(bindvalue, self.srid)
 
 
 class PGXml(UserDefinedType):
