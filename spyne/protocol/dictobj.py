@@ -250,8 +250,9 @@ class DictDocument(ProtocolBase):
         # validate raw input
         if validator is cls.SOFT_VALIDATION:
             if issubclass(class_, Unicode) and not isinstance(value, unicode):
+                # Note that String is a subclass of Unicode
                 if not (issubclass(class_, String) and isinstance(value, str)):
-                    raise ValidationError(value)
+                    value = class_.from_string(value)
 
             elif issubclass(class_, Decimal) and not isinstance(value,
                                                             (int, long, float)):
