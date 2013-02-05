@@ -176,7 +176,7 @@ class Application(object):
 
         server = ServerBase(self)
         aux_memo = set()
-        for s,d in self.interface.method_id_map.values():
+        for s, d in self.interface.method_id_map.values():
             if d.aux is not None and not id(d.aux) in aux_memo:
                 d.aux.initialize(server)
                 aux_memo.add(id(d.aux))

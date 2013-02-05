@@ -24,9 +24,11 @@ implementation.
 import logging
 logger = logging.getLogger(__name__)
 
+import pytz
 import tempfile
 
 from spyne.protocol.dictobj import DictDocument
+from spyne.model.primitive import DateTime
 
 try:
     from cStringIO import StringIO
@@ -60,6 +62,22 @@ def get_stream_factory(dir=None, delete=True):
 
     return stream_factory
 
+_weekday = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+_month = ['w00t', "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
+             "Oct", "Nov", "Dec"]
+
+def to_string(val, cls):
+    if issubclass(cls, DateTime):
+        if val.tzinfo is not None:
+            val = val.astimezone(pytz.utc)
+        else:
+            val = val.replace(tzinfo=pytz.utc)
+
+        return "%s, %02d %s %04d %02d:%02d:%02d GMT" % (
+                            _weekday[val.weekday()], val.day, _month[val.month],
+                            val.year, val.hour, val.minute, val.second)
+    else:
+        return cls.to_string(val)
 
 class HttpRpc(DictDocument):
     """The so-called ReST-ish HttpRpc protocol implementation. It only works
@@ -166,7 +184,7 @@ class HttpRpc(DictDocument):
                     out_header = ctx.out_header[0]
 
                 ctx.out_header_doc = self.object_to_flat_dict(header_class,
-                                                                     out_header)
+                                          out_header, subvalue_eater=to_string)
 
         else:
             ctx.transport.mime_type = 'text/plain'
