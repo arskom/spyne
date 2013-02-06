@@ -87,6 +87,9 @@ class HttpRpc(DictDocument):
     mime_type = 'text/plain'
     allowed_http_verbs = None
 
+    type = set(DictDocument.type)
+    type.add('http')
+
     def __init__(self, app=None, validator=None, mime_type=None,
                     tmp_dir=None, tmp_delete_on_close=True, ignore_uncap=False):
         DictDocument.__init__(self, app, validator, mime_type,

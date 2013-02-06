@@ -453,7 +453,6 @@ class WsgiApplication(HttpBase):
                             for pk, pv in p_method_descriptor.in_message.\
                                                              _type_info.items():
                                 if pk in r.rule:
-                                    from spyne.model.primitive import String
                                     from spyne.model.primitive import Unicode
                                     from spyne.model.primitive import Decimal
 
