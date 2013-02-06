@@ -17,7 +17,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""The ``spyne.model.primitive`` package contains atomic, single-value types."""
+"""
+The ``spyne.model.primitive`` package contains types with values that fit
+in a single field.
+"""
+
 
 import sys
 if sys.version > '3':
