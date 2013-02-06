@@ -222,10 +222,10 @@ class MethodContext(object):
         """The locale the request will use when needed for things like date
         formatting, html rendering and such."""
 
-        self.in_protocol = None
+        self.in_protocol = transport.app.in_protocol
         """The protocol that will be used to (de)serialize incoming input"""
 
-        self.out_protocol = None
+        self.out_protocol = transport.app.out_protocol
         """The protocol that will be used to (de)serialize outgoing input"""
 
         self.frozen = True
