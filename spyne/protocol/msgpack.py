@@ -26,6 +26,8 @@ This module is EXPERIMENTAL. You may not recognize the code here next time you
 look at it.
 """
 
+from __future__ import absolute_import
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -33,7 +35,6 @@ import msgpack
 
 from spyne.model.complex import Array
 from spyne.model.fault import Fault
-from spyne.protocol import ProtocolBase
 from spyne.protocol.dictobj import DictDocument
 
 
@@ -46,6 +47,9 @@ class MessagePackDocument(DictDocument):
     """An integration class for the msgpack protocol."""
 
     mime_type = 'application/x-msgpack'
+
+    type = set(DictDocument.type)
+    type.add('msgpack')
 
     def create_in_document(self, ctx, in_string_encoding=None):
         """Sets ``ctx.in_document``,  using ``ctx.in_string``.

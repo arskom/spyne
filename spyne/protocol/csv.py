@@ -24,6 +24,8 @@ somewhat working state, it is not that easy to use. Expect a revamp in the
 coming versions.
 """
 
+from __future__ import absolute_import
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -76,6 +78,9 @@ def _complex_to_csv(ctx):
 
 class Csv(ProtocolBase):
     mime_type = 'text/csv'
+
+    type = set(ProtocolBase.type)
+    type.add('csv')
 
     def create_in_document(self, ctx):
         raise NotImplementedError()
