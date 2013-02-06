@@ -27,8 +27,11 @@ logger = logging.getLogger(__name__)
 import pytz
 import tempfile
 
-from spyne.protocol.dictobj import DictDocument
+from base64 import b64encode
+
+from spyne.model.binary import ByteArray
 from spyne.model.primitive import DateTime
+from spyne.protocol.dictobj import DictDocument
 
 try:
     from cStringIO import StringIO
@@ -76,8 +79,15 @@ def to_string(val, cls):
         return "%s, %02d %s %04d %02d:%02d:%02d GMT" % (
                             _weekday[val.weekday()], val.day, _month[val.month],
                             val.year, val.hour, val.minute, val.second)
+    elif issubclass(cls, ByteArray):
+        if cls.Attributes.encoding is None:
+            return b64encode(val)
+        else:
+            return cls.to_string(val)
+
     else:
         return cls.to_string(val)
+
 
 class HttpRpc(DictDocument):
     """The so-called ReST-ish HttpRpc protocol implementation. It only works
