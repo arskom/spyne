@@ -92,6 +92,19 @@ def to_string(val, cls):
 class HttpRpc(DictDocument):
     """The so-called ReST-ish HttpRpc protocol implementation. It only works
     with Http (wsgi and twisted) transports.
+
+    :param app: An :class:'spyne.application.Application` instance.
+    :param validator: Validation method to use. One of (None, 'soft')
+    :param mime_type: Default mime type to set. Default is 'application/octet-stream'
+    :param tmp_dir: Temporary directory to store partial file uploads. Default
+        is to use the OS default.
+    :param tmp_delete_on_close: The ``delete`` argument to the
+        :class:`tempfile.NamedTemporaryFile`.
+        See: http://docs.python.org/2/library/tempfile.html#tempfile.NamedTemporaryFile.
+    :param ignore_uncap: As HttpRpc can't serialize complex models, it throws a
+        server exception when the return type of the user function is Complex.
+        Passing ``True`` to this argument prevents that by ignoring the return
+        value.
     """
 
     mime_type = 'text/plain'
