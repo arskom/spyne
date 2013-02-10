@@ -139,8 +139,10 @@ class WsgiApplication(HttpBase):
             called both from success and error cases.
     '''
 
-    def __init__(self, app, chunked=True):
-        HttpBase.__init__(self, app, chunked)
+    def __init__(self, app, chunked=True,
+                max_content_length=2 * 1024 * 1024,
+                block_length=8 * 1024):
+        HttpBase.__init__(self, app, chunked, max_content_length, block_length)
 
         self._allowed_http_verbs = app.in_protocol.allowed_http_verbs
         self._verb_handlers = {
