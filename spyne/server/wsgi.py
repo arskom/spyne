@@ -17,7 +17,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""A server transport uses http as transport, and wsgi as bridge api."""
+
+"""
+A server that uses http as transport via wsgi. It doesn't contain any server
+logic.
+"""
+
 
 import logging
 logger = logging.getLogger(__name__)
@@ -33,8 +38,9 @@ except ImportError: # Python 3
 
 try:
     from werkzeug.formparser import parse_form_data
-except ImportError:
-    parse_form_data = None
+except ImportError, e:
+    def parse_form_data(*args, **kwargs):
+        raise e
 
 from spyne.application import get_fault_string_from_exception
 from spyne.auxproc import process_contexts
@@ -48,19 +54,19 @@ from spyne.server.http import HttpMethodContext
 from spyne.server.http import HttpTransportContext
 from spyne.util import reconstruct_url
 
-
-try:
-    from spyne.protocol.soap.mime import apply_mtom
-except ImportError, e:
-    def apply_mtom(*args, **kwargs):
-        raise e
-
 from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
 from spyne.const.http import HTTP_200
 from spyne.const.http import HTTP_404
 from spyne.const.http import HTTP_405
 from spyne.const.http import HTTP_500
+
+
+try:
+    from spyne.protocol.soap.mime import apply_mtom
+except ImportError, e:
+    def apply_mtom(*args, **kwargs):
+        raise e
 
 
 def _get_http_headers(req_env):
