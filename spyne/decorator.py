@@ -37,8 +37,8 @@ from spyne.model.complex import ComplexModel
 from spyne.model.complex import TypeInfo
 
 from spyne.const.xml_ns import DEFAULT_NS
-from spyne.const.suffix import RESPONSE_SUFFIX
-from spyne.const.suffix import RESULT_SUFFIX
+from spyne.const import RESPONSE_SUFFIX
+from spyne.const import RESULT_SUFFIX
 
 
 def _produce_input_message(f, params, kparams, _in_message_name,

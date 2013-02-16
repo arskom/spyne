@@ -40,8 +40,9 @@ from spyne.model.primitive import Point
 from spyne.const import xml_ns as namespace
 from spyne.const import MAX_STRING_FIELD_LENGTH
 from spyne.const import MAX_ARRAY_ELEMENT_NUM
-from spyne.const.suffix import ARRAY_SUFFIX
-from spyne.const.suffix import TYPE_SUFFIX
+from spyne.const import ARRAY_PREFIX
+from spyne.const import ARRAY_SUFFIX
+from spyne.const import TYPE_SUFFIX
 
 from spyne.util import memoize
 from spyne.util import sanitize_args

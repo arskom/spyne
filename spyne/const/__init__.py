@@ -26,3 +26,19 @@ MAX_STRING_FIELD_LENGTH = 64
 
 MAX_ARRAY_ELEMENT_NUM = 2
 """Maximum number of array members for :func:`spyne.util.log_repr`"""
+
+ARRAY_PREFIX = ''
+"""The prefix for Array wrapper objects. You may want to set this to 'ArrayOf'
+and the ARRAY_SUFFIX to '' for compatibility with some SOAP deployments."""
+
+ARRAY_SUFFIX = 'Array'
+"""The suffix for Array wrapper objects."""
+
+RESPONSE_SUFFIX = 'Response'
+"""The suffix for function response objects."""
+
+RESULT_SUFFIX = 'Result'
+"""The suffix for function response wrapper objects."""
+
+TYPE_SUFFIX = 'Type'
+"""The suffix for primitives with unnamed constraints."""

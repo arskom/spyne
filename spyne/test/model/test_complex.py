@@ -472,5 +472,9 @@ class TestSelfRefence(unittest.TestCase):
 
         assert Category._type_info['children']._type_info.values()[0] is Category
 
+    def test_array_type_name(self):
+        assert Array(String, type_name='punk').__type_name__ == 'punk'
+
+
 if __name__ == '__main__':
     unittest.main()
