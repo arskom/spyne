@@ -664,6 +664,14 @@ class ComplexModelBase(ModelBase):
         retval.__type_name__ = cls.__type_name__
         retval.__namespace__ = cls.__namespace__
 
+        tn = kwargs.get("type_name", None)
+        if tn is not None:
+            retval.__type_name__ = tn
+
+        ns = kwargs.get("namespace", None)
+        if ns is not None:
+            retval.__namespace__ = ns
+
         e = getattr(retval, '__extends__', None)
         if e != None:
             retval.__extends__ = getattr(e, '__extends__', None)
@@ -690,6 +698,7 @@ class Array(ComplexModelBase):
     """This class generates a ComplexModel child that has one attribute that has
     the same name as the serialized class. It's contained in a Python list.
     """
+
     __metaclass__ = ComplexModelMeta
 
     def __new__(cls, serializer, **kwargs):
@@ -706,16 +715,15 @@ class Array(ComplexModelBase):
 
         if serializer.get_type_name() is ModelBase.Empty:
             member_name = serializer.__base_type__.get_type_name()
-            if cls.__type_name__ is None:
-                cls.__type_name__ = ModelBase.Empty # to be resolved later
+            if retval.__type_name__ == cls.__type_name__:
+                retval.__type_name__ = ModelBase.Empty # to be resolved later
 
         else:
             member_name = serializer.get_type_name()
-            if cls.__type_name__ is None:
-                cls.__type_name__ = '%s%s' % (serializer.get_type_name(),
-                                                                ARRAY_SUFFIX)
+            if retval.__type_name__ == cls.__type_name__:
+                retval.__type_name__ = '%s%s%s' % (ARRAY_PREFIX, member_name,
+                                                                   ARRAY_SUFFIX)
 
-        retval.__type_name__ = '%s%s' % (member_name, ARRAY_SUFFIX)
         retval._type_info = {member_name: serializer}
 
         return retval
