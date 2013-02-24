@@ -267,6 +267,30 @@ class ModelBase(object):
             return "%s:%s" % (cls.get_namespace_prefix(interface), cls.get_type_name())
 
     @classmethod
+    @nillable_string
+    def to_string(cls, value):
+        """Returns str(value). This should be overridden if this is not enough.
+        """
+
+        return str(value)
+
+    @classmethod
+    @nillable_iterable
+    def to_string_iterable(cls, value):
+        """Returns the result of :func:`to_string` in a list. This method should
+        be overridden if this is not enough."""
+
+        return [cls.to_string(value)]
+
+    @classmethod
+    @nillable_dict
+    def to_dict(cls, value):
+        """Returns a dict with type name as key and str(value) as value. This
+        should be overridden if this is not enough."""
+
+        return {cls.get_type_name(): cls.to_string(value)}
+
+    @classmethod
     def customize(cls, **kwargs):
         """Duplicates cls and overwrites the values in ``cls.Attributes`` with
         ``**kwargs`` and returns the new class."""

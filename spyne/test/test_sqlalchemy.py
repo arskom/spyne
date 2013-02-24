@@ -37,6 +37,8 @@ from sqlalchemy.orm import sessionmaker
 
 from sqlalchemy.schema import UniqueConstraint
 
+from sqlalchemy.exc import IntegrityError
+
 from spyne.application import Application
 from spyne.decorator import rpc
 from spyne.model.primitive import Integer

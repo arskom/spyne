@@ -48,6 +48,7 @@ from spyne.protocol.xml import XmlDocument
 from spyne.protocol.xml.model import nillable_value
 from spyne.protocol.xml.model import TBaseFromElement
 from spyne.protocol.soap.mime import collapse_swa
+from spyne.error import ValidationError
 
 def _from_soap(in_envelope_xml, xmlids=None):
     '''Parses the xml string into the header and payload.'''
@@ -136,7 +137,11 @@ def _datetime_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'
     e = etree.SubElement(parent_elt, '{%s}%s' % (tns, name))
     e.text = value.isoformat()
 
-_datetime_from_element = TBaseFromElement(lambda cls, s: cls.default_parse(s))
+def _datetime_from_element(cls, string):
+    try:
+        return cls.default_parse(string)
+    except ValueError:
+        raise ValidationError(string)
 
 
 class Soap11(XmlDocument):

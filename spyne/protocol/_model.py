@@ -23,7 +23,6 @@ import math
 from collections import deque
 
 from spyne.model import nillable_string
-from spyne.model import nillable_iterable
 from spyne.model import nillable_dict
 from spyne.model.binary import File
 from spyne.model.binary import Attachment
@@ -33,14 +32,15 @@ from spyne.model.primitive import _duration_re
 
 try:
     from lxml import etree
+    from lxml import html
 except ImportError:
-    pass
+    etree = None
+    html = None
 
 __all__ = [
-    'model_base_to_string', 'model_base_to_string_iterable',
-    'model_base_to_dict',
     'null_to_string', 'null_from_string',
     'any_xml_to_string', 'any_xml_from_string',
+    'any_html_to_string', 'any_html_from_string',
     'unicode_to_string', 'unicode_from_string',
     'string_from_string',
     'decimal_to_string', 'decimal_from_string',
@@ -57,37 +57,8 @@ __all__ = [
     'complex_model_base_to_string', 'complex_model_base_from_string'
 ]
 
-
-@nillable_string
-def model_base_to_string(cls, value):
-    """Returns str(value). This should be overridden if this is not enough."""
-
-    return str(value)
-
-
-@nillable_iterable
-def model_base_to_string_iterable(cls, value):
-    """Returns the result of :func:`model_base_to_string` in a list. This method should
-    be overridden if this is not enough."""
-    if not hasattr(cls, 'to_string_iterable'):
-        return [model_base_to_string(cls, value)]
-    else:
-        return cls.to_string_iterable(cls, value)
-
-
-@nillable_dict
-def model_base_to_dict(cls, value):
-    """Returns a dict with type name as key and str(value) as value. This
-    should be overridden if this is not enough."""
-    if not hasattr(cls, 'to_dict'):
-        return {cls.get_type_name(): model_base_to_string(cls, value)}
-    else:
-        return cls.to_dict(cls, value)
-
-
 def null_to_string(cls, value):
     return ""
-
 
 def null_from_string(cls, value):
     return None
@@ -97,13 +68,21 @@ def null_from_string(cls, value):
 def any_xml_to_string(cls, value):
     return etree.tostring(value)
 
-
 @nillable_string
 def any_xml_from_string(cls, string):
     try:
         return etree.fromstring(string)
     except etree.XMLSyntaxError, e:
         raise ValidationError(string, "%%r: %r" % e)
+
+
+@nillable_string
+def any_html_to_string(cls, value):
+    return html.tostring(value)
+
+@nillable_string
+def any_html_from_string(cls, string):
+    return html.fromstring(string)
 
 
 @nillable_string
@@ -115,7 +94,6 @@ def unicode_to_string(cls, value):
         return retval
     else:
         return cls.Attributes.format % retval
-
 
 @nillable_string
 def unicode_from_string(cls, value):
@@ -149,7 +127,6 @@ def decimal_to_string(cls, value):
         return str(value)
     else:
         return cls.Attributes.format % value
-
 
 @nillable_string
 def decimal_from_string(cls, string):
@@ -185,7 +162,6 @@ def integer_to_string(cls, value):
     int(value) # sanity check
 
     return str(value)
-
 
 @nillable_string
 def integer_from_string(cls, string):
@@ -243,7 +219,6 @@ def datetime_to_string(cls, value):
         return ret_str
     else:
         return string_format % ret_str
-
 
 @nillable_string
 def datetime_from_string(cls, string):
@@ -314,7 +289,6 @@ def duration_to_string(cls, value):
 
     return ''.join(retval)
 
-
 @nillable_string
 def duration_from_string(cls, string):
     duration = _duration_re.match(string).groupdict(0)
@@ -343,7 +317,6 @@ def duration_from_string(cls, string):
 @nillable_string
 def boolean_to_string(cls, value):
     return str(bool(value)).lower()
-
 
 @nillable_string
 def boolean_from_string(cls, string):
@@ -380,7 +353,6 @@ def attachment_to_string(cls, value):
 
     return data
 
-
 @nillable_string
 def attachment_from_string(cls, value):
     return Attachment(data=value)
@@ -389,7 +361,6 @@ def attachment_from_string(cls, value):
 @nillable_string
 def complex_model_base_to_string(cls, value):
     raise TypeError("Only primitives can be serialized to string.")
-
 
 @nillable_string
 def complex_model_base_from_string(cls, string):
