@@ -58,7 +58,7 @@ from spyne.model.complex import Array
 from spyne.protocol._model import *
 
 _to_string_handlers = cdict({
-    ModelBase: ModelBase.to_string,
+    ModelBase: lambda cls, value: cls.to_string(value),
     Null: null_to_string,
     AnyXml: any_xml_to_string,
     Unicode: unicode_to_string,
@@ -311,6 +311,6 @@ class ProtocolBase(object):
         return handler(class_, value)
 
     @classmethod
-    def to_dict(self, cls, value):
-        handler = _to_dict_handlers[cls]
-        return handler(cls, value)
+    def to_dict(cls, class_, value):
+        handler = _to_dict_handlers[class_]
+        return handler(class_, value)
