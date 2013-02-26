@@ -76,7 +76,7 @@ def TBaseFromElement(callable):
 
         if prot.validator is prot.SOFT_VALIDATION and not (
                                             cls.validate_native(cls, retval)):
-            raise ValidationError(element.text)
+            raise ValidationError(retval)
         return retval
 
     return base_from_element
@@ -360,5 +360,5 @@ def unicode_from_element(prot, cls, element):
 
     if prot.validator is prot.SOFT_VALIDATION and not (
                                         cls.validate_native(cls, retval)):
-        raise ValidationError(element.text)
+        raise ValidationError(retval)
     return retval
