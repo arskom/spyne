@@ -29,6 +29,7 @@ import uuid
 import pytz
 import decimal
 import datetime
+import platform
 import time
 
 import spyne.const.xml_ns
@@ -389,6 +390,32 @@ class Double(Decimal):
      gotchas."""
 
     __type_name__ = 'double'
+
+    if platform.python_version_tuple()[:2] == ('2','6'):
+        class Attributes(Decimal.Attributes):
+            """Customizable attributes of the :class:`spyne.model.primitive.Decimal`
+            type."""
+
+            gt = float('-inf') # minExclusive
+            """The value should be greater than this number."""
+
+            ge = float('-inf') # minInclusive
+            """The value should be greater than or equal to this number."""
+
+            lt = float('inf') # maxExclusive
+            """The value should be lower than this number."""
+
+            le = float('inf') # maxInclusive
+            """The value should be lower than or equal to this number."""
+
+        @staticmethod
+        def is_default(cls):
+            return (    SimpleModel.is_default(cls)
+                    and cls.Attributes.gt == Double.Attributes.gt
+                    and cls.Attributes.ge == Double.Attributes.ge
+                    and cls.Attributes.lt == Double.Attributes.lt
+                    and cls.Attributes.le == Double.Attributes.le
+                )
 
     @classmethod
     @nillable_string
