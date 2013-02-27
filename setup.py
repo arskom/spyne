@@ -114,7 +114,7 @@ class RunTests(TestCommand):
 
         raise SystemExit(ret)
 
-test_reqs = ['pytest', 'werkzeug', 'sqlalchemy', 'suds', 'msgpack-python', 'pyparsing', 'lxml>=2.3']
+test_reqs = ['pytest', 'werkzeug', 'sqlalchemy', 'suds', 'msgpack-python', 'pyparsing<1.99', 'lxml>=2.3']
 
 if sys.version_info < (2,6):
     test_reqs.extend([
