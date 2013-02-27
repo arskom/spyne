@@ -39,6 +39,17 @@ from spyne.model import nillable_iterable
 from spyne.model import ModelBase
 from spyne.model import SimpleModel
 
+_encoding_handlers = {
+    None: ''.join,
+    'hex': hexlify,
+    'base64': b64encode,
+}
+
+_decoding_handlers = {
+    None: lambda x: [x],
+    'hex': unhexlify,
+    'base64': b64decode,
+}
 
 class ByteArray(SimpleModel):
     """Canonical container for arbitrary data. Every protocol has a different
@@ -60,18 +71,6 @@ class ByteArray(SimpleModel):
         One of (None, 'base64', 'hex')
         """
 
-    _encoding_handlers = {
-        None: ''.join,
-        'hex': hexlify,
-        'base64': b64encode,
-    }
-
-    _decoding_handlers = {
-        None: lambda x: [x],
-        'hex': unhexlify,
-        'base64': b64decode,
-    }
-
     def __new__(cls, **kwargs):
         if 'encoding' in kwargs:
             v = kwargs['encoding']
@@ -89,13 +88,18 @@ class ByteArray(SimpleModel):
 
     @classmethod
     @nillable_string
-    def from_string(cls, value):
-        return cls._decoding_handlers[cls.Attributes.encoding](value)
+    def from_string(cls, value, suggested_encoding=None):
+        encoding = cls.Attributes.encoding
+        if encoding is None:
+            encoding = suggested_encoding
+        return _decoding_handlers[encoding](value)
 
     @classmethod
     @nillable_string
-    def to_string(cls, value):
-        return cls._encoding_handlers[cls.Attributes.encoding](value)
+    def to_string(cls, value, encoding):
+        if encoding is None:
+            encoding = cls.Attributes.encoding
+        return _encoding_handlers[encoding](value)
 
     @classmethod
     @nillable_iterable
@@ -124,6 +128,14 @@ class File(SimpleModel):
 
     __type_name__ = 'base64Binary'
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
+
+    class Attributes(SimpleModel.Attributes):
+        encoding = None
+        """The binary encoding to use when the protocol does not enforce an
+        encoding for binary data.
+
+        One of (None, 'base64', 'hex')
+        """
 
     class Value(object):
         def __init__(self, name=None, path=None, type='application/octet-stream',
@@ -204,8 +216,11 @@ class File(SimpleModel):
 
     @classmethod
     @nillable_string
-    def from_string(cls, value):
-        return File.Value(data=[value])
+    def from_string(cls, value, suggested_encoding=None):
+        encoding = cls.Attributes.encoding
+        if encoding is None:
+            encoding = suggested_encoding
+        return File.Value(data=_decoding_handlers[encoding](value))
 
     @classmethod
     @nillable_string

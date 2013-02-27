@@ -69,7 +69,7 @@ _weekday = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 _month = ['w00t', "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
              "Oct", "Nov", "Dec"]
 
-def to_string(val, cls):
+def to_string(prot, val, cls):
     if issubclass(cls, DateTime):
         if val.tzinfo is not None:
             val = val.astimezone(pytz.utc)
@@ -80,10 +80,7 @@ def to_string(val, cls):
                             _weekday[val.weekday()], val.day, _month[val.month],
                             val.year, val.hour, val.minute, val.second)
     elif issubclass(cls, ByteArray):
-        if cls.Attributes.encoding is None:
-            return b64encode(val)
-        else:
-            return cls.to_string(val)
+        return cls.to_string(val, suggested_encoding=prot.default_binary_encoding)
 
     else:
         return cls.to_string(val)
@@ -109,6 +106,7 @@ class HttpRpc(DictDocument):
 
     mime_type = 'text/plain'
     allowed_http_verbs = None
+    default_binary_encoding = 'base64'
 
     type = set(DictDocument.type)
     type.add('http')

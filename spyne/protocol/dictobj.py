@@ -70,6 +70,8 @@ class DictDocument(ProtocolBase):
     Implement ``create_in_document`` and ``create_out_string`` to use this.
     """
 
+    default_binary_encoding = None
+
     def create_in_document(self, ctx, in_string_encoding=None):
         raise NotImplementedError()
 
@@ -362,7 +364,13 @@ class DictDocument(ProtocolBase):
 
                 if issubclass(member.type, (File, ByteArray)):
                     if isinstance(v2, str) or isinstance(v2, unicode):
-                        native_v2 = member.type.from_string(v2)
+                        if member.type.Attributes.encoding is None and \
+                                        cls.default_binary_encoding is not None:
+                            native_v2 = member.type.from_string(v2,
+                                                    cls.default_binary_encoding)
+
+                        else:
+                            native_v2 = member.type.from_string(v2)
                     else:
                         native_v2 = v2
                 else:
@@ -445,7 +453,7 @@ class DictDocument(ProtocolBase):
 
     @classmethod
     def object_to_flat_dict(cls, inst_cls, value, hier_delim="_", retval=None,
-                           prefix=None, parent=None, subvalue_eater=lambda v,t:v):
+                     prefix=None, parent=None, subvalue_eater=lambda prot,v,t:v):
         """Converts a native python object to a flat dict.
 
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
@@ -471,7 +479,7 @@ class DictDocument(ProtocolBase):
 
                 if subvalue is not None or v.Attributes.min_occurs > 0:
                     try:
-                        retval[key] = subvalue_eater(subvalue, v)
+                        retval[key] = subvalue_eater(cls, subvalue, v)
                     except: # FIXME: What?
                         if v.Attributes.min_occurs > 0:
                             retval[key] = None

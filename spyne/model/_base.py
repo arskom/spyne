@@ -42,11 +42,11 @@ def nillable_dict(func):
 def nillable_string(func):
     """Decorator that retuns None if input is None."""
 
-    def wrapper(cls, string):
+    def wrapper(cls, string, *args, **kwargs):
         if string is None:
             return None
         else:
-            return func(cls, string)
+            return func(cls, string, *args, **kwargs)
     return wrapper
 
 
