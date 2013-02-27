@@ -416,14 +416,18 @@ class Decimal(SimpleModel):
 
 class Double(Decimal):
     """This is serialized as the python ``float``. So this type comes with its
-     gotchas."""
+     gotchas. Unless you really know what you're doing, you should use a
+     :class:`Decimal` with a pre-defined number of integer and decimal digits.
+     """
 
     __type_name__ = 'double'
 
     if platform.python_version_tuple()[:2] == ('2','6'):
         class Attributes(Decimal.Attributes):
-            """Customizable attributes of the :class:`spyne.model.primitive.Decimal`
-            type."""
+            """Customizable attributes of the :class:`spyne.model.primitive.Double`
+            type. This class is only here for Python 2.6: See this bug report
+            for more info: http://bugs.python.org/issue2531
+            """
 
             gt = float('-inf') # minExclusive
             """The value should be greater than this number."""
