@@ -2,6 +2,14 @@
 Changelog
 =========
 
+spyne-2.9.4
+-----------
+ * Fix for Python 2.6 quirk where any decimal.Decimal() is always less than
+   any ``float()``
+ * Fix missing '/' in WsgiMounter.
+ * Fix confusion in ``spyne.model.primitive.Decimal``'s parameter order.
+ * Add forgotten ``HttpBase`` parameters to ``WsgiApplication``.
+
 spyne-2.9.3
 -----------
  * Fix WsgiApplication choking on empty string return value.
