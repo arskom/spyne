@@ -17,7 +17,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""The ``spyne.model.primitive`` package contains atomic, single-value types."""
+"""
+The ``spyne.model.primitive`` package contains types with values that fit
+in a single field.
+"""
+
 
 import sys
 if sys.version > '3':
@@ -30,6 +34,7 @@ import pytz
 import uuid
 import decimal
 import datetime
+import platform
 
 import spyne.const.xml_ns
 
@@ -343,9 +348,56 @@ class Decimal(SimpleModel):
 
 class Double(Decimal):
     """This is serialized as the python ``float``. So this type comes with its
-     gotchas."""
+     gotchas. Unless you really know what you're doing, you should use a
+     :class:`Decimal` with a pre-defined number of integer and decimal digits.
+     """
 
     __type_name__ = 'double'
+
+    if platform.python_version_tuple()[:2] == ('2','6'):
+        class Attributes(Decimal.Attributes):
+            """Customizable attributes of the :class:`spyne.model.primitive.Double`
+            type. This class is only here for Python 2.6: See this bug report
+            for more info: http://bugs.python.org/issue2531
+            """
+
+            gt = float('-inf') # minExclusive
+            """The value should be greater than this number."""
+
+            ge = float('-inf') # minInclusive
+            """The value should be greater than or equal to this number."""
+
+            lt = float('inf') # maxExclusive
+            """The value should be lower than this number."""
+
+            le = float('inf') # maxInclusive
+            """The value should be lower than or equal to this number."""
+
+        @staticmethod
+        def is_default(cls):
+            return (    SimpleModel.is_default(cls)
+                    and cls.Attributes.gt == Double.Attributes.gt
+                    and cls.Attributes.ge == Double.Attributes.ge
+                    and cls.Attributes.lt == Double.Attributes.lt
+                    and cls.Attributes.le == Double.Attributes.le
+                )
+
+    @classmethod
+    @nillable_string
+    def to_string(cls, value):
+        float(value)
+        if cls.Attributes.format is None:
+            return repr(value)
+        else:
+            return cls.Attributes.format % value
+
+    @classmethod
+    @nillable_string
+    def from_string(cls, string):
+        try:
+            return float(string)
+        except ValueError:
+            raise ValidationError(string)
 
 
 class Float(Double):
@@ -564,8 +616,11 @@ class DateTime(SimpleModel):
         http://docs.python.org/library/stdtypes.html#string-formatting"""
 
         as_time_zone = None
-        """When not None, call astimezone(val); replace(tzinfo=None) on the
-        native value. Either None or a return value of pytz.timezone()
+        """When not None, converts incoming and outgoing values to the given
+        time zone (by calling ``astimezone()``) and strips time zone information
+        from the native value (by calling ``replace(tzinfo=None)``).
+
+        Either None or a return value of pytz.timezone()
         """
 
     @staticmethod

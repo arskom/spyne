@@ -30,6 +30,7 @@ from sqlalchemy import MetaData
 from sqlalchemy import Column
 from sqlalchemy import Table
 from sqlalchemy import ForeignKey
+from sqlalchemy.exc import IntegrityError
 
 from sqlalchemy.orm import mapper
 from sqlalchemy.orm import relationship
@@ -328,8 +329,7 @@ class TestSpyne2Sqlalchemy(unittest.TestCase):
 
             i = Integer(primary_key=True)
 
-        t = gen_sqla_info(SomeClass)
-
+        t = SomeClass.Attributes.sqla_table
         assert t.c['i'].type.__class__ is sqlalchemy.DECIMAL
 
     def test_table_args(self):
@@ -343,8 +343,7 @@ class TestSpyne2Sqlalchemy(unittest.TestCase):
             i = Integer(primary_key=True)
             j = Unicode(64)
 
-        t = gen_sqla_info(SomeClass)
-
+        t = SomeClass.Attributes.sqla_table
         assert isinstance(t.c['j'].type, sqlalchemy.Unicode)
 
         for c in t.constraints:
@@ -383,7 +382,6 @@ class TestSqlAlchemySchema(unittest.TestCase):
             s = Unicode(64, unique=True)
             i = Integer32(64, index=True)
 
-        gen_sqla_info(SomeClass)
         t = SomeClass.__table__
         metadata.create_all() # not needed, just nice to see.
 
@@ -395,7 +393,6 @@ class TestSqlAlchemySchema(unittest.TestCase):
             assert 'i' in idx.columns or 's' in idx.columns
             if 's' in idx.columns:
                 assert idx.unique
-
 
 
 class TestSqlAlchemyNested(unittest.TestCase):
@@ -424,9 +421,6 @@ class TestSqlAlchemyNested(unittest.TestCase):
 
             id = Integer32(primary_key=True)
             o = SomeOtherClass.customize(store_as='table')
-
-        gen_sqla_info(SomeOtherClass)
-        gen_sqla_info(SomeClass)
 
         metadata.create_all()
 
@@ -470,9 +464,6 @@ class TestSqlAlchemyNested(unittest.TestCase):
             id = Integer32(primary_key=True)
             others = Array(SomeOtherClass, store_as='table')
 
-        gen_sqla_info(SomeOtherClass)
-        gen_sqla_info(SomeClass)
-
         metadata.create_all()
 
         soc1 = SomeOtherClass(s='ehe1')
@@ -509,9 +500,6 @@ class TestSqlAlchemyNested(unittest.TestCase):
 
             id = Integer32(primary_key=True)
             others = Array(SomeOtherClass, store_as=table(multi=True))
-
-        gen_sqla_info(SomeOtherClass)
-        gen_sqla_info(SomeClass)
 
         metadata.create_all()
 
@@ -584,8 +572,6 @@ class TestSqlAlchemyNested(unittest.TestCase):
             id = Integer32(primary_key=True)
             others = Array(SomeOtherClass, store_as='xml')
 
-        gen_sqla_info(SomeClass)
-
         metadata.create_all()
 
         soc1 = SomeOtherClass(s='ehe1')
@@ -620,8 +606,6 @@ class TestSqlAlchemyNested(unittest.TestCase):
             id = Integer32(primary_key=True)
             others = Array(SomeOtherClass, store_as=xml(no_ns=True))
 
-        gen_sqla_info(SomeClass)
-
         metadata.create_all()
 
         soc1 = SomeOtherClass(s='ehe1')
@@ -646,7 +630,7 @@ class TestSqlAlchemyNested(unittest.TestCase):
         metadata = NewTableModel.Attributes.sqla_metadata = MetaData(bind=engine)
 
         class SomeOtherClass(NewTableModel):
-            __tablename__ = 'some_class'
+            __tablename__ = 'some_other_class'
             __table_args__ = {"sqlite_autoincrement": True}
             id = Integer32(primary_key=True)
             s = Unicode(64)
@@ -740,7 +724,7 @@ class TestSqlAlchemyNested(unittest.TestCase):
         metadata = NewTableModel.Attributes.sqla_metadata = MetaData(bind=engine)
 
         class SomeOtherClass(NewTableModel):
-            __tablename__ = 'some_class'
+            __tablename__ = 'some_other_class'
             __table_args__ = {"sqlite_autoincrement": True} # this is sqlite-specific
             __mapper_args__ = (
                 (),
@@ -837,8 +821,6 @@ class TestSqlAlchemyNested(unittest.TestCase):
             id = Integer32(primary_key=True)
             others = Array(SomeOtherClass, store_as='json')
 
-        gen_sqla_info(SomeClass)
-
         metadata.create_all()
 
         soc1 = SomeOtherClass(s='ehe1')
@@ -855,6 +837,57 @@ class TestSqlAlchemyNested(unittest.TestCase):
         assert sc_db.others[1].s == 'ehe2'
 
         session.close()
+
+    def test_default_ctor(self):
+        engine = create_engine('sqlite:///:memory:')
+        session = sessionmaker(bind=engine)()
+        metadata = NewTableModel.Attributes.sqla_metadata = MetaData()
+        metadata.bind = engine
+
+        class SomeOtherClass(ComplexModel):
+            id = Integer32
+            s = Unicode(64)
+
+        class SomeClass(NewTableModel):
+            __tablename__ = 'some_class'
+            __table_args__ = {"sqlite_autoincrement": True}
+
+            id = Integer32(primary_key=True)
+            others = Array(SomeOtherClass, store_as='json')
+            f = Unicode(32, default='uuu')
+
+        metadata.create_all()
+        session.add(SomeClass())
+        session.commit()
+        session.expunge_all()
+
+        assert session.query(SomeClass).get(1).f == 'uuu'
+
+    def test_default_ctor_with_sql_relationship(self):
+        engine = create_engine('sqlite:///:memory:')
+        session = sessionmaker(bind=engine)()
+        metadata = NewTableModel.Attributes.sqla_metadata = MetaData()
+        metadata.bind = engine
+
+        class SomeOtherClass(NewTableModel):
+            __tablename__ = 'some_other_class'
+            __table_args__ = {"sqlite_autoincrement": True}
+
+            id = Integer32(primary_key=True)
+            s = Unicode(64)
+
+        class SomeClass(NewTableModel):
+            __tablename__ = 'some_class'
+            __table_args__ = (
+                {"sqlite_autoincrement": True},
+            )
+
+            id = Integer32(primary_key=True)
+            o = SomeOtherClass.customize(store_as='table')
+
+        metadata.create_all()
+        session.add(SomeClass())
+        session.commit()
 
 
 if __name__ == '__main__':

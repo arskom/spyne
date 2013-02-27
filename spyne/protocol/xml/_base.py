@@ -103,6 +103,9 @@ class XmlDocument(ProtocolBase):
     mime_type = 'text/xml'
     allowed_http_verbs = set(['GET', 'POST'])
 
+    type = set(ProtocolBase.type)
+    type.add('xml')
+
     def __init__(self, app=None, validator=None, xml_declaration=True,
                                                     cleanup_namespaces=True):
         ProtocolBase.__init__(self, app, validator)

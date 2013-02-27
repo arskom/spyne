@@ -17,11 +17,20 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 import unittest
+
+from StringIO import StringIO
+from datetime import datetime
+from wsgiref.validate import validator
 
 from spyne.application import Application
 from spyne.decorator import rpc
 from spyne.decorator import srpc
+from spyne.model.primitive import DateTime
 from spyne.model.primitive import Integer
 from spyne.model.primitive import String
 from spyne.model.complex import ComplexModel
@@ -31,8 +40,6 @@ from spyne.service import ServiceBase
 from spyne.server.wsgi import WsgiApplication
 from spyne.server.wsgi import WsgiMethodContext
 
-import logging
-logging.basicConfig(level=logging.DEBUG)
 
 def _test(services, qs):
     app = Application(services, 'tns', in_protocol=HttpRpc(validator='soft'),
@@ -204,6 +211,9 @@ class Test(unittest.TestCase):
         assert s == "CCM(i=1, c=[CM(i=1, s='a'), CM(i=2, s='b')], s='s')"
 
     def test_http_headers(self):
+        DATE = datetime(year=2013, month=1, day=1)
+        STR = 'hey'
+
         class RequestHeader(ComplexModel):
             _type_info = {
                 'Cookie': String(max_occurs='unbounded')
@@ -211,7 +221,8 @@ class Test(unittest.TestCase):
 
         class ResponseHeader(ComplexModel):
             _type_info = {
-                'Set-Cookie': String(max_occurs='unbounded')
+                'Set-Cookie': String(max_occurs='unbounded'),
+                'Expires': DateTime
             }
 
         class SomeService(ServiceBase):
@@ -221,18 +232,29 @@ class Test(unittest.TestCase):
             @rpc(String)
             def some_call(ctx, s):
                 assert s is not None
-                ctx.out_header = ResponseHeader(**{'Set-Cookie': s})
+                ctx.out_header = ResponseHeader(**{'Set-Cookie': STR,
+                                                                'Expires': DATE})
 
         def start_response(code, headers):
-            assert dict(headers)['Set-Cookie'] == 'hey'
+            assert dict(headers)['Set-Cookie'] == STR
+            assert dict(headers)['Expires'] == 'Tue, 01 Jan 2013 00:00:00 GMT'
 
-        ret = ''.join(WsgiApplication(Application([SomeService], 'tns',
-            in_protocol=HttpRpc(), out_protocol=HttpRpc()))({
-                'QUERY_STRING': '&s=hey',
+        ret = ''.join(validator(WsgiApplication(Application([SomeService], 'tns',
+            in_protocol=HttpRpc(), out_protocol=HttpRpc())))({
+                'SCRIPT_NAME': '',
+                'QUERY_STRING': '&s=' + STR,
                 'PATH_INFO': '/some_call',
                 'REQUEST_METHOD': 'GET',
                 'SERVER_NAME': 'localhost',
-            }, start_response, "http://null"))
+                'SERVER_PORT': "9999",
+                'wsgi.url_scheme': 'http',
+                'wsgi.version': (1,0),
+                'wsgi.input': StringIO(),
+                'wsgi.errors': StringIO(),
+                'wsgi.multithread': False,
+                'wsgi.multiprocess': False,
+                'wsgi.run_once': True,
+            }, start_response))
 
         assert ret == ''
 

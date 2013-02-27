@@ -250,15 +250,9 @@ def datetime_from_string(cls, string):
     format = cls.Attributes.format
 
     if format is None:
-        try:
-            return cls.default_parse(string)
-        except ValueError, e:
-            raise ValidationError(string, "%%r: %r" % e)
+        retval = cls.default_parse(string)
     else:
-        try:
-            return datetime.datetime.strptime(string, format)
-        except ValueError, e:
-            raise ValidationError(string, "%%r: %r" % e)
+        retval = datetime.datetime.strptime(string, format)
 
     if cls.Attributes.as_time_zone is not None and retval.tzinfo is not None:
         retval = retval.astimezone(cls.Attributes.as_time_zone) \
@@ -352,11 +346,11 @@ def boolean_from_string(cls, string):
 
 @nillable_string
 def byte_array_to_string(cls, value):
-    return ''.join(value)
+    return cls._encoding_handlers[cls.Attributes.encoding](value)
 
 @nillable_string
 def byte_array_from_string(cls, value):
-    return [value]
+    return cls._decoding_handlers[cls.Attributes.encoding](value)
 
 
 @nillable_string

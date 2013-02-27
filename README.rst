@@ -9,7 +9,7 @@ own remote procedure call api and the application programmers the hassle of
 jumping through hoops just to expose their services using multiple protocols and
 transports.
 
-From another perspective, Spyne is a framework for building distributed
+In other words, Spyne is a framework for building distributed
 solutions that strictly follow the MVC pattern, where Model = `spyne.model`,
 View = `spyne.protocol` and Controller = `user code`.
 
@@ -56,14 +56,14 @@ of Spyne:
   ``spyne.server.wsgi.WsgiApplication``
 * `lxml>=2.3 <http://lxml.de>`_ is needed for any xml or html related operation.
 * `SQLAlchemy <http://sqlalchemy.org>`_ is needed for
-  ``spyne.model.table.TableModel``.
+  ``spyne.model.complex.TTableModel``.
 * `pyzmq <https://github.com/zeromq/pyzmq>`_ is needed for
   ``spyne.client.zeromq.ZeroMQClient`` and
   ``spyne.server.zeromq.ZeroMQServer``.
 * `Werkzeug <http://werkzeug.pocoo.org/>`_ is needed for
   ``spyne.protocol.http.HttpRpc``.
 * `PyParsing <http://pypi.python.org/pypi/pyparsing>`_ is needed for
-  using HttpPatterns with ``spyne.protocol.http.HttpRpc``.
+  using ``HttpPattern``s with ``spyne.protocol.http.HttpRpc``.
 * `Twisted <http://twistedmatrix.com/>`_ is needed for
   ``spyne.server.twisted.TwistedWebResource`` and
   ``spyne.client.twisted.TwistedHttpClient``.

@@ -250,8 +250,9 @@ class DictDocument(ProtocolBase):
         # validate raw input
         if validator is cls.SOFT_VALIDATION:
             if issubclass(class_, Unicode) and not isinstance(value, unicode):
+                # Note that String is a subclass of Unicode
                 if not (issubclass(class_, String) and isinstance(value, str)):
-                    raise ValidationError(value)
+                    value = class_.from_string(value)
 
             elif issubclass(class_, Decimal) and not isinstance(value,
                                                             (int, long, float)):
@@ -404,7 +405,7 @@ class DictDocument(ProtocolBase):
 
                     nidx = int(indexes.popleft())
 
-                    if nidx > len(ninst):
+                    if nidx > len(ninst) or nidx < 0:
                         raise ValidationError(orig_k,
                                             "%%r Invalid array index %d." % idx)
 
@@ -444,7 +445,7 @@ class DictDocument(ProtocolBase):
 
     @classmethod
     def object_to_flat_dict(cls, inst_cls, value, hier_delim="_", retval=None,
-                                                      prefix=None, parent=None):
+                           prefix=None, parent=None, subvalue_eater=lambda v,t:v):
         """Converts a native python object to a flat dict.
 
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
@@ -470,7 +471,7 @@ class DictDocument(ProtocolBase):
 
                 if subvalue is not None or v.Attributes.min_occurs > 0:
                     try:
-                        retval[key] = subvalue
+                        retval[key] = subvalue_eater(subvalue, v)
                     except: # FIXME: What?
                         if v.Attributes.min_occurs > 0:
                             retval[key] = None

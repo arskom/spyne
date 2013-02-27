@@ -25,9 +25,9 @@ import spyne.interface
 
 from spyne import EventManager
 from spyne.const import xml_ns as namespace
-from spyne.const.suffix import TYPE_SUFFIX
-from spyne.const.suffix import RESULT_SUFFIX
-from spyne.const.suffix import RESPONSE_SUFFIX
+from spyne.const import TYPE_SUFFIX
+from spyne.const import RESULT_SUFFIX
+from spyne.const import RESPONSE_SUFFIX
 
 from spyne.model import ModelBase
 from spyne.model.complex import ComplexModelBase

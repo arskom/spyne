@@ -26,11 +26,10 @@ This module is EXPERIMENTAL. You may not recognize the code here next time you
 look at it.
 """
 
+from __future__ import absolute_import
+
 import logging
 logger = logging.getLogger(__name__)
-
-import tempfile
-TEMPORARY_DIR = None
 
 try:
     import simplejson as json
@@ -39,26 +38,7 @@ except ImportError:
     import json
     JSONDecodeError = ValueError
 
-try:
-    from cStringIO import StringIO
-except ImportError:
-    try:
-        from StringIO import StringIO
-    except ImportError: # Python 3
-        from io import StringIO
-
-from spyne.error import ValidationError
-
 from spyne.model.fault import Fault
-from spyne.model.complex import ComplexModelBase
-from spyne.model.complex import Array
-from spyne.model.primitive import DateTime
-from spyne.model.primitive import Decimal
-from spyne.model.primitive import Unicode
-
-from spyne.protocol import ProtocolBase
-from spyne.protocol import unwrap_messages
-from spyne.protocol import unwrap_instance
 from spyne.protocol.dictobj import DictDocument
 
 
@@ -68,6 +48,9 @@ class JsonDocument(DictDocument):
     """
 
     mime_type = 'application/json'
+
+    type = set(DictDocument.type)
+    type.add('json')
 
     def create_in_document(self, ctx, in_string_encoding=None):
         """Sets ``ctx.in_document``  using ``ctx.in_string``."""

@@ -72,3 +72,6 @@ examples/file_manager/files/
 # test output
 coverage.xml
 test_result.*
+
+# vim cruft
+*.swp

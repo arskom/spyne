@@ -131,6 +131,9 @@ class ProtocolBase(object):
     REQUEST = type("Request", (object,), {})
     RESPONSE = type("Response", (object,), {})
 
+    type = set()
+    """Set that contains keywords about a protocol."""
+
     def __init__(self, app=None, validator=None, mime_type=None, skip_depth=0, ignore_uncap=False):
         self.__app = None
         self.validator = None

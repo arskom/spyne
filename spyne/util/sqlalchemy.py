@@ -41,6 +41,7 @@ from sqlalchemy.schema import Column
 from sqlalchemy.schema import Index
 from sqlalchemy.schema import Table
 from sqlalchemy.schema import ForeignKey
+from sqlalchemy.orm import _mapper_registry
 
 from sqlalchemy.dialects.postgresql import FLOAT
 from sqlalchemy.dialects.postgresql import DOUBLE_PRECISION
@@ -142,11 +143,8 @@ def compile_uuid_sqlite(type_, compiler, **kw):
 class PGGeometry(UserDefinedType):
     """Geometry type for Postgis 2"""
 
-    class PlainWkt(str):
-        pass
-
-    class PlainWkb(str):
-        pass
+    class PlainWkt:pass
+    class PlainWkb:pass
 
     def __init__(self, geometry_type='GEOMETRY', srid=4326, dimension=2,
                                                                 format='wkt'):
@@ -174,7 +172,7 @@ class PGGeometry(UserDefinedType):
         if self.format is PGGeometry.PlainWkt:
             def process(value):
                 if value is not None:
-                    return self.format(value)
+                    return value
 
         if self.format is PGGeometry.PlainWkb:
             def process(value):
@@ -183,17 +181,9 @@ class PGGeometry(UserDefinedType):
 
         return process
 
-    def bind_processor(self, bindvalue):
+    def bind_expression(self, bindvalue):
         if self.format is PGGeometry.PlainWkt:
-            def process(value):
-                if value is not None:
-                    return sql.func.ST_GeomFromText(value, self.srid)
-
-        if self.format is PGGeometry.PlainWkb:
-            def process(value):
-                return value
-
-        return process
+            return sql.func.ST_GeomFromText(bindvalue, self.srid)
 
 
 class PGXml(UserDefinedType):
@@ -259,7 +249,8 @@ class PGObjectJson(UserDefinedType):
 
     def bind_processor(self, dialect):
         def process(value):
-            return json.dumps(get_object_as_dict(value, self.cls,
+            if value is not None:
+                return json.dumps(get_object_as_dict(value, self.cls,
                                                     skip_depth=self.skip_depth))
         return process
 
@@ -338,9 +329,9 @@ def get_sqlalchemy_type(cls):
 
     elif issubclass(cls, DateTime):
         if cls.Attributes.as_time_zone is None:
-            return sqlalchemy.DateTime(timezone=False)
+            return sqlalchemy.DateTime(timezone=True)
         else:
-            return sqlalchemy.DateTime
+            return sqlalchemy.DateTime(timezone=False)
 
     elif issubclass(cls, Date):
         return sqlalchemy.Date
@@ -455,7 +446,7 @@ def gen_sqla_info(cls, cls_bases=()):
             if getattr(b, '_type_info', None) is not None and b.__mixin__:
                 base_class = b
 
-    else:
+    if base_class is not None:
         base_table_name = base_class.Attributes.table_name
         if base_table_name is not None:
             if base_table_name == table_name:
@@ -472,18 +463,28 @@ def gen_sqla_info(cls, cls_bases=()):
             if exc_prop is not None:
                 inc = [_p for _p in inc if not _p in exc_prop]
 
-    # check whether the object is already mapped
+    # check whether the object already has a table
     table = None
     if table_name in metadata.tables:
-        if inheritance is None:
-            return metadata.tables[table_name]
-        else:
-            table = base_class.Attributes.sqla_table
+        table = metadata.tables[table_name]
     else:
         # We need FakeTable because table_args can contain all sorts of stuff
         # that can require a fully-constructed table, and we don't have that
         # information here yet.
         table = _FakeTable()
+
+    # check whether the base classes are already mapped
+    base_mapper = None
+    if base_class is not None:
+        base_mapper = base_class.Attributes.sqla_mapper
+
+    if base_mapper is None:
+        for b in cls_bases:
+            bm = _mapper_registry.get(b, None)
+            if bm is not None:
+                assert base_mapper is None, "There can be only one base mapper."
+                base_mapper = bm
+                inheritance = _SINGLE
 
     props = {}
 
@@ -673,8 +674,8 @@ def gen_sqla_info(cls, cls_bases=()):
         else:
             del mapper_kwargs['polymorphic_on']
 
-    if inheritance is not None:
-        mapper_kwargs['inherits'] = base_class.Attributes.sqla_mapper
+    if base_mapper is not None:
+        mapper_kwargs['inherits'] = base_mapper
 
     if inheritance is not _SINGLE:
         mapper_args = (table,) + mapper_args

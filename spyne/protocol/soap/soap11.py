@@ -157,6 +157,9 @@ class Soap11(XmlDocument):
     allowed_http_verbs = ['POST']
     mime_type = 'text/xml; charset=utf-8'
 
+    type = set(XmlDocument.type)
+    type.update(('soap', 'soap11'))
+
     def __init__(self, app=None, validator=None, wrapped=True,
                                 xml_declaration=True, cleanup_namespaces=True):
         XmlDocument.__init__(self, app, validator, xml_declaration,

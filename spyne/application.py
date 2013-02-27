@@ -28,12 +28,12 @@ from spyne.util.appreg import register_application
 
 
 def get_fault_string_from_exception(e):
-    return str(e)
+    return "Internal Error"
 
 
 def return_traceback_in_unhandled_exceptions():
-    """Call this function first thing in your main function to return tracebacks
-    to your clients in case of unhandled exceptions.
+    """Call this function first thing in your main function to return original
+    python errors to your clients in case of unhandled exceptions.
     """
 
     global get_fault_string_from_exception
@@ -176,7 +176,7 @@ class Application(object):
 
         server = ServerBase(self)
         aux_memo = set()
-        for s,d in self.interface.method_id_map.values():
+        for s, d in self.interface.method_id_map.values():
             if d.aux is not None and not id(d.aux) in aux_memo:
                 d.aux.initialize(server)
                 aux_memo.add(id(d.aux))

@@ -167,7 +167,7 @@ The HttpRpc serializer does not support complex types. So we will use the
 XmlDocument serializer as the out_protocol to prevent the clients from dealing
 with Soap cruft. ::
 
-    from spyne.protocol.http import XmlDocument
+    from spyne.protocol.xml import XmlDocument
 
 Besides the imports, the only difference between the SOAP and the HTTP version
 is the application instantiation line: ::
