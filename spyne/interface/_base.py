@@ -173,6 +173,8 @@ class Interface(object):
                         self.__test_type_name_validity(in_header)
                         in_header.resolve_namespace(in_header, self.get_tns())
                         classes.append(in_header)
+                        if in_header.get_namespace() != self.get_tns():
+                            self.imports[self.get_tns()].add(in_header.get_namespace())
 
                 if not (method.out_header is None):
                     if isinstance(method.out_header, (list, tuple)):
@@ -184,6 +186,8 @@ class Interface(object):
                         self.__test_type_name_validity(out_header)
                         out_header.resolve_namespace(out_header, self.get_tns())
                         classes.append(out_header)
+                        if out_header.get_namespace() != self.get_tns():
+                            self.imports[self.get_tns()].add(out_header.get_namespace())
 
                 if method.faults is None:
                     method.faults = []
