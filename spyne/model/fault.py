@@ -57,6 +57,9 @@ class Fault(ComplexModelBase, Exception):
         self.faultactor = faultactor
         self.detail = detail
 
+    def __len__(self):
+        return 1
+
     def __str__(self):
         return repr(self)
 
