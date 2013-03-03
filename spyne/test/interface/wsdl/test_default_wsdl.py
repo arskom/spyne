@@ -32,8 +32,8 @@ from spyne.test.interface.wsdl import build_app
 from spyne.test.interface.wsdl.defult_services import TDefaultPortService
 from spyne.test.interface.wsdl.defult_services import TDefaultPortServiceMultipleMethods
 
-from spyne.const.suffix import RESPONSE_SUFFIX
-from spyne.const.suffix import ARRAY_SUFFIX
+from spyne.const import RESPONSE_SUFFIX
+from spyne.const import ARRAY_SUFFIX
 
 from spyne.const.xml_ns import const_nsmap
 from spyne.decorator import srpc

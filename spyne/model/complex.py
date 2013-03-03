@@ -535,7 +535,7 @@ class ComplexModelBase(ModelBase):
 
             {'some_object': [{'some_string': ['abc']}]}
 
-         would be transformed to:
+        would be transformed to:
 
             {'some_object_some_string': ['abc']}
 
@@ -839,7 +839,8 @@ def _log_repr_obj(obj, cls):
     for k,t in cls.get_flat_type_info(cls).items():
         v = getattr(obj, k, None)
         if v is not None and t.Attributes.logged:
-            if issubclass(t, Unicode) and len(v) > MAX_STRING_FIELD_LENGTH:
+            if issubclass(t, Unicode) and isinstance(v, basestring) and \
+                                               len(v) > MAX_STRING_FIELD_LENGTH:
                 s = '%s=%r(...)' % (k, v[:MAX_STRING_FIELD_LENGTH])
             else:
                 s = '%s=%r' % (k, v)
@@ -864,6 +865,8 @@ def TTableModel(metadata=None):
 
     return TableModel
 
+### You should not use this and always instantiate explicitly your own
+### TTableModel.
 try:
     TableModel = TTableModel()
 except ImportError:
