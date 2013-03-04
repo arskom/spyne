@@ -165,10 +165,11 @@ class WsgiApplication(HttpBase):
         self._mtx_build_map_adapter = threading.Lock()
 
         for k,v in self.app.interface.service_method_map.items():
+            # p_ stands for primary
             p_service_class, p_method_descriptor = v[0]
-            for p in p_method_descriptor.patterns:
-                if isinstance(p, HttpPattern):
-                    r = p.as_werkzeug_rule()
+            for patt in p_method_descriptor.patterns:
+                if isinstance(patt, HttpPattern):
+                    r = patt.as_werkzeug_rule()
 
                     # We are doing this here because we want to import Werkzeug
                     # as late as possible.
