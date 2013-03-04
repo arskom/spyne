@@ -473,13 +473,6 @@ class WsgiApplication(HttpBase):
                 self._map_adapter = self._http_patterns.bind(
                                                     req_env['SERVER_NAME'], "/")
 
-                for k,v in ctx.app.interface.service_method_map.items():
-                    p_service_class, p_method_descriptor = v[0]
-                    for r in self._http_patterns.iter_rules():
-                        params = {}
-                        if r.endpoint == k:
-                            self._map_adapter.build(r.endpoint, params)
-
         finally:
             self._mtx_build_map_adapter.release()
 
