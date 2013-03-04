@@ -267,6 +267,14 @@ class WsgiApplication(HttpBase):
         return [ctx.transport.wsdl]
 
     def handle_error(self, p_ctx, others, error, start_response):
+        """Serialize errors to an iterable of strings and return them.
+
+        :param p_ctx: Primary (non-aux) context.
+        :param others: List if auxiliary contexts (if any).
+        :param error: One of ctx.{in,out}_error.
+        :param start_response: See the WSGI spec for more info.
+        """
+
         if p_ctx.transport.resp_code is None:
             p_ctx.transport.resp_code = \
                 self.app.out_protocol.fault_to_http_response_code(error)
