@@ -24,6 +24,7 @@ logic.
 """
 
 
+from spyne.error import ResourceNotFoundError
 import logging
 logger = logging.getLogger(__name__)
 
@@ -288,6 +289,16 @@ class WsgiApplication(HttpBase):
 
         return itertools.chain(p_ctx.out_string, self.__finalize(p_ctx))
 
+    def check(self, req_env):
+        try:
+            ret = self.generate_contexts(WsgiMethodContext(self, req_env, 'wicked'))
+            if ret[0].out_error is not None:
+                return False
+            return True
+
+        except ResourceNotFoundError:
+            return False
+
     def handle_rpc(self, req_env, start_response):
         initial_ctx = WsgiMethodContext(self, req_env,
                                                 self.app.out_protocol.mime_type)
@@ -495,7 +506,7 @@ class WsgiApplication(HttpBase):
 
         ctx.in_header_doc = _get_http_headers(ctx.in_document)
         ctx.in_body_doc = parse_qs(ctx.in_document['QUERY_STRING'])
-        for k,v in params.items():
+        for k, v in params.items():
              if k in ctx.in_body_doc:
                  ctx.in_body_doc[k].append(v)
              else:

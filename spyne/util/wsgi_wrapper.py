@@ -30,6 +30,11 @@ class WsgiMounter(object):
     """Simple mounter object for wsgi callables. Takes a dict where the keys are
     uri fragments and values are :class:`spyne.application.Application`
     instances.
+
+    :param mounts: dict of :class:`spyne.application.Application` instances
+    whose keys are url fragments.
+    :param mounts: dict of :class:`spyne.application.Application` instances
+    whose keys are url fragments.
     """
 
     @staticmethod
@@ -37,24 +42,24 @@ class WsgiMounter(object):
         s("404 Not found", [])
         return []
 
-    def __init__(self, mounts=None):
-        self.mounts = dict([(k, WsgiApplication(v)) for k,v in
-                                                        (mounts or {}).items()])
+    def __init__(self, mounts, root=None):
+        self.mounts = dict([(k, WsgiApplication(v)) for k,v in mounts.items()])
+        self.root = WsgiApplication(root)
 
     def __call__(self, environ, start_response):
         path_info = environ.get('PATH_INFO', '')
         fragments = [a for a in path_info.split('/') if len(a) > 0]
 
-        script = ''
+        key = ''
         if len(fragments) > 0:
-            script = fragments[0]
+            key = fragments[0]
 
-        app = self.mounts.get(script, self.default)
+        if self.root is not None and self.root.check(environ):
+            app = self.root
 
-        original_script_name = environ.get('SCRIPT_NAME', '')
-
-        environ['SCRIPT_NAME'] = ''.join(('/', original_script_name, script))
-        environ['PATH_INFO'] = ''.join(('/', '/'.join(fragments[1:])))
+        else:
+            app = self.mounts.get(key, self.default)
+            environ['PATH_INFO'] = ''.join(('/', '/'.join(fragments[1:])))
 
         return app(environ, start_response)
 

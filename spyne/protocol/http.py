@@ -140,7 +140,7 @@ class HttpRpc(DictDocument):
 
     def create_in_document(self, ctx, in_string_encoding=None):
         assert ctx.transport.type.endswith('http'), \
-            ("This protocol only works with an http transport, not: %s, (in %r)"
+            ("This protocol only works with an http transport, not %r, (in %r)"
                                           % (ctx.transport.type, ctx.transport))
 
         ctx.in_document = ctx.transport.req
@@ -198,8 +198,8 @@ class HttpRpc(DictDocument):
                 pass
 
             else:
-                raise ValueError("HttpRpc protocol can only serialize simple "
-                                 "return values.")
+                raise TypeError("HttpRpc protocol can only serialize simple "
+                                 "return types.")
 
             # header
             if ctx.out_header is not None:

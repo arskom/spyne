@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 
+import urllib
 import unittest
+
+from StringIO import StringIO
+
+from wsgiref.validate import validator
 
 from spyne.application import Application
 from spyne.const import MAX_STRING_FIELD_LENGTH
@@ -10,6 +15,7 @@ from spyne.model.complex import Iterable
 from spyne.model.primitive import Integer
 from spyne.model.primitive import Unicode
 from spyne.service import ServiceBase
+from spyne.util.wsgi_wrapper import WsgiMounter
 from spyne.util.protocol import deserialize_request_string
 
 
@@ -85,6 +91,23 @@ class TestSafeRepr(unittest.TestCase):
         assert log_repr(Z(z="a"*128)) == "Z(z='%s'(...))" % ('a' * MAX_STRING_FIELD_LENGTH)
 
 
+def uber(mn):
+    return {
+        'SCRIPT_NAME': mn,
+        'QUERY_STRING': '',
+        'PATH_INFO': mn,
+        'REQUEST_METHOD': 'GET',
+        'SERVER_NAME': 'localhost',
+        'SERVER_PORT': "9999",
+        'wsgi.url_scheme': 'http',
+        'wsgi.version': (1,0),
+        'wsgi.input': StringIO(),
+        'wsgi.errors': StringIO(),
+        'wsgi.multithread': False,
+        'wsgi.multiprocess': False,
+        'wsgi.run_once': True,
+    }
+
 class TestDeserialize(unittest.TestCase):
     def test_deserialize(self):
         from spyne.protocol.soap import Soap11
@@ -120,6 +143,44 @@ class TestEtreeDict(unittest.TestCase):
         from spyne.util.etreeconv import root_dict_to_etree
 
         assert tostring(root_dict_to_etree({'a':{'b':'c'}})) == '<a><b>c</b></a>'
+
+class TestWsgiMounter(unittest.TestCase):
+    def test_wsgi_mounter_1(self):
+        from spyne.protocol.http import HttpRpc
+        from spyne.protocol.http import HttpPattern
+
+        s = []
+        r = []
+
+        class RootService(ServiceBase):
+            @srpc(Integer, _patterns=[HttpPattern('/a/<code>')])
+            def root_code(code):
+                r.append(code)
+
+        class SomeService(ServiceBase):
+            @srpc(Integer, _patterns=[HttpPattern('/a/<code>')])
+            def some_code(code):
+                s.append(code)
+
+        some_app = Application([SomeService], 'some', in_protocol=HttpRpc(),
+                                                    out_protocol=HttpRpc())
+        root_app = Application([RootService], 'root', in_protocol=HttpRpc(),
+                                                    out_protocol=HttpRpc())
+
+        wsgi_app = WsgiMounter({'some': some_app}, root=root_app)
+
+        def start_response(code, headers):
+            print code
+            print headers
+
+        ret = ''.join(validator(wsgi_app)(uber('/a/5'), start_response))
+        assert r == [5]
+        print(ret)
+
+        ret = ''.join(validator(wsgi_app)(uber('/some/a/5'), start_response))
+        print(ret)
+        assert r == [5]
+        assert s == [5]
 
 
 if __name__ == '__main__':
