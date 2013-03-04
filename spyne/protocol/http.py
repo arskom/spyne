@@ -27,8 +27,6 @@ logger = logging.getLogger(__name__)
 import pytz
 import tempfile
 
-from base64 import b64encode
-
 from spyne.model.binary import ByteArray
 from spyne.model.primitive import DateTime
 from spyne.protocol.dictobj import DictDocument
@@ -176,7 +174,8 @@ class HttpRpc(DictDocument):
             result_class = ctx.descriptor.out_message
             header_class = ctx.descriptor.out_header
             if header_class is not None:
-                header_class = header_class[0] # HttpRpc supports only one header class
+                # HttpRpc supports only one header class
+                header_class = header_class[0]
 
             # assign raw result to its wrapper, result_message
             out_type_info = result_class.get_flat_type_info(result_class)
