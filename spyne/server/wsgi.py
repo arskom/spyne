@@ -174,7 +174,7 @@ class WsgiApplication(HttpBase):
                     # as late as possible.
                     if self._http_patterns is None:
                         from werkzeug.routing import Map
-                        self._http_patterns = Map()
+                        self._http_patterns = Map(host_matching=True)
 
                     self._http_patterns.add(r)
 
