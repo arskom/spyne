@@ -205,6 +205,9 @@ class Interface(object):
                                                                  self.get_tns())
                 classes.append(method.out_message)
 
+                for p in method.patterns:
+                    p.endpoint = method.key
+
         classes.sort(key=lambda cls: (cls.get_namespace(), cls.get_type_name()))
         for c in classes:
             self.add_class(c)
