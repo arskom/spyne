@@ -35,7 +35,7 @@ import msgpack
 
 from spyne.model.complex import Array
 from spyne.model.fault import Fault
-from spyne.protocol.dictobj import DictDocument
+from spyne.protocol.dictobj import HierDictDocument
 
 
 class MessagePackDecodeError(Fault):
@@ -43,12 +43,12 @@ class MessagePackDecodeError(Fault):
         Fault.__init__(self, "Client.MessagePackDecodeError", data)
 
 
-class MessagePackDocument(DictDocument):
+class MessagePackDocument(HierDictDocument):
     """An integration class for the msgpack protocol."""
 
     mime_type = 'application/x-msgpack'
 
-    type = set(DictDocument.type)
+    type = set(HierDictDocument.type)
     type.add('msgpack')
 
     def create_in_document(self, ctx, in_string_encoding=None):

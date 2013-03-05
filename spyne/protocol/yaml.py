@@ -32,7 +32,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from spyne.model.fault import Fault
-from spyne.protocol.dictobj import DictDocument
+from spyne.protocol.dictobj import HierDictDocument
 
 
 import yaml
@@ -46,14 +46,14 @@ except ImportError:
 from yaml.parser import ParserError
 
 
-class YamlDocument(DictDocument):
+class YamlDocument(HierDictDocument):
     """An implementation of the Yaml protocol that uses simpleYaml package when
     available, Yaml package otherwise.
     """
 
     mime_type = 'application/x-yaml'
 
-    type = set(DictDocument.type)
+    type = set(HierDictDocument.type)
     type.add('yaml')
 
     def create_in_document(self, ctx, in_string_encoding=None):

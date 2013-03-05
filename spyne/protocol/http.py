@@ -29,7 +29,7 @@ import tempfile
 
 from spyne.model.binary import ByteArray
 from spyne.model.primitive import DateTime
-from spyne.protocol.dictobj import DictDocument
+from spyne.protocol.dictobj import FlatDictDocument
 
 try:
     from cStringIO import StringIO
@@ -84,7 +84,7 @@ def to_string(prot, val, cls):
         return cls.to_string(val)
 
 
-class HttpRpc(DictDocument):
+class HttpRpc(FlatDictDocument):
     """The so-called ReST-ish HttpRpc protocol implementation. It only works
     with Http (wsgi and twisted) transports.
 
@@ -106,12 +106,12 @@ class HttpRpc(DictDocument):
     allowed_http_verbs = None
     default_binary_encoding = 'base64'
 
-    type = set(DictDocument.type)
+    type = set(FlatDictDocument.type)
     type.add('http')
 
     def __init__(self, app=None, validator=None, mime_type=None,
                     tmp_dir=None, tmp_delete_on_close=True, ignore_uncap=False):
-        DictDocument.__init__(self, app, validator, mime_type,
+        FlatDictDocument.__init__(self, app, validator, mime_type,
                                                       ignore_uncap=ignore_uncap)
 
         self.tmp_dir = tmp_dir
@@ -144,7 +144,7 @@ class HttpRpc(DictDocument):
         ctx.in_document = ctx.transport.req
 
     def decompose_incoming_envelope(self, ctx, message):
-        assert message == DictDocument.REQUEST
+        assert message == FlatDictDocument.REQUEST
 
         ctx.transport.itself.decompose_incoming_envelope(self, ctx, message)
 
