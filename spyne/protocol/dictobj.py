@@ -52,16 +52,17 @@ def check_freq_dict(cls, d, fti=None):
     if fti is None:
         fti = cls.get_flat_type_info(cls)
 
-    for k,v in fti.items():
-        val = d[k]
+    if cls.Attributes.validate_freq:
+        for k,v in fti.items():
+            val = d[k]
 
-        min_o, max_o = v.Attributes.min_occurs, v.Attributes.max_occurs
-        if val < min_o:
-            raise ValidationError(k,
-                        '%%r member must occur at least %d times.' % min_o)
-        elif val > max_o:
-            raise ValidationError(k,
-                        '%%r member must occur at most %d times.' % max_o)
+            min_o, max_o = v.Attributes.min_occurs, v.Attributes.max_occurs
+            if val < min_o:
+                raise ValidationError(k,
+                            '%%r member must occur at least %d times.' % min_o)
+            elif val > max_o:
+                raise ValidationError(k,
+                            '%%r member must occur at most %d times.' % max_o)
 
 
 class DictDocument(ProtocolBase):

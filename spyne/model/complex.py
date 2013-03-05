@@ -407,6 +407,10 @@ class ComplexModelBase(ModelBase):
         sqla_mapper = None
         """The sqlalchemy mapper object"""
 
+        validate_freq = True
+        """When ``False``, soft validation ignores missing mandatory attributes.
+        """
+
     def __init__(self, **kwargs):
         super(ComplexModelBase, self).__init__()
 
@@ -559,7 +563,7 @@ class ComplexModelBase(ModelBase):
                 key = hier_delim.join(prefix)
                 value = retval.get(key, None)
 
-                if value:
+                if value is not None:
                     raise ValueError("%r.%s conflicts with %r" % (cls, k, value))
 
                 retval[key] = _SimpleTypeInfoElement(path=tuple(prefix),
@@ -682,6 +686,9 @@ class ComplexModelBase(ModelBase):
     def store_as(cls, what):
         return cls.customize(store_as=what)
 
+    @classmethod
+    def novalidate_freq(cls):
+        return cls.customize(validate_freq=False)
 
 class ComplexModel(ComplexModelBase):
     """The general complexType factory. The __call__ method of this class will
