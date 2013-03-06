@@ -73,7 +73,7 @@ of Spyne:
   ``spyne.server.pyramid.PyramidApplication``.
 * `MessagePack <http://github.com/msgpack/msgpack-python/>`_ is needed for
   ``spyne.protocol.msgpack``.
-* `PyYaml <http://pyyaml.org>`_ is needed for
+* `PyYaml <https://bitbucket.org/xi/pyyaml>`_ is needed for
   ``spyne.protocol.yaml``.
 * `simplejson <http://github.com/simplejson/simplejson>`_ is used when found
   for ``spyne.protocol.json``.
