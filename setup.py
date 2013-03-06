@@ -119,7 +119,8 @@ class RunTests(TestCommand):
 
         raise SystemExit(ret)
 
-test_reqs = ['pytest', 'werkzeug', 'sqlalchemy', 'suds', 'msgpack-python', 'pyparsing<1.99', 'lxml>=2.3']
+test_reqs = ['pytest', 'werkzeug', 'sqlalchemy', 'suds', 'msgpack-python',
+        'pyparsing<1.99', 'lxml>=2.3', 'pyyaml']
 
 if sys.version_info < (2,6):
     test_reqs.extend([
@@ -128,7 +129,6 @@ if sys.version_info < (2,6):
         'pyzmq<2.2',
         'multiprocessing',
         'simplejson',
-        'pyyaml',
     ])
 
 else:
