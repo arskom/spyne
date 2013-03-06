@@ -3,6 +3,8 @@ python:
   - "2.5"
   - "2.6"
   - "2.7"
+before_install:
+  - sudo apt-get install libzmq libzmq-dev
 install: python setup.py develop
 script:
   # Temporal solution to travis issue #155
