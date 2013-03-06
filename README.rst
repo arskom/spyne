@@ -67,8 +67,9 @@ of Spyne:
   ``spyne.server.zeromq.ZeroMQServer``.
 * `Werkzeug <http://werkzeug.pocoo.org/>`_ is needed for
   ``spyne.protocol.http.HttpRpc``.
-* `PyParsing <http://pypi.python.org/pypi/pyparsing>`_ is needed for
-  using HttpPatterns with ``spyne.protocol.http.HttpRpc``.
+* `PyParsing<2.0 <http://pypi.python.org/pypi/pyparsing>`_ is needed for
+  using HttpPatterns with ``spyne.protocol.http.HttpRpc``. PyParsing 2.x is
+  Python 3 only.
 * `Twisted <http://twistedmatrix.com/>`_ is needed for
   ``spyne.server.twisted.TwistedWebResource`` and
   ``spyne.client.twisted.TwistedHttpClient``.

@@ -3,5 +3,10 @@ python:
   - "2.5"
   - "2.6"
   - "2.7"
+before_install:
+  - sudo apt-get install -qq libzmq3-dev
 install: python setup.py develop
-script:  python setup.py test
+script:
+  # Temporal solution to travis issue #155
+  - sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm
+  - python setup.py test
