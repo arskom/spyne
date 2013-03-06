@@ -104,7 +104,7 @@ class HttpRpc(FlatDictDocument):
 
     mime_type = 'text/plain'
     allowed_http_verbs = None
-    default_binary_encoding = 'base64'
+    default_binary_encoding = 'urlsafe_base64'
 
     type = set(FlatDictDocument.type)
     type.add('http')

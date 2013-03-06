@@ -25,6 +25,8 @@ import tempfile
 
 from base64 import b64encode
 from base64 import b64decode
+from base64 import urlsafe_b64encode
+from base64 import urlsafe_b64decode
 from binascii import hexlify
 from binascii import unhexlify
 
@@ -43,12 +45,14 @@ _encoding_handlers = {
     None: ''.join,
     'hex': hexlify,
     'base64': b64encode,
+    'urlsafe_base64': urlsafe_b64encode,
 }
 
 _decoding_handlers = {
     None: lambda x: [x],
     'hex': unhexlify,
     'base64': b64decode,
+    'urlsafe_base64': urlsafe_b64decode,
 }
 
 class ByteArray(SimpleModel):
