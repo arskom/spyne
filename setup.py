@@ -128,6 +128,7 @@ if sys.version_info < (2,6):
         'pyzmq<2.2',
         'multiprocessing',
         'simplejson',
+        'pyyaml',
     ])
 
 else:
