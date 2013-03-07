@@ -47,14 +47,50 @@ from yaml.parser import ParserError
 
 
 class YamlDocument(HierDictDocument):
-    """An implementation of the Yaml protocol that uses simpleYaml package when
-    available, Yaml package otherwise.
+    """An implementation of the Yaml protocol that uses PyYaml package.
+    See ProtocolBase ctor docstring for its arguments. Yaml-specific arguments
+    follow:
+
+    :param safe: Use ``safe_dump`` instead of ``dump`` and ``safe_load`` instead
+    of ``load``. This is not a security feature, search for 'safe_dump' in
+    http://www.pyyaml.org/wiki/PyYAMLDocumentation
+    :param kwargs: See the yaml documentation in ``load, ``safe_load``, ``dump``
+    or ``safe_dump`` depending on whether you use yaml as an input or output
+    protocol.
+
+    For the output case, Spyne sets ``default_flow_style=False`` and
+    ``indent=4`` by default.
     """
 
-    mime_type = 'application/x-yaml'
+    mime_type = 'text/yaml'
 
     type = set(HierDictDocument.type)
     type.add('yaml')
+
+    def __init__(self, app=None, validator=None, mime_type=None, skip_depth=0,
+                                                            ignore_uncap=False,
+                # these are yaml specific
+                safe=True, **kwargs):
+
+        HierDictDocument.__init__(self, app, validator, mime_type, skip_depth,
+                                                                   ignore_uncap)
+        self.dump = yaml.dump
+        self.load = yaml.load
+        if safe:
+            self.dump = yaml.safe_dump
+            self.load = yaml.safe_load
+
+        self.in_kwargs = dict(kwargs)
+        self.out_kwargs = dict(kwargs)
+
+        self.in_kwargs['Loader'] = Loader
+        self.out_kwargs['Dumper'] =  Dumper
+
+        if not 'indent' in self.out_kwargs:
+            self.out_kwargs['indent'] = 4
+
+        if not 'default_flow_style' in self.out_kwargs:
+            self.out_kwargs['default_flow_style'] = False
 
     def create_in_document(self, ctx, in_string_encoding=None):
         """Sets ``ctx.in_document``  using ``ctx.in_string``."""
@@ -63,11 +99,13 @@ class YamlDocument(HierDictDocument):
             in_string_encoding = 'UTF-8'
 
         try:
-            ctx.in_document = yaml.load(''.join(ctx.in_string).decode(
-                                             in_string_encoding), Loader=Loader)
+            ctx.in_document = self.load(''.join(ctx.in_string).decode(
+                         in_string_encoding), **self.in_kwargs)
+
         except ParserError, e:
             raise Fault('Client.YamlDecodeError', repr(e))
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         """Sets ``ctx.out_string`` using ``ctx.out_document``."""
-        ctx.out_string = (yaml.dump(o, Dumper=Dumper) for o in ctx.out_document)
+        ctx.out_string = (self.dump(o, **self.out_kwargs)
+                                                      for o in ctx.out_document)
