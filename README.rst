@@ -17,9 +17,9 @@ Spyne comes with the implementations of popular transport, protocol and
 interface document standards along with a well-defined API that lets you
 build on existing functionality.
 
-Spyne currently supports the WSDL 1.1 interface description standard,
-along with SOAP 1.1 and the so-called HttpRpc, XmlObject, JsonObject,
-MessagePackObject and MessagePackRpc protocols which can be transported via Http
+Spyne currently supports the WSDL 1.1 interface description standard, along with
+SOAP 1.1 and the so-called HttpRpc, XmlDocument, JsonDocument, YamlDocument,
+MessagePackDocument and MessagePackRpc protocols which can be transported via Http
 or ZeroMQ. The transports can be used in both a client or server setting.
 
 The following are the primary sources of information about spyne:
@@ -43,7 +43,7 @@ as branches:
 Requirements
 ============
 
-Spyne runs on any version of Python from 2.5 through 2.7. We're also looking for
+Spyne is known to work on Python versions 2.5, 2.6 and 2.7. We're also looking for
 volunteers to test Python 3.x.
 
 The only hard requirement is `pytz <http://pytz.sourceforge.net/>`_ which is
@@ -59,7 +59,7 @@ of Spyne:
   ``spyne.model.complex.TTableModel``.
 * `pyzmq <https://github.com/zeromq/pyzmq>`_ is needed for
   ``spyne.client.zeromq.ZeroMQClient`` and
-  ``spyne.server.zeromq.ZeroMQServer``.
+  ``spyne.server.zeromq.ZeroMQServer``. pyzmq<2.2 is needed for Python 2.5.
 * `Werkzeug <http://werkzeug.pocoo.org/>`_ is needed for
   ``spyne.protocol.http.HttpRpc``.
 * `PyParsing<2.0 <http://pypi.python.org/pypi/pyparsing>`_ is needed for
@@ -67,13 +67,14 @@ of Spyne:
   Python 3 only.
 * `Twisted <http://twistedmatrix.com/>`_ is needed for
   ``spyne.server.twisted.TwistedWebResource`` and
-  ``spyne.client.twisted.TwistedHttpClient``.
+  ``spyne.client.twisted.TwistedHttpClient``. Twisted<12 is needed for
+   Python 2.5.
 * `Django <http://djangoproject.com/>`_ is needed for
   ``spyne.server.django.DjangoApplication``.
 * `Pyramid <http://pylonsproject.org/>`_ is needed for
   ``spyne.server.pyramid.PyramidApplication``.
-* `MessagePack <http://github.com/msgpack/msgpack-python/>`_ is needed for
-  ``spyne.protocol.msgpack``.
+* `msgpack-python <http://github.com/msgpack/msgpack-python/>`_ is needed for
+  ``spyne.protocol.msgpack``. msgpack-python<0.3 is needed for Python 2.5
 * `PyYaml <https://bitbucket.org/xi/pyyaml>`_ is needed for
   ``spyne.protocol.yaml``.
 * `simplejson <http://github.com/simplejson/simplejson>`_ is used when found
@@ -97,7 +98,7 @@ or get the source distribution from one of the download sites and unpack it.
 
 To install from source distribution, you should run its setup script as usual: ::
 
-    python setup.py install
+    python setup.py install [--user]
 
 To run the tests use: ::
 
@@ -107,9 +108,9 @@ The test script first installs every single library that Spyne integrates with,
 so be ready to do some fiddling with your distro's package manager (or have a
 fully functional python development environment ready).
 
-And if you want to make any changes to the Spyne code, just use ::
+Finally if you want to make any changes to the Spyne code, just use ::
 
-    python setup.py develop
+    python setup.py develop [--user]
 
 so that you can painlessly test your patches.
 
@@ -120,7 +121,7 @@ Getting Support
 The main developers of Spyne lurk in the `official soap implementors
 forum <http://mail.python.org/mailman/listinfo/soap/>`_ kindly operated
 by python.org. That's mostly because Spyne is the continuation of soaplib,
-but also because soap is an important part of Spyne.
+but also because Soap is an important part of Spyne.
 
 You can also use the 'spyne' tag to ask questions on
 `Stack Overflow <http://stackoverflow.com>`_.
