@@ -54,7 +54,7 @@ of Spyne:
 
 * A Wsgi server of your choice is needed to wrap
   ``spyne.server.wsgi.WsgiApplication``
-* `lxml>=2.3 <http://lxml.de>`_ is needed for any xml or html related operation.
+* `lxml>=2.3 <http://lxml.de>`_ is needed for any xml or html related protocol.
 * `SQLAlchemy <http://sqlalchemy.org>`_ is needed for
   ``spyne.model.complex.TTableModel``.
 * `pyzmq <https://github.com/zeromq/pyzmq>`_ is needed for
@@ -63,18 +63,18 @@ of Spyne:
 * `Werkzeug <http://werkzeug.pocoo.org/>`_ is needed for
   ``spyne.protocol.http.HttpRpc``.
 * `PyParsing<2.0 <http://pypi.python.org/pypi/pyparsing>`_ is needed for
-  using ``HttpPattern``s with ``spyne.protocol.http.HttpRpc``. PyParsing 2.x is
+  using ``HttpPattern``'s with ``spyne.protocol.http.HttpRpc``. PyParsing 2.x is
   Python 3 only.
 * `Twisted <http://twistedmatrix.com/>`_ is needed for
   ``spyne.server.twisted.TwistedWebResource`` and
   ``spyne.client.twisted.TwistedHttpClient``. Twisted<12 is needed for
-   Python 2.5.
+  Python 2.5.
 * `Django <http://djangoproject.com/>`_ is needed for
   ``spyne.server.django.DjangoApplication``.
 * `Pyramid <http://pylonsproject.org/>`_ is needed for
   ``spyne.server.pyramid.PyramidApplication``.
 * `msgpack-python <http://github.com/msgpack/msgpack-python/>`_ is needed for
-  ``spyne.protocol.msgpack``. msgpack-python<0.3 is needed for Python 2.5
+  ``spyne.protocol.msgpack``. msgpack-python<0.3 is needed for Python 2.5.
 * `PyYaml <https://bitbucket.org/xi/pyyaml>`_ is needed for
   ``spyne.protocol.yaml``.
 * `simplejson <http://github.com/simplejson/simplejson>`_ is used when found
@@ -105,8 +105,9 @@ To run the tests use: ::
     pyhon setup.py test
 
 The test script first installs every single library that Spyne integrates with,
-so be ready to do some fiddling with your distro's package manager (or have a
-fully functional python development environment ready).
+in the current directory, so be ready to do some fiddling with your distro's
+package manager in case you don't want this, or have a fully functional python
+development environment ready so that packages like lxml can compile.
 
 Finally if you want to make any changes to the Spyne code, just use ::
 
