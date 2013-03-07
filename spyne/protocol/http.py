@@ -27,6 +27,8 @@ logger = logging.getLogger(__name__)
 import pytz
 import tempfile
 
+from Cookie import SimpleCookie
+
 from spyne.model.binary import ByteArray
 from spyne.model.primitive import DateTime
 from spyne.protocol.dictobj import FlatDictDocument
@@ -110,12 +112,14 @@ class HttpRpc(FlatDictDocument):
     type.add('http')
 
     def __init__(self, app=None, validator=None, mime_type=None,
-                    tmp_dir=None, tmp_delete_on_close=True, ignore_uncap=False):
+                    tmp_dir=None, tmp_delete_on_close=True, ignore_uncap=False,
+                                                            parse_cookie=False):
         FlatDictDocument.__init__(self, app, validator, mime_type,
                                                       ignore_uncap=ignore_uncap)
 
         self.tmp_dir = tmp_dir
         self.tmp_delete_on_close = tmp_delete_on_close
+        self.parse_cookie = parse_cookie
 
     def get_tmp_delete_on_close(self):
         return self.__tmp_delete_on_close
@@ -148,6 +152,17 @@ class HttpRpc(FlatDictDocument):
 
         ctx.transport.itself.decompose_incoming_envelope(self, ctx, message)
 
+        if self.parse_cookie:
+            cookies = ctx.in_header_doc.get('cookie', [])
+            print cookies
+            for cookie_string in cookies:
+                cookie = SimpleCookie()
+                cookie.load(cookie_string)
+                for k,v in cookie.items():
+                    l = ctx.in_header_doc.get(k, [])
+                    l.append(v.coded_value)
+                    ctx.in_header_doc[k] = l
+
         logger.debug('\theader : %r' % (ctx.in_header_doc))
         logger.debug('\tbody   : %r' % (ctx.in_body_doc))
 
@@ -161,6 +176,7 @@ class HttpRpc(FlatDictDocument):
             in_header_class = ctx.descriptor.in_header[0]
             ctx.in_header = self.flat_dict_to_object(ctx.in_header_doc,
                                                 in_header_class, self.validator)
+
         if ctx.descriptor.in_message is not None:
             ctx.in_object = self.flat_dict_to_object(ctx.in_body_doc,
                                       ctx.descriptor.in_message, self.validator)

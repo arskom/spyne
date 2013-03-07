@@ -24,10 +24,12 @@ logging.basicConfig(level=logging.DEBUG)
 import unittest
 
 from StringIO import StringIO
+from Cookie import SimpleCookie
 from datetime import datetime
 from wsgiref.validate import validator
 
 from spyne.application import Application
+from spyne.const.http import HTTP_200
 from spyne.decorator import rpc
 from spyne.decorator import srpc
 from spyne.model.primitive import DateTime
@@ -210,14 +212,46 @@ class Test(unittest.TestCase):
         s = ''.join(list(ctx.out_string))
         assert s == "CCM(i=1, c=[CM(i=1, s='a'), CM(i=2, s='b')], s='s')"
 
+    def test_cookie_parse(self):
+        STR = 'some_string'
+        class RequestHeader(ComplexModel):
+            some_field = String
+
+        class SomeService(ServiceBase):
+            __in_header__ = RequestHeader
+
+            @rpc(String)
+            def some_call(ctx, s):
+                assert ctx.in_header.some_field == STR
+
+        def start_response(code, headers):
+            assert code == HTTP_200
+
+        c = SimpleCookie()
+        c['some_field'] = STR
+
+        ''.join(validator(WsgiApplication(Application([SomeService], 'tns',
+            in_protocol=HttpRpc(parse_cookie=True), out_protocol=HttpRpc())))({
+                'SCRIPT_NAME': '',
+                'QUERY_STRING': '',
+                'PATH_INFO': '/some_call',
+                'REQUEST_METHOD': 'GET',
+                'SERVER_NAME': 'localhost',
+                'SERVER_PORT': "9999",
+                'HTTP_COOKIE': str(c),
+                'wsgi.url_scheme': 'http',
+                'wsgi.version': (1,0),
+                'wsgi.input': StringIO(),
+                'wsgi.errors': StringIO(),
+                'wsgi.multithread': False,
+                'wsgi.multiprocess': False,
+                'wsgi.run_once': True,
+            }, start_response))
+
     def test_http_headers(self):
         DATE = datetime(year=2013, month=1, day=1)
         STR = 'hey'
 
-        class RequestHeader(ComplexModel):
-            _type_info = {
-                'Cookie': String(max_occurs='unbounded')
-            }
 
         class ResponseHeader(ComplexModel):
             _type_info = {
