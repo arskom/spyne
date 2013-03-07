@@ -298,16 +298,6 @@ class WsgiApplication(HttpBase):
 
         return itertools.chain(p_ctx.out_string, self.__finalize(p_ctx))
 
-    def check(self, req_env):
-        try:
-            ret = self.generate_contexts(WsgiMethodContext(self, req_env, 'wicked'))
-            if ret[0].out_error is not None:
-                return False
-            return True
-
-        except ResourceNotFoundError:
-            return False
-
     def handle_rpc(self, req_env, start_response):
         initial_ctx = WsgiMethodContext(self, req_env,
                                                 self.app.out_protocol.mime_type)
