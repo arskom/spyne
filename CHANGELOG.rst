@@ -37,6 +37,7 @@ spyne-2.10.0
  * Added YAML support via PyYaml.
  * Split dict logic in DictDocument as ``HierDictDocument`` and
    ``FlatDictDocument``.
+ * Added cookie parsing support to HttpRpc via ``Cookie.SimpleCookie``.
 
 spyne-2.9.4
 -----------
