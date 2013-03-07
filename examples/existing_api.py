@@ -45,7 +45,7 @@ from spyne.server.wsgi import WsgiApplication
 class RandomService(ServiceBase):
     # We need the _args argument here because we only want to expose the
     # `a` and `b` arguments and not the `self` argument.
-    randrange = srpc(Mandatory.Integer, Mandatory.Integer, _returns=Integer,
+    randint = srpc(Mandatory.Integer, Mandatory.Integer, _returns=Integer,
                                                 _args=('a','b'))(random.randint)
 
     # We need the _args argument here because `getrandbits` is a builtin, which

@@ -109,7 +109,7 @@ if __name__ == '__main__':
     json3 = Application([HelloWorldService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=JsonDocument(skip_depth=3))
 
-    msgpack_object = Application([HelloWorldService], tns=tns,
+    msgpack_doc = Application([HelloWorldService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=MessagePackDocument())
 
     msgpack_rpc = Application([HelloWorldService], tns=tns,
@@ -127,7 +127,7 @@ if __name__ == '__main__':
         'json1': json1,
         'json2': json2,
         'json3': json3,
-        'mpo': msgpack_object,
+        'mpd': msgpack_doc,
         'mprpc': msgpack_rpc,
     })
 
