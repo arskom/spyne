@@ -34,16 +34,20 @@ logger = logging.getLogger(__name__)
 from spyne.model.fault import Fault
 from spyne.protocol.dictobj import HierDictDocument
 
-
 import yaml
+
+from yaml.parser import ParserError
 try:
     from yaml import CLoader as Loader
     from yaml import CDumper as Dumper
+    from yaml import CSafeLoader as SafeLoader
+    from yaml import CSafeDumper as SafeDumper
+
 except ImportError:
     from yaml import Loader
     from yaml import Dumper
-
-from yaml.parser import ParserError
+    from yaml import SafeLoader
+    from yaml import SafeDumper
 
 
 class YamlDocument(HierDictDocument):
@@ -74,17 +78,15 @@ class YamlDocument(HierDictDocument):
 
         HierDictDocument.__init__(self, app, validator, mime_type, skip_depth,
                                                                    ignore_uncap)
-        self.dump = yaml.dump
-        self.load = yaml.load
-        if safe:
-            self.dump = yaml.safe_dump
-            self.load = yaml.safe_load
 
         self.in_kwargs = dict(kwargs)
         self.out_kwargs = dict(kwargs)
 
         self.in_kwargs['Loader'] = Loader
         self.out_kwargs['Dumper'] =  Dumper
+        if safe:
+            self.in_kwargs['Loader'] = SafeLoader
+            self.out_kwargs['Dumper'] =  SafeDumper
 
         if not 'indent' in self.out_kwargs:
             self.out_kwargs['indent'] = 4
@@ -99,7 +101,7 @@ class YamlDocument(HierDictDocument):
             in_string_encoding = 'UTF-8'
 
         try:
-            ctx.in_document = self.load(''.join(ctx.in_string).decode(
+            ctx.in_document = yaml.load(''.join(ctx.in_string).decode(
                          in_string_encoding), **self.in_kwargs)
 
         except ParserError, e:
@@ -107,5 +109,5 @@ class YamlDocument(HierDictDocument):
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         """Sets ``ctx.out_string`` using ``ctx.out_document``."""
-        ctx.out_string = (self.dump(o, **self.out_kwargs)
+        ctx.out_string = (yaml.dump(o, **self.out_kwargs)
                                                       for o in ctx.out_document)
