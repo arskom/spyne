@@ -93,12 +93,10 @@ _from_string_handlers = cdict({
     ComplexModelBase: complex_model_base_from_string
 })
 
-_to_string_iterable_handlers = cdict({
-    ModelBase: ModelBase.to_string_iterable
-})
-
 _to_dict_handlers = cdict({
-    ModelBase: ModelBase.to_dict
+    ModelBase: lambda cls, value: cls.to_dict(value),
+    ComplexModelBase: complex_model_base_to_dict,
+    Fault: fault_to_dict
 })
 
 def unwrap_messages(cls, skip_depth):
@@ -303,11 +301,6 @@ class ProtocolBase(object):
     @classmethod
     def to_string(cls, class_, value):
         handler = _to_string_handlers[class_]
-        return handler(class_, value)
-
-    @classmethod
-    def to_string_iterable(cls, class_, value):
-        handler = _to_string_iterable_handlers[class_]
         return handler(class_, value)
 
     @classmethod

@@ -70,14 +70,6 @@ class Fault(ComplexModelBase, Exception):
     def to_string_iterable(cls, value):
         return [value.faultcode, '\n\n', value.faultstring]
 
-    @classmethod
-    def to_dict(cls, value):
-        return {cls.get_type_name(): {
-            "faultcode": value.faultcode,
-            "faultstring": value.faultstring,
-            "detail": value.detail,
-        }}
-
     @staticmethod
     def resolve_namespace(cls, default_ns):
         if getattr(cls, '__extends__', None) != None:

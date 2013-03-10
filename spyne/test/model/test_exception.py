@@ -140,16 +140,16 @@ class FaultTests(unittest.TestCase):
         schema = wsdl.get_schema_info(pref)
 
         self.assertEqual(len(schema.types), 1)
-        c_cls = interface.classes['{ns}Fault']
+        c_cls = interface.classes['{ns}cls']
         c_elt = schema.types[0]
         self.failUnless(c_cls is cls)
         self.assertEqual(c_elt.tag, '{%s}complexType' % ns_xsd)
-        self.assertEqual(c_elt.get('name'), 'Fault')
+        self.assertEqual(c_elt.get('name'), 'cls')
 
         self.assertEqual(len(schema.elements), 1)
         e_elt = schema.elements.values()[0]
         self.assertEqual(e_elt.tag, '{%s}element' % ns_xsd)
-        self.assertEqual(e_elt.get('name'), 'Fault')
+        self.assertEqual(e_elt.get('name'), 'cls')
         self.assertEqual(e_elt.get('type'), 'testing:My')
         self.assertEqual(len(e_elt), 0)
 
@@ -180,10 +180,9 @@ class FaultTests(unittest.TestCase):
         self.assertEqual(len(interface.classes), 1)
         c_cls = interface.classes.values()[0]
         c_elt = schema.types.values()[0]
-        print(c_cls, cls)
         self.failUnless(c_cls is cls)
         self.assertEqual(c_elt.tag, '{%s}complexType' % ns_xsd)
-        self.assertEqual(c_elt.get('name'), 'Fault')
+        self.assertEqual(c_elt.get('name'), 'cls')
         self.assertEqual(len(c_elt), 0)
 
 class DummySchemaEntries:

@@ -203,7 +203,7 @@ class DictDocument(ProtocolBase):
         self.event_manager.fire_event('before_serialize', ctx)
 
         if ctx.out_error is not None:
-            ctx.out_document = [ctx.out_error.to_dict(ctx.out_error)]
+            ctx.out_document = [ProtocolBase.to_dict(ctx.out_error.__class__, ctx.out_error)]
 
         else:
             # get the result message

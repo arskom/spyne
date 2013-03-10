@@ -54,7 +54,8 @@ __all__ = [
     'byte_array_to_string', 'byte_array_from_string',
     'file_from_string',
     'attachment_to_string', 'attachment_from_string',
-    'complex_model_base_to_string', 'complex_model_base_from_string'
+    'complex_model_base_to_string', 'complex_model_base_from_string', 'complex_model_base_to_dict',
+    'fault_to_dict'
 ]
 
 def null_to_string(cls, value):
@@ -365,3 +366,16 @@ def complex_model_base_to_string(cls, value):
 @nillable_string
 def complex_model_base_from_string(cls, string):
     raise TypeError("Only primitives can be deserialized from string.")
+
+@nillable_dict
+def complex_model_base_to_dict(cls, value):
+    inst = cls.get_serialization_instance(value)
+    return dict(cls.get_members_pairs(inst))
+
+
+def fault_to_dict(cls, value):
+    return {cls.get_type_name(): {
+        "faultcode": value.faultcode,
+        "faultstring": value.faultstring,
+        "detail": value.detail,
+    }}
