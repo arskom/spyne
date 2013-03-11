@@ -156,8 +156,8 @@ to the core repository, we highly value code reviews and expect every
 significant change to be committed via pull requests.
 
 
-A small note Submitting Pull Requests
--------------------------------------
+A small note about submitting Pull Requests
+-------------------------------------------
 
 Github's pull-request feature is awesome, but there's a subtlety that's not
 totally obvious for newcomers: If you continue working on the branch that you
