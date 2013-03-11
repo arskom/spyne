@@ -34,6 +34,10 @@ spyne-2.10.0
    ignored as well.
  * Added as_time_zone support to DateTime. It calls
    ``.astimezone(as_time_zone).replace(tzinfo=None)`` on native values.
+ * Added YAML support via PyYaml.
+ * Split dict logic in DictDocument as ``HierDictDocument`` and
+   ``FlatDictDocument``.
+ * Added cookie parsing support to HttpRpc via ``Cookie.SimpleCookie``.
 
 spyne-2.9.4
 -----------

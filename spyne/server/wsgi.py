@@ -45,6 +45,7 @@ except ImportError, e:
 from spyne.application import get_fault_string_from_exception
 from spyne.auxproc import process_contexts
 from spyne.error import RequestTooLongError
+from spyne.error import ResourceNotFoundError
 from spyne.model.binary import File
 from spyne.model.fault import Fault
 from spyne.protocol.http import HttpRpc
@@ -164,16 +165,17 @@ class WsgiApplication(HttpBase):
         self._mtx_build_map_adapter = threading.Lock()
 
         for k,v in self.app.interface.service_method_map.items():
+            # p_ stands for primary
             p_service_class, p_method_descriptor = v[0]
-            for p in p_method_descriptor.patterns:
-                if isinstance(p, HttpPattern):
-                    r = p.as_werkzeug_rule()
+            for patt in p_method_descriptor.patterns:
+                if isinstance(patt, HttpPattern):
+                    r = patt.as_werkzeug_rule()
 
-                    # We do this here because we don't want to import
-                    # Werkzeug until the last moment.
+                    # We are doing this here because we want to import Werkzeug
+                    # as late as possible.
                     if self._http_patterns is None:
                         from werkzeug.routing import Map
-                        self._http_patterns = Map()
+                        self._http_patterns = Map(host_matching=True)
 
                     self._http_patterns.add(r)
 
@@ -245,7 +247,6 @@ class WsgiApplication(HttpBase):
                 logger.exception(e)
                 ctx.transport.wsdl_error = e
 
-                # implementation hook
                 self.event_manager.fire_event('wsdl_exception', ctx)
 
                 start_response(HTTP_500,
@@ -267,6 +268,14 @@ class WsgiApplication(HttpBase):
         return [ctx.transport.wsdl]
 
     def handle_error(self, p_ctx, others, error, start_response):
+        """Serialize errors to an iterable of strings and return them.
+
+        :param p_ctx: Primary (non-aux) context.
+        :param others: List if auxiliary contexts (if any).
+        :param error: One of ctx.{in,out}_error.
+        :param start_response: See the WSGI spec for more info.
+        """
+
         if p_ctx.transport.resp_code is None:
             p_ctx.transport.resp_code = \
                 self.app.out_protocol.fault_to_http_response_code(error)
@@ -293,7 +302,6 @@ class WsgiApplication(HttpBase):
         initial_ctx = WsgiMethodContext(self, req_env,
                                                 self.app.out_protocol.mime_type)
 
-        # implementation hook
         self.event_manager.fire_event('wsgi_call', initial_ctx)
         initial_ctx.in_string, in_string_charset = \
                                         self.__reconstruct_wsgi_request(req_env)
@@ -348,7 +356,6 @@ class WsgiApplication(HttpBase):
                     out_object
                 )
 
-        # implementation hook
         self.event_manager.fire_event('wsgi_return', p_ctx)
 
         if self.chunked:
@@ -444,41 +451,28 @@ class WsgiApplication(HttpBase):
             yield data
 
     def generate_map_adapter(self, ctx):
+        """This function runs on first request because it needs the
+        `'SERVER_NAME'` from the wsgi request environment.
+        """
+
         try:
             self._mtx_build_map_adapter.acquire()
             if self._map_adapter is None:
-                # If url map is not binded before, binds url_map
+                # If url map is not bound before, bind url_map
                 req_env = ctx.transport.req_env
                 self._map_adapter = self._http_patterns.bind(
                                                     req_env['SERVER_NAME'], "/")
 
-                for k,v in ctx.app.interface.service_method_map.items():
-                    #Compiles url patterns
-                    p_service_class, p_method_descriptor = v[0]
-                    for r in self._http_patterns.iter_rules():
-                        params = {}
-                        if r.endpoint == k:
-                            for pk, pv in p_method_descriptor.in_message.\
-                                                             _type_info.items():
-                                if pk in r.rule:
-                                    from spyne.model.primitive import Unicode
-                                    from spyne.model.primitive import Decimal
-
-                                    if issubclass(pv, Unicode):
-                                        params[pk] = ""
-                                    elif issubclass(pv, Decimal):
-                                        params[pk] = 0
-
-                            self._map_adapter.build(r.endpoint, params)
-
         finally:
             self._mtx_build_map_adapter.release()
-
 
     def decompose_incoming_envelope(self, prot, ctx, message):
         """This function is only called by the HttpRpc protocol to have the wsgi
         environment parsed into ``ctx.in_body_doc`` and ``ctx.in_header_doc``.
         """
+
+        params = {}
+
         if self.has_patterns:
             from werkzeug.exceptions import NotFound
             if self._map_adapter is None:
@@ -486,26 +480,25 @@ class WsgiApplication(HttpBase):
 
             try:
                 #If PATH_INFO matches a url, Set method_request_string to mrs
-                mrs, params = self._map_adapter.match(ctx.in_document["PATH_INFO"],
-                                                ctx.in_document["REQUEST_METHOD"])
+                mrs, params = self._map_adapter.match(
+                                            ctx.in_document["PATH_INFO"],
+                                            ctx.in_document["REQUEST_METHOD"])
                 ctx.method_request_string = mrs
 
             except NotFound:
-                # Else set method_request_string normally
-                params = {}
-                ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
-                                  ctx.in_document['PATH_INFO'].split('/')[-1])
-        else:
-            params = {}
-            ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
-                              ctx.in_document['PATH_INFO'].split('/')[-1])
+                pass
+
+        if ctx.method_request_string is None:
+            ctx.method_request_string = '{%s}%s' % (
+                                    prot.app.interface.get_tns(),
+                                    ctx.in_document['PATH_INFO'].split('/')[-1])
 
         logger.debug("%sMethod name: %r%s" % (LIGHT_GREEN,
                                           ctx.method_request_string, END_COLOR))
 
         ctx.in_header_doc = _get_http_headers(ctx.in_document)
         ctx.in_body_doc = parse_qs(ctx.in_document['QUERY_STRING'])
-        for k,v in params.items():
+        for k, v in params.items():
              if k in ctx.in_body_doc:
                  ctx.in_body_doc[k].append(v)
              else:

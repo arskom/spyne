@@ -26,6 +26,8 @@ from spyne.model import nillable_string
 from spyne.model import nillable_dict
 from spyne.model.binary import File
 from spyne.model.binary import Attachment
+from spyne.model.binary import binary_encoding_handlers
+from spyne.model.binary import binary_decoding_handlers
 from spyne.error import ValidationError
 from spyne.model.primitive import _time_re
 from spyne.model.primitive import _duration_re
@@ -319,17 +321,25 @@ def boolean_from_string(cls, string):
 
 
 @nillable_string
-def byte_array_to_string(cls, value):
-    return cls._encoding_handlers[cls.Attributes.encoding](value)
+def byte_array_from_string(cls, value, suggested_encoding=None):
+    encoding = cls.Attributes.encoding
+    if encoding is None:
+        encoding = suggested_encoding
+    return binary_decoding_handlers[encoding](value)
 
 @nillable_string
-def byte_array_from_string(cls, value):
-    return cls._decoding_handlers[cls.Attributes.encoding](value)
+def byte_array_to_string(cls, value, suggested_encoding=None):
+    if encoding is None:
+        encoding = cls.Attributes.encoding
+    return binary_encoding_handlers[encoding](value)
 
 
 @nillable_string
-def file_from_string(cls, value):
-    return File.Value(data=[value])
+def file_from_string(cls, value, suggested_encoding=None):
+    encoding = cls.Attributes.encoding
+    if encoding is None:
+        encoding = suggested_encoding
+    return File.Value(data=binary_decoding_handlers[encoding](value))
 
 
 @nillable_string

@@ -40,7 +40,7 @@ from spyne.model.primitive import Float
 from spyne.model.primitive import Integer
 from spyne.model.primitive import String
 
-from spyne.protocol.dictobj import DictDocument
+from spyne.protocol.dictobj import FlatDictDocument
 from spyne.protocol.xml import XmlDocument
 
 from spyne.test import FakeApp
@@ -412,7 +412,7 @@ class TestSimpleTypeRestrictions(unittest.TestCase):
 
         val = CCM(i=5, s='a', c=CM(i=7, s='b'))
 
-        d = DictDocument.object_to_flat_dict(CCM, val)
+        d = FlatDictDocument.object_to_flat_dict(CCM, val)
 
         assert d['i'] == 5
         assert d['s'] == 'a'

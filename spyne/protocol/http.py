@@ -28,11 +28,11 @@ logger = logging.getLogger(__name__)
 import pytz
 import tempfile
 
-from base64 import b64encode
+from Cookie import SimpleCookie
 
 from spyne.model.binary import ByteArray
 from spyne.model.primitive import DateTime
-from spyne.protocol.dictobj import DictDocument
+from spyne.protocol.dictobj import FlatDictDocument
 
 try:
     from cStringIO import StringIO
@@ -70,7 +70,7 @@ _weekday = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 _month = ['w00t', "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
              "Oct", "Nov", "Dec"]
 
-def to_string(val, cls):
+def to_string(prot, val, cls):
     if issubclass(cls, DateTime):
         if val.tzinfo is not None:
             val = val.astimezone(pytz.utc)
@@ -81,16 +81,13 @@ def to_string(val, cls):
                             _weekday[val.weekday()], val.day, _month[val.month],
                             val.year, val.hour, val.minute, val.second)
     elif issubclass(cls, ByteArray):
-        if cls.Attributes.encoding is None:
-            return b64encode(val)
-        else:
-            return cls.to_string(val)
+        return cls.to_string(val, suggested_encoding=prot.default_binary_encoding)
 
     else:
         return cls.to_string(val)
 
 
-class HttpRpc(DictDocument):
+class HttpRpc(FlatDictDocument):
     """The so-called ReST-ish HttpRpc protocol implementation. It only works
     with Http (wsgi and twisted) transports.
 
@@ -110,17 +107,20 @@ class HttpRpc(DictDocument):
 
     mime_type = 'text/plain'
     allowed_http_verbs = None
+    default_binary_encoding = 'urlsafe_base64'
 
-    type = set(DictDocument.type)
+    type = set(FlatDictDocument.type)
     type.add('http')
 
     def __init__(self, app=None, validator=None, mime_type=None,
-                    tmp_dir=None, tmp_delete_on_close=True, ignore_uncap=False):
-        DictDocument.__init__(self, app, validator, mime_type,
+                    tmp_dir=None, tmp_delete_on_close=True, ignore_uncap=False,
+                                                            parse_cookie=False):
+        FlatDictDocument.__init__(self, app, validator, mime_type,
                                                       ignore_uncap=ignore_uncap)
 
         self.tmp_dir = tmp_dir
         self.tmp_delete_on_close = tmp_delete_on_close
+        self.parse_cookie = parse_cookie
 
     def get_tmp_delete_on_close(self):
         return self.__tmp_delete_on_close
@@ -143,15 +143,26 @@ class HttpRpc(DictDocument):
 
     def create_in_document(self, ctx, in_string_encoding=None):
         assert ctx.transport.type.endswith('http'), \
-            ("This protocol only works with an http transport, not: %s, (in %r)"
+            ("This protocol only works with an http transport, not %r, (in %r)"
                                           % (ctx.transport.type, ctx.transport))
 
         ctx.in_document = ctx.transport.req
 
     def decompose_incoming_envelope(self, ctx, message):
-        assert message == DictDocument.REQUEST
+        assert message == FlatDictDocument.REQUEST
 
         ctx.transport.itself.decompose_incoming_envelope(self, ctx, message)
+
+        if self.parse_cookie:
+            cookies = ctx.in_header_doc.get('cookie', [])
+            print cookies
+            for cookie_string in cookies:
+                cookie = SimpleCookie()
+                cookie.load(cookie_string)
+                for k,v in cookie.items():
+                    l = ctx.in_header_doc.get(k, [])
+                    l.append(v.coded_value)
+                    ctx.in_header_doc[k] = l
 
         logger.debug('\theader : %r' % (ctx.in_header_doc))
         logger.debug('\tbody   : %r' % (ctx.in_body_doc))
@@ -169,6 +180,7 @@ class HttpRpc(DictDocument):
             in_header_class = ctx.descriptor.in_header[0]
             ctx.in_header = self.flat_dict_to_object(ctx.in_header_doc,
                                                 in_header_class, self.validator)
+
         if ctx.descriptor.in_message is not None:
             ctx.in_object = self.flat_dict_to_object(ctx.in_body_doc,
                                       ctx.descriptor.in_message, self.validator)
@@ -182,7 +194,8 @@ class HttpRpc(DictDocument):
             result_class = ctx.descriptor.out_message
             header_class = ctx.descriptor.out_header
             if header_class is not None:
-                header_class = header_class[0] # HttpRpc supports only one header class
+                # HttpRpc supports only one header class
+                header_class = header_class[0]
 
             # assign raw result to its wrapper, result_message
             out_type_info = result_class.get_flat_type_info(result_class)
@@ -204,8 +217,8 @@ class HttpRpc(DictDocument):
                 pass
 
             else:
-                raise ValueError("HttpRpc protocol can only serialize simple "
-                                 "return values.")
+                raise TypeError("HttpRpc protocol can only serialize simple "
+                                 "return types.")
 
             # header
             if ctx.out_header is not None:

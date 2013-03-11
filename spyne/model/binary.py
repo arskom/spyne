@@ -25,6 +25,8 @@ import tempfile
 
 from base64 import b64encode
 from base64 import b64decode
+from base64 import urlsafe_b64encode
+from base64 import urlsafe_b64decode
 from binascii import hexlify
 from binascii import unhexlify
 
@@ -39,6 +41,19 @@ from spyne.model import nillable_iterable
 from spyne.model import ModelBase
 from spyne.model import SimpleModel
 
+binary_encoding_handlers = {
+    None: ''.join,
+    'hex': hexlify,
+    'base64': b64encode,
+    'urlsafe_base64': urlsafe_b64encode,
+}
+
+binary_decoding_handlers = {
+    None: lambda x: [x],
+    'hex': unhexlify,
+    'base64': b64decode,
+    'urlsafe_base64': urlsafe_b64decode,
+}
 
 class ByteArray(SimpleModel):
     """Canonical container for arbitrary data. Every protocol has a different
@@ -59,18 +74,6 @@ class ByteArray(SimpleModel):
 
         One of (None, 'base64', 'hex')
         """
-
-    _encoding_handlers = {
-        None: ''.join,
-        'hex': hexlify,
-        'base64': b64encode,
-    }
-
-    _decoding_handlers = {
-        None: lambda x: [x],
-        'hex': unhexlify,
-        'base64': b64decode,
-    }
 
     def __new__(cls, **kwargs):
         if 'encoding' in kwargs:
@@ -114,6 +117,14 @@ class File(SimpleModel):
 
     __type_name__ = 'base64Binary'
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
+
+    class Attributes(SimpleModel.Attributes):
+        encoding = None
+        """The binary encoding to use when the protocol does not enforce an
+        encoding for binary data.
+
+        One of (None, 'base64', 'hex')
+        """
 
     class Value(object):
         def __init__(self, name=None, path=None, type='application/octet-stream',

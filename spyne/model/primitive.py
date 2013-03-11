@@ -363,23 +363,6 @@ class Double(Decimal):
                     and cls.Attributes.le == Double.Attributes.le
                 )
 
-    @classmethod
-    @nillable_string
-    def to_string(cls, value):
-        float(value)
-        if cls.Attributes.format is None:
-            return repr(value)
-        else:
-            return cls.Attributes.format % value
-
-    @classmethod
-    @nillable_string
-    def from_string(cls, string):
-        try:
-            return float(string)
-        except ValueError:
-            raise ValidationError(string)
-
 
 class Float(Double):
     """Synonym for Double (as far as python side of things are concerned).

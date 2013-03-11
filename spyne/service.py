@@ -58,9 +58,6 @@ class ServiceBaseMeta(type):
                 else:
                     self.__has_aux_methods = True
 
-                for p in descriptor.patterns:
-                    p.endpoint = k
-
     def __get_base_event_handlers(self, cls_bases):
         handlers = {}
 

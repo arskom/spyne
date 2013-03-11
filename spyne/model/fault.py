@@ -17,9 +17,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+
+from spyne.const import TYPE_SUFFIX
 from spyne.model.complex import ComplexModelMeta
 from spyne.model.complex import ComplexModelBase
-from spyne.const.suffix import TYPE_SUFFIX
+
 
 class Fault(ComplexModelBase, Exception):
     """Use this class as a base for all public exceptions.

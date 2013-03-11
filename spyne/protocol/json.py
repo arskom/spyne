@@ -39,17 +39,17 @@ except ImportError:
     JSONDecodeError = ValueError
 
 from spyne.model.fault import Fault
-from spyne.protocol.dictobj import DictDocument
+from spyne.protocol.dictobj import HierDictDocument
 
 
-class JsonDocument(DictDocument):
+class JsonDocument(HierDictDocument):
     """An implementation of the json protocol that uses simplejson package when
     available, json package otherwise.
     """
 
     mime_type = 'application/json'
 
-    type = set(DictDocument.type)
+    type = set(HierDictDocument.type)
     type.add('json')
 
     def create_in_document(self, ctx, in_string_encoding=None):

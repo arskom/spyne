@@ -29,7 +29,7 @@ import unittest
 from lxml import etree
 from StringIO import StringIO
 
-from spyne.const.suffix import RESPONSE_SUFFIX
+from spyne.const import RESPONSE_SUFFIX
 from spyne.model.primitive import NATIVE_MAP
 
 from spyne.application import Application

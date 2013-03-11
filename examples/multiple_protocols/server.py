@@ -65,6 +65,7 @@ from spyne.protocol.html import HtmlMicroFormat
 from spyne.protocol.json import JsonDocument
 from spyne.protocol.msgpack import MessagePackDocument
 from spyne.protocol.msgpack import MessagePackRpc
+from spyne.protocol.yaml import YamlDocument
 
 from protocol import PngClock
 from protocol import SvgClock
@@ -106,14 +107,17 @@ if __name__ == '__main__':
     json2 = Application([HelloWorldService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=JsonDocument(skip_depth=2))
 
-    json3 = Application([HelloWorldService], tns=tns,
-            in_protocol=HttpRpc(), out_protocol=JsonDocument(skip_depth=3))
+    json22 = Application([HelloWorldService], tns=tns,
+            in_protocol=HttpRpc(), out_protocol=JsonDocument(skip_depth=22))
 
-    msgpack_object = Application([HelloWorldService], tns=tns,
+    msgpack_doc = Application([HelloWorldService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=MessagePackDocument())
 
     msgpack_rpc = Application([HelloWorldService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=MessagePackRpc())
+
+    yaml = Application([HelloWorldService], tns=tns,
+            in_protocol=HttpRpc(), out_protocol=YamlDocument())
 
     root = WsgiMounter({
         'rest': rest,
@@ -126,15 +130,18 @@ if __name__ == '__main__':
         'json0': json0,
         'json1': json1,
         'json2': json2,
-        'json3': json3,
-        'mpo': msgpack_object,
+        'json22': json22,
+        'mpd': msgpack_doc,
         'mprpc': msgpack_rpc,
+        'yaml': yaml,
     })
 
     from wsgiref.simple_server import make_server
     server = make_server(host, port, root)
 
     logging.basicConfig(level=logging.DEBUG)
-    logging.info("listening to http://%s:%d" % (host,port))
+    logging.info("listening to http://%s:%d" % (host, port))
+    logging.info("navigate to e.g. http://%s:%d/json2/get_utc_time" % (host, port))
+    logging.info("navigate to e.g. http://%s:%d/xml/get_utc_time" % (host, port))
 
     server.serve_forever()

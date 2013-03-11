@@ -411,6 +411,10 @@ class ComplexModelBase(ModelBase):
         sqla_mapper = None
         """The sqlalchemy mapper object"""
 
+        validate_freq = True
+        """When ``False``, soft validation ignores missing mandatory attributes.
+        """
+
     def __init__(self, **kwargs):
         super(ComplexModelBase, self).__init__()
 
@@ -532,7 +536,7 @@ class ComplexModelBase(ModelBase):
 
             {'some_object': [{'some_string': ['abc']}]}
 
-         would be transformed to:
+        would be transformed to:
 
             {'some_object_some_string': ['abc']}
 
@@ -556,7 +560,7 @@ class ComplexModelBase(ModelBase):
                 key = hier_delim.join(prefix)
                 value = retval.get(key, None)
 
-                if value:
+                if value is not None:
                     raise ValueError("%r.%s conflicts with %r" % (cls, k, value))
 
                 retval[key] = _SimpleTypeInfoElement(path=tuple(prefix),
@@ -669,6 +673,9 @@ class ComplexModelBase(ModelBase):
     def store_as(cls, what):
         return cls.customize(store_as=what)
 
+    @classmethod
+    def novalidate_freq(cls):
+        return cls.customize(validate_freq=False)
 
 class ComplexModel(ComplexModelBase):
     """The general complexType factory. The __call__ method of this class will
@@ -826,7 +833,8 @@ def _log_repr_obj(obj, cls):
     for k,t in cls.get_flat_type_info(cls).items():
         v = getattr(obj, k, None)
         if v is not None and t.Attributes.logged:
-            if issubclass(t, Unicode) and len(v) > MAX_STRING_FIELD_LENGTH:
+            if issubclass(t, Unicode) and isinstance(v, basestring) and \
+                                               len(v) > MAX_STRING_FIELD_LENGTH:
                 s = '%s=%r(...)' % (k, v[:MAX_STRING_FIELD_LENGTH])
             else:
                 s = '%s=%r' % (k, v)
@@ -851,6 +859,8 @@ def TTableModel(metadata=None):
 
     return TableModel
 
+### You should not use this and always instantiate explicitly your own
+### TTableModel.
 try:
     TableModel = TTableModel()
 except ImportError:
