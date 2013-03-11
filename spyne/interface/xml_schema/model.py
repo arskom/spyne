@@ -110,7 +110,7 @@ def complex_add(document, cls, tags):
             extension.set('base', extends.get_type_name_ns(document.interface))
             sequence_parent = extension
 
-    sequence = etree.SubElement(sequence_parent, '{%s}sequence' % _ns_xsd)
+    sequence = etree.Element('{%s}sequence' % _ns_xsd)
 
     deferred_a_of = deque()
     for k, v in type_info.items():
@@ -166,6 +166,9 @@ def complex_add(document, cls, tags):
             doc = etree.SubElement(annotation, "{%s}documentation" % _ns_xsd)
             doc.text = v.Annotations.doc
 
+    if len(sequence) > 0:
+        sequence_parent.append(sequence)
+
     for k,v in deferred_a_of:
         ao = v.attribute_of
         elts = complex_type.xpath("//xsd:element[@name='%s']" % ao,
@@ -189,6 +192,7 @@ def complex_add(document, cls, tags):
 
         attribute = etree.SubElement(_ext, '{%s}attribute' % _ns_xsd)
         v.describe(k, attribute, document)
+
 
     document.add_complex_type(cls, complex_type)
 
