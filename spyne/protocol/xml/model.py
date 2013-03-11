@@ -240,7 +240,7 @@ def complex_from_element(prot, cls, element):
                                                      member.attribute_of == key:
                 continue
 
-            value = member.type.from_string(c.attrib[key])
+            value = prot.from_string(member.type, c.attrib[key])
 
             setattr(inst, key, value)
 

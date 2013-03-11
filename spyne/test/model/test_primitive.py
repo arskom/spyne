@@ -51,6 +51,7 @@ from spyne.model.primitive import UnsignedInteger64
 from spyne.model.primitive import UnsignedInteger32
 from spyne.model.primitive import UnsignedInteger16
 from spyne.model.primitive import UnsignedInteger8
+from spyne.protocol import ProtocolBase
 from spyne.protocol.xml import XmlDocument
 
 from spyne.application import Application
@@ -123,19 +124,19 @@ class TestPrimitive(unittest.TestCase):
     def test_time(self):
         n = datetime.time(1, 2, 3, 4)
 
-        ret = Time.to_string(n)
+        ret = ProtocolBase.to_string(Time, n)
         self.assertEquals(ret, n.isoformat())
 
-        dt = Time.from_string(ret)
+        dt = ProtocolBase.from_string(Time, ret)
         self.assertEquals(n, dt)
 
     def test_date(self):
         n = datetime.date(2011,12,13)
 
-        ret = Date.to_string(n)
+        ret = ProtocolBase.to_string(Date, n)
         self.assertEquals(ret, n.isoformat())
 
-        dt = Date.from_string(ret)
+        dt = ProtocolBase.from_string(Date, ret)
         self.assertEquals(n, dt)
 
     def test_duration_xml_duration(self):
@@ -145,10 +146,10 @@ class TestPrimitive(unittest.TestCase):
         str1 = 'P400DT3672.8S'
         str2 = 'P1Y1M5DT1H1M12.8S'
 
-        self.assertEquals(dur, Duration.from_string(str1))
-        self.assertEquals(dur, Duration.from_string(str2))
+        self.assertEquals(dur, ProtocolBase.from_string(Duration, str1))
+        self.assertEquals(dur, ProtocolBase.from_string(Duration, str2))
 
-        self.assertEquals(dur, Duration.from_string(Duration.to_string(dur)))
+        self.assertEquals(dur, ProtocolBase.from_string(Duration, ProtocolBase.to_string(Duration, dur)))
 
     def test_utcdatetime(self):
         datestring = '2007-05-15T13:40:44Z'
@@ -185,13 +186,13 @@ class TestPrimitive(unittest.TestCase):
 
     def test_limits(self):
         try:
-            Integer.from_string("1"* (Integer.__max_str_len__ + 1))
+            ProtocolBase.from_string(Integer, "1" * (Integer.__max_str_len__ + 1))
         except:
             pass
         else:
             raise Exception("must fail.")
 
-        UnsignedInteger.from_string("-1") # This is not supposed to fail.
+        ProtocolBase.from_string(UnsignedInteger, "-1") # This is not supposed to fail.
 
         try:
             UnsignedInteger.validate_native(-1) # This is supposed to fail.

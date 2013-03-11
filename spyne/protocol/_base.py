@@ -57,6 +57,48 @@ from spyne.model.complex import Array
 
 from spyne.protocol._model import *
 
+_to_string_handlers = cdict({
+    ModelBase: lambda cls, value: cls.to_string(value),
+    Null: null_to_string,
+    AnyXml: any_xml_to_string,
+    Unicode: unicode_to_string,
+    Decimal: decimal_to_string,
+    Double: double_to_string,
+    Integer: integer_to_string,
+    Time: time_to_string,
+    DateTime: datetime_to_string,
+    Duration: duration_to_string,
+    Boolean: boolean_to_string,
+    ByteArray: byte_array_to_string,
+    Attachment: attachment_to_string,
+    ComplexModelBase: complex_model_base_to_string
+})
+
+_from_string_handlers = cdict({
+    Null: null_from_string,
+    AnyXml: any_xml_from_string,
+    Unicode: unicode_from_string,
+    String: string_from_string,
+    Decimal: decimal_from_string,
+    Double: double_from_string,
+    Integer: integer_from_string,
+    Time: time_from_string,
+    DateTime: datetime_from_string,
+    Date: date_from_string,
+    Duration: duration_from_string,
+    Boolean: boolean_from_string,
+    ByteArray: byte_array_from_string,
+    File: file_from_string,
+    Attachment: attachment_from_string,
+    ComplexModelBase: complex_model_base_from_string
+})
+
+_to_dict_handlers = cdict({
+    ModelBase: lambda cls, value: cls.to_dict(value),
+    ComplexModelBase: complex_model_base_to_dict,
+    Fault: fault_to_dict
+})
+
 def unwrap_messages(cls, skip_depth):
     out_type = cls
     for _ in range(skip_depth):
@@ -145,47 +187,6 @@ class ProtocolBase(object):
         self.ignore_uncap=ignore_uncap
         if mime_type is not None:
             self.mime_type = mime_type
-
-        self.to_string_handlers = cdict({
-            ModelBase: model_base_to_string,
-            Null: null_to_string,
-            AnyXml: any_xml_to_string,
-            Unicode: unicode_to_string,
-            Decimal: decimal_to_string,
-            Double: double_to_string,
-            Integer: integer_to_string,
-            Time: time_to_string,
-            DateTime: datetime_to_string,
-            Duration: duration_to_string,
-            Boolean: boolean_to_string,
-            ByteArray: byte_array_to_string,
-            Attachment: attachment_to_string,
-            ComplexModelBase: complex_model_base_to_string
-        })
-        self.from_string_handlers = cdict({
-            Null: null_from_string,
-            AnyXml: any_xml_from_string,
-            Unicode: unicode_from_string,
-            String: string_from_string,
-            Decimal: decimal_from_string,
-            Double: double_from_string,
-            Integer: integer_from_string,
-            Time: time_from_string,
-            DateTime: datetime_from_string,
-            Date: date_from_string,
-            Duration: duration_from_string,
-            Boolean: boolean_from_string,
-            ByteArray: byte_array_from_string,
-            File: file_from_string,
-            Attachment: attachment_from_string,
-            ComplexModelBase: complex_model_base_from_string
-        })
-        self.to_string_iterable = cdict({
-            ModelBase: model_base_to_string_iterable
-        })
-        self.to_dict_handlers = cdict({
-            ModelBase: model_base_to_dict
-        })
 
     @property
     def app(self):
@@ -295,18 +296,17 @@ class ProtocolBase(object):
 
         self.validator = None
 
-    def from_string(self, cls, string):
-        handler = self.from_string_handlers[cls]
-        return handler(cls, string)
+    @classmethod
+    def from_string(cls, class_, string):
+        handler = _from_string_handlers[class_]
+        return handler(class_, string)
 
-    def to_string(self, cls, value):
-        handler = self.to_string_handlers[cls]
-        return handler(cls, value)
+    @classmethod
+    def to_string(cls, class_, value):
+        handler = _to_string_handlers[class_]
+        return handler(class_, value)
 
-    def to_string_iterable(self, cls, value):
-        handler = self.to_string_iterable[cls]
-        return handler(cls, value)
-
-    def to_dict(self, cls, value):
-        handler = self.to_dict_handlers[cls]
-        return handler(cls, value)
+    @classmethod
+    def to_dict(cls, class_, value):
+        handler = _to_dict_handlers[class_]
+        return handler(class_, value)

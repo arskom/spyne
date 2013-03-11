@@ -136,7 +136,7 @@ def _datetime_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'
     e = etree.SubElement(parent_elt, '{%s}%s' % (tns, name))
     e.text = value.isoformat()
 
-_datetime_from_element = TBaseFromElement(lambda cls, s: cls.default_parse(s))
+_datetime_from_element = TBaseFromElement(lambda prot, cls, s: cls.default_parse(s))
 
 
 class Soap11(XmlDocument):

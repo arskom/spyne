@@ -203,7 +203,7 @@ class DictDocument(ProtocolBase):
         self.event_manager.fire_event('before_serialize', ctx)
 
         if ctx.out_error is not None:
-            ctx.out_document = [ctx.out_error.to_dict(ctx.out_error)]
+            ctx.out_document = [ProtocolBase.to_dict(ctx.out_error.__class__, ctx.out_error)]
 
         else:
             # get the result message
@@ -268,7 +268,7 @@ class DictDocument(ProtocolBase):
             retval = cls._doc_to_object(class_, value, validator)
 
         elif issubclass(class_, DateTime):
-            retval = class_.from_string(value)
+            retval = ProtocolBase.from_string(class_, value)
 
         else:
             retval = value
@@ -309,13 +309,13 @@ class DictDocument(ProtocolBase):
             return cls._to_dict(class_, value, k)
 
         if issubclass(class_, DateTime):
-            return class_.to_string(value)
+            return ProtocolBase.to_string(class_, value)
 
         if issubclass(class_, Decimal):
             if class_.Attributes.format is None:
                 return value
             else:
-                return class_.to_string(value)
+                return ProtocolBase.to_string(class_, value)
 
         return value
 
@@ -362,11 +362,11 @@ class DictDocument(ProtocolBase):
 
                 if issubclass(member.type, (File, ByteArray)):
                     if isinstance(v2, str) or isinstance(v2, unicode):
-                        native_v2 = member.type.from_string(v2)
+                        native_v2 = ProtocolBase.from_string(member.type, v2)
                     else:
                         native_v2 = v2
                 else:
-                    native_v2 = member.type.from_string(v2)
+                    native_v2 = ProtocolBase.from_string(member.type, v2)
 
                 if (validator is cls.SOFT_VALIDATION and not
                             member.type.validate_native(member.type, native_v2)):

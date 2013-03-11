@@ -221,7 +221,7 @@ class HtmlMicroFormat(HtmlBase):
 
     @nillable_value
     def serialize_model_base(self, cls, value, locale, name):
-        return [ E(self.child_tag, prot.to_string(value),
+        return [ E(self.child_tag, self.to_string(cls, value),
                                                 **{self.field_name_attr: name}) ]
 
     def serialize_impl(self, cls, value, locale):

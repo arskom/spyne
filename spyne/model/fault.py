@@ -57,6 +57,9 @@ class Fault(ComplexModelBase, Exception):
         self.faultactor = faultactor
         self.detail = detail
 
+    def __len__(self):
+        return 1
+
     def __str__(self):
         return repr(self)
 
@@ -66,14 +69,6 @@ class Fault(ComplexModelBase, Exception):
     @classmethod
     def to_string_iterable(cls, value):
         return [value.faultcode, '\n\n', value.faultstring]
-
-    @classmethod
-    def to_dict(cls, value):
-        return {cls.get_type_name(): {
-            "faultcode": value.faultcode,
-            "faultstring": value.faultstring,
-            "detail": value.detail,
-        }}
 
     @staticmethod
     def resolve_namespace(cls, default_ns):

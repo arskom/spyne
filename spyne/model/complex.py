@@ -31,8 +31,6 @@ from collections import deque
 from inspect import isclass
 
 from spyne.model import ModelBase
-from spyne.model import nillable_dict
-from spyne.model import nillable_string
 from spyne.model.primitive import NATIVE_MAP
 from spyne.model.primitive import Unicode
 from spyne.model.primitive import Point
@@ -512,13 +510,6 @@ class ComplexModelBase(ModelBase):
 
             else:
                 yield (k, [v.to_string(subvalue)])
-
-    @classmethod
-    @nillable_dict
-    def to_dict(cls, value):
-        inst = cls.get_serialization_instance(value)
-
-        return dict(cls.get_members_pairs(inst))
 
     @staticmethod
     @memoize

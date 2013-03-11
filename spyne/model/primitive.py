@@ -42,18 +42,8 @@ from collections import deque
 
 from pytz import FixedOffset
 
-from spyne.error import ValidationError
-from spyne.error import Fault
 from spyne.model import SimpleModel
-from spyne.model import nillable_string
 from spyne.util import memoize
-
-try:
-    from lxml import etree
-    from lxml import html
-except ImportError:
-    etree = None
-    html = None
 
 string_encoding = 'utf8'
 
@@ -130,16 +120,7 @@ class AnyXml(SimpleModel):
 
 # EXPERIMENTAL
 class AnyHtml(SimpleModel):
-    @classmethod
-    @nillable_string
-    def to_string(cls, value):
-        return html.tostring(value)
-
-    @classmethod
-    @nillable_string
-    def from_string(cls, string):
-        return html.fromstring(string)
-
+    pass
 
 class AnyDict(SimpleModel):
     """A dict instance that can contain other dicts, iterables or primitive
@@ -733,9 +714,8 @@ class Date(DateTime):
         """
         try:
             return datetime.date(*(time.strptime(string, '%Y-%m-%d')[0:3]))
-
         except ValueError:
-            raise ValidationError(string)
+            raise
 
 
 # this object tries to follow ISO 8601 standard.
