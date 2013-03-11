@@ -222,7 +222,7 @@ class HtmlMicroFormat(HtmlBase):
     @nillable_value
     def serialize_model_base(self, cls, value, locale, name):
         return [ E(self.child_tag, self.to_string(cls, value),
-                                                **{self.field_name_attr: name}) ]
+                                                **{self.field_name_attr: name})]
 
     def serialize_impl(self, cls, value, locale):
         return self.serialize_class(cls, value, locale, cls.get_type_name())
@@ -250,7 +250,7 @@ class HtmlMicroFormat(HtmlBase):
 
         for k, v in cls.get_flat_type_info(cls).items():
             for val in self.serialize_class(cls=v,
-                            value=getattr(inst, k, None), locale=locale, name=k):
+                        value=getattr(inst, k, None), locale=locale, name=k):
                 yield val
 
         yield '</%s>' % self.root_tag
@@ -291,11 +291,11 @@ def HtmlTable(app=None, validator=None, produce_header=True,
     if fields_as == 'columns':
         return _HtmlColumnTable(app, validator, produce_header,
                                     table_name_attr, field_name_attr, border,
-                                        row_class, cell_class, header_cell_class)
+                                    row_class, cell_class, header_cell_class)
     elif fields_as == 'rows':
         return _HtmlRowTable(app, validator, produce_header,
                                  table_name_attr, field_name_attr, border,
-                                        row_class, cell_class, header_cell_class)
+                                    row_class, cell_class, header_cell_class)
 
     else:
         raise ValueError(fields_as)
@@ -349,7 +349,8 @@ class _HtmlTableBase(HtmlBase):
         if self.table_name_attr is None:
             out_body_doc_header = ['<table>']
         else:
-            out_body_doc_header = ['<table %s="%s">' % (self.table_name_attr, name)]
+            out_body_doc_header = ['<table %s="%s">' % (self.table_name_attr,
+                                                                          name)]
 
         out_body_doc = self.serialize_complex_model(cls, inst, locale)
 
@@ -423,12 +424,12 @@ class _HtmlColumnTable(_HtmlTableBase):
         if sti is None:
             if self.field_name_attr is None:
                 for val in value:
-                    yield E.tr(E.td(first_child.to_string(val), **td), **tr)
+                    yield E.tr(E.td(self.to_string(first_child, val),**td),**tr)
 
             else:
                 for val in value:
                     td[self.field_name_attr] = class_name
-                    yield E.tr(E.td(first_child.to_string(val), **td), **tr)
+                    yield E.tr(E.td(self.to_string(first_child, val),**td),**tr)
 
         else:
             for val in value:
@@ -444,7 +445,7 @@ class _HtmlColumnTable(_HtmlTableBase):
                         else:
                             subvalue = ""
                     else:
-                        subvalue = _subvalue_to_html(v, subvalue)
+                        subvalue = _subvalue_to_html(self, v, subvalue)
 
                     if self.field_name_attr is None:
                         row.append(E.td(subvalue, **td))
@@ -455,8 +456,7 @@ class _HtmlColumnTable(_HtmlTableBase):
                 yield row
 
 
-def _subvalue_to_html(cls, value):
-    #import ipdb; ipdb.set_trace()
+def _subvalue_to_html(prot, cls, value):
     if issubclass(cls.type, AnyHtml):
         retval = value
 
@@ -488,7 +488,7 @@ def _subvalue_to_html(cls, value):
                 retval.append(content)
 
     else:
-        retval = cls.type.to_string(value)
+        retval = prot.to_string(cls.type, value)
 
     return retval
 
@@ -505,7 +505,8 @@ class _HtmlRowTable(_HtmlTableBase):
             try:
                 fti = first_child.get_flat_type_info(first_child)
             except AttributeError:
-                raise NotImplementedError("Can only serialize complex return types")
+                raise NotImplementedError(
+                                     "Can only serialize complex return types")
 
             first_child_2 = iter(fti.values()).next()
 
@@ -542,9 +543,11 @@ class _HtmlRowTable(_HtmlTableBase):
 
             if is_array:
                 for val in value:
-                    yield E.tr(E.td(first_child_2.to_string(val), **td), **tr)
+                    yield E.tr(E.td(self.to_string(first_child_2, val), **td),
+                                                                        **tr)
             else:
-                yield E.tr(E.td(first_child_2.to_string(value), **td), **tr)
+                yield E.tr(E.td(self.to_string(first_child_2, value), **td),
+                                                                        **tr)
 
         else:
             for k, v in sti.items():
@@ -607,10 +610,12 @@ class HtmlPage(object):
                 raise ValueError("Don't use duplicate values in id attributes in"
                                  "template documents.")
             if key in HtmlPage.reserved:
-                raise ValueError("id attribute values %r are reserved." % HtmlPage.reserved)
+                raise ValueError("id attribute values %r are reserved." %
+                                                              HtmlPage.reserved)
 
             if key.startswith('_'):
-                logger.debug('%r is ignored because it starts with an underscore' % key)
+                logger.debug(
+                     '%r is ignored because it starts with an underscore' % key)
                 continue
 
             self.__ids[key] = elt
