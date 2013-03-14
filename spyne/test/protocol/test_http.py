@@ -79,7 +79,7 @@ class Test(unittest.TestCase):
 
         try:
             _test([SomeService], '')
-        except ValueError:
+        except TypeError:
             pass
         else:
             raise Exception("Must fail with: HttpRpc does not support complex "
@@ -97,7 +97,7 @@ class Test(unittest.TestCase):
 
         try:
             _test([SomeService], '')
-        except:
+        except TypeError:
             pass
         else:
             raise Exception("Must fail with: HttpRpc does not support complex "
@@ -252,7 +252,6 @@ class Test(unittest.TestCase):
         DATE = datetime(year=2013, month=1, day=1)
         STR = 'hey'
 
-
         class ResponseHeader(ComplexModel):
             _type_info = {
                 'Set-Cookie': String(max_occurs='unbounded'),
@@ -260,7 +259,6 @@ class Test(unittest.TestCase):
             }
 
         class SomeService(ServiceBase):
-            __in_header__ = RequestHeader
             __out_header__ = ResponseHeader
 
             @rpc(String)
@@ -326,6 +324,7 @@ class TestHttpPatterns(unittest.TestCase):
             foo.append(i)
 
         assert len(foo) == 1
+        print foo
         assert ctx.descriptor is not None
 
         server.get_in_object(ctx)
