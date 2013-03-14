@@ -81,10 +81,10 @@ def to_string(prot, val, cls):
                             _weekday[val.weekday()], val.day, _month[val.month],
                             val.year, val.hour, val.minute, val.second)
     elif issubclass(cls, ByteArray):
-        return prot.to_string(val, suggested_encoding=prot.default_binary_encoding)
+        return prot.to_string(cls, val, suggested_encoding=prot.default_binary_encoding)
 
     else:
-        return prot.to_string(val)
+        return prot.to_string(cls, val)
 
 
 class HttpRpc(FlatDictDocument):
@@ -261,5 +261,9 @@ class HttpPattern(object):
         if self.verb is not None:
             methods = invregexp(self.verb)
 
-        return Rule(self.address, host=self.host, endpoint=self.endpoint,
+        host = self.host
+        if host is None:
+            host = '<__ignored>'  # this is necessary when host_matching is enabled.
+
+        return Rule(self.address, host=host, endpoint=self.endpoint,
                                                                 methods=methods)
