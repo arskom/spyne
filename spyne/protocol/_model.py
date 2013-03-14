@@ -20,6 +20,7 @@
 import decimal
 import datetime
 import math
+import time
 
 from collections import deque
 
@@ -51,8 +52,8 @@ __all__ = [
     'double_to_string', 'double_from_string',
     'integer_to_string', 'integer_from_string',
     'time_to_string', 'time_from_string',
-    'datetime_to_string', 'datetime_from_string',
-    'date_from_string',
+    'datetime_to_string', 'datetime_from_string', 'datetime_from_string_iso',
+    'date_from_string', 'date_from_string_iso',
     'duration_to_string', 'duration_from_string',
     'boolean_to_string', 'boolean_from_string',
     'byte_array_to_string', 'byte_array_from_string', 'byte_array_to_string_iterable',
@@ -225,12 +226,38 @@ def datetime_to_string(cls, value):
     else:
         return string_format % ret_str
 
+def datetime_from_string_iso(cls, string):
+    match = cls._utc_re.match(string)
+    if match:
+        return cls.parse(match, tz=pytz.utc)
+
+    match = cls._offset_re.match(string)
+    if match:
+        tz_hr, tz_min = [int(match.group(x)) for x in ("tz_hr", "tz_min")]
+        return cls.parse(match, tz=FixedOffset(tz_hr * 60 + tz_min, {}))
+
+    match = cls._local_re.match(string)
+    if match is None:
+        raise ValidationError(string)
+
+    return cls.parse(match)
+
+def date_from_string_iso(cls, string):
+    """This is used by protocols like SOAP who need ISO8601-formatted dates
+    no matter what.
+    """
+    try:
+        return datetime.date(*(time.strptime(string, '%Y-%m-%d')[0:3]))
+    except ValueError:
+        raise ValidationError(string)
+
+
 @nillable_string
 def datetime_from_string(cls, string):
     format = cls.Attributes.format
 
     if format is None:
-        retval = cls.default_parse(string)
+        retval = datetime_from_string_iso(cls, string)
     else:
         retval = datetime.datetime.strptime(string, format)
 
@@ -336,7 +363,7 @@ def byte_array_to_string(cls, value, suggested_encoding=None):
     return binary_encoding_handlers[encoding](value)
 
 @nillable_iterable
-def byte_array_to_string_iterable(cls, value):
+def byte_array_to_string_iterable(prot, cls, value):
     return value
 
 
@@ -348,7 +375,7 @@ def file_from_string(cls, value, suggested_encoding=None):
     return File.Value(data=binary_decoding_handlers[encoding](value))
 
 @nillable_iterable
-def file_to_string_iterable(cls, value):
+def file_to_string_iterable(prot, cls, value):
     assert value.path is not None, "You need to write data to persistent " \
                                    "storage first if you want to read it back."
 

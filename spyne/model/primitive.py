@@ -83,9 +83,6 @@ def _get_multipolygon_pattern(dim):
     return 'MULTIPOLYGON *%s' % _get_one_multipolygon_pattern(dim)
 
 
-_local_re = re.compile(DATETIME_PATTERN)
-_utc_re = re.compile(DATETIME_PATTERN + 'Z')
-_offset_re = re.compile(DATETIME_PATTERN + OFFSET_PATTERN)
 _date_re = re.compile(DATE_PATTERN)
 _time_re = re.compile(TIME_PATTERN)
 _duration_re = re.compile(
@@ -548,6 +545,10 @@ class DateTime(SimpleModel):
     """
     __type_name__ = 'dateTime'
 
+    _local_re = re.compile(DATETIME_PATTERN)
+    _utc_re = re.compile(DATETIME_PATTERN + 'Z')
+    _offset_re = re.compile(DATETIME_PATTERN + OFFSET_PATTERN)
+
     class Attributes(SimpleModel.Attributes):
         """Customizable attributes of the :class:`spyne.model.primitive.DateTime`
         type."""
@@ -604,24 +605,6 @@ class DateTime(SimpleModel):
             microsec = int(microsec[1:])
 
         return datetime.datetime(year, month, day, hour, min, sec, microsec, tz)
-
-    @classmethod
-    def default_parse(cls, string):
-        match = _utc_re.match(string)
-        if match:
-            return cls.parse(match, tz=pytz.utc)
-
-        match = _offset_re.match(string)
-        if match:
-            tz_hr, tz_min = [int(match.group(x)) for x in ("tz_hr", "tz_min")]
-            return cls.parse(match, tz=FixedOffset(tz_hr * 60 + tz_min, {}))
-
-        match = _local_re.match(string)
-        if match is None:
-            raise ValueError("time data '%s' does not match any of these regex:\n'%s'\n'%s'\n'%s'"
-                             %(string, _utc_re.pattern, _offset_re.pattern, _local_re.pattern))
-
-        return cls.parse(match)
 
     @staticmethod
     def is_default(cls):
@@ -688,17 +671,6 @@ class Date(DateTime):
                 and cls.Attributes.le == Date.Attributes.le
                 and cls.Attributes.pattern == Date.Attributes.pattern
         )
-
-
-    @classmethod
-    def default_parse(cls, string):
-        """This is used by protocols like SOAP who need ISO8601-formatted dates
-        no matter what.
-        """
-        try:
-            return datetime.date(*(time.strptime(string, '%Y-%m-%d')[0:3]))
-        except ValueError:
-            raise
 
 
 # this object tries to follow ISO 8601 standard.
