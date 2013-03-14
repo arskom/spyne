@@ -24,6 +24,8 @@ from copy import copy
 
 from spyne import EventManager
 
+from spyne.util.cdict import cdict
+
 from spyne.const.http import HTTP_400
 from spyne.const.http import HTTP_404
 from spyne.const.http import HTTP_405
@@ -35,10 +37,14 @@ from spyne.error import ResourceNotFoundError
 from spyne.error import RequestTooLongError
 from spyne.error import RequestNotAllowed
 
-from spyne.util.cdict import cdict
 from spyne.model import ModelBase
 from spyne.model import SimpleModel
 from spyne.model import Null
+from spyne.model.binary import ByteArray
+from spyne.model.binary import File
+from spyne.model.binary import Attachment
+from spyne.model.complex import ComplexModelBase
+from spyne.model.complex import Array
 from spyne.model.primitive import AnyXml
 from spyne.model.primitive import Unicode
 from spyne.model.primitive import String
@@ -50,11 +56,6 @@ from spyne.model.primitive import DateTime
 from spyne.model.primitive import Date
 from spyne.model.primitive import Duration
 from spyne.model.primitive import Boolean
-from spyne.model.binary import ByteArray
-from spyne.model.binary import File
-from spyne.model.binary import Attachment
-from spyne.model.complex import ComplexModelBase
-from spyne.model.complex import Array
 
 from spyne.protocol._model import *
 

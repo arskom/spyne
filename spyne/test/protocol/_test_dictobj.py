@@ -297,7 +297,6 @@ def TDictDocumentTest(serializer, _DictDocumentChild):
                 @srpc(Integer, String, DateTime)
                 def yay(i,s,d):
                     print(i,s,d)
-                    pass
 
             ctx = _dry_me([SomeService], {"some_call": {"yay": []}},
                                                             just_in_object=True)
@@ -310,7 +309,6 @@ def TDictDocumentTest(serializer, _DictDocumentChild):
                 @srpc(Integer, String, DateTime)
                 def yay(i,s,d):
                     print(i,s,d)
-                    pass
 
             ctx = _dry_me([SomeService], {"yay": {"s": 1}}, validator='soft',
                                                             just_in_object=True)
@@ -322,7 +320,6 @@ def TDictDocumentTest(serializer, _DictDocumentChild):
                 @srpc(Integer, String, DateTime)
                 def yay(i,s,d):
                     print(i,s,d)
-                    pass
 
             ctx = _dry_me([SomeService], {"yay": ["s", "B"]}, validator='soft',
                                                             just_in_object=True)
@@ -334,7 +331,6 @@ def TDictDocumentTest(serializer, _DictDocumentChild):
                 @srpc(Integer, String, Mandatory.DateTime)
                 def yay(i,s,d):
                     print(i,s,d)
-                    pass
 
             ctx = _dry_me([SomeService], {"yay": [1, "B"]}, validator='soft',
                                                             just_in_object=True)
