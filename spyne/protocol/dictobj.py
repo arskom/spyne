@@ -358,6 +358,8 @@ class HierDictDocument(DictDocument):
     def _from_dict_value(cls, class_, value, validator):
         # validate raw input
         if validator is cls.SOFT_VALIDATION:
+            if issubclass(class_, Unicode) and not isinstance(value, basestring):
+                raise ValidationError(value)
             if issubclass(class_, Unicode) and not isinstance(value, unicode):
                 # Note that String is a subclass of Unicode
                 if not (issubclass(class_, String) and isinstance(value, str)):
