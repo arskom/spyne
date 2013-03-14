@@ -100,7 +100,7 @@ class TestUnwrap(unittest.TestCase):
         assert c == None
 
 
-def TDictDocumentTest(serializer, _DictDocumentChild):
+def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
     def _dry_me(services, d, skip_depth=0, just_ctx=False,
                                           just_in_object=False, validator=None):
         app = Application(services, 'tns',
@@ -109,7 +109,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild):
 
         server = ServerBase(app)
         initial_ctx = MethodContext(server)
-        initial_ctx.in_string = [serializer.dumps(d)]
+        initial_ctx.in_string = [serializer.dumps(d, **dumps_kwargs)]
 
         ctx, = server.generate_contexts(initial_ctx)
         if not just_ctx:
@@ -129,7 +129,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild):
 
             ctx = _dry_me([SomeService], {"some_call":[]}, skip_depth=3)
 
-            assert list(ctx.out_string) == [serializer.dumps(1),serializer.dumps(2)]
+            assert list(ctx.out_string) == [serializer.dumps(1, **dumps_kwargs), serializer.dumps(2, **dumps_kwargs)]
 
     class Test(unittest.TestCase):
         def test_multiple_return_sd_2(self):
@@ -143,7 +143,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild):
             out_strings = list(ctx.out_string)
             print out_strings
             assert out_strings == [
-                serializer.dumps(1),serializer.dumps(2)]
+                serializer.dumps(1, **dumps_kwargs), serializer.dumps(2, **dumps_kwargs)]
 
         def test_multiple_return_sd_1(self):
             class SomeService(ServiceBase):
@@ -156,7 +156,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild):
             out_strings = list(ctx.out_string)
             print out_strings
             assert out_strings == [serializer.dumps(
-                {"integer": [1, 2]})]
+                {"integer": [1, 2]}, **dumps_kwargs)]
 
         def test_multiple_return_sd_0(self):
             class SomeService(ServiceBase):
@@ -169,7 +169,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild):
             out_strings = list(ctx.out_string)
             print out_strings
             assert out_strings == [serializer.dumps(
-                {"some_callResponse": {"some_callResult": {"integer": [1, 2]}}})]
+                {"some_callResponse": {"some_callResult": {"integer": [1, 2]}}}, **dumps_kwargs)]
 
         def test_primitive_only(self):
             class SomeComplexModel(ComplexModel):
@@ -183,8 +183,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild):
 
             ctx = _dry_me([SomeService], {"some_call":[]})
 
-            assert list(ctx.out_string) == [serializer.dumps(
-                {"some_callResponse": {"some_callResult": {"i": 5, "s": "5x"}}})]
+            assert ''.join(ctx.out_string) == serializer.dumps(
+                {"some_callResponse": {"some_callResult": {"i": 5, "s": "5x"}}}, **dumps_kwargs)
 
         def test_complex(self):
             class CM(ComplexModel):
@@ -224,7 +224,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild):
             ctx = _dry_me([SomeService], {"some_call":[["a","b"]]})
 
             assert list(ctx.out_string) == [serializer.dumps(
-                        {"some_callResponse": {"some_callResult": ["a", "b"]}})]
+                        {"some_callResponse": {"some_callResult": ["a", "b"]}}, **dumps_kwargs)]
 
         def test_multiple_dict(self):
             class SomeService(ServiceBase):
@@ -235,8 +235,9 @@ def TDictDocumentTest(serializer, _DictDocumentChild):
 
             ctx = _dry_me([SomeService], {"some_call":{"s":["a","b"]}})
 
-            assert list(ctx.out_string) == [serializer.dumps(
-                        {"some_callResponse": {"some_callResult": ["a", "b"]}})]
+            assert ''.join(ctx.out_string) == serializer.dumps(
+                        {"some_callResponse": {"some_callResult": ["a", "b"]}},
+                        **dumps_kwargs)
 
         def test_multiple_dict_array(self):
             class SomeService(ServiceBase):
@@ -247,7 +248,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild):
             ctx = _dry_me([SomeService], {"some_call":{"s":["a","b"]}})
 
             assert list(ctx.out_string) == [serializer.dumps(
-                {"some_callResponse": {"some_callResult": {"string": ["a", "b"]}}})]
+                {"some_callResponse": {"some_callResult": {"string": ["a", "b"]}}}, **dumps_kwargs)]
 
         def test_multiple_dict_complex_array(self):
             class CM(ComplexModel):

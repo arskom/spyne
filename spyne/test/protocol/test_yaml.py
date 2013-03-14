@@ -34,7 +34,7 @@ import yaml
 yaml.dumps = yaml.dump
 yaml.loads = yaml.load
 
-TestJsonDocument = TDictDocumentTest(yaml, YamlDocument)
+TestYamlDocument = TDictDocumentTest(yaml, YamlDocument, YamlDocument().out_kwargs)
 
 
 class Test(unittest.TestCase):

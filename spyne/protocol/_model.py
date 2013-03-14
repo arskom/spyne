@@ -21,8 +21,11 @@ import decimal
 import datetime
 import math
 import time
+import pytz
 
 from collections import deque
+
+from pytz import FixedOffset
 
 from spyne.error import ValidationError
 from spyne.model import nillable_dict
