@@ -67,23 +67,19 @@ def nillable_element(func):
     return wrapper
 
 
-def TBaseFromElement(callable):
-    @nillable_element
-    def base_from_element(prot, cls, element):
-        if prot.validator is prot.SOFT_VALIDATION and not (
-                                            cls.validate_string(cls, element.text)):
-            raise ValidationError(element.text)
+@nillable_element
+def base_from_element(prot, cls, element):
+    if prot.validator is prot.SOFT_VALIDATION and not (
+                                        cls.validate_string(cls, element.text)):
+        raise ValidationError(element.text)
 
-        retval = callable(prot, cls, element.text)
+    retval = prot.from_string(cls, element.text)
 
-        if prot.validator is prot.SOFT_VALIDATION and not (
-                                            cls.validate_native(cls, retval)):
-            raise ValidationError(retval)
-        return retval
+    if prot.validator is prot.SOFT_VALIDATION and not (
+                                        cls.validate_native(cls, retval)):
+        raise ValidationError(retval)
+    return retval
 
-    return base_from_element
-
-base_from_element = TBaseFromElement(lambda prot, cls, s: prot.from_string(cls, s))
 
 @nillable_value
 def base_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):

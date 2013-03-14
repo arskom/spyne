@@ -43,11 +43,16 @@ from spyne.const.ansi_color import LIGHT_RED
 from spyne.const.ansi_color import END_COLOR
 from spyne.error import RequestNotAllowed
 from spyne.model.fault import Fault
+from spyne.model.primitive import Date
+from spyne.model.primitive import Time
 from spyne.model.primitive import DateTime
 from spyne.protocol.xml import XmlDocument
 from spyne.protocol.xml.model import nillable_value
-from spyne.protocol.xml.model import TBaseFromElement
 from spyne.protocol.soap.mime import collapse_swa
+
+from spyne.protocol._model import date_from_string_iso
+from spyne.protocol._model import datetime_from_string_iso
+
 
 def _from_soap(in_envelope_xml, xmlids=None):
     '''Parses the xml string into the header and payload.'''
@@ -131,14 +136,6 @@ def resolve_hrefs(element, xmlids):
     return element
 
 
-@nillable_value
-def _datetime_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
-    e = etree.SubElement(parent_elt, '{%s}%s' % (tns, name))
-    e.text = value.isoformat()
-
-_datetime_from_element = TBaseFromElement(lambda prot, cls, s: cls.default_parse(s))
-
-
 class Soap11(XmlDocument):
     """The base implementation of a subset of the Soap 1.1 standard. The
     document is available here: http://www.w3.org/TR/soap11/
@@ -160,17 +157,25 @@ class Soap11(XmlDocument):
     type = set(XmlDocument.type)
     type.update(('soap', 'soap11'))
 
+    # SOAP requires DateTime strings to be in iso format. The following
+    # lines make sure custom datetime formatting via DateTime(format="...")
+    # string is bypassed.
+    _to_string_handlers = {
+        Time: lambda cls, value: value.isoformat(),
+        DateTime: lambda cls, value: value.isoformat(),
+    }
+
+    _from_string_handlers = {
+        Date: date_from_string_iso,
+        DateTime: datetime_from_string_iso,
+    }
+
     def __init__(self, app=None, validator=None, wrapped=True,
                                 xml_declaration=True, cleanup_namespaces=True):
         XmlDocument.__init__(self, app, validator, xml_declaration,
                                                              cleanup_namespaces)
 
         self.__wrapped = wrapped
-
-        # SOAP requires DateTime strings to be in iso format. This function
-        # bypasses datetime formatting via DateTime(format="...") string.
-        self.serialization_handlers[DateTime] = _datetime_to_parent_element
-        self.deserialization_handlers[DateTime] = _datetime_from_element
 
     @property
     def wrapped(self):
