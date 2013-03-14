@@ -155,7 +155,6 @@ class HttpRpc(FlatDictDocument):
 
         if self.parse_cookie:
             cookies = ctx.in_header_doc.get('cookie', [])
-            print cookies
             for cookie_string in cookies:
                 cookie = SimpleCookie()
                 cookie.load(cookie_string)
