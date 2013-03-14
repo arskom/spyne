@@ -133,7 +133,7 @@ class Test(unittest.TestCase):
                 return '\n'.join(s)
 
         ctx = _test([SomeService], '&s=1&s=2')
-        assert ctx.out_string == ['1\n2']
+        assert ''.join(ctx.out_string) == '1\n2'
 
     def test_nested_flatten(self):
         class CM(ComplexModel):
@@ -157,7 +157,7 @@ class Test(unittest.TestCase):
         ctx = _test([SomeService], '&ccm_i=1&ccm_s=s&ccm_c_i=3&ccm_c_s=cs')
 
         print(ctx.out_string)
-        assert ctx.out_string == ["CCM(i=1, c=CM(i=3, s='cs'), s='s')"]
+        assert ''.join(ctx.out_string) == "CCM(i=1, c=CM(i=3, s='cs'), s='s')"
 
     def test_nested_flatten_with_multiple_values_1(self):
         class CM(ComplexModel):
