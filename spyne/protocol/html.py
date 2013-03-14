@@ -564,7 +564,7 @@ class _HtmlRowTable(_HtmlTableBase):
                     else:
                         subvalue = ""
                 else:
-                    subvalue = _subvalue_to_html(v, subvalue)
+                    subvalue = _subvalue_to_html(self, v, subvalue)
 
                 if self.produce_header:
                     header_text = translate(v.type, locale, k)

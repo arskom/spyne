@@ -81,10 +81,10 @@ def to_string(prot, val, cls):
                             _weekday[val.weekday()], val.day, _month[val.month],
                             val.year, val.hour, val.minute, val.second)
     elif issubclass(cls, ByteArray):
-        return cls.to_string(val, suggested_encoding=prot.default_binary_encoding)
+        return prot.to_string(val, suggested_encoding=prot.default_binary_encoding)
 
     else:
-        return cls.to_string(val)
+        return prot.to_string(val)
 
 
 class HttpRpc(FlatDictDocument):
