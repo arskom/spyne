@@ -37,6 +37,7 @@ from spyne.error import RequestNotAllowed
 
 from spyne.util.cdict import cdict
 from spyne.model import ModelBase
+from spyne.model import SimpleModel
 from spyne.model import Null
 from spyne.model.primitive import AnyXml
 from spyne.model.primitive import Unicode
@@ -71,7 +72,14 @@ _to_string_handlers = cdict({
     Boolean: boolean_to_string,
     ByteArray: byte_array_to_string,
     Attachment: attachment_to_string,
-    ComplexModelBase: complex_model_base_to_string
+    ComplexModelBase: complex_model_base_to_string,
+})
+
+_to_string_iterable_handlers = cdict({
+    ModelBase: lambda cls, value: cls.to_string_iterable(value),
+    SimpleModel: lambda cls, value: (_to_string_handlers[cls](cls, value),),
+    ByteArray: byte_array_to_string_iterable,
+    File: file_to_string_iterable,
 })
 
 _from_string_handlers = cdict({
@@ -96,8 +104,9 @@ _from_string_handlers = cdict({
 _to_dict_handlers = cdict({
     ModelBase: lambda cls, value: cls.to_dict(value),
     ComplexModelBase: complex_model_base_to_dict,
-    Fault: fault_to_dict
+    Fault: fault_to_dict,
 })
+
 
 def unwrap_messages(cls, skip_depth):
     out_type = cls
@@ -306,6 +315,11 @@ class ProtocolBase(object):
     @classmethod
     def to_string(cls, class_, value):
         handler = _to_string_handlers[class_]
+        return handler(class_, value)
+
+    @classmethod
+    def to_string_iterable(cls, class_, value):
+        handler = _to_string_iterable_handlers[class_]
         return handler(class_, value)
 
     @classmethod

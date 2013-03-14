@@ -283,14 +283,6 @@ class ModelBase(object):
         return str(value)
 
     @classmethod
-    @nillable_iterable
-    def to_string_iterable(cls, value):
-        """Returns the result of :func:`to_string` in a list. This method should
-        be overridden if this is not enough."""
-
-        return [cls.to_string(value)]
-
-    @classmethod
     @nillable_dict
     def to_dict(cls, value):
         """Returns a dict with type name as key and str(value) as value. This

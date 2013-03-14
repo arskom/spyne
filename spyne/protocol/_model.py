@@ -20,15 +20,17 @@
 import decimal
 import datetime
 import math
+
 from collections import deque
 
-from spyne.model import nillable_string
+from spyne.error import ValidationError
 from spyne.model import nillable_dict
+from spyne.model import nillable_string
+from spyne.model import nillable_iterable
 from spyne.model.binary import File
 from spyne.model.binary import Attachment
 from spyne.model.binary import binary_encoding_handlers
 from spyne.model.binary import binary_decoding_handlers
-from spyne.error import ValidationError
 from spyne.model.primitive import _time_re
 from spyne.model.primitive import _duration_re
 
@@ -53,8 +55,8 @@ __all__ = [
     'date_from_string',
     'duration_to_string', 'duration_from_string',
     'boolean_to_string', 'boolean_from_string',
-    'byte_array_to_string', 'byte_array_from_string',
-    'file_from_string',
+    'byte_array_to_string', 'byte_array_from_string', 'byte_array_to_string_iterable',
+    'file_from_string', 'file_to_string_iterable',
     'attachment_to_string', 'attachment_from_string',
     'complex_model_base_to_string', 'complex_model_base_from_string', 'complex_model_base_to_dict',
     'fault_to_dict'
@@ -333,6 +335,10 @@ def byte_array_to_string(cls, value, suggested_encoding=None):
         encoding = cls.Attributes.encoding
     return binary_encoding_handlers[encoding](value)
 
+@nillable_iterable
+def byte_array_to_string_iterable(cls, value):
+    return value
+
 
 @nillable_string
 def file_from_string(cls, value, suggested_encoding=None):
@@ -340,6 +346,25 @@ def file_from_string(cls, value, suggested_encoding=None):
     if encoding is None:
         encoding = suggested_encoding
     return File.Value(data=binary_decoding_handlers[encoding](value))
+
+@nillable_iterable
+def file_to_string_iterable(cls, value):
+    assert value.path is not None, "You need to write data to persistent " \
+                                   "storage first if you want to read it back."
+
+    if value.handle is None:
+        f = open(value.path, 'rb')
+    else:
+        f = value.handle
+        f.seek(0)
+
+    data = f.read(0x4000)
+    while len(data) > 0:
+        yield data
+        data = f.read(0x4000)
+
+    if value.handle is None:
+        f.close()
 
 
 @nillable_string
@@ -370,6 +395,7 @@ def complex_model_base_to_string(cls, value):
 @nillable_string
 def complex_model_base_from_string(cls, string):
     raise TypeError("Only primitives can be deserialized from string.")
+
 
 @nillable_dict
 def complex_model_base_to_dict(cls, value):

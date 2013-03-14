@@ -91,15 +91,6 @@ class ByteArray(SimpleModel):
         return SimpleModel.__new__(cls, **kwargs)
 
     @classmethod
-    @nillable_iterable
-    def to_string_iterable(cls, value):
-        for v in value:
-            if isinstance(v, unicode):
-                yield v.encode('utf8')
-            else:
-                yield v
-
-    @classmethod
     @nillable_string
     def to_base64(cls, value):
         return [base64.b64encode(_bytes_join(value))]
@@ -182,26 +173,6 @@ class File(SimpleModel):
             f.close()
 
             self.data = File.to_string_iterable(self)
-
-    @classmethod
-    @nillable_iterable
-    def to_string_iterable(cls, value):
-        assert value.path, "You need to write data to persistent storage first " \
-                           "if you want to read it back."
-
-        if value.handle is None:
-            f = open(value.path, 'rb')
-        else:
-            f = value.handle
-            f.seek(0)
-
-        data = f.read(0x4000)
-        while len(data) > 0:
-            yield data
-            data = f.read(0x4000)
-
-        if value.handle is None:
-            f.close()
 
     @classmethod
     @nillable_string

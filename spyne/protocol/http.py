@@ -205,11 +205,12 @@ class HttpRpc(FlatDictDocument):
 
                 else:
                     try:
-                        ctx.out_document = out_class.to_string_iterable(
+                        ctx.out_document = self.to_string_iterable(out_class,
                                                               ctx.out_object[0])
                     except (AttributeError, TypeError), e:
+                        logger.exception(e)
                         if not self.ignore_uncap:
-                            raise ValueError("HttpRpc protocol can only "
+                            raise TypeError("HttpRpc protocol can only "
                                      "serialize primitives, not %r" % out_class)
 
             elif len(out_type_info) == 0:
@@ -217,7 +218,7 @@ class HttpRpc(FlatDictDocument):
 
             else:
                 raise TypeError("HttpRpc protocol can only serialize simple "
-                                 "return types.")
+                                "return types.")
 
             # header
             if ctx.out_header is not None:
