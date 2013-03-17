@@ -44,6 +44,12 @@ the same information in different protocols.:
     http://localhost:9910/json2/get_utc_time
     http://localhost:9910/mpo/get_utc_time
     http://localhost:9910/mprpc/get_utc_time
+    http://localhost:9910/yaml/get_utc_time
+
+You need python bindings for librsvg for svg & png protocols.
+
+    apt-get install python-rsvg
+    emerge librsvg-python
 """
 
 
