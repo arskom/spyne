@@ -2,6 +2,13 @@
 Changelog
 =========
 
+spyne-2.10.1
+------------
+ * Moved ``{to,from}_string`` logic from data models to ProtocolBase,
+   this gives us the ability to have more complex fault messages
+   with other fault subelements that are namespace-qualified without
+   circular dependency problems - Stefan Andersson
+
 spyne-2.10.0
 ------------
  * You can now set Http response headers via ctx.out_object when
