@@ -75,7 +75,8 @@ def unwrap_instance(cls, inst, skip_depth):
     out_type = cls
     out_instance = inst
 
-    for _ in range(skip_depth):
+    i=0
+    for i in range(skip_depth):
         if hasattr(out_type, "_type_info") and len(out_type._type_info) == 1:
             (k, t), = out_type._type_info.items()
             if not issubclass(out_type, Array):
@@ -85,7 +86,7 @@ def unwrap_instance(cls, inst, skip_depth):
         else:
             break
 
-    return out_type, out_instance
+    return out_type, out_instance, (skip_depth - i)
 
 
 class ProtocolBaseMeta(type(object)):

@@ -30,4 +30,8 @@ def get_dict_as_object(d, cls, skip_depth=0):
     
 
 def get_object_as_dict(o, cls, wrapper_name=None, skip_depth=0):
-    return list(HierDictDocument._object_to_doc(cls, o, wrapper_name, skip_depth))[0]
+    if skip_depth == 0: # FIXME: ???
+        return list(HierDictDocument._object_to_doc(cls, o, wrapper_name, skip_depth))[0]
+    else:
+        return HierDictDocument._object_to_doc(cls, o, wrapper_name, skip_depth)
+

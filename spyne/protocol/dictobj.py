@@ -448,7 +448,7 @@ class HierDictDocument(DictDocument):
     @classmethod
     def _object_to_doc(cls, class_, value, wrapper_name=None, skip_depth=0):
         # strip the wrappers if asked for
-        class_, value = unwrap_instance(class_, value, skip_depth)
+        class_, value, skips_left = unwrap_instance(class_, value, skip_depth)
 
         # arrays get wrapped in [], whereas other objects get wrapped in
         # {wrapper_name: ...}
@@ -457,9 +457,21 @@ class HierDictDocument(DictDocument):
 
         # transform the results into a dict:
         if class_.Attributes.max_occurs > 1:
-            return (cls._to_value(class_, inst, wrapper_name) for inst in value)
+            retval = (cls._to_value(class_, inst, wrapper_name) for inst in value)
         else:
-            return [cls._to_value(class_, value, wrapper_name)]
+            retval = [cls._to_value(class_, value, wrapper_name)]
+
+        for _ in range(skips_left):
+            if isinstance(retval, dict):
+                _retval = iter(retval.values()).next()
+                if not isinstance(_retval, dict):
+                    return retval.values()
+                else:
+                    retval = _retval
+            else:
+                retval = iter(retval).next()
+
+        return retval
 
     @classmethod
     def _get_member_pairs(cls, class_, inst):
