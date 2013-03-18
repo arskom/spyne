@@ -82,11 +82,13 @@ class _Producer(object):
             self.body = body
 
         self.deferred = Deferred()
+
         self.consumer = consumer
 
     def resumeProducing(self):
         try:
             chunk = self.body.next()
+
         except StopIteration, e:
             self.consumer.unregisterProducer()
             if self.deferred is not None:
@@ -188,15 +190,12 @@ class TwistedWebResource(Resource):
 
             if p_ctx.in_error:
                 return self.handle_error(p_ctx, others, p_ctx.in_error, request)
+
             else:
                 self.http_transport.get_out_object(p_ctx)
                 if p_ctx.out_error:
                     return self.handle_error(p_ctx, others, p_ctx.out_error,
                                                                         request)
-
-        self.http_transport.get_out_string(p_ctx)
-
-        process_contexts(self.http_transport, others, p_ctx)
 
         def _cb_request_finished(request):
             request.finish()
@@ -206,9 +205,32 @@ class TwistedWebResource(Resource):
             err(request)
             p_ctx.close()
 
-        producer = _Producer(p_ctx.out_string, request)
-        producer.deferred.addErrback(_eb_request_finished).addCallback(_cb_request_finished)
-        request.registerProducer(producer, False)
+        def _cb_deferred(retval, request):
+            if len(p_ctx.descriptor.out_message._type_info) <= 1:
+                p_ctx.out_object = [retval]
+            else:
+                p_ctx.out_object = retval
+
+            self.http_transport.get_out_string(p_ctx)
+
+            process_contexts(self.http_transport, others, p_ctx)
+
+            producer = _Producer(p_ctx.out_string, request)
+            producer.deferred.addCallbacks(_cb_request_finished,
+                                                           _eb_request_finished)
+            request.registerProducer(producer, False)
+
+        def _eb_deferred(retval, request):
+            p_ctx.out_error = retval
+            return self.handle_error(p_ctx, others, p_ctx.out_error, request)
+
+        d = p_ctx.out_object[0]
+        if isinstance(d, Deferred):
+            p_ctx.out_object[0].addCallback(_cb_deferred, request)
+            p_ctx.out_object[0].addErrback(_eb_deferred, request)
+
+        else:
+            _cb_deferred(request)
 
         return NOT_DONE_YET
 

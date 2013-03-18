@@ -126,17 +126,14 @@ class Application(object):
 
             # out object is always an iterable of return values. see
             # MethodContext docstrings for more info
-            if len(ctx.descriptor.out_message._type_info) == 0:
-                ctx.out_object = [None]
-            elif len(ctx.descriptor.out_message._type_info) == 1:
-                # otherwise, the return value should already be wrapped in an
-                # iterable.
+            if len(ctx.descriptor.out_message._type_info) <= 1:
+                # the return value should already be wrapped by a sequence.
                 ctx.out_object = [ctx.out_object]
 
             # fire events
             self.event_manager.fire_event('method_return_object', ctx)
             ctx.service_class.event_manager.fire_event(
-                                                   'method_return_object', ctx)
+                                                    'method_return_object', ctx)
 
         except Fault, e:
             logger.exception(e)

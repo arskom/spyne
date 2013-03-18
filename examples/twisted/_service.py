@@ -50,7 +50,7 @@ class SomeService(ServiceBase):
         """Blocks the reactor for given number of seconds."""
         time.sleep(seconds)
 
-def initialize():
+def initialize(services=(SomeService,)):
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
@@ -58,7 +58,7 @@ def initialize():
     log.startLoggingWithObserver(observer.emit, setStdout=False)
 
 
-    application = Application([SomeService], 'spyne.examples.hello.twisted',
+    application = Application(services, 'spyne.examples.hello.twisted',
                                 in_protocol=HttpRpc(), out_protocol=XmlDocument())
 
     return application

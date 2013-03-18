@@ -4,6 +4,7 @@ Changelog
 
 spyne-2.10.0
 ------------
+ * Returning twisted's Deferred from user code is now supported.
  * You can now set Http response headers via ctx.out_object when
    out_protocol is HttpRpc. https://github.com/arskom/spyne/pull/201
  * lxml is not a hard requirement anymore.

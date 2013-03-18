@@ -66,14 +66,12 @@ def _produce_input_message(f, params, kparams, _in_message_name,
 
     in_params = TypeInfo()
     try:
-        i=0
-        for n in param_names:
+        for i, n in enumerate(param_names):
             if args is None or n in args:
                 e0 = _in_variable_names.get(n,n)
                 e1 = params[i]
 
                 in_params[e0] = e1
-                i += 1
 
     except IndexError, e:
         raise Exception("The parameter numbers of the %r function and its "
@@ -92,6 +90,7 @@ def _produce_input_message(f, params, kparams, _in_message_name,
             in_param, = in_params.values()
 
         message = ComplexModel.alias(_in_message_name, ns, in_param)
+
     else:
         message = ComplexModel.produce(type_name=_in_message_name, namespace=ns,
                                                               members=in_params)

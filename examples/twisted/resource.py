@@ -34,12 +34,16 @@ import sys
 
 from twisted.internet import reactor
 from twisted.web.server import Site
+from twisted.internet.task import deferLater
 
 
 from spyne.server.twisted import TwistedWebResource
+from spyne.decorator import srpc
+from spyne.service import ServiceBase
 
 
 from _service import initialize
+from _service import SomeService
 
 '''
 This is a blocking example running in a single-process twisted setup.
@@ -65,8 +69,20 @@ the reactor loop.
 host = '0.0.0.0'
 port = 9758
 
+
+class SomeNonBlockingService(ServiceBase):
+    @srpc(int)
+    def sleep(seconds):
+        """Waits without blocking reactor for given number of seconds by
+        returning a deferred."""
+
+        def cb():
+            return "slept for %r seconds" % seconds
+
+        return deferLater(reactor, seconds, cb)
+
 if __name__=='__main__':
-    application = initialize()
+    application = initialize([SomeService, SomeNonBlockingService])
     resource = TwistedWebResource(application)
     site = Site(resource)
 
