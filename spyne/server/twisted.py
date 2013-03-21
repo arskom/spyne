@@ -26,6 +26,7 @@ distribution.
 This module is EXPERIMENTAL. Your mileage may vary. Patches are welcome.
 """
 
+
 from __future__ import absolute_import
 
 import logging
@@ -176,7 +177,7 @@ class TwistedWebResource(Resource):
 
     def handle_rpc(self, request):
         initial_ctx = HttpMethodContext(self.http_transport, request,
-                                self.http_transport.app.out_protocol.mime_type)
+                                 self.http_transport.app.out_protocol.mime_type)
         initial_ctx.in_string = [request.content.getvalue()]
 
         contexts = self.http_transport.generate_contexts(initial_ctx)

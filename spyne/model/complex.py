@@ -19,7 +19,8 @@
 
 """The ``spyne.model.complex`` module contains
 :class:`spyne.model.complex.ComplexBase` class and its helper objects and
-subclasses. These are mainly container classes.
+subclasses. These are mainly container classes for other simple or
+complex objects -- they don't carry any data by themselves.
 """
 
 import logging
@@ -74,12 +75,12 @@ class table:
     the class instance as a row in a table in a relational database.
 
     :param multi: When False, configures a one-to-many relationship where the
-        child table has a foreign key to the parent. When != False, configures a
-        many-to-many relationship by creating an intermediate relation table
-        that has foreign keys to both parent and child classes and generates
-        a table name automatically. When True, the table name is generated
-        automatically. Otherwise, it should be a string, as the value is used as
-        the name of the intermediate table.
+        child table has a foreign key to the parent. When not ``False``,
+        configures a many-to-many relationship by creating an intermediate
+        relation table that has foreign keys to both parent and child classes
+        and generates a table name automatically. When ``True``, the table name
+        is generated automatically. Otherwise, it should be a string, as the
+        value is used as the name of the intermediate table.
     :param left: Name of the left join column.
     :param right: Name of the right join column.
     """
@@ -858,6 +859,7 @@ def TTableModel(metadata=None):
             sqla_metadata = metadata or sqlalchemy.MetaData()
 
     return TableModel
+
 
 ### You should not use this and always instantiate explicitly your own
 ### TTableModel.

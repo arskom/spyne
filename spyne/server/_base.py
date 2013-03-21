@@ -31,13 +31,13 @@ class ServerBase(object):
     implementations. Unlike the client transports, this class does not define
     a pure-virtual method that needs to be implemented by all base classes.
 
-    If there is a call to start the main loop, it's conventionally called
-    ``serve_forever()``.
+    If there needs to be a call to start the main loop, it's called
+    ``serve_forever()`` by convention.
     """
 
     transport = None
-    """The transport type, conventionally defined by the URI string to its
-    definition."""
+    """The transport type, which is a URI string to its definition by
+    convention."""
 
     def __init__(self, app):
         self.app = app
@@ -73,13 +73,13 @@ class ServerBase(object):
         return retval
 
     def get_in_object(self, ctx):
-        """Uses the ctx.in_string to set ctx.in_body_doc, which in turn is used
-        to set ctx.in_object."""
+        """Uses the ``ctx.in_string`` to set ``ctx.in_body_doc``, which in turn
+        is used to set ``ctx.in_object``."""
 
         try:
             # sets ctx.in_object and ctx.in_header
             self.app.in_protocol.deserialize(ctx,
-                                        message=self.app.in_protocol.REQUEST)
+                                           message=self.app.in_protocol.REQUEST)
 
         except Fault, e:
             logger.exception(e)
@@ -89,8 +89,8 @@ class ServerBase(object):
             ctx.out_error = e
 
     def get_out_object(self, ctx):
-        """Calls the matched method using the ctx.in_object to get
-        ctx.out_object."""
+        """Calls the matched method using the ``ctx.in_object`` to get
+        ``ctx.out_object``."""
 
         if ctx.in_error is None:
             # event firing is done in the spyne.application.Application
@@ -99,9 +99,11 @@ class ServerBase(object):
             raise ctx.in_error
 
     def get_out_string(self, ctx):
-        """Uses the ctx.out_object to set ctx.out_document and later
-        ctx.out_object."""
+        """Uses the ``ctx.out_object`` to set ``ctx.out_document`` and later
+        ``ctx.out_string``."""
 
+        # This means the user wanted to override the way Spyne generates the
+        # outgoing byte stream. So we leave it alone.
         if ctx.out_string is not None:
             return
 
