@@ -205,10 +205,11 @@ class ServiceBase(object):
         elif ctx.descriptor.body_style is BODY_STYLE_EMPTY:
             ctx.in_object = []
 
-        if ctx.descriptor.no_ctx:
-            return ctx.function(*ctx.in_object)
-        else:
-            return ctx.function(ctx, *ctx.in_object)
+        if ctx.function is not None:
+            if ctx.descriptor.no_ctx:
+                return ctx.function(*ctx.in_object)
+            else:
+                return ctx.function(ctx, *ctx.in_object)
 
     @classmethod
     def get_method_id(cls, descriptor):
