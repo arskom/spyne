@@ -235,7 +235,9 @@ class TwistedWebResource(Resource):
 
         elif isinstance(ret, PushBase):
             gen = self.http_transport.get_out_string(p_ctx)
-            assert isgenerator(gen)
+
+            assert isgenerator(gen), "It looks like this protocol is not " \
+                                     "async-compliant yet."
 
             def _cb_push():
                 process_contexts(self.http_transport, others, p_ctx)
@@ -276,7 +278,6 @@ class TwistedWebResource(Resource):
                         request.setHeader(k,v2)
                 else:
                     request.setHeader(k,v)
-
 
             return ctx.transport.wsdl
 
