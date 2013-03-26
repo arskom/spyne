@@ -89,8 +89,8 @@ class ServerBase(object):
             ctx.out_error = e
 
     def get_out_object(self, ctx):
-        """Calls the matched method using the ``ctx.in_object`` to get
-        ``ctx.out_object``."""
+        """Calls the matched user function by passing it the ``ctx.in_object``
+        to set ``ctx.out_object``."""
 
         if ctx.in_error is None:
             # event firing is done in the spyne.application.Application

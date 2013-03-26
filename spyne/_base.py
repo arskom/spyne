@@ -215,7 +215,12 @@ class MethodContext(object):
 
         # stream
         self.out_string = None
-        """Outgoing bytestream (i.e. a sequence of strings)"""
+        """The pull interface to the outgoing bytestream. It's a sequence of
+        strings (which could also be a generator)."""
+
+        #self.out_stream = None
+        #"""The push interface to the outgoing bytestream. It's a file-like
+        #object."""
 
         self.function = None
         """The callable of the user code."""

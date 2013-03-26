@@ -81,6 +81,25 @@ class SomeNonBlockingService(ServiceBase):
 
         return deferLater(reactor, seconds, _cb)
 
+    @srpc(str, int, int, _returns=Iterable(str))
+    def say_hello_with_sleep(name, times, seconds):
+        """Waits without blocking reactor for given number of seconds by
+        returning a deferred."""
+
+        times = [times] # Workaround for Python 2.7's lacking of nonlocal
+        def _cb(response):
+            if times[0] > 0:
+                response.append(
+                    "Hello %s, sleeping for %d seconds for %d more time(s)."
+                                                   % (name, seconds, times[0]))
+                times[0] -= 1
+                return deferLater(reactor, seconds, _cb, response)
+
+            else:
+                response.close()
+
+        return Iterable.Push(_cb)
+
 
 if __name__=='__main__':
     application = initialize([SomeService, SomeNonBlockingService])
