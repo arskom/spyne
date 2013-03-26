@@ -344,13 +344,22 @@ class ComplexModelMeta(type(ModelBase)):
     def __init__(self, cls_name, cls_bases, cls_dict):
         type_info = cls_dict['_type_info']
         for k,v in type_info.items():
-
             if issubclass(v, SelfReference):
                 type_info[k] = self
+
             if issubclass(v, XmlAttribute):
                 a_of = v.attribute_of
                 if a_of is not None:
                     type_info.attributes[k] = type_info[a_of]
+
+            if issubclass(v, Array):
+                v2, = v._type_info.values()
+                while issubclass(v2, Array):
+                    v = v2
+                    v2, = v2._type_info.values()
+
+                if issubclass(v2, SelfReference):
+                    v._set_serializer(self)
 
         tn = self.Attributes.table_name
         meta = self.Attributes.sqla_metadata
@@ -703,6 +712,17 @@ class Array(ComplexModelBase):
         if serializer is None:
             raise ValueError(serializer)
 
+        if issubclass(serializer, SelfReference):
+             # hack to make sure the array passes ComplexModel sanity checks
+             # that are there to prevent empty arrays. 
+            retval._type_info = {'_bogus': serializer}
+        else:
+            retval._set_serializer(serializer)
+
+        return retval
+
+    @classmethod
+    def _set_serializer(cls, serializer):
         # hack to default to unbounded arrays when the user didn't specify
         # max_occurs. We should find a better way.
         if serializer.Attributes.max_occurs == 1:
@@ -710,18 +730,16 @@ class Array(ComplexModelBase):
 
         if serializer.get_type_name() is ModelBase.Empty:
             member_name = serializer.__base_type__.get_type_name()
-            if retval.__type_name__ == cls.__type_name__:
-                retval.__type_name__ = ModelBase.Empty # to be resolved later
+            if cls.__type_name__ == cls.__type_name__:
+                cls.__type_name__ = ModelBase.Empty # to be resolved later
 
         else:
             member_name = serializer.get_type_name()
-            if retval.__type_name__ == cls.__type_name__:
-                retval.__type_name__ = '%s%s%s' % (ARRAY_PREFIX, member_name,
+            if cls.__type_name__ == cls.__type_name__:
+                cls.__type_name__ = '%s%s%s' % (ARRAY_PREFIX, member_name,
                                                                    ARRAY_SUFFIX)
 
-        retval._type_info = {member_name: serializer}
-
-        return retval
+        cls._type_info = {member_name: serializer}
 
     # the array belongs to its child's namespace, it doesn't have its own
     # namespace.
