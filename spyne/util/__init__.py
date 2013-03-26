@@ -112,6 +112,9 @@ class memoize(object):
 
 
 class memoize_id(memoize):
+    """A memoization decorator that keeps caching until reset for unhashable
+    types. It works on id()'s of objects instead."""
+
     def get_key(self, args, kwargs):
         return tuple([id(a) for a in args]), \
                                    tuple([ (k,id(v)) for k,v in kwargs.items()])

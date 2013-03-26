@@ -50,6 +50,8 @@ class TransportContext(object):
         self.type = type
         """The protocol the transport uses."""
 
+        self.app = transport.app
+
 
 class ProtocolContext(object):
     """Generic object that holds transport-specific context information"""

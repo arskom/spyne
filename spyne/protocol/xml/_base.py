@@ -60,16 +60,16 @@ from spyne.protocol.xml.model import xml_to_parent_element
 from spyne.protocol.xml.model import html_to_parent_element
 from spyne.protocol.xml.model import dict_to_parent_element
 
-from spyne.protocol.xml.model import alias_from_element
 from spyne.protocol.xml.model import base_from_element
 from spyne.protocol.xml.model import binary_from_element
-from spyne.protocol.xml.model import array_from_element
-from spyne.protocol.xml.model import iterable_from_element
+from spyne.protocol.xml.model import alias_from_element
 from spyne.protocol.xml.model import complex_from_element
 from spyne.protocol.xml.model import enum_from_element
 from spyne.protocol.xml.model import fault_from_element
-from spyne.protocol.xml.model import dict_from_element
 from spyne.protocol.xml.model import xml_from_element
+from spyne.protocol.xml.model import array_from_element
+from spyne.protocol.xml.model import iterable_from_element
+from spyne.protocol.xml.model import dict_from_element
 from spyne.protocol.xml.model import unicode_from_element
 
 
@@ -143,7 +143,6 @@ class XmlDocument(ProtocolBase):
 
         self.log_messages = (logger.level == logging.DEBUG)
         self.parser = etree.XMLParser(remove_comments=True)
-
 
     def set_validator(self, validator):
         if validator in ('lxml', 'schema') or \

@@ -225,10 +225,10 @@ class TwistedWebResource(Resource):
             p_ctx.out_error = retval
             return self.handle_error(p_ctx, others, p_ctx.out_error, request)
 
-        d = p_ctx.out_object[0]
-        if isinstance(d, Deferred):
-            p_ctx.out_object[0].addCallback(_cb_deferred, request)
-            p_ctx.out_object[0].addErrback(_eb_deferred, request)
+        ret = p_ctx.out_object[0]
+        if isinstance(ret, Deferred):
+            ret.addCallback(_cb_deferred, request)
+            ret.addErrback(_eb_deferred, request)
 
         else:
             _cb_deferred(request)
