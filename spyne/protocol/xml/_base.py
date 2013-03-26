@@ -27,6 +27,8 @@ logger = logging.getLogger('spyne.protocol.xml')
 from lxml import etree
 from lxml.etree import XMLSyntaxError
 
+from spyne import BODY_STYLE_WRAPPED
+
 from spyne.util import _bytes_join
 
 from spyne.const.ansi_color import LIGHT_GREEN
@@ -167,7 +169,7 @@ class XmlDocument(ProtocolBase):
 
     def to_parent_element(self, cls, value, tns, parent_elt, *args, **kwargs):
         handler = self.serialization_handlers[cls]
-        handler(self, cls, value, tns, parent_elt, *args, **kwargs)
+        return handler(self, cls, value, tns, parent_elt, *args, **kwargs)
 
     def validate_body(self, ctx, message):
         """Sets ctx.method_request_string and calls :func:`generate_contexts`
@@ -281,30 +283,31 @@ class XmlDocument(ProtocolBase):
         if ctx.out_error is not None:
             # FIXME: There's no way to alter soap response headers for the user.
             tmp_elt = etree.Element('punk')
-            self.to_parent_element(ctx.out_error.__class__, ctx.out_error,
+            retval = self.to_parent_element(ctx.out_error.__class__, ctx.out_error,
                                     self.app.interface.get_tns(), tmp_elt)
 
             ctx.out_document = tmp_elt[0]
 
         else:
-            # instantiate the result message
             if message is self.REQUEST:
                 result_message_class = ctx.descriptor.in_message
             elif message is self.RESPONSE:
                 result_message_class = ctx.descriptor.out_message
 
-            result_message = result_message_class()
-
             # assign raw result to its wrapper, result_message
-            out_type_info = result_message_class._type_info
+            if ctx.descriptor.body_style == BODY_STYLE_WRAPPED:
+                result_message = result_message_class()
 
-            for i in range(len(out_type_info)):
-                attr_name = result_message_class._type_info.keys()[i]
-                setattr(result_message, attr_name, ctx.out_object[i])
+                for i, attr_name in enumerate(
+                                        result_message_class._type_info.keys()):
+                    setattr(result_message, attr_name, ctx.out_object[i])
+
+            else:
+                result_message = ctx.out_object
 
             # transform the results into an element
             tmp_elt = etree.Element('punk')
-            self.to_parent_element(result_message_class,
+            retval = self.to_parent_element(result_message_class,
                         result_message, self.app.interface.get_tns(), tmp_elt)
             ctx.out_document = tmp_elt[0]
 
@@ -312,6 +315,8 @@ class XmlDocument(ProtocolBase):
             etree.cleanup_namespaces(ctx.out_document)
 
         self.event_manager.fire_event('after_serialize', ctx)
+
+        return retval
 
     def set_app(self, value):
         ProtocolBase.set_app(self, value)

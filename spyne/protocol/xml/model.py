@@ -29,7 +29,10 @@ from spyne.const.xml_ns import xsi as _ns_xsi
 from spyne.const.xml_ns import soap_env as _ns_soap_env
 from spyne.error import Fault
 from spyne.error import ValidationError
+from spyne.model import PushBase
 from spyne.model.complex import XmlAttribute
+from spyne.util import coroutine
+from spyne.util import Break
 from spyne.util.etreeconv import etree_to_dict
 from spyne.util.etreeconv import dict_to_etree
 
@@ -44,13 +47,13 @@ def nillable_value(func):
     def wrapper(prot, cls, value, tns, parent_elt, *args, **kwargs):
         if value is None:
             if cls.Attributes.default is None:
-                null_to_parent_element(prot, cls, value, tns, parent_elt,
+                return null_to_parent_element(prot, cls, value, tns, parent_elt,
                                                                 *args, **kwargs)
             else:
-                func(prot, cls, cls.Attributes.default, tns, parent_elt,
+                return func(prot, cls, cls.Attributes.default, tns, parent_elt,
                                                                 *args, **kwargs)
         else:
-            func(prot, cls, value, tns, parent_elt, *args, **kwargs)
+            return func(prot, cls, value, tns, parent_elt, *args, **kwargs)
     return wrapper
 
 
@@ -129,43 +132,73 @@ def binary_from_element(prot, cls, element):
     return cls.from_base64([element.text])
 
 
+@coroutine
 def get_members_etree(prot, cls, inst, parent):
     delay = set()
     parent_cls = getattr(cls, '__extends__', None)
-    if not (parent_cls is None):
-        get_members_etree(prot, parent_cls, inst, parent)
 
-    for k, v in cls._type_info.items():
-        try:
-            subvalue = getattr(inst, k, None)
-        except: # to guard against sqlalchemy throwing NoSuchColumnError
-            subvalue = None
+    try:
+        if not (parent_cls is None):
+            ret = get_members_etree(prot, parent_cls, inst, parent)
+            if ret is not None:
+                while True:
+                    sv2 = (yield)
+                    ret.send(sv2)
 
-        # This is a tight loop, so enable this only when necessary.
-        # logger.debug("get %r(%r) from %r: %r" % (k, v, inst, subvalue))
+        for k, v in cls._type_info.items():
+            try:
+                subvalue = getattr(inst, k, None)
+            except: # to guard against sqlalchemy throwing NoSuchColumnError
+                subvalue = None
 
-        if issubclass(v, XmlAttribute):
-            a_of = v.attribute_of
-            if a_of is not None and a_of in cls._type_info.keys():
-                delay.add(k)
-            else:
-                v.marshall(prot, k, subvalue, parent)
-            continue
+            # This is a tight loop, so enable this only when necessary.
+            # logger.debug("get %r(%r) from %r: %r" % (k, v, inst, subvalue))
 
-        mo = v.Attributes.max_occurs
-        if subvalue is not None and mo > 1:
-            for sv in subvalue:
-                prot.to_parent_element(v, sv, cls.get_namespace(), parent, k)
+            if issubclass(v, XmlAttribute):
+                a_of = v.attribute_of
+                if a_of is not None and a_of in cls._type_info.keys():
+                    delay.add(k)
+                else:
+                    v.marshall(prot, k, subvalue, parent)
+                continue
 
-        # Don't include empty values for non-nillable optional attributes.
-        elif subvalue is not None or v.Attributes.min_occurs > 0:
-            prot.to_parent_element(v, subvalue, cls.get_namespace(), parent, k)
+            mo = v.Attributes.max_occurs
+            if subvalue is not None and mo > 1:
+                if isinstance(subvalue, PushBase):
+                    while True:
+                        sv = (yield)
+                        ret = prot.to_parent_element(v, sv,
+                                            cls.get_namespace(), parent, k)
+                        if ret is not None:
+                            while True:
+                                sv2 = (yield)
+                                ret.send(sv2)
+
+                else:
+                    for sv in subvalue:
+                        ret = prot.to_parent_element(v, sv,
+                                                cls.get_namespace(), parent, k)
+                        if ret is not None:
+                            while True:
+                                sv2 = (yield)
+                                ret.send(sv2)
+
+            # Don't include empty values for non-nillable optional attributes.
+            elif subvalue is not None or v.Attributes.min_occurs > 0:
+                ret = prot.to_parent_element(v, subvalue,
+                                                cls.get_namespace(), parent, k)
+                if ret is not None:
+                    while True:
+                        sv2 = (yield)
+                        ret.send(sv2)
+    except Break:
+        pass
 
     for k in delay:
         v = cls._type_info[k]
         subvalue = getattr(inst, k, None)
         a_of = v.attribute_of
-        attr_parents = parent.findall("{%s}%s"%(cls.__namespace__,a_of))
+        attr_parents = parent.findall("{%s}%s" % (cls.__namespace__, a_of))
         for attr_parent in attr_parents:
             v.marshall(prot, k, subvalue, attr_parent)
 
@@ -176,7 +209,7 @@ def complex_to_parent_element(prot, cls, value, tns, parent_elt, name=None):
         name = cls.get_type_name()
     element = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
     inst = cls.get_serialization_instance(value)
-    get_members_etree(prot, cls, inst, element)
+    return get_members_etree(prot, cls, inst, element)
 
 
 @nillable_value
