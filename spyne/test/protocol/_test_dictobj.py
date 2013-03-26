@@ -156,7 +156,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
             out_strings = list(ctx.out_string)
             print out_strings
             assert out_strings == [serializer.dumps(
-                {"integer": [1, 2]}, **dumps_kwargs)]
+                [1, 2], **dumps_kwargs)]
 
         def test_multiple_return_sd_0(self):
             class SomeService(ServiceBase):
