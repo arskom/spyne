@@ -55,11 +55,11 @@ def nillable_string(func):
 def nillable_iterable(func):
     """Decorator that retuns [] if input is None."""
 
-    def wrapper(cls, string):
+    def wrapper(prot, cls, string):
         if string is None:
             return []
         else:
-            return func(cls, string)
+            return func(prot, cls, string)
     return wrapper
 
 

@@ -459,17 +459,20 @@ class HierDictDocument(DictDocument):
         if class_.Attributes.max_occurs > 1:
             retval = (cls._to_value(class_, inst, wrapper_name) for inst in value)
         else:
-            retval = [cls._to_value(class_, value, wrapper_name)]
+            retval = cls._to_value(class_, value, wrapper_name)
 
-        for _ in range(skips_left):
-            if isinstance(retval, dict):
-                _retval = iter(retval.values()).next()
-                if not isinstance(_retval, dict):
-                    return retval.values()
+            for _ in range(skips_left):
+                if isinstance(retval, dict):
+                    _retval = iter(retval.values()).next()
+                    if not isinstance(_retval, dict):
+                        return retval.values()
+                    else:
+                        retval = _retval
                 else:
-                    retval = _retval
-            else:
-                retval = iter(retval).next()
+                    retval = iter(retval).next()
+
+            if not isinstance(retval, (list,tuple)):
+                retval = retval,
 
         return retval
 

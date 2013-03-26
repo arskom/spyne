@@ -470,7 +470,8 @@ class TestSelfRefence(unittest.TestCase):
         parent = Category()
         parent.children = [Category(id=1), Category(id=2)]
 
-        assert Category._type_info['children']._type_info.values()[0] is Category
+        sr, = Category._type_info['children']._type_info.values()
+        assert issubclass(sr, Category)
 
     def test_array_type_name(self):
         assert Array(String, type_name='punk').__type_name__ == 'punk'
