@@ -25,7 +25,12 @@ transport. It's a thin wrapper around
 from __future__ import absolute_import
 
 from django.http import HttpResponse
-from django.http import StreamingHttpResponse
+
+try:
+    from django.http import StreamingHttpResponse
+except ImportError, e:
+    def StreamingHttpResponse(*args, **kwargs):
+        raise e
 
 from spyne.server.wsgi import WsgiApplication
 
@@ -59,7 +64,9 @@ class DjangoApplication(WsgiApplication):
 
 
 class StreamingDjangoApplication(DjangoApplication):
-    """You should use this when you're generating HUGE data as response."""
+    """You should use this when you're generating HUGE data as response.
+    This is new in Django 1.5.
+    """
 
     HttpResponseObject = StreamingHttpResponse
 
