@@ -73,7 +73,7 @@ of Spyne:
 * `Twisted <http://twistedmatrix.com/>`_ is needed for
   ``spyne.server.twisted.TwistedWebResource`` and
   ``spyne.client.twisted.TwistedHttpClient``.
-* `Django <http://djangoproject.com/>`_ is needed for
+* `Django>=1.3 <http://djangoproject.com/>`_> is needed for
   ``spyne.server.django.DjangoApplication``.
 * `Pyramid <http://pylonsproject.org/>`_ is needed for
   ``spyne.server.pyramid.PyramidApplication``.
