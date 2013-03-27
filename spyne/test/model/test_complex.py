@@ -40,7 +40,7 @@ from spyne.model.primitive import Float
 from spyne.model.primitive import Integer
 from spyne.model.primitive import String
 
-from spyne.protocol.dictobj import FlatDictDocument
+from spyne.protocol.dictdoc import FlatDictDocument
 from spyne.protocol.xml import XmlDocument
 
 from spyne.test import FakeApp
@@ -438,7 +438,7 @@ class TestSelfRefence(unittest.TestCase):
                             out_protocol=ProtocolBase())
 
     def test_self_referential_array_workaround(self):
-        from spyne.util.dictobj import get_object_as_dict
+        from spyne.util.dictdoc import get_object_as_dict
         from pprint import pprint
         class Category(ComplexModel):
             id = Integer(min_occurs=1, max_occurs=1, nillable=False)

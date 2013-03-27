@@ -24,7 +24,7 @@ except ImportError:
     import json
 
 
-from spyne.test.protocol._test_dictobj import TDictDocumentTest
+from spyne.test.protocol._test_dictdoc import TDictDocumentTest
 from spyne.protocol.json import JsonDocument
 
 from spyne import MethodContext

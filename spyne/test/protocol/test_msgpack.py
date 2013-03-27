@@ -35,7 +35,7 @@ from spyne.protocol.msgpack import MessagePackDocument
 from spyne.protocol.msgpack import MessagePackRpc
 from spyne.server import ServerBase
 from spyne.server.wsgi import WsgiApplication
-from spyne.test.protocol._test_dictobj import TDictDocumentTest
+from spyne.test.protocol._test_dictdoc import TDictDocumentTest
 
 TestMessagePackDocument = TDictDocumentTest(msgpack, MessagePackDocument)
 from spyne.test.test_service import start_response

@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""The ``spyne.protocol.dictobj`` module contains an abstract
+"""The ``spyne.protocol.dictdoc`` module contains an abstract
 protocol that deals with hierarchical and flat dicts as {in,out}_documents.
 """
 

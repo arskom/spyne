@@ -19,7 +19,7 @@
 
 
 from spyne.model.complex import Array
-from spyne.protocol.dictobj import HierDictDocument
+from spyne.protocol.dictdoc import HierDictDocument
 
 
 def get_dict_as_object(d, cls, skip_depth=0):

@@ -91,8 +91,8 @@ from spyne.model.primitive import UnsignedInteger64
 from spyne.util import sanitize_args
 from spyne.util.xml import get_object_as_xml
 from spyne.util.xml import get_xml_as_object
-from spyne.util.dictobj import get_dict_as_object
-from spyne.util.dictobj import get_object_as_dict
+from spyne.util.dictdoc import get_dict_as_object
+from spyne.util.dictdoc import get_object_as_dict
 
 
 # Inheritance type constants.

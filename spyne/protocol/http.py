@@ -32,7 +32,7 @@ from Cookie import SimpleCookie
 
 from spyne.model.binary import ByteArray
 from spyne.model.primitive import DateTime
-from spyne.protocol.dictobj import FlatDictDocument
+from spyne.protocol.dictdoc import FlatDictDocument
 
 try:
     from cStringIO import StringIO

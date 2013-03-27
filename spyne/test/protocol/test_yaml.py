@@ -21,7 +21,7 @@ import unittest
 import yaml
 
 
-from spyne.test.protocol._test_dictobj import TDictDocumentTest
+from spyne.test.protocol._test_dictdoc import TDictDocumentTest
 from spyne.protocol.yaml import YamlDocument
 
 from spyne import MethodContext

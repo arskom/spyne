@@ -32,7 +32,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from spyne.model.fault import Fault
-from spyne.protocol.dictobj import HierDictDocument
+from spyne.protocol.dictdoc import HierDictDocument
 
 import yaml
 
