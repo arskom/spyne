@@ -36,7 +36,7 @@ class DjangoApplication(WsgiApplication):
     HttpResponseObject = HttpResponse
 
     def __call__(self, request):
-        retval = self.HttpResponse
+        retval = self.HttpResponseObject()
 
         def start_response(status, headers):
             status, reason = status.split(' ', 1)
@@ -50,7 +50,7 @@ class DjangoApplication(WsgiApplication):
         environ['wsgi.multithread'] = False
 
         response = WsgiApplication.__call__(self, environ, start_response)
-        self.set_response(self, retval, response)
+        self.set_response(retval, response)
 
         return retval
 
@@ -62,5 +62,6 @@ class StreamingDjangoApplication(DjangoApplication):
     """You should use this when you're generating HUGE data as response."""
 
     HttpResponseObject = StreamingHttpResponse
+
     def set_response(self, retval, response):
         retval.streaming_content = response
