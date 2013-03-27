@@ -34,6 +34,7 @@ from django.http import HttpResponse
 from spyne.server.wsgi import WsgiApplication
 
 class DjangoApplication(WsgiApplication):
+    """You should use this for regular RPC."""
     def __call__(self, request):
         retval = HttpResponse()
 
