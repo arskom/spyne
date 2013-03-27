@@ -82,7 +82,7 @@ def main():
 
     logging.info("listening to http://%s:%d" % (host, port))
 
-    server.serve_forever()
+    return server.serve_forever()
 
 
 if __name__ == '__main__':
