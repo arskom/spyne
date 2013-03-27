@@ -24,19 +24,18 @@ transport. It's a thin wrapper around
 
 from __future__ import absolute_import
 
+from django import VERSION as django_version
+
+django_version_gte_1_3 = django_version[0] >=1 and django_version[1] >=3 # Django 1.3 or higher
+django_version_gte_1_5 = django_version[0] >=1 and django_version[1] >=5 # Django 1.5 or higher
+
 from django.http import HttpResponse
-from django.http import StreamingHttpResponse
 
 from spyne.server.wsgi import WsgiApplication
 
-
 class DjangoApplication(WsgiApplication):
-    """You should use this for regular RPC."""
-
-    HttpResponseObject = HttpResponse
-
     def __call__(self, request):
-        retval = self.HttpResponse
+        retval = HttpResponse()
 
         def start_response(status, headers):
             status, reason = status.split(' ', 1)
@@ -46,21 +45,25 @@ class DjangoApplication(WsgiApplication):
                 retval[header] = value
 
         environ = request.META.copy()
-        environ['wsgi.input'] = request
+        if django_version_gte_1_3:
+            environ['wsgi.input'] = request
         environ['wsgi.multithread'] = False
 
         response = WsgiApplication.__call__(self, environ, start_response)
-        self.set_response(self, retval, response)
+        self.set_response(retval, response)
 
         return retval
 
     def set_response(self, retval, response):
         retval.content = ''.join(response)
 
+if django_version_gte_1_5:
+    # StreamingHttpResponse was new in Django 1.5
+    from django.http import StreamingHttpResponse
 
-class StreamingDjangoApplication(DjangoApplication):
-    """You should use this when you're generating HUGE data as response."""
+    class StreamingDjangoApplication(DjangoApplication):
+        """You should use this when you're generating HUGE data as response."""
 
-    HttpResponseObject = StreamingHttpResponse
-    def set_response(self, retval, response):
-        retval.streaming_content = response
+        HttpResponseObject = StreamingHttpResponse
+        def set_response(self, retval, response):
+            retval.streaming_content = response
