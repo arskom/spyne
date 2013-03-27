@@ -51,8 +51,13 @@ class DjangoApplication(WsgiApplication):
                 retval[header] = value
 
         environ = request.META.copy()
-        environ['wsgi.input'] = request
-        environ['wsgi.multithread'] = False
+
+        # FIXME: No idea what these two did.
+        #        They were commented out to fix compatibility issues with
+        #        Django-1.2.x
+        # See http://github.com/arskom/spyne/issues/222.
+        #environ['wsgi.input'] = request
+        #environ['wsgi.multithread'] = False
 
         response = WsgiApplication.__call__(self, environ, start_response)
         self.set_response(retval, response)
