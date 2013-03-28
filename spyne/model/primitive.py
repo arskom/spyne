@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+
 """
 The ``spyne.model.primitive`` package contains types with values that fit
 in a single field.
@@ -29,7 +30,6 @@ if sys.version > '3':
 
 import re
 import math
-import time
 import pytz
 import uuid
 import decimal
@@ -37,10 +37,6 @@ import datetime
 import platform
 
 import spyne.const.xml_ns
-
-from collections import deque
-
-from pytz import FixedOffset
 
 from spyne.model import SimpleModel
 from spyne.util import memoize

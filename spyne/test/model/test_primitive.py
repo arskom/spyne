@@ -51,8 +51,10 @@ from spyne.model.primitive import UnsignedInteger64
 from spyne.model.primitive import UnsignedInteger32
 from spyne.model.primitive import UnsignedInteger16
 from spyne.model.primitive import UnsignedInteger8
+
 from spyne.protocol import ProtocolBase
 from spyne.protocol.xml import XmlDocument
+from spyne.protocol.soap import Soap11
 
 from spyne.application import Application
 from spyne.decorator import srpc
@@ -60,6 +62,7 @@ from spyne.service import ServiceBase
 from spyne.interface.xml_schema import XmlSchema
 
 ns_test = 'test_namespace'
+
 
 class TestPrimitive(unittest.TestCase):
     def test_invalid_name(self):
@@ -104,9 +107,32 @@ class TestPrimitive(unittest.TestCase):
         XmlDocument().to_parent_element(DateTime(format=format), n, ns_test, element)
         element = element[0]
 
-        self.assertEquals(element.text, datetime.datetime.strftime(n, format))
+        assert element.text == datetime.datetime.strftime(n, format)
         dt = XmlDocument().from_element(DateTime(format=format), element)
-        self.assertEquals(n, dt)
+        assert n == dt
+
+    def test_datetime_fixed_format(self):
+        # Soap should ignore formats
+        n = datetime.datetime.now().replace(microsecond=0)
+        format = "%Y %m %d %H %M %S"
+
+        element = etree.Element('test')
+        Soap11().to_parent_element(DateTime(format=format), n, ns_test, element)
+        assert element[0].text == n.isoformat()
+
+        dt = Soap11().from_element(DateTime(format=format), element[0])
+        assert n == dt
+
+    def test_date_format(self):
+        t = datetime.date.today()
+        format = "%Y %m %d"
+
+        element = etree.Element('test')
+        XmlDocument().to_parent_element(Date(format=format), t, ns_test, element)
+        assert element[0].text == datetime.date.strftime(t, format)
+
+        dt = XmlDocument().from_element(Date(format=format), element[0])
+        assert t == dt
 
     def test_datetime_timezone(self):
         import pytz

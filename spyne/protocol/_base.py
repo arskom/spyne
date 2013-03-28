@@ -93,6 +93,7 @@ class ProtocolBaseMeta(type(object)):
     def __new__(cls, cls_name, cls_bases, cls_dict):
         for dkey in ("_to_string_handlers", "_to_string_iterable_handlers",
                                  "_from_string_handlers", '_to_dict_handlers'):
+
             d = cdict()
             for b in cls_bases:
                 d_base = getattr(b, dkey, cdict())

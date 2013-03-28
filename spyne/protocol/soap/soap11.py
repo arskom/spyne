@@ -47,7 +47,6 @@ from spyne.model.primitive import Date
 from spyne.model.primitive import Time
 from spyne.model.primitive import DateTime
 from spyne.protocol.xml import XmlDocument
-from spyne.protocol.xml.model import nillable_value
 from spyne.protocol.soap.mime import collapse_swa
 
 from spyne.protocol._model import date_from_string_iso

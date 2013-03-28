@@ -304,6 +304,7 @@ class XmlDocument(ProtocolBase):
 
             # transform the results into an element
             tmp_elt = etree.Element('punk')
+
             self.to_parent_element(result_message_class,
                         result_message, self.app.interface.get_tns(), tmp_elt)
             ctx.out_document = tmp_elt[0]
