@@ -776,10 +776,16 @@ class Iterable(Array):
     has the same name as the serialized class. It's contained in a Python
     iterable. The distinction with the ``Array`` is made in the protocol
     implementation, this is just a marker.
+
+    Whenever you return a generator instead of a list, you should use this type
+    as this suggests the intermediate machinery to NEVER actually try to iterate
+    over the value. An ``Array`` could be iterated over for e.g. logging
+    purposes.
     """
 
     class Attributes(Array.Attributes):
         logged = False
+
 
 class Alias(ComplexModelBase):
     """Different type_name, same _type_info."""

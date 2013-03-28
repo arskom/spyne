@@ -825,3 +825,5 @@ else:
         NATIVE_MAP[int] = Integer32
     else: # not 32-bit (so most probably 64-bit) architecture
         NATIVE_MAP[int] = Integer64
+
+assert Mandatory.Long == Mandatory.Integer64
