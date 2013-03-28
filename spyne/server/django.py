@@ -44,6 +44,7 @@ class DjangoApplication(WsgiApplication):
         retval = self.HttpResponseObject()
 
         def start_response(status, headers):
+            # Status is one of spyne.const.http
             status, reason = status.split(' ', 1)
 
             retval.status_code = int(status)

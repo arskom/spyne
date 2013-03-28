@@ -17,10 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""The ``spyne.const.http module contains the Http status codes."""
+"""The ``spyne.const.http module contains the Http response status codes."""
 
 HTTP_200 = '200 OK'
-HTTP_201 = "201 Created"
+HTTP_201 = '201 Created'
 HTTP_202 = '202 Accepted'
 HTTP_203 = '203 Non-Authoritative Information' # (since HTTP/1.1)
 HTTP_204 = '204 No Content'
