@@ -111,18 +111,6 @@ class TestPrimitive(unittest.TestCase):
         dt = XmlDocument().from_element(DateTime(format=format), element)
         assert n == dt
 
-    def test_datetime_fixed_format(self):
-        # Soap should ignore formats
-        n = datetime.datetime.now().replace(microsecond=0)
-        format = "%Y %m %d %H %M %S"
-
-        element = etree.Element('test')
-        Soap11().to_parent_element(DateTime(format=format), n, ns_test, element)
-        assert element[0].text == n.isoformat()
-
-        dt = Soap11().from_element(DateTime(format=format), element[0])
-        assert n == dt
-
     def test_date_format(self):
         t = datetime.date.today()
         format = "%Y %m %d"

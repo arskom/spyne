@@ -284,6 +284,19 @@ class TestSoap(unittest.TestCase):
         self.assertEquals(p1.age, m_inst.p.age)
         self.assertEquals(p1.addresses, [])
 
+    def test_datetime_fixed_format(self):
+        # Soap should ignore formats
+        n = datetime.datetime.now().replace(microsecond=0)
+        format = "%Y %m %d %H %M %S"
+
+        element = etree.Element('test')
+        Soap11().to_parent_element(DateTime(format=format), n,
+                                                      'some_namespace', element)
+        assert element[0].text == n.isoformat()
+
+        dt = Soap11().from_element(DateTime(format=format), element[0])
+        assert n == dt
+
     def test_to_parent_element_nested(self):
         m = ComplexModel.produce(
             namespace=None,
