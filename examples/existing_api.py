@@ -62,9 +62,9 @@ if __name__=='__main__':
     application = Application([RandomService], 'spyne.examples.hello.http',
              in_protocol=HttpRpc(validator='soft'), out_protocol=HttpRpc())
 
-    server = make_server('127.0.0.1', 7789, WsgiApplication(application))
+    server = make_server('127.0.0.1', 8000, WsgiApplication(application))
 
-    logging.info("listening to http://127.0.0.1:7789")
-    logging.info("wsdl is at: http://localhost:7789/?wsdl")
+    logging.info("listening to http://127.0.0.1:8000")
+    logging.info("wsdl is at: http://localhost:8000/?wsdl")
 
     server.serve_forever()

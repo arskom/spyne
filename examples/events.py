@@ -51,7 +51,7 @@ event to reliably fire events when the request processing is completed.
 
 Use:
 
-    curl 'http://localhost:7789/say_hello?name=Dave&times=5'
+    curl 'http://localhost:8000/say_hello?name=Dave&times=5'
 
 to query this code. You can play with the ``skip_depth`` parameter to adjust the
 response dict, or choose another protocol altogether.
@@ -152,9 +152,9 @@ if __name__=='__main__':
     wsgi_wrapper.event_manager.add_listener('wsgi_return', _on_wsgi_return)
     wsgi_wrapper.event_manager.add_listener('wsgi_close', _on_wsgi_close)
 
-    server = make_server('127.0.0.1', 7789, wsgi_wrapper)
+    server = make_server('127.0.0.1', 8000, wsgi_wrapper)
 
-    logging.info("listening to http://127.0.0.1:7789")
-    logging.info("wsdl is at: http://localhost:7789/?wsdl")
+    logging.info("listening to http://127.0.0.1:8000")
+    logging.info("wsdl is at: http://localhost:8000/?wsdl")
 
     server.serve_forever()

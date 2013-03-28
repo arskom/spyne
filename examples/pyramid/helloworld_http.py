@@ -51,7 +51,7 @@ tns = 'spyne.helloworld'
 
 '''
 >>> from suds.client import Client
->>> cli = Client("http://localhost:7789/?wsdl")
+>>> cli = Client("http://localhost:8000/?wsdl")
 >>> cli
 <suds.client.Client object at 0x104d5ed10>
 >>> print cli
@@ -113,5 +113,5 @@ if __name__ == '__main__':
     config.scan()
     # serve app
     app = config.make_wsgi_app()
-    server = make_server('0.0.0.0', 7789, app)
+    server = make_server('0.0.0.0', 8000, app)
     server.serve_forever()

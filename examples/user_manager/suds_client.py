@@ -33,7 +33,7 @@ from suds import TypeNotFound
 from suds.client import Client
 
 has_permissions = True
-c = Client('http://localhost:7789?wsdl')
+c = Client('http://localhost:8000?wsdl')
 u = c.factory.create("User")
 
 u.user_name = 'dave'
