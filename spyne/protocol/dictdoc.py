@@ -160,8 +160,8 @@ class FlatDictDocument(DictDocument):
                     if isinstance(v2, str) or isinstance(v2, unicode):
                         if member.type.Attributes.encoding is None and \
                                         cls.default_binary_encoding is not None:
-                            native_v2 = ProtocolBase.from_string(member.type,v2,
-                                                    cls.default_binary_encoding)
+                            native_v2 = ProtocolBase.from_string(member.type,
+                                                v2, cls.default_binary_encoding)
 
                         else:
                             native_v2 = ProtocolBase.from_string(member.type,v2)
