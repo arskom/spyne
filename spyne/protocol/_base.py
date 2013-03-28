@@ -327,9 +327,9 @@ class ProtocolBase(object):
         self.validator = None
 
     @classmethod
-    def from_string(cls, class_, string):
+    def from_string(cls, class_, string, *args, **kwargs):
         handler = cls._from_string_handlers[class_]
-        return handler(class_, string)
+        return handler(class_, string, *args, **kwargs)
 
     @classmethod
     def to_string(cls, class_, value):
