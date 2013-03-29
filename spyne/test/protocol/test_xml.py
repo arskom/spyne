@@ -90,14 +90,14 @@ class TestXml(unittest.TestCase):
 
     def test_attribute_of_multi(self):
         class C(ComplexModel):
-            a = Unicode(max_occurs='unbounded')
-            b = XmlAttribute(Unicode, attribute_of="a")
+            e = Unicode(max_occurs='unbounded')
+            a = XmlAttribute(Unicode, attribute_of="e")
 
         class SomeService(ServiceBase):
             @srpc(C, _returns=C)
             def some_call(c):
+                assert c.e == ['e0', 'e1']
                 assert c.a == ['a0', 'a1']
-                assert c.b == ['b0', 'b1']
                 return c
 
         app = Application([SomeService], "tns", name="test_attribute_of",
@@ -105,11 +105,12 @@ class TestXml(unittest.TestCase):
         server = ServerBase(app)
 
         initial_ctx = MethodContext(server)
+        initial_ctx.method_request_string = '{test_attribute_of}some_call'
         initial_ctx.in_string = [
             '<some_call xmlns="tns">'
                 '<c>'
-                    '<a b="b0">a0</a>'
-                    '<a b="b1">a1</a>'
+                    '<e a="a0">e0</e>'
+                    '<e a="a1">e1</e>'
                 '</c>'
             '</some_call>'
         ]
@@ -119,16 +120,16 @@ class TestXml(unittest.TestCase):
         server.get_out_object(ctx)
         server.get_out_string(ctx)
 
-        ret = etree.fromstring(''.join(ctx.out_string)).xpath('//s0:a',
+        ret = etree.fromstring(''.join(ctx.out_string)).xpath('//s0:e',
                                                  namespaces=app.interface.nsmap)
 
         print etree.tostring(ret[0], pretty_print=True)
         print etree.tostring(ret[1], pretty_print=True)
 
-        assert ret[0].text == "a0"
-        assert ret[0].attrib['b'] == "b0"
-        assert ret[1].text == "a1"
-        assert ret[1].attrib['b'] == "b1"
+        assert ret[0].text == "e0"
+        assert ret[0].attrib['a'] == "a0"
+        assert ret[1].text == "e1"
+        assert ret[1].attrib['a'] == "a1"
 
     def test_attribute_ns(self):
         class a(ComplexModel):
