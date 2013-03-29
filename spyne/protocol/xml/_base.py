@@ -241,8 +241,11 @@ class XmlDocument(ProtocolBase):
         self.event_manager.fire_event('before_deserialize', ctx)
 
         if ctx.descriptor is None:
-            raise Fault("Client", "Method %r not found." %
+            if ctx.in_error is None:
+                raise Fault("Client", "Method %r not found." %
                                                       ctx.method_request_string)
+            else:
+                raise ctx.in_error
 
         if message is self.REQUEST:
             body_class = ctx.descriptor.in_message
