@@ -12,6 +12,7 @@ pip-log.txt
 MANIFEST
 dist
 build
+doc/docs
 
 # 2to3 cruft
 *.bak
