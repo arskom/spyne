@@ -131,6 +131,7 @@ def binary_from_element(prot, cls, element):
 
 def get_members_etree(prot, cls, inst, parent):
     delay = set()
+
     parent_cls = getattr(cls, '__extends__', None)
     if not (parent_cls is None):
         get_members_etree(prot, parent_cls, inst, parent)
@@ -148,8 +149,6 @@ def get_members_etree(prot, cls, inst, parent):
             a_of = v.attribute_of
             if a_of is not None and a_of in cls._type_info.keys():
                 delay.add(k)
-            else:
-                v.marshall(prot, k, subvalue, parent)
             continue
 
         mo = v.Attributes.max_occurs
@@ -165,9 +164,14 @@ def get_members_etree(prot, cls, inst, parent):
         v = cls._type_info[k]
         subvalue = getattr(inst, k, None)
         a_of = v.attribute_of
-        attr_parents = parent.findall("{%s}%s"%(cls.__namespace__,a_of))
-        for attr_parent in attr_parents:
-            v.marshall(prot, k, subvalue, attr_parent)
+        attr_parents = parent.findall("{%s}%s"%(cls.__namespace__, a_of))
+        if cls._type_info[a_of].Attributes.max_occurs > 1:
+            for subsubvalue, attr_parent in zip(subvalue, attr_parents):
+                v.marshall(prot, k, subsubvalue, attr_parent)
+
+        else:
+            for attr_parent in attr_parents:
+                v.marshall(prot, k, subvalue, attr_parent)
 
 
 @nillable_value
@@ -236,7 +240,13 @@ def complex_from_element(prot, cls, element):
                                                      member.attribute_of == key:
                 continue
 
-            value = prot.from_string(member.type, c.attrib[key])
+            if mo > 1:
+                value = getattr(inst, key, None)
+                if value is None:
+                    value = []
+                value.append(prot.from_string(member.type, c.attrib[key]))
+            else:
+                value = prot.from_string(member.type, c.attrib[key])
 
             setattr(inst, key, value)
 
