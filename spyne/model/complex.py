@@ -143,7 +143,9 @@ class _SimpleTypeInfoElement(object):
 
 
 class XmlAttribute(ModelBase):
-    """Items which are marshalled as attributes of the parent element."""
+    """Items which are marshalled as attributes of the parent element, unless
+    ``attribute_of`` is passed.
+    """
 
     def __new__(cls, type, use=None, ns=None, attribute_of=None):
         retval = cls.customize()
