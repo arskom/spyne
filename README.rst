@@ -1,6 +1,9 @@
 .. image:: https://travis-ci.org/arskom/spyne.png?branch=master
         :target: http://travis-ci.org/arskom/spyne
 
+**WARNING:** This is from spyne's development branch. This version is not released
+yet! Latest stable release can be found in the ``2_9`` branch.
+
 About
 =====
 
