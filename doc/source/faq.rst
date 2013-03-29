@@ -5,7 +5,7 @@ Spyne FAQ
 
 Frequently asked questions about Spyne and related libraries.
 
-Does spyne support the SOAP 1.2 standard?
+Does Spyne support the SOAP 1.2 standard?
 ==========================================
 
 **Short answer:** No.
