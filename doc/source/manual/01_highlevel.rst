@@ -72,7 +72,7 @@ Before proceeding further, having good idea about the following four terms used
 throughout Spyne would be very useful:
 
 * **User Methods** or **User Code**:
-    User methods are the code that you wrote and decided to use spyne to
+    User methods are the code that you wrote and decided to use Spyne to
     expose to the outside world.
 
 * **Decorators**:

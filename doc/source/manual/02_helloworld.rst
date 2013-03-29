@@ -8,7 +8,7 @@ This example uses the stock simple wsgi webserver to deploy this service. You
 should probably use a full-fledged server when deploying your service for
 production purposes.
 
-Defining an Spyne Service
+Defining a Spyne Service
 --------------------------
 
 Here we introduce the fundamental mechanisms Spyne offers to expose your
@@ -103,7 +103,7 @@ under the targetNamespace 'spyne.examples.hello.soap': ::
         application = Application([HelloWorldService], 'spyne.examples.hello.soap',
                                         in_protocol=Soap11(), out_protocol=Soap11())
 
-We then wrap the spyne application with its wsgi wrapper: ::
+We then wrap the Spyne application with its wsgi wrapper: ::
 
         wsgi_app = WsgiApplication(application)
 
@@ -133,7 +133,7 @@ pure-python soap clients. To learn more visit the project's page:
 https://fedorahosted.org/suds/. You can simply install it using
 ``easy_install suds``.
 
-So here's how you can use suds to test your new spyne service:
+So here's how you can use suds to test your new Spyne service:
 
 ::
 
