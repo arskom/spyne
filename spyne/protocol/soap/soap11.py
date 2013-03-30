@@ -179,14 +179,6 @@ class Soap11(XmlDocument):
         DateTime: datetime_from_string_iso,
     }
 
-    def __init__(self, app=None, validator=None, wrapped=True,
-                                xml_declaration=True, cleanup_namespaces=True,
-                                encoding='UTF-8', pretty_print=False):
-
-    @property
-    def wrapped(self):
-        return self.__wrapped
-
     def create_in_document(self, ctx, charset=None):
         if ctx.transport.type == 'wsgi':
             # according to the soap via http standard, soap requests must only
