@@ -145,11 +145,11 @@ class Soap11(XmlDocument):
     """The base implementation of a subset of the Soap 1.1 standard. The
     document is available here: http://www.w3.org/TR/soap11/
 
-    :param app: A spyne.application.Application instance.
-    :param validator: The validator to use. Currently the only supported
-        value is 'lxml'
-    :param wrapped: Whether the return type should be wrapped in another
-        object. Default is 'True'.
+    :param app: The owner application instance.
+    :param validator: One of (None, 'soft', 'lxml', 'schema',
+                ProtocolBase.SOFT_VALIDATION, XmlDocument.SCHEMA_VALIDATION).
+                Both ``'lxml'`` and ``'schema'`` values are equivalent to
+                ``XmlDocument.SCHEMA_VALIDATION``.
     :param xml_declaration: Whether to add xml_declaration to the responses
         Default is 'True'.
     :param cleanup_namespaces: Whether to add clean up namespace declarations

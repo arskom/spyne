@@ -92,6 +92,8 @@ class XmlDocument(ProtocolBase):
     :param app: The owner application instance.
     :param validator: One of (None, 'soft', 'lxml', 'schema',
                 ProtocolBase.SOFT_VALIDATION, XmlDocument.SCHEMA_VALIDATION).
+                Both ``'lxml'`` and ``'schema'`` values are equivalent to
+                ``XmlDocument.SCHEMA_VALIDATION``.
     :param xml_declaration: Whether to add xml_declaration to the responses
         Default is 'True'.
     :param cleanup_namespaces: Whether to add clean up namespace declarations
@@ -214,7 +216,6 @@ class XmlDocument(ProtocolBase):
             except XMLSyntaxError, e:
                 logger.error(string)
                 raise Fault('Client.XMLSyntaxError', str(e))
-
 
     def decompose_incoming_envelope(self, ctx, message):
         assert message in (self.REQUEST, self.RESPONSE)
