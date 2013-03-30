@@ -689,6 +689,7 @@ class ComplexModelBase(ModelBase):
     def novalidate_freq(cls):
         return cls.customize(validate_freq=False)
 
+
 class ComplexModel(ComplexModelBase):
     """The general complexType factory. The __call__ method of this class will
     return instances, contrary to primivites where the same call will result in
@@ -720,6 +721,10 @@ class Array(ComplexModelBase):
             retval._type_info = {'_bogus': serializer}
         else:
             retval._set_serializer(serializer)
+
+        for k, v in kwargs.items():
+            if k == "type_name":
+                retval.__type_name__ = kwargs.get("type_name", ModelBase.Empty)
 
         return retval
 

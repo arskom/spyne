@@ -54,7 +54,6 @@ from spyne.model.primitive import UnsignedInteger8
 
 from spyne.protocol import ProtocolBase
 from spyne.protocol.xml import XmlDocument
-from spyne.protocol.soap import Soap11
 
 from spyne.application import Application
 from spyne.decorator import srpc
