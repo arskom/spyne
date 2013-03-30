@@ -44,9 +44,6 @@ from lxml.etree import XMLSyntaxError
 
 from spyne.const.http import HTTP_405
 from spyne.const.http import HTTP_500
-from spyne.const.ansi_color import LIGHT_GREEN
-from spyne.const.ansi_color import LIGHT_RED
-from spyne.const.ansi_color import END_COLOR
 from spyne.error import RequestNotAllowed
 from spyne.model.fault import Fault
 from spyne.model.primitive import Date
@@ -338,14 +335,6 @@ class Soap11(XmlDocument):
 
         if self.cleanup_namespaces:
             etree.cleanup_namespaces(ctx.out_document)
-
-        if self.log_messages:
-            if message is self.REQUEST:
-                line_header = '%sRequest%s' % (LIGHT_GREEN, END_COLOR)
-            elif message is self.RESPONSE:
-                line_header = '%sResponse%s' % (LIGHT_RED, END_COLOR)
-            logger.debug('%s %s' % (line_header, etree.tostring(ctx.out_document,
-                                        xml_declaration=True, pretty_print=True)))
 
         self.event_manager.fire_event('after_serialize', ctx)
 

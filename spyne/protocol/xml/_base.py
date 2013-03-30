@@ -236,6 +236,10 @@ class XmlDocument(ProtocolBase):
                                           pretty_print=self.pretty_print,
                                           xml_declaration=self.xml_declaration)]
 
+        if self.log_messages:
+            logger.debug('%sResponse%s %s' % (LIGHT_RED, END_COLOR,
+                            etree.tostring(ctx.out_document,
+                                          pretty_print=True, encoding='UTF-8')))
 
     def deserialize(self, ctx, message):
         """Takes a MethodContext instance and a string containing ONE root xml
@@ -268,11 +272,8 @@ class XmlDocument(ProtocolBase):
         else:
             ctx.in_object = self.from_element(body_class, ctx.in_body_doc)
 
-        if self.log_messages:
-            if message is self.REQUEST:
-                line_header = '%sRequest%s' % (LIGHT_GREEN, END_COLOR)
-            elif message is self.RESPONSE:
-                line_header = '%sResponse%s' % (LIGHT_RED, END_COLOR)
+        if self.log_messages and message is self.REQUEST:
+            line_header = '%sRequest%s' % (LIGHT_GREEN, END_COLOR)
 
             logger.debug("%s %s" % (line_header, etree.tostring(ctx.out_document,
                     xml_declaration=self.xml_declaration, pretty_print=True)))
