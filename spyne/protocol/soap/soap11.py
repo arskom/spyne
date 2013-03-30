@@ -20,8 +20,14 @@
 """The ``spyne.protoco.soap.soap11`` module contains the implementation of a
 subset of the Soap 1.1 standard.
 
-Except the binary optimizations that mostly **do not work**, this protocol is
-production quality.
+Except the binary optimizations (MtoM, attachments, etc) that mostly
+**do not work**, this protocol is production quality.
+
+One must specifically enable the debug output for the Xml protocol to see the
+actual document exchange. That's because the xml formatting code is run only
+when explicitly enabled due to performance reasons. ::
+
+    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
 Initially released in soaplib-0.8.0.
 """
