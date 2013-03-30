@@ -14,7 +14,7 @@ Defining a Spyne Service
 Here we introduce the fundamental mechanisms Spyne offers to expose your
 services.
 
-The simpler version of this example is available here: http://github.com/arskom/spyne/blob/master/examples/helloworld_soap.py
+The simpler version of this example is available here: https://github.com/arskom/spyne/blob/2_9/examples/helloworld_soap.py
 
 Dissecting this example: Application is the glue between one or more service definitions,
 interface and protocol choices. ::
