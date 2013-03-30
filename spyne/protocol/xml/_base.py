@@ -96,6 +96,10 @@ class XmlDocument(ProtocolBase):
         Default is 'True'.
     :param cleanup_namespaces: Whether to add clean up namespace declarations
         in the response document. Default is 'True'.
+    :param encoding: The suggested string encoding for the returned xml
+        documents. The transport can override this.
+    :param pretty_print: When ``True``, returns the document in a pretty-printed
+        format.
     """
 
     SCHEMA_VALIDATION = type("Schema", (object,), {})
@@ -107,10 +111,12 @@ class XmlDocument(ProtocolBase):
     type.add('xml')
 
     def __init__(self, app=None, validator=None, xml_declaration=True,
-                                                    cleanup_namespaces=True):
+                cleanup_namespaces=True, encoding='UTF-8', pretty_print=False):
         ProtocolBase.__init__(self, app, validator)
         self.xml_declaration = xml_declaration
         self.cleanup_namespaces = cleanup_namespaces
+        self.encoding = encoding
+        self.pretty_print = pretty_print
 
         self.serialization_handlers = cdict({
             AnyXml: xml_to_parent_element,
@@ -222,10 +228,13 @@ class XmlDocument(ProtocolBase):
         """Sets an iterable of string fragments to ctx.out_string"""
 
         if charset is None:
-            charset = 'UTF-8'
+            charset = self.encoding
 
         ctx.out_string = [etree.tostring(ctx.out_document,
-                        xml_declaration=self.xml_declaration, encoding=charset)]
+                                          encoding=charset,
+                                          pretty_print=self.pretty_print,
+                                          xml_declaration=self.xml_declaration)]
+
 
     def deserialize(self, ctx, message):
         """Takes a MethodContext instance and a string containing ONE root xml

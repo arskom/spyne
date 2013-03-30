@@ -154,6 +154,10 @@ class Soap11(XmlDocument):
         Default is 'True'.
     :param cleanup_namespaces: Whether to add clean up namespace declarations
         in the response document. Default is 'True'.
+    :param encoding: The suggested string encoding for the returned xml
+        documents. The transport can override this.
+    :param pretty_print: When ``True``, returns the document in a pretty-printed
+        format.
     """
 
     allowed_http_verbs = ['POST']
@@ -176,11 +180,8 @@ class Soap11(XmlDocument):
     }
 
     def __init__(self, app=None, validator=None, wrapped=True,
-                                xml_declaration=True, cleanup_namespaces=True):
-        XmlDocument.__init__(self, app, validator, xml_declaration,
-                                                             cleanup_namespaces)
-
-        self.__wrapped = wrapped
+                                xml_declaration=True, cleanup_namespaces=True,
+                                encoding='UTF-8', pretty_print=False):
 
     @property
     def wrapped(self):
