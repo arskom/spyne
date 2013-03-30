@@ -51,6 +51,7 @@ def nillable_value(func):
                                                                 *args, **kwargs)
         else:
             func(prot, cls, value, tns, parent_elt, *args, **kwargs)
+
     return wrapper
 
 
@@ -64,6 +65,7 @@ def nillable_element(func):
                 return cls.Attributes.default
         else:
             return func(prot, cls, element)
+
     return wrapper
 
 
@@ -78,6 +80,7 @@ def base_from_element(prot, cls, element):
     if prot.validator is prot.SOFT_VALIDATION and not (
                                         cls.validate_native(cls, retval)):
         raise ValidationError(retval)
+
     return retval
 
 
@@ -245,6 +248,7 @@ def complex_from_element(prot, cls, element):
                 if value is None:
                     value = []
                 value.append(prot.from_string(member.type, c.attrib[key]))
+
             else:
                 value = prot.from_string(member.type, c.attrib[key])
 
