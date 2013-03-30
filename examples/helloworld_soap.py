@@ -55,6 +55,10 @@ Here's how to call it using suds:
 
 import logging
 
+from spyne.application import Application
+from spyne.protocol.soap import Soap11
+from spyne.server.wsgi import WsgiApplication
+
 from spyne.decorator import srpc
 from spyne.service import ServiceBase
 from spyne.model.complex import ComplexModel
@@ -89,6 +93,11 @@ if __name__=='__main__':
     logging.info("listening to http://127.0.0.1:8000")
     logging.info("wsdl is at: http://localhost:8000/?wsdl")
 
-    wsgi_app = wsgi_soap_application([HelloWorldService], 'spyne.examples.hello.soap')
-    server = make_server('127.0.0.1', 8000, wsgi_app)
+    application = Application([HelloWorldService], 'spyne.examples.hello.soap',
+                in_protocol=Soap11(validator='lxml'),
+                out_protocol=Soap11()
+            )
+    wsgi_application = WsgiApplication(application)
+
+    server = make_server('127.0.0.1', 8000, wsgi_application)
     server.serve_forever()
