@@ -71,7 +71,8 @@ class TestPrimitive(unittest.TestCase):
                 pass
 
         try:
-            app = Application([Service], 'hey', XmlSchema(), XmlDocument(), XmlDocument())
+            Application([Service], 'hey', in_protocol=XmlDocument(),
+                                          out_protocol=XmlDocument())
         except:
             pass
         else:
