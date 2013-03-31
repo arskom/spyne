@@ -36,7 +36,7 @@ Let's also look at the ``User`` class: ::
 
 Nothing new so far.
 
-Below, you can see that the ``email`` member which has a regular expression
+Below, you can see that the ``email`` member has a regular expression
 restriction defined. The ``Unicode`` type accepts other restrictions, please
 refer to the :class:`spyne.model.primitive.Unicode` documentation for more
 information: ::
