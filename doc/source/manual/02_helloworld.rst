@@ -1,5 +1,5 @@
 
-.. _manual-helloworld:
+.. _manual-types:
 
 Hello World
 ===========
@@ -238,5 +238,5 @@ as configurable as possible without having to alter user code.
 What's next?
 ^^^^^^^^^^^^
 
-See the :ref:`manual-user-manager` tutorial that will walk you through
-defining complex objects and using events.
+Continue by reading the :ref:`manual-types` tutorial that will walk you through
+how native Python types and Spyne markers interact.
