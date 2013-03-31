@@ -43,7 +43,7 @@ from spyne.util import memoize
 
 string_encoding = 'utf8'
 
-FLOAT_PATTERN = '-?[0-9]+\.?[0-9]*'
+FLOAT_PATTERN = r'-?[0-9]+\.?[0-9]*(e-?[0-9]+)?'
 DATE_PATTERN = r'(?P<year>\d{4})-(?P<month>\d{2})-(?P<day>\d{2})'
 TIME_PATTERN = r'(?P<hr>\d{2}):(?P<min>\d{2}):(?P<sec>\d{2})(?P<sec_frac>\.\d+)?'
 OFFSET_PATTERN = r'(?P<tz_hr>[+-]\d{2}):(?P<tz_min>\d{2})'
