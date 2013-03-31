@@ -1,5 +1,5 @@
 
-.. _manual-helloworld:
+.. _manual-types:
 
 Spyne Models and Native Python Types
 ====================================

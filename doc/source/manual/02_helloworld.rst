@@ -1,5 +1,5 @@
 
-.. _manual-types:
+.. _manual-helloworld:
 
 Hello World
 ===========
