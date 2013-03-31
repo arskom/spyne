@@ -72,7 +72,7 @@ of Spyne:
   ``spyne.server.twisted.TwistedWebResource`` and
   ``spyne.client.twisted.TwistedHttpClient``. Twisted<12 is needed for
   Python 2.5.
-* `Django>=1.3 <http://djangoproject.com/>`_ is needed for
+* `Django <http://djangoproject.com/>`_ (tested with 1.2 and up) is needed for
   ``spyne.server.django.DjangoApplication``.
 * `Pyramid <http://pylonsproject.org/>`_ is needed for
   ``spyne.server.pyramid.PyramidApplication``.
