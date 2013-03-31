@@ -51,7 +51,7 @@ except ImportError:
 
 
 class YamlDocument(HierDictDocument):
-    """An implementation of the Yaml protocol that uses PyYaml package.
+    """An implementation of the Yaml protocol that uses the PyYaml package.
     See ProtocolBase ctor docstring for its arguments. Yaml-specific arguments
     follow:
 
