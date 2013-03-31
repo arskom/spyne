@@ -152,11 +152,21 @@ mighty useful for dealing with dates, times and timezones. Highly recommended!
 Spatial Types
 ^^^^^^^^^^^^^
 
-:class:`spyne.model.primitive.Point`
+Spyne comes with six basic spatial types that are supported by popular packages
+like `PostGIS <http://postgis.refractions.net/>`_ and 
+`Shapely <`http://toblerity.github.com/shapely/`>_. These are the 
 
-:class:`spyne.model.primitive.Polygon`
+These are provided as ``Unicode`` wrappers that just define proper constraints
+to force the incoming string to be WKT-compliant. WKB is not yet supported.
 
-:class:`spyne.model.primitive.MultiPolygon`
+The incoming types are not parsed, but you can use ``shapely.wkb.loads()``
+function to convert them to native geometric types.
+
+:class:`spyne.model.primitive.Point`, :class:`spyne.model.primitive.Line` and
+:class:`spyne.model.primitive.Polygon` and also their multi-variants, which are
+
+:class:`spyne.model.primitive.MultiPoint`, :class:`spyne.model.primitive.MultiLine` 
+and :class:`spyne.model.primitive.MultiPolygon`.
 
 Miscellanous Types
 ^^^^^^^^^^^^^^^^^^
