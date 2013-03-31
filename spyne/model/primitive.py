@@ -51,32 +51,57 @@ DATETIME_PATTERN = DATE_PATTERN + '[T ]' + TIME_PATTERN
 UUID_PATTERN = "%(x)s{8}-%(x)s{4}-%(x)s{4}-%(x)s{4}-%(x)s{12}" % \
                                                             {'x': '[a-fA-F0-9]'}
 
+#
+# FIXME: Supports e.g.
+#     MULTIPOINT (10 40, 40 30, 20 20, 30 10)
+#
+# but not:
+#     MULTIPOINT ((10 40), (40 30), (20 20), (30 10))
+#
+
+_rinse_and_repeat = r'\s*\(%s\s*(,\s*%s)*\)\s*'
 def _get_one_point_pattern(dim):
     return ' +'.join([FLOAT_PATTERN] * dim)
 
 def _get_point_pattern(dim):
-    return 'POINT *\\(%s\\)' % _get_one_point_pattern(dim)
+    return r'POINT\s*\(%s\)' % _get_one_point_pattern(dim)
+
+def _get_one_multipoint_pattern(dim):
+    one_point = _get_one_point_pattern(dim)
+    return _rinse_and_repeat % (one_point, one_point)
+
+def _get_multipoint_pattern(dim):
+    return r'MULTIPOINT\s*%s' % _get_one_multipoint_pattern(dim)
+
 
 def _get_one_line_pattern(dim):
     one_point = _get_one_point_pattern(dim)
-    return '\\(%s *(, *%s)*\\)' % (one_point, one_point)
+    return _rinse_and_repeat % (one_point, one_point)
 
 def _get_linestring_pattern(dim):
-    return 'LINESTRING *%s' % _get_one_line_pattern(dim)
+    return r'LINESTRING\s*%s' % _get_one_line_pattern(dim)
+
+def _get_one_multilinestring_pattern(dim):
+    one_line = _get_one_line_pattern(dim)
+    return _rinse_and_repeat % (one_line, one_line)
+
+def _get_multilinestring_pattern(dim):
+    return r'MULTILINESTRING\s*%s' % _get_one_multilinestring_pattern(dim)
+
 
 def _get_one_polygon_pattern(dim):
     one_line = _get_one_line_pattern(dim)
-    return '\\(%s *(, *%s)*\\)' % (one_line, one_line)
+    return _rinse_and_repeat % (one_line, one_line)
 
 def _get_polygon_pattern(dim):
-    return 'POLYGON *%s' % _get_one_polygon_pattern(dim)
+    return r'POLYGON\s*%s' % _get_one_polygon_pattern(dim)
 
 def _get_one_multipolygon_pattern(dim):
     one_line = _get_one_polygon_pattern(dim)
-    return '\\(%s *(, *%s)*\\)' % (one_line, one_line)
+    return _rinse_and_repeat % (one_line, one_line)
 
 def _get_multipolygon_pattern(dim):
-    return 'MULTIPOLYGON *%s' % _get_one_multipolygon_pattern(dim)
+    return r'MULTIPOLYGON\s*%s' % _get_one_multipolygon_pattern(dim)
 
 
 _date_re = re.compile(DATE_PATTERN)
@@ -686,6 +711,45 @@ class Uuid(Unicode(pattern=UUID_PATTERN, type_name='uuid')):
     """Unicode subclass for Universially-Unique Identifiers."""
 
 
+class Point(Unicode):
+    """A point type whose native format is a WKT string. You can use
+    :func:`shapely.wkt.loads` to get a proper point type."""
+
+    __base_type__ = Unicode
+
+    class Attributes(Unicode.Attributes):
+        dim = None
+
+    def __new__(cls, dim=None, **kwargs):
+        assert dim in (None,2,3)
+        if dim is not None:
+            kwargs['dim'] = dim
+            kwargs['pattern'] = _get_point_pattern(dim)
+            kwargs['type_name'] = 'point%dd' % dim
+
+        return SimpleModel.__new__(cls,  ** kwargs)
+
+
+class Line(Unicode):
+    """A point type whose native format is a WKT string. You can use
+    :func:`shapely.wkt.loads` to get a proper point type."""
+
+    __base_type__ = Unicode
+
+    class Attributes(Unicode.Attributes):
+        dim = None
+
+    def __new__(cls, dim=None, **kwargs):
+        assert dim in (None,2,3)
+        if dim is not None:
+            kwargs['dim'] = dim
+            kwargs['pattern'] = _get_line_pattern(dim)
+            kwargs['type_name'] = 'line%dd' % dim
+
+        return SimpleModel.__new__(cls,  ** kwargs)
+
+LineString=Line
+
 class Polygon(Unicode):
     """A Polygon type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper polygon type."""
@@ -704,6 +768,45 @@ class Polygon(Unicode):
 
         return SimpleModel.__new__(cls,  ** kwargs)
 
+
+class MultiPoint(Unicode):
+    """A Multipolygon type whose native format is a WKT string. You can use
+    :func:`shapely.wkt.loads` to get a proper multipolygon type."""
+
+    __base_type__ = Unicode
+
+    class Attributes(Unicode.Attributes):
+        dim = None
+
+    def __new__(cls, dim=None, **kwargs):
+        assert dim in (None,2,3)
+        if dim is not None:
+            kwargs['dim'] = dim
+            kwargs['pattern'] = _get_multipoint_pattern(dim)
+            kwargs['type_name'] = 'multipoint%dd' % dim
+
+        return SimpleModel.__new__(cls,  ** kwargs)
+
+
+class MultiLine(Unicode):
+    """A Multipolygon type whose native format is a WKT string. You can use
+    :func:`shapely.wkt.loads` to get a proper multipolygon type."""
+
+    __base_type__ = Unicode
+
+    class Attributes(Unicode.Attributes):
+        dim = None
+
+    def __new__(cls, dim=None, **kwargs):
+        assert dim in (None,2,3)
+        if dim is not None:
+            kwargs['dim'] = dim
+            kwargs['pattern'] = _get_multiline_pattern(dim)
+            kwargs['type_name'] = 'multiline%dd' % dim
+
+        return SimpleModel.__new__(cls,  ** kwargs)
+
+MultiLineString = MultiLine
 
 class MultiPolygon(Unicode):
     """A Multipolygon type whose native format is a WKT string. You can use
@@ -724,9 +827,9 @@ class MultiPolygon(Unicode):
         return SimpleModel.__new__(cls,  ** kwargs)
 
 
-class Point(Unicode):
-    """A point type whose native format is a WKT string. You can use
-    :func:`shapely.wkt.loads` to get a proper point type."""
+class MultiPolygon(Unicode):
+    """A Multipolygon type whose native format is a WKT string. You can use
+    :func:`shapely.wkt.loads` to get a proper multipolygon type."""
 
     __base_type__ = Unicode
 
@@ -737,8 +840,8 @@ class Point(Unicode):
         assert dim in (None,2,3)
         if dim is not None:
             kwargs['dim'] = dim
-            kwargs['pattern'] = _get_point_pattern(dim)
-            kwargs['type_name'] = 'point%dd' % dim
+            kwargs['pattern'] = _get_multipolygon_pattern(dim)
+            kwargs['type_name'] = 'multipolygon%dd' % dim
 
         return SimpleModel.__new__(cls,  ** kwargs)
 

@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import re
 import datetime
 import unittest
 
@@ -287,6 +288,53 @@ class TestPrimitive(unittest.TestCase):
         self.assertTrue( bool(element.attrib.get('{%s}nil' % ns.xsi)) )
         value = XmlDocument().from_element(Null, element)
         self.assertEquals(None, value)
+
+    def test_point(self):
+        from spyne.model.primitive import _get_point_pattern
+
+        a=re.compile(_get_point_pattern(2))
+        assert a.match('POINT (10 40)') is not None
+        assert a.match('POINT(10 40)') is not None
+
+        assert a.match('POINT(10.0 40)') is not None
+        assert a.match('POINT(1.310e4 40)') is not None
+
+    def test_multipoint(self):
+        from spyne.model.primitive import _get_multipoint_pattern
+
+        a=re.compile(_get_multipoint_pattern(2))
+        assert a.match('MULTIPOINT (10 40, 40 30, 20 20, 30 10)') is not None
+        # FIXME:
+        #assert a.match('MULTIPOINT ((10 40), (40 30), (20 20), (30 10))') is not None
+
+    def test_linestring(self):
+        from spyne.model.primitive import _get_linestring_pattern
+
+        a=re.compile(_get_linestring_pattern(2))
+        assert a.match('LINESTRING (30 10, 10 30, 40 40)') is not None
+
+    def test_multilinestring(self):
+        from spyne.model.primitive import _get_multilinestring_pattern
+
+        a=re.compile(_get_multilinestring_pattern(2))
+        assert a.match('''MULTILINESTRING ((10 10, 20 20, 10 40),
+                                (40 40, 30 30, 40 20, 30 10))''') is not None
+
+    def test_polygon(self):
+        from spyne.model.primitive import _get_polygon_pattern
+
+        a=re.compile(_get_polygon_pattern(2))
+        assert a.match('POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))') is not None
+
+    def test_multipolygon(self):
+        from spyne.model.primitive import _get_multipolygon_pattern
+
+        a=re.compile(_get_multipolygon_pattern(2))
+        assert a.match('''MULTIPOLYGON (((30 20, 10 40, 45 40, 30 20)),
+                            ((15 5, 40 10, 10 20, 5 10, 15 5)))''') is not None
+        assert a.match('''MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)),
+                                ((20 35, 45 20, 30 5, 10 10, 10 30, 20 35),
+                                (30 20, 20 25, 20 15, 30 20)))''') is not None
 
     def test_boolean(self):
         b = etree.Element('test')
