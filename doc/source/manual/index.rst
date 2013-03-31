@@ -13,8 +13,9 @@ aspects of Spyne by examples.
 
     01_highlevel
     02_helloworld
-    03_usermanager
-    04-01_sqlalchemy
-    04-02_validation
-    05_metadata
-    06_t_and_p
+    03_types
+    04_usermanager
+    05-01_sqlalchemy
+    05-02_validation
+    06_metadata
+    07_t_and_p
