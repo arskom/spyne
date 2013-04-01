@@ -15,4 +15,3 @@ done;
 
 mkdir docs;
 mv ${!docs[@]} docs
-rsync -aP docs/$stable/ docs/
