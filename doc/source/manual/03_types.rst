@@ -244,6 +244,8 @@ and :class:`spyne.model.primitive.MultiPolygon`.
 Miscellanous Types
 ^^^^^^^^^^^^^^^^^^
 
+These exist:
+
 :class:`spyne.model.primitive.AnyUri`
 
 :class:`spyne.model.primitive.Boolean`
@@ -253,6 +255,8 @@ Miscellanous Types
 Dynamic Types
 ^^^^^^^^^^^^^
 
+These also exist. Somewhat.
+
 :class:`spyne.model.primitive.AnyDict`
 
 :class:`spyne.model.primitive.AnyXml`
@@ -260,16 +264,66 @@ Dynamic Types
 Enum
 ----
 
+TBD
+
 Binary
 ------
+
+TBD
 
 Complex
 -------
 
+TBD!!
+
+Here's a sample complex object definition: ::
+
+    class Permission(ComplexModel):
+        application = Unicode
+        feature = Unicode
+
+Here's a sample complex object definition: ::
+
+    class Permission(ComplexModel):
+        _type_info = {
+            'application': Unicode,
+            'feature': Unicode,
+        }
+
+Here's a sample complex object definition: ::
+
+    class Permission(ComplexModel):
+        _type_info = [
+            ('application', Unicode),
+            ('feature', Unicode),
+        ]
+
+The following denotes a list of ``Permission`` objects.
+
+        permissions = Array(Permission)
+
+The following is used to denote generators, but looks the same from the
+points of view of protocol and interface documents: ::
+
+        permissions = Iterable(Permission)
+
+The following is deserialized as a list of ``Permission`` objects, just like with
+the ``Array`` example, but is shown and serialized differently in Wsdl and Soap
+representations. ::
+
+        permissions = Permission.customize(max_occurs='unbounded')
+
+With the ``Array`` and ``Iterable`` types, a container class wraps multiple
+occurences of the inner data type. So ``Array(Permission)`` is actually
+equivalent to: ::
+
+        class PermissionArray(ComplexModel):
+            Permission = Permission.customize(max_occurs='unbounded')
+
 Fault
 -----
 
-
+TBD
 
 
 What's next?
@@ -282,4 +336,3 @@ defining complex objects and using events.
 
 .. [#] See http://www.w3.org/TR/2001/WD-xforms-20010608/slice4.html for more
        information.
-
