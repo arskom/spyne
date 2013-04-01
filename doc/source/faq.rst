@@ -194,4 +194,4 @@ WSGIApplicationGroup %{GLOBAL}
 You mock my pain!
 =================
 
-Life is pain, Highness. Anyone who says differently is selling something. 
+Life is pain, Highness. Anyone who says differently is selling something.

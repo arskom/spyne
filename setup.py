@@ -73,7 +73,10 @@ def call_pytest(*tests):
     global _ctr
     import pytest
     _ctr += 1
-    return call_test(pytest.main, ['-v', '--tb=short', '--junitxml=test_result.%d.xml' % _ctr], tests)
+    file_name = 'test_result.%d.xml' % _ctr
+    if os.path.isfile(file_name):
+        os.unlink(file_name)
+    return call_test(pytest.main, ['-v', '--tb=short', '--junitxml=%s' % file_name], tests)
 
 
 def call_trial(*tests):

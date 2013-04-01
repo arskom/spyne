@@ -34,7 +34,7 @@ from spyne.model.primitive import Boolean
 from spyne.model.primitive import String
 from spyne.model.complex import ComplexModel
 
-from spyne.util.dictobj import get_object_as_dict
+from spyne.util.dictdoc import get_object_as_dict
 
 class SomeMapping(ComplexModel):
     compact = Boolean

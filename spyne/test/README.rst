@@ -10,24 +10,39 @@ shift focus or change maintainers in the future. This can result in patches
 which may cause incompatibilities with your existing code base. The only way to
 detect such corner cases is to have a great test suite.
 
-Spyne's master repository is already integrated with travis-ci.org. Head over to
-http://travis-ci.org/arskom/spyne to see it for yourself.
+Spyne's master repository is already integrated with travis-ci.org. Head over
+to http://travis-ci.org/arskom/spyne to see it for yourself.
 
-As the necessary configuration is already done, It's very simple to integrate
-your own fork of Spyne. Just sign in with your Github account and follow
-instructions.
+As the necessary configuration is already done, it's very simple to integrate
+your own fork of Spyne with travis-ci.org, which should come in handy even if
+you don't plan to be a long-time contributor to Spyne. Just sign in with your
+Github account and follow instructions.
 
-If you want to run the tests yourself, `pytest <http://pytest.org/latest/>`_ : ::
+If you want to run the tests yourself, just run: ::
 
     python setup.py test
 
-or you can run individiual tests with py.test: ::
+This call will install *every* possible dependency of Spyne in the current
+working directory.
+
+If you don't want this or just want to run a specific test,
+`pytest <http://pytest.org/latest/>`_  is a nice tool that lets you do just
+that: ::
 
     py.test -v --tb=short spyne/test/protocol/test_json.py
 
-or directly by executing them: ::
+You can run tests directly by executing them as well. This will use Python's
+builtin ``unittest`` package which is less polished, but just fine. ::
 
     spyne/test/protocol/test_json.py
+
+Note that just running ``py.test`` or similar powerful test-juggling software
+naively in the root directory of tests won't work. Spyne runs some
+interoperability tests by starting an actual daemon listening to a particular
+port and then making (or processing) real requests, so running all tests in one
+go is problematic. The rather specialized logic in setup.py for running tests
+is the result of these quirks. Patches are welcome!
+
 
 SOAP Interoperability Tests
 ===========================

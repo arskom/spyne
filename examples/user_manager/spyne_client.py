@@ -35,7 +35,7 @@ from spyne.client.http import HttpClient
 
 from server_basic import application
 
-c = HttpClient('http://localhost:7789/', application)
+c = HttpClient('http://localhost:8000/', application)
 
 u = c.factory.create("User")
 

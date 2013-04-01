@@ -9,6 +9,8 @@ spyne-2.10.0
    out_protocol is HttpRpc. https://github.com/arskom/spyne/pull/201
  * lxml is not a hard requirement anymore.
  * XmlDocument and friends: cleanup_namespaces is now True by default.
+ * XmlDocument and friends: Added ``encoding`` and ``pretty_print`` flags that
+   are directly passed to ``lxml.etree.tostring()``.
  * XmlDocument and friends:'attribute_of' added to ModelBase to add attribute
    support for primitives. This is currently ignored by (and mostly irrelevant
    to) other protocols.
@@ -39,6 +41,10 @@ spyne-2.10.0
  * Split dict logic in DictDocument as ``HierDictDocument`` and
    ``FlatDictDocument``.
  * Added cookie parsing support to HttpRpc via ``Cookie.SimpleCookie``.
+ * Moved ``{to,from}_string`` logic from data models to ProtocolBase.
+   This gives us the ability to have more complex fault messages
+   with other fault subelements that are namespace-qualified without
+   circular dependency problems - Stefan Andersson <norox81@gmail.com>
 
 spyne-2.9.4
 -----------

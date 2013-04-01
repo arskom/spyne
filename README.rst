@@ -1,6 +1,9 @@
 .. image:: https://travis-ci.org/arskom/spyne.png?branch=master
         :target: http://travis-ci.org/arskom/spyne
 
+**WARNING:** This is from spyne's development branch. This version is not released
+yet! Latest stable release can be found in the ``2_9`` branch.
+
 About
 =====
 
@@ -69,7 +72,7 @@ of Spyne:
   ``spyne.server.twisted.TwistedWebResource`` and
   ``spyne.client.twisted.TwistedHttpClient``. Twisted<12 is needed for
   Python 2.5.
-* `Django <http://djangoproject.com/>`_ is needed for
+* `Django <http://djangoproject.com/>`_ (tested with 1.2 and up) is needed for
   ``spyne.server.django.DjangoApplication``.
 * `Pyramid <http://pylonsproject.org/>`_ is needed for
   ``spyne.server.pyramid.PyramidApplication``.

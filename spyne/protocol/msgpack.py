@@ -35,7 +35,7 @@ import msgpack
 
 from spyne.model.complex import Array
 from spyne.model.fault import Fault
-from spyne.protocol.dictobj import HierDictDocument
+from spyne.protocol.dictdoc import HierDictDocument
 
 
 class MessagePackDecodeError(Fault):

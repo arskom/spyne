@@ -31,7 +31,7 @@
 from django.views.decorators.csrf import csrf_exempt
 
 from spyne.server.django import DjangoApplication
-from spyne.model.primitive import String, Integer
+from spyne.model.primitive import Unicode, Integer
 from spyne.model.complex import Iterable
 from spyne.service import ServiceBase
 from spyne.interface.wsdl import Wsdl11
@@ -40,14 +40,16 @@ from spyne.application import Application
 from spyne.decorator import rpc
 
 class HelloWorldService(ServiceBase):
-    @rpc(String, Integer, _returns=Iterable(String))
+    @rpc(Unicode, Integer, _returns=Iterable(Unicode))
     def say_hello(ctx, name, times):
         for i in xrange(times):
             yield 'Hello, %s' % name
 
-hello_world_service = csrf_exempt(DjangoApplication(Application([HelloWorldService],
-        'spyne.examples.django',
-        in_protocol=Soap11(),
-        out_protocol=Soap11(),
-        interface=Wsdl11(),
-    )))
+
+app = Application([HelloWorldService],
+    'spyne.examples.django',
+    in_protocol=Soap11(validator='lxml'),
+    out_protocol=Soap11(),
+)
+
+hello_world_service = csrf_exempt(DjangoApplication(app))

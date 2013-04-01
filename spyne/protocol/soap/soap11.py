@@ -20,8 +20,14 @@
 """The ``spyne.protoco.soap.soap11`` module contains the implementation of a
 subset of the Soap 1.1 standard.
 
-Except the binary optimizations that mostly **do not work**, this protocol is
-production quality.
+Except the binary optimizations (MtoM, attachments, etc) that mostly
+**do not work**, this protocol is production quality.
+
+One must specifically enable the debug output for the Xml protocol to see the
+actual document exchange. That's because the xml formatting code is run only
+when explicitly enabled due to performance reasons. ::
+
+    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
 Initially released in soaplib-0.8.0.
 """
@@ -38,16 +44,12 @@ from lxml.etree import XMLSyntaxError
 
 from spyne.const.http import HTTP_405
 from spyne.const.http import HTTP_500
-from spyne.const.ansi_color import LIGHT_GREEN
-from spyne.const.ansi_color import LIGHT_RED
-from spyne.const.ansi_color import END_COLOR
 from spyne.error import RequestNotAllowed
 from spyne.model.fault import Fault
 from spyne.model.primitive import Date
 from spyne.model.primitive import Time
 from spyne.model.primitive import DateTime
 from spyne.protocol.xml import XmlDocument
-from spyne.protocol.xml.model import nillable_value
 from spyne.protocol.soap.mime import collapse_swa
 
 from spyne.protocol._model import date_from_string_iso
@@ -140,15 +142,19 @@ class Soap11(XmlDocument):
     """The base implementation of a subset of the Soap 1.1 standard. The
     document is available here: http://www.w3.org/TR/soap11/
 
-    :param app: A spyne.application.Application instance.
-    :param validator: The validator to use. Currently the only supported
-        value is 'lxml'
-    :param wrapped: Whether the return type should be wrapped in another
-        object. Default is 'True'.
+    :param app: The owner application instance.
+    :param validator: One of (None, 'soft', 'lxml', 'schema',
+                ProtocolBase.SOFT_VALIDATION, XmlDocument.SCHEMA_VALIDATION).
+                Both ``'lxml'`` and ``'schema'`` values are equivalent to
+                ``XmlDocument.SCHEMA_VALIDATION``.
     :param xml_declaration: Whether to add xml_declaration to the responses
         Default is 'True'.
     :param cleanup_namespaces: Whether to add clean up namespace declarations
         in the response document. Default is 'True'.
+    :param encoding: The suggested string encoding for the returned xml
+        documents. The transport can override this.
+    :param pretty_print: When ``True``, returns the document in a pretty-printed
+        format.
     """
 
     allowed_http_verbs = ['POST']
@@ -169,17 +175,6 @@ class Soap11(XmlDocument):
         Date: date_from_string_iso,
         DateTime: datetime_from_string_iso,
     }
-
-    def __init__(self, app=None, validator=None, wrapped=True,
-                                xml_declaration=True, cleanup_namespaces=True):
-        XmlDocument.__init__(self, app, validator, xml_declaration,
-                                                             cleanup_namespaces)
-
-        self.__wrapped = wrapped
-
-    @property
-    def wrapped(self):
-        return self.__wrapped
 
     def create_in_document(self, ctx, charset=None):
         if ctx.transport.type == 'wsgi':
@@ -340,14 +335,6 @@ class Soap11(XmlDocument):
 
         if self.cleanup_namespaces:
             etree.cleanup_namespaces(ctx.out_document)
-
-        if self.log_messages:
-            if message is self.REQUEST:
-                line_header = '%sRequest%s' % (LIGHT_GREEN, END_COLOR)
-            elif message is self.RESPONSE:
-                line_header = '%sResponse%s' % (LIGHT_RED, END_COLOR)
-            logger.debug('%s %s' % (line_header, etree.tostring(ctx.out_document,
-                                        xml_declaration=True, pretty_print=True)))
 
         self.event_manager.fire_event('after_serialize', ctx)
 

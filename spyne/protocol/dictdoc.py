@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""The ``spyne.protocol.dictobj`` module contains an abstract
+"""The ``spyne.protocol.dictdoc`` module contains an abstract
 protocol that deals with hierarchical and flat dicts as {in,out}_documents.
 """
 
@@ -160,8 +160,8 @@ class FlatDictDocument(DictDocument):
                     if isinstance(v2, str) or isinstance(v2, unicode):
                         if member.type.Attributes.encoding is None and \
                                         cls.default_binary_encoding is not None:
-                            native_v2 = ProtocolBase.from_string(member.type,v2,
-                                                    cls.default_binary_encoding)
+                            native_v2 = ProtocolBase.from_string(member.type,
+                                                v2, cls.default_binary_encoding)
 
                         else:
                             native_v2 = ProtocolBase.from_string(member.type,v2)

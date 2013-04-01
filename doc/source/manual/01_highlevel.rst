@@ -24,8 +24,8 @@ The following is a quick introduction to the Spyne way of naming things:
 * **Transports:**
     Transports, also protocols themselves, encapsulate protocol data in their
     free-form data sections. They are subclasses of either
-    :class:`spyne.client._base.ClientBase` or
-    :class:`spyne.server._base.ServerBase` classes.
+    :class:`spyne.client.ClientBase` or
+    :class:`spyne.server.ServerBase` classes.
 
     For example, Http is used as a transport for Soap, by
     tucking a Soap message in the arbitrary byte-stream part of a Http POST
@@ -65,24 +65,29 @@ How your code is wrapped
 ------------------------
 
 While the information in the previous section gave you an idea about how Spyne
-code is organized, this section is supposed to give you an idea about how *you*
-should organize your code using the tools provided by Spyne.
+code is organized, this section should give you an idea about how *you* should
+organize your code using the tools provided by Spyne.
 
 Before proceeding further, having good idea about the following four terms used
 throughout Spyne would be very useful:
 
 * **User Methods** or **User Code**:
-    User methods are the code that you wrote and decided to use spyne to
-    expose to the outside world.
+    User methods are the code that you wrote and decided to use Spyne to
+    expose to the outside world. They are regular Python functions that don't
+    need to use to any specific API or adhere to any specific convention.
 
 * **Decorators**:
     The ``@rpc`` and ``@srpc`` decorators from :mod:`spyne.decorator` module
     are used to flag methods that will be exposed to the outside world by
     marking their input and output types, as well as other properties.
+    Functions decorated with ``@srpc`` don't need to have ``ctx`` as their
+    first argument. It is meant to decorate functions that are not under your
+    direct control. In every other case, you should just use the ``@rpc``
+    decorator.
 
 * **Service Definition**:
     The :class:`spyne.service.ServiceBase` is an abstract base class for
-    service definitions, which are the smallest exposable unit in Spyne.
+    a service definition, which is the smallest exposable unit in Spyne.
     You can use one service class per method definition or you can use, say, a
     service class for read-only or read/write services or you can cram
     everything into one service class, it's up to you.
@@ -102,13 +107,14 @@ throughout Spyne would be very useful:
     exception management.
 
     .. NOTE::
-        You may know that Spyne is a generalized version of a Soap library.
+        You may know that Spyne is a generalized version of a Soap library
+        called "soaplib".
         So inevitably, some artifacts of the Soap world creep in from here and
         there.
 
         One of those artifacts is the namespace feature of Xml. There are
-        varying opinions about the usefulness of Xml namespaces, but as we think
-        it's generally "A Nice Thing", we chose to keep it around.
+        varying opinions about the usefulness of Xml namespaces, but as we
+        think it generally to be "A Nice Thing", we chose to keep it around.
 
         When instantiating the :class:`spyne.application.Application` class,
         you should also give it a targetNamespace (the ``tns`` argument to its
@@ -134,9 +140,9 @@ throughout Spyne would be very useful:
 .. _manual-highlevel-nutshell:
 
 In a nutshell
-^^^^^^^^^^^^^^
+^^^^^^^^^^^^^
 
-Your code is inside @rpc-wrapped methods in `ServiceBase` subclasses. The
+Your code is inside ``@rpc``-wrapped methods in `ServiceBase` subclasses. The
 `ServiceBase` subclasses in turn are wrapped by an Application instance. The
 `Application` instantiation is used to assign input and output protocols to the
 exposed methods. The `Application` instance is finally wrapped by a client or

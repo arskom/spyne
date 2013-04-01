@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import re
 import datetime
 import unittest
 
@@ -51,6 +52,7 @@ from spyne.model.primitive import UnsignedInteger64
 from spyne.model.primitive import UnsignedInteger32
 from spyne.model.primitive import UnsignedInteger16
 from spyne.model.primitive import UnsignedInteger8
+
 from spyne.protocol import ProtocolBase
 from spyne.protocol.xml import XmlDocument
 
@@ -61,6 +63,7 @@ from spyne.interface.xml_schema import XmlSchema
 
 ns_test = 'test_namespace'
 
+
 class TestPrimitive(unittest.TestCase):
     def test_invalid_name(self):
         class Service(ServiceBase):
@@ -69,7 +72,8 @@ class TestPrimitive(unittest.TestCase):
                 pass
 
         try:
-            app = Application([Service], 'hey', XmlSchema(), XmlDocument(), XmlDocument())
+            Application([Service], 'hey', in_protocol=XmlDocument(),
+                                          out_protocol=XmlDocument())
         except:
             pass
         else:
@@ -104,9 +108,20 @@ class TestPrimitive(unittest.TestCase):
         XmlDocument().to_parent_element(DateTime(format=format), n, ns_test, element)
         element = element[0]
 
-        self.assertEquals(element.text, datetime.datetime.strftime(n, format))
+        assert element.text == datetime.datetime.strftime(n, format)
         dt = XmlDocument().from_element(DateTime(format=format), element)
-        self.assertEquals(n, dt)
+        assert n == dt
+
+    def test_date_format(self):
+        t = datetime.date.today()
+        format = "%Y %m %d"
+
+        element = etree.Element('test')
+        XmlDocument().to_parent_element(Date(format=format), t, ns_test, element)
+        assert element[0].text == datetime.date.strftime(t, format)
+
+        dt = XmlDocument().from_element(Date(format=format), element[0])
+        assert t == dt
 
     def test_datetime_timezone(self):
         import pytz
@@ -273,6 +288,53 @@ class TestPrimitive(unittest.TestCase):
         self.assertTrue( bool(element.attrib.get('{%s}nil' % ns.xsi)) )
         value = XmlDocument().from_element(Null, element)
         self.assertEquals(None, value)
+
+    def test_point(self):
+        from spyne.model.primitive import _get_point_pattern
+
+        a=re.compile(_get_point_pattern(2))
+        assert a.match('POINT (10 40)') is not None
+        assert a.match('POINT(10 40)') is not None
+
+        assert a.match('POINT(10.0 40)') is not None
+        assert a.match('POINT(1.310e4 40)') is not None
+
+    def test_multipoint(self):
+        from spyne.model.primitive import _get_multipoint_pattern
+
+        a=re.compile(_get_multipoint_pattern(2))
+        assert a.match('MULTIPOINT (10 40, 40 30, 20 20, 30 10)') is not None
+        # FIXME:
+        #assert a.match('MULTIPOINT ((10 40), (40 30), (20 20), (30 10))') is not None
+
+    def test_linestring(self):
+        from spyne.model.primitive import _get_linestring_pattern
+
+        a=re.compile(_get_linestring_pattern(2))
+        assert a.match('LINESTRING (30 10, 10 30, 40 40)') is not None
+
+    def test_multilinestring(self):
+        from spyne.model.primitive import _get_multilinestring_pattern
+
+        a=re.compile(_get_multilinestring_pattern(2))
+        assert a.match('''MULTILINESTRING ((10 10, 20 20, 10 40),
+                                (40 40, 30 30, 40 20, 30 10))''') is not None
+
+    def test_polygon(self):
+        from spyne.model.primitive import _get_polygon_pattern
+
+        a=re.compile(_get_polygon_pattern(2))
+        assert a.match('POLYGON ((30 10, 10 20, 20 40, 40 40, 30 10))') is not None
+
+    def test_multipolygon(self):
+        from spyne.model.primitive import _get_multipolygon_pattern
+
+        a=re.compile(_get_multipolygon_pattern(2))
+        assert a.match('''MULTIPOLYGON (((30 20, 10 40, 45 40, 30 20)),
+                            ((15 5, 40 10, 10 20, 5 10, 15 5)))''') is not None
+        assert a.match('''MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)),
+                                ((20 35, 45 20, 30 5, 10 10, 10 30, 20 35),
+                                (30 20, 20 25, 20 15, 30 20)))''') is not None
 
     def test_boolean(self):
         b = etree.Element('test')

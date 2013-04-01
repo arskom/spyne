@@ -42,7 +42,7 @@ The SQLAlchemy integration is far from perfect at the moment:
     * Object attributes defined by mechanisms other than Column and limited uses
       of `relationship` (no string arguments) are not supported.
 
-If you need any of the above features, you need to separate the spyne and
+If you need any of the above features, you need to separate the Spyne and
 sqlalchemy object definitions.
 
 Spyne makes it easy (to an extent) with the following syntax: ::

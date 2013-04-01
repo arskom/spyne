@@ -38,7 +38,7 @@ client.
 Here's how to call it using suds:
 
 >>> from suds.client import Client
->>> c = Client('http://localhost:7789/?wsdl')
+>>> c = Client('http://localhost:8000/?wsdl')
 >>> c.service.say_hello('punk', 5)
 (stringArray){
    string[] =
@@ -54,6 +54,10 @@ Here's how to call it using suds:
 
 
 import logging
+
+from spyne.application import Application
+from spyne.protocol.soap import Soap11
+from spyne.server.wsgi import WsgiApplication
 
 from spyne.decorator import srpc
 from spyne.service import ServiceBase
@@ -86,9 +90,14 @@ if __name__=='__main__':
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
-    logging.info("listening to http://127.0.0.1:7789")
-    logging.info("wsdl is at: http://localhost:7789/?wsdl")
+    logging.info("listening to http://127.0.0.1:8000")
+    logging.info("wsdl is at: http://localhost:8000/?wsdl")
 
-    wsgi_app = wsgi_soap_application([HelloWorldService], 'spyne.examples.hello.soap')
-    server = make_server('127.0.0.1', 7789, wsgi_app)
+    application = Application([HelloWorldService], 'spyne.examples.hello.soap',
+                in_protocol=Soap11(validator='lxml'),
+                out_protocol=Soap11()
+            )
+    wsgi_application = WsgiApplication(application)
+
+    server = make_server('127.0.0.1', 8000, wsgi_application)
     server.serve_forever()

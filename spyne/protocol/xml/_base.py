@@ -94,10 +94,16 @@ class XmlDocument(ProtocolBase):
     :param app: The owner application instance.
     :param validator: One of (None, 'soft', 'lxml', 'schema',
                 ProtocolBase.SOFT_VALIDATION, XmlDocument.SCHEMA_VALIDATION).
+                Both ``'lxml'`` and ``'schema'`` values are equivalent to
+                ``XmlDocument.SCHEMA_VALIDATION``.
     :param xml_declaration: Whether to add xml_declaration to the responses
         Default is 'True'.
     :param cleanup_namespaces: Whether to add clean up namespace declarations
         in the response document. Default is 'True'.
+    :param encoding: The suggested string encoding for the returned xml
+        documents. The transport can override this.
+    :param pretty_print: When ``True``, returns the document in a pretty-printed
+        format.
     """
 
     SCHEMA_VALIDATION = type("Schema", (object,), {})
@@ -109,10 +115,12 @@ class XmlDocument(ProtocolBase):
     type.add('xml')
 
     def __init__(self, app=None, validator=None, xml_declaration=True,
-                                                    cleanup_namespaces=True):
+                cleanup_namespaces=True, encoding='UTF-8', pretty_print=False):
         ProtocolBase.__init__(self, app, validator)
         self.xml_declaration = xml_declaration
         self.cleanup_namespaces = cleanup_namespaces
+        self.encoding = encoding
+        self.pretty_print = pretty_print
 
         self.serialization_handlers = cdict({
             AnyXml: xml_to_parent_element,
@@ -211,7 +219,6 @@ class XmlDocument(ProtocolBase):
                 logger.error(string)
                 raise Fault('Client.XMLSyntaxError', str(e))
 
-
     def decompose_incoming_envelope(self, ctx, message):
         assert message in (self.REQUEST, self.RESPONSE)
 
@@ -224,10 +231,17 @@ class XmlDocument(ProtocolBase):
         """Sets an iterable of string fragments to ctx.out_string"""
 
         if charset is None:
-            charset = 'UTF-8'
+            charset = self.encoding
 
         ctx.out_string = [etree.tostring(ctx.out_document,
-                        xml_declaration=self.xml_declaration, encoding=charset)]
+                                          encoding=charset,
+                                          pretty_print=self.pretty_print,
+                                          xml_declaration=self.xml_declaration)]
+
+        if self.log_messages:
+            logger.debug('%sResponse%s %s' % (LIGHT_RED, END_COLOR,
+                            etree.tostring(ctx.out_document,
+                                          pretty_print=True, encoding='UTF-8')))
 
     def deserialize(self, ctx, message):
         """Takes a MethodContext instance and a string containing ONE root xml
@@ -243,8 +257,11 @@ class XmlDocument(ProtocolBase):
         self.event_manager.fire_event('before_deserialize', ctx)
 
         if ctx.descriptor is None:
-            raise Fault("Client", "Method %r not found." %
+            if ctx.in_error is None:
+                raise Fault("Client", "Method %r not found." %
                                                       ctx.method_request_string)
+            else:
+                raise ctx.in_error
 
         if message is self.REQUEST:
             body_class = ctx.descriptor.in_message
@@ -257,11 +274,8 @@ class XmlDocument(ProtocolBase):
         else:
             ctx.in_object = self.from_element(body_class, ctx.in_body_doc)
 
-        if self.log_messages:
-            if message is self.REQUEST:
-                line_header = '%sRequest%s' % (LIGHT_GREEN, END_COLOR)
-            elif message is self.RESPONSE:
-                line_header = '%sResponse%s' % (LIGHT_RED, END_COLOR)
+        if self.log_messages and message is self.REQUEST:
+            line_header = '%sRequest%s' % (LIGHT_GREEN, END_COLOR)
 
             logger.debug("%s %s" % (line_header, etree.tostring(ctx.out_document,
                     xml_declaration=self.xml_declaration, pretty_print=True)))

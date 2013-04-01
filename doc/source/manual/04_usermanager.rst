@@ -4,8 +4,8 @@
 User Manager
 ============
 
-This tutorial builds on the :ref:`manual-helloworld` tutorial. If you haven't
-done so, we recommended you to read it first.
+This tutorial builds on the :ref:`manual-helloworld` and :ref:`manual-types` tutorial.
+If you haven't done so, we recommended you to read them first.
 
 In this tutorial, we will talk about:
 
@@ -17,63 +17,23 @@ The simple example that we are going to be studying here using complex, nested
 data is available here:
 http://github.com/arskom/spyne/blob/master/examples/user_manager/server_basic.py
 
-Jumping into what's new: Spyne uses ``ComplexModel`` as a general type that,
-when subclassed, will produce complex serializable types that can be used in a
-public service. The ``Permission`` class is a fairly simple class with just
-two members: ::
+Here are the definitions for the two complex types that we will use: throughout
+this section: ::
 
     class Permission(ComplexModel):
         application = Unicode
         feature = Unicode
 
-Let's also look at the ``User`` class: ::
 
     class User(ComplexModel):
         user_id = Integer
         username = Unicode
         firstname = Unicode
         lastname = Unicode
-
-Nothing new so far.
-
-Below, you can see that the ``email`` member which has a regular expression
-restriction defined. The ``Unicode`` type accepts other restrictions, please
-refer to the :class:`spyne.model.primitive.Unicode` documentation for more
-information: ::
-
         email = Unicode(pattern=r'\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[A-Z]{2,4}\b')
-
-The ``permissions`` attribute is an array, whose native type is a ``list`` of
-``Permission`` objects. ::
-
         permissions = Array(Permission)
 
-The following is deserialized as a generator, but looks the same from the
-points of view of protocol and interface documents: ::
-
-        permissions = Iterable(Permission)
-
-The following is deserialized as a list of ``Permission`` objects, just like with
-the ``Array`` example, but is shown and serialized differently in Wsdl and Soap
-representations. ::
-
-        permissions = Permission.customize(max_occurs='unbounded')
-
-With the ``Array`` and ``Iterable`` types, a container class wraps multiple
-occurences of the inner data type. So ``Array(Permission)`` is actually
-equivalent to: ::
-
-        class PermissionArray(ComplexModel):
-            Permisstion = Permission.customize(max_occurs='unbounded')
-
-Here, we need to use the :func:`spyne.model._base.ModelBase.customize` call
-because calling a ``ComplexModel`` subclass instantiates that class, whereas
-calling a ``SimpleModel`` child implicitly calls the ``.customize`` method of
-that class.
-
-The ``customize`` function just sets given arguments as class attributes to
-``cls.Attributes`` class. You can refer to the documentation of each class to
-see which member of the ``Attributes`` class is used for the given object.
+Nothing new so far.
 
 Here, we define a function to be called for every method call. It instantiates
 the ``UserDefinedContext`` class and sets it to the context object's ``udc``
@@ -123,11 +83,7 @@ events to measure method performance)
 What's next?
 ------------
 
-This tutorial walks you through what you need to know to expose more complex
-services. You can read the :ref:`manual-sqlalchemy` document where the
-:class:`spyne.model.table.TableModel` class and its helpers are introduced.
+You can read the :ref:`manual-sqlalchemy` document where the
+:class:`spyne.model.complex.TTableModel` class and its helpers are introduced.
 You can also have look at the :ref:`manual-validation` section where Spyne's
 imperative and declarative input validation features are introduced.
-
-Otherwise, please refer to the rest of the documentation or the mailing list
-if you have further questions.

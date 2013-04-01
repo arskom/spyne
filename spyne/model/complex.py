@@ -146,7 +146,9 @@ class _SimpleTypeInfoElement(object):
 
 
 class XmlAttribute(ModelBase):
-    """Items which are marshalled as attributes of the parent element."""
+    """Items which are marshalled as attributes of the parent element, unless
+    ``attribute_of`` is passed.
+    """
 
     def __new__(cls, type, use=None, ns=None, attribute_of=None):
         retval = cls.customize()
@@ -690,6 +692,7 @@ class ComplexModelBase(ModelBase):
     def novalidate_freq(cls):
         return cls.customize(validate_freq=False)
 
+
 class ComplexModel(ComplexModelBase):
     """The general complexType factory. The __call__ method of this class will
     return instances, contrary to primivites where the same call will result in
@@ -721,6 +724,10 @@ class Array(ComplexModelBase):
             retval._type_info = {'_bogus': serializer}
         else:
             retval._set_serializer(serializer)
+
+        for k, v in kwargs.items():
+            if k == "type_name":
+                retval.__type_name__ = kwargs.get("type_name", ModelBase.Empty)
 
         return retval
 
@@ -779,6 +786,11 @@ class Iterable(Array):
     has the same name as the serialized class. It's contained in a Python
     iterable. The distinction with the ``Array`` is made in the protocol
     implementation, this is just a marker.
+
+    Whenever you return a generator instead of a list, you should use this type
+    as this suggests the intermediate machinery to NEVER actually try to iterate
+    over the value. An ``Array`` could be iterated over for e.g. logging
+    purposes.
     """
 
     class Attributes(Array.Attributes):

@@ -32,7 +32,7 @@
 from suds import WebFault
 from suds.client import Client
 
-c = Client('http://localhost:7789/app/?wsdl')
+c = Client('http://localhost:8000/app/?wsdl')
 
 user_name = 'neo'
 
