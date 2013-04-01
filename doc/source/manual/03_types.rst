@@ -4,8 +4,6 @@
 Spyne Models and Native Python Types
 ====================================
 
-Spyne comes with many building blocks for you to define your own composite objects when necessary.
-
 There are five types of models in Spyne:
 
 * **Primitive:** These are basic models that can contain a single value at a time.
@@ -19,31 +17,105 @@ There are five types of models in Spyne:
   are defined using the :class:`spyne.model.enum.Enum` class.
 
 * **Binary:** Binary types are used to represent arbitrarily-long byte streams.
-  There are two types of binary types in Spyne: The 
+  There are two binary types in Spyne: The
   :class:`spyne.model.binary.ByteArray` and the
-  :class:`spyne.model.binary.File` class. While any type of ``str`` sequence
-  can be used as ``ByteArray``, the ``File`` only works with a ``File.Value``
-  instance. Please see the relevant example below for a more thorough
-  explanation.
+  :class:`spyne.model.binary.File` class. While any sequence of ``str``
+  instances can be used as ``ByteArray``, the ``File`` only works with a
+  ``File.Value`` instance. Please see the relevant example below for a more
+  thorough explanation.
 
 * **Complex:** Complex objects are subclasses of the
   :class:`spyne.model.complex.ComplexModel` class. They are hierarchical
-  container classes that can contain any type of object.
+  container classes that can contain any type of object. Two well known
+  examples are the
+  :class:`spyne.model.complex.Array` and
+  :class:`spyne.model.complex.Iterable` types.
+  They are just specialized complex objects.
 
 * **Fault:** When an exception is thrown from the user code, it's serialized
-  and returned to the client as a :class:`spyne.model.fault.Fault`. If this
-  exception is not a subclass of ``Fault``, the client will probably see this
+  and returned to the client as a :class:`spyne.model.fault.Fault`. If it is
+  not a subclass of ``Fault``, the client will probably see this
   as an internal error. Some of the most common exceptions that a web service
   might need to throw can be found in the :mod:`spyne.error` module.
 
-This is one of those parts of Spyne where you will feel the Soap heritage as
-we just *love* the high amount of professionalism in the Xml Schema standard.
+Before going into detail about each category of models, we will first talk
+about an operation that applies to all models: Type Customization.
 
 Customization
 -------------
 
-Indeed... ``.customize()``
+Model customization is how one adds declarative restrictions and other metadata
+to a Spyne model. This model metadata is stored in a generic object called
+``Attributes``. Every Spyne model has this object as a class attribute.
 
+As an example, let's customize the vanilla ``Unicode`` type to accept only valid
+email strings: ::
+
+  class EmailString(Unicode):
+      __type_name__ = 'EmailString'
+
+      class Attributes(Unicode.Attributes):
+          max_length = 128
+          pattern = '[^@]+@[^@]+'
+
+You must consult the reference of the type you want to customize in order to
+learn about which values it supports for its ``Attributes`` object.
+
+As this is a quite verbose way of doing it, Spyne offers an in-line
+customization mechanism for every type: ::
+
+    EmailString = Unicode.customize(
+            max_length=128,
+            pattern='[^@]+@[^@]+',
+            type_name='EmailString',
+        )
+
+Here, ``type_name`` is a special argument name that gets assigned to
+``__type_name__`` instead of the ``Attributes`` class.
+
+Calling simple types directly is a shortcut to their customize method: ::
+
+    EmailString = Unicode(
+            max_length=128,
+            pattern='[^@]+@[^@]+',
+            type_name='EmailString',
+        )
+
+As restricting the length of a string is very common, the length limit can be
+passed as a positional argument as well: ::
+
+    EmailString = Unicode(128,
+            pattern='[^@]+@[^@]+',
+            type_name='EmailString',
+        )
+
+It's actually also not strictly necessary (yet highly recommended) to pass a
+type name: ::
+
+    EmailString = Unicode(128, pattern='[^@]+@[^@]+')
+
+When the ``type_name`` is omitted, Spyne auto-generates a type name for the
+new custom type basing on the class it's used in.
+
+Type customizations can also be anonymously tucked inside other class
+definitions: ::
+
+    class User(ComplexModel):
+        user_name = Unicode(64, pattern='[a-z0-9_-]')
+        email_address = Unicode(128, pattern='[^@]+@[^@]+')
+
+Do note that calling ``ComplexModel`` subclasses instantitates them. That's why
+you should use the ``.customize()`` call, or plain old subclassing to customize
+complex types: ::
+
+    class MandatoryUser(User):
+        class Attributes(User.Attributes):
+            nullable=False
+            min_occurs=1
+
+or: ::
+
+    MandatoryUser = User.customize(nullable=False, min_occurs=1)
 
 Primitives
 ----------
@@ -70,7 +142,7 @@ Numbers
 ^^^^^^^
 
 Numbers are organized in a hierarchy, with the
-:class:`spyne.model.primitive.Decimal` type  at the top. 
+:class:`spyne.model.primitive.Decimal` type  at the top.
 In its vanilla state, the ``Decimal`` class is the arbitrary-precision,
 arbitrary-size generic number type that will accept just *any* decimal
 number.
@@ -79,7 +151,7 @@ It has three direct subclasses: The arbitrary-size
 :class:`spyne.model.primitive.Integer` type and the machine-dependent
 :class:`spyne.model.primitive.Double` or
 :class:`spyne.model.primitive.Float` (which are synonyms as Python does not
-distinguish between floats and doubles) types. 
+distinguish between floats and doubles) types.
 
 Unless you are absolutely, positively sure that you need to deal with
 arbitrary-size numbers, (or you're implementing an existing API) you
@@ -90,7 +162,7 @@ You must also refrain from using :class:`spyne.model.primitive.Float` and
 roll faster as their representation is machine-specific, thus not very
 reliable nor portable.
 
-For integers, we recommend you to use types like 
+For integers, we recommend you to use types like
 :class:`spyne.model.primitive.UnsignedInteger32` which can only contain a
 32-bit unsigned integer. (Which is very popular as e.g. a primary key type
 in a relational database.)
@@ -140,7 +212,7 @@ Date/Time Types
 ^^^^^^^^^^^^^^^
 
 :class:`spyne.model.primitive.Date`, :class:`spyne.model.primitive.Time` and
-:class:`spyne.model.primitive.DateTime` correspond to the native types 
+:class:`spyne.model.primitive.DateTime` correspond to the native types
 ``datetime.date``, ``datetime.time`` and ``datetime.datetime`` respectively.
 Spyne supports working with both offset-naive and offset-aware datetimes.
 
@@ -153,11 +225,12 @@ Spatial Types
 ^^^^^^^^^^^^^
 
 Spyne comes with six basic spatial types that are supported by popular packages
-like `PostGIS <http://postgis.refractions.net/>`_ and 
-`Shapely <`http://toblerity.github.com/shapely/`>_. These are the 
+like `PostGIS <http://postgis.refractions.net/>`_ and
+`Shapely <`http://toblerity.github.com/shapely/`>_. These are the
 
-These are provided as ``Unicode`` wrappers that just define proper constraints
-to force the incoming string to be WKT-compliant. WKB is not yet supported.
+These are provided as ``Unicode`` subclasses that just define proper
+constraints to force the incoming string to be WKT-compliant. WKB is not yet
+supported.
 
 The incoming types are not parsed, but you can use ``shapely.wkb.loads()``
 function to convert them to native geometric types.
@@ -165,7 +238,7 @@ function to convert them to native geometric types.
 :class:`spyne.model.primitive.Point`, :class:`spyne.model.primitive.Line` and
 :class:`spyne.model.primitive.Polygon` and also their multi-variants, which are
 
-:class:`spyne.model.primitive.MultiPoint`, :class:`spyne.model.primitive.MultiLine` 
+:class:`spyne.model.primitive.MultiPoint`, :class:`spyne.model.primitive.MultiLine`
 and :class:`spyne.model.primitive.MultiPolygon`.
 
 Miscellanous Types
