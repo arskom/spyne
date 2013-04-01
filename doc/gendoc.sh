@@ -8,6 +8,7 @@ for i in ${!docs[@]}; do
     git checkout ${docs[$i]} || exit 1;
 
     rm -rf $i;
+    make clean;
     make html || exit 1;
     mv build/html $i;
 done;
