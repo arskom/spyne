@@ -49,7 +49,6 @@ Here's how to call it using suds:
       "Hello, punk",
  }
 >>>
-
 '''
 
 
@@ -73,8 +72,9 @@ class HelloWorldService(ServiceBase):
     @srpc(Unicode, Integer, _returns=Iterable(Unicode))
     def say_hello(name, times):
         '''
-        Docstrings for service methods appear as documentation in the wsdl
-        <b>what fun</b>
+        Docstrings for service methods appear as documentation in the wsdl.
+        <b>What fun!</b>
+
         @param name the name to say hello to
         @param the number of times to say hello
         @return the completed array
