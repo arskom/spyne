@@ -170,7 +170,8 @@ in a relational database.)
 For floating-point numbers, use the ``Decimal`` type with a pre-defined scale
 and precision. E.g. ``Decimal(16, 4)`` can represent a 16-digit number in total
 which can have up to 4 decimal digits, which could be used e.g. as a nice
-monetary type. By the way, Spyne does not include types like ISO-4217 compliant
+monetary type. By the way, Spyne does not include types like
+`ISO-4217 <http://www.currency-iso.org/>`_-compliant
 'currency' and 'monetary' types. [#]_ They are actually really easy to
 implement. Needless to say, patches are welcome!
 
@@ -274,7 +275,8 @@ TBD
 Complex
 -------
 
-TBD!!
+Complex objects are, by definition, types that can contain other types. They
+must be subclasses of :class:`spyne.model.primitive.ComplexModel` class.
 
 Here's a sample complex object definition: ::
 
@@ -282,7 +284,16 @@ Here's a sample complex object definition: ::
         application = Unicode
         feature = Unicode
 
-Here's a sample complex object definition: ::
+The ``ComplexModel`` metaclass, namely the
+:class:`spyne.model.complex.ComplexModelMeta` scans the class definition and
+ignores
+
+1. Those that begin with an underscore (``_``)
+2. Those that are not subclasses of the ``ModelBase``.
+
+If you want to use python keywords as field names, or need leading underscores
+in field names, or you just want your Spyne definition and other code to be
+separate, you can do away with the metaclass magic and do this: ::
 
     class Permission(ComplexModel):
         _type_info = {
@@ -290,7 +301,9 @@ Here's a sample complex object definition: ::
             'feature': Unicode,
         }
 
-Here's a sample complex object definition: ::
+However, you still won't get predictable field order, as you're just setting a
+``dict`` to the ``_type_info`` attribute. If you also need to that, you need
+to pass a sequence of ``(field_name, field_type)`` tuples, like so: ::
 
     class Permission(ComplexModel):
         _type_info = [
@@ -298,27 +311,75 @@ Here's a sample complex object definition: ::
             ('feature', Unicode),
         ]
 
-The following denotes a list of ``Permission`` objects.
+Arrays
+^^^^^^
+
+If you need to deal with more than one instances of something, the
+:class:`spyne.model.complex.Array` is what you need.
+
+Imagine the following inside the definition of a ``User`` object: ::
 
         permissions = Array(Permission)
 
-The following is used to denote generators, but looks the same from the
-points of view of protocol and interface documents: ::
+The User can have an infinite number of permissions. If you need to put a
+limit to that, you can do this:
+
+        permissions = Array(Permission.customize(max_occurs=15))
+
+It is important to stress once more that Spyne restrictions are only enforced
+for an incoming request when validation is enabled. If you want this
+enforcement for every *assignment*, you do this the usual way by writing a
+property setter.
+
+The ``Array`` type has two alternatives. The first one is the
+:class:`spyne.model.complex.Iterable` type. ::
 
         permissions = Iterable(Permission)
 
-The following is deserialized as a list of ``Permission`` objects, just like with
-the ``Array`` example, but is shown and serialized differently in Wsdl and Soap
-representations. ::
+It is equivalent to the ``Array`` type from an interface perspective -- i.e.
+the client will not see any difference between an ``Iterable`` and an ``Array``
+as return type.
+
+It's just meant to signal the internediate machinery that the return
+value *could* be a generator and **must not** be consumed unless returning data
+to the client. This comes in handy for, e.g. custom loggers because they should
+not try to log the return value.
+
+You could use the ``Iterable`` marker in other places instead of ``Array``
+without any problems, but it's really meant to be used as return types in
+function definitions.
+
+The second alternative to the ``Array`` notation is the following: ::
 
         permissions = Permission.customize(max_occurs='unbounded')
 
-With the ``Array`` and ``Iterable`` types, a container class wraps multiple
-occurences of the inner data type. So ``Array(Permission)`` is actually
-equivalent to: ::
+This is functionally equivalent to what ``Array`` does, except in the XML/WSDL
+world.
+
+When you use ``Array``, what really happens is that the ``customize()`` function
+of the array type creates an in-place class that is equivalent to the
+following: ::
 
         class PermissionArray(ComplexModel):
             Permission = Permission.customize(max_occurs='unbounded')
+
+<<<<<<< HEAD
+Whereas when you just set ``max_occurs`` to a value greater than 1, you just get
+multiple values without the wrapping object.
+
+Return Values
+^^^^^^^^^^^^^
+
+When working with functions, you don't need to return the CompexModel subclasses
+themselves. Anything that walks and quacks like the designated return type will
+work just fine. Specifically, the returned object should return appropriate
+values on ``getattr()``s for field names in the return type. Any exceptions
+thrown by the object's ``__getattr__`` method will be logged and ignored.
+
+However, it is important to return *instances* and not classes themselves. Due
+to the way Spyne models work, the classes themselves will also work as return
+values until you actually start getting funky errors under load in your
+production. Don't do this! [#]_
 
 Fault
 -----
@@ -336,3 +397,4 @@ defining complex objects and using events.
 
 .. [#] See http://www.w3.org/TR/2001/WD-xforms-20010608/slice4.html for more
        information.
+.. [#] http://stackoverflow.com/a/15383191
