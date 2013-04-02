@@ -363,7 +363,6 @@ following: ::
         class PermissionArray(ComplexModel):
             Permission = Permission.customize(max_occurs='unbounded')
 
-<<<<<<< HEAD
 Whereas when you just set ``max_occurs`` to a value greater than 1, you just get
 multiple values without the wrapping object.
 
