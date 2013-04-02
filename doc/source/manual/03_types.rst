@@ -227,20 +227,27 @@ Spatial Types
 
 Spyne comes with six basic spatial types that are supported by popular packages
 like `PostGIS <http://postgis.refractions.net/>`_ and
-`Shapely <`http://toblerity.github.com/shapely/`>_. These are the
+`Shapely <`http://toblerity.github.com/shapely/>`_.
 
 These are provided as ``Unicode`` subclasses that just define proper
-constraints to force the incoming string to be WKT-compliant. WKB is not yet
-supported.
+constraints to force the incoming string to be compliant with the
+`Well known text (WKT) <https://en.wikipedia.org/wiki/Well-known_text>`_
+format. Well known binary (WKB) format is not (yet?) supported.
 
 The incoming types are not parsed, but you can use ``shapely.wkb.loads()``
 function to convert them to native geometric types.
 
-:class:`spyne.model.primitive.Point`, :class:`spyne.model.primitive.Line` and
-:class:`spyne.model.primitive.Polygon` and also their multi-variants, which are
+The spatial types that Spyne suppors are as follows:
 
-:class:`spyne.model.primitive.MultiPoint`, :class:`spyne.model.primitive.MultiLine`
-and :class:`spyne.model.primitive.MultiPolygon`.
+* :class:`spyne.model.primitive.Point`
+* :class:`spyne.model.primitive.Line`
+* :class:`spyne.model.primitive.Polygon`
+
+Also the ``Multi*`` variants, which are:
+
+* :class:`spyne.model.primitive.MultiPoint`
+* :class:`spyne.model.primitive.MultiLine`
+* :class:`spyne.model.primitive.MultiPolygon`
 
 Miscellanous Types
 ^^^^^^^^^^^^^^^^^^
@@ -314,7 +321,7 @@ to pass a sequence of ``(field_name, field_type)`` tuples, like so: ::
 Arrays
 ^^^^^^
 
-If you need to deal with more than one instances of something, the
+If you need to deal with more than one instance of something, the
 :class:`spyne.model.complex.Array` is what you need.
 
 Imagine the following inside the definition of a ``User`` object: ::
@@ -322,7 +329,7 @@ Imagine the following inside the definition of a ``User`` object: ::
         permissions = Array(Permission)
 
 The User can have an infinite number of permissions. If you need to put a
-limit to that, you can do this:
+limit to that, you can do this: ::
 
         permissions = Array(Permission.customize(max_occurs=15))
 
@@ -353,8 +360,8 @@ The second alternative to the ``Array`` notation is the following: ::
 
         permissions = Permission.customize(max_occurs='unbounded')
 
-This is functionally equivalent to what ``Array`` does, except in the XML/WSDL
-world.
+The native value that you should return for both remain the same: a sequence
+of the designated type. However, the exposed interface is slightly different.
 
 When you use ``Array``, what really happens is that the ``customize()`` function
 of the array type creates an in-place class that is equivalent to the
@@ -366,18 +373,99 @@ following: ::
 Whereas when you just set ``max_occurs`` to a value greater than 1, you just get
 multiple values without the wrapping object.
 
+As an example, let's look at the following array: ::
+
+    v = [
+        Permission(application='app', feature='f1'),
+        Permission(application='app', feature='f2')
+    ]
+
+Here's how it would be serialized to XML with ``Array(Permission)`` as return
+type: ::
+
+    <PermissionArray>
+      <Permission>
+        <application>app</application>
+        <feature>f1</feature>
+      </Permission>
+      <Permission>
+        <application>app</application>
+        <feature>f2</feature>
+      </Permission>
+    </PermissionArray>
+
+The same value-type combination would result in the following json document: ::
+
+    {
+        "Permission": [
+            {
+                "application": "app",
+                "feature": "f1"
+            },
+            {
+                "application": "app",
+                "feature": "f2"
+            }
+        ]
+    }
+
+However, when we serialize the same object to xml using the
+``Permission.customize(max_occurs=float('inf'))`` annotation, we get two
+separate Xml documents, like so: ::
+
+    <Permission>
+      <application>app</application>
+      <feature>f1</feature>
+    </Permission>
+    <Permission>
+      <application>app</application>
+      <feature>f2</feature>
+    </Permission>
+
+As for Json, we get: ::
+
+    [
+        {
+            "application": "app", 
+            "feature": "f1"
+        },
+        {
+            "application": "app", 
+            "feature": "f2"
+        }
+    ]
+
+At this point, dear reader, you may be going "Arrgh! More choices! Just tell
+me what's best!"
+
+Well, for Xml people, the second way of doing things is wrong, (Xml has a
+one-root-per-document rule) yet it must be done for compatibility reasons.
+And doing it the first way will just annoy JSON people.
+
+In order to let everbody keep the beautiful ``Array(Something)`` syntax, 
+:class:`spyne.protocol.dictdoc.HierDictDocument`, parent class of Protocols
+that eat ``dict`` s including ``JsonDocument``, has a ``skip_depth`` argument
+which lets the protocol strip the wrapper objects from response documents.
+In its current form, it's a hack. It can be developed into a full-featured
+filter that also works with nested ``Array`` setups if there's a demand for
+it.
+
+You can play with the ``examples/arrays_simple_vs_complex.py`` in the source
+repository to see the above mechanism at work.
+
 Return Values
 ^^^^^^^^^^^^^
 
-When working with functions, you don't need to return the CompexModel subclasses
-themselves. Anything that walks and quacks like the designated return type will
-work just fine. Specifically, the returned object should return appropriate
-values on ``getattr()``s for field names in the return type. Any exceptions
-thrown by the object's ``__getattr__`` method will be logged and ignored.
+When working with functions, you don't need to return the CompexModel
+subclasses themselves. Anything that walks and quacks like the designated
+return type will work just fine. Specifically, the returned object should
+return appropriate values on ``getattr()``s for field names in the return
+type. Any exceptions thrown by the object's ``__getattr__`` method will be
+logged and ignored.
 
 However, it is important to return *instances* and not classes themselves. Due
-to the way Spyne models work, the classes themselves will also work as return
-values until you actually start getting funky errors under load in your
+to the way Spyne serialization works, the classes themselves will also work as
+return values until you actually seeing funky responses under load in
 production. Don't do this! [#]_
 
 Fault

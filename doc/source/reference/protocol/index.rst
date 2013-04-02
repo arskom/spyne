@@ -16,6 +16,7 @@ Protocol Classes
     base
     http
     xml
-    json
     soap
+    dictdoc
+    json
     msgpack
