@@ -160,15 +160,15 @@ class FlatDictDocument(DictDocument):
                     if isinstance(v2, str) or isinstance(v2, unicode):
                         if member.type.Attributes.encoding is None and \
                                         cls.default_binary_encoding is not None:
-                            native_v2 = ProtocolBase.from_string(member.type,
+                            native_v2 = cls.from_string(member.type,
                                                 v2, cls.default_binary_encoding)
 
                         else:
-                            native_v2 = ProtocolBase.from_string(member.type,v2)
+                            native_v2 = cls.from_string(member.type,v2)
                     else:
                         native_v2 = v2
                 else:
-                    native_v2 = ProtocolBase.from_string(member.type, v2)
+                    native_v2 = cls.from_string(member.type, v2)
 
                 if (validator is cls.SOFT_VALIDATION and not
                             member.type.validate_native(member.type, native_v2)):
@@ -505,13 +505,13 @@ class HierDictDocument(DictDocument):
             return cls._to_dict(class_, value, k)
 
         if issubclass(class_, DateTime):
-            return ProtocolBase.to_string(class_, value)
+            return cls.to_string(class_, value)
 
         if issubclass(class_, Decimal):
             if class_.Attributes.format is None:
                 return value
             else:
-                return ProtocolBase.to_string(class_, value)
+                return cls.to_string(class_, value)
 
         return value
 
