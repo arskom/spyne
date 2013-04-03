@@ -258,6 +258,11 @@ class Decimal(SimpleModel):
     """The primitive that corresponds to the native python Decimal.
 
     This is also the base class for denoting numbers.
+
+    Note that it is your responsibility to make sure that the scale and
+    precision constraints set in this type is consistent with the values in the
+    context of the decimal package. See the :func:`decimal.getcontext`
+    documentation for more information.
     """
 
     __type_name__ = 'decimal'
