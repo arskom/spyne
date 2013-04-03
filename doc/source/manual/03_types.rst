@@ -290,7 +290,48 @@ protocol is an XML based one -- ``AnyDict`` just totally ignores attributes.
 Enum
 ----
 
-TBD
+The :class:`spyne.model.enum.Enum` type mimics the ``enum`` in C/C++ plus some
+additional type safety. It's part of the Spyne's SOAP heritage so its being
+there is most for compatibility reasons. If you want to use it, go right ahead,
+it will work. But you can get the same functionality by defining a custom
+``Unicode`` type via: ::
+
+    SomeUnicode = Unicode(values=['x', 'y', 'z'])
+
+The equivalent Enum-based declaration would be as follows: ::
+
+    SomeEnum = Enum('x', 'y', 'z', type_name="SomeEnum")
+
+These to would be serialized the same, yet their API is different. Lets look at
+the following class definition: ::
+
+    class SomeClass(ComplexModel):
+        a = SomeEnum
+        b = SomeUnicode
+
+Also assume the following message comes in: ::
+
+    <SomeClass>
+      <a>x</a>
+      <b>x</b>
+    </SomeClass>
+
+We will have: ::
+
+    >>> some_class.a == 'x'
+    True
+    >>> some_class.b == 'x'
+    False
+    >>> some_class.a == SomeEnum.x
+    False
+    >>> some_class.b == SomeEnum.x
+    True
+    >>> some_class.b is SomeEnum.x
+    True
+
+So ``Enum`` is just a fancier ``Unicode`` with value restriction that has a
+marginally faster (as it doesn't do string comparison) comparison option. You
+probably don't need it.
 
 Binary
 ------
