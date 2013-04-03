@@ -439,8 +439,8 @@ At this point, dear reader, you may be going "Arrgh! More choices! Just tell
 me what's best!"
 
 Well, for Xml people, the second way of doing things is wrong, (Xml has a
-one-root-per-document rule) yet it must be done for compatibility reasons.
-And doing it the first way will just annoy JSON people.
+one-root-per-document rule) yet sometimes, it must be done for compatibility
+reasons. And doing it the first way will just annoy JSON people.
 
 In order to let everbody keep the beautiful ``Array(Something)`` syntax, 
 :class:`spyne.protocol.dictdoc.HierDictDocument`, parent class of Protocols
@@ -459,7 +459,7 @@ Return Values
 When working with functions, you don't need to return the CompexModel
 subclasses themselves. Anything that walks and quacks like the designated
 return type will work just fine. Specifically, the returned object should
-return appropriate values on ``getattr()``s for field names in the return
+return appropriate values on ``getattr()`` s for field names in the return
 type. Any exceptions thrown by the object's ``__getattr__`` method will be
 logged and ignored.
 
