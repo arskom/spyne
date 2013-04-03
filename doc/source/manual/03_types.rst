@@ -265,7 +265,9 @@ are needed by Spyne users. The following are some of the more notable ones.
 
 * :class:`spyne.model.primitive.Boolean`: Life is simple here: Either ``True``
   or ``False``.
-* :class:`spyne.model.primitive.AnyUri`: An RFC-xxxx compiant URI type.
+* :class:`spyne.model.primitive.AnyUri`: An RFC-2396 & 2732 compiant URI type.
+  See: http://www.w3.org/TR/xmlschema-2/#anyURI
+  **NOT VALIDATED BY SOFT VALIDATION!!!**
 * :class:`spyne.model.primitive.Uuid`: A fancy way of packing a 128-bit
   integer.
 
