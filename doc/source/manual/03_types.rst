@@ -259,13 +259,18 @@ Also the ``Multi*`` variants, which are:
 Miscellanous Types
 ^^^^^^^^^^^^^^^^^^
 
-These exist:
+There are types defined for convenience in the Xml Schema standard which are
+just convenience types on top of the text types. They are implemented as they
+are needed by Spyne users. The following are some of the more notable ones.
 
-:class:`spyne.model.primitive.AnyUri`
+* :class:`spyne.model.primitive.Boolean`: Life is simple here: Either ``True``
+  or ``False``.
+* :class:`spyne.model.primitive.AnyUri`: An RFC-xxxx compiant URI type.
+* :class:`spyne.model.primitive.Uuid`: A fancy way of packing a 128-bit
+  integer.
 
-:class:`spyne.model.primitive.Boolean`
-
-:class:`spyne.model.primitive.Uuid`
+Please consult the :mod:`spyne.model.primitive` documentation for a more
+complete list.
 
 Dynamic Types
 ^^^^^^^^^^^^^
