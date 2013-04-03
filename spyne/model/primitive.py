@@ -295,6 +295,14 @@ class Decimal(SimpleModel):
         fraction_digits = decimal.Decimal('inf')
         """Maximum number of digits after the decimal separator."""
 
+        min_bound = None
+        """Hardware limit that determines the lowest value this type can
+        store."""
+
+        max_bound = None
+        """Hardware limit that determines the highest value this type can
+        store."""
+
     def __new__(cls, *args, **kwargs):
         assert len(args) <= 2
 
@@ -411,6 +419,7 @@ class UnsignedInteger(Integer):
 NonNegativeInteger = UnsignedInteger
 """The arbitrary-size unsigned integer, alias for UnsignedInteger."""
 
+
 @memoize
 def TBoundedInteger(num_bits, type_name):
     _min_b = -(0x8<<(num_bits-4))     # 0x8 is 4 bits.
@@ -421,8 +430,8 @@ def TBoundedInteger(num_bits, type_name):
 
         class Attributes(Integer.Attributes):
             max_str_len = math.ceil(math.log(2**num_bits, 10))
-            _min_bound = _min_b
-            _max_bound = _max_b
+            min_bound = _min_b
+            max_bound = _max_b
 
         @staticmethod
         def validate_native(cls, value):
@@ -444,8 +453,8 @@ def TBoundedUnsignedInteger(num_bits, type_name):
 
         class Attributes(UnsignedInteger.Attributes):
             max_str_len = math.ceil(math.log(2**num_bits, 10))
-            _min_bound = _min_b
-            _max_bound = _max_b
+            min_bound = _min_b
+            max_bound = _max_b
 
         @staticmethod
         def validate_native(cls, value):
