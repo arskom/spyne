@@ -336,7 +336,15 @@ probably don't need it.
 Binary
 ------
 
+Dealing with binary data has traditionally been a weak spot of most of the
+serialization formats in use today. The best XML or mime (email) does is
+either base64-encoding or something similar, Json has no clue about binary
+data (and many other things actually, but let's just not go there now) SOAP
+has quite a few binary encoding options available, yet none of them are
+implemented in Spyne [#]_ etc.
+
 TBD
+
 
 Complex
 -------
@@ -543,12 +551,14 @@ defining complex objects and using events.
 
 .. [#] By the way, Spyne does not include types like
        `ISO-4217 <http://www.currency-iso.org/>`_-compliant
-       'currency' and 'monetary' types. [#]_ They are actually really easy to
+       'currency' and 'monetary' types. (See
+       http://www.w3.org/TR/2001/WD-xforms-20010608/slice4.html for more
+       information.)  They are actually really easy to
        implement. If you're looking for a simple way to contribute, this would
        be a nice place to start! Patches are welcome!
 
-.. [#] See http://www.w3.org/TR/2001/WD-xforms-20010608/slice4.html for more
-       information.
-
+.. [#] Spyne used to have mtom (http://www.w3.org/Submission/soap11mtom10/)
+       support. But as it was not maintained in a long time, it's not
+       currently functional. Patches are welcome!
 
 .. [#] http://stackoverflow.com/a/15383191
