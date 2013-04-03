@@ -147,14 +147,13 @@ In its vanilla state, the ``Decimal`` class is the arbitrary-precision,
 arbitrary-size generic number type that will accept just *any* decimal
 number.
 
-It has three direct subclasses: The arbitrary-size
+It has two direct subclasses: The arbitrary-size
 :class:`spyne.model.primitive.Integer` type and the machine-dependent
-:class:`spyne.model.primitive.Double` or
-:class:`spyne.model.primitive.Float` (which are synonyms as Python does not
-distinguish between floats and doubles) types.
+:class:`spyne.model.primitive.Double` (:class:`spyne.model.primitive.Float`
+is a synonym for ``Double`` as Python does not distinguish between
+floats and doubles) types.
 
-Unless you are absolutely, positively sure that you need to deal with
-arbitrary-size numbers, (or you're implementing an existing API) you
+Unless you are *sure* that you need to deal with arbitrary-size numbers you
 should not use the arbitrary-size types in their vanilla form.
 
 You must also refrain from using :class:`spyne.model.primitive.Float` and
@@ -162,7 +161,7 @@ You must also refrain from using :class:`spyne.model.primitive.Float` and
 roll faster as their representation is machine-specific, thus not very
 reliable nor portable.
 
-For integers, we recommend you to use types like
+For integers, we recommend you to use bounded types like
 :class:`spyne.model.primitive.UnsignedInteger32` which can only contain a
 32-bit unsigned integer. (Which is very popular as e.g. a primary key type
 in a relational database.)
@@ -170,13 +169,17 @@ in a relational database.)
 For floating-point numbers, use the ``Decimal`` type with a pre-defined scale
 and precision. E.g. ``Decimal(16, 4)`` can represent a 16-digit number in total
 which can have up to 4 decimal digits, which could be used e.g. as a nice
-monetary type. By the way, Spyne does not include types like
-`ISO-4217 <http://www.currency-iso.org/>`_-compliant
-'currency' and 'monetary' types. [#]_ They are actually really easy to
-implement. Needless to say, patches are welcome!
+monetary type. [#]_
 
-Please see the :mod:`spyne.model.primitive` documentation for more details
-regarding number handling in Spyne.
+Note that it is your responsibility to make sure that the scale and precision
+constraints are consistent with the values in the context of the decimal
+package. See the :func:`decimal.getcontext` documentation for more
+information.
+
+It's also possible to set range constraints (``Decimal(gt=4, lt=10)``) or
+discrete values (``UnsignedInteger8(values=[2,4,6,8]``). Please see the
+:mod:`spyne.model.primitive` documentation for more details regarding number
+handling in Spyne.
 
 Strings
 ^^^^^^^
@@ -197,13 +200,17 @@ Remember that you have the ``ByteArray`` and ``File`` types at your disposal
 when you need to deal with arbitrary byte streams.
 
 The ``String`` type will be just an alias for ``Unicode``
-once Spyne gets ported to Python 3. It might even be deprecated and removed in the
-future, so make sure you are using either ``Unicode`` or ``ByteArray`` in your
-interface definitions.
+once Spyne gets ported to Python 3. It might even be deprecated and removed in
+the future, so make sure you are using either ``Unicode`` or ``ByteArray`` in
+your interface definitions.
 
 ``File``, ``ByteArray``, ``Unicode`` and ``String`` are all arbitrary-size in
-their vanilla versions. Don't forget to customize them with additional restrictions
-when implementing public services.
+their vanilla versions. Don't forget to customize them with additional
+restrictions when implementing public services.
+
+Just like numbers, it's also possible to place value-based constraints on
+Strings (e.g. ``String(values=['red', 'green', 'blue'])`` ) but not lexical
+constraints.
 
 See also the configuration parameters of your favorite transport for more
 information on request size restriction and other precautions against
@@ -482,6 +489,14 @@ defining complex objects and using events.
 
 
 
+.. [#] By the way, Spyne does not include types like
+       `ISO-4217 <http://www.currency-iso.org/>`_-compliant
+       'currency' and 'monetary' types. [#]_ They are actually really easy to
+       implement. If you're looking for a simple way to contribute, this would
+       be a nice place to start! Patches are welcome!
+
 .. [#] See http://www.w3.org/TR/2001/WD-xforms-20010608/slice4.html for more
        information.
+
+
 .. [#] http://stackoverflow.com/a/15383191
