@@ -285,7 +285,7 @@ class ComplexModelMeta(type(ModelBase)):
             _type_info.update(base_type_info)
 
             for k, v in cls_dict.items():
-                if not k.startswith('__'):
+                if not k.startswith('_'):
                     v = _get_spyne_type(v)
                     if v is not None:
                         _type_info[k] = v
