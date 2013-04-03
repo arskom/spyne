@@ -279,7 +279,7 @@ While Spyne is all about putting firm restirictions on your input schema,
 it's also all about flexibility.
 
 That's why, while highly discouraged, the user can choose to accept
-or return unstructed data using the 
+or return unstructed data using the
 :class:`spyne.model.primitive.AnyDict`, whose native type is a regular
 ``dict`` and :class:`spyne.model.primitive.AnyXml` whose native type is a
 regular :class:`lxml.etree.Element`.
