@@ -275,11 +275,17 @@ complete list.
 Dynamic Types
 ^^^^^^^^^^^^^
 
-These also exist. Somewhat.
+While Spyne is all about putting firm restirictions on your input schema,
+it's also all about flexibility.
 
-:class:`spyne.model.primitive.AnyDict`
+That's why, while highly discouraged, the user can choose to accept
+or return unstructed data using the 
+:class:`spyne.model.primitive.AnyDict`, whose native type is a regular
+``dict`` and :class:`spyne.model.primitive.AnyXml` whose native type is a
+regular :class:`lxml.etree.Element`.
 
-:class:`spyne.model.primitive.AnyXml`
+``AnyDict`` and ``AnyXml`` are roughly equivalent when the underlying
+protocol is an XML based one -- ``AnyDict`` just totally ignores attributes.
 
 Enum
 ----
