@@ -308,6 +308,12 @@ class Decimal(SimpleModel):
                                           " or equal to 'fraction_digits'." \
                                           " %r ! <= %r" % (args[1], args[0])
 
+            # + 1 for decimal separator
+            # + 1 for negative sign
+            kwargs['max_str_len'] = min(cls.Attributes.total_digits +
+                                    cls.Attributes.fraction_digits + 2,
+                                                   kwargs.get('max_str_len', 0))
+
         retval = SimpleModel.__new__(cls,  ** kwargs)
 
         return retval
@@ -320,19 +326,16 @@ class Decimal(SimpleModel):
                 and cls.Attributes.lt == Decimal.Attributes.lt
                 and cls.Attributes.le == Decimal.Attributes.le
                 and cls.Attributes.total_digits == \
-                                            Decimal.Attributes.total_digits
+                                         Decimal.Attributes.total_digits
                 and cls.Attributes.fraction_digits == \
-                                            Decimal.Attributes.fraction_digits
+                                         Decimal.Attributes.fraction_digits
             )
 
     @staticmethod
     def validate_string(cls, value):
         return SimpleModel.validate_string(cls, value) and (
-            value is None or (
-                len(value) <= (cls.Attributes.total_digits +
-                                             cls.Attributes.fraction_digits + 1)
-                                                  # + 1 is for decimal separator
-            ))
+            value is None or (len(value) <= (cls.Attributes.max_str_len))
+        )
 
     @staticmethod
     def validate_native(cls, value):
