@@ -58,8 +58,14 @@ The following is a quick introduction to the Spyne way of naming things:
     protocol-specific representations of a serialized Python object.
 
     They can be anything between an lxml.etree.Element instance to a gzipped
-    byte stream. Apis around pickle, simplejson, YaML and the like that serialize
-    dynamic hieararchies of "dict"s also fall in this category.
+    byte stream. Apis around pickle, simplejson, YaML and the like that
+    serialize dynamic hieararchies of "dict"s also fall in this category.
+
+* **Native Values:**
+    The term "native value" is used to denote Python types that Spyne models
+    correspond to. For example, we say that the native value of
+    :class:`spyne.model.primitive.Unicode` is ``unicode``, or the native value
+    of :class:`spyne.model.binary.ByteArray` is a sequence of ``str`` objects.
 
 How your code is wrapped
 ------------------------
