@@ -292,9 +292,9 @@ protocol is an XML based one -- ``AnyDict`` just totally ignores attributes.
 Enum
 ----
 
-The :class:`spyne.model.enum.Enum` type mimics the ``enum`` in C/C++ plus some
+The :class:`spyne.model.enum.Enum` type mimics the ``enum`` in C/C++ with some
 additional type safety. It's part of the Spyne's SOAP heritage so its being
-there is most for compatibility reasons. If you want to use it, go right ahead,
+there is mostly for compatibility reasons. If you want to use it, go right ahead,
 it will work. But you can get the same functionality by defining a custom
 ``Unicode`` type via: ::
 
@@ -339,14 +339,48 @@ Binary
 ------
 
 Dealing with binary data has traditionally been a weak spot of most of the
-serialization formats in use today. The best XML or mime (email) does is
-either base64-encoding or something similar, Json has no clue about binary
+serialization formats in use today. The best XML or MIME (email) does is
+either base64 encoding or something similar, Json has no clue about binary
 data (and many other things actually, but let's just not go there now) SOAP
-has quite a few binary encoding options available, yet none of them are
-implemented in Spyne [#]_ etc.
+has quite a few binary encoding options available, yet none of the "optimized"
+ones are implemented in Spyne [#]_ etc.
 
-TBD
+Spyne supports binary data on all of the protocols it implements, falling back
+to base64 encoding where necessary. In terms of message size, the efficient
+protocols are `MessagePack <http://msgpack.org>`_ and good old Http. But, as
+MessagePack does not offer an incremental parsing API in its Python wrapper,
+(in other words, it's not possible to parse the message without having it all
+in memory) it's best to use the :class:`spyne.protocol.http.HttpRpc` protocol
+when dealing with arbitrary-size binary data.
 
+A few points to consider:
+
+1. ``HttpRpc`` only works with a Http transport.
+2. ``HttpRpc`` supports only one file per request.
+3. Not every http transport supports incremental parsing of incoming data.
+   (e.g. Twisted). (Partial reconstruction of outgoing data is generally
+   well-supported.)
+
+Before deploying solutions that have to deal with huge files, make sure to
+carefully study how your stack behaves when dealing with huge files [#]_.
+
+Now that all that is said, let's look at the API that Spyne provides for
+dealing with binary data.
+
+Spyne offers two types:
+
+1. :class:`spyne.model.binary.ByteArray` is a simple type that contains
+   arbitrary data. It's similar to Python's own ``str`` in terms of
+   functionality, but it's a sequence of ``str`` values instead of just a big
+   ``str`` to be able to do partial processing via generators when needed.
+2. :class:`spyne.model.binary.File` is a quirkier type that is mainly used to
+   deal with Http way of dealing with file uploads. Its native value is the
+   ``File.Value`` instance in :class:`spyne.model.binary.File`. See its
+   documentation for more information about it.
+
+Dealing with binary data with Spyne is not that hard -- you just need to make
+sure your data is parsed incrementally when you're preparing to deal with
+arbitrary-size binary data.
 
 Complex
 -------
@@ -562,5 +596,10 @@ defining complex objects and using events.
 .. [#] Spyne used to have mtom (http://www.w3.org/Submission/soap11mtom10/)
        support. But as it was not maintained in a long time, it's not
        currently functional. Patches are welcome!
+
+.. [#] Not every browser or http daemon supports huge file uploads due to issues
+       around 32-bit integers. E.g. Firefox < 18.0 can't handle big files:
+       https://bugzilla.mozilla.org/show_bug.cgi?id=215450
+
 
 .. [#] http://stackoverflow.com/a/15383191
