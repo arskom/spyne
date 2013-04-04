@@ -48,8 +48,8 @@ Model customization is how one adds declarative restrictions and other metadata
 to a Spyne model. This model metadata is stored in a generic object called
 ``Attributes``. Every Spyne model has this object as a class attribute.
 
-As an example, let's customize the vanilla ``Unicode`` type to accept only valid
-email strings: ::
+As an example, let's customize the vanilla ``Unicode`` type to accept only
+valid email strings: ::
 
   class EmailString(Unicode):
       __type_name__ = 'EmailString'
@@ -278,12 +278,12 @@ Dynamic Types
 ^^^^^^^^^^^^^
 
 While Spyne is all about putting firm restirictions on your input schema,
-it's also all about flexibility.
+it's also about flexibility.
 
-That's why, while highly discouraged, the user can choose to accept
-or return unstructed data using the
-:class:`spyne.model.primitive.AnyDict`, whose native type is a regular
-``dict`` and :class:`spyne.model.primitive.AnyXml` whose native type is a
+That's why, while generally discouraged, the user can choose to accept or
+return unstructed data using the :class:`spyne.model.primitive.AnyDict`, whose
+native type is a regular ``dict`` and :class:`spyne.model.primitive.AnyXml`
+whose native type is a
 regular :class:`lxml.etree.Element`.
 
 ``AnyDict`` and ``AnyXml`` are roughly equivalent when the underlying
@@ -294,9 +294,9 @@ Enum
 
 The :class:`spyne.model.enum.Enum` type mimics the ``enum`` in C/C++ with some
 additional type safety. It's part of the Spyne's SOAP heritage so its being
-there is mostly for compatibility reasons. If you want to use it, go right ahead,
-it will work. But you can get the same functionality by defining a custom
-``Unicode`` type via: ::
+there is mostly for compatibility reasons. If you want to use it, go right
+ahead, it will work. But you can get the same functionality by defining a 
+custom ``Unicode`` type via: ::
 
     SomeUnicode = Unicode(values=['x', 'y', 'z'])
 
@@ -311,7 +311,7 @@ the following class definition: ::
         a = SomeEnum
         b = SomeUnicode
 
-Also assume the following message comes in: ::
+Assuming the following message comes in: ::
 
     <SomeClass>
       <a>x</a>
@@ -331,7 +331,7 @@ We will have: ::
     >>> some_class.b is SomeEnum.x
     True
 
-So ``Enum`` is just a fancier ``Unicode`` with value restriction that has a
+So ``Enum`` is just a fancier value-restricted ``Unicode`` that has a
 marginally faster (as it doesn't do string comparison) comparison option. You
 probably don't need it.
 
@@ -372,7 +372,7 @@ Spyne offers two types:
 1. :class:`spyne.model.binary.ByteArray` is a simple type that contains
    arbitrary data. It's similar to Python's own ``str`` in terms of
    functionality, but it's a sequence of ``str`` values instead of just a big
-   ``str`` to be able to do partial processing via generators when needed.
+   ``str`` to be able to handle data in chunks using methods like generators when needed.
 2. :class:`spyne.model.binary.File` is a quirkier type that is mainly used to
    deal with Http way of dealing with file uploads. Its native value is the
    ``File.Value`` instance in :class:`spyne.model.binary.File`. See its
@@ -380,13 +380,14 @@ Spyne offers two types:
 
 Dealing with binary data with Spyne is not that hard -- you just need to make
 sure your data is parsed incrementally when you're preparing to deal with
-arbitrary-size binary data.
+arbitrary-size binary data, which means you need to do a lot of testing as
+different WSGI implementations behave differently.
 
 Complex
 -------
 
-Complex objects are, by definition, types that can contain other types. They
-must be subclasses of :class:`spyne.model.primitive.ComplexModel` class.
+Types that can contain other types are termed "complex objects". They must be
+subclasses of :class:`spyne.model.primitive.ComplexModel` class.
 
 Here's a sample complex object definition: ::
 
@@ -421,6 +422,14 @@ to pass a sequence of ``(field_name, field_type)`` tuples, like so: ::
             ('feature', Unicode),
         ]
 
+If you want to set some defaults (e.g. namespace) with your objects, you can
+define your own ``CompexModelBase`` as follows: ::
+
+    class MyComplexModel(ComplexModelBase):
+        __namespace__ = "http://example.com/myapp"
+        __metaclass__ = ComplexModelMeta
+
+
 Arrays
 ^^^^^^
 
@@ -436,8 +445,8 @@ limit to that, you can do this: ::
 
         permissions = Array(Permission.customize(max_occurs=15))
 
-It is important to stress once more that Spyne restrictions are only enforced
-for an incoming request when validation is enabled. If you want this
+It is important to emphasize once more that Spyne restrictions are only
+enforced for an incoming request when validation is enabled. If you want this
 enforcement for every *assignment*, you do this the usual way by writing a
 property setter.
 
@@ -446,13 +455,13 @@ The ``Array`` type has two alternatives. The first one is the
 
         permissions = Iterable(Permission)
 
-It is equivalent to the ``Array`` type from an interface perspective -- i.e.
-the client will not see any difference between an ``Iterable`` and an ``Array``
-as return type.
+It is equivalent to the ``Array`` type from an interface perspective --
+the client will not notice any difference between an ``Iterable`` and an
+``Array`` as return type.
 
-It's just meant to signal the internediate machinery that the return
-value *could* be a generator and **must not** be consumed unless returning data
-to the client. This comes in handy for, e.g. custom loggers because they should
+It's just meant to signal the internediate machinery that the return value
+*could* be a generator and **must not** be consumed unless returning data to
+the client. This comes in handy for, e.g. custom loggers because they should
 not try to log the return value.
 
 You could use the ``Iterable`` marker in other places instead of ``Array``
@@ -497,7 +506,7 @@ type: ::
       </Permission>
     </PermissionArray>
 
-The same value-type combination would result in the following json document: ::
+The same value/type combination would result in the following json document: ::
 
     {
         "Permission": [
@@ -538,14 +547,14 @@ As for Json, we get: ::
         }
     ]
 
-At this point, dear reader, you may be going "Arrgh! More choices! Just tell
-me what's best!"
+At this point, dear reader, you may be going "Arrgh! More quirks! Why don't
+you just do what's best for everyone and spare us all the trouble!"
 
 Well, for Xml people, the second way of doing things is wrong, (Xml has a
 one-root-per-document rule) yet sometimes, it must be done for compatibility
 reasons. And doing it the first way will just annoy JSON people.
 
-In order to let everbody keep the beautiful ``Array(Something)`` syntax, 
+In order to let everbody keep the beautiful ``Array(Something)`` syntax,
 :class:`spyne.protocol.dictdoc.HierDictDocument`, parent class of Protocols
 that eat ``dict`` s including ``JsonDocument``, has a ``skip_depth`` argument
 which lets the protocol strip the wrapper objects from response documents.
@@ -556,15 +565,15 @@ it.
 You can play with the ``examples/arrays_simple_vs_complex.py`` in the source
 repository to see the above mechanism at work.
 
-Return Values
-^^^^^^^^^^^^^
+Complex Models as Return Values
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-When working with functions, you don't need to return the CompexModel
-subclasses themselves. Anything that walks and quacks like the designated
-return type will work just fine. Specifically, the returned object should
-return appropriate values on ``getattr()`` s for field names in the return
-type. Any exceptions thrown by the object's ``__getattr__`` method will be
-logged and ignored.
+When working with functions, you don't need to return instances of the
+CompexModel subclasses themselves. Anything that walks and quacks like the
+designated return type will work just fine. Specifically, the returned object
+should return appropriate values on ``getattr()`` s for field names in the
+return type. Any exceptions thrown by the object's ``__getattr__`` method will
+be logged and ignored.
 
 However, it is important to return *instances* and not classes themselves. Due
 to the way Spyne serialization works, the classes themselves will also work as
