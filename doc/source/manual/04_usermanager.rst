@@ -4,26 +4,22 @@
 User Manager
 ============
 
-This tutorial builds on the :ref:`manual-helloworld` and :ref:`manual-types` tutorial.
-If you haven't done so, we recommended you to read them first.
+This tutorial builds on the :ref:`manual-helloworld` and relevant parts of the
+:ref:`manual-types` tutorial. If you haven't yet done so, we recommended you
+to read them first.
 
-In this tutorial, we will talk about:
+In this tutorial, we will introduce the context object and the events to show
+how to implement a real-world service.
 
-* Defining complex types.
-* Customizing types.
-* Defining events.
-
-The simple example that we are going to be studying here using complex, nested
-data is available here:
+A less bloated variant of this example is avaiable here:
 http://github.com/arskom/spyne/blob/master/examples/user_manager/server_basic.py
 
-Here are the definitions for the two complex types that we will use: throughout
+Here are the definitions for the two complex types that we will use throughout
 this section: ::
 
     class Permission(ComplexModel):
         application = Unicode
         feature = Unicode
-
 
     class User(ComplexModel):
         user_id = Integer
