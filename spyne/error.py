@@ -65,3 +65,9 @@ class ValidationError(Fault):
             s = s[:MAX_STRING_FIELD_LENGTH] + "(...)"
 
         Fault.__init__(self, 'Client.ValidationError', custom_msg % s)
+
+
+class InternalError(Fault):
+    """Raised to communicate server-side errors."""
+    def __init__(self, error):
+        Fault.__init__(self, 'Server', "InternalError: An unknown error has occured.")

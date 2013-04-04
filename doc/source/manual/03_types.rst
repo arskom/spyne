@@ -605,6 +605,29 @@ which exceptions correspond to which return codes. This can be extended easily
 by subclassing your transport and overriding the
 ``fault_to_http_response_code`` function with your own version.
 
+Note that, while using an Exception sink to re-raise non-Fault based
+exceptions as ``InternalError``\s is recommended, it's not Spyne's default
+behavior -- you need to subclass the :class:`spyne.application.Application`
+and override the :func:`spyne.application.Application.call_wrapper` function
+like this:
+
+::
+
+    def call_wrapper(self, ctx):
+        try:
+            return ctx.service_class.call_wrapper(ctx)
+
+        except error.Fault, e:
+            sc = ctx.service_class
+            logger.error("Client Error: %r | Request: %r", (e, ctx.in_object))
+            raise
+
+        except Exception, e:
+            sc = ctx.service_class
+            logger.exception(e)
+            raise InternalError(e)
+
+
 What's next?
 ^^^^^^^^^^^^
 
