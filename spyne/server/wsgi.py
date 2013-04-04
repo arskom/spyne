@@ -45,7 +45,6 @@ except ImportError, e:
 from spyne.application import get_fault_string_from_exception
 from spyne.auxproc import process_contexts
 from spyne.error import RequestTooLongError
-from spyne.error import ResourceNotFoundError
 from spyne.model.binary import File
 from spyne.model.fault import Fault
 from spyne.protocol.http import HttpRpc
