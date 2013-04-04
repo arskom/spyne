@@ -265,9 +265,12 @@ are needed by Spyne users. The following are some of the more notable ones.
 
 * :class:`spyne.model.primitive.Boolean`: Life is simple here: Either ``True``
   or ``False``.
+
 * :class:`spyne.model.primitive.AnyUri`: An RFC-2396 & 2732 compiant URI type.
   See: http://www.w3.org/TR/xmlschema-2/#anyURI
+
   **NOT YET VALIDATED BY SOFT VALIDATION!!!** Patches are welcome :)
+
 * :class:`spyne.model.primitive.Uuid`: A fancy way of packing a 128-bit
   integer.
 
@@ -619,7 +622,8 @@ like this:
 
         except error.Fault, e:
             sc = ctx.service_class
-            logger.error("Client Error: %r | Request: %r", (e, ctx.in_object))
+            logger.error("Client Error: %r | Request: %r",
+                                            (e, ctx.in_object))
             raise
 
         except Exception, e:
@@ -648,9 +652,9 @@ defining complex objects and using events.
        support. But as it was not maintained in a long time, it's not
        currently functional. Patches are welcome!
 
-.. [#] Not every browser or http daemon supports huge file uploads due to issues
-       around 32-bit integers. E.g. Firefox < 18.0 can't handle big files:
-       https://bugzilla.mozilla.org/show_bug.cgi?id=215450
+.. [#] Not every browser or http daemon supports huge file uploads due to
+       issues around 32-bit integers. E.g. Firefox < 18.0 can't handle big
+       files: https://bugzilla.mozilla.org/show_bug.cgi?id=215450
 
 
 .. [#] http://stackoverflow.com/a/15383191
