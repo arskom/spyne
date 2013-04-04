@@ -1,5 +1,5 @@
 
-.. _reference-protocol-json:
+.. _reference-protocol-dictdoc:
 
 Dictionary Document
 -------------------
