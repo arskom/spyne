@@ -118,18 +118,19 @@ class File(SimpleModel):
         """
 
     class Value(object):
+        """The class for values marked as ``File``.
+
+        :param name: Original name of the file
+        :param path: Current path to the file.
+        :param type: The mime type of the file's contents.
+        :param data: Optional sequence of ``str`` or ``bytes`` instances
+        that contain the file's data.
+        :param handle: :class:`file` object that contains the file's data.
+        It is ignored unless the ``path`` argument is ``None``.
+        """
+
         def __init__(self, name=None, path=None, type='application/octet-stream',
                                                             data=None, handle=None):
-            """The class for values marked as ``File``.
-
-            :param name: Original name of the file
-            :param path: Current path to the file.
-            :param type: The mime type of the file's contents.
-            :param data: Optional sequence of ``str`` or ``bytes`` instances
-            that contain the file's data.
-            :param handle: :class:`file` object that contains the file's data.
-            It is ignored unless the ``path`` argument is ``None``.
-            """
 
             self.name = name
             if self.name is not None:
