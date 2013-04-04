@@ -292,6 +292,11 @@ regular :class:`lxml.etree.Element`.
 ``AnyDict`` and ``AnyXml`` are roughly equivalent when the underlying
 protocol is an XML based one -- ``AnyDict`` just totally ignores attributes.
 
+Mandatory Variants
+^^^^^^^^^^^^^^^^^^
+
+TBD
+
 Enum
 ----
 
@@ -344,17 +349,18 @@ Binary
 Dealing with binary data has traditionally been a weak spot of most of the
 serialization formats in use today. The best XML or MIME (email) does is
 either base64 encoding or something similar, Json has no clue about binary
-data (and many other things actually, but let's just not go there now) SOAP
-has quite a few binary encoding options available, yet none of the "optimized"
-ones are implemented in Spyne [#]_ etc.
+data (and many other things actually, but let's just not go there now) and
+SOAP, in all its bloatiness, has quite a few binary encoding options
+available, yet none of the "optimized" ones are implemented in Spyne [#]_,
 
 Spyne supports binary data on all of the protocols it implements, falling back
 to base64 encoding where necessary. In terms of message size, the efficient
 protocols are `MessagePack <http://msgpack.org>`_ and good old Http. But, as
-MessagePack does not offer an incremental parsing API in its Python wrapper,
-(in other words, it's not possible to parse the message without having it all
-in memory) it's best to use the :class:`spyne.protocol.http.HttpRpc` protocol
-when dealing with arbitrary-size binary data.
+MessagePack does not offer an incremental parsing/generation API in its Python
+wrapper, (in other words, it's not possible to parse the message without
+having it all in memory) it's best to use the
+:class:`spyne.protocol.http.HttpRpc` protocol when dealing with arbitrary-size
+binary data.
 
 A few points to consider:
 
@@ -364,9 +370,6 @@ A few points to consider:
    (e.g. Twisted). (Partial reconstruction of outgoing data is generally
    well-supported.)
 
-Before deploying solutions that have to deal with huge files, make sure to
-carefully study how your stack behaves when dealing with huge files [#]_.
-
 Now that all that is said, let's look at the API that Spyne provides for
 dealing with binary data.
 
@@ -375,22 +378,22 @@ Spyne offers two types:
 1. :class:`spyne.model.binary.ByteArray` is a simple type that contains
    arbitrary data. It's similar to Python's own ``str`` in terms of
    functionality, but it's a sequence of ``str`` values instead of just a big
-   ``str`` to be able to handle data in chunks using methods like generators when needed.
+   ``str`` to be able to handle data in chunks using generators when needed.
 2. :class:`spyne.model.binary.File` is a quirkier type that is mainly used to
    deal with Http way of dealing with file uploads. Its native value is the
    ``File.Value`` instance in :class:`spyne.model.binary.File`. See its
-   documentation for more information about it.
+   documentation for more information.
 
 Dealing with binary data with Spyne is not that hard -- you just need to make
 sure your data is parsed incrementally when you're preparing to deal with
-arbitrary-size binary data, which means you need to do a lot of testing as
+arbitrary-size binary data, which means you need to do careful testing as
 different WSGI implementations behave differently.
 
 Complex
 -------
 
 Types that can contain other types are termed "complex objects". They must be
-subclasses of :class:`spyne.model.primitive.ComplexModel` class.
+subclasses of :class:`spyne.model.complex.ComplexModel` class.
 
 Here's a sample complex object definition: ::
 
@@ -405,7 +408,7 @@ ignores
 1. Those that begin with an underscore (``_``)
 2. Those that are not subclasses of the ``ModelBase``.
 
-If you want to use python keywords as field names, or need leading underscores
+If you want to use Python keywords as field names, or need leading underscores
 in field names, or you just want your Spyne definition and other code to be
 separate, you can do away with the metaclass magic and do this: ::
 
@@ -415,8 +418,8 @@ separate, you can do away with the metaclass magic and do this: ::
             'feature': Unicode,
         }
 
-However, you still won't get predictable field order, as you're just setting a
-``dict`` to the ``_type_info`` attribute. If you also need to that, you need
+However, you still won't get predictable field order, as you're just assigning
+a ``dict`` to the ``_type_info`` attribute. If you also need that, you need
 to pass a sequence of ``(field_name, field_type)`` tuples, like so: ::
 
     class Permission(ComplexModel):
@@ -426,9 +429,9 @@ to pass a sequence of ``(field_name, field_type)`` tuples, like so: ::
         ]
 
 If you want to set some defaults (e.g. namespace) with your objects, you can
-define your own ``CompexModelBase`` as follows: ::
+define your own ``CompexModel`` as follows: ::
 
-    class MyComplexModel(ComplexModelBase):
+    class MyAppComplexModel(ComplexModelBase):
         __namespace__ = "http://example.com/myapp"
         __metaclass__ = ComplexModelMeta
 
@@ -551,15 +554,15 @@ As for Json, we get: ::
     ]
 
 At this point, dear reader, you may be going "Arrgh! More quirks! Why don't
-you just do what's best for everyone and spare us all the trouble!"
+you just do what's best for everyone and spare us the trouble!"
 
-Well, for Xml people, the second way of doing things is wrong, (Xml has a
-one-root-per-document rule) yet sometimes, it must be done for compatibility
-reasons. And doing it the first way will just annoy JSON people.
+Well, for Xml people, the second way of doing things is just wrong (Xml has
+a one-root-per-document rule). Yet sometimes, it must be done for
+compatibility reasons. And doing it the first way will just annoy JSON people.
 
 In order to let everbody keep the beautiful ``Array(Something)`` syntax,
 :class:`spyne.protocol.dictdoc.HierDictDocument`, parent class of Protocols
-that eat ``dict`` s including ``JsonDocument``, has a ``skip_depth`` argument
+that eat ``dict``\s including ``JsonDocument``, has a ``skip_depth`` argument
 which lets the protocol strip the wrapper objects from response documents.
 In its current form, it's a hack. It can be developed into a full-featured
 filter that also works with nested ``Array`` setups if there's a demand for
@@ -574,7 +577,7 @@ Complex Models as Return Values
 When working with functions, you don't need to return instances of the
 CompexModel subclasses themselves. Anything that walks and quacks like the
 designated return type will work just fine. Specifically, the returned object
-should return appropriate values on ``getattr()`` s for field names in the
+should return appropriate values on ``getattr()``\s for field names in the
 return type. Any exceptions thrown by the object's ``__getattr__`` method will
 be logged and ignored.
 
@@ -590,8 +593,9 @@ Fault
 also the subclass of Python's own :class:`Exception`.
 
 When implementing public Spyne services, the recommendation is to raise
-``Fault`` subclasses for client errors, and let other exceptions bubble up
-until they get logged and re-raised as server-side errors.
+instances of ``Fault`` subclasses for client errors, and let other exceptions
+bubble up until they get logged and re-raised as server-side errors by the
+protocol handlers.
 
 Not all protocols and transports care about distinguishing client and server
 exceptions. Http has 4xx codes for client-side (invalid request case) errors
@@ -600,13 +604,14 @@ and 5xx codes for server-side (legitimate request case) errors. SOAP uses
 
 To integrate common transport and protocol behavior easily to Spyne, some
 common exceptions are defined in the :mode:`spyne.error` module. These are
-then hardwired to some common Http response codes to make a
-``raise ResourceNotFoundError("resource_name")`` correspond return a HTTP 404.
+then hardwired to some common Http response codes so that e.g. raising a
+``ResourceNotFoundError`` ends up setting the response code to 404.
 
-See the :func:`spyne.protocol.ProtocolBase.fault_to_http_response_code` to see
-which exceptions correspond to which return codes. This can be extended easily
-by subclassing your transport and overriding the
-``fault_to_http_response_code`` function with your own version.
+You can look at the
+:func:`spyne.protocol.ProtocolBase.fault_to_http_response_code` to see which
+exceptions correspond to which return codes. This can be extended easily by
+subclassing your transport and overriding the ``fault_to_http_response_code``
+function with your own version.
 
 Note that, while using an Exception sink to re-raise non-Fault based
 exceptions as ``InternalError``\s is recommended, it's not Spyne's default
@@ -616,28 +621,28 @@ like this:
 
 ::
 
-    def call_wrapper(self, ctx):
-        try:
-            return ctx.service_class.call_wrapper(ctx)
+    class MyApplication(Application):
+        def call_wrapper(self, ctx):
+            try:
+                return ctx.service_class.call_wrapper(ctx)
 
-        except error.Fault, e:
-            sc = ctx.service_class
-            logger.error("Client Error: %r | Request: %r",
-                                            (e, ctx.in_object))
-            raise
+            except error.Fault, e:
+                sc = ctx.service_class
+                logger.error("Client Error: %r | Request: %r",
+                                                (e, ctx.in_object))
+                raise
 
-        except Exception, e:
-            sc = ctx.service_class
-            logger.exception(e)
-            raise InternalError(e)
+            except Exception, e:
+                sc = ctx.service_class
+                logger.exception(e)
+                raise InternalError(e)
 
 
 What's next?
-^^^^^^^^^^^^
+------------
 
 See the :ref:`manual-user-manager` tutorial that will walk you through
 defining complex objects and using events.
-
 
 
 .. [#] By the way, Spyne does not include types like
