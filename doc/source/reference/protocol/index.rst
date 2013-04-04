@@ -7,9 +7,6 @@ Protocols
 The `spyne.protocol` package contains the implementations of various remote
 procedure call protocols.
 
-Protocol Classes
-----------------
-
 .. toctree::
     :maxdepth: 2
 

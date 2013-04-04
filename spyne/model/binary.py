@@ -124,7 +124,7 @@ class File(SimpleModel):
         :param path: Current path to the file.
         :param type: The mime type of the file's contents.
         :param data: Optional sequence of ``str`` or ``bytes`` instances
-        that contain the file's data.
+            that contain the file's data.
         :param handle: :class:`file` object that contains the file's data.
         It is ignored unless the ``path`` argument is ``None``.
         """
