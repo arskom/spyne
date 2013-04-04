@@ -574,8 +574,27 @@ production. Don't do this! [#]_
 Fault
 -----
 
-TBD
+:class:`spyne.model.fault.Fault` a special kind of ``ComplexModel`` that is
+also the subclass of Python's own :class:`Exception`.
 
+When implementing public Spyne services, the recommendation is to raise
+``Fault`` subclasses for client errors, and let other exceptions bubble up
+until they get logged and re-raised as server-side errors.
+
+Not all protocols and transports care about distinguishing client and server
+exceptions. Http has 4xx codes for client-side (invalid request case) errors
+and 5xx codes for server-side (legitimate request case) errors. SOAP uses
+"Client." and "Server." prefixes in error codes to make this distinction.
+
+To integrate common transport and protocol behavior easily to Spyne, some
+common exceptions are defined in the :mode:`spyne.error` module. These are
+then hardwired to some common Http response codes to make a
+``raise ResourceNotFoundError("resource_name")`` correspond return a HTTP 404.
+
+See the :func:`spyne.protocol.ProtocolBase.fault_to_http_response_code` to see
+which exceptions correspond to which return codes. This can be extended easily
+by subclassing your transport and overriding the
+``fault_to_http_response_code`` function with your own version.
 
 What's next?
 ^^^^^^^^^^^^
