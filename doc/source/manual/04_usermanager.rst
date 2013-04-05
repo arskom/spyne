@@ -18,14 +18,14 @@ Here are the definitions for the two complex types that we will use throughout
 this section: ::
 
     class Permission(ComplexModel):
-        application = Unicode
-        feature = Unicode
+        id = UnsignedInteger32
+        application = Unicode(values=('usermgr', 'accountmgr'))
+        feature = Unicode(values=('read', 'modify', 'delete'))
 
     class User(ComplexModel):
-        user_id = Integer
-        username = Unicode
-        firstname = Unicode
-        lastname = Unicode
+        id = UnsignedInteger32
+        user_name = Unicode(32, min_len=4, pattern='[a-z0-9.]+')
+        full_name = Unicode(64, pattern='\w+ (\w+)+')
         email = Unicode(pattern=r'\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[A-Z]{2,4}\b')
         permissions = Array(Permission)
 
@@ -56,7 +56,7 @@ base class throughout your projects: ::
     MyServiceBase.event_manager.add_listener('method_call', _on_method_call)
 
 Next, we define the UserDefinedContext object. It's just a regular python class
-with no specific api it should adhere to, other than your own. ::
+with no specific api it should adhere to: ::
 
     class UserDefinedContext(object):
         def __init__(self):
@@ -70,11 +70,21 @@ with no specific api it should adhere to, other than your own. ::
 
             return _user_id_seq
 
-Such custom objects could be used to manage everything from transactions to
-logging or to performance measurements. You can have a look at the
-`events.py example <http://github.com/arskom/spyne/blob/master/examples/user_manager/server_basic.py>`_
+Such custom objects could be used to manage any repetitive task ranging from
+transactions to logging or to performance measurements. You can have a look at
+the `events.py example <http://github.com/arskom/spyne/blob/master/examples/user_manager/server_basic.py>`_
 in the examples directory in the source distribution for an example on using
 events to measure method performance)
+
+Method Metadata
+---------------
+
+TBD
+
+Decorators and ``@rpc``
+^^^^^^^^^^^^^^^^^^^^^^^
+
+TBD
 
 What's next?
 ------------
