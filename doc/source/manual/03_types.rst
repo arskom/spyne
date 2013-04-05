@@ -81,8 +81,10 @@ Calling simple types directly is a shortcut to their customize method: ::
             type_name='EmailString',
         )
 
-As restricting the length of a string is very common, the length limit can be
-passed as a positional argument as well: ::
+As restricting the length of a string is very common (not all types have such
+shortcuts), the length limit can be passed as a positional argument as well:
+
+::
 
     EmailString = Unicode(128,
             pattern='[^@]+@[^@]+',
@@ -607,7 +609,7 @@ common exceptions are defined in the :mode:`spyne.error` module. These are
 then hardwired to some common Http response codes so that e.g. raising a
 ``ResourceNotFoundError`` ends up setting the response code to 404.
 
-You can look at the
+You can look at the source code of the
 :func:`spyne.protocol.ProtocolBase.fault_to_http_response_code` to see which
 exceptions correspond to which return codes. This can be extended easily by
 subclassing your transport and overriding the ``fault_to_http_response_code``
