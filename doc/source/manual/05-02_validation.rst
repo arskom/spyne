@@ -19,11 +19,11 @@ can apply are as follows:
 Currently, data validation can be handled by two subsystems:
 
 Xml schema validation:
-    Such rules are enforced by *lxml*'s schema validation feature. This is of
+    Such rules are enforced by lxml's schema validation feature. This is of
     course only useful for Xml-based protocols.
 
 "Soft" validation:
-    *Spyne* itself implements enforcing a subset of the XmlSchema-type
+    Spyne itself implements enforcing a subset of the XmlSchema-type
     constraints in a protocol-independent way. When using this mode, it's also
     possible to use Spyne's imperative validation hooks.
 

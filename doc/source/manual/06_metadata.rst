@@ -18,7 +18,7 @@ are kept in ``ctx.in_object`` and ``ctx.out_object`` attributes of the
 ``ctx.in_header`` and ``ctx.out_header`` attributes.
 
 You can set values to the header attributes in the function bodies or events.
-You just need to heed the order the events are fired, so that you don't
+You just need to consider the order the events are fired, so that you don't
 overwrite data.
 
 If you want to use headers in a function, you must denote it either in the
@@ -32,59 +32,48 @@ Protocol Headers
 ----------------
 
 As said before, the protocol headers are available in ``ctx.in_header`` and
-``ctx.out_header`` objects. You should set the ``ctx.out_header`` to the native
-value of the declared type.
+``ctx.out_header`` objects. You should set the ``ctx.out_header`` to the
+native value of the declared type.
 
 Header objects are defined just like any other object: ::
 
     class RequestHeader(ComplexModel):
-        user_name = Mandatory.String
-        session_id = Mandatory.String
+        user_name = Mandatory.Unicode
+        session_id = Mandatory.Unicode
 
 They can be integrated to the rpc definition either by denoting it in the
 service definition: ::
-
-    preferences_db = {}
 
     class UserService(ServiceBase):
         __tns__ = 'spyne.examples.authentication'
         __in_header__ = RequestHeader
 
         @rpc(_returns=Preferences)
-        def get_preferences(ctx):
-            retval = preferences_db[ctx.in_header.user_name]
-
-            return retval
+        def some_call(ctx):
+            # (...)
 
 Or in the decorator: ::
 
         @rpc(_in_header=RequestHeader, _returns=Preferences)
 
-It's generally a better idea to set the header types in the ServiceBase child
-as it's likely that all methods will use it. This will avoid cluttering the
-service definition with header declarations. The header declaration in the
+It's generally a better idea to set the header types in the ``ServiceBase``
+child as it's likely that all methods will use it. This will avoid cluttering
+the service definition with header declarations. The header declaration in the
 decorator will overwrite the one in the service definition.
-
-Among the protocols that support headers, only Soap is supported.
 
 Transport Headers
 -----------------
 
 There is currently no general transport header api -- transport-specific apis
-should be used for setting headers.
-
-:class:`spyne.server.wsgi.WsgiApplication`:
-    The ``ctx.transport.resp_headers`` attribute is a dict made of header/value
-    pairs, both strings.
+should be used for setting headers. The only transport that supports
+headers right now is Http, and you can use ``ctx.transport.resp_headers``
+which is a dict where keys are field names and values are field values. Both
+must be ``str`` instances.
 
 Exceptions
 ----------
 
-The base class for public exceptions in Spyne is
-:class:`spyne.model.fault.Fault`. See its docstring for more info about how it
-works.
-
-Here's how you define your own public exceptions: ::
+Here's a sample custom public exception: ::
 
     class PublicKeyError(Fault):
         __type_name__ = 'KeyError'
@@ -123,11 +112,6 @@ While this is not really necessary in the world of the dynamic languages, it'd
 still be nice to specify the exceptions your service can throw in the interface
 document. Plus, intefacing with your services will just feel more natural with
 languages like Java where exceptions are kept on a short leash.
-
-.. NOTE::
-    Spyne has common exceptions already defined and integrated to protocols.
-    So if one raises :class:`spyne.error.ResourceNotFound` from user code,
-    the HttpRpc protocol is smart enough to set the Http response code to 404.
 
 What's next?
 ^^^^^^^^^^^^

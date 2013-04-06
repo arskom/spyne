@@ -31,6 +31,7 @@ import decimal
 from collections import deque
 from inspect import isclass
 
+from spyne.util import memoize_id
 from spyne.model import ModelBase
 from spyne.model.primitive import NATIVE_MAP
 from spyne.model.primitive import Unicode
@@ -876,6 +877,7 @@ def _log_repr_obj(obj, cls):
     return "%s(%s)" % (cls.get_type_name(), ', '.join(retval))
 
 
+@memoize_id
 def TTableModel(metadata=None):
     """A TableModel template that generates a new TableModel class for each
     call. If metadata is not supplied, a new one is instantiated.
