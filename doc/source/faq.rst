@@ -19,9 +19,9 @@ How do I implement a predefined WSDL?
 
 **Short answer:** By hand.
 
-**Long answer:** Spyne does not have any functionality to parse an existing WSDL
-document, nor a way of producing the necessary Python classes and method stubs
-from an existing interface definition.
+**Long answer:** Spyne does not have any functionality to parse an existing
+WSDL document, nor a way of producing the necessary Python classes and method
+stubs from an existing interface definition.
 
 Patches are welcome for both of these points. Maybe you can start by adapting
 the WSDL parser from `RSL <http://rsl.sf.net>`_.
@@ -30,8 +30,8 @@ Is it possible to use other decorators with @rpc/@srpc?
 =======================================================
 
 **Short answer:** Yes, but just use events. See the :ref:`manual-user-manager`
-tutorial and the `events example <http://github.com/arskom/spyne/blob/master/examples/user_manager/server_basic.py>`_
-to learn how to do so. They work almost the same, except for the syntax.
+tutorial to learn how to do so. They work almost the same, except for the
+syntax.
 
 **Long Answer:** Here's the magic from the :mod:`spyne.decorator`: ::
 
@@ -39,12 +39,12 @@ to learn how to do so. They work almost the same, except for the syntax.
     param_names = f.func_code.co_varnames[arg_start:argcount]
 
 So if ``f`` is your decorator, its signature should be the same as the user
-method, otherwise the parameter names and numbers in the interface are going to
-be wrong, which will cause weird errors.
+method, otherwise the parameter names and numbers in the interface are going
+to be wrong, which will cause weird errors.
 
 Please note that if you just intend to have a convenient way to set additional
-method metadata, you can pass the ``_udp`` argument to the :func:`spyne.decorator.srpc`
-to your liking.
+method metadata, you can pass the ``_udp`` argument to the 
+:func:`spyne.decorator.rpc` to your liking.
 
 So if you're hell bent on using decorators, you should use the
 `decorator package <http://pypi.python.org/pypi/decorator/>`_.
