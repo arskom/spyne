@@ -353,7 +353,7 @@ serialization formats in use today. The best XML or MIME (email) does is
 either base64 encoding or something similar, Json has no clue about binary
 data (and many other things actually, but let's just not go there now) and
 SOAP, in all its bloatiness, has quite a few binary encoding options
-available, yet none of the "optimized" ones are implemented in Spyne [#]_,
+available, yet none of the "optimized" ones are implemented in Spyne [#]_.
 
 Spyne supports binary data on all of the protocols it implements, falling back
 to base64 encoding where necessary. In terms of message size, the efficient
@@ -369,8 +369,8 @@ A few points to consider:
 1. ``HttpRpc`` only works with a Http transport.
 2. ``HttpRpc`` supports only one file per request.
 3. Not every http transport supports incremental parsing of incoming data.
-   (e.g. Twisted). (Partial reconstruction of outgoing data is generally
-   well-supported.)
+   (e.g. Twisted). Make sure to test your stack end-to-end to see how it
+   handles huge messages [#]_.
 
 Now that all that is said, let's look at the API that Spyne provides for
 dealing with binary data.
@@ -379,8 +379,9 @@ Spyne offers two types:
 
 1. :class:`spyne.model.binary.ByteArray` is a simple type that contains
    arbitrary data. It's similar to Python's own ``str`` in terms of
-   functionality, but it's a sequence of ``str`` values instead of just a big
-   ``str`` to be able to handle data in chunks using generators when needed.
+   functionality, but it's a sequence of ``str`` instances instead of just a
+   big ``str`` to be able to handle data in chunks using generators when
+   needed [#]_.
 2. :class:`spyne.model.binary.File` is a quirkier type that is mainly used to
    deal with Http way of dealing with file uploads. Its native value is the
    ``File.Value`` instance in :class:`spyne.model.binary.File`. See its
@@ -421,7 +422,8 @@ separate, you can do away with the metaclass magic and do this: ::
         }
 
 However, you still won't get predictable field order, as you're just assigning
-a ``dict`` to the ``_type_info`` attribute. If you also need that, you need
+a ``dict`` to the ``_type_info`` attribute. If you also need that, (which
+becomes handy when you serialize your return value directly to HTML) you need
 to pass a sequence of ``(field_name, field_type)`` tuples, like so: ::
 
     class Permission(ComplexModel):
@@ -431,7 +433,7 @@ to pass a sequence of ``(field_name, field_type)`` tuples, like so: ::
         ]
 
 If you want to set some defaults (e.g. namespace) with your objects, you can
-define your own ``CompexModel`` as follows: ::
+define your own ``CompexModel`` base class as follows: ::
 
     class MyAppComplexModel(ComplexModelBase):
         __namespace__ = "http://example.com/myapp"
@@ -605,7 +607,7 @@ and 5xx codes for server-side (legitimate request case) errors. SOAP uses
 "Client." and "Server." prefixes in error codes to make this distinction.
 
 To integrate common transport and protocol behavior easily to Spyne, some
-common exceptions are defined in the :mode:`spyne.error` module. These are
+common exceptions are defined in the :mod:`spyne.error` module. These are
 then hardwired to some common Http response codes so that e.g. raising a
 ``ResourceNotFoundError`` ends up setting the response code to 404.
 
@@ -663,5 +665,9 @@ defining complex objects and using events.
        issues around 32-bit integers. E.g. Firefox < 18.0 can't handle big
        files: https://bugzilla.mozilla.org/show_bug.cgi?id=215450
 
+.. [#] Technically, a simple ``str`` instance is also a sequence of ``str``
+       instances. However, using a ``str`` as the value to ``ctx.out_string``
+       would cause sending data in one-byte chunks, which is very inefficient.
+       See e.g. how HTTP's chunked encoding works.
 
 .. [#] http://stackoverflow.com/a/15383191
