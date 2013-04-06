@@ -41,7 +41,7 @@ Discussion thread: https://answers.launchpad.net/ladon/+question/171664
     In fact, Ladon is pure server-side software - the whole idea of supporting
     a standard protocol like SOAP is that clients are already out there.
 
-* Spyne uses own classes for denoting types, whereas ladon uses Python
+* Spyne uses own classes for denoting types, whereas Ladon uses Python
   callables. This lets Ladon api to be simpler, but gives the Spyne api the
   power to have declarative restrictions on input types.
 * Does not test against ws-i.org deliverables for testing soap compatibility.
