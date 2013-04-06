@@ -35,10 +35,11 @@ logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
 from spyne.application import Application
 from spyne.decorator import rpc
-from spyne.interface.wsdl import Wsdl11
+from spyne.error import ResourceNotFoundError
 from spyne.protocol.soap import Soap11
-from spyne.model.primitive import String
-from spyne.model.primitive import Integer
+from spyne.model.primitive import Mandatory
+from spyne.model.primitive import Unicode
+from spyne.model.primitive import UnsignedInteger32
 from spyne.model.complex import Array
 from spyne.model.complex import Iterable
 from spyne.model.complex import ComplexModel
@@ -46,7 +47,7 @@ from spyne.server.wsgi import WsgiApplication
 from spyne.service import ServiceBase
 
 _user_database = {}
-_user_id_seq = 1
+_user_id_seq = 0
 
 
 class Permission(ComplexModel):
@@ -63,16 +64,16 @@ class User(ComplexModel):
     id = UnsignedInteger32
     user_name = Unicode(32, min_len=4, pattern='[a-z0-9.]+')
     full_name = Unicode(64, pattern='\w+( \w+)+')
-    email = Unicode(pattern=r'\b[a-z0-9._%+-]+@[a-z0-9.-]+\.[A-Z]{2,4}\b')
+    email = Unicode(pattern=r'[a-z0-9._%+-]+@[a-z0-9.-]+\.[A-Z]{2,4}')
     permissions = Array(Permission)
 
 
 class UserManagerService(ServiceBase):
-    @rpc(User, _returns=Integer)
+    @rpc(User.customize(min_occurs=1, nullable=False), _returns=UnsignedInteger32)
     def put_user(ctx, user):
         if user.id is None:
             user.id = ctx.udc.get_next_user_id()
-        ctx.udc.users[user.user_id] = user
+        ctx.udc.users[user.id] = user
 
         return user.id
 
@@ -116,7 +117,7 @@ def _on_method_call(ctx):
 
 application = MyApplication([UserManagerService],
             'spyne.examples.user_manager',
-            in_protocol=Soap11(validation='lxml'), 
+            in_protocol=Soap11(validator='lxml'),
             out_protocol=Soap11()
         )
 
