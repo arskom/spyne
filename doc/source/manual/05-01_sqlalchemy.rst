@@ -8,92 +8,242 @@ This tutorial builds on the :ref:`manual-user-manager` tutorial. If you
 haven't done so, we recommend you to read it first.
 
 In this tutorial, we talk about using Spyne tools that make it easy to deal
-with database-related operations. We will show how to integrate SQLAlchemy and
-Spyne object definitions, and how to do painless transaction management using
-Spyne events.
+with database-related operations using `SQLAlchemy <http://sqlalchemy.org>`_.
+SQLAlchemy is a well-established and mature SQL generation and ORM library
+that is well worth the time invested in climbing its learning curve.
 
-The full example is available here: http://github.com/arskom/spyne/blob/master/examples/user_manager/server_sqlalchemy.py
+We will show how to integrate SQLAlchemy and Spyne object definitions, and
+how to do painless transaction management using Spyne events.
 
-Again, focusing on what's different from previous :ref:`manual-user-manager`
-example: ::
+There are two ways of integrating with SQLAlchemy:
 
-    class User(TableModel, DeclarativeBase):
-        __namespace__ = 'spyne.examples.user_manager'
+1. The first and supported method is to use the output of the
+   :class:`spyne.model.complex.TTableModel`.
+
+   The ``TTableModel`` class is a templated callable that produces a
+   ``ComplexModel`` that has enough information except table name to be mapped
+   with a SQL table. It takes an optional ``metadata`` argument and creates a
+   new one when one isn't supplied.
+
+   **WARNING:** While the machinery around ``TTableModel`` is in production
+   use in a few places, it should be considered *experimental* as it's a
+   relatively new feature which is not as battle-tested as the rest of the
+   Spyne code.
+
+   Also, this is only tested with `PostgreSQL <http://postgresql.org>`_ and
+   to some extent, `SQLite <http://sqlite.org>`_\.
+   We're looking for volunteers to test and integrate other RDBMSs, please
+   open an issue and chime in.
+
+2. The second method is to use :class:`spyne.model.table.TableModel` as a
+   second base class together with the declarative base class (output of the
+   :func:`sqlalchemy.orm.declarative_base` callable). This is deprecated [#]_
+   and won't be developed any further, yet it also won't be removed in the
+   foreseeable feature as apparently there are people who are quite fine with
+   its quirks and would prefer to have it shipped within the Spyne package.
+
+This document will cover only the first method. The documentation for the
+second method can be found in the :mod:`spyne.model.table` documentation or in
+the Spyne 2.9 documentation.
+
+The semantics of SQLAlchemy's and Spyne's object definition are almost the
+same, except a few small differences:
+
+#. SQLAlchemy's ``Integer`` maps to Spyne's ``Integer32`` or ``Integer64``\,
+   depending on the RDBMS. Spyne's ``Integer``\, as it's an arbitrary-size
+   number, is converted to :class:`sqlalchemy.Decimal` type as it's the only
+   type that can acommodate arbitrary-size numbers. So it's important to use a
+   bounded integer type like ``Integer32`` or ``Integer64``\, especially as
+   primary key.
+
+#. SQLAlchemy's ``UnicodeText`` is Spyne's ``Unicode`` with no ``max_len``
+   restriction. If you need a length-limited ``UnicodeText``, you can use
+   Spyne's ``Unicode`` object as follows: ::
+
+        class(TableModel):
+            __tablename__ = "some_table"
+
+            # text
+            some_text = Unicode(2048, db_type=sqlalchemy.UnicodeText)
+
+            # varchar
+            some_varchar = Unicode(2048)
+
+            # text
+            some_more_text = Unicode
+
+   Default mapping for text types is ``varchar``\. Note that the limit is only
+   enforced to incoming data, in this case the database type is bounded only
+   by the limits of the database system.
+
+#. Spyne does not reflect all restrictions to the database -- some are only
+   enforced to incoming data when validation is enabled. These include range
+   and value restrictions for numbers, and ``min_len`` and ``pattern``
+   restrictions for Spyne types.
+
+How does TTableModel work?
+--------------------------
+
+Okay, enough with the introductory & disclaimatory stuff, let's get coding :)
+
+There's a fully functional example at
+:download:`examples/user_manager/server_sqlalchemy.py <../../../examples/user_manager/server_sqlalchemy.py>`\.
+in the source distribution.
+
+First, we need a database handle: ::
+
+    db = create_engine('sqlite:///:memory:')
+    Session = sessionmaker(bind=db)
+    metadata = MetaData(bind=db)
+
+Now, we must define our own ``TableModel`` base class. This must be defined
+for every ``MetaData`` instance.
+
+    TableModel = TTableModel(metadata)
+
+Doing this is also possible: ::
+
+    TableModel == TTableModel()
+    TableModel.Attributes.sqla_metadata.bind = db
+
+... but the first method looks cleaner.
+
+We're finally ready to define Spyne types mapped to SQLAlchemy tables. At this
+point, we have two options: Do everything with the Spyne markers, or re-use
+existing SQLAlchemy code we might already have.
+
+The Spyne Way
+^^^^^^^^^^^^^
+
+Let's consider the following two class definitions: ::
+
+    class Permission(TableModel):
+        __tablename__ = 'permission'
+
+        id = UnsignedInteger32(pk=True)
+        application = Unicode(values=('usermgr', 'accountmgr'))
+        operation = Unicode(values=('read', 'modify', 'delete'))
+
+    class User(TableModel):
+        __tablename__ = 'user'
+
+        id = UnsignedInteger32(pk=True)
+        user_name = Unicode(32, min_len=4, pattern='[a-z0-9.]+')
+        full_name = Unicode(64, pattern='\w+( \w+)+')
+        email = Unicode(64, pattern=r'[a-z0-9._%+-]+@[a-z0-9.-]+\.[A-Z]{2,4}')
+        permissions = Array(Permission).store_as('table')
+
+A couple of points about the above block:
+
+A ``TableModel`` subclass won't be mapped to a database table if it's missing
+both the ``__table__`` and ``__tablename__`` attributes. As we're defining the
+table in this object, we just pass the ``__tablename__`` attribute -- the
+``__table__`` object (which is a :class:`sqlalchemy.schema.Table` instance)
+will be generated automatically.
+
+The definitions of the ``id``\, ``user_name``\, ``full_name`` and ``email``
+fields should be self-explanatory.
+
+As for the ``permissions`` field, thanks to the ``store_as('table')`` call,
+it will be stored using a one-to-many relationship. Spyne automatically
+generates a foreign key column inside the ``permission`` table with 'user_id'
+as default value.
+
+If we'd let the ``store_as()`` call out: ::
+
+        permissions = Array(Permission)
+
+... the permissions field would not exist as far as SQLAlchemy is concerned.
+
+Calling ``store_as()`` is just a shortcut for calling
+``customize(store_as='table')``\. 
+
+While the default is what appears to make most sense when defining such
+relations, it might not always be appropriate. Spyne offers the so-called
+"compound option object"s to make it easy to configure persistance options.
+
+Using the :class:`spyne.model.complex.table` object, we change the
+``permissions`` field to be serialized using the many-to-many pattern:
+
+::
+        from spyne.model.complex import table
+
+        permissions = Array(Permission).store_as(table(multi=True))
+
+In this case, Spyne takes care of creating a relation table with appropriate
+foreign key columns. 
+
+We can also alter column names or the relation table name:
+
+::
+        from spyne.model.complex import table
+
+        permissions = Array(Permission).store_as(table(
+                  multi='user_perm_rel',
+                  left='u_id', right='perm_id',
+              ))
+
+See the :class:`spyne.model.complex.table` reference for more details on
+configuring object relations.
+
+``'table'`` is not the only option for persisting objects to a database. Other
+options are ``'json'`` and ``'xml'``\. These use 
+
+
+
+Integrating with Existing SQLAlchemy objects
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Let's consider the following fairly ordinary SQLAlchemy object: ::
+
+    class User(DeclarativeBase):
         __tablename__ = 'spyne_user'
 
-        user_id = Column(sqlalchemy.Integer, primary_key=True)
+        id = Column(sqlalchemy.Integer, primary_key=True)
         user_name = Column(sqlalchemy.String(256))
         first_name = Column(sqlalchemy.String(256))
         last_name = Column(sqlalchemy.String(256))
 
-Defined this way, SQLAlchemy objects are regular Spyne objects that can be
-used anywhere the regular Spyne types go. The definition for the `User` object
-is quite similar to vanilla SQLAlchemy declarative syntax, save for two
-elements:
+Assigning the table ::
 
-    #. The object also bases on :class:`spyne.model.table.TableModel`, which
-       bridges SQLAlchemy and Spyne types.
-    #. It has a namespace declaration, which is just so the service looks good
-       on wsdl.
-
-The SQLAlchemy integration is far from perfect at the moment:
-
-    * SQL constraints are not reflected to the interface document.
-    * It's not possible to define additional constraints for the Spyne schema.
-    * Object attributes defined by mechanisms other than Column and limited
-      uses of `relationship` (no string arguments) are not supported.
-
-If you need any of the above features, you need to separate the Spyne and
-sqlalchemy object definitions.
-
-Spyne makes it easy (to an extent) with the following syntax: ::
-
-    class AlternativeUser(TableModel, DeclarativeBase):
-        __namespace__ = 'spyne.examples.user_manager'
+    class User(TableModel):
         __table__ = User.__table__
 
-Here, The AlternativeUser object is automatically populated using columns from
-the table definition.
+... creates the corresponding Spyne object. This conversion works for simple
+column types, but for complex ORM constructs like ``relationship``\.
 
-The context object is also a little bit different -- we start a transaction
-for every call in the constructor of the UserDefinedContext object, and close
-it in its destructor: ::
+If you want to override this, you must set everything manually: ::
 
-    class UserDefinedContext(object):
-        def __init__(self):
-            self.session = Session()
+    class User(TableModel):
+        __table__ = User.__table__
 
-        def __del__(self):
-            self.session.close()
+        id = UnsignedInteger32(pk=True)
+        user_name = Unicode(32, min_len=4, pattern='[a-z0-9.]+')
+        full_name = Unicode(64, pattern='\w+( \w+)+')
+        email = Unicode(64, pattern=r'[a-z0-9._%+-]+@[a-z0-9.-]+\.[A-Z]{2,4}')
 
-We implement an event handler that instantiates the UserDefinedContext object
-for every method call: ::
+Of course, it's possible to leave fields out.
 
-    def _on_method_call(ctx):
-        ctx.udc = UserDefinedContext()
-
-We also implement an event handler that commits the transaction once the
-method call is complete. ::
-
-    def _on_method_return_object(ctx):
-        ctx.udc.session.commit()
-
-We register those handlers to the application's 'method_call' handler: ::
-
-    application.event_manager.add_listener(
-                'method_call', _on_method_call)
-    application.event_manager.add_listener(
-                'method_return_object', _on_method_return_object)
-
-Note that the ``method_return_object`` event is only fired when the method
-call completes without throwing any exceptions.
+This is still one of the weaker spots of SQLAlchemy integration, please chime
+in with your ideas!
 
 What's next?
 ------------
 
 This tutorial walks you through most of what you need to know to expose your
 services. You can read the :ref:`manual-metadata` section where service
-metadata management apis are introduced.
+metadata management APIs are introduced.
 
 Otherwise, you can refer to the reference of the documentation or the mailing
 list if you have further questions.
+
+.. [#] The reasons for its depreciation are as follows:
+
+       #. The old way of trying to fuse metaclasses was a nightmare to
+          maintain.
+
+       #. The new API can handle existing SQLAlchemy objects via the
+          ``__table__`` attribute trick.
+
+       #. It's not easy to add arbitrary restrictions (like pattern) when
+          using the SQLAlchemy API.
