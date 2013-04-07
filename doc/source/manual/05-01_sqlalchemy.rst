@@ -194,7 +194,7 @@ Let's modify the previous example to store the ``Permission`` entity in a JSON
 column. ::
 
     class Permission(ComplexModel):
-        id = UnsignedInteger32(pk=True)
+        id = UnsignedInteger32
         application = Unicode(values=('usermgr', 'accountmgr'))
         operation = Unicode(values=('read', 'modify', 'delete'))
 
