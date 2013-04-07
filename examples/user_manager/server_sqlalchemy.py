@@ -83,16 +83,11 @@ class User(TableModel):
     id = UnsignedInteger32(pk=True)
     user_name = Unicode(32, min_len=4, pattern='[a-z0-9.]+')
     full_name = Unicode(64, pattern='\w+( \w+)+')
-    email = Unicode(pattern=r'[a-z0-9._%+-]+@[a-z0-9.-]+\.[A-Z]{2,4}')
+    email = Unicode(64, pattern=r'[a-z0-9._%+-]+@[a-z0-9.-]+\.[A-Z]{2,4}')
     permissions = Array(Permission)
 
 
 class UserManagerService(ServiceBase):
-    @rpc(User, _returns=UnsignedInteger32)
-    def add_user(ctx, user):
-
-        return user.id
-
     @rpc(Mandatory.UnsignedInteger32, _returns=User)
     def get_user(ctx, user_id):
         return ctx.udc.session.query(User).filter_by(id=user_id).one()
@@ -105,9 +100,14 @@ class UserManagerService(ServiceBase):
 
         else:
             if ctx.udc.session.query(User).get(user.id) is None:
-                # this is to prevent from the client setting the primary key
-                # instead of the database's own primary-key generator
+                # this is to prevent the client from setting the primary key
+                # of a new object instead of the database's own primary-key
+                # generator.
+                # Instead of raising an exception, you can also choose to
+                # ignore the primary key set by the client by silently doing
+                # user.id = None
                 raise ResourceNotFoundError('user.id=%d' % user.id)
+
             else:
                 ctx.udc.session.merge(user)
 
@@ -115,10 +115,15 @@ class UserManagerService(ServiceBase):
 
     @rpc(Mandatory.UnsignedInteger32)
     def del_user(ctx, user_id):
+        count = ctx.udc.session.query(User).filter_by(id=user_id).count()
+        if count == 0:
+            raise ResourceNotFoundError(user_id)
+
         ctx.udc.session.query(User).filter_by(id=user_id).delete()
 
     @rpc(_returns=Iterable(User))
     def get_all_user(ctx):
+        print list(ctx.udc.session.query(User))
         return ctx.udc.session.query(User)
 
 
@@ -138,6 +143,15 @@ def _on_method_context_closed(ctx):
 
 
 class MyApplication(Application):
+    def __init__(self, services, tns, name=None,
+                                         in_protocol=None, out_protocol=None):
+        Application.__init__(self, services, tns, name, in_protocol,
+                                                                 out_protocol)
+
+        self.event_manager.add_listener('method_call', _on_method_call)
+        self.event_manager.add_listener("method_context_closed",
+                                                    _on_method_context_closed)
+
     def call_wrapper(self, ctx):
         try:
             return ctx.service_class.call_wrapper(ctx)
@@ -153,18 +167,15 @@ class MyApplication(Application):
             logging.exception(e)
             raise InternalError(e)
 
-application = MyApplication([UserManagerService],
-            'spyne.examples.user_manager',
-            in_protocol=Soap11(validator='lxml'),
-            out_protocol=Soap11()
-        )
-
-application.event_manager.add_listener('method_call', _on_method_call)
-application.event_manager.add_listener("method_context_closed",
-                                                      _on_method_context_closed)
 
 if __name__=='__main__':
     from wsgiref.simple_server import make_server
+
+    application = MyApplication([UserManagerService],
+                'spyne.examples.user_manager',
+                in_protocol=Soap11(validator='lxml'),
+                out_protocol=Soap11(),
+            )
 
     wsgi_app = WsgiApplication(application)
     server = make_server('127.0.0.1', 8000, wsgi_app)
