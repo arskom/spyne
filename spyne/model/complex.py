@@ -429,8 +429,6 @@ class ComplexModelBase(ModelBase):
         """
 
     def __init__(self, **kwargs):
-        super(ComplexModelBase, self).__init__()
-
         for k, v in self.get_flat_type_info(self.__class__).items():
             d = v.Attributes.default
             kv = kwargs.get(k, d)
