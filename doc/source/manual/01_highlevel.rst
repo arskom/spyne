@@ -6,7 +6,7 @@ High-Level Introduction to Spyne
 
 The impatient can just jump to the :ref:`manual-highlevel-nutshell` section,
 or read a small
-`presentation <http://arskom.github.com/spyne/multiple_protocols_presentation.pdf>`_
+`presentation <http://spyne.io/docs/multiple_protocols_presentation.pdf>`_
 that illustrates the following concepts by examples.
 
 Concepts
