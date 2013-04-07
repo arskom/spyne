@@ -81,9 +81,6 @@ same, except a few small differences:
    and value restrictions for numbers, and ``min_len`` and ``pattern``
    restrictions for Spyne types.
 
-How does TTableModel work?
---------------------------
-
 Okay, enough with the introductory & disclaimatory stuff, let's get coding :)
 
 There's a fully functional example at
@@ -113,7 +110,7 @@ point, we have two options: Do everything with the Spyne markers, or re-use
 existing SQLAlchemy code we might already have.
 
 The Spyne Way
-^^^^^^^^^^^^^
+-------------
 
 Let's consider the following two class definitions: ::
 
@@ -186,13 +183,47 @@ We can also alter column names or the relation table name:
 See the :class:`spyne.model.complex.table` reference for more details on
 configuring object relations.
 
+Using SQL Databases as Hybrid Document Stores
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
 ``'table'`` is not the only option for persisting objects to a database. Other
-options are ``'json'`` and ``'xml'``\. These use 
+options are ``'json'`` and ``'xml'``\. These use the relevant column types to
+store the object serialized to JSON or XML.
 
+Let's modify the previous example to store the ``Permission`` entity in a JSON
+column. ::
 
+    class Permission(ComplexModel):
+        id = UnsignedInteger32(pk=True)
+        application = Unicode(values=('usermgr', 'accountmgr'))
+        operation = Unicode(values=('read', 'modify', 'delete'))
+
+    class User(TableModel):
+        __tablename__ = 'user'
+
+        id = UnsignedInteger32(pk=True)
+        user_name = Unicode(32, min_len=4, pattern='[a-z0-9.]+')
+        full_name = Unicode(64, pattern='\w+( \w+)+')
+        email = Unicode(64, pattern=r'[a-z0-9._%+-]+@[a-z0-9.-]+\.[A-Z]{2,4}')
+        permissions = Array(Permission).store_as('json')
+
+As the ``Array(Permission)`` is now stored in a document store, it's possible
+to make arbitrary changes to the schema of the ``Permission`` object without
+worrying about schema migrations -- If the changes are backwards-compatible,
+everything will work flawlessly. If not, attributes in older version documents
+will just be ignored.
+
+You can play with the example at `spyne.io <http://spyne.io/#s=sql>`_ to
+experiment and fully understand how Spyne's model generator works.
+
+To make the case with non-backwards-compatible changes, an implicit versioning
+support must be added. Assuming that everybody agrees that this is a good
+idea, add this feature would be another interesting project.
+
+Feedback is welcome!
 
 Integrating with Existing SQLAlchemy objects
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+--------------------------------------------
 
 Let's consider the following fairly ordinary SQLAlchemy object: ::
 
