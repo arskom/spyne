@@ -84,7 +84,10 @@ from spyne.model.primitive import Integer16
 from spyne.model.primitive import Integer32
 from spyne.model.primitive import Integer64
 from spyne.model.primitive import Point
+from spyne.model.primitive import Line
 from spyne.model.primitive import Polygon
+from spyne.model.primitive import MultiPoint
+from spyne.model.primitive import MultiLine
 from spyne.model.primitive import MultiPolygon
 from spyne.model.primitive import UnsignedInteger
 from spyne.model.primitive import UnsignedInteger8
@@ -281,9 +284,21 @@ def get_sqlalchemy_type(cls):
     elif issubclass(cls, Point):
         return PGGeometry("POINT", dimension=cls.Attributes.dim)
 
+    # must be above Unicode, because Line is Unicode's subclass
+    elif issubclass(cls, Line):
+        return PGGeometry("LINESTRING", dimension=cls.Attributes.dim)
+
     # must be above Unicode, because Polygon is Unicode's subclass
     elif issubclass(cls, Polygon):
         return PGGeometry("POLYGON", dimension=cls.Attributes.dim)
+
+    # must be above Unicode, because MultiPoint is Unicode's subclass
+    elif issubclass(cls, Point):
+        return PGGeometry("MULTIPOINT", dimension=cls.Attributes.dim)
+
+    # must be above Unicode, because MultiLine is Unicode's subclass
+    elif issubclass(cls, Line):
+        return PGGeometry("MULTILINESTRING", dimension=cls.Attributes.dim)
 
     # must be above Unicode, because MultiPolygon is Unicode's subclass
     elif issubclass(cls, MultiPolygon):
