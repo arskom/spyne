@@ -235,7 +235,8 @@ Let's consider the following fairly ordinary SQLAlchemy object: ::
         first_name = Column(sqlalchemy.String(256))
         last_name = Column(sqlalchemy.String(256))
 
-Assigning the table ::
+Assigning an existing SQLAlchemy table to the ``__table__`` attribute of the
+``TableModel`` ... ::
 
     class User(TableModel):
         __table__ = User.__table__
@@ -248,7 +249,7 @@ If you want to override this, you must set everything manually: ::
     class User(TableModel):
         __table__ = User.__table__
 
-        id = UnsignedInteger32(pk=True)
+        id = UnsignedInteger32
         user_name = Unicode(32, min_len=4, pattern='[a-z0-9.]+')
         full_name = Unicode(64, pattern='\w+( \w+)+')
         email = Unicode(64, pattern=r'[a-z0-9._%+-]+@[a-z0-9.-]+\.[A-Z]{2,4}')
@@ -256,17 +257,19 @@ If you want to override this, you must set everything manually: ::
 Of course, it's possible to leave fields out.
 
 This is still one of the weaker spots of SQLAlchemy integration, please chime
-in with your ideas!
+in with your ideas on how we should handle different cases!
 
 What's next?
 ------------
 
-This tutorial walks you through most of what you need to know to expose your
-services. You can read the :ref:`manual-metadata` section where service
-metadata management APIs are introduced.
+This tutorial walks you through most of what you need to know to implement
+complex, real-world services. You can read the :ref:`manual-metadata` section
+where service metadata management APIs are introduced, but otherwise, you're
+mostly set.
 
-Otherwise, you can refer to the reference of the documentation or the mailing
-list if you have further questions.
+You also refer to the reference of the documentation or the mailing list if
+you have further questions.
+
 
 .. [#] The reasons for its depreciation are as follows:
 
