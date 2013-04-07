@@ -1,6 +1,4 @@
 
-EXCEPTION_ADDRESS = "everybody@my.software.team.io"
-
 import logging
 logger = logging.getLogger(__name__)
 
@@ -13,6 +11,8 @@ from spyne.util.email import email_exception
 from sqlalchemy.orm.exc import NoResultFound
 
 from template.context import UserDefinedContext
+
+EXCEPTION_ADDRESS = "everybody@example.com"
 
 
 def _on_method_call(ctx):
@@ -48,6 +48,6 @@ class MyApplication(Application):
 
         except Exception, e:
             logger.exception(e)
-            # This should not happen! Let me know via email
+            # This should not happen! Let the team know via email
             email_exception(EXCEPTION_ADDRESS)
             raise InternalError(e)

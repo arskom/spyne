@@ -392,12 +392,12 @@ class MethodDescriptor(object):
 
 class EventManager(object):
     """Spyne supports a simple event system that can be used to have repetitive
-    boiler plate code that has to run for every method call nicely tucked away
+    boilerplate code that has to run for every method call nicely tucked away
     in one or more event handlers. The popular use-cases include things like
     database transaction management, logging and measuring performance.
 
     Various Spyne components support firing events at various stages during the
-    processing of the request, which are documented in the relevant classes.
+    processing of a request, which are documented in the relevant classes.
 
     The classes that support events are:
         * :class:`spyne.application.Application`

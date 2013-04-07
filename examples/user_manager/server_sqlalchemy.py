@@ -59,7 +59,7 @@ from spyne.service import ServiceBase
 db = create_engine('sqlite:///:memory:')
 Session = sessionmaker(bind=db)
 
-
+# This is what calling TTableModel does. This is here for academic purposes.
 class TableModel(ComplexModelBase):
     __metaclass__ = ComplexModelMeta
     __metadata__ = MetaData(bind=db)
@@ -84,7 +84,7 @@ class User(TableModel):
     user_name = Unicode(32, min_len=4, pattern='[a-z0-9.]+')
     full_name = Unicode(64, pattern='\w+( \w+)+')
     email = Unicode(64, pattern=r'[a-z0-9._%+-]+@[a-z0-9.-]+\.[A-Z]{2,4}')
-    permissions = Array(Permission)
+    permissions = Array(Permission).store_as('table')
 
 
 class UserManagerService(ServiceBase):
@@ -123,7 +123,6 @@ class UserManagerService(ServiceBase):
 
     @rpc(_returns=Iterable(User))
     def get_all_user(ctx):
-        print list(ctx.udc.session.query(User))
         return ctx.udc.session.query(User)
 
 
