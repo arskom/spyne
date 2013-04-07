@@ -86,7 +86,7 @@ class Application(object):
     transport = None
 
     def __init__(self, services, tns, name=None,
-                           in_protocol=None, out_protocol=None, interface=None):
+                          in_protocol=None, out_protocol=None, interface=None):
         self.services = services
         self.tns = tns
         self.name = name
