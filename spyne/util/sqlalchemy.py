@@ -34,9 +34,12 @@ except ImportError:
 
 import sqlalchemy
 
+from inspect import isclass
+
 from lxml import etree
 
 from sqlalchemy import sql
+from sqlalchemy import event
 from sqlalchemy.schema import Column
 from sqlalchemy.schema import Index
 from sqlalchemy.schema import Table
@@ -54,6 +57,7 @@ from sqlalchemy.orm import mapper
 
 from sqlalchemy.types import UserDefinedType
 
+from spyne.model import ModelBase
 from spyne.model.complex import table as c_table
 from spyne.model.complex import xml as c_xml
 from spyne.model.complex import json as c_json
@@ -681,6 +685,14 @@ def gen_sqla_info(cls, cls_bases=()):
         mapper_args = (table,) + mapper_args
 
     cls_mapper = mapper(cls, *mapper_args, **mapper_kwargs)
+
+    def my_load_listener(target, context):
+        for k, v in cls.get_flat_type_info(cls).items():
+            av = getattr(target, k, None)
+            if isclass(av) and issubclass(av, ModelBase):
+                setattr(target, k, None)
+
+    event.listen(cls, 'load', my_load_listener)
 
     cls.__tablename__ = cls.Attributes.table_name
     cls.Attributes.sqla_mapper = cls.__mapper__ = cls_mapper
