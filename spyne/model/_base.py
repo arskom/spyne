@@ -121,6 +121,7 @@ class ModelBase(object):
     # ComplexModelBase deserializer.
     class Attributes(object):
         """The class that holds the constraints for the given type."""
+
         __metaclass__ = AttributesMeta
 
         default = None
@@ -177,13 +178,20 @@ class ModelBase(object):
         as the indexing method to create the unique index.
         """
 
+        db_type = None
+        """When not None, it overrides Spyne's own mapping from Spyne types to
+        SQLAlchemy types.
+        """
+
         index = None
         """Can be ``True``, a string, or a tuple of two strings.
 
         * If True, this object will be set as indexed in the database schema
           with default options.
+
         * If the value is a string, the value will denote the indexing method
           used by the database. See: http://www.postgresql.org/docs/9.2/static/indexes-types.html
+
         * If the vale is a tuple of two strings, the first value will denote the
           index name and the second value will denote the indexing method as
           above.

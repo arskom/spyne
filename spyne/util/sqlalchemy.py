@@ -269,6 +269,10 @@ sqlalchemy.dialects.postgresql.base.ischema_names['json'] = PGObjectJson
 
 
 def get_sqlalchemy_type(cls):
+    db_type = cls.Attributes.db_type
+    if db_type is not None:
+        return db_type
+
     # must be above Unicode, because Uuid is Unicode's subclass
     if issubclass(cls, Uuid):
         return PGUuid
