@@ -38,8 +38,8 @@ def email_exception(exception_address, message=""):
     mod = inspect.getmodule(frm[0])
     module_name = mod.__name__ if mod else frm[1]
 
-    sender = 'error@software.arskom.com.tr'
-    receivers = ['herkes@software.arskom.com.tr']
+    sender = 'robot@spyne.io'
+    receivers = [exception_address]
 
     error_str = ("%s\n\n%s" % (message, traceback.format_exc()))
     msg = MIMEText(error_str.encode('utf8'), 'plain', 'utf8')
