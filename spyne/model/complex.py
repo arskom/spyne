@@ -58,8 +58,8 @@ def _get_flat_type_info(cls, retval):
 
 
 class xml:
-    """Complex argument to ``ComplexModelBase.Attributes.store_as`` for xml
-    serialization.
+    """Compound option object for xml serialization. It's meant to be passed to
+    :func:`ComplexModelBase.Attributes.store_as`.
 
     :param root_tag: Root tag of the xml element that contains the field values.
     :param no_ns: When true, the xml document is stripped from namespace
@@ -72,8 +72,9 @@ class xml:
 
 
 class table:
-    """Complex argument to ``ComplexModelBase.Attributes.store_as`` for storing
-    the class instance as a row in a table in a relational database.
+    """Compound option object for for storing the class instance as in row in a
+    table in a relational database. It's meant to be passed to
+    :func:`ComplexModelBase.Attributes.store_as`.
 
     :param multi: When False, configures a one-to-many relationship where the
         child table has a foreign key to the parent. When not ``False``,
@@ -95,8 +96,8 @@ class table:
 
 
 class json:
-    """Complex argument to ``ComplexModelBase.Attributes.store_as`` for storing
-    the class instance as a json document.
+    """Compound option object for json serialization. It's meant to be passed to
+    :func:`ComplexModelBase.Attributes.store_as`.
 
     Make sure you don't mix this with the json package when importing.
     """
@@ -110,8 +111,8 @@ class json:
 class msgpack:
     pass  # TODO: not implemented
 
-    """Complex argument to ``ComplexModelBase.Attributes.store_as`` for storing
-    the class instance as a MessagePack document.
+    """Compound option object for msgpack serialization. It's meant to be passed
+    to :func:`ComplexModelBase.Attributes.store_as`.
 
     Make sure you don't mix this with the msgpack package when importing.
     """

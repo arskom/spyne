@@ -194,7 +194,6 @@ Let's modify the previous example to store the ``Permission`` entity in a JSON
 column. ::
 
     class Permission(ComplexModel):
-        id = UnsignedInteger32
         application = Unicode(values=('usermgr', 'accountmgr'))
         operation = Unicode(values=('read', 'modify', 'delete'))
 
@@ -207,18 +206,23 @@ column. ::
         email = Unicode(64, pattern=r'[a-z0-9._%+-]+@[a-z0-9.-]+\.[A-Z]{2,4}')
         permissions = Array(Permission).store_as('json')
 
-As the ``Array(Permission)`` is now stored in a document store, it's possible
-to make arbitrary changes to the schema of the ``Permission`` object without
-worrying about schema migrations -- If the changes are backwards-compatible,
-everything will work flawlessly. If not, attributes in older version documents
-will just be ignored.
+Note that nothing has changed in the ``User`` object except the storage
+parameter for the ``permissions`` field, whereas the ``Permission`` object now
+inherits from ``ComplexModel`` and does not have (nor need) a primary key.
+
+As the ``Array(Permission)`` is now stored in a document-type column inside
+the table, it's possible to make arbitrary changes to the schema of the
+``Permission`` object without worrying about schema migrations -- If the
+changes are backwards-compatible, everything will work flawlessly. If not,
+attributes in that are not defined in the latest object definition will just
+be ignored.
 
 You can play with the example at `spyne.io <http://spyne.io/#s=sql>`_ to
 experiment and fully understand how Spyne's model generator works.
 
-To make the case with non-backwards-compatible changes, an implicit versioning
-support must be added. Assuming that everybody agrees that this is a good
-idea, add this feature would be another interesting project.
+To make the case with non-backwards-compatible changes work, an implicit
+versioning support must be added. Assuming that everybody agrees that this is
+a good idea, adding this feature would be another interesting project.
 
 Feedback is welcome!
 
