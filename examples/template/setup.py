@@ -16,9 +16,9 @@ from setuptools.command.test import test as TestCommand
 v = open(os.path.join(os.path.dirname(__file__), 'template', '__init__.py'), 'r')
 VERSION = re.match(r".*__version__ = '(.*?)'", v.read(), re.S).group(1)
 
-SHORT_DESC="""A template project."""
+SHORT_DESC="""A Template project."""
 
-LONG_DESC = """Yes, really, just a template project."""
+LONG_DESC = """Yes, really, just a Template project."""
 
 
 setup(
@@ -43,7 +43,7 @@ setup(
     author_email='jack.brown@arskom.com.tr',
     maintainer='Jack Brown',
     maintainer_email='jack.brown@arskom.com.tr',
-    url='http://aces.high.io',
+    url='http://example.com',
     license='Your Own',
     zip_safe=False,
     install_requires=['spyne>=2.10', 'SQLAlchemy>=0.8.0'],
