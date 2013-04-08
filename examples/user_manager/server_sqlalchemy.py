@@ -66,7 +66,7 @@ class TableModel(ComplexModelBase):
 
 
 class Permission(TableModel):
-    __tablename__ = 'spyne_user_permission'
+    __tablename__ = 'permission'
     __namespace__ = 'spyne.examples.user_manager'
     __table_args__ = {"sqlite_autoincrement": True}
 
@@ -76,7 +76,7 @@ class Permission(TableModel):
 
 
 class User(TableModel):
-    __tablename__ = 'spyne_user'
+    __tablename__ = 'user'
     __namespace__ = 'spyne.examples.user_manager'
     __table_args__ = {"sqlite_autoincrement": True}
 
