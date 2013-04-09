@@ -21,7 +21,6 @@
 implementation.
 """
 
-from spyne.error import ResourceNotFoundError
 import logging
 logger = logging.getLogger(__name__)
 
@@ -30,6 +29,7 @@ import tempfile
 
 from Cookie import SimpleCookie
 
+from spyne.error import ResourceNotFoundError
 from spyne.model.binary import ByteArray
 from spyne.model.primitive import DateTime
 from spyne.protocol.dictdoc import FlatDictDocument

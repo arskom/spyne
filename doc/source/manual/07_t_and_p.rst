@@ -9,27 +9,31 @@ Some preliminary information would be handy before delving into details:
 How Exactly is User Code Wrapped?
 ---------------------------------
 
-Here's what happens when a request arrives to a Spyne server:
+The following is a more detailed discussion of the concepts introduced in the
+:ref:`manual-highlevel` chapter.
 
-The server transport decides whether this is a simple interface document request
-or a remote procedure call request. Every transport has its own way of dealing
-with this.
+So, when a request arrives to a Spyne server, the server transport decides
+whether this is a simple interface document request or a RPC request. Every
+transport has its own way of dealing with this.
 
-If the incoming request was for the interface document, it's easy: The interface
-document needs to be generated and returned as a nice chunk of strings to the
-client.
+If the incoming request was for the interface document, it's easy: The
+interface document needs to be generated and returned as a nice chunk of
+strings to the client.
+
 The server transport first calls
 :func:`spyne.interface._base.InterfaceBase.build_interface_document`
 which builds and caches the document and later calls the
-:func:`spyne.interface._base.InterfaceBase.get_interface_document` that returns
-the cached document.
+:func:`spyne.interface._base.InterfaceBase.get_interface_document` that
+returns the cached document.
 
 If it was an RPC request, here's what happens:
 
-#. The server must set the ``ctx.in_string`` attribute to an iterable of
+#. The server must set the ``ctx.in_string`` attribute to a sequence of
    strings. This will contain the incoming byte stream.
-#. The server calls the :class:`spyne.server._base.ServerBase.get_in_object`
-   function from its parent class.
+
+#. The server calls the :func:`spyne.server._base.ServerBase.get_in_object`
+   function from its parent class, ``ServerBase``.
+
 #. The server then calls the ``create_in_document``,
    ``decompose_incoming_envelope``
    and ``deserialize`` functions from the protocol class in the ``in_protocol``
@@ -37,67 +41,69 @@ If it was an RPC request, here's what happens:
    incoming stream to the protocol serializer's internal representation. This
    is then split to header and body parts by the second call and deserialized to
    the native python representation by the third call.
+
 #. The server then calls ``get_out_object`` which in turn calls the
    :func:`spyne.application.Application.process_request`
    function.
+
 #. The ``process_request`` function fires relevant events and calls the
    :func:`spyne.application.Application.call_wrapper` function.
    This function is overridable by user, but the overriding function must call
    the one in :class:`spyne.application.Application`.
+
 #. The ``call_wrapper`` function in
    turn calls the :func:`spyne.service.ServiceBase.call_wrapper` function,
    which has has the same requirements.
+
 #. The :func:`spyne.service.ServiceBase.call_wrapper` finally calls the user
    function, and the value is returned to ``process_request`` call, which sets
    the return value to ``ctx.out_object``.
+
 #. The server object now calls the ``get_out_string`` function to put the
    response as an iterable of strings in ``ctx.out_string``. The
    ``get_out_string`` function in turn calls the ``serialize`` and
    ``create_out_string`` functions of the protocol class.
+
 #. The server pushes the stream from ctx.out_string back to the client.
 
 The same logic applies to client transports, in reverse.
 
-So if you want to implement a new transport or protocol, all you need to do is
-to subclass the relevant base class and implement the missing methods.
+So if you want to implement a new transport or protocol, you need to subclass
+the relevant base class and implement the missing methods.
 
 A Transport Example: A DB-Backed Fan-Out Queue
------------------------------------------------
+----------------------------------------------
 
 Here's the source code in one file:
 https://github.com/arskom/spyne/blob/master/examples/queue.py
 
-The following block of code is SQLAlchemy boilerplate for creating the database
-and other related machinery. Under normal conditions, you should pass the
-sqlalchemy url to the Producer and Consumer instances instead of the connection
-object itself, but here as we deal with an in-memory database, global variable
-ugliness is just a nicer way to pass database handles. ::
+The following block of code is SQLAlchemy boilerplate for creating the
+database and other related machinery. Under normal conditions, you should pass
+the sqlalchemy url to the Producer and Consumer instances instead of the
+connection object itself, but here as we deal with an in-memory database,
+global variable ugliness is just a nicer way to pass database handles. ::
 
     db = create_engine('sqlite:///:memory:')
-    metadata = MetaData(bind=db)
-    DeclarativeBase = declarative_base(metadata=metadata)
+    TableModel = TTableModel(MetaData(bind=db))
 
-This is the table where queued messages are stored. Note that it's a vanilla
-SQLAlchemy object: ::
+This is the table where queued messages are stored: ::
 
-    class TaskQueue(DeclarativeBase):
+    class TaskQueue(TableModel):
         __tablename__ = 'task_queue'
 
-        id = Column(sqlalchemy.Integer, primary_key=True)
-        data = Column(sqlalchemy.LargeBinary, nullable=False)
+        id = Integer32(primary_key=True)
+        data = ByteArray(nullable=False)
 
 This is the table where the task id of the last processed task for each worker
 is stored. Workers are identified by an integer. ::
 
-    class WorkerStatus(DeclarativeBase):
+    class WorkerStatus(TableModel):
         __tablename__ = 'worker_status'
 
-        worker_id = Column(sqlalchemy.Integer, nullable=False, primary_key=True,
-                                                            autoincrement=False)
-        task_id = Column(sqlalchemy.Integer, ForeignKey(TaskQueue.id),
-                                                                 nullable=False)
+        worker_id = Integer32(pk=True, autoincrement=False)
+        task = TaskQueue.store_as('table')
 
-The consumer is a :class:`spyne.server._base.ServerBase` child that receives
+The consumer is a :class:`spyne.server.ServerBase` child that receives
 requests by polling the database.
 
 The transport is for displaying it in the Wsdl. While it's irrelevant here, it's
@@ -118,11 +124,9 @@ We set the incoming values, create a database connection and set it to
 We also query the worker status table and get the id for the first task. If
 there is no record for own worker id, the server bootstraps its state: ::
 
-            try:
-                self.session.query(WorkerStatus) \
-                            .filter_by(worker_id=self.id).one()
-            except NoResultFound:
-                self.session.add(WorkerStatus(worker_id=self.id, task_id=0))
+            if self.session.query(WorkerStatus).get(self.id) is None:
+                self.session.add(WorkerStatus(
+                                       worker_id=self.id, task_id=0))
                 self.session.commit()
 
 This is the main loop for our server: ::
@@ -132,13 +136,18 @@ This is the main loop for our server: ::
 
 We first get the id of the last processed task: ::
 
-                last = self.session.query(WorkerStatus).with_lockmode("update") \
+                last = self.session.query(WorkerStatus) \
+                            .with_lockmode("update") \
                             .filter_by(worker_id=self.id).one()
 
 Which is used to get the next tasks to process: ::
 
+                task_id = 0
+                if last.task is not None:
+                    task_id = last.task.id
+
                 task_queue = self.session.query(TaskQueue) \
-                        .filter(TaskQueue.id > last.task_id) \
+                        .filter(TaskQueue.id > task_id) \
                         .order_by(TaskQueue.id)
 
 Each task is an rpc request, so we create a :class:`spyne.MethodContext`
@@ -179,15 +188,15 @@ queue. ::
                         logging.error(''.join(ctx.out_string))
                         continue
 
-If task processing went fine, the server serializes the out object and logs that
-instead. ::
+If task processing went fine, the server serializes the out object and logs
+that instead. ::
 
                     self.get_out_string(ctx)
                     logging.debug(''.join(ctx.out_string))
 
-Finally, the task is marked as processed.
+Finally, the task is marked as processed. ::
 
-                    last.task_id = task.id
+                    last.task = task
                     self.session.commit()
 
 Once all tasks in queue are consumed, the server waits a pre-defined amount of
@@ -247,7 +256,7 @@ callable factory. ::
 This is the worker service that will process the tasks. ::
 
     class AsyncService(ServiceBase):
-        @rpc(Integer)
+        @rpc(UnsignedInteger)
         def sleep(ctx, integer):
             print "Sleeping for %d seconds..." % (integer)
             time.sleep(integer)
@@ -256,7 +265,7 @@ And this event is here to do some logging. ::
 
     def _on_method_call(ctx):
         print "This is worker id %d, processing task id %d." % (
-                               ctx.transport.consumer_id, ctx.transport.task_id)
+                          ctx.transport.consumer_id, ctx.transport.task_id)
 
     AsyncService.event_manager.add_listener('method_call', _on_method_call)
 
@@ -272,7 +281,9 @@ creating the necessary sql tables: ::
 We then initialize our application: ::
 
         application = Application([AsyncService], 'spyne.async',
-                interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
+                in_protocol=Soap11(validator='lxml'),
+                out_protocol=Soap11()
+            )
 
 And queue some tasks: ::
 
@@ -285,13 +296,13 @@ And finally start the one worker to consume the queued tasks: ::
         consumer = Consumer(db, application, 1)
         consumer.serve_forever()
 
-That's about it! You can switch to another database engine that accepts multiple
-connections and insert tasks from another connection to see the consumer in
-action. You could also start other workers in other processes to see the pub-sub
-functionality.
+That's about it! You can switch to another database engine that accepts
+multiple connections and insert tasks from another connection to see the
+consumer in action. You could also start other workers in other processes to
+see the pub-sub functionality.
 
 What's Next?
 ^^^^^^^^^^^^
 
-Start hacking! Good luck, and be sure to pop out to the mailing list if you have
-questions.
+Start hacking! Good luck, and be sure to pop out to the mailing list if you
+have questions.

@@ -38,14 +38,9 @@ polls the database every 10 seconds and processes new requests.
 import time
 import logging
 
-import sqlalchemy
-
 from sqlalchemy import MetaData
-from sqlalchemy import Column
-from sqlalchemy import ForeignKey
 from sqlalchemy import create_engine
 
-from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
 from spyne import MethodContext
@@ -54,34 +49,33 @@ from spyne.client import Service
 from spyne.client import RemoteProcedureBase
 from spyne.client import ClientBase
 from spyne.decorator import rpc
-from spyne.interface.wsdl import Wsdl11
 from spyne.protocol.soap import Soap11
-from spyne.model.primitive import Integer
+from spyne.model.complex import TTableModel
+from spyne.model.primitive import Integer32
+from spyne.model.primitive import Mandatory
+from spyne.model.binary  import ByteArray
 from spyne.server import ServerBase
 from spyne.service import ServiceBase
 
 db = create_engine('sqlite:///:memory:')
-metadata = MetaData(bind=db)
-DeclarativeBase = declarative_base(metadata=metadata)
+TableModel = TTableModel(MetaData(bind=db))
 
 #
 # The database tables used to store tasks and worker status
 #
 
-class TaskQueue(DeclarativeBase):
+class TaskQueue(TableModel):
     __tablename__ = 'task_queue'
 
-    id = Column(sqlalchemy.Integer, primary_key=True)
-    data = Column(sqlalchemy.LargeBinary, nullable=False)
+    id = Integer32(primary_key=True)
+    data = ByteArray(nullable=False)
 
 
-class WorkerStatus(DeclarativeBase):
+class WorkerStatus(TableModel):
     __tablename__ = 'worker_status'
 
-    worker_id = Column(sqlalchemy.Integer, nullable=False, primary_key=True,
-                                                            autoincrement=False)
-    task_id = Column(sqlalchemy.Integer, ForeignKey(TaskQueue.id),
-                                                            nullable=False)
+    worker_id = Integer32(pk=True, autoincrement=False)
+    task = TaskQueue.customize(store_as='table')
 
 #
 # The consumer (server) implementation
@@ -96,12 +90,8 @@ class Consumer(ServerBase):
         self.session = sessionmaker(bind=db)()
         self.id = consumer_id
 
-        
-        worker_status = self.session.query(WorkerStatus) \
-                          .filter_by(worker_id=self.id).first()
-
-        if worker_status is None:
-            self.session.add(WorkerStatus(worker_id=self.id, task_id=0))
+        if self.session.query(WorkerStatus).get(self.id) is None:
+            self.session.add(WorkerStatus(worker_id=self.id))
             self.session.commit()
 
     def serve_forever(self):
@@ -111,8 +101,12 @@ class Consumer(ServerBase):
                           .filter_by(worker_id=self.id).one()
 
             # get new tasks
+            task_id = 0
+            if last.task is not None:
+                task_id = last.task.id
+
             task_queue = self.session.query(TaskQueue) \
-                    .filter(TaskQueue.id > last.task_id) \
+                    .filter(TaskQueue.id > task_id) \
                     .order_by(TaskQueue.id)
 
             for task in task_queue:
@@ -170,6 +164,7 @@ class RemoteProcedure(RemoteProcedureBase):
             self.get_out_string(ctx)
 
             out_string = ''.join(ctx.out_string)
+            print out_string
 
             session.add(TaskQueue(data=out_string))
 
@@ -188,7 +183,7 @@ class Producer(ClientBase):
 #
 
 class AsyncService(ServiceBase):
-    @rpc(Integer)
+    @rpc(Mandatory.UnsignedInteger)
     def sleep(ctx, integer):
         print("Sleeping for %d seconds..." % (integer))
         time.sleep(integer)
@@ -205,18 +200,32 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
 
-    # create database tables
-    metadata.create_all()
+    # Setup colorama and termcolor, if they are there
+    try:
+        from termcolor import colored
+        from colorama import init
 
-    # create application
+        init()
+
+    except ImportError, e:
+        logging.error("Install 'termcolor' and 'colorama' packages to get "
+                      "colored log output")
+        def colored(s, *args, **kwargs):
+            return s
+
+    logging.info(colored("Creating database tables...", 'yellow', attrs=['bold']))
+    TableModel.Attributes.sqla_metadata.create_all()
+
+    logging.info(colored("Creating Application...", 'blue'))
     application = Application([AsyncService], 'spyne.async',
                                 in_protocol=Soap11(), out_protocol=Soap11())
 
-    # make requests
+    logging.info(colored("Making requests...", 'yellow', attrs=['bold']))
     producer = Producer(db, application)
     for i in range(10):
         producer.service.sleep(i)
 
+    logging.info(colored("Spawning consumer...", 'blue'))
     # process requests. it'd make most sense if this was in another process.
     consumer = Consumer(db, application, consumer_id=1)
     consumer.serve_forever()

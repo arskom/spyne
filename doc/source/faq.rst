@@ -1,7 +1,7 @@
 
-**********
+*********
 Spyne FAQ
-**********
+*********
 
 Frequently asked questions about Spyne and related libraries.
 
@@ -19,77 +19,12 @@ How do I implement a predefined WSDL?
 
 **Short answer:** By hand.
 
-**Long answer:** Spyne does not have any functionality to parse an existing WSDL
-document, nor a way of producing the necessary Python classes and method stubs
-from an existing interface definition.
+**Long answer:** Spyne does not have any functionality to parse an existing
+WSDL document, nor a way of producing the necessary Python classes and method
+stubs from an existing interface definition.
 
 Patches are welcome for both of these points. Maybe you can start by adapting
 the WSDL parser from `RSL <http://rsl.sf.net>`_.
-
-Is it possible to use other decorators with @rpc/@srpc?
-=======================================================
-
-**Short answer:** Yes, but just use events. See the :ref:`manual-user-manager`
-tutorial and the `events example <http://github.com/arskom/spyne/blob/master/examples/user_manager/server_basic.py>`_
-to learn how to do so. They work almost the same, except for the syntax.
-
-**Long Answer:** Here's the magic from the :mod:`spyne.decorator`: ::
-
-    argcount = f.func_code.co_argcount
-    param_names = f.func_code.co_varnames[arg_start:argcount]
-
-So if ``f`` is your decorator, its signature should be the same as the user
-method, otherwise the parameter names and numbers in the interface are going to
-be wrong, which will cause weird errors.
-
-Please note that if you just intend to have a convenient way to set additional
-method metadata, you can pass the ``_udp`` argument to the :func:`spyne.decorator.srpc`
-to your liking.
-
-So if you're hell bent on using decorators, you should use the
-`decorator package <http://pypi.python.org/pypi/decorator/>`_.
-Here's an example: ::
-
-    from decorator import decorator
-
-    def _do_something(func, *args, **kw):
-        print "before call"
-        result = func(*args, **kw)
-        print "after call"
-        return result
-
-    def my_decor(f):
-        return decorator(_do_something, f)
-
-    class tests(ServiceBase):
-        @my_decor
-        @srpc(ComplexTypes.Integer, _returns=ComplexTypes.Integer)
-        def testf(first):
-            return first
-
-Note that the place of the decorator matters. Putting it before ``@srpc`` will
-make it run once, on service initialization. Putting it after will make it run
-every time the method is called, but not on initialization.
-
-Original thread: http://mail.python.org/pipermail/soap/2011-September/000565.html
-
-PS: The next faq entry is also probably relevant to you.
-
-How do I alter the behaviour of a user method without using decorators?
-=======================================================================
-
-**Short answer:** Set ``ctx.function`` to any callable you want.
-
-**Long answer:** ``ctx.function`` contains the handle to the original function.
-You can set that attribute to arbitrary callables to prevent the original user
-method from running. This property is initiallized from
-``ctx.descriptor.function`` every time a new context is initialized.
-
-If for some reason you need to alter the ``ctx.descriptor.function``,
-you can call :func:`ctx.descriptor.reset_function()` to restore it to its
-original value.
-
-Also consider thread-safety issues when altering global state.
 
 How do I use variable names that are also Python keywords?
 ==========================================================
@@ -182,16 +117,126 @@ same reason -- everybody would have to approve the new licensing terms.
 My app freezes under mod_wsgi! Help!
 ====================================
 
-**Short answer:** Add this to the relevant fragment of your Apache configuration:
+**Short answer:** Add this to the relevant fragment of your Apache
+configuration: ::
 
-```
-WSGIApplicationGroup %{GLOBAL}
-```
+    WSGIApplicationGroup %{GLOBAL}
 
 **Long answer:** See here: https://techknowhow.library.emory.edu/blogs/branker/2010/07/30/django-lxml-wsgi-and-python-sub-interpreter-magic
 
+Copying the blog post here in case the original link disappears:
+
+    **[Django] lxml, WSGI, and Python sub-interpreter magic**
+
+        *Posted Fri, 07/30/2010 - 18:21 by branker*
+
+    One of the applications we’ve been spending a fair chunk of time on here in
+    the library is a user-friendly front-end to our fedora repository. It’s
+    built on internally-developed Python libraries for repository access, XML
+    data mapping, and Django tie-ins. We’re aiming to opensource that library
+    soon, but this post isn’t about that library. In fact, it’s only sort of
+    about the application. This post is about an interesting problem we ran
+    into this week when trying to deploy that application into our staging
+    environment for testing.
+
+    See, we’ve made some great strides with development, and we’re ready to put
+    them up so that our users—mostly our own librarians for now—can test them.
+    Development has progressed smoothly under Django’s manage.py runserver. The
+    other day, though, when we ran our application under apache, it surprised
+    us by locking up hard.
+
+    Now, I can’t think of the last time I saw an http daemon freeze up like
+    that, but it was clear that’s what was happening. The web request wasn’t
+    returning anything (not even a 500 Internal Server Error). Browsers just
+    sat there spinning. curl sat waiting for a response. And eventually apache
+    would give up and drop the connection. It was dead at the starting bell,
+    and with no prior warning of any problems in development. We were
+    confounded.
+
+    Debugging was an interesting experience, and I hope to post sometime about
+    how that progressed. In the end, though, we figured out it was a design
+    decision that made it happen. Here are the players in this drama:
+
+    lxml is a fine XML processing library for Python. We use it to process XML
+    as we communicate with fedora. We particularly picked it because it
+    supports XPath expressions, XSLT, and XML Schema, and because it’s pretty
+    darn portable with minimal fuss.
+
+    Cython is a tool for gluing together C and Python. I started using a
+    variant called Pyrex several years ago, and I happen to think the approach
+    is a great one. lxml happens to use Cython internally. Most users will
+    never need to know that fact, but it becomes relevant in a bit.
+
+    Django is our web development framework of choice these days at Emory
+    Libraries. It’s written in Python, which has given us a huge dose of
+    flexibility, stability, and power in our development.
+
+    mod_wsgi is how we deploy our Django code to production. There are other
+    options, but we’ve found WSGI gives us the best mix of flexibility and
+    stability so far.
+
+    Unfortunately, it was a combination of design decisions in those tools—
+    particularly Cython, Python, and WSGI—that locked up our app.
+
+    The problem, it turns out, is subtle, but it stems from the use of Cython
+    (via lxml) and mod_wsgi together. These can be made to work together, but
+    it requires careful configuration to work around some incompatibilities.
+    This is complicated by some further design decisions in Django, which I’ll
+    say more about in a bit. First, lxml, Cython, and the simplified GIL
+    interface.
+
+    Cython, as mentioned above, is a tool for gluing together C and Python. The
+    idea is you write code that looks a lot like Python, but with a few C-like
+    warts, and Cython compiles your code down to raw C. This is perfect for
+    exposing C libraries in Pythonic idioms, and lxml uses it to great effect
+    to provide its XML access. Now, Cython happens to use Python’s simplified
+    GIL interface internally for locking. Unfortunately this means that it’s
+    incompatible with an obscure Python feature called sub-interpreters. Most
+    applications don’t need to use this feature. Most applications—notably
+    including Django’s manage.py runserver—never notice or care.
+
+    mod_wsgi is a perfect example of good use of sub-interpreters. It uses them
+    to allow apache admins to run lots of little WSGI-based web apps all in a
+    single process, but still give each one its own Python environment. Without
+    this, things like Django’s model registration patterns—along with similar
+    global systems in many other Python libraries—would leave separate
+    applications all interfering with each other.
+
+    Unfortunately, given that Cython-based libraries are incompatible with sub-
+    interpreters, and given that mod_wsgi uses sub-interpreters, it follows
+    logically that Cython-based libraries like lxml are incompatible with
+    simple mod_wsgi configurations. In our case, this manifested as a single-
+    thread self-deadlock in the Python Global Interpreter Lock whenever we
+    tried to use our application at all. We were lucky: As the Python C-API
+    docs say, “Simple things may work, but confusing behavior will always be
+    near.”
+
+    Now, once that incompatibility is recognized and accepted, hope is not
+    lost. If you’re only running a single WSGI application, your workaround
+    might even be easy. You can force a mod_wsgi application to avoid the
+    problem by forcing it into the global application group:
+
+    WSGIApplicationGroup %{GLOBAL}
+
+    If you want to run multiple WSGI applications, though, they might not play
+    so well all together like that. Remember, as I described above, WSGI uses
+    sub-interpreters to prevent applications from accidentally stepping on each
+    other. Django applications, in particular, must run in separate sub-
+    interpreters. If you want to run a couple of them, and they’re all
+    incompatible with sub-interpreters, you need to keep them separate.
+
+    We’re just starting to deal with this problem, but it looks like mod_wsgi
+    daemon processes are just what the doctor ordered. What we’re looking at
+    right now is using a separate WSGIDaemonProcess for each lxml-enabled
+    Django site. According to the docs, this should eliminate sub-interpreter
+    conflicts while still giving each application its own distinct interpreter
+    space. Which will probably eat some system resources, but it’s better than
+    locking up on every request.
+
+    I’ll update this post if the strategy turns out not to work. So far,
+    though, I’m hopeful.
 
 You mock my pain!
 =================
 
-Life is pain, Highness. Anyone who says differently is selling something.
+Life is pain, highness. Anyone who says differently is selling something.

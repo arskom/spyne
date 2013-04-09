@@ -37,17 +37,21 @@ logging.getLogger('sqlalchemy.engine.base.Engine').setLevel(logging.DEBUG)
 from sqlalchemy import create_engine
 from sqlalchemy import MetaData
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm.exc import NoResultFound
 
 from spyne.application import Application
 from spyne.decorator import rpc
+from spyne.error import ResourceNotFoundError
 from spyne.protocol.soap import Soap11
+from spyne.model.primitive import Mandatory
 from spyne.model.primitive import Unicode
+from spyne.error import InternalError
+from spyne.model.fault import Fault
 from spyne.model.complex import Array
 from spyne.model.complex import Iterable
 from spyne.model.complex import ComplexModelBase
 from spyne.model.complex import ComplexModelMeta
-from spyne.model.primitive import Integer
-from spyne.model.primitive import Integer32
+from spyne.model.primitive import UnsignedInteger32
 from spyne.server.wsgi import WsgiApplication
 from spyne.service import ServiceBase
 
@@ -55,54 +59,67 @@ from spyne.service import ServiceBase
 db = create_engine('sqlite:///:memory:')
 Session = sessionmaker(bind=db)
 
-
+# This is what calling TTableModel does. This is here for academic purposes.
 class TableModel(ComplexModelBase):
     __metaclass__ = ComplexModelMeta
     __metadata__ = MetaData(bind=db)
 
 
 class Permission(TableModel):
-    __tablename__ = 'spyne_user_permission'
+    __tablename__ = 'permission'
     __namespace__ = 'spyne.examples.user_manager'
     __table_args__ = {"sqlite_autoincrement": True}
 
-    permission_id = Integer32(primary_key=True)
-    application = Unicode(256)
-    operation = Unicode(256)
+    id = UnsignedInteger32(pk=True)
+    application = Unicode(values=('usermgr', 'accountmgr'))
+    operation = Unicode(values=('read', 'modify', 'delete'))
 
 
 class User(TableModel):
-    __tablename__ = 'spyne_user'
+    __tablename__ = 'user'
     __namespace__ = 'spyne.examples.user_manager'
     __table_args__ = {"sqlite_autoincrement": True}
 
-    user_id = Integer32(primary_key=True)
-    user_name = Unicode(256)
-    first_name = Unicode(256)
-    last_name = Unicode(256)
-    permissions = Array(Permission, store_as='table')
+    id = UnsignedInteger32(pk=True)
+    user_name = Unicode(32, min_len=4, pattern='[a-z0-9.]+')
+    full_name = Unicode(64, pattern='\w+( \w+)+')
+    email = Unicode(64, pattern=r'[a-z0-9._%+-]+@[a-z0-9.-]+\.[A-Z]{2,4}')
+    permissions = Array(Permission).store_as('table')
 
 
 class UserManagerService(ServiceBase):
-    @rpc(User, _returns=Integer)
-    def add_user(ctx, user):
-        print id(user.permissions[0].__class__), id(Permission)
-        ctx.udc.session.add(user)
-        ctx.udc.session.flush()
-
-        return user.user_id
-
-    @rpc(Integer, _returns=User)
+    @rpc(Mandatory.UnsignedInteger32, _returns=User)
     def get_user(ctx, user_id):
-        return ctx.udc.session.query(User).filter_by(user_id=user_id).one()
+        return ctx.udc.session.query(User).filter_by(id=user_id).one()
 
-    @rpc(User)
-    def set_user(ctx, user):
-        ctx.udc.session.merge(user)
+    @rpc(User, _returns=UnsignedInteger32)
+    def put_user(ctx, user):
+        if user.id is None:
+            ctx.udc.session.add(user)
+            ctx.udc.session.flush() # so that we get the user.id value
 
-    @rpc(Integer)
+        else:
+            if ctx.udc.session.query(User).get(user.id) is None:
+                # this is to prevent the client from setting the primary key
+                # of a new object instead of the database's own primary-key
+                # generator.
+                # Instead of raising an exception, you can also choose to
+                # ignore the primary key set by the client by silently doing
+                # user.id = None
+                raise ResourceNotFoundError('user.id=%d' % user.id)
+
+            else:
+                ctx.udc.session.merge(user)
+
+        return user.id
+
+    @rpc(Mandatory.UnsignedInteger32)
     def del_user(ctx, user_id):
-        ctx.udc.session.query(User).filter_by(user_id=user_id).delete()
+        count = ctx.udc.session.query(User).filter_by(id=user_id).count()
+        if count == 0:
+            raise ResourceNotFoundError(user_id)
+
+        ctx.udc.session.query(User).filter_by(id=user_id).delete()
 
     @rpc(_returns=Iterable(User))
     def get_all_user(ctx):
@@ -118,18 +135,46 @@ def _on_method_call(ctx):
     ctx.udc = UserDefinedContext()
 
 
-def _on_method_return_object(ctx):
-    ctx.udc.session.commit()
-    ctx.udc.session.close()
+def _on_method_context_closed(ctx):
+    if ctx.udc is not None:
+        ctx.udc.session.commit()
+        ctx.udc.session.close()
 
-application = Application([UserManagerService], 'spyne.examples.user_manager',
-                                    in_protocol=Soap11(), out_protocol=Soap11())
 
-application.event_manager.add_listener('method_call', _on_method_call)
-application.event_manager.add_listener('method_return_object', _on_method_return_object)
+class MyApplication(Application):
+    def __init__(self, services, tns, name=None,
+                                         in_protocol=None, out_protocol=None):
+        Application.__init__(self, services, tns, name, in_protocol,
+                                                                 out_protocol)
+
+        self.event_manager.add_listener('method_call', _on_method_call)
+        self.event_manager.add_listener("method_context_closed",
+                                                    _on_method_context_closed)
+
+    def call_wrapper(self, ctx):
+        try:
+            return ctx.service_class.call_wrapper(ctx)
+
+        except NoResultFound:
+            raise ResourceNotFoundError(ctx.in_object)
+
+        except Fault, e:
+            logging.error(e)
+            raise
+
+        except Exception, e:
+            logging.exception(e)
+            raise InternalError(e)
+
 
 if __name__=='__main__':
     from wsgiref.simple_server import make_server
+
+    application = MyApplication([UserManagerService],
+                'spyne.examples.user_manager',
+                in_protocol=Soap11(validator='lxml'),
+                out_protocol=Soap11(),
+            )
 
     wsgi_app = WsgiApplication(application)
     server = make_server('127.0.0.1', 8000, wsgi_app)

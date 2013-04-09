@@ -35,10 +35,11 @@ logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
 from spyne.application import Application
 from spyne.decorator import rpc
-from spyne.interface.wsdl import Wsdl11
+from spyne.error import ResourceNotFoundError
 from spyne.protocol.soap import Soap11
-from spyne.model.primitive import String
-from spyne.model.primitive import Integer
+from spyne.model.primitive import Mandatory
+from spyne.model.primitive import Unicode
+from spyne.model.primitive import UnsignedInteger32
 from spyne.model.complex import Array
 from spyne.model.complex import Iterable
 from spyne.model.complex import ComplexModel
@@ -46,49 +47,46 @@ from spyne.server.wsgi import WsgiApplication
 from spyne.service import ServiceBase
 
 _user_database = {}
-_user_id_seq = 1
+_user_id_seq = 0
 
 
 class Permission(ComplexModel):
     __namespace__ = 'spyne.examples.user_manager'
 
-    application = String
-    operation = String
+    id = UnsignedInteger32
+    application = Unicode(values=('usermgr', 'accountmgr'))
+    operation = Unicode(values=('read', 'modify', 'delete'))
 
 
 class User(ComplexModel):
     __namespace__ = 'spyne.examples.user_manager'
 
-    user_id = Integer
-    user_name = String
-    first_name = String
-    last_name = String
-    email = String(pattern=r'[a-z0-9._%+-]+@[a-z0-9.-]+\.[A-Z]{2,4}')
+    id = UnsignedInteger32
+    user_name = Unicode(32, min_len=4, pattern='[a-z0-9.]+')
+    full_name = Unicode(64, pattern='\w+( \w+)+')
+    email = Unicode(pattern=r'[a-z0-9._%+-]+@[a-z0-9.-]+\.[A-Z]{2,4}')
     permissions = Array(Permission)
 
 
 class UserManagerService(ServiceBase):
-    @rpc(User, _returns=Integer)
-    def add_user(ctx, user):
-        user.user_id = ctx.udc.get_next_user_id()
-        ctx.udc.users[user.user_id] = user
+    @rpc(User.customize(min_occurs=1, nullable=False), _returns=UnsignedInteger32)
+    def put_user(ctx, user):
+        if user.id is None:
+            user.id = ctx.udc.get_next_user_id()
+        ctx.udc.users[user.id] = user
 
-        return user.user_id
+        return user.id
 
-    @rpc(Integer, _returns=User)
+    @rpc(Mandatory.UnsignedInteger32, _returns=User)
     def get_user(ctx, user_id):
         return ctx.udc.users[user_id]
 
-    @rpc(User)
-    def set_user(ctx, user):
-        ctx.udc.users[user.user_id] = user
-
-    @rpc(Integer)
+    @rpc(Mandatory.UnsignedInteger32)
     def del_user(ctx, user_id):
         del ctx.udc.users[user_id]
 
     @rpc(_returns=Iterable(User))
-    def get_all_user(ctx):
+    def get_all_users(ctx):
         return ctx.udc.users.itervalues()
 
 
@@ -104,24 +102,37 @@ class UserDefinedContext(object):
 
         return _user_id_seq
 
+class MyApplication(Application):
+    def call_wrapper(self, ctx):
+        try:
+            return ctx.service_class.call_wrapper(ctx)
+
+        except KeyError:
+            raise ResourceNotFoundError(ctx.in_object)
+
 
 def _on_method_call(ctx):
     ctx.udc = UserDefinedContext()
 
-application = Application([UserManagerService], 'spyne.examples.user_manager',
-            interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
+
+application = MyApplication([UserManagerService],
+            'spyne.examples.user_manager',
+            in_protocol=Soap11(validator='lxml'),
+            out_protocol=Soap11()
+        )
 
 application.event_manager.add_listener('method_call', _on_method_call)
 
-if __name__=='__main__':
-    try:
-        from wsgiref.simple_server import make_server
-    except ImportError:
-        logging.error("Error: example server code requires Python >= 2.5")
+def main():
+    from wsgiref.simple_server import make_server
 
     server = make_server('127.0.0.1', 8000, WsgiApplication(application))
 
     logging.info("listening to http://127.0.0.1:8000")
     logging.info("wsdl is at: http://localhost:8000/?wsdl")
 
-    server.serve_forever()
+    return server.serve_forever()
+
+
+if __name__=='__main__':
+    import sys; sys.exit(main())

@@ -45,7 +45,6 @@ except ImportError, e:
 from spyne.application import get_fault_string_from_exception
 from spyne.auxproc import process_contexts
 from spyne.error import RequestTooLongError
-from spyne.error import ResourceNotFoundError
 from spyne.model.binary import File
 from spyne.model.fault import Fault
 from spyne.protocol.http import HttpRpc
@@ -124,26 +123,26 @@ class WsgiApplication(HttpBase):
     compliant callable class.
 
     Supported events:
-        * ``wsdl``
-            Called right before the wsdl data is returned to the client.
+    * ``wsdl``
+        Called right before the wsdl data is returned to the client.
 
-        * ``wsdl_exception``
-            Called right after an exception is thrown during wsdl generation.
-            The exception object is stored in ctx.transport.wsdl_error attribute.
+    * ``wsdl_exception``
+        Called right after an exception is thrown during wsdl generation.
+        The exception object is stored in ctx.transport.wsdl_error attribute.
 
-        * ``wsgi_call``
-            Called first when the incoming http request is identified as a rpc
-            request.
+    * ``wsgi_call``
+        Called first when the incoming http request is identified as a rpc
+        request.
 
-        * ``wsgi_return``
-            Called right before the output stream is returned to the WSGI handler.
+    * ``wsgi_return``
+        Called right before the output stream is returned to the WSGI handler.
 
-        * ``wsgi_error``
-            Called right before returning the exception to the client.
+    * ``wsgi_error``
+        Called right before returning the exception to the client.
 
-        * ``wsgi_close``
-            Called after the whole data has been returned to the client. It's
-            called both from success and error cases.
+    * ``wsgi_close``
+        Called after the whole data has been returned to the client. It's
+        called both from success and error cases.
     '''
 
     def __init__(self, app, chunked=True,

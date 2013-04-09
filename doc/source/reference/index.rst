@@ -14,7 +14,7 @@ Spyne API Reference
     decorator
     error
 
-    model
+    model/index
     interface
     protocol/index
     client

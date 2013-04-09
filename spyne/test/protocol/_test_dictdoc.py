@@ -21,6 +21,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 import unittest
+import decimal
 
 from decimal import Decimal
 
@@ -31,6 +32,7 @@ from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import Iterable
 from spyne.model.fault import Fault
+from spyne.model.primitive import Decimal
 from spyne.model.primitive import Integer
 from spyne.model.primitive import String
 from spyne.model.primitive import DateTime
@@ -170,6 +172,21 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
             print out_strings
             assert out_strings == [serializer.dumps(
                 {"some_callResponse": {"some_callResult": {"integer": [1, 2]}}}, **dumps_kwargs)]
+
+        def test_decimal_return(self):
+            decimal.getcontext().prec=200
+            d = decimal.Decimal('1e100')
+            class SomeService(ServiceBase):
+                @srpc(_returns=Decimal)
+                def some_call():
+                    return d+1
+
+            ctx = _dry_me([SomeService], {"some_call":[]}, skip_depth=0)
+
+            out_strings = list(ctx.out_string)
+            print out_strings
+            assert out_strings == [serializer.dumps(
+                {"some_callResponse": {"some_callResult": int(d)+1}}, **dumps_kwargs)]
 
         def test_primitive_only(self):
             class SomeComplexModel(ComplexModel):

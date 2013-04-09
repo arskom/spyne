@@ -34,9 +34,12 @@ except ImportError:
 
 import sqlalchemy
 
+from inspect import isclass
+
 from lxml import etree
 
 from sqlalchemy import sql
+from sqlalchemy import event
 from sqlalchemy.schema import Column
 from sqlalchemy.schema import Index
 from sqlalchemy.schema import Table
@@ -54,6 +57,7 @@ from sqlalchemy.orm import mapper
 
 from sqlalchemy.types import UserDefinedType
 
+from spyne.model import ModelBase
 from spyne.model.complex import table as c_table
 from spyne.model.complex import xml as c_xml
 from spyne.model.complex import json as c_json
@@ -80,7 +84,10 @@ from spyne.model.primitive import Integer16
 from spyne.model.primitive import Integer32
 from spyne.model.primitive import Integer64
 from spyne.model.primitive import Point
+from spyne.model.primitive import Line
 from spyne.model.primitive import Polygon
+from spyne.model.primitive import MultiPoint
+from spyne.model.primitive import MultiLine
 from spyne.model.primitive import MultiPolygon
 from spyne.model.primitive import UnsignedInteger
 from spyne.model.primitive import UnsignedInteger8
@@ -265,6 +272,10 @@ sqlalchemy.dialects.postgresql.base.ischema_names['json'] = PGObjectJson
 
 
 def get_sqlalchemy_type(cls):
+    db_type = cls.Attributes.db_type
+    if db_type is not None:
+        return db_type
+
     # must be above Unicode, because Uuid is Unicode's subclass
     if issubclass(cls, Uuid):
         return PGUuid
@@ -273,9 +284,21 @@ def get_sqlalchemy_type(cls):
     elif issubclass(cls, Point):
         return PGGeometry("POINT", dimension=cls.Attributes.dim)
 
+    # must be above Unicode, because Line is Unicode's subclass
+    elif issubclass(cls, Line):
+        return PGGeometry("LINESTRING", dimension=cls.Attributes.dim)
+
     # must be above Unicode, because Polygon is Unicode's subclass
     elif issubclass(cls, Polygon):
         return PGGeometry("POLYGON", dimension=cls.Attributes.dim)
+
+    # must be above Unicode, because MultiPoint is Unicode's subclass
+    elif issubclass(cls, Point):
+        return PGGeometry("MULTIPOINT", dimension=cls.Attributes.dim)
+
+    # must be above Unicode, because MultiLine is Unicode's subclass
+    elif issubclass(cls, Line):
+        return PGGeometry("MULTILINESTRING", dimension=cls.Attributes.dim)
 
     # must be above Unicode, because MultiPolygon is Unicode's subclass
     elif issubclass(cls, MultiPolygon):
@@ -681,6 +704,14 @@ def gen_sqla_info(cls, cls_bases=()):
         mapper_args = (table,) + mapper_args
 
     cls_mapper = mapper(cls, *mapper_args, **mapper_kwargs)
+
+    def my_load_listener(target, context):
+        for k, v in cls.get_flat_type_info(cls).items():
+            av = getattr(target, k, None)
+            if isclass(av) and issubclass(av, ModelBase):
+                setattr(target, k, None)
+
+    event.listen(cls, 'load', my_load_listener)
 
     cls.__tablename__ = cls.Attributes.table_name
     cls.Attributes.sqla_mapper = cls.__mapper__ = cls_mapper

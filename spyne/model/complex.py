@@ -33,6 +33,7 @@ import decimal
 from collections import deque
 from inspect import isclass
 
+from spyne.util import memoize_id
 from spyne.model import ModelBase
 from spyne.model import PushBase
 from spyne.model.primitive import NATIVE_MAP
@@ -60,8 +61,8 @@ def _get_flat_type_info(cls, retval):
 
 
 class xml:
-    """Complex argument to ``ComplexModelBase.Attributes.store_as`` for xml
-    serialization.
+    """Compound option object for xml serialization. It's meant to be passed to
+    :func:`ComplexModelBase.Attributes.store_as`.
 
     :param root_tag: Root tag of the xml element that contains the field values.
     :param no_ns: When true, the xml document is stripped from namespace
@@ -74,8 +75,9 @@ class xml:
 
 
 class table:
-    """Complex argument to ``ComplexModelBase.Attributes.store_as`` for storing
-    the class instance as a row in a table in a relational database.
+    """Compound option object for for storing the class instance as in row in a
+    table in a relational database. It's meant to be passed to
+    :func:`ComplexModelBase.Attributes.store_as`.
 
     :param multi: When False, configures a one-to-many relationship where the
         child table has a foreign key to the parent. When not ``False``,
@@ -97,8 +99,8 @@ class table:
 
 
 class json:
-    """Complex argument to ``ComplexModelBase.Attributes.store_as`` for storing
-    the class instance as a json document.
+    """Compound option object for json serialization. It's meant to be passed to
+    :func:`ComplexModelBase.Attributes.store_as`.
 
     Make sure you don't mix this with the json package when importing.
     """
@@ -112,8 +114,8 @@ class json:
 class msgpack:
     pass  # TODO: not implemented
 
-    """Complex argument to ``ComplexModelBase.Attributes.store_as`` for storing
-    the class instance as a MessagePack document.
+    """Compound option object for msgpack serialization. It's meant to be passed
+    to :func:`ComplexModelBase.Attributes.store_as`.
 
     Make sure you don't mix this with the msgpack package when importing.
     """
@@ -288,7 +290,7 @@ class ComplexModelMeta(type(ModelBase)):
             _type_info.update(base_type_info)
 
             for k, v in cls_dict.items():
-                if not k.startswith('__'):
+                if not k.startswith('_'):
                     v = _get_spyne_type(v)
                     if v is not None:
                         _type_info[k] = v
@@ -431,8 +433,6 @@ class ComplexModelBase(ModelBase):
         """
 
     def __init__(self, **kwargs):
-        super(ComplexModelBase, self).__init__()
-
         for k, v in self.get_flat_type_info(self.__class__).items():
             d = v.Attributes.default
             kv = kwargs.get(k, d)
@@ -881,6 +881,7 @@ def _log_repr_obj(obj, cls):
     return "%s(%s)" % (cls.get_type_name(), ', '.join(retval))
 
 
+@memoize_id
 def TTableModel(metadata=None):
     """A TableModel template that generates a new TableModel class for each
     call. If metadata is not supplied, a new one is instantiated.

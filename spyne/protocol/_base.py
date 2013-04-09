@@ -316,8 +316,8 @@ class ProtocolBase(object):
         if isinstance(fault, Fault) and (fault.faultcode.startswith('Client.')
                                                 or fault.faultcode == 'Client'):
             return HTTP_400
-        else:
-            return HTTP_500
+
+        return HTTP_500
 
     def set_validator(self, validator):
         """You must override this function if you want your protocol to support

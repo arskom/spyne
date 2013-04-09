@@ -258,6 +258,11 @@ class Decimal(SimpleModel):
     """The primitive that corresponds to the native python Decimal.
 
     This is also the base class for denoting numbers.
+
+    Note that it is your responsibility to make sure that the scale and
+    precision constraints set in this type is consistent with the values in the
+    context of the decimal package. See the :func:`decimal.getcontext`
+    documentation for more information.
     """
 
     __type_name__ = 'decimal'
@@ -295,6 +300,14 @@ class Decimal(SimpleModel):
         fraction_digits = decimal.Decimal('inf')
         """Maximum number of digits after the decimal separator."""
 
+        min_bound = None
+        """Hardware limit that determines the lowest value this type can
+        store."""
+
+        max_bound = None
+        """Hardware limit that determines the highest value this type can
+        store."""
+
     def __new__(cls, *args, **kwargs):
         assert len(args) <= 2
 
@@ -308,6 +321,12 @@ class Decimal(SimpleModel):
                                           " or equal to 'fraction_digits'." \
                                           " %r ! <= %r" % (args[1], args[0])
 
+            # + 1 for decimal separator
+            # + 1 for negative sign
+            kwargs['max_str_len'] = min(cls.Attributes.total_digits +
+                                    cls.Attributes.fraction_digits + 2,
+                                                   kwargs.get('max_str_len', 0))
+
         retval = SimpleModel.__new__(cls,  ** kwargs)
 
         return retval
@@ -320,19 +339,16 @@ class Decimal(SimpleModel):
                 and cls.Attributes.lt == Decimal.Attributes.lt
                 and cls.Attributes.le == Decimal.Attributes.le
                 and cls.Attributes.total_digits == \
-                                            Decimal.Attributes.total_digits
+                                         Decimal.Attributes.total_digits
                 and cls.Attributes.fraction_digits == \
-                                            Decimal.Attributes.fraction_digits
+                                         Decimal.Attributes.fraction_digits
             )
 
     @staticmethod
     def validate_string(cls, value):
         return SimpleModel.validate_string(cls, value) and (
-            value is None or (
-                len(value) <= (cls.Attributes.total_digits +
-                                             cls.Attributes.fraction_digits + 1)
-                                                  # + 1 is for decimal separator
-            ))
+            value is None or (len(value) <= (cls.Attributes.max_str_len))
+        )
 
     @staticmethod
     def validate_native(cls, value):
@@ -408,6 +424,7 @@ class UnsignedInteger(Integer):
 NonNegativeInteger = UnsignedInteger
 """The arbitrary-size unsigned integer, alias for UnsignedInteger."""
 
+
 @memoize
 def TBoundedInteger(num_bits, type_name):
     _min_b = -(0x8<<(num_bits-4))     # 0x8 is 4 bits.
@@ -418,8 +435,8 @@ def TBoundedInteger(num_bits, type_name):
 
         class Attributes(Integer.Attributes):
             max_str_len = math.ceil(math.log(2**num_bits, 10))
-            _min_bound = _min_b
-            _max_bound = _max_b
+            min_bound = _min_b
+            max_bound = _max_b
 
         @staticmethod
         def validate_native(cls, value):
@@ -441,8 +458,8 @@ def TBoundedUnsignedInteger(num_bits, type_name):
 
         class Attributes(UnsignedInteger.Attributes):
             max_str_len = math.ceil(math.log(2**num_bits, 10))
-            _min_bound = _min_b
-            _max_bound = _max_b
+            min_bound = _min_b
+            max_bound = _max_b
 
         @staticmethod
         def validate_native(cls, value):

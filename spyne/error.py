@@ -30,14 +30,16 @@ from spyne.const import MAX_STRING_FIELD_LENGTH
 class ResourceNotFoundError(Fault):
     """Raised when requested resource is not found."""
 
-    def __init__(self, faultstring="Requested resource not found"):
-        Fault.__init__(self, 'Client.ResourceNotFound', faultstring)
+    def __init__(self, fault_object,
+                                fault_string="Requested resource %r not found"):
+        Fault.__init__(self, 'Client.ResourceNotFound',
+                                                    fault_string % fault_object)
 
 
 class RequestTooLongError(Fault):
     """Raised when request is too long."""
 
-    def __init__(self, faultstring=""):
+    def __init__(self, faultstring="Request too long"):
         Fault.__init__(self, 'Client.RequestTooLong', faultstring)
 
 
@@ -65,3 +67,9 @@ class ValidationError(Fault):
             s = s[:MAX_STRING_FIELD_LENGTH] + "(...)"
 
         Fault.__init__(self, 'Client.ValidationError', custom_msg % s)
+
+
+class InternalError(Fault):
+    """Raised to communicate server-side errors."""
+    def __init__(self, error):
+        Fault.__init__(self, 'Server', "InternalError: An unknown error has occured.")

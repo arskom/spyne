@@ -8,22 +8,22 @@ The input validation features of Spyne are also mostly inherited from the Soap
 world and follows the behavior of Xml validation operations as closely as
 possible.
 
-Input validation is an essential component of any distributed system exposed to
-a non-trusted environment. Examples of validation constraints that Spyne can
-apply are as follows:
+Input validation is an essential component of any distributed system exposed
+to a non-trusted environment. Examples of validation constraints that Spyne
+can apply are as follows:
 
 - A number that must be within a certain range,
-- A string that must contain a specific character,
+- A string that must match with a given regular expression.
 - A string that can only take certain values.
 
 Currently, data validation can be handled by two subsystems:
 
 Xml schema validation:
-    Such rules are enforced by *lxml*'s schema validation feature. This is of
+    Such rules are enforced by lxml's schema validation feature. This is of
     course only useful for Xml-based protocols.
 
 "Soft" validation:
-    *Spyne* itself implements enforcing a subset of the XmlSchema-type
+    Spyne itself implements enforcing a subset of the XmlSchema-type
     constraints in a protocol-independent way. When using this mode, it's also
     possible to use Spyne's imperative validation hooks.
 
@@ -44,10 +44,10 @@ Supported transport protocols  SOAP/XML any
 ============================== ======== =========
 
 .. NOTE::
-    The two validation sybsystems operate independently, you can use either one,
-    but not both at the same time. The validator is indicated when instantiating
-    the protocol, by passing either ``validator='soft'`` or ``validator='lxml'``
-    to the constructor. ::
+    The two validation sybsystems operate independently, you can use either
+    one, but not both at the same time. The validator is indicated when
+    instantiating the protocol, by passing either ``validator='soft'`` or
+    ``validator='lxml'`` to the constructor. ::
 
         #using 'soft' validation with HttpRpc
         application = Application([NameOfMonthService],
@@ -67,8 +67,8 @@ Supported transport protocols  SOAP/XML any
 Simple validation at the Xml schema level
 -----------------------------------------
 
-This applies to all the primitive data types, and is suitable for simple logical
-conditions.
+This applies to all the primitive data types, and is suitable for simple
+logical conditions.
 
 .. NOTE::
     Constraints applied at this level are reflected in the XML schema itself,
@@ -78,8 +78,8 @@ conditions.
 Any primitive type
 ^^^^^^^^^^^^^^^^^^
 
-Certain generic restrictions can be applied to any type. They are listed below,
-along with their default values
+Certain generic restrictions can be applied to any type. They are listed
+below, along with their default values
 
 - ``default = None`` - default value if the input is ``None``.
 - ``nillable = True`` - if True, the item can be null when provided. Note that
@@ -95,13 +95,14 @@ along with their default values
     with infinitely many elements.
 
 .. NOTE::
-    You should not use float('inf') as its behavior has inconsistencies between
-    platforms and Python versions. See: https://github.com/arskom/spyne/pull/155
+    You should not use float('inf') as its behavior has inconsistencies
+    between platforms and Python versions. See:
+    https://github.com/arskom/spyne/pull/155
 
 These rules can be combined, the example below illustrates how to create a
 mandatory string:
 
-    String(min_occurs=1, min_len=1, nillable=False)
+    Unicode(min_occurs=1, min_len=1, nillable=False)
 
 Numbers
 ^^^^^^^
@@ -117,11 +118,11 @@ Strings
 
 Strings can be validated against a regular expression: ::
 
-    Unicode(pattern = "[0-9]+") #must contain at least one digit, digits only
+    Unicode(pattern="[0-9]+") #must contain one or more digits
 
 Length checks can be enforced as well: ::
 
-    Unicode(min_len = 5, max_len = 10)
+    Unicode(min_len=5, max_len=10)
 
 If you want to keep an incoming bytestream as a ``str`` with a known encoding,
 that's also possible with the String type. You can specify:
@@ -152,9 +153,8 @@ can explicitly indicate the set: ::
 Advanced validation
 ^^^^^^^^^^^^^^^^^^^
 
-*Spyne* offers several primitives for this purpose, they are defined in the
-**ModelBase** class, from which all the types are derived:
-https://github.com/arskom/spyne/blob/master/src/spyne/model/_base.py
+Spyne offers several primitives for this purpose. Please see the
+:class:`spyne.model.ModelBase` reference for more information.
 
 These primitives are:
 
@@ -163,71 +163,52 @@ These primitives are:
 - *validate_native* - invoked after the string is converted to a specific Python
   value.
 
-Since all data comes in as a byte stream, when you read it you get a string. So
-the *validate_string* hook is your first line of defense against invalid data.
+Since all data comes in as a byte stream, when you read it you get a ``str``
+instance. So the ``validate_string`` hook is your first line of defense
+against invalid data.
 
-At a later stage, the data can be converted to its native type.
-Once that conversion occurs, you can apply some additional checks. Validation in
-this stage is handled by the *validate_native* hook.
+After the string validation passes, the data is converted to its native type.
+You can then do some additional checks. Validation in this stage is handled by
+the ``validate_native`` hook.
 
-    >>> stringNumber = '123'
-    >>> stringNumber
-    '123'        # note the quotes, it is a string.
-    >>> number = int(stringNumber)
-    >>> number
-    123          # note the absence of quotes, it is a number.
-    >>> stringNumber == 123
-    False        # makes sense.
-    >>> number == 123
-    True
-
-In the example above, *number* is an actual number and can be validated with
-*validate_native*, whereas *stringNumber* is a byte stream and should be
-validated by *validate_string*.
-
-A practical example
+A string validation
 ^^^^^^^^^^^^^^^^^^^
 
-A custom string type that can not contain the colon symbol ':'.
+A custom string type that can not contain the colon symbol (``':'``).
 
-We'll have to declare our own class, derived from *Unicode* (which, in turn, is
-derived from *SimpleModel*, which inherits from *ModelBase*). ::
+We'll have to declare our own class as a subclass of ``Unicode``\: ::
 
     class SpecialString(Unicode):
         """Custom string type that prohibits the use of colons"""
 
         @staticmethod
         def validate_string(cls, value):
+            retval = True
             if value is not None and ":" in value:
-                return False
-            return True
+                retval = False
+            return (
+                    Unicode.validate_string(value) and retval
+                )
 
+A native validation example
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-A slightly more complicated example
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+A custom numerical type that verifies whether the number is prime.
 
-A custom numerical type that verifies if the number is prime.
+This time both flavours of validation are combined: *validate_string* to see
+if it is a number, and then ``validate_native`` to see if it is prime. ::
 
-This time both flavours of validation are combined: *validate_string* to see if
-it is a number, and then *validate_native* to see if it is prime. ::
+    from math import sqrt, floor
 
-    import re
-
-    class Prime(Integer):
+    class Prime(UnsignedInteger):
         """Custom integer type that only accepts primes."""
 
         @staticmethod
-        def validate_string(cls, value):
-            """See if it is an integer."""
-
-            return re.match("-?[0-9]+", value) is not None
-
-        @staticmethod
         def validate_native(cls, value):
-            """See if it is prime."""
-
-            #calling a hypothetical function that checks if it is prime
-            return is_prime(value)
+            return (
+                UnsignedInteger.validate_native(value) and \
+                all(a % i for i in xrange(2, floor(sqrt(a))))
+            )
 
 .. NOTE::
     Constraints applied at this level do **not** modify the XML schema itself.
@@ -236,10 +217,12 @@ it is a number, and then *validate_native* to see if it is prime. ::
     that are not visible in the XML schema are documented elsewhere.
 
 .. NOTE::
-    When overriding ``validate_string`` or ``validate_native`` in a custom type
-    class, the validation functions from the parent class are **not invoked**.
-    If you wish to apply those validation functions as well, you must call them
-    explicitly.
+    When overriding ``validate_string`` or ``validate_native`` in a custom
+    type class, the validation functions from the parent class are
+    **not invoked**.
+
+    If you wish to apply those validation functions as well, you must call
+    them explicitly.
 
 Summary
 ^^^^^^^

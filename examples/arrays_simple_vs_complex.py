@@ -29,75 +29,61 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-
 '''
-This is a simple HelloWorld example to show the basics of writing
-a webservice using spyne, starting a server, and creating a service
-client.
-
-Here's how to call it using suds:
-
->>> from suds.client import Client
->>> c = Client('http://localhost:8000/?wsdl')
->>> c.service.say_hello('punk', 5)
-(stringArray){
-   string[] =
-      "Hello, punk",
-      "Hello, punk",
-      "Hello, punk",
-      "Hello, punk",
-      "Hello, punk",
- }
->>>
+For testing different kind of arrays with different protocols.
 '''
 
 
 import logging
 
 from spyne.application import Application
-from spyne.protocol.soap import Soap11
+from spyne.decorator import srpc
+from spyne.protocol.xml import XmlDocument
+from spyne.protocol.json import JsonDocument
+from spyne.protocol.http import HttpRpc
+from spyne.service import ServiceBase
+from spyne.model.primitive import Unicode
+from spyne.model.complex import ComplexModel
+from spyne.model.complex import Array
 from spyne.server.wsgi import WsgiApplication
 
-from spyne.decorator import srpc
-from spyne.service import ServiceBase
-from spyne.model.complex import ComplexModel
-from spyne.model.complex import Iterable
-from spyne.model.primitive import Integer
-from spyne.model.primitive import Unicode
+class Permission(ComplexModel):
+    __namespace__ = 'some_ns'
 
-from spyne.util.simple import wsgi_soap_application
+    application = Unicode
+    feature = Unicode
+
+
+v = [
+    Permission(application='app', feature='f1'), 
+    Permission(application='app', feature='f2'),
+]
 
 
 class HelloWorldService(ServiceBase):
-    @srpc(Unicode, Integer, _returns=Iterable(Unicode))
-    def say_hello(name, times):
-        '''
-        Docstrings for service methods appear as documentation in the wsdl.
-        <b>What fun!</b>
+    @srpc(_returns=Array(Permission))
+    def simple():
+        return v
 
-        @param name the name to say hello to
-        @param the number of times to say hello
-        @return the completed array
-        '''
-
-        for i in range(times):
-            yield u'Hello, %s' % name
+    @srpc(_returns=Permission.customize(max_occurs=float('inf')))
+    def complex():
+        return v
 
 
 if __name__=='__main__':
     from wsgiref.simple_server import make_server
-
     logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
+
+    application = Application([HelloWorldService], 'spyne.examples.hello.http',
+          in_protocol=HttpRpc(validator='soft'),
+          out_protocol=XmlDocument(),
+      )
+
+    wsgi_application = WsgiApplication(application)
+
+    server = make_server('127.0.0.1', 8000, wsgi_application)
 
     logging.info("listening to http://127.0.0.1:8000")
     logging.info("wsdl is at: http://localhost:8000/?wsdl")
 
-    application = Application([HelloWorldService], 'spyne.examples.hello.soap',
-                in_protocol=Soap11(validator='lxml'),
-                out_protocol=Soap11()
-            )
-    wsgi_application = WsgiApplication(application)
-
-    server = make_server('127.0.0.1', 8000, wsgi_application)
     server.serve_forever()

@@ -48,8 +48,8 @@ Model customization is how one adds declarative restrictions and other metadata
 to a Spyne model. This model metadata is stored in a generic object called
 ``Attributes``. Every Spyne model has this object as a class attribute.
 
-As an example, let's customize the vanilla ``Unicode`` type to accept only valid
-email strings: ::
+As an example, let's customize the vanilla ``Unicode`` type to accept only
+valid email strings: ::
 
   class EmailString(Unicode):
       __type_name__ = 'EmailString'
@@ -81,8 +81,10 @@ Calling simple types directly is a shortcut to their customize method: ::
             type_name='EmailString',
         )
 
-As restricting the length of a string is very common, the length limit can be
-passed as a positional argument as well: ::
+As restricting the length of a string is very common (not all types have such
+shortcuts), the length limit can be passed as a positional argument as well:
+
+::
 
     EmailString = Unicode(128,
             pattern='[^@]+@[^@]+',
@@ -147,14 +149,13 @@ In its vanilla state, the ``Decimal`` class is the arbitrary-precision,
 arbitrary-size generic number type that will accept just *any* decimal
 number.
 
-It has three direct subclasses: The arbitrary-size
+It has two direct subclasses: The arbitrary-size
 :class:`spyne.model.primitive.Integer` type and the machine-dependent
-:class:`spyne.model.primitive.Double` or
-:class:`spyne.model.primitive.Float` (which are synonyms as Python does not
-distinguish between floats and doubles) types.
+:class:`spyne.model.primitive.Double` (:class:`spyne.model.primitive.Float`
+is a synonym for ``Double`` as Python does not distinguish between
+floats and doubles) types.
 
-Unless you are absolutely, positively sure that you need to deal with
-arbitrary-size numbers, (or you're implementing an existing API) you
+Unless you are *sure* that you need to deal with arbitrary-size numbers you
 should not use the arbitrary-size types in their vanilla form.
 
 You must also refrain from using :class:`spyne.model.primitive.Float` and
@@ -162,7 +163,7 @@ You must also refrain from using :class:`spyne.model.primitive.Float` and
 roll faster as their representation is machine-specific, thus not very
 reliable nor portable.
 
-For integers, we recommend you to use types like
+For integers, we recommend you to use bounded types like
 :class:`spyne.model.primitive.UnsignedInteger32` which can only contain a
 32-bit unsigned integer. (Which is very popular as e.g. a primary key type
 in a relational database.)
@@ -170,12 +171,17 @@ in a relational database.)
 For floating-point numbers, use the ``Decimal`` type with a pre-defined scale
 and precision. E.g. ``Decimal(16, 4)`` can represent a 16-digit number in total
 which can have up to 4 decimal digits, which could be used e.g. as a nice
-monetary type. By the way, Spyne does not include types like ISO-4217 compliant
-'currency' and 'monetary' types. [#]_ They are actually really easy to
-implement. Needless to say, patches are welcome!
+monetary type. [#]_
 
-Please see the :mod:`spyne.model.primitive` documentation for more details
-regarding number handling in Spyne.
+Note that it is your responsibility to make sure that the scale and precision
+constraints are consistent with the values in the context of the decimal
+package. See the :func:`decimal.getcontext` documentation for more
+information.
+
+It's also possible to set range constraints (``Decimal(gt=4, lt=10)``) or
+discrete values (``UnsignedInteger8(values=[2,4,6,8]``). Please see the
+:mod:`spyne.model.primitive` documentation for more details regarding number
+handling in Spyne.
 
 Strings
 ^^^^^^^
@@ -196,13 +202,17 @@ Remember that you have the ``ByteArray`` and ``File`` types at your disposal
 when you need to deal with arbitrary byte streams.
 
 The ``String`` type will be just an alias for ``Unicode``
-once Spyne gets ported to Python 3. It might even be deprecated and removed in the
-future, so make sure you are using either ``Unicode`` or ``ByteArray`` in your
-interface definitions.
+once Spyne gets ported to Python 3. It might even be deprecated and removed in
+the future, so make sure you are using either ``Unicode`` or ``ByteArray`` in
+your interface definitions.
 
 ``File``, ``ByteArray``, ``Unicode`` and ``String`` are all arbitrary-size in
-their vanilla versions. Don't forget to customize them with additional restrictions
-when implementing public services.
+their vanilla versions. Don't forget to customize them with additional
+restrictions when implementing public services.
+
+Just like numbers, it's also possible to place value-based constraints on
+Strings (e.g. ``String(values=['red', 'green', 'blue'])`` ) but not lexical
+constraints.
 
 See also the configuration parameters of your favorite transport for more
 information on request size restriction and other precautions against
@@ -226,55 +236,167 @@ Spatial Types
 
 Spyne comes with six basic spatial types that are supported by popular packages
 like `PostGIS <http://postgis.refractions.net/>`_ and
-`Shapely <`http://toblerity.github.com/shapely/`>_. These are the
+`Shapely <`http://toblerity.github.com/shapely/>`_.
 
 These are provided as ``Unicode`` subclasses that just define proper
-constraints to force the incoming string to be WKT-compliant. WKB is not yet
-supported.
+constraints to force the incoming string to be compliant with the
+`Well known text (WKT) <https://en.wikipedia.org/wiki/Well-known_text>`_
+format. Well known binary (WKB) format is not (yet?) supported.
 
 The incoming types are not parsed, but you can use ``shapely.wkb.loads()``
 function to convert them to native geometric types.
 
-:class:`spyne.model.primitive.Point`, :class:`spyne.model.primitive.Line` and
-:class:`spyne.model.primitive.Polygon` and also their multi-variants, which are
+The spatial types that Spyne suppors are as follows:
 
-:class:`spyne.model.primitive.MultiPoint`, :class:`spyne.model.primitive.MultiLine`
-and :class:`spyne.model.primitive.MultiPolygon`.
+* :class:`spyne.model.primitive.Point`
+* :class:`spyne.model.primitive.Line`
+* :class:`spyne.model.primitive.Polygon`
+
+Also the ``Multi*`` variants, which are:
+
+* :class:`spyne.model.primitive.MultiPoint`
+* :class:`spyne.model.primitive.MultiLine`
+* :class:`spyne.model.primitive.MultiPolygon`
 
 Miscellanous Types
 ^^^^^^^^^^^^^^^^^^
 
-These exist:
+There are types defined for convenience in the Xml Schema standard which are
+just convenience types on top of the text types. They are implemented as they
+are needed by Spyne users. The following are some of the more notable ones.
 
-:class:`spyne.model.primitive.AnyUri`
+* :class:`spyne.model.primitive.Boolean`: Life is simple here: Either ``True``
+  or ``False``.
 
-:class:`spyne.model.primitive.Boolean`
+* :class:`spyne.model.primitive.AnyUri`: An RFC-2396 & 2732 compiant URI type.
+  See: http://www.w3.org/TR/xmlschema-2/#anyURI
 
-:class:`spyne.model.primitive.Uuid`
+  **NOT YET VALIDATED BY SOFT VALIDATION!!!** Patches are welcome :)
+
+* :class:`spyne.model.primitive.Uuid`: A fancy way of packing a 128-bit
+  integer.
+
+Please consult the :mod:`spyne.model.primitive` documentation for a more
+complete list.
 
 Dynamic Types
 ^^^^^^^^^^^^^
 
-These also exist. Somewhat.
+While Spyne is all about putting firm restirictions on your input schema,
+it's also about flexibility.
 
-:class:`spyne.model.primitive.AnyDict`
+That's why, while generally discouraged, the user can choose to accept or
+return unstructed data using the :class:`spyne.model.primitive.AnyDict`, whose
+native type is a regular ``dict`` and :class:`spyne.model.primitive.AnyXml`
+whose native type is a
+regular :class:`lxml.etree.Element`.
 
-:class:`spyne.model.primitive.AnyXml`
+``AnyDict`` and ``AnyXml`` are roughly equivalent when the underlying
+protocol is an XML based one -- ``AnyDict`` just totally ignores attributes.
+
+Mandatory Variants
+^^^^^^^^^^^^^^^^^^
+
+TBD
 
 Enum
 ----
 
-TBD
+The :class:`spyne.model.enum.Enum` type mimics the ``enum`` in C/C++ with some
+additional type safety. It's part of the Spyne's SOAP heritage so its being
+there is mostly for compatibility reasons. If you want to use it, go right
+ahead, it will work. But you can get the same functionality by defining a 
+custom ``Unicode`` type via: ::
+
+    SomeUnicode = Unicode(values=['x', 'y', 'z'])
+
+The equivalent Enum-based declaration would be as follows: ::
+
+    SomeEnum = Enum('x', 'y', 'z', type_name="SomeEnum")
+
+These to would be serialized the same, yet their API is different. Lets look at
+the following class definition: ::
+
+    class SomeClass(ComplexModel):
+        a = SomeEnum
+        b = SomeUnicode
+
+Assuming the following message comes in: ::
+
+    <SomeClass>
+      <a>x</a>
+      <b>x</b>
+    </SomeClass>
+
+We will have: ::
+
+    >>> some_class.a == 'x'
+    True
+    >>> some_class.b == 'x'
+    False
+    >>> some_class.a == SomeEnum.x
+    False
+    >>> some_class.b == SomeEnum.x
+    True
+    >>> some_class.b is SomeEnum.x
+    True
+
+So ``Enum`` is just a fancier value-restricted ``Unicode`` that has a
+marginally faster (as it doesn't do string comparison) comparison option. You
+probably don't need it.
 
 Binary
 ------
 
-TBD
+Dealing with binary data has traditionally been a weak spot of most of the
+serialization formats in use today. The best XML or MIME (email) does is
+either base64 encoding or something similar, Json has no clue about binary
+data (and many other things actually, but let's just not go there now) and
+SOAP, in all its bloatiness, has quite a few binary encoding options
+available, yet none of the "optimized" ones are implemented in Spyne [#]_.
+
+Spyne supports binary data on all of the protocols it implements, falling back
+to base64 encoding where necessary. In terms of message size, the efficient
+protocols are `MessagePack <http://msgpack.org>`_ and good old Http. But, as
+MessagePack does not offer an incremental parsing/generation API in its Python
+wrapper, (in other words, it's not possible to parse the message without
+having it all in memory) it's best to use the
+:class:`spyne.protocol.http.HttpRpc` protocol when dealing with arbitrary-size
+binary data.
+
+A few points to consider:
+
+1. ``HttpRpc`` only works with a Http transport.
+2. ``HttpRpc`` supports only one file per request.
+3. Not every http transport supports incremental parsing of incoming data.
+   (e.g. Twisted). Make sure to test your stack end-to-end to see how it
+   handles huge messages [#]_.
+
+Now that all that is said, let's look at the API that Spyne provides for
+dealing with binary data.
+
+Spyne offers two types:
+
+1. :class:`spyne.model.binary.ByteArray` is a simple type that contains
+   arbitrary data. It's similar to Python's own ``str`` in terms of
+   functionality, but it's a sequence of ``str`` instances instead of just a
+   big ``str`` to be able to handle data in chunks using generators when
+   needed [#]_.
+2. :class:`spyne.model.binary.File` is a quirkier type that is mainly used to
+   deal with Http way of dealing with file uploads. Its native value is the
+   ``File.Value`` instance in :class:`spyne.model.binary.File`. See its
+   documentation for more information.
+
+Dealing with binary data with Spyne is not that hard -- you just need to make
+sure your data is parsed incrementally when you're preparing to deal with
+arbitrary-size binary data, which means you need to do careful testing as
+different WSGI implementations behave differently.
 
 Complex
 -------
 
-TBD!!
+Types that can contain other types are termed "complex objects". They must be
+subclasses of :class:`spyne.model.complex.ComplexModel` class.
 
 Here's a sample complex object definition: ::
 
@@ -282,7 +404,16 @@ Here's a sample complex object definition: ::
         application = Unicode
         feature = Unicode
 
-Here's a sample complex object definition: ::
+The ``ComplexModel`` metaclass, namely the
+:class:`spyne.model.complex.ComplexModelMeta` scans the class definition and
+ignores
+
+1. Those that begin with an underscore (``_``)
+2. Those that are not subclasses of the ``ModelBase``.
+
+If you want to use Python keywords as field names, or need leading underscores
+in field names, or you just want your Spyne definition and other code to be
+separate, you can do away with the metaclass magic and do this: ::
 
     class Permission(ComplexModel):
         _type_info = {
@@ -290,7 +421,10 @@ Here's a sample complex object definition: ::
             'feature': Unicode,
         }
 
-Here's a sample complex object definition: ::
+However, you still won't get predictable field order, as you're just assigning
+a ``dict`` to the ``_type_info`` attribute. If you also need that, (which
+becomes handy when you serialize your return value directly to HTML) you need
+to pass a sequence of ``(field_name, field_type)`` tuples, like so: ::
 
     class Permission(ComplexModel):
         _type_info = [
@@ -298,41 +432,242 @@ Here's a sample complex object definition: ::
             ('feature', Unicode),
         ]
 
-The following denotes a list of ``Permission`` objects.
+If you want to set some defaults (e.g. namespace) with your objects, you can
+define your own ``CompexModel`` base class as follows: ::
+
+    class MyAppComplexModel(ComplexModelBase):
+        __namespace__ = "http://example.com/myapp"
+        __metaclass__ = ComplexModelMeta
+
+
+Arrays
+^^^^^^
+
+If you need to deal with more than one instance of something, the
+:class:`spyne.model.complex.Array` is what you need.
+
+Imagine the following inside the definition of a ``User`` object: ::
 
         permissions = Array(Permission)
 
-The following is used to denote generators, but looks the same from the
-points of view of protocol and interface documents: ::
+The User can have an infinite number of permissions. If you need to put a
+limit to that, you can do this: ::
+
+        permissions = Array(Permission.customize(max_occurs=15))
+
+It is important to emphasize once more that Spyne restrictions are only
+enforced for an incoming request when validation is enabled. If you want this
+enforcement for every *assignment*, you do this the usual way by writing a
+property setter.
+
+The ``Array`` type has two alternatives. The first one is the
+:class:`spyne.model.complex.Iterable` type. ::
 
         permissions = Iterable(Permission)
 
-The following is deserialized as a list of ``Permission`` objects, just like with
-the ``Array`` example, but is shown and serialized differently in Wsdl and Soap
-representations. ::
+It is equivalent to the ``Array`` type from an interface perspective --
+the client will not notice any difference between an ``Iterable`` and an
+``Array`` as return type.
+
+It's just meant to signal the internediate machinery that the return value
+*could* be a generator and **must not** be consumed unless returning data to
+the client. This comes in handy for, e.g. custom loggers because they should
+not try to log the return value.
+
+You could use the ``Iterable`` marker in other places instead of ``Array``
+without any problems, but it's really meant to be used as return types in
+function definitions.
+
+The second alternative to the ``Array`` notation is the following: ::
 
         permissions = Permission.customize(max_occurs='unbounded')
 
-With the ``Array`` and ``Iterable`` types, a container class wraps multiple
-occurences of the inner data type. So ``Array(Permission)`` is actually
-equivalent to: ::
+The native value that you should return for both remain the same: a sequence
+of the designated type. However, the exposed interface is slightly different.
+
+When you use ``Array``, what really happens is that the ``customize()`` function
+of the array type creates an in-place class that is equivalent to the
+following: ::
 
         class PermissionArray(ComplexModel):
             Permission = Permission.customize(max_occurs='unbounded')
 
+Whereas when you just set ``max_occurs`` to a value greater than 1, you just get
+multiple values without the wrapping object.
+
+As an example, let's look at the following array: ::
+
+    v = [
+        Permission(application='app', feature='f1'),
+        Permission(application='app', feature='f2')
+    ]
+
+Here's how it would be serialized to XML with ``Array(Permission)`` as return
+type: ::
+
+    <PermissionArray>
+      <Permission>
+        <application>app</application>
+        <feature>f1</feature>
+      </Permission>
+      <Permission>
+        <application>app</application>
+        <feature>f2</feature>
+      </Permission>
+    </PermissionArray>
+
+The same value/type combination would result in the following json document: ::
+
+    {
+        "Permission": [
+            {
+                "application": "app",
+                "feature": "f1"
+            },
+            {
+                "application": "app",
+                "feature": "f2"
+            }
+        ]
+    }
+
+However, when we serialize the same object to xml using the
+``Permission.customize(max_occurs=float('inf'))`` annotation, we get two
+separate Xml documents, like so: ::
+
+    <Permission>
+      <application>app</application>
+      <feature>f1</feature>
+    </Permission>
+    <Permission>
+      <application>app</application>
+      <feature>f2</feature>
+    </Permission>
+
+As for Json, we get: ::
+
+    [
+        {
+            "application": "app", 
+            "feature": "f1"
+        },
+        {
+            "application": "app", 
+            "feature": "f2"
+        }
+    ]
+
+At this point, dear reader, you may be going "Arrgh! More quirks! Why don't
+you just do what's best for everyone and spare us the trouble!"
+
+Well, for Xml people, the second way of doing things is just wrong (Xml has
+a one-root-per-document rule). Yet sometimes, it must be done for
+compatibility reasons. And doing it the first way will just annoy JSON people.
+
+In order to let everbody keep the beautiful ``Array(Something)`` syntax,
+:class:`spyne.protocol.dictdoc.HierDictDocument`, parent class of Protocols
+that eat ``dict``\s including ``JsonDocument``, has a ``skip_depth`` argument
+which lets the protocol strip the wrapper objects from response documents.
+In its current form, it's a hack. It can be developed into a full-featured
+filter that also works with nested ``Array`` setups if there's a demand for
+it.
+
+You can play with the ``examples/arrays_simple_vs_complex.py`` in the source
+repository to see the above mechanism at work.
+
+Complex Models as Return Values
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+When working with functions, you don't need to return instances of the
+CompexModel subclasses themselves. Anything that walks and quacks like the
+designated return type will work just fine. Specifically, the returned object
+should return appropriate values on ``getattr()``\s for field names in the
+return type. Any exceptions thrown by the object's ``__getattr__`` method will
+be logged and ignored.
+
+However, it is important to return *instances* and not classes themselves. Due
+to the way Spyne serialization works, the classes themselves will also work as
+return values until you actually seeing funky responses under load in
+production. Don't do this! [#]_
+
 Fault
 -----
 
-TBD
+:class:`spyne.model.fault.Fault` a special kind of ``ComplexModel`` that is
+also the subclass of Python's own :class:`Exception`.
+
+When implementing public Spyne services, the recommendation is to raise
+instances of ``Fault`` subclasses for client errors, and let other exceptions
+bubble up until they get logged and re-raised as server-side errors by the
+protocol handlers.
+
+Not all protocols and transports care about distinguishing client and server
+exceptions. Http has 4xx codes for client-side (invalid request case) errors
+and 5xx codes for server-side (legitimate request case) errors. SOAP uses
+"Client." and "Server." prefixes in error codes to make this distinction.
+
+To integrate common transport and protocol behavior easily to Spyne, some
+common exceptions are defined in the :mod:`spyne.error` module. These are
+then hardwired to some common Http response codes so that e.g. raising a
+``ResourceNotFoundError`` ends up setting the response code to 404.
+
+You can look at the source code of the
+:func:`spyne.protocol.ProtocolBase.fault_to_http_response_code` to see which
+exceptions correspond to which return codes. This can be extended easily by
+subclassing your transport and overriding the ``fault_to_http_response_code``
+function with your own version.
+
+Note that, while using an Exception sink to re-raise non-Fault based
+exceptions as ``InternalError``\s is recommended, it's not Spyne's default
+behavior -- you need to subclass the :class:`spyne.application.Application`
+and override the :func:`spyne.application.Application.call_wrapper` function
+like this:
+
+::
+
+    class MyApplication(Application):
+        def call_wrapper(self, ctx):
+            try:
+                return ctx.service_class.call_wrapper(ctx)
+
+            except error.Fault, e:
+                sc = ctx.service_class
+                logger.error("Client Error: %r | Request: %r",
+                                                (e, ctx.in_object))
+                raise
+
+            except Exception, e:
+                sc = ctx.service_class
+                logger.exception(e)
+                raise InternalError(e)
 
 
 What's next?
-^^^^^^^^^^^^
+------------
 
 See the :ref:`manual-user-manager` tutorial that will walk you through
 defining complex objects and using events.
 
 
+.. [#] By the way, Spyne does not include types like
+       `ISO-4217 <http://www.currency-iso.org/>`_-compliant
+       'currency' and 'monetary' types. (See
+       http://www.w3.org/TR/2001/WD-xforms-20010608/slice4.html for more
+       information.)  They are actually really easy to
+       implement. If you're looking for a simple way to contribute, this would
+       be a nice place to start! Patches are welcome!
 
-.. [#] See http://www.w3.org/TR/2001/WD-xforms-20010608/slice4.html for more
-       information.
+.. [#] Spyne used to have mtom (http://www.w3.org/Submission/soap11mtom10/)
+       support. But as it was not maintained in a long time, it's not
+       currently functional. Patches are welcome!
+
+.. [#] Not every browser or http daemon supports huge file uploads due to
+       issues around 32-bit integers. E.g. Firefox < 18.0 can't handle big
+       files: https://bugzilla.mozilla.org/show_bug.cgi?id=215450
+
+.. [#] Technically, a simple ``str`` instance is also a sequence of ``str``
+       instances. However, using a ``str`` as the value to ``ctx.out_string``
+       would cause sending data in one-byte chunks, which is very inefficient.
+       See e.g. how HTTP's chunked encoding works.
+
+.. [#] http://stackoverflow.com/a/15383191

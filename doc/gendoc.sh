@@ -1,5 +1,6 @@
 #!/bin/sh -x
 
+git branch
 rm -rf docs;
 declare -A docs=( [2.9]=2_9 [2.10]=master);
 stable=2.9
@@ -15,3 +16,4 @@ done;
 
 mkdir docs;
 mv ${!docs[@]} docs
+make clean;
