@@ -103,7 +103,7 @@ Doing this is also possible: ::
     TableModel == TTableModel()
     TableModel.Attributes.sqla_metadata.bind = db
 
-... but the first method looks cleaner.
+... but the first method is arguably cleaner.
 
 We're finally ready to define Spyne types mapped to SQLAlchemy tables. At this
 point, we have two options: Do everything with the Spyne markers, or re-use
@@ -125,9 +125,10 @@ Let's consider the following two class definitions: ::
         __tablename__ = 'user'
 
         id = UnsignedInteger32(pk=True)
-        user_name = Unicode(32, min_len=4, pattern='[a-z0-9.]+')
+        user_name = Unicode(32, min_len=4, pattern='[a-z0-9.]+', unique=True)
         full_name = Unicode(64, pattern='\w+( \w+)+')
         email = Unicode(64, pattern=r'[a-z0-9._%+-]+@[a-z0-9.-]+\.[A-Z]{2,4}')
+        last_pos = Point(2, index='gist')
         permissions = Array(Permission).store_as('table')
 
 A couple of points about the above block:
@@ -139,10 +140,16 @@ table in this object, we just pass the ``__tablename__`` attribute -- the
 will be generated automatically.
 
 The definitions of the ``id``\, ``user_name``\, ``full_name`` and ``email``
-fields should be self-explanatory.
+fields should be self-explanatory. There are other database-specific arguments
+that can be passed to the column definition, see the
+:class:`spyne.model.ModelBase` reference for more information.
 
-As for the ``permissions`` field, thanks to the ``store_as('table')`` call,
-it will be stored using a one-to-many relationship. Spyne automatically
+The ``last_pos`` field is a spatial type -- a 2D point, to be
+exact. PostGIS docs suggest to use 'gin' or 'gist' indexes with spatial
+fields. Here we chose to use the 'gist' index [#]_.
+
+As for the ``permissions`` field, due to the ``store_as('table')`` call, it
+will be stored using a one-to-many relationship. Spyne automatically
 generates a foreign key column inside the ``permission`` table with 'user_id'
 as default value.
 
@@ -153,7 +160,7 @@ If we'd let the ``store_as()`` call out: ::
 ... the permissions field would not exist as far as SQLAlchemy is concerned.
 
 Calling ``store_as()`` is just a shortcut for calling
-``customize(store_as='table')``\. 
+``.customize(store_as='table')``\. 
 
 While the default is what appears to make most sense when defining such
 relations, it might not always be appropriate. Spyne offers the so-called
@@ -215,16 +222,14 @@ the table, it's possible to make arbitrary changes to the schema of the
 ``Permission`` object without worrying about schema migrations -- If the
 changes are backwards-compatible, everything will work flawlessly. If not,
 attributes in that are not defined in the latest object definition will just
-be ignored.
+be ignored [#]_.
+
+Such changes are never reflected to the schema. In other words, your clients
+will never know how your objects are persisted just by looking at your schema
+alone.
 
 You can play with the example at `spyne.io <http://spyne.io/#s=sql>`_ to
-experiment and fully understand how Spyne's model generator works.
-
-To make the case with non-backwards-compatible changes work, an implicit
-versioning support must be added. Assuming that everybody agrees that this is
-a good idea, adding this feature would be another interesting project.
-
-Feedback is welcome!
+experiment how Spyne's model engine interacts with SQLAlchemy.
 
 Integrating with Existing SQLAlchemy objects
 --------------------------------------------
@@ -246,9 +251,11 @@ Assigning an existing SQLAlchemy table to the ``__table__`` attribute of the
         __table__ = User.__table__
 
 ... creates the corresponding Spyne object. This conversion works for simple
-column types, but for complex ORM constructs like ``relationship``\.
+column types, but complex ORM constructs like ``relationship``\ are not
+converted.
 
-If you want to override this, you must set everything manually: ::
+If you want to override which columns are exposed, you must set everything
+manually: ::
 
     class User(TableModel):
         __table__ = User.__table__
@@ -258,7 +265,7 @@ If you want to override this, you must set everything manually: ::
         full_name = Unicode(64, pattern='\w+( \w+)+')
         email = Unicode(64, pattern=r'[a-z0-9._%+-]+@[a-z0-9.-]+\.[A-Z]{2,4}')
 
-Of course, it's possible to leave fields out.
+Any field not listed here does not exist as far as Spyne is concerned.
 
 This is still one of the weaker spots of SQLAlchemy integration, please chime
 in with your ideas on how we should handle different cases!
@@ -285,3 +292,14 @@ you have further questions.
 
        #. It's not easy to add arbitrary restrictions (like pattern) when
           using the SQLAlchemy API.
+
+.. [#] It's not possible to use an Array of primitives directly for
+       ``'table'`` storage -- create a ComplexModel with a primary key field
+       as a workaround. (or, you guessed it, send a patch!...)
+
+.. [#] To make the case with non-backwards-compatible changes work, an
+       implicit versioning support must be added. Assuming that everybody
+       agrees that this is a good idea, adding this feature would be another
+       interesting project.
+
+       Feedback is welcome!
