@@ -31,6 +31,7 @@ class BODY_STYLE_WRAPPED: pass
 class BODY_STYLE_EMPTY: pass
 class BODY_STYLE_BARE: pass
 
+
 class AuxMethodContext(object):
     """Generic object that holds information specific to auxiliary methods"""
     def __init__(self, p_ctx, error):
