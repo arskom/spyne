@@ -7,7 +7,7 @@ Working with RPC Metadata
 This section builds on :ref:`manual-user-manager` section. If you haven’t done
 so, we recommended you to read it first.
 
-In most of the real-world scenarios, an rpc request comes with additional
+In most of the real-world scenarios, an RPC request comes with additional
 baggage like authentication headers, routing history, and similar information.
 Spyne comes with rich mechanisms that lets you deal with both protocol and
 transport metadata.

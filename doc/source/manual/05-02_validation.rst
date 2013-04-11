@@ -44,7 +44,7 @@ Supported transport protocols  SOAP/XML any
 ============================== ======== =========
 
 .. NOTE::
-    The two validation sybsystems operate independently, you can use either
+    The two validation subsystems operate independently, you can use either
     one, but not both at the same time. The validator is indicated when
     instantiating the protocol, by passing either ``validator='soft'`` or
     ``validator='lxml'`` to the constructor. ::
@@ -82,10 +82,11 @@ Certain generic restrictions can be applied to any type. They are listed
 below, along with their default values
 
 - ``default = None`` - default value if the input is ``None``.
-- ``nillable = True`` - if True, the item can be null when provided. Note that
-    this constraint only applies when the variable is actually provided in the
-    input document and is ignored if it's not. You should set ``min_occurs=1``
-    if you want to force this variable to be present in incoming documents.
+- ``nillable = True`` - if ``True``, the item can be null when provided. Note
+    that this constraint only applies when the variable is actually provided
+    in the input document and is ignored if it's not. You should set
+    ``min_occurs=1`` if you want to force this variable to be present in
+    incoming documents.
 - ``min_occurs = 0`` - set this to 1 to make the type mandatory. Can be set to
     any positive integer. Note that if ``nillable=False``, the validator will
     still accept ``null`` values.
@@ -158,10 +159,10 @@ Spyne offers several primitives for this purpose. Please see the
 
 These primitives are:
 
-- *validate_string* - invoked when the variable is extracted from the input XML
-  data.
-- *validate_native* - invoked after the string is converted to a specific Python
-  value.
+**validate_string** 
+    invoked when the variable is extracted from the input XML data.
+**validate_native**
+    invoked after the string is converted to a specific Python value.
 
 Since all data comes in as a byte stream, when you read it you get a ``str``
 instance. So the ``validate_string`` hook is your first line of defense

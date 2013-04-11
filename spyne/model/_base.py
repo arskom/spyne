@@ -174,13 +174,15 @@ class ModelBase(object):
 
         unique = None
         """If True, this object will be set as unique in the database schema
-        with default indexing options. If the value is a string, it will be used
-        as the indexing method to create the unique index.
+        with default indexing options. If the value is a string, it will be
+        used as the indexing method to create the unique index. See sqlalchemy
+        documentation on how to create multi-column unique constraints.
         """
 
         db_type = None
         """When not None, it overrides Spyne's own mapping from Spyne types to
-        SQLAlchemy types.
+        SQLAlchemy types. It's a standard SQLAlchemy type marker, e.g.
+        ``sqlalchemy.Integer``.
         """
 
         index = None
