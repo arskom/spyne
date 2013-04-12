@@ -83,7 +83,7 @@ DISCLAIMER: This is not legal advice, but just how we think things should work.
 Spyne in conjunction with your proprietary code, without any additional
 obligations.
 
-**Long Answer:** If you do modifications to Spyne, the best thing to do is to
+**Long Answer:** If you make modifications to Spyne, the best thing to do is to
 put them on github and just send a pull request upstream. Even if your patch
 is not accepted, you've done more than what the license requires you to do.
 
