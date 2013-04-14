@@ -43,12 +43,12 @@ from spyne.decorator import rpc
 
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.yaml import YamlDocument
+from spyne.model.primitive import Mandatory
 from spyne.model.primitive import Unicode
+from spyne.model.primitive import UnsignedInteger32
 from spyne.model.complex import Array
 from spyne.model.complex import Iterable
 from spyne.model.complex import TTableModel
-from spyne.model.primitive import Integer
-from spyne.model.primitive import Integer32
 from spyne.server.wsgi import WsgiApplication
 from spyne.service import ServiceBase
 from spyne.util import memoize
@@ -65,7 +65,7 @@ class Permission(TableModel):
     __namespace__ = 'spyne.examples.sql_crud'
     __table_args__ = {"sqlite_autoincrement": True}
 
-    id = Integer32(primary_key=True)
+    id = UnsignedInteger32(primary_key=True)
     application = Unicode(256)
     operation = Unicode(256)
 
@@ -75,7 +75,7 @@ class User(TableModel):
     __namespace__ = 'spyne.examples.sql_crud'
     __table_args__ = {"sqlite_autoincrement": True}
 
-    id = Integer32(primary_key=True)
+    id = UnsignedInteger32(primary_key=True)
     name = Unicode(256)
     first_name = Unicode(256)
     last_name = Unicode(256)
@@ -105,7 +105,7 @@ def TCrudService(T, T_name):
             return obj.id
 
         @rpc(Mandatory.UnsignedInteger32)
-        def del(ctx, obj_id):
+        def del_(ctx, obj_id):
             count = ctx.udc.session.query(T).filter_by(id=obj_id).count()
             if count == 0:
                 raise ResourceNotFoundError(obj_id)
@@ -131,10 +131,11 @@ def _on_method_return_object(ctx):
     ctx.udc.session.commit()
 
 def _on_method_context_closed(ctx):
-    ctx.udc.session.close()
+    if ctx.udc is not None:
+        ctx.udc.session.close()
 
 application = Application([TCrudService(User, 'user')],
-                                    tns='spyne.examples.user_manager',
+                                    tns='spyne.examples.sql_crud',
                                     in_protocol=HttpRpc(validator='soft'),
                                     out_protocol=YamlDocument())
 

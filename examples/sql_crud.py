@@ -85,18 +85,28 @@ class User(TableModel):
 @memoize
 def TCrudService(T, T_name):
     class CrudService(ServiceBase):
-        @rpc(Mandatory.UnsignedInteger32, _returns=T)
+        @rpc(Mandatory.UnsignedInteger32, _returns=T,
+                    _in_message_name='get_%s' % T_name,
+                    _in_variable_names={'obj_id': "%s_id" % T_name})
         def get(ctx, obj_id):
             return ctx.udc.session.query(T).filter_by(id=obj_id).one()
 
-        @rpc(T, _returns=UnsignedInteger32)
+        @rpc(T, _returns=UnsignedInteger32,
+                    _in_message_name='put_%s' % T_name,
+                    _in_variable_names={'obj': T_name})
         def put(ctx, obj):
             if obj.id is None:
                 ctx.udc.session.add(obj)
-                ctx.udc.session.flush()
+                ctx.udc.session.flush() # so that we get the obj.id value
 
             else:
                 if ctx.udc.session.query(T).get(obj.id) is None:
+                    # this is to prevent the client from setting the primary key
+                    # of a new object instead of the database's own primary-key
+                    # generator.
+                    # Instead of raising an exception, you can also choose to
+                    # ignore the primary key set by the client by silently doing
+                    # obj.id = None
                     raise ResourceNotFoundError('%s.id=%d' % (T_name, obj.id))
 
                 else:
@@ -104,7 +114,9 @@ def TCrudService(T, T_name):
 
             return obj.id
 
-        @rpc(Mandatory.UnsignedInteger32)
+        @rpc(Mandatory.UnsignedInteger32,
+                    _in_message_name='del_%s' % T_name,
+                    _in_variable_names={'obj_id': '%s_id' % T_name})
         def del_(ctx, obj_id):
             count = ctx.udc.session.query(T).filter_by(id=obj_id).count()
             if count == 0:
@@ -112,7 +124,8 @@ def TCrudService(T, T_name):
 
             ctx.udc.session.query(T).filter_by(id=obj_id).delete()
 
-        @rpc(_returns=Iterable(T))
+        @rpc(_returns=Iterable(T),
+                    _in_message_name='get_all_%s' % T_name)
         def get_all(ctx):
             return ctx.udc.session.query(T)
 
