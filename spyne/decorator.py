@@ -121,6 +121,7 @@ def _validate_body_style(kparams):
 
     return _body_style
 
+
 def _produce_output_message(func_name, kparams):
     """Generate an output message for "rpc"-style API methods.
 
@@ -131,16 +132,16 @@ def _produce_output_message(func_name, kparams):
     _body_style = _validate_body_style(kparams)
 
     _out_message_name = kparams.get('_out_message', '%s%s' %
-                                                    (func_name, RESPONSE_SUFFIX))
+                                                  (func_name, RESPONSE_SUFFIX))
     out_params = TypeInfo()
 
     if _returns and _body_style == 'wrapped':
         if isinstance(_returns, (list, tuple)):
             default_names = ['%s%s%d' % (func_name, RESULT_SUFFIX, i) for i in
-                                                           range(len(_returns))]
+                                                          range(len(_returns))]
 
             _out_variable_names = kparams.get('_out_variable_names',
-                                                                  default_names)
+                                                                 default_names)
 
             assert (len(_returns) == len(_out_variable_names))
 
@@ -240,7 +241,7 @@ def rpc(*params, **kparams):
 
             _faults = None
             if ('_faults' in kparams) and ('_throws' in kparams):
-                raise ValueError("only one of '_throws ' and '_faults' arguments"
+                raise ValueError("only one of '_throws ' or '_faults' arguments"
                                  "should be given, as they're synonyms.")
             elif '_faults' in kparams:
                 _faults = kparams.get('_faults', None)
