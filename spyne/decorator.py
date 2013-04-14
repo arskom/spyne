@@ -191,6 +191,8 @@ def rpc(*params, **kparams):
     want to call the methods directly. You can also use the 'function' attribute
     of the returned object to call the function itself.
 
+    :param _returns: Denotes The return type of the function. It can be a type or
+        a sequence of types for functions that have multiple return values.
     :param _in_header: A type or an iterable of types that that this method
         accepts as incoming header.
     :param _out_header: A type or an iterable of types that that this method
