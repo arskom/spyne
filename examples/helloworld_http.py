@@ -79,9 +79,9 @@ if __name__=='__main__':
     #   * An input protocol.
     #   * An output protocol.
     application = Application([HelloWorldService], 'spyne.examples.hello.http',
-          # The input protocol is set as HttpRpc to make our service easy to call.
-          # Input validation via the 'soft' engine is enabled. (which is actually the
-          # the only validation method for HttpRpc.)
+          # The input protocol is set as HttpRpc to make our service easy to
+          # call. Input validation via the 'soft' engine is enabled. (which is
+          # actually the the only validation method for HttpRpc.)
           in_protocol=HttpRpc(validator='soft'),
 
           # The skip_depth parameter to JsonDocument simplifies the reponse

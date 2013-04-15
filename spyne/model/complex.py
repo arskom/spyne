@@ -87,7 +87,8 @@ class table:
     :param right: Name of the right join column.
     """
 
-    def __init__(self, multi=False, left=None, right=None, backref=None, id_backref=None):
+    def __init__(self, multi=False, left=None, right=None, backref=None,
+                                                              id_backref=None):
         self.multi = multi
         self.left = left
         self.right = right

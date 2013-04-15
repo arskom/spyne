@@ -207,7 +207,8 @@ class ProtocolBase(object):
         Fault: fault_to_dict,
     })
 
-    def __init__(self, app=None, validator=None, mime_type=None, skip_depth=0, ignore_uncap=False):
+    def __init__(self, app=None, validator=None, mime_type=None,
+                                                            ignore_uncap=False):
         self.__app = None
         self.validator = None
 
@@ -215,7 +216,7 @@ class ProtocolBase(object):
         self.event_manager = EventManager(self)
         self.set_validator(validator)
         self.skip_depth = skip_depth
-        self.ignore_uncap=ignore_uncap
+        self.ignore_uncap = ignore_uncap
         if mime_type is not None:
             self.mime_type = mime_type
 

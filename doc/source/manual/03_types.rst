@@ -6,9 +6,9 @@ Spyne Models and Native Python Types
 
 There are five types of models in Spyne:
 
-* **Primitive:** These are basic models that can contain a single value at a time.
-  Primitive types are more-or-less present in any programming language and all
-  of them map to a well-defined Python type. Types like ``Integer``,
+* **Primitive:** These are basic models that can contain a single value at a
+  time. Primitive types are more-or-less present in any programming language
+  and all of them map to a well-defined Python type. Types like ``Integer``,
   ``Decimal``, ``Float``, ``String``, ``Date`` are all primitives. See the
   documentation for :mod:`spyne.model.primitive` for more info.
 

@@ -114,10 +114,10 @@ class ModelBase(object):
     accessing it directly."""
 
     # These are not the xml schema defaults. The xml schema defaults are
-    # considered in ComplexModel's add_to_schema method. the defaults here
-    # are to reflect what people seem to want most.
+    # considered in XmlSchema's add() method. the defaults here are to reflect
+    # what people seem to want most.
     #
-    # please note that min_occurs and max_occurs must be validated in the
+    # Please note that min_occurs and max_occurs must be validated in the
     # ComplexModelBase deserializer.
     class Attributes(object):
         """The class that holds the constraints for the given type."""

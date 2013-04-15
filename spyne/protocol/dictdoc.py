@@ -19,6 +19,9 @@
 
 """The ``spyne.protocol.dictdoc`` module contains an abstract
 protocol that deals with hierarchical and flat dicts as {in,out}_documents.
+
+This module is EXPERIMENTAL. You may not recognize the code here next time you
+look at it.
 """
 
 import logging
@@ -45,7 +48,6 @@ from spyne.model.primitive import Unicode
 
 from spyne.protocol import ProtocolBase
 from spyne.protocol._base import unwrap_messages
-from spyne.protocol._base import unwrap_instance
 
 
 def check_freq_dict(cls, d, fti=None):
@@ -73,17 +75,7 @@ class DictDocument(ProtocolBase):
     ``create_out_string()`` to use this.
     """
 
-    def deserialize(self, ctx, message):
-        raise NotImplementedError()
 
-    def serialize(self, ctx, message):
-        raise NotImplementedError()
-
-    def create_in_document(self, ctx, in_string_encoding=None):
-        raise NotImplementedError()
-
-    def create_out_string(self, ctx, out_string_encoding='utf8'):
-        raise NotImplementedError()
 
     def set_validator(self, validator):
         """Sets the validator for the protocol.
@@ -122,6 +114,18 @@ class DictDocument(ProtocolBase):
 
         logger.debug('\theader : %r' % (ctx.in_header_doc))
         logger.debug('\tbody   : %r' % (ctx.in_body_doc))
+
+    def deserialize(self, ctx, message):
+        raise NotImplementedError()
+
+    def serialize(self, ctx, message):
+        raise NotImplementedError()
+
+    def create_in_document(self, ctx, in_string_encoding=None):
+        raise NotImplementedError()
+
+    def create_out_string(self, ctx, out_string_encoding='utf8'):
+        raise NotImplementedError()
 
 
 class FlatDictDocument(DictDocument):
@@ -178,7 +182,7 @@ class FlatDictDocument(DictDocument):
 
             # assign the native value to the relevant class in the nested object
             # structure.
-            ccls, cinst = inst_class, inst
+            cinst = inst
             ctype_info = inst_class.get_flat_type_info(inst_class)
 
             idx, nidx = 0, 0
@@ -221,7 +225,7 @@ class FlatDictDocument(DictDocument):
                     cinst = ninst
 
                 cfreq_key = cfreq_key + (ncls, nidx)
-                ccls, idx = ncls, nidx
+                idx = nidx
                 ctype_info = ncls._type_info
 
             frequencies[cfreq_key][member.path[-1]] += len(value)
@@ -328,7 +332,8 @@ class HierDictDocument(DictDocument):
         self.event_manager.fire_event('before_serialize', ctx)
 
         if ctx.out_error is not None:
-            ctx.out_document = [ProtocolBase.to_dict(ctx.out_error.__class__, ctx.out_error)]
+            ctx.out_document = [ProtocolBase.to_dict(ctx.out_error.__class__,
+                                                                 ctx.out_error)]
 
         else:
             # get the result message
