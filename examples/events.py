@@ -53,9 +53,7 @@ Use:
 
     curl 'http://localhost:8000/say_hello?name=Dave&times=5'
 
-to query this code. You can play with the ``skip_depth`` parameter to adjust the
-response dict, or choose another protocol altogether.
-
+to query this code.
 '''
 
 import logging
@@ -137,7 +135,7 @@ if __name__=='__main__':
         logging.error("Error: example server code requires Python >= 2.5")
 
     application = Application([HelloWorldService], 'spyne.examples.events',
-                   in_protocol=HttpRpc(), out_protocol=JsonDocument(skip_depth=2))
+                   in_protocol=HttpRpc(), out_protocol=JsonDocument())
 
     application.event_manager.add_listener('method_call', _on_method_call)
     application.event_manager.add_listener('method_return_object',

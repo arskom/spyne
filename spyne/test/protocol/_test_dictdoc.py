@@ -37,77 +37,19 @@ from spyne.model.primitive import Integer
 from spyne.model.primitive import String
 from spyne.model.primitive import DateTime
 from spyne.model.primitive import Mandatory
-from spyne.protocol import unwrap_instance
 from spyne.service import ServiceBase
 from spyne.server import ServerBase
 
 
-class TestUnwrap(unittest.TestCase):
-    def test_unwrap_primitive(self):
-        class SomeClass(ComplexModel):
-            i = Integer
-
-        inst = SomeClass(i=5)
-
-        t, c = unwrap_instance(SomeClass, inst, 0)
-        assert t == SomeClass
-        assert c.i == 5
-
-        t, c = unwrap_instance(SomeClass, inst, 1)
-        assert t == Integer
-        assert c == 5
-
-        t, c = unwrap_instance(SomeClass, inst, 2)
-        assert t == Integer
-        assert c == 5
-
-    def test_unwrap_array(self):
-        class SomeClass(ComplexModel):
-            i = Array(Integer)
-
-        inst = SomeClass(i=[5,6,7])
-
-        t, c = unwrap_instance(SomeClass, inst, 0)
-        assert t == SomeClass
-        assert c.i == [5,6,7]
-
-        t, c = unwrap_instance(SomeClass, inst, 1)
-        assert issubclass(t, Array)
-        assert c == [5,6,7]
-
-        t, c = unwrap_instance(SomeClass, inst, 2)
-        assert issubclass(t, Integer)
-        assert c == [5,6,7]
-
-        t, c = unwrap_instance(SomeClass, inst, 3)
-        assert issubclass(t, Integer)
-        assert c == [5,6,7]
-
-        inst = SomeClass()
-
-        t, c = unwrap_instance(SomeClass, inst, 0)
-        assert t == SomeClass
-        assert c.i == None
-
-        t, c = unwrap_instance(SomeClass, inst, 1)
-        assert issubclass(t, Array)
-        assert c == None
-
-        t, c = unwrap_instance(SomeClass, inst, 2)
-        assert issubclass(t, Integer)
-        assert c == None
-
-        t, c = unwrap_instance(SomeClass, inst, 3)
-        assert issubclass(t, Integer)
-        assert c == None
-
-
 def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
-    def _dry_me(services, d, skip_depth=0, just_ctx=False,
-                                          just_in_object=False, validator=None):
+    def _dry_me(services, d, ignore_wrappers=False, complex_as=list,
+                         just_ctx=False, just_in_object=False, validator=None):
+
         app = Application(services, 'tns',
-                            in_protocol=_DictDocumentChild(validator=validator),
-                            out_protocol=_DictDocumentChild(skip_depth=skip_depth))
+                in_protocol=_DictDocumentChild(validator=validator),
+                out_protocol=_DictDocumentChild(
+                        ignore_wrappers=ignore_wrappers, complex_as=complex_as),
+            )
 
         server = ServerBase(app)
         initial_ctx = MethodContext(server)
@@ -123,56 +65,6 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
         return ctx
 
     class Test(unittest.TestCase):
-        def test_multiple_return_sd_3(self):
-            class SomeService(ServiceBase):
-                @srpc(_returns=Iterable(Integer))
-                def some_call():
-                    return 1, 2
-
-            ctx = _dry_me([SomeService], {"some_call":[]}, skip_depth=3)
-
-            assert list(ctx.out_string) == [serializer.dumps(1, **dumps_kwargs), serializer.dumps(2, **dumps_kwargs)]
-
-    class Test(unittest.TestCase):
-        def test_multiple_return_sd_2(self):
-            class SomeService(ServiceBase):
-                @srpc(_returns=Iterable(Integer))
-                def some_call():
-                    return 1, 2
-
-            ctx = _dry_me([SomeService], {"some_call":[]}, skip_depth=2)
-
-            out_strings = list(ctx.out_string)
-            print out_strings
-            assert out_strings == [
-                serializer.dumps(1, **dumps_kwargs), serializer.dumps(2, **dumps_kwargs)]
-
-        def test_multiple_return_sd_1(self):
-            class SomeService(ServiceBase):
-                @srpc(_returns=Iterable(Integer))
-                def some_call():
-                    return 1, 2
-
-            ctx = _dry_me([SomeService], {"some_call":[]}, skip_depth=1)
-
-            out_strings = list(ctx.out_string)
-            print out_strings
-            assert out_strings == [serializer.dumps(
-                [1, 2], **dumps_kwargs)]
-
-        def test_multiple_return_sd_0(self):
-            class SomeService(ServiceBase):
-                @srpc(_returns=Iterable(Integer))
-                def some_call():
-                    return 1, 2
-
-            ctx = _dry_me([SomeService], {"some_call":[]}, skip_depth=0)
-
-            out_strings = list(ctx.out_string)
-            print out_strings
-            assert out_strings == [serializer.dumps(
-                {"some_callResponse": {"some_callResult": {"integer": [1, 2]}}}, **dumps_kwargs)]
-
         def test_decimal_return(self):
             decimal.getcontext().prec=200
             d = decimal.Decimal('1e100')
@@ -181,7 +73,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
                 def some_call():
                     return d+1
 
-            ctx = _dry_me([SomeService], {"some_call":[]}, skip_depth=0)
+            ctx = _dry_me([SomeService], {"some_call":[]})
 
             out_strings = list(ctx.out_string)
             print out_strings
@@ -368,21 +260,13 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
 
             assert ctx.in_error.faultcode == 'Client.ValidationError'
 
-        def test_primitive_with_skip_depth(self):
-            class SomeService(ServiceBase):
-                @srpc(_returns=String)
-                def some_call():
-                    return "foo"
-
-            ctx = _dry_me([SomeService], {"some_call":[]}, skip_depth=2)
-
         def test_fault_to_dict(self):
             class SomeService(ServiceBase):
                 @srpc(_returns=String)
                 def some_call():
                     raise Fault()
 
-            ctx = _dry_me([SomeService], {"some_call":[]}, skip_depth=2)
+            ctx = _dry_me([SomeService], {"some_call":[]})
 
         def test_prune_none_and_optional(self):
             class SomeObject(ComplexModel):

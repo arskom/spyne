@@ -247,9 +247,10 @@ sqlalchemy.dialects.postgresql.base.ischema_names['xml'] = PGObjectXml
 
 
 class PGObjectJson(UserDefinedType):
-    def __init__(self, cls, skip_depth):
+    def __init__(self, cls, ignore_wrappers, complex_as=list):
         self.cls = cls
-        self.skip_depth = skip_depth
+        self.ignore_wrappers = ignore_wrappers
+        self.complex_as = complex_as
 
     def get_col_spec(self):
         return "json"
@@ -258,7 +259,9 @@ class PGObjectJson(UserDefinedType):
         def process(value):
             if value is not None:
                 return json.dumps(get_object_as_dict(value, self.cls,
-                                                    skip_depth=self.skip_depth))
+                        ignore_wrappers=self.ignore_wrappers,
+                        complex_as=self.complex_as,
+                    ))
         return process
 
     def result_processor(self, dialect, col_type):

@@ -84,11 +84,10 @@ if __name__=='__main__':
           # actually the the only validation method for HttpRpc.)
           in_protocol=HttpRpc(validator='soft'),
 
-          # The skip_depth parameter to JsonDocument simplifies the reponse
+          # The ignore_wrappers parameter to JsonDocument simplifies the reponse
           # dict by skipping outer response structures that are redundant when
-          # the client keeps track of which reponse document corresponds to
-          # which request.
-          out_protocol=JsonDocument(skip_depth=1),
+          # the client knows what object to expect.
+          out_protocol=JsonDocument(ignore_wrappers=True),
       )
 
     # Now that we have our application, we must wrap it inside a transport

@@ -47,7 +47,6 @@ from spyne.model.primitive import String
 from spyne.model.primitive import Unicode
 
 from spyne.protocol import ProtocolBase
-from spyne.protocol._base import unwrap_messages
 
 
 def check_freq_dict(cls, d, fti=None):
@@ -313,9 +312,9 @@ class HierDictDocument(DictDocument):
 
         # instantiate the result message
         if message is self.REQUEST:
-            body_class = unwrap_messages(ctx.descriptor.in_message)
+            body_class = ctx.descriptor.in_message
         elif message is self.RESPONSE:
-            body_class = unwrap_messages(ctx.descriptor.out_message)
+            body_class = ctx.descriptor.out_message
 
         if body_class:
             # assign raw result to its wrapper, result_message

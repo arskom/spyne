@@ -60,35 +60,6 @@ from spyne.model.primitive import Boolean
 from spyne.protocol._model import *
 
 
-def unwrap_messages(cls, skip_depth):
-    out_type = cls
-    for _ in range(skip_depth):
-        if hasattr(out_type, "_type_info") and len(out_type._type_info) == 1:
-            out_type = out_type._type_info[0]
-        else:
-            break
-
-    return out_type
-
-
-def unwrap_instance(cls, inst, skip_depth):
-    out_type = cls
-    out_instance = inst
-
-    i=0
-    for i in range(skip_depth):
-        if hasattr(out_type, "_type_info") and len(out_type._type_info) == 1:
-            (k, t), = out_type._type_info.items()
-            if not issubclass(out_type, Array):
-                out_instance = getattr(out_instance, k)
-            out_type = t
-
-        else:
-            break
-
-    return out_type, out_instance, (skip_depth - i)
-
-
 class ProtocolBaseMeta(type(object)):
     def __new__(cls, cls_name, cls_bases, cls_dict):
         for dkey in ("_to_string_handlers", "_to_string_iterable_handlers",
@@ -137,9 +108,6 @@ class ProtocolBase(object):
     :param mime_type: The mime_type this protocol should set for transports
         that support this. This is a quick way to override the mime_type by
         default instead of subclassing the releavant protocol implementation.
-    :param skip_depth: Number of wrapper classes to ignore. This is
-        typically one of (0, 1, 2) but higher numbers may also work for your
-        case.
     :param ignore_uncap: Silently ignore cases when the protocol is not capable
         of serializing return values instead of raising a TypeError.
     """

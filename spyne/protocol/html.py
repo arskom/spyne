@@ -85,7 +85,7 @@ def not_supported(prot, cls, *args, **kwargs):
 
 
 class HtmlBase(ProtocolBase):
-    def __init__(self, app=None, validator=None, skip_depth=0):
+    def __init__(self, app=None, validator=None):
         """Protocol that returns the response object as a html microformat. See
         https://en.wikipedia.org/wiki/Microformats for more info.
 
@@ -102,12 +102,9 @@ class HtmlBase(ProtocolBase):
             field names of the complex object children.
         :param field_type_attr: The name of the attribute that will contain the
             type names of the complex object children.
-        :param skip_depth: Number of wrapper classes to ignore. This is
-            typically one of (0, 1, 2) but higher numbers may also work for your
-            case.
         """
 
-        ProtocolBase.__init__(self, app, validator, skip_depth=skip_depth)
+        ProtocolBase.__init__(self, app, validator)
 
     def serialize_class(self, cls, value, locale, name):
         handler = self.serialization_handlers[cls]
@@ -170,7 +167,7 @@ class HtmlMicroFormat(HtmlBase):
     mime_type = 'text/html'
 
     def __init__(self, app=None, validator=None, root_tag='div',
-                 child_tag='div', field_name_attr='class', skip_depth=0):
+                                     child_tag='div', field_name_attr='class'):
         """Protocol that returns the response object as a html microformat. See
         https://en.wikipedia.org/wiki/Microformats for more info.
 
@@ -189,7 +186,7 @@ class HtmlMicroFormat(HtmlBase):
             type names of the complex object children.
         """
 
-        HtmlBase.__init__(self, app, validator, skip_depth)
+        HtmlBase.__init__(self, app, validator)
 
         assert root_tag in ('div', 'span')
         assert child_tag in ('div', 'span')

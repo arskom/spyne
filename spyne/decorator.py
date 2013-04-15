@@ -183,7 +183,7 @@ def srpc(*params, **kparams):
     '''
 
     kparams["_no_ctx"] = True
-    return srpc(*params, **kparams)
+    return rpc(*params, **kparams)
 
 def rpc(*params, **kparams):
     '''Method decorator to tag a method as a remote procedure call in a
