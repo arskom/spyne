@@ -43,6 +43,7 @@ _pref_soap_env = spyne.const.xml_ns.const_prefmap[_ns_soap_env]
 logic.
 """
 
+
 def nillable_value(func):
     def wrapper(prot, cls, value, tns, parent_elt, *args, **kwargs):
         if value is None:
@@ -423,4 +424,5 @@ def unicode_from_element(prot, cls, element):
     if prot.validator is prot.SOFT_VALIDATION and not (
                                         cls.validate_native(cls, retval)):
         raise ValidationError(retval)
+
     return retval

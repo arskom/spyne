@@ -30,32 +30,65 @@
 #
 
 
-from spyne.model.primitive import Boolean
-from spyne.model.primitive import String
+'''
+This is a simple HelloWorld example to show the basics of writing
+a webservice using spyne, starting a server, and creating a service
+client.
+
+Here's how to call it using suds:
+
+>>> from suds.client import Client
+>>> c = Client('http://localhost:8000/?wsdl')
+>>> c.service.say_hello('punk', 5)
+(stringArray){
+   string[] =
+      "Hello, punk",
+      "Hello, punk",
+      "Hello, punk",
+      "Hello, punk",
+      "Hello, punk",
+ }
+>>>
+
+'''
+
+
+import logging
+
+from spyne.decorator import srpc
+from spyne.service import ServiceBase
 from spyne.model.complex import ComplexModel
+from spyne.model.complex import Iterable
+from spyne.model.primitive import Integer
+from spyne.model.primitive import Unicode
 
-from spyne.util.dictdoc import get_object_as_dict
+from spyne.util.simple import wsgi_soap_application
 
-class SomeMapping(ComplexModel):
-    compact = Boolean
-    solid = Boolean
-    object_name = String
-    attached = Boolean
-    is_published = Boolean
-    is_owner = Boolean
-    can_delete = Boolean
-    can_insert= Boolean
-    can_update = Boolean
 
-print list(get_object_as_dict(SomeMapping(
-    compact=True,
-    solid=True,
-    object_name="Cat",
-    attached=False,
-    is_published=True,
-    is_owner=False,
-    can_delete=False,
-    can_insert= True,
-    can_update=True
-), SomeMapping, ignore_wrappers=True, complex_as=list))
+class HelloWorldService(ServiceBase):
+    @srpc(Unicode, Integer, _returns=Iterable(Unicode), _body_style='bare')
+    def say_hello(name, times):
+        '''
+        Docstrings for service methods appear as documentation in the wsdl
+        <b>what fun</b>
+        @param name the name to say hello to
+        @param the number of times to say hello
+        @return the completed array
+        '''
 
+        for i in range(times):
+            yield u'Hello, %s' % name
+
+
+if __name__=='__main__':
+    from wsgiref.simple_server import make_server
+
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
+
+    logging.info("listening to http://127.0.0.1:8000")
+    logging.info("wsdl is at: http://localhost:8000/?wsdl")
+
+    wsgi_app = wsgi_soap_application([HelloWorldService], 'spyne.examples.hello.soap')
+    server = make_server('127.0.0.1', 8000, wsgi_app)
+    server.serve_forever()

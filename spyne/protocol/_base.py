@@ -60,35 +60,6 @@ from spyne.model.primitive import Boolean
 from spyne.protocol._model import *
 
 
-def unwrap_messages(cls, skip_depth):
-    out_type = cls
-    for _ in range(skip_depth):
-        if hasattr(out_type, "_type_info") and len(out_type._type_info) == 1:
-            out_type = out_type._type_info[0]
-        else:
-            break
-
-    return out_type
-
-
-def unwrap_instance(cls, inst, skip_depth):
-    out_type = cls
-    out_instance = inst
-
-    i=0
-    for i in range(skip_depth):
-        if hasattr(out_type, "_type_info") and len(out_type._type_info) == 1:
-            (k, t), = out_type._type_info.items()
-            if not issubclass(out_type, Array):
-                out_instance = getattr(out_instance, k)
-            out_type = t
-
-        else:
-            break
-
-    return out_type, out_instance, (skip_depth - i)
-
-
 class ProtocolBaseMeta(type(object)):
     def __new__(cls, cls_name, cls_bases, cls_dict):
         for dkey in ("_to_string_handlers", "_to_string_iterable_handlers",
@@ -137,9 +108,6 @@ class ProtocolBase(object):
     :param mime_type: The mime_type this protocol should set for transports
         that support this. This is a quick way to override the mime_type by
         default instead of subclassing the releavant protocol implementation.
-    :param skip_depth: Number of wrapper classes to ignore. This is
-        typically one of (0, 1, 2) but higher numbers may also work for your
-        case.
     :param ignore_uncap: Silently ignore cases when the protocol is not capable
         of serializing return values instead of raising a TypeError.
     """
@@ -207,15 +175,15 @@ class ProtocolBase(object):
         Fault: fault_to_dict,
     })
 
-    def __init__(self, app=None, validator=None, mime_type=None, skip_depth=0, ignore_uncap=False):
+    def __init__(self, app=None, validator=None, mime_type=None,
+                                                            ignore_uncap=False):
         self.__app = None
         self.validator = None
 
         self.set_app(app)
         self.event_manager = EventManager(self)
         self.set_validator(validator)
-        self.skip_depth = skip_depth
-        self.ignore_uncap=ignore_uncap
+        self.ignore_uncap = ignore_uncap
         if mime_type is not None:
             self.mime_type = mime_type
 

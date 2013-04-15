@@ -67,7 +67,6 @@ class AttributesMeta(type(object)):
     """I hate quirks. This is a 10-minute attempt to get rid of a one-letter
     quirk."""
 
-
     def __new__(cls, cls_name, cls_bases, cls_dict):
         # Mapper args should not be inherited.
         if not 'sqla_mapper_args' in cls_dict:
@@ -116,15 +115,19 @@ class ModelBase(object):
     accessing it directly."""
 
     # These are not the xml schema defaults. The xml schema defaults are
-    # considered in ComplexModel's add_to_schema method. the defaults here
-    # are to reflect what people seem to want most.
+    # considered in XmlSchema's add() method. the defaults here are to reflect
+    # what people seem to want most.
     #
-    # please note that min_occurs and max_occurs must be validated in the
+    # Please note that min_occurs and max_occurs must be validated in the
     # ComplexModelBase deserializer.
     class Attributes(object):
         """The class that holds the constraints for the given type."""
 
         __metaclass__ = AttributesMeta
+
+        _wrapper = False
+        # when skip_wrappers=True is passed to a protocol, these objects
+        # are skipped. just for internal use.
 
         default = None
         """The default value if the input is None"""
@@ -176,13 +179,15 @@ class ModelBase(object):
 
         unique = None
         """If True, this object will be set as unique in the database schema
-        with default indexing options. If the value is a string, it will be used
-        as the indexing method to create the unique index.
+        with default indexing options. If the value is a string, it will be
+        used as the indexing method to create the unique index. See sqlalchemy
+        documentation on how to create multi-column unique constraints.
         """
 
         db_type = None
         """When not None, it overrides Spyne's own mapping from Spyne types to
-        SQLAlchemy types.
+        SQLAlchemy types. It's a standard SQLAlchemy type marker, e.g.
+        ``sqlalchemy.Integer``.
         """
 
         index = None

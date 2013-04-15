@@ -99,6 +99,7 @@ def _produce_input_message(f, params, kparams, _in_message_name,
 
     return message
 
+
 def _validate_body_style(kparams):
     _body_style = kparams.get('_body_style')
     _soap_body_style = kparams.get('_soap_body_style')
@@ -120,6 +121,7 @@ def _validate_body_style(kparams):
 
     return _body_style
 
+
 def _produce_output_message(func_name, kparams):
     """Generate an output message for "rpc"-style API methods.
 
@@ -130,16 +132,16 @@ def _produce_output_message(func_name, kparams):
     _body_style = _validate_body_style(kparams)
 
     _out_message_name = kparams.get('_out_message', '%s%s' %
-                                                    (func_name, RESPONSE_SUFFIX))
+                                                  (func_name, RESPONSE_SUFFIX))
     out_params = TypeInfo()
 
     if _returns and _body_style == 'wrapped':
         if isinstance(_returns, (list, tuple)):
             default_names = ['%s%s%d' % (func_name, RESULT_SUFFIX, i) for i in
-                                                           range(len(_returns))]
+                                                          range(len(_returns))]
 
             _out_variable_names = kparams.get('_out_variable_names',
-                                                                  default_names)
+                                                                 default_names)
 
             assert (len(_returns) == len(_out_variable_names))
 
@@ -158,38 +160,41 @@ def _produce_output_message(func_name, kparams):
 
     if _body_style == 'bare' and _returns is not None:
         message = ComplexModel.alias(_out_message_name, ns, _returns)
+
     else:
         message = ComplexModel.produce(type_name=_out_message_name,
                                         namespace=ns,
                                         members=out_params)
+
+        message.Attributes._wrapper = True
         message.__namespace__ = ns # FIXME: is this necessary?
 
     return message
 
-def rpc(*params, **kparams):
-    '''Method decorator to tag a method as a remote procedure call. See
-    :func:`spyne.decorator.srpc` for detailed information.
-
-    This decorator enables passing :class:`spyne.MethodContext` instance as an
-    implicit first argument to the user callable.
-    '''
-
-    kparams["_no_ctx"] = False
-    return srpc(*params, **kparams)
 
 def srpc(*params, **kparams):
-    '''Method decorator to tag a method as a remote procedure call.
+    '''Method decorator to tag a method as a remote procedure call. See
+    :func:`spyne.decorator.rpc` for detailed information.
 
-    The methods tagged with this decorator do not behave like a normal python
-    method but return 'MethodDescriptor' object when called.
+    The initial "s" stands for "static". In Spyne terms, that means no implicit
+    first argument is passed to the user callable, which really means the
+    method is "stateless" rather than static. It's meant to be used for
+    existing functions that can't be changed.
+    '''
 
-    The initial "s" stands for "static". In Spyne's context, that means no
-    implicit first argument is passed to the user callable.
+    kparams["_no_ctx"] = True
+    return rpc(*params, **kparams)
+
+def rpc(*params, **kparams):
+    '''Method decorator to tag a method as a remote procedure call in a
+    :class:`spyne.service.ServiceBase` subclass.
 
     You should use the :class:`spyne.server.null.NullServer` transport if you
     want to call the methods directly. You can also use the 'function' attribute
     of the returned object to call the function itself.
 
+    :param _returns: Denotes The return type of the function. It can be a type or
+        a sequence of types for functions that have multiple return values.
     :param _in_header: A type or an iterable of types that that this method
         accepts as incoming header.
     :param _out_header: A type or an iterable of types that that this method
@@ -231,7 +236,7 @@ def srpc(*params, **kparams):
             _in_header = kparams.get('_in_header', None)
             _out_header = kparams.get('_out_header', None)
             _port_type = kparams.get('_soap_port_type', None)
-            _no_ctx = kparams.get('_no_ctx', True)
+            _no_ctx = kparams.get('_no_ctx', False)
             _udp = kparams.get('_udp', None)
             _aux = kparams.get('_aux', None)
             _pattern = kparams.get("_pattern",None)
@@ -240,7 +245,7 @@ def srpc(*params, **kparams):
 
             _faults = None
             if ('_faults' in kparams) and ('_throws' in kparams):
-                raise ValueError("only one of '_throws ' and '_faults' arguments"
+                raise ValueError("only one of '_throws ' or '_faults' arguments"
                                  "should be given, as they're synonyms.")
             elif '_faults' in kparams:
                 _faults = kparams.get('_faults', None)

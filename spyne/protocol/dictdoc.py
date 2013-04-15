@@ -19,6 +19,9 @@
 
 """The ``spyne.protocol.dictdoc`` module contains an abstract
 protocol that deals with hierarchical and flat dicts as {in,out}_documents.
+
+This module is EXPERIMENTAL. You may not recognize the code here next time you
+look at it.
 """
 
 import logging
@@ -44,8 +47,6 @@ from spyne.model.primitive import String
 from spyne.model.primitive import Unicode
 
 from spyne.protocol import ProtocolBase
-from spyne.protocol._base import unwrap_messages
-from spyne.protocol._base import unwrap_instance
 
 
 def check_freq_dict(cls, d, fti=None):
@@ -73,17 +74,13 @@ class DictDocument(ProtocolBase):
     ``create_out_string()`` to use this.
     """
 
-    def deserialize(self, ctx, message):
-        raise NotImplementedError()
+    def __init__(self, app=None, validator=None, mime_type=None,
+                                        ignore_uncap=False,
+                                        ignore_wrappers=False, complex_as=dict):
+        ProtocolBase.__init__(self, app, validator, mime_type, ignore_uncap)
 
-    def serialize(self, ctx, message):
-        raise NotImplementedError()
-
-    def create_in_document(self, ctx, in_string_encoding=None):
-        raise NotImplementedError()
-
-    def create_out_string(self, ctx, out_string_encoding='utf8'):
-        raise NotImplementedError()
+        self.ignore_wrappers = ignore_wrappers
+        self.complex_as = complex_as
 
     def set_validator(self, validator):
         """Sets the validator for the protocol.
@@ -122,6 +119,18 @@ class DictDocument(ProtocolBase):
 
         logger.debug('\theader : %r' % (ctx.in_header_doc))
         logger.debug('\tbody   : %r' % (ctx.in_body_doc))
+
+    def deserialize(self, ctx, message):
+        raise NotImplementedError()
+
+    def serialize(self, ctx, message):
+        raise NotImplementedError()
+
+    def create_in_document(self, ctx, in_string_encoding=None):
+        raise NotImplementedError()
+
+    def create_out_string(self, ctx, out_string_encoding='utf8'):
+        raise NotImplementedError()
 
 
 class FlatDictDocument(DictDocument):
@@ -178,7 +187,7 @@ class FlatDictDocument(DictDocument):
 
             # assign the native value to the relevant class in the nested object
             # structure.
-            ccls, cinst = inst_class, inst
+            cinst = inst
             ctype_info = inst_class.get_flat_type_info(inst_class)
 
             idx, nidx = 0, 0
@@ -221,7 +230,7 @@ class FlatDictDocument(DictDocument):
                     cinst = ninst
 
                 cfreq_key = cfreq_key + (ncls, nidx)
-                ccls, idx = ncls, nidx
+                idx = nidx
                 ctype_info = ncls._type_info
 
             frequencies[cfreq_key][member.path[-1]] += len(value)
@@ -303,18 +312,16 @@ class HierDictDocument(DictDocument):
 
         # instantiate the result message
         if message is self.REQUEST:
-            body_class = unwrap_messages(ctx.descriptor.in_message,
-                                                                self.skip_depth)
+            body_class = ctx.descriptor.in_message
         elif message is self.RESPONSE:
-            body_class = unwrap_messages(ctx.descriptor.out_message,
-                                                                self.skip_depth)
+            body_class = ctx.descriptor.out_message
+
         if body_class:
             # assign raw result to its wrapper, result_message
             result_class = ctx.descriptor.in_message
             value = ctx.in_body_doc.get(result_class.get_type_name(), None)
             result_message = self._doc_to_object(result_class, value,
                                                                  self.validator)
-
             ctx.in_object = result_message
 
         else:
@@ -328,7 +335,8 @@ class HierDictDocument(DictDocument):
         self.event_manager.fire_event('before_serialize', ctx)
 
         if ctx.out_error is not None:
-            ctx.out_document = [ProtocolBase.to_dict(ctx.out_error.__class__, ctx.out_error)]
+            ctx.out_document = [ProtocolBase.to_dict(ctx.out_error.__class__,
+                                                                 ctx.out_error)]
 
         else:
             # get the result message
@@ -349,8 +357,7 @@ class HierDictDocument(DictDocument):
                 attr_name = out_type_info.keys()[i]
                 setattr(out_instance, attr_name, ctx.out_object[i])
 
-            ctx.out_document = self._object_to_doc(out_type, out_instance,
-                                                    skip_depth=self.skip_depth)
+            ctx.out_document = self._object_to_doc(out_type, out_instance),
 
             self.event_manager.fire_event('after_serialize', ctx)
 
@@ -445,42 +452,39 @@ class HierDictDocument(DictDocument):
 
         return inst
 
-    @classmethod
-    def _object_to_doc(cls, class_, value, wrapper_name=None, skip_depth=0):
-        # strip the wrappers if asked for
-        class_, value, skips_left = unwrap_instance(class_, value, skip_depth)
+    def _object_to_doc(self, class_, value, wrapper_name=None):
+        # import ipdb; ipdb.set_trace()
+        if self.ignore_wrappers:
+            wrapper_name = None
+            ti = getattr(class_, '_type_info', {})
 
-        # arrays get wrapped in [], whereas other objects get wrapped in
-        # {wrapper_name: ...}
-        if wrapper_name is None and not issubclass(class_, Array):
-            wrapper_name = class_.get_type_name()
+            while len(ti) == 1 and class_.Attributes._wrapper:
+                key, = ti.keys()
+                if not issubclass(class_, Array):
+                    value = getattr(value, key, None)
+                class_, = ti.values()
+                ti = getattr(class_, '_type_info', {})
+        else:
+            # arrays get wrapped in [], whereas other objects get wrapped in
+            # {wrapper_name: ...} if wrapper_name is not None.
+            if wrapper_name is None and not issubclass(class_, Array):
+                wrapper_name = class_.get_type_name()
 
         # transform the results into a dict:
         if class_.Attributes.max_occurs > 1:
-            retval = (cls._to_value(class_, inst, wrapper_name) for inst in value)
+            retval = [self._to_value(class_, inst, wrapper_name)
+                                                              for inst in value]
+            if len(retval) == 0:
+                retval = None
         else:
-            retval = cls._to_value(class_, value, wrapper_name)
-
-            for _ in range(skips_left):
-                if isinstance(retval, dict):
-                    _retval = iter(retval.values()).next()
-                    if not isinstance(_retval, dict):
-                        return retval.values()
-                    else:
-                        retval = _retval
-                else:
-                    retval = iter(retval).next()
-
-            if not isinstance(retval, (list,tuple)):
-                retval = retval,
+            retval = self._to_value(class_, value, wrapper_name)
 
         return retval
 
-    @classmethod
-    def _get_member_pairs(cls, class_, inst):
+    def _get_member_pairs(self, class_, inst):
         parent_cls = getattr(class_, '__extends__', None)
         if parent_cls is not None:
-            for r in cls._get_member_pairs(parent_cls, inst):
+            for r in self._get_member_pairs(parent_cls, inst):
                 yield r
 
         for k, v in class_._type_info.items():
@@ -491,43 +495,42 @@ class HierDictDocument(DictDocument):
                 logger.error("Error getting %r: %r" %(k,e))
                 sub_value = None
 
-            if v.Attributes.max_occurs > 1:
-                if sub_value != None:
-                    yield (k, [cls._to_value(v,sv) for sv in sub_value])
+            yield (k, self._object_to_doc(v, sub_value))
 
-            else:
-                val = cls._to_value(v, sub_value)
-                if val is not None or class_.Attributes.min_occurs > 0:
-                    yield (k, val)
-
-    @classmethod
-    def _to_value(cls, class_, value, k=None):
+    def _to_value(self, class_, value, k=None):
         if issubclass(class_, ComplexModelBase):
-            return cls._to_dict(class_, value, k)
+            if self.complex_as is list:
+                return self._to_list(class_, value)
+            else:
+                return self._to_dict(class_, value, k)
 
         if issubclass(class_, DateTime):
-            return cls.to_string(class_, value)
+            return self.to_string(class_, value)
 
         if issubclass(class_, Decimal):
             if class_.Attributes.format is None:
                 return value
             else:
-                return cls.to_string(class_, value)
+                return self.to_string(class_, value)
 
         return value
 
-    @classmethod
-    def _to_dict(cls, class_, inst, field_name=None):
+    def _to_dict(self, class_, inst, field_name=None):
         inst = class_.get_serialization_instance(inst)
 
-        retval = dict(cls._get_member_pairs(class_, inst))
+        retval = dict(self._get_member_pairs(class_, inst))
         if field_name is None:
             return retval
         else:
             return {field_name: retval}
 
-    @classmethod
-    def flat_dict_to_object(cls, doc, inst_class, validator=None, hier_delim="_"):
+    def _to_list(self, class_, inst):
+        inst = class_.get_serialization_instance(inst)
+
+        for k,v in self._get_member_pairs(class_, inst):
+            yield v
+
+    def flat_dict_to_object(self, doc, inst_class, validator=None, hier_delim="_"):
         """Converts a flat dict to a native python object.
 
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
@@ -553,7 +556,7 @@ class HierDictDocument(DictDocument):
             # extract native values from the list of strings that come from the
             # http dict.
             for v2 in v:
-                if (validator is cls.SOFT_VALIDATION and not
+                if (validator is self.SOFT_VALIDATION and not
                                   member.type.validate_string(member.type, v2)):
                     raise ValidationError(v2)
 
@@ -565,7 +568,7 @@ class HierDictDocument(DictDocument):
                 else:
                     native_v2 = ProtocolBase.from_string(member.type, v2)
 
-                if (validator is cls.SOFT_VALIDATION and not
+                if (validator is self.SOFT_VALIDATION and not
                             member.type.validate_native(member.type, native_v2)):
                     raise ValidationError(v2)
 
@@ -634,14 +637,13 @@ class HierDictDocument(DictDocument):
                 logger.debug("\tset default %r(%r) = %r" %
                                                     (member.path, pkey, value))
 
-        if validator is cls.SOFT_VALIDATION:
+        if validator is self.SOFT_VALIDATION:
             for k, d in frequencies.items():
                 check_freq_dict(k[-2], d)
 
         return inst
 
-    @classmethod
-    def object_to_flat_dict(cls, inst_cls, value, hier_delim="_", retval=None,
+    def object_to_flat_dict(self, inst_cls, value, hier_delim="_", retval=None,
                            prefix=None, parent=None, subvalue_eater=lambda v,t:v):
         """Converts a native python object to a flat dict.
 
@@ -674,7 +676,7 @@ class HierDictDocument(DictDocument):
                             retval[key] = None
 
             else:
-                cls.object_to_flat_dict(fti[k], subvalue, hier_delim,
+                self.object_to_flat_dict(fti[k], subvalue, hier_delim,
                                             retval, new_prefix, parent=inst_cls)
 
         return retval

@@ -104,17 +104,19 @@ if __name__ == '__main__':
     svg = Application([HelloWorldService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=SvgClock())
 
-    json0 = Application([HelloWorldService], tns=tns,
+    json = Application([HelloWorldService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=JsonDocument())
 
-    json1 = Application([HelloWorldService], tns=tns,
-            in_protocol=HttpRpc(), out_protocol=JsonDocument(skip_depth=1))
+    jsoni = Application([HelloWorldService], tns=tns,
+            in_protocol=HttpRpc(), out_protocol=JsonDocument(
+                                                         ignore_wrappers=True))
 
-    json2 = Application([HelloWorldService], tns=tns,
-            in_protocol=HttpRpc(), out_protocol=JsonDocument(skip_depth=2))
+    jsonl = Application([HelloWorldService], tns=tns,
+            in_protocol=HttpRpc(), out_protocol=JsonDocument(complex_as=list))
 
-    json22 = Application([HelloWorldService], tns=tns,
-            in_protocol=HttpRpc(), out_protocol=JsonDocument(skip_depth=22))
+    jsonil = Application([HelloWorldService], tns=tns,
+            in_protocol=HttpRpc(), out_protocol=JsonDocument(
+                                        ignore_wrappers=True, complex_as=list))
 
     msgpack_doc = Application([HelloWorldService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=MessagePackDocument())
@@ -132,11 +134,10 @@ if __name__ == '__main__':
         'html': html,
         'png': png,
         'svg': svg,
-        'json': json0,
-        'json0': json0,
-        'json1': json1,
-        'json2': json2,
-        'json22': json22,
+        'json': json,
+        'jsoni': jsoni,
+        'jsonl': jsonl,
+        'jsonil': jsonil,
         'mpd': msgpack_doc,
         'mprpc': msgpack_rpc,
         'yaml': yaml,
@@ -147,7 +148,9 @@ if __name__ == '__main__':
 
     logging.basicConfig(level=logging.DEBUG)
     logging.info("listening to http://%s:%d" % (host, port))
-    logging.info("navigate to e.g. http://%s:%d/json2/get_utc_time" % (host, port))
-    logging.info("navigate to e.g. http://%s:%d/xml/get_utc_time" % (host, port))
+    logging.info("navigate to e.g. http://%s:%d/json2/get_utc_time" %
+                                                                  (host, port))
+    logging.info("navigate to e.g. http://%s:%d/xml/get_utc_time" %
+                                                                  (host, port))
 
     server.serve_forever()

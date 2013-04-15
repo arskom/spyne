@@ -43,12 +43,12 @@ from spyne.decorator import rpc
 
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.yaml import YamlDocument
+from spyne.model.primitive import Mandatory
 from spyne.model.primitive import Unicode
+from spyne.model.primitive import UnsignedInteger32
 from spyne.model.complex import Array
 from spyne.model.complex import Iterable
 from spyne.model.complex import TTableModel
-from spyne.model.primitive import Integer
-from spyne.model.primitive import Integer32
 from spyne.server.wsgi import WsgiApplication
 from spyne.service import ServiceBase
 from spyne.util import memoize
@@ -61,21 +61,21 @@ TableModel.Attributes.sqla_metadata.bind = db
 
 
 class Permission(TableModel):
-    __tablename__ = 'spyne_user_permission'
-    __namespace__ = 'spyne.examples.user_manager'
+    __tablename__ = 'permission'
+    __namespace__ = 'spyne.examples.sql_crud'
     __table_args__ = {"sqlite_autoincrement": True}
 
-    id = Integer32(primary_key=True)
+    id = UnsignedInteger32(primary_key=True)
     application = Unicode(256)
     operation = Unicode(256)
 
 
 class User(TableModel):
-    __tablename__ = 'spyne_user'
-    __namespace__ = 'spyne.examples.user_manager'
+    __tablename__ = 'user'
+    __namespace__ = 'spyne.examples.sql_crud'
     __table_args__ = {"sqlite_autoincrement": True}
 
-    id = Integer32(primary_key=True)
+    id = UnsignedInteger32(primary_key=True)
     name = Unicode(256)
     first_name = Unicode(256)
     last_name = Unicode(256)
@@ -85,18 +85,31 @@ class User(TableModel):
 @memoize
 def TCrudService(T, T_name):
     class CrudService(ServiceBase):
-        @rpc(Integer, _returns=T)
+        @rpc(Mandatory.UnsignedInteger32, _returns=T)
         def get(ctx, obj_id):
             return ctx.udc.session.query(T).filter_by(id=obj_id).one()
 
-        @rpc(T, _returns=Integer)
+        @rpc(T, _returns=UnsignedInteger32)
         def put(ctx, obj):
-            ctx.udc.session.merge(obj)
-            ctx.udc.session.flush()
+            if obj.id is None:
+                ctx.udc.session.add(obj)
+                ctx.udc.session.flush()
+
+            else:
+                if ctx.udc.session.query(T).get(obj.id) is None:
+                    raise ResourceNotFoundError('%s.id=%d' % (T_name, obj.id))
+
+                else:
+                    ctx.udc.session.merge(obj)
+
             return obj.id
 
-        @rpc(Integer)
-        def del_user(ctx, obj_id):
+        @rpc(Mandatory.UnsignedInteger32)
+        def del_(ctx, obj_id):
+            count = ctx.udc.session.query(T).filter_by(id=obj_id).count()
+            if count == 0:
+                raise ResourceNotFoundError(obj_id)
+
             ctx.udc.session.query(T).filter_by(id=obj_id).delete()
 
         @rpc(_returns=Iterable(T))
@@ -118,10 +131,11 @@ def _on_method_return_object(ctx):
     ctx.udc.session.commit()
 
 def _on_method_context_closed(ctx):
-    ctx.udc.session.close()
+    if ctx.udc is not None:
+        ctx.udc.session.close()
 
 application = Application([TCrudService(User, 'user')],
-                                    tns='spyne.examples.user_manager',
+                                    tns='spyne.examples.sql_crud',
                                     in_protocol=HttpRpc(validator='soft'),
                                     out_protocol=YamlDocument())
 

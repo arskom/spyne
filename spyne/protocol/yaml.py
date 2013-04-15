@@ -20,7 +20,7 @@
 """The ``spyne.protocol.Yaml`` package contains the Yaml-related protocols.
 Currently, only :class:`spyne.protocol.Yaml.YamlDocument` is supported.
 
-Initially released in 2.8.0-rc.
+Initially released in 2.10.0-rc.
 
 This module is EXPERIMENTAL. You may not recognize the code here next time you
 look at it.
@@ -71,13 +71,14 @@ class YamlDocument(HierDictDocument):
     type = set(HierDictDocument.type)
     type.add('yaml')
 
-    def __init__(self, app=None, validator=None, mime_type=None, skip_depth=0,
-                                                            ignore_uncap=False,
-                # these are yaml specific
-                safe=True, **kwargs):
+    def __init__(self, app=None, validator=None, mime_type=None,
+                                        ignore_uncap=False,
+                                        ignore_wrappers=True, complex_as=dict,
+                                        # these are yaml specific
+                                        safe=True, **kwargs):
 
-        HierDictDocument.__init__(self, app, validator, mime_type, skip_depth,
-                                                                   ignore_uncap)
+        HierDictDocument.__init__(self, app, validator, mime_type, ignore_uncap,
+                                                    ignore_wrappers, complex_as)
 
         self.in_kwargs = dict(kwargs)
         self.out_kwargs = dict(kwargs)

@@ -90,7 +90,8 @@ class table:
     :param right: Name of the right join column.
     """
 
-    def __init__(self, multi=False, left=None, right=None, backref=None, id_backref=None):
+    def __init__(self, multi=False, left=None, right=None, backref=None,
+                                                              id_backref=None):
         self.multi = multi
         self.left = left
         self.right = right
@@ -105,10 +106,13 @@ class json:
     Make sure you don't mix this with the json package when importing.
     """
 
-    def __init__(self, skip_depth=0):
-        if skip_depth > 0:
-            raise NotImplementedError("skip_depth > 0")
-        self.skip_depth = skip_depth
+    def __init__(self, ignore_wrappers=True, complex_as=list):
+        if ignore_wrappers != True:
+            raise NotImplementedError("ignore_wrappers != True")
+        if not (complex_as is list):
+            raise NotImplementedError("complex_as != list")
+        self.ignore_wrappers = ignore_wrappers
+        self.complex_as = complex_as
 
 
 class msgpack:
@@ -710,6 +714,9 @@ class Array(ComplexModelBase):
     """
 
     __metaclass__ = ComplexModelMeta
+
+    class Attributes(ComplexModelBase.Attributes):
+        _wrapper = True
 
     def __new__(cls, serializer, **kwargs):
         retval = cls.customize(**kwargs)
