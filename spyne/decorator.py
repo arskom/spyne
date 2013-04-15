@@ -165,6 +165,8 @@ def _produce_output_message(func_name, kparams):
         message = ComplexModel.produce(type_name=_out_message_name,
                                         namespace=ns,
                                         members=out_params)
+
+        message.Attributes._wrapper = True
         message.__namespace__ = ns # FIXME: is this necessary?
 
     return message

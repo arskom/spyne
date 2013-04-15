@@ -22,15 +22,14 @@ from spyne.model.complex import Array
 from spyne.protocol.dictdoc import HierDictDocument
 
 
-def get_dict_as_object(d, cls, skip_depth=0):
+def get_dict_as_object(d, cls):
     if issubclass(cls, Array):
         d = list(d.values())[0] # FIXME: Hack!
 
-    return HierDictDocument._doc_to_object(cls, d, skip_depth)
+    return HierDictDocument._doc_to_object(cls, d)
 
 
-def get_object_as_dict(o, cls, wrapper_name=None, skip_depth=0):
-    if skip_depth == 0: # FIXME: ???
-        return list(HierDictDocument._object_to_doc(cls, o, wrapper_name, skip_depth))[0]
-    else:
-        return HierDictDocument._object_to_doc(cls, o, wrapper_name, skip_depth)
+def get_object_as_dict(o, cls, wrapper_name=None, ignore_wrappers=False,
+                                                                complex_as=list):
+    return HierDictDocument(ignore_wrappers=ignore_wrappers,
+                    complex_as=complex_as)._object_to_doc(cls, o, wrapper_name)

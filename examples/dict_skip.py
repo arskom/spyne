@@ -47,9 +47,7 @@ class SomeMapping(ComplexModel):
     can_insert= Boolean
     can_update = Boolean
 
-# You'll get a nice compact array. Experiment with different skip_depth
-# vaules to understand its meaning.
-print get_object_as_dict(SomeMapping(
+print list(get_object_as_dict(SomeMapping(
     compact=True,
     solid=True,
     object_name="Cat",
@@ -59,5 +57,5 @@ print get_object_as_dict(SomeMapping(
     can_delete=False,
     can_insert= True,
     can_update=True
-), SomeMapping, skip_depth=4)
+), SomeMapping, ignore_wrappers=True, complex_as=list))
 

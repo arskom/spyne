@@ -709,6 +709,9 @@ class Array(ComplexModelBase):
 
     __metaclass__ = ComplexModelMeta
 
+    class Attributes(ComplexModelBase.Attributes):
+        _wrapper = True
+
     def __new__(cls, serializer, **kwargs):
         retval = cls.customize(**kwargs)
 

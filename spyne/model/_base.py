@@ -65,7 +65,6 @@ class AttributesMeta(type(object)):
     """I hate quirks. This is a 10-minute attempt to get rid of a one-letter
     quirk."""
 
-
     def __new__(cls, cls_name, cls_bases, cls_dict):
         # Mapper args should not be inherited.
         if not 'sqla_mapper_args' in cls_dict:
@@ -123,6 +122,10 @@ class ModelBase(object):
         """The class that holds the constraints for the given type."""
 
         __metaclass__ = AttributesMeta
+
+        _wrapper = False
+        # when skip_wrappers=True is passed to a protocol, these objects
+        # are skipped. just for internal use.
 
         default = None
         """The default value if the input is None"""
