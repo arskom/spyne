@@ -268,7 +268,10 @@ class PGObjectJson(UserDefinedType):
         def process(value):
             if value is not None:
                 return get_dict_as_object(json.loads(value), self.cls,
-                                                    skip_depth=self.skip_depth)
+                        ignore_wrappers=self.ignore_wrappers,
+                        complex_as=self.complex_as,
+                    )
+
         return process
 
 sqlalchemy.dialects.postgresql.base.ischema_names['json'] = PGObjectJson
@@ -614,8 +617,12 @@ def gen_sqla_info(cls, cls_bases=()):
                     if k in table.c:
                         col = table.c[k]
                     else:
-                        col = Column(k, PGObjectJson(v, p.skip_depth),
-                                                        *col_args, **col_kwargs)
+                        col = Column(k, PGObjectJson(v,
+                                            ignore_wrappers=p.ignore_wrappers,
+                                            complex_as=p.complex_as
+                                        ),
+                                        *col_args, **col_kwargs,
+                            )
 
                 elif isinstance(p, c_msgpack):
                     raise NotImplementedError()

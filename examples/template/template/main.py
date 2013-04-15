@@ -50,7 +50,7 @@ def main():
     application = MyApplication([UserManagerService],
                 'spyne.examples.user_manager',
                 in_protocol=HttpRpc(validator='soft'),
-                out_protocol=JsonDocument(skip_depth=1),
+                out_protocol=JsonDocument(ignore_wrappers=1),
             )
 
     wsgi_app = WsgiApplication(application)
