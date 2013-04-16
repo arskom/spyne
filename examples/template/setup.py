@@ -29,8 +29,11 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from distribute_setup import use_setuptools
-use_setuptools()
+try:
+	from distribute_setup import use_setuptools
+	use_setuptools()
+except ImportError:
+	pass
 
 import os
 import re
