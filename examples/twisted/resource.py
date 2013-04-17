@@ -58,6 +58,7 @@ from twisted.internet import reactor
 from twisted.web.server import Site
 from twisted.internet.task import deferLater
 
+from spyne.model.binary import ByteArray
 from spyne.model.complex import Iterable
 from spyne.server.twisted import TwistedWebResource
 from spyne.decorator import srpc
@@ -81,7 +82,7 @@ class SomeNonBlockingService(ServiceBase):
 
         return deferLater(reactor, seconds, _cb)
 
-    @srpc(str, int, int, _returns=Iterable(str))
+    @srpc(str, int, int, _returns=ByteArray)
     def say_hello_with_sleep(name, times, seconds):
         """Waits without blocking reactor for given number of seconds by
         returning a deferred."""

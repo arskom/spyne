@@ -29,6 +29,8 @@ import tempfile
 
 from Cookie import SimpleCookie
 
+from spyne import BODY_STYLE_WRAPPED
+from spyne import BODY_STYLE_BARE
 from spyne.error import ResourceNotFoundError
 from spyne.model.binary import ByteArray
 from spyne.model.primitive import DateTime
@@ -189,6 +191,9 @@ class HttpRpc(FlatDictDocument):
     def serialize(self, ctx, message):
         assert message in (self.RESPONSE,)
 
+        if ctx.out_document is not None:
+            return
+
         if ctx.out_error is None:
             result_class = ctx.descriptor.out_message
             header_class = ctx.descriptor.out_header
@@ -197,28 +202,34 @@ class HttpRpc(FlatDictDocument):
                 header_class = header_class[0]
 
             # assign raw result to its wrapper, result_message
-            out_type_info = result_class.get_flat_type_info(result_class)
-            if len(out_type_info) == 1:
-                out_class = out_type_info.values()[0]
-                if ctx.out_object is None:
-                    ctx.out_document = ['']
-
-                else:
-                    try:
-                        ctx.out_document = self.to_string_iterable(out_class,
-                                                              ctx.out_object[0])
-                    except (AttributeError, TypeError), e:
-                        logger.exception(e)
-                        if not self.ignore_uncap:
-                            raise TypeError("HttpRpc protocol can only "
-                                     "serialize primitives, not %r" % out_class)
-
-            elif len(out_type_info) == 0:
-                pass
+            if ctx.out_object is None or len(ctx.out_object) < 1:
+                ctx.out_document = ['']
 
             else:
-                raise TypeError("HttpRpc protocol can only serialize simple "
-                                "return types.")
+                if ctx.descriptor.body_style is BODY_STYLE_WRAPPED:
+                    try:
+                        out_class, = result_class.get_flat_type_info(result_class).values()
+                        out_object, = ctx.out_object
+
+                    except (TypeError, ValueError), e:
+                        logger.exception(e)
+                        if self.ignore_uncap:
+                            return
+                        raise TypeError("HttpRpc protocol can only serialize "
+                                        "functions with a single return type.")
+                else:
+                    out_class = result_class
+                    out_object = ctx.out_object
+
+                try:
+                    ctx.out_document = self.to_string_iterable(out_class,
+                                                                     out_object)
+                except (TypeError, AttributeError), e:
+                    logger.exception(e)
+                    if self.ignore_uncap:
+                        return
+                    raise TypeError("HttpRpc protocol can only serialize "
+                                    "primitives.")
 
             # header
             if ctx.out_header is not None:
@@ -236,6 +247,9 @@ class HttpRpc(FlatDictDocument):
         self.event_manager.fire_event('serialize', ctx)
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):
+        if ctx.out_string is not None:
+            return
+
         ctx.out_string = ctx.out_document
 
 
