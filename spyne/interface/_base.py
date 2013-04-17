@@ -300,6 +300,16 @@ class Interface(object):
                 logger.debug("\timporting %r to %r because %r extends %r" % (
                     parent_ns, ns, cls.get_type_name(), extends.get_type_name()))
 
+        bt = getattr(cls, '__base_type__', None)
+        if not (bt is None):
+            self.add_class(bt)
+            parent_ns = bt.get_namespace()
+            if parent_ns != ns and not parent_ns in self.imports[ns] and \
+                                                self.is_valid_import(parent_ns):
+                self.imports[ns].add(parent_ns)
+                logger.debug("\timporting %r to %r because %r extends %r" % (
+                    parent_ns, ns, cls.get_type_name(), bt.get_type_name()))
+
         class_key = '{%s}%s' % (ns, tn)
         logger.debug('\tadding class %r for %r' % (repr(cls), class_key))
 
