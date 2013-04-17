@@ -24,6 +24,8 @@ in a single field.
 """
 
 
+from __future__ import absolute_import
+
 import sys
 if sys.version > '3':
     long = int
@@ -724,8 +726,10 @@ class Boolean(SimpleModel):
     __type_name__ = 'boolean'
 
 
-class Uuid(Unicode(pattern=UUID_PATTERN, type_name='uuid')):
+class Uuid(Unicode(pattern=UUID_PATTERN)):
     """Unicode subclass for Universially-Unique Identifiers."""
+    __namespace__ = 'http://spyne.io/schema'
+    __type_name__ = 'uuid'
 
 
 class Point(Unicode):
@@ -908,7 +912,7 @@ class Mandatory:
     UnsignedShort = UnsignedInteger16
     UnsignedByte = UnsignedInteger8
 
-    Uuid = Unicode(type_name="MandatoryUuid", min_occurs=1, nillable=False, min_len=1, pattern=UUID_PATTERN)
+    Uuid = Uuid(type_name="MandatoryUuid", min_len=1, min_occurs=1, nillable=False)
 
 
 NATIVE_MAP = {
