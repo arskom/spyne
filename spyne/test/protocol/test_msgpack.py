@@ -104,14 +104,15 @@ class TestMessagePackRpc(unittest.TestCase):
         ret = ''.join(ret)
         print repr(ret)
         print msgpack.unpackb(ret)
-        assert ret == msgpack.packb([1, 0, None, {'get_valuesResponse': {
+        assert ret == msgpack.packb([1, 0, None, {
             'get_valuesResult': {
                 'KeyValuePair': [
                     {'value': 'b', 'key': 'a'},
                     {'value': 'd', 'key': 'c'}
                 ]
-            }}}
+            }}
         ])
+
 
 if __name__ == '__main__':
     unittest.main()

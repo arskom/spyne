@@ -17,19 +17,15 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-
-from spyne.model.complex import Array
 from spyne.protocol.dictdoc import HierDictDocument
 
 
-def get_dict_as_object(d, cls):
-    if issubclass(cls, Array):
-        d = list(d.values())[0] # FIXME: Hack!
-
-    return HierDictDocument._doc_to_object(cls, d)
+def get_dict_as_object(d, cls, ignore_wrappers=False, complex_as=list):
+    return HierDictDocument(ignore_wrappers=ignore_wrappers,
+                                   complex_as=complex_as)._doc_to_object(cls, d)
 
 
 def get_object_as_dict(o, cls, wrapper_name=None, ignore_wrappers=False,
-                                                                complex_as=list):
+                                                                complex_as=dict):
     return HierDictDocument(ignore_wrappers=ignore_wrappers,
                     complex_as=complex_as)._object_to_doc(cls, o, wrapper_name)

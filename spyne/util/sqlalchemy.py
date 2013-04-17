@@ -267,10 +267,7 @@ class PGObjectJson(UserDefinedType):
     def result_processor(self, dialect, col_type):
         def process(value):
             if value is not None:
-                return get_dict_as_object(json.loads(value), self.cls,
-                        ignore_wrappers=self.ignore_wrappers,
-                        complex_as=self.complex_as,
-                    )
+                return get_dict_as_object(json.loads(value), self.cls)
 
         return process
 
@@ -621,7 +618,7 @@ def gen_sqla_info(cls, cls_bases=()):
                                             ignore_wrappers=p.ignore_wrappers,
                                             complex_as=p.complex_as
                                         ),
-                                        *col_args, **col_kwargs,
+                                        *col_args, **col_kwargs
                             )
 
                 elif isinstance(p, c_msgpack):

@@ -42,7 +42,7 @@ from spyne.server import ServerBase
 
 
 def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
-    def _dry_me(services, d, ignore_wrappers=False, complex_as=list,
+    def _dry_me(services, d, ignore_wrappers=False, complex_as=dict,
                          just_ctx=False, just_in_object=False, validator=None):
 
         app = Application(services, 'tns',

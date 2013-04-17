@@ -115,7 +115,7 @@ class DictDocument(ProtocolBase):
 
         # set ctx.method_request_string
         ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
-                                                                doc.keys()[0])
+                                                                  doc.keys()[0])
 
         logger.debug('\theader : %r' % (ctx.in_header_doc))
         logger.debug('\tbody   : %r' % (ctx.in_body_doc))
@@ -361,10 +361,9 @@ class HierDictDocument(DictDocument):
 
             self.event_manager.fire_event('after_serialize', ctx)
 
-    @classmethod
-    def _from_dict_value(cls, class_, value, validator):
+    def _from_dict_value(self, class_, value, validator):
         # validate raw input
-        if validator is cls.SOFT_VALIDATION:
+        if validator is self.SOFT_VALIDATION:
             if issubclass(class_, Unicode) and not isinstance(value, basestring):
                 raise ValidationError(value)
             if issubclass(class_, Unicode) and not isinstance(value, unicode):
@@ -383,7 +382,7 @@ class HierDictDocument(DictDocument):
 
         # get native type
         if issubclass(class_, ComplexModelBase):
-            retval = cls._doc_to_object(class_, value, validator)
+            retval = self._doc_to_object(class_, value, validator)
 
         elif issubclass(class_, DateTime):
             retval = ProtocolBase.from_string(class_, value)
@@ -392,14 +391,13 @@ class HierDictDocument(DictDocument):
             retval = value
 
         # validate native type
-        if validator is cls.SOFT_VALIDATION and \
+        if validator is self.SOFT_VALIDATION and \
                                      not class_.validate_native(class_, retval):
             raise ValidationError(retval)
 
         return retval
 
-    @classmethod
-    def _doc_to_object(cls, class_, doc, validator=None):
+    def _doc_to_object(self, class_, doc, validator=None):
         if doc is None:
             return []
 
@@ -407,8 +405,19 @@ class HierDictDocument(DictDocument):
             retval = [ ]
             (serializer,) = class_._type_info.values()
 
-            for child in doc:
-                retval.append(cls._from_dict_value(serializer, child, validator))
+            if self.ignore_wrappers:
+                for child in doc:
+                    retval.append(self._from_dict_value(serializer, child,
+                                                                    validator))
+            else:
+                if self.complex_as is list:
+                    doc, = doc
+                else:
+                    doc, = doc.values()
+
+                for child in doc:
+                    retval.append(self._from_dict_value(serializer, child,
+                                                                    validator))
 
             return retval
 
@@ -438,46 +447,40 @@ class HierDictDocument(DictDocument):
                     value = []
 
                 for a in v:
-                    value.append(cls._from_dict_value(member, a, validator))
+                    value.append(self._from_dict_value(member, a, validator))
 
             else:
-                value = cls._from_dict_value(member, v, validator)
+                value = self._from_dict_value(member, v, validator)
 
             setattr(inst, k, value)
 
             frequencies[k] += 1
 
-        if validator is cls.SOFT_VALIDATION:
+        if validator is self.SOFT_VALIDATION:
             check_freq_dict(class_, frequencies, flat_type_info)
 
         return inst
 
-    def _object_to_doc(self, class_, value, wrapper_name=None):
-        # import ipdb; ipdb.set_trace()
+    def _object_to_doc(self, class_, value):
         if self.ignore_wrappers:
             wrapper_name = None
             ti = getattr(class_, '_type_info', {})
 
-            while len(ti) == 1 and class_.Attributes._wrapper:
+            while class_.Attributes._wrapper:
+                # Wrappers are auto-generated objects that have exactly one
+                # child type.
                 key, = ti.keys()
                 if not issubclass(class_, Array):
                     value = getattr(value, key, None)
                 class_, = ti.values()
                 ti = getattr(class_, '_type_info', {})
-        else:
-            # arrays get wrapped in [], whereas other objects get wrapped in
-            # {wrapper_name: ...} if wrapper_name is not None.
-            if wrapper_name is None and not issubclass(class_, Array):
-                wrapper_name = class_.get_type_name()
 
         # transform the results into a dict:
         if class_.Attributes.max_occurs > 1:
-            retval = [self._to_value(class_, inst, wrapper_name)
+            retval = [self._to_value(class_, inst)
                                                               for inst in value]
-            if len(retval) == 0:
-                retval = None
         else:
-            retval = self._to_value(class_, value, wrapper_name)
+            retval = self._to_value(class_, value)
 
         return retval
 
@@ -497,10 +500,10 @@ class HierDictDocument(DictDocument):
 
             yield (k, self._object_to_doc(v, sub_value))
 
-    def _to_value(self, class_, value, k=None):
+    def _to_value(self, class_, value):
         if issubclass(class_, ComplexModelBase):
             if self.complex_as is list:
-                return self._to_list(class_, value)
+                return list(self._to_list(class_, value))
             else:
                 return self._to_dict(class_, value, k)
 
@@ -518,11 +521,7 @@ class HierDictDocument(DictDocument):
     def _to_dict(self, class_, inst, field_name=None):
         inst = class_.get_serialization_instance(inst)
 
-        retval = dict(self._get_member_pairs(class_, inst))
-        if field_name is None:
-            return retval
-        else:
-            return {field_name: retval}
+        return dict(self._get_member_pairs(class_, inst))
 
     def _to_list(self, class_, inst):
         inst = class_.get_serialization_instance(inst)
