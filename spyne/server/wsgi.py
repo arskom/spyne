@@ -270,7 +270,7 @@ class WsgiApplication(HttpBase):
         """Serialize errors to an iterable of strings and return them.
 
         :param p_ctx: Primary (non-aux) context.
-        :param others: List if auxiliary contexts (if any).
+        :param others: List if auxiliary contexts (can be empty).
         :param error: One of ctx.{in,out}_error.
         :param start_response: See the WSGI spec for more info.
         """
