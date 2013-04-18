@@ -359,7 +359,7 @@ class SimpleModel(ModelBase):
         class __metaclass__(AttributesMeta):
             def __init__(self, cls_name, cls_bases, cls_dict):
                 AttributesMeta.__init__(self, cls_name, cls_bases, cls_dict)
-                self.__pattern = None
+                self.__pattern = cls_dict.get('pattern', None)
             def get_pattern(self):
                 return self.__pattern
             def set_pattern(self, pattern):

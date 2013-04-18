@@ -982,6 +982,7 @@ class Boolean(SimpleModel):
 
 class Uuid(Unicode(pattern=UUID_PATTERN, type_name='uuid')):
     """Unicode subclass for Universially-Unique Identifiers."""
+    __namespace__ = 'http://spyne.io/schema'
 
     @classmethod
     @nillable_string
@@ -1077,7 +1078,7 @@ class Mandatory:
     UnsignedShort = UnsignedInteger16
     UnsignedByte = UnsignedInteger8
 
-    Uuid = Unicode(type_name="MandatoryUuid", min_occurs=1, nillable=False, min_len=1, pattern=UUID_PATTERN)
+    Uuid = Uuid(type_name="MandatoryUuid", min_occurs=1, nillable=False, min_len=1)
 
 
 NATIVE_MAP = {

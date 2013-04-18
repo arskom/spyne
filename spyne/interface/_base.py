@@ -292,14 +292,17 @@ class Interface(object):
         if not (ns in self.imports):
             self.imports[ns] = set()
 
-        extends = getattr(cls, '__extends__', None)
-        if not (extends is None):
-            self.add_class(extends)
-            parent_ns = extends.get_namespace()
-            if parent_ns != ns and not parent_ns in self.imports[ns]:
-                self.imports[ns].add(parent_ns)
-                logger.debug("\timporting %r to %r because %r extends %r" % (
-                    parent_ns, ns, cls.get_type_name(), extends.get_type_name()))
+        for extends in (getattr(cls, '__extends__', None),
+                        getattr(cls, '__base_type__', None)):
+            if not (extends is None):
+                self.add_class(extends)
+                parent_ns = extends.get_namespace()
+                if parent_ns != ns and not parent_ns in self.imports[ns] and \
+                                                self.is_valid_import(parent_ns):
+                    self.imports[ns].add(parent_ns)
+                    logger.debug("\timporting %r to %r because %r extends %r" %
+                                            (parent_ns, ns, cls.get_type_name(),
+                                             extends.get_type_name()))
 
         class_key = '{%s}%s' % (ns, tn)
         logger.debug('\tadding class %r for %r' % (repr(cls), class_key))

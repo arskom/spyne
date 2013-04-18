@@ -2,6 +2,10 @@
 Changelog
 =========
 
+spyne-2.9.5
+-----------
+ * Fix restriction bases of simple types not being imported.
+
 spyne-2.9.4
 -----------
  * Fix for Python 2.6 quirk where any decimal.Decimal() is always less than
