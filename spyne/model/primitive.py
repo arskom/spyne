@@ -199,7 +199,8 @@ class Unicode(SimpleModel):
         return (    SimpleModel.is_default(cls)
                 and cls.Attributes.min_len == Unicode.Attributes.min_len
                 and cls.Attributes.max_len == Unicode.Attributes.max_len
-                and cls.Attributes.pattern == Unicode.Attributes.pattern)
+                and cls.Attributes.pattern == Unicode.Attributes.pattern
+            )
 
     @staticmethod
     def validate_string(cls, value):

@@ -303,7 +303,8 @@ class Interface(object):
                                                 self.is_valid_import(parent_ns):
                 self.imports[ns].add(parent_ns)
                 logger.debug("\timporting %r to %r because %r extends %r" % (
-                    parent_ns, ns, cls.get_type_name(), extends.get_type_name()))
+                                            parent_ns, ns, cls.get_type_name(),
+                                            extends.get_type_name()))
 
         class_key = '{%s}%s' % (ns, tn)
         logger.debug('\tadding class %r for %r' % (repr(cls), class_key))
