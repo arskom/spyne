@@ -34,7 +34,6 @@ from spyne.server.django import DjangoApplication
 from spyne.model.primitive import Unicode, Integer
 from spyne.model.complex import Iterable
 from spyne.service import ServiceBase
-from spyne.interface.wsdl import Wsdl11
 from spyne.protocol.soap import Soap11
 from spyne.application import Application
 from spyne.decorator import rpc

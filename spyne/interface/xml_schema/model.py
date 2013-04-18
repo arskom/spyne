@@ -46,7 +46,8 @@ def simple_get_restriction_tag(document, cls):
     document.add_simple_type(cls, simple_type)
 
     restriction = etree.SubElement(simple_type, '{%s}restriction' % _ns_xsd)
-    restriction.set('base', cls.__base_type__.get_type_name_ns(document.interface))
+    restriction.set('base', cls.__extends__.get_type_name_ns(
+                                                            document.interface))
 
     for v in cls.Attributes.values:
         enumeration = etree.SubElement(restriction, '{%s}enumeration' % _ns_xsd)
@@ -147,6 +148,7 @@ def complex_add(document, cls, tags):
 
         if v.Attributes.min_occurs != 1: # 1 is the xml schema default
             member.set('minOccurs', str(v.Attributes.min_occurs))
+
         if v.Attributes.max_occurs != 1: # 1 is the xml schema default
             val = v.Attributes.max_occurs
             if val == decimal.Decimal('inf'):
