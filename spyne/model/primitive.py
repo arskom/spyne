@@ -896,6 +896,16 @@ class Mandatory:
 
     Uuid = Uuid(type_name="MandatoryUuid", min_len=1, min_occurs=1, nillable=False)
 
+    Point = Point(type_name="Point", min_len=1, min_occurs=1, nillable=False)
+    Line = Line(type_name="LineString", min_len=1, min_occurs=1, nillable=False)
+    LineString = Line
+    Polygon = Polygon(type_name="Polygon", min_len=1, min_occurs=1, nillable=False)
+
+    MultiPoint = MultiPoint(type_name="MandatoryMultiPoint", min_len=1, min_occurs=1, nillable=False)
+    MultiLine = MultiLine(type_name="MandatoryMultiLineString", min_len=1, min_occurs=1, nillable=False)
+    MultiLineString = MultiLine
+    MultiPolygon = MultiPolygon(type_name="MandatoryMultiPolygon", min_len=1, min_occurs=1, nillable=False)
+
 
 NATIVE_MAP = {
     float: Double,
