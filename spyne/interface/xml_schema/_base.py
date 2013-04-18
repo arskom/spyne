@@ -57,6 +57,7 @@ from spyne.model.primitive import DateTime
 from spyne.model.primitive import Date
 from spyne.model.primitive import Time
 
+
 _add_handlers = cdict({
     object: lambda interface, cls, tags: None,
     Alias: alias_add,
@@ -142,10 +143,11 @@ class XmlSchema(InterfaceDocumentBase):
             # append import tags
             for namespace in self.interface.imports[self.interface.nsmap[pref]]:
                 import_ = etree.SubElement(schema, "{%s}import" % _ns_xsd)
+
                 import_.set("namespace", namespace)
                 if with_schema_location:
                     import_.set('schemaLocation', "%s.xsd" %
-                                   self.interface.get_namespace_prefix(namespace))
+                                 self.interface.get_namespace_prefix(namespace))
 
                 sl = spyne.const.xml_ns.schema_location.get(namespace, None)
                 if not (sl is None):

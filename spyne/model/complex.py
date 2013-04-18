@@ -612,7 +612,19 @@ class ComplexModelBase(ModelBase):
 
             if v.__type_name__ is ModelBase.Empty:
                 v.__namespace__ = cls.get_namespace()
-                v.__type_name__ = "%s_%s%s" % (cls.get_type_name(), k, TYPE_SUFFIX)
+                tn = "%s_%s%s" % (cls.get_type_name(), k, TYPE_SUFFIX)
+
+                if issubclass(v, Array):
+                    child_v, = v._type_info.values()
+                    child_v.__type_name__ = tn
+
+                    v._type_info = TypeInfo({tn: child_v})
+                    v.__type_name__ = '%s%s%s' % (ARRAY_PREFIX,tn,ARRAY_SUFFIX)
+
+                else:
+                    v.__type_name__ = "%s_%s%s" % (cls.get_type_name(), k,
+                                                                   TYPE_SUFFIX)
+
 
             v.resolve_namespace(v, default_ns, tags)
 
@@ -737,21 +749,21 @@ class Array(ComplexModelBase):
 
     @classmethod
     def _set_serializer(cls, serializer):
-        # hack to default to unbounded arrays when the user didn't specify
-        # max_occurs. We should find a better way.
-        if serializer.Attributes.max_occurs == 1:
-            serializer = serializer.customize(max_occurs=decimal.Decimal('inf'))
-
-        if serializer.get_type_name() is ModelBase.Empty:
-            member_name = serializer.__base_type__.get_type_name()
-            if cls.__type_name__ == cls.__type_name__:
-                cls.__type_name__ = ModelBase.Empty # to be resolved later
+        if serializer.get_type_name() is ModelBase.Empty: # A customized class
+            member_name = "OhNoes"
+            # mark array type name as "to be resolved later".
+            cls.__type_name__ = ModelBase.Empty
 
         else:
             member_name = serializer.get_type_name()
             if cls.__type_name__ == cls.__type_name__:
                 cls.__type_name__ = '%s%s%s' % (ARRAY_PREFIX, member_name,
                                                                    ARRAY_SUFFIX)
+
+        # hack to default to unbounded arrays when the user didn't specify
+        # max_occurs.
+        if serializer.Attributes.max_occurs == 1:
+            serializer = serializer.customize(max_occurs=decimal.Decimal('inf'))
 
         cls._type_info = {member_name: serializer}
 
