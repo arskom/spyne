@@ -104,6 +104,11 @@ class ModelBase(object):
     __orig__ = None
     """This holds the original class the class .customize()d from. """
 
+    __extends__ = None
+    """This holds the original class the class inherited or .customize()d from.
+    This is different from __orig__ because it's only set when
+    ``cls.is_default(cls) == False``"""
+
     __namespace__ = None
     """The public namespace of this class. Use ``get_namespace()`` instead of
     accessing it directly."""
@@ -388,8 +393,6 @@ class SimpleModel(ModelBase):
     """The base class for primitives."""
 
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
-    __base_type__ = None # this is different from __orig__ because it's only set
-                         # when cls.is_default(cls) == False
 
     class Attributes(ModelBase.Attributes):
         """The class that holds the constraints for the given type."""
@@ -421,7 +424,7 @@ class SimpleModel(ModelBase):
         retval = cls.customize(**kwargs)
 
         if not retval.is_default(retval):
-            retval.__base_type__ = cls
+            retval.__extends__ = cls
             retval.__type_name__ = kwargs.get("type_name", ModelBase.Empty)
 
         return retval

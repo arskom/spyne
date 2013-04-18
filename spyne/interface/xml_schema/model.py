@@ -46,7 +46,7 @@ def simple_get_restriction_tag(document, cls):
     document.add_simple_type(cls, simple_type)
 
     restriction = etree.SubElement(simple_type, '{%s}restriction' % _ns_xsd)
-    restriction.set('base', cls.__base_type__.get_type_name_ns(
+    restriction.set('base', cls.__extends__.get_type_name_ns(
                                                             document.interface))
 
     for v in cls.Attributes.values:

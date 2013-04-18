@@ -304,16 +304,6 @@ class Interface(object):
                 logger.debug("\timporting %r to %r because %r extends %r" % (
                     parent_ns, ns, cls.get_type_name(), extends.get_type_name()))
 
-        bt = getattr(cls, '__base_type__', None)
-        if bt is not None:
-            self.add_class(bt)
-            parent_ns = bt.get_namespace()
-            if parent_ns != ns and not parent_ns in self.imports[ns] and \
-                                                self.is_valid_import(parent_ns):
-                self.imports[ns].add(parent_ns)
-                logger.debug("\timporting %r to %r because %r extends %r" % (
-                    parent_ns, ns, cls.get_type_name(), bt.get_type_name()))
-
         class_key = '{%s}%s' % (ns, tn)
         logger.debug('\tadding class %r for %r' % (repr(cls), class_key))
 
@@ -339,6 +329,7 @@ class Interface(object):
                                       (child_ns, ns, cls.get_type_name(), k, v))
 
     def is_valid_import(self, ns):
+        """This will return False for base namespaces unless told otherwise."""
         if ns is None:
             raise ValueError(ns)
         return self.import_base_namespaces or not (ns in namespace.const_prefmap)

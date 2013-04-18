@@ -736,7 +736,7 @@ class Point(Unicode):
     """A point type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper point type."""
 
-    __base_type__ = Unicode
+    __namespace__ = 'http://spyne.io/schema'
 
     class Attributes(Unicode.Attributes):
         dim = None
@@ -755,7 +755,7 @@ class Line(Unicode):
     """A point type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper point type."""
 
-    __base_type__ = Unicode
+    __namespace__ = 'http://spyne.io/schema'
 
     class Attributes(Unicode.Attributes):
         dim = None
@@ -775,7 +775,7 @@ class Polygon(Unicode):
     """A Polygon type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper polygon type."""
 
-    __base_type__ = Unicode
+    __namespace__ = 'http://spyne.io/schema'
 
     class Attributes(Unicode.Attributes):
         dim = None
@@ -794,7 +794,7 @@ class MultiPoint(Unicode):
     """A Multipolygon type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper multipolygon type."""
 
-    __base_type__ = Unicode
+    __namespace__ = 'http://spyne.io/schema'
 
     class Attributes(Unicode.Attributes):
         dim = None
@@ -813,7 +813,7 @@ class MultiLine(Unicode):
     """A Multipolygon type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper multipolygon type."""
 
-    __base_type__ = Unicode
+    __namespace__ = 'http://spyne.io/schema'
 
     class Attributes(Unicode.Attributes):
         dim = None
@@ -852,7 +852,7 @@ class MultiPolygon(Unicode):
     """A Multipolygon type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper multipolygon type."""
 
-    __base_type__ = Unicode
+    __namespace__ = 'http://spyne.io/schema'
 
     class Attributes(Unicode.Attributes):
         dim = None
