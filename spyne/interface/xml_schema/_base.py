@@ -145,7 +145,7 @@ class XmlSchema(InterfaceDocumentBase):
                 import_.set("namespace", namespace)
                 if with_schema_location:
                     import_.set('schemaLocation', "%s.xsd" %
-                                   self.interface.get_namespace_prefix(namespace))
+                                 self.interface.get_namespace_prefix(namespace))
 
                 sl = spyne.const.xml_ns.schema_location.get(namespace, None)
                 if not (sl is None):

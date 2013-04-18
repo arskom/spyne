@@ -95,7 +95,8 @@ class Interface(object):
         """Returns true if the given class is already included in the interface
         object somewhere."""
 
-        return ('{%s}%s' % (cls.get_namespace(), cls.get_type_name())) in self.classes
+        return ('{%s}%s' %
+                    (cls.get_namespace(), cls.get_type_name())) in self.classes
 
     def get_class(self, key):
         """Returns the class definition that corresponds to the given key.
@@ -173,7 +174,8 @@ class Interface(object):
                         in_header.resolve_namespace(in_header, self.get_tns())
                         classes.append(in_header)
                         if in_header.get_namespace() != self.get_tns():
-                            self.imports[self.get_tns()].add(in_header.get_namespace())
+                            self.imports[self.get_tns()].add(
+                                                      in_header.get_namespace())
 
                 if not (method.out_header is None):
                     if not isinstance(method.out_header, (list, tuple)):
@@ -184,7 +186,8 @@ class Interface(object):
                         out_header.resolve_namespace(out_header, self.get_tns())
                         classes.append(out_header)
                         if out_header.get_namespace() != self.get_tns():
-                            self.imports[self.get_tns()].add(out_header.get_namespace())
+                            self.imports[self.get_tns()].add(
+                                                     out_header.get_namespace())
 
                 if method.faults is None:
                     method.faults = []
@@ -249,8 +252,10 @@ class Interface(object):
                                                os.__module__, os.__name__,
                                 ))
 
-        logger.debug("From this point on, you're not supposed to make any changes "
-                    "to the class & method structure of the exposed services.")
+        logger.debug("From this point on, you're not supposed to make any "
+                     "changes to the class & method structure of the exposed "
+                     "services."
+                 )
 
     tns = property(get_tns)
 
@@ -303,7 +308,7 @@ class Interface(object):
                     parent_ns, ns, cls.get_type_name(), extends.get_type_name()))
 
         bt = getattr(cls, '__base_type__', None)
-        if not (bt is None):
+        if bt is not None:
             self.add_class(bt)
             parent_ns = bt.get_namespace()
             if parent_ns != ns and not parent_ns in self.imports[ns] and \
@@ -326,7 +331,7 @@ class Interface(object):
         if issubclass(cls, ComplexModelBase):
             # FIXME: this looks like a hack.
             if cls.get_type_name() is ModelBase.Empty:
-                (child, ) = cls._type_info.values()
+                (child,) = cls._type_info.values()
                 cls.__type_name__ = '%s%s%s' % (ARRAY_PREFIX,
                                             child.get_type_name(), ARRAY_SUFFIX)
 
@@ -337,7 +342,7 @@ class Interface(object):
                 self.add_class(v)
                 child_ns = v.get_namespace()
                 if child_ns != ns and not child_ns in self.imports[ns] and \
-                                                self.is_valid_import(child_ns):
+                                                 self.is_valid_import(child_ns):
                     self.imports[ns].add(child_ns)
                     logger.debug("\timporting %r to %r for %s.%s(%r)" %
                                       (child_ns, ns, cls.get_type_name(), k, v))
