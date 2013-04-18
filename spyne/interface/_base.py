@@ -28,10 +28,7 @@ from spyne.const import xml_ns as namespace
 from spyne.const import TYPE_SUFFIX
 from spyne.const import RESULT_SUFFIX
 from spyne.const import RESPONSE_SUFFIX
-from spyne.const import ARRAY_SUFFIX
-from spyne.const import ARRAY_PREFIX
 
-from spyne.model import ModelBase
 from spyne.model.complex import ComplexModelBase
 
 
@@ -329,12 +326,6 @@ class Interface(object):
             self.classes[tn] = cls
 
         if issubclass(cls, ComplexModelBase):
-            # FIXME: this looks like a hack.
-            if cls.get_type_name() is ModelBase.Empty:
-                (child,) = cls._type_info.values()
-                cls.__type_name__ = '%s%s%s' % (ARRAY_PREFIX,
-                                            child.get_type_name(), ARRAY_SUFFIX)
-
             for k,v in cls._type_info.items():
                 if v is None:
                     continue
