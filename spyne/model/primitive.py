@@ -199,7 +199,8 @@ class Unicode(SimpleModel):
         return (    SimpleModel.is_default(cls)
                 and cls.Attributes.min_len == Unicode.Attributes.min_len
                 and cls.Attributes.max_len == Unicode.Attributes.max_len
-                and cls.Attributes.pattern == Unicode.Attributes.pattern)
+                and cls.Attributes.pattern == Unicode.Attributes.pattern
+            )
 
     @staticmethod
     def validate_string(cls, value):
@@ -726,21 +727,17 @@ class Boolean(SimpleModel):
     __type_name__ = 'boolean'
 
 
-class Uuid(Unicode):
+class Uuid(Unicode(pattern=UUID_PATTERN)):
     """Unicode subclass for Universially-Unique Identifiers."""
-    __base_type__ = Unicode
     __namespace__ = 'http://spyne.io/schema'
     __type_name__ = 'uuid'
-
-    class Attributes(Unicode.Attributes):
-        pattern = UUID_PATTERN
 
 
 class Point(Unicode):
     """A point type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper point type."""
 
-    __base_type__ = Unicode
+    __namespace__ = 'http://spyne.io/schema'
 
     class Attributes(Unicode.Attributes):
         dim = None
@@ -759,7 +756,7 @@ class Line(Unicode):
     """A point type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper point type."""
 
-    __base_type__ = Unicode
+    __namespace__ = 'http://spyne.io/schema'
 
     class Attributes(Unicode.Attributes):
         dim = None
@@ -779,7 +776,7 @@ class Polygon(Unicode):
     """A Polygon type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper polygon type."""
 
-    __base_type__ = Unicode
+    __namespace__ = 'http://spyne.io/schema'
 
     class Attributes(Unicode.Attributes):
         dim = None
@@ -798,7 +795,7 @@ class MultiPoint(Unicode):
     """A Multipolygon type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper multipolygon type."""
 
-    __base_type__ = Unicode
+    __namespace__ = 'http://spyne.io/schema'
 
     class Attributes(Unicode.Attributes):
         dim = None
@@ -817,7 +814,7 @@ class MultiLine(Unicode):
     """A Multipolygon type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper multipolygon type."""
 
-    __base_type__ = Unicode
+    __namespace__ = 'http://spyne.io/schema'
 
     class Attributes(Unicode.Attributes):
         dim = None
@@ -837,26 +834,7 @@ class MultiPolygon(Unicode):
     """A Multipolygon type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper multipolygon type."""
 
-    __base_type__ = Unicode
-
-    class Attributes(Unicode.Attributes):
-        dim = None
-
-    def __new__(cls, dim=None, **kwargs):
-        assert dim in (None,2,3)
-        if dim is not None:
-            kwargs['dim'] = dim
-            kwargs['pattern'] = _get_multipolygon_pattern(dim)
-            kwargs['type_name'] = 'multipolygon%dd' % dim
-
-        return SimpleModel.__new__(cls,  ** kwargs)
-
-
-class MultiPolygon(Unicode):
-    """A Multipolygon type whose native format is a WKT string. You can use
-    :func:`shapely.wkt.loads` to get a proper multipolygon type."""
-
-    __base_type__ = Unicode
+    __namespace__ = 'http://spyne.io/schema'
 
     class Attributes(Unicode.Attributes):
         dim = None
@@ -917,6 +895,16 @@ class Mandatory:
     UnsignedByte = UnsignedInteger8
 
     Uuid = Uuid(type_name="MandatoryUuid", min_len=1, min_occurs=1, nillable=False)
+
+    Point = Point(type_name="Point", min_len=1, min_occurs=1, nillable=False)
+    Line = Line(type_name="LineString", min_len=1, min_occurs=1, nillable=False)
+    LineString = Line
+    Polygon = Polygon(type_name="Polygon", min_len=1, min_occurs=1, nillable=False)
+
+    MultiPoint = MultiPoint(type_name="MandatoryMultiPoint", min_len=1, min_occurs=1, nillable=False)
+    MultiLine = MultiLine(type_name="MandatoryMultiLineString", min_len=1, min_occurs=1, nillable=False)
+    MultiLineString = MultiLine
+    MultiPolygon = MultiPolygon(type_name="MandatoryMultiPolygon", min_len=1, min_occurs=1, nillable=False)
 
 
 NATIVE_MAP = {
