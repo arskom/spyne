@@ -57,6 +57,7 @@ from spyne.model.primitive import DateTime
 from spyne.model.primitive import Date
 from spyne.model.primitive import Time
 
+
 _add_handlers = cdict({
     object: lambda interface, cls, tags: None,
     Alias: alias_add,
