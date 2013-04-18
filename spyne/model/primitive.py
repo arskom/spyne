@@ -833,25 +833,6 @@ class MultiPolygon(Unicode):
     """A Multipolygon type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper multipolygon type."""
 
-    __base_type__ = Unicode
-
-    class Attributes(Unicode.Attributes):
-        dim = None
-
-    def __new__(cls, dim=None, **kwargs):
-        assert dim in (None,2,3)
-        if dim is not None:
-            kwargs['dim'] = dim
-            kwargs['pattern'] = _get_multipolygon_pattern(dim)
-            kwargs['type_name'] = 'multipolygon%dd' % dim
-
-        return SimpleModel.__new__(cls,  ** kwargs)
-
-
-class MultiPolygon(Unicode):
-    """A Multipolygon type whose native format is a WKT string. You can use
-    :func:`shapely.wkt.loads` to get a proper multipolygon type."""
-
     __namespace__ = 'http://spyne.io/schema'
 
     class Attributes(Unicode.Attributes):
