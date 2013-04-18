@@ -143,6 +143,10 @@ class XmlSchema(InterfaceDocumentBase):
             # append import tags
             for namespace in self.interface.imports[self.interface.nsmap[pref]]:
                 import_ = etree.SubElement(schema, "{%s}import" % _ns_xsd)
+
+                # Just a hacky safety net.
+                assert namespace != "http://www.w3.org/2001/XMLSchema"
+
                 import_.set("namespace", namespace)
                 if with_schema_location:
                     import_.set('schemaLocation', "%s.xsd" %
