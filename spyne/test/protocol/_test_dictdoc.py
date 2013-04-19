@@ -78,7 +78,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
             out_strings = list(ctx.out_string)
             print out_strings
             assert out_strings == [serializer.dumps(
-                {"some_callResponse": {"some_callResult": int(d)+1}}, **dumps_kwargs)]
+                 {"some_callResult": int(d)+1}, **dumps_kwargs)]
 
         def test_primitive_only(self):
             class SomeComplexModel(ComplexModel):
@@ -93,7 +93,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
             ctx = _dry_me([SomeService], {"some_call":[]})
 
             assert ''.join(ctx.out_string) == serializer.dumps(
-                {"some_callResponse": {"some_callResult": {"i": 5, "s": "5x"}}}, **dumps_kwargs)
+                 {"some_callResult": {"i": 5, "s": "5x"}}, **dumps_kwargs)
 
         def test_complex(self):
             class CM(ComplexModel):
@@ -118,10 +118,10 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
 
             print(ret)
 
-            assert ret['some_callResponse']['some_callResult']['i'] == 4
-            assert ret['some_callResponse']['some_callResult']['s'] == '4x'
-            assert ret['some_callResponse']['some_callResult']['c']['i'] == 3
-            assert ret['some_callResponse']['some_callResult']['c']['s'] == '3x'
+            assert ret['some_callResult']['i'] == 4
+            assert ret['some_callResult']['s'] == '4x'
+            assert ret['some_callResult']['c']['i'] == 3
+            assert ret['some_callResult']['c']['s'] == '3x'
 
         def test_multiple_list(self):
             class SomeService(ServiceBase):
@@ -133,7 +133,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
             ctx = _dry_me([SomeService], {"some_call":[["a","b"]]})
 
             assert list(ctx.out_string) == [serializer.dumps(
-                        {"some_callResponse": {"some_callResult": ["a", "b"]}}, **dumps_kwargs)]
+                         {"some_callResult": ["a", "b"]}, **dumps_kwargs)]
 
         def test_multiple_dict(self):
             class SomeService(ServiceBase):
@@ -145,7 +145,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
             ctx = _dry_me([SomeService], {"some_call":{"s":["a","b"]}})
 
             assert ''.join(ctx.out_string) == serializer.dumps(
-                        {"some_callResponse": {"some_callResult": ["a", "b"]}},
+                         {"some_callResult": ["a", "b"]},
                         **dumps_kwargs)
 
         def test_multiple_dict_array(self):
@@ -157,7 +157,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
             ctx = _dry_me([SomeService], {"some_call":{"s":["a","b"]}})
 
             assert list(ctx.out_string) == [serializer.dumps(
-                {"some_callResponse": {"some_callResult": {"string": ["a", "b"]}}}, **dumps_kwargs)]
+                 {"some_callResult": ["a", "b"]}, **dumps_kwargs)]
 
         def test_multiple_dict_complex_array(self):
             class CM(ComplexModel):
@@ -190,16 +190,14 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
 
             ret = serializer.loads(''.join(ctx.out_string))
             print(ret)
-            assert ret['some_callResponse']
-            assert ret['some_callResponse']['some_callResult']
-            assert ret['some_callResponse']['some_callResult']['ECM']
-            assert ret['some_callResponse']['some_callResult']['ECM'][0]
-            assert ret['some_callResponse']['some_callResult']['ECM'][0]["c"]
-            assert ret['some_callResponse']['some_callResult']['ECM'][0]["c"]["i"] == 3
-            assert ret['some_callResponse']['some_callResult']['ECM'][0]["c"]["s"] == "3x"
-            assert ret['some_callResponse']['some_callResult']['ECM'][0]["i"] == 4
-            assert ret['some_callResponse']['some_callResult']['ECM'][0]["s"] == "4x"
-            assert ret['some_callResponse']['some_callResult']['ECM'][0]["d"] == "2011-12-13T14:15:16+00:00"
+            assert ret['some_callResult']
+            assert ret['some_callResult'][0]
+            assert ret['some_callResult'][0]["c"]
+            assert ret['some_callResult'][0]["c"]["i"] == 3
+            assert ret['some_callResult'][0]["c"]["s"] == "3x"
+            assert ret['some_callResult'][0]["i"] == 4
+            assert ret['some_callResult'][0]["s"] == "4x"
+            assert ret['some_callResult'][0]["d"] == "2011-12-13T14:15:16+00:00"
 
 
         def test_invalid_request(self):

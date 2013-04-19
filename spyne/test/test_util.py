@@ -145,10 +145,10 @@ class TestDictDoc(unittest.TestCase):
 
         for iw, ca in ((False,dict), (True,dict), (False,list), (True, list)):
             print
-            print 'ignore_wrappers:', iw, 'complex_as:', ca
-            d = get_object_as_dict(c, C, ignore_wrappers=iw, complex_as=ca)
+            print 'complex_as:', ca
+            d = get_object_as_dict(c, C, complex_as=ca)
             print d
-            o = get_dict_as_object(d, C, ignore_wrappers=iw, complex_as=ca)
+            o = get_dict_as_object(d, C, complex_as=ca)
             print o
             print c
             assert o == c

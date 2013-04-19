@@ -248,7 +248,6 @@ class FlatDictDocument(DictDocument):
                 logger.debug("\tset default %r(%r) = %r" %
                                                     (member.path, pkey, value))
 
-
         if len(frequencies) > 0 and validator is cls.SOFT_VALIDATION:
             for k, d in frequencies.items():
                 check_freq_dict(k[-2], d)
@@ -405,18 +404,8 @@ class HierDictDocument(DictDocument):
             retval = [ ]
             (serializer,) = class_._type_info.values()
 
-            if self.ignore_wrappers:
-                for child in doc:
-                    retval.append(self._from_dict_value(serializer, child,
-                                                                    validator))
-            else:
-                if self.complex_as is list:
-                    doc, = doc
-                else:
-                    doc, = doc.values()
-
-                for child in doc:
-                    retval.append(self._from_dict_value(serializer, child,
+            for child in doc:
+                retval.append(self._from_dict_value(serializer, child,
                                                                     validator))
 
             return retval
@@ -477,8 +466,7 @@ class HierDictDocument(DictDocument):
 
         # transform the results into a dict:
         if class_.Attributes.max_occurs > 1:
-            retval = [self._to_value(class_, inst)
-                                                              for inst in value]
+            retval = [self._to_value(class_, inst)  for inst in value]
         else:
             retval = self._to_value(class_, value)
 
@@ -501,11 +489,14 @@ class HierDictDocument(DictDocument):
             yield (k, self._object_to_doc(v, sub_value))
 
     def _to_value(self, class_, value):
+        if issubclass(class_, Array):
+            st, = class_._type_info.values()
+            return self._object_to_doc(st, value)
         if issubclass(class_, ComplexModelBase):
             if self.complex_as is list:
                 return list(self._to_list(class_, value))
             else:
-                return self._to_dict(class_, value, k)
+                return self._to_dict(class_, value)
 
         if issubclass(class_, DateTime):
             return self.to_string(class_, value)
