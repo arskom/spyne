@@ -165,7 +165,7 @@ class XmlSchema(InterfaceDocumentBase):
         self.build_schema_nodes(with_schema_location=True)
 
         pref_tns = self.interface.get_namespace_prefix(self.interface.tns)
-        tmp_dir_name = tempfile.mkdtemp()
+        tmp_dir_name = tempfile.mkdtemp(prefix='spyne')
         logger.debug("generating schema for targetNamespace=%r, prefix: %r in dir %r"
                                    % (self.interface.tns, pref_tns, tmp_dir_name))
 
