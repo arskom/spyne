@@ -195,12 +195,12 @@ class MessagePackRpc(MessagePackDocument):
             # transform the results into a dict:
             if out_type.Attributes.max_occurs > 1:
                 ctx.out_document = [[MessagePackRpc.MSGPACK_RESPONSE, 0, None,
-                        (self._to_value(out_type, inst, wrapper_name)
-                                                       for inst in out_instance)
+                        (self._to_value(out_type, inst)
+                                                      for inst in out_instance)
                     ]]
             else:
                 ctx.out_document = [[MessagePackRpc.MSGPACK_RESPONSE, 0, None,
-                            self._to_value(out_type, out_instance, wrapper_name)
+                            self._to_value(out_type, out_instance)
                     ]]
 
             self.event_manager.fire_event('after_serialize', ctx)
