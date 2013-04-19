@@ -27,10 +27,9 @@ To start hacking on this project:
 Installation
 ============
 
-1. Bootstrap distribute: ::
+1. Bootstrap distribute if needed: ::
 
-       curl -O http://python-distribute.org/distribute_setup.py
-       python distribute_setup.py --user
+       wget http://python-distribute.org/distribute_setup.py
 
 2. Run: ::
 
