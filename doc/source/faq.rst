@@ -62,7 +62,7 @@ The workaround is as follows: ::
 See here: https://github.com/arskom/spyne/blob/rpclib-2.5.0-beta/src/rpclib/test/test_service.py#L114
 
 How does Spyne behave in a multi-threaded environment?
-=======================================================
+======================================================
 
 Spyne code is mostly re-entrant, thus thread safe. Whatever global state that is
 accessed is initialized and frozen (by convention) before any rpc processing is
