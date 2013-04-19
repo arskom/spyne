@@ -591,13 +591,13 @@ class HierDictDocument(DictDocument):
                 if mo > 1:
                     if len(indexes) == 0:
                         raise ValidationError(orig_k,
-                                               "%r requires index information.")
+                                              "%r requires index information.")
 
                     nidx = int(indexes.popleft())
 
                     if nidx > len(ninst) or nidx < 0:
                         raise ValidationError(orig_k,
-                                            "%%r Invalid array index %d." % idx)
+                                           "%%r Invalid array index %d." % idx)
 
                     if nidx == len(ninst):
                         ninst.append(ncls.get_deserialization_instance())
@@ -634,7 +634,7 @@ class HierDictDocument(DictDocument):
         return inst
 
     def object_to_flat_dict(self, inst_cls, value, hier_delim="_", retval=None,
-                           prefix=None, parent=None, subvalue_eater=lambda v,t:v):
+                        prefix=None, parent=None, subvalue_eater=lambda v,t:v):
         """Converts a native python object to a flat dict.
 
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
