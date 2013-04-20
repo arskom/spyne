@@ -25,6 +25,7 @@ from spyne.const import xml_ns as ns
 from spyne.decorator import rpc
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
+from spyne.model.complex import XmlAttribute
 from spyne.model.primitive import AnyXml
 from spyne.model.primitive import DateTime
 from spyne.model.primitive import Integer
@@ -37,6 +38,35 @@ from spyne.util.xml import get_schema_documents
 
 
 class TestXmlSchema(unittest.TestCase):
+    def test_customized_class_with_empty_subclass(self):
+        class SummaryStatsOfDouble(ComplexModel):
+            _type_info = [('Min', XmlAttribute(Integer, use='required')),
+                          ('Max', XmlAttribute(Integer, use='required')),
+                          ('Avg', XmlAttribute(Integer, use='required'))]
+
+        class SummaryStats(SummaryStatsOfDouble):
+            ''' this is an empty base class '''
+
+        class Payload(ComplexModel):
+            _type_info = [('Stat1', SummaryStats.customize(nillable=False)),
+                          ('Stat2', SummaryStats),
+                          ('Stat3', SummaryStats),
+                          ('Dummy', Unicode)]
+
+        class JackedUpService(ServiceBase):
+            @rpc(_returns=Payload)
+            def GetPayload(ctx):
+                return Payload()
+
+        service_app = Application([JackedUpService],
+            tns='kickass.ns',
+            in_protocol=Soap11(validator='lxml'),
+            out_protocol=Soap11()
+        )
+
+        # if no exceptions while building the schema, no problem.
+        # see: https://github.com/arskom/spyne/issues/226
+
     def test_any_tag(self):
         logging.basicConfig(level=logging.DEBUG)
 
