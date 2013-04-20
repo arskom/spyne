@@ -49,6 +49,7 @@ spyne/test/config.xml
 
 # sphinx cruft
 .buildinfo
+doc/docs
 
 # latex cruft
 get_utc_time.pdf
@@ -67,3 +68,6 @@ _trial_temp
 
 # output from examples/stream scripts
 *.ogg
+
+# test output
+test_result.*.xml
