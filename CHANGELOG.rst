@@ -5,7 +5,7 @@ Changelog
 spyne-2.10.0
 ------------
  * Returning twisted's Deferred from user code is now supported.
- * You can now set Http response headers via ctx.out_object when
+ * You can now set Http response headers via ctx.out_header when
    out_protocol is HttpRpc. https://github.com/arskom/spyne/pull/201
  * lxml is not a hard requirement anymore.
  * XmlDocument and friends: cleanup_namespaces is now True by default.
@@ -21,15 +21,16 @@ spyne-2.10.0
  * Remove destructor from ``MethodContext``. Now transports need to call
    ``.close()`` explicitly to close object and fire relevant events.
  * Application event 'method_context_constructed' was renamed to
-   ``'method_context_created'``
+   ``'method_context_created'``.
  * Application event 'method_context_destroyed' was removed. The
    ``'method_context_closed'`` event can be used instead.
  * SQLAlchemy integration now supports advanced features like specifying
    indexing methods.
  * The object composition graph can now be cyclic.
  * Integers were overhauled. Now boundary values of limited-size types are
-   accessible via ``Attributes._{min,max}_bounds``
- * Added ``MultiPolygon`` spatial type.
+   accessible via ``Attributes._{min,max}_bounds``.
+ * We now have six spatial types, ``Point``, ``LineString`` and ``Polygon``
+   along with their ``Multi*`` variants.
  * The deprecated ``ProtocolBase.set_method_descriptor`` function was removed.
  * It's now possible to override serialization in service implementations.
    You can set ``ctx.out_document`` to have the return value from user funtion
@@ -45,6 +46,9 @@ spyne-2.10.0
    This gives us the ability to have more complex fault messages
    with other fault subelements that are namespace-qualified without
    circular dependency problems - Stefan Andersson <norox81@gmail.com>
+ * DictDocument and friends: ``ignore_wrappers`` and ``complex_as`` options
+   added as a way to customize protocol output without hindering other parts
+   of the interface.
 
 spyne-2.9.5
 -----------
