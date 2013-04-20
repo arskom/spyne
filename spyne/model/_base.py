@@ -291,6 +291,10 @@ class ModelBase(object):
             sqla_column_args = (), {}
         cls_dict['Attributes'] = Attributes
 
+        # as nillable is a property, it gets reset everytime a new class is
+        # defined. So we need to reinitialize it explicitly.
+        Attributes.nillable = cls.Attributes.nillable
+
         class Annotations(cls.Annotations):
             pass
         cls_dict['Annotations'] = Annotations

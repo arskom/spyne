@@ -6,6 +6,7 @@ spyne-2.9.5
 -----------
  * Fix restriction bases of simple types not being imported.
  * Fix for customized subclasses forgetting about their empty base classes.
+ * Fix Attributes.nullable not surviving customization.
 
 spyne-2.9.4
 -----------
