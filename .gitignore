@@ -50,6 +50,7 @@ spyne/test/config.xml
 
 # sphinx cruft
 .buildinfo
+doc/docs
 
 # latex cruft
 get_utc_time.pdf

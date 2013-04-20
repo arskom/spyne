@@ -49,11 +49,13 @@ spyne-2.10.0
 spyne-2.9.5
 -----------
  * Fix restriction bases of simple types not being imported.
+ * Fix for customized subclasses forgetting about their empty base classes.
+ * Fix Attributes.nullable not surviving customization.
 
 spyne-2.9.4
 -----------
- * Fix for Python 2.6 quirk where any decimal.Decimal() is always less than
-   any ``float()``
+ * Fix for Python 2.6 quirk where any ``decimal.Decimal()`` is always less than
+   any ``float()``. Where did that come from?!
  * Fix missing '/' in WsgiMounter.
  * Fix confusion in ``spyne.model.primitive.Decimal``'s parameter order.
  * Add forgotten ``HttpBase`` parameters to ``WsgiApplication``.
@@ -84,10 +86,10 @@ spyne-2.9.0
  * First-class integration with Pyramid.
  * First geospatial types: Point and Polygon.
  * Initial revision of the http request pattern matching support via
-   ``werkzeug.routing``
+   ``werkzeug.routing``.
  * ``XmlObject`` -> ``XmlDocument``, ``JsonObject`` -> ``JsonDocument``,
    ``MessagePackObject`` -> ``MessagePackDocument``,
-   ``DictObject -> DictDocument``.
+   ``DictObject`` -> ``DictDocument``.
 
 spyne-2.8.2-rc
 --------------

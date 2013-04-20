@@ -337,6 +337,10 @@ class ModelBase(object):
         # defined.
         Attributes.nillable = cls.Attributes.nillable
 
+        # as nillable is a property, it gets reset everytime a new class is
+        # defined. So we need to reinitialize it explicitly.
+        Attributes.nillable = cls.Attributes.nillable
+
         class Annotations(cls.Annotations):
             pass
         cls_dict['Annotations'] = Annotations
