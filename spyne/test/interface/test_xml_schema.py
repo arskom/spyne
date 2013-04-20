@@ -31,6 +31,7 @@ from spyne.model.primitive import DateTime
 from spyne.model.primitive import Integer
 from spyne.model.primitive import Unicode
 from spyne.model.primitive import UnsignedLong
+from spyne.model.primitive import Mandatory
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.soap import Soap11
 from spyne.service import ServiceBase
@@ -66,6 +67,28 @@ class TestXmlSchema(unittest.TestCase):
 
         # if no exceptions while building the schema, no problem.
         # see: https://github.com/arskom/spyne/issues/226
+
+    def test_multilevel_customized_simple_type(self):
+        class ExampleService(ServiceBase):
+            __tns__ = 'http://xml.company.com/ns/example/'
+
+            @rpc(Mandatory.Uuid, _returns=Unicode)
+            def say_my_uuid(ctx, uuid):
+                return 'Your UUID: %s' % uuid
+                service_app = Application([JackedUpService],
+                    tns='kickass.ns',
+                    in_protocol=Soap11(validator='lxml'),
+                    out_protocol=Soap11()
+                )
+
+        service_app = Application([ExampleService],
+            tns='kickass.ns',
+            in_protocol=Soap11(validator='lxml'),
+            out_protocol=Soap11()
+        )
+
+        # if no exceptions while building the schema, no problem.
+        # see: http://stackoverflow.com/questions/16042132/cannot-use-mandatory-uuid-or-other-pattern-related-must-be-type-as-rpc-argumen
 
     def test_any_tag(self):
         logging.basicConfig(level=logging.DEBUG)
