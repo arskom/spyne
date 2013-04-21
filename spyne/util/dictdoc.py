@@ -20,11 +20,11 @@
 from spyne.protocol.dictdoc import HierDictDocument
 
 
-def get_dict_as_object(d, cls, ignore_wrappers=False, complex_as=list):
+def get_dict_as_object(d, cls, ignore_wrappers=True, complex_as=list):
     return HierDictDocument(ignore_wrappers=ignore_wrappers,
                                    complex_as=complex_as)._doc_to_object(cls, d)
 
 
-def get_object_as_dict(o, cls, ignore_wrappers=False, complex_as=dict):
+def get_object_as_dict(o, cls, ignore_wrappers=True, complex_as=dict):
     return HierDictDocument(ignore_wrappers=ignore_wrappers,
                                   complex_as=complex_as)._object_to_doc(cls, o)

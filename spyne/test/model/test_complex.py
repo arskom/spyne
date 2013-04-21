@@ -20,6 +20,8 @@
 import datetime
 import unittest
 
+from pprint import pprint
+
 from lxml import etree
 
 from spyne.application import Application
@@ -439,7 +441,6 @@ class TestSelfRefence(unittest.TestCase):
 
     def test_self_referential_array_workaround(self):
         from spyne.util.dictdoc import get_object_as_dict
-        from pprint import pprint
         class Category(ComplexModel):
             id = Integer(min_occurs=1, max_occurs=1, nillable=False)
 
@@ -450,8 +451,8 @@ class TestSelfRefence(unittest.TestCase):
 
         d = get_object_as_dict(parent, Category)
         pprint(d)
-        assert d['Category']['children']['Category'][0]['id'] == 0
-        assert d['Category']['children']['Category'][1]['id'] == 1
+        assert d['Category']['children'][0]['Category']['id'] == 0
+        assert d['Category']['children'][1]['Category']['id'] == 1
 
         class SoapService(ServiceBase):
             @rpc(_returns=Category)

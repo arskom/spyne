@@ -67,8 +67,8 @@ def check_freq_dict(cls, d, fti=None):
 
 
 class DictDocument(ProtocolBase):
-    """An abstract protocol that can use hierarchical or flat dicts as input and
-    output documents.
+    """An abstract protocol that can use hierarchical or flat dicts as input
+    and output documents.
 
     Implement ``serialize()``, ``deserialize()``, ``create_in_document()`` and
     ``create_out_string()`` to use this.
@@ -76,7 +76,7 @@ class DictDocument(ProtocolBase):
 
     def __init__(self, app=None, validator=None, mime_type=None,
                                         ignore_uncap=False,
-                                        ignore_wrappers=False, complex_as=dict):
+                                        ignore_wrappers=True, complex_as=dict):
         ProtocolBase.__init__(self, app, validator, mime_type, ignore_uncap)
 
         self.ignore_wrappers = ignore_wrappers
@@ -451,6 +451,8 @@ class HierDictDocument(DictDocument):
         return inst
 
     def _object_to_doc(self, class_, value):
+        retval = None
+
         if self.ignore_wrappers:
             wrapper_name = None
             ti = getattr(class_, '_type_info', {})
@@ -466,7 +468,8 @@ class HierDictDocument(DictDocument):
 
         # transform the results into a dict:
         if class_.Attributes.max_occurs > 1:
-            retval = [self._to_value(class_, inst)  for inst in value]
+            if value is not None:
+                retval = [self._to_value(class_, inst) for inst in value]
         else:
             retval = self._to_value(class_, value)
 
@@ -486,7 +489,9 @@ class HierDictDocument(DictDocument):
                 logger.error("Error getting %r: %r" %(k,e))
                 sub_value = None
 
-            yield (k, self._object_to_doc(v, sub_value))
+            val = self._object_to_doc(v, sub_value)
+            if val is not None or v.Attributes.min_occurs > 0:
+                yield (k, val)
 
     def _to_value(self, class_, value):
         if issubclass(class_, Array):
@@ -494,9 +499,9 @@ class HierDictDocument(DictDocument):
             return self._object_to_doc(st, value)
         if issubclass(class_, ComplexModelBase):
             if self.complex_as is list:
-                return list(self._to_list(class_, value))
+                return self._complex_to_list(class_, value)
             else:
-                return self._to_dict(class_, value)
+                return self._complex_to_dict(class_, value)
 
         if issubclass(class_, DateTime):
             return self.to_string(class_, value)
@@ -509,12 +514,16 @@ class HierDictDocument(DictDocument):
 
         return value
 
-    def _to_dict(self, class_, inst, field_name=None):
+    def _complex_to_dict(self, class_, inst):
         inst = class_.get_serialization_instance(inst)
 
-        return dict(self._get_member_pairs(class_, inst))
+        d = dict(self._get_member_pairs(class_, inst))
+        if self.ignore_wrappers:
+            return d
+        else:
+            return {class_.get_type_name(): d}
 
-    def _to_list(self, class_, inst):
+    def _complex_to_list(self, class_, inst):
         inst = class_.get_serialization_instance(inst)
 
         for k,v in self._get_member_pairs(class_, inst):
