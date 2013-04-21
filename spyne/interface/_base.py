@@ -295,6 +295,17 @@ class Interface(object):
         if not (ns in self.imports):
             self.imports[ns] = set()
 
+        class_key = '{%s}%s' % (ns, tn)
+        logger.debug('\tadding class %r for %r' % (repr(cls), class_key))
+
+        assert class_key not in self.classes, ("Somehow, you're trying to "
+            "overwrite %r by %r for class key %r." %
+                                      (self.classes[class_key], cls, class_key))
+        self.classes[class_key] = cls
+        if ns == self.get_tns():
+            self.classes[tn] = cls
+
+        # add parent class
         extends = getattr(cls, '__extends__', None)
         if not (extends is None):
             self.add_class(extends)
@@ -306,17 +317,7 @@ class Interface(object):
                                             parent_ns, ns, cls.get_type_name(),
                                             extends.get_type_name()))
 
-        class_key = '{%s}%s' % (ns, tn)
-        logger.debug('\tadding class %r for %r' % (repr(cls), class_key))
-
-        assert class_key not in self.classes, ("Somehow, you're trying to "
-            "overwrite %r by %r for class key %r." %
-                                      (self.classes[class_key], cls, class_key))
-        self.classes[class_key] = cls
-
-        if ns == self.get_tns():
-            self.classes[tn] = cls
-
+        # add fields
         if issubclass(cls, ComplexModelBase):
             for k,v in cls._type_info.items():
                 if v is None:

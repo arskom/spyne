@@ -95,7 +95,7 @@ def complex_add(document, cls, tags):
     type_info = cls._type_info
     if extends is not None:
         if (extends.get_type_name() == cls.get_type_name() and
-                                extends.get_namespace() == cls.get_namespace()):
+                               extends.get_namespace() == cls.get_namespace()):
             raise Exception("%r can't extend %r because they are both '{%s}%s'"
                     % (cls, extends, cls.get_type_name(), cls.get_namespace()))
 
@@ -103,6 +103,7 @@ def complex_add(document, cls, tags):
             # If the parent class is private, it won't be in the schema, so we
             # need to act as if its attributes are part of cls as well.
             type_info = cls.get_simple_type_info(cls)
+
         else:
             complex_content = etree.SubElement(complex_type,
                                                 "{%s}complexContent" % _ns_xsd)

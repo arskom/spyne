@@ -264,6 +264,7 @@ class ComplexModelMeta(type(ModelBase)):
         base_type_info = {}
         # get base class (if exists) and enforce single inheritance
         extends = cls_dict.get('__extends__', None)
+
         if extends is None:
             for b in cls_bases:
                 base_types = getattr(b, "_type_info", None)
@@ -273,8 +274,8 @@ class ComplexModelMeta(type(ModelBase)):
                         base_type_info.update(b._type_info)
                     else:
                         if not (extends in (None, b)):
-                            raise Exception("WSDL 1.1 does not support multiple"
-                                            " inheritance")
+                            raise Exception("WSDL 1.1 does not support multiple "
+                                            "inheritance")
 
                         try:
                             if len(base_types) > 0 and issubclass(b, ModelBase):
@@ -691,9 +692,9 @@ class ComplexModelBase(ModelBase):
         if ns is not None:
             retval.__namespace__ = ns
 
-        e = getattr(retval, '__extends__', None)
-        if e is not None:
-            retval.__extends__ = e
+        orig = getattr(retval, '__orig__', None)
+        if orig is not None:
+            retval.__extends__ = getattr(orig, '__extends__', None)
 
         return retval
 
