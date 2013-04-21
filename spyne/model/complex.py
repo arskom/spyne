@@ -629,9 +629,9 @@ class ComplexModelBase(ModelBase):
         retval.__type_name__ = cls.__type_name__
         retval.__namespace__ = cls.__namespace__
 
-        e = getattr(retval, '__extends__', None)
-        if e is not None:
-            retval.__extends__ = e
+        orig = getattr(retval, '__orig__', None)
+        if orig is not None:
+            retval.__extends__ = getattr(orig, '__extends__', None)
 
         return retval
 

@@ -292,6 +292,18 @@ class Interface(object):
         if not (ns in self.imports):
             self.imports[ns] = set()
 
+        class_key = '{%s}%s' % (ns, tn)
+        logger.debug('\tadding class %r for %r' % (repr(cls), class_key))
+
+        assert class_key not in self.classes, ("Somehow, you're trying to "
+            "overwrite %r by %r for class key %r." %
+                                      (self.classes[class_key], cls, class_key))
+        self.classes[class_key] = cls
+
+        if ns == self.get_tns():
+            self.classes[tn] = cls
+
+
         for extends in (getattr(cls, '__extends__', None),
                         getattr(cls, '__base_type__', None)):
             if not (extends is None):
@@ -303,17 +315,6 @@ class Interface(object):
                     logger.debug("\timporting %r to %r because %r extends %r" %
                                             (parent_ns, ns, cls.get_type_name(),
                                              extends.get_type_name()))
-
-        class_key = '{%s}%s' % (ns, tn)
-        logger.debug('\tadding class %r for %r' % (repr(cls), class_key))
-
-        assert class_key not in self.classes, ("Somehow, you're trying to "
-            "overwrite %r by %r for class key %r." %
-                                      (self.classes[class_key], cls, class_key))
-        self.classes[class_key] = cls
-
-        if ns == self.get_tns():
-            self.classes[tn] = cls
 
         if issubclass(cls, ComplexModelBase):
             # FIXME: this looks like a hack.
