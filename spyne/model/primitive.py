@@ -737,8 +737,6 @@ class Point(Unicode):
     """A point type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper point type."""
 
-    __namespace__ = 'http://spyne.io/schema'
-
     class Attributes(Unicode.Attributes):
         dim = None
 
@@ -749,14 +747,14 @@ class Point(Unicode):
             kwargs['pattern'] = _get_point_pattern(dim)
             kwargs['type_name'] = 'point%dd' % dim
 
-        return SimpleModel.__new__(cls,  ** kwargs)
+        retval = SimpleModel.__new__(cls, **kwargs)
+        retval.__namespace__ = 'http://spyne.io/schema'
+        return retval
 
 
 class Line(Unicode):
     """A point type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper point type."""
-
-    __namespace__ = 'http://spyne.io/schema'
 
     class Attributes(Unicode.Attributes):
         dim = None
@@ -768,15 +766,15 @@ class Line(Unicode):
             kwargs['pattern'] = _get_line_pattern(dim)
             kwargs['type_name'] = 'line%dd' % dim
 
-        return SimpleModel.__new__(cls,  ** kwargs)
+        retval = SimpleModel.__new__(cls, **kwargs)
+        retval.__namespace__ = 'http://spyne.io/schema'
+        return retval
 
 LineString=Line
 
 class Polygon(Unicode):
     """A Polygon type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper polygon type."""
-
-    __namespace__ = 'http://spyne.io/schema'
 
     class Attributes(Unicode.Attributes):
         dim = None
@@ -788,14 +786,14 @@ class Polygon(Unicode):
             kwargs['pattern'] = _get_polygon_pattern(dim)
             kwargs['type_name'] = 'polygon%dd' % dim
 
-        return SimpleModel.__new__(cls,  ** kwargs)
+        retval = SimpleModel.__new__(cls, **kwargs)
+        retval.__namespace__ = 'http://spyne.io/schema'
+        return retval
 
 
 class MultiPoint(Unicode):
     """A Multipolygon type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper multipolygon type."""
-
-    __namespace__ = 'http://spyne.io/schema'
 
     class Attributes(Unicode.Attributes):
         dim = None
@@ -807,14 +805,14 @@ class MultiPoint(Unicode):
             kwargs['pattern'] = _get_multipoint_pattern(dim)
             kwargs['type_name'] = 'multipoint%dd' % dim
 
-        return SimpleModel.__new__(cls,  ** kwargs)
+        retval = SimpleModel.__new__(cls, **kwargs)
+        retval.__namespace__ = 'http://spyne.io/schema'
+        return retval
 
 
 class MultiLine(Unicode):
     """A Multipolygon type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper multipolygon type."""
-
-    __namespace__ = 'http://spyne.io/schema'
 
     class Attributes(Unicode.Attributes):
         dim = None
@@ -826,15 +824,15 @@ class MultiLine(Unicode):
             kwargs['pattern'] = _get_multiline_pattern(dim)
             kwargs['type_name'] = 'multiline%dd' % dim
 
-        return SimpleModel.__new__(cls,  ** kwargs)
+        retval = SimpleModel.__new__(cls, **kwargs)
+        retval.__namespace__ = 'http://spyne.io/schema'
+        return retval
 
 MultiLineString = MultiLine
 
 class MultiPolygon(Unicode):
     """A Multipolygon type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper multipolygon type."""
-
-    __namespace__ = 'http://spyne.io/schema'
 
     class Attributes(Unicode.Attributes):
         dim = None
@@ -846,7 +844,9 @@ class MultiPolygon(Unicode):
             kwargs['pattern'] = _get_multipolygon_pattern(dim)
             kwargs['type_name'] = 'multipolygon%dd' % dim
 
-        return SimpleModel.__new__(cls,  ** kwargs)
+        retval = SimpleModel.__new__(cls, **kwargs)
+        retval.__namespace__ = 'http://spyne.io/schema'
+        return retval
 
 
 # a class that is really a namespace
