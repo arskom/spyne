@@ -451,8 +451,8 @@ class TestSelfRefence(unittest.TestCase):
 
         d = get_object_as_dict(parent, Category)
         pprint(d)
-        assert d['Category']['children'][0]['Category']['id'] == 0
-        assert d['Category']['children'][1]['Category']['id'] == 1
+        assert d['children'][0]['id'] == 0
+        assert d['children'][1]['id'] == 1
 
         class SoapService(ServiceBase):
             @rpc(_returns=Category)

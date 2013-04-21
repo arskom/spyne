@@ -78,7 +78,7 @@ class TestMessagePackRpc(unittest.TestCase):
 
         application = Application([Service],
             in_protocol=MessagePackRpc(),
-            out_protocol=MessagePackRpc(),
+            out_protocol=MessagePackRpc(ignore_wrappers=False),
             name='Service', tns='tns'
         )
         server = WsgiApplication(application)
