@@ -153,6 +153,9 @@ def get_members_etree(prot, cls, inst, parent):
             a_of = v.attribute_of
             if a_of is not None and a_of in cls._type_info.keys():
                 delay.add(k)
+            else:
+                v.marshall(prot, k, subvalue, parent)
+
             continue
 
         mo = v.Attributes.max_occurs
