@@ -626,7 +626,6 @@ class ComplexModelBase(ModelBase):
                     v.__type_name__ = "%s_%s%s" % (cls.get_type_name(), k,
                                                                    TYPE_SUFFIX)
 
-
             v.resolve_namespace(v, default_ns, tags)
 
         if cls._force_own_namespace is not None:
