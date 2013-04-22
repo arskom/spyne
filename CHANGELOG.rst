@@ -41,6 +41,9 @@ spyne-2.10.0
  * Added YAML support via PyYaml.
  * Split dict logic in DictDocument as ``HierDictDocument`` and
    ``FlatDictDocument``.
+ * Complete revamp of how DictDocument family work. skip_depth is replaced by
+   richer functionalty that is enabled by two flags: ``ignore_wrappers`` and
+   ``complex_as``.
  * Added cookie parsing support to HttpRpc via ``Cookie.SimpleCookie``.
  * Moved ``{to,from}_string`` logic from data models to ProtocolBase.
    This gives us the ability to have more complex fault messages
