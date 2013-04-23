@@ -40,21 +40,31 @@ except ImportError:
     import json
     JSONDecodeError = ValueError
 
+from spyne.protocol._model import integer_from_string
+from spyne.protocol._model import decimal_from_string
+from spyne.protocol._model import double_from_string
+from spyne.error import ValidationError
+
+from spyne.model.primitive import Date
+from spyne.model.primitive import Time
+from spyne.model.primitive import DateTime
+from spyne.model.primitive import Integer
+from spyne.model.primitive import Decimal
+from spyne.model.primitive import Double
+from spyne.model.primitive import Boolean
 from spyne.model.fault import Fault
-from spyne.protocol.dictdoc import NumStr
 from spyne.protocol.dictdoc import HierDictDocument
+
 
 class JsonEncoder(json.JSONEncoder):
     def default(self, o):
-        if isinstance(o, decimal.Decimal):
-            return str(o)
-
         try:
             return super(JsonEncoder, self).default(o)
 
-        except TypeError:
+        except TypeError, e:
             # if it's not a Decimal and json still can't serialize it,
             # it's possibly a generator. If not, additional hacks are welcome :)
+            logger.exception(e)
             return list(o)
 
 
@@ -68,6 +78,8 @@ class JsonDocument(HierDictDocument):
     type = set(HierDictDocument.type)
     type.add('json')
 
+    _decimal_as_string = True
+
     def __init__(self, app=None, validator=None, mime_type=None,
                                         ignore_uncap=False,
                                         # DictDocument specific
@@ -78,7 +90,23 @@ class JsonDocument(HierDictDocument):
         HierDictDocument.__init__(self, app, validator, mime_type, ignore_uncap,
                                            ignore_wrappers, complex_as, ordered)
 
-        self._numbers_as_string = True
+        self._from_string_handlers[Double] = lambda cls, val: val
+        self._from_string_handlers[Boolean] = lambda cls, val: val
+        self._from_string_handlers[Integer] = lambda cls, val: val
+
+        self._to_string_handlers[Double] = lambda cls, val: val
+        self._to_string_handlers[Boolean] = lambda cls, val: val
+        self._to_string_handlers[Integer] = lambda cls, val: val
+
+    def validate(self, cls, val):
+        super(JsonDocument, self).validate(cls, val)
+
+        if issubclass(cls, (DateTime, Date, Time)) and not (
+                                    isinstance(val, basestring) and
+                                                 cls.validate_string(cls, val)):
+            raise ValidationError(val)
+
+
 
     def create_in_document(self, ctx, in_string_encoding=None):
         """Sets ``ctx.in_document``  using ``ctx.in_string``."""
@@ -89,7 +117,6 @@ class JsonDocument(HierDictDocument):
         try:
             ctx.in_document = json.loads(
                             ''.join(ctx.in_string).decode(in_string_encoding),
-                            parse_float=NumStr, parse_int=NumStr,
                         )
 
         except JSONDecodeError, e:
@@ -99,7 +126,6 @@ class JsonDocument(HierDictDocument):
         """Sets ``ctx.out_string`` using ``ctx.out_document``."""
         ctx.out_string = (json.dumps(o, cls=JsonEncoder)
                                                       for o in ctx.out_document)
-
 
 JsonObject = JsonDocument
 """DEPRECATED. Use :class:`spyne.protocol.json.JsonDocument` instead"""

@@ -31,6 +31,10 @@ from __future__ import absolute_import
 import logging
 logger = logging.getLogger(__name__)
 
+from spyne.model.primitive import Boolean
+from spyne.model.primitive import Integer
+from spyne.model.primitive import Double
+from spyne.model.primitive import Decimal
 from spyne.model.fault import Fault
 from spyne.protocol.dictdoc import HierDictDocument
 
@@ -71,6 +75,9 @@ class YamlDocument(HierDictDocument):
     type = set(HierDictDocument.type)
     type.add('yaml')
 
+    # for test classes
+    _decimal_as_string = True
+
     def __init__(self, app=None, validator=None, mime_type=None,
                                         ignore_uncap=False,
                                         # DictDocument specific
@@ -82,6 +89,14 @@ class YamlDocument(HierDictDocument):
 
         HierDictDocument.__init__(self, app, validator, mime_type, ignore_uncap,
                                            ignore_wrappers, complex_as, ordered)
+
+        self._from_string_handlers[Double] = lambda cls, val: val
+        self._from_string_handlers[Boolean] = lambda cls, val: val
+        self._from_string_handlers[Integer] = lambda cls, val: val
+
+        self._to_string_handlers[Double] = lambda cls, val: val
+        self._to_string_handlers[Boolean] = lambda cls, val: val
+        self._to_string_handlers[Integer] = lambda cls, val: val
 
         self.in_kwargs = dict(kwargs)
         self.out_kwargs = dict(kwargs)
@@ -115,3 +130,10 @@ class YamlDocument(HierDictDocument):
         """Sets ``ctx.out_string`` using ``ctx.out_document``."""
         ctx.out_string = (yaml.dump(o, **self.out_kwargs)
                                                       for o in ctx.out_document)
+
+
+def _decimal_to_string():
+    pass
+
+def _decimal_from_string():
+    pass

@@ -414,7 +414,7 @@ class TestSimpleTypeRestrictions(unittest.TestCase):
 
         val = CCM(i=5, s='a', c=CM(i=7, s='b'))
 
-        d = FlatDictDocument.object_to_flat_dict(CCM, val)
+        d = FlatDictDocument().object_to_flat_dict(CCM, val)
 
         assert d['i'] == 5
         assert d['s'] == 'a'

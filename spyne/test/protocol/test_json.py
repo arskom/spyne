@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from spyne.protocol.json import JsonEncoder
 import unittest
 try:
     import simplejson as json
@@ -33,7 +34,8 @@ from spyne.decorator import srpc
 from spyne.service import ServiceBase
 from spyne.server import ServerBase
 
-TestJsonDocument = TDictDocumentTest(json, JsonDocument)
+TestJsonDocument = TDictDocumentTest(json, JsonDocument,
+                                            dumps_kwargs=dict(cls=JsonEncoder))
 
 
 class Test(unittest.TestCase):

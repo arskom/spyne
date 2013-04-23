@@ -34,4 +34,5 @@ def deserialize_request_string(string, app):
 
     ctx = server.generate_contexts(initial_ctx)[0]
     server.get_in_object(ctx)
+
     return ctx.in_object

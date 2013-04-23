@@ -37,8 +37,11 @@ from spyne.server import ServerBase
 from spyne.server.wsgi import WsgiApplication
 from spyne.test.protocol._test_dictdoc import TDictDocumentTest
 
-TestMessagePackDocument = TDictDocumentTest(msgpack, MessagePackDocument)
 from spyne.test.test_service import start_response
+
+
+TestMessagePackDocument  = TDictDocumentTest(msgpack, MessagePackDocument)
+
 
 class TestMessagePackRpc(unittest.TestCase):
     def test_invalid_input(self):
@@ -113,7 +116,6 @@ class TestMessagePackRpc(unittest.TestCase):
         ])
         print s
         assert ret == s
-
 
 if __name__ == '__main__':
     unittest.main()

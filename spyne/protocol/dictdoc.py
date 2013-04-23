@@ -41,17 +41,17 @@ from spyne.model.binary import File
 from spyne.model.fault import Fault
 from spyne.model.complex import ComplexModelBase
 from spyne.model.complex import Array
+from spyne.model.primitive import AnyDict
+from spyne.model.primitive import AnyXml
+from spyne.model.primitive import AnyHtml
+from spyne.model.primitive import Uuid
 from spyne.model.primitive import DateTime
-from spyne.model.primitive import Decimal
-from spyne.model.primitive import String
+from spyne.model.primitive import Date
+from spyne.model.primitive import Time
+from spyne.model.primitive import Duration
 from spyne.model.primitive import Unicode
 
 from spyne.protocol import ProtocolBase
-
-
-class NumStr(object):
-    def __init__(self, str):
-        self.str = str
 
 
 def check_freq_dict(cls, d, fti=None):
@@ -70,7 +70,6 @@ def check_freq_dict(cls, d, fti=None):
                 raise ValidationError(k,
                             '%%r member must occur at most %d times.' % max_o)
 
-
 class DictDocument(ProtocolBase):
     """An abstract protocol that can use hierarchical or flat dicts as input
     and output documents.
@@ -79,6 +78,10 @@ class DictDocument(ProtocolBase):
     ``create_out_string()`` to use this.
     """
 
+    # flags to be used in tests
+    _decimal_as_string = False
+    _huge_numbers_as_string = False
+
     def __init__(self, app=None, validator=None, mime_type=None,
                                         ignore_uncap=False,
                                         ignore_wrappers=True,
@@ -86,12 +89,14 @@ class DictDocument(ProtocolBase):
                                         ordered=False):
         ProtocolBase.__init__(self, app, validator, mime_type, ignore_uncap)
 
-        self._numbers_as_string = False
         self.ignore_wrappers = ignore_wrappers
         self.complex_as = complex_as
         self.ordered = ordered
         if ordered:
             raise NotImplementedError('ordered == False')
+
+        self.stringified_types = (DateTime, Date, Time, Uuid, Duration,
+                                                                AnyXml, AnyHtml)
 
     def set_validator(self, validator):
         """Sets the validator for the protocol.
@@ -145,8 +150,7 @@ class DictDocument(ProtocolBase):
 
 
 class FlatDictDocument(DictDocument):
-    @classmethod
-    def flat_dict_to_object(cls, doc, inst_class, validator=None, hier_delim="_"):
+    def flat_dict_to_object(self, doc, inst_class, validator=None, hier_delim="_"):
         """Converts a flat dict to a native python object.
 
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
@@ -172,25 +176,25 @@ class FlatDictDocument(DictDocument):
             # extract native values from the list of strings in the flat dict
             # entries.
             for v2 in v:
-                if (validator is cls.SOFT_VALIDATION and not
+                if (validator is self.SOFT_VALIDATION and not
                                   member.type.validate_string(member.type, v2)):
                     raise ValidationError(v2)
 
                 if issubclass(member.type, (File, ByteArray)):
                     if isinstance(v2, str) or isinstance(v2, unicode):
                         if member.type.Attributes.encoding is None and \
-                                        cls.default_binary_encoding is not None:
-                            native_v2 = cls.from_string(member.type,
-                                                v2, cls.default_binary_encoding)
+                                        self.default_binary_encoding is not None:
+                            native_v2 = self.from_string(member.type, v2,
+                                                    self.default_binary_encoding)
 
                         else:
-                            native_v2 = cls.from_string(member.type,v2)
+                            native_v2 = self.from_string(member.type, v2)
                     else:
                         native_v2 = v2
                 else:
-                    native_v2 = cls.from_string(member.type, v2)
+                    native_v2 = self.from_string(member.type, v2)
 
-                if (validator is cls.SOFT_VALIDATION and not
+                if (validator is self.SOFT_VALIDATION and not
                             member.type.validate_native(member.type, native_v2)):
                     raise ValidationError(v2)
 
@@ -259,14 +263,13 @@ class FlatDictDocument(DictDocument):
                 logger.debug("\tset default %r(%r) = %r" %
                                                     (member.path, pkey, value))
 
-        if len(frequencies) > 0 and validator is cls.SOFT_VALIDATION:
+        if len(frequencies) > 0 and validator is self.SOFT_VALIDATION:
             for k, d in frequencies.items():
                 check_freq_dict(k[-2], d)
 
         return inst
 
-    @classmethod
-    def object_to_flat_dict(cls, inst_cls, value, hier_delim="_", retval=None,
+    def object_to_flat_dict(self, inst_cls, value, hier_delim="_", retval=None,
                      prefix=None, parent=None, subvalue_eater=lambda prot,v,t:v):
         """Converts a native python object to a flat dict.
 
@@ -293,13 +296,13 @@ class FlatDictDocument(DictDocument):
 
                 if subvalue is not None or v.Attributes.min_occurs > 0:
                     try:
-                        retval[key] = subvalue_eater(cls, subvalue, v)
+                        retval[key] = subvalue_eater(self, subvalue, v)
                     except: # FIXME: What?
                         if v.Attributes.min_occurs > 0:
                             retval[key] = None
 
             else:
-                cls.object_to_flat_dict(fti[k], subvalue, hier_delim,
+                self.object_to_flat_dict(fti[k], subvalue, hier_delim,
                                             retval, new_prefix, parent=inst_cls)
 
         return retval
@@ -345,7 +348,7 @@ class HierDictDocument(DictDocument):
         self.event_manager.fire_event('before_serialize', ctx)
 
         if ctx.out_error is not None:
-            ctx.out_document = [ProtocolBase.to_dict(ctx.out_error.__class__,
+            ctx.out_document = [self.to_dict(ctx.out_error.__class__,
                                                                  ctx.out_error)]
 
         else:
@@ -371,43 +374,24 @@ class HierDictDocument(DictDocument):
 
             self.event_manager.fire_event('after_serialize', ctx)
 
-    def _from_dict_value(self, class_, value, validator):
+    def validate(self, class_, value):
         # validate raw input
+        if issubclass(class_, Unicode) and not isinstance(value, basestring):
+            raise ValidationError(value)
+
+    def _from_dict_value(self, class_, value, validator):
         if validator is self.SOFT_VALIDATION:
-            if issubclass(class_, Unicode) and not isinstance(value, basestring):
-                raise ValidationError(value)
-            if issubclass(class_, Unicode) and not isinstance(value, unicode):
-                # Note that String is a subclass of Unicode
-                if not (issubclass(class_, String) and isinstance(value, str)):
-                    value = ProtocolBase.from_string(class_, value)
+            self.validate(class_, value)
 
-            elif issubclass(class_, Decimal):
-                if self._numbers_as_string and not isinstance(value, NumStr):
-                    raise ValidationError(value)
-                if not self._numbers_as_string and not isinstance(value,
-                                                            (int, long, float)):
-                    raise ValidationError(value)
-
-            elif issubclass(class_, DateTime) and not (
-                                isinstance(value, unicode) and
-                                         class_.validate_string(class_, value)):
-                raise ValidationError(value)
+        if issubclass(class_, AnyDict):
+            return value
 
         # get native type
         if issubclass(class_, ComplexModelBase):
             retval = self._doc_to_object(class_, value, validator)
 
-        elif issubclass(class_, DateTime):
-            retval = ProtocolBase.from_string(class_, value)
-
-        elif issubclass(class_, Decimal) and self._numbers_as_string:
-            # number strings are wrapped inside NumStr instances to distinguish
-            # them from real str instances. otherwise validation is broken to
-            # accept numbers for string values.
-            retval = ProtocolBase.from_string(class_, value.str)
-
         else:
-            retval = value
+            retval = self.from_string(class_, value)
 
         # validate native type
         if validator is self.SOFT_VALIDATION and \
@@ -514,25 +498,20 @@ class HierDictDocument(DictDocument):
                 yield (k, val)
 
     def _to_value(self, class_, value):
+        if issubclass(class_, AnyDict):
+            return value
+
         if issubclass(class_, Array):
             st, = class_._type_info.values()
             return self._object_to_doc(st, value)
+
         if issubclass(class_, ComplexModelBase):
             if self.complex_as is list:
-                return self._complex_to_list(class_, value)
+                return list(self._complex_to_list(class_, value))
             else:
                 return self._complex_to_dict(class_, value)
 
-        if issubclass(class_, DateTime):
-            return self.to_string(class_, value)
-
-        if issubclass(class_, Decimal):
-            if class_.Attributes.format is None:
-                return value
-            else:
-                return self.to_string(class_, value)
-
-        return value
+        return self.to_string(class_, value)
 
     def _complex_to_dict(self, class_, inst):
         inst = class_.get_serialization_instance(inst)

@@ -763,7 +763,7 @@ class Line(Unicode):
         assert dim in (None,2,3)
         if dim is not None:
             kwargs['dim'] = dim
-            kwargs['pattern'] = _get_line_pattern(dim)
+            kwargs['pattern'] = _get_linestring_pattern(dim)
             kwargs['type_name'] = 'line%dd' % dim
 
         retval = SimpleModel.__new__(cls, **kwargs)
@@ -821,7 +821,7 @@ class MultiLine(Unicode):
         assert dim in (None,2,3)
         if dim is not None:
             kwargs['dim'] = dim
-            kwargs['pattern'] = _get_multiline_pattern(dim)
+            kwargs['pattern'] = _get_multilinestring_pattern(dim)
             kwargs['type_name'] = 'multiline%dd' % dim
 
         retval = SimpleModel.__new__(cls, **kwargs)

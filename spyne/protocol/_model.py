@@ -22,6 +22,7 @@ import datetime
 import math
 import time
 import pytz
+import uuid
 
 from collections import deque
 
@@ -46,6 +47,7 @@ except ImportError:
     html = None
 
 __all__ = [
+    'uuid_to_string', 'uuid_from_string',
     'null_to_string', 'null_from_string',
     'any_xml_to_string', 'any_xml_from_string',
     'any_html_to_string', 'any_html_from_string',
@@ -92,6 +94,15 @@ def any_html_to_string(cls, value):
 @nillable_string
 def any_html_from_string(cls, string):
     return html.fromstring(string)
+
+
+@nillable_string
+def uuid_to_string(cls, value):
+    return str(value)
+
+@nillable_string
+def uuid_from_string(cls, string):
+    return uuid.UUID(string)
 
 
 @nillable_string
@@ -152,7 +163,8 @@ def decimal_from_string(cls, string):
 
 @nillable_string
 def double_to_string(cls, value):
-    float(value)
+    float(value) # sanity check
+
     if cls.Attributes.format is None:
         return repr(value)
     else:
@@ -162,7 +174,7 @@ def double_to_string(cls, value):
 def double_from_string(cls, string):
     try:
         return float(string)
-    except ValueError, e:
+    except (TypeError, ValueError), e:
         raise ValidationError(string, "%%r: %r" % e)
 
 
@@ -170,7 +182,10 @@ def double_from_string(cls, string):
 def integer_to_string(cls, value):
     int(value) # sanity check
 
-    return str(value)
+    if cls.Attributes.format is None:
+        return str(value)
+    else:
+        return cls.Attributes.format % value
 
 @nillable_string
 def integer_from_string(cls, string):
