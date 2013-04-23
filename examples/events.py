@@ -36,18 +36,10 @@ In this example, the service hooks are used to gather performance
 information on both the method execution as well as the duration
 of the entire call, including serialization and deserialization.
 
-These method can be used to easily apply cross-cutting functionality
-accross all methods in the service to do things like database transaction
-management, logging and measuring performance. This example also
-uses the user-defined context (udc) attribute of the MethodContext object
-to hold the data points for this request.
-
-You may notice that one construction of MethodContext instance is followed by
-two destructions. This is because the auxproc code creates shallow copies of
-the context instance in an early stage of the method processing pipeline. As the
-python's shallow-copying operator does not let us customize copy constructor,
-it's not possible to cleanly log this event. You can use the ``wsgi_close``
-event to reliably fire events when the request processing is completed.
+Events can be used for doing things like like database transaction management,
+logging and measuring performance. This example also uses the user-defined
+context (udc) attribute of the MethodContext object to hold the data points for
+this request.
 
 Use:
 
