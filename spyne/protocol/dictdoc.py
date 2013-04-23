@@ -49,6 +49,11 @@ from spyne.model.primitive import Unicode
 from spyne.protocol import ProtocolBase
 
 
+class NumStr(object):
+    def __init__(self, str):
+        self.str = str
+
+
 def check_freq_dict(cls, d, fti=None):
     if fti is None:
         fti = cls.get_flat_type_info(cls)
@@ -76,11 +81,17 @@ class DictDocument(ProtocolBase):
 
     def __init__(self, app=None, validator=None, mime_type=None,
                                         ignore_uncap=False,
-                                        ignore_wrappers=True, complex_as=dict):
+                                        ignore_wrappers=True,
+                                        complex_as=dict,
+                                        ordered=False):
         ProtocolBase.__init__(self, app, validator, mime_type, ignore_uncap)
 
+        self._numbers_as_string = False
         self.ignore_wrappers = ignore_wrappers
         self.complex_as = complex_as
+        self.ordered = ordered
+        if ordered:
+            raise NotImplementedError('ordered == False')
 
     def set_validator(self, validator):
         """Sets the validator for the protocol.
@@ -370,9 +381,12 @@ class HierDictDocument(DictDocument):
                 if not (issubclass(class_, String) and isinstance(value, str)):
                     value = ProtocolBase.from_string(class_, value)
 
-            elif issubclass(class_, Decimal) and not isinstance(value,
+            elif issubclass(class_, Decimal):
+                if self._numbers_as_string and not isinstance(value, NumStr):
+                    raise ValidationError(value)
+                if not self._numbers_as_string and not isinstance(value,
                                                             (int, long, float)):
-                raise ValidationError(value)
+                    raise ValidationError(value)
 
             elif issubclass(class_, DateTime) and not (
                                 isinstance(value, unicode) and
@@ -385,6 +399,12 @@ class HierDictDocument(DictDocument):
 
         elif issubclass(class_, DateTime):
             retval = ProtocolBase.from_string(class_, value)
+
+        elif issubclass(class_, Decimal) and self._numbers_as_string:
+            # number strings are wrapped inside NumStr instances to distinguish
+            # them from real str instances. otherwise validation is broken to
+            # accept numbers for string values.
+            retval = ProtocolBase.from_string(class_, value.str)
 
         else:
             retval = value

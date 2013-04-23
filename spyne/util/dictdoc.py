@@ -17,6 +17,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from spyne.protocol.json import json
+from spyne.protocol.json import JsonEncoder
 from spyne.protocol.dictdoc import HierDictDocument
 
 
@@ -27,4 +29,9 @@ def get_dict_as_object(d, cls, ignore_wrappers=True, complex_as=list):
 
 def get_object_as_dict(o, cls, ignore_wrappers=True, complex_as=dict):
     return HierDictDocument(ignore_wrappers=ignore_wrappers,
-                                  complex_as=complex_as)._object_to_doc(cls, o)
+                                   complex_as=complex_as)._object_to_doc(cls, o)
+
+
+def get_object_as_json(o, cls, ignore_wrappers=True, complex_as=list):
+    d = get_object_as_dict(o, cls, ignore_wrappers, complex_as)
+    return json.dumps(d, cls=JsonEncoder)

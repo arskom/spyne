@@ -73,12 +73,15 @@ class YamlDocument(HierDictDocument):
 
     def __init__(self, app=None, validator=None, mime_type=None,
                                         ignore_uncap=False,
-                                        ignore_wrappers=True, complex_as=dict,
-                                        # these are yaml specific
+                                        # DictDocument specific
+                                        ignore_wrappers=True,
+                                        complex_as=dict,
+                                        ordered=False,
+                                        # YamlDocument specific
                                         safe=True, **kwargs):
 
         HierDictDocument.__init__(self, app, validator, mime_type, ignore_uncap,
-                                                    ignore_wrappers, complex_as)
+                                           ignore_wrappers, complex_as, ordered)
 
         self.in_kwargs = dict(kwargs)
         self.out_kwargs = dict(kwargs)

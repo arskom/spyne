@@ -54,5 +54,6 @@ class Test(unittest.TestCase):
         ctx, = server.generate_contexts(initial_ctx)
         assert ctx.in_error.faultcode == 'Client.JsonDecodeError'
 
+
 if __name__ == '__main__':
     unittest.main()

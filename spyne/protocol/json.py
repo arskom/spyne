@@ -31,6 +31,8 @@ from __future__ import absolute_import
 import logging
 logger = logging.getLogger(__name__)
 
+import decimal
+
 try:
     import simplejson as json
     from simplejson.decoder import JSONDecodeError
@@ -39,7 +41,21 @@ except ImportError:
     JSONDecodeError = ValueError
 
 from spyne.model.fault import Fault
+from spyne.protocol.dictdoc import NumStr
 from spyne.protocol.dictdoc import HierDictDocument
+
+class JsonEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, decimal.Decimal):
+            return str(o)
+
+        try:
+            return super(JsonEncoder, self).default(o)
+
+        except TypeError:
+            # if it's not a Decimal and json still can't serialize it,
+            # it's possibly a generator. If not, additional hacks are welcome :)
+            return list(o)
 
 
 class JsonDocument(HierDictDocument):
@@ -52,6 +68,18 @@ class JsonDocument(HierDictDocument):
     type = set(HierDictDocument.type)
     type.add('json')
 
+    def __init__(self, app=None, validator=None, mime_type=None,
+                                        ignore_uncap=False,
+                                        # DictDocument specific
+                                        ignore_wrappers=True,
+                                        complex_as=dict,
+                                        ordered=False):
+
+        HierDictDocument.__init__(self, app, validator, mime_type, ignore_uncap,
+                                           ignore_wrappers, complex_as, ordered)
+
+        self._numbers_as_string = True
+
     def create_in_document(self, ctx, in_string_encoding=None):
         """Sets ``ctx.in_document``  using ``ctx.in_string``."""
 
@@ -59,14 +87,19 @@ class JsonDocument(HierDictDocument):
             in_string_encoding = 'UTF-8'
 
         try:
-            ctx.in_document = json.loads(''.join(ctx.in_string).decode(
-                                                            in_string_encoding))
+            ctx.in_document = json.loads(
+                            ''.join(ctx.in_string).decode(in_string_encoding),
+                            parse_float=NumStr, parse_int=NumStr,
+                        )
+
         except JSONDecodeError, e:
             raise Fault('Client.JsonDecodeError', repr(e))
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         """Sets ``ctx.out_string`` using ``ctx.out_document``."""
-        ctx.out_string = (json.dumps(o) for o in ctx.out_document)
+        ctx.out_string = (json.dumps(o, cls=JsonEncoder)
+                                                      for o in ctx.out_document)
+
 
 JsonObject = JsonDocument
 """DEPRECATED. Use :class:`spyne.protocol.json.JsonDocument` instead"""

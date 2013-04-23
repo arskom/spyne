@@ -53,7 +53,6 @@ from spyne.protocol.http import HttpRpc
 from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
 from spyne.server.wsgi import WsgiMethodContext
-from spyne.util.sqlalchemy import gen_sqla_info
 
 #
 # Deprecated Table Model Tests
