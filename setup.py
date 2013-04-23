@@ -108,7 +108,10 @@ class RunTests(TestCommand):
     def run_tests(self):
         print "running tests"
         ret = 0
-        ret = call_pytest('interface', 'model', 'protocol', 'test_*') or ret
+        ret = call_pytest('interface', 'model', 'protocol',
+                          'test_null_server.py', 'test_service.py',
+                          'test_soft_validation.py', 'test_util.py') or ret
+        ret = call_pytest('test_sqlalchemy.py') or ret
         ret = call_pytest('interop/test_httprpc.py') or ret
         ret = call_pytest('interop/test_soap_client_http.py') or ret
         ret = call_pytest('interop/test_soap_client_zeromq.py') or ret
