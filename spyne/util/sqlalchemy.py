@@ -296,11 +296,11 @@ def get_sqlalchemy_type(cls):
         return PGGeometry("POLYGON", dimension=cls.Attributes.dim)
 
     # must be above Unicode, because MultiPoint is Unicode's subclass
-    elif issubclass(cls, Point):
+    elif issubclass(cls, MultiPoint):
         return PGGeometry("MULTIPOINT", dimension=cls.Attributes.dim)
 
     # must be above Unicode, because MultiLine is Unicode's subclass
-    elif issubclass(cls, Line):
+    elif issubclass(cls, MultiLine):
         return PGGeometry("MULTILINESTRING", dimension=cls.Attributes.dim)
 
     # must be above Unicode, because MultiPolygon is Unicode's subclass
