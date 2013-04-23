@@ -99,7 +99,7 @@ from spyne.util import sanitize_args
 from spyne.util.xml import get_object_as_xml
 from spyne.util.xml import get_xml_as_object
 from spyne.util.dictdoc import get_dict_as_object
-from spyne.util.dictdoc import get_object_as_dict
+from spyne.util.dictdoc import get_object_as_json
 
 
 # Inheritance type constants.
@@ -247,7 +247,7 @@ sqlalchemy.dialects.postgresql.base.ischema_names['xml'] = PGObjectXml
 
 
 class PGObjectJson(UserDefinedType):
-    def __init__(self, cls, ignore_wrappers, complex_as=list):
+    def __init__(self, cls, ignore_wrappers=True, complex_as=dict):
         self.cls = cls
         self.ignore_wrappers = ignore_wrappers
         self.complex_as = complex_as
@@ -258,10 +258,10 @@ class PGObjectJson(UserDefinedType):
     def bind_processor(self, dialect):
         def process(value):
             if value is not None:
-                return json.dumps(get_object_as_dict(value, self.cls,
+                return get_object_as_json(value, self.cls,
                         ignore_wrappers=self.ignore_wrappers,
                         complex_as=self.complex_as,
-                    ))
+                    )
         return process
 
     def result_processor(self, dialect, col_type):
