@@ -123,47 +123,47 @@ class ProtocolBase(object):
 
         self._to_string_handlers = cdict({
             ModelBase: lambda cls, value: cls.to_string(value),
-            Null: null_to_string,
-            AnyXml: any_xml_to_string,
-            AnyHtml: any_html_to_string,
-            Unicode: unicode_to_string,
-            Decimal: decimal_to_string,
-            Double: double_to_string,
-            Integer: integer_to_string,
             Time: time_to_string,
-            DateTime: datetime_to_string,
             Uuid: uuid_to_string,
-            Duration: duration_to_string,
+            Null: null_to_string,
+            Double: double_to_string,
+            AnyXml: any_xml_to_string,
+            Unicode: unicode_to_string,
             Boolean: boolean_to_string,
+            Decimal: decimal_to_string,
+            Integer: integer_to_string,
+            AnyHtml: any_html_to_string,
+            DateTime: datetime_to_string,
+            Duration: duration_to_string,
             ByteArray: byte_array_to_string,
             Attachment: attachment_to_string,
             ComplexModelBase: complex_model_base_to_string,
         })
 
         self._to_string_iterable_handlers = cdict({
+            File: file_to_string_iterable,
+            ByteArray: byte_array_to_string_iterable,
             ModelBase: lambda prot, cls, value: cls.to_string_iterable(value),
             SimpleModel: lambda prot, cls, value: (prot._to_string_handlers[cls](cls, value),),
-            ByteArray: byte_array_to_string_iterable,
-            File: file_to_string_iterable,
         })
 
         self._from_string_handlers = cdict({
             Null: null_from_string,
-            AnyXml: any_xml_from_string,
-            AnyHtml: any_html_from_string,
-            Unicode: unicode_from_string,
-            String: string_from_string,
-            Decimal: decimal_from_string,
-            Double: double_from_string,
-            Integer: integer_from_string,
             Time: time_from_string,
-            DateTime: datetime_from_string,
             Date: date_from_string,
             Uuid: uuid_from_string,
-            Duration: duration_from_string,
-            Boolean: boolean_from_string,
-            ByteArray: byte_array_from_string,
             File: file_from_string,
+            Double: double_from_string,
+            String: string_from_string,
+            AnyXml: any_xml_from_string,
+            Boolean: boolean_from_string,
+            Integer: integer_from_string,
+            Unicode: unicode_from_string,
+            Decimal: decimal_from_string,
+            AnyHtml: any_html_from_string,
+            DateTime: datetime_from_string,
+            Duration: duration_from_string,
+            ByteArray: byte_array_from_string,
             Attachment: attachment_from_string,
             ComplexModelBase: complex_model_base_from_string
         })
@@ -173,7 +173,6 @@ class ProtocolBase(object):
             ComplexModelBase: complex_model_base_to_dict,
             Fault: fault_to_dict,
         })
-
 
     @property
     def app(self):
