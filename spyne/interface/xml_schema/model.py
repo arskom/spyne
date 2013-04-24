@@ -239,6 +239,7 @@ def enum_add(document, cls, tags):
 
 fault_add = complex_add
 
+
 def unicode_get_restriction_tag(interface, cls):
     restriction = simple_get_restriction_tag(interface, cls)
 
