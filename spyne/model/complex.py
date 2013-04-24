@@ -511,27 +511,6 @@ class ComplexModelBase(ModelBase):
         else:
             return cls.__orig__()
 
-    @classmethod
-    def get_members_pairs(cls, inst):
-        parent_cls = getattr(cls, '__extends__', None)
-        if not (parent_cls is None):
-            for r in parent_cls.get_members_pairs(parent_cls, inst):
-                yield r
-
-        for k, v in cls._type_info.items():
-            mo = v.Attributes.max_occurs
-            try:
-                subvalue = getattr(inst, k, None)
-            except: # to guard against e.g. sqlalchemy throwing NoSuchColumnError
-                subvalue = None
-
-            if mo > 1:
-                if subvalue != None:
-                    yield (k, (v.to_string(sv) for sv in subvalue))
-
-            else:
-                yield (k, [v.to_string(subvalue)])
-
     @staticmethod
     @memoize
     def get_flat_type_info(cls):
