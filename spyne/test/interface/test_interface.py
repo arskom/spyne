@@ -18,7 +18,6 @@
 #
 
 
-from spyne.model.primitive import UnsignedInteger16
 import unittest
 
 from spyne.application import Application
@@ -27,6 +26,7 @@ from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
 from spyne.model.primitive import AnyXml
 from spyne.model.primitive import UnsignedLong
+from spyne.model.primitive import UnsignedInteger16
 from spyne.model.primitive import Integer
 from spyne.model.primitive import DateTime
 from spyne.model.primitive import Unicode
@@ -39,6 +39,7 @@ class TestInterface(unittest.TestCase):
     def test_imports(self):
         import logging
         logging.basicConfig(level=logging.DEBUG)
+
         class KeyValuePair(ComplexModel):
             __namespace__ = "1"
             key = Unicode

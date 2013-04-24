@@ -29,14 +29,15 @@ from lxml import etree
 
 from collections import deque
 
+from spyne.const.xml_ns import xsd as _ns_xs
+from spyne.const.xml_ns import xsd as _ns_xsd
+
 from spyne.model.complex import XmlAttribute
 from spyne.model.primitive import AnyXml
 from spyne.model.primitive import Unicode
+
 from spyne.util import memoize
 from spyne.util.etreeconv import dict_to_etree
-
-from spyne.const.xml_ns import xsd as _ns_xs
-from spyne.const.xml_ns import xsd as _ns_xsd
 
 
 def simple_get_restriction_tag(document, cls):
@@ -79,10 +80,13 @@ def complex_add(document, cls, tags):
             appinfo = etree.SubElement(annotation, "{%s}appinfo" % _ns_xsd)
             if isinstance(_ai, dict):
                 dict_to_etree(_ai, appinfo)
+
             elif isinstance(_ai, str) or isinstance(_ai, unicode):
                 appinfo.text = _ai
+
             elif isinstance(_ai, etree._Element):
                 appinfo.append(_ai)
+
             else:
                 from spyne.util.xml import get_object_as_xml
 

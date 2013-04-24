@@ -171,8 +171,8 @@ class XmlSchema(InterfaceDocumentBase):
 
         pref_tns = self.interface.get_namespace_prefix(self.interface.tns)
         tmp_dir_name = tempfile.mkdtemp(prefix='spyne')
-        logger.debug("generating schema for targetNamespace=%r, prefix: %r in dir %r"
-                                   % (self.interface.tns, pref_tns, tmp_dir_name))
+        logger.debug("generating schema for targetNamespace=%r, prefix: "
+                  "%r in dir %r" % (self.interface.tns, pref_tns, tmp_dir_name))
 
         # serialize nodes to files
         for k, v in self.schema_dict.items():
