@@ -109,11 +109,6 @@ class TestXmlSchema(unittest.TestCase):
             @rpc(Mandatory.Uuid, _returns=Unicode)
             def say_my_uuid(ctx, uuid):
                 return 'Your UUID: %s' % uuid
-                service_app = Application([JackedUpService],
-                    tns='kickass.ns',
-                    in_protocol=Soap11(validator='lxml'),
-                    out_protocol=Soap11()
-                )
 
         Application([ExampleService],
             tns='kickass.ns',
