@@ -37,7 +37,6 @@ except ImportError: # Python 3
 
 from spyne.util import _bytes_join
 from spyne.model import nillable_string
-from spyne.model import nillable_iterable
 from spyne.model import ModelBase
 from spyne.model import SimpleModel
 
@@ -141,12 +140,6 @@ class File(SimpleModel):
                 assert os.path.isabs(self.path)
 
             self.type = type
-
-            if data is None:
-                self.data = File.to_string_iterable(self)
-            else:
-                self.data = iter(data)
-
             self.handle = handle
 
         def rollover(self):
@@ -173,7 +166,7 @@ class File(SimpleModel):
 
             f.close()
 
-            self.data = File.to_string_iterable(self)
+            self.data = None
 
     @classmethod
     @nillable_string

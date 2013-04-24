@@ -394,6 +394,11 @@ def file_from_string(cls, value, suggested_encoding=None):
 
 @nillable_iterable
 def file_to_string_iterable(prot, cls, value):
+    if value.data is None:
+        value.data = prot.to_string_iterable(value)
+    else:
+        value.data = iter(data)
+
     assert value.path is not None, "You need to write data to persistent " \
                                    "storage first if you want to read it back."
 
@@ -411,7 +416,6 @@ def file_to_string_iterable(prot, cls, value):
     if value.handle is None:
         f.close()
 
-
 @nillable_string
 def attachment_to_string(cls, value):
     if not (value.data is None):
@@ -423,6 +427,7 @@ def attachment_to_string(cls, value):
         # the data hasn't been loaded, but a file has been
         # specified
         data = open(value.file_name, 'rb').read()
+
     else:
         raise ValueError("Neither data nor a file_name has been specified")
 
