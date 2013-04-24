@@ -275,12 +275,12 @@ def Tget_range_restriction_tag(T):
         def _get_float_restrictions(restriction, cls):
             if cls.Attributes.fraction_digits != T.Attributes.fraction_digits:
                 elt = etree.SubElement(restriction, '{%s}fractionDigits' % _ns_xs)
-                elt.set('value', cls.Attributes.total_digits)
+                elt.set('value', cls.to_string(cls.Attributes.fraction_digits))
 
         def _get_integer_restrictions(restriction, cls):
             if cls.Attributes.total_digits != T.Attributes.total_digits:
                 elt = etree.SubElement(restriction, '{%s}totalDigits' % _ns_xs)
-                elt.set('value', cls.Attributes.total_digits)
+                elt.set('value', cls.to_string(cls.Attributes.total_digits))
 
         if issubclass(T, Integer):
             def _get_additional_restrictions(restriction, cls):
