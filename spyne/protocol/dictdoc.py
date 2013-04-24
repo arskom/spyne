@@ -560,11 +560,11 @@ class HierDictDocument(DictDocument):
 
                 if issubclass(member.type, (File, ByteArray)):
                     if isinstance(v2, str) or isinstance(v2, unicode):
-                        native_v2 = ProtocolBase.from_string(member.type, v2)
+                        native_v2 = self.from_string(member.type, v2)
                     else:
                         native_v2 = v2
                 else:
-                    native_v2 = ProtocolBase.from_string(member.type, v2)
+                    native_v2 = self.from_string(member.type, v2)
 
                 if (validator is self.SOFT_VALIDATION and not
                             member.type.validate_native(member.type, native_v2)):

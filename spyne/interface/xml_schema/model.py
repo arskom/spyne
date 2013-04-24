@@ -32,7 +32,6 @@ from collections import deque
 from spyne.model.complex import XmlAttribute
 from spyne.model.primitive import AnyXml
 from spyne.model.primitive import Unicode
-from spyne.protocol._base import ProtocolBase
 from spyne.util import memoize
 from spyne.util.etreeconv import dict_to_etree
 
@@ -295,24 +294,25 @@ def Tget_range_restriction_tag(T):
         def _get_additional_restrictions(restriction, cls):
             pass
 
-    def _get_range_restriction_tag(interface, cls):
-        restriction = simple_get_restriction_tag(interface, cls)
+    def _get_range_restriction_tag(document, cls):
+        _pb = document.interface.app.in_protocol
+        restriction = simple_get_restriction_tag(document, cls)
 
         if cls.Attributes.gt != T.Attributes.gt:
             elt = etree.SubElement(restriction, '{%s}minExclusive' % _ns_xs)
-            elt.set('value', ProtocolBase.to_string(cls, cls.Attributes.gt))
+            elt.set('value', _pb.to_string(cls, cls.Attributes.gt))
 
         if cls.Attributes.ge != T.Attributes.ge:
             elt = etree.SubElement(restriction, '{%s}minInclusive' % _ns_xs)
-            elt.set('value', ProtocolBase.to_string(cls, cls.Attributes.ge))
+            elt.set('value', _pb.to_string(cls, cls.Attributes.ge))
 
         if cls.Attributes.lt != T.Attributes.lt:
             elt = etree.SubElement(restriction, '{%s}maxExclusive' % _ns_xs)
-            elt.set('value', ProtocolBase.to_string(cls, cls.Attributes.lt))
+            elt.set('value', _pb.to_string(cls, cls.Attributes.lt))
 
         if cls.Attributes.le != T.Attributes.le:
             elt = etree.SubElement(restriction, '{%s}maxInclusive' % _ns_xs)
-            elt.set('value', ProtocolBase.to_string(cls, cls.Attributes.le))
+            elt.set('value', _pb.to_string(cls, cls.Attributes.le))
 
         if cls.Attributes.pattern != T.Attributes.pattern:
             elt = etree.SubElement(restriction, '{%s}pattern' % _ns_xs)
