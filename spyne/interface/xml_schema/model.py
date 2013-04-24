@@ -117,16 +117,10 @@ def complex_add(document, cls, tags):
 
     sequence = etree.Element('{%s}sequence' % _ns_xsd)
 
-    deferred_a_of = deque()
+    deferred = deque()
     for k, v in type_info.items():
         if issubclass(v, XmlAttribute):
-            if v.attribute_of is None: # others will be added at a later loop
-                attribute = etree.SubElement(complex_type,'{%s}attribute' % _ns_xsd)
-
-                v.describe(k, attribute, document)
-            else:
-                deferred_a_of.append((k,v))
-
+            deferred.append((k,v))
             continue
 
         if v.Attributes.exc_interface:
@@ -175,8 +169,13 @@ def complex_add(document, cls, tags):
     if len(sequence) > 0:
         sequence_parent.append(sequence)
 
-    for k,v in deferred_a_of:
+    for k,v in deferred:
         ao = v.attribute_of
+        if ao is None: # others will be added at a later loop
+            attribute = etree.SubElement(complex_type,'{%s}attribute' % _ns_xsd)
+            v.describe(k, attribute, document)
+            continue
+
         elts = complex_type.xpath("//xsd:element[@name='%s']" % ao,
                                                     namespaces={'xsd': _ns_xsd})
 
