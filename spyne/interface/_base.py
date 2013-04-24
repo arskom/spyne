@@ -29,6 +29,7 @@ from spyne.const import TYPE_SUFFIX
 from spyne.const import RESULT_SUFFIX
 from spyne.const import RESPONSE_SUFFIX
 
+from spyne.model.complex import XmlAttribute
 from spyne.model.complex import ComplexModelBase
 
 
@@ -324,6 +325,9 @@ class Interface(object):
                     continue
 
                 self.add_class(v)
+                if issubclass(v, XmlAttribute):
+                    continue
+
                 child_ns = v.get_namespace()
                 if child_ns != ns and not child_ns in self.imports[ns] and \
                                                  self.is_valid_import(child_ns):
@@ -333,8 +337,10 @@ class Interface(object):
 
     def is_valid_import(self, ns):
         """This will return False for base namespaces unless told otherwise."""
+
         if ns is None:
             raise ValueError(ns)
+
         return self.import_base_namespaces or not (ns in namespace.const_prefmap)
 
 
