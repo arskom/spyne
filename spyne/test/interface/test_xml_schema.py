@@ -59,7 +59,7 @@ class TestXmlSchema(unittest.TestCase):
             def GetPayload(ctx):
                 return Payload()
 
-        service_app = Application([JackedUpService],
+        Application([JackedUpService],
             tns='kickass.ns',
             in_protocol=Soap11(validator='lxml'),
             out_protocol=Soap11()
@@ -67,6 +67,40 @@ class TestXmlSchema(unittest.TestCase):
 
         # if no exceptions while building the schema, no problem.
         # see: https://github.com/arskom/spyne/issues/226
+
+
+    def test_namespaced_xml_attribute(self):
+        class RdfAbout(XmlAttribute):
+            __type_name__ = "about"
+            __namespace__ = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+
+        class Release(ComplexModel):
+            __namespace__ = "http://usefulinc.com/ns/doap#"
+
+            _type_info = [
+                ('about', RdfAbout(Unicode, ns="http://www.w3.org/1999/02/22-rdf-syntax-ns#")),
+            ]
+
+        class Project(ComplexModel):
+            __namespace__ = "http://usefulinc.com/ns/doap#"
+
+            _type_info = [
+                ('about', RdfAbout(Unicode, ns="http://www.w3.org/1999/02/22-rdf-syntax-ns#")),
+                ('release', Release.customize(max_occurs=float('inf'))),
+            ]
+
+        class RdfService(ServiceBase):
+            @rpc(Unicode, Unicode, _returns=Project)
+            def some_call(ctx, a, b):
+                pass
+
+        Application([RdfService],
+            tns='spynepi',
+            in_protocol=Soap11(validator='lxml'),
+            out_protocol=Soap11()
+        )
+
+        # if no exceptions while building the schema, no problem.
 
     def test_multilevel_customized_simple_type(self):
         class ExampleService(ServiceBase):
@@ -81,7 +115,7 @@ class TestXmlSchema(unittest.TestCase):
                     out_protocol=Soap11()
                 )
 
-        service_app = Application([ExampleService],
+        Application([ExampleService],
             tns='kickass.ns',
             in_protocol=Soap11(validator='lxml'),
             out_protocol=Soap11()
