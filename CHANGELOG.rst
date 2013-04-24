@@ -2,6 +2,12 @@
 Changelog
 =========
 
+spyne-2.10.1
+------------
+ * Fix confusion in Decimal restriction assignment.
+ * Fix classmethod calls to ProtocolBase.
+ * Fix schema generation error in namespaced xml attribute case.
+
 spyne-2.10.0
 ------------
  * Returning twisted's Deferred from user code is now supported.
