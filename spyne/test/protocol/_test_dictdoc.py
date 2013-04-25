@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+from spyne.model.binary import binary_encoding_handlers
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -40,6 +41,7 @@ from spyne.model.complex import ComplexModel
 from spyne.model.complex import Iterable
 from spyne.model.fault import Fault
 from spyne.protocol import ProtocolBase
+from spyne.model.binary import ByteArray
 from spyne.model.primitive import Decimal
 from spyne.model.primitive import Integer
 from spyne.model.primitive import String
@@ -833,7 +835,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
             d = 'MULTIPOINT (10 40 30, 40 30 10,)'
 
             class SomeService(ServiceBase):
-                @srpc(MultiPoint, _returns=MultiPoint)
+                @srpc(MultiPoint(3), _returns=MultiPoint(3))
                 def some_call(p):
                     print p
                     print type(p)
@@ -853,7 +855,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
             d = 'MULTILINESTRING ((10 10, 20 20, 10 40), (40 40, 30 30, 40 20, 30 10))'
 
             class SomeService(ServiceBase):
-                @srpc(MultiLine, _returns=MultiLine)
+                @srpc(MultiLine(2), _returns=MultiLine(2))
                 def some_call(p):
                     print p
                     print type(p)
@@ -873,7 +875,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
             d = 'MULTILINESTRING ((10 10, 20 20, 10 40), (40 40, 30 30, 40 20, 30 10))'
 
             class SomeService(ServiceBase):
-                @srpc(MultiLine, _returns=MultiLine)
+                @srpc(MultiLine(3), _returns=MultiLine(3))
                 def some_call(p):
                     print p
                     print type(p)
@@ -893,7 +895,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
             d = 'MULTIPOLYGON (((30 20, 10 40, 45 40, 30 20)),((15 5, 40 10, 10 20, 5 10, 15 5)))'
 
             class SomeService(ServiceBase):
-                @srpc(MultiPolygon, _returns=MultiPolygon)
+                @srpc(MultiPolygon(2), _returns=MultiPolygon(2))
                 def some_call(p):
                     print p
                     print type(p)
@@ -913,7 +915,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
             d = 'MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)),((20 35, 45 20, 30 5, 10 10, 10 30, 20 35),(30 20, 20 25, 20 15, 30 20)))'
 
             class SomeService(ServiceBase):
-                @srpc(MultiPolygon, _returns=MultiPolygon)
+                @srpc(MultiPolygon(3), _returns=MultiPolygon(3))
                 def some_call(p):
                     print p
                     print type(p)
@@ -940,6 +942,32 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                   range(1000)}}, **dumps_kwargs)
+            print s
+            print d
+            assert s == d
+
+        def test_bytearray(self):
+            dbe = _DictDocumentChild.default_binary_encoding
+            beh = binary_encoding_handlers[dbe]
+
+            d = ''.join([chr(x) for x in range(0xff)])
+            if beh is not None:
+                d = beh(d)
+
+            class SomeService(ServiceBase):
+                @srpc(ByteArray, _returns=ByteArray)
+                def some_call(p):
+                    print p
+                    print type(p)
+                    assert isinstance(p, list)
+                    return p
+
+            ctx = _dry_me([SomeService], {"some_call": [d]})
+
+            s = ''.join(ctx.out_string)
+            d = serializer.dumps({"some_callResponse": {"some_callResult":
+                                                        d}}, **dumps_kwargs)
+
             print s
             print d
             assert s == d

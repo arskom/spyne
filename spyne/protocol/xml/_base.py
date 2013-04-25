@@ -108,6 +108,7 @@ class XmlDocument(ProtocolBase):
 
     mime_type = 'text/xml'
     allowed_http_verbs = set(['GET', 'POST'])
+    default_binary_encoding = 'base64'
 
     type = set(ProtocolBase.type)
     type.add('xml')

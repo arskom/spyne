@@ -78,6 +78,9 @@ class JsonDocument(HierDictDocument):
     type = set(HierDictDocument.type)
     type.add('json')
 
+    default_binary_encoding = 'base64'
+
+    # flags used just for tests
     _decimal_as_string = True
 
     def __init__(self, app=None, validator=None, mime_type=None,

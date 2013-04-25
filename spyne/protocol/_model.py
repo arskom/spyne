@@ -376,9 +376,9 @@ def byte_array_from_string(cls, value, suggested_encoding=None):
 
 @nillable_string
 def byte_array_to_string(cls, value, suggested_encoding=None):
-    if encoding is None:
-        encoding = cls.Attributes.encoding
-    return binary_encoding_handlers[encoding](value)
+    if suggested_encoding is None:
+        suggested_encoding = cls.Attributes.encoding
+    return binary_encoding_handlers[suggested_encoding](value)
 
 @nillable_iterable
 def byte_array_to_string_iterable(prot, cls, value):
