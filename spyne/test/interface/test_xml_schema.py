@@ -23,17 +23,14 @@ import unittest
 from spyne.application import Application
 from spyne.const import xml_ns as ns
 from spyne.decorator import rpc
-from spyne.model.complex import Array
+from spyne.model.binary import ByteArray
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import XmlAttribute
-from spyne.model.primitive import Uuid
 from spyne.model.primitive import AnyXml
-from spyne.model.primitive import DateTime
 from spyne.model.primitive import Integer
-from spyne.model.primitive import Unicode
-from spyne.model.primitive import UnsignedLong
 from spyne.model.primitive import Mandatory
-from spyne.protocol.http import HttpRpc
+from spyne.model.primitive import Unicode
+from spyne.model.primitive import Uuid
 from spyne.protocol.soap import Soap11
 from spyne.service import ServiceBase
 from spyne.util.xml import get_schema_documents
@@ -161,42 +158,6 @@ class TestXmlSchema(unittest.TestCase):
         assert any[0].attrib['namespace'] == '##other'
         assert any[0].attrib['processContents'] == 'lax'
 
-    def __test_interface(self):
-        import logging
-        logging.basicConfig(level=logging.DEBUG)
-        class KeyValuePair(ComplexModel):
-            __namespace__ = "1"
-            key = Unicode
-            value = Unicode
-
-        class Something(ComplexModel):
-            __namespace__ = "2"
-            d = DateTime
-            i = Integer
-
-        class SomethingElse(ComplexModel):
-            __namespace__ = "3"
-            a = AnyXml
-            b = UnsignedLong
-            se = Something
-
-        class Service(ServiceBase):
-            @rpc(SomethingElse, _returns=Array(KeyValuePair))
-            def some_call(ctx, sth):
-                pass
-
-        application = Application([Service],
-            in_protocol=HttpRpc(),
-            out_protocol=Soap11(),
-            name='Service', tns='target_namespace'
-        )
-
-        imports = application.interface.imports
-        smm = application.interface.service_method_map
-
-        print(smm)
-
-        raise NotImplementedError('test something!')
 
 if __name__ == '__main__':
     unittest.main()
