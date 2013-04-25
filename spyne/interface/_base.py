@@ -325,8 +325,6 @@ class Interface(object):
                     continue
 
                 self.add_class(v)
-                if issubclass(v, XmlAttribute):
-                    continue
 
                 child_ns = v.get_namespace()
                 if child_ns != ns and not child_ns in self.imports[ns] and \
@@ -334,6 +332,16 @@ class Interface(object):
                     self.imports[ns].add(child_ns)
                     logger.debug("\timporting %r to %r for %s.%s(%r)" %
                                       (child_ns, ns, cls.get_type_name(), k, v))
+
+                if issubclass(v, XmlAttribute):
+                    self.add_class(v.type)
+
+                    child_ns = v.type.get_namespace()
+                    if child_ns != ns and not child_ns in self.imports[ns] and \
+                                                 self.is_valid_import(child_ns):
+                        self.imports[ns].add(child_ns)
+                        logger.debug("\timporting %r to %r for %s.%s(%r)" %
+                                  (child_ns, ns, v.get_type_name(), k, v.type))
 
     def is_valid_import(self, ns):
         """This will return False for base namespaces unless told otherwise."""
