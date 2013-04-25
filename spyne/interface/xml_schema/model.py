@@ -111,7 +111,7 @@ def complex_add(document, cls, tags):
             complex_content = etree.SubElement(complex_type,
                                                 "{%s}complexContent" % _ns_xsd)
             extension = etree.SubElement(complex_content,
-                                                    "{%s}extension" % _ns_xsd)
+                                                     "{%s}extension" % _ns_xsd)
             extension.set('base', extends.get_type_name_ns(document.interface))
             sequence_parent = extension
 
