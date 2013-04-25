@@ -245,7 +245,7 @@ class Interface(object):
                 else:
                     os, om = val[0]
                     raise ValueError("\nThe message %r defined in both '%s.%s'"
-                                                                " and '%s.%s'"
+                                                                 " and '%s.%s'"
                                 % (method.key, s.__module__, s.__name__,
                                                os.__module__, os.__name__,
                                 ))
@@ -345,6 +345,7 @@ class Interface(object):
 
 
 class AllYourInterfaceDocuments(object):
+    # AreBelongToUs
     def __init__(self, interface):
         if spyne.interface.HAS_WSDL:
             from spyne.interface.wsdl import Wsdl11
