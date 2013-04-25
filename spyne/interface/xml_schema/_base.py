@@ -28,19 +28,15 @@ import spyne.const.xml_ns
 from lxml import etree
 
 from spyne.util.cdict import cdict
-
+from spyne.util.odict import odict
 from spyne.interface import InterfaceDocumentBase
+
+from spyne.model.binary import ByteArray
 from spyne.model import SimpleModel
-from spyne.model.primitive import Decimal
-from spyne.model.primitive import Unicode
-from spyne.model.primitive import Time
-from spyne.model.primitive import DateTime
-from spyne.model.primitive import Date
 from spyne.model.complex import ComplexModelBase
 from spyne.model.complex import Alias
 from spyne.model.enum import EnumBase
 from spyne.model.fault import Fault
-from spyne.util.odict import odict
 
 from spyne.interface.xml_schema.model import simple_add
 from spyne.interface.xml_schema.model import alias_add
@@ -56,6 +52,7 @@ from spyne.model.primitive import Decimal
 from spyne.model.primitive import DateTime
 from spyne.model.primitive import Date
 from spyne.model.primitive import Time
+from spyne.model.primitive import Unicode
 
 
 _add_handlers = cdict({
