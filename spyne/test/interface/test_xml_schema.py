@@ -26,6 +26,7 @@ from spyne.decorator import rpc
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import XmlAttribute
+from spyne.model.primitive import Uuid
 from spyne.model.primitive import AnyXml
 from spyne.model.primitive import DateTime
 from spyne.model.primitive import Integer
@@ -96,6 +97,28 @@ class TestXmlSchema(unittest.TestCase):
 
         Application([RdfService],
             tns='spynepi',
+            in_protocol=Soap11(validator='lxml'),
+            out_protocol=Soap11()
+        )
+
+        # if no exceptions while building the schema, no problem.
+
+    def test_customized_simple_type_in_xml_attribute(self):
+        class Product(ComplexModel):
+            __namespace__ = 'some_ns'
+
+            id = XmlAttribute(Uuid)
+            edition = Unicode
+            edition_id = XmlAttribute(Uuid, attribute_of='edition')
+
+        class SomeService(ServiceBase):
+            @rpc(Product, _returns=Product)
+            def echo_product(ctx, product):
+                logging.info('edition_id: %r', product.edition_id)
+                return product
+
+        Application([SomeService],
+            tns='some_ns',
             in_protocol=Soap11(validator='lxml'),
             out_protocol=Soap11()
         )
