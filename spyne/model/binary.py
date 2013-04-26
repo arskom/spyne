@@ -40,18 +40,23 @@ from spyne.model import nillable_string
 from spyne.model import ModelBase
 from spyne.model import SimpleModel
 
+class BINARY_ENCODING_HEX: pass
+class BINARY_ENCODING_BASE64: pass
+class BINARY_ENCODING_URLSAFE_BASE64: pass
+
+
 binary_encoding_handlers = {
     None: ''.join,
-    'hex': hexlify,
-    'base64': b64encode,
-    'urlsafe_base64': urlsafe_b64encode,
+    BINARY_ENCODING_HEX: hexlify,
+    BINARY_ENCODING_BASE64: b64encode,
+    BINARY_ENCODING_URLSAFE_BASE64: urlsafe_b64encode,
 }
 
 binary_decoding_handlers = {
     None: lambda x: [x],
-    'hex': unhexlify,
-    'base64': b64decode,
-    'urlsafe_base64': urlsafe_b64decode,
+    BINARY_ENCODING_HEX: lambda x: [unhexlify(x)],
+    BINARY_ENCODING_BASE64: lambda x: [b64decode(x)],
+    BINARY_ENCODING_URLSAFE_BASE64: lambda x: [urlsafe_b64decode(x)],
 }
 
 class ByteArray(SimpleModel):
@@ -77,17 +82,30 @@ class ByteArray(SimpleModel):
     def __new__(cls, **kwargs):
         if 'encoding' in kwargs:
             v = kwargs['encoding']
+            tn = None
 
-            if v in (None, 'base64'):
-                kwargs['type_name'] = 'base64Binary'
-            elif v == 'hex':
-                kwargs['type_name'] = 'hexBinary'
+            if v in (None, 'base64', 'base64Binary', BINARY_ENCODING_BASE64):
+                # This string is defined in the Xml Schema Standard
+                tn = 'base64Binary'
+                kwargs['encoding'] = BINARY_ENCODING_BASE64
+
+            elif v in ('hex', 'hexBinary', BINARY_ENCODING_HEX):
+                # This string is defined in the Xml Schema Standard
+                tn = 'hexBinary'
+                kwargs['encoding'] = BINARY_ENCODING_HEX
+
             else:
                 raise ValueError("'encoding' must be one of: %r" % \
                                 (tuple(ByteArray._encoding.handlers.values()),))
 
+        retval = cls.customize(**kwargs)
+        if tn is not None:
+            retval.__type_name__ = tn
+        return retval
 
-        return SimpleModel.__new__(cls, **kwargs)
+    @staticmethod
+    def is_default(cls):
+        return True
 
     @classmethod
     @nillable_string
