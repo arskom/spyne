@@ -45,6 +45,7 @@ from spyne.protocol._model import decimal_from_string
 from spyne.protocol._model import double_from_string
 from spyne.error import ValidationError
 
+from spyne.model.binary import BINARY_ENCODING_BASE64
 from spyne.model.primitive import Date
 from spyne.model.primitive import Time
 from spyne.model.primitive import DateTime
@@ -78,7 +79,7 @@ class JsonDocument(HierDictDocument):
     type = set(HierDictDocument.type)
     type.add('json')
 
-    default_binary_encoding = 'base64'
+    default_binary_encoding = BINARY_ENCODING_BASE64
 
     # flags used just for tests
     _decimal_as_string = True

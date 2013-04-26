@@ -84,6 +84,20 @@ def base_from_element(prot, cls, element):
 
     return retval
 
+@nillable_element
+def byte_array_from_element(prot, cls, element):
+    if prot.validator is prot.SOFT_VALIDATION and not (
+                                        cls.validate_string(cls, element.text)):
+        raise ValidationError(element.text)
+
+    retval = prot.from_string(cls, element.text, prot.default_binary_encoding)
+
+    if prot.validator is prot.SOFT_VALIDATION and not (
+                                        cls.validate_native(cls, retval)):
+        raise ValidationError(retval)
+
+    return retval
+
 
 @nillable_value
 def base_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
@@ -114,8 +128,7 @@ def null_from_element(prot, cls, element):
     return None
 
 
-@nillable_value
-def binary_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
+def attachment_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     '''This class method takes the data from the attachment and
     base64 encodes it as the text of an Element. An attachment can
     specify a file_name and if no data is given, it will read the data
@@ -126,7 +139,7 @@ def binary_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
 
 
 @nillable_element
-def binary_from_element(prot, cls, element):
+def attachment_from_element(prot, cls, element):
     '''This method returns an Attachment object that contains
     the base64 decoded string of the text of the given element
     '''

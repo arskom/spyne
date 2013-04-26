@@ -286,9 +286,9 @@ class ProtocolBase(object):
         handler = self._from_string_handlers[class_]
         return handler(class_, string, *args, **kwargs)
 
-    def to_string(self, class_, value):
+    def to_string(self, class_, value, *args, **kwargs):
         handler = self._to_string_handlers[class_]
-        return handler(class_, value)
+        return handler(class_, value, *args, **kwargs)
 
     def to_string_iterable(self, class_, value):
         handler = self._to_string_iterable_handlers[class_]

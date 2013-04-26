@@ -30,6 +30,7 @@ import tempfile
 from Cookie import SimpleCookie
 
 from spyne.error import ResourceNotFoundError
+from spyne.model.binary import BINARY_ENCODING_URLSAFE_BASE64
 from spyne.model.binary import ByteArray
 from spyne.model.primitive import DateTime
 from spyne.protocol.dictdoc import FlatDictDocument
@@ -107,7 +108,7 @@ class HttpRpc(FlatDictDocument):
 
     mime_type = 'text/plain'
     allowed_http_verbs = None
-    default_binary_encoding = 'urlsafe_base64'
+    default_binary_encoding = BINARY_ENCODING_URLSAFE_BASE64
 
     type = set(FlatDictDocument.type)
     type.add('http')

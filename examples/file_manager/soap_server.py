@@ -53,7 +53,6 @@ from spyne.service import ServiceBase
 from spyne.error import ResourceNotFoundError
 from spyne.error import ValidationError
 from spyne.model.binary import ByteArray
-from spyne.model.binary import File
 from spyne.model.primitive import Unicode
 from spyne.model.primitive import Mandatory
 from spyne.server.wsgi import WsgiApplication
@@ -65,7 +64,7 @@ port = 9000
 
 
 class FileServices(ServiceBase):
-    @rpc(Mandatory.Unicode, _returns=ByteArray)
+    @rpc(Mandatory.Unicode, _returns=ByteArray(encoding='hex'))
     def get(ctx, file_name):
         path = os.path.join(os.path.abspath('./files'), file_name)
         if not path.startswith(os.path.abspath('./files')):
@@ -133,6 +132,7 @@ def main():
 
     return run_simple('localhost', port, wsgi_app, static_files={'/': 'static'},
                                                                   threaded=True)
+
 
 if __name__ == '__main__':
     import sys

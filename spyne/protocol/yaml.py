@@ -31,10 +31,10 @@ from __future__ import absolute_import
 import logging
 logger = logging.getLogger(__name__)
 
+from spyne.model.binary import BINARY_ENCODING_BASE64
 from spyne.model.primitive import Boolean
 from spyne.model.primitive import Integer
 from spyne.model.primitive import Double
-from spyne.model.primitive import Decimal
 from spyne.model.fault import Fault
 from spyne.protocol.dictdoc import HierDictDocument
 
@@ -75,7 +75,7 @@ class YamlDocument(HierDictDocument):
     type = set(HierDictDocument.type)
     type.add('yaml')
 
-    default_binary_encoding = 'base64'
+    default_binary_encoding = BINARY_ENCODING_BASE64
 
     # for test classes
     _decimal_as_string = True

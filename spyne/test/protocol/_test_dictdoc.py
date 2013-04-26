@@ -950,9 +950,9 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
             dbe = _DictDocumentChild.default_binary_encoding
             beh = binary_encoding_handlers[dbe]
 
-            d = ''.join([chr(x) for x in range(0xff)])
+            data = ''.join([chr(x) for x in range(0xff)])
             if beh is not None:
-                d = beh(d)
+                encoded_data = beh(data)
 
             class SomeService(ServiceBase):
                 @srpc(ByteArray, _returns=ByteArray)
@@ -960,16 +960,18 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
                     print p
                     print type(p)
                     assert isinstance(p, list)
+                    assert p == [data]
                     return p
 
-            ctx = _dry_me([SomeService], {"some_call": [d]})
+            ctx = _dry_me([SomeService], {"some_call": [encoded_data]})
 
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
-                                                        d}}, **dumps_kwargs)
+                                                encoded_data}}, **dumps_kwargs)
 
             print s
             print d
+            print encoded_data
             assert s == d
 
     return Test

@@ -45,20 +45,6 @@ class BINARY_ENCODING_BASE64: pass
 class BINARY_ENCODING_URLSAFE_BASE64: pass
 
 
-binary_encoding_handlers = {
-    None: ''.join,
-    BINARY_ENCODING_HEX: hexlify,
-    BINARY_ENCODING_BASE64: b64encode,
-    BINARY_ENCODING_URLSAFE_BASE64: urlsafe_b64encode,
-}
-
-binary_decoding_handlers = {
-    None: lambda x: [x],
-    BINARY_ENCODING_HEX: lambda x: [unhexlify(x)],
-    BINARY_ENCODING_BASE64: lambda x: [b64decode(x)],
-    BINARY_ENCODING_URLSAFE_BASE64: lambda x: [urlsafe_b64decode(x)],
-}
-
 class ByteArray(SimpleModel):
     """Canonical container for arbitrary data. Every protocol has a different
     way of encapsulating this type. E.g. xml-based protocols encode this as
@@ -80,9 +66,9 @@ class ByteArray(SimpleModel):
         """
 
     def __new__(cls, **kwargs):
+        tn = None
         if 'encoding' in kwargs:
             v = kwargs['encoding']
-            tn = None
 
             if v in (None, 'base64', 'base64Binary', BINARY_ENCODING_BASE64):
                 # This string is defined in the Xml Schema Standard
@@ -110,12 +96,47 @@ class ByteArray(SimpleModel):
     @classmethod
     @nillable_string
     def to_base64(cls, value):
-        return [base64.b64encode(_bytes_join(value))]
+        return b64encode(_bytes_join(value))
 
     @classmethod
     @nillable_string
     def from_base64(cls, value):
-        return [base64.b64decode(_bytes_join(value))]
+        return [b64decode(_bytes_join(value))]
+
+    @classmethod
+    @nillable_string
+    def to_urlsafe_base64(cls, value):
+        return urlsafe_b64encode(_bytes_join(value))
+
+    @classmethod
+    @nillable_string
+    def from_urlsafe_base64(cls, value):
+        return [urlsafe_b64decode(_bytes_join(value))]
+
+    @classmethod
+    @nillable_string
+    def to_hex(cls, value):
+        return hexlify(_bytes_join(value))
+
+    @classmethod
+    @nillable_string
+    def from_hex(cls, value):
+        return [unhexlify(_bytes_join(value))]
+
+
+binary_encoding_handlers = {
+    None: ''.join,
+    BINARY_ENCODING_HEX: ByteArray.to_hex,
+    BINARY_ENCODING_BASE64: ByteArray.to_base64,
+    BINARY_ENCODING_URLSAFE_BASE64: urlsafe_b64encode,
+}
+
+binary_decoding_handlers = {
+    None: lambda x: [x],
+    BINARY_ENCODING_HEX: ByteArray.from_hex,
+    BINARY_ENCODING_BASE64: ByteArray.from_base64,
+    BINARY_ENCODING_URLSAFE_BASE64: ByteArray.to_urlsafe_base64,
+}
 
 
 class File(SimpleModel):

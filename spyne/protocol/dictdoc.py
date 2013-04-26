@@ -390,6 +390,9 @@ class HierDictDocument(DictDocument):
         if issubclass(class_, ComplexModelBase):
             retval = self._doc_to_object(class_, value, validator)
 
+        elif issubclass(class_, (ByteArray, file)):
+            retval = self.from_string(class_, value, self.default_binary_encoding)
+
         else:
             retval = self.from_string(class_, value)
 
@@ -510,6 +513,9 @@ class HierDictDocument(DictDocument):
                 return list(self._complex_to_list(class_, value))
             else:
                 return self._complex_to_dict(class_, value)
+
+        if issubclass(class_, (ByteArray, File)):
+            return self.to_string(class_, value, self.default_binary_encoding)
 
         return self.to_string(class_, value)
 
