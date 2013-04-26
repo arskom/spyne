@@ -100,6 +100,12 @@ def byte_array_from_element(prot, cls, element):
 
 
 @nillable_value
+def byte_array_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
+    elt = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
+    elt.text = prot.to_string(cls, value, prot.default_binary_encoding)
+
+
+@nillable_value
 def base_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     '''Creates a lxml.etree SubElement as a child of a 'parent' Element
 
