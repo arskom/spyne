@@ -2,6 +2,12 @@
 Changelog
 =========
 
+spyne-2.10.2
+------------
+ * Fix ByteArray support accross all protocols.
+ * Fix namespaces of customized simple types inside ``XmlAttribute`` not being
+   imported.
+
 spyne-2.10.1
 ------------
  * Fix confusion in Decimal restriction assignment.

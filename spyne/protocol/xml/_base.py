@@ -51,7 +51,7 @@ from spyne.model.primitive import Unicode
 
 from spyne.protocol import ProtocolBase
 
-from spyne.protocol.xml.model import byte_array_from_element
+from spyne.protocol.xml.model import byte_array_to_parent_element
 from spyne.protocol.xml.model import attachment_to_parent_element
 from spyne.protocol.xml.model import base_to_parent_element
 from spyne.protocol.xml.model import alias_to_parent_element
@@ -64,6 +64,7 @@ from spyne.protocol.xml.model import dict_to_parent_element
 
 from spyne.protocol.xml.model import attachment_from_element
 from spyne.protocol.xml.model import base_from_element
+from spyne.protocol.xml.model import byte_array_from_element
 from spyne.protocol.xml.model import alias_from_element
 from spyne.protocol.xml.model import complex_from_element
 from spyne.protocol.xml.model import enum_from_element
@@ -131,6 +132,7 @@ class XmlDocument(ProtocolBase):
             AnyHtml: html_to_parent_element,
             EnumBase: enum_to_parent_element,
             ModelBase: base_to_parent_element,
+            ByteArray: byte_array_to_parent_element,
             Attachment: attachment_to_parent_element,
             ComplexModelBase: complex_to_parent_element,
         })
