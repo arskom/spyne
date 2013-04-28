@@ -30,13 +30,15 @@ try:
     from collections import namedtuple
 
     _ApplicationMetaData = namedtuple("_ApplicationMetaData",
-                                                  ['app', 'inst_stack', 'null'])
+                                          ['app', 'inst_stack', 'null', 'ostr'])
+
 except ImportError: # python 2.5
     class _ApplicationMetaData:
-        def __init__(self, app, inst_stack, null):
+        def __init__(self, app, inst_stack, null, ostr):
             self.app = app
             self.inst_stack = inst_stack
             self.null = null
+            self.ostr = ostr
 
 
 def register_application(app):
@@ -70,7 +72,7 @@ def register_application(app):
                                    '====================\n'.join(stack_traces))
 
     _applications[key] = _ApplicationMetaData(app=app, inst_stack=[stack],
-                                                          null=NullServer(app))
+                                            null=NullServer(app), ostr=None)
 
     logger.debug("Registering %r as %r" % (app, key))
 
