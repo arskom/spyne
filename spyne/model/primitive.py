@@ -413,6 +413,12 @@ class Integer(Decimal):
 
     __type_name__ = 'integer'
 
+    @staticmethod
+    def validate_native(cls, value):
+        return (    Decimal.validate_native(cls, value)
+                and int(value) == value
+            )
+
 class UnsignedInteger(Integer):
     """The arbitrary-size unsigned integer, also known as nonNegativeInteger."""
 

@@ -194,9 +194,14 @@ class FlatDictDocument(DictDocument):
                 else:
                     native_v2 = self.from_string(member.type, v2)
 
+                if (validator is self.SOFT_VALIDATION and native_v2 is None
+                                  and member.type.Attributes.nullable == False):
+                    raise ValidationError(native_v2)
+
                 if (validator is self.SOFT_VALIDATION and not
                             member.type.validate_native(member.type, native_v2)):
                     raise ValidationError(v2)
+
 
                 value.append(native_v2)
 
@@ -390,11 +395,22 @@ class HierDictDocument(DictDocument):
         if issubclass(class_, ComplexModelBase):
             retval = self._doc_to_object(class_, value, validator)
 
-        elif issubclass(class_, (ByteArray, file)):
-            retval = self.from_string(class_, value, self.default_binary_encoding)
-
         else:
-            retval = self.from_string(class_, value)
+            if (validator is self.SOFT_VALIDATION
+                                and isinstance(value, basestring)
+                                and not class_.validate_string(class_, value)):
+                raise ValidationError(value)
+
+            if issubclass(class_, (ByteArray, file)):
+                retval = self.from_string(class_, value,
+                                                   self.default_binary_encoding)
+
+            else:
+                retval = self.from_string(class_, value)
+
+        if (validator is self.SOFT_VALIDATION and retval is None
+                          and class_.Attributes.nullable == False):
+            raise ValidationError(retval)
 
         # validate native type
         if validator is self.SOFT_VALIDATION and \
