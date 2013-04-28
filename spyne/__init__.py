@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-__version__ = '2.10.2'
+__version__ = '2.10.3'
 
 from spyne._base import AuxMethodContext
 from spyne._base import TransportContext
