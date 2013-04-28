@@ -2,6 +2,10 @@
 Changelog
 =========
 
+spyne-2.10.3
+------------
+ * Fix missing validation checks in HierDictDocument.
+
 spyne-2.10.2
 ------------
  * Fix ByteArray support accross all protocols.

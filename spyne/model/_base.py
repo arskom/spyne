@@ -388,7 +388,7 @@ class ModelBase(object):
         value. This is called after converting the incoming string to the
         native python value."""
 
-        return True
+        return (cls.Attributes.nullable or value is not None)
 
 
 class Null(ModelBase):
