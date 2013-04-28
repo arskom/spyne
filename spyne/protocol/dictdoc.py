@@ -194,9 +194,14 @@ class FlatDictDocument(DictDocument):
                 else:
                     native_v2 = self.from_string(member.type, v2)
 
+                if (validator is self.SOFT_VALIDATION and native_v2 is None
+                                  and member.type.Attributes.nullable == False):
+                    raise ValidationError(native_v2)
+
                 if (validator is self.SOFT_VALIDATION and not
                             member.type.validate_native(member.type, native_v2)):
                     raise ValidationError(v2)
+
 
                 value.append(native_v2)
 
@@ -390,11 +395,22 @@ class HierDictDocument(DictDocument):
         if issubclass(class_, ComplexModelBase):
             retval = self._doc_to_object(class_, value, validator)
 
-        elif issubclass(class_, (ByteArray, file)):
-            retval = self.from_string(class_, value, self.default_binary_encoding)
-
         else:
-            retval = self.from_string(class_, value)
+            if (validator is self.SOFT_VALIDATION
+                                and isinstance(value, basestring)
+                                and not class_.validate_string(class_, value)):
+                raise ValidationError(value)
+
+            if issubclass(class_, (ByteArray, file)):
+                retval = self.from_string(class_, value,
+                                                   self.default_binary_encoding)
+
+            else:
+                retval = self.from_string(class_, value)
+
+        if (validator is self.SOFT_VALIDATION and retval is None
+                          and class_.Attributes.nullable == False):
+            raise ValidationError(retval)
 
         # validate native type
         if validator is self.SOFT_VALIDATION and \
@@ -533,154 +549,3 @@ class HierDictDocument(DictDocument):
 
         for k,v in self._get_member_pairs(class_, inst):
             yield v
-
-    def flat_dict_to_object(self, doc, inst_class, validator=None, hier_delim="_"):
-        """Converts a flat dict to a native python object.
-
-        See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
-        """
-
-        simple_type_info = inst_class.get_simple_type_info(inst_class)
-        inst = inst_class.get_deserialization_instance()
-
-        # this is for validating cls.Attributes.{min,max}_occurs
-        frequencies = defaultdict(lambda: defaultdict(int))
-
-        for orig_k, v in doc.items():
-            k = RE_HTTP_ARRAY_INDEX.sub("", orig_k)
-            member = simple_type_info.get(k, None)
-            if member is None:
-                logger.debug("discarding field %r" % k)
-                continue
-
-            value = getattr(inst, k, None)
-            if value is None:
-                value = []
-
-            # extract native values from the list of strings that come from the
-            # http dict.
-            for v2 in v:
-                if (validator is self.SOFT_VALIDATION and not
-                                  member.type.validate_string(member.type, v2)):
-                    raise ValidationError(v2)
-
-                if issubclass(member.type, (File, ByteArray)):
-                    if isinstance(v2, str) or isinstance(v2, unicode):
-                        native_v2 = self.from_string(member.type, v2)
-                    else:
-                        native_v2 = v2
-                else:
-                    native_v2 = self.from_string(member.type, v2)
-
-                if (validator is self.SOFT_VALIDATION and not
-                            member.type.validate_native(member.type, native_v2)):
-                    raise ValidationError(v2)
-
-                value.append(native_v2)
-
-            # assign the native value to the relevant class in the nested object
-            # structure.
-            ccls, cinst = inst_class, inst
-            ctype_info = inst_class.get_flat_type_info(inst_class)
-
-            idx, nidx = 0, 0
-            pkey = member.path[0]
-            cfreq_key = inst_class, idx
-
-            indexes = deque(RE_HTTP_ARRAY_INDEX.findall(orig_k))
-            for i in range(len(member.path) - 1):
-                pkey = member.path[i]
-                nidx = 0
-
-                ncls, ninst = ctype_info[pkey], getattr(cinst, pkey, None)
-
-                mo = ncls.Attributes.max_occurs
-                if ninst is None:
-                    ninst = ncls.get_deserialization_instance()
-                    if mo > 1:
-                        ninst = [ninst]
-                    setattr(cinst, pkey, ninst)
-                    frequencies[cfreq_key][pkey] += 1
-
-                if mo > 1:
-                    if len(indexes) == 0:
-                        raise ValidationError(orig_k,
-                                              "%r requires index information.")
-
-                    nidx = int(indexes.popleft())
-
-                    if nidx > len(ninst) or nidx < 0:
-                        raise ValidationError(orig_k,
-                                           "%%r Invalid array index %d." % idx)
-
-                    if nidx == len(ninst):
-                        ninst.append(ncls.get_deserialization_instance())
-                        frequencies[cfreq_key][pkey] += 1
-
-                    cinst = ninst[nidx]
-
-                else:
-                    cinst = ninst
-
-                cfreq_key = cfreq_key + (ncls, nidx)
-                ccls, idx = ncls, nidx
-                ctype_info = ncls._type_info
-
-            frequencies[cfreq_key][member.path[-1]] += len(value)
-
-            if member.type.Attributes.max_occurs > 1:
-                v = getattr(cinst, member.path[-1], None)
-                if v is None:
-                    setattr(cinst, member.path[-1], value)
-                else:
-                    v.extend(value)
-                logger.debug("\tset array   %r(%r) = %r" %
-                                                    (member.path, pkey, value))
-            else:
-                setattr(cinst, member.path[-1], value[0])
-                logger.debug("\tset default %r(%r) = %r" %
-                                                    (member.path, pkey, value))
-
-        if validator is self.SOFT_VALIDATION:
-            for k, d in frequencies.items():
-                check_freq_dict(k[-2], d)
-
-        return inst
-
-    def object_to_flat_dict(self, inst_cls, value, hier_delim="_", retval=None,
-                        prefix=None, parent=None, subvalue_eater=lambda v,t:v):
-        """Converts a native python object to a flat dict.
-
-        See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
-        """
-
-        if retval is None:
-            retval = {}
-
-        if prefix is None:
-            prefix = []
-
-        fti = inst_cls.get_flat_type_info(inst_cls)
-        for k, v in fti.items():
-            new_prefix = list(prefix)
-            new_prefix.append(k)
-            subvalue = getattr(value, k, None)
-            if getattr(v, 'get_flat_type_info', None) is None: # Not a ComplexModel
-                key = hier_delim.join(new_prefix)
-
-                if retval.get(key, None) is not None:
-                    raise ValueError("%r.%s conflicts with previous value %r" %
-                                                     (inst_cls, k, retval[key]))
-
-                if subvalue is not None or v.Attributes.min_occurs > 0:
-                    try:
-                        retval[key] = subvalue_eater(subvalue, v)
-                    except: # FIXME: What?
-                        if v.Attributes.min_occurs > 0:
-                            retval[key] = None
-
-            else:
-                self.object_to_flat_dict(fti[k], subvalue, hier_delim,
-                                            retval, new_prefix, parent=inst_cls)
-
-        return retval

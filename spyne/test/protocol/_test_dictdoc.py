@@ -17,16 +17,16 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from spyne.model.binary import binary_encoding_handlers
+from spyne.error import ValidationError
+import unittest
+
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-import unittest
-
-import decimal
-import datetime
 import uuid
 import pytz
+import decimal
+import datetime
 
 import lxml.etree
 
@@ -37,6 +37,7 @@ from spyne.service import ServiceBase
 from spyne.server import ServerBase
 from spyne.application import Application
 from spyne.decorator import srpc
+from spyne.model.binary import binary_encoding_handlers
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import Iterable
 from spyne.model.fault import Fault
@@ -57,6 +58,7 @@ from spyne.model.primitive import ImageUri
 from spyne.model.primitive import Decimal
 from spyne.model.primitive import Double
 from spyne.model.primitive import Integer
+from spyne.model.primitive import Integer8
 from spyne.model.primitive import Time
 from spyne.model.primitive import DateTime
 from spyne.model.primitive import Date
@@ -973,5 +975,94 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
             print d
             print encoded_data
             assert s == d
+
+        def test_validation_frequency(self):
+            class SomeService(ServiceBase):
+                @srpc(ByteArray(min_occurs=1), _returns=ByteArray)
+                def some_call(p):
+                    pass
+
+            try:
+                ctx = _dry_me([SomeService], {"some_call": []},
+                                                            validator='soft')
+            except ValidationError:
+                pass
+            else:
+                raise Exception("must raise ValidationError")
+
+        def test_validation_nullable(self):
+            class SomeService(ServiceBase):
+                @srpc(ByteArray(nullable=False), _returns=ByteArray)
+                def some_call(p):
+                    pass
+
+            try:
+                ctx = _dry_me([SomeService], {"some_call": [None]},
+                                                            validator='soft')
+            except ValidationError:
+                pass
+
+            else:
+                raise Exception("must raise ValidationError")
+
+        def test_validation_string_pattern(self):
+            class SomeService(ServiceBase):
+                @srpc(Uuid)
+                def some_call(p):
+                    pass
+
+            try:
+                ctx = _dry_me([SomeService], {"some_call": ["duduk"]},
+                                                            validator='soft')
+            except ValidationError:
+                pass
+
+            else:
+                raise Exception("must raise ValidationError")
+
+        def test_validation_integer_range(self):
+            class SomeService(ServiceBase):
+                @srpc(Integer(ge=0, le=5))
+                def some_call(p):
+                    pass
+
+            try:
+                ctx = _dry_me([SomeService], {"some_call": [10]},
+                                                            validator='soft')
+            except ValidationError:
+                pass
+
+            else:
+                raise Exception("must raise ValidationError")
+
+        def test_validation_integer_type(self):
+            class SomeService(ServiceBase):
+                @srpc(Integer8)
+                def some_call(p):
+                    pass
+
+            try:
+                ctx = _dry_me([SomeService], {"some_call": [-129]},
+                                                            validator='soft')
+            except ValidationError:
+                pass
+
+            else:
+                raise Exception("must raise ValidationError")
+
+        def test_validation_integer_type(self):
+            class SomeService(ServiceBase):
+                @srpc(Integer8)
+                def some_call(p):
+                    pass
+
+            try:
+                ctx = _dry_me([SomeService], {"some_call": [1.2]},
+                                                            validator='soft')
+            except ValidationError:
+                pass
+
+            else:
+                raise Exception("must raise ValidationError")
 
     return Test
