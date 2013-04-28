@@ -19,9 +19,12 @@
 
 import unittest
 
-from spyne.interface.wsdl import Wsdl11
-from spyne.protocol.soap import Soap11
+from lxml import etree
 
+from spyne.interface.wsdl import Wsdl11
+from spyne.protocol.xml import XmlDocument
+
+from spyne.model.complex import Array
 from spyne.model.primitive import String
 from spyne.application import Application
 from spyne.decorator import srpc
@@ -38,7 +41,7 @@ class TestNullServer(unittest.TestCase):
                 queue.add(s)
 
         application = Application([MessageService], 'some_tns',
-            interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
+                          in_protocol=XmlDocument(), out_protocol=XmlDocument())
 
         server = NullServer(application)
         server.service.send_message("zabaaa")
@@ -54,7 +57,7 @@ class TestNullServer(unittest.TestCase):
                 queue.add((s,k))
 
         application = Application([MessageService], 'some_tns',
-            interface=Wsdl11(), in_protocol=Soap11(), out_protocol=Soap11())
+                          in_protocol=XmlDocument(), out_protocol=XmlDocument())
 
         server = NullServer(application)
 
@@ -68,6 +71,34 @@ class TestNullServer(unittest.TestCase):
 
         queue.clear()
         server.service.send_message("zobaaa", s="hobaa")
+        assert set([("hobaa", None)]) == queue
+
+    def test_ostr(self):
+        queue = set()
+
+        class MessageService(ServiceBase):
+            @srpc(String, String, _returns=Array(String))
+            def send_message(s, k):
+                queue.add((s,k))
+                return [s,k]
+
+        application = Application([MessageService], 'some_tns',
+                        in_protocol=XmlDocument(), out_protocol=XmlDocument())
+
+        ostr_server = NullServer(application, ostr=True)
+
+        queue.clear()
+        ret = ostr_server.service.send_message("zabaaa", k="hobaa")
+        assert set([("zabaaa","hobaa")]) == queue
+        assert etree.fromstring(''.join(ret)).xpath('//tns:string/text()',
+                 namespaces=application.interface.nsmap) == ['zabaaa', 'hobaa']
+
+        queue.clear()
+        ostr_server.service.send_message(k="hobaa")
+        assert set([(None,"hobaa")]) == queue
+
+        queue.clear()
+        ostr_server.service.send_message("zobaaa", s="hobaa")
         assert set([("hobaa", None)]) == queue
 
 if __name__ == '__main__':

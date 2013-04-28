@@ -58,10 +58,10 @@ class NullServer(ServerBase):
 
     transport = 'noconn://null.spyne'
 
-    def __init__(self, app):
+    def __init__(self, app, ostr=False):
         ServerBase.__init__(self, app)
 
-        self.service = _FunctionProxy(self, self.app)
+        self.service = _FunctionProxy(self, self.app, ostr)
         self.factory = Factory(self.app)
 
     def get_wsdl(self):
@@ -72,22 +72,25 @@ class NullServer(ServerBase):
 
 
 class _FunctionProxy(object):
-    def __init__(self, server, app):
+    def __init__(self, server, app, ostr):
         self.__app = app
         self.__server = server
         self.in_header = None
+        self.ostr = ostr
 
     def __getattr__(self, key):
-        return _FunctionCall(self.__app, self.__server, key, self.in_header)
+        return _FunctionCall(self.__app, self.__server, key, self.in_header,
+                                                                      self.ostr)
 
 
 class _FunctionCall(object):
-    def __init__(self, app, server, key, in_header):
+    def __init__(self, app, server, key, in_header, ostr):
         self.app = app
 
         self.__key = key
         self.__server = server
         self.__in_header = in_header
+        self.__ostr = ostr
 
     def __call__(self, *args, **kwargs):
         initial_ctx = MethodContext(self)
@@ -158,12 +161,17 @@ class _FunctionCall(object):
                     except AttributeError:
                         pass
 
+                if cnt == 0 and self.__ostr:
+                    self.__server.get_out_string(ctx)
+                    _retval = ctx.out_string
+
             if cnt == 0:
                 retval = _retval
+            else:
+                ctx.close()
+
             cnt += 1
 
-            if ctx != p_ctx:
-                ctx.close()
 
         p_ctx.close()
 
