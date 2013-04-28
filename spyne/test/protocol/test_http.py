@@ -18,6 +18,7 @@
 #
 
 
+from spyne.error import ValidationError
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -32,7 +33,10 @@ from spyne.application import Application
 from spyne.const.http import HTTP_200
 from spyne.decorator import rpc
 from spyne.decorator import srpc
+from spyne.model.binary import ByteArray
 from spyne.model.primitive import DateTime
+from spyne.model.primitive import Uuid
+from spyne.model.primitive import Integer8
 from spyne.model.primitive import Integer
 from spyne.model.primitive import String
 from spyne.model.complex import ComplexModel
@@ -43,8 +47,8 @@ from spyne.server.wsgi import WsgiApplication
 from spyne.server.wsgi import WsgiMethodContext
 
 
-def _test(services, qs):
-    app = Application(services, 'tns', in_protocol=HttpRpc(validator='soft'),
+def _test(services, qs, validator='soft'):
+    app = Application(services, 'tns', in_protocol=HttpRpc(validator=validator),
                                        out_protocol=HttpRpc())
     server = WsgiApplication(app)
 
@@ -58,14 +62,97 @@ def _test(services, qs):
     ctx, = server.generate_contexts(initial_ctx)
 
     server.get_in_object(ctx)
-    assert ctx.in_error is None
+    if ctx.in_error is not None:
+        raise ctx.in_error
 
     server.get_out_object(ctx)
-    assert ctx.out_error is None
+    if ctx.out_error is not None:
+        raise ctx.out_error
 
     server.get_out_string(ctx)
 
     return ctx
+
+class TestValidation(unittest.TestCase):
+
+    def test_validation_frequency(self):
+        class SomeService(ServiceBase):
+            @srpc(ByteArray(min_occurs=1), _returns=ByteArray)
+            def some_call(p):
+                pass
+
+        try:
+            ctx = _test([SomeService], '', validator='soft')
+        except ValidationError:
+            pass
+        else:
+            raise Exception("must raise ValidationError")
+
+    def test_validation_nullable(self):
+        class SomeService(ServiceBase):
+            @srpc(ByteArray(nullable=False), _returns=ByteArray)
+            def some_call(p):
+                pass
+
+        try:
+            ctx = _test([SomeService], '', validator='soft')
+        except ValidationError:
+            pass
+        else:
+            raise Exception("must raise ValidationError")
+
+    def test_validation_string_pattern(self):
+        class SomeService(ServiceBase):
+            @srpc(Uuid)
+            def some_call(p):
+                pass
+
+        try:
+            ctx = _test([SomeService], "p=duduk", validator='soft')
+        except ValidationError:
+            pass
+        else:
+            raise Exception("must raise ValidationError")
+
+    def test_validation_integer_range(self):
+        class SomeService(ServiceBase):
+            @srpc(Integer(ge=0, le=5))
+            def some_call(p):
+                pass
+
+        try:
+            ctx = _test([SomeService], 'p=10', validator='soft')
+        except ValidationError:
+            pass
+        else:
+            raise Exception("must raise ValidationError")
+
+    def test_validation_integer_type(self):
+        class SomeService(ServiceBase):
+            @srpc(Integer8)
+            def some_call(p):
+                pass
+
+        try:
+            ctx = _test([SomeService], "p=-129", validator='soft')
+        except ValidationError:
+            pass
+        else:
+            raise Exception("must raise ValidationError")
+
+    def test_validation_integer_type(self):
+        class SomeService(ServiceBase):
+            @srpc(Integer8)
+            def some_call(p):
+                pass
+
+        try:
+            ctx = _test([SomeService], "p=1.2", validator='soft')
+        except ValidationError:
+            pass
+        else:
+            raise Exception("must raise ValidationError")
+
 
 class Test(unittest.TestCase):
     def test_multiple_return(self):

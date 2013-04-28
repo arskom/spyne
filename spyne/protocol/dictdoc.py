@@ -150,6 +150,102 @@ class DictDocument(ProtocolBase):
 
 
 class FlatDictDocument(DictDocument):
+    def _z(self, inst_class, inst, orig_k, k, v, validator, member, frequencies):
+        value = getattr(inst, k, None)
+        if value is None: # value can return None from getattr as well
+            value = []
+
+        # extract native values from the list of strings in the flat dict
+        # entries.
+        for v2 in v:
+            if (validator is self.SOFT_VALIDATION and not
+                              member.type.validate_string(member.type, v2)):
+                raise ValidationError(v2)
+
+            if issubclass(member.type, (File, ByteArray)):
+                if isinstance(v2, str) or isinstance(v2, unicode):
+                    if member.type.Attributes.encoding is None and \
+                                    self.default_binary_encoding is not None:
+                        native_v2 = self.from_string(member.type, v2,
+                                                self.default_binary_encoding)
+
+                    else:
+                        native_v2 = self.from_string(member.type, v2)
+                else:
+                    native_v2 = v2
+            else:
+                native_v2 = self.from_string(member.type, v2)
+
+            if (validator is self.SOFT_VALIDATION and not
+                        member.type.validate_native(member.type, native_v2)):
+                raise ValidationError(v2)
+
+
+            value.append(native_v2)
+
+        # assign the native value to the relevant class in the nested object
+        # structure.
+        cinst = inst
+        ctype_info = inst_class.get_flat_type_info(inst_class)
+
+        idx, nidx = 0, 0
+        pkey = member.path[0]
+        cfreq_key = inst_class, idx
+
+        indexes = deque(RE_HTTP_ARRAY_INDEX.findall(orig_k))
+        for i in range(len(member.path) - 1):
+            pkey = member.path[i]
+            nidx = 0
+
+            ncls, ninst = ctype_info[pkey], getattr(cinst, pkey, None)
+
+            mo = ncls.Attributes.max_occurs
+            if ninst is None:
+                ninst = ncls.get_deserialization_instance()
+                if mo > 1:
+                    ninst = [ninst]
+                setattr(cinst, pkey, ninst)
+                frequencies[cfreq_key][pkey] += 1
+
+            if mo > 1:
+                if len(indexes) == 0:
+                    raise ValidationError(orig_k,
+                                           "%r requires index information.")
+
+                nidx = int(indexes.popleft())
+
+                if nidx > len(ninst):
+                    raise ValidationError(orig_k,
+                                        "%%r Invalid array index %d." % idx)
+
+                if nidx == len(ninst):
+                    ninst.append(ncls.get_deserialization_instance())
+                    frequencies[cfreq_key][pkey] += 1
+
+                cinst = ninst[nidx]
+
+            else:
+                cinst = ninst
+
+            cfreq_key = cfreq_key + (ncls, nidx)
+            idx = nidx
+            ctype_info = ncls._type_info
+
+        frequencies[cfreq_key][member.path[-1]] += len(value)
+
+        if member.type.Attributes.max_occurs > 1:
+            _v = getattr(cinst, member.path[-1], None)
+            if _v is None:
+                setattr(cinst, member.path[-1], value)
+            else:
+                _v.extend(value)
+            logger.debug("\tset array   %r(%r) = %r" %
+                                                (member.path, pkey, value))
+        else:
+            setattr(cinst, member.path[-1], value[0])
+            logger.debug("\tset default %r(%r) = %r" %
+                                                (member.path, pkey, value))
+
     def flat_dict_to_object(self, doc, inst_class, validator=None, hier_delim="_"):
         """Converts a flat dict to a native python object.
 
@@ -169,100 +265,7 @@ class FlatDictDocument(DictDocument):
                 logger.debug("discarding field %r" % k)
                 continue
 
-            value = getattr(inst, k, None)
-            if value is None: # value can return None from getattr as well
-                value = []
-
-            # extract native values from the list of strings in the flat dict
-            # entries.
-            for v2 in v:
-                if (validator is self.SOFT_VALIDATION and not
-                                  member.type.validate_string(member.type, v2)):
-                    raise ValidationError(v2)
-
-                if issubclass(member.type, (File, ByteArray)):
-                    if isinstance(v2, str) or isinstance(v2, unicode):
-                        if member.type.Attributes.encoding is None and \
-                                        self.default_binary_encoding is not None:
-                            native_v2 = self.from_string(member.type, v2,
-                                                    self.default_binary_encoding)
-
-                        else:
-                            native_v2 = self.from_string(member.type, v2)
-                    else:
-                        native_v2 = v2
-                else:
-                    native_v2 = self.from_string(member.type, v2)
-
-                if (validator is self.SOFT_VALIDATION and not
-                            member.type.validate_native(member.type, native_v2)):
-                    raise ValidationError(v2)
-
-
-                value.append(native_v2)
-
-            # assign the native value to the relevant class in the nested object
-            # structure.
-            cinst = inst
-            ctype_info = inst_class.get_flat_type_info(inst_class)
-
-            idx, nidx = 0, 0
-            pkey = member.path[0]
-            cfreq_key = inst_class, idx
-
-            indexes = deque(RE_HTTP_ARRAY_INDEX.findall(orig_k))
-            for i in range(len(member.path) - 1):
-                pkey = member.path[i]
-                nidx = 0
-
-                ncls, ninst = ctype_info[pkey], getattr(cinst, pkey, None)
-
-                mo = ncls.Attributes.max_occurs
-                if ninst is None:
-                    ninst = ncls.get_deserialization_instance()
-                    if mo > 1:
-                        ninst = [ninst]
-                    setattr(cinst, pkey, ninst)
-                    frequencies[cfreq_key][pkey] += 1
-
-                if mo > 1:
-                    if len(indexes) == 0:
-                        raise ValidationError(orig_k,
-                                               "%r requires index information.")
-
-                    nidx = int(indexes.popleft())
-
-                    if nidx > len(ninst):
-                        raise ValidationError(orig_k,
-                                            "%%r Invalid array index %d." % idx)
-
-                    if nidx == len(ninst):
-                        ninst.append(ncls.get_deserialization_instance())
-                        frequencies[cfreq_key][pkey] += 1
-
-                    cinst = ninst[nidx]
-
-                else:
-                    cinst = ninst
-
-                cfreq_key = cfreq_key + (ncls, nidx)
-                idx = nidx
-                ctype_info = ncls._type_info
-
-            frequencies[cfreq_key][member.path[-1]] += len(value)
-
-            if member.type.Attributes.max_occurs > 1:
-                v = getattr(cinst, member.path[-1], None)
-                if v is None:
-                    setattr(cinst, member.path[-1], value)
-                else:
-                    v.extend(value)
-                logger.debug("\tset array   %r(%r) = %r" %
-                                                    (member.path, pkey, value))
-            else:
-                setattr(cinst, member.path[-1], value[0])
-                logger.debug("\tset default %r(%r) = %r" %
-                                                    (member.path, pkey, value))
+            self._z(inst_class, inst, orig_k, k, v, validator, member, frequencies)
 
         if len(frequencies) > 0 and validator is self.SOFT_VALIDATION:
             for k, d in frequencies.items():
