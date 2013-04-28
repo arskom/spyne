@@ -17,7 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-__version__ = '2.10.0'
+__version__ = '2.10.2'
 
 from spyne._base import BODY_STYLE_WRAPPED
 from spyne._base import BODY_STYLE_BARE

@@ -267,6 +267,7 @@ class ComplexModelMeta(type(ModelBase)):
         base_type_info = {}
         # get base class (if exists) and enforce single inheritance
         extends = cls_dict.get('__extends__', None)
+
         if extends is None:
             for b in cls_bases:
                 base_types = getattr(b, "_type_info", None)
@@ -276,8 +277,8 @@ class ComplexModelMeta(type(ModelBase)):
                         base_type_info.update(b._type_info)
                     else:
                         if not (extends in (None, b)):
-                            raise Exception("WSDL 1.1 does not support multiple"
-                                            " inheritance")
+                            raise Exception("WSDL 1.1 does not support multiple "
+                                            "inheritance")
 
                         try:
                             if len(base_types) > 0 and issubclass(b, ModelBase):
@@ -513,27 +514,6 @@ class ComplexModelBase(ModelBase):
         else:
             return cls.__orig__()
 
-    @classmethod
-    def get_members_pairs(cls, inst):
-        parent_cls = getattr(cls, '__extends__', None)
-        if not (parent_cls is None):
-            for r in parent_cls.get_members_pairs(parent_cls, inst):
-                yield r
-
-        for k, v in cls._type_info.items():
-            mo = v.Attributes.max_occurs
-            try:
-                subvalue = getattr(inst, k, None)
-            except: # to guard against e.g. sqlalchemy throwing NoSuchColumnError
-                subvalue = None
-
-            if mo > 1:
-                if subvalue != None:
-                    yield (k, (v.to_string(sv) for sv in subvalue))
-
-            else:
-                yield (k, [v.to_string(subvalue)])
-
     @staticmethod
     @memoize
     def get_flat_type_info(cls):
@@ -628,7 +608,6 @@ class ComplexModelBase(ModelBase):
                     v.__type_name__ = "%s_%s%s" % (cls.get_type_name(), k,
                                                                    TYPE_SUFFIX)
 
-
             v.resolve_namespace(v, default_ns, tags)
 
         if cls._force_own_namespace is not None:
@@ -694,9 +673,9 @@ class ComplexModelBase(ModelBase):
         if ns is not None:
             retval.__namespace__ = ns
 
-        e = getattr(retval, '__extends__', None)
-        if e != None:
-            retval.__extends__ = getattr(e, '__extends__', None)
+        orig = getattr(retval, '__orig__', None)
+        if orig is not None:
+            retval.__extends__ = getattr(orig, '__extends__', None)
 
         return retval
 

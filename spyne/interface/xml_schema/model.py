@@ -29,15 +29,15 @@ from lxml import etree
 
 from collections import deque
 
+from spyne.const.xml_ns import xsd as _ns_xs
+from spyne.const.xml_ns import xsd as _ns_xsd
+
 from spyne.model.complex import XmlAttribute
 from spyne.model.primitive import AnyXml
 from spyne.model.primitive import Unicode
-from spyne.protocol._base import ProtocolBase
+
 from spyne.util import memoize
 from spyne.util.etreeconv import dict_to_etree
-
-from spyne.const.xml_ns import xsd as _ns_xs
-from spyne.const.xml_ns import xsd as _ns_xsd
 
 
 def simple_get_restriction_tag(document, cls):
@@ -60,6 +60,8 @@ def simple_add(interface, cls, tags):
     if not cls.is_default(cls):
         interface.get_restriction_tag(cls)
 
+def byte_array_add(interface, cls, tags):
+    simple_add(interface, cls, tags)
 
 def complex_add(document, cls, tags):
     complex_type = etree.Element("{%s}complexType" % _ns_xsd)
@@ -80,10 +82,13 @@ def complex_add(document, cls, tags):
             appinfo = etree.SubElement(annotation, "{%s}appinfo" % _ns_xsd)
             if isinstance(_ai, dict):
                 dict_to_etree(_ai, appinfo)
+
             elif isinstance(_ai, str) or isinstance(_ai, unicode):
                 appinfo.text = _ai
+
             elif isinstance(_ai, etree._Element):
                 appinfo.append(_ai)
+
             else:
                 from spyne.util.xml import get_object_as_xml
 
@@ -95,7 +100,7 @@ def complex_add(document, cls, tags):
     type_info = cls._type_info
     if extends is not None:
         if (extends.get_type_name() == cls.get_type_name() and
-                                extends.get_namespace() == cls.get_namespace()):
+                               extends.get_namespace() == cls.get_namespace()):
             raise Exception("%r can't extend %r because they are both '{%s}%s'"
                     % (cls, extends, cls.get_type_name(), cls.get_namespace()))
 
@@ -103,26 +108,21 @@ def complex_add(document, cls, tags):
             # If the parent class is private, it won't be in the schema, so we
             # need to act as if its attributes are part of cls as well.
             type_info = cls.get_simple_type_info(cls)
+
         else:
             complex_content = etree.SubElement(complex_type,
                                                 "{%s}complexContent" % _ns_xsd)
             extension = etree.SubElement(complex_content,
-                                                    "{%s}extension" % _ns_xsd)
+                                                     "{%s}extension" % _ns_xsd)
             extension.set('base', extends.get_type_name_ns(document.interface))
             sequence_parent = extension
 
     sequence = etree.Element('{%s}sequence' % _ns_xsd)
 
-    deferred_a_of = deque()
+    deferred = deque()
     for k, v in type_info.items():
         if issubclass(v, XmlAttribute):
-            if v.attribute_of is None: # others will be added at a later loop
-                attribute = etree.SubElement(complex_type,'{%s}attribute' % _ns_xsd)
-
-                v.describe(k, attribute, document)
-            else:
-                deferred_a_of.append((k,v))
-
+            deferred.append((k,v))
             continue
 
         if v.Attributes.exc_interface:
@@ -171,8 +171,13 @@ def complex_add(document, cls, tags):
     if len(sequence) > 0:
         sequence_parent.append(sequence)
 
-    for k,v in deferred_a_of:
+    for k,v in deferred:
         ao = v.attribute_of
+        if ao is None: # others will be added at a later loop
+            attribute = etree.SubElement(complex_type,'{%s}attribute' % _ns_xsd)
+            v.describe(k, attribute, document)
+            continue
+
         elts = complex_type.xpath("//xsd:element[@name='%s']" % ao,
                                                     namespaces={'xsd': _ns_xsd})
 
@@ -236,6 +241,7 @@ def enum_add(document, cls, tags):
 
 fault_add = complex_add
 
+
 def unicode_get_restriction_tag(interface, cls):
     restriction = simple_get_restriction_tag(interface, cls)
 
@@ -271,53 +277,54 @@ def Tget_range_restriction_tag(T):
     from spyne.model.primitive import Integer
 
     if issubclass(T, Decimal):
-        def _get_float_restrictions(restriction, cls):
+        def _get_float_restrictions(prot, restriction, cls):
             if cls.Attributes.fraction_digits != T.Attributes.fraction_digits:
                 elt = etree.SubElement(restriction, '{%s}fractionDigits' % _ns_xs)
-                elt.set('value', cls.Attributes.total_digits)
+                elt.set('value', prot.to_string(cls.Attributes.fraction_digits))
 
-        def _get_integer_restrictions(restriction, cls):
+        def _get_integer_restrictions(prot, restriction, cls):
             if cls.Attributes.total_digits != T.Attributes.total_digits:
                 elt = etree.SubElement(restriction, '{%s}totalDigits' % _ns_xs)
-                elt.set('value', cls.Attributes.total_digits)
+                elt.set('value', prot.to_string(cls.Attributes.total_digits))
 
         if issubclass(T, Integer):
-            def _get_additional_restrictions(restriction, cls):
-                _get_integer_restrictions(restriction, cls)
+            def _get_additional_restrictions(prot, restriction, cls):
+                _get_integer_restrictions(prot, restriction, cls)
 
         else:
-            def _get_additional_restrictions(restriction, cls):
-                _get_integer_restrictions(restriction, cls)
-                _get_float_restrictions(restriction, cls)
+            def _get_additional_restrictions(prot, restriction, cls):
+                _get_integer_restrictions(prot, restriction, cls)
+                _get_float_restrictions(prot, restriction, cls)
 
     else:
-        def _get_additional_restrictions(restriction, cls):
+        def _get_additional_restrictions(prot, restriction, cls):
             pass
 
-    def _get_range_restriction_tag(interface, cls):
-        restriction = simple_get_restriction_tag(interface, cls)
+    def _get_range_restriction_tag(document, cls):
+        prot = document.interface.app.in_protocol
+        restriction = simple_get_restriction_tag(document, cls)
 
         if cls.Attributes.gt != T.Attributes.gt:
             elt = etree.SubElement(restriction, '{%s}minExclusive' % _ns_xs)
-            elt.set('value', ProtocolBase.to_string(cls, cls.Attributes.gt))
+            elt.set('value', prot.to_string(cls, cls.Attributes.gt))
 
         if cls.Attributes.ge != T.Attributes.ge:
             elt = etree.SubElement(restriction, '{%s}minInclusive' % _ns_xs)
-            elt.set('value', ProtocolBase.to_string(cls, cls.Attributes.ge))
+            elt.set('value', prot.to_string(cls, cls.Attributes.ge))
 
         if cls.Attributes.lt != T.Attributes.lt:
             elt = etree.SubElement(restriction, '{%s}maxExclusive' % _ns_xs)
-            elt.set('value', ProtocolBase.to_string(cls, cls.Attributes.lt))
+            elt.set('value', prot.to_string(cls, cls.Attributes.lt))
 
         if cls.Attributes.le != T.Attributes.le:
             elt = etree.SubElement(restriction, '{%s}maxInclusive' % _ns_xs)
-            elt.set('value', ProtocolBase.to_string(cls, cls.Attributes.le))
+            elt.set('value', prot.to_string(cls, cls.Attributes.le))
 
         if cls.Attributes.pattern != T.Attributes.pattern:
             elt = etree.SubElement(restriction, '{%s}pattern' % _ns_xs)
             elt.set('value', cls.Attributes.pattern)
 
-        _get_additional_restrictions(restriction, cls)
+        _get_additional_restrictions(prot, restriction, cls)
 
         return restriction
 

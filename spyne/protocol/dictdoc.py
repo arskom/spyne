@@ -41,9 +41,14 @@ from spyne.model.binary import File
 from spyne.model.fault import Fault
 from spyne.model.complex import ComplexModelBase
 from spyne.model.complex import Array
+from spyne.model.primitive import AnyDict
+from spyne.model.primitive import AnyXml
+from spyne.model.primitive import AnyHtml
+from spyne.model.primitive import Uuid
 from spyne.model.primitive import DateTime
-from spyne.model.primitive import Decimal
-from spyne.model.primitive import String
+from spyne.model.primitive import Date
+from spyne.model.primitive import Time
+from spyne.model.primitive import Duration
 from spyne.model.primitive import Unicode
 
 from spyne.protocol import ProtocolBase
@@ -65,22 +70,33 @@ def check_freq_dict(cls, d, fti=None):
                 raise ValidationError(k,
                             '%%r member must occur at most %d times.' % max_o)
 
-
 class DictDocument(ProtocolBase):
-    """An abstract protocol that can use hierarchical or flat dicts as input and
-    output documents.
+    """An abstract protocol that can use hierarchical or flat dicts as input
+    and output documents.
 
     Implement ``serialize()``, ``deserialize()``, ``create_in_document()`` and
     ``create_out_string()`` to use this.
     """
 
+    # flags to be used in tests
+    _decimal_as_string = False
+    _huge_numbers_as_string = False
+
     def __init__(self, app=None, validator=None, mime_type=None,
                                         ignore_uncap=False,
-                                        ignore_wrappers=False, complex_as=dict):
+                                        ignore_wrappers=True,
+                                        complex_as=dict,
+                                        ordered=False):
         ProtocolBase.__init__(self, app, validator, mime_type, ignore_uncap)
 
         self.ignore_wrappers = ignore_wrappers
         self.complex_as = complex_as
+        self.ordered = ordered
+        if ordered:
+            raise NotImplementedError('ordered == False')
+
+        self.stringified_types = (DateTime, Date, Time, Uuid, Duration,
+                                                                AnyXml, AnyHtml)
 
     def set_validator(self, validator):
         """Sets the validator for the protocol.
@@ -115,7 +131,7 @@ class DictDocument(ProtocolBase):
 
         # set ctx.method_request_string
         ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
-                                                                doc.keys()[0])
+                                                                  doc.keys()[0])
 
         logger.debug('\theader : %r' % (ctx.in_header_doc))
         logger.debug('\tbody   : %r' % (ctx.in_body_doc))
@@ -134,8 +150,7 @@ class DictDocument(ProtocolBase):
 
 
 class FlatDictDocument(DictDocument):
-    @classmethod
-    def flat_dict_to_object(cls, doc, inst_class, validator=None, hier_delim="_"):
+    def flat_dict_to_object(self, doc, inst_class, validator=None, hier_delim="_"):
         """Converts a flat dict to a native python object.
 
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
@@ -161,27 +176,32 @@ class FlatDictDocument(DictDocument):
             # extract native values from the list of strings in the flat dict
             # entries.
             for v2 in v:
-                if (validator is cls.SOFT_VALIDATION and not
+                if (validator is self.SOFT_VALIDATION and not
                                   member.type.validate_string(member.type, v2)):
                     raise ValidationError(v2)
 
                 if issubclass(member.type, (File, ByteArray)):
                     if isinstance(v2, str) or isinstance(v2, unicode):
                         if member.type.Attributes.encoding is None and \
-                                        cls.default_binary_encoding is not None:
-                            native_v2 = cls.from_string(member.type,
-                                                v2, cls.default_binary_encoding)
+                                        self.default_binary_encoding is not None:
+                            native_v2 = self.from_string(member.type, v2,
+                                                    self.default_binary_encoding)
 
                         else:
-                            native_v2 = cls.from_string(member.type,v2)
+                            native_v2 = self.from_string(member.type, v2)
                     else:
                         native_v2 = v2
                 else:
-                    native_v2 = cls.from_string(member.type, v2)
+                    native_v2 = self.from_string(member.type, v2)
 
-                if (validator is cls.SOFT_VALIDATION and not
+                if (validator is self.SOFT_VALIDATION and native_v2 is None
+                                  and member.type.Attributes.nullable == False):
+                    raise ValidationError(native_v2)
+
+                if (validator is self.SOFT_VALIDATION and not
                             member.type.validate_native(member.type, native_v2)):
                     raise ValidationError(v2)
+
 
                 value.append(native_v2)
 
@@ -248,15 +268,13 @@ class FlatDictDocument(DictDocument):
                 logger.debug("\tset default %r(%r) = %r" %
                                                     (member.path, pkey, value))
 
-
-        if len(frequencies) > 0 and validator is cls.SOFT_VALIDATION:
+        if len(frequencies) > 0 and validator is self.SOFT_VALIDATION:
             for k, d in frequencies.items():
                 check_freq_dict(k[-2], d)
 
         return inst
 
-    @classmethod
-    def object_to_flat_dict(cls, inst_cls, value, hier_delim="_", retval=None,
+    def object_to_flat_dict(self, inst_cls, value, hier_delim="_", retval=None,
                      prefix=None, parent=None, subvalue_eater=lambda prot,v,t:v):
         """Converts a native python object to a flat dict.
 
@@ -283,13 +301,13 @@ class FlatDictDocument(DictDocument):
 
                 if subvalue is not None or v.Attributes.min_occurs > 0:
                     try:
-                        retval[key] = subvalue_eater(cls, subvalue, v)
+                        retval[key] = subvalue_eater(self, subvalue, v)
                     except: # FIXME: What?
                         if v.Attributes.min_occurs > 0:
                             retval[key] = None
 
             else:
-                cls.object_to_flat_dict(fti[k], subvalue, hier_delim,
+                self.object_to_flat_dict(fti[k], subvalue, hier_delim,
                                             retval, new_prefix, parent=inst_cls)
 
         return retval
@@ -335,7 +353,7 @@ class HierDictDocument(DictDocument):
         self.event_manager.fire_event('before_serialize', ctx)
 
         if ctx.out_error is not None:
-            ctx.out_document = [ProtocolBase.to_dict(ctx.out_error.__class__,
+            ctx.out_document = [self.to_dict(ctx.out_error.__class__,
                                                                  ctx.out_error)]
 
         else:
@@ -361,45 +379,47 @@ class HierDictDocument(DictDocument):
 
             self.event_manager.fire_event('after_serialize', ctx)
 
-    @classmethod
-    def _from_dict_value(cls, class_, value, validator):
+    def validate(self, class_, value):
         # validate raw input
-        if validator is cls.SOFT_VALIDATION:
-            if issubclass(class_, Unicode) and not isinstance(value, basestring):
-                raise ValidationError(value)
-            if issubclass(class_, Unicode) and not isinstance(value, unicode):
-                # Note that String is a subclass of Unicode
-                if not (issubclass(class_, String) and isinstance(value, str)):
-                    value = ProtocolBase.from_string(class_, value)
+        if issubclass(class_, Unicode) and not isinstance(value, basestring):
+            raise ValidationError(value)
 
-            elif issubclass(class_, Decimal) and not isinstance(value,
-                                                            (int, long, float)):
-                raise ValidationError(value)
+    def _from_dict_value(self, class_, value, validator):
+        if validator is self.SOFT_VALIDATION:
+            self.validate(class_, value)
 
-            elif issubclass(class_, DateTime) and not (
-                                isinstance(value, unicode) and
-                                         class_.validate_string(class_, value)):
-                raise ValidationError(value)
+        if issubclass(class_, AnyDict):
+            return value
 
         # get native type
         if issubclass(class_, ComplexModelBase):
-            retval = cls._doc_to_object(class_, value, validator)
-
-        elif issubclass(class_, DateTime):
-            retval = ProtocolBase.from_string(class_, value)
+            retval = self._doc_to_object(class_, value, validator)
 
         else:
-            retval = value
+            if (validator is self.SOFT_VALIDATION
+                                and isinstance(value, basestring)
+                                and not class_.validate_string(class_, value)):
+                raise ValidationError(value)
+
+            if issubclass(class_, (ByteArray, file)):
+                retval = self.from_string(class_, value,
+                                                   self.default_binary_encoding)
+
+            else:
+                retval = self.from_string(class_, value)
+
+        if (validator is self.SOFT_VALIDATION and retval is None
+                          and class_.Attributes.nullable == False):
+            raise ValidationError(retval)
 
         # validate native type
-        if validator is cls.SOFT_VALIDATION and \
+        if validator is self.SOFT_VALIDATION and \
                                      not class_.validate_native(class_, retval):
             raise ValidationError(retval)
 
         return retval
 
-    @classmethod
-    def _doc_to_object(cls, class_, doc, validator=None):
+    def _doc_to_object(self, class_, doc, validator=None):
         if doc is None:
             return []
 
@@ -408,7 +428,8 @@ class HierDictDocument(DictDocument):
             (serializer,) = class_._type_info.values()
 
             for child in doc:
-                retval.append(cls._from_dict_value(serializer, child, validator))
+                retval.append(self._from_dict_value(serializer, child,
+                                                                    validator))
 
             return retval
 
@@ -438,46 +459,42 @@ class HierDictDocument(DictDocument):
                     value = []
 
                 for a in v:
-                    value.append(cls._from_dict_value(member, a, validator))
+                    value.append(self._from_dict_value(member, a, validator))
 
             else:
-                value = cls._from_dict_value(member, v, validator)
+                value = self._from_dict_value(member, v, validator)
 
             setattr(inst, k, value)
 
             frequencies[k] += 1
 
-        if validator is cls.SOFT_VALIDATION:
+        if validator is self.SOFT_VALIDATION:
             check_freq_dict(class_, frequencies, flat_type_info)
 
         return inst
 
-    def _object_to_doc(self, class_, value, wrapper_name=None):
-        # import ipdb; ipdb.set_trace()
+    def _object_to_doc(self, class_, value):
+        retval = None
+
         if self.ignore_wrappers:
             wrapper_name = None
             ti = getattr(class_, '_type_info', {})
 
-            while len(ti) == 1 and class_.Attributes._wrapper:
+            while class_.Attributes._wrapper:
+                # Wrappers are auto-generated objects that have exactly one
+                # child type.
                 key, = ti.keys()
                 if not issubclass(class_, Array):
                     value = getattr(value, key, None)
                 class_, = ti.values()
                 ti = getattr(class_, '_type_info', {})
-        else:
-            # arrays get wrapped in [], whereas other objects get wrapped in
-            # {wrapper_name: ...} if wrapper_name is not None.
-            if wrapper_name is None and not issubclass(class_, Array):
-                wrapper_name = class_.get_type_name()
 
         # transform the results into a dict:
         if class_.Attributes.max_occurs > 1:
-            retval = [self._to_value(class_, inst, wrapper_name)
-                                                              for inst in value]
-            if len(retval) == 0:
-                retval = None
+            if value is not None:
+                retval = [self._to_value(class_, inst) for inst in value]
         else:
-            retval = self._to_value(class_, value, wrapper_name)
+            retval = self._to_value(class_, value)
 
         return retval
 
@@ -495,188 +512,40 @@ class HierDictDocument(DictDocument):
                 logger.error("Error getting %r: %r" %(k,e))
                 sub_value = None
 
-            yield (k, self._object_to_doc(v, sub_value))
+            val = self._object_to_doc(v, sub_value)
+            if val is not None or v.Attributes.min_occurs > 0:
+                yield (k, val)
 
-    def _to_value(self, class_, value, k=None):
+    def _to_value(self, class_, value):
+        if issubclass(class_, AnyDict):
+            return value
+
+        if issubclass(class_, Array):
+            st, = class_._type_info.values()
+            return self._object_to_doc(st, value)
+
         if issubclass(class_, ComplexModelBase):
             if self.complex_as is list:
-                return self._to_list(class_, value)
+                return list(self._complex_to_list(class_, value))
             else:
-                return self._to_dict(class_, value, k)
+                return self._complex_to_dict(class_, value)
 
-        if issubclass(class_, DateTime):
-            return self.to_string(class_, value)
+        if issubclass(class_, (ByteArray, File)):
+            return self.to_string(class_, value, self.default_binary_encoding)
 
-        if issubclass(class_, Decimal):
-            if class_.Attributes.format is None:
-                return value
-            else:
-                return self.to_string(class_, value)
+        return self.to_string(class_, value)
 
-        return value
-
-    def _to_dict(self, class_, inst, field_name=None):
+    def _complex_to_dict(self, class_, inst):
         inst = class_.get_serialization_instance(inst)
 
-        retval = dict(self._get_member_pairs(class_, inst))
-        if field_name is None:
-            return retval
+        d = dict(self._get_member_pairs(class_, inst))
+        if self.ignore_wrappers:
+            return d
         else:
-            return {field_name: retval}
+            return {class_.get_type_name(): d}
 
-    def _to_list(self, class_, inst):
+    def _complex_to_list(self, class_, inst):
         inst = class_.get_serialization_instance(inst)
 
         for k,v in self._get_member_pairs(class_, inst):
             yield v
-
-    def flat_dict_to_object(self, doc, inst_class, validator=None, hier_delim="_"):
-        """Converts a flat dict to a native python object.
-
-        See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
-        """
-
-        simple_type_info = inst_class.get_simple_type_info(inst_class)
-        inst = inst_class.get_deserialization_instance()
-
-        # this is for validating cls.Attributes.{min,max}_occurs
-        frequencies = defaultdict(lambda: defaultdict(int))
-
-        for orig_k, v in doc.items():
-            k = RE_HTTP_ARRAY_INDEX.sub("", orig_k)
-            member = simple_type_info.get(k, None)
-            if member is None:
-                logger.debug("discarding field %r" % k)
-                continue
-
-            value = getattr(inst, k, None)
-            if value is None:
-                value = []
-
-            # extract native values from the list of strings that come from the
-            # http dict.
-            for v2 in v:
-                if (validator is self.SOFT_VALIDATION and not
-                                  member.type.validate_string(member.type, v2)):
-                    raise ValidationError(v2)
-
-                if issubclass(member.type, (File, ByteArray)):
-                    if isinstance(v2, str) or isinstance(v2, unicode):
-                        native_v2 = ProtocolBase.from_string(member.type, v2)
-                    else:
-                        native_v2 = v2
-                else:
-                    native_v2 = ProtocolBase.from_string(member.type, v2)
-
-                if (validator is self.SOFT_VALIDATION and not
-                            member.type.validate_native(member.type, native_v2)):
-                    raise ValidationError(v2)
-
-                value.append(native_v2)
-
-            # assign the native value to the relevant class in the nested object
-            # structure.
-            ccls, cinst = inst_class, inst
-            ctype_info = inst_class.get_flat_type_info(inst_class)
-
-            idx, nidx = 0, 0
-            pkey = member.path[0]
-            cfreq_key = inst_class, idx
-
-            indexes = deque(RE_HTTP_ARRAY_INDEX.findall(orig_k))
-            for i in range(len(member.path) - 1):
-                pkey = member.path[i]
-                nidx = 0
-
-                ncls, ninst = ctype_info[pkey], getattr(cinst, pkey, None)
-
-                mo = ncls.Attributes.max_occurs
-                if ninst is None:
-                    ninst = ncls.get_deserialization_instance()
-                    if mo > 1:
-                        ninst = [ninst]
-                    setattr(cinst, pkey, ninst)
-                    frequencies[cfreq_key][pkey] += 1
-
-                if mo > 1:
-                    if len(indexes) == 0:
-                        raise ValidationError(orig_k,
-                                               "%r requires index information.")
-
-                    nidx = int(indexes.popleft())
-
-                    if nidx > len(ninst) or nidx < 0:
-                        raise ValidationError(orig_k,
-                                            "%%r Invalid array index %d." % idx)
-
-                    if nidx == len(ninst):
-                        ninst.append(ncls.get_deserialization_instance())
-                        frequencies[cfreq_key][pkey] += 1
-
-                    cinst = ninst[nidx]
-
-                else:
-                    cinst = ninst
-
-                cfreq_key = cfreq_key + (ncls, nidx)
-                ccls, idx = ncls, nidx
-                ctype_info = ncls._type_info
-
-            frequencies[cfreq_key][member.path[-1]] += len(value)
-
-            if member.type.Attributes.max_occurs > 1:
-                v = getattr(cinst, member.path[-1], None)
-                if v is None:
-                    setattr(cinst, member.path[-1], value)
-                else:
-                    v.extend(value)
-                logger.debug("\tset array   %r(%r) = %r" %
-                                                    (member.path, pkey, value))
-            else:
-                setattr(cinst, member.path[-1], value[0])
-                logger.debug("\tset default %r(%r) = %r" %
-                                                    (member.path, pkey, value))
-
-        if validator is self.SOFT_VALIDATION:
-            for k, d in frequencies.items():
-                check_freq_dict(k[-2], d)
-
-        return inst
-
-    def object_to_flat_dict(self, inst_cls, value, hier_delim="_", retval=None,
-                           prefix=None, parent=None, subvalue_eater=lambda v,t:v):
-        """Converts a native python object to a flat dict.
-
-        See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
-        """
-
-        if retval is None:
-            retval = {}
-
-        if prefix is None:
-            prefix = []
-
-        fti = inst_cls.get_flat_type_info(inst_cls)
-        for k, v in fti.items():
-            new_prefix = list(prefix)
-            new_prefix.append(k)
-            subvalue = getattr(value, k, None)
-            if getattr(v, 'get_flat_type_info', None) is None: # Not a ComplexModel
-                key = hier_delim.join(new_prefix)
-
-                if retval.get(key, None) is not None:
-                    raise ValueError("%r.%s conflicts with previous value %r" %
-                                                     (inst_cls, k, retval[key]))
-
-                if subvalue is not None or v.Attributes.min_occurs > 0:
-                    try:
-                        retval[key] = subvalue_eater(subvalue, v)
-                    except: # FIXME: What?
-                        if v.Attributes.min_occurs > 0:
-                            retval[key] = None
-
-            else:
-                self.object_to_flat_dict(fti[k], subvalue, hier_delim,
-                                            retval, new_prefix, parent=inst_cls)
-
-        return retval

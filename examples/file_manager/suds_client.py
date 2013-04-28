@@ -12,11 +12,6 @@ c.service.add('x', 'y', 'file_name', file_data)
 print 'file written.'
 print
 
-print 'base64 data:'
+print 'incoming data:'
 return_data = c.service.get('file_name')
 print repr(return_data)
-
-print
-print "real data:"
-print repr(base64.b64decode(return_data))
-print

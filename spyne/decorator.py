@@ -55,11 +55,13 @@ def _produce_input_message(f, params, kparams, _in_message_name,
             argcount = f.func_code.co_argcount
             param_names = f.func_code.co_varnames[arg_start:argcount]
         except AttributeError,e:
-            raise TypeError("It's not possible to instrospect builtins. You "
-                            "must pass a sequence of argument names as the "
-                            "'_args' argument to the rpc decorator to manually "
-                            "denote the arguments that this function accepts."
-                        )
+            raise TypeError(
+                "It's not possible to instrospect builtins. You must pass a "
+                "sequence of argument names as the '_args' argument to the "
+                "rpc decorator to manually denote the arguments that this "
+                "function accepts."
+            )
+
     else:
         argcount = len(args)
         param_names = args
@@ -92,8 +94,8 @@ def _produce_input_message(f, params, kparams, _in_message_name,
         message = ComplexModel.alias(_in_message_name, ns, in_param)
 
     else:
-        message = ComplexModel.produce(type_name=_in_message_name, namespace=ns,
-                                                              members=in_params)
+        message = ComplexModel.produce(type_name=_in_message_name,
+                                               namespace=ns, members=in_params)
         message.__namespace__ = ns
 
 

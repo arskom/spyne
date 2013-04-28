@@ -131,8 +131,3 @@ class TestWSDLBindingBehavior(unittest.TestCase):
                                 namespaces = {
                                     'wsdl':'http://schemas.xmlsoap.org/wsdl/' })
                 self.assertEqual(bindings[0].get('type'), "tns:%s" % port)
-
-
-
-
-

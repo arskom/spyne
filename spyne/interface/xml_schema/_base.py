@@ -28,20 +28,17 @@ import spyne.const.xml_ns
 from lxml import etree
 
 from spyne.util.cdict import cdict
-
+from spyne.util.odict import odict
 from spyne.interface import InterfaceDocumentBase
+
+from spyne.model.binary import ByteArray
 from spyne.model import SimpleModel
-from spyne.model.primitive import Decimal
-from spyne.model.primitive import Unicode
-from spyne.model.primitive import Time
-from spyne.model.primitive import DateTime
-from spyne.model.primitive import Date
 from spyne.model.complex import ComplexModelBase
 from spyne.model.complex import Alias
 from spyne.model.enum import EnumBase
 from spyne.model.fault import Fault
-from spyne.util.odict import odict
 
+from spyne.interface.xml_schema.model import byte_array_add
 from spyne.interface.xml_schema.model import simple_add
 from spyne.interface.xml_schema.model import alias_add
 from spyne.interface.xml_schema.model import complex_add
@@ -56,11 +53,13 @@ from spyne.model.primitive import Decimal
 from spyne.model.primitive import DateTime
 from spyne.model.primitive import Date
 from spyne.model.primitive import Time
+from spyne.model.primitive import Unicode
 
 
 _add_handlers = cdict({
     object: lambda interface, cls, tags: None,
     Alias: alias_add,
+    ByteArray: byte_array_add,
     SimpleModel: simple_add,
     ComplexModelBase: complex_add,
     Fault: fault_add,
@@ -170,9 +169,9 @@ class XmlSchema(InterfaceDocumentBase):
         self.build_schema_nodes(with_schema_location=True)
 
         pref_tns = self.interface.get_namespace_prefix(self.interface.tns)
-        tmp_dir_name = tempfile.mkdtemp()
-        logger.debug("generating schema for targetNamespace=%r, prefix: %r in dir %r"
-                                   % (self.interface.tns, pref_tns, tmp_dir_name))
+        tmp_dir_name = tempfile.mkdtemp(prefix='spyne')
+        logger.debug("generating schema for targetNamespace=%r, prefix: "
+                  "%r in dir %r" % (self.interface.tns, pref_tns, tmp_dir_name))
 
         # serialize nodes to files
         for k, v in self.schema_dict.items():

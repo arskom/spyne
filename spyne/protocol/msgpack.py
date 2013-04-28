@@ -33,15 +33,31 @@ logger = logging.getLogger(__name__)
 
 import msgpack
 
-from spyne.model.complex import Array
 from spyne.model.fault import Fault
 from spyne.protocol.dictdoc import HierDictDocument
+from spyne.protocol._model import integer_to_string
+from spyne.protocol._model import integer_from_string
+from spyne.model.primitive import Double
+from spyne.model.primitive import Boolean
+from spyne.model.primitive import Integer
 
 
 class MessagePackDecodeError(Fault):
     def __init__(self, data=None):
         Fault.__init__(self, "Client.MessagePackDecodeError", data)
 
+
+def _integer_from_string(cls, value):
+    if isinstance(value, basestring):
+        return integer_from_string(cls, value)
+    else:
+        return value
+
+def _integer_to_string(cls, value):
+    if -1<<63 <= value < 1<<64: # if it's inside the range msgpack can deal with
+        return value
+    else:
+        return integer_to_string(cls, value)
 
 class MessagePackDocument(HierDictDocument):
     """An integration class for the msgpack protocol."""
@@ -50,6 +66,28 @@ class MessagePackDocument(HierDictDocument):
 
     type = set(HierDictDocument.type)
     type.add('msgpack')
+
+    # flags to be used in tests
+    _decimal_as_string = True
+    _huge_numbers_as_string = True
+
+    def __init__(self, app=None, validator=None, mime_type=None,
+                                        ignore_uncap=False,
+                                        # DictDocument specific
+                                        ignore_wrappers=True,
+                                        complex_as=dict,
+                                        ordered=False):
+
+        HierDictDocument.__init__(self, app, validator, mime_type, ignore_uncap,
+                                           ignore_wrappers, complex_as, ordered)
+
+        self._from_string_handlers[Double] = lambda cls, val: val
+        self._from_string_handlers[Boolean] = lambda cls, val: val
+        self._from_string_handlers[Integer] = _integer_from_string
+
+        self._to_string_handlers[Double] = lambda cls, val: val
+        self._to_string_handlers[Boolean] = lambda cls, val: val
+        self._to_string_handlers[Integer] = _integer_to_string
 
     def create_in_document(self, ctx, in_string_encoding=None):
         """Sets ``ctx.in_document``,  using ``ctx.in_string``.
@@ -188,19 +226,15 @@ class MessagePackRpc(MessagePackDocument):
                 attr_name = out_type_info.keys()[i]
                 setattr(out_instance, attr_name, ctx.out_object[i])
 
-            wrapper_name = None
-            if not issubclass(out_type, Array):
-                wrapper_name = out_type.get_type_name()
-
             # transform the results into a dict:
             if out_type.Attributes.max_occurs > 1:
                 ctx.out_document = [[MessagePackRpc.MSGPACK_RESPONSE, 0, None,
-                        (self._to_value(out_type, inst, wrapper_name)
-                                                       for inst in out_instance)
+                        (self._to_value(out_type, inst)
+                                                      for inst in out_instance)
                     ]]
             else:
                 ctx.out_document = [[MessagePackRpc.MSGPACK_RESPONSE, 0, None,
-                            self._to_value(out_type, out_instance, wrapper_name)
+                            self._to_value(out_type, out_instance)
                     ]]
 
             self.event_manager.fire_event('after_serialize', ctx)

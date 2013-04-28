@@ -37,8 +37,11 @@ from spyne.server import ServerBase
 from spyne.server.wsgi import WsgiApplication
 from spyne.test.protocol._test_dictdoc import TDictDocumentTest
 
-TestMessagePackDocument = TDictDocumentTest(msgpack, MessagePackDocument)
 from spyne.test.test_service import start_response
+
+
+TestMessagePackDocument  = TDictDocumentTest(msgpack, MessagePackDocument)
+
 
 class TestMessagePackRpc(unittest.TestCase):
     def test_invalid_input(self):
@@ -78,7 +81,7 @@ class TestMessagePackRpc(unittest.TestCase):
 
         application = Application([Service],
             in_protocol=MessagePackRpc(),
-            out_protocol=MessagePackRpc(),
+            out_protocol=MessagePackRpc(ignore_wrappers=False),
             name='Service', tns='tns'
         )
         server = WsgiApplication(application)
@@ -104,14 +107,15 @@ class TestMessagePackRpc(unittest.TestCase):
         ret = ''.join(ret)
         print repr(ret)
         print msgpack.unpackb(ret)
-        assert ret == msgpack.packb([1, 0, None, {'get_valuesResponse': {
-            'get_valuesResult': {
-                'KeyValuePair': [
-                    {'value': 'b', 'key': 'a'},
-                    {'value': 'd', 'key': 'c'}
+        s = msgpack.packb([1, 0, None, {'get_valuesResponse': {
+            'get_valuesResult': [
+                  {"KeyValuePair": {'value': 'b', 'key': 'a'}},
+                  {"KeyValuePair": {'value': 'd', 'key': 'c'}},
                 ]
-            }}}
+            }}
         ])
+        print s
+        assert ret == s
 
 if __name__ == '__main__':
     unittest.main()

@@ -2,10 +2,22 @@
 Changelog
 =========
 
+spyne-2.10.2
+------------
+ * Fix ByteArray support accross all protocols.
+ * Fix namespaces of customized simple types inside ``XmlAttribute`` not being
+   imported.
+
+spyne-2.10.1
+------------
+ * Fix confusion in Decimal restriction assignment.
+ * Fix classmethod calls to ProtocolBase.
+ * Fix schema generation error in namespaced xml attribute case.
+
 spyne-2.10.0
 ------------
  * Returning twisted's Deferred from user code is now supported.
- * You can now set Http response headers via ctx.out_object when
+ * You can now set Http response headers via ctx.out_header when
    out_protocol is HttpRpc. https://github.com/arskom/spyne/pull/201
  * lxml is not a hard requirement anymore.
  * XmlDocument and friends: cleanup_namespaces is now True by default.
@@ -21,15 +33,16 @@ spyne-2.10.0
  * Remove destructor from ``MethodContext``. Now transports need to call
    ``.close()`` explicitly to close object and fire relevant events.
  * Application event 'method_context_constructed' was renamed to
-   ``'method_context_created'``
+   ``'method_context_created'``.
  * Application event 'method_context_destroyed' was removed. The
    ``'method_context_closed'`` event can be used instead.
  * SQLAlchemy integration now supports advanced features like specifying
    indexing methods.
  * The object composition graph can now be cyclic.
  * Integers were overhauled. Now boundary values of limited-size types are
-   accessible via ``Attributes._{min,max}_bounds``
- * Added ``MultiPolygon`` spatial type.
+   accessible via ``Attributes._{min,max}_bounds``.
+ * We now have six spatial types, ``Point``, ``LineString`` and ``Polygon``
+   along with their ``Multi*`` variants.
  * The deprecated ``ProtocolBase.set_method_descriptor`` function was removed.
  * It's now possible to override serialization in service implementations.
    You can set ``ctx.out_document`` to have the return value from user funtion
@@ -40,20 +53,28 @@ spyne-2.10.0
  * Added YAML support via PyYaml.
  * Split dict logic in DictDocument as ``HierDictDocument`` and
    ``FlatDictDocument``.
+ * Complete revamp of how DictDocument family work. skip_depth is replaced by
+   richer functionalty that is enabled by two flags: ``ignore_wrappers`` and
+   ``complex_as``.
  * Added cookie parsing support to HttpRpc via ``Cookie.SimpleCookie``.
  * Moved ``{to,from}_string`` logic from data models to ProtocolBase.
    This gives us the ability to have more complex fault messages
    with other fault subelements that are namespace-qualified without
    circular dependency problems - Stefan Andersson <norox81@gmail.com>
+ * DictDocument and friends: ``ignore_wrappers`` and ``complex_as`` options
+   added as a way to customize protocol output without hindering other parts
+   of the interface.
 
 spyne-2.9.5
 -----------
  * Fix restriction bases of simple types not being imported.
+ * Fix for customized subclasses forgetting about their empty base classes.
+ * Fix Attributes.nullable not surviving customization.
 
 spyne-2.9.4
 -----------
- * Fix for Python 2.6 quirk where any decimal.Decimal() is always less than
-   any ``float()``
+ * Fix for Python 2.6 quirk where any ``decimal.Decimal()`` is always less than
+   any ``float()``. Where did that come from?!
  * Fix missing '/' in WsgiMounter.
  * Fix confusion in ``spyne.model.primitive.Decimal``'s parameter order.
  * Add forgotten ``HttpBase`` parameters to ``WsgiApplication``.
@@ -84,10 +105,10 @@ spyne-2.9.0
  * First-class integration with Pyramid.
  * First geospatial types: Point and Polygon.
  * Initial revision of the http request pattern matching support via
-   ``werkzeug.routing``
+   ``werkzeug.routing``.
  * ``XmlObject`` -> ``XmlDocument``, ``JsonObject`` -> ``JsonDocument``,
    ``MessagePackObject`` -> ``MessagePackDocument``,
-   ``DictObject -> DictDocument``.
+   ``DictObject`` -> ``DictDocument``.
 
 spyne-2.8.2-rc
 --------------

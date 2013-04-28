@@ -44,8 +44,8 @@ from spyne.model.binary import ByteArray
 from spyne.model.binary import File
 from spyne.model.binary import Attachment
 from spyne.model.complex import ComplexModelBase
-from spyne.model.complex import Array
 from spyne.model.primitive import AnyXml
+from spyne.model.primitive import AnyHtml
 from spyne.model.primitive import Unicode
 from spyne.model.primitive import String
 from spyne.model.primitive import Decimal
@@ -53,27 +53,12 @@ from spyne.model.primitive import Double
 from spyne.model.primitive import Integer
 from spyne.model.primitive import Time
 from spyne.model.primitive import DateTime
+from spyne.model.primitive import Uuid
 from spyne.model.primitive import Date
 from spyne.model.primitive import Duration
 from spyne.model.primitive import Boolean
 
 from spyne.protocol._model import *
-
-
-class ProtocolBaseMeta(type(object)):
-    def __new__(cls, cls_name, cls_bases, cls_dict):
-        for dkey in ("_to_string_handlers", "_to_string_iterable_handlers",
-                                 "_from_string_handlers", '_to_dict_handlers'):
-
-            d = cdict()
-            for b in cls_bases:
-                d_base = getattr(b, dkey, cdict())
-                d.update(d_base) 
-
-            d.update(cdict(cls_dict.get(dkey, {})))
-            cls_dict[dkey] = d
-
-        return type(object).__new__(cls, cls_name, cls_bases, cls_dict)
 
 
 class ProtocolBase(object):
@@ -112,8 +97,6 @@ class ProtocolBase(object):
         of serializing return values instead of raising a TypeError.
     """
 
-    __metaclass__ = ProtocolBaseMeta
-
     allowed_http_verbs = None
     mime_type = 'application/octet-stream'
 
@@ -126,55 +109,6 @@ class ProtocolBase(object):
 
     default_binary_encoding = None
 
-    _to_string_handlers = cdict({
-        ModelBase: lambda cls, value: cls.to_string(value),
-        Null: null_to_string,
-        AnyXml: any_xml_to_string,
-        Unicode: unicode_to_string,
-        Decimal: decimal_to_string,
-        Double: double_to_string,
-        Integer: integer_to_string,
-        Time: time_to_string,
-        DateTime: datetime_to_string,
-        Duration: duration_to_string,
-        Boolean: boolean_to_string,
-        ByteArray: byte_array_to_string,
-        Attachment: attachment_to_string,
-        ComplexModelBase: complex_model_base_to_string,
-    })
-
-    _to_string_iterable_handlers = cdict({
-        ModelBase: lambda prot, cls, value: cls.to_string_iterable(value),
-        SimpleModel: lambda prot, cls, value: (prot._to_string_handlers[cls](cls, value),),
-        ByteArray: byte_array_to_string_iterable,
-        File: file_to_string_iterable,
-    })
-
-    _from_string_handlers = cdict({
-        Null: null_from_string,
-        AnyXml: any_xml_from_string,
-        Unicode: unicode_from_string,
-        String: string_from_string,
-        Decimal: decimal_from_string,
-        Double: double_from_string,
-        Integer: integer_from_string,
-        Time: time_from_string,
-        DateTime: datetime_from_string,
-        Date: date_from_string,
-        Duration: duration_from_string,
-        Boolean: boolean_from_string,
-        ByteArray: byte_array_from_string,
-        File: file_from_string,
-        Attachment: attachment_from_string,
-        ComplexModelBase: complex_model_base_from_string
-    })
-
-    _to_dict_handlers = cdict({
-        ModelBase: lambda cls, value: cls.to_dict(value),
-        ComplexModelBase: complex_model_base_to_dict,
-        Fault: fault_to_dict,
-    })
-
     def __init__(self, app=None, validator=None, mime_type=None,
                                                             ignore_uncap=False):
         self.__app = None
@@ -186,6 +120,59 @@ class ProtocolBase(object):
         self.ignore_uncap = ignore_uncap
         if mime_type is not None:
             self.mime_type = mime_type
+
+        self._to_string_handlers = cdict({
+            ModelBase: lambda cls, value: cls.to_string(value),
+            Time: time_to_string,
+            Uuid: uuid_to_string,
+            Null: null_to_string,
+            Double: double_to_string,
+            AnyXml: any_xml_to_string,
+            Unicode: unicode_to_string,
+            Boolean: boolean_to_string,
+            Decimal: decimal_to_string,
+            Integer: integer_to_string,
+            AnyHtml: any_html_to_string,
+            DateTime: datetime_to_string,
+            Duration: duration_to_string,
+            ByteArray: byte_array_to_string,
+            Attachment: attachment_to_string,
+            ComplexModelBase: complex_model_base_to_string,
+        })
+
+        self._to_string_iterable_handlers = cdict({
+            File: file_to_string_iterable,
+            ByteArray: byte_array_to_string_iterable,
+            ModelBase: lambda prot, cls, value: cls.to_string_iterable(value),
+            SimpleModel: lambda prot, cls, value: (prot._to_string_handlers[cls](cls, value),),
+        })
+
+        self._from_string_handlers = cdict({
+            Null: null_from_string,
+            Time: time_from_string,
+            Date: date_from_string,
+            Uuid: uuid_from_string,
+            File: file_from_string,
+            Double: double_from_string,
+            String: string_from_string,
+            AnyXml: any_xml_from_string,
+            Boolean: boolean_from_string,
+            Integer: integer_from_string,
+            Unicode: unicode_from_string,
+            Decimal: decimal_from_string,
+            AnyHtml: any_html_from_string,
+            DateTime: datetime_from_string,
+            Duration: duration_from_string,
+            ByteArray: byte_array_from_string,
+            Attachment: attachment_from_string,
+            ComplexModelBase: complex_model_base_from_string
+        })
+
+        self._to_dict_handlers = cdict({
+            ModelBase: lambda cls, value: cls.to_dict(value),
+            ComplexModelBase: complex_model_base_to_dict,
+            Fault: fault_to_dict,
+        })
 
     @property
     def app(self):
@@ -295,22 +282,18 @@ class ProtocolBase(object):
 
         self.validator = None
 
-    @classmethod
-    def from_string(cls, class_, string, *args, **kwargs):
-        handler = cls._from_string_handlers[class_]
+    def from_string(self, class_, string, *args, **kwargs):
+        handler = self._from_string_handlers[class_]
         return handler(class_, string, *args, **kwargs)
 
-    @classmethod
-    def to_string(cls, class_, value):
-        handler = cls._to_string_handlers[class_]
-        return handler(class_, value)
+    def to_string(self, class_, value, *args, **kwargs):
+        handler = self._to_string_handlers[class_]
+        return handler(class_, value, *args, **kwargs)
 
-    @classmethod
-    def to_string_iterable(cls, class_, value):
-        handler = cls._to_string_iterable_handlers[class_]
-        return handler(cls, class_, value)
+    def to_string_iterable(self, class_, value):
+        handler = self._to_string_iterable_handlers[class_]
+        return handler(self, class_, value)
 
-    @classmethod
-    def to_dict(cls, class_, value):
-        handler = cls._to_dict_handlers[class_]
+    def to_dict(self, class_, value):
+        handler = self._to_dict_handlers[class_]
         return handler(class_, value)

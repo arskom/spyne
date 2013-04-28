@@ -29,6 +29,7 @@ from spyne.const import TYPE_SUFFIX
 from spyne.const import RESULT_SUFFIX
 from spyne.const import RESPONSE_SUFFIX
 
+from spyne.model.complex import XmlAttribute
 from spyne.model.complex import ComplexModelBase
 
 
@@ -244,7 +245,7 @@ class Interface(object):
                 else:
                     os, om = val[0]
                     raise ValueError("\nThe message %r defined in both '%s.%s'"
-                                                                " and '%s.%s'"
+                                                                 " and '%s.%s'"
                                 % (method.key, s.__module__, s.__name__,
                                                os.__module__, os.__name__,
                                 ))
@@ -295,6 +296,17 @@ class Interface(object):
         if not (ns in self.imports):
             self.imports[ns] = set()
 
+        class_key = '{%s}%s' % (ns, tn)
+        logger.debug('\tadding class %r for %r' % (repr(cls), class_key))
+
+        assert class_key not in self.classes, ("Somehow, you're trying to "
+            "overwrite %r by %r for class key %r." %
+                                      (self.classes[class_key], cls, class_key))
+        self.classes[class_key] = cls
+        if ns == self.get_tns():
+            self.classes[tn] = cls
+
+        # add parent class
         extends = getattr(cls, '__extends__', None)
         if not (extends is None):
             self.add_class(extends)
@@ -306,23 +318,14 @@ class Interface(object):
                                             parent_ns, ns, cls.get_type_name(),
                                             extends.get_type_name()))
 
-        class_key = '{%s}%s' % (ns, tn)
-        logger.debug('\tadding class %r for %r' % (repr(cls), class_key))
-
-        assert class_key not in self.classes, ("Somehow, you're trying to "
-            "overwrite %r by %r for class key %r." %
-                                      (self.classes[class_key], cls, class_key))
-        self.classes[class_key] = cls
-
-        if ns == self.get_tns():
-            self.classes[tn] = cls
-
+        # add fields
         if issubclass(cls, ComplexModelBase):
             for k,v in cls._type_info.items():
                 if v is None:
                     continue
 
                 self.add_class(v)
+
                 child_ns = v.get_namespace()
                 if child_ns != ns and not child_ns in self.imports[ns] and \
                                                  self.is_valid_import(child_ns):
@@ -330,14 +333,27 @@ class Interface(object):
                     logger.debug("\timporting %r to %r for %s.%s(%r)" %
                                       (child_ns, ns, cls.get_type_name(), k, v))
 
+                if issubclass(v, XmlAttribute):
+                    self.add_class(v.type)
+
+                    child_ns = v.type.get_namespace()
+                    if child_ns != ns and not child_ns in self.imports[ns] and \
+                                                 self.is_valid_import(child_ns):
+                        self.imports[ns].add(child_ns)
+                        logger.debug("\timporting %r to %r for %s.%s(%r)" %
+                                  (child_ns, ns, v.get_type_name(), k, v.type))
+
     def is_valid_import(self, ns):
         """This will return False for base namespaces unless told otherwise."""
+
         if ns is None:
             raise ValueError(ns)
+
         return self.import_base_namespaces or not (ns in namespace.const_prefmap)
 
 
 class AllYourInterfaceDocuments(object):
+    # AreBelongToUs
     def __init__(self, interface):
         if spyne.interface.HAS_WSDL:
             from spyne.interface.wsdl import Wsdl11

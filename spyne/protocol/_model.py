@@ -22,6 +22,7 @@ import datetime
 import math
 import time
 import pytz
+import uuid
 
 from collections import deque
 
@@ -46,6 +47,7 @@ except ImportError:
     html = None
 
 __all__ = [
+    'uuid_to_string', 'uuid_from_string',
     'null_to_string', 'null_from_string',
     'any_xml_to_string', 'any_xml_from_string',
     'any_html_to_string', 'any_html_from_string',
@@ -92,6 +94,15 @@ def any_html_to_string(cls, value):
 @nillable_string
 def any_html_from_string(cls, string):
     return html.fromstring(string)
+
+
+@nillable_string
+def uuid_to_string(cls, value):
+    return str(value)
+
+@nillable_string
+def uuid_from_string(cls, string):
+    return uuid.UUID(string)
 
 
 @nillable_string
@@ -152,7 +163,8 @@ def decimal_from_string(cls, string):
 
 @nillable_string
 def double_to_string(cls, value):
-    float(value)
+    float(value) # sanity check
+
     if cls.Attributes.format is None:
         return repr(value)
     else:
@@ -162,7 +174,7 @@ def double_to_string(cls, value):
 def double_from_string(cls, string):
     try:
         return float(string)
-    except ValueError, e:
+    except (TypeError, ValueError), e:
         raise ValidationError(string, "%%r: %r" % e)
 
 
@@ -170,7 +182,10 @@ def double_from_string(cls, string):
 def integer_to_string(cls, value):
     int(value) # sanity check
 
-    return str(value)
+    if cls.Attributes.format is None:
+        return str(value)
+    else:
+        return cls.Attributes.format % value
 
 @nillable_string
 def integer_from_string(cls, string):
@@ -361,9 +376,9 @@ def byte_array_from_string(cls, value, suggested_encoding=None):
 
 @nillable_string
 def byte_array_to_string(cls, value, suggested_encoding=None):
-    if encoding is None:
-        encoding = cls.Attributes.encoding
-    return binary_encoding_handlers[encoding](value)
+    if suggested_encoding is None:
+        suggested_encoding = cls.Attributes.encoding
+    return binary_encoding_handlers[suggested_encoding](value)
 
 @nillable_iterable
 def byte_array_to_string_iterable(prot, cls, value):
@@ -379,6 +394,11 @@ def file_from_string(cls, value, suggested_encoding=None):
 
 @nillable_iterable
 def file_to_string_iterable(prot, cls, value):
+    if value.data is None:
+        value.data = prot.to_string_iterable(value)
+    else:
+        value.data = iter(data)
+
     assert value.path is not None, "You need to write data to persistent " \
                                    "storage first if you want to read it back."
 
@@ -396,7 +416,6 @@ def file_to_string_iterable(prot, cls, value):
     if value.handle is None:
         f.close()
 
-
 @nillable_string
 def attachment_to_string(cls, value):
     if not (value.data is None):
@@ -408,6 +427,7 @@ def attachment_to_string(cls, value):
         # the data hasn't been loaded, but a file has been
         # specified
         data = open(value.file_name, 'rb').read()
+
     else:
         raise ValueError("Neither data nor a file_name has been specified")
 

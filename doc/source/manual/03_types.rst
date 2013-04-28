@@ -457,7 +457,7 @@ limit to that, you can do this: ::
 
 It is important to emphasize once more that Spyne restrictions are only
 enforced for an incoming request when validation is enabled. If you want this
-enforcement for every *assignment*, you do this the usual way by writing a
+enforcement for *every* assignment, you do this the usual way by writing a
 property setter.
 
 The ``Array`` type has two alternatives. The first one is the
@@ -472,7 +472,7 @@ the client will not notice any difference between an ``Iterable`` and an
 It's just meant to signal the internediate machinery that the return value
 *could* be a generator and **must not** be consumed unless returning data to
 the client. This comes in handy for, e.g. custom loggers because they should
-not try to log the return value.
+not try to log the return value (as that would mean consuming the generator).
 
 You could use the ``Iterable`` marker in other places instead of ``Array``
 without any problems, but it's really meant to be used as return types in
@@ -483,7 +483,9 @@ The second alternative to the ``Array`` notation is the following: ::
         permissions = Permission.customize(max_occurs='unbounded')
 
 The native value that you should return for both remain the same: a sequence
-of the designated type. However, the exposed interface is slightly different.
+of the designated type. However, the exposed interface is slightly different
+for Xml and friends (other protocols that ship with Spyne always assume the
+second notation).
 
 When you use ``Array``, what really happens is that the ``customize()`` function
 of the array type creates an in-place class that is equivalent to the
@@ -518,18 +520,16 @@ type: ::
 
 The same value/type combination would result in the following json document: ::
 
-    {
-        "Permission": [
-            {
-                "application": "app",
-                "feature": "f1"
-            },
-            {
-                "application": "app",
-                "feature": "f2"
-            }
-        ]
-    }
+    [
+        {
+            "application": "app",
+            "feature": "f1"
+        },
+        {
+            "application": "app",
+            "feature": "f2"
+        }
+    ]
 
 However, when we serialize the same object to xml using the
 ``Permission.customize(max_occurs=float('inf'))`` annotation, we get two
@@ -544,33 +544,9 @@ separate Xml documents, like so: ::
       <feature>f2</feature>
     </Permission>
 
-As for Json, we get: ::
-
-    [
-        {
-            "application": "app", 
-            "feature": "f1"
-        },
-        {
-            "application": "app", 
-            "feature": "f2"
-        }
-    ]
-
-At this point, dear reader, you may be going "Arrgh! More quirks! Why don't
-you just do what's best for everyone and spare us the trouble!"
-
-Well, for Xml people, the second way of doing things is just wrong (Xml has
-a one-root-per-document rule). Yet sometimes, it must be done for
-compatibility reasons. And doing it the first way will just annoy JSON people.
-
-In order to let everbody keep the beautiful ``Array(Something)`` syntax,
-:class:`spyne.protocol.dictdoc.HierDictDocument`, parent class of Protocols
-that eat ``dict``\s including ``JsonDocument``, has a ``skip_depth`` argument
-which lets the protocol strip the wrapper objects from response documents.
-In its current form, it's a hack. It can be developed into a full-featured
-filter that also works with nested ``Array`` setups if there's a demand for
-it.
+As for Json, we'd still get the same document. This trick sometimes needed by
+XML people for interoperability. Otherwise, you can use whichever version
+pleases your eye the most.
 
 You can play with the ``examples/arrays_simple_vs_complex.py`` in the source
 repository to see the above mechanism at work.

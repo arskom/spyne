@@ -37,23 +37,13 @@ except ImportError: # Python 3
 
 from spyne.util import _bytes_join
 from spyne.model import nillable_string
-from spyne.model import nillable_iterable
 from spyne.model import ModelBase
 from spyne.model import SimpleModel
 
-binary_encoding_handlers = {
-    None: ''.join,
-    'hex': hexlify,
-    'base64': b64encode,
-    'urlsafe_base64': urlsafe_b64encode,
-}
+class BINARY_ENCODING_HEX: pass
+class BINARY_ENCODING_BASE64: pass
+class BINARY_ENCODING_URLSAFE_BASE64: pass
 
-binary_decoding_handlers = {
-    None: lambda x: [x],
-    'hex': unhexlify,
-    'base64': b64decode,
-    'urlsafe_base64': urlsafe_b64decode,
-}
 
 class ByteArray(SimpleModel):
     """Canonical container for arbitrary data. Every protocol has a different
@@ -76,29 +66,77 @@ class ByteArray(SimpleModel):
         """
 
     def __new__(cls, **kwargs):
+        tn = None
         if 'encoding' in kwargs:
             v = kwargs['encoding']
 
-            if v in (None, 'base64'):
-                kwargs['type_name'] = 'base64Binary'
-            elif v == 'hex':
-                kwargs['type_name'] = 'hexBinary'
+            if v in (None, 'base64', 'base64Binary', BINARY_ENCODING_BASE64):
+                # This string is defined in the Xml Schema Standard
+                tn = 'base64Binary'
+                kwargs['encoding'] = BINARY_ENCODING_BASE64
+
+            elif v in ('hex', 'hexBinary', BINARY_ENCODING_HEX):
+                # This string is defined in the Xml Schema Standard
+                tn = 'hexBinary'
+                kwargs['encoding'] = BINARY_ENCODING_HEX
+
             else:
                 raise ValueError("'encoding' must be one of: %r" % \
                                 (tuple(ByteArray._encoding.handlers.values()),))
 
+        retval = cls.customize(**kwargs)
+        if tn is not None:
+            retval.__type_name__ = tn
+        return retval
 
-        return SimpleModel.__new__(cls, **kwargs)
+    @staticmethod
+    def is_default(cls):
+        return True
 
     @classmethod
     @nillable_string
     def to_base64(cls, value):
-        return [base64.b64encode(_bytes_join(value))]
+        return b64encode(_bytes_join(value))
 
     @classmethod
     @nillable_string
     def from_base64(cls, value):
-        return [base64.b64decode(_bytes_join(value))]
+        return [b64decode(_bytes_join(value))]
+
+    @classmethod
+    @nillable_string
+    def to_urlsafe_base64(cls, value):
+        return urlsafe_b64encode(_bytes_join(value))
+
+    @classmethod
+    @nillable_string
+    def from_urlsafe_base64(cls, value):
+        return [urlsafe_b64decode(_bytes_join(value))]
+
+    @classmethod
+    @nillable_string
+    def to_hex(cls, value):
+        return hexlify(_bytes_join(value))
+
+    @classmethod
+    @nillable_string
+    def from_hex(cls, value):
+        return [unhexlify(_bytes_join(value))]
+
+
+binary_encoding_handlers = {
+    None: ''.join,
+    BINARY_ENCODING_HEX: ByteArray.to_hex,
+    BINARY_ENCODING_BASE64: ByteArray.to_base64,
+    BINARY_ENCODING_URLSAFE_BASE64: urlsafe_b64encode,
+}
+
+binary_decoding_handlers = {
+    None: lambda x: [x],
+    BINARY_ENCODING_HEX: ByteArray.from_hex,
+    BINARY_ENCODING_BASE64: ByteArray.from_base64,
+    BINARY_ENCODING_URLSAFE_BASE64: ByteArray.to_urlsafe_base64,
+}
 
 
 class File(SimpleModel):
@@ -141,12 +179,6 @@ class File(SimpleModel):
                 assert os.path.isabs(self.path)
 
             self.type = type
-
-            if data is None:
-                self.data = File.to_string_iterable(self)
-            else:
-                self.data = iter(data)
-
             self.handle = handle
 
         def rollover(self):
@@ -173,7 +205,7 @@ class File(SimpleModel):
 
             f.close()
 
-            self.data = File.to_string_iterable(self)
+            self.data = None
 
     @classmethod
     @nillable_string

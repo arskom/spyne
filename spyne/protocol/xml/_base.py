@@ -37,14 +37,15 @@ from spyne.const.ansi_color import END_COLOR
 
 from spyne.util.cdict import cdict
 from spyne.model import ModelBase
-from spyne.model.binary import ByteArray
 from spyne.model.binary import Attachment
+from spyne.model.binary import BINARY_ENCODING_BASE64
 from spyne.model.complex import Alias
 from spyne.model.complex import Array
 from spyne.model.complex import Iterable
 from spyne.model.complex import ComplexModelBase
 from spyne.model.enum import EnumBase
 from spyne.model.fault import Fault
+from spyne.model.binary import ByteArray
 from spyne.model.primitive import AnyHtml
 from spyne.model.primitive import AnyXml
 from spyne.model.primitive import AnyDict
@@ -52,8 +53,9 @@ from spyne.model.primitive import Unicode
 
 from spyne.protocol import ProtocolBase
 
+from spyne.protocol.xml.model import byte_array_to_parent_element
+from spyne.protocol.xml.model import attachment_to_parent_element
 from spyne.protocol.xml.model import base_to_parent_element
-from spyne.protocol.xml.model import binary_to_parent_element
 from spyne.protocol.xml.model import alias_to_parent_element
 from spyne.protocol.xml.model import complex_to_parent_element
 from spyne.protocol.xml.model import enum_to_parent_element
@@ -62,8 +64,9 @@ from spyne.protocol.xml.model import xml_to_parent_element
 from spyne.protocol.xml.model import html_to_parent_element
 from spyne.protocol.xml.model import dict_to_parent_element
 
+from spyne.protocol.xml.model import attachment_from_element
 from spyne.protocol.xml.model import base_from_element
-from spyne.protocol.xml.model import binary_from_element
+from spyne.protocol.xml.model import byte_array_from_element
 from spyne.protocol.xml.model import alias_from_element
 from spyne.protocol.xml.model import complex_from_element
 from spyne.protocol.xml.model import enum_from_element
@@ -110,6 +113,7 @@ class XmlDocument(ProtocolBase):
 
     mime_type = 'text/xml'
     allowed_http_verbs = set(['GET', 'POST'])
+    default_binary_encoding = BINARY_ENCODING_BASE64
 
     type = set(ProtocolBase.type)
     type.add('xml')
@@ -130,8 +134,8 @@ class XmlDocument(ProtocolBase):
             AnyHtml: html_to_parent_element,
             EnumBase: enum_to_parent_element,
             ModelBase: base_to_parent_element,
-            ByteArray: binary_to_parent_element,
-            Attachment: binary_to_parent_element,
+            ByteArray: byte_array_to_parent_element,
+            Attachment: attachment_to_parent_element,
             ComplexModelBase: complex_to_parent_element,
         })
 
@@ -142,8 +146,8 @@ class XmlDocument(ProtocolBase):
             EnumBase: enum_from_element,
             ModelBase: base_from_element,
             Unicode: unicode_from_element,
-            ByteArray: binary_from_element,
-            Attachment: binary_from_element,
+            ByteArray: byte_array_from_element,
+            Attachment: attachment_from_element,
             ComplexModelBase: complex_from_element,
 
             Alias: alias_from_element,

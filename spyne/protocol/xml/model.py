@@ -87,6 +87,26 @@ def base_from_element(prot, cls, element):
 
     return retval
 
+@nillable_element
+def byte_array_from_element(prot, cls, element):
+    if prot.validator is prot.SOFT_VALIDATION and not (
+                                        cls.validate_string(cls, element.text)):
+        raise ValidationError(element.text)
+
+    retval = prot.from_string(cls, element.text, prot.default_binary_encoding)
+
+    if prot.validator is prot.SOFT_VALIDATION and not (
+                                        cls.validate_native(cls, retval)):
+        raise ValidationError(retval)
+
+    return retval
+
+
+@nillable_value
+def byte_array_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
+    elt = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
+    elt.text = prot.to_string(cls, value, prot.default_binary_encoding)
+
 
 @nillable_value
 def base_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
@@ -117,8 +137,7 @@ def null_from_element(prot, cls, element):
     return None
 
 
-@nillable_value
-def binary_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
+def attachment_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     '''This class method takes the data from the attachment and
     base64 encodes it as the text of an Element. An attachment can
     specify a file_name and if no data is given, it will read the data
@@ -129,7 +148,7 @@ def binary_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
 
 
 @nillable_element
-def binary_from_element(prot, cls, element):
+def attachment_from_element(prot, cls, element):
     '''This method returns an Attachment object that contains
     the base64 decoded string of the text of the given element
     '''
@@ -139,7 +158,6 @@ def binary_from_element(prot, cls, element):
 @coroutine
 def get_members_etree(prot, cls, inst, parent):
     delay = set()
-
     parent_cls = getattr(cls, '__extends__', None)
 
     try:
@@ -163,6 +181,8 @@ def get_members_etree(prot, cls, inst, parent):
                 a_of = v.attribute_of
                 if a_of is not None and a_of in cls._type_info.keys():
                     delay.add(k)
+                else:
+                    v.marshall(prot, k, subvalue, parent)
                 continue
 
             mo = v.Attributes.max_occurs

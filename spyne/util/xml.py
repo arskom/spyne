@@ -90,8 +90,8 @@ def _dig(par):
 
 
 def get_object_as_xml(value, cls=None, root_tag_name=None, no_namespace=False):
-    '''Returns an ElementTree representation of a :class:`spyne.model.complex.ComplexModel`
-    child.
+    '''Returns an ElementTree representation of a
+    :class:`spyne.model.complex.ComplexModel` subclass.
 
     :param value: The instance of the class to be serialized.
     :param value: The root tag string to use. Defaults to the output of

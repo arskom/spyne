@@ -28,6 +28,7 @@ import spyne.const.xml_ns
 ns_xsd = spyne.const.xml_ns.xsd
 ns_test = 'test_namespace'
 
+
 class TestBinary(unittest.TestCase):
     def setUp(self):
         self.data = map(chr, xrange(256))

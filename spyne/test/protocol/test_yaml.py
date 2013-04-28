@@ -18,8 +18,6 @@
 #
 
 import unittest
-import yaml
-
 
 from spyne.test.protocol._test_dictdoc import TDictDocumentTest
 from spyne.protocol.yaml import YamlDocument
@@ -30,7 +28,7 @@ from spyne.decorator import srpc
 from spyne.service import ServiceBase
 from spyne.server import ServerBase
 
-import yaml
+from spyne.protocol.yaml import yaml
 yaml.dumps = yaml.dump
 yaml.loads = yaml.load
 
@@ -54,6 +52,7 @@ class Test(unittest.TestCase):
         initial_ctx.in_string = ['{']
         ctx, = server.generate_contexts(initial_ctx)
         assert ctx.in_error.faultcode == 'Client.YamlDecodeError'
+
 
 if __name__ == '__main__':
     unittest.main()
