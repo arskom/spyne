@@ -79,6 +79,10 @@ class TestPrimitive(unittest.TestCase):
         else:
             raise Exception("must fail.")
 
+    def test_decimal(self):
+        assert Decimal(10,4).Attributes.total_digits == 10
+        assert Decimal(10,4).Attributes.fraction_digits == 4
+
     def test_string(self):
         s = String()
         element = etree.Element('test')
