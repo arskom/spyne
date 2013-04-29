@@ -47,6 +47,31 @@ from spyne.server.wsgi import WsgiApplication
 from spyne.server.wsgi import WsgiMethodContext
 
 
+class FlatDictDocumentTest(unittest.TestCase):
+    def test_own_parse_qs_01(self):
+        assert dict(_parse_qs('')) == {}
+    def test_own_parse_qs_02(self):
+        assert dict(_parse_qs('p')) == {'p': [None]}
+    def test_own_parse_qs_03(self):
+        assert dict(_parse_qs('p=')) == {'p': ['']}
+    def test_own_parse_qs_04(self):
+        assert dict(_parse_qs('p=1')) == {'p': ['1']}
+    def test_own_parse_qs_05(self):
+        assert dict(_parse_qs('p=1&')) == {'p': ['1']}
+    def test_own_parse_qs_06(self):
+        assert dict(_parse_qs('p=1&q')) == {'p': ['1'], 'q': [None]}
+    def test_own_parse_qs_07(self):
+        assert dict(_parse_qs('p=1&q=')) == {'p': ['1'], 'q': ['']}
+    def test_own_parse_qs_08(self):
+        assert dict(_parse_qs('p=1&q=2')) == {'p': ['1'], 'q': ['2']}
+    def test_own_parse_qs_09(self):
+        assert dict(_parse_qs('p=1&q=2&p')) == {'p': ['1', None], 'q': ['2']}
+    def test_own_parse_qs_10(self):
+        assert dict(_parse_qs('p=1&q=2&p=')) == {'p': ['1', ''], 'q': ['2']}
+    def test_own_parse_qs_11(self):
+        assert dict(_parse_qs('p=1&q=2&p=3')) == {'p': ['1', '3'], 'q': ['2']}
+
+
 def _test(services, qs, validator='soft'):
     app = Application(services, 'tns', in_protocol=HttpRpc(validator=validator),
                                        out_protocol=HttpRpc())
