@@ -179,7 +179,8 @@ class XmlSchema(InterfaceDocumentBase):
             f = open(file_name, 'wb')
             etree.ElementTree(v).write(f, pretty_print=True)
             f.close()
-            logger.debug("writing %r for ns %s" % (file_name, self.interface.nsmap[k]))
+            logger.debug("writing %r for ns %s" % (file_name,
+                                                       self.interface.nsmap[k]))
 
         f = open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r')
 
@@ -196,7 +197,8 @@ class XmlSchema(InterfaceDocumentBase):
         """Return schema node for the given namespace prefix."""
 
         if not (pref in self.schema_dict):
-            schema = etree.Element("{%s}schema" % _ns_xsd, nsmap=self.interface.nsmap)
+            schema = etree.Element("{%s}schema" % _ns_xsd,
+                                                     nsmap=self.interface.nsmap)
 
             schema.set("targetNamespace", self.interface.nsmap[pref])
             schema.set("elementFormDefault", "qualified")
