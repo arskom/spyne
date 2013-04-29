@@ -20,7 +20,7 @@
 """This module is DEPRECATED. Create your own TableModel using
 :func:`spyne.model.complex.TTableModel`
 
-Here's an example way of using the :class:`spyne.model.table.TableModel: ::
+Here's an example way of using the :class:`spyne.model.table.TableModel`: ::
 
     class User(TableModel, DeclarativeBase):
         __namespace__ = 'spyne.examples.user_manager'

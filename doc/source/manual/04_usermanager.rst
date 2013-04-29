@@ -116,7 +116,7 @@ You should consult the
 parameters you can pass to tweak how the method is exposed.
 
 The ``'Response'`` and ``'Result'`` suffixes are configurable as well. See
-:mode:`spyne.const` reference for more information.
+:mod:`spyne.const` reference for more information.
 
 
 Decorators and ``@rpc``

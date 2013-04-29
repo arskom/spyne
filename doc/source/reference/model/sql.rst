@@ -8,5 +8,4 @@ Persisting Objects
    :members:
    :show-inheritance:
 
-.. autofunc:: spyne.model.complex.TTableModel
-
+.. autofunction:: spyne.model.complex.TTableModel
