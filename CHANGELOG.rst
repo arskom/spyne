@@ -4,7 +4,9 @@ Changelog
 
 spyne-2.10.3
 ------------
- * Fix missing validation checks in HierDictDocument.
+ * Add validation tests for HierDictDocument and fix seen issues.
+ * Add validation tests for FlatDictDocument and fix seen issues.
+ * Clarify Json and Http behavior in relevant docstrings.
 
 spyne-2.10.2
 ------------
