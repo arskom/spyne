@@ -151,7 +151,7 @@ def complex_add(document, cls, tags):
 
         if v.Attributes.max_occurs != 1: # 1 is the xml schema default
             val = v.Attributes.max_occurs
-            if val == decimal.Decimal('inf'):
+            if val in (decimal.Decimal('inf'), float('inf')):
                 val = 'unbounded'
             else:
                 val = str(val)
