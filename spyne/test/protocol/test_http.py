@@ -18,7 +18,6 @@
 #
 
 
-from spyne.error import ValidationError
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
@@ -29,16 +28,25 @@ from Cookie import SimpleCookie
 from datetime import datetime
 from wsgiref.validate import validator
 
+from collections import defaultdict
+from pprint import pprint
+from spyne.protocol.dictdoc import _fill
+from spyne.model.complex import Array
+
+from spyne.server.wsgi import _parse_qs
 from spyne.application import Application
+from spyne.error import ValidationError
 from spyne.const.http import HTTP_200
 from spyne.decorator import rpc
 from spyne.decorator import srpc
 from spyne.model.binary import ByteArray
 from spyne.model.primitive import DateTime
 from spyne.model.primitive import Uuid
-from spyne.model.primitive import Integer8
-from spyne.model.primitive import Integer
 from spyne.model.primitive import String
+from spyne.model.primitive import Unicode
+from spyne.model.primitive import Boolean
+from spyne.model.primitive import Integer
+from spyne.model.primitive import Integer8
 from spyne.model.complex import ComplexModel
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.http import HttpPattern
@@ -70,6 +78,31 @@ class FlatDictDocumentTest(unittest.TestCase):
         assert dict(_parse_qs('p=1&q=2&p=')) == {'p': ['1', ''], 'q': ['2']}
     def test_own_parse_qs_11(self):
         assert dict(_parse_qs('p=1&q=2&p=3')) == {'p': ['1', '3'], 'q': ['2']}
+
+    def test_fill(self):
+        class CM(ComplexModel):
+            i = Integer
+            s = Unicode
+            a = Array(Boolean)
+
+        class CCM(ComplexModel):
+            c = CM
+            i = Integer
+            s = Unicode
+
+        inst_class = CCM
+        frequencies = defaultdict(lambda: defaultdict(int))
+
+        simple_type_info = CCM.get_simple_type_info(inst_class)
+        _fill(simple_type_info, inst_class, frequencies)
+
+        pprint(dict(frequencies))
+        assert frequencies[(CCM,0)]['c'] == 0
+        assert frequencies[(CCM,0)]['i'] == 0
+        assert frequencies[(CCM,0)]['s'] == 0
+        assert frequencies[(CCM,0,CM,0)]['i'] == 0
+        assert frequencies[(CCM,0,CM,0)]['s'] == 0
+        assert frequencies[(CCM,0,CM,0)]['a'] == 0
 
 
 def _test(services, qs, validator='soft'):
@@ -120,7 +153,7 @@ class TestValidation(unittest.TestCase):
                 pass
 
         try:
-            ctx = _test([SomeService], '', validator='soft')
+            ctx = _test([SomeService], 'p', validator='soft')
         except ValidationError:
             pass
         else:
