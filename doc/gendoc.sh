@@ -2,8 +2,7 @@
 
 git branch
 rm -rf docs;
-declare -A docs=( [2.9]=2_9 [2.10]=master);
-stable=2.9
+declare -A docs=( [2.9]=2_9 [2.10]=2_10 );
 
 for i in ${!docs[@]}; do
     git checkout ${docs[$i]} || exit 1;
