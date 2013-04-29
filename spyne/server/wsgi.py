@@ -31,7 +31,10 @@ import cgi
 import threading
 import itertools
 
-from urlparse import unquote
+try:
+    from urlparse import unquote
+except ImportError: #python 2.5
+    from urllib import unquote
 
 try:
     from werkzeug.formparser import parse_form_data
