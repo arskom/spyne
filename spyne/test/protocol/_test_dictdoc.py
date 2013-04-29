@@ -17,7 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from spyne.error import ValidationError
 import unittest
 
 import logging
@@ -37,6 +36,7 @@ from spyne.service import ServiceBase
 from spyne.server import ServerBase
 from spyne.application import Application
 from spyne.decorator import srpc
+from spyne.error import ValidationError
 from spyne.model.binary import binary_encoding_handlers
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import Iterable

@@ -24,6 +24,25 @@ Initially released in 2.8.0-rc.
 
 This module is EXPERIMENTAL. You may not recognize the code here next time you
 look at it.
+
+Missing Types
+=============
+
+The JSON standard does not define every type that Spyne supports. These include
+Date/Time types as well as arbitrary-length integers and arbitrary-precision
+decimals. Integers are parsed to ``int``s or ``long``s seamlessly but
+``Decimal``s are only parsed correctly when they come off as strings.
+
+While it's possible to e.g. (de)serialize floats to ``Decimal``s by adding hooks
+to ``parse_float`` [#]_ (and convert later as necessary), such customizations
+apply to the whole incoming document which pretty much messes up ``AnyDict``
+encoding and decoding.
+
+It also wasn't possible to work with ``object_pairs_hook`` as Spyne's parsing
+is always "from outside to inside" whereas ``object_pairs_hook`` is passed
+``dict``s basically in any order "from inside to outside".
+
+.. [#] http://docs.python.org/2/library/json.html#json.loads
 """
 
 from __future__ import absolute_import
@@ -40,18 +59,14 @@ except ImportError:
     import json
     JSONDecodeError = ValueError
 
-from spyne.protocol._model import integer_from_string
-from spyne.protocol._model import decimal_from_string
-from spyne.protocol._model import double_from_string
 from spyne.error import ValidationError
 
 from spyne.model.binary import BINARY_ENCODING_BASE64
 from spyne.model.primitive import Date
 from spyne.model.primitive import Time
 from spyne.model.primitive import DateTime
-from spyne.model.primitive import Integer
-from spyne.model.primitive import Decimal
 from spyne.model.primitive import Double
+from spyne.model.primitive import Integer
 from spyne.model.primitive import Boolean
 from spyne.model.fault import Fault
 from spyne.protocol.dictdoc import HierDictDocument

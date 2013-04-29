@@ -22,6 +22,82 @@ protocol that deals with hierarchical and flat dicts as {in,out}_documents.
 
 This module is EXPERIMENTAL. You may not recognize the code here next time you
 look at it.
+
+Flattening
+==========
+
+Plain HTTP does not support communicating hierarchical key-value stores. Spyne
+makes plain HTTP fake hierarchical dicts by a series of small hacks:
+
+Let's look at the following object hierarchy: ::
+
+    class Inner(ComplexModel):
+        c = Integer
+        d = Array(Integer)
+
+    class Outer(ComplexModel):
+        a = Integer
+        b = SomeObject
+
+Let's consider the ``Outer(a=1, b=Inner(c=2))`` object as an example. It'd
+correspond to the following hierarchichal dict representation: ::
+
+    {'a': 1, 'b': { 'c': 2 }}
+
+We do two hacks to deserialize the above object structure from a flat dict:
+
+* Object hierarchies are flattened. e.g. the flat representation of the above
+  dict is: ``{'a': 1, 'b_c': 2}}``.
+* Arrays of objects are sent using variables with array indexes in square
+  brackets. So the request with the following query object: ::
+
+      {'a': 1, 'b_d[0]': 1, 'b_d[1]': 2}}
+
+  ... corresponds to: ::
+
+      {'a': 1, 'b': { 'd': [1,2] }}
+
+  If we had: ::
+
+      class Inner(ComplexModel):
+          c = Integer
+
+      class Outer(ComplexModel):
+          a = Integer
+          b = Array(SomeObject)
+
+  Or the following object: ::
+
+      {'a': 1, 'b[0]_c': 1, 'b[1]_c': 2}}
+
+  ... would corresponds to: ::
+
+      {'a': 1, 'b': [{ 'c': 1}, {'c': 2}]}
+
+  ... which would deserialize as: ::
+
+      Outer(a=1, b=[Inner(c=1), Inner(c=2)])
+
+These hacks are both slower to process and bulkier on wire, use class
+hierarchies with HTTP only when performance is not that much of a concern.
+
+Cookies
+=======
+
+Cookie headers are parsed and fields within HTTP requests are assigned to fields
+in the ``in_header`` class, if defined.
+
+It's also possible to get the ``Cookie`` header intact by defining an
+``in_header`` object with a field named ``Cookie`` (case sensitive).
+
+As an example, let's assume the following HTTP request:
+
+GET / HTTP/1.0
+Cookie: v1=4;v2=8
+(...)
+
+The keys ``v1`` and ``v2`` are passed to the ``in_header`` class if it defines
+the ``v1`` and ``v2`` values.
 """
 
 import logging
