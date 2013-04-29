@@ -31,16 +31,15 @@ import cgi
 import threading
 import itertools
 
-try:
-    from cgi import parse_qs
-except ImportError: # Python 3
-    from urllib.parse import parse_qs
+from urlparse import unquote
 
 try:
     from werkzeug.formparser import parse_form_data
 except ImportError, e:
     def parse_form_data(*args, **kwargs):
         raise e
+
+from collections import defaultdict
 
 from spyne.application import get_fault_string_from_exception
 from spyne.auxproc import process_contexts
@@ -68,6 +67,28 @@ except ImportError, e:
     def apply_mtom(*args, **kwargs):
         raise e
 
+def _parse_qs(qs):
+    pairs = [s2 for s1 in qs.split('&') for s2 in s1.split(';')]
+    retval = defaultdict(list)
+
+    for name_value in pairs:
+        if name_value is None or len(name_value) == 0:
+            continue
+        nv = name_value.split('=', 1)
+
+        if len(nv) != 2:
+            # Handle case of a control-name with no equal sign
+            nv.append(None)
+
+        name = unquote(nv[0].replace('+', ' '))
+
+        value = None
+        if nv[1] is not None:
+            value = unquote(nv[1].replace('+', ' '))
+
+        retval[name].append(value)
+
+    return retval
 
 def _get_http_headers(req_env):
     retval = {}
@@ -496,7 +517,8 @@ class WsgiApplication(HttpBase):
                                           ctx.method_request_string, END_COLOR))
 
         ctx.in_header_doc = _get_http_headers(ctx.in_document)
-        ctx.in_body_doc = parse_qs(ctx.in_document['QUERY_STRING'])
+        ctx.in_body_doc = _parse_qs(ctx.in_document['QUERY_STRING'])
+
         for k, v in params.items():
              if k in ctx.in_body_doc:
                  ctx.in_body_doc[k].append(v)

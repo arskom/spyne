@@ -22,6 +22,82 @@ protocol that deals with hierarchical and flat dicts as {in,out}_documents.
 
 This module is EXPERIMENTAL. You may not recognize the code here next time you
 look at it.
+
+Flattening
+==========
+
+Plain HTTP does not support communicating hierarchical key-value stores. Spyne
+makes plain HTTP fake hierarchical dicts by a series of small hacks:
+
+Let's look at the following object hierarchy: ::
+
+    class Inner(ComplexModel):
+        c = Integer
+        d = Array(Integer)
+
+    class Outer(ComplexModel):
+        a = Integer
+        b = SomeObject
+
+Let's consider the ``Outer(a=1, b=Inner(c=2))`` object as an example. It'd
+correspond to the following hierarchichal dict representation: ::
+
+    {'a': 1, 'b': { 'c': 2 }}
+
+We do two hacks to deserialize the above object structure from a flat dict:
+
+* Object hierarchies are flattened. e.g. the flat representation of the above
+  dict is: ``{'a': 1, 'b_c': 2}}``.
+* Arrays of objects are sent using variables with array indexes in square
+  brackets. So the request with the following query object: ::
+
+      {'a': 1, 'b_d[0]': 1, 'b_d[1]': 2}}
+
+  ... corresponds to: ::
+
+      {'a': 1, 'b': { 'd': [1,2] }}
+
+  If we had: ::
+
+      class Inner(ComplexModel):
+          c = Integer
+
+      class Outer(ComplexModel):
+          a = Integer
+          b = Array(SomeObject)
+
+  Or the following object: ::
+
+      {'a': 1, 'b[0]_c': 1, 'b[1]_c': 2}}
+
+  ... would corresponds to: ::
+
+      {'a': 1, 'b': [{ 'c': 1}, {'c': 2}]}
+
+  ... which would deserialize as: ::
+
+      Outer(a=1, b=[Inner(c=1), Inner(c=2)])
+
+These hacks are both slower to process and bulkier on wire, use class
+hierarchies with HTTP only when performance is not that much of a concern.
+
+Cookies
+=======
+
+Cookie headers are parsed and fields within HTTP requests are assigned to fields
+in the ``in_header`` class, if defined.
+
+It's also possible to get the ``Cookie`` header intact by defining an
+``in_header`` object with a field named ``Cookie`` (case sensitive).
+
+As an example, let's assume the following HTTP request:
+
+GET / HTTP/1.0
+Cookie: v1=4;v2=8
+(...)
+
+The keys ``v1`` and ``v2`` are passed to the ``in_header`` class if it defines
+the ``v1`` and ``v2`` values.
 """
 
 import logging
@@ -161,6 +237,8 @@ class FlatDictDocument(DictDocument):
 
         # this is for validating cls.Attributes.{min,max}_occurs
         frequencies = defaultdict(lambda: defaultdict(int))
+        if validator is self.SOFT_VALIDATION:
+            _fill(simple_type_info, inst_class, frequencies)
 
         for orig_k, v in doc.items():
             k = RE_HTTP_ARRAY_INDEX.sub("", orig_k)
@@ -197,7 +275,6 @@ class FlatDictDocument(DictDocument):
                 if (validator is self.SOFT_VALIDATION and not
                             member.type.validate_native(member.type, native_v2)):
                     raise ValidationError(v2)
-
 
                 value.append(native_v2)
 
@@ -252,11 +329,11 @@ class FlatDictDocument(DictDocument):
             frequencies[cfreq_key][member.path[-1]] += len(value)
 
             if member.type.Attributes.max_occurs > 1:
-                v = getattr(cinst, member.path[-1], None)
-                if v is None:
+                _v = getattr(cinst, member.path[-1], None)
+                if _v is None:
                     setattr(cinst, member.path[-1], value)
                 else:
-                    v.extend(value)
+                    _v.extend(value)
                 logger.debug("\tset array   %r(%r) = %r" %
                                                     (member.path, pkey, value))
             else:
@@ -264,7 +341,12 @@ class FlatDictDocument(DictDocument):
                 logger.debug("\tset default %r(%r) = %r" %
                                                     (member.path, pkey, value))
 
-        if len(frequencies) > 0 and validator is self.SOFT_VALIDATION:
+
+        if validator is self.SOFT_VALIDATION:
+            for k, member in simple_type_info.items():
+                for i in range(len(member.path) - 1):
+                    print
+
             for k, d in frequencies.items():
                 check_freq_dict(k[-2], d)
 
@@ -541,3 +623,29 @@ class HierDictDocument(DictDocument):
 
         for k,v in self._get_member_pairs(class_, inst):
             yield v
+
+
+def _fill(simple_type_info, inst_class, frequencies):
+    for k, member in simple_type_info.items():
+        if member.type.Attributes.min_occurs == 0:
+            continue
+
+        ctype_info = inst_class.get_flat_type_info(inst_class)
+
+        idx, nidx = 0, 0
+        pkey = member.path[0]
+        cfreq_key = inst_class, idx
+
+        for i in range(len(member.path) - 1):
+            pkey = member.path[i]
+            nidx = 0
+
+            ncls = ctype_info[pkey]
+
+            frequencies[cfreq_key][pkey] += 0
+
+            cfreq_key = cfreq_key + (ncls, nidx)
+            idx = nidx
+            ctype_info = ncls._type_info
+
+        frequencies[cfreq_key][member.path[-1]] += 0
