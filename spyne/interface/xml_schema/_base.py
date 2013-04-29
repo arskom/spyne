@@ -144,9 +144,10 @@ class XmlSchema(InterfaceDocumentBase):
                 import_ = etree.SubElement(schema, "{%s}import" % _ns_xsd)
 
                 import_.set("namespace", namespace)
-                if with_schema_location:
-                    import_.set('schemaLocation', "%s.xsd" %
-                                 self.interface.get_namespace_prefix(namespace))
+                import_pref = self.interface.get_namespace_prefix(namespace)
+                if with_schema_location and \
+                                        self.namespaces.get(import_pref, False):
+                    import_.set('schemaLocation', "%s.xsd" % import_pref)
 
                 sl = spyne.const.xml_ns.schema_location.get(namespace, None)
                 if not (sl is None):
