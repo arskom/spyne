@@ -28,13 +28,25 @@ from Cookie import SimpleCookie
 from datetime import datetime
 from wsgiref.validate import validator
 
+from collections import defaultdict
+from pprint import pprint
+from spyne.protocol.dictdoc import _fill
+from spyne.model.complex import Array
+
+from spyne.server.wsgi import _parse_qs
 from spyne.application import Application
+from spyne.error import ValidationError
 from spyne.const.http import HTTP_200
 from spyne.decorator import rpc
 from spyne.decorator import srpc
+from spyne.model.binary import ByteArray
 from spyne.model.primitive import DateTime
-from spyne.model.primitive import Integer
+from spyne.model.primitive import Uuid
 from spyne.model.primitive import String
+from spyne.model.primitive import Unicode
+from spyne.model.primitive import Boolean
+from spyne.model.primitive import Integer
+from spyne.model.primitive import Integer8
 from spyne.model.complex import ComplexModel
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.http import HttpPattern
@@ -43,8 +55,58 @@ from spyne.server.wsgi import WsgiApplication
 from spyne.server.wsgi import WsgiMethodContext
 
 
-def _test(services, qs):
-    app = Application(services, 'tns', in_protocol=HttpRpc(validator='soft'),
+class FlatDictDocumentTest(unittest.TestCase):
+    def test_own_parse_qs_01(self):
+        assert dict(_parse_qs('')) == {}
+    def test_own_parse_qs_02(self):
+        assert dict(_parse_qs('p')) == {'p': [None]}
+    def test_own_parse_qs_03(self):
+        assert dict(_parse_qs('p=')) == {'p': ['']}
+    def test_own_parse_qs_04(self):
+        assert dict(_parse_qs('p=1')) == {'p': ['1']}
+    def test_own_parse_qs_05(self):
+        assert dict(_parse_qs('p=1&')) == {'p': ['1']}
+    def test_own_parse_qs_06(self):
+        assert dict(_parse_qs('p=1&q')) == {'p': ['1'], 'q': [None]}
+    def test_own_parse_qs_07(self):
+        assert dict(_parse_qs('p=1&q=')) == {'p': ['1'], 'q': ['']}
+    def test_own_parse_qs_08(self):
+        assert dict(_parse_qs('p=1&q=2')) == {'p': ['1'], 'q': ['2']}
+    def test_own_parse_qs_09(self):
+        assert dict(_parse_qs('p=1&q=2&p')) == {'p': ['1', None], 'q': ['2']}
+    def test_own_parse_qs_10(self):
+        assert dict(_parse_qs('p=1&q=2&p=')) == {'p': ['1', ''], 'q': ['2']}
+    def test_own_parse_qs_11(self):
+        assert dict(_parse_qs('p=1&q=2&p=3')) == {'p': ['1', '3'], 'q': ['2']}
+
+    def test_fill(self):
+        class CM(ComplexModel):
+            i = Integer
+            s = Unicode
+            a = Array(Boolean)
+
+        class CCM(ComplexModel):
+            c = CM
+            i = Integer
+            s = Unicode
+
+        inst_class = CCM
+        frequencies = defaultdict(lambda: defaultdict(int))
+
+        simple_type_info = CCM.get_simple_type_info(inst_class)
+        _fill(simple_type_info, inst_class, frequencies)
+
+        pprint(dict(frequencies))
+        assert frequencies[(CCM,0)]['c'] == 0
+        assert frequencies[(CCM,0)]['i'] == 0
+        assert frequencies[(CCM,0)]['s'] == 0
+        assert frequencies[(CCM,0,CM,0)]['i'] == 0
+        assert frequencies[(CCM,0,CM,0)]['s'] == 0
+        assert frequencies[(CCM,0,CM,0)]['a'] == 0
+
+
+def _test(services, qs, validator='soft'):
+    app = Application(services, 'tns', in_protocol=HttpRpc(validator=validator),
                                        out_protocol=HttpRpc())
     server = WsgiApplication(app)
 
@@ -58,14 +120,97 @@ def _test(services, qs):
     ctx, = server.generate_contexts(initial_ctx)
 
     server.get_in_object(ctx)
-    assert ctx.in_error is None
+    if ctx.in_error is not None:
+        raise ctx.in_error
 
     server.get_out_object(ctx)
-    assert ctx.out_error is None
+    if ctx.out_error is not None:
+        raise ctx.out_error
 
     server.get_out_string(ctx)
 
     return ctx
+
+class TestValidation(unittest.TestCase):
+
+    def test_validation_frequency(self):
+        class SomeService(ServiceBase):
+            @srpc(ByteArray(min_occurs=1), _returns=ByteArray)
+            def some_call(p):
+                pass
+
+        try:
+            ctx = _test([SomeService], '', validator='soft')
+        except ValidationError:
+            pass
+        else:
+            raise Exception("must raise ValidationError")
+
+    def test_validation_nullable(self):
+        class SomeService(ServiceBase):
+            @srpc(ByteArray(nullable=False), _returns=ByteArray)
+            def some_call(p):
+                pass
+
+        try:
+            ctx = _test([SomeService], 'p', validator='soft')
+        except ValidationError:
+            pass
+        else:
+            raise Exception("must raise ValidationError")
+
+    def test_validation_string_pattern(self):
+        class SomeService(ServiceBase):
+            @srpc(Uuid)
+            def some_call(p):
+                pass
+
+        try:
+            ctx = _test([SomeService], "p=duduk", validator='soft')
+        except ValidationError:
+            pass
+        else:
+            raise Exception("must raise ValidationError")
+
+    def test_validation_integer_range(self):
+        class SomeService(ServiceBase):
+            @srpc(Integer(ge=0, le=5))
+            def some_call(p):
+                pass
+
+        try:
+            ctx = _test([SomeService], 'p=10', validator='soft')
+        except ValidationError:
+            pass
+        else:
+            raise Exception("must raise ValidationError")
+
+    def test_validation_integer_type(self):
+        class SomeService(ServiceBase):
+            @srpc(Integer8)
+            def some_call(p):
+                pass
+
+        try:
+            ctx = _test([SomeService], "p=-129", validator='soft')
+        except ValidationError:
+            pass
+        else:
+            raise Exception("must raise ValidationError")
+
+    def test_validation_integer_type(self):
+        class SomeService(ServiceBase):
+            @srpc(Integer8)
+            def some_call(p):
+                pass
+
+        try:
+            ctx = _test([SomeService], "p=1.2", validator='soft')
+        except ValidationError:
+            pass
+        else:
+            raise Exception("must raise ValidationError")
+
 
 class Test(unittest.TestCase):
     def test_multiple_return(self):
