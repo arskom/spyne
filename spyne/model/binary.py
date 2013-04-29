@@ -164,7 +164,7 @@ class File(SimpleModel):
         :param data: Optional sequence of ``str`` or ``bytes`` instances
             that contain the file's data.
         :param handle: :class:`file` object that contains the file's data.
-        It is ignored unless the ``path`` argument is ``None``.
+            It is ignored unless the ``path`` argument is ``None``.
         """
 
         def __init__(self, name=None, path=None, type='application/octet-stream',

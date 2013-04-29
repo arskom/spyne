@@ -180,12 +180,14 @@ foreign key columns.
 We can also alter column names or the relation table name:
 
 ::
+
         from spyne.model.complex import table
 
         permissions = Array(Permission).store_as(table(
                   multi='user_perm_rel',
                   left='u_id', right='perm_id',
               ))
+
 
 See the :class:`spyne.model.complex.table` reference for more details on
 configuring object relations.
