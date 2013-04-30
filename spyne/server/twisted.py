@@ -206,8 +206,8 @@ class TwistedWebResource(Resource):
             err(request)
             p_ctx.close()
 
-        def _cb_deferred(retval, request):
-            if len(p_ctx.descriptor.out_message._type_info) <= 1:
+        def _cb_deferred(retval, request, cb=True):
+            if cb and len(p_ctx.descriptor.out_message._type_info) <= 1:
                 p_ctx.out_object = [retval]
             else:
                 p_ctx.out_object = retval
@@ -231,7 +231,7 @@ class TwistedWebResource(Resource):
             ret.addErrback(_eb_deferred, request)
 
         else:
-            _cb_deferred(request)
+            _cb_deferred(p_ctx.out_object, request, cb=False)
 
         return NOT_DONE_YET
 

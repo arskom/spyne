@@ -71,7 +71,7 @@ port = 9758
 
 
 class SomeNonBlockingService(ServiceBase):
-    @srpc(int)
+    @srpc(int, _returns=str)
     def sleep(seconds):
         """Waits without blocking reactor for given number of seconds by
         returning a deferred."""
