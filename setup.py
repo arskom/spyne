@@ -154,10 +154,10 @@ if sys.version_info < (2,6):
 
 else:
     test_reqs.extend([
-        'twisted',
         'pyzmq',
+        'twisted',
+        'colorama',
         'msgpack-python',
-        #'colorama',
     ])
 
 setup(
