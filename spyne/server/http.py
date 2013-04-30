@@ -75,6 +75,14 @@ class HttpMethodContext(MethodContext):
         """Holds the WSGI-specific information"""
 
 
+    def set_out_protocol(self, what):
+        self._out_protocol = what
+        if isinstance(self.transport, HttpTransportContext):
+            self.transport.set_mime_type(what.mime_type)
+
+    out_protocol = property(MethodContext.get_out_protocol, set_out_protocol)
+    """Assigning an out protocol overrides the mime type of the transport."""
+
 class HttpBase(ServerBase):
     transport = 'http://schemas.xmlsoap.org/soap/http'
 
