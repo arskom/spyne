@@ -27,7 +27,7 @@ Flattening
 ==========
 
 Plain HTTP does not support communicating hierarchical key-value stores. Spyne
-makes plain HTTP fake hierarchical dicts by a series of small hacks:
+makes plain HTTP fake hierarchical dicts two small hacks:
 
 Let's look at the following object hierarchy: ::
 
@@ -46,10 +46,10 @@ correspond to the following hierarchichal dict representation: ::
 
 We do two hacks to deserialize the above object structure from a flat dict:
 
-* Object hierarchies are flattened. e.g. the flat representation of the above
-  dict is: ``{'a': 1, 'b_c': 2}}``.
-* Arrays of objects are sent using variables with array indexes in square
-  brackets. So the request with the following query object: ::
+1. Object hierarchies are flattened. e.g. the flat representation of the above
+   dict is: ``{'a': 1, 'b_c': 2}``.
+2. Arrays of objects are sent using variables with array indexes in square
+   brackets. So the request with the following query object: ::
 
       {'a': 1, 'b_d[0]': 1, 'b_d[1]': 2}}
 
@@ -70,7 +70,7 @@ We do two hacks to deserialize the above object structure from a flat dict:
 
       {'a': 1, 'b[0]_c': 1, 'b[1]_c': 2}}
 
-  ... would corresponds to: ::
+  ... would correspond to: ::
 
       {'a': 1, 'b': [{ 'c': 1}, {'c': 2}]}
 
@@ -78,7 +78,7 @@ We do two hacks to deserialize the above object structure from a flat dict:
 
       Outer(a=1, b=[Inner(c=1), Inner(c=2)])
 
-These hacks are both slower to process and bulkier on wire, use class
+These hacks are both slower to process and bulkier on wire, so use class
 hierarchies with HTTP only when performance is not that much of a concern.
 
 Cookies
@@ -90,14 +90,17 @@ in the ``in_header`` class, if defined.
 It's also possible to get the ``Cookie`` header intact by defining an
 ``in_header`` object with a field named ``Cookie`` (case sensitive).
 
-As an example, let's assume the following HTTP request:
+As an example, let's assume the following HTTP request: ::
 
-GET / HTTP/1.0
-Cookie: v1=4;v2=8
-(...)
+    GET / HTTP/1.0
+    Cookie: v1=4;v2=8
+    (...)
 
-The keys ``v1`` and ``v2`` are passed to the ``in_header`` class if it defines
-the ``v1`` and ``v2`` values.
+The keys ``v1`` and ``v2`` are passed to the ``in_header`` class if it has
+fields named ``v1`` or ``v2``.
+
+Classes
+=======
 """
 
 import logging
@@ -226,6 +229,10 @@ class DictDocument(ProtocolBase):
 
 
 class FlatDictDocument(DictDocument):
+    """This protocol contains logic for protocols that serialize and deserialize
+    flat dictionaries. The only example as of now is Http.
+    """
+
     def flat_dict_to_object(self, doc, inst_class, validator=None, hier_delim="_"):
         """Converts a flat dict to a native python object.
 
