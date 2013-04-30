@@ -160,8 +160,7 @@ class TwistedWebResource(Resource):
         return self.handle_rpc(request)
 
     def handle_error(self, p_ctx, others, error, request):
-        resp_code = self.http_transport.app.out_protocol \
-                                            .fault_to_http_response_code(error)
+        resp_code = p_ctx.out_protocol.fault_to_http_response_code(error)
 
         request.setResponseCode(int(resp_code[:3]))
 

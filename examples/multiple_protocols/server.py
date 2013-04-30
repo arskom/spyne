@@ -58,15 +58,18 @@ import logging
 from datetime import datetime
 
 from spyne.application import Application
+from spyne.decorator import rpc
 from spyne.decorator import srpc
 from spyne.service import ServiceBase
 from spyne.util.wsgi_wrapper import WsgiMounter
 
 from spyne.model.primitive import DateTime
+from spyne.model.primitive import String
 
 from spyne.protocol.xml import XmlDocument
 from spyne.protocol.soap import Soap11
 from spyne.protocol.http import HttpRpc
+from spyne.protocol.http import HttpPattern
 from spyne.protocol.html import HtmlMicroFormat
 from spyne.protocol.json import JsonDocument
 from spyne.protocol.msgpack import MessagePackDocument
@@ -80,52 +83,83 @@ tns = 'spyne.examples.multiple_protocols'
 port = 9910
 host = '127.0.0.1'
 
-class HelloWorldService(ServiceBase):
+class MultiProtService(ServiceBase):
     @srpc(_returns=DateTime)
     def get_utc_time():
         return datetime.utcnow()
 
-if __name__ == '__main__':
-    rest = Application([HelloWorldService], tns=tns,
+def Tsetprot(prot):
+    def setprot(ctx):
+        ctx.out_protocol = prot
+    return setprot
+
+class DynProtService(ServiceBase):
+    protocols = {}
+
+    @rpc(String(values=protocols.keys(), encoding='ascii'), _returns=DateTime,
+                                _patterns=[HttpPattern('/get_utc_time.<prot>')])
+    def get_utc_time(ctx, prot):
+        DynProtService.protocols[prot](ctx)
+
+        return datetime.utcnow()
+
+def main():
+    global protocols
+
+    rest = Application([MultiProtService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=HttpRpc())
 
-    xml = Application([HelloWorldService], tns=tns,
+    xml = Application([MultiProtService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=XmlDocument())
 
-    soap = Application([HelloWorldService], tns=tns,
+    soap = Application([MultiProtService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=Soap11())
 
-    html = Application([HelloWorldService], tns=tns,
+    html = Application([MultiProtService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=HtmlMicroFormat())
 
-    png = Application([HelloWorldService], tns=tns,
+    png = Application([MultiProtService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=PngClock())
 
-    svg = Application([HelloWorldService], tns=tns,
+    svg = Application([MultiProtService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=SvgClock())
 
-    json = Application([HelloWorldService], tns=tns,
+    json = Application([MultiProtService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=JsonDocument())
 
-    jsoni = Application([HelloWorldService], tns=tns,
+    jsoni = Application([MultiProtService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=JsonDocument(
                                                          ignore_wrappers=True))
 
-    jsonl = Application([HelloWorldService], tns=tns,
+    jsonl = Application([MultiProtService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=JsonDocument(complex_as=list))
 
-    jsonil = Application([HelloWorldService], tns=tns,
+    jsonil = Application([MultiProtService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=JsonDocument(
                                         ignore_wrappers=True, complex_as=list))
 
-    msgpack_doc = Application([HelloWorldService], tns=tns,
+    msgpack_doc = Application([MultiProtService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=MessagePackDocument())
 
-    msgpack_rpc = Application([HelloWorldService], tns=tns,
+    msgpack_rpc = Application([MultiProtService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=MessagePackRpc())
 
-    yaml = Application([HelloWorldService], tns=tns,
+    yaml = Application([MultiProtService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=YamlDocument())
+
+    dyn = Application([DynProtService], tns=tns,
+            in_protocol=HttpRpc(validator='soft'), out_protocol=HttpRpc())
+
+    DynProtService.protocols = {
+        'json':  Tsetprot(JsonDocument(dyn)),
+        'xml':  Tsetprot(XmlDocument(dyn)),
+        'yaml':  Tsetprot(YamlDocument(dyn)),
+        'soap':  Tsetprot(Soap11(dyn)),
+        'html':  Tsetprot(HtmlMicroFormat(dyn)),
+        'png':  Tsetprot(PngClock(dyn)),
+        'svg':  Tsetprot(SvgClock(dyn)),
+        'msgpack':  Tsetprot(MessagePackDocument(dyn)),
+    }
 
     root = WsgiMounter({
         'rest': rest,
@@ -141,6 +175,7 @@ if __name__ == '__main__':
         'mpd': msgpack_doc,
         'mprpc': msgpack_rpc,
         'yaml': yaml,
+        'dyn': dyn,
     })
 
     from wsgiref.simple_server import make_server
@@ -150,7 +185,11 @@ if __name__ == '__main__':
     logging.info("listening to http://%s:%d" % (host, port))
     logging.info("navigate to e.g. http://%s:%d/json2/get_utc_time" %
                                                                   (host, port))
-    logging.info("navigate to e.g. http://%s:%d/xml/get_utc_time" %
+    logging.info("             or: http://%s:%d/xml/get_utc_time" %
                                                                   (host, port))
 
-    server.serve_forever()
+    return server.serve_forever()
+
+if __name__ == '__main__':
+    import sys
+    sys.exit(main())

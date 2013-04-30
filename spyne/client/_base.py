@@ -64,7 +64,7 @@ class RemoteProcedureBase(object):
         initial_ctx.method_request_string = name
         initial_ctx.out_header = out_header
 
-        self.contexts = self.app.out_protocol.generate_method_contexts(initial_ctx)
+        self.contexts = initial_ctx.out_protocol.generate_method_contexts(initial_ctx)
 
     def __call__(self, *args, **kwargs):
         """Serializes its arguments, sends them, receives and deserializes the
@@ -103,7 +103,7 @@ class RemoteProcedureBase(object):
         assert ctx.out_document is None
         assert ctx.out_string is None
 
-        self.app.out_protocol.serialize(ctx, self.app.out_protocol.REQUEST)
+        ctx.out_protocol.serialize(ctx, ctx.out_protocol.REQUEST)
 
         if ctx.service_class != None:
             if ctx.out_error is None:
@@ -113,7 +113,7 @@ class RemoteProcedureBase(object):
                 ctx.service_class.event_manager.fire_event(
                                         'method_exception_document', ctx)
 
-        self.app.out_protocol.create_out_string(ctx, string_encoding)
+        ctx.out_protocol.create_out_string(ctx, string_encoding)
 
         if ctx.service_class != None:
             if ctx.out_error is None:

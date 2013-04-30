@@ -301,7 +301,7 @@ class WsgiApplication(HttpBase):
 
         if p_ctx.transport.resp_code is None:
             p_ctx.transport.resp_code = \
-                self.app.out_protocol.fault_to_http_response_code(error)
+                p_ctx.out_protocol.fault_to_http_response_code(error)
 
         self.get_out_string(p_ctx)
         p_ctx.out_string = [''.join(p_ctx.out_string)]
@@ -359,7 +359,7 @@ class WsgiApplication(HttpBase):
             return self.handle_error(p_ctx, others, p_ctx.out_error, start_response)
 
 
-        if isinstance(self.app.out_protocol, HttpRpc) and \
+        if isinstance(p_ctx.out_protocol, HttpRpc) and \
                                                p_ctx.out_header_doc is not None:
             p_ctx.transport.resp_headers.update(p_ctx.out_header_doc)
 
