@@ -145,13 +145,8 @@ class TwistedWebResource(Resource):
         self._wsdl = None
 
     def render_GET(self, request):
-        _ahv = self.http_transport._allowed_http_verbs
         if request.uri.endswith('.wsdl') or request.uri.endswith('?wsdl'):
             return self.__handle_wsdl_request(request)
-
-        elif not (_ahv is None or "GET" in _ahv):
-            request.setResponseCode(405)
-            return HTTP_405
 
         else:
             return self.handle_rpc(request)

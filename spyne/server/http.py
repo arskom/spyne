@@ -91,8 +91,6 @@ class HttpBase(ServerBase):
                 block_length=8 * 1024):
         ServerBase.__init__(self, app)
 
-        self._allowed_http_verbs = app.in_protocol.allowed_http_verbs
-
         self.chunked = chunked
         self.max_content_length = max_content_length
         self.block_length = block_length

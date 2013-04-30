@@ -97,7 +97,6 @@ class ProtocolBase(object):
         of serializing return values instead of raising a TypeError.
     """
 
-    allowed_http_verbs = None
     mime_type = 'application/octet-stream'
 
     SOFT_VALIDATION = type("Soft", (object,), {})

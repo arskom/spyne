@@ -157,7 +157,6 @@ class Soap11(XmlDocument):
         format.
     """
 
-    allowed_http_verbs = ['POST']
     mime_type = 'text/xml; charset=utf-8'
 
     type = set(XmlDocument.type)
