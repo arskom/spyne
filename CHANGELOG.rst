@@ -6,6 +6,11 @@ spyne-2.11.0
 ------------
  * Add altering output protocol by setting ctx.out_protocol
 
+spyne-2.10.4
+------------
+ * Make user code that doesn't return anything work with twisted server
+   transport.
+
 spyne-2.10.3
 ------------
  * Add validation tests for HierDictDocument and fix seen issues.
