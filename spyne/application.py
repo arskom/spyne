@@ -180,4 +180,4 @@ class Application(object):
                 aux_memo.add(id(d.aux))
 
     def __hash__(self):
-        return hash(tuple([id(s) for s in self.services]))
+        return hash(tuple((id(s) for s in self.services)))
