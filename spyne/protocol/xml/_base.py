@@ -112,7 +112,6 @@ class XmlDocument(ProtocolBase):
     SCHEMA_VALIDATION = type("Schema", (object,), {})
 
     mime_type = 'text/xml'
-    allowed_http_verbs = set(['GET', 'POST'])
     default_binary_encoding = BINARY_ENCODING_BASE64
 
     type = set(ProtocolBase.type)

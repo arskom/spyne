@@ -148,13 +148,8 @@ class TwistedWebResource(Resource):
         self._wsdl = None
 
     def render_GET(self, request):
-        _ahv = self.http_transport._allowed_http_verbs
         if request.uri.endswith('.wsdl') or request.uri.endswith('?wsdl'):
             return self.__handle_wsdl_request(request)
-
-        elif not (_ahv is None or "GET" in _ahv):
-            request.setResponseCode(405)
-            return HTTP_405
 
         else:
             return self.handle_rpc(request)
@@ -163,8 +158,7 @@ class TwistedWebResource(Resource):
         return self.handle_rpc(request)
 
     def handle_error(self, p_ctx, others, error, request):
-        resp_code = self.http_transport.app.out_protocol \
-                                            .fault_to_http_response_code(error)
+        resp_code = p_ctx.out_protocol.fault_to_http_response_code(error)
 
         request.setResponseCode(int(resp_code[:3]))
 
@@ -209,8 +203,8 @@ class TwistedWebResource(Resource):
             err(request)
             p_ctx.close()
 
-        def _cb_deferred(retval, request):
-            if len(p_ctx.descriptor.out_message._type_info) <= 1:
+        def _cb_deferred(retval, request, cb=True):
+            if cb and len(p_ctx.descriptor.out_message._type_info) <= 1:
                 p_ctx.out_object = [retval]
             else:
                 p_ctx.out_object = retval
@@ -250,7 +244,7 @@ class TwistedWebResource(Resource):
             ret.init(p_ctx, request, gen, _cb_push, None)
 
         else:
-            _cb_deferred(request)
+            _cb_deferred(p_ctx.out_object, request, cb=False)
 
         return NOT_DONE_YET
 

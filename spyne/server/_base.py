@@ -113,8 +113,8 @@ class ServerBase(object):
             return
 
         if ctx.out_document is None:
-            ret = self.app.out_protocol.serialize(ctx,
-                                        message=self.app.out_protocol.RESPONSE)
+            ret = ctx.out_protocol.serialize(ctx,
+                                        message=ctx.out_protocol.RESPONSE)
             if isgenerator(ret):
                 try:
                     while True:
@@ -135,7 +135,7 @@ class ServerBase(object):
                 ctx.service_class.event_manager.fire_event(
                                             'method_exception_document', ctx)
 
-        self.app.out_protocol.create_out_string(ctx)
+        ctx.out_protocol.create_out_string(ctx)
 
         if ctx.service_class != None:
             if ctx.out_error is None:

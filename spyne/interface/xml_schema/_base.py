@@ -144,9 +144,10 @@ class XmlSchema(InterfaceDocumentBase):
                 import_ = etree.SubElement(schema, "{%s}import" % _ns_xsd)
 
                 import_.set("namespace", namespace)
-                if with_schema_location:
-                    import_.set('schemaLocation', "%s.xsd" %
-                                 self.interface.get_namespace_prefix(namespace))
+                import_pref = self.interface.get_namespace_prefix(namespace)
+                if with_schema_location and \
+                                        self.namespaces.get(import_pref, False):
+                    import_.set('schemaLocation', "%s.xsd" % import_pref)
 
                 sl = spyne.const.xml_ns.schema_location.get(namespace, None)
                 if not (sl is None):
@@ -179,7 +180,8 @@ class XmlSchema(InterfaceDocumentBase):
             f = open(file_name, 'wb')
             etree.ElementTree(v).write(f, pretty_print=True)
             f.close()
-            logger.debug("writing %r for ns %s" % (file_name, self.interface.nsmap[k]))
+            logger.debug("writing %r for ns %s" % (file_name,
+                                                       self.interface.nsmap[k]))
 
         f = open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r')
 
@@ -196,7 +198,8 @@ class XmlSchema(InterfaceDocumentBase):
         """Return schema node for the given namespace prefix."""
 
         if not (pref in self.schema_dict):
-            schema = etree.Element("{%s}schema" % _ns_xsd, nsmap=self.interface.nsmap)
+            schema = etree.Element("{%s}schema" % _ns_xsd,
+                                                     nsmap=self.interface.nsmap)
 
             schema.set("targetNamespace", self.interface.nsmap[pref])
             schema.set("elementFormDefault", "qualified")

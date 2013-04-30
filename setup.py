@@ -9,6 +9,20 @@ from setuptools import setup
 from setuptools import find_packages
 from setuptools.command.test import test as TestCommand
 
+try:
+    import colorama
+    colorama.init()
+    from colorama import Fore
+    RESET = Fore.RESET
+    GREEN = Fore.GREEN
+    RED = Fore.RED
+
+
+except ImportError, e:
+    RESET = ''
+    GREEN = ''
+    RED = ''
+
 
 v = open(os.path.join(os.path.dirname(__file__), 'spyne', '__init__.py'), 'r')
 VERSION = re.match(r".*__version__ = '(.*?)'", v.read(), re.S).group(1)
@@ -119,9 +133,9 @@ class RunTests(TestCommand):
         ret = call_trial('interop/test_soap_client_http_twisted.py') or ret
 
         if ret == 0:
-            print "All that glisters is not gold."
+            print GREEN + "All that glisters is not gold." + RESET
         else:
-            print "Something is rotten in the state of Denmark."
+            print RED + "Something is rotten in the state of Denmark." + RESET
 
         raise SystemExit(ret)
 
@@ -140,8 +154,9 @@ if sys.version_info < (2,6):
 
 else:
     test_reqs.extend([
-        'twisted',
         'pyzmq',
+        'twisted',
+        'colorama',
         'msgpack-python',
     ])
 
@@ -166,7 +181,7 @@ setup(
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],
     keywords=('soap', 'wsdl', 'wsgi', 'zeromq', 'rest', 'rpc', 'json', 'http',
-              'msgpack', 'xml', 'django', 'pyramid', 'postgresql', 'sqlalchemy'
+              'msgpack', 'xml', 'django', 'pyramid', 'postgresql', 'sqlalchemy',
               'werkzeug', 'twisted', 'yaml'),
     author='Burak Arslan',
     author_email='burak+spyne@arskom.com.tr',

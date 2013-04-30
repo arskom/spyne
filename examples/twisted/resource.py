@@ -34,7 +34,7 @@
 
 In this example, user code runs directly in the reactor loop. So unless your
 code fully adheres to the asynchronous programming principles, you can block
-the reactor loop.
+the reactor loop. ::
 
     $ time curl -s "http://localhost:9757/block?seconds=10" > /dev/null & \
       time curl -s "http://localhost:9757/block?seconds=10" > /dev/null &
@@ -48,6 +48,21 @@ the reactor loop.
     real    0m20.045s
     user    0m0.009s
     sys     0m0.005s
+
+If you call sleep, it sleeps by returning a deferred: ::
+
+    $ time curl -s "http://localhost:9757/sleep?seconds=10" > /dev/null & \
+      time curl -s "http://localhost:9757/sleep?seconds=10" > /dev/null &
+    [1] 27778
+    [2] 27779
+
+    real    0m10.012s
+    user    0m0.000s
+    sys     0m0.000s
+
+    real    0m10.013s
+    user    0m0.000s
+    sys     0m0.000s
 '''
 
 
@@ -72,7 +87,7 @@ port = 9758
 
 
 class SomeNonBlockingService(ServiceBase):
-    @srpc(int)
+    @srpc(int, _returns=str)
     def sleep(seconds):
         """Waits without blocking reactor for given number of seconds by
         returning a deferred."""

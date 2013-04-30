@@ -258,7 +258,8 @@ class MethodContext(object):
     """
 
     def __setattr__(self, k, v):
-        if self.frozen == False or k in self.__dict__ or k == 'descriptor':
+        if self.frozen == False or k in self.__dict__ or k in \
+                                                ('descriptor', 'out_protocol'):
             object.__setattr__(self, k, v)
         else:
             raise ValueError("use the udc member for storing arbitrary data "
@@ -286,6 +287,13 @@ class MethodContext(object):
         self.call_end = time()
         self.app.event_manager.fire_event("method_context_closed", self)
 
+    def set_out_protocol(self, what):
+        self._out_protocol = what
+
+    def get_out_protocol(self):
+        return self._out_protocol
+
+    out_protocol = property(get_out_protocol, set_out_protocol)
 
 class MethodDescriptor(object):
     '''This class represents the method signature of an exposed service. It is

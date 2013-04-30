@@ -45,10 +45,11 @@ host = '127.0.0.1'
 port = 9752
 
 class SomeService(ServiceBase):
-    @srpc(Integer)
+    @srpc(Integer, _returns=Integer)
     def block(seconds):
         """Blocks the reactor for given number of seconds."""
         time.sleep(seconds)
+        return seconds
 
 def initialize(services=(SomeService,)):
     logging.basicConfig(level=logging.DEBUG)

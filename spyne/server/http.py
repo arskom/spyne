@@ -75,6 +75,14 @@ class HttpMethodContext(MethodContext):
         """Holds the WSGI-specific information"""
 
 
+    def set_out_protocol(self, what):
+        self._out_protocol = what
+        if isinstance(self.transport, HttpTransportContext):
+            self.transport.set_mime_type(what.mime_type)
+
+    out_protocol = property(MethodContext.get_out_protocol, set_out_protocol)
+    """Assigning an out protocol overrides the mime type of the transport."""
+
 class HttpBase(ServerBase):
     transport = 'http://schemas.xmlsoap.org/soap/http'
 
@@ -82,8 +90,6 @@ class HttpBase(ServerBase):
                 max_content_length=2 * 1024 * 1024,
                 block_length=8 * 1024):
         ServerBase.__init__(self, app)
-
-        self._allowed_http_verbs = app.in_protocol.allowed_http_verbs
 
         self.chunked = chunked
         self.max_content_length = max_content_length

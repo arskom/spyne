@@ -60,7 +60,6 @@ from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
 from spyne.const.http import HTTP_200
 from spyne.const.http import HTTP_404
-from spyne.const.http import HTTP_405
 from spyne.const.http import HTTP_500
 
 
@@ -174,11 +173,6 @@ class WsgiApplication(HttpBase):
                 block_length=8 * 1024):
         HttpBase.__init__(self, app, chunked, max_content_length, block_length)
 
-        self._allowed_http_verbs = app.in_protocol.allowed_http_verbs
-        self._verb_handlers = {
-            "GET": self.handle_rpc,
-            "POST": self.handle_rpc,
-        }
         self._mtx_build_interface_document = threading.Lock()
         self._wsdl = None
 
@@ -221,16 +215,8 @@ class WsgiApplication(HttpBase):
         if self.__is_wsdl_request(req_env):
             return self.__handle_wsdl_request(req_env, start_response, url)
 
-        elif not (self._allowed_http_verbs is None or
-               verb in self._allowed_http_verbs or verb in self._verb_handlers):
-            start_response(HTTP_405, [
-                ('Content-Type', ''),
-                ('Allow', ', '.join(self._allowed_http_verbs)),
-            ])
-            return [HTTP_405]
-
         else:
-            return self._verb_handlers[verb](req_env, start_response)
+            return self.handle_rpc(req_env, start_response)
 
     def __is_wsdl_request(self, req_env):
         # Get the wsdl for the service. Assume path_info matches pattern:
@@ -301,7 +287,7 @@ class WsgiApplication(HttpBase):
 
         if p_ctx.transport.resp_code is None:
             p_ctx.transport.resp_code = \
-                self.app.out_protocol.fault_to_http_response_code(error)
+                p_ctx.out_protocol.fault_to_http_response_code(error)
 
         self.get_out_string(p_ctx)
         p_ctx.out_string = [''.join(p_ctx.out_string)]
@@ -359,7 +345,7 @@ class WsgiApplication(HttpBase):
             return self.handle_error(p_ctx, others, p_ctx.out_error, start_response)
 
 
-        if isinstance(self.app.out_protocol, HttpRpc) and \
+        if isinstance(p_ctx.out_protocol, HttpRpc) and \
                                                p_ctx.out_header_doc is not None:
             p_ctx.transport.resp_headers.update(p_ctx.out_header_doc)
 
