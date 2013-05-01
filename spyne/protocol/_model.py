@@ -393,10 +393,10 @@ def file_from_string(cls, value, suggested_encoding=None):
     return File.Value(data=binary_decoding_handlers[encoding](value))
 
 def _file_to_iter(f):
-    data = f.read(0x4000)
+    data = f.read(65536)
     while len(data) > 0:
         yield data
-        data = f.read(0x4000)
+        data = f.read(65536)
 
     f.close()
 
