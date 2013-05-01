@@ -4,7 +4,11 @@ Changelog
 
 spyne-2.11.0
 ------------
- * Add altering output protocol by setting ctx.out_protocol
+ * Add support for altering output protocol by setting ``ctx.out_protocol``.
+
+spyne-2.10.5
+------------
+ * Fix handling of ``spyne.model.binary.File.Value`` with just path name.
 
 spyne-2.10.4
 ------------
