@@ -169,7 +169,6 @@ class File(SimpleModel):
 
         def __init__(self, name=None, path=None, type='application/octet-stream',
                                                             data=None, handle=None):
-
             self.name = name
             if self.name is not None:
                 assert os.path.basename(self.name) == self.name
@@ -179,6 +178,7 @@ class File(SimpleModel):
                 assert os.path.isabs(self.path)
 
             self.type = type
+            self.data = data
             self.handle = handle
 
         def rollover(self):

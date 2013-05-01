@@ -392,29 +392,32 @@ def file_from_string(cls, value, suggested_encoding=None):
         encoding = suggested_encoding
     return File.Value(data=binary_decoding_handlers[encoding](value))
 
-@nillable_iterable
-def file_to_string_iterable(prot, cls, value):
-    if value.data is None:
-        value.data = prot.to_string_iterable(value)
-    else:
-        value.data = iter(data)
-
-    assert value.path is not None, "You need to write data to persistent " \
-                                   "storage first if you want to read it back."
-
-    if value.handle is None:
-        f = open(value.path, 'rb')
-    else:
-        f = value.handle
-        f.seek(0)
-
+def _file_to_iter(f):
     data = f.read(0x4000)
     while len(data) > 0:
         yield data
         data = f.read(0x4000)
 
-    if value.handle is None:
-        f.close()
+    f.close()
+
+@nillable_iterable
+def file_to_string_iterable(prot, cls, value):
+    if value.data is None:
+        if value.handle is None:
+            assert value.path is not None, "You need to write data to " \
+                        "persistent storage first if you want to read it back."
+
+            f = open(value.path, 'rb')
+
+        else:
+            f = value.handle
+            f.seek(0)
+
+        return _file_to_iter(f)
+
+    else:
+        return iter(value.data)
+
 
 @nillable_string
 def attachment_to_string(cls, value):
