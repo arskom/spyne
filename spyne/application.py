@@ -101,8 +101,11 @@ class Application(object):
         self.in_protocol = in_protocol
         self.out_protocol = out_protocol
 
-        self.in_protocol.set_app(self)
-        self.out_protocol.set_app(self)
+        if self.in_protocol is not None:
+            self.in_protocol.set_app(self)
+
+        if self.out_protocol is not None:
+            self.out_protocol.set_app(self)
 
         register_application(self)
 
