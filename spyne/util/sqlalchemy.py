@@ -381,7 +381,9 @@ def _get_col_o2o(parent, k, v, fk_col_name):
     """Gets key and child type and returns a column that points to the primary
     key of the child.
     """
+
     assert v.Attributes.table_name is not None, "%r has no table name." % v
+
     col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
     _sp_attrs_to_sqla_constraints(parent, v, col_kwargs)
 
@@ -562,7 +564,7 @@ def gen_sqla_info(cls, cls_bases=()):
 
                     if p.right in child_t.c:
                         # FIXME: This branch MUST be tested.
-                        assert col_type == child_t.c[p.right].type
+                        assert col_type is child_t.c[p.right].type.__class__
 
                         # if the column is there, the decision about whether
                         # it should be in child's mapper should also have been
