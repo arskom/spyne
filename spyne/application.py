@@ -101,10 +101,16 @@ class Application(object):
         self.in_protocol = in_protocol
         self.out_protocol = out_protocol
 
-        if self.in_protocol is not None:
+        if self.in_protocol is None:
+            from spyne.protocol import ProtocolBase
+            self.in_protocol = ProtocolBase(self)
+        else:
             self.in_protocol.set_app(self)
 
-        if self.out_protocol is not None:
+        if self.out_protocol is None:
+            from spyne.protocol import ProtocolBase
+            self.out_protocol = ProtocolBase(self)
+        else:
             self.out_protocol.set_app(self)
 
         register_application(self)
