@@ -35,6 +35,7 @@ from spyne.model.primitive import DateTime
 from spyne.model.primitive import Float
 from spyne.model.primitive import Integer
 from spyne.model.primitive import String
+from spyne.model.primitive import Decimal
 from spyne.model.fault import Fault
 from spyne.protocol.soap import Soap11
 from spyne.service import ServiceBase
@@ -67,6 +68,7 @@ class Person(ComplexModel):
     age = Integer
     addresses = Array(Address)
     titles = Array(String)
+    riches = Decimal(fraction_digits=2)
 
 class Request(ComplexModel):
     __namespace__ = "TestService"
