@@ -29,6 +29,7 @@ from spyne.const.xml_ns import xsi as _ns_xsi
 from spyne.const.xml_ns import soap_env as _ns_soap_env
 from spyne.error import Fault
 from spyne.error import ValidationError
+from spyne.model.complex import XmlData
 from spyne.model.complex import XmlAttribute
 from spyne.util.etreeconv import etree_to_dict
 from spyne.util.etreeconv import dict_to_etree
@@ -177,6 +178,10 @@ def get_members_etree(prot, cls, inst, parent):
 
             continue
 
+        elif issubclass(v, XmlData):
+            v.marshall(prot, k, subvalue, parent)
+            continue
+
         mo = v.Attributes.max_occurs
         if subvalue is not None and mo > 1:
             for sv in subvalue:
@@ -237,6 +242,11 @@ def complex_from_element(prot, cls, element):
 
     # this is for validating cls.Attributes.{min,max}_occurs
     frequencies = defaultdict(int)
+
+    xtba_key, xtba_type = cls.Attributes._xml_tag_body_as
+    if xtba_key is not None:
+        value = prot.from_string(xtba_type.type, element.text)
+        setattr(inst, xtba_key, value)
 
     # parse input to set incoming data to related attributes.
     for c in element:

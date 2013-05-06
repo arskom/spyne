@@ -148,18 +148,51 @@ class _SimpleTypeInfoElement(object):
                             % (self.path, self.parent, self.type, self.is_array)
 
 
-class XmlAttribute(ModelBase):
-    """Items which are marshalled as attributes of the parent element, unless
-    ``attribute_of`` is passed.
+class XmlModifier(ModelBase):
+    def __new__(cls, type, ns=None):
+        retval = cls.customize()
+        retval.type = type
+        retval._ns = ns
+        return retval
+
+    @staticmethod
+    def resolve_namespace(cls, default_ns, tags=None):
+        cls.type.resolve_namespace(cls.type, default_ns, tags)
+
+        cls.__namespace__ = cls._ns
+
+        if cls.__namespace__ is None:
+            cls.__namespace__ = cls.type.get_namespace()
+
+        if cls.__namespace__ in namespace.const_prefmap:
+            cls.__namespace__ = default_ns
+
+
+class XmlData(XmlModifier):
+    """Items which are marshalled as data of the parent element."""
+
+    @classmethod
+    def marshall(cls, prot, name, value, parent_elt):
+        if cls._ns is not None:
+            name = "{%s}%s" % (cls._ns,name)
+
+        if value is not None:
+            if len(parent_elt) == 0:
+                parent_elt.text = prot.to_string(cls.type, value)
+            else:
+                parent_elt[-1].tail = prot.to_string(cls.type, value)
+
+
+class XmlAttribute(XmlModifier):
+    """Items which are marshalled as attributes of the parent element. If
+    ``attribute_of`` is passed, it's marshalled as the attribute of the element
+    with given name.
     """
 
     def __new__(cls, type, use=None, ns=None, attribute_of=None):
-        retval = cls.customize()
-        retval.type = type
+        retval = XmlModifier.__new__(cls, type, ns)
         retval._use = use
-        retval._ns = ns
         retval.attribute_of = attribute_of
-
         return retval
 
     @classmethod
@@ -177,18 +210,6 @@ class XmlAttribute(ModelBase):
 
         if cls._use is not None:
             element.set('use', cls._use)
-
-    @staticmethod
-    def resolve_namespace(cls, default_ns, tags=None):
-        cls.type.resolve_namespace(cls.type, default_ns, tags)
-
-        cls.__namespace__ = cls._ns
-
-        if cls.__namespace__ is None:
-            cls.__namespace__ = cls.type.get_namespace()
-
-        if cls.__namespace__ in namespace.const_prefmap:
-            cls.__namespace__ = default_ns
 
 
 class XmlAttributeRef(XmlAttribute):
@@ -317,6 +338,9 @@ class ComplexModelMeta(type(ModelBase)):
                     raise Exception("Invalid Array definition in %s.%s."
                                                                 % (cls_name, k))
 
+                elif issubclass(v, XmlData):
+                    cls.Attributes._xml_tag_body_as = k, v
+
         # Initialize Attributes
         attrs = cls_dict.get('Attributes', None)
         if attrs is None:
@@ -356,12 +380,15 @@ class ComplexModelMeta(type(ModelBase)):
             if issubclass(v, SelfReference):
                 type_info[k] = self
 
-            if issubclass(v, XmlAttribute):
+            elif issubclass(v, XmlData):
+                self.Attributes._xml_tag_body_as = k, v
+
+            elif issubclass(v, XmlAttribute):
                 a_of = v.attribute_of
                 if a_of is not None:
                     type_info.attributes[k] = type_info[a_of]
 
-            if issubclass(v, Array):
+            elif issubclass(v, Array):
                 v2, = v._type_info.values()
                 while issubclass(v2, Array):
                     v = v2
@@ -433,6 +460,8 @@ class ComplexModelBase(ModelBase):
         validate_freq = True
         """When ``False``, soft validation ignores missing mandatory attributes.
         """
+
+        _xml_tag_body_as = None, None
 
     def __init__(self, **kwargs):
         for k, v in self.get_flat_type_info(self.__class__).items():

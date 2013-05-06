@@ -18,25 +18,27 @@
 #
 
 
-
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 
+from pprint import pprint
+
 from lxml import etree
 
 from spyne import MethodContext
+from spyne.const import RESULT_SUFFIX
 from spyne.service import ServiceBase
 from spyne.server import ServerBase
 from spyne.application import Application
 from spyne.decorator import srpc
 from spyne.model.primitive import Unicode
+from spyne.model.complex import XmlData
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import XmlAttribute
 from spyne.service import ServiceBase
 from spyne.protocol.xml import XmlDocument
-
 from spyne.util.xml import get_xml_as_object
 
 
@@ -49,6 +51,44 @@ class TestXml(unittest.TestCase):
         o = get_xml_as_object(elt, a)
 
         assert o.b == ''
+
+    def test_xml_data(self):
+        class C(ComplexModel):
+            a = XmlData(Unicode)
+            b = XmlAttribute(Unicode)
+
+        class SomeService(ServiceBase):
+            @srpc(C, _returns=C)
+            def some_call(c):
+                assert c.a == 'a'
+                assert c.b == 'b'
+                return c
+
+        app = Application([SomeService], "tns", name="test_attribute_of",
+                        in_protocol=XmlDocument(), out_protocol=XmlDocument())
+        server = ServerBase(app)
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = [
+            '<some_call xmlns="tns">'
+                '<c b="b">a</c>'
+            '</some_call>'
+        ]
+
+        ctx, = server.generate_contexts(initial_ctx)
+        server.get_in_object(ctx)
+        server.get_out_object(ctx)
+        server.get_out_string(ctx)
+
+        print ctx.out_string
+        pprint(app.interface.nsmap)
+
+        ret = etree.fromstring(''.join(ctx.out_string)).xpath(
+            '//tns:some_call' + RESULT_SUFFIX, namespaces=app.interface.nsmap)[0]
+
+        print etree.tostring(ret, pretty_print=True)
+
+        assert ret.text == "a"
+        assert ret.attrib['b'] == "b"
 
     def test_attribute_of(self):
         class C(ComplexModel):
