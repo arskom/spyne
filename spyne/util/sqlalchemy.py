@@ -65,6 +65,7 @@ from spyne.model.complex import msgpack as c_msgpack
 
 from spyne.model.enum import Enum
 from spyne.model.binary import ByteArray
+from spyne.model.complex import XmlModifier
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModelBase
 from spyne.model.primitive import AnyXml
@@ -365,6 +366,10 @@ def get_sqlalchemy_type(cls):
     elif issubclass(cls, Time):
         return sqlalchemy.Time
 
+    elif issubclass(cls, XmlModifier):
+        retval = get_sqlalchemy_type(cls.type)
+        return retval
+
 
 def get_pk_columns(cls):
     """Return primary key fields of a Spyne object."""
@@ -547,9 +552,11 @@ def gen_sqla_info(cls, cls_bases=()):
                         rel_table_name = p.multi
 
                     # FIXME: Handle the case where the table already exists.
-                    rel_t = Table(rel_table_name, metadata, *(col_own, col_child))
+                    rel_t = Table(rel_table_name, metadata,
+                                                          *(col_own, col_child))
 
-                    props[k] = relationship(child, secondary=rel_t, backref=p.backref)
+                    props[k] = relationship(child, secondary=rel_t,
+                                                              backref=p.backref)
 
                 else: # one to many
                     assert p.left is None, "'left' is ignored in one-to-many " \
@@ -659,12 +666,13 @@ def gen_sqla_info(cls, cls_bases=()):
 
                 if index in (False, None):
                     pass
+
                 else:
                     if index == True:
                         index_args = (index_name, col), dict(unique=unique)
                     else:
                         index_args = (index_name, col), dict(unique=unique,
-                                                postgresql_using=index_method)
+                                                  postgresql_using=index_method)
 
                     if isinstance(table, _FakeTable):
                         table.indexes.append(index_args)
@@ -682,8 +690,8 @@ def gen_sqla_info(cls, cls_bases=()):
 
         for index_args, index_kwargs in _table.indexes:
             Index(*index_args, **index_kwargs)
-        del _table
 
+        del _table
 
     # Map the table to the object
     mapper_args, mapper_kwargs = sanitize_args(cls.Attributes.sqla_mapper_args)

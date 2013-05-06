@@ -152,6 +152,7 @@ class XmlModifier(ModelBase):
     def __new__(cls, type, ns=None):
         retval = cls.customize()
         retval.type = type
+        retval.Attributes = type.Attributes
         retval._ns = ns
         return retval
 
