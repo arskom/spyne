@@ -5,6 +5,9 @@ Changelog
 spyne-2.11.0
 ------------
  * Add support for altering output protocol by setting ``ctx.out_protocol``.
+ * Add returning ctx.out_string support to null server.
+ * Add support for XmlData modifier. It lets mapping the data in the xml body
+   to an object field.
 
 spyne-2.10.5
 ------------

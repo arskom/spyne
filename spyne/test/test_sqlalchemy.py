@@ -42,13 +42,15 @@ from sqlalchemy.exc import IntegrityError
 
 from spyne.application import Application
 from spyne.decorator import rpc
-from spyne.model.primitive import Integer
-from spyne.model.table import TableModel
+from spyne.model.complex import XmlAttribute
+from spyne.model.complex import XmlData
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import xml
 from spyne.model.complex import Array
 from spyne.model.primitive import Integer32
 from spyne.model.primitive import Unicode
+from spyne.model.primitive import Integer
+from spyne.model.table import TableModel
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
@@ -838,6 +840,28 @@ class TestSqlAlchemyNested(unittest.TestCase):
         assert sc_db.others[1].s == 'ehe2'
 
         session.close()
+
+    def test_modifiers(self):
+        engine = create_engine('sqlite:///:memory:')
+        session = sessionmaker(bind=engine)()
+        metadata = NewTableModel.Attributes.sqla_metadata = MetaData()
+        metadata.bind = engine
+
+        class SomeClass(NewTableModel):
+            __tablename__ = 'some_class'
+            __table_args__ = {"sqlite_autoincrement": True}
+
+            i = XmlAttribute(Integer32(pk=True))
+            s = XmlData(Unicode(64))
+
+        metadata.create_all()
+        session.add(SomeClass(s='s'))
+        session.commit()
+        session.expunge_all()
+
+        ret = session.query(SomeClass).get(1)
+        assert ret.i == 1 # redundant
+        assert ret.s == 's'
 
     def test_default_ctor(self):
         engine = create_engine('sqlite:///:memory:')

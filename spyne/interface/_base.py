@@ -29,7 +29,8 @@ from spyne.const import TYPE_SUFFIX
 from spyne.const import RESULT_SUFFIX
 from spyne.const import RESPONSE_SUFFIX
 
-from spyne.model.complex import XmlAttribute
+from spyne.model.complex import XmlData
+from spyne.model.complex import XmlModifier
 from spyne.model.complex import ComplexModelBase
 
 
@@ -330,18 +331,25 @@ class Interface(object):
                 if child_ns != ns and not child_ns in self.imports[ns] and \
                                                  self.is_valid_import(child_ns):
                     self.imports[ns].add(child_ns)
-                    logger.debug("\timporting %r to %r for %s.%s(%r)" %
-                                      (child_ns, ns, cls.get_type_name(), k, v))
+                    logger.debug("\timporting %r to %r for %s.%s(%r)",
+                                       child_ns, ns, cls.get_type_name(), k, v)
 
-                if issubclass(v, XmlAttribute):
+                if issubclass(v, XmlModifier):
                     self.add_class(v.type)
 
                     child_ns = v.type.get_namespace()
                     if child_ns != ns and not child_ns in self.imports[ns] and \
                                                  self.is_valid_import(child_ns):
                         self.imports[ns].add(child_ns)
-                        logger.debug("\timporting %r to %r for %s.%s(%r)" %
-                                  (child_ns, ns, v.get_type_name(), k, v.type))
+                        logger.debug("\timporting %r to %r for %s.%s(%r)",
+                                    child_ns, ns, v.get_type_name(), k, v.type)
+
+                    if issubclass(v, XmlData):
+                        old = cls.get_type_name_ns(self)
+                        cls.__namespace__ = child_ns
+                        cls.__type_name__ = v.type.get_type_name()
+                        logger.debug("\tXmlData overrides %r with %r",
+                                                old, cls.get_type_name_ns(self))
 
     def is_valid_import(self, ns):
         """This will return False for base namespaces unless told otherwise."""

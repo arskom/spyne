@@ -65,6 +65,7 @@ from spyne.model.complex import msgpack as c_msgpack
 
 from spyne.model.enum import Enum
 from spyne.model.binary import ByteArray
+from spyne.model.complex import XmlModifier
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModelBase
 from spyne.model.primitive import AnyXml
@@ -365,6 +366,10 @@ def get_sqlalchemy_type(cls):
     elif issubclass(cls, Time):
         return sqlalchemy.Time
 
+    elif issubclass(cls, XmlModifier):
+        retval = get_sqlalchemy_type(cls.type)
+        return retval
+
 
 def get_pk_columns(cls):
     """Return primary key fields of a Spyne object."""
@@ -381,7 +386,9 @@ def _get_col_o2o(parent, k, v, fk_col_name):
     """Gets key and child type and returns a column that points to the primary
     key of the child.
     """
+
     assert v.Attributes.table_name is not None, "%r has no table name." % v
+
     col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
     _sp_attrs_to_sqla_constraints(parent, v, col_kwargs)
 
@@ -545,9 +552,11 @@ def gen_sqla_info(cls, cls_bases=()):
                         rel_table_name = p.multi
 
                     # FIXME: Handle the case where the table already exists.
-                    rel_t = Table(rel_table_name, metadata, *(col_own, col_child))
+                    rel_t = Table(rel_table_name, metadata,
+                                                          *(col_own, col_child))
 
-                    props[k] = relationship(child, secondary=rel_t, backref=p.backref)
+                    props[k] = relationship(child, secondary=rel_t,
+                                                              backref=p.backref)
 
                 else: # one to many
                     assert p.left is None, "'left' is ignored in one-to-many " \
@@ -562,7 +571,7 @@ def gen_sqla_info(cls, cls_bases=()):
 
                     if p.right in child_t.c:
                         # FIXME: This branch MUST be tested.
-                        assert col_type == child_t.c[p.right].type
+                        assert col_type is child_t.c[p.right].type.__class__
 
                         # if the column is there, the decision about whether
                         # it should be in child's mapper should also have been
@@ -657,12 +666,13 @@ def gen_sqla_info(cls, cls_bases=()):
 
                 if index in (False, None):
                     pass
+
                 else:
                     if index == True:
                         index_args = (index_name, col), dict(unique=unique)
                     else:
                         index_args = (index_name, col), dict(unique=unique,
-                                                postgresql_using=index_method)
+                                                  postgresql_using=index_method)
 
                     if isinstance(table, _FakeTable):
                         table.indexes.append(index_args)
@@ -680,8 +690,8 @@ def gen_sqla_info(cls, cls_bases=()):
 
         for index_args, index_kwargs in _table.indexes:
             Index(*index_args, **index_kwargs)
-        del _table
 
+        del _table
 
     # Map the table to the object
     mapper_args, mapper_kwargs = sanitize_args(cls.Attributes.sqla_mapper_args)

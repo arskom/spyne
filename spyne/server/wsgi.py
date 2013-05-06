@@ -23,7 +23,6 @@ A server that uses http as transport via wsgi. It doesn't contain any server
 logic.
 """
 
-
 import logging
 logger = logging.getLogger(__name__)
 

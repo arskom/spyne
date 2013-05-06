@@ -58,17 +58,24 @@ class TestCDict(unittest.TestCase):
         class B(A):
             pass
 
+        class E(B):
+            pass
+
+        class F(E):
+            pass
+
         class C(object):
             pass
 
         class D:
             pass
 
-        d = cdict({A: "fun", object: "base"})
+        d = cdict({A: "fun", object: "base", F: 'zan'})
 
         assert d[A] == 'fun'
         assert d[B] == 'fun'
         assert d[C] == 'base'
+        assert d[F] == 'zan'
         try:
             d[D]
         except KeyError:
