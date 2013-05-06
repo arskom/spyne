@@ -140,26 +140,8 @@ class _FunctionCall(object):
                 elif len(ctx.descriptor.out_message._type_info) == 1:
                     _retval = ctx.out_object[0]
 
-                    # workaround to have the context disposed of when the caller
-                    # is done with the return value. the context is sometimes
-                    # needed to fully construct the return object (e.g. when the
-                    # object is a sqlalchemy object bound to a session that's
-                    # defined in the context object).
-                    try:
-                        _retval.__ctx__ = ctx
-                    except AttributeError:
-                        # not all objects let this happen. (eg. built-in types
-                        # like str, but they don't need the context anyway).
-                        pass
-
                 else:
                     _retval = ctx.out_object
-
-                    # same as above
-                    try:
-                        _retval[0].__ctx__ = ctx
-                    except AttributeError:
-                        pass
 
                 if cnt == 0 and self.__ostr:
                     self.__server.get_out_string(ctx)
@@ -171,7 +153,6 @@ class _FunctionCall(object):
                 ctx.close()
 
             cnt += 1
-
 
         p_ctx.close()
 
