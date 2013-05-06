@@ -2,13 +2,10 @@
 Changelog
 =========
 
-spyne-2.10.5
+spyne-2.10.4
 ------------
  * Fix handling of ``spyne.model.binary.File.Value`` with just path name.
  * Fix decimal restrictions (some more).
-
-spyne-2.10.4
-------------
  * Make user code that doesn't return anything work with twisted server
    transport.
 
