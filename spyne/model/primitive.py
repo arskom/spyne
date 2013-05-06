@@ -326,9 +326,12 @@ class Decimal(SimpleModel):
 
             # + 1 for decimal separator
             # + 1 for negative sign
-            kwargs['max_str_len'] = min(cls.Attributes.total_digits +
-                                    cls.Attributes.fraction_digits + 2,
-                                                   kwargs.get('max_str_len', 0))
+            msl = kwargs.get('max_str_len', None)
+            if msl is None:
+                kwargs['max_str_len'] = (cls.Attributes.total_digits +
+                                             cls.Attributes.fraction_digits + 2)
+            else:
+                kwargs['max_str_len'] = msl
 
         retval = SimpleModel.__new__(cls,  ** kwargs)
 

@@ -23,6 +23,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 import unittest
+import decimal
 
 from lxml import etree
 
@@ -31,6 +32,7 @@ from spyne.service import ServiceBase
 from spyne.server import ServerBase
 from spyne.application import Application
 from spyne.decorator import srpc
+from spyne.model.primitive import Decimal
 from spyne.model.primitive import Unicode
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import XmlAttribute
@@ -154,7 +156,41 @@ class TestXml(unittest.TestCase):
 
         elt = etree.fromstring(''.join(ctx.out_string))
         target = elt.xpath('//s0:b', namespaces=app.interface.nsmap)[0]
-        target.attrib['{%s}c' % app.interface.nsmap["s1"]] == "bar"
+        assert target.attrib['{%s}c' % app.interface.nsmap["s1"]] == "bar"
+
+
+    def test_decimal(self):
+        d = decimal.Decimal('1e100')
+
+        class SomeService(ServiceBase):
+            @srpc(Decimal(120,4), _returns=Decimal)
+            def some_call(p):
+                print p
+                print type(p)
+                assert type(p) == decimal.Decimal
+                assert d == p
+                return p
+
+        app = Application([SomeService], "tns", in_protocol=XmlDocument(),
+                                                out_protocol=XmlDocument())
+        server = ServerBase(app)
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = ['<some_call xmlns="tns"><p>%s</p></some_call>'
+                                                                            % d]
+
+        ctx, = server.generate_contexts(initial_ctx)
+        server.get_in_object(ctx)
+        server.get_out_object(ctx)
+        server.get_out_string(ctx)
+
+        elt = etree.fromstring(''.join(ctx.out_string))
+
+        print etree.tostring(elt, pretty_print=True)
+        target = elt.xpath('//tns:some_callResult/text()',
+                                              namespaces=app.interface.nsmap)[0]
+        assert target == str(d)
+
+
 
 
 if __name__ == '__main__':
