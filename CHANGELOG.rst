@@ -12,6 +12,7 @@ spyne-2.11.0
 spyne-2.10.5
 ------------
  * Fix handling of ``spyne.model.binary.File.Value`` with just path name.
+ * Fix decimal restrictions (some more).
 
 spyne-2.10.4
 ------------
