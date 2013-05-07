@@ -207,7 +207,6 @@ class WsgiApplication(HttpBase):
         '''
 
         url = wsgi_url
-        verb = req_env['REQUEST_METHOD'].upper()
         if url is None:
             url = reconstruct_url(req_env).split('.wsdl')[0]
 
