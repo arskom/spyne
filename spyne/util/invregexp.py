@@ -3,7 +3,9 @@
 #
 # Copyright 2008, Paul McGuire
 #
-# pyparsing script to expand a regular expression into all possible matching strings
+# pyparsing script to expand a regular expression into all possible matching
+# strings
+#
 # Supports:
 # - {n} and {m,n} repetition, but not unbounded + or * repetition
 # - ? optional elements
