@@ -150,14 +150,16 @@ class WsgiApplication(HttpBase):
 
         * ``wsdl_exception``
             Called right after an exception is thrown during wsdl generation.
-            The exception object is stored in ctx.transport.wsdl_error attribute.
+            The exception object is stored in ctx.transport.wsdl_error
+            attribute.
 
         * ``wsgi_call``
             Called first when the incoming http request is identified as a rpc
             request.
 
         * ``wsgi_return``
-            Called right before the output stream is returned to the WSGI handler.
+            Called right before the output stream is returned to the WSGI
+            handler.
 
         * ``wsgi_error``
             Called right before returning the exception to the client.
@@ -340,7 +342,8 @@ class WsgiApplication(HttpBase):
         except Exception, e:
             logger.exception(e)
             p_ctx.out_error = Fault('Server', get_fault_string_from_exception(e))
-            return self.handle_error(p_ctx, others, p_ctx.out_error, start_response)
+            return self.handle_error(p_ctx, others, p_ctx.out_error,
+                                                                 start_response)
 
 
         if isinstance(p_ctx.out_protocol, HttpRpc) and \
@@ -512,9 +515,10 @@ class WsgiApplication(HttpBase):
              else:
                  ctx.in_body_doc[k] = [v]
 
-        if ctx.in_document['REQUEST_METHOD'].upper() in ('POST', 'PUT', 'PATCH'):
+        verb = ctx.in_document['REQUEST_METHOD'].upper()
+        if verb in ('POST', 'PUT', 'PATCH'):
             stream, form, files = parse_form_data(ctx.in_document,
-                                            stream_factory=prot.stream_factory)
+                                             stream_factory=prot.stream_factory)
 
             for k, v in form.lists():
                 val = ctx.in_body_doc.get(k, [])
