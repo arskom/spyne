@@ -240,12 +240,13 @@ class FlatDictDocument(DictDocument):
         """
 
         simple_type_info = inst_class.get_simple_type_info(inst_class)
-        inst = inst_class.get_deserialization_instance()
 
         # this is for validating cls.Attributes.{min,max}_occurs
         frequencies = defaultdict(lambda: defaultdict(int))
         if validator is self.SOFT_VALIDATION:
             _fill(simple_type_info, inst_class, frequencies)
+
+        retval = inst_class.get_deserialization_instance()
 
         for orig_k, v in doc.items():
             k = RE_HTTP_ARRAY_INDEX.sub("", orig_k)
@@ -254,12 +255,9 @@ class FlatDictDocument(DictDocument):
                 logger.debug("discarding field %r" % k)
                 continue
 
-            value = getattr(inst, k, None)
-            if value is None: # value can return None from getattr as well
-                value = []
-
             # extract native values from the list of strings in the flat dict
             # entries.
+            value = []
             for v2 in v:
                 if (validator is self.SOFT_VALIDATION and not
                                   member.type.validate_string(member.type, v2)):
@@ -287,7 +285,8 @@ class FlatDictDocument(DictDocument):
 
             # assign the native value to the relevant class in the nested object
             # structure.
-            cinst = inst
+            cinst = retval
+
             ctype_info = inst_class.get_flat_type_info(inst_class)
 
             idx, nidx = 0, 0
@@ -348,7 +347,6 @@ class FlatDictDocument(DictDocument):
                 logger.debug("\tset default %r(%r) = %r" %
                                                     (member.path, pkey, value))
 
-
         if validator is self.SOFT_VALIDATION:
             for k, member in simple_type_info.items():
                 for i in range(len(member.path) - 1):
@@ -357,7 +355,7 @@ class FlatDictDocument(DictDocument):
             for k, d in frequencies.items():
                 check_freq_dict(k[-2], d)
 
-        return inst
+        return retval
 
     def object_to_flat_dict(self, inst_cls, value, hier_delim="_", retval=None,
                      prefix=None, parent=None, subvalue_eater=lambda prot,v,t:v):
@@ -558,7 +556,6 @@ class HierDictDocument(DictDocument):
         retval = None
 
         if self.ignore_wrappers:
-            wrapper_name = None
             ti = getattr(class_, '_type_info', {})
 
             while class_.Attributes._wrapper:
