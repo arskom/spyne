@@ -931,7 +931,6 @@ NATIVE_MAP = {
 if sys.version > '3':
     NATIVE_MAP.update({
         str: Unicode,
-        unicode: Unicode,
         int: Integer,
     })
 
