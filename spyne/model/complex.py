@@ -46,6 +46,8 @@ from spyne.const import MAX_ARRAY_ELEMENT_NUM
 from spyne.const import ARRAY_PREFIX
 from spyne.const import ARRAY_SUFFIX
 from spyne.const import TYPE_SUFFIX
+from spyne.const import MANDATORY_SUFFIX
+from spyne.const import MANDATORY_PREFIX
 
 from spyne.util import memoize
 from spyne.util import sanitize_args
@@ -932,3 +934,24 @@ try:
     TableModel = TTableModel()
 except ImportError:
     pass
+
+
+def Mandatory(cls):
+    """Customizes the given type to be a mandatory one. Has special cases for
+    :class:`spyne.model.primitive.Unicode` and
+    :class:`spyne.model.complex.Array`\.
+    """
+
+    kwargs = dict(min_occurs=1, nillable=False,
+                type_name='%s%s%s' % (MANDATORY_PREFIX, cls.get_type_name(),
+                                                              MANDATORY_SUFFIX))
+
+    if issubclass(cls, Unicode):
+        kwargs.update(dict(min_len=1))
+
+    elif issubclass(cls, Array):
+        (k,v), = cls._type_info.items()
+        if v.Attributes.min_occurs == 0:
+            cls._type_info[k] = Mandatory(v)
+
+    return cls.customize(**kwargs)

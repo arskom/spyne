@@ -11,10 +11,14 @@ spyne-2.11.0
 
 spyne-2.10.5
 ------------
- * Fix handling of ``spyne.model.binary.File.Value`` with just path name.
+ * Fix default value handling in ``HttpRpc``.
+ * Fix invalid document type raising ``InternalError`` in DictDocument family.
+   It now raises ValidationError.
 
 spyne-2.10.4
 ------------
+ * Fix handling of ``spyne.model.binary.File.Value`` with just path name.
+ * Fix decimal restrictions (some more).
  * Make user code that doesn't return anything work with twisted server
    transport.
 

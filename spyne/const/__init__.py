@@ -42,3 +42,9 @@ RESULT_SUFFIX = 'Result'
 
 TYPE_SUFFIX = 'Type'
 """The suffix for primitives with unnamed constraints."""
+
+MANDATORY_PREFIX = 'Mandatory'
+"""The prefix for types created with the :func:`spyne.model.Mandatory`."""
+
+MANDATORY_SUFFIX = ''
+"""The suffix for types created with the :func:`spyne.model.Mandatory`."""
