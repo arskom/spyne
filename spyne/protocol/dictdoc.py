@@ -26,8 +26,8 @@ look at it.
 Flattening
 ==========
 
-Plain HTTP does not support communicating hierarchical key-value stores. Spyne
-makes plain HTTP fake hierarchical dicts two small hacks:
+Plain HTTP does not support hierarchical key-value stores. Spyne makes plain
+HTTP fake hierarchical dicts via two small hacks.
 
 Let's look at the following object hierarchy: ::
 
@@ -39,8 +39,8 @@ Let's look at the following object hierarchy: ::
         a = Integer
         b = SomeObject
 
-Let's consider the ``Outer(a=1, b=Inner(c=2))`` object as an example. It'd
-correspond to the following hierarchichal dict representation: ::
+For example, the ``Outer(a=1, b=Inner(c=2))`` object would correspond to the
+following hierarchichal dict representation: ::
 
     {'a': 1, 'b': { 'c': 2 }}
 
@@ -149,6 +149,7 @@ def check_freq_dict(cls, d, fti=None):
                 raise ValidationError(k,
                             '%%r member must occur at most %d times.' % max_o)
 
+
 class DictDocument(ProtocolBase):
     """An abstract protocol that can use hierarchical or flat dicts as input
     and output documents.
@@ -208,12 +209,12 @@ class DictDocument(ProtocolBase):
         if len(doc) == 0:
             raise Fault("Client", "Empty request")
 
+        logger.debug('\theader : %r' % (ctx.in_header_doc))
+        logger.debug('\tbody   : %r' % (ctx.in_body_doc))
+
         # set ctx.method_request_string
         ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
                                                                   doc.keys()[0])
-
-        logger.debug('\theader : %r' % (ctx.in_header_doc))
-        logger.debug('\tbody   : %r' % (ctx.in_body_doc))
 
     def deserialize(self, ctx, message):
         raise NotImplementedError()
