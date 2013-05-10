@@ -212,9 +212,12 @@ class DictDocument(ProtocolBase):
         logger.debug('\theader : %r' % (ctx.in_header_doc))
         logger.debug('\tbody   : %r' % (ctx.in_body_doc))
 
-        # set ctx.method_request_string
-        ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
-                                                                  doc.keys()[0])
+        if not isinstance(doc, dict) or len(doc) != 1:
+            raise ValidationError("Need a dictionary with exacltly one key "
+                                  "as method name.")
+
+        mrs, = doc.keys()
+        ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(), mrs)
 
     def deserialize(self, ctx, message):
         raise NotImplementedError()
