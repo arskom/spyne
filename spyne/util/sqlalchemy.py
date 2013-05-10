@@ -562,7 +562,7 @@ def gen_sqla_info(cls, cls_bases=()):
 
                     if p.right in child_t.c:
                         # FIXME: This branch MUST be tested.
-                        assert col_type == child_t.c[p.right].type
+                        assert col_type is child_t.c[p.right].type.__class__
 
                         # if the column is there, the decision about whether
                         # it should be in child's mapper should also have been
