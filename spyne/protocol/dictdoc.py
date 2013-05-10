@@ -163,10 +163,8 @@ class DictDocument(ProtocolBase):
     _huge_numbers_as_string = False
 
     def __init__(self, app=None, validator=None, mime_type=None,
-                                        ignore_uncap=False,
-                                        ignore_wrappers=True,
-                                        complex_as=dict,
-                                        ordered=False):
+            ignore_uncap=False, ignore_wrappers=True, complex_as=dict,
+                                                                ordered=False):
         ProtocolBase.__init__(self, app, validator, mime_type, ignore_uncap)
 
         self.ignore_wrappers = ignore_wrappers
@@ -217,7 +215,8 @@ class DictDocument(ProtocolBase):
                                   "as method name.")
 
         mrs, = doc.keys()
-        ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(), mrs)
+        ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
+                                                                            mrs)
 
     def deserialize(self, ctx, message):
         raise NotImplementedError()
