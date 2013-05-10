@@ -34,7 +34,7 @@
 
 In this example, user code runs directly in the reactor loop. So unless your
 code fully adheres to the asynchronous programming principles, you can block
-the reactor loop.
+the reactor loop. ::
 
     $ time curl -s "http://localhost:9757/block?seconds=10" > /dev/null & \
       time curl -s "http://localhost:9757/block?seconds=10" > /dev/null &
