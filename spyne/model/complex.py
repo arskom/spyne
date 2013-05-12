@@ -29,7 +29,6 @@ logger = logging.getLogger(__name__)
 import decimal
 
 from collections import deque
-from inspect import isclass
 
 from spyne.util import memoize_id
 from spyne.model import ModelBase
