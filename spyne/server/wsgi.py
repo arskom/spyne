@@ -42,8 +42,6 @@ except ImportError, e:
     def parse_form_data(*args, **kwargs):
         raise e
 
-from collections import defaultdict
-
 from spyne.application import get_fault_string_from_exception
 from spyne.auxproc import process_contexts
 from spyne.error import RequestTooLongError
@@ -55,6 +53,7 @@ from spyne.server.http import HttpBase
 from spyne.server.http import HttpMethodContext
 from spyne.server.http import HttpTransportContext
 from spyne.util import reconstruct_url
+from spyne.util.odict import odict
 
 from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
@@ -71,7 +70,7 @@ except ImportError, e:
 
 def _parse_qs(qs):
     pairs = [s2 for s1 in qs.split('&') for s2 in s1.split(';')]
-    retval = defaultdict(list)
+    retval = odict()
 
     for name_value in pairs:
         if name_value is None or len(name_value) == 0:
@@ -88,7 +87,10 @@ def _parse_qs(qs):
         if nv[1] is not None:
             value = unquote(nv[1].replace('+', ' '))
 
-        retval[name].append(value)
+        l = retval.get(name, None)
+        if l is None:
+            l = retval[name] = []
+        l.append(value)
 
     return retval
 

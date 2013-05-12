@@ -397,11 +397,25 @@ class Test(unittest.TestCase):
                 return repr(ccm)
 
         ctx = _test([SomeService],  'ccm_i=1&ccm_s=s'
-                                   '&ccm_c[0]_i=1&ccm_c[0]=a'
-                                   '&ccm_c[1]_i=2&ccm_c[1]=b')
-
+                                   '&ccm_c=a'
+                                   '&ccm_c=b')
         s = ''.join(list(ctx.out_string))
         assert s == "CCM(i=1, c=['a', 'b'], s='s')"
+
+        ctx = _test([SomeService],  'ccm_i=1'
+                                   '&ccm_s=s'
+                                   '&ccm_c[1]=a'
+                                   '&ccm_c[0]=b')
+        s = ''.join(list(ctx.out_string))
+        assert s == "CCM(i=1, c=['a', 'b'], s='s')"
+
+        ctx = _test([SomeService],  'ccm_i=1'
+                                   '&ccm_s=s'
+                                   '&ccm_c[0]=a'
+                                   '&ccm_c[1]=b')
+        s = ''.join(list(ctx.out_string))
+        assert s == "CCM(i=1, c=['a', 'b'], s='s')"
+
 
     def test_cookie_parse(self):
         STR = 'some_string'
