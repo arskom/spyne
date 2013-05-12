@@ -142,6 +142,10 @@ def check_freq_dict(cls, d, fti=None):
             val = d[k]
 
             min_o, max_o = v.Attributes.min_occurs, v.Attributes.max_occurs
+            if issubclass(v, Array) and v.Attributes.max_occurs == 1:
+                v, = v._type_info.values()
+                min_o, max_o = v.Attributes.min_occurs, v.Attributes.max_occurs
+
             if val < min_o:
                 raise ValidationError(k,
                             '%%r member must occur at least %d times.' % min_o)

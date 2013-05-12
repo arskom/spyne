@@ -543,6 +543,9 @@ class ComplexModelBase(ModelBase):
 
         fti = cls.get_flat_type_info(cls)
         for k, v in fti.items():
+            if issubclass(v, Array) and v.Attributes.max_occurs == 1:
+                v, = v._type_info.values()
+
             prefix.append(k)
             is_array.append(v.Attributes.max_occurs > 1)
 
