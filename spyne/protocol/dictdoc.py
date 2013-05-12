@@ -351,10 +351,6 @@ class FlatDictDocument(DictDocument):
                                                     (member.path, pkey, value))
 
         if validator is self.SOFT_VALIDATION:
-            for k, member in simple_type_info.items():
-                for i in range(len(member.path) - 1):
-                    print
-
             for k, d in frequencies.items():
                 check_freq_dict(k[-2], d)
 
