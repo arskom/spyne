@@ -878,8 +878,8 @@ class Mandatory:
     Duration = Duration(type_name="MandatoryDuration", min_occurs=1, nillable=False)
 
     Decimal = Decimal(type_name="MandatoryDecimal", min_occurs=1, nillable=False)
-    Double = Decimal(type_name="MandatoryDouble", min_occurs=1, nillable=False)
-    Float = Double
+    Double = Double(type_name="MandatoryDouble", min_occurs=1, nillable=False)
+    Float = Float(type_name="MandatoryFloat", min_occurs=1, nillable=False)
 
     Integer = Integer(type_name="MandatoryInteger", min_occurs=1, nillable=False)
     Integer64 = Integer64(type_name="MandatoryLong", min_occurs=1, nillable=False)
