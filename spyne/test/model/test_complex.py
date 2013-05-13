@@ -140,7 +140,7 @@ class TestComplexModel(unittest.TestCase):
 
     def test_class_array(self):
         peeps = []
-        names = ['bob', 'jim', 'peabody', 'mumblesleves']
+        names = ['bob', 'jim', 'peabody', 'mumblesleeves']
         dob = datetime.datetime(1979, 1, 1)
         for name in names:
             a = Person()
