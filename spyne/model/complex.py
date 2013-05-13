@@ -440,9 +440,17 @@ class ComplexModelBase(ModelBase):
         for k,v in fti.items():
             if k in kwargs:
                 setattr(self, k, kwargs[k])
-            else:
-                if not k in self.__dict__:
+            elif not k in self.__dict__:
+                a = v.Attributes
+                if a.default is not None:
                     setattr(self, k, v.Attributes.default)
+                elif a.max_occurs > 1 or issubclass(v, Array):
+                    try:
+                        setattr(self, k, None)
+                    except TypeError: # SQLAlchemy does this
+                        setattr(self, k, [])
+                else:
+                    setattr(self, k, None)
 
     def __len__(self):
         return len(self._type_info)
