@@ -723,10 +723,15 @@ def gen_sqla_info(cls, cls_bases=()):
     cls_mapper = mapper(cls, *mapper_args, **mapper_kwargs)
 
     def my_load_listener(target, context):
+        d = target.__dict__
+
         for k, v in cls.get_flat_type_info(cls).items():
-            av = getattr(target, k, None)
-            if isclass(av) and issubclass(av, ModelBase):
-                setattr(target, k, None)
+            if not k in d:
+                if isclass(v) and issubclass(v, ComplexModelBase):
+                    pass
+                else:
+                    d[k] = None
+
 
     event.listen(cls, 'load', my_load_listener)
 

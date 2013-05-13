@@ -29,7 +29,6 @@ logger = logging.getLogger(__name__)
 import decimal
 
 from collections import deque
-from inspect import isclass
 
 from spyne.util import memoize_id
 from spyne.model import ModelBase
@@ -379,6 +378,7 @@ class ComplexModelMeta(type(ModelBase)):
 
     def __init__(self, cls_name, cls_bases, cls_dict):
         type_info = cls_dict['_type_info']
+
         for k,v in type_info.items():
             if issubclass(v, SelfReference):
                 type_info[k] = self
@@ -467,20 +467,14 @@ class ComplexModelBase(ModelBase):
         _xml_tag_body_as = None, None
 
     def __init__(self, **kwargs):
-        for k, v in self.get_flat_type_info(self.__class__).items():
-            d = v.Attributes.default
-            kv = kwargs.get(k, d)
-            av = getattr(self, k, None)
-            if (isclass(av) and issubclass(av, ModelBase)) or kv is not None:
-                setattr(self, k, kv)
-            elif not hasattr(self, k):
-                # this is to detach implicit assignment and explicit assignment
-                # so that the user erros don't get concealed by implicit's
-                # try-except block.
-                try:
-                    setattr(self, k, None)
-                except:
-                    pass
+        cls = self.__class__
+        fti = cls.get_flat_type_info(cls)
+        for k,v in fti.items():
+            if k in kwargs:
+                setattr(self, k, kwargs[k])
+            else:
+                if not k in self.__dict__:
+                    setattr(self, k, v.Attributes.default)
 
     def __len__(self):
         return len(self._type_info)
@@ -490,9 +484,9 @@ class ComplexModelBase(ModelBase):
 
     def __repr__(self):
         return "%s(%s)" % (self.get_type_name(), ', '.join(
-               ['%s=%r' % (k, getattr(self, k, None))
+               ['%s=%r' % (k, self.__dict__.get(k))
                     for k in self.__class__.get_flat_type_info(self.__class__)
-                    if getattr(self, k, None) is not None]))
+                    if self.__dict__.get(k, None) is not None]))
 
     @classmethod
     def get_serialization_instance(cls, value):
@@ -581,6 +575,9 @@ class ComplexModelBase(ModelBase):
 
         fti = cls.get_flat_type_info(cls)
         for k, v in fti.items():
+            if issubclass(v, Array) and v.Attributes.max_occurs == 1:
+                v, = v._type_info.values()
+
             prefix.append(k)
             is_array.append(v.Attributes.max_occurs > 1)
 
