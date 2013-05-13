@@ -168,12 +168,6 @@ class ProtocolBase(object):
             ComplexModelBase: complex_model_base_from_string
         })
 
-        self._to_dict_handlers = cdict({
-            ModelBase: lambda cls, value: cls.to_dict(value),
-            ComplexModelBase: complex_model_base_to_dict,
-            Fault: fault_to_dict,
-        })
-
     @property
     def app(self):
         return self.__app
@@ -293,7 +287,3 @@ class ProtocolBase(object):
     def to_string_iterable(self, class_, value):
         handler = self._to_string_iterable_handlers[class_]
         return handler(self, class_, value)
-
-    def to_dict(self, class_, value):
-        handler = self._to_dict_handlers[class_]
-        return handler(class_, value)
