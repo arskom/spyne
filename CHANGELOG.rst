@@ -7,6 +7,8 @@ spyne-2.10.5
  * Fix default value handling in ``HttpRpc``.
  * Fix invalid document type raising ``InternalError`` in DictDocument family.
    It now raises ValidationError.
+ * HttpRpc: Fix ``ByteArray`` deserialization.
+ * HttpRpc: Fix many corner cases with ``Array``s.
 
 spyne-2.10.4
 ------------
