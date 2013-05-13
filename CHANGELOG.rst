@@ -16,6 +16,7 @@ spyne-2.10.5
    It now raises ValidationError.
  * HttpRpc: Fix ``ByteArray`` deserialization.
  * HttpRpc: Fix many corner cases with ``Array``s.
+ * Fix Csv serializer.
 
 spyne-2.10.4
 ------------

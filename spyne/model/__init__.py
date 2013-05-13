@@ -26,7 +26,6 @@ from spyne.model._base import ModelBase
 from spyne.model._base import Null
 from spyne.model._base import SimpleModel
 
-from spyne.model._base import nillable_dict
 from spyne.model._base import nillable_string
 from spyne.model._base import nillable_iterable
 
