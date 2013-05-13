@@ -17,6 +17,7 @@ spyne-2.10.5
  * HttpRpc: Fix ``ByteArray`` deserialization.
  * HttpRpc: Fix many corner cases with ``Array``s.
  * Fix Csv serializer.
+ * Fix Mandatory variants of ``Double`` and ``Float`` inheriting from decimal.
 
 spyne-2.10.4
 ------------
