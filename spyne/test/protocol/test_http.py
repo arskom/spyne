@@ -383,6 +383,25 @@ class Test(unittest.TestCase):
         s = ''.join(list(ctx.out_string))
         assert s == "CCM(i=1, c=[CM(i=1, s='a'), CM(i=2, s='b')], s='s')"
 
+    def test_nested_2_flatten_with_primitive_array(self):
+        class CCM(ComplexModel):
+            _type_info = [
+                ("i", Integer),
+                ("c", Array(String)),
+                ("s", String),
+            ]
+
+        class SomeService(ServiceBase):
+            @srpc(Array(CCM), _returns=String)
+            def some_call(ccm):
+                return repr(ccm)
+
+        ctx = _test([SomeService],  'ccm[0]_i=1&ccm[0]_s=s'
+                                   '&ccm[0]_c=a'
+                                   '&ccm[0]_c=b')
+        s = ''.join(list(ctx.out_string))
+        assert s == "[CCM(i=1, c=['a', 'b'], s='s')]"
+
     def test_nested_flatten_with_primitive_array(self):
         class CCM(ComplexModel):
             _type_info = [

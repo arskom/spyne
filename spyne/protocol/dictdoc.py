@@ -277,7 +277,7 @@ class FlatDictDocument(DictDocument):
                     native_v2 = self.from_string(member.type, v2)
 
                 if (validator is self.SOFT_VALIDATION and not
-                            member.type.validate_native(member.type, native_v2)):
+                           member.type.validate_native(member.type, native_v2)):
                     raise ValidationError(v2)
 
                 value.append(native_v2)
@@ -293,8 +293,7 @@ class FlatDictDocument(DictDocument):
             cfreq_key = inst_class, idx
 
             indexes = deque(RE_HTTP_ARRAY_INDEX.findall(orig_k))
-            for i in range(len(member.path) - 1):
-                pkey = member.path[i]
+            for pkey in member.path[:-1]:
                 nidx = 0
 
                 ncls, ninst = ctype_info[pkey], getattr(cinst, pkey, None)
@@ -307,19 +306,22 @@ class FlatDictDocument(DictDocument):
                     setattr(cinst, pkey, ninst)
                     frequencies[cfreq_key][pkey] += 1
 
-                if mo > 1:
+                if mo > 1 or issubclass(ncls, Array):
                     if len(indexes) == 0:
-                        raise ValidationError(orig_k,
-                                               "%r requires index information.")
-
-                    nidx = int(indexes.popleft())
+                        nidx = 0
+                    else:
+                        nidx = int(indexes.popleft())
 
                     if nidx > len(ninst):
                         raise ValidationError(orig_k,
                                             "%%r Invalid array index %d." % idx)
 
                     if nidx == len(ninst):
-                        ninst.append(ncls.get_deserialization_instance())
+                        if issubclass(ncls, Array):
+                            _ncls, = ncls._type_info.values()
+                            ninst.append(_ncls.get_deserialization_instance())
+                        else:
+                            ninst.append(ncls.get_deserialization_instance())
                         frequencies[cfreq_key][pkey] += 1
 
                     cinst = ninst[nidx]
