@@ -26,8 +26,8 @@ look at it.
 Flattening
 ==========
 
-Plain HTTP does not support communicating hierarchical key-value stores. Spyne
-makes plain HTTP fake hierarchical dicts two small hacks:
+Plain HTTP does not support hierarchical key-value stores. Spyne makes plain
+HTTP fake hierarchical dicts via two small hacks.
 
 Let's look at the following object hierarchy: ::
 
@@ -39,8 +39,8 @@ Let's look at the following object hierarchy: ::
         a = Integer
         b = SomeObject
 
-Let's consider the ``Outer(a=1, b=Inner(c=2))`` object as an example. It'd
-correspond to the following hierarchichal dict representation: ::
+For example, the ``Outer(a=1, b=Inner(c=2))`` object would correspond to the
+following hierarchichal dict representation: ::
 
     {'a': 1, 'b': { 'c': 2 }}
 
@@ -142,12 +142,17 @@ def check_freq_dict(cls, d, fti=None):
             val = d[k]
 
             min_o, max_o = v.Attributes.min_occurs, v.Attributes.max_occurs
+            if issubclass(v, Array) and v.Attributes.max_occurs == 1:
+                v, = v._type_info.values()
+                min_o, max_o = v.Attributes.min_occurs, v.Attributes.max_occurs
+
             if val < min_o:
                 raise ValidationError(k,
                             '%%r member must occur at least %d times.' % min_o)
             elif val > max_o:
                 raise ValidationError(k,
                             '%%r member must occur at most %d times.' % max_o)
+
 
 class DictDocument(ProtocolBase):
     """An abstract protocol that can use hierarchical or flat dicts as input
@@ -162,10 +167,8 @@ class DictDocument(ProtocolBase):
     _huge_numbers_as_string = False
 
     def __init__(self, app=None, validator=None, mime_type=None,
-                                        ignore_uncap=False,
-                                        ignore_wrappers=True,
-                                        complex_as=dict,
-                                        ordered=False):
+            ignore_uncap=False, ignore_wrappers=True, complex_as=dict,
+                                                                ordered=False):
         ProtocolBase.__init__(self, app, validator, mime_type, ignore_uncap)
 
         self.ignore_wrappers = ignore_wrappers
@@ -208,12 +211,16 @@ class DictDocument(ProtocolBase):
         if len(doc) == 0:
             raise Fault("Client", "Empty request")
 
-        # set ctx.method_request_string
-        ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
-                                                                  doc.keys()[0])
-
         logger.debug('\theader : %r' % (ctx.in_header_doc))
         logger.debug('\tbody   : %r' % (ctx.in_body_doc))
+
+        if not isinstance(doc, dict) or len(doc) != 1:
+            raise ValidationError("Need a dictionary with exacltly one key "
+                                  "as method name.")
+
+        mrs, = doc.keys()
+        ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
+                                                                            mrs)
 
     def deserialize(self, ctx, message):
         raise NotImplementedError()
@@ -240,12 +247,13 @@ class FlatDictDocument(DictDocument):
         """
 
         simple_type_info = inst_class.get_simple_type_info(inst_class)
-        inst = inst_class.get_deserialization_instance()
 
         # this is for validating cls.Attributes.{min,max}_occurs
         frequencies = defaultdict(lambda: defaultdict(int))
         if validator is self.SOFT_VALIDATION:
             _fill(simple_type_info, inst_class, frequencies)
+
+        retval = inst_class.get_deserialization_instance()
 
         for orig_k, v in doc.items():
             k = RE_HTTP_ARRAY_INDEX.sub("", orig_k)
@@ -254,40 +262,30 @@ class FlatDictDocument(DictDocument):
                 logger.debug("discarding field %r" % k)
                 continue
 
-            value = getattr(inst, k, None)
-            if value is None: # value can return None from getattr as well
-                value = []
-
             # extract native values from the list of strings in the flat dict
             # entries.
+            value = []
             for v2 in v:
                 if (validator is self.SOFT_VALIDATION and not
                                   member.type.validate_string(member.type, v2)):
                     raise ValidationError(v2)
 
                 if issubclass(member.type, (File, ByteArray)):
-                    if isinstance(v2, str) or isinstance(v2, unicode):
-                        if member.type.Attributes.encoding is None and \
-                                        self.default_binary_encoding is not None:
-                            native_v2 = self.from_string(member.type, v2,
-                                                    self.default_binary_encoding)
-
-                        else:
-                            native_v2 = self.from_string(member.type, v2)
-                    else:
-                        native_v2 = v2
+                    native_v2 = self.from_string(member.type, v2,
+                                                   self.default_binary_encoding)
                 else:
                     native_v2 = self.from_string(member.type, v2)
 
                 if (validator is self.SOFT_VALIDATION and not
-                            member.type.validate_native(member.type, native_v2)):
+                           member.type.validate_native(member.type, native_v2)):
                     raise ValidationError(v2)
 
                 value.append(native_v2)
 
             # assign the native value to the relevant class in the nested object
             # structure.
-            cinst = inst
+            cinst = retval
+
             ctype_info = inst_class.get_flat_type_info(inst_class)
 
             idx, nidx = 0, 0
@@ -295,8 +293,7 @@ class FlatDictDocument(DictDocument):
             cfreq_key = inst_class, idx
 
             indexes = deque(RE_HTTP_ARRAY_INDEX.findall(orig_k))
-            for i in range(len(member.path) - 1):
-                pkey = member.path[i]
+            for pkey in member.path[:-1]:
                 nidx = 0
 
                 ncls, ninst = ctype_info[pkey], getattr(cinst, pkey, None)
@@ -309,19 +306,22 @@ class FlatDictDocument(DictDocument):
                     setattr(cinst, pkey, ninst)
                     frequencies[cfreq_key][pkey] += 1
 
-                if mo > 1:
+                if mo > 1 or issubclass(ncls, Array):
                     if len(indexes) == 0:
-                        raise ValidationError(orig_k,
-                                               "%r requires index information.")
-
-                    nidx = int(indexes.popleft())
+                        nidx = 0
+                    else:
+                        nidx = int(indexes.popleft())
 
                     if nidx > len(ninst):
                         raise ValidationError(orig_k,
                                             "%%r Invalid array index %d." % idx)
 
                     if nidx == len(ninst):
-                        ninst.append(ncls.get_deserialization_instance())
+                        if issubclass(ncls, Array):
+                            _ncls, = ncls._type_info.values()
+                            ninst.append(_ncls.get_deserialization_instance())
+                        else:
+                            ninst.append(ncls.get_deserialization_instance())
                         frequencies[cfreq_key][pkey] += 1
 
                     cinst = ninst[nidx]
@@ -348,16 +348,11 @@ class FlatDictDocument(DictDocument):
                 logger.debug("\tset default %r(%r) = %r" %
                                                     (member.path, pkey, value))
 
-
         if validator is self.SOFT_VALIDATION:
-            for k, member in simple_type_info.items():
-                for i in range(len(member.path) - 1):
-                    print
-
             for k, d in frequencies.items():
                 check_freq_dict(k[-2], d)
 
-        return inst
+        return retval
 
     def object_to_flat_dict(self, inst_cls, value, hier_delim="_", retval=None,
                      prefix=None, parent=None, subvalue_eater=lambda prot,v,t:v):
@@ -558,7 +553,6 @@ class HierDictDocument(DictDocument):
         retval = None
 
         if self.ignore_wrappers:
-            wrapper_name = None
             ti = getattr(class_, '_type_info', {})
 
             while class_.Attributes._wrapper:

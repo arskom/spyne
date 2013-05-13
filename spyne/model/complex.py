@@ -29,7 +29,6 @@ logger = logging.getLogger(__name__)
 import decimal
 
 from collections import deque
-from inspect import isclass
 
 from spyne.util import memoize_id
 from spyne.model import ModelBase
@@ -43,6 +42,8 @@ from spyne.const import MAX_ARRAY_ELEMENT_NUM
 from spyne.const import ARRAY_PREFIX
 from spyne.const import ARRAY_SUFFIX
 from spyne.const import TYPE_SUFFIX
+from spyne.const import MANDATORY_SUFFIX
+from spyne.const import MANDATORY_PREFIX
 
 from spyne.util import memoize
 from spyne.util import sanitize_args
@@ -377,6 +378,7 @@ class ComplexModelMeta(type(ModelBase)):
 
     def __init__(self, cls_name, cls_bases, cls_dict):
         type_info = cls_dict['_type_info']
+
         for k,v in type_info.items():
             if issubclass(v, SelfReference):
                 type_info[k] = self
@@ -465,20 +467,22 @@ class ComplexModelBase(ModelBase):
         _xml_tag_body_as = None, None
 
     def __init__(self, **kwargs):
-        for k, v in self.get_flat_type_info(self.__class__).items():
-            d = v.Attributes.default
-            kv = kwargs.get(k, d)
-            av = getattr(self, k, None)
-            if (isclass(av) and issubclass(av, ModelBase)) or kv is not None:
-                setattr(self, k, kv)
-            elif not hasattr(self, k):
-                # this is to detach implicit assignment and explicit assignment
-                # so that the user erros don't get concealed by implicit's
-                # try-except block.
-                try:
+        cls = self.__class__
+        fti = cls.get_flat_type_info(cls)
+        for k,v in fti.items():
+            if k in kwargs:
+                setattr(self, k, kwargs[k])
+            elif not k in self.__dict__:
+                a = v.Attributes
+                if a.default is not None:
+                    setattr(self, k, v.Attributes.default)
+                elif a.max_occurs > 1 or issubclass(v, Array):
+                    try:
+                        setattr(self, k, None)
+                    except TypeError: # SQLAlchemy does this
+                        setattr(self, k, [])
+                else:
                     setattr(self, k, None)
-                except:
-                    pass
 
     def __len__(self):
         return len(self._type_info)
@@ -488,9 +492,9 @@ class ComplexModelBase(ModelBase):
 
     def __repr__(self):
         return "%s(%s)" % (self.get_type_name(), ', '.join(
-               ['%s=%r' % (k, getattr(self, k, None))
+               ['%s=%r' % (k, self.__dict__.get(k))
                     for k in self.__class__.get_flat_type_info(self.__class__)
-                    if getattr(self, k, None) is not None]))
+                    if self.__dict__.get(k, None) is not None]))
 
     @classmethod
     def get_serialization_instance(cls, value):
@@ -579,6 +583,9 @@ class ComplexModelBase(ModelBase):
 
         fti = cls.get_flat_type_info(cls)
         for k, v in fti.items():
+            if issubclass(v, Array) and v.Attributes.max_occurs == 1:
+                v, = v._type_info.values()
+
             prefix.append(k)
             is_array.append(v.Attributes.max_occurs > 1)
 
@@ -927,3 +934,24 @@ try:
     TableModel = TTableModel()
 except ImportError:
     pass
+
+
+def Mandatory(cls):
+    """Customizes the given type to be a mandatory one. Has special cases for
+    :class:`spyne.model.primitive.Unicode` and
+    :class:`spyne.model.complex.Array`\.
+    """
+
+    kwargs = dict(min_occurs=1, nillable=False,
+                type_name='%s%s%s' % (MANDATORY_PREFIX, cls.get_type_name(),
+                                                              MANDATORY_SUFFIX))
+
+    if issubclass(cls, Unicode):
+        kwargs.update(dict(min_len=1))
+
+    elif issubclass(cls, Array):
+        (k,v), = cls._type_info.items()
+        if v.Attributes.min_occurs == 0:
+            cls._type_info[k] = Mandatory(v)
+
+    return cls.customize(**kwargs)

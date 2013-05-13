@@ -9,6 +9,15 @@ spyne-2.11.0
  * Add support for XmlData modifier. It lets mapping the data in the xml body
    to an object field.
 
+spyne-2.10.5
+------------
+ * Fix default value handling in ``HttpRpc``.
+ * Fix invalid document type raising ``InternalError`` in DictDocument family.
+   It now raises ValidationError.
+ * HttpRpc: Fix ``ByteArray`` deserialization.
+ * HttpRpc: Fix many corner cases with ``Array``s.
+ * Fix Csv serializer.
+
 spyne-2.10.4
 ------------
  * Fix handling of ``spyne.model.binary.File.Value`` with just path name.

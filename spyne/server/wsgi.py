@@ -41,8 +41,6 @@ except ImportError, e:
     def parse_form_data(*args, **kwargs):
         raise e
 
-from collections import defaultdict
-
 from spyne.application import get_fault_string_from_exception
 from spyne.auxproc import process_contexts
 from spyne.error import RequestTooLongError
@@ -54,6 +52,7 @@ from spyne.server.http import HttpBase
 from spyne.server.http import HttpMethodContext
 from spyne.server.http import HttpTransportContext
 from spyne.util import reconstruct_url
+from spyne.util.odict import odict
 
 from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
@@ -69,8 +68,8 @@ except ImportError, e:
         raise e
 
 def _parse_qs(qs):
-    pairs = [s2 for s1 in qs.split('&') for s2 in s1.split(';')]
-    retval = defaultdict(list)
+    pairs = (s2 for s1 in qs.split('&') for s2 in s1.split(';'))
+    retval = odict()
 
     for name_value in pairs:
         if name_value is None or len(name_value) == 0:
@@ -87,7 +86,10 @@ def _parse_qs(qs):
         if nv[1] is not None:
             value = unquote(nv[1].replace('+', ' '))
 
-        retval[name].append(value)
+        l = retval.get(name, None)
+        if l is None:
+            l = retval[name] = []
+        l.append(value)
 
     return retval
 
@@ -150,14 +152,16 @@ class WsgiApplication(HttpBase):
 
         * ``wsdl_exception``
             Called right after an exception is thrown during wsdl generation.
-            The exception object is stored in ctx.transport.wsdl_error attribute.
+            The exception object is stored in ctx.transport.wsdl_error
+            attribute.
 
         * ``wsgi_call``
             Called first when the incoming http request is identified as a rpc
             request.
 
         * ``wsgi_return``
-            Called right before the output stream is returned to the WSGI handler.
+            Called right before the output stream is returned to the WSGI
+            handler.
 
         * ``wsgi_error``
             Called right before returning the exception to the client.
@@ -207,7 +211,6 @@ class WsgiApplication(HttpBase):
         '''
 
         url = wsgi_url
-        verb = req_env['REQUEST_METHOD'].upper()
         if url is None:
             url = reconstruct_url(req_env).split('.wsdl')[0]
 
@@ -341,7 +344,8 @@ class WsgiApplication(HttpBase):
         except Exception, e:
             logger.exception(e)
             p_ctx.out_error = Fault('Server', get_fault_string_from_exception(e))
-            return self.handle_error(p_ctx, others, p_ctx.out_error, start_response)
+            return self.handle_error(p_ctx, others, p_ctx.out_error,
+                                                                 start_response)
 
 
         if isinstance(p_ctx.out_protocol, HttpRpc) and \
@@ -513,9 +517,10 @@ class WsgiApplication(HttpBase):
              else:
                  ctx.in_body_doc[k] = [v]
 
-        if ctx.in_document['REQUEST_METHOD'].upper() in ('POST', 'PUT', 'PATCH'):
+        verb = ctx.in_document['REQUEST_METHOD'].upper()
+        if verb in ('POST', 'PUT', 'PATCH'):
             stream, form, files = parse_form_data(ctx.in_document,
-                                            stream_factory=prot.stream_factory)
+                                             stream_factory=prot.stream_factory)
 
             for k, v in form.lists():
                 val = ctx.in_body_doc.get(k, [])

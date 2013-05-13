@@ -31,6 +31,8 @@ Installation
 
        wget http://python-distribute.org/distribute_setup.py
 
+   (yes, wget, not ``curl | python`` because setup script tries to import it)
+
 2. Run: ::
 
        python setup.py develop --user

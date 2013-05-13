@@ -28,3 +28,9 @@ Base Classes
 .. automodule:: spyne.model._base
    :members:
    :show-inheritance:
+
+Modifiers
+---------
+
+.. autofunction:: spyne.model.Mandatory
+

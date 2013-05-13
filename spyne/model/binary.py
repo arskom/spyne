@@ -135,7 +135,7 @@ binary_decoding_handlers = {
     None: lambda x: [x],
     BINARY_ENCODING_HEX: ByteArray.from_hex,
     BINARY_ENCODING_BASE64: ByteArray.from_base64,
-    BINARY_ENCODING_URLSAFE_BASE64: ByteArray.to_urlsafe_base64,
+    BINARY_ENCODING_URLSAFE_BASE64: ByteArray.from_urlsafe_base64,
 }
 
 
