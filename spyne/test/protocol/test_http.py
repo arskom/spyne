@@ -357,6 +357,85 @@ class Test(unittest.TestCase):
         s = ''.join(list(ctx.out_string))
         assert s == "CCM(i=1, c=[CM(i=1, s='a'), CM(i=2, s='b')], s='s')"
 
+    def test_nested_flatten_with_complex_array(self):
+        class CM(ComplexModel):
+            _type_info = [
+                ("i", Integer),
+                ("s", String),
+            ]
+
+        class CCM(ComplexModel):
+            _type_info = [
+                ("i", Integer),
+                ("c", Array(CM)),
+                ("s", String),
+            ]
+
+        class SomeService(ServiceBase):
+            @srpc(CCM, _returns=String)
+            def some_call(ccm):
+                return repr(ccm)
+
+        ctx = _test([SomeService],  'ccm_i=1&ccm_s=s'
+                                   '&ccm_c[0]_i=1&ccm_c[0]_s=a'
+                                   '&ccm_c[1]_i=2&ccm_c[1]_s=b')
+
+        s = ''.join(list(ctx.out_string))
+        assert s == "CCM(i=1, c=[CM(i=1, s='a'), CM(i=2, s='b')], s='s')"
+
+    def test_nested_2_flatten_with_primitive_array(self):
+        class CCM(ComplexModel):
+            _type_info = [
+                ("i", Integer),
+                ("c", Array(String)),
+                ("s", String),
+            ]
+
+        class SomeService(ServiceBase):
+            @srpc(Array(CCM), _returns=String)
+            def some_call(ccm):
+                return repr(ccm)
+
+        ctx = _test([SomeService],  'ccm[0]_i=1&ccm[0]_s=s'
+                                   '&ccm[0]_c=a'
+                                   '&ccm[0]_c=b')
+        s = ''.join(list(ctx.out_string))
+        assert s == "[CCM(i=1, c=['a', 'b'], s='s')]"
+
+    def test_nested_flatten_with_primitive_array(self):
+        class CCM(ComplexModel):
+            _type_info = [
+                ("i", Integer),
+                ("c", Array(String)),
+                ("s", String),
+            ]
+
+        class SomeService(ServiceBase):
+            @srpc(CCM, _returns=String)
+            def some_call(ccm):
+                return repr(ccm)
+
+        ctx = _test([SomeService],  'ccm_i=1&ccm_s=s'
+                                   '&ccm_c=a'
+                                   '&ccm_c=b')
+        s = ''.join(list(ctx.out_string))
+        assert s == "CCM(i=1, c=['a', 'b'], s='s')"
+
+        ctx = _test([SomeService],  'ccm_i=1'
+                                   '&ccm_s=s'
+                                   '&ccm_c[1]=a'
+                                   '&ccm_c[0]=b')
+        s = ''.join(list(ctx.out_string))
+        assert s == "CCM(i=1, c=['a', 'b'], s='s')"
+
+        ctx = _test([SomeService],  'ccm_i=1'
+                                   '&ccm_s=s'
+                                   '&ccm_c[0]=a'
+                                   '&ccm_c[1]=b')
+        s = ''.join(list(ctx.out_string))
+        assert s == "CCM(i=1, c=['a', 'b'], s='s')"
+
+
     def test_cookie_parse(self):
         STR = 'some_string'
         class RequestHeader(ComplexModel):
