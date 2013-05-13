@@ -271,16 +271,8 @@ class FlatDictDocument(DictDocument):
                     raise ValidationError(v2)
 
                 if issubclass(member.type, (File, ByteArray)):
-                    if isinstance(v2, str) or isinstance(v2, unicode):
-                        if member.type.Attributes.encoding is None and \
-                                        self.default_binary_encoding is not None:
-                            native_v2 = self.from_string(member.type, v2,
-                                                    self.default_binary_encoding)
-
-                        else:
-                            native_v2 = self.from_string(member.type, v2)
-                    else:
-                        native_v2 = v2
+                    native_v2 = self.from_string(member.type, v2,
+                                                   self.default_binary_encoding)
                 else:
                     native_v2 = self.from_string(member.type, v2)
 
