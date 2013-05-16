@@ -2,6 +2,10 @@
 Changelog
 =========
 
+spyne-2.10.6
+------------
+ * Fix exception serialization regression in DictDocument family.
+
 spyne-2.10.5
 ------------
  * Fix default value handling in ``HttpRpc``.
