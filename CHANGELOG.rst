@@ -8,6 +8,12 @@ spyne-2.11.0
  * Add returning ctx.out_string support to null server.
  * Add support for XmlData modifier. It lets mapping the data in the xml body
    to an object field.
+ * Remove deprecated ``JsonObject`` identifier. Just do a gentle 
+   ``s/JsonObject/JsonDocument/g``.
+
+spyne-2.10.6
+------------
+ * Fix exception serialization regression in DictDocument family.
 
 spyne-2.10.5
 ------------
