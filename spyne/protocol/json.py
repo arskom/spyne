@@ -78,8 +78,8 @@ class JsonEncoder(json.JSONEncoder):
             return super(JsonEncoder, self).default(o)
 
         except TypeError, e:
-            # if it's not a Decimal and json still can't serialize it,
-            # it's possibly a generator. If not, additional hacks are welcome :)
+            # if json can't serialize it, it's possibly a generator. If not,
+            # additional hacks are welcome :)
             logger.exception(e)
             return list(o)
 
@@ -100,11 +100,9 @@ class JsonDocument(HierDictDocument):
     _decimal_as_string = True
 
     def __init__(self, app=None, validator=None, mime_type=None,
-                                        ignore_uncap=False,
-                                        # DictDocument specific
-                                        ignore_wrappers=True,
-                                        complex_as=dict,
-                                        ordered=False):
+                        ignore_uncap=False,
+                        # DictDocument specific
+                        ignore_wrappers=True, complex_as=dict, ordered=False):
 
         HierDictDocument.__init__(self, app, validator, mime_type, ignore_uncap,
                                            ignore_wrappers, complex_as, ordered)
@@ -168,4 +166,8 @@ class JsonP(JsonDocument):
     def create_out_string(self, ctx):
         super(JsonP, self).create_out_string(ctx)
 
-        ctx.out_string = chain([self.callback_name, '('], ctx.out_string, [');'])
+        ctx.out_string = chain(
+                [self.callback_name, '('],
+                    ctx.out_string,
+                [');'],
+            )
