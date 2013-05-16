@@ -190,7 +190,8 @@ class MessagePackRpc(MessagePackDocument):
             body_class = ctx.descriptor.out_message
 
         if body_class:
-            ctx.in_object = body_class.get_serialization_instance(ctx.in_body_doc)
+            ctx.in_object = body_class.get_serialization_instance(
+                                                                ctx.in_body_doc)
 
         else:
             ctx.in_object = []
@@ -204,7 +205,7 @@ class MessagePackRpc(MessagePackDocument):
 
         if ctx.out_error is not None:
             ctx.out_document = [MessagePackRpc.MSGPACK_RESPONSE, 0,
-                                           ctx.out_error.to_dict(ctx.out_error)]
+                         Fault.to_dict(ctx.out_error.__class__,  ctx.out_error)]
 
         else:
             # get the result message
@@ -234,8 +235,8 @@ class MessagePackRpc(MessagePackDocument):
                     ]]
             else:
                 ctx.out_document = [[MessagePackRpc.MSGPACK_RESPONSE, 0, None,
-                            self._to_value(out_type, out_instance)
-                    ]]
+                                        self._to_value(out_type, out_instance),
+                                   ]]
 
             self.event_manager.fire_event('after_serialize', ctx)
 
