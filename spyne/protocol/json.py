@@ -158,6 +158,9 @@ class JsonP(JsonDocument):
     For other params, see :class:`spyne.protocol.json.JsonDocument`.
     """
 
+    type = set(HierDictDocument.type)
+    type.add('jsonp')
+
     def __init__(self, callback_name, *args, **kwargs):
         super(JsonP, self).__init__(*args, **kwargs)
         self.callback_name = callback_name
