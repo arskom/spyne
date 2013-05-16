@@ -50,7 +50,7 @@ from __future__ import absolute_import
 import logging
 logger = logging.getLogger(__name__)
 
-import decimal
+from itertools import chain
 
 try:
     import simplejson as json
@@ -145,6 +145,28 @@ class JsonDocument(HierDictDocument):
         """Sets ``ctx.out_string`` using ``ctx.out_document``."""
         ctx.out_string = (json.dumps(o, cls=JsonEncoder)
                                                       for o in ctx.out_document)
+
+
+class JsonP(JsonDocument):
+    """The JsonP protocol puts the reponse document inside a designated
+    javascript function call. The input protocol is identical to the
+    JsonDocument protocol.
+
+    :param callback_name: The name of the function call that will wrapp all
+        response documents.
+
+    For other params, see :class:`spyne.protocol.json.JsonDocument`.
+    """
+
+    def __init__(self, callback_name, *args, **kwargs):
+        super(JsonP, self).__init__(*args, **kwargs)
+        self.callback_name = callback_name
+
+    def create_out_string(self, ctx):
+        super(JsonP, self).create_out_string(ctx)
+
+        ctx.out_string = chain([self.callback_name, '('], ctx.out_string, [');'])
+
 
 JsonObject = JsonDocument
 """DEPRECATED. Use :class:`spyne.protocol.json.JsonDocument` instead"""

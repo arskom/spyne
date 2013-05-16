@@ -25,7 +25,9 @@ except ImportError:
     import json
 
 
+from spyne.model.primitive import Integer
 from spyne.test.protocol._test_dictdoc import TDictDocumentTest
+from spyne.protocol.json import JsonP
 from spyne.protocol.json import JsonDocument
 
 from spyne import MethodContext
@@ -33,6 +35,7 @@ from spyne.application import Application
 from spyne.decorator import srpc
 from spyne.service import ServiceBase
 from spyne.server import ServerBase
+from spyne.server.null import NullServer
 
 TestJsonDocument = TDictDocumentTest(json, JsonDocument,
                                             dumps_kwargs=dict(cls=JsonEncoder))
@@ -55,6 +58,24 @@ class Test(unittest.TestCase):
         initial_ctx.in_string = ['{']
         ctx, = server.generate_contexts(initial_ctx)
         assert ctx.in_error.faultcode == 'Client.JsonDecodeError'
+
+
+class TestJsonP(unittest.TestCase):
+    def test_callback_name(self):
+        callback_name = 'some_callback'
+        retval = 42
+
+        class SomeService(ServiceBase):
+            @srpc(_returns=Integer)
+            def yay():
+                return retval
+
+        app = Application([SomeService], 'tns',
+                                in_protocol=JsonDocument(),
+                                out_protocol=JsonP(callback_name))
+
+        server = NullServer(app, ostr=True)
+        assert ''.join(server.service.yay()) == '%s(%d);' % (callback_name, retval);
 
 
 if __name__ == '__main__':
