@@ -87,6 +87,10 @@ class JsonEncoder(json.JSONEncoder):
 class JsonDocument(HierDictDocument):
     """An implementation of the json protocol that uses simplejson package when
     available, json package otherwise.
+
+    :param ignore_wrappers: Does not serialize wrapper objects.
+    :param complex_as: One of (list, dict). When list, the complex objects are
+        serialized to a list of values instead of a dict of key/value pairs.
     """
 
     mime_type = 'application/json'
@@ -153,7 +157,7 @@ class JsonP(JsonDocument):
     :param callback_name: The name of the function call that will wrapp all
         response documents.
 
-    For other params, see :class:`spyne.protocol.json.JsonDocument`.
+    For other arguents, see :class:`spyne.protocol.json.JsonDocument`.
     """
 
     type = set(HierDictDocument.type)

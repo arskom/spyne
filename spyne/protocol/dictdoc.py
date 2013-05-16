@@ -84,8 +84,8 @@ hierarchies with HTTP only when performance is not that much of a concern.
 Cookies
 =======
 
-Cookie headers are parsed and fields within HTTP requests are assigned to fields
-in the ``in_header`` class, if defined.
+Cookie headers are parsed and fields within HTTP requests are assigned to
+fields in the ``in_header`` class, if defined.
 
 It's also possible to get the ``Cookie`` header intact by defining an
 ``in_header`` object with a field named ``Cookie`` (case sensitive).
@@ -96,11 +96,45 @@ As an example, let's assume the following HTTP request: ::
     Cookie: v1=4;v2=8
     (...)
 
-The keys ``v1`` and ``v2`` are passed to the ``in_header`` class if it has
-fields named ``v1`` or ``v2``.
+The keys ``v1`` and ``v2`` are passed to the instance of the ``in_header``
+class if it has fields named ``v1`` or ``v2``.
 
-Classes
-=======
+Wrappers
+========
+
+Wrapper objects are an artifact of the Xml world, which don't really make sense
+in other protocols. Let's look at the following object: ::
+
+    v = Permission(application='app', feature='f1'),
+
+Here's how it would be serialized to XML: ::
+
+    <Permission>
+      <application>app</application>
+      <feature>f1</feature>
+    </Permission>
+
+With ``ignore_wrappers=True`` (which is the default) This gets serialized to
+dict as follows:
+
+    {
+        "application": "app",
+        "feature": "f1"
+    }
+
+When ``ignore_wrappers=False``, the same value/type combination would result in
+the following dict: ::
+
+    {"Permission": {
+        {
+            "application": "app",
+            "feature": "f1"
+        }
+    },
+
+This could become useful when you call a don't know what type to expect, which
+is never the case with Spyne. This functionality is kept for compatibility
+purposes.
 """
 
 import logging

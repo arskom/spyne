@@ -77,6 +77,31 @@ class TestJsonP(unittest.TestCase):
         server = NullServer(app, ostr=True)
         assert ''.join(server.service.yay()) == '%s(%d);' % (callback_name, retval);
 
+    def illustrate_wrappers(self):
+        from spyne.model.complex import ComplexModel, Array
+        from spyne.model.primitive import Unicode
+
+        class Permission(ComplexModel):
+            _type_info = [
+                ('application', Unicode),
+                ('feature', Unicode),
+            ]
+
+        class SomeService(ServiceBase):
+            @srpc(_returns=Array(Permission))
+            def yay():
+                return [
+                    Permission(application='app', feature='f1'),
+                    Permission(application='app', feature='f2')
+                ]
+
+        app = Application([SomeService], 'tns',
+                            in_protocol=JsonDocument(),
+                            out_protocol=JsonDocument(ignore_wrappers=False))
+
+        server = NullServer(app, ostr=True)
+        print ''.join(server.service.yay())
+        # assert false
 
 if __name__ == '__main__':
     unittest.main()
