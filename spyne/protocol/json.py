@@ -36,7 +36,7 @@ decimals. Integers are parsed to ``int``\s or ``long``\s seamlessly but
 While it's possible to e.g. (de)serialize floats to ``Decimal``\s by adding
 hooks to ``parse_float`` [#]_ (and convert later as necessary), such
 customizations apply to the whole incoming document which pretty much messes up
-``AnyDict`` encoding and decoding.
+``AnyDict`` serialization and deserialization.
 
 It also wasn't possible to work with ``object_pairs_hook`` as Spyne's parsing
 is always "from outside to inside" whereas ``object_pairs_hook`` is passed
