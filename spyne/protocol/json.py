@@ -169,7 +169,3 @@ class JsonP(JsonDocument):
         super(JsonP, self).create_out_string(ctx)
 
         ctx.out_string = chain([self.callback_name, '('], ctx.out_string, [');'])
-
-
-JsonObject = JsonDocument
-"""DEPRECATED. Use :class:`spyne.protocol.json.JsonDocument` instead"""
