@@ -239,7 +239,3 @@ class MessagePackRpc(MessagePackDocument):
                                    ]]
 
             self.event_manager.fire_event('after_serialize', ctx)
-
-
-MessagePackObject = MessagePackDocument
-"""DEPRECATED. Use :class:`spyne.protocol.msgpack.MessagePackDocument` instead"""
