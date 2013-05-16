@@ -17,7 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from spyne.protocol.json import JsonEncoder
 import unittest
 try:
     import simplejson as json
@@ -29,6 +28,7 @@ from spyne.model.primitive import Integer
 from spyne.test.protocol._test_dictdoc import TDictDocumentTest
 from spyne.protocol.json import JsonP
 from spyne.protocol.json import JsonDocument
+from spyne.protocol.json import JsonEncoder
 
 from spyne import MethodContext
 from spyne.application import Application
