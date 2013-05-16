@@ -433,7 +433,7 @@ class HierDictDocument(DictDocument):
         self.event_manager.fire_event('before_serialize', ctx)
 
         if ctx.out_error is not None:
-            ctx.out_document = [self.to_dict(ctx.out_error.__class__,
+            ctx.out_document = [Fault.to_dict(ctx.out_error.__class__,
                                                                  ctx.out_error)]
 
         else:
