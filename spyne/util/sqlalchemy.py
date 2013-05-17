@@ -57,7 +57,6 @@ from sqlalchemy.orm import mapper
 
 from sqlalchemy.types import UserDefinedType
 
-from spyne.model import ModelBase
 from spyne.model.complex import table as c_table
 from spyne.model.complex import xml as c_xml
 from spyne.model.complex import json as c_json
