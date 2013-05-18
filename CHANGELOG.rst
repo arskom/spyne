@@ -4,12 +4,12 @@ Changelog
 
 spyne-2.11.0
 ------------
- * Add support for altering output protocol by setting ``ctx.out_protocol``.
- * Add returning ctx.out_string support to null server.
- * Add support for XmlData modifier. It lets mapping the data in the xml body
-   to an object field.
- * Remove deprecated ``JsonObject`` identifier. Just do a gentle 
-   ``s/JsonObject/JsonDocument/g``.
+* Add support for altering output protocol by setting ``ctx.out_protocol``.
+* Add returning ctx.out_string support to null server.
+* Add support for XmlData modifier. It lets mapping the data in the xml body
+  to an object field.
+* Remove deprecated ``JsonObject`` identifier. Just do a gentle
+  ``s/JsonObject/JsonDocument/g``.
 
 spyne-2.10.6
 ------------
@@ -198,7 +198,7 @@ rpclib-2.8.0-rc -> spyne-2.8.0-rc
 
       name, in_protocol, out_protocol, interface
 
-* Relevant pull requests with new features and behavioral changes:
+* Relevant pull requests with new features and notable changes:
    * https://github.com/arskom/spyne/pull/128
    * https://github.com/arskom/spyne/pull/129
    * https://github.com/arskom/spyne/pull/139
@@ -216,11 +216,11 @@ rpclib-2.7.0-beta
   ``descriptor.function`` unless you understand the consequences!..
 * String and Unicode models are now separate objects with well-defined
   (de)serialization behaviour.
-* Argument order change in Application ctor:
+* Argument order change in Application ctor: ::
 
       interface, in_protocol, out_protocol
 
-  becomes:
+  becomes: ::
 
       in_protocol, out_protocol, interface
 
