@@ -71,7 +71,6 @@ class TestXml(unittest.TestCase):
             c = Decimal
             d = DateTime
 
-
         class Foo(ComplexModel):
             __namespace__ = 'some_other_namespace'
 
@@ -98,7 +97,6 @@ class TestXml(unittest.TestCase):
                     self.d == other.d and
                     self.e == other.e
                 )
-
 
         docs = get_schema_documents([Punk, Foo])
         pprint(docs)
