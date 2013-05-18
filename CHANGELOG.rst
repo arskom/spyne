@@ -5,6 +5,7 @@ Changelog
 spyne-2.10.6
 ------------
  * Fix exception serialization regression in DictDocument family.
+ * Fix xml utils (and its example).
 
 spyne-2.10.5
 ------------
