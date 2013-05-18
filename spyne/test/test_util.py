@@ -90,13 +90,7 @@ class TestXml(unittest.TestCase):
                     self.e == other.e
                 )
 
-                return (
-                    self.a == other.a and
-                    self.b == other.b and
-                    self.c == other.c and
-                    self.d == other.d and
-                    self.e == other.e
-                )
+                return True
 
         docs = get_schema_documents([Punk, Foo])
         pprint(docs)
