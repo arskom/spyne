@@ -164,7 +164,7 @@ class XmlAttribute(ModelBase):
     @classmethod
     def marshall(cls, prot, name, value, parent_elt):
         if cls._ns is not None:
-            name = "{%s}%s" % (cls._ns,name)
+            name = "{%s}%s" % (cls._ns, name)
 
         if value is not None:
             parent_elt.set(name, prot.to_string(cls.type, value))

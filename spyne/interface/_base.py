@@ -326,6 +326,9 @@ class Interface(object):
 
                 self.add_class(v)
 
+                if v.get_namespace() is None and cls.get_namespace() is not None:
+                    v.resolve_namespace(v, cls.get_namespace());
+
                 child_ns = v.get_namespace()
                 if child_ns != ns and not child_ns in self.imports[ns] and \
                                                  self.is_valid_import(child_ns):

@@ -85,9 +85,9 @@ print(etree.tostring(docs['s0'], pretty_print=True))
 
 
 foo = Foo(a='a', b=1, c=3.4, d=datetime(2011,02,20),e=5)
-doc = get_object_as_xml(foo)
+doc = get_object_as_xml(foo, Foo)
 print(etree.tostring(doc, pretty_print=True))
-print(get_xml_as_object(Foo, doc))
+print(get_xml_as_object(doc, Foo))
 
 # See http://lxml.de/validation.html to see what this could be used for.
 print(get_validation_schema([Punk, Foo]))

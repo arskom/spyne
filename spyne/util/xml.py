@@ -73,14 +73,14 @@ def get_validation_schema(models, default_namespace=None):
     fake_app.tns = default_namespace
     fake_app.services = []
 
-    interface = XmlSchema()
-    interface.set_app(fake_app)
+    interface = Interface(fake_app)
     for m in models:
-        interface.add(m)
+        interface.add_class(m)
 
-    interface.build_validation_schema()
+    schema = XmlSchema(interface)
+    schema.build_validation_schema()
 
-    return interface.validation_schema
+    return schema.validation_schema
 
 
 def _dig(par):
