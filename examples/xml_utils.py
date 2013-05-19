@@ -73,6 +73,7 @@ class Foo(ComplexModel):
     c = Decimal
     d = DateTime
     e = XmlAttribute(Integer)
+    f = XmlAttribute(Unicode, attribute_of='d')
 
 
 class ProductEdition(ComplexModel):
@@ -98,8 +99,8 @@ print()
 print("the other namespace %r:" % docs['s0'].attrib['targetNamespace'])
 print(etree.tostring(docs['s0'], pretty_print=True))
 
-
-foo = Foo(a='a', b=1, c=3.4, d=datetime(2011,02,20),e=5)
+# Object serialization and deserialization
+foo = Foo(a='a', b=1, c=3.4, d=datetime(2011,02,20),e=5,f='f')
 doc = get_object_as_xml(foo, Foo)
 print(etree.tostring(doc, pretty_print=True))
 print(get_xml_as_object(doc, Foo))
