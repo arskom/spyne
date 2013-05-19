@@ -294,6 +294,9 @@ class Interface(object):
         ns = cls.get_namespace()
         tn = cls.get_type_name()
 
+        assert ns is not None, ('either assign a namespace to the class or call'
+                        ' cls.resolve_namespace(cls, "some_default_ns") on it.')
+
         if not (ns in self.imports):
             self.imports[ns] = set()
 
@@ -324,6 +327,9 @@ class Interface(object):
             for k,v in cls._type_info.items():
                 if v is None:
                     continue
+
+                if v.get_namespace() is None:
+                    v.resolve_namespace(v, ns)
 
                 self.add_class(v)
 

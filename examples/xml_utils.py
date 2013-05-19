@@ -77,18 +77,24 @@ class Foo(ComplexModel):
 
 
 class ProductEdition(ComplexModel):
+    __namespace__ = 'kickass_namespace'
+
     id = XmlAttribute(Uuid)
     name = XmlData(Unicode)
 
 
 class Product(ComplexModel):
+    __namespace__ = 'kickass_namespace'
+
     id = XmlAttribute(Uuid)
     edition = ProductEdition
 
 
-docs = get_schema_documents([Punk, Foo])
+docs = get_schema_documents([Punk, Foo, Product])
 pprint(docs)
 print()
+
+pprint({k: v.attrib['targetNamespace'] for k,v in docs.items()})
 
 # the default ns prefix is always tns
 print("the default namespace %r:" % docs['tns'].attrib['targetNamespace'])
@@ -109,7 +115,7 @@ print()
 # XmlData example.
 print("Product output (illustrates XmlData):")
 product = Product(id=uuid.uuid4(), edition=ProductEdition(id=uuid.uuid4(),
-                                                            name='My edition'))
+                                                             name='My edition'))
 print(etree.tostring(get_object_as_xml(product, Product), pretty_print=True))
 
 # See http://lxml.de/validation.html to see what this could be used for.
