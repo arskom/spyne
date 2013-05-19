@@ -104,6 +104,11 @@ print()
 # Namespace prefixes are assigned like s0, s1, s2, etc...
 print("the other namespace %r:" % docs['s0'].attrib['targetNamespace'])
 print(etree.tostring(docs['s0'], pretty_print=True))
+print()
+
+print("the other namespace %r:" % docs['s2'].attrib['targetNamespace'])
+print(etree.tostring(docs['s2'], pretty_print=True))
+print()
 
 # Object serialization and deserialization
 foo = Foo(a='a', b=1, c=3.4, d=datetime(2011,02,20),e=5,f='f')
