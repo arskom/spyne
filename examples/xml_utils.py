@@ -33,15 +33,20 @@
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
+import uuid
+
 from datetime import datetime
 from pprint import pprint
 
 from lxml import etree
 
+from spyne.model.primitive import Uuid
+from spyne.model.primitive import Unicode
 from spyne.model.primitive import String
 from spyne.model.primitive import Integer
 from spyne.model.primitive import Decimal
 from spyne.model.primitive import DateTime
+from spyne.model.complex import XmlData
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import XmlAttribute
 
@@ -70,6 +75,16 @@ class Foo(ComplexModel):
     e = XmlAttribute(Integer)
 
 
+class ProductEdition(ComplexModel):
+    id = XmlAttribute(Uuid)
+    name = XmlData(Unicode)
+
+
+class Product(ComplexModel):
+    id = XmlAttribute(Uuid)
+    edition = ProductEdition
+
+
 docs = get_schema_documents([Punk, Foo])
 pprint(docs)
 print()
@@ -88,6 +103,13 @@ foo = Foo(a='a', b=1, c=3.4, d=datetime(2011,02,20),e=5)
 doc = get_object_as_xml(foo, Foo)
 print(etree.tostring(doc, pretty_print=True))
 print(get_xml_as_object(doc, Foo))
+print()
+
+# XmlData example.
+print("Product output (illustrates XmlData):")
+product = Product(id=uuid.uuid4(), edition=ProductEdition(id=uuid.uuid4(),
+                                                            name='My edition'))
+print(etree.tostring(get_object_as_xml(product, Product), pretty_print=True))
 
 # See http://lxml.de/validation.html to see what this could be used for.
 print(get_validation_schema([Punk, Foo]))
