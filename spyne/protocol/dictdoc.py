@@ -589,7 +589,7 @@ class HierDictDocument(DictDocument):
         if self.ignore_wrappers:
             ti = getattr(class_, '_type_info', {})
 
-            while class_.Attributes._wrapper:
+            while class_.Attributes._wrapper and len(ti) == 1:
                 # Wrappers are auto-generated objects that have exactly one
                 # child type.
                 key, = ti.keys()
