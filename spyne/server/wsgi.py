@@ -152,7 +152,7 @@ class WsgiApplication(HttpBase):
     it: ::
 
         wsgi_app = WsgiApplication(...)
-        wsgi_app.http_transport.doc.wsdl11.build_interface_document("http://example.com")
+        wsgi_app.doc.wsdl11.build_interface_document("http://example.com")
 
     This is not strictly necessary -- if you don't do this, Spyne will get the
     URL from the first request, build the wsdl on-the-fly and cache it as a
