@@ -73,7 +73,6 @@ from twisted.internet import reactor
 from twisted.web.server import Site
 from twisted.internet.task import deferLater
 
-from spyne.model.complex import Iterable
 from spyne.server.twisted import TwistedWebResource
 from spyne.decorator import srpc
 from spyne.service import ServiceBase

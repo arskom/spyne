@@ -23,6 +23,20 @@ with the Twisted event loop. It uses the TwistedWebResource object as transport.
 Also see the twisted examples in the examples directory of the source
 distribution.
 
+If you want to have a hard-coded URL in the wsdl document, this is how to do
+it: ::
+
+    resource = TwistedWebResource(...)
+    resource.http_transport.doc.wsdl11.build_interface_document("http://example.com")
+
+This is not strictly necessary -- if you don't do this, Spyne will get the
+URL from the first request, build the wsdl on-the-fly and cache it as a
+string in memory for later requests. However, if you want to make sure
+you only have this url on the WSDL, this is how to do it. Note that if
+your client takes the information in wsdl seriously, all requests will go
+to the designated url above which can make testing a bit difficult. Use
+in moderation.
+
 This module is EXPERIMENTAL. Your mileage may vary. Patches are welcome.
 """
 
@@ -47,6 +61,7 @@ from spyne.server.http import HttpBase
 
 from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
+from spyne.const.http import HTTP_404
 from spyne.const.http import HTTP_405
 
 
@@ -234,26 +249,23 @@ class TwistedWebResource(Resource):
                                                       "text/xml; charset=utf-8")
         url = _reconstruct_url(request)
 
+        if self.doc.wsdl11 is None:
+            return HTTP_404
+
+        if self._wsdl is None:
+            self._wsdl = self.http_transport.doc.wsdl11.get_interface_document()
+
+        ctx.transport.wsdl = self._wsdl
+
         try:
-            ctx.transport.wsdl = self._wsdl
+            if self._wsdl is None:
+                self.http_transport.doc.wsdl11.build_interface_document(url)
+                ctx.transport.wsdl = self._wsdl = \
+                         self.http_transport.doc.wsdl11.get_interface_document()
 
-            if ctx.transport.wsdl is None:
-                from spyne.interface.wsdl.wsdl11 import Wsdl11
-                wsdl = Wsdl11(self.http_transport.app.interface)
-                wsdl.build_interface_document(url)
-                self._wsdl = ctx.transport.wsdl = wsdl.get_interface_document()
-
-            assert ctx.transport.wsdl != None
+            assert ctx.transport.wsdl is not None
 
             self.http_transport.event_manager.fire_event('wsdl', ctx)
-
-            for k,v in ctx.transport.resp_headers.items():
-                if isinstance(v, (list,tuple)):
-                    for v2 in v:
-                        request.setHeader(k,v2)
-                else:
-                    request.setHeader(k,v)
-
 
             return ctx.transport.wsdl
 

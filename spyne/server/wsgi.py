@@ -58,6 +58,7 @@ from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
 from spyne.const.http import HTTP_200
 from spyne.const.http import HTTP_404
+from spyne.const.http import HTTP_405
 from spyne.const.http import HTTP_500
 
 
@@ -146,6 +147,21 @@ class WsgiApplication(HttpBase):
     '''A `PEP-3333 <http://www.python.org/dev/peps/pep-3333>`_
     compliant callable class.
 
+    If you want to have a hard-coded URL in the wsdl document, this is how to do
+    it: ::
+
+        wsgi_app = WsgiApplication(...)
+        wsgi_app.http_transport.doc.wsdl11.build_interface_document("http://example.com")
+
+    This is not strictly necessary -- if you don't do this, Spyne will get the
+    URL from the first request, build the wsdl on-the-fly and cache it as a
+    string in memory for later requests. However, if you want to make sure
+    you only have this url on the WSDL, this is how to do it. Note that if
+    your client takes the information in the Wsdl document seriously (not all
+    do), all requests will go to the designated url above even when you get the
+    Wsdl from another location, which can make testing a bit difficult. Use in
+    moderation.
+
     Supported events:
         * ``wsdl``
             Called right before the wsdl data is returned to the client.
@@ -177,7 +193,7 @@ class WsgiApplication(HttpBase):
         HttpBase.__init__(self, app, chunked, max_content_length, block_length)
 
         self._mtx_build_interface_document = threading.Lock()
-        self._wsdl = None
+        self._wsdl = self.doc.wsdl11.get_interface_document()
 
         # Initialize HTTP Patterns
         self._http_patterns = None
@@ -240,6 +256,9 @@ class WsgiApplication(HttpBase):
             start_response(HTTP_404,
                                   _gen_http_headers(ctx.transport.resp_headers))
             return [HTTP_404]
+
+        if self._wsdl is None:
+            self._wsdl = self.doc.wsdl11.get_interface_document()
 
         ctx.transport.wsdl = self._wsdl
 
