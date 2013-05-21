@@ -83,6 +83,15 @@ class TestPrimitive(unittest.TestCase):
         assert Decimal(10,4).Attributes.total_digits == 10
         assert Decimal(10,4).Attributes.fraction_digits == 4
 
+    def test_decimal_format(self):
+        f = 123456
+        str_format='${:,.2f}'
+        element = etree.Element('test')
+        XmlDocument().to_parent_element(Decimal(str_format=str_format), f, ns_test, element)
+        element = element[0]
+
+        self.assertEquals(element.text, '$123,456.00')
+
     def test_string(self):
         s = String()
         element = etree.Element('test')
