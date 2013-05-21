@@ -1,4 +1,4 @@
-.. image:: https://travis-ci.org/arskom/spyne.png?branch=master
+.. image:: https://travis-ci.org/arskom/spyne.png?branch=2_10
         :target: http://travis-ci.org/arskom/spyne
 
 About
