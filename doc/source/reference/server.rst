@@ -17,6 +17,30 @@ HTTP (WSGI)
     :inherited-members:
     :undoc-members:
 
+Http (Twisted)
+--------------
+
+.. automodule:: spyne.server.twisted
+    :members:
+    :inherited-members:
+    :undoc-members:
+
+Http (Django)
+-------------
+
+.. automodule:: spyne.server.django
+    :members:
+    :inherited-members:
+    :undoc-members:
+
+Http (Pyramid)
+--------------
+
+.. automodule:: spyne.server.pyramid
+    :members:
+    :inherited-members:
+    :undoc-members:
+
 ZeroMQ
 ------
 
