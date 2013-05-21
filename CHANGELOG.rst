@@ -6,12 +6,14 @@ spyne-2.10.6
 ------------
 * Fix exception serialization regression in DictDocument family.
 * Fix xml utils (and its example).
+* Fix logic error in wsdl caching that prevented the url in Wsdl document from
+  being customized.
 
 spyne-2.10.5
 ------------
 * Fix default value handling in ``HttpRpc``.
 * Fix invalid document type raising ``InternalError`` in DictDocument family.
-  It now raises ValidationError.
+  It now raises ``ValidationError``.
 * HttpRpc: Fix ``ByteArray`` deserialization.
 * HttpRpc: Fix many corner cases with ``Array``s.
 * Fix Csv serializer.
