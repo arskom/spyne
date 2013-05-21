@@ -11,12 +11,16 @@ spyne-2.11.0
 * Remove deprecated ``JsonObject`` identifier. Just do a gentle
   ``s/JsonObject/JsonDocument/g``.
 
+spyne-2.10.7
+------------
+* Fix logic error in wsdl caching that prevented the url in Wsdl document from
+  being customized.
+* Fix dictdoc not playing well with functions with empty return values.
+
 spyne-2.10.6
 ------------
 * Fix exception serialization regression in DictDocument family.
 * Fix xml utils (and its example).
-* Fix logic error in wsdl caching that prevented the url in Wsdl document from
-  being customized.
 
 spyne-2.10.5
 ------------
