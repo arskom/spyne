@@ -924,22 +924,28 @@ class TestSqlAlchemyNested(unittest.TestCase):
             __tablename__ = 'some_class'
 
             id = Integer32(primary_key=True)
-            values = Array(Unicode(table_name='string')).store_as('table')
+            values = Array(Unicode).store_as('table')
 
         metadata.create_all()
         session.add(SomeClass(id=1, values=['a', 'b', 'c']))
         session.commit()
-        assert session.query(SomeClass).get(1).values == ['a', 'b', 'c']
+        sc = session.query(SomeClass).get(1)
+        assert sc.values == ['a', 'b', 'c']
+        del sc
 
         sc = session.query(SomeClass).get(1)
         sc.values.append('d')
         session.commit()
-        assert session.query(SomeClass).get(1).values == ['a', 'b', 'c', 'd']
+        del sc
+        sc = session.query(SomeClass).get(1)
+        assert sc.values == ['a', 'b', 'c', 'd']
 
         sc = session.query(SomeClass).get(1)
         sc.values = sc.values[1:]
         session.commit()
-        assert session.query(SomeClass).get(1).values == ['b', 'c', 'd']
+        del sc
+        sc = session.query(SomeClass).get(1)
+        assert sc.values == ['b', 'c', 'd']
 
 
 if __name__ == '__main__':
