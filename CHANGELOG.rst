@@ -10,6 +10,8 @@ spyne-2.11.0
   to an object field.
 * Remove deprecated ``JsonObject`` identifier. Just do a gentle
   ``s/JsonObject/JsonDocument/g``.
+* Implement arrays of simple types for SQLAlchemy integration using
+  association_proxy.
 
 spyne-2.10.7
 ------------
