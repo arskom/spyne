@@ -57,6 +57,7 @@ from sqlalchemy.orm import mapper
 
 from sqlalchemy.types import UserDefinedType
 
+from spyne.model import SimpleModel
 from spyne.model.complex import table as c_table
 from spyne.model.complex import xml as c_xml
 from spyne.model.complex import json as c_json
@@ -133,6 +134,7 @@ _sq2sp_type_map = {
 }
 
 
+# this needs to be called whenever a new column is instantiated.
 def _sp_attrs_to_sqla_constraints(cls, v, col_kwargs=None, col=None):
     # cls is the parent class of v
     if v.Attributes.nullable == False and cls.__extends__ is None:
@@ -433,7 +435,7 @@ def _get_col_o2m(cls, fk_col_name):
 
     col = Column(fk_col_name, pk_sqla_type,
                 ForeignKey('%s.%s' % (cls.Attributes.table_name, pk_key)),
-                                                    *col_args, **col_kwargs)
+                                                       *col_args, **col_kwargs)
 
     yield col
 
@@ -451,8 +453,8 @@ def _get_cols_m2m(cls, k, v, left_fk_col_name, right_fk_col_name):
 
 class _FakeTable(object):
     def __init__(self):
-        self.columns = []
         self.c = {}
+        self.columns = []
         self.indexes = []
 
     def append_column(self, col):
@@ -557,16 +559,21 @@ def gen_sqla_info(cls, cls_bases=()):
                     props[k] = relationship(child, secondary=rel_t,
                                                               backref=p.backref)
 
-                else: # one to many
-                    assert p.left is None, "'left' is ignored in one-to-many " \
-                                            "relationships. You probebly meant " \
-                                            "to use 'right'."
+                elif issubclass(child, SimpleModel): # one to many simple type
+                    raise NotImplementedError()
 
-                    child_t = child.__table__
+
+                else: # one to many complex type
                     _gen_col = _get_col_o2m(cls, p.right)
-
                     col_info = _gen_col.next() # gets the column name
                     p.right, col_type = col_info[0] # FIXME: Add support for multi-column primary keys.
+
+                    assert p.left is None, \
+                        "'left' is ignored in one-to-many relationships " \
+                        "with complex types (because they already have a " \
+                        "table). You probably meant to use 'right'."
+
+                    child_t = child.__table__
 
                     if p.right in child_t.c:
                         # FIXME: This branch MUST be tested.
