@@ -390,7 +390,7 @@ class WsgiApplication(HttpBase):
         self.event_manager.fire_event('wsgi_return', p_ctx)
 
         if self.chunked:
-            # the client has not set a content-length, so we delete it as the
+            # the user has not set a content-length, so we delete it as the
             # input is just an iterable.
             if 'Content-Length' in p_ctx.transport.resp_headers:
                 del p_ctx.transport.resp_headers['Content-Length']
