@@ -57,6 +57,13 @@ class ArgumentError(Fault):
         Fault.__init__(self, 'Client.ArgumentError', faultstring)
 
 
+class InvalidInput(Fault):
+    """Raised when there is a general problem with input data."""
+
+    def __init__(self, faultstring=""):
+        Fault.__init__(self, 'Client.InvalidInput', faultstring)
+
+
 class ValidationError(Fault):
     """Raised when the input stream does not adhere to type constraints."""
 
