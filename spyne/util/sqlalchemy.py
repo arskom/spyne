@@ -606,7 +606,9 @@ def gen_sqla_info(cls, cls_bases=()):
 
                     print repr(child_t)
                     # generate temporary class for association proxy
-                    cls_name = ''.join(x.capitalize() or '_' for x in child_table_name.split('_'))
+                    cls_name = ''.join(x.capitalize() or '_' for x in
+                                                    child_table_name.split('_'))
+                                            # generates camelcase class name.
 
                     def _i(self, *args):
                         setattr(self, child_right_col_name, args[0])
