@@ -182,6 +182,9 @@ class ModelBase(object):
         ``sqlalchemy.Integer``.
         """
 
+        table_name = None
+        """Database table name."""
+
         index = None
         """Can be ``True``, a string, or a tuple of two strings.
 

@@ -438,9 +438,6 @@ class ComplexModelBase(ModelBase):
         sense to specify this only when this object is a child of another
         ComplexModel sublass.""" % (PSSM_VALUES,)
 
-        table_name = None
-        """Table name."""
-
         sqla_metadata = None
         """None or :class:`sqlalchemy.MetaData` instance."""
 
