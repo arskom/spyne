@@ -293,6 +293,11 @@ class Decimal(SimpleModel):
         """A regular python string formatting string. See here:
         http://docs.python.org/library/stdtypes.html#string-formatting"""
 
+        str_format = None
+        """A regular python string formatting string used by invoking its
+        ``format()`` function. See here:
+        http://docs.python.org/2/library/string.html#format-string-syntax"""
+
         pattern = None
         """A regular expression that matches the whole field. See here for more
         info: http://www.regular-expressions.info/xml.html"""
