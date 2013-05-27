@@ -927,6 +927,7 @@ class TestSqlAlchemyNested(unittest.TestCase):
             values = Array(Unicode).store_as('table')
 
         metadata.create_all()
+
         session.add(SomeClass(id=1, values=['a', 'b', 'c']))
         session.commit()
         sc = session.query(SomeClass).get(1)
@@ -947,6 +948,44 @@ class TestSqlAlchemyNested(unittest.TestCase):
         sc = session.query(SomeClass).get(1)
         assert sc.values == ['b', 'c', 'd']
 
+    def test_multiple_fk(self):
+        engine = create_engine('sqlite:///:memory:')
+        session = sessionmaker(bind=engine)()
+        metadata = NewTableModel.Attributes.sqla_metadata = MetaData()
+        metadata.bind = engine
+
+        class SomeChildClass(NewTableModel):
+            __tablename__ = 'some_child_class'
+
+            id = Integer32(primary_key=True)
+            s = Unicode(64)
+            i = Integer32
+
+        class SomeClass(NewTableModel):
+            __tablename__ = 'some_class'
+
+            id = Integer32(primary_key=True)
+            children = Array(SomeChildClass).store_as('table')
+            mirror = SomeChildClass.store_as('table')
+
+        metadata.create_all()
+
+        children = [
+            SomeChildClass(s='p', i=600),
+            SomeChildClass(s='|', i=10),
+            SomeChildClass(s='q', i=9),
+        ]
+
+        sc = SomeClass(children=children)
+        session.add(sc)
+        session.flush()
+        sc.mirror = children[1]
+        session.commit()
+        del sc
+
+        sc = session.query(SomeClass).get(1)
+        assert ''.join([scc.s for scc in sc.children]) == 'p|q'
+        assert     sum([scc.i for scc in sc.children]) ==  619
 
 if __name__ == '__main__':
     unittest.main()

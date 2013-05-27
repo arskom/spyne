@@ -10,8 +10,9 @@ spyne-2.11.0
   to an object field.
 * Remove deprecated ``JsonObject`` identifier. Just do a gentle
   ``s/JsonObject/JsonDocument/g``.
-* Implement arrays of simple types for SQLAlchemy integration using
-  association_proxy.
+* SQLAlchemy: Implement storing arrays of simple types in a table.
+* SQLAlchemy: Make it work with multiple foreign keys from one table to
+  another.
 
 spyne-2.10.7
 ------------

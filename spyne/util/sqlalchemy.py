@@ -404,7 +404,8 @@ def _get_col_o2o(parent, k, v, fk_col_name):
     if fk_col_name is None:
         fk_col_name = k + "_" + pk_key
 
-    fk = ForeignKey('%s.%s' % (v.Attributes.table_name, pk_key))
+    fk = ForeignKey('%s.%s' % (v.Attributes.table_name, pk_key), use_alter=True,
+          name='%s_%s_fkey' % (v.Attributes.table_name, fk_col_name))
 
     return Column(fk_col_name, pk_sqla_type, fk, *col_args, **col_kwargs)
 
@@ -604,7 +605,6 @@ def gen_sqla_info(cls, cls_bases=()):
                             Column('id', sqlalchemy.Integer, primary_key=True),
                                                 child_left_col, child_right_col)
 
-                    print repr(child_t)
                     # generate temporary class for association proxy
                     cls_name = ''.join(x.capitalize() or '_' for x in
                                                     child_table_name.split('_'))
@@ -643,6 +643,7 @@ def gen_sqla_info(cls, cls_bases=()):
                         #
                         # so, not adding the child column to to child mapper
                         # here.
+                        col = child_t.c[p.right]
 
                     else:
                         col = _gen_col.next()
@@ -652,7 +653,7 @@ def gen_sqla_info(cls, cls_bases=()):
                         child_t.append_column(col)
                         child.__mapper__.add_property(col.name, col)
 
-                    props[k] = relationship(child)
+                    props[k] = relationship(child, foreign_keys=[col])
 
             elif p is not None and issubclass(v, ComplexModelBase):
                 # v has the Attribute values we need whereas real_v is what the
@@ -671,7 +672,7 @@ def gen_sqla_info(cls, cls_bases=()):
                                             "relationship"
 
                     col = _get_col_o2o(cls, k, v, p.left)
-                    rel = relationship(real_v, uselist=False)
+                    rel = relationship(real_v, uselist=False, foreign_keys=[col])
 
                     p.left = col.key
                     props[k] = rel
