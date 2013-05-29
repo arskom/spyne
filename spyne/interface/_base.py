@@ -268,9 +268,6 @@ class Interface(object):
         if not (isinstance(ns, str) or isinstance(ns, unicode)):
             raise TypeError(ns)
 
-        if ns == "__main__":
-            warnings.warn("Namespace is '__main__'", Warning )
-
         if not (ns in self.prefmap):
             pref = "s%d" % self.__ns_counter
             while pref in self.nsmap:
@@ -293,6 +290,9 @@ class Interface(object):
 
         ns = cls.get_namespace()
         tn = cls.get_type_name()
+
+        assert ns is not None, ('either assign a namespace to the class or call'
+                        ' cls.resolve_namespace(cls, "some_default_ns") on it.')
 
         if not (ns in self.imports):
             self.imports[ns] = set()
@@ -325,7 +325,13 @@ class Interface(object):
                 if v is None:
                     continue
 
+                if v.get_namespace() is None:
+                    v.resolve_namespace(v, ns)
+
                 self.add_class(v)
+
+                if v.get_namespace() is None and cls.get_namespace() is not None:
+                    v.resolve_namespace(v, cls.get_namespace());
 
                 child_ns = v.get_namespace()
                 if child_ns != ns and not child_ns in self.imports[ns] and \

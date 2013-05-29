@@ -2,27 +2,42 @@
 
 import unittest
 
-from datetime import datetime
+import decimal
 
-from spyne.application import Application
+from pprint import pprint
+
+from datetime import datetime
+from lxml import etree
+
 from spyne.const import MAX_STRING_FIELD_LENGTH
+
 from spyne.decorator import srpc
+from spyne.application import Application
+
+from spyne.model.complex import XmlAttribute
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import Iterable
 from spyne.model.complex import Array
+from spyne.model.primitive import Decimal
 from spyne.model.primitive import DateTime
 from spyne.model.primitive import Integer
 from spyne.model.primitive import Unicode
+
 from spyne.service import ServiceBase
+
 from spyne.util.protocol import deserialize_request_string
+
 from spyne.util.dictdoc import get_dict_as_object
 from spyne.util.dictdoc import get_object_as_dict
+
+from spyne.util.xml import get_object_as_xml
+from spyne.util.xml import get_xml_as_object
+from spyne.util.xml import get_schema_documents
+from spyne.util.xml import get_validation_schema
 
 
 class TestXml(unittest.TestCase):
     def test_serialize(self):
-        from spyne.util.xml import get_object_as_xml
-        from lxml import etree
 
         class C(ComplexModel):
             __namespace__ = "tns"
@@ -46,6 +61,62 @@ class TestXml(unittest.TestCase):
         ret = get_object_as_xml(c, C, no_namespace=True)
         print etree.tostring(ret)
         assert ret.tag == "C"
+
+    def test_deserialize(self):
+        class Punk(ComplexModel):
+            __namespace__ = 'some_namespace'
+
+            a = Unicode
+            b = Integer
+            c = Decimal
+            d = DateTime
+
+        class Foo(ComplexModel):
+            __namespace__ = 'some_other_namespace'
+
+            a = Unicode
+            b = Integer
+            c = Decimal
+            d = DateTime
+            e = XmlAttribute(Integer)
+
+            def __eq__(self, other):
+                # remember that this is a test object
+                assert (
+                    self.a == other.a and
+                    self.b == other.b and
+                    self.c == other.c and
+                    self.d == other.d and
+                    self.e == other.e
+                )
+
+                return True
+
+        docs = get_schema_documents([Punk, Foo])
+        pprint(docs)
+        assert docs['s0'].tag == '{http://www.w3.org/2001/XMLSchema}schema'
+        assert docs['tns'].tag == '{http://www.w3.org/2001/XMLSchema}schema'
+        print()
+
+        print("the other namespace %r:" % docs['tns'].attrib['targetNamespace'])
+        assert docs['tns'].attrib['targetNamespace'] == 'some_namespace'
+        print(etree.tostring(docs['tns'], pretty_print=True))
+        print()
+
+        print("the other namespace %r:" % docs['s0'].attrib['targetNamespace'])
+        assert docs['s0'].attrib['targetNamespace'] == 'some_other_namespace'
+        print(etree.tostring(docs['s0'], pretty_print=True))
+        print()
+
+        foo = Foo(a=u'a', b=1, c=decimal.Decimal('3.4'), d=datetime(2011,02,20), e=5)
+        doc = get_object_as_xml(foo, Foo)
+        print(etree.tostring(doc, pretty_print=True))
+        foo_back = get_xml_as_object(doc, Foo)
+
+        assert foo_back == foo
+
+        # as long as it doesn't fail, it's ok.
+        get_validation_schema([Punk, Foo])
 
 
 class TestCDict(unittest.TestCase):

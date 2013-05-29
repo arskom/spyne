@@ -44,14 +44,16 @@ from spyne.model.primitive import Integer
 host = '127.0.0.1'
 port = 9752
 
+
 class SomeService(ServiceBase):
     @srpc(Integer, _returns=Integer)
     def block(seconds):
-        """Blocks the reactor for given number of seconds."""
+        """Blocks the current thread for given number of seconds."""
         time.sleep(seconds)
         return seconds
 
-def initialize(services=(SomeService,)):
+
+def initialize(services):
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 

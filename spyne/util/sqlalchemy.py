@@ -54,10 +54,11 @@ from sqlalchemy.ext.compiler import compiles
 
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import mapper
+from sqlalchemy.ext.associationproxy import association_proxy
 
 from sqlalchemy.types import UserDefinedType
 
-from spyne.model import ModelBase
+from spyne.model import SimpleModel
 from spyne.model.complex import table as c_table
 from spyne.model.complex import xml as c_xml
 from spyne.model.complex import json as c_json
@@ -134,6 +135,7 @@ _sq2sp_type_map = {
 }
 
 
+# this needs to be called whenever a new column is instantiated.
 def _sp_attrs_to_sqla_constraints(cls, v, col_kwargs=None, col=None):
     # cls is the parent class of v
     if v.Attributes.nullable == False and cls.__extends__ is None:
@@ -402,7 +404,8 @@ def _get_col_o2o(parent, k, v, fk_col_name):
     if fk_col_name is None:
         fk_col_name = k + "_" + pk_key
 
-    fk = ForeignKey('%s.%s' % (v.Attributes.table_name, pk_key))
+    fk = ForeignKey('%s.%s' % (v.Attributes.table_name, pk_key), use_alter=True,
+          name='%s_%s_fkey' % (v.Attributes.table_name, fk_col_name))
 
     return Column(fk_col_name, pk_sqla_type, fk, *col_args, **col_kwargs)
 
@@ -434,7 +437,7 @@ def _get_col_o2m(cls, fk_col_name):
 
     col = Column(fk_col_name, pk_sqla_type,
                 ForeignKey('%s.%s' % (cls.Attributes.table_name, pk_key)),
-                                                    *col_args, **col_kwargs)
+                                                       *col_args, **col_kwargs)
 
     yield col
 
@@ -452,8 +455,8 @@ def _get_cols_m2m(cls, k, v, left_fk_col_name, right_fk_col_name):
 
 class _FakeTable(object):
     def __init__(self):
-        self.columns = []
         self.c = {}
+        self.columns = []
         self.indexes = []
 
     def append_column(self, col):
@@ -558,16 +561,77 @@ def gen_sqla_info(cls, cls_bases=()):
                     props[k] = relationship(child, secondary=rel_t,
                                                               backref=p.backref)
 
-                else: # one to many
-                    assert p.left is None, "'left' is ignored in one-to-many " \
-                                            "relationships. You probebly meant " \
-                                            "to use 'right'."
+                elif issubclass(child, SimpleModel): # one to many simple type
+                    # get left (fk) column info
+                    _gen_col = _get_col_o2m(cls, p.left)
+                    col_info = _gen_col.next() # gets the column name
+                    p.left, child_left_col_type = col_info[0] # FIXME: Add support for multi-column primary keys.
+                    child_left_col_name = p.left
 
-                    child_t = child.__table__
+                    # get right(data) column info
+                    child_right_col_type = get_sqlalchemy_type(child_cust)
+                    child_right_col_name = p.right # this is the data column
+                    if child_right_col_name is None:
+                        child_right_col_name = k
+
+                    # get table name
+                    child_table_name = child_cust.Attributes.table_name
+                    if child_table_name is None:
+                        child_table_name = '_'.join([table_name, k])
+
+                    if child_table_name in metadata.tables:
+                        # table exists, get releavant info
+                        child_t = metadata.tables[child_table_name]
+                        assert child_right_col_type is \
+                               child_t.c[child_right_col_name].type.__class__
+                        assert child_left_col_type is \
+                               child_t.c[child_left_col_name].type.__class__
+
+                        child_right_col = child_t.c[child_right_col_name]
+                        child_left_col = child_t.c[child_left_col_name]
+
+                    else:
+                        # table does not exist, generate table
+                        child_right_col = Column(child_right_col_name,
+                                                        child_right_col_type)
+                        _sp_attrs_to_sqla_constraints(cls, child_cust,
+                                                            col=child_right_col)
+
+                        child_left_col = _gen_col.next()
+                        _sp_attrs_to_sqla_constraints(cls, child_cust,
+                                                            col=child_left_col)
+
+                        child_t = Table(child_table_name , metadata,
+                            Column('id', sqlalchemy.Integer, primary_key=True),
+                                                child_left_col, child_right_col)
+
+                    # generate temporary class for association proxy
+                    cls_name = ''.join(x.capitalize() or '_' for x in
+                                                    child_table_name.split('_'))
+                                            # generates camelcase class name.
+
+                    def _i(self, *args):
+                        setattr(self, child_right_col_name, args[0])
+
+                    cls_ = type("_" + cls_name, (object,), {'__init__': _i})
+                    mapper(cls_, child_t)
+                    props["_" + k] = relationship(cls_)
+
+                    # generate association proxy
+                    setattr(cls, k, association_proxy("_" + k, child_right_col_name))
+
+
+                else: # one to many complex type
                     _gen_col = _get_col_o2m(cls, p.right)
-
                     col_info = _gen_col.next() # gets the column name
                     p.right, col_type = col_info[0] # FIXME: Add support for multi-column primary keys.
+
+                    assert p.left is None, \
+                        "'left' is ignored in one-to-many relationships " \
+                        "with complex types (because they already have a " \
+                        "table). You probably meant to use 'right'."
+
+                    child_t = child.__table__
 
                     if p.right in child_t.c:
                         # FIXME: This branch MUST be tested.
@@ -579,6 +643,7 @@ def gen_sqla_info(cls, cls_bases=()):
                         #
                         # so, not adding the child column to to child mapper
                         # here.
+                        col = child_t.c[p.right]
 
                     else:
                         col = _gen_col.next()
@@ -588,7 +653,7 @@ def gen_sqla_info(cls, cls_bases=()):
                         child_t.append_column(col)
                         child.__mapper__.add_property(col.name, col)
 
-                    props[k] = relationship(child)
+                    props[k] = relationship(child, foreign_keys=[col])
 
             elif p is not None and issubclass(v, ComplexModelBase):
                 # v has the Attribute values we need whereas real_v is what the
@@ -607,7 +672,7 @@ def gen_sqla_info(cls, cls_bases=()):
                                             "relationship"
 
                     col = _get_col_o2o(cls, k, v, p.left)
-                    rel = relationship(real_v, uselist=False)
+                    rel = relationship(real_v, uselist=False, foreign_keys=[col])
 
                     p.left = col.key
                     props[k] = rel
@@ -653,6 +718,7 @@ def gen_sqla_info(cls, cls_bases=()):
 
             try:
                 index_name, index_method = v.Attributes.index
+
             except (TypeError, ValueError):
                 index_name = "%s_%s%s" % (table_name, k, '_unique' if unique else '')
                 index_method = v.Attributes.index

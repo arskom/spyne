@@ -60,8 +60,10 @@ def simple_add(interface, cls, tags):
     if not cls.is_default(cls):
         interface.get_restriction_tag(cls)
 
+
 def byte_array_add(interface, cls, tags):
     simple_add(interface, cls, tags)
+
 
 def complex_add(document, cls, tags):
     complex_type = etree.Element("{%s}complexType" % _ns_xsd)

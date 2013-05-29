@@ -141,10 +141,12 @@ def string_from_string(cls, value):
 @nillable_string
 def decimal_to_string(cls, value):
     decimal.Decimal(value)
-    if cls.Attributes.format is None:
-        return str(value)
-    else:
+    if cls.Attributes.str_format is not None:
+        return cls.Attributes.str_format.format(value)
+    elif cls.Attributes.format is not None:
         return cls.Attributes.format % value
+    else:
+        return str(value)
 
 @nillable_string
 def decimal_from_string(cls, string):

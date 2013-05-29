@@ -38,8 +38,8 @@ from twisted.web.wsgi import WSGIResource
 
 from spyne.server.wsgi import WsgiApplication
 
-
 from _service import initialize
+from _service import SomeService
 
 '''
 This is a blocking example running in a multi-thread twisted setup.
@@ -65,8 +65,9 @@ twisted and not have to rewrite your otherwise synchronous code.
 host = '0.0.0.0'
 port = 9757
 
+
 if __name__=='__main__':
-    application = initialize()
+    application = initialize([SomeService])
     wsgi_application = WsgiApplication(application)
     resource = WSGIResource(reactor, reactor, wsgi_application)
     site = Site(resource)

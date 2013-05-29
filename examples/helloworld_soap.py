@@ -60,12 +60,9 @@ from spyne.server.wsgi import WsgiApplication
 
 from spyne.decorator import srpc
 from spyne.service import ServiceBase
-from spyne.model.complex import ComplexModel
 from spyne.model.complex import Iterable
 from spyne.model.primitive import Integer
 from spyne.model.primitive import Unicode
-
-from spyne.util.simple import wsgi_soap_application
 
 
 class HelloWorldService(ServiceBase):

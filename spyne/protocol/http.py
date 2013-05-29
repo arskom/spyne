@@ -84,7 +84,8 @@ def to_string(prot, val, cls):
                             _weekday[val.weekday()], val.day, _month[val.month],
                             val.year, val.hour, val.minute, val.second)
     elif issubclass(cls, ByteArray):
-        return prot.to_string(cls, val, suggested_encoding=prot.default_binary_encoding)
+        return prot.to_string(cls, val,
+                                suggested_encoding=prot.default_binary_encoding)
 
     else:
         return prot.to_string(cls, val)

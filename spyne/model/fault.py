@@ -68,6 +68,22 @@ class Fault(ComplexModelBase, Exception):
     def __repr__(self):
         return "Fault(%s: %r)" % (self.faultcode, self.faultstring)
 
+    @staticmethod
+    def to_dict(cls, value):
+        if issubclass(cls, Fault):
+            return {
+                "faultcode": value.faultcode,
+                "faultstring": value.faultstring,
+                "detail": value.detail,
+            }
+
+        else:
+            return {
+                "faultcode": cls.get_type_name(),
+                "faultstring": cls.__class__.__name__,
+                "detail": str(value),
+            }
+
     @classmethod
     def to_string_iterable(cls, value):
         return [value.faultcode, '\n\n', value.faultstring]

@@ -355,6 +355,3 @@ class XmlDocument(ProtocolBase):
         if ret == False:
             raise SchemaValidationError(
                                str(self.validation_schema.error_log.last_error))
-
-XmlObject = XmlDocument
-"""DEPRECATED. Use :class:`spyne.protocol.xml.XmlDocument` instead"""

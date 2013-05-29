@@ -203,7 +203,7 @@ class XmlAttribute(XmlModifier):
     @classmethod
     def marshall(cls, prot, name, value, parent_elt):
         if cls._ns is not None:
-            name = "{%s}%s" % (cls._ns,name)
+            name = "{%s}%s" % (cls._ns, name)
 
         if value is not None:
             parent_elt.set(name, prot.to_string(cls.type, value))
@@ -440,9 +440,6 @@ class ComplexModelBase(ModelBase):
         """Method for serializing to persistent storage. One of %r. It makes
         sense to specify this only when this object is a child of another
         ComplexModel sublass.""" % (PSSM_VALUES,)
-
-        table_name = None
-        """Table name."""
 
         sqla_metadata = None
         """None or :class:`sqlalchemy.MetaData` instance."""

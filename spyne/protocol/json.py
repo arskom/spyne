@@ -36,7 +36,7 @@ decimals. Integers are parsed to ``int``\s or ``long``\s seamlessly but
 While it's possible to e.g. (de)serialize floats to ``Decimal``\s by adding
 hooks to ``parse_float`` [#]_ (and convert later as necessary), such
 customizations apply to the whole incoming document which pretty much messes up
-``AnyDict`` encoding and decoding.
+``AnyDict`` serialization and deserialization.
 
 It also wasn't possible to work with ``object_pairs_hook`` as Spyne's parsing
 is always "from outside to inside" whereas ``object_pairs_hook`` is passed
@@ -50,7 +50,7 @@ from __future__ import absolute_import
 import logging
 logger = logging.getLogger(__name__)
 
-import decimal
+from itertools import chain
 
 try:
     import simplejson as json
@@ -78,8 +78,8 @@ class JsonEncoder(json.JSONEncoder):
             return super(JsonEncoder, self).default(o)
 
         except TypeError, e:
-            # if it's not a Decimal and json still can't serialize it,
-            # it's possibly a generator. If not, additional hacks are welcome :)
+            # if json can't serialize it, it's possibly a generator. If not,
+            # additional hacks are welcome :)
             logger.exception(e)
             return list(o)
 
@@ -87,6 +87,10 @@ class JsonEncoder(json.JSONEncoder):
 class JsonDocument(HierDictDocument):
     """An implementation of the json protocol that uses simplejson package when
     available, json package otherwise.
+
+    :param ignore_wrappers: Does not serialize wrapper objects.
+    :param complex_as: One of (list, dict). When list, the complex objects are
+        serialized to a list of values instead of a dict of key/value pairs.
     """
 
     mime_type = 'application/json'
@@ -100,11 +104,9 @@ class JsonDocument(HierDictDocument):
     _decimal_as_string = True
 
     def __init__(self, app=None, validator=None, mime_type=None,
-                                        ignore_uncap=False,
-                                        # DictDocument specific
-                                        ignore_wrappers=True,
-                                        complex_as=dict,
-                                        ordered=False):
+                        ignore_uncap=False,
+                        # DictDocument specific
+                        ignore_wrappers=True, complex_as=dict, ordered=False):
 
         HierDictDocument.__init__(self, app, validator, mime_type, ignore_uncap,
                                            ignore_wrappers, complex_as, ordered)
@@ -146,5 +148,30 @@ class JsonDocument(HierDictDocument):
         ctx.out_string = (json.dumps(o, cls=JsonEncoder)
                                                       for o in ctx.out_document)
 
-JsonObject = JsonDocument
-"""DEPRECATED. Use :class:`spyne.protocol.json.JsonDocument` instead"""
+
+class JsonP(JsonDocument):
+    """The JsonP protocol puts the reponse document inside a designated
+    javascript function call. The input protocol is identical to the
+    JsonDocument protocol.
+
+    :param callback_name: The name of the function call that will wrapp all
+        response documents.
+
+    For other arguents, see :class:`spyne.protocol.json.JsonDocument`.
+    """
+
+    type = set(HierDictDocument.type)
+    type.add('jsonp')
+
+    def __init__(self, callback_name, *args, **kwargs):
+        super(JsonP, self).__init__(*args, **kwargs)
+        self.callback_name = callback_name
+
+    def create_out_string(self, ctx):
+        super(JsonP, self).create_out_string(ctx)
+
+        ctx.out_string = chain(
+                [self.callback_name, '('],
+                    ctx.out_string,
+                [');'],
+            )

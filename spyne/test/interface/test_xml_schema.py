@@ -20,12 +20,15 @@
 import logging
 import unittest
 
+from lxml import etree
+
 from spyne.application import Application
 from spyne.const import xml_ns as ns
 from spyne.decorator import rpc
 from spyne.model.binary import ByteArray
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import XmlAttribute
+from spyne.model.complex import XmlData
 from spyne.model.primitive import AnyXml
 from spyne.model.primitive import Integer
 from spyne.model.primitive import Mandatory
@@ -184,8 +187,6 @@ class TestXmlSchema(unittest.TestCase):
             anything = AnyXml(schema_tag='{%s}any' % ns.xsd, namespace='##other',
                                                          process_contents='lax')
 
-        from lxml import etree
-
         docs = get_schema_documents([SomeType])
         print(etree.tostring(docs['tns'], pretty_print=True))
         any = docs['tns'].xpath('//xsd:any', namespaces={'xsd': ns.xsd})
@@ -194,6 +195,42 @@ class TestXmlSchema(unittest.TestCase):
         assert any[0].attrib['namespace'] == '##other'
         assert any[0].attrib['processContents'] == 'lax'
 
+    def test_xml_data(self):
+        tns = 'kickass.ns'
+        class ProductEdition(ComplexModel):
+            __namespace__ = tns
+            id = XmlAttribute(Uuid)
+            name = XmlData(Unicode)
+
+        class Product(ComplexModel):
+            __namespace__ = tns
+            id = XmlAttribute(Uuid)
+            edition = ProductEdition
+            sample = XmlAttribute(Unicode, attribute_of='edition')
+
+        class ExampleService(ServiceBase):
+            @rpc(Product, _returns=Product)
+            def say_my_uuid(ctx, product):
+                pass
+
+        app = Application([ExampleService],
+            tns='kickass.ns',
+            in_protocol=Soap11(validator='lxml'),
+            out_protocol=Soap11()
+        )
+
+        schema = XmlSchema(app.interface)
+        schema.build_interface_document()
+
+        doc = schema.get_interface_document()['tns']
+        print etree.tostring(doc, pretty_print=True)
+
+        assert len(doc.xpath(
+                '/xs:schema/xs:complexType[@name="Product"]'
+                                    '/xs:sequence/xs:element[@name="edition"]'
+                '/xs:complexType/xs:simpleContent/xs:extension'
+                                    '/xs:attribute[@name="id"]'
+                ,namespaces=app.interface.nsmap)) == 1
 
 if __name__ == '__main__':
     unittest.main()

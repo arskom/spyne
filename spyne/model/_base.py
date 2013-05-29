@@ -184,6 +184,9 @@ class ModelBase(object):
         ``sqlalchemy.Integer``.
         """
 
+        table_name = None
+        """Database table name."""
+
         index = None
         """Can be ``True``, a string, or a tuple of two strings.
 
@@ -263,6 +266,9 @@ class ModelBase(object):
                     ret.append(f)
 
             cls.__namespace__ = '.'.join(ret)
+
+        if cls.__namespace__ is None or len(cls.__namespace__) == 0:
+            raise ValueError("You need to explicitly set %r.__namespace__" % cls)
 
     @classmethod
     def get_type_name(cls):

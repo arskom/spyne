@@ -56,3 +56,22 @@ def email_exception(exception_address, message=""):
     except Exception, e:
         logger.error("Error: unable to send email")
         logger.exception(e)
+
+def email_text(addresses, sender=None, subject='', message=""):
+    sender = 'robot@spyne.io'
+    receivers = addresses
+
+    if sender is None:
+        sender = 'Spyne <robot@spyne.io>'
+
+    error_str = ("%s\n\n%s" % (message, traceback.format_exc()))
+    msg = MIMEText(error_str.encode('utf8'), 'plain', 'utf8')
+    msg['To'] = ';'.join(addresses)
+    msg['From'] = sender
+    msg['Date'] = formatdate()
+    msg['Subject'] = subject
+
+    smtp_object = smtplib.SMTP('localhost')
+    smtp_object.sendmail(sender, receivers, msg.as_string())
+    logger.info("Text email sent to: %r. Text: %s " % (addresses,
+                                              message[100:].replace('\n', ' ')))

@@ -303,10 +303,10 @@ Enum
 ----
 
 The :class:`spyne.model.enum.Enum` type mimics the ``enum`` in C/C++ with some
-additional type safety. It's part of the Spyne's SOAP heritage so its being
-there is mostly for compatibility reasons. If you want to use it, go right
-ahead, it will work. But you can get the same functionality by defining a 
-custom ``Unicode`` type via: ::
+additional type safety. It's part of the Spyne's SOAP heritage so it's  mostly
+for compatibility reasons. If you want to use it, go right ahead, it will work.
+But you can get the same functionality by defining a  custom ``Unicode`` type,
+like so: ::
 
     SomeUnicode = Unicode(values=['x', 'y', 'z'])
 
@@ -406,10 +406,10 @@ Here's a sample complex object definition: ::
 
 The ``ComplexModel`` metaclass, namely the
 :class:`spyne.model.complex.ComplexModelMeta` scans the class definition and
-ignores
+ignores attributes that:
 
-1. Those that begin with an underscore (``_``)
-2. Those that are not subclasses of the ``ModelBase``.
+1. Begin with an underscore (``_``)
+2. Are not subclasses of the ``ModelBase``.
 
 If you want to use Python keywords as field names, or need leading underscores
 in field names, or you just want your Spyne definition and other code to be
@@ -423,8 +423,9 @@ separate, you can do away with the metaclass magic and do this: ::
 
 However, you still won't get predictable field order, as you're just assigning
 a ``dict`` to the ``_type_info`` attribute. If you also need that, (which
-becomes handy when you serialize your return value directly to HTML) you need
-to pass a sequence of ``(field_name, field_type)`` tuples, like so: ::
+becomes handy when e.g. you serialize your return value directly to HTML, or
+you need to add fields to your XML messages in a backwards-compatible way [#]_\)
+you need to pass a sequence of ``(field_name, field_type)`` tuples, like so: ::
 
     class Permission(ComplexModel):
         _type_info = [
@@ -645,5 +646,11 @@ defining complex objects and using events.
        instances. However, using a ``str`` as the value to ``ctx.out_string``
        would cause sending data in one-byte chunks, which is very inefficient.
        See e.g. how HTTP's chunked encoding works.
+
+.. [#] When you add a new key to a python dict, the entry order can get
+       shuffled. This will make the tag order in your schema change. If for
+       some reason, clients don't see the new schema, they will send documents
+       in old field order. This will make the 'lxml' validator upset as it also
+       validates field older.
 
 .. [#] http://stackoverflow.com/a/15383191

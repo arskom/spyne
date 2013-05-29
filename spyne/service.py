@@ -17,10 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from spyne._base import BODY_STYLE_EMPTY
 import logging
 logger = logging.getLogger(__name__)
 
+from spyne._base import BODY_STYLE_EMPTY
 from spyne._base import BODY_STYLE_BARE
 from spyne._base import EventManager
 from spyne.util.oset import oset

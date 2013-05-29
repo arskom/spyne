@@ -176,7 +176,7 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Operating System :: OS Independent',
         'Natural Language :: English',
-        'Development Status :: 4 - Beta',
+        'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
         'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
     ],

@@ -33,15 +33,20 @@
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
+import uuid
+
 from datetime import datetime
 from pprint import pprint
 
 from lxml import etree
 
+from spyne.model.primitive import Uuid
+from spyne.model.primitive import Unicode
 from spyne.model.primitive import String
 from spyne.model.primitive import Integer
 from spyne.model.primitive import Decimal
 from spyne.model.primitive import DateTime
+from spyne.model.complex import XmlData
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import XmlAttribute
 
@@ -68,11 +73,28 @@ class Foo(ComplexModel):
     c = Decimal
     d = DateTime
     e = XmlAttribute(Integer)
+    f = XmlAttribute(Unicode, attribute_of='d')
 
 
-docs = get_schema_documents([Punk, Foo])
+class ProductEdition(ComplexModel):
+    __namespace__ = 'kickass_namespace'
+
+    id = XmlAttribute(Uuid)
+    name = XmlData(Unicode)
+
+
+class Product(ComplexModel):
+    __namespace__ = 'kickass_namespace'
+
+    id = XmlAttribute(Uuid)
+    edition = ProductEdition
+
+
+docs = get_schema_documents([Punk, Foo, Product])
 pprint(docs)
 print()
+
+pprint({k: v.attrib['targetNamespace'] for k,v in docs.items()})
 
 # the default ns prefix is always tns
 print("the default namespace %r:" % docs['tns'].attrib['targetNamespace'])
@@ -82,12 +104,24 @@ print()
 # Namespace prefixes are assigned like s0, s1, s2, etc...
 print("the other namespace %r:" % docs['s0'].attrib['targetNamespace'])
 print(etree.tostring(docs['s0'], pretty_print=True))
+print()
 
+print("the other namespace %r:" % docs['s2'].attrib['targetNamespace'])
+print(etree.tostring(docs['s2'], pretty_print=True))
+print()
 
-foo = Foo(a='a', b=1, c=3.4, d=datetime(2011,02,20),e=5)
-doc = get_object_as_xml(foo)
+# Object serialization and deserialization
+foo = Foo(a='a', b=1, c=3.4, d=datetime(2011,02,20),e=5,f='f')
+doc = get_object_as_xml(foo, Foo)
 print(etree.tostring(doc, pretty_print=True))
-print(get_xml_as_object(Foo, doc))
+print(get_xml_as_object(doc, Foo))
+print()
+
+# XmlData example.
+print("Product output (illustrates XmlData):")
+product = Product(id=uuid.uuid4(), edition=ProductEdition(id=uuid.uuid4(),
+                                                             name='My edition'))
+print(etree.tostring(get_object_as_xml(product, Product), pretty_print=True))
 
 # See http://lxml.de/validation.html to see what this could be used for.
 print(get_validation_schema([Punk, Foo]))
