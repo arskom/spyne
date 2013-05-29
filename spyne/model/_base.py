@@ -265,6 +265,9 @@ class ModelBase(object):
 
             cls.__namespace__ = '.'.join(ret)
 
+        if cls.__namespace__ is None or len(cls.__namespace__) == 0:
+            raise ValueError("You need to explicitly set %r.__namespace__" % cls)
+
     @classmethod
     def get_type_name(cls):
         """Returns the class name unless the __type_name__ attribute is defined.

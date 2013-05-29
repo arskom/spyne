@@ -268,9 +268,6 @@ class Interface(object):
         if not (isinstance(ns, str) or isinstance(ns, unicode)):
             raise TypeError(ns)
 
-        if ns == "__main__":
-            warnings.warn("Namespace is '__main__'", Warning )
-
         if not (ns in self.prefmap):
             pref = "s%d" % self.__ns_counter
             while pref in self.nsmap:
