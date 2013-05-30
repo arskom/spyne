@@ -25,12 +25,27 @@ There are five types of models in Spyne:
 Base Classes
 ------------
 
-.. automodule:: spyne.model._base
+.. autoclass:: spyne.model.ModelBase
    :members:
    :show-inheritance:
+   :special-members:
+   :exclude-members: __dict__,__weakref__
+
+   .. autoattribute:: spyne.model.ModelBase.__orig__
+
+   .. autoattribute:: spyne.model.ModelBase.__extends__
+
+   .. autoattribute:: spyne.model.ModelBase.__namespace__
+
+   .. autoattribute:: spyne.model.ModelBase.__type_name__
+
+.. autoclass:: spyne.model.SimpleModel
+   :members:
+   :show-inheritance:
+   :special-members:
+   :exclude-members: __dict__,__weakref__
 
 Modifiers
 ---------
 
 .. autofunction:: spyne.model.Mandatory
-
