@@ -7,5 +7,3 @@ Persisting Objects
 .. automodule:: spyne.model.table
    :members:
    :show-inheritance:
-
-.. autofunction:: spyne.model.complex.TTableModel

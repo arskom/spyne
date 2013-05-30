@@ -112,7 +112,7 @@ types behind the scenes as follows: ::
         ]
 
 You should consult the
-:func:`spyne.decorator.srpc` reference for more information about various
+:func:`spyne.decorator.rpc` reference for more information about various
 parameters you can pass to tweak how the method is exposed.
 
 The ``'Response'`` and ``'Result'`` suffixes are configurable as well. See

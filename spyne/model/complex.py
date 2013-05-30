@@ -879,6 +879,7 @@ def _log_repr_obj(obj, cls):
     return "%s(%s)" % (cls.get_type_name(), ', '.join(retval))
 
 
+# this has docstring repeated in the documentation at reference/model/complex.rst
 @memoize_id
 def TTableModel(metadata=None):
     """A TableModel template that generates a new TableModel class for each
