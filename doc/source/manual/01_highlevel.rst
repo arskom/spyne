@@ -138,7 +138,7 @@ throughout Spyne would be very useful:
         subclasses that are created for the input and output types of the
         functions you defined) are forced to be in the tns of the `Application`
         and have whatever you give them as `public_name` in the
-        :func:`spyne.decorator.srpc` decorator. Spyne-defined types generally
+        :func:`spyne.decorator.rpc` decorator. Spyne-defined types generally
         belong to a pre-defined namespace by default. User-defined objects
         have the module name as namespace string and class name as name string
         by default.
