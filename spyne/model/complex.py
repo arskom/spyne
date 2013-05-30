@@ -123,8 +123,8 @@ class msgpack:
         pass
 
 
+#Persistent storage serialization method values
 PSSM_VALUES = {'json': json, 'xml': xml, 'msgpack': msgpack, 'table': table}
-"""Persistent storage serialization method values"""
 
 
 class TypeInfo(odict):
