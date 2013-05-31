@@ -279,6 +279,18 @@ class TestPrimitive(unittest.TestCase):
         value = XmlDocument().from_element(String, element)
         self.assertEquals(value, s)
 
+    def test_unicode_pattern_mult_cust(self):
+        assert Unicode(pattern='a').Attributes.pattern == 'a'
+        assert Unicode(pattern='a')(5).Attributes.pattern == 'a'
+
+    def test_unicode_nullable_mult_cust_false(self):
+        assert Unicode(nullable=False).Attributes.nullable == False
+        assert Unicode(nullable=False)(5).Attributes.nullable == False
+
+    def test_unicode_nullable_mult_cust_true(self):
+        assert Unicode(nullable=True).Attributes.nullable == True
+        assert Unicode(nullable=True)(5).Attributes.nullable == True
+
     def test_null(self):
         element = etree.Element('test')
         XmlDocument().to_parent_element(Null, None, ns_test, element)
