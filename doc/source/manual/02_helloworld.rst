@@ -184,19 +184,13 @@ We will just need to change the Application definition as
 follows: ::
 
     application = Application([HelloWorldService], 'spyne.examples.hello.http',
+          in_protocol=HttpRpc(validator='soft'),
+          out_protocol=JsonDocument(),
+      )
 
 For HttpRpc, the only available validator is ``'soft'``. It is Spyne's own
 validation engine that works for all protocols that support it (which
-includes every implementation that comes bundled with Spyne). ::
-
-          in_protocol=HttpRpc(validator='soft'),
-
-The ``skip_depth`` parameter to ``JsonDocument`` simplifies the response dict
-by skipping outer response structures that are redundant when the client keeps
-track of which reponse document corresponds to which request. ::
-
-          out_protocol=JsonDocument(skip_depth=1),
-      )
+includes every implementation that comes bundled with Spyne).
 
 Same as before, we then wrap the Spyne application with its wsgi wrapper: ::
 
@@ -220,24 +214,6 @@ Once we run our daemon, we can test it using any Http client. Let's try: ::
         "Hello, Dave", 
         "Hello, Dave"
     ]
-
-If we had passed ``skip_depth=0`` to the output protocol, we'd have a
-slightly bulkier response: ::
-
-    $ curl -s http://localhost:8000/say_hello?name=Dave\&times=3 | python -m json.tool
-    {
-        "say_helloResponse": {
-            "say_helloResult": {
-                "string": [
-                    "Hello, Dave",
-                    "Hello, Dave",
-                    "Hello, Dave"
-                ]
-            }
-        }
-    }
-
-Note how this corresponds to the structure in the Soap response.
 
 Spyne tries to make it as easy as possible to work with multiple protocols by
 being as configurable as possible without having to alter user code.
