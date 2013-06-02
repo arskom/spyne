@@ -62,6 +62,6 @@ def initialize(services):
 
 
     application = Application(services, 'spyne.examples.hello.twisted',
-                                in_protocol=HttpRpc(), out_protocol=XmlDocument())
+                                in_protocol=HttpRpc(), out_protocol=HttpRpc())
 
     return application

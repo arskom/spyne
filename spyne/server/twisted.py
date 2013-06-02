@@ -46,6 +46,8 @@ from __future__ import absolute_import
 import logging
 logger = logging.getLogger(__name__)
 
+from inspect import isgenerator
+
 from twisted.python.log import err
 from twisted.internet.interfaces import IPullProducer
 from twisted.internet.defer import Deferred
@@ -55,6 +57,7 @@ from twisted.web.server import NOT_DONE_YET
 
 from zope.interface import implements
 
+from spyne.model import PushBase
 from spyne.auxproc import process_contexts
 from spyne.server.http import HttpMethodContext
 from spyne.server.http import HttpBase
@@ -238,6 +241,22 @@ class TwistedWebResource(Resource):
         if isinstance(ret, Deferred):
             ret.addCallback(_cb_deferred, request)
             ret.addErrback(_eb_deferred, request)
+
+        elif isinstance(ret, PushBase):
+            gen = self.http_transport.get_out_string(p_ctx)
+
+            assert isgenerator(gen), "It looks like this protocol is not " \
+                                     "async-compliant yet."
+
+            def _cb_push():
+                process_contexts(self.http_transport, others, p_ctx)
+
+                producer = _Producer(p_ctx.out_string, request)
+                producer.deferred.addCallbacks(_cb_request_finished,
+                                                               _eb_request_finished)
+                request.registerProducer(producer, False)
+
+            ret.init(p_ctx, request, gen, _cb_push, None)
 
         else:
             _cb_deferred(p_ctx.out_object, request, cb=False)

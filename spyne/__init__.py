@@ -19,6 +19,8 @@
 
 __version__ = '2.11.0'
 
+from spyne._base import BODY_STYLE_WRAPPED
+from spyne._base import BODY_STYLE_BARE
 from spyne._base import AuxMethodContext
 from spyne._base import TransportContext
 from spyne._base import EventContext

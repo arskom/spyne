@@ -20,7 +20,11 @@
 import logging
 logger = logging.getLogger(__name__)
 
+from inspect import isgenerator
+
 from spyne import EventManager
+from spyne.util import Break
+from spyne.util import coroutine
 from spyne.model.fault import Fault
 from spyne.protocol import ProtocolBase
 from spyne.interface import AllYourInterfaceDocuments
@@ -89,8 +93,8 @@ class ServerBase(object):
             ctx.out_error = e
 
     def get_out_object(self, ctx):
-        """Calls the matched method using the ``ctx.in_object`` to get
-        ``ctx.out_object``."""
+        """Calls the matched user function by passing it the ``ctx.in_object``
+        to set ``ctx.out_object``."""
 
         if ctx.in_error is None:
             # event firing is done in the spyne.application.Application
@@ -98,6 +102,7 @@ class ServerBase(object):
         else:
             raise ctx.in_error
 
+    @coroutine
     def get_out_string(self, ctx):
         """Uses the ``ctx.out_object`` to set ``ctx.out_document`` and later
         ``ctx.out_string``."""
@@ -108,8 +113,19 @@ class ServerBase(object):
             return
 
         if ctx.out_document is None:
-            ctx.out_protocol.serialize(ctx,
+            ret = ctx.out_protocol.serialize(ctx,
                                         message=ctx.out_protocol.RESPONSE)
+            if isgenerator(ret):
+                try:
+                    while True:
+                        y = (yield)
+                        ret.send(y)
+
+                except Break:
+                    try:
+                        ret.throw(Break())
+                    except StopIteration:
+                        pass
 
         if ctx.service_class != None:
             if ctx.out_error is None:

@@ -23,6 +23,7 @@ protocols.
 """
 
 from spyne.model._base import ModelBase
+from spyne.model._base import PushBase
 from spyne.model._base import Null
 from spyne.model._base import SimpleModel
 

@@ -91,6 +91,26 @@ def check_pyversion(*minversion):
     return sys.version_info[:3] >= minversion
 
 
+class Break(Exception):
+    """Raised for breaking out of infinite loops inside coroutines."""
+    pass
+
+
+def coroutine(func):
+    def start(*args, **kwargs):
+        ret = func(*args, **kwargs)
+
+        try:
+            ret.next()
+
+        except StopIteration:
+            return None
+
+        return ret
+
+    return start
+
+
 class memoize(object):
     """A memoization decorator that keeps caching until reset."""
 

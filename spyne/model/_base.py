@@ -23,6 +23,8 @@ import spyne.const.xml_ns
 
 from decimal import Decimal
 
+from spyne.util import Break
+
 """This module contains the ModelBase class and other building blocks for
 defining models.
 """
@@ -430,3 +432,48 @@ class SimpleModel(ModelBase):
                 and (len(cls.Attributes.values) == 0 or
                                                 value in cls.Attributes.values)
             )
+
+
+class PushBase(object):
+    def __init__(self, callback, errback=None):
+        self._cb = callback
+        self._eb = errback
+
+        self.length = 0
+        self.ctx = None
+        self.app = None
+        self.response = None
+        self.gen = None
+        self._cb_finish = None
+        self._eb_finish = None
+
+    def _init(self, ctx, response, gen, _cb_finish, _eb_finish):
+        self.length = 0
+
+        self.ctx = ctx
+        self.app = ctx.app
+
+        self.response = response
+        self.gen = gen
+
+        self._cb_finish = _cb_finish
+        self._eb_finish = _eb_finish
+
+    def init(self, ctx, response, gen, _cb_finish, _eb_finish):
+        self._init(ctx, response, gen, _cb_finish, _eb_finish)
+        return self._cb(self)
+
+    def __len__(self):
+        return self.length
+
+    def append(self, inst):
+        self.gen.send(inst)
+        self.length += 1
+
+    def close(self):
+        try:
+            self.gen.throw(Break())
+        except StopIteration:
+            pass
+
+        self._cb_finish()
