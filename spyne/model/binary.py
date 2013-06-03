@@ -128,7 +128,7 @@ binary_encoding_handlers = {
     None: ''.join,
     BINARY_ENCODING_HEX: ByteArray.to_hex,
     BINARY_ENCODING_BASE64: ByteArray.to_base64,
-    BINARY_ENCODING_URLSAFE_BASE64: urlsafe_b64encode,
+    BINARY_ENCODING_URLSAFE_BASE64: ByteArray.to_urlsafe_base64,
 }
 
 binary_decoding_handlers = {
