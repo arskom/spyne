@@ -253,7 +253,7 @@ class TwistedWebResource(Resource):
 
                 producer = _Producer(p_ctx.out_string, request)
                 producer.deferred.addCallbacks(_cb_request_finished,
-                                                               _eb_request_finished)
+                                                           _eb_request_finished)
                 request.registerProducer(producer, False)
 
             ret.init(p_ctx, request, gen, _cb_push, None)

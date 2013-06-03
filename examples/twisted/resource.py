@@ -100,8 +100,8 @@ class SomeNonBlockingService(ServiceBase):
 
     @srpc(str, int, int, _returns=ByteArray)
     def say_hello_with_sleep(name, times, seconds):
-        """Waits without blocking reactor for given number of seconds by
-        returning a deferred."""
+        """Sends multiple hello messages by waiting given number of seconds
+        inbetween."""
 
         times = [times] # Workaround for Python 2.7's lacking of nonlocal
         def _cb(response):

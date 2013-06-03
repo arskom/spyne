@@ -58,7 +58,6 @@ from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
 from spyne.const.http import HTTP_200
 from spyne.const.http import HTTP_404
-from spyne.const.http import HTTP_405
 from spyne.const.http import HTTP_500
 
 
