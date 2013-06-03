@@ -224,6 +224,30 @@ class PGXml(UserDefinedType):
         return process
 
 
+class PGJson(UserDefinedType):
+    def __init__(self, encoding='UTF-8'):
+        self.encoding = encoding
+
+    def get_col_spec(self):
+        return "json"
+
+    def bind_processor(self, dialect):
+        def process(value):
+            if isinstance(value, str) or value is None:
+                return value
+            else:
+                return json.dumps(value, encoding=self.encoding)
+        return process
+
+    def result_processor(self, dialect, col_type):
+        def process(value):
+            if value is not None:
+                return json.loads(value)
+            else:
+                return value
+        return process
+
+
 class PGObjectXml(UserDefinedType):
     def __new__(cls, class_=None, root_tag_name=None, no_namespace=False ):
         if class_ is None:
@@ -256,6 +280,12 @@ sqlalchemy.dialects.postgresql.base.ischema_names['xml'] = PGObjectXml
 
 
 class PGObjectJson(UserDefinedType):
+    def __new__(cls, class_=None, ignore_wrappers=True, complex_as=dict):
+        if class_ is None:
+            return PGJson()
+        else:
+            return UserDefinedType.__new__(class_, ignore_wrappers, complex_as)
+
     def __init__(self, cls, ignore_wrappers=True, complex_as=dict):
         self.cls = cls
         self.ignore_wrappers = ignore_wrappers
