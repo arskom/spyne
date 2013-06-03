@@ -51,6 +51,8 @@ SHORT_DESC="""A Template project."""
 
 LONG_DESC = """Yes, really, just a Template project."""
 
+reqs = ['spyne>=2.11', 'SQLAlchemy>=0.8.0']
+test_reqs = list(reqs)
 
 setup(
     name='template',
@@ -77,7 +79,7 @@ setup(
     url='http://example.com',
     license='Your Own',
     zip_safe=False,
-    install_requires=['spyne>=2.11', 'SQLAlchemy>=0.8.0'],
+    install_requires=reqs,
 
     entry_points={
         'console_scripts': [
