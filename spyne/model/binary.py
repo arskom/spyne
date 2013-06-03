@@ -35,6 +35,7 @@ try:
 except ImportError: # Python 3
     from io import StringIO
 
+from spyne.error import ValidationError
 from spyne.util import _bytes_join
 from spyne.model import nillable_string
 from spyne.model import ModelBase
@@ -101,7 +102,10 @@ class ByteArray(SimpleModel):
     @classmethod
     @nillable_string
     def from_base64(cls, value):
-        return [b64decode(_bytes_join(value))]
+        try:
+            return [b64decode(_bytes_join(value))]
+        except TypeError, e:
+            raise ValidationError(value)
 
     @classmethod
     @nillable_string
