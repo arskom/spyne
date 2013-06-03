@@ -320,7 +320,7 @@ def get_sqlalchemy_type(cls):
 
     # must be above Unicode, because Uuid is Unicode's subclass
     if issubclass(cls, Uuid):
-        return PGUuid
+        return PGUuid(as_uuid=True)
 
     # must be above Unicode, because Point is Unicode's subclass
     elif issubclass(cls, Point):
