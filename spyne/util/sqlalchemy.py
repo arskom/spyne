@@ -225,8 +225,14 @@ class PGXml(UserDefinedType):
 
 
 class PGObjectXml(UserDefinedType):
-    def __init__(self, cls, root_tag_name=None, no_namespace=False):
-        self.cls = cls
+    def __new__(cls, class_=None, root_tag_name=None, no_namespace=False ):
+        if class_ is None:
+            return PGXml()
+        else:
+            return UserDefinedType.__new__(class_, root_tag_name, no_namespace)
+
+    def __init__(self, class_, root_tag_name=None, no_namespace=False):
+        self.cls = class_
         self.root_tag_name = root_tag_name
         self.no_namespace = no_namespace
 
