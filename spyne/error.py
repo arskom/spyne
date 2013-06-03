@@ -57,7 +57,7 @@ class ArgumentError(Fault):
         Fault.__init__(self, 'Client.ArgumentError', faultstring)
 
 
-class InvalidInput(Fault):
+class InvalidInputError(Fault):
     """Raised when there is a general problem with input data."""
 
     def __init__(self, faultstring=""):
