@@ -196,6 +196,11 @@ class PGGeometry(UserDefinedType):
             return sql.func.ST_GeomFromText(bindvalue, self.srid)
 
 
+@compiles(PGGeometry, "sqlite")
+def compile_geometry_sqlite(type_, compiler, **kw):
+    return "BLOB"
+
+
 class PGXml(UserDefinedType):
     def __init__(self, pretty_print=False, xml_declaration=False,
                                                              encoding='UTF-8'):
