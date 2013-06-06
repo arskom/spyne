@@ -25,6 +25,7 @@ from spyne.model.primitive import Boolean
 from spyne.model.primitive import Decimal
 from spyne.model.primitive import Integer
 
+
 class _UtilProtocol(HierDictDocument):
     def __init__(self, app=None, validator=None, mime_type=None,
                                         ignore_uncap=False,
