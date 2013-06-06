@@ -701,7 +701,8 @@ def gen_sqla_info(cls, cls_bases=()):
                         child_t.append_column(col)
                         child.__mapper__.add_property(col.name, col)
 
-                    props[k] = relationship(child, foreign_keys=[col])
+                    props[k] = relationship(child, foreign_keys=[col],
+                                                              backref=p.backref)
 
             elif p is not None and issubclass(v, ComplexModelBase):
                 # v has the Attribute values we need whereas real_v is what the
