@@ -55,6 +55,7 @@ from twisted.internet.protocol import Factory
 from twisted.web.iweb import UNKNOWN_LENGTH
 from twisted.web.resource import Resource
 from twisted.web.server import NOT_DONE_YET
+from twisted.python import log
 
 from zope.interface import implements
 
@@ -65,6 +66,7 @@ from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
 from spyne.const.http import HTTP_404
 from spyne.model import PushBase
+from spyne.model.complex import ComplexModel
 from spyne.model.fault import Fault
 from spyne.server import ServerBase
 from spyne.server.http import HttpBase
@@ -308,29 +310,48 @@ class TwistedWebResource(Resource):
 try:
     from twisted.web.websockets import WebSocketsProtocol
     from twisted.web.websockets import WebSocketsResource
+    from twisted.web.websockets import CONTROLS
+
 except ImportError:
     from spyne.util._twisted_ws import WebSocketsProtocol
     from spyne.util._twisted_ws import WebSocketsResource
+    from spyne.util._twisted_ws import CONTROLS
 
 
 class WebSocketTransportContext(TransportContext):
-    def __init__(self, transport, type=None, client_handle=None):
+    def __init__(self, transport, type, client_handle, parent):
         TransportContext.__init__(self, transport, type)
 
         self.client_handle = client_handle
+        self.parent = parent
 
 
 class WebSocketMethodContext(MethodContext):
     def __init__(self, transport, client_handle):
         MethodContext.__init__(self, transport)
 
-        self.transport = WebSocketTransportContext(transport,
-                                                        'ws', client_handle)
+        self.transport = WebSocketTransportContext(transport, 'ws',
+                                                            client_handle, self)
 
 
 class TwistedWebSocketProtocol(WebSocketsProtocol):
-    def __init__(self, transport):
+    def __init__(self, transport, bookkeep=False, _clients=None):
         self._spyne_transport = transport
+        self._clients = _clients
+        if bookkeep:
+            self.connectionMade = self._connectionMade
+            self.connectionLost = self._connectionLost
+        if _clients is None:
+            self._clients = {}
+
+    def _connectionMade(self):
+        WebSocketsProtocol.connectionMade(self)
+
+        self._clients[id(self)] = self
+
+    def _connectionLost(self, reason):
+        del self._clients[id(self)]
+
 
     def frameReceived(self, opcode, data, fin):
         tpt = self._spyne_transport
@@ -386,20 +407,66 @@ class TwistedWebSocketProtocol(WebSocketsProtocol):
         else:
             _cb_deferred(p_ctx.out_object, cb=False)
 
-    # FIXME: Something must happen here :)
-    def connectionLost(self, reason):
-        pass
-
 
 class TwistedWebSocketFactory(Factory):
-    def __init__(self, app):
+    def __init__(self, app, bookkeep=False, _clients=None):
         self.app = app
         self.transport = ServerBase(app)
+        self.bookkeep = bookkeep
+        self._clients = _clients
+        if _clients is None:
+            self._clients = {}
 
     def buildProtocol(self, addr):
-        return TwistedWebSocketProtocol(self.transport)
+        return TwistedWebSocketProtocol(self.transport, self.bookkeep,
+                                                                self._clients)
+
+class _Fake(object):
+    pass
+
+
+def _FakeWrap(cls):
+    class _Ret(ComplexModel):
+        _type_info = {"ugh ": cls}
+
+    return _Ret
+
+
+class _FakeCtx(object):
+    def __init__(self, obj, cls):
+        self.out_object = obj
+        self.out_error = None
+        self.descriptor = _Fake()
+        self.descriptor.out_message = cls
+
+
+class InvalidRequestError(Exception):
+    pass
 
 
 class TwistedWebSocketResource(WebSocketsResource):
-    def __init__(self, app):
-        WebSocketsResource.__init__(self, TwistedWebSocketFactory(app))
+    def __init__(self, app, bookkeep=False):
+        self.app = app
+        self._clients = {}
+        if bookkeep:
+            self.propagate = self._propagate
+
+        WebSocketsResource.__init__(self, TwistedWebSocketFactory(app,
+                                                       bookkeep, self._clients))
+
+    def propagate(self):
+        raise InvalidRequestError("You must enable bookkeeping to have "
+                                  "message propagation work.")
+
+    def _propagate(self, obj, cls=None):
+        if cls is None:
+            cls = obj.__class__
+
+        op = self.app.out_protocol
+        ctx = _FakeCtx(obj, cls)
+        op.serialize(ctx, op.RESPONSE)
+        op.create_out_string(ctx)
+        doc = ''.join(ctx.out_string)
+
+        for c in self._clients.itervalues():
+            c.sendFrame(CONTROLS.TEXT, doc, True)
