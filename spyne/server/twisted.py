@@ -65,6 +65,7 @@ from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
 from spyne.const.http import HTTP_404
 from spyne.model import PushBase
+from spyne.model.fault import Fault
 from spyne.server import ServerBase
 from spyne.server.http import HttpBase
 from spyne.server.http import HttpMethodContext
@@ -238,6 +239,9 @@ class TwistedWebResource(Resource):
 
         def _eb_deferred(retval, request):
             p_ctx.out_error = retval.value
+            if not issubclass(retval.type, Fault):
+                retval.printTraceback()
+
             ret = self.handle_rpc_error(p_ctx, others, p_ctx.out_error, request)
             request.write(ret)
             request.finish()
@@ -308,6 +312,7 @@ except ImportError:
     from spyne.util._twisted_ws import WebSocketsProtocol
     from spyne.util._twisted_ws import WebSocketsResource
 
+
 class WebSocketTransportContext(TransportContext):
     def __init__(self, transport, type=None, client_handle=None):
         TransportContext.__init__(self, transport, type)
@@ -363,6 +368,9 @@ class TwistedWebSocketProtocol(WebSocketsProtocol):
 
         def _eb_deferred(retval):
             p_ctx.out_error = retval.value
+            if not issubclass(retval.type, Fault):
+                retval.printTraceback()
+
             tpt.get_out_string(p_ctx)
             self.sendFrame(opcode, ''.join(p_ctx.out_string), fin)
             p_ctx.close()
