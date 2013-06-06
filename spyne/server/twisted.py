@@ -333,27 +333,22 @@ class TwistedWebSocketProtocol(WebSocketsProtocol):
         initial_ctx = WebSocketMethodContext(tpt, client_handle=self)
         initial_ctx.in_string = [data]
 
-
         contexts = tpt.generate_contexts(initial_ctx)
         p_ctx, others = contexts[0], contexts[1:]
 
-        error = None
         if p_ctx.in_error:
             p_ctx.out_object = p_ctx.in_error
-            error = p_ctx.in_error
 
         else:
             tpt.get_in_object(p_ctx)
 
             if p_ctx.in_error:
                 p_ctx.out_object = p_ctx.in_error
-                error = p_ctx.in_error
 
             else:
                 tpt.get_out_object(p_ctx)
                 if p_ctx.out_error:
                     p_ctx.out_object = p_ctx.out_error
-                    error = p_ctx.out_error
 
         def _cb_deferred(retval, cb=True):
             if cb and len(p_ctx.descriptor.out_message._type_info) <= 1:
@@ -383,7 +378,7 @@ class TwistedWebSocketProtocol(WebSocketsProtocol):
         else:
             _cb_deferred(p_ctx.out_object, cb=False)
 
-    # FIXME: Something must happen :)
+    # FIXME: Something must happen here :)
     def connectionLost(self, reason):
         pass
 
