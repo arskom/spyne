@@ -65,7 +65,6 @@ from spyne.server.http import HttpBase
 from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
 from spyne.const.http import HTTP_404
-from spyne.const.http import HTTP_405
 
 
 def _reconstruct_url(request):
@@ -172,7 +171,7 @@ class TwistedWebResource(Resource):
     def render_POST(self, request):
         return self.handle_rpc(request)
 
-    def handle_error(self, p_ctx, others, error, request):
+    def handle_rpc_error(self, p_ctx, others, error, request):
         resp_code = p_ctx.out_protocol.fault_to_http_response_code(error)
 
         request.setResponseCode(int(resp_code[:3]))
@@ -196,18 +195,18 @@ class TwistedWebResource(Resource):
         p_ctx, others = contexts[0], contexts[1:]
 
         if p_ctx.in_error:
-            return self.handle_error(p_ctx, others, p_ctx.in_error, request)
+            return self.handle_rpc_error(p_ctx, others, p_ctx.in_error, request)
 
         else:
             self.http_transport.get_in_object(p_ctx)
 
             if p_ctx.in_error:
-                return self.handle_error(p_ctx, others, p_ctx.in_error, request)
+                return self.handle_rpc_error(p_ctx, others, p_ctx.in_error, request)
 
             else:
                 self.http_transport.get_out_object(p_ctx)
                 if p_ctx.out_error:
-                    return self.handle_error(p_ctx, others, p_ctx.out_error,
+                    return self.handle_rpc_error(p_ctx, others, p_ctx.out_error,
                                                                         request)
 
         def _cb_request_finished(request):
@@ -217,6 +216,7 @@ class TwistedWebResource(Resource):
         def _eb_request_finished(request):
             err(request)
             p_ctx.close()
+            request.finish()
 
         def _cb_deferred(retval, request, cb=True):
             if cb and len(p_ctx.descriptor.out_message._type_info) <= 1:
@@ -234,8 +234,10 @@ class TwistedWebResource(Resource):
             request.registerProducer(producer, False)
 
         def _eb_deferred(retval, request):
-            p_ctx.out_error = retval
-            return self.handle_error(p_ctx, others, p_ctx.out_error, request)
+            p_ctx.out_error = retval.value
+            ret = self.handle_rpc_error(p_ctx, others, p_ctx.out_error, request)
+            request.write(ret)
+            request.finish()
 
         ret = p_ctx.out_object[0]
         if isinstance(ret, Deferred):
