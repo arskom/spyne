@@ -79,7 +79,7 @@ class Fault(ComplexModelBase, Exception):
 
         else:
             return {
-                "faultcode": cls.get_type_name(),
+                "faultcode": str(cls),
                 "faultstring": cls.__class__.__name__,
                 "detail": str(value),
             }
