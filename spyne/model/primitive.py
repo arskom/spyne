@@ -756,7 +756,7 @@ class Point(Unicode):
 
     @staticmethod
     def Value(x, y):
-        return 'POINT(%3.15f %3.15f)'
+        return 'POINT(%3.15f %3.15f)' % (x,y)
 
     def __new__(cls, dim=None, **kwargs):
         assert dim in (None,2,3)
