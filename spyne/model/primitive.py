@@ -754,6 +754,10 @@ class Point(Unicode):
     class Attributes(Unicode.Attributes):
         dim = None
 
+    @staticmethod
+    def Value(x, y):
+        return 'POINT(%3.15f %3.15f)'
+
     def __new__(cls, dim=None, **kwargs):
         assert dim in (None,2,3)
         if dim is not None:
