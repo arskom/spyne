@@ -51,20 +51,23 @@ from inspect import isgenerator
 from twisted.python.log import err
 from twisted.internet.interfaces import IPullProducer
 from twisted.internet.defer import Deferred
+from twisted.internet.protocol import Factory
 from twisted.web.iweb import UNKNOWN_LENGTH
 from twisted.web.resource import Resource
 from twisted.web.server import NOT_DONE_YET
 
 from zope.interface import implements
 
-from spyne.model import PushBase
+from spyne import MethodContext
+from spyne import TransportContext
 from spyne.auxproc import process_contexts
-from spyne.server.http import HttpMethodContext
-from spyne.server.http import HttpBase
-
 from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
 from spyne.const.http import HTTP_404
+from spyne.model import PushBase
+from spyne.server import ServerBase
+from spyne.server.http import HttpBase
+from spyne.server.http import HttpMethodContext
 
 
 def _reconstruct_url(request):
@@ -297,3 +300,103 @@ class TwistedWebResource(Resource):
 
         finally:
             ctx.close()
+
+try:
+    from twisted.web.websockets import WebSocketsProtocol
+    from twisted.web.websockets import WebSocketsResource
+except ImportError:
+    from spyne.util._twisted_ws import WebSocketsProtocol
+    from spyne.util._twisted_ws import WebSocketsResource
+
+class WebSocketTransportContext(TransportContext):
+    def __init__(self, transport, type=None, client_handle=None):
+        TransportContext.__init__(self, transport, type)
+
+        self.client_handle = client_handle
+
+
+class WebSocketMethodContext(MethodContext):
+    def __init__(self, transport, client_handle):
+        MethodContext.__init__(self, transport)
+
+        self.transport = WebSocketTransportContext(transport,
+                                                        'ws', client_handle)
+
+
+class TwistedWebSocketProtocol(WebSocketsProtocol):
+    def __init__(self, transport):
+        self._spyne_transport = transport
+
+    def frameReceived(self, opcode, data, fin):
+        tpt = self._spyne_transport
+
+        initial_ctx = WebSocketMethodContext(tpt, client_handle=self)
+        initial_ctx.in_string = [data]
+
+
+        contexts = tpt.generate_contexts(initial_ctx)
+        p_ctx, others = contexts[0], contexts[1:]
+
+        error = None
+        if p_ctx.in_error:
+            p_ctx.out_object = p_ctx.in_error
+            error = p_ctx.in_error
+
+        else:
+            tpt.get_in_object(p_ctx)
+
+            if p_ctx.in_error:
+                p_ctx.out_object = p_ctx.in_error
+                error = p_ctx.in_error
+
+            else:
+                tpt.get_out_object(p_ctx)
+                if p_ctx.out_error:
+                    p_ctx.out_object = p_ctx.out_error
+                    error = p_ctx.out_error
+
+        def _cb_deferred(retval, cb=True):
+            if cb and len(p_ctx.descriptor.out_message._type_info) <= 1:
+                p_ctx.out_object = [retval]
+            else:
+                p_ctx.out_object = retval
+
+            tpt.get_out_string(p_ctx)
+            self.sendFrame(opcode, ''.join(p_ctx.out_string), fin)
+            p_ctx.close()
+            process_contexts(tpt, others, p_ctx)
+
+        def _eb_deferred(retval):
+            p_ctx.out_error = retval.value
+            tpt.get_out_string(p_ctx)
+            self.sendFrame(opcode, ''.join(p_ctx.out_string), fin)
+            p_ctx.close()
+
+        ret = p_ctx.out_object[0]
+        if isinstance(ret, Deferred):
+            ret.addCallback(_cb_deferred)
+            ret.addErrback(_eb_deferred)
+
+        elif isinstance(ret, PushBase):
+            raise NotImplementedError()
+
+        else:
+            _cb_deferred(p_ctx.out_object, cb=False)
+
+    # FIXME: Something must happen :)
+    def connectionLost(self, reason):
+        pass
+
+
+class TwistedWebSocketFactory(Factory):
+    def __init__(self, app):
+        self.app = app
+        self.transport = ServerBase(app)
+
+    def buildProtocol(self, addr):
+        return TwistedWebSocketProtocol(self.transport)
+
+
+class TwistedWebSocketResource(WebSocketsResource):
+    def __init__(self, app):
+        WebSocketsResource.__init__(self, TwistedWebSocketFactory(app))
