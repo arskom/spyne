@@ -987,5 +987,30 @@ class TestSqlAlchemyNested(unittest.TestCase):
         assert ''.join([scc.s for scc in sc.children]) == 'p|q'
         assert     sum([scc.i for scc in sc.children]) ==  619
 
+    def test_reflection(self):
+        engine = create_engine('sqlite:///:memory:')
+        session = sessionmaker(bind=engine)()
+        metadata = NewTableModel.Attributes.sqla_metadata = MetaData()
+        metadata.bind = engine
+
+        class SomeChildClass(NewTableModel):
+            __tablename__ = 'some_child_class'
+
+            id = Integer32(primary_key=True)
+            s = Unicode(64)
+            i = Integer32
+
+        class SomeClass(NewTableModel):
+            __tablename__ = 'some_class'
+
+            id = Integer32(primary_key=True)
+            children = Array(SomeChildClass).store_as('xml')
+            mirror = SomeChildClass.store_as('json')
+
+
+        metadata2 = MetaData()
+        metadata2.bind = engine
+        metadata2.reflect()
+
 if __name__ == '__main__':
     unittest.main()

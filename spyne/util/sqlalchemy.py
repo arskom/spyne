@@ -235,6 +235,8 @@ class PGXml(UserDefinedType):
                 return value
         return process
 
+sqlalchemy.dialects.postgresql.base.ischema_names['xml'] = PGXml
+
 
 class PGJson(UserDefinedType):
     def __init__(self, encoding='UTF-8'):
@@ -259,16 +261,12 @@ class PGJson(UserDefinedType):
                 return value
         return process
 
+sqlalchemy.dialects.postgresql.base.ischema_names['json'] = PGJson
+
 
 class PGObjectXml(UserDefinedType):
-    def __new__(cls, class_=None, root_tag_name=None, no_namespace=False ):
-        if class_ is None:
-            return PGXml()
-        else:
-            return UserDefinedType.__new__(class_, root_tag_name, no_namespace)
-
-    def __init__(self, class_, root_tag_name=None, no_namespace=False):
-        self.cls = class_
+    def __init__(self, cls, root_tag_name=None, no_namespace=False):
+        self.cls = cls
         self.root_tag_name = root_tag_name
         self.no_namespace = no_namespace
 
@@ -288,16 +286,8 @@ class PGObjectXml(UserDefinedType):
                 return get_xml_as_object(etree.fromstring(value), self.cls)
         return process
 
-sqlalchemy.dialects.postgresql.base.ischema_names['xml'] = PGObjectXml
-
 
 class PGObjectJson(UserDefinedType):
-    def __new__(cls, class_=None, ignore_wrappers=True, complex_as=dict):
-        if class_ is None:
-            return PGJson()
-        else:
-            return UserDefinedType.__new__(class_, ignore_wrappers, complex_as)
-
     def __init__(self, cls, ignore_wrappers=True, complex_as=dict):
         self.cls = cls
         self.ignore_wrappers = ignore_wrappers
@@ -321,8 +311,6 @@ class PGObjectJson(UserDefinedType):
                 return get_dict_as_object(json.loads(value), self.cls)
 
         return process
-
-sqlalchemy.dialects.postgresql.base.ischema_names['json'] = PGObjectJson
 
 
 def get_sqlalchemy_type(cls):
