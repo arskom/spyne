@@ -27,6 +27,7 @@ from spyne import EventManager
 from spyne.util.cdict import cdict
 
 from spyne.const.http import HTTP_400
+from spyne.const.http import HTTP_401
 from spyne.const.http import HTTP_404
 from spyne.const.http import HTTP_405
 from spyne.const.http import HTTP_413
@@ -36,6 +37,7 @@ from spyne.error import Fault
 from spyne.error import ResourceNotFoundError
 from spyne.error import RequestTooLongError
 from spyne.error import RequestNotAllowed
+from spyne.error import InvalidCredentialsError
 
 from spyne.model import ModelBase
 from spyne.model import SimpleModel
@@ -261,6 +263,8 @@ class ProtocolBase(object):
             return HTTP_404
         if isinstance(fault, RequestNotAllowed):
             return HTTP_405
+        if isinstance(fault, InvalidCredentialsError):
+            return HTTP_401
         if isinstance(fault, Fault) and (fault.faultcode.startswith('Client.')
                                                 or fault.faultcode == 'Client'):
             return HTTP_400

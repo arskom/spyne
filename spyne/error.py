@@ -36,6 +36,14 @@ class ResourceNotFoundError(Fault):
                                                     fault_string % fault_object)
 
 
+class InvalidCredentialsError(Fault):
+    """Raised when requested resource is not found."""
+
+    def __init__(self, fault_object,
+             fault_string="You do not have permission to access this resource"):
+        Fault.__init__(self, 'Client.InvalidCredentialsError', fault_string)
+
+
 class RequestTooLongError(Fault):
     """Raised when request is too long."""
 
