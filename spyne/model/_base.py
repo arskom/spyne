@@ -393,11 +393,12 @@ class SimpleModel(ModelBase):
         class __metaclass__(AttributesMeta):
             def __init__(self, cls_name, cls_bases, cls_dict):
                 AttributesMeta.__init__(self, cls_name, cls_bases, cls_dict)
-                self.__pattern = cls_dict.get('pattern', None)
+                if getattr(self, '_pattern', None) is None:
+                    self._pattern = None
             def get_pattern(self):
-                return self.__pattern
+                return self._pattern
             def set_pattern(self, pattern):
-                self.__pattern = pattern
+                self._pattern = pattern
                 if pattern is not None:
                     self._pattern_re = re.compile(pattern)
             pattern = property(get_pattern, set_pattern)
