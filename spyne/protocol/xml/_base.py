@@ -42,6 +42,7 @@ from spyne.model.binary import BINARY_ENCODING_BASE64
 from spyne.model.complex import Alias
 from spyne.model.complex import Array
 from spyne.model.complex import Iterable
+from spyne.model.complex import XmlAttribute
 from spyne.model.complex import ComplexModelBase
 from spyne.model.enum import EnumBase
 from spyne.model.fault import Fault
@@ -63,6 +64,7 @@ from spyne.protocol.xml.model import fault_to_parent_element
 from spyne.protocol.xml.model import xml_to_parent_element
 from spyne.protocol.xml.model import html_to_parent_element
 from spyne.protocol.xml.model import dict_to_parent_element
+from spyne.protocol.xml.model import xmlattribute_to_parent_element
 
 from spyne.protocol.xml.model import attachment_from_element
 from spyne.protocol.xml.model import base_from_element
@@ -76,7 +78,6 @@ from spyne.protocol.xml.model import array_from_element
 from spyne.protocol.xml.model import iterable_from_element
 from spyne.protocol.xml.model import dict_from_element
 from spyne.protocol.xml.model import unicode_from_element
-
 
 class SchemaValidationError(Fault):
     """Raised when the input stream could not be validated by the Xml Schema."""
@@ -135,6 +136,7 @@ class XmlDocument(ProtocolBase):
             ModelBase: base_to_parent_element,
             ByteArray: byte_array_to_parent_element,
             Attachment: attachment_to_parent_element,
+            XmlAttribute: xmlattribute_to_parent_element,
             ComplexModelBase: complex_to_parent_element,
         })
 

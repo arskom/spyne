@@ -201,14 +201,6 @@ class XmlAttribute(XmlModifier):
         return retval
 
     @classmethod
-    def marshall(cls, prot, name, value, parent_elt):
-        if cls._ns is not None:
-            name = "{%s}%s" % (cls._ns, name)
-
-        if value is not None:
-            parent_elt.set(name, prot.to_string(cls.type, value))
-
-    @classmethod
     def describe(cls, name, element, document):
         element.set('name', name)
         element.set('type', cls.type.get_type_name_ns(document.interface))

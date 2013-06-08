@@ -84,7 +84,6 @@ def any_xml_from_string(cls, string):
     except etree.XMLSyntaxError, e:
         raise ValidationError(string, "%%r: %r" % e)
 
-
 @nillable_string
 def any_html_to_string(cls, value):
     return html.tostring(value)

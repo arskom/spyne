@@ -30,6 +30,8 @@ from spyne.const.xml_ns import soap_env as _ns_soap_env
 from spyne.error import Fault
 from spyne.error import ValidationError
 from spyne.model import PushBase
+from spyne.model.binary import File
+from spyne.model.binary import ByteArray
 from spyne.model.complex import XmlData
 from spyne.model.complex import XmlAttribute
 from spyne.util import coroutine
@@ -138,6 +140,19 @@ def null_from_element(prot, cls, element):
     return None
 
 
+@nillable_value
+def xmlattribute_to_parent_element(prot, cls, value, tns, parent_elt, name):
+    if cls._ns is not None:
+        name = "{%s}%s" % (cls._ns, name)
+
+    if value is not None:
+        if issubclass(cls.type, (ByteArray, File)):
+            parent_elt.set(name, prot.to_string(cls.type, value,
+                                                prot.default_binary_encoding))
+        else:
+            parent_elt.set(name, prot.to_string(cls.type, value))
+
+
 def attachment_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     '''This class method takes the data from the attachment and
     base64 encodes it as the text of an Element. An attachment can
@@ -178,15 +193,7 @@ def get_members_etree(prot, cls, inst, parent):
             # This is a tight loop, so enable this only when necessary.
             # logger.debug("get %r(%r) from %r: %r" % (k, v, inst, subvalue))
 
-            if issubclass(v, XmlAttribute):
-                a_of = v.attribute_of
-                if a_of is not None and a_of in cls._type_info.keys():
-                    delay.add(k)
-                else:
-                    v.marshall(prot, k, subvalue, parent)
-                continue
-
-            elif issubclass(v, XmlData):
+            if issubclass(v, XmlData):
                 v.marshall(prot, k, subvalue, parent)
                 continue
 
@@ -311,6 +318,7 @@ def complex_from_element(prot, cls, element):
                 value = getattr(inst, key, None)
                 if value is None:
                     value = []
+
                 value.append(prot.from_string(member.type, c.attrib[key]))
 
             else:
@@ -323,7 +331,11 @@ def complex_from_element(prot, cls, element):
         if member is None:
             continue
 
-        value = prot.from_string(member.type, element.attrib[key])
+        if issubclass(member.type, (ByteArray, File)):
+            value = prot.from_string(member.type, element.attrib[key],
+                                                   prot.default_binary_encoding)
+        else:
+            value = prot.from_string(member.type, element.attrib[key])
 
         setattr(inst, key, value)
 
