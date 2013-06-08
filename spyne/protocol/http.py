@@ -207,30 +207,33 @@ class HttpRpc(FlatDictDocument):
                 ctx.out_document = ['']
 
             else:
+                out_class = None
+                out_object = None
+
                 if ctx.descriptor.body_style is BODY_STYLE_WRAPPED:
-                    try:
-                        out_class, = result_class.get_flat_type_info(result_class).values()
+                    fti = result_class.get_flat_type_info(result_class)
+                    if len(fti) > 1 and not self.ignore_uncap:
+                        raise TypeError("HttpRpc protocol can only "
+                            "serialize functions with a single return type.")
+
+                    if len(fti) == 1:
+                        out_class, = fti.values()
                         out_object, = ctx.out_object
 
-                    except (TypeError, ValueError), e:
-                        logger.exception(e)
-                        if self.ignore_uncap:
-                            return
-                        raise TypeError("HttpRpc protocol can only serialize "
-                                        "functions with a single return type.")
                 else:
                     out_class = result_class
                     out_object = ctx.out_object
 
-                try:
-                    ctx.out_document = self.to_string_iterable(out_class,
-                                                                     out_object)
-                except (TypeError, AttributeError), e:
-                    logger.exception(e)
-                    if self.ignore_uncap:
-                        return
-                    raise TypeError("HttpRpc protocol can only serialize "
-                                    "primitives.")
+                if out_class is not None:
+                    try:
+                        ctx.out_document = self.to_string_iterable(out_class,
+                                                                    out_object)
+                    except (TypeError, AttributeError), e:
+                        logger.exception(e)
+                        if self.ignore_uncap:
+                            return
+                        raise TypeError("HttpRpc protocol can only serialize "
+                                        "primitives.")
 
             # header
             if ctx.out_header is not None:
