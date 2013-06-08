@@ -271,7 +271,7 @@ class HttpPattern(object):
         self.verb = verb
         self.endpoint = endpoint
 
-    def as_werkzeug_rule(self):
+    def as_werkzeug_rules(self):
         from werkzeug.routing import Rule
         from spyne.util.invregexp import invregexp
 
@@ -283,5 +283,5 @@ class HttpPattern(object):
         if host is None:
             host = '<__ignored>'  # this is necessary when host_matching is enabled.
 
-        return Rule(self.address, host=host, endpoint=self.endpoint,
-                                                                methods=methods)
+        for a in invregexp(self.address):
+            yield Rule(a, host=host, endpoint=self.endpoint, methods=methods)

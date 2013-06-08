@@ -204,15 +204,14 @@ class WsgiApplication(HttpBase):
             p_service_class, p_method_descriptor = v[0]
             for patt in p_method_descriptor.patterns:
                 if isinstance(patt, HttpPattern):
-                    r = patt.as_werkzeug_rule()
-
                     # We are doing this here because we want to import Werkzeug
                     # as late as possible.
                     if self._http_patterns is None:
                         from werkzeug.routing import Map
                         self._http_patterns = Map(host_matching=True)
 
-                    self._http_patterns.add(r)
+                    for r in patt.as_werkzeug_rules()
+                        self._http_patterns.add(r)
 
     @property
     def has_patterns(self):
