@@ -20,37 +20,38 @@
 # Copyright (c) Twisted Matrix Laboratories.
 # See LICENSE for details.
 
+import time
+
 from time import strftime
 from time import gmtime
 from collections import deque
 
 # This is a modified version of twisted's addCookie
-def generate_cookie(k, v, expires=None, domain=None, path=None,
-                                       max_age=None, comment=None, secure=False):
+def generate_cookie(k, v, max_age=None, domain=None, path=None,
+                                       comment=None, secure=False):
     """Generate a HTTP response cookie. No sanity check whatsoever is done,
     don't send anything other than ASCII.
 
     :param k: Cookie key.
     :param v: Cookie value.
-    :param expires: Seconds since epoch.
+    :param max_age: Seconds.
     :param domain: Domain.
     :param path: Path.
-    :param max_age: Seconds.
     :param comment: Whatever.
     :param secure: If true, appends 'Secure' to the cookie string.
     """
 
     retval = deque(['%s=%s' % (k, v)])
 
-    if expires is not None:
+    if max_age is not None:
+        retval.append("Max-Age=%d" % max_age)
+        expires = time.time() + max_age
         retval.append("Expires=%s" % strftime("%a, %d %b %Y %H:%M:%S GMT",
                                                                gmtime(expires)))
     if domain is not None:
         retval.append("Domain=%s" % domain)
     if path is not None:
         retval.append("Path=%s" % path)
-    if max_age is not None:
-        retval.append("Max-Age=%d" % max_age)
     if comment is not None:
         retval.append("Comment=%s" % comment)
     if secure:
