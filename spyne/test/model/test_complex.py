@@ -24,14 +24,18 @@ from pprint import pprint
 
 from lxml import etree
 
+from base64 import b64encode
+
 from spyne.application import Application
 from spyne.decorator import rpc
 from spyne.service import ServiceBase
 from spyne.interface import Interface
 from spyne.interface.wsdl import Wsdl11
 from spyne.protocol import ProtocolBase
+from spyne.protocol.soap import Soap11
 from spyne.const import xml_ns
 
+from spyne.model.binary import ByteArray
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import SelfReference
@@ -354,6 +358,45 @@ class TestXmlAttribute(unittest.TestCase):
         self.assertIsNotNone(attribute_def)
         self.assertEqual(attribute_def.get('name'), 'a')
         self.assertEqual(attribute_def.get('type'), CM.a.type.get_type_name_ns(interface))
+
+    def test_b64_non_attribute(self):
+        class PacketNonAttribute(ComplexModel):
+            __namespace__ = 'myns'
+            Data = ByteArray
+
+        test_string = 'yo test data'
+        b64string = b64encode(test_string)
+
+        gg = PacketNonAttribute(Data=test_string)
+
+        element = etree.Element('test')
+        Soap11().to_parent_element(PacketNonAttribute, gg, gg.get_namespace(), element)
+
+        element = element[0]
+        #print etree.tostring(element, pretty_print=True)
+        data = element.find('{%s}Data' % gg.get_namespace()).text
+        self.assertEquals(data, b64string)
+        s1 = Soap11().from_element(PacketNonAttribute, element)
+        assert s1.Data[0] == test_string
+
+    def test_b64_attribute(self):
+        class PacketAttribute(ComplexModel):
+            __namespace__ = 'myns'
+            Data = XmlAttribute(ByteArray, use='required')
+
+        test_string = 'yo test data'
+        b64string = b64encode(test_string)
+        gg = PacketAttribute(Data=test_string)
+
+        element = etree.Element('test')
+        Soap11().to_parent_element(PacketAttribute, gg, gg.get_namespace(), element)
+
+        element = element[0]
+        #print etree.tostring(element, pretty_print=True)
+        self.assertEquals(element.attrib['Data'], b64string)
+
+        s1 = Soap11().from_element(PacketAttribute, element)
+        assert s1.Data[0] == test_string
 
 
 class TestSimpleTypeRestrictions(unittest.TestCase):
