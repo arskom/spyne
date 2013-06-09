@@ -414,7 +414,8 @@ class TestPrimitive(unittest.TestCase):
 # nY indicates the number of years
 # nM indicates the number of months
 # nD indicates the number of days
-# T indicates the start of a time section (*required* if you are going to specify hours, minutes, or seconds)
+# T indicates the start of a time section (*required* if you are going to
+#                               specify hours, minutes, seconds or microseconds)
 # nH indicates the number of hours
 # nM indicates the number of minutes
 # nS indicates the number of seconds
@@ -541,7 +542,8 @@ class TestDurationPrimitive(unittest.TestCase):
         self.assertEquals(dur, ProtocolBase().from_string(Duration, str1))
         self.assertEquals(dur, ProtocolBase().from_string(Duration, str2))
 
-        self.assertEquals(dur, ProtocolBase().from_string(Duration, ProtocolBase().to_string(Duration, dur)))
+        self.assertEquals(dur, ProtocolBase().from_string(Duration,
+                               ProtocolBase().to_string(Duration, dur)))
 
 
 if __name__ == '__main__':
