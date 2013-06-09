@@ -57,6 +57,15 @@ from twisted.web.resource import Resource
 from twisted.web.server import NOT_DONE_YET
 from twisted.python import log
 
+# FIXME: Switch to:
+#    from twisted.web.websockets import WebSocketsProtocol
+#    from twisted.web.websockets import WebSocketsResource
+#    from twisted.web.websockets import CONTROLS
+
+from spyne.util._twisted_ws import WebSocketsProtocol
+from spyne.util._twisted_ws import WebSocketsResource
+from spyne.util._twisted_ws import CONTROLS
+
 from zope.interface import implements
 
 from spyne import MethodContext
@@ -306,16 +315,6 @@ class TwistedWebResource(Resource):
 
         finally:
             ctx.close()
-
-try:
-    from twisted.web.websockets import WebSocketsProtocol
-    from twisted.web.websockets import WebSocketsResource
-    from twisted.web.websockets import CONTROLS
-
-except ImportError:
-    from spyne.util._twisted_ws import WebSocketsProtocol
-    from spyne.util._twisted_ws import WebSocketsResource
-    from spyne.util._twisted_ws import CONTROLS
 
 
 class WebSocketTransportContext(TransportContext):
