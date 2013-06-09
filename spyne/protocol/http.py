@@ -92,8 +92,8 @@ def to_string(prot, val, cls):
 
 
 class HttpRpc(FlatDictDocument):
-    """The so-called ReST-ish HttpRpc protocol implementation. It only works
-    with Http (wsgi and twisted) transports.
+    """The so-called HttpRpc protocol implementation. It only works with Http
+    (wsgi and twisted) transports.
 
     :param app: An :class:'spyne.application.Application` instance.
     :param validator: Validation method to use. One of (None, 'soft')
