@@ -301,21 +301,26 @@ def duration_to_string(cls, value):
     else:
         negative = False
 
+    total_seconds = value.total_seconds()
     seconds = value.seconds % 60
     minutes = value.seconds / 60
     hours = minutes / 60
     minutes = minutes % 60
-    seconds = float(seconds) + value.microseconds / 1e6
+    seconds = float(seconds)
+    useconds = value.microseconds
 
     retval = deque()
     if negative:
-        retval.append("-")
-
-    retval = ['P']
-    if value.days > 0:
+        retval.append("-P")
+    else:
+        retval.append("P")
+    if value.days != 0:
         retval.extend([
             "%iD" % value.days,
             ])
+
+    if total_seconds != 0 and total_seconds % 86400 == 0 and useconds == 0:
+        return ''.join(retval)
 
     retval.append('T')
 
@@ -325,10 +330,15 @@ def duration_to_string(cls, value):
     if minutes > 0:
         retval.append("%iM" % minutes)
 
-    if seconds > 0:
-        retval.append("%fS" % seconds)
-    else:
-        retval.append("0S")
+    if seconds > 0 or useconds > 0:
+        retval.append("%i" % seconds)
+        if useconds > 0:
+            retval.append(".%i" % useconds)
+        retval.append("S")
+
+    print len(retval), retval
+    if len(retval) == 2:
+        retval.append('0S')
 
     return ''.join(retval)
 
