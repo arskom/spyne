@@ -48,6 +48,7 @@ logger = logging.getLogger(__name__)
 
 from inspect import isgenerator
 
+from spyne.error import InternalError
 from twisted.python.log import err
 from twisted.internet.interfaces import IPullProducer
 from twisted.internet.defer import Deferred
@@ -187,17 +188,25 @@ class TwistedWebResource(Resource):
         return self.handle_rpc(request)
 
     def handle_rpc_error(self, p_ctx, others, error, request):
-        resp_code = p_ctx.out_protocol.fault_to_http_response_code(error)
+        resp_code = p_ctx.transport.resp_code
+
+        if resp_code is None:
+            resp_code = p_ctx.out_protocol.fault_to_http_response_code(error)
 
         request.setResponseCode(int(resp_code[:3]))
+
+        # In case client code set its own out_* attributes before failing.
+        p_ctx.out_document = None
+        p_ctx.out_string = None
 
         p_ctx.out_object = error
         self.http_transport.get_out_string(p_ctx)
 
-        process_contexts(self.http_transport, others, p_ctx, error=error)
-
         retval = ''.join(p_ctx.out_string)
+
         p_ctx.close()
+
+        process_contexts(self.http_transport, others, p_ctx, error=error)
 
         return retval
 
@@ -252,6 +261,7 @@ class TwistedWebResource(Resource):
             p_ctx.out_error = retval.value
             if not issubclass(retval.type, Fault):
                 retval.printTraceback()
+                p_ctx.out_error = InternalError(retval.value)
 
             ret = self.handle_rpc_error(p_ctx, others, p_ctx.out_error, request)
             request.write(ret)
