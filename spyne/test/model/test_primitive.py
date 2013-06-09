@@ -468,7 +468,7 @@ class TestDurationPrimitive(unittest.TestCase):
             (86399, u'PT23H59M59S'),
             (86400, u'P1D'),
             (86400*60, u'P60D'),
-            (86400*400, u'P400')
+            (86400*400, u'P400D')
         ]
 
         for secs, answer in tests_seconds:
@@ -546,13 +546,12 @@ class TestDurationPrimitive(unittest.TestCase):
         assert s1.howlong.total_seconds() == gg.howlong.total_seconds()
 
     def test_duration_positive_milliseconds_only(self):
-        answer = 'PT0.666S'
+        answer = 'PT0.666000S'
         gg = SomeBlob()
         gg.howlong = timedelta(milliseconds=666)
 
         element = etree.Element('test')
         XmlDocument().to_parent_element(SomeBlob, gg, gg.get_namespace(), element)
-
         element = element[0]
 
         print gg.howlong
