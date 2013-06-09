@@ -268,6 +268,9 @@ class ModelBase(object):
             cls.__namespace__ = '.'.join(ret)
 
         if cls.__namespace__ is None or len(cls.__namespace__) == 0:
+            cls.__namespace__ = default_ns
+
+        if cls.__namespace__ is None or len(cls.__namespace__) == 0:
             raise ValueError("You need to explicitly set %r.__namespace__" % cls)
 
     @classmethod
