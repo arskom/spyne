@@ -21,6 +21,7 @@ import re
 import datetime
 import unittest
 
+from datetime import timedelta
 from lxml import etree
 
 from spyne.const import xml_ns as ns
@@ -153,18 +154,6 @@ class TestPrimitive(unittest.TestCase):
 
         dt = ProtocolBase().from_string(Date, ret)
         self.assertEquals(n, dt)
-
-    def test_duration_xml_duration(self):
-        dur = datetime.timedelta(days=5 + 30 + 365, hours=1, minutes=1,
-                                                   seconds=12, microseconds=8e5)
-
-        str1 = 'P400DT3672.8S'
-        str2 = 'P1Y1M5DT1H1M12.8S'
-
-        self.assertEquals(dur, ProtocolBase().from_string(Duration, str1))
-        self.assertEquals(dur, ProtocolBase().from_string(Duration, str2))
-
-        self.assertEquals(dur, ProtocolBase().from_string(Duration, ProtocolBase().to_string(Duration, dur)))
 
     def test_utcdatetime(self):
         datestring = '2007-05-15T13:40:44Z'
@@ -415,6 +404,142 @@ class TestPrimitive(unittest.TestCase):
 
         app = Application([Service], 'hey', in_protocol=XmlDocument(), out_protocol=XmlDocument())
         XmlSchema(app.interface).build_interface_document()
+
+
+### Duration Data Type
+## http://www.w3schools.com/schema/schema_dtypes_date.asp
+# Duration Data type
+#  The time interval is specified in the following form "PnYnMnDTnHnMnS" where:
+# P indicates the period (required)
+# nY indicates the number of years
+# nM indicates the number of months
+# nD indicates the number of days
+# T indicates the start of a time section (*required* if you are going to specify hours, minutes, or seconds)
+# nH indicates the number of hours
+# nM indicates the number of minutes
+# nS indicates the number of seconds
+
+class SomeBlob(ComplexModel):
+    __namespace__ = 'myns'
+    howlong = Duration()
+
+class TestDurationPrimitive(unittest.TestCase):
+    def test_onehour_oneminute_onesecond(self):
+        answer = 'PT1H1M1S'
+        gg = SomeBlob()
+        gg.howlong = timedelta(hours=1, minutes=1, seconds=1)
+
+        element = etree.Element('test')
+        XmlDocument().to_parent_element(SomeBlob, gg, gg.get_namespace(), element)
+
+        element = element[0]
+        #print etree.tostring(element, pretty_print=True)
+        data = element.find('{%s}howlong' % gg.get_namespace()).text
+        self.assertEquals(data, answer)
+        s1 = XmlDocument().from_element(SomeBlob, element)
+        assert s1.howlong[0] == answer
+
+    def test_4suite(self):
+        # borrowed from 4Suite
+        tests_seconds =  [(0, u'PT1S'),
+                          (1, u'PT1S'),
+                          (59, u'PT59S'),
+                          (60, u'PT1M'),
+                          (3599, u'PT59M59S'),
+                          (3600, u'PT1H'),
+                          (86399, u'PT23H59M59S'),
+                          (86400, u'P1D'),
+                          (86400*60, u'P60D'),
+                          (86400*400, u'P400')]
+
+        for secs, answer in tests_seconds:
+            gg = SomeBlob()
+            gg.howlong = timedelta(seconds=secs)
+
+            element = etree.Element('test')
+            XmlDocument().to_parent_element(SomeBlob, gg, gg.get_namespace(), element)
+
+            element = element[0]
+            #print etree.tostring(element, pretty_print=True)
+            data = element.find('{%s}howlong' % gg.get_namespace()).text
+            self.assertEquals(data, answer)
+            s1 = XmlDocument().from_element(SomeBlob, element)
+            assert s1.howlong[0] == answer
+
+        for secs, answer in tests_seconds:
+            if secs > 0:
+                secs *= -1
+                answer = '-' + answer
+                gg = SomeBlob()
+                gg.howlong = timedelta(seconds=secs)
+
+                element = etree.Element('test')
+                XmlDocument().to_parent_element(SomeBlob, gg, gg.get_namespace(), element)
+
+                element = element[0]
+                #print etree.tostring(element, pretty_print=True)
+                data = element.find('{%s}howlong' % gg.get_namespace()).text
+                self.assertEquals(data, answer)
+                s1 = XmlDocument().from_element(SomeBlob, element)
+                assert s1.howlong[0] == answer
+
+    def test_duration_positive_seconds_only(self):
+        answer = 'PT35S'
+        gg = SomeBlob()
+        gg.howlong = timedelta(seconds=35)
+
+        element = etree.Element('test')
+        XmlDocument().to_parent_element(SomeBlob, gg, gg.get_namespace(), element)
+
+        element = element[0]
+        #print etree.tostring(element, pretty_print=True)
+        data = element.find('{%s}howlong' % gg.get_namespace()).text
+        self.assertEquals(data, answer)
+        s1 = XmlDocument().from_element(SomeBlob, element)
+        assert s1.howlong[0] == answer
+
+
+    def test_duration_positive_minutes_and_seconds_only(self):
+        answer = 'PT5M35S'
+        gg = SomeBlob()
+        gg.howlong = timedelta(minutes=5, seconds=35)
+
+        element = etree.Element('test')
+        XmlDocument().to_parent_element(SomeBlob, gg, gg.get_namespace(), element)
+
+        element = element[0]
+        #print etree.tostring(element, pretty_print=True)
+        data = element.find('{%s}howlong' % gg.get_namespace()).text
+        self.assertEquals(data, answer)
+        s1 = XmlDocument().from_element(SomeBlob, element)
+        assert s1.howlong[0] == answer
+
+    def test_duration_positive_milliseconds_only(self):
+        answer = 'PT0.666S'
+        gg = SomeBlob()
+        gg.howlong = timedelta(milliseconds=666)
+
+        element = etree.Element('test')
+        XmlDocument().to_parent_element(SomeBlob, gg, gg.get_namespace(), element)
+
+        element = element[0]
+        #print etree.tostring(element, pretty_print=True)
+        data = element.find('{%s}howlong' % gg.get_namespace()).text
+        self.assertEquals(data, answer)
+        s1 = XmlDocument().from_element(SomeBlob, element)
+        assert s1.howlong[0] == answer
+
+    def test_duration_xml_duration(self):
+        dur = datetime.timedelta(days=5 + 30 + 365, hours=1, minutes=1,
+                                                   seconds=12, microseconds=8e5)
+
+        str1 = 'P400DT3672.8S'
+        str2 = 'P1Y1M5DT1H1M12.8S'
+
+        self.assertEquals(dur, ProtocolBase().from_string(Duration, str1))
+        self.assertEquals(dur, ProtocolBase().from_string(Duration, str2))
+
+        self.assertEquals(dur, ProtocolBase().from_string(Duration, ProtocolBase().to_string(Duration, dur)))
 
 
 if __name__ == '__main__':
