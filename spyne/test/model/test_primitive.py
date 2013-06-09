@@ -445,13 +445,16 @@ class TestDurationPrimitive(unittest.TestCase):
 
         element = etree.Element('test')
         XmlDocument().to_parent_element(SomeBlob, gg, gg.get_namespace(), element)
-
         element = element[0]
-        #print etree.tostring(element, pretty_print=True)
+
+        print gg.howlong
+        print etree.tostring(element, pretty_print=True)
+        assert element[0].text == answer
+
         data = element.find('{%s}howlong' % gg.get_namespace()).text
         self.assertEquals(data, answer)
         s1 = XmlDocument().from_element(SomeBlob, element)
-        assert s1.howlong[0] == answer
+        assert s1.howlong.total_seconds() == gg.howlong.total_seconds()
 
     def test_4suite(self):
         # borrowed from 4Suite
@@ -474,13 +477,16 @@ class TestDurationPrimitive(unittest.TestCase):
 
             element = etree.Element('test')
             XmlDocument().to_parent_element(SomeBlob, gg, gg.get_namespace(), element)
-
             element = element[0]
-            #print etree.tostring(element, pretty_print=True)
+
+            print gg.howlong
+            print etree.tostring(element, pretty_print=True)
+            assert element[0].text == answer
+
             data = element.find('{%s}howlong' % gg.get_namespace()).text
             self.assertEquals(data, answer)
             s1 = XmlDocument().from_element(SomeBlob, element)
-            assert s1.howlong[0] == answer
+            assert s1.howlong.total_seconds() == secs
 
         for secs, answer in tests_seconds:
             if secs > 0:
@@ -491,13 +497,16 @@ class TestDurationPrimitive(unittest.TestCase):
 
                 element = etree.Element('test')
                 XmlDocument().to_parent_element(SomeBlob, gg, gg.get_namespace(), element)
-
                 element = element[0]
-                #print etree.tostring(element, pretty_print=True)
+
+                print gg.howlong
+                print etree.tostring(element, pretty_print=True)
+                assert element[0].text == answer
+
                 data = element.find('{%s}howlong' % gg.get_namespace()).text
                 self.assertEquals(data, answer)
                 s1 = XmlDocument().from_element(SomeBlob, element)
-                assert s1.howlong[0] == answer
+                assert s1.howlong.total_seconds() == secs
 
     def test_duration_positive_seconds_only(self):
         answer = 'PT35S'
@@ -506,13 +515,16 @@ class TestDurationPrimitive(unittest.TestCase):
 
         element = etree.Element('test')
         XmlDocument().to_parent_element(SomeBlob, gg, gg.get_namespace(), element)
-
         element = element[0]
-        #print etree.tostring(element, pretty_print=True)
+
+        print gg.howlong
+        print etree.tostring(element, pretty_print=True)
+        assert element[0].text == answer
+
         data = element.find('{%s}howlong' % gg.get_namespace()).text
         self.assertEquals(data, answer)
         s1 = XmlDocument().from_element(SomeBlob, element)
-        assert s1.howlong[0] == answer
+        assert s1.howlong.total_seconds() == gg.howlong.total_seconds()
 
 
     def test_duration_positive_minutes_and_seconds_only(self):
@@ -522,13 +534,16 @@ class TestDurationPrimitive(unittest.TestCase):
 
         element = etree.Element('test')
         XmlDocument().to_parent_element(SomeBlob, gg, gg.get_namespace(), element)
-
         element = element[0]
-        #print etree.tostring(element, pretty_print=True)
+
+        print gg.howlong
+        print etree.tostring(element, pretty_print=True)
+        assert element[0].text == answer
+
         data = element.find('{%s}howlong' % gg.get_namespace()).text
         self.assertEquals(data, answer)
         s1 = XmlDocument().from_element(SomeBlob, element)
-        assert s1.howlong[0] == answer
+        assert s1.howlong.total_seconds() == gg.howlong.total_seconds()
 
     def test_duration_positive_milliseconds_only(self):
         answer = 'PT0.666S'
@@ -539,11 +554,15 @@ class TestDurationPrimitive(unittest.TestCase):
         XmlDocument().to_parent_element(SomeBlob, gg, gg.get_namespace(), element)
 
         element = element[0]
-        #print etree.tostring(element, pretty_print=True)
+
+        print gg.howlong
+        print etree.tostring(element, pretty_print=True)
+        assert element[0].text == answer
+
         data = element.find('{%s}howlong' % gg.get_namespace()).text
         self.assertEquals(data, answer)
         s1 = XmlDocument().from_element(SomeBlob, element)
-        assert s1.howlong[0] == answer
+        assert s1.howlong.total_seconds() == gg.howlong.total_seconds()
 
     def test_duration_xml_duration(self):
         dur = datetime.timedelta(days=5 + 30 + 365, hours=1, minutes=1,
