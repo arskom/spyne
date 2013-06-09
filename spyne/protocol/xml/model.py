@@ -193,7 +193,12 @@ def get_members_etree(prot, cls, inst, parent):
             # This is a tight loop, so enable this only when necessary.
             # logger.debug("get %r(%r) from %r: %r" % (k, v, inst, subvalue))
 
-            if issubclass(v, XmlData):
+            if issubclass(v, XmlAttribute):
+                if v.attribute_of in cls._type_info.keys():
+                    delay.add(k)
+                    continue
+
+            elif issubclass(v, XmlData):
                 v.marshall(prot, k, subvalue, parent)
                 continue
 
@@ -236,11 +241,13 @@ def get_members_etree(prot, cls, inst, parent):
         attr_parents = parent.findall("{%s}%s"%(cls.__namespace__, a_of))
         if cls._type_info[a_of].Attributes.max_occurs > 1:
             for subsubvalue, attr_parent in zip(subvalue, attr_parents):
-                v.marshall(prot, k, subsubvalue, attr_parent)
+                prot.to_parent_element(v, subsubvalue, v.get_namespace(),
+                                                                attr_parent, k)
 
         else:
             for attr_parent in attr_parents:
-                v.marshall(prot, k, subvalue, attr_parent)
+                prot.to_parent_element(v, subvalue, v.get_namespace(),
+                                                                attr_parent, k)
 
 
 @nillable_value
