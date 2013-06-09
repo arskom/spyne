@@ -210,7 +210,7 @@ class WsgiApplication(HttpBase):
                         from werkzeug.routing import Map
                         self._http_patterns = Map(host_matching=True)
 
-                    for r in patt.as_werkzeug_rules()
+                    for r in patt.as_werkzeug_rules():
                         self._http_patterns.add(r)
 
     @property
