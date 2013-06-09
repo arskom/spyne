@@ -189,13 +189,13 @@ class TwistedWebResource(Resource):
 
     def handle_rpc_error(self, p_ctx, others, error, request):
         resp_code = p_ctx.transport.resp_code
-
+        # If user code set its own response code, don't touch it.
         if resp_code is None:
             resp_code = p_ctx.out_protocol.fault_to_http_response_code(error)
 
         request.setResponseCode(int(resp_code[:3]))
 
-        # In case client code set its own out_* attributes before failing.
+        # In case user code set its own out_* attributes before failing.
         p_ctx.out_document = None
         p_ctx.out_string = None
 
