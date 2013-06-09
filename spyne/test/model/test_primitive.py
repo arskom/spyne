@@ -454,7 +454,7 @@ class TestDurationPrimitive(unittest.TestCase):
 
     def test_4suite(self):
         # borrowed from 4Suite
-        tests_seconds =  [(0, u'PT1S'),
+        tests_seconds =  [(0, u'PT0S'),
                           (1, u'PT1S'),
                           (59, u'PT59S'),
                           (60, u'PT1M'),
