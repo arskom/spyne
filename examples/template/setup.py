@@ -30,10 +30,10 @@
 #
 
 try:
-	from distribute_setup import use_setuptools
-	use_setuptools()
+    from distribute_setup import use_setuptools
+    use_setuptools()
 except ImportError:
-	pass
+    pass
 
 import os
 import re

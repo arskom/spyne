@@ -6,7 +6,8 @@ spyne-2.10.8
 ------------
 * Fix Unicode losing pattern on re-customization
 * Fix Duration serialization, add a ton of test cases.
-* Fix some errors in the docs.
+* Fix binary urlsafe_base64 encoding.
+* Fix some doc errors.
 
 spyne-2.10.7
 ------------
