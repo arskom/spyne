@@ -196,8 +196,8 @@ rpclib-2.8.0-rc -> spyne-2.8.0-rc
 * Xml & friends: Start tags are now in the same namespace as the definitions
   themselves. Intermediate tags are in the parent's namespace, just as before.
 * Xml & friends: Make the 'bare' mode work.
-* spyne.util.xml: `get_object_as_xml` can also get class suggestion.
-* spyne.util.xml: `get_xml_as_object` has argument order swapped:
+* spyne.util.xml: ``get_object_as_xml`` can also get class suggestion.
+* spyne.util.xml: ``get_xml_as_object`` has argument order swapped:
   cls, elt -> elt, cls. See ab91a3e2ad4756b71d1a2752e5b0d2af8551e061.
 * There's a final argument order change in Application ctor:
 
