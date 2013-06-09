@@ -454,16 +454,18 @@ class TestDurationPrimitive(unittest.TestCase):
 
     def test_4suite(self):
         # borrowed from 4Suite
-        tests_seconds =  [(0, u'PT0S'),
-                          (1, u'PT1S'),
-                          (59, u'PT59S'),
-                          (60, u'PT1M'),
-                          (3599, u'PT59M59S'),
-                          (3600, u'PT1H'),
-                          (86399, u'PT23H59M59S'),
-                          (86400, u'P1D'),
-                          (86400*60, u'P60D'),
-                          (86400*400, u'P400')]
+        tests_seconds =  [
+            (0, u'PT0S'),
+            (1, u'PT1S'),
+            (59, u'PT59S'),
+            (60, u'PT1M'),
+            (3599, u'PT59M59S'),
+            (3600, u'PT1H'),
+            (86399, u'PT23H59M59S'),
+            (86400, u'P1D'),
+            (86400*60, u'P60D'),
+            (86400*400, u'P400')
+        ]
 
         for secs, answer in tests_seconds:
             gg = SomeBlob()
