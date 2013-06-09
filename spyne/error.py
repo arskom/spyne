@@ -69,7 +69,7 @@ class InvalidInputError(Fault):
     """Raised when there is a general problem with input data."""
 
     def __init__(self, faultstring="", data=""):
-        Fault.__init__(self, 'Client.InvalidInput', (faultstring, data))
+        Fault.__init__(self, 'Client.InvalidInput', repr((faultstring, data)))
 
 
 class ValidationError(Fault):
