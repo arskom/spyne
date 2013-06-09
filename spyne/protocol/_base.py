@@ -145,7 +145,7 @@ class ProtocolBase(object):
             File: file_to_string_iterable,
             ByteArray: byte_array_to_string_iterable,
             ModelBase: lambda prot, cls, value: cls.to_string_iterable(value),
-            SimpleModel: lambda prot, cls, value: (prot._to_string_handlers[cls](cls, value),),
+            SimpleModel: simple_model_to_string_iterable,
         })
 
         self._from_string_handlers = cdict({
