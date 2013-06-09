@@ -317,18 +317,18 @@ def duration_to_string(cls, value):
             "%iD" % value.days,
             ])
 
-    if hours > 0 and minutes > 0 and seconds > 0:
-        retval.extend([
-            "T",
-            "%iH" % hours,
-            "%iM" % minutes,
-            "%fS" % seconds,
-            ])
+    retval.append('T')
 
+    if hours > 0:
+        retval.append("%iH" % hours)
+
+    if minutes > 0:
+        retval.append("%iM" % minutes)
+
+    if seconds > 0:
+        retval.append("%fS" % seconds)
     else:
-        retval.extend([
-            "0S",
-            ])
+        retval.append("0S")
 
     return ''.join(retval)
 
