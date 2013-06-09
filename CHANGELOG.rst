@@ -2,6 +2,12 @@
 Changelog
 =========
 
+spyne-2.10.8
+------------
+* Fix Unicode losing pattern on re-customization
+* Fix Duration serialization, add a ton of test cases.
+* Fix some errors in the docs.
+
 spyne-2.10.7
 ------------
 * Fix logic error in wsdl caching that prevented the url in Wsdl document from
