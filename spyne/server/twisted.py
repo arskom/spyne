@@ -157,7 +157,7 @@ class TwistedHttpTransport(HttpBase):
         logger.debug("%sMethod name: %r%s" % (LIGHT_GREEN,
                                           ctx.method_request_string, END_COLOR))
 
-        ctx.in_header_doc = request.headers
+        ctx.in_header_doc = dict(request.requestHeaders.getAllRawHeaders())
         ctx.in_body_doc = request.args
 
 
