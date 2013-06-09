@@ -21,6 +21,7 @@ from spyne import TransportContext
 from spyne import MethodContext
 from spyne.server import ServerBase
 
+
 class HttpTransportContext(TransportContext):
     """The abstract base class that is used in the transport attribute of the
     :class:`HttpMethodContext` class and its subclasses."""

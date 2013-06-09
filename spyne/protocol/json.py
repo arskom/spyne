@@ -119,13 +119,13 @@ class JsonDocument(HierDictDocument):
         self._to_string_handlers[Boolean] = lambda cls, val: val
         self._to_string_handlers[Integer] = lambda cls, val: val
 
-    def validate(self, cls, val):
-        super(JsonDocument, self).validate(cls, val)
+    def validate(self, key, cls, val):
+        super(JsonDocument, self).validate(key, cls, val)
 
         if issubclass(cls, (DateTime, Date, Time)) and not (
                                     isinstance(val, basestring) and
                                                  cls.validate_string(cls, val)):
-            raise ValidationError(val)
+            raise ValidationError(key, val)
 
 
 

@@ -302,7 +302,7 @@ class FlatDictDocument(DictDocument):
             for v2 in v:
                 if (validator is self.SOFT_VALIDATION and not
                                   member.type.validate_string(member.type, v2)):
-                    raise ValidationError(v2)
+                    raise ValidationError((orig_k, v2))
 
                 if issubclass(member.type, (File, ByteArray)):
                     native_v2 = self.from_string(member.type, v2,
@@ -312,7 +312,7 @@ class FlatDictDocument(DictDocument):
 
                 if (validator is self.SOFT_VALIDATION and not
                            member.type.validate_native(member.type, native_v2)):
-                    raise ValidationError(v2)
+                    raise ValidationError((orig_k, v2))
 
                 value.append(native_v2)
 
@@ -493,14 +493,14 @@ class HierDictDocument(DictDocument):
 
             self.event_manager.fire_event('after_serialize', ctx)
 
-    def validate(self, class_, value):
+    def validate(self, key, class_, value):
         # validate raw input
         if issubclass(class_, Unicode) and not isinstance(value, basestring):
-            raise ValidationError(value)
+            raise ValidationError((key, value))
 
-    def _from_dict_value(self, class_, value, validator):
+    def _from_dict_value(self, key, class_, value, validator):
         if validator is self.SOFT_VALIDATION:
-            self.validate(class_, value)
+            self.validate(key, class_, value)
 
         if issubclass(class_, AnyDict):
             return value
@@ -513,7 +513,7 @@ class HierDictDocument(DictDocument):
             if (validator is self.SOFT_VALIDATION
                                 and isinstance(value, basestring)
                                 and not class_.validate_string(class_, value)):
-                raise ValidationError(value)
+                raise ValidationError((key, value))
 
             if issubclass(class_, (ByteArray, file)):
                 retval = self.from_string(class_, value,
@@ -525,7 +525,7 @@ class HierDictDocument(DictDocument):
         # validate native type
         if validator is self.SOFT_VALIDATION and \
                                      not class_.validate_native(class_, retval):
-            raise ValidationError(retval)
+            raise ValidationError((key, retval))
 
         return retval
 
@@ -537,8 +537,8 @@ class HierDictDocument(DictDocument):
             retval = [ ]
             (serializer,) = class_._type_info.values()
 
-            for child in doc:
-                retval.append(self._from_dict_value(serializer, child,
+            for i,child in enumerate(doc):
+                retval.append(self._from_dict_value(i, serializer, child,
                                                                     validator))
 
             return retval
@@ -569,10 +569,10 @@ class HierDictDocument(DictDocument):
                     value = []
 
                 for a in v:
-                    value.append(self._from_dict_value(member, a, validator))
+                    value.append(self._from_dict_value(k, member, a, validator))
 
             else:
-                value = self._from_dict_value(member, v, validator)
+                value = self._from_dict_value(k, member, v, validator)
 
             setattr(inst, k, value)
 
