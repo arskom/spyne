@@ -103,14 +103,29 @@ class TwistedWebSocketProtocol(WebSocketsProtocol):
     def __init__(self, transport, bookkeep=False, _clients=None):
         self._spyne_transport = transport
         self._clients = _clients
+        self.__app_id = id(self)
         if bookkeep:
             self.connectionMade = self._connectionMade
             self.connectionLost = self._connectionLost
 
+    @property
+    def app_id(self):
+        return self.__app_id
+
+    @app_id.setter
+    def app_id(self, what):
+        entry = self._clients.get(self.__app_id, None)
+
+        if entry:
+            del self._clients[old_id]
+            self._clients[what] = entry
+
+        self.__app_id = what
+
     def _connectionMade(self):
         WebSocketsProtocol.connectionMade(self)
 
-        self._clients[id(self)] = self
+        self._clients[self.app_id] = self
 
     def _connectionLost(self, reason):
         del self._clients[id(self)]
@@ -159,7 +174,10 @@ class TwistedWebSocketProtocol(WebSocketsProtocol):
             self.sendFrame(opcode, ''.join(p_ctx.out_string), fin)
             p_ctx.close()
 
-        ret = p_ctx.out_object[0]
+        ret = p_ctx.out_object
+        if isinstance(ret, (list, tuple)):
+            ret = ret[0]
+
         if isinstance(ret, Deferred):
             ret.addCallback(_cb_deferred)
             ret.addErrback(_eb_deferred)
@@ -208,20 +226,23 @@ class InvalidRequestError(Exception):
 
 
 class TwistedWebSocketResource(WebSocketsResource):
-    def __init__(self, app, bookkeep=False):
+    def __init__(self, app, bookkeep=False, clients=None):
         self.app = app
-        self._clients = {}
+        self.clients = clients
+        if clients is None:
+            self.clients = {}
+
         if bookkeep:
-            self.propagate = self._propagate
+            self.propagate = self.do_propagate
 
         WebSocketsResource.__init__(self, TwistedWebSocketFactory(app,
-                                                       bookkeep, self._clients))
+                                                       bookkeep, self.clients))
 
     def propagate(self):
         raise InvalidRequestError("You must enable bookkeeping to have "
                                   "message propagation work.")
 
-    def _propagate(self, obj, cls=None):
+    def get_doc(self, obj, cls=None):
         if cls is None:
             cls = obj.__class__
 
@@ -229,7 +250,12 @@ class TwistedWebSocketResource(WebSocketsResource):
         ctx = _FakeCtx(obj, cls)
         op.serialize(ctx, op.RESPONSE)
         op.create_out_string(ctx)
-        doc = ''.join(ctx.out_string)
 
-        for c in self._clients.itervalues():
+        return ''.join(ctx.out_string)
+
+    def do_propagate(self, obj, cls=None):
+        asd
+        doc = self.get_doc(obj, cls)
+
+        for c in self.clients.itervalues():
             c.sendFrame(CONTROLS.TEXT, doc, True)
