@@ -18,7 +18,7 @@ Spyne API Reference
     interface
     protocol/index
     client
-    server
+    server/index
     auxproc
 
     util

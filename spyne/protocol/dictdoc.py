@@ -97,7 +97,7 @@ As an example, let's assume the following HTTP request: ::
     (...)
 
 The keys ``v1`` and ``v2`` are passed to the instance of the ``in_header``
-class if it has fields named ``v1`` or ``v2``.
+class if it has fields named ``v1`` or ``v2``\.
 
 Wrappers
 ========
@@ -115,7 +115,7 @@ Here's how it would be serialized to XML: ::
     </Permission>
 
 With ``ignore_wrappers=True`` (which is the default) This gets serialized to
-dict as follows:
+dict as follows: ::
 
     {
         "application": "app",
