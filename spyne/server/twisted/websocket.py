@@ -88,7 +88,10 @@ class WebSocketTransportContext(TransportContext):
         TransportContext.__init__(self, transport, type)
 
         self.client_handle = client_handle
+        """TwistedWebSocketProtocol instance."""
+
         self.parent = parent
+        """Parent Context"""
 
 
 class WebSocketMethodContext(MethodContext):
@@ -100,6 +103,8 @@ class WebSocketMethodContext(MethodContext):
 
 
 class TwistedWebSocketProtocol(WebSocketsProtocol):
+    """A protocol that parses and generates messages in a WebSocket stream."""
+
     def __init__(self, transport, bookkeep=False, _clients=None):
         self._spyne_transport = transport
         self._clients = _clients
