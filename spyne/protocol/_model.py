@@ -430,7 +430,7 @@ def file_to_string_iterable(prot, cls, value):
 
 @nillable_iterable
 def simple_model_to_string_iterable(prot, cls, value):
-    retval = prot.to_string[cls](cls, value)
+    retval = prot.to_string(cls, value)
     if retval is None:
         return ('',)
     return (retval,)
