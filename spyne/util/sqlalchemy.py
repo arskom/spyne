@@ -709,7 +709,8 @@ def gen_sqla_info(cls, cls_bases=()):
                                             "relationship"
 
                     col = _get_col_o2o(cls, k, v, p.left)
-                    rel = relationship(real_v, uselist=False, foreign_keys=[col])
+                    rel = relationship(real_v, uselist=False,
+                                          foreign_keys=[col], backref=p.backref)
 
                     p.left = col.key
                     props[k] = rel
