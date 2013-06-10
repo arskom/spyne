@@ -401,7 +401,7 @@ class ComplexModelMeta(type(ModelBase)):
 
         # for spyne objects reflecting an existing db table
         if tn is None:
-            if t is not None and len(self._type_info) == 0:
+            if t is not None:
                 self.Attributes.sqla_metadata = t.metadata
                 from spyne.util.sqlalchemy import gen_spyne_info
 
