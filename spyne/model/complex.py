@@ -549,7 +549,7 @@ class ComplexModelBase(ModelBase):
 
     @staticmethod
     def get_simple_type_info(cls, hier_delim="_", retval=None, prefix=None,
-                                                    parent=None, is_array=None):
+                                            parent=None, is_array=None, tags=None):
         """Returns a _type_info dict that includes members from all base classes
         and whose types are only primitives. It will prefix field names in
         non-top-level complex objects with field name of its parent.
@@ -573,7 +573,13 @@ class ComplexModelBase(ModelBase):
         if is_array is None:
             is_array = deque()
 
+        if tags is None:
+            tags = set()
+
         fti = cls.get_flat_type_info(cls)
+        tags.add(getattr(cls, "__orig__", None) or cls)
+        print tags
+
         for k, v in fti.items():
             if issubclass(v, Array) and v.Attributes.max_occurs == 1:
                 v, = v._type_info.values()
@@ -592,8 +598,9 @@ class ComplexModelBase(ModelBase):
                                parent=parent, type_=v, is_array=tuple(is_array))
 
             else:
-                v.get_simple_type_info(v, hier_delim, retval, prefix, cls,
-                                                                       is_array)
+                if not (getattr(v, "__orig__", None) or v) in tags:
+                    v.get_simple_type_info(v, hier_delim, retval, prefix, cls,
+                                                                is_array, tags)
 
             prefix.pop()
             is_array.pop()
