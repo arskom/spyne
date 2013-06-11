@@ -262,4 +262,5 @@ class TwistedWebSocketResource(WebSocketsResource):
         doc = self.get_doc(obj, cls)
 
         for c in self.clients.itervalues():
+            print 'sending to', c
             c.sendFrame(CONTROLS.TEXT, doc, True)
