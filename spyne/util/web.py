@@ -30,7 +30,6 @@ from spyne.error import ResourceNotFoundError
 from spyne.service import ServiceBase
 from spyne.util.email import email_exception
 
-from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -97,7 +96,7 @@ class Application(AppBase):
                                                       _on_method_context_closed)
 
         self.db = db
-        self.Session = sessionmaker(bind=db)
+        self.Session = sessionmaker(bind=db, expire_on_commit=False)
 
     def call_wrapper(self, ctx):
         try:
@@ -128,7 +127,9 @@ def _et(f):
         self = args[0]
 
         try:
-            return f(*args, **kwargs)
+            retval = f(*args, **kwargs)
+            self.session.expunge_all()
+            return retval
 
         except NoResultFound:
             raise ResourceNotFoundError(self.ctx.in_object)
