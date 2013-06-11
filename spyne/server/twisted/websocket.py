@@ -259,7 +259,6 @@ class TwistedWebSocketResource(WebSocketsResource):
         return ''.join(ctx.out_string)
 
     def do_propagate(self, obj, cls=None):
-        asd
         doc = self.get_doc(obj, cls)
 
         for c in self.clients.itervalues():
