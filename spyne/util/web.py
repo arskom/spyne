@@ -40,7 +40,7 @@ from twisted.internet import reactor
 from twisted.internet.threads import deferToThreadPool
 
 
-EXCEPTION_ADDRESS = "admin@gezi.io"
+EXCEPTION_ADDRESS = None
 
 
 try:
@@ -113,7 +113,8 @@ class Application(AppBase):
         except Exception, e:
             log.err()
             # This should not happen! Let the team know via email!
-            email_exception(EXCEPTION_ADDRESS)
+            if EXCEPTION_ADDRESS:
+                email_exception(EXCEPTION_ADDRESS)
             raise InternalError(e)
 
 
