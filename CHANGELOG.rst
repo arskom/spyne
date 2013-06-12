@@ -14,6 +14,14 @@ spyne-2.11.0
 * SQLAlchemy: Make it work with multiple foreign keys from one table to
   another.
 
+spyne-2.10.8
+------------
+* Fix Unicode losing pattern on re-customization
+* Fix Duration serialization, add a ton of test cases.
+* Fix binary urlsafe_base64 encoding.
+* Fix arbitrary exception serialization.
+* Fix some doc errors.
+
 spyne-2.10.7
 ------------
 * Fix logic error in wsdl caching that prevented the url in Wsdl document from
