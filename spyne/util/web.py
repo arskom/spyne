@@ -23,12 +23,14 @@ An opinionated web framework built on top of Spyne, SQLAlchemy and Twisted.
 
 from __future__ import absolute_import
 
+from spyne import BODY_STYLE_WRAPPED
 from spyne.application import Application as AppBase
 from spyne.error import Fault
 from spyne.error import InternalError
 from spyne.error import ResourceNotFoundError
 from spyne.service import ServiceBase
 from spyne.util.email import email_exception
+from spyne.model.primitive import Unicode
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModelBase
 
@@ -49,9 +51,10 @@ try:
     colorama.init()
 
     from colorama.ansi import Fore
-    RED = Fore.RED
-    GREEN = Fore.GREEN
-    RESET = Fore.RESET
+    from colorama.ansi import Style
+    RED = Fore.RED + Style.BRIGHT
+    GREEN = Fore.GREEN + Style.BRIGHT
+    RESET = Style.RESET_ALL
 
 except ImportError:
     RED = ""
@@ -80,8 +83,26 @@ def _on_method_context_closed(ctx):
         error = ctx.out_error
 
     if error is None:
-        log.msg('%s[OK]%s %r => %r' % (GREEN, RESET, ctx.in_object,
-                        log_repr(ctx.out_object, ctx.descriptor.out_message)))
+        om = ctx.descriptor.out_message
+        if issubclass(om, ComplexModelBase):
+            oo = ctx.out_object
+            if len(om._type_info) == 0:
+                oo = None
+
+            elif len(om._type_info) == 1 and \
+                              ctx.descriptor.body_style is BODY_STYLE_WRAPPED:
+                om, = om._type_info.values()
+                oo, = ctx.out_object
+
+            else:
+                oo = om.get_serialization_instance(ctx.out_object)
+
+        log.msg('%s[OK]%s %r => %r' % (
+                    GREEN, RESET,
+                    log_repr(ctx.in_object, ctx.descriptor.in_message),
+                    log_repr(oo, om),
+                ))
+
     elif isinstance(error, Fault):
         log.msg('%s[CE]%s %r => %r' % (RED, RESET, ctx.in_object, error))
     else:
