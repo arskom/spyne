@@ -25,6 +25,8 @@ from __future__ import absolute_import
 
 from spyne import BODY_STYLE_WRAPPED
 from spyne.application import Application as AppBase
+from spyne.const import MAX_STRING_FIELD_LENGTH
+from spyne.const import MAX_ARRAY_ELEMENT_NUM
 from spyne.error import Fault
 from spyne.error import InternalError
 from spyne.error import ResourceNotFoundError
