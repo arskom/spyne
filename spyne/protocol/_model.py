@@ -64,6 +64,7 @@ __all__ = [
     'file_from_string', 'file_to_string_iterable',
     'attachment_to_string', 'attachment_from_string',
     'complex_model_base_to_string', 'complex_model_base_from_string',
+    'simple_model_to_string_iterable',
 ]
 
 def null_to_string(cls, value):
@@ -336,7 +337,6 @@ def duration_to_string(cls, value):
             retval.append(".%i" % useconds)
         retval.append("S")
 
-    print len(retval), retval
     if len(retval) == 2:
         retval.append('0S')
 
@@ -427,6 +427,12 @@ def file_to_string_iterable(prot, cls, value):
     else:
         return iter(value.data)
 
+@nillable_iterable
+def simple_model_to_string_iterable(prot, cls, value):
+    retval = prot.to_string(cls, value)
+    if retval is None:
+        return ('',)
+    return (retval,)
 
 @nillable_string
 def attachment_to_string(cls, value):

@@ -533,21 +533,25 @@ class WebSocketsResource(object):
         if request.method != "GET":
             # 4.2.1.1 GET is required.
             failed = True
+            print 'request.method', request.method
 
         upgrade = request.getHeader("Upgrade")
         if upgrade is None or "websocket" not in upgrade.lower():
             # 4.2.1.3 Upgrade: WebSocket is required.
             failed = True
+            print 'request.getHeader("Upgrade")', request.getHeader("Upgrade")
 
         connection = request.getHeader("Connection")
         if connection is None or "upgrade" not in connection.lower():
             # 4.2.1.4 Connection: Upgrade is required.
             failed = True
+            print 'request.getHeader("Connection")', request.getHeader("Connection")
 
         key = request.getHeader("Sec-WebSocket-Key")
         if key is None:
             # 4.2.1.5 The challenge key is required.
             failed = True
+            print 'request.getHeader("Sec-WebSocket-Key")', request.getHeader("Sec-WebSocket-Key")
 
         version = request.getHeader("Sec-WebSocket-Version")
         if version != "13":
@@ -555,6 +559,7 @@ class WebSocketsResource(object):
             failed = True
             # 4.4 Forward-compatible version checking.
             request.setHeader("Sec-WebSocket-Version", "13")
+            print 'request.getHeader("Sec-WebSocket-Version")', request.getHeader("Sec-WebSocket-Version")
 
         if failed:
             request.setResponseCode(400)

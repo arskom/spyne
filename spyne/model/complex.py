@@ -40,8 +40,6 @@ from spyne.model.primitive import Unicode
 from spyne.model.primitive import Point
 
 from spyne.const import xml_ns as namespace
-from spyne.const import MAX_STRING_FIELD_LENGTH
-from spyne.const import MAX_ARRAY_ELEMENT_NUM
 from spyne.const import ARRAY_PREFIX
 from spyne.const import ARRAY_SUFFIX
 from spyne.const import TYPE_SUFFIX
@@ -401,7 +399,7 @@ class ComplexModelMeta(type(ModelBase)):
 
         # for spyne objects reflecting an existing db table
         if tn is None:
-            if t is not None and len(self._type_info) == 0:
+            if t is not None:
                 self.Attributes.sqla_metadata = t.metadata
                 from spyne.util.sqlalchemy import gen_spyne_info
 
@@ -549,7 +547,7 @@ class ComplexModelBase(ModelBase):
 
     @staticmethod
     def get_simple_type_info(cls, hier_delim="_", retval=None, prefix=None,
-                                                    parent=None, is_array=None):
+                                            parent=None, is_array=None, tags=None):
         """Returns a _type_info dict that includes members from all base classes
         and whose types are only primitives. It will prefix field names in
         non-top-level complex objects with field name of its parent.
@@ -573,7 +571,12 @@ class ComplexModelBase(ModelBase):
         if is_array is None:
             is_array = deque()
 
+        if tags is None:
+            tags = set()
+
         fti = cls.get_flat_type_info(cls)
+        tags.add(getattr(cls, "__orig__", None) or cls)
+
         for k, v in fti.items():
             if issubclass(v, Array) and v.Attributes.max_occurs == 1:
                 v, = v._type_info.values()
@@ -592,8 +595,9 @@ class ComplexModelBase(ModelBase):
                                parent=parent, type_=v, is_array=tuple(is_array))
 
             else:
-                v.get_simple_type_info(v, hier_delim, retval, prefix, cls,
-                                                                       is_array)
+                if not (getattr(v, "__orig__", None) or v) in tags:
+                    v.get_simple_type_info(v, hier_delim, retval, prefix, cls,
+                                                                is_array, tags)
 
             prefix.pop()
             is_array.pop()
@@ -827,82 +831,6 @@ class Alias(ComplexModelBase):
     """Different type_name, same _type_info."""
 
     __metaclass__ = ComplexModelMeta
-
-
-def log_repr(obj, cls=None, given_len=None):
-    """Use this function if you want to echo a ComplexModel subclass. It will
-    limit output size of the String types, making your logs smaller.
-    """
-
-    if obj is None:
-        return 'None'
-
-    if cls is None:
-        cls = obj.__class__
-
-    if issubclass(cls, Array) or cls.Attributes.max_occurs > 1:
-        if not cls.Attributes.logged:
-            retval = "%s(...)" % cls.get_type_name()
-
-        else:
-            retval = []
-
-            cls, = cls._type_info.values()
-
-            if not cls.Attributes.logged:
-                retval.append("%s (...)" % cls.get_type_name())
-
-            elif cls.Attributes.logged == 'len':
-                l = '?'
-
-                try:
-                    l = str(len(obj))
-                except TypeError, e:
-                    if given_len is not None:
-                        l = str(given_len)
-
-                retval.append("%s[%s] (...)" % (cls.get_type_name(), l))
-
-            else:
-                for i,o in enumerate(obj):
-                    retval.append(_log_repr_obj(o, cls))
-
-                    if i > MAX_ARRAY_ELEMENT_NUM:
-                        retval.append("(...)")
-                        break
-
-            retval = "%s([%s])" % (cls.get_type_name(), ', '.join(retval))
-
-    elif issubclass(cls, ComplexModel):
-        if cls.Attributes.logged:
-            retval = _log_repr_obj(obj, cls)
-        else:
-            retval = "%s(...)" % cls.get_type_name()
-
-    else:
-        retval = repr(obj)
-
-        if len(retval) > MAX_STRING_FIELD_LENGTH:
-            retval = retval[:MAX_STRING_FIELD_LENGTH] + "(...)"
-
-    return retval
-
-
-def _log_repr_obj(obj, cls):
-    retval = []
-
-    for k,t in cls.get_flat_type_info(cls).items():
-        v = getattr(obj, k, None)
-        if v is not None and t.Attributes.logged:
-            if issubclass(t, Unicode) and isinstance(v, basestring) and \
-                                               len(v) > MAX_STRING_FIELD_LENGTH:
-                s = '%s=%r(...)' % (k, v[:MAX_STRING_FIELD_LENGTH])
-            else:
-                s = '%s=%r' % (k, v)
-
-            retval.append(s)
-
-    return "%s(%s)" % (cls.get_type_name(), ', '.join(retval))
 
 
 # this has docstring repeated in the documentation at reference/model/complex.rst

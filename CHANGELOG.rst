@@ -14,6 +14,14 @@ spyne-2.11.0
 * SQLAlchemy: Make it work with multiple foreign keys from one table to
   another.
 
+spyne-2.10.8
+------------
+* Fix Unicode losing pattern on re-customization
+* Fix Duration serialization, add a ton of test cases.
+* Fix binary urlsafe_base64 encoding.
+* Fix arbitrary exception serialization.
+* Fix some doc errors.
+
 spyne-2.10.7
 ------------
 * Fix logic error in wsdl caching that prevented the url in Wsdl document from
@@ -31,7 +39,7 @@ spyne-2.10.5
 * Fix invalid document type raising ``InternalError`` in DictDocument family.
   It now raises ``ValidationError``.
 * HttpRpc: Fix ``ByteArray`` deserialization.
-* HttpRpc: Fix many corner cases with ``Array``s.
+* HttpRpc: Fix many corner cases with ``Array``\s.
 * Fix Csv serializer.
 * Fix Mandatory variants of ``Double`` and ``Float`` inheriting from decimal.
 
@@ -196,8 +204,8 @@ rpclib-2.8.0-rc -> spyne-2.8.0-rc
 * Xml & friends: Start tags are now in the same namespace as the definitions
   themselves. Intermediate tags are in the parent's namespace, just as before.
 * Xml & friends: Make the 'bare' mode work.
-* spyne.util.xml: `get_object_as_xml` can also get class suggestion.
-* spyne.util.xml: `get_xml_as_object` has argument order swapped:
+* spyne.util.xml: ``get_object_as_xml`` can also get class suggestion.
+* spyne.util.xml: ``get_xml_as_object`` has argument order swapped:
   cls, elt -> elt, cls. See ab91a3e2ad4756b71d1a2752e5b0d2af8551e061.
 * There's a final argument order change in Application ctor:
 

@@ -81,9 +81,9 @@ class User(TableModel):
     __table_args__ = {"sqlite_autoincrement": True}
 
     id = UnsignedInteger32(pk=True)
+    email = Unicode(64, pattern=r'[a-z0-9._%+-]+@[a-z0-9.-]+\.[A-Z]{2,4}')
     user_name = Unicode(32, min_len=4, pattern='[a-z0-9.]+')
     full_name = Unicode(64, pattern='\w+( \w+)+')
-    email = Unicode(64, pattern=r'[a-z0-9._%+-]+@[a-z0-9.-]+\.[A-Z]{2,4}')
     permissions = Array(Permission).store_as('table')
 
 

@@ -709,7 +709,8 @@ def gen_sqla_info(cls, cls_bases=()):
                                             "relationship"
 
                     col = _get_col_o2o(cls, k, v, p.left)
-                    rel = relationship(real_v, uselist=False, foreign_keys=[col])
+                    rel = relationship(real_v, uselist=False,
+                                          foreign_keys=[col], backref=p.backref)
 
                     p.left = col.key
                     props[k] = rel
@@ -887,12 +888,15 @@ def get_spyne_type(v):
 def gen_spyne_info(cls):
     table = cls.Attributes.sqla_table
     _type_info = cls._type_info
+    mapper_args, mapper_kwargs = sanitize_args(cls.Attributes.sqla_mapper_args)
 
-    for c in table.c:
-        _type_info[c.name] = get_spyne_type(c)
+    if len(_type_info) == 0:
+        for c in table.c:
+            _type_info[c.name] = get_spyne_type(c)
+    else:
+        mapper_kwargs['include_properties'] = _type_info.keys()
 
     # Map the table to the object
-    mapper_args, mapper_kwargs = sanitize_args(cls.Attributes.sqla_mapper_args)
     cls_mapper = mapper(cls, table, *mapper_args, **mapper_kwargs)
     cls.Attributes.table_name = cls.__tablename__ = table.name
     cls.Attributes.sqla_mapper = cls.__mapper__ = cls_mapper

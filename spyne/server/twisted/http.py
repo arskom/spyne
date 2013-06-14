@@ -48,6 +48,7 @@ logger = logging.getLogger(__name__)
 
 from inspect import isgenerator
 
+from spyne.error import InternalError
 from twisted.python.log import err
 from twisted.internet.interfaces import IPullProducer
 from twisted.internet.defer import Deferred
@@ -157,7 +158,7 @@ class TwistedHttpTransport(HttpBase):
         logger.debug("%sMethod name: %r%s" % (LIGHT_GREEN,
                                           ctx.method_request_string, END_COLOR))
 
-        ctx.in_header_doc = request.headers
+        ctx.in_header_doc = dict(request.requestHeaders.getAllRawHeaders())
         ctx.in_body_doc = request.args
 
 
@@ -187,17 +188,25 @@ class TwistedWebResource(Resource):
         return self.handle_rpc(request)
 
     def handle_rpc_error(self, p_ctx, others, error, request):
-        resp_code = p_ctx.out_protocol.fault_to_http_response_code(error)
+        resp_code = p_ctx.transport.resp_code
+        # If user code set its own response code, don't touch it.
+        if resp_code is None:
+            resp_code = p_ctx.out_protocol.fault_to_http_response_code(error)
 
         request.setResponseCode(int(resp_code[:3]))
+
+        # In case user code set its own out_* attributes before failing.
+        p_ctx.out_document = None
+        p_ctx.out_string = None
 
         p_ctx.out_object = error
         self.http_transport.get_out_string(p_ctx)
 
-        process_contexts(self.http_transport, others, p_ctx, error=error)
-
         retval = ''.join(p_ctx.out_string)
+
         p_ctx.close()
+
+        process_contexts(self.http_transport, others, p_ctx, error=error)
 
         return retval
 
@@ -252,6 +261,7 @@ class TwistedWebResource(Resource):
             p_ctx.out_error = retval.value
             if not issubclass(retval.type, Fault):
                 retval.printTraceback()
+                p_ctx.out_error = InternalError(retval.value)
 
             ret = self.handle_rpc_error(p_ctx, others, p_ctx.out_error, request)
             request.write(ret)
@@ -315,157 +325,3 @@ class TwistedWebResource(Resource):
 
         finally:
             ctx.close()
-
-
-class WebSocketTransportContext(TransportContext):
-    def __init__(self, transport, type, client_handle, parent):
-        TransportContext.__init__(self, transport, type)
-
-        self.client_handle = client_handle
-        self.parent = parent
-
-
-class WebSocketMethodContext(MethodContext):
-    def __init__(self, transport, client_handle):
-        MethodContext.__init__(self, transport)
-
-        self.transport = WebSocketTransportContext(transport, 'ws',
-                                                            client_handle, self)
-
-
-class TwistedWebSocketProtocol(WebSocketsProtocol):
-    def __init__(self, transport, bookkeep=False, _clients=None):
-        self._spyne_transport = transport
-        self._clients = _clients
-        if bookkeep:
-            self.connectionMade = self._connectionMade
-            self.connectionLost = self._connectionLost
-        if _clients is None:
-            self._clients = {}
-
-    def _connectionMade(self):
-        WebSocketsProtocol.connectionMade(self)
-
-        self._clients[id(self)] = self
-
-    def _connectionLost(self, reason):
-        del self._clients[id(self)]
-
-
-    def frameReceived(self, opcode, data, fin):
-        tpt = self._spyne_transport
-
-        initial_ctx = WebSocketMethodContext(tpt, client_handle=self)
-        initial_ctx.in_string = [data]
-
-        contexts = tpt.generate_contexts(initial_ctx)
-        p_ctx, others = contexts[0], contexts[1:]
-
-        if p_ctx.in_error:
-            p_ctx.out_object = p_ctx.in_error
-
-        else:
-            tpt.get_in_object(p_ctx)
-
-            if p_ctx.in_error:
-                p_ctx.out_object = p_ctx.in_error
-
-            else:
-                tpt.get_out_object(p_ctx)
-                if p_ctx.out_error:
-                    p_ctx.out_object = p_ctx.out_error
-
-        def _cb_deferred(retval, cb=True):
-            if cb and len(p_ctx.descriptor.out_message._type_info) <= 1:
-                p_ctx.out_object = [retval]
-            else:
-                p_ctx.out_object = retval
-
-            tpt.get_out_string(p_ctx)
-            self.sendFrame(opcode, ''.join(p_ctx.out_string), fin)
-            p_ctx.close()
-            process_contexts(tpt, others, p_ctx)
-
-        def _eb_deferred(retval):
-            p_ctx.out_error = retval.value
-            if not issubclass(retval.type, Fault):
-                retval.printTraceback()
-
-            tpt.get_out_string(p_ctx)
-            self.sendFrame(opcode, ''.join(p_ctx.out_string), fin)
-            p_ctx.close()
-
-        ret = p_ctx.out_object[0]
-        if isinstance(ret, Deferred):
-            ret.addCallback(_cb_deferred)
-            ret.addErrback(_eb_deferred)
-
-        elif isinstance(ret, PushBase):
-            raise NotImplementedError()
-
-        else:
-            _cb_deferred(p_ctx.out_object, cb=False)
-
-
-class TwistedWebSocketFactory(Factory):
-    def __init__(self, app, bookkeep=False, _clients=None):
-        self.app = app
-        self.transport = ServerBase(app)
-        self.bookkeep = bookkeep
-        self._clients = _clients
-        if _clients is None:
-            self._clients = {}
-
-    def buildProtocol(self, addr):
-        return TwistedWebSocketProtocol(self.transport, self.bookkeep,
-                                                                self._clients)
-
-class _Fake(object):
-    pass
-
-
-def _FakeWrap(cls):
-    class _Ret(ComplexModel):
-        _type_info = {"ugh ": cls}
-
-    return _Ret
-
-
-class _FakeCtx(object):
-    def __init__(self, obj, cls):
-        self.out_object = obj
-        self.out_error = None
-        self.descriptor = _Fake()
-        self.descriptor.out_message = cls
-
-
-class InvalidRequestError(Exception):
-    pass
-
-
-class TwistedWebSocketResource(WebSocketsResource):
-    def __init__(self, app, bookkeep=False):
-        self.app = app
-        self._clients = {}
-        if bookkeep:
-            self.propagate = self._propagate
-
-        WebSocketsResource.__init__(self, TwistedWebSocketFactory(app,
-                                                       bookkeep, self._clients))
-
-    def propagate(self):
-        raise InvalidRequestError("You must enable bookkeeping to have "
-                                  "message propagation work.")
-
-    def _propagate(self, obj, cls=None):
-        if cls is None:
-            cls = obj.__class__
-
-        op = self.app.out_protocol
-        ctx = _FakeCtx(obj, cls)
-        op.serialize(ctx, op.RESPONSE)
-        op.create_out_string(ctx)
-        doc = ''.join(ctx.out_string)
-
-        for c in self._clients.itervalues():
-            c.sendFrame(CONTROLS.TEXT, doc, True)

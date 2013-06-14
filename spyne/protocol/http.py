@@ -92,8 +92,8 @@ def to_string(prot, val, cls):
 
 
 class HttpRpc(FlatDictDocument):
-    """The so-called ReST-ish HttpRpc protocol implementation. It only works
-    with Http (wsgi and twisted) transports.
+    """The so-called HttpRpc protocol implementation. It only works with Http
+    (wsgi and twisted) transports.
 
     :param app: An :class:'spyne.application.Application` instance.
     :param validator: Validation method to use. One of (None, 'soft')
@@ -157,14 +157,17 @@ class HttpRpc(FlatDictDocument):
         ctx.transport.itself.decompose_incoming_envelope(self, ctx, message)
 
         if self.parse_cookie:
-            cookies = ctx.in_header_doc.get('cookie', [])
-            for cookie_string in cookies:
-                cookie = SimpleCookie()
-                cookie.load(cookie_string)
-                for k,v in cookie.items():
-                    l = ctx.in_header_doc.get(k, [])
-                    l.append(v.coded_value)
-                    ctx.in_header_doc[k] = l
+            cookies = ctx.in_header_doc.get('cookie', None)
+            if cookies is None:
+                cookies = ctx.in_header_doc.get('Cookie', None)
+            if cookies is not None:
+                for cookie_string in cookies:
+                    cookie = SimpleCookie()
+                    cookie.load(cookie_string)
+                    for k,v in cookie.items():
+                        l = ctx.in_header_doc.get(k, [])
+                        l.append(v.coded_value)
+                        ctx.in_header_doc[k] = l
 
         logger.debug('\theader : %r' % (ctx.in_header_doc))
         logger.debug('\tbody   : %r' % (ctx.in_body_doc))
