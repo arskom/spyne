@@ -29,6 +29,8 @@ from spyne.error import InternalError
 from spyne.error import ResourceNotFoundError
 from spyne.service import ServiceBase
 from spyne.util.email import email_exception
+from spyne.model.complex import Array
+from spyne.model.complex import ComplexModelBase
 
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
@@ -68,6 +70,7 @@ class WriterServiceBase(ServiceBase):
 def _on_method_call(ctx):
     ctx.udc = Context(ctx.app.db, ctx.app.Session)
 
+
 def _on_method_context_closed(ctx):
     error = None
     if ctx.in_error is not None:
@@ -77,7 +80,8 @@ def _on_method_context_closed(ctx):
         error = ctx.out_error
 
     if error is None:
-        log.msg('%s[OK]%s %r => %r' % (GREEN, RESET, ctx.in_object, ctx.out_object))
+        log.msg('%s[OK]%s %r => %r' % (GREEN, RESET, ctx.in_object,
+                        log_repr(ctx.out_object, ctx.descriptor.out_message)))
     elif isinstance(error, Fault):
         log.msg('%s[CE]%s %r => %r' % (RED, RESET, ctx.in_object, error))
     else:
@@ -85,6 +89,7 @@ def _on_method_context_closed(ctx):
 
     if ctx.udc is not None:
         ctx.udc.close()
+
 
 class Application(AppBase):
     def __init__(self, services, tns, name=None, in_protocol=None,
@@ -122,6 +127,7 @@ def _user_callables(d):
         if callable(v) and not k in ('__init__', '__metaclass__'):
             yield k,v
 
+
 def _et(f):
     def _wrap(*args, **kwargs):
         self = args[0]
@@ -144,6 +150,7 @@ def _et(f):
             email_exception(EXCEPTION_ADDRESS)
             raise InternalError(e)
     return _wrap
+
 
 class DBThreadPool(ThreadPool):
     def __init__(self, engine, verbose=False):
@@ -209,3 +216,80 @@ class Context(object):
     def close(self):
         if self.session is not None:
             self.session.close()
+
+
+def log_repr(obj, cls=None, given_len=None):
+    """Use this function if you want to echo a ComplexModel subclass. It will
+    limit output size of the String types, making your logs smaller.
+    """
+
+    if obj is None:
+        return 'None'
+
+    if cls is None:
+        cls = obj.__class__
+
+    if issubclass(cls, Array) or cls.Attributes.max_occurs > 1:
+        if not cls.Attributes.logged:
+            retval = "%s(...)" % cls.get_type_name()
+
+        else:
+            retval = []
+
+            cls, = cls._type_info.values()
+
+            if not cls.Attributes.logged:
+                retval.append("%s (...)" % cls.get_type_name())
+
+            elif cls.Attributes.logged == 'len':
+                l = '?'
+
+                try:
+                    l = str(len(obj))
+                except TypeError, e:
+                    if given_len is not None:
+                        l = str(given_len)
+
+                retval.append("%s[%s] (...)" % (cls.get_type_name(), l))
+
+            else:
+                for i,o in enumerate(obj):
+                    retval.append(_log_repr_obj(o, cls))
+
+                    if i > MAX_ARRAY_ELEMENT_NUM:
+                        retval.append("(...)")
+                        break
+
+            retval = "%s([%s])" % (cls.get_type_name(), ', '.join(retval))
+
+    elif issubclass(cls, ComplexModelBase):
+        if cls.Attributes.logged:
+            retval = _log_repr_obj(obj, cls)
+        else:
+            retval = "%s(...)" % cls.get_type_name()
+
+    else:
+        retval = repr(obj)
+
+        if len(retval) > MAX_STRING_FIELD_LENGTH:
+            retval = retval[:MAX_STRING_FIELD_LENGTH] + "(...)"
+
+    return retval
+
+
+def _log_repr_obj(obj, cls):
+    retval = []
+
+    for k,t in cls.get_flat_type_info(cls).items():
+        v = getattr(obj, k, None)
+        if v is not None and t.Attributes.logged:
+            if issubclass(t, Unicode) and isinstance(v, basestring) and \
+                                               len(v) > MAX_STRING_FIELD_LENGTH:
+                s = '%s=%r(...)' % (k, v[:MAX_STRING_FIELD_LENGTH])
+            else:
+                s = '%s=%r' % (k, v)
+
+            retval.append(s)
+
+    return "%s(%s)" % (cls.get_type_name(), ', '.join(retval))
+
