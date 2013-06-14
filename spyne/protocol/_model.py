@@ -337,7 +337,6 @@ def duration_to_string(cls, value):
             retval.append(".%i" % useconds)
         retval.append("S")
 
-    print len(retval), retval
     if len(retval) == 2:
         retval.append('0S')
 

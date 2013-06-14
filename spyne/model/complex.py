@@ -578,7 +578,6 @@ class ComplexModelBase(ModelBase):
 
         fti = cls.get_flat_type_info(cls)
         tags.add(getattr(cls, "__orig__", None) or cls)
-        print tags
 
         for k, v in fti.items():
             if issubclass(v, Array) and v.Attributes.max_occurs == 1:
