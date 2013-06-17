@@ -59,7 +59,7 @@ of Spyne:
   ``spyne.model.complex.TTableModel``.
 * `pyzmq <https://github.com/zeromq/pyzmq>`_ is needed for
   ``spyne.client.zeromq.ZeroMQClient`` and
-  ``spyne.server.zeromq.ZeroMQServer``. pyzmq<2.2 is needed for Python 2.5.
+  ``spyne.server.zeromq.ZeroMQServer``.
 * `Werkzeug <http://werkzeug.pocoo.org/>`_ is needed for
   ``spyne.protocol.http.HttpRpc``.
 * `PyParsing<2.0 <http://pypi.python.org/pypi/pyparsing>`_ is needed for
@@ -67,14 +67,13 @@ of Spyne:
   Python 3 only.
 * `Twisted <http://twistedmatrix.com/>`_ is needed for
   ``spyne.server.twisted.TwistedWebResource`` and
-  ``spyne.client.twisted.TwistedHttpClient``. Twisted<12 is needed for
-  Python 2.5.
+  ``spyne.client.twisted.TwistedHttpClient``.
 * `Django <http://djangoproject.com/>`_ (tested with 1.2 and up) is needed for
   ``spyne.server.django.DjangoApplication``.
 * `Pyramid <http://pylonsproject.org/>`_ is needed for
   ``spyne.server.pyramid.PyramidApplication``.
 * `msgpack-python <http://github.com/msgpack/msgpack-python/>`_ is needed for
-  ``spyne.protocol.msgpack``. msgpack-python<0.3 is needed for Python 2.5.
+  ``spyne.protocol.msgpack``.
 * `PyYaml <https://bitbucket.org/xi/pyyaml>`_ is needed for
   ``spyne.protocol.yaml``.
 * `simplejson <http://github.com/simplejson/simplejson>`_ is used when found

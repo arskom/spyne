@@ -125,25 +125,11 @@ class RunTests(TestCommand):
 
         raise SystemExit(ret)
 
-test_reqs = ['pytest', 'werkzeug', 'sqlalchemy', 'suds',
-        'pyparsing<1.99', 'lxml>=2.3', 'pyyaml']
-
-if sys.version_info < (2,6):
-    test_reqs.extend([
-        'zope.interface<4',
-        'twisted<12',
-        'pyzmq<2.2',
-        'multiprocessing',
-        'simplejson',
-        'msgpack-python<0.2.99',
-    ])
-
-else:
-    test_reqs.extend([
-        'twisted',
-        'pyzmq',
-        'msgpack-python',
-    ])
+test_reqs = [
+    'pytest', 'werkzeug', 'sqlalchemy', 'suds',
+    'pyparsing<1.99', 'lxml>=2.3', 'pyyaml',
+    'twisted', 'pyzmq', 'msgpack-python',
+]
 
 setup(
     name='spyne',
