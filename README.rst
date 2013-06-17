@@ -43,7 +43,7 @@ as branches:
 Requirements
 ============
 
-Spyne is known to work on Python versions 2.5, 2.6 and 2.7. We're also looking for
+Spyne is known to work on Python versions 2.6 and 2.7. We're also looking for
 volunteers to test Python 3.x.
 
 The only hard requirement is `pytz <http://pytz.sourceforge.net/>`_ which is
