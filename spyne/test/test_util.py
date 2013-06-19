@@ -227,7 +227,14 @@ class TestEtreeDict(unittest.TestCase):
         self.assertEqual(tostring(none_value), '<a/>',
             "None should not be rendered in the etree")
         
+        string_value = root_dict_to_etree({'a': 'lol'})
+        self.assertEqual(tostring(string_value), '<a>lol</a>',
+            "A string should be rendered as a string")
         
+        complex_string_value = root_dict_to_etree({'a': {'b': 'lol'}})
+        self.assertEqual(tostring(complex_string_value), '<a><b>lol</b></a>',
+            "A string should be rendered as a string")
+
 
 class TestDictDoc(unittest.TestCase):
     def test_the(self):
