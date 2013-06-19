@@ -214,10 +214,19 @@ class TestEtreeDict(unittest.TestCase):
         complex_value = root_dict_to_etree({'a':{'b':1}})
         self.assertEqual(tostring(complex_value), '<a><b>1</b></a>',
             "The integer should be properly rendered in the etree")
+
+        complex_none = root_dict_to_etree({'a':{'b':None}})
+        self.assertEqual(tostring(complex_none), '<a><b/></a>',
+            "None should not be rendered in the etree")
         
         simple_value = root_dict_to_etree({'a': 1})
         self.assertEqual(tostring(simple_value), '<a>1</a>',
             "The integer should be properly rendered in the etree")
+        
+        none_value = root_dict_to_etree({'a': None})
+        self.assertEqual(tostring(none_value), '<a/>',
+            "None should not be rendered in the etree")
+        
         
 
 class TestDictDoc(unittest.TestCase):
