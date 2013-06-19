@@ -178,7 +178,7 @@ class WsgiApplication(HttpBase):
         * ``wsgi_return``
             Called right before the output stream is returned to the WSGI handler.
 
-        * ``wsgi_error``
+        * ``wsgi_exception``
             Called right before returning the exception to the client.
 
         * ``wsgi_close``
