@@ -202,8 +202,15 @@ class TestEtreeDict(unittest.TestCase):
     def test_simple(self):
         from lxml.etree import tostring
         from spyne.util.etreeconv import root_dict_to_etree
-
         assert tostring(root_dict_to_etree({'a':{'b':'c'}})) == '<a><b>c</b></a>'
+    
+    def test_not_sized(self):
+        from lxml.etree import tostring
+        from spyne.util.etreeconv import root_dict_to_etree
+
+        self.assertEqual(tostring(root_dict_to_etree({'a':{'b':1}})), '<a><b>1</b></a>',
+            "The integer should be properly rendered in the etree")
+        
 
 class TestDictDoc(unittest.TestCase):
     def test_the(self):
