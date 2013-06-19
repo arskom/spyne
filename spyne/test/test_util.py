@@ -199,6 +199,9 @@ class TestDeserialize(unittest.TestCase):
 
 
 class TestEtreeDict(unittest.TestCase):
+
+    longMessage = True
+
     def test_simple(self):
         from lxml.etree import tostring
         from spyne.util.etreeconv import root_dict_to_etree
@@ -208,7 +211,12 @@ class TestEtreeDict(unittest.TestCase):
         from lxml.etree import tostring
         from spyne.util.etreeconv import root_dict_to_etree
 
-        self.assertEqual(tostring(root_dict_to_etree({'a':{'b':1}})), '<a><b>1</b></a>',
+        complex_value = root_dict_to_etree({'a':{'b':1}})
+        self.assertEqual(tostring(complex_value), '<a><b>1</b></a>',
+            "The integer should be properly rendered in the etree")
+        
+        simple_value = root_dict_to_etree({'a': 1})
+        self.assertEqual(tostring(simple_value), '<a>1</a>',
             "The integer should be properly rendered in the etree")
         
 
