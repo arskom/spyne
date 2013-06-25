@@ -160,7 +160,7 @@ class TestSafeRepr(unittest.TestCase):
         from spyne.model.complex import ComplexModel
         from spyne.model.primitive import Integer
         from spyne.model.primitive import String
-        from spyne.model.complex import log_repr
+        from spyne.util.web import log_repr
 
         class Z(ComplexModel):
             z=String
