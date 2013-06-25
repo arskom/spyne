@@ -319,6 +319,13 @@ class ComplexModelMeta(type(ModelBase)):
             if not isinstance(_type_info, TypeInfo):
                 _type_info = cls_dict['_type_info'] = TypeInfo(_type_info)
 
+        # used for sub_name and sub_ns
+        _type_info_alt = cls_dict['_type_info_alt'] = TypeInfo()
+        for b in cls_bases:
+            if hasattr(b, '_type_info_alt'):
+                _type_info_alt.update(b._type_info_alt)
+
+        # make sure _type_info contents are sane
         for k, v in _type_info.items():
             if issubclass(v, SelfReference):
                 pass
@@ -332,7 +339,6 @@ class ComplexModelMeta(type(ModelBase)):
             elif issubclass(v, Array) and len(v._type_info) != 1:
                 raise Exception("Invalid Array definition in %s.%s."
                                                             % (cls_name, k))
-            key = k
             sub_ns = v.Attributes.sub_ns
             sub_name = v.Attributes.sub_name
 
@@ -344,24 +350,21 @@ class ComplexModelMeta(type(ModelBase)):
                 if key in _type_info:
                     raise Exception("%r is already defined: %r" %
                                                         (key, _type_info[key]))
-                _type_info[key] = v
+                _type_info_alt[key] = v, k
 
             elif sub_ns is None:
                 key = sub_name
                 if sub_ns in _type_info:
                     raise Exception("%r is already defined: %r" %
                                                         (key, _type_info[key]))
-                _type_info[key] = v
+                _type_info_alt[key] = v, k
 
             elif sub_name is None:
                 key = "{%s}%s" % (sub_ns, k)
                 if key in _type_info:
                     raise Exception("%r is already defined: %r" %
                                                         (key, _type_info[key]))
-                _type_info[key] = v
-
-            if key != k:
-                del _type_info[k]
+                _type_info_alt[key] = v, k
 
         # Initialize Attributes
         attrs = cls_dict.get('Attributes', None)
@@ -565,7 +568,8 @@ class ComplexModelBase(ModelBase):
     @staticmethod
     @memoize
     def get_flat_type_info(cls):
-        """Returns a _type_info dict that includes members from all base classes.
+        """Returns a _type_info dict that includes members from all base
+        classes.
 
         It's called a "flat" dict because it flattens all members from the
         inheritance hierarchy into one dict.

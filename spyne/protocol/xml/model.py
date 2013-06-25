@@ -315,10 +315,11 @@ def complex_from_element(prot, cls, element):
 
         member = flat_type_info.get(key, None)
         if member is None:
-            key = c.tag
-            member = flat_type_info.get(key, None)
+            member, key = cls._type_info_alt.get(key, (None, key))
             if member is None:
-                continue
+                member, key = cls._type_info_alt.get(c.tag, (None, key))
+                if member is None:
+                    continue
 
         mo = member.Attributes.max_occurs
         if mo > 1:

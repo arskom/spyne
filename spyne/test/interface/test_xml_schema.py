@@ -250,7 +250,6 @@ class TestXmlSchema(unittest.TestCase):
             c = Integer(sub_ns="cc")
             d = Integer(sub_ns="dd", sub_name="dd")
 
-
         elt = get_schema_documents([C], "aa")['tns']
         print etree.tostring(elt, pretty_print=True)
 

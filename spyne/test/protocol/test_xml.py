@@ -250,14 +250,20 @@ class TestXml(unittest.TestCase):
             c = Integer(sub_ns="cc")
             d = Integer(sub_ns="dd", sub_name="dd")
 
-
-        elt = get_object_as_xml(C(a=1,b=2,c=3,d=4), C)
+        elt = get_object_as_xml(C(a=1, b=2, c=3, d=4), C)
         print etree.tostring(elt, pretty_print=True)
 
         assert elt.xpath("s0:a/text()",  namespaces=m) == ["1"]
         assert elt.xpath("s0:bb/text()", namespaces=m) == ["2"]
         assert elt.xpath("s2:c/text()",  namespaces=m) == ["3"]
         assert elt.xpath("s3:dd/text()", namespaces=m) == ["4"]
+
+        c = get_xml_as_object(elt, C)
+        print c
+        assert c.a == 1
+        assert c.b == 2
+        assert c.c == 3
+        assert c.d == 4
 
 
 if __name__ == '__main__':
