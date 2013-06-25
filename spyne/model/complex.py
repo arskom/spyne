@@ -332,6 +332,7 @@ class ComplexModelMeta(type(ModelBase)):
             elif issubclass(v, Array) and len(v._type_info) != 1:
                 raise Exception("Invalid Array definition in %s.%s."
                                                             % (cls_name, k))
+            key = k
             sub_ns = v.Attributes.sub_ns
             sub_name = v.Attributes.sub_name
 
@@ -358,6 +359,9 @@ class ComplexModelMeta(type(ModelBase)):
                     raise Exception("%r is already defined: %r" %
                                                         (key, _type_info[key]))
                 _type_info[key] = v
+
+            if key != k:
+                del _type_info[k]
 
         # Initialize Attributes
         attrs = cls_dict.get('Attributes', None)

@@ -232,5 +232,35 @@ class TestXmlSchema(unittest.TestCase):
                                     '/xs:attribute[@name="id"]'
                 ,namespaces=app.interface.nsmap)) == 1
 
+    def test_subs(self):
+        from lxml import etree
+        from spyne.util.xml import get_schema_documents
+        xpath = lambda o, x: o.xpath(x, namespaces={"xs": ns.xsd})
+
+        m = {
+            "s0": "aa",
+            "s2": "cc",
+            "s3": "dd",
+        }
+
+        class C(ComplexModel):
+            __namespace__ = "aa"
+            a = Integer
+            b = Integer(sub_name="bb")
+            c = Integer(sub_ns="cc")
+            d = Integer(sub_ns="dd", sub_name="dd")
+
+
+        elt = get_schema_documents([C], "aa")['tns']
+        print etree.tostring(elt, pretty_print=True)
+
+        seq, = xpath(elt, "xs:complexType/xs:sequence")
+
+        assert len(seq) == 4
+        assert len(xpath(seq, 'xs:element[@name="a"]')) == 1
+        assert len(xpath(seq, 'xs:element[@name="bb"]')) == 1
+        assert len(xpath(seq, 'xs:element[@name="{cc}c"]')) == 1
+        assert len(xpath(seq, 'xs:element[@name="{dd}dd"]')) == 1
+
 if __name__ == '__main__':
     unittest.main()
