@@ -123,11 +123,11 @@ def complex_add(document, cls, tags):
 
     deferred = deque()
     for k, v in type_info.items():
-        if issubclass(v, XmlAttribute):
-            deferred.append((k,v))
+        if v.Attributes.exc_interface:
             continue
 
-        if v.Attributes.exc_interface:
+        if issubclass(v, XmlAttribute):
+            deferred.append((k,v))
             continue
 
         document.add(v, tags)
