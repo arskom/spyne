@@ -193,13 +193,21 @@ def get_members_etree(prot, cls, inst, parent):
             # This is a tight loop, so enable this only when necessary.
             # logger.debug("get %r(%r) from %r: %r" % (k, v, inst, subvalue))
 
+            sub_ns = v.Attributes.sub_ns
+            if sub_ns is None:
+                sub_ns = cls.get_namespace()
+
+            sub_name = v.Attributes.sub_name
+            if sub_name is None:
+                sub_name = k
+
             if issubclass(v, XmlAttribute):
                 if v.attribute_of in cls._type_info.keys():
                     delay.add(k)
                     continue
 
             elif issubclass(v, XmlData):
-                v.marshall(prot, k, subvalue, parent)
+                v.marshall(prot, sub_name, subvalue, parent)
                 continue
 
             mo = v.Attributes.max_occurs
@@ -207,8 +215,8 @@ def get_members_etree(prot, cls, inst, parent):
                 if isinstance(subvalue, PushBase):
                     while True:
                         sv = (yield)
-                        ret = prot.to_parent_element(v, sv,
-                                            cls.get_namespace(), parent, k)
+                        ret = prot.to_parent_element(v, sv, sub_ns, parent,
+                                                                      sub_name)
                         if ret is not None:
                             while True:
                                 sv2 = (yield)
@@ -216,8 +224,9 @@ def get_members_etree(prot, cls, inst, parent):
 
                 else:
                     for sv in subvalue:
-                        ret = prot.to_parent_element(v, sv,
-                                                cls.get_namespace(), parent, k)
+                        ret = prot.to_parent_element(v, sv, sub_ns, parent,
+                                                                      sub_name)
+
                         if ret is not None:
                             while True:
                                 sv2 = (yield)
@@ -225,8 +234,8 @@ def get_members_etree(prot, cls, inst, parent):
 
             # Don't include empty values for non-nillable optional attributes.
             elif subvalue is not None or v.Attributes.min_occurs > 0:
-                ret = prot.to_parent_element(v, subvalue,
-                                                cls.get_namespace(), parent, k)
+                ret = prot.to_parent_element(v, subvalue, sub_ns, parent,
+                                                                      sub_name)
                 if ret is not None:
                     while True:
                         sv2 = (yield)
@@ -236,9 +245,15 @@ def get_members_etree(prot, cls, inst, parent):
 
     for k in delay:
         v = cls._type_info[k]
+
         subvalue = getattr(inst, k, None)
+        sub_name = v.Attributes.sub_name
+        if sub_name is None:
+            sub_name = k
+
         a_of = v.attribute_of
-        attr_parents = parent.findall("{%s}%s"%(cls.__namespace__, a_of))
+        attr_parents = parent.findall("{%s}%s" % (cls.__namespace__, a_of))
+
         if cls._type_info[a_of].Attributes.max_occurs > 1:
             for subsubvalue, attr_parent in zip(subvalue, attr_parents):
                 prot.to_parent_element(v, subsubvalue, v.get_namespace(),
@@ -300,7 +315,10 @@ def complex_from_element(prot, cls, element):
 
         member = flat_type_info.get(key, None)
         if member is None:
-            continue
+            key = c.tag
+            member = flat_type_info.get(key, None)
+            if member is None:
+                continue
 
         mo = member.Attributes.max_occurs
         if mo > 1:

@@ -319,22 +319,45 @@ class ComplexModelMeta(type(ModelBase)):
             if not isinstance(_type_info, TypeInfo):
                 _type_info = cls_dict['_type_info'] = TypeInfo(_type_info)
 
-            for k, v in _type_info.items():
-                if issubclass(v, SelfReference):
-                    pass
+        for k, v in _type_info.items():
+            if issubclass(v, SelfReference):
+                pass
 
-                elif not issubclass(v, ModelBase):
-                    v = _get_spyne_type(v)
-                    if v is None:
-                        raise ValueError( (cls_name,k,v) )
-                    _type_info[k] = v
+            elif not issubclass(v, ModelBase):
+                v = _get_spyne_type(v)
+                if v is None:
+                    raise ValueError( (cls_name, k, v) )
+                _type_info[k] = v
 
-                elif issubclass(v, Array) and len(v._type_info) != 1:
-                    raise Exception("Invalid Array definition in %s.%s."
-                                                                % (cls_name, k))
+            elif issubclass(v, Array) and len(v._type_info) != 1:
+                raise Exception("Invalid Array definition in %s.%s."
+                                                            % (cls_name, k))
+            sub_ns = v.Attributes.sub_ns
+            sub_name = v.Attributes.sub_name
 
-                elif issubclass(v, XmlData):
-                    cls.Attributes._xml_tag_body_as = k, v
+            if sub_ns is None and sub_name is None:
+                pass
+
+            elif sub_ns is not None and sub_name is not None:
+                key = "{%s}%s" % (sub_ns, sub_name)
+                if key in _type_info:
+                    raise Exception("%r is already defined: %r" %
+                                                        (key, _type_info[key]))
+                _type_info[key] = v
+
+            elif sub_ns is None:
+                key = sub_name
+                if sub_ns in _type_info:
+                    raise Exception("%r is already defined: %r" %
+                                                        (key, _type_info[key]))
+                _type_info[key] = v
+
+            elif sub_name is None:
+                key = "{%s}%s" % (sub_ns, k)
+                if key in _type_info:
+                    raise Exception("%r is already defined: %r" %
+                                                        (key, _type_info[key]))
+                _type_info[key] = v
 
         # Initialize Attributes
         attrs = cls_dict.get('Attributes', None)

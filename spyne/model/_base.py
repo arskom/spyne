@@ -149,6 +149,16 @@ class ModelBase(object):
         names to that language as values.
         """
 
+        sub_ns = None
+        """An Xml-specific attribute that specifies which namespace should be
+        used for field names in classes.
+        """
+
+        sub_name = None
+        """This specifies which string should be used as field name when this
+        type is seriazed under a ComplexModel.
+        """
+
         sqla_column_args = None
         """A dict that will be passed to SQLAlchemy's ``Column`` constructor as
         ``**kwargs``.

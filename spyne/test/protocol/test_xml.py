@@ -34,6 +34,7 @@ from spyne.service import ServiceBase
 from spyne.server import ServerBase
 from spyne.application import Application
 from spyne.decorator import srpc
+from spyne.model.primitive import Integer
 from spyne.model.primitive import Decimal
 from spyne.model.primitive import Unicode
 from spyne.model.complex import XmlData
@@ -231,6 +232,32 @@ class TestXml(unittest.TestCase):
         assert target == str(d)
 
 
+
+    def test_subs(self):
+        from lxml import etree
+        from spyne.util.xml import get_xml_as_object
+        from spyne.util.xml import get_object_as_xml
+
+        m = {
+            "s0": "aa",
+            "s2": "cc",
+            "s3": "dd",
+        }
+        class C(ComplexModel):
+            __namespace__ = "aa"
+            a = Integer
+            b = Integer(sub_name="bb")
+            c = Integer(sub_ns="cc")
+            d = Integer(sub_ns="dd", sub_name="dd")
+
+
+        elt = get_object_as_xml(C(a=1,b=2,c=3,d=4), C)
+        print etree.tostring(elt, pretty_print=True)
+
+        assert elt.xpath("s0:a/text()",  namespaces=m) == ["1"]
+        assert elt.xpath("s0:bb/text()", namespaces=m) == ["2"]
+        assert elt.xpath("s2:c/text()",  namespaces=m) == ["3"]
+        assert elt.xpath("s3:dd/text()", namespaces=m) == ["4"]
 
 
 if __name__ == '__main__':
