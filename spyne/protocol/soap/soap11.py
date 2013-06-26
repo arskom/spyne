@@ -72,8 +72,7 @@ def _from_soap(in_envelope_xml, xmlids=None):
                                           namespaces={'e': ns.soap_env})
 
     if len(header_envelope) == 0 and len(body_envelope) == 0:
-        raise Fault('Client.SoapError', 'Soap envelope is empty!' %
-                                                            ns.soap_env)
+        raise Fault('Client.SoapError', 'Soap envelope is empty!')
 
     header=None
     if len(header_envelope) > 0:
