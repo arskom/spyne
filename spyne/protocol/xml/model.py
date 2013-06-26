@@ -17,6 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""The ``spyne.protocol.xml.model`` module contains type-specific serialization
+logic.
+"""
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -41,10 +45,6 @@ from spyne.util.etreeconv import dict_to_etree
 
 import spyne.const.xml_ns
 _pref_soap_env = spyne.const.xml_ns.const_prefmap[_ns_soap_env]
-
-"""The ``spyne.protocol.xml.model`` module contains type-specific serialization
-logic.
-"""
 
 
 def nillable_value(func):
