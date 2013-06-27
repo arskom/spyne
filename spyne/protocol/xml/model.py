@@ -90,6 +90,7 @@ def base_from_element(prot, cls, element):
 
     return retval
 
+
 @nillable_element
 def byte_array_from_element(prot, cls, element):
     if prot.validator is prot.SOFT_VALIDATION and not (
@@ -436,6 +437,7 @@ def fault_to_parent_element(prot, cls, value, tns, parent_elt, name=None):
     # add other nonstandard fault subelements
     get_members_etree(prot, cls, value, element)
 
+
 def fault_from_element(prot, cls, element):
     code = element.find('faultcode').text
     string = element.find('faultstring').text
@@ -466,6 +468,7 @@ def xml_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
 
     e = etree.SubElement(parent_elt, '{%s}%s' % (tns, name))
     e.append(value)
+
 
 @nillable_value
 def html_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):

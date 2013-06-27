@@ -123,8 +123,10 @@ class TestXml(unittest.TestCase):
         server.get_out_object(ctx)
         server.get_out_string(ctx)
 
-        ret = etree.fromstring(''.join(ctx.out_string)).xpath('//s0:a',
-                                              namespaces=app.interface.nsmap)[0]
+        ret = ''.join(ctx.out_string)
+        print ret
+        ret = etree.fromstring(ret)
+        ret = ret.xpath('//s0:a', namespaces=app.interface.nsmap)[0]
 
         print etree.tostring(ret, pretty_print=True)
 
@@ -230,8 +232,6 @@ class TestXml(unittest.TestCase):
         target = elt.xpath('//tns:some_callResult/text()',
                                               namespaces=app.interface.nsmap)[0]
         assert target == str(d)
-
-
 
     def test_subs(self):
         from lxml import etree
