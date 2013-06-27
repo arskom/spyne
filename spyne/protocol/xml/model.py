@@ -142,8 +142,12 @@ def null_from_element(prot, cls, element):
 
 @nillable_value
 def xmlattribute_to_parent_element(prot, cls, value, tns, parent_elt, name):
-    if cls._ns is not None:
-        name = "{%s}%s" % (cls._ns, name)
+    ns = cls._ns
+    if ns is None:
+        ns = cls.Attributes.sub_ns
+
+    if ns is not None:
+        name = "{%s}%s" % (ns, name)
 
     if value is not None:
         if issubclass(cls.type, (ByteArray, File)):
@@ -334,9 +338,14 @@ def complex_from_element(prot, cls, element):
 
         setattr(inst, key, value)
 
-        for key in c.attrib:
+        for key, value_str in c.attrib.items():
             member = flat_type_info.get(key, None)
-            if member is None or (not issubclass(member, XmlAttribute)) or \
+            if member is None:
+                member, key = cls._type_info_alt.get(key, (None, key))
+                if member is None:
+                    continue
+
+            if (not issubclass(member, XmlAttribute)) or \
                                                      member.attribute_of == key:
                 continue
 
@@ -345,23 +354,28 @@ def complex_from_element(prot, cls, element):
                 if value is None:
                     value = []
 
-                value.append(prot.from_string(member.type, c.attrib[key]))
+                value.append(prot.from_string(member.type, value_str))
 
             else:
-                value = prot.from_string(member.type, c.attrib[key])
+                value = prot.from_string(member.type, value_str)
 
             setattr(inst, key, value)
 
-    for key in element.attrib:
+    for key, value_str in element.attrib.items():
         member = flat_type_info.get(key, None)
         if member is None:
+            member, key = cls._type_info_alt.get(key, (None, key))
+            if member is None:
+                continue
+
+        if (not issubclass(member, XmlAttribute)) or member.attribute_of == key:
             continue
 
         if issubclass(member.type, (ByteArray, File)):
-            value = prot.from_string(member.type, element.attrib[key],
+            value = prot.from_string(member.type, value_str,
                                                    prot.default_binary_encoding)
         else:
-            value = prot.from_string(member.type, element.attrib[key])
+            value = prot.from_string(member.type, value_str)
 
         setattr(inst, key, value)
 

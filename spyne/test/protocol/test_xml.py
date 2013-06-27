@@ -265,6 +265,38 @@ class TestXml(unittest.TestCase):
         assert c.c == 3
         assert c.d == 4
 
+    def test_sub_attributes(self):
+        from lxml import etree
+        from spyne.util.xml import get_xml_as_object
+        from spyne.util.xml import get_object_as_xml
+
+        m = {
+            "s0": "aa",
+            "s2": "cc",
+            "s3": "dd",
+        }
+        class C(ComplexModel):
+            __namespace__ = "aa"
+            a = XmlAttribute(Integer)
+            b = XmlAttribute(Integer(sub_name="bb"))
+            c = XmlAttribute(Integer(sub_ns="cc"))
+            d = XmlAttribute(Integer(sub_ns="dd", sub_name="dd"))
+
+        elt = get_object_as_xml(C(a=1, b=2, c=3, d=4), C)
+        print etree.tostring(elt, pretty_print=True)
+
+        assert elt.xpath("//*/@a")  == ["1"]
+        assert elt.xpath("//*/@bb") == ["2"]
+        assert elt.xpath("//*/@s2:c", namespaces=m)  == ["3"]
+        assert elt.xpath("//*/@s3:dd", namespaces=m) == ["4"]
+
+        c = get_xml_as_object(elt, C)
+        print c
+        assert c.a == 1
+        assert c.b == 2
+        assert c.c == 3
+        assert c.d == 4
+
 
 if __name__ == '__main__':
     unittest.main()
