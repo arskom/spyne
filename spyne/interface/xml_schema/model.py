@@ -132,9 +132,16 @@ def complex_add(document, cls, tags):
 
         document.add(v, tags)
 
+        name = v.Attributes.sub_name
+        ns = v.Attributes.sub_ns
+        if name is None:
+            name = k
+        if ns is not None:
+            name = "{%s}%s" % (ns, name)
+
         member = etree.SubElement(sequence, v.Attributes.schema_tag)
         if v.Attributes.schema_tag == '{%s}element' % _ns_xsd:
-            member.set('name', k)
+            member.set('name', name)
             member.set('type', v.get_type_name_ns(document.interface))
 
         elif v.Attributes.schema_tag == '{%s}any' % _ns_xsd and \
