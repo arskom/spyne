@@ -22,6 +22,7 @@ import unittest
 
 from lxml import etree
 
+from spyne.util.odict import odict
 from spyne.application import Application
 from spyne.const import xml_ns as ns
 from spyne.decorator import rpc
@@ -37,6 +38,7 @@ from spyne.model.primitive import Uuid
 from spyne.protocol.soap import Soap11
 from spyne.service import ServiceBase
 from spyne.util.xml import get_schema_documents
+from spyne.util.xml import parse_schema
 from spyne.interface.xml_schema import XmlSchema
 
 
@@ -260,6 +262,44 @@ class TestXmlSchema(unittest.TestCase):
         assert len(xpath(seq, 'xs:element[@name="bb"]')) == 1
         assert len(xpath(seq, 'xs:element[@name="{cc}c"]')) == 1
         assert len(xpath(seq, 'xs:element[@name="{dd}dd"]')) == 1
+
+
+class TestXmlSchemaParser(unittest.TestCase):
+    def test_complex(self):
+        class SomeGuy(ComplexModel):
+            __namespace__ = 'some_ns'
+
+            id = Integer
+
+        schema = get_schema_documents([SomeGuy], "some_ns")['tns']
+        print etree.tostring(schema, pretty_print=True)
+
+        objects = parse_schema(schema)
+        print objects
+
+        NewGuy = objects["{some_ns}SomeGuy"]
+        assert NewGuy.get_type_name() == SomeGuy.get_type_name()
+        assert NewGuy.get_namespace() == SomeGuy.get_namespace()
+        assert dict(NewGuy._type_info) == dict(SomeGuy._type_info)
+
+    def test_complex_with_customized_type(self):
+        class SomeGuy(ComplexModel):
+            __namespace__ = 'some_ns'
+
+            id = Integer
+            name = Unicode(2)
+
+        schema = get_schema_documents([SomeGuy], "some_ns")['tns']
+        print etree.tostring(schema, pretty_print=True)
+
+        objects = parse_schema(schema)
+        print objects
+
+        NewGuy = objects["{some_ns}SomeGuy"]
+        assert NewGuy.get_type_name() == SomeGuy.get_type_name()
+        assert NewGuy.get_namespace() == SomeGuy.get_namespace()
+        assert dict(NewGuy._type_info) == dict(SomeGuy._type_info)
+
 
 if __name__ == '__main__':
     unittest.main()

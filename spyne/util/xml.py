@@ -22,7 +22,11 @@ from lxml import etree
 from spyne.interface import Interface
 from spyne.interface.xml_schema import XmlSchema
 from spyne.protocol.xml import XmlDocument
+from spyne.interface.xml_schema.defn import XmlSchema as XmlSchemaDefinition
+from spyne.interface.xml_schema.defn import TYPE_MAP
 
+from spyne.model.complex import ComplexModelBase
+from spyne.model.complex import ComplexModelMeta
 
 """Module that contains various xml utilities."""
 
@@ -49,6 +53,7 @@ def get_schema_documents(models, default_namespace=None):
 
     interface = Interface(fake_app)
     for m in models:
+        m.resolve_namespace(m, default_namespace)
         interface.add_class(m)
     interface.populate_interface(fake_app)
 
@@ -63,7 +68,6 @@ def get_validation_schema(models, default_namespace=None):
 
     :param models: A list of spyne.model classes that will be represented in
                    the schema.
-
     '''
 
     if default_namespace is None:
@@ -124,3 +128,37 @@ def get_xml_as_object(elt, cls):
     xml_object = XmlDocument()
 
     return xml_object.from_element(cls, elt)
+
+
+def parse_schema(elt):
+    retval = {}
+    nsmap = elt.nsmap
+    type_map = dict(TYPE_MAP)
+
+    schema = get_xml_as_object(elt, XmlSchemaDefinition)
+
+    tns = schema.target_namespace
+
+    for c in schema.complex_type:
+        ti = []
+        if c.sequence is None:
+            continue
+        if c.sequence.element is None:
+            continue
+
+        for e in c.sequence.element:
+            ns, qn = e.type.split(":",1)
+            fqtn = '{%s}%s' % (nsmap[ns], qn)
+            ti.append((e.name, type_map[fqtn]))
+
+        retval["{%s}%s" % (tns, c.name)] = ComplexModelMeta(
+                str(c.name),
+                (ComplexModelBase,),
+                {
+                    '__type_name__': c.name,
+                    '__namespace__': tns,
+                    '_type_info': ti,
+                }
+            )
+
+    return retval
