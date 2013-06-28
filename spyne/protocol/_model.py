@@ -295,6 +295,15 @@ def date_from_string(cls, string):
         raise ValidationError(string, "%%r: %r" % e)
 
 
+if hasattr(datetime.timedelta, 'total_seconds'):
+    def total_seconds(td):
+        return td.total_seconds()
+
+else:
+    def total_seconds(td):
+        return (td.microseconds +
+                            (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
+
 def duration_to_string(cls, value):
     if value.days < 0:
         value = -value
@@ -302,7 +311,7 @@ def duration_to_string(cls, value):
     else:
         negative = False
 
-    total_seconds = value.total_seconds()
+    tot_sec = total_seconds(value)
     seconds = value.seconds % 60
     minutes = value.seconds / 60
     hours = minutes / 60
@@ -320,7 +329,7 @@ def duration_to_string(cls, value):
             "%iD" % value.days,
             ])
 
-    if total_seconds != 0 and total_seconds % 86400 == 0 and useconds == 0:
+    if tot_sec != 0 and tot_sec % 86400 == 0 and useconds == 0:
         return ''.join(retval)
 
     retval.append('T')
