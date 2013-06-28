@@ -116,7 +116,10 @@ class XmlSchema(InterfaceDocumentBase):
 
         self.schema_dict = {}
         self.validation_schema = None
-        self.namespaces = odict()
+
+        pref = self.interface.prefmap[self.interface.app.tns]
+        self.namespaces = odict({pref: SchemaInfo()})
+
         self.complex_types = set()
 
     def add(self, cls, tags):
