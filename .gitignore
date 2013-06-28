@@ -71,6 +71,9 @@ _trial_temp
 examples/file_manager/files/
 *.ogg
 
+# kate cruft
+.kateproject.d
+
 # test output
 coverage.xml
 test_result.*
