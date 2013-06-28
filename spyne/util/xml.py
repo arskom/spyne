@@ -17,6 +17,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+
+"""The `spyne.util.xml` module contains various Xml and Xml Schema related
+utility functions.
+"""
+
 from lxml import etree
 
 from spyne.interface import Interface
@@ -27,8 +32,6 @@ from spyne.interface.xml_schema.defn import TYPE_MAP
 
 from spyne.model.complex import ComplexModelBase
 from spyne.model.complex import ComplexModelMeta
-
-"""Module that contains various xml utilities."""
 
 
 class FakeApplication(object):
