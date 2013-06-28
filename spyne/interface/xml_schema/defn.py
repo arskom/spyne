@@ -74,13 +74,15 @@ class XmlSchema(SchemaBase):
     ]
 
 
-from spyne.model.fault import Fault
-from spyne.model import primitive
-from spyne.model import binary
 
 from itertools import chain
 from inspect import isclass
+
 from spyne.model import ModelBase
+from spyne.model import primitive
+from spyne.model import binary
+from spyne.model.fault import Fault
+
 
 TYPE_MAP = dict([
     ("{%s}%s" % (cls.get_namespace(), cls.get_type_name()), cls) for cls in
