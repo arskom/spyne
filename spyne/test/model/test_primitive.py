@@ -24,6 +24,7 @@ import unittest
 from datetime import timedelta
 from lxml import etree
 
+from spyne.util import total_seconds
 from spyne.const import xml_ns as ns
 from spyne.model import Null
 from spyne.model.binary import File
@@ -466,7 +467,7 @@ class TestDurationPrimitive(unittest.TestCase):
         data = element.find('{%s}howlong' % gg.get_namespace()).text
         self.assertEquals(data, answer)
         s1 = XmlDocument().from_element(SomeBlob, element)
-        assert s1.howlong.total_seconds() == gg.howlong.total_seconds()
+        assert total_seconds(s1.howlong) == total_seconds(gg.howlong)
 
     def test_4suite(self):
         # borrowed from 4Suite
@@ -498,7 +499,7 @@ class TestDurationPrimitive(unittest.TestCase):
             data = element.find('{%s}howlong' % gg.get_namespace()).text
             self.assertEquals(data, answer)
             s1 = XmlDocument().from_element(SomeBlob, element)
-            assert s1.howlong.total_seconds() == secs
+            assert total_seconds(s1.howlong) == secs
 
         for secs, answer in tests_seconds:
             if secs > 0:
@@ -518,7 +519,7 @@ class TestDurationPrimitive(unittest.TestCase):
                 data = element.find('{%s}howlong' % gg.get_namespace()).text
                 self.assertEquals(data, answer)
                 s1 = XmlDocument().from_element(SomeBlob, element)
-                assert s1.howlong.total_seconds() == secs
+                assert total_seconds(s1.howlong) == secs
 
     def test_duration_positive_seconds_only(self):
         answer = 'PT35S'
@@ -536,7 +537,7 @@ class TestDurationPrimitive(unittest.TestCase):
         data = element.find('{%s}howlong' % gg.get_namespace()).text
         self.assertEquals(data, answer)
         s1 = XmlDocument().from_element(SomeBlob, element)
-        assert s1.howlong.total_seconds() == gg.howlong.total_seconds()
+        assert total_seconds(s1.howlong) == total_seconds(gg.howlong)
 
 
     def test_duration_positive_minutes_and_seconds_only(self):
@@ -555,7 +556,7 @@ class TestDurationPrimitive(unittest.TestCase):
         data = element.find('{%s}howlong' % gg.get_namespace()).text
         self.assertEquals(data, answer)
         s1 = XmlDocument().from_element(SomeBlob, element)
-        assert s1.howlong.total_seconds() == gg.howlong.total_seconds()
+        assert total_seconds(s1.howlong) == total_seconds(gg.howlong)
 
     def test_duration_positive_milliseconds_only(self):
         answer = 'PT0.666000S'
@@ -573,7 +574,7 @@ class TestDurationPrimitive(unittest.TestCase):
         data = element.find('{%s}howlong' % gg.get_namespace()).text
         self.assertEquals(data, answer)
         s1 = XmlDocument().from_element(SomeBlob, element)
-        assert s1.howlong.total_seconds() == gg.howlong.total_seconds()
+        assert total_seconds(s1.howlong) == total_seconds(gg.howlong)
 
     def test_duration_xml_duration(self):
         dur = datetime.timedelta(days=5 + 30 + 365, hours=1, minutes=1,

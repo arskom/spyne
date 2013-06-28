@@ -18,6 +18,7 @@
 #
 
 import sys
+import datetime
 
 try:
     from urllib import splittype
@@ -170,3 +171,11 @@ if sys.version > '3':
 else:
     def _bytes_join(val, joiner=''):
         return joiner.join(val)
+
+if hasattr(datetime.timedelta, 'total_seconds'):
+    total_seconds = datetime.timedelta.total_seconds
+
+else:
+    def total_seconds(td):
+        return (td.microseconds +
+                            (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
