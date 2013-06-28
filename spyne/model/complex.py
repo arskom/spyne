@@ -328,7 +328,7 @@ class ComplexModelMeta(type(ModelBase)):
         # make sure _type_info contents are sane
         for k, v in _type_info.items():
             if issubclass(v, SelfReference):
-                pass
+                continue
 
             elif not issubclass(v, ModelBase):
                 v = _get_spyne_type(v)
