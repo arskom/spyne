@@ -24,6 +24,11 @@ utility functions.
 
 from lxml import etree
 
+from pprint import pprint
+
+from spyne.const import xml_ns
+from spyne.util.odict import odict
+
 from spyne.interface import Interface
 from spyne.interface.xml_schema import XmlSchema
 from spyne.protocol.xml import XmlDocument
@@ -32,6 +37,8 @@ from spyne.interface.xml_schema.defn import TYPE_MAP
 
 from spyne.model.complex import ComplexModelBase
 from spyne.model.complex import ComplexModelMeta
+
+from spyne.const import xml_ns
 
 
 class FakeApplication(object):
@@ -133,35 +140,189 @@ def get_xml_as_object(elt, cls):
     return xml_object.from_element(cls, elt)
 
 
-def parse_schema(elt):
-    retval = {}
-    nsmap = elt.nsmap
-    type_map = dict(TYPE_MAP)
+parser = etree.XMLParser(remove_comments=True)
+class Schema(object):
+    def __init__(self):
+        self.types = {}
+        self.elements = {}
+        self.imports = set()
 
+def parse_schema(elt, files={}):
+    return _parse_schema(elt, files, {}, 0)
+
+def parse_schema_file(file_name, files):
+    elt = etree.fromstring(open(file_name).read(), parser=parser)
+    return _parse_schema(elt, files, {}, 0)
+
+def _parse_schema_file(file_name, files, retval, indent):
+    elt = etree.fromstring(open(file_name).read(), parser=parser)
+    return _parse_schema(elt, files, retval, indent)
+
+i = lambda i: "  " * i
+j = lambda i: "  " * (i+1)
+k = lambda i: "  " * (i+2)
+
+import colorama
+r = lambda s: "%s%s%s" % (colorama.Fore.RED, s, colorama.Fore.RESET)
+g = lambda s: "%s%s%s" % (colorama.Fore.GREEN, s, colorama.Fore.RESET)
+b = lambda s: "%s%s%s%s" % (colorama.Fore.BLUE, colorama.Style.BRIGHT, s, colorama.Style.RESET_ALL)
+y = lambda s: "%s%s%s%s" % (colorama.Fore.YELLOW, colorama.Style.BRIGHT, s, colorama.Style.RESET_ALL)
+
+
+def _parse_schema(elt, files, retval, indent):
+    def process_simple_type(s, second_pass=False):
+        if s.restriction is None:
+            return
+        if s.restriction.base is None:
+            return
+
+        base = get_type(s.restriction.base)
+        if base is None and second_pass:
+            raise ValueError(base)
+
+        kwargs = {}
+        if s.restriction.enumeration:
+            kwargs['values'] = [e.value for e in s.restriction.enumeration]
+
+        tn = "{%s}%s" % (tns, s.name)
+        print j(indent), "adding simple type:", tn
+        retval[tns].types[tn] = base.customize(**kwargs)
+
+    def process_element(e, second_pass=False):
+        if e.name is None:
+            return
+        if e.type is None:
+            return
+
+        print j(indent), "adding element:", e.name
+        t = get_type(e.type)
+        if t:
+            retval[tns].elements[e.name] = e
+
+        elif second_pass:
+            raise ValueError((tns, e.name))
+
+        else:
+            pending_elements[e.name] = e
+
+    def process_complex_type(c, second_pass=False):
+        ti = []
+        _pending = False
+        if c.sequence is not None and c.sequence.element is not None:
+            for e in c.sequence.element:
+                if e.ref is not None:
+                    tn = e.ref
+                elif e.type is not None:
+                    tn = e.type
+                else:
+                    raise Exception("dunno")
+
+                t = get_type(tn)
+                if t is None:
+                    if second_pass or ":" in tn:
+                        raise ValueError((tn))
+
+                    ti.append( (e.name, e) )
+                    pending_types[c.name] = c
+                    _pending = True
+
+                else:
+                    ti.append( (e.name, t) )
+
+        if not _pending:
+            print j(indent),
+            print "adding complex type (2=%s):" % second_pass,
+            print c.name
+
+            retval[tns].types[c.name] = ComplexModelMeta(
+                    str(c.name),
+                    (ComplexModelBase,),
+                    {
+                        '__type_name__': c.name,
+                        '__namespace__': tns,
+                        '_type_info': ti,
+                    }
+                )
+
+    def get_type(tn):
+        if tn.startswith("{"):
+            ns, qn = tn[1:].split('}',1)
+        elif ":" in tn:
+            ns, qn = tn.split(":",1)
+            ns = nsmap[ns]
+        else:
+            ns, qn = tns, tn
+
+        print k(indent), tn, "=>", tns, qn
+        ti = retval.get(ns)
+        if ti:
+            t = ti.types.get(qn)
+            if t:
+                return t
+
+            e = ti.elements.get(qn)
+            if e:
+                if ":" in e.type:
+                    return get_type(e.type)
+                else:
+                    return get_type("{%s}%s" % (ns, e.type))
+
+        return TYPE_MAP.get("{%s}%s" % (ns, qn))
+
+    nsmap = elt.nsmap
     schema = get_xml_as_object(elt, XmlSchemaDefinition)
 
+    if schema.elements:
+        schema.elements = odict([(e.name,e) for e in schema.elements])
+    if schema.complex_types:
+        schema.complex_types = odict([(c.name, c) for c in schema.complex_types])
+    if schema.simple_types:
+        schema.simple_types = odict([(s.name, s) for s in schema.simple_types])
+
+    pending_types = {}
+    pending_elements = {}
+
     tns = schema.target_namespace
+    if tns in retval:
+        return
+    retval[tns] = Schema()
 
-    for c in schema.complex_type:
-        ti = []
-        if c.sequence is None:
-            continue
-        if c.sequence.element is None:
-            continue
+    print i(indent), 1, r(tns), "processing imports"
+    if schema.imports:
+        for imp in schema.imports:
+            if not imp.namespace in retval:
+                print j(indent), tns, "importing", imp.namespace
+                file_name = files[imp.namespace]
+                _parse_schema_file(file_name, files, retval, indent+2)
 
-        for e in c.sequence.element:
-            ns, qn = e.type.split(":",1)
-            fqtn = '{%s}%s' % (nsmap[ns], qn)
-            ti.append((e.name, type_map[fqtn]))
+    print i(indent), 2, g(tns), "processing simple_types"
+    if schema.simple_types:
+        for s in schema.simple_types.values():
+            process_simple_type(s)
 
-        retval["{%s}%s" % (tns, c.name)] = ComplexModelMeta(
-                str(c.name),
-                (ComplexModelBase,),
-                {
-                    '__type_name__': c.name,
-                    '__namespace__': tns,
-                    '_type_info': ti,
-                }
-            )
+    print i(indent), 3, b(tns), "processing complex_types"
+    if schema.complex_types:
+        for c in schema.complex_types.values():
+            process_complex_type(c)
 
-    return retval
+    print i(indent), 4, y(tns), "processing elements"
+    if schema.elements:
+        for e in schema.elements.values():
+            process_element(e)
+
+    # process pending
+    print i(indent), 5, b(tns), "processing pending complex_types"
+    for _k,_v in pending_types.items():
+        process_complex_type(_v, True)
+    print
+
+    print i(indent), 6, b(tns), "processing pending elements"
+    for _k,_v in pending_elements.items():
+        process_element(_v, True)
+    print
+
+    print r('*'*30)
+    pprint(retval[tns].elements)
+    print r('*'*30)
+
+    return retval[tns]
