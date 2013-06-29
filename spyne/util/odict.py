@@ -22,9 +22,6 @@
 class odict(object):
     """Sort of an ordered dictionary implementation."""
 
-    class Empty(object):
-        pass
-
     def __init__(self, data=[]):
         if isinstance(data, self.__class__):
             self.__list = list(data.__list)
@@ -108,15 +105,10 @@ class odict(object):
         for l in self.__list:
             yield self.__dict[l]
 
-    def get(self, key, default=Empty):
+    def get(self, key, default=None):
         if key in self.__dict:
             return self[key]
-
-        else:
-            if default is odict.Empty:
-                raise KeyError(key)
-            else:
-                return default
+        return default
 
     def append(self, t):
         k, v = t
