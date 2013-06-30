@@ -166,11 +166,21 @@ i = lambda i: "  " * i
 j = lambda i: "  " * (i+1)
 k = lambda i: "  " * (i+2)
 
-import colorama
-r = lambda s: "%s%s%s" % (colorama.Fore.RED, s, colorama.Fore.RESET)
-g = lambda s: "%s%s%s" % (colorama.Fore.GREEN, s, colorama.Fore.RESET)
-b = lambda s: "%s%s%s%s" % (colorama.Fore.BLUE, colorama.Style.BRIGHT, s, colorama.Style.RESET_ALL)
-y = lambda s: "%s%s%s%s" % (colorama.Fore.YELLOW, colorama.Style.BRIGHT, s, colorama.Style.RESET_ALL)
+try:
+    import colorama
+    r = lambda s: "%s%s%s" % (colorama.Fore.RED, s, colorama.Fore.RESET)
+    g = lambda s: "%s%s%s" % (colorama.Fore.GREEN, s, colorama.Fore.RESET)
+    b = lambda s: "%s%s%s%s" % (colorama.Fore.BLUE, colorama.Style.BRIGHT, s,
+                                                    colorama.Style.RESET_ALL)
+    y = lambda s: "%s%s%s%s" % (colorama.Fore.YELLOW, colorama.Style.BRIGHT, s,
+                                                    colorama.Style.RESET_ALL)
+
+except ImportError:
+    r = lambda s: s
+    g = lambda s: s
+    b = lambda s: s
+    y = lambda s: s
+
 
 
 def _parse_schema(elt, files, retval, indent):
