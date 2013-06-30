@@ -328,6 +328,8 @@ class ComplexModelMeta(type(ModelBase)):
 
         # make sure _type_info contents are sane
         for k, v in _type_info.items():
+            if not isinstance(k, basestring):
+                raise ValueError("Invalid class key", k)
             if not isclass(v):
                 raise ValueError(v)
 
