@@ -220,7 +220,7 @@ def _parse_schema(elt, files, retval, indent):
                 t = get_type(tn)
                 if t is None:
                     if second_pass or ":" in tn:
-                        raise ValueError((tn))
+                        raise ValueError(tn)
 
                     ti.append( (e.name, e) )
                     pending_types[c.name] = c

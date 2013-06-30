@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 import decimal
 
 from collections import deque
+from inspect import isclass
 
 from spyne.util import memoize_id
 from spyne.model import ModelBase
@@ -327,6 +328,9 @@ class ComplexModelMeta(type(ModelBase)):
 
         # make sure _type_info contents are sane
         for k, v in _type_info.items():
+            if not isclass(v):
+                raise ValueError(v)
+
             if issubclass(v, SelfReference):
                 continue
 
