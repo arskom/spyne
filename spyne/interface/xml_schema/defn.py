@@ -100,8 +100,10 @@ TYPE_MAP = dict([
     ("{%s}%s" % (cls.get_namespace(), cls.get_type_name()), cls) for cls in
             chain(
                 vars(primitive).values(),
-                vars(binary).values(),
-                [binary.ByteArray(encoding='hex')],
+                [
+                    binary.ByteArray(),
+                    binary.ByteArray(encoding='hex'),
+                ],
             )
 
             if isclass(cls)

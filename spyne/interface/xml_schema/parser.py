@@ -27,7 +27,6 @@ from spyne.interface.xml_schema.defn import XmlSchema
 
 PARSER = etree.XMLParser(remove_comments=True)
 
-
 class _Schema(object):
     def __init__(self):
         self.types = {}
@@ -46,19 +45,27 @@ class ParsingCtx(object):
         self.parent = None
         self.children = None
 
+        self.tns = None
+        self.pending_elements = None
+        self.pending_types = None
+
     def clone(self, indent=0, base_dir=None):
         retval = copy(self)
 
         if retval.parent is None:
             retval.parent = self
-            self.children = [retval]
-        else:
-            self.parent.children.append(retval)
+            if self.children is None:
+                self.children = [retval]
+            else:
+                self.children.append(retval)
 
+        else:
+            retval.parent.children.append(retval)
+
+        retval.indent = self.indent + indent
         if base_dir is not None:
             retval.base_dir = base_dir
 
-        retval.indent = self.indent + indent
         return retval
 
     i = lambda self: "  " *  self.indent
@@ -100,11 +107,17 @@ def process_includes(ctx, include):
     file_name = abspath(join(ctx.base_dir, file_name))
     data = open(file_name).read()
     elt = etree.fromstring(data, parser=PARSER)
+    ctx.nsmap.update(elt.nsmap)
+    ctx.prefmap = dict([(v,k) for k,v in ctx.nsmap.items()])
+
     sub_schema = XmlDocument().from_element(XmlSchema, elt)
     if sub_schema.includes:
         for inc in sub_schema.includes:
             base_dir = dirname(file_name)
-            process_includes(ctx.clone(base_dir=base_dir))
+            child_ctx = ctx.clone(base_dir=base_dir)
+            process_includes(ctx, inc)
+            ctx.nsmap.update(child_ctx.nsmap)
+            ctx.prefmap = dict([(v,k) for k,v in ctx.nsmap.items()])
 
     for attr in ('imports', 'simple_types', 'complex_types', 'elements'):
         sub = getattr(sub_schema, attr)
@@ -166,7 +179,8 @@ def process_complex_type(ctx, c):
         for e in c.sequence.element:
             if e.ref is not None:
                 tn = e.ref
-                name = e.ref
+                name = e.ref.split(":", 1)[-1]
+
             elif e.type is not None:
                 tn = e.type
                 name = e.name
@@ -186,7 +200,6 @@ def process_complex_type(ctx, c):
 
                 ti.append( (name, t) )
                 debug("%s     found: %r", ctx.k(), key)
-
 
     ctx.retval[ctx.tns].types[c.name] = ComplexModelMeta(
             str(c.name),
@@ -236,21 +249,15 @@ def process_pending(ctx):
         process_element(ctx, _v)
 
 def print_pending(ctx):
-    print "%" * 30
-    pprint(ctx.pending_elements)
-    print
-    pprint(ctx.pending_types)
-    print "%" * 30
+    if len(ctx.pending_elements) > 0 or len(ctx.pending_types) > 0:
+        print "%" * 50
+        print ctx.tns
+        print
 
-def print_pending(ctx):
-    print "%" * 50
-    print ctx.tns
-    print
-
-    print len(ctx.pending_elements), "pending_elements"
-    print
-    print len(ctx.pending_types), "pending_types"
-    print "%" * 50
+        print len(ctx.pending_elements), "pending_elements"
+        print
+        print len(ctx.pending_types), "pending_types"
+        print "%" * 50
 
 def parse_schema(ctx, elt):
     ctx.nsmap = nsmap = elt.nsmap
@@ -300,10 +307,14 @@ def parse_schema(ctx, elt):
         for e in schema.elements.values():
             process_element(ctx, e)
 
-    if ctx.parent is None:
-        for c in chain(ctx.children, [ctx]):
-            process_pending(c)
+    process_pending(ctx)
 
+    if ctx.parent is None:
+        # This is needed for schemas with circular imports
+        for c in chain([ctx], ctx.children):
+            print_pending(c)
+        for c in chain([ctx], ctx.children):
+            process_pending(c)
         for c in chain([ctx], ctx.children):
             print_pending(c)
 
