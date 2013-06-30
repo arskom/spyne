@@ -149,12 +149,22 @@ def get_xml_as_object(elt, cls):
     return xml_object.from_element(cls, elt)
 
 
-parser = etree.XMLParser(remove_comments=True)
-class Schema(object):
+def parse_schema(elt, files={}):
+    return _parse_schema(elt, _ParsingCtx(files))
+
+def parse_schema_file(file_name, files={}):
+    elt = etree.fromstring(open(file_name).read(), parser=_PARSER)
+    return _parse_schema(elt, _ParsingCtx(files, abspath(dirname(file_name))))
+
+
+_PARSER = etree.XMLParser(remove_comments=True)
+
+class _Schema(object):
     def __init__(self):
         self.types = {}
         self.elements = {}
         self.imports = set()
+
 
 class _ParsingCtx(object):
     def __init__(self, files, base_dir=None):
@@ -172,15 +182,8 @@ class _ParsingCtx(object):
     j = lambda self: "  " * (self.indent + 1)
     k = lambda self: "  " * (self.indent + 2)
 
-def parse_schema(elt, files={}):
-    return _parse_schema(elt, _ParsingCtx(files))
-
-def parse_schema_file(file_name, files={}):
-    elt = etree.fromstring(open(file_name).read(), parser=parser)
-    return _parse_schema(elt, _ParsingCtx(files, abspath(dirname(file_name))))
-
 def _parse_schema_file(file_name, ctx):
-    elt = etree.fromstring(open(file_name).read(), parser=parser)
+    elt = etree.fromstring(open(file_name).read(), parser=_PARSER)
     return _parse_schema(elt, ctx)
 
 try:
@@ -215,7 +218,7 @@ def _parse_schema(elt, ctx):
         debug("%s including %s %s", ctx.j(), base_dir, file_name)
 
         data = open(join(base_dir, file_name)).read()
-        elt = etree.fromstring(data, parser=parser)
+        elt = etree.fromstring(data, parser=_PARSER)
         sub_schema = get_xml_as_object(elt, XmlSchemaDefinition)
         if sub_schema.includes:
             for inc in sub_schema.includes:
@@ -344,7 +347,7 @@ def _parse_schema(elt, ctx):
     tns = schema.target_namespace
     if tns in ctx.retval:
         return
-    ctx.retval[tns] = Schema()
+    ctx.retval[tns] = _Schema()
 
     debug("%s1 %s processing includes", ctx.i(), m(tns))
     if schema.includes:
