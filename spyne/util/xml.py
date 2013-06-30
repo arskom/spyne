@@ -28,6 +28,8 @@ debug = logger.debug
 
 import os
 
+from copy import copy
+
 from os.path import dirname
 from os.path import abspath
 from os.path import join
@@ -154,28 +156,43 @@ class Schema(object):
         self.elements = {}
         self.imports = set()
 
+class _ParsingCtx(object):
+    def __init__(self, files, base_dir=None):
+        self.retval = {}
+        self.indent = 0
+        self.files = files
+        self.base_dir = base_dir
+
+    def clone(self, indent=0):
+        retval = copy(self)
+        retval.indent = self.indent + indent
+        return retval
+
+    i = lambda self: "  " * self.indent
+    j = lambda self: "  " * (self.indent + 1)
+    k = lambda self: "  " * (self.indent + 2)
+
 def parse_schema(elt, files={}):
-    return _parse_schema(elt, files, {}, 0)
+    return _parse_schema(elt, _ParsingCtx(files))
 
-def parse_schema_file(file_name, files):
+def parse_schema_file(file_name, files={}):
     elt = etree.fromstring(open(file_name).read(), parser=parser)
-    return _parse_schema(elt, files, {}, 0, abspath(dirname(file_name)))
+    return _parse_schema(elt, _ParsingCtx(files, abspath(dirname(file_name))))
 
-def _parse_schema_file(file_name, files, retval, indent):
+def _parse_schema_file(file_name, ctx):
     elt = etree.fromstring(open(file_name).read(), parser=parser)
-    return _parse_schema(elt, files, retval, indent)
-
-i = lambda i: "  " * i
-j = lambda i: "  " * (i+1)
-k = lambda i: "  " * (i+2)
+    return _parse_schema(elt, ctx)
 
 try:
     import colorama
-    r = lambda s: "%s%s%s" % (colorama.Fore.RED, s, colorama.Fore.RESET)
+    r = lambda s: "%s%s%s%s" % (colorama.Fore.RED, colorama.Style.BRIGHT, s,
+                                                    colorama.Style.RESET_ALL)
     g = lambda s: "%s%s%s" % (colorama.Fore.GREEN, s, colorama.Fore.RESET)
     b = lambda s: "%s%s%s%s" % (colorama.Fore.BLUE, colorama.Style.BRIGHT, s,
                                                     colorama.Style.RESET_ALL)
     y = lambda s: "%s%s%s%s" % (colorama.Fore.YELLOW, colorama.Style.BRIGHT, s,
+                                                    colorama.Style.RESET_ALL)
+    m = lambda s: "%s%s%s%s" % (colorama.Fore.MAGENTA, colorama.Style.BRIGHT, s,
                                                     colorama.Style.RESET_ALL)
 
 except ImportError:
@@ -183,9 +200,10 @@ except ImportError:
     g = lambda s: s
     b = lambda s: s
     y = lambda s: s
+    m = lambda s: s
 
 
-def _parse_schema(elt, files, retval, indent, base_dir=None):
+def _parse_schema(elt, ctx):
     def process_includes(include, base_dir):
         file_name = include.schema_location
         if file_name is None:
@@ -193,6 +211,8 @@ def _parse_schema(elt, files, retval, indent, base_dir=None):
 
         if base_dir is None:
             base_dir = os.getcwd()
+
+        debug("%s including %s %s", ctx.j(), base_dir, file_name)
 
         data = open(join(base_dir, file_name)).read()
         elt = etree.fromstring(data, parser=parser)
@@ -211,7 +231,6 @@ def _parse_schema(elt, files, retval, indent, base_dir=None):
                 own = []
 
             own.extend(sub)
-            print sub
 
             setattr(schema, attr, own)
 
@@ -230,8 +249,8 @@ def _parse_schema(elt, files, retval, indent, base_dir=None):
             kwargs['values'] = [e.value for e in s.restriction.enumeration]
 
         tn = "{%s}%s" % (tns, s.name)
-        debug("%s adding simple type: %s",  j(indent), tn)
-        retval[tns].types[tn] = base.customize(**kwargs)
+        debug("%s adding simple type: %s",  ctx.j(), tn)
+        ctx.retval[tns].types[tn] = base.customize(**kwargs)
 
     def process_element(e, second_pass=False):
         if e.name is None:
@@ -239,10 +258,10 @@ def _parse_schema(elt, files, retval, indent, base_dir=None):
         if e.type is None:
             return
 
-        debug("%s adding element: %s", j(indent), e.name)
+        debug("%s adding element: %s", ctx.j(), e.name)
         t = get_type(e.type)
         if t:
-            retval[tns].elements[e.name] = e
+            ctx.retval[tns].elements[e.name] = e
 
         elif second_pass:
             raise ValueError((tns, e.name))
@@ -264,7 +283,11 @@ def _parse_schema(elt, files, retval, indent, base_dir=None):
 
                 t = get_type(tn)
                 if t is None:
-                    if second_pass or ":" in tn:
+                    if ":" in tn:
+                        print nsmap[tn.split(":")[0]]
+                        print tns
+                    if second_pass or (":" in tn and
+                                       nsmap[tn.split(":")[0]] != tns):
                         raise ValueError(tn)
 
                     pending_types[(c.name, e.name)] = c
@@ -272,10 +295,9 @@ def _parse_schema(elt, files, retval, indent, base_dir=None):
                 else:
                     ti.append( (e.name, t) )
 
-        debug("%s adding complex type (2=%s): %s",
-                                                j(indent), second_pass, c.name)
+        debug("%s adding complex type (2=%s): %s", ctx.j(), second_pass, c.name)
 
-        retval[tns].types[c.name] = ComplexModelMeta(
+        ctx.retval[tns].types[c.name] = ComplexModelMeta(
                 str(c.name),
                 (ComplexModelBase,),
                 {
@@ -297,7 +319,7 @@ def _parse_schema(elt, files, retval, indent, base_dir=None):
             else:
                 ns, qn = nsmap[None], tn
 
-        ti = retval.get(ns)
+        ti = ctx.retval.get(ns)
         if ti:
             t = ti.types.get(qn)
             if t:
@@ -320,11 +342,11 @@ def _parse_schema(elt, files, retval, indent, base_dir=None):
     pending_elements = {}
 
     tns = schema.target_namespace
-    if tns in retval:
+    if tns in ctx.retval:
         return
-    retval[tns] = Schema()
+    ctx.retval[tns] = Schema()
 
-    debug("%s1 %s processing includes", i(indent), r(tns))
+    debug("%s1 %s processing includes", ctx.i(), m(tns))
     if schema.includes:
         for include in schema.includes:
             process_includes(include, base_dir)
@@ -336,36 +358,36 @@ def _parse_schema(elt, files, retval, indent, base_dir=None):
     if schema.simple_types:
         schema.simple_types = odict([(s.name, s) for s in schema.simple_types])
 
-    debug("%s2 %s processing imports", i(indent), r(tns))
+    debug("%s2 %s processing imports", ctx.i(), r(tns))
     if schema.imports:
         for imp in schema.imports:
-            if not imp.namespace in retval:
-                debug("%s %s importing %s", j(indent), tns, imp.namespace)
-                file_name = files[imp.namespace]
-                _parse_schema_file(file_name, files, retval, indent+2)
+            if not imp.namespace in ctx.retval:
+                debug("%s %s importing %s", ctx.j(), tns, imp.namespace)
+                file_name = ctx.files[imp.namespace]
+                _parse_schema_file(file_name, ctx.clone(2))
 
-    debug("%s3 %s processing simple_types", i(indent), g(tns))
+    debug("%s3 %s processing simple_types", ctx.i(), g(tns))
     if schema.simple_types:
         for s in schema.simple_types.values():
             process_simple_type(s)
 
-    debug("%s4 %s processing complex_types", i(indent), b(tns))
+    debug("%s4 %s processing complex_types", ctx.i(), b(tns))
     if schema.complex_types:
         for c in schema.complex_types.values():
             process_complex_type(c)
 
-    debug("%s5 %s processing elements", i(indent), y(tns))
+    debug("%s5 %s processing elements", ctx.i(), y(tns))
     if schema.elements:
         for e in schema.elements.values():
             process_element(e)
 
     # process pending
-    debug("%s6 %s processing pending complex_types", i(indent), b(tns))
+    debug("%s6 %s processing pending complex_types", ctx.i(), b(tns))
     for (c_name, e_name), _v in pending_types.items():
         process_complex_type(_v, True)
 
-    debug("%s7 %s processing pending elements", i(indent), b(tns))
+    debug("%s7 %s processing pending elements", ctx.i(), y(tns))
     for _k,_v in pending_elements.items():
         process_element(_v, True)
 
-    return retval[tns]
+    return ctx.retval[tns]
