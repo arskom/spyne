@@ -60,9 +60,18 @@ class Sequence(SchemaBase):
     element = Element.customize(max_occurs="unbounded")
 
 
+class Extension(SchemaBase):
+    base = XmlAttribute(Unicode)
+
+
+class SimpleContent(SchemaBase):
+    extension = Extension
+
+
 class ComplexType(SchemaBase):
     name = XmlAttribute(Unicode)
     sequence = Sequence
+    simple_content = SimpleContent.customize(sub_name="simpleContent")
 
 class Include(SchemaBase):
     schema_location = XmlAttribute(Unicode(sub_name="schemaLocation"))

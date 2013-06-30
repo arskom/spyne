@@ -18,6 +18,7 @@ from lxml import etree
 
 from spyne.const import xml_ns
 from spyne.util.odict import odict
+from spyne.model.complex import XmlData
 from spyne.model.complex import ComplexModelBase
 from spyne.model.complex import ComplexModelMeta
 
@@ -171,6 +172,22 @@ def process_element(ctx, e):
         ctx.pending_elements[key] = e
 
 def process_complex_type(ctx, c):
+    def process_type(tn, name, wrapper=lambda x:x):
+        t = get_type(ctx, tn)
+        key = (c.name, name)
+        if t is None:
+            ctx.pending_types[key] = c
+            debug("%s not found: %r", ctx.k(), key)
+
+        else:
+            if key in ctx.pending_types:
+                del ctx.pending_types[key]
+            assert name, (key, e)
+
+            ti.append( (name, wrapper(t)) )
+            debug("%s     found: %r", ctx.k(), key)
+
+
     ti = []
     _pending = False
     debug("%s adding complex type: %s", ctx.j(), c.name)
@@ -187,19 +204,13 @@ def process_complex_type(ctx, c):
             else:
                 raise Exception("dunno")
 
-            t = get_type(ctx, tn)
-            key = (c.name, name)
-            if t is None:
-                ctx.pending_types[key] = c
-                debug("%s not found: %r", ctx.k(), key)
+            process_type(tn, name)
 
-            else:
-                if key in ctx.pending_types:
-                    del ctx.pending_types[key]
-                assert name, (key, e)
-
-                ti.append( (name, t) )
-                debug("%s     found: %r", ctx.k(), key)
+    if c.simple_content is not None:
+        if c.simple_content.extension is not None: 
+            if c.simple_content.extension.base is not None:
+                # FIXME: find a way to generate _data
+                process_type(c.simple_content.extension.base, "_data", XmlData)
 
     ctx.retval[ctx.tns].types[c.name] = ComplexModelMeta(
             str(c.name),
