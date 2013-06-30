@@ -26,6 +26,11 @@ import logging
 logger = logging.getLogger(__name__)
 debug = logger.debug
 
+import os
+
+from os.path import dirname
+from os.path import abspath
+from os.path import join
 from lxml import etree
 
 from pprint import pprint
@@ -41,8 +46,6 @@ from spyne.interface.xml_schema.defn import TYPE_MAP
 
 from spyne.model.complex import ComplexModelBase
 from spyne.model.complex import ComplexModelMeta
-
-from spyne.const import xml_ns
 
 
 class FakeApplication(object):
@@ -156,7 +159,7 @@ def parse_schema(elt, files={}):
 
 def parse_schema_file(file_name, files):
     elt = etree.fromstring(open(file_name).read(), parser=parser)
-    return _parse_schema(elt, files, {}, 0)
+    return _parse_schema(elt, files, {}, 0, abspath(dirname(file_name)))
 
 def _parse_schema_file(file_name, files, retval, indent):
     elt = etree.fromstring(open(file_name).read(), parser=parser)
@@ -182,8 +185,36 @@ except ImportError:
     y = lambda s: s
 
 
+def _parse_schema(elt, files, retval, indent, base_dir=None):
+    def process_includes(include, base_dir):
+        file_name = include.schema_location
+        if file_name is None:
+            return
 
-def _parse_schema(elt, files, retval, indent):
+        if base_dir is None:
+            base_dir = os.getcwd()
+
+        data = open(join(base_dir, file_name)).read()
+        elt = etree.fromstring(data, parser=parser)
+        sub_schema = get_xml_as_object(elt, XmlSchemaDefinition)
+        if sub_schema.includes:
+            for inc in sub_schema.includes:
+                process_includes(inc)
+
+        for attr in ('imports', 'simple_types', 'complex_types', 'elements'):
+            sub = getattr(sub_schema, attr)
+            if sub is None:
+                sub = []
+
+            own = getattr(schema, attr)
+            if own is None:
+                own = []
+
+            own.extend(sub)
+            print sub
+
+            setattr(schema, attr, own)
+
     def process_simple_type(s, second_pass=False):
         if s.restriction is None:
             return
@@ -236,9 +267,7 @@ def _parse_schema(elt, files, retval, indent):
                     if second_pass or ":" in tn:
                         raise ValueError(tn)
 
-                    ti.append( (e.name, e) )
-                    pending_types[c.name] = c
-                    _pending = True
+                    pending_types[(c.name, e.name)] = c
 
                 else:
                     ti.append( (e.name, t) )
@@ -246,16 +275,15 @@ def _parse_schema(elt, files, retval, indent):
         debug("%s adding complex type (2=%s): %s",
                                                 j(indent), second_pass, c.name)
 
-        if not _pending:
-            retval[tns].types[c.name] = ComplexModelMeta(
-                    str(c.name),
-                    (ComplexModelBase,),
-                    {
-                        '__type_name__': c.name,
-                        '__namespace__': tns,
-                        '_type_info': ti,
-                    }
-                )
+        retval[tns].types[c.name] = ComplexModelMeta(
+                str(c.name),
+                (ComplexModelBase,),
+                {
+                    '__type_name__': c.name,
+                    '__namespace__': tns,
+                    '_type_info': ti,
+                }
+            )
 
     def get_type(tn):
         if tn.startswith("{"):
@@ -264,7 +292,10 @@ def _parse_schema(elt, files, retval, indent):
             ns, qn = tn.split(":",1)
             ns = nsmap[ns]
         else:
-            ns, qn = tns, tn
+            if None in prefmap:
+                ns, qn = tns, tn
+            else:
+                ns, qn = nsmap[None], tn
 
         ti = retval.get(ns)
         if ti:
@@ -282,14 +313,8 @@ def _parse_schema(elt, files, retval, indent):
         return TYPE_MAP.get("{%s}%s" % (ns, qn))
 
     nsmap = elt.nsmap
+    prefmap = dict([(v,k) for k,v in nsmap.items()])
     schema = get_xml_as_object(elt, XmlSchemaDefinition)
-
-    if schema.elements:
-        schema.elements = odict([(e.name,e) for e in schema.elements])
-    if schema.complex_types:
-        schema.complex_types = odict([(c.name, c) for c in schema.complex_types])
-    if schema.simple_types:
-        schema.simple_types = odict([(s.name, s) for s in schema.simple_types])
 
     pending_types = {}
     pending_elements = {}
@@ -298,6 +323,18 @@ def _parse_schema(elt, files, retval, indent):
     if tns in retval:
         return
     retval[tns] = Schema()
+
+    debug("%s1 %s processing includes", i(indent), r(tns))
+    if schema.includes:
+        for include in schema.includes:
+            process_includes(include, base_dir)
+
+    if schema.elements:
+        schema.elements = odict([(e.name,e) for e in schema.elements])
+    if schema.complex_types:
+        schema.complex_types = odict([(c.name, c) for c in schema.complex_types])
+    if schema.simple_types:
+        schema.simple_types = odict([(s.name, s) for s in schema.simple_types])
 
     debug("%s2 %s processing imports", i(indent), r(tns))
     if schema.imports:
@@ -324,7 +361,7 @@ def _parse_schema(elt, files, retval, indent):
 
     # process pending
     debug("%s6 %s processing pending complex_types", i(indent), b(tns))
-    for _k,_v in pending_types.items():
+    for (c_name, e_name), _v in pending_types.items():
         process_complex_type(_v, True)
 
     debug("%s7 %s processing pending elements", i(indent), b(tns))

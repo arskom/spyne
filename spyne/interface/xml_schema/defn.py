@@ -64,6 +64,8 @@ class ComplexType(SchemaBase):
     name = XmlAttribute(Unicode)
     sequence = Sequence
 
+class Include(SchemaBase):
+    schema_location = XmlAttribute(Unicode(sub_name="schemaLocation"))
 
 class XmlSchema(SchemaBase):
     _type_info = [
@@ -73,6 +75,8 @@ class XmlSchema(SchemaBase):
 
         ('imports', Import.customize(max_occurs="unbounded",
                                                     sub_name="import")),
+        ('includes', Include.customize(max_occurs="unbounded",
+                                                    sub_name="include")),
         ('elements', Element.customize(max_occurs="unbounded",
                                                     sub_name="element")),
         ('simple_types', SimpleType.customize(max_occurs="unbounded",
