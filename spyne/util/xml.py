@@ -22,6 +22,10 @@
 utility functions.
 """
 
+import logging
+logger = logging.getLogger(__name__)
+debug = logger.debug
+
 from lxml import etree
 
 from pprint import pprint
@@ -185,7 +189,7 @@ def _parse_schema(elt, files, retval, indent):
             kwargs['values'] = [e.value for e in s.restriction.enumeration]
 
         tn = "{%s}%s" % (tns, s.name)
-        print j(indent), "adding simple type:", tn
+        debug("%s adding simple type: %s",  j(indent), tn)
         retval[tns].types[tn] = base.customize(**kwargs)
 
     def process_element(e, second_pass=False):
@@ -194,7 +198,7 @@ def _parse_schema(elt, files, retval, indent):
         if e.type is None:
             return
 
-        print j(indent), "adding element:", e.name
+        debug("%s adding element: %s", j(indent), e.name)
         t = get_type(e.type)
         if t:
             retval[tns].elements[e.name] = e
@@ -229,11 +233,10 @@ def _parse_schema(elt, files, retval, indent):
                 else:
                     ti.append( (e.name, t) )
 
-        if not _pending:
-            print j(indent),
-            print "adding complex type (2=%s):" % second_pass,
-            print c.name
+        debug("%s adding complex type (2=%s): %s",
+                                                j(indent), second_pass, c.name)
 
+        if not _pending:
             retval[tns].types[c.name] = ComplexModelMeta(
                     str(c.name),
                     (ComplexModelBase,),
@@ -253,7 +256,6 @@ def _parse_schema(elt, files, retval, indent):
         else:
             ns, qn = tns, tn
 
-        print k(indent), tn, "=>", tns, qn
         ti = retval.get(ns)
         if ti:
             t = ti.types.get(qn)
@@ -287,42 +289,36 @@ def _parse_schema(elt, files, retval, indent):
         return
     retval[tns] = Schema()
 
-    print i(indent), 1, r(tns), "processing imports"
+    debug("%s2 %s processing imports", i(indent), r(tns))
     if schema.imports:
         for imp in schema.imports:
             if not imp.namespace in retval:
-                print j(indent), tns, "importing", imp.namespace
+                debug("%s %s importing %s", j(indent), tns, imp.namespace)
                 file_name = files[imp.namespace]
                 _parse_schema_file(file_name, files, retval, indent+2)
 
-    print i(indent), 2, g(tns), "processing simple_types"
+    debug("%s3 %s processing simple_types", i(indent), g(tns))
     if schema.simple_types:
         for s in schema.simple_types.values():
             process_simple_type(s)
 
-    print i(indent), 3, b(tns), "processing complex_types"
+    debug("%s4 %s processing complex_types", i(indent), b(tns))
     if schema.complex_types:
         for c in schema.complex_types.values():
             process_complex_type(c)
 
-    print i(indent), 4, y(tns), "processing elements"
+    debug("%s5 %s processing elements", i(indent), y(tns))
     if schema.elements:
         for e in schema.elements.values():
             process_element(e)
 
     # process pending
-    print i(indent), 5, b(tns), "processing pending complex_types"
+    debug("%s6 %s processing pending complex_types", i(indent), b(tns))
     for _k,_v in pending_types.items():
         process_complex_type(_v, True)
-    print
 
-    print i(indent), 6, b(tns), "processing pending elements"
+    debug("%s7 %s processing pending elements", i(indent), b(tns))
     for _k,_v in pending_elements.items():
         process_element(_v, True)
-    print
-
-    print r('*'*30)
-    pprint(retval[tns].elements)
-    print r('*'*30)
 
     return retval[tns]
