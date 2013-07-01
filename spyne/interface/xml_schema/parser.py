@@ -159,6 +159,10 @@ def process_simple_type(ctx, s):
         if restriction.min_length.value:
             kwargs['min_len'] = int(restriction.min_length.value)
 
+    if restriction.pattern:
+        if restriction.pattern.value:
+            kwargs['pattern'] = restriction.pattern.value
+
     debug("%s adding   simple type: %s",  ctx.j(), s.name)
     ctx.retval[ctx.tns].types[s.name] = base.customize(**kwargs)
 
@@ -232,6 +236,9 @@ def process_complex_type(ctx, c):
             if ext.base is not None:
                 # FIXME: find a way to generate _data
                 process_type(ext.base, "_data", XmlData)
+            if ext.attributes is not None:
+                for a in ext.attributes:
+                    process_type(a.type, a.name, XmlAttribute)
 
     ctx.retval[ctx.tns].types[c.name] = ComplexModelMeta(
             str(c.name),
