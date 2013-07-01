@@ -268,7 +268,7 @@ class TestXmlSchema(unittest.TestCase):
 
 
 class TestXmlSchemaParser(unittest.TestCase):
-    def test_complex(self):
+    def test_simple(self):
         class SomeGuy(ComplexModel):
             __namespace__ = 'some_ns'
 
@@ -280,16 +280,15 @@ class TestXmlSchemaParser(unittest.TestCase):
         objects = parse_schema(schema)
         print objects
 
-        NewGuy = objects["{some_ns}SomeGuy"]
+        NewGuy = objects['some_ns'].types["SomeGuy"]
         assert NewGuy.get_type_name() == SomeGuy.get_type_name()
         assert NewGuy.get_namespace() == SomeGuy.get_namespace()
         assert dict(NewGuy._type_info) == dict(SomeGuy._type_info)
 
-    def test_complex_with_customized_type(self):
+    def test_customized_type(self):
         class SomeGuy(ComplexModel):
             __namespace__ = 'some_ns'
 
-            id = Integer
             name = Unicode(2)
 
         schema = get_schema_documents([SomeGuy], "some_ns")['tns']
@@ -298,11 +297,23 @@ class TestXmlSchemaParser(unittest.TestCase):
         objects = parse_schema(schema)
         print objects
 
-        NewGuy = objects["{some_ns}SomeGuy"]
-        assert NewGuy.get_type_name() == SomeGuy.get_type_name()
-        assert NewGuy.get_namespace() == SomeGuy.get_namespace()
-        assert dict(NewGuy._type_info) == dict(SomeGuy._type_info)
+        NewGuy = objects['some_ns'].types["SomeGuy"]
+        assert NewGuy._type_info['name'].Attributes.max_len == 2
 
+    def test_attribute(self):
+        class SomeGuy(ComplexModel):
+            __namespace__ = 'some_ns'
+
+            name = XmlAttribute(Unicode)
+
+        schema = get_schema_documents([SomeGuy], "some_ns")['tns']
+        print etree.tostring(schema, pretty_print=True)
+
+        objects = parse_schema(schema)
+        print objects
+
+        NewGuy = objects['some_ns'].types["SomeGuy"]
+        assert NewGuy._type_info['name'].Attributes.max_len == 2
 
 if __name__ == '__main__':
     unittest.main()
