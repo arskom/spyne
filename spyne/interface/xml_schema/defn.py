@@ -66,6 +66,8 @@ class Attribute(SchemaBase):
 
 class Extension(SchemaBase):
     base = XmlAttribute(Unicode)
+    attributes = Attribute.customize(max_occurs="unbounded",
+                                                        sub_name="attribute")
 
 
 class SimpleContent(SchemaBase):

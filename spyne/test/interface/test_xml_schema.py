@@ -268,20 +268,21 @@ class TestXmlSchema(unittest.TestCase):
         assert len(xpath(seq, 'xs:element[@name="{dd}dd"]')) == 1
 
 
-class TestXmlSchemaParser(unittest.TestCase):
+class TestParseOwnXmlSchema(unittest.TestCase):
     def test_simple(self):
+        tns = 'some_ns'
         class SomeGuy(ComplexModel):
             __namespace__ = 'some_ns'
 
             id = Integer
 
-        schema = get_schema_documents([SomeGuy], "some_ns")['tns']
+        schema = get_schema_documents([SomeGuy], tns)['tns']
         print etree.tostring(schema, pretty_print=True)
 
         objects = parse_schema(schema)
-        print objects
+        pprint(objects[tns].types)
 
-        NewGuy = objects['some_ns'].types["SomeGuy"]
+        NewGuy = objects[tns].types["SomeGuy"]
         assert NewGuy.get_type_name() == SomeGuy.get_type_name()
         assert NewGuy.get_namespace() == SomeGuy.get_namespace()
         assert dict(NewGuy._type_info) == dict(SomeGuy._type_info)
@@ -305,19 +306,51 @@ class TestXmlSchemaParser(unittest.TestCase):
         assert NewGuy._type_info['name'].Attributes.pattern == "a"
 
     def test_attribute(self):
+        tns = 'some_ns'
         class SomeGuy(ComplexModel):
-            __namespace__ = 'some_ns'
+            __namespace__ = tns
 
             name = XmlAttribute(Unicode)
 
-        schema = get_schema_documents([SomeGuy], "some_ns")['tns']
+        schema = get_schema_documents([SomeGuy], tns)['tns']
         print etree.tostring(schema, pretty_print=True)
 
         objects = parse_schema(schema)
-        print objects
+        pprint(objects[tns].types)
 
         NewGuy = objects['some_ns'].types["SomeGuy"]
         assert NewGuy._type_info['name'] is Unicode
 
+
+class TestParseForeignXmlSchema(unittest.TestCase):
+    def test_simple_content(self):
+        tns = 'some_ns'
+
+        schema = """<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+        targetNamespace="some_ns"
+        elementFormDefault="qualified" attributeFormDefault="unqualified">
+    <xsd:complexType name="SomeGuy">
+        <xsd:simpleContent>
+            <xsd:extension base="xsd:normalizedString">
+                <xsd:attribute name="attr" type="xsd:normalizedString" use="optional"/>
+            </xsd:extension>
+        </xsd:simpleContent>
+    </xsd:complexType>
+</xsd:schema>"""
+
+        objects = parse_schema(etree.fromstring(schema))
+        pprint(objects[tns].types)
+
+        NewGuy = objects[tns].types['SomeGuy']
+        ti = NewGuy._type_info
+        pprint(dict(ti))
+        assert issubclass(ti['_data'], XmlData)
+        assert ti['_data'].type is Unicode
+
+        assert issubclass(ti['attr'], XmlAttribute)
+        assert ti['attr'].type is Unicode
+
+
 if __name__ == '__main__':
     unittest.main()
+
