@@ -79,6 +79,7 @@ from spyne.protocol.xml.model import iterable_from_element
 from spyne.protocol.xml.model import dict_from_element
 from spyne.protocol.xml.model import unicode_from_element
 
+
 class SchemaValidationError(Fault):
     """Raised when the input stream could not be validated by the Xml Schema."""
 

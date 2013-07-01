@@ -327,8 +327,8 @@ class TestParseForeignXmlSchema(unittest.TestCase):
         tns = 'some_ns'
 
         schema = """<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-        targetNamespace="some_ns"
-        elementFormDefault="qualified" attributeFormDefault="unqualified">
+            targetNamespace="some_ns"
+            elementFormDefault="qualified" attributeFormDefault="unqualified">
     <xsd:complexType name="SomeGuy">
         <xsd:simpleContent>
             <xsd:extension base="xsd:normalizedString">
