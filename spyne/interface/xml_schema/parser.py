@@ -320,13 +320,17 @@ def parse_schema(ctx, elt):
 
     process_pending(ctx)
 
-    if ctx.parent is None:
-        # This is needed for schemas with circular imports
-        for c in chain([ctx], ctx.children):
-            print_pending(c)
-        for c in chain([ctx], ctx.children):
-            process_pending(c)
-        for c in chain([ctx], ctx.children):
-            print_pending(c)
+    if ctx.parent is None: # for the top-most schema
+        if ctx.children is not None: # # if it uses <include> or <import>
+            # This is needed for schemas with circular imports
+            for c in chain([ctx], ctx.children):
+                print_pending(c)
+            print
+            for c in chain([ctx], ctx.children):
+                process_pending(c)
+            for c in chain([ctx], ctx.children):
+                process_pending(c)
+            for c in chain([ctx], ctx.children):
+                print_pending(c)
 
     return ctx.retval[tns]
