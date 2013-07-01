@@ -286,16 +286,17 @@ class TestXmlSchemaParser(unittest.TestCase):
         assert dict(NewGuy._type_info) == dict(SomeGuy._type_info)
 
     def test_customized_type(self):
+        tns = 'some_ns'
         class SomeGuy(ComplexModel):
-            __namespace__ = 'some_ns'
+            __namespace__ = tns
 
             name = Unicode(2)
 
-        schema = get_schema_documents([SomeGuy], "some_ns")['tns']
+        schema = get_schema_documents([SomeGuy], tns)['tns']
         print etree.tostring(schema, pretty_print=True)
 
         objects = parse_schema(schema)
-        print objects
+        print objects[tns]
 
         NewGuy = objects['some_ns'].types["SomeGuy"]
         assert NewGuy._type_info['name'].Attributes.max_len == 2
