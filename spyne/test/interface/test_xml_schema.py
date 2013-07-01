@@ -20,6 +20,7 @@
 import logging
 import unittest
 
+from pprint import pprint
 from lxml import etree
 
 from spyne.util.odict import odict
@@ -285,21 +286,23 @@ class TestXmlSchemaParser(unittest.TestCase):
         assert NewGuy.get_namespace() == SomeGuy.get_namespace()
         assert dict(NewGuy._type_info) == dict(SomeGuy._type_info)
 
-    def test_customized_type(self):
+    def test_customized_unicode(self):
         tns = 'some_ns'
         class SomeGuy(ComplexModel):
             __namespace__ = tns
 
-            name = Unicode(2)
+            name = Unicode(max_len=10, pattern="a", min_len=5)
 
         schema = get_schema_documents([SomeGuy], tns)['tns']
         print etree.tostring(schema, pretty_print=True)
 
         objects = parse_schema(schema)
-        print objects[tns]
+        pprint(objects[tns].types)
 
         NewGuy = objects['some_ns'].types["SomeGuy"]
-        assert NewGuy._type_info['name'].Attributes.max_len == 2
+        assert NewGuy._type_info['name'].Attributes.max_len == 10
+        assert NewGuy._type_info['name'].Attributes.min_len == 5
+        assert NewGuy._type_info['name'].Attributes.pattern == "a"
 
     def test_attribute(self):
         class SomeGuy(ComplexModel):

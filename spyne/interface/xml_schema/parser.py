@@ -147,11 +147,17 @@ def process_simple_type(ctx, s):
         raise ValueError(s)
 
     kwargs = {}
-    if s.restriction.enumeration:
-        kwargs['values'] = [e.value for e in s.restriction.enumeration]
-    if s.restriction.max_length:
-        if s.restriction.max_length.value:
-            kwargs['max_len'] = int(s.restriction.max_length.value)
+    restriction = s.restriction
+    if restriction.enumeration:
+        kwargs['values'] = [e.value for e in restriction.enumeration]
+
+    if restriction.max_length:
+        if restriction.max_length.value:
+            kwargs['max_len'] = int(restriction.max_length.value)
+
+    if restriction.min_length:
+        if restriction.min_length.value:
+            kwargs['min_len'] = int(restriction.min_length.value)
 
     debug("%s adding   simple type: %s",  ctx.j(), s.name)
     ctx.retval[ctx.tns].types[s.name] = base.customize(**kwargs)

@@ -30,22 +30,20 @@ class Element(SchemaBase):
     nillable = XmlAttribute(Boolean(default=False))
 
 
-class MaxLength(SchemaBase):
+class IntegerAttribute(SchemaBase):
     value = XmlAttribute(UnsignedInteger)
 
-
-class Pattern(SchemaBase):
+class StringAttribute(SchemaBase):
     value = XmlAttribute(Unicode)
 
-class Enumeration(SchemaBase):
-    value = XmlAttribute(Unicode)
 
 class Restriction(SchemaBase):
     _type_info = [
         ('base', XmlAttribute(Unicode)),
-        ('max_length', MaxLength.customize(sub_name="maxLength")),
-        ('pattern', Pattern),
-        ('enumeration', Enumeration.customize(max_occurs="unbounded")),
+        ('max_length', IntegerAttribute.customize(sub_name="maxLength")),
+        ('min_length', IntegerAttribute.customize(sub_name="minLength")),
+        ('pattern', StringAttribute),
+        ('enumeration', StringAttribute.customize(max_occurs="unbounded")),
     ]
 
 
