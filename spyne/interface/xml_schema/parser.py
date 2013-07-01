@@ -19,6 +19,7 @@ from lxml import etree
 from spyne.const import xml_ns
 from spyne.util.odict import odict
 from spyne.model.complex import XmlData
+from spyne.model.complex import XmlAttribute
 from spyne.model.complex import ComplexModelBase
 from spyne.model.complex import ComplexModelMeta
 
@@ -205,6 +206,16 @@ def process_complex_type(ctx, c):
                 raise Exception("dunno")
 
             process_type(tn, name)
+
+    if c.attributes is not None:
+        for a in c.attributes:
+            if a.name is None:
+                continue
+            if a.type is None:
+                continue
+
+            t = process_type(a.type, a.name)
+
 
     if c.simple_content is not None:
         if c.simple_content.extension is not None: 

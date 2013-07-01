@@ -313,7 +313,7 @@ class TestXmlSchemaParser(unittest.TestCase):
         print objects
 
         NewGuy = objects['some_ns'].types["SomeGuy"]
-        assert NewGuy._type_info['name'].Attributes.max_len == 2
+        assert NewGuy._type_info['name'] is Unicode
 
 if __name__ == '__main__':
     unittest.main()
