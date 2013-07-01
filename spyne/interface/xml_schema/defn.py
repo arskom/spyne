@@ -73,8 +73,10 @@ class ComplexType(SchemaBase):
     sequence = Sequence
     simple_content = SimpleContent.customize(sub_name="simpleContent")
 
+
 class Include(SchemaBase):
     schema_location = XmlAttribute(Unicode(sub_name="schemaLocation"))
+
 
 class XmlSchema(SchemaBase):
     _type_info = [
