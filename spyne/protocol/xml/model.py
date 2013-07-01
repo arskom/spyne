@@ -38,6 +38,7 @@ from spyne.model.binary import File
 from spyne.model.binary import ByteArray
 from spyne.model.complex import XmlData
 from spyne.model.complex import XmlAttribute
+from spyne.model.complex import ComplexModelBase
 from spyne.util import coroutine
 from spyne.util import Break
 from spyne.util.etreeconv import etree_to_dict
@@ -310,7 +311,10 @@ def complex_from_element(prot, cls, element):
 
     xtba_key, xtba_type = cls.Attributes._xml_tag_body_as
     if xtba_key is not None:
-        value = prot.from_string(xtba_type.type, element.text)
+        if issubclass(xtba_type.type, ComplexModelBase):
+            value = prot.from_element(xtba_type.type, element)
+        else:
+            value = prot.from_string(xtba_type.type, element.text)
         setattr(inst, xtba_key, value)
 
     # parse input to set incoming data to related attributes.
