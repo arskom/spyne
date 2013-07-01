@@ -208,9 +208,10 @@ def process_complex_type(ctx, c):
 
     if c.simple_content is not None:
         if c.simple_content.extension is not None: 
-            if c.simple_content.extension.base is not None:
+            ext = c.simple_content.extension
+            if ext.base is not None:
                 # FIXME: find a way to generate _data
-                process_type(c.simple_content.extension.base, "_data", XmlData)
+                process_type(ext.base, "_data", XmlData)
 
     ctx.retval[ctx.tns].types[c.name] = ComplexModelMeta(
             str(c.name),
