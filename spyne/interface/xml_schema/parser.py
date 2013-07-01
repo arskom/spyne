@@ -37,12 +37,28 @@ class _Schema(object):
         self.imports = set()
 
 
+def own_repr(self, i=0, I = '  '):
+    j = i+1
+
+    if hasattr(self.__class__, '_type_info'):
+        retval = []
+        retval.append(self.__class__.get_type_name())
+        retval.append('(\n')
+        for k,v in self._type_info.items():
+            retval.append("%s%s=%s,\n" %(I*j, k,
+                                         own_repr(getattr(self, k, None),i+1)))
+        retval.append('%s)' % (I*i))
+        return ''.join(retval)
+    return repr(self)
+
+
 class ParsingCtx(object):
-    def __init__(self, files, base_dir=None):
+    def __init__(self, files, base_dir=None, own_repr=own_repr):
         self.retval = {}
         self.indent = 0
         self.files = files
         self.base_dir = base_dir
+        self.own_repr = own_repr
         if self.base_dir is None:
             self.base_dir = os.getcwd()
         self.parent = None
@@ -241,15 +257,16 @@ def process_complex_type(ctx, c):
                 for a in ext.attributes:
                     process_type(a.type, a.name, XmlAttribute)
 
-    ctx.retval[ctx.tns].types[c.name] = ComplexModelMeta(
-            str(c.name),
-            (ComplexModelBase,),
-            {
-                '__type_name__': c.name,
-                '__namespace__': ctx.tns,
-                '_type_info': ti,
-            }
-        )
+    cls_dict = {
+        '__type_name__': c.name,
+        '__namespace__': ctx.tns,
+        '_type_info': ti,
+    }
+    if ctx.own_repr is not None:
+        cls_dict['__repr__'] = ctx.own_repr
+
+    ctx.retval[ctx.tns].types[c.name] = ComplexModelMeta(str(c.name),
+                                                  (ComplexModelBase,), cls_dict)
 
 def get_type(ctx, tn):
     if tn.startswith("{"):
