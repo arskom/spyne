@@ -265,9 +265,11 @@ def print_pending(ctx):
         print ctx.tns
         print
 
-        print len(ctx.pending_elements), "pending_elements"
+        print "elements"
+        pprint(ctx.pending_elements)
         print
-        print len(ctx.pending_types), "pending_types"
+        print "types"
+        pprint(ctx.pending_types)
         print "%" * 50
 
 def parse_schema(ctx, elt):
