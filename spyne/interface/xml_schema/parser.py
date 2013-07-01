@@ -335,4 +335,4 @@ def parse_schema(ctx, elt):
             for c in chain([ctx], ctx.children):
                 print_pending(c)
 
-    return ctx.retval[tns]
+    return ctx.retval
