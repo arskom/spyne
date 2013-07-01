@@ -7,6 +7,7 @@ import os
 
 from itertools import chain
 from pprint import pprint
+from pprint import pformat
 
 from copy import copy
 
@@ -289,16 +290,17 @@ def process_pending(ctx):
 
 def print_pending(ctx):
     if len(ctx.pending_elements) > 0 or len(ctx.pending_types) > 0:
-        print "%" * 50
-        print ctx.tns
-        print
+        debug("%" * 50)
+        debug(ctx.tns)
+        debug("")
 
-        print "elements"
-        pprint(ctx.pending_elements)
-        print
-        print "types"
-        pprint(ctx.pending_types)
-        print "%" * 50
+        debug("elements")
+        debug(pformat(ctx.pending_elements))
+        debug("")
+
+        debug("types")
+        debug(pformat(ctx.pending_types))
+        debug("%" * 50)
 
 def parse_schema(ctx, elt):
     ctx.nsmap = nsmap = elt.nsmap
@@ -355,11 +357,13 @@ def parse_schema(ctx, elt):
             # This is needed for schemas with circular imports
             for c in chain([ctx], ctx.children):
                 print_pending(c)
-            print
+            debug('')
+
             for c in chain([ctx], ctx.children):
                 process_pending(c)
             for c in chain([ctx], ctx.children):
                 process_pending(c)
+            debug('')
             for c in chain([ctx], ctx.children):
                 print_pending(c)
 
