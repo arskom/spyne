@@ -118,11 +118,20 @@ from spyne.model.fault import Fault
 TYPE_MAP = dict([
     ("{%s}%s" % (cls.get_namespace(), cls.get_type_name()), cls) for cls in
             chain(
-                vars(primitive).values(),
+                [v for v in vars(primitive).values()
+                              if getattr(v, '__type_name__', None) is not None],
                 [
                     binary.ByteArray(),
                     binary.ByteArray(encoding='hex'),
                 ],
+                [
+                    primitive.Point(2),        primitive.Point(3),
+                    primitive.Line(2),         primitive.Line(3),
+                    primitive.Polygon(2),      primitive.Polygon(3),
+                    primitive.MultiPoint(2),   primitive.MultiPoint(3),
+                    primitive.MultiLine(2),    primitive.MultiLine(3),
+                    primitive.MultiPolygon(2), primitive.MultiPolygon(3),
+                ]
             )
 
             if isclass(cls)
