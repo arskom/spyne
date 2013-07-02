@@ -21,6 +21,7 @@ from spyne.const import xml_ns
 from spyne.util.odict import odict
 from spyne.model.complex import XmlData
 from spyne.model.complex import XmlAttribute
+from spyne.model.complex import Array
 from spyne.model.complex import ComplexModelBase
 from spyne.model.complex import ComplexModelMeta
 
@@ -37,17 +38,25 @@ class _Schema(object):
         self.imports = set()
 
 
-def own_repr(self, i=0, I = '  '):
-    j = i+1
+def own_repr(self, i0=0, I = '  '):
+    i1=i0+1; i2=i1+1
 
     if hasattr(self.__class__, '_type_info'):
         retval = []
         retval.append(self.__class__.get_type_name())
         retval.append('(\n')
         for k,v in self._type_info.items():
-            retval.append("%s%s=%s,\n" %(I*j, k,
-                                         own_repr(getattr(self, k, None),i+1)))
-        retval.append('%s)' % (I*i))
+            value = getattr(self, k, None)
+            if (issubclass(v, Array) or v.Attributes.max_occurs > 1) and \
+                                                            value is not None:
+                retval.append("%s%s=[\n" %(I*i1, k))
+                for subval in value:
+                        retval.append("%s%s,\n" % (I*i2, own_repr(subval,i2)))
+                retval.append('%s]\n' % (I*i1))
+            else:
+                retval.append("%s%s=%s,\n" %(I*i1, k,
+                                         own_repr(getattr(self, k, None),i1)))
+        retval.append('%s)' % (I*i0))
         return ''.join(retval)
     return repr(self)
 
