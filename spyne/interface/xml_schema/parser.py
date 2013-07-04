@@ -39,26 +39,28 @@ class _Schema(object):
 
 
 def own_repr(self, i0=0, I = '  '):
-    i1=i0+1; i2=i1+1
+    if not hasattr(self.__class__, '_type_info'):
+        return repr(self)
 
-    if hasattr(self.__class__, '_type_info'):
-        retval = []
-        retval.append(self.__class__.get_type_name())
-        retval.append('(\n')
-        for k,v in self._type_info.items():
-            value = getattr(self, k, None)
-            if (issubclass(v, Array) or v.Attributes.max_occurs > 1) and \
-                                                            value is not None:
-                retval.append("%s%s=[\n" %(I*i1, k))
-                for subval in value:
-                        retval.append("%s%s,\n" % (I*i2, own_repr(subval,i2)))
-                retval.append('%s]\n' % (I*i1))
-            else:
-                retval.append("%s%s=%s,\n" %(I*i1, k,
-                                         own_repr(getattr(self, k, None),i1)))
-        retval.append('%s)' % (I*i0))
-        return ''.join(retval)
-    return repr(self)
+    i1 = i0 + 1
+    i2 = i1 + 1
+
+    retval = []
+    retval.append(self.__class__.get_type_name())
+    retval.append('(\n')
+    for k,v in self._type_info.items():
+        value = getattr(self, k, None)
+        if (issubclass(v, Array) or v.Attributes.max_occurs > 1) and \
+                                                        value is not None:
+            retval.append("%s%s=[\n" %(I*i1, k))
+            for subval in value:
+                    retval.append("%s%s,\n" % (I*i2, own_repr(subval,i2)))
+            retval.append('%s]\n' % (I*i1))
+        else:
+            retval.append("%s%s=%s,\n" %(I*i1, k,
+                                        own_repr(getattr(self, k, None),i1)))
+    retval.append('%s)' % (I*i0))
+    return ''.join(retval)
 
 
 class ParsingCtx(object):
