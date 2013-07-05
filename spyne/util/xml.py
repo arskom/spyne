@@ -134,7 +134,7 @@ def get_xml_as_object(elt, cls):
     return xml_object.from_element(cls, elt)
 
 
-def parse_schema(elt, files={}, repr=parser.own_repr):
+def parse_schema_element(elt, files={}, repr=parser.own_repr):
     return parser.parse_schema(parser.ParsingCtx(files, own_repr=repr), elt)
 
 
