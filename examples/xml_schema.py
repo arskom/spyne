@@ -41,6 +41,7 @@ from spyne.util.xml import get_object_as_xml
 from spyne.util.xml import get_xml_as_object
 from spyne.util.xml import parse_schema_string
 
+
 # Define the object
 class SomeObject(ComplexModel):
     i = Integer
@@ -50,12 +51,17 @@ class SomeObject(ComplexModel):
 # Instantiate the object
 instance = SomeObject(i=5, s="str")
 
-# Generate the xml schema for object
-schema = etree.tostring(get_schema_documents([SomeObject], 'some_ns')['tns'],
-                                                              pretty_print=True)
+# Generate schema documents
+schema_elts = get_schema_documents([SomeObject], 'some_ns')
+
+# Serialize the xml schema document for object
+schema = etree.tostring(schema_elts['tns'],  pretty_print=True)
+
 # Serialize the object to XML
-data = etree.tostring(get_object_as_xml(instance, SomeObject),
-                                                              pretty_print=True)
+instance_elt = get_object_as_xml(instance, SomeObject)
+
+# Serialize the element tree to string
+data = etree.tostring(instance_elt, pretty_print=True)
 
 print instance
 print
