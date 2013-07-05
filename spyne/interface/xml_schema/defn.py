@@ -62,6 +62,7 @@ class Attribute(SchemaBase):
      use = XmlAttribute(Unicode)
      name = XmlAttribute(Unicode)
      type = XmlAttribute(Unicode)
+     ref = XmlAttribute(Unicode)
 
 
 class Extension(SchemaBase):

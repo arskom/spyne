@@ -245,6 +245,7 @@ def process_complex_type(ctx, c):
             elif e.type is not None:
                 tn = e.type
                 name = e.name
+
             else:
                 raise Exception("dunno")
 
@@ -268,7 +269,18 @@ def process_complex_type(ctx, c):
                 process_type(ext.base, "_data", XmlData)
             if ext.attributes is not None:
                 for a in ext.attributes:
-                    process_type(a.type, a.name, XmlAttribute)
+                    if a.ref is not None:
+                        tn = a.ref
+                        name = a.ref.split(":", 1)[-1]
+
+                    elif a.type is not None:
+                        tn = a.type
+                        name = a.name
+
+                    else:
+                        raise Exception("dunno attr")
+
+                    process_type(tn, name, XmlAttribute)
 
     cls_dict = {
         '__type_name__': c.name,
