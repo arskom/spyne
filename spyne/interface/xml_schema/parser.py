@@ -19,6 +19,7 @@ from lxml import etree
 
 from spyne.const import xml_ns
 from spyne.util.odict import odict
+
 from spyne.model.complex import XmlData
 from spyne.model.complex import XmlAttribute
 from spyne.model.complex import Array
@@ -30,6 +31,7 @@ from spyne.interface.xml_schema.defn import TYPE_MAP
 from spyne.interface.xml_schema.defn import XmlSchema
 
 PARSER = etree.XMLParser(remove_comments=True)
+
 
 class _Schema(object):
     def __init__(self):
