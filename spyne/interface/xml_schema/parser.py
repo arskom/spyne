@@ -263,8 +263,7 @@ def process_complex_type(ctx, c):
             if a.type is None:
                 continue
 
-            t = process_type(a.type, a.name)
-
+            process_type(a.type, a.name)
 
     if c.simple_content is not None:
         if c.simple_content.extension is not None: 
