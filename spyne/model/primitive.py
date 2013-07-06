@@ -750,6 +750,7 @@ class Uuid(Unicode(pattern=UUID_PATTERN)):
 class Point(Unicode):
     """A point type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper point type."""
+    __type_name__ = None
 
     class Attributes(Unicode.Attributes):
         dim = None
@@ -773,6 +774,7 @@ class Point(Unicode):
 class Line(Unicode):
     """A point type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper point type."""
+    __type_name__ = None
 
     class Attributes(Unicode.Attributes):
         dim = None
@@ -793,6 +795,7 @@ LineString=Line
 class Polygon(Unicode):
     """A Polygon type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper polygon type."""
+    __type_name__ = None
 
     class Attributes(Unicode.Attributes):
         dim = None
@@ -812,6 +815,7 @@ class Polygon(Unicode):
 class MultiPoint(Unicode):
     """A Multipolygon type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper multipolygon type."""
+    __type_name__ = None
 
     class Attributes(Unicode.Attributes):
         dim = None
@@ -831,6 +835,7 @@ class MultiPoint(Unicode):
 class MultiLine(Unicode):
     """A Multipolygon type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper multipolygon type."""
+    __type_name__ = None
 
     class Attributes(Unicode.Attributes):
         dim = None
@@ -851,6 +856,7 @@ MultiLineString = MultiLine
 class MultiPolygon(Unicode):
     """A Multipolygon type whose native format is a WKT string. You can use
     :func:`shapely.wkt.loads` to get a proper multipolygon type."""
+    __type_name__ = None
 
     class Attributes(Unicode.Attributes):
         dim = None
