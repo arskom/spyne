@@ -19,7 +19,6 @@
 
 import logging
 logger = logging.getLogger(__name__)
-debug = logger.debug
 
 import os
 
@@ -47,6 +46,8 @@ from spyne.model.complex import ComplexModelMeta
 from spyne.protocol.xml import XmlDocument
 from spyne.interface.xml_schema.defn import TYPE_MAP
 from spyne.interface.xml_schema.defn import XmlSchema
+
+from spyne.util.color import R, G, B, M, Y
 
 PARSER = etree.XMLParser(remove_comments=True)
 
@@ -118,28 +119,14 @@ class ParsingCtx(object):
 
         return retval
 
-    i0 = lambda self: "  " *  self.indent
-    i1 = lambda self: "  " * (self.indent + 1)
-    i2 = lambda self: "  " * (self.indent + 2)
+    def debug0(self, s, *args, **kwargs):
+        logger.debug("%s%s" % ("  " *  self.indent, s), *args, **kwargs) 
 
-try:
-    import colorama
-    r = lambda s: "%s%s%s%s" % (colorama.Fore.RED, colorama.Style.BRIGHT, s,
-                                                    colorama.Style.RESET_ALL)
-    g = lambda s: "%s%s%s" % (colorama.Fore.GREEN, s, colorama.Fore.RESET)
-    b = lambda s: "%s%s%s%s" % (colorama.Fore.BLUE, colorama.Style.BRIGHT, s,
-                                                    colorama.Style.RESET_ALL)
-    y = lambda s: "%s%s%s%s" % (colorama.Fore.YELLOW, colorama.Style.BRIGHT, s,
-                                                    colorama.Style.RESET_ALL)
-    m = lambda s: "%s%s%s%s" % (colorama.Fore.MAGENTA, colorama.Style.BRIGHT, s,
-                                                    colorama.Style.RESET_ALL)
+    def debug1(self, s, *args, **kwargs):
+        logger.debug("%s%s" % ("  " * (self.indent + 1), s), *args, **kwargs)
 
-except ImportError:
-    r = lambda s: s
-    g = lambda s: s
-    b = lambda s: s
-    y = lambda s: s
-    m = lambda s: s
+    def debug2(self, s, *args, **kwargs):
+        logger.debug("%s%s" % ("  " * (self.indent + 2), s), *args, **kwargs)
 
 
 def parse_schema_file(ctx, file_name):
@@ -152,7 +139,7 @@ def process_includes(ctx, include):
     if file_name is None:
         return
 
-    debug("%s including %s %s", ctx.i1(), ctx.base_dir, file_name)
+    ctx.debug1("including %s %s", ctx.base_dir, file_name)
 
     file_name = abspath(join(ctx.base_dir, file_name))
     data = open(file_name).read()
@@ -184,10 +171,10 @@ def process_includes(ctx, include):
 
 def process_simple_type(ctx, s):
     if s.restriction is None:
-        debug("%s skipping simple type: %s",  ctx.i1(), s.name)
+        ctx.debug1("skipping simple type: %s", s.name)
         return
     if s.restriction.base is None:
-        debug("%s skipping simple type: %s",  ctx.i1(), s.name)
+        ctx.debug1("skipping simple type: %s", s.name)
         return
 
     base = get_type(ctx, s.restriction.base)
@@ -211,8 +198,8 @@ def process_simple_type(ctx, s):
         if restriction.pattern.value:
             kwargs['pattern'] = restriction.pattern.value
 
-    debug("%s adding   simple type: %s",  ctx.i1(), s.name)
     ctx.retval[ctx.tns].types[s.name] = base.customize(**kwargs)
+    ctx.debug1("adding   simple type: %s", s.name)
 
 def process_element(ctx, e):
     if e.name is None:
@@ -220,7 +207,7 @@ def process_element(ctx, e):
     if e.type is None:
         return
 
-    debug("%s adding element: %s", ctx.i1(), e.name)
+    ctx.debug1("adding element: %s", e.name)
     t = get_type(ctx, e.type)
 
     key = e.name
@@ -239,7 +226,7 @@ def process_complex_type(ctx, c):
         key = (c.name, name)
         if t is None:
             ctx.pending_types[key] = c
-            debug("%s not found: %r", ctx.i2(), key)
+            ctx.debug2("not found: %r", key)
 
         else:
             if key in ctx.pending_types:
@@ -247,12 +234,12 @@ def process_complex_type(ctx, c):
             assert name, (key, e)
 
             ti.append( (name, wrapper(t)) )
-            debug("%s     found: %r", ctx.i2(), key)
+            ctx.debug2("    found: %r", key)
 
 
     ti = []
     _pending = False
-    debug("%s adding complex type: %s", ctx.i1(), c.name)
+    ctx.debug1("adding complex type: %s", c.name)
 
     if c.sequence is not None and c.sequence.element is not None:
         for e in c.sequence.element:
@@ -340,27 +327,28 @@ def get_type(ctx, tn):
 
 def process_pending(ctx):
     # process pending
-    debug("%s6 %s processing pending complex_types", ctx.i0(), b(ctx.tns))
+    ctx.debug0("6 %s processing pending complex_types", B(ctx.tns))
     for (c_name, e_name), _v in ctx.pending_types.items():
         process_complex_type(ctx, _v)
 
-    debug("%s7 %s processing pending elements", ctx.i0(), y(ctx.tns))
+    ctx.debug0("7 %s processing pending elements", Y(ctx.tns))
     for _k,_v in ctx.pending_elements.items():
         process_element(ctx, _v)
 
 def print_pending(ctx):
     if len(ctx.pending_elements) > 0 or len(ctx.pending_types) > 0:
-        debug("%" * 50)
-        debug(ctx.tns)
-        debug("")
+        ctx.debug0("%" * 50)
+        ctx.debug0(ctx.tns)
+        ctx.debug0("")
 
-        debug("elements")
-        debug(pformat(ctx.pending_elements))
-        debug("")
+        ctx.debug0("elements")
+        ctx.debug0(pformat(ctx.pending_elements))
+        ctx.debug0("")
 
-        debug("types")
-        debug(pformat(ctx.pending_types))
-        debug("%" * 50)
+        ctx.debug0("types")
+        ctx.debug0(pformat(ctx.pending_types))
+        ctx.debug0("%" * 50)
+
 
 def parse_schema(ctx, elt):
     ctx.nsmap = nsmap = elt.nsmap
@@ -375,7 +363,7 @@ def parse_schema(ctx, elt):
         return
     ctx.retval[tns] = _Schema()
 
-    debug("%s1 %s processing includes", ctx.i0(), m(tns))
+    ctx.debug0("1 %s processing includes", M(tns))
     if schema.includes:
         for include in schema.includes:
             process_includes(ctx, include)
@@ -387,25 +375,25 @@ def parse_schema(ctx, elt):
     if schema.simple_types:
         schema.simple_types = odict([(s.name, s) for s in schema.simple_types])
 
-    debug("%s2 %s processing imports", ctx.i0(), r(tns))
+    ctx.debug0("2 %s processing imports", R(tns))
     if schema.imports:
         for imp in schema.imports:
             if not imp.namespace in ctx.retval:
-                debug("%s %s importing %s", ctx.i1(), tns, imp.namespace)
+                ctx.debug1("%s importing %s", tns, imp.namespace)
                 file_name = ctx.files[imp.namespace]
                 parse_schema_file(ctx.clone(2, dirname(file_name)), file_name)
 
-    debug("%s3 %s processing simple_types", ctx.i0(), g(tns))
+    ctx.debug0("3 %s processing simple_types", G(tns))
     if schema.simple_types:
         for s in schema.simple_types.values():
             process_simple_type(ctx, s)
 
-    debug("%s4 %s processing complex_types", ctx.i0(), b(tns))
+    ctx.debug0("4 %s processing complex_types", B(tns))
     if schema.complex_types:
         for c in schema.complex_types.values():
             process_complex_type(ctx, c)
 
-    debug("%s5 %s processing elements", ctx.i0(), y(tns))
+    ctx.debug0("5 %s processing elements", Y(tns))
     if schema.elements:
         for e in schema.elements.values():
             process_element(ctx, e)
@@ -417,13 +405,13 @@ def parse_schema(ctx, elt):
             # This is needed for schemas with circular imports
             for c in chain([ctx], ctx.children):
                 print_pending(c)
-            debug('')
+            ctx.debug0('')
 
             for c in chain([ctx], ctx.children):
                 process_pending(c)
             for c in chain([ctx], ctx.children):
                 process_pending(c)
-            debug('')
+            ctx.debug0('')
             for c in chain([ctx], ctx.children):
                 print_pending(c)
 
