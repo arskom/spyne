@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+
 import logging
 import unittest
 
@@ -39,7 +40,9 @@ from spyne.model.primitive import Uuid
 from spyne.protocol.soap import Soap11
 from spyne.service import ServiceBase
 from spyne.util.xml import get_schema_documents
-from spyne.util.xml import parse_schema
+from spyne.util.xml import parse_schema_element
+from spyne.util.xml import parse_schema_string
+
 from spyne.interface.xml_schema import XmlSchema
 
 
@@ -279,7 +282,7 @@ class TestParseOwnXmlSchema(unittest.TestCase):
         schema = get_schema_documents([SomeGuy], tns)['tns']
         print etree.tostring(schema, pretty_print=True)
 
-        objects = parse_schema(schema)
+        objects = parse_schema_element(schema)
         pprint(objects[tns].types)
 
         NewGuy = objects[tns].types["SomeGuy"]
@@ -297,7 +300,7 @@ class TestParseOwnXmlSchema(unittest.TestCase):
         schema = get_schema_documents([SomeGuy], tns)['tns']
         print etree.tostring(schema, pretty_print=True)
 
-        objects = parse_schema(schema)
+        objects = parse_schema_element(schema)
         pprint(objects[tns].types)
 
         NewGuy = objects['some_ns'].types["SomeGuy"]
@@ -315,7 +318,7 @@ class TestParseOwnXmlSchema(unittest.TestCase):
         schema = get_schema_documents([SomeGuy], tns)['tns']
         print etree.tostring(schema, pretty_print=True)
 
-        objects = parse_schema(schema)
+        objects = parse_schema_element(schema)
         pprint(objects[tns].types)
 
         NewGuy = objects['some_ns'].types["SomeGuy"]
@@ -338,7 +341,7 @@ class TestParseForeignXmlSchema(unittest.TestCase):
     </xsd:complexType>
 </xsd:schema>"""
 
-        objects = parse_schema(etree.fromstring(schema))
+        objects = parse_schema_string(schema)
         pprint(objects[tns].types)
 
         NewGuy = objects[tns].types['SomeGuy']
