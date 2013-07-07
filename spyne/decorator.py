@@ -39,6 +39,7 @@ from spyne.model.complex import TypeInfo
 from spyne.const.xml_ns import DEFAULT_NS
 from spyne.const import RESPONSE_SUFFIX
 from spyne.const import RESULT_SUFFIX
+from spyne.const import add_request_suffix
 
 
 def _produce_input_message(f, params, kparams, _in_message_name,
@@ -65,6 +66,8 @@ def _produce_input_message(f, params, kparams, _in_message_name,
     else:
         argcount = len(args)
         param_names = args
+    
+    _in_message_name = add_request_suffix(_in_message_name)
 
     in_params = TypeInfo()
     try:

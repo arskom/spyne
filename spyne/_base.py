@@ -26,6 +26,7 @@ from collections import deque
 
 from spyne.const.xml_ns import DEFAULT_NS
 from spyne.util.oset import oset
+from spyne.const import strip_request_suffix
 
 class BODY_STYLE_WRAPPED: pass
 class BODY_STYLE_EMPTY: pass
@@ -387,7 +388,7 @@ class MethodDescriptor(object):
     def name(self):
         """The public name of the function. Equals to the type_name of the
         in_message."""
-        return self.in_message.get_type_name()
+        return strip_request_suffix(self.in_message.get_type_name())
 
     @property
     def key(self):
@@ -396,7 +397,9 @@ class MethodDescriptor(object):
         assert not (self.in_message.get_namespace() is DEFAULT_NS)
 
         return '{%s}%s' % (
-            self.in_message.get_namespace(), self.in_message.get_type_name())
+            self.in_message.get_namespace(),
+            strip_request_suffix(self.in_message.get_type_name())
+        )
 
     def reset_function(self, val=None):
         if val != None:
