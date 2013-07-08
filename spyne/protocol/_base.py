@@ -245,7 +245,7 @@ class ProtocolBase(object):
         than one function. (This is called the fanout mode.)
         """
 
-        name = strip_request_suffix(ctx.method_request_string)
+        name = ctx.method_request_string
         if not name.startswith("{"):
             name = '{%s}%s' % (self.app.interface.get_tns(), name)
 
