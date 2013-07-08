@@ -19,10 +19,13 @@
 
 """The ``spyne.protocol.xml`` package contains an xml-based protocol that
 serializes python objects to xml using Xml Schema conventions.
-"""
+
+Logs valid documents to %r and invalid documents to %r.
+""" % ('spyne.protocol.xml', 'spyne.protocol.xml.invalid')
 
 import logging
 logger = logging.getLogger('spyne.protocol.xml')
+logger_invalid = logging.getLogger('spyne.protocol.xml.invalid')
 
 from lxml import etree
 from lxml.etree import XMLSyntaxError
@@ -207,23 +210,20 @@ class XmlDocument(ProtocolBase):
         """Uses the iterable of string fragments in ``ctx.in_string`` to set
         ``ctx.in_document``."""
 
-
         string = _bytes_join(ctx.in_string)
         try:
             try:
                 ctx.in_document = etree.fromstring(string, self.parser)
 
-            except XMLSyntaxError, e:
-                logger.error(string)
-                raise Fault('Client.XMLSyntaxError', str(e))
-
-        except ValueError:
-            try:
+            except ValueError:
+                logger.debug('ValueError: Deserializing from unicode strings '
+                             'with encoding declaration is not supported by '
+                             'lxml.')
                 ctx.in_document = etree.fromstring(string.decode(charset),
                                                                     self.parser)
-            except XMLSyntaxError, e:
-                logger.error(string)
-                raise Fault('Client.XMLSyntaxError', str(e))
+        except XMLSyntaxError, e:
+            logger_invalid.error(string)
+            raise Fault('Client.XMLSyntaxError', str(e))
 
     def decompose_incoming_envelope(self, ctx, message):
         assert message in (self.REQUEST, self.RESPONSE)

@@ -30,10 +30,13 @@ when explicitly enabled due to performance reasons. ::
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
 Initially released in soaplib-0.8.0.
-"""
+
+Logs valid documents to %r and invalid documents to %r.
+""" % (__name__, __name__ + ".invalid")
 
 import logging
 logger = logging.getLogger(__name__)
+logger_invalid = logging.getLogger(__name__ + ".invalid")
 
 import cgi
 
@@ -95,17 +98,14 @@ def _parse_xml_string(xml_string, charset=None,
         try:
             root, xmlids = etree.XMLID(string, parser)
 
-        except XMLSyntaxError, e:
-            logger.error(string)
-            raise Fault('Client.XMLSyntaxError', str(e))
-
-    except ValueError, e:
-        logger.debug('%r -- falling back to str decoding.' % (e))
-        try:
+        except ValueError, e:
+            logger.debug('ValueError: Deserializing from unicode strings with '
+                         'encoding declaration is not supported by lxml.')
             root, xmlids = etree.XMLID(string.encode(charset), parser)
-        except XMLSyntaxError, e:
-            logger.error(string)
-            raise Fault('Client.XMLSyntaxError', str(e))
+
+    except XMLSyntaxError, e:
+        logger_invalid.error(string)
+        raise Fault('Client.XMLSyntaxError', str(e))
 
     return root, xmlids
 
