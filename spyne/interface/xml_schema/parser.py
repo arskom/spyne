@@ -37,6 +37,7 @@ from lxml import etree
 from spyne.const import xml_ns
 from spyne.util.odict import odict
 
+from spyne.model import SimpleModel
 from spyne.model.complex import XmlData
 from spyne.model.complex import XmlAttribute
 from spyne.model.complex import Array
@@ -202,7 +203,12 @@ def process_simple_type(ctx, s):
             kwargs['pattern'] = restriction.pattern.value
 
     ctx.debug1("adding   simple type: %s", s.name)
-    return base.customize(**kwargs)
+
+    # quirk. hmpf.
+    if issubclass(base, SimpleModel):
+        return base(**kwargs)
+    else:
+        return base.customize(**kwargs)
 
 
 def process_element(ctx, e):
