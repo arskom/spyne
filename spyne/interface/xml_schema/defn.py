@@ -105,7 +105,6 @@ class XmlSchema(SchemaBase):
                                                     sub_name="simpleType")),
         ('complex_types', ComplexType.customize(max_occurs="unbounded",
                                                     sub_name="complexType")),
-
         ('attributes', Attribute.customize(max_occurs="unbounded",
                                                     sub_name="attribute")),
     ]
