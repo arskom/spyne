@@ -202,6 +202,7 @@ def process_simple_type(ctx, s):
         if restriction.pattern.value:
             kwargs['pattern'] = restriction.pattern.value
 
+    kwargs['type_name'] = s.name
     ctx.debug1("adding   simple type: %s", s.name)
 
     # quirk. hmpf.
