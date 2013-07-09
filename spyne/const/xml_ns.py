@@ -45,8 +45,8 @@ const_nsmap = {
     'wsdl': wsdl,
     'senc': soap_enc,
     'senv': soap_env,
-    's12env': soap12_env,
-    's12enc': soap12_enc,
+    'soap12env': soap12_env,
+    'soap12enc': soap12_enc,
     'wsa': wsa,
     'xop': xop,
 }
