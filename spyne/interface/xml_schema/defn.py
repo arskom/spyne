@@ -33,6 +33,7 @@ class Element(SchemaBase):
 class IntegerAttribute(SchemaBase):
     value = XmlAttribute(UnsignedInteger)
 
+
 class StringAttribute(SchemaBase):
     value = XmlAttribute(Unicode)
 
@@ -63,6 +64,7 @@ class Attribute(SchemaBase):
      name = XmlAttribute(Unicode)
      type = XmlAttribute(Unicode)
      ref = XmlAttribute(Unicode)
+     simple_type = SimpleType.customize(sub_name='simpleType')
 
 
 class Extension(SchemaBase):
@@ -103,6 +105,9 @@ class XmlSchema(SchemaBase):
                                                     sub_name="simpleType")),
         ('complex_types', ComplexType.customize(max_occurs="unbounded",
                                                     sub_name="complexType")),
+
+        ('attributes', Attribute.customize(max_occurs="unbounded",
+                                                    sub_name="attribute")),
     ]
 
 

@@ -169,7 +169,10 @@ def process_includes(ctx, include):
 
         setattr(ctx.schema, attr, own)
 
+
 def process_simple_type(ctx, s):
+    """Returns the simple Spyne type. Doesn't do any 'pending' processing."""
+
     if s.restriction is None:
         ctx.debug1("skipping simple type: %s", s.name)
         return
@@ -198,8 +201,9 @@ def process_simple_type(ctx, s):
         if restriction.pattern.value:
             kwargs['pattern'] = restriction.pattern.value
 
-    ctx.retval[ctx.tns].types[s.name] = base.customize(**kwargs)
     ctx.debug1("adding   simple type: %s", s.name)
+    return base.customize(**kwargs)
+
 
 def process_element(ctx, e):
     if e.name is None:
@@ -219,6 +223,27 @@ def process_element(ctx, e):
 
     else:
         ctx.pending_elements[key] = e
+
+
+def process_attribute(ctx, a):
+    if a.ref is not None:
+        t = get_type(ctx, a.ref)
+        return t.get_type_name(), t
+
+    if a.type is not None:
+        t = get_type(ctx, a.type)
+
+    elif a.simple_type is not None:
+        t = process_simple_type(ctx, a.simple_type)
+
+    else:
+        raise Exception("dunno attr")
+
+    if t is None:
+        raise ValueError(a, 'not found')
+
+    return (a.name, XmlAttribute(t))
+
 
 def process_complex_type(ctx, c):
     def process_type(tn, name, wrapper=lambda x:x):
@@ -273,18 +298,7 @@ def process_complex_type(ctx, c):
                 process_type(ext.base, "_data", XmlData)
             if ext.attributes is not None:
                 for a in ext.attributes:
-                    if a.ref is not None:
-                        tn = a.ref
-                        name = a.ref.split(":", 1)[-1]
-
-                    elif a.type is not None:
-                        tn = a.type
-                        name = a.name
-
-                    else:
-                        raise Exception("dunno attr")
-
-                    process_type(tn, name, XmlAttribute)
+                    ti.append(process_attribute(ctx, a))
 
     cls_dict = {
         '__type_name__': c.name,
@@ -348,11 +362,12 @@ def print_pending(ctx):
         ctx.debug0(pformat(ctx.pending_types))
         ctx.debug0("%" * 50)
 
+_prot = XmlDocument()
 
 def parse_schema(ctx, elt):
     ctx.nsmap = nsmap = elt.nsmap
     ctx.prefmap = prefmap = dict([(v,k) for k,v in ctx.nsmap.items()])
-    ctx.schema = schema = XmlDocument().from_element(XmlSchema, elt)
+    ctx.schema = schema = _prot.from_element(XmlSchema, elt)
 
     ctx.pending_types = {}
     ctx.pending_elements = {}
@@ -373,6 +388,8 @@ def parse_schema(ctx, elt):
         schema.complex_types = odict([(c.name, c) for c in schema.complex_types])
     if schema.simple_types:
         schema.simple_types = odict([(s.name, s) for s in schema.simple_types])
+    if schema.attributes:
+        schema.attributes = odict([(a.name, a) for a in schema.attributes])
 
     ctx.debug0("2 %s processing imports", R(tns))
     if schema.imports:
@@ -382,17 +399,24 @@ def parse_schema(ctx, elt):
                 file_name = ctx.files[imp.namespace]
                 parse_schema_file(ctx.clone(2, dirname(file_name)), file_name)
 
-    ctx.debug0("3 %s processing simple_types", G(tns))
+    ctx.debug0("3 %s processing attributes", G(tns))
+    if schema.attributes:
+        for s in schema.attributes.values():
+            n, t= process_attribute(ctx, s)
+            ctx.retval[ctx.tns].types[n] = t
+
+    ctx.debug0("4 %s processing simple_types", G(tns))
     if schema.simple_types:
         for s in schema.simple_types.values():
-            process_simple_type(ctx, s)
+            st = process_simple_type(ctx, s)
+            ctx.retval[ctx.tns].types[s.name] = st
 
-    ctx.debug0("4 %s processing complex_types", B(tns))
+    ctx.debug0("5 %s processing complex_types", B(tns))
     if schema.complex_types:
         for c in schema.complex_types.values():
             process_complex_type(ctx, c)
 
-    ctx.debug0("5 %s processing elements", Y(tns))
+    ctx.debug0("6 %s processing elements", Y(tns))
     if schema.elements:
         for e in schema.elements.values():
             process_element(ctx, e)
