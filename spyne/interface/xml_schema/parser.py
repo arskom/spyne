@@ -256,11 +256,10 @@ def process_complex_type(ctx, c):
         else:
             if key in ctx.pending_types:
                 del ctx.pending_types[key]
-            assert name, (key, e)
+            assert name is not None, (key, e)
 
             ti.append( (name, wrapper(t)) )
             ctx.debug2("    found: %r", key)
-
 
     ti = []
     _pending = False
@@ -277,7 +276,7 @@ def process_complex_type(ctx, c):
                 name = e.name
 
             else:
-                raise Exception("dunno")
+                raise Exception("dunno seqelt")
 
             process_type(tn, name)
 
