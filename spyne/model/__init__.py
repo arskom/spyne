@@ -44,6 +44,15 @@ from spyne.model.primitive import String
 from spyne.model.primitive import AnyUri
 from spyne.model.primitive import ImageUri
 from spyne.model.primitive import Uuid
+from spyne.model.primitive import NormalizedString
+from spyne.model.primitive import Token
+from spyne.model.primitive import Name
+from spyne.model.primitive import NCName
+from spyne.model.primitive import ID
+from spyne.model.primitive import Language
+
+
+from spyne.model.primitive import ID
 
 from spyne.model.primitive import Point
 from spyne.model.primitive import LineString
