@@ -67,20 +67,6 @@ ns_test = 'test_namespace'
 
 
 class TestPrimitive(unittest.TestCase):
-    def test_invalid_name(self):
-        class Service(ServiceBase):
-            @srpc()
-            def XResponse():
-                pass
-
-        try:
-            Application([Service], 'hey', in_protocol=XmlDocument(),
-                                          out_protocol=XmlDocument())
-        except:
-            pass
-        else:
-            raise Exception("must fail.")
-
     def test_decimal(self):
         assert Decimal(10,4).Attributes.total_digits == 10
         assert Decimal(10,4).Attributes.fraction_digits == 4

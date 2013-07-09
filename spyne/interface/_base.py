@@ -94,8 +94,24 @@ class Interface(object):
         """Returns true if the given class is already included in the interface
         object somewhere."""
 
-        return ('{%s}%s' %
-                    (cls.get_namespace(), cls.get_type_name())) in self.classes
+        c = self.classes.get('{%s}%s' %
+                                    (cls.get_namespace(), cls.get_type_name()))
+        if c is not None:
+            print cls, c
+            if issubclass(c, ComplexModelBase) and \
+                                            issubclass(cls, ComplexModelBase):
+                o1 = getattr(cls, '__orig__', None) or cls
+                o2 = getattr(c, '__orig__', None) or c
+
+                if o1 is o2:
+                    return True
+                else:
+                    raise ValueError("classes %r and %r have conflicting names." %
+                                                                       (cls, c))
+            else:
+                return True
+
+        return False
 
     def get_class(self, key):
         """Returns the class definition that corresponds to the given key.
@@ -133,15 +149,6 @@ class Interface(object):
         if self.app:
             return self.app.tns
 
-    def __test_type_name_validity(self, c):
-        if c and  ( c.get_type_name().endswith(RESULT_SUFFIX) or
-                    c.get_type_name().endswith(RESPONSE_SUFFIX) ):
-            raise Exception("You can't use any type or method name ending "
-                            "with one of %r unless you alter the "
-                            "constants in the 'spyne.const.suffix' module.\n"
-                            "This is for class %r."
-                            % ((TYPE_SUFFIX, RESULT_SUFFIX, RESPONSE_SUFFIX),c))
-
     def populate_interface(self, types=None):
         """Harvests the information stored in individual classes' _type_info
         dictionaries. It starts from function definitions and includes only
@@ -169,9 +176,9 @@ class Interface(object):
                         method.in_header = (method.in_header,)
 
                     for in_header in method.in_header:
-                        self.__test_type_name_validity(in_header)
                         in_header.resolve_namespace(in_header, self.get_tns())
-                        classes.append(in_header)
+                        if method.aux is None:
+                            classes.append(in_header)
                         if in_header.get_namespace() != self.get_tns():
                             self.imports[self.get_tns()].add(
                                                       in_header.get_namespace())
@@ -181,9 +188,9 @@ class Interface(object):
                         method.out_header = (method.out_header,)
 
                     for out_header in method.out_header:
-                        self.__test_type_name_validity(out_header)
                         out_header.resolve_namespace(out_header, self.get_tns())
-                        classes.append(out_header)
+                        if method.aux is None:
+                            classes.append(out_header)
                         if out_header.get_namespace() != self.get_tns():
                             self.imports[self.get_tns()].add(
                                                      out_header.get_namespace())
@@ -196,24 +203,23 @@ class Interface(object):
                 for fault in method.faults:
                     fault.__namespace__ = self.get_tns()
                     fault.resolve_namespace(fault, self.get_tns())
-                    classes.append(fault)
+                    if method.aux is None:
+                        classes.append(fault)
 
-                self.__test_type_name_validity(method.in_message)
                 method.in_message.resolve_namespace(method.in_message,
                                                                  self.get_tns())
-                classes.append(method.in_message)
+                if method.aux is None:
+                    classes.append(method.in_message)
 
-                # we are not testing out_message with __test_type_name_validity
-                # because they have RESPONSE_SUFFIX and RESULT_SUFFIX added
-                # automatically. actually, they're what we're trying to protect.
+
                 method.out_message.resolve_namespace(method.out_message,
                                                                  self.get_tns())
-                classes.append(method.out_message)
+                if method.aux is None:
+                    classes.append(method.out_message)
 
                 for p in method.patterns:
                     p.endpoint = method.key
 
-        classes.sort(key=lambda cls: (cls.get_namespace(), cls.get_type_name()))
         for c in classes:
             self.add_class(c)
 

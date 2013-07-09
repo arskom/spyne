@@ -314,6 +314,24 @@ class TestBodyStyle(unittest.TestCase):
         assert resp[0][0].tag == '{tns}some_call' + RESPONSE_SUFFIX
         assert resp[0][0].text == 'abc'
 
+    def test_implicit_class_conflict(self):
+        class someCallResponse(ComplexModel):
+            __namespace__ = 'tns'
+            s = String
+
+        class SomeService(ServiceBase):
+            @rpc(someCallResponse, _returns=String)
+            def someCall(ctx, x):
+                return ['abc', 'def']
+
+        try:
+            Application([SomeService], 'tns', in_protocol=Soap11(),
+                                out_protocol=Soap11(cleanup_namespaces=True))
+        except ValueError as e:
+            print e
+        else:
+            raise Exception("must fail.")
+
     def test_soap_bare_wrapped_array_output(self):
         class SomeService(ServiceBase):
             @rpc(_body_style='bare', _returns=Array(String))
