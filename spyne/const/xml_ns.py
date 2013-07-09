@@ -51,7 +51,11 @@ const_nsmap = {
     'xop': xop,
 }
 
-const_prefmap = dict([(b, a) for a, b in const_nsmap.items()])
+def regen_prefmap():
+    global const_prefmap
+    const_prefmap = dict([(b, a) for a, b in const_nsmap.items()])
+
+regen_prefmap()
 
 schema_location = {
     xsd: 'http://www.w3.org/2001/XMLSchema.xsd',
