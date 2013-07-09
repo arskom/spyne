@@ -73,6 +73,7 @@ class TestMultipleMethods(unittest.TestCase):
 
         except ValueError:
             pass
+
         else:
             raise Exception('must fail.')
 
@@ -167,7 +168,8 @@ class TestMultipleMethods(unittest.TestCase):
         except Exception:
             pass
         else:
-            raise Exception("must fail with 'Exception: you can't mix aux and non-aux methods in a single service definition.'")
+            raise Exception("must fail with 'Exception: you can't mix aux and "
+                            "non-aux methods in a single service definition.'")
 
     def __run_service(self, service):
         app = Application([service], 'tns', in_protocol=HttpRpc(), out_protocol=Soap11())
@@ -339,7 +341,7 @@ class TestBodyStyle(unittest.TestCase):
                 return ['abc', 'def']
 
         app = Application([SomeService], 'tns', in_protocol=Soap11(),
-                                                out_protocol=Soap11(cleanup_namespaces=True))
+                                out_protocol=Soap11(cleanup_namespaces=True))
 
         req = """
         <senv:Envelope  xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/"

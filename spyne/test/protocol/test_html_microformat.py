@@ -168,7 +168,8 @@ class TestHtmlMicroFormat(unittest.TestCase):
                 print s
                 return '\n'.join(s)
 
-        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HtmlMicroFormat())
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
+                                                out_protocol=HtmlMicroFormat())
         server = WsgiApplication(app)
 
         initial_ctx = WsgiMethodContext(server, {
