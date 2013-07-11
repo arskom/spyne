@@ -76,10 +76,11 @@ def own_repr(self, i0=0, I = '  '):
                                                         value is not None:
             retval.append("%s%s=[\n" %(I*i1, k))
             for subval in value:
-                    retval.append("%s%s,\n" % (I*i2, own_repr(subval,i2)))
+                retval.append("%s%s,\n" % (I*i2, own_repr(subval,i2)))
             retval.append('%s]\n' % (I*i1))
+
         else:
-            retval.append("%s%s=%s,\n" %(I*i1, k,
+            retval.append("%s%s=%s,\n" % (I*i1, k,
                                         own_repr(getattr(self, k, None),i1)))
     retval.append('%s)' % (I*i0))
     return ''.join(retval)
@@ -171,14 +172,17 @@ def process_includes(ctx, include):
         setattr(ctx.schema, attr, own)
 
 
-def process_simple_type(ctx, s):
+def process_simple_type(ctx, s, name=None):
     """Returns the simple Spyne type. Doesn't do any 'pending' processing."""
 
+    if name is None:
+        name = s.name
+
     if s.restriction is None:
-        ctx.debug1("skipping simple type: %s", s.name)
+        ctx.debug1("skipping simple type: %s", name)
         return
     if s.restriction.base is None:
-        ctx.debug1("skipping simple type: %s", s.name)
+        ctx.debug1("skipping simple type: %s", name)
         return
 
     base = get_type(ctx, s.restriction.base)
@@ -203,7 +207,7 @@ def process_simple_type(ctx, s):
             kwargs['pattern'] = restriction.pattern.value
 
     kwargs['type_name'] = s.name
-    ctx.debug1("adding   simple type: %s", s.name)
+    ctx.debug1("adding   simple type: %s", name)
 
     # quirk. hmpf.
     if issubclass(base, SimpleModel):
@@ -241,7 +245,7 @@ def process_attribute(ctx, a):
         t = get_type(ctx, a.type)
 
     elif a.simple_type is not None:
-        t = process_simple_type(ctx, a.simple_type)
+        t = process_simple_type(ctx, a.simple_type, a.name)
 
     else:
         raise Exception("dunno attr")
@@ -302,6 +306,7 @@ def process_complex_type(ctx, c):
             if ext.base is not None:
                 # FIXME: find a way to generate _data
                 process_type(ext.base, "_data", XmlData)
+
             if ext.attributes is not None:
                 for a in ext.attributes:
                     ti.append(process_attribute(ctx, a))
