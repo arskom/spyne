@@ -152,6 +152,7 @@ class Wsdl11(XmlSchema):
 
         self.port_type_dict = {}
         self.service_elt_dict = {}
+        self.service_elt_list = []
 
         self.root_elt = None
         self.service_elt = None
@@ -182,9 +183,10 @@ class Wsdl11(XmlSchema):
 
         ser = None
         if not service_name in self.service_elt_dict:
-            ser = etree.SubElement(self.root_elt, '{%s}service' % _ns_wsdl)
+            ser = etree.Element('{%s}service' % _ns_wsdl)
             ser.set('name', service_name)
             self.service_elt_dict[service_name] = ser
+            self.service_elt_list.append(ser)
 
         else:
             ser = self.service_elt_dict[service_name]
@@ -242,6 +244,9 @@ class Wsdl11(XmlSchema):
                 cb_binding = self.add_bindings_for_methods(s, root,
                                                    service_name, cb_binding)
 
+        for ser in self.service_elt_list:
+            root.append(ser)
+                
         if self.interface.app.transport is None:
             raise Exception("You must set the 'transport' property of the "
                             "parent 'Application' instance")
