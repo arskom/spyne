@@ -31,6 +31,9 @@
 
 from lxml import etree
 
+from datetime import datetime
+
+from spyne.model import DateTime
 from spyne.model import Unicode
 from spyne.model import Integer
 from spyne.model import ComplexModel
@@ -46,10 +49,11 @@ from spyne.util.xml import parse_schema_string
 class SomeObject(ComplexModel):
     i = Integer
     s = Unicode
+    d = DateTime
     __repr__ = own_repr
 
 # Instantiate the object
-instance = SomeObject(i=5, s="str")
+instance = SomeObject(i=5, s="str", d=datetime.now())
 
 # Generate schema documents
 schema_elts = get_schema_documents([SomeObject], 'some_ns')
@@ -84,3 +88,4 @@ print new_instance
 
 assert new_instance.s == instance.s
 assert new_instance.i == instance.i
+assert new_instance.d == instance.d
