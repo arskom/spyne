@@ -46,7 +46,7 @@ from spyne.model.complex import ComplexModelMeta
 
 from spyne.protocol.xml import XmlDocument
 from spyne.interface.xml_schema.defn import TYPE_MAP
-from spyne.interface.xml_schema.defn import XmlSchema
+from spyne.interface.xml_schema.defn import XmlSchema10
 
 from spyne.util.color import R, G, B, M, Y
 
@@ -378,7 +378,7 @@ def print_pending(ctx):
 def parse_schema(ctx, elt):
     ctx.nsmap = nsmap = elt.nsmap
     ctx.prefmap = prefmap = dict([(v,k) for k,v in ctx.nsmap.items()])
-    ctx.schema = schema = _prot.from_element(XmlSchema, elt)
+    ctx.schema = schema = _prot.from_element(XmlSchema10, elt)
 
     ctx.pending_types = {}
     ctx.pending_elements = {}

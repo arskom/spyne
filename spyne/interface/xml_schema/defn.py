@@ -89,7 +89,7 @@ class Include(SchemaBase):
     schema_location = XmlAttribute(Unicode(sub_name="schemaLocation"))
 
 
-class XmlSchema(SchemaBase):
+class XmlSchema10(SchemaBase):
     _type_info = [
         ('target_namespace', XmlAttribute(Unicode(sub_name="targetNamespace"))),
         ('element_form_default', XmlAttribute(Unicode(
