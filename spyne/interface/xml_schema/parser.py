@@ -52,6 +52,8 @@ from spyne.util.color import R, G, B, M, Y
 
 PARSER = etree.XMLParser(remove_comments=True)
 
+_prot = XmlDocument()
+
 
 class _Schema(object):
     def __init__(self):
@@ -149,7 +151,7 @@ def process_includes(ctx, include):
     ctx.nsmap.update(elt.nsmap)
     ctx.prefmap = dict([(v,k) for k,v in ctx.nsmap.items()])
 
-    sub_schema = XmlDocument().from_element(XmlSchema, elt)
+    sub_schema = _prot.from_element(XmlSchema10, elt)
     if sub_schema.includes:
         for inc in sub_schema.includes:
             base_dir = dirname(file_name)
@@ -372,8 +374,6 @@ def print_pending(ctx):
         ctx.debug0("types")
         ctx.debug0(pformat(ctx.pending_types))
         ctx.debug0("%" * 50)
-
-_prot = XmlDocument()
 
 def parse_schema(ctx, elt):
     ctx.nsmap = nsmap = elt.nsmap

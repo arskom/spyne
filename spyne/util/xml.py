@@ -31,7 +31,6 @@ from spyne.interface import Interface
 from spyne.interface.xml_schema import XmlSchema
 from spyne.interface.xml_schema import parser
 from spyne.protocol.xml import XmlDocument
-from spyne.interface.xml_schema.defn import XmlSchema as XmlSchemaDefinition
 from spyne.interface.xml_schema.defn import TYPE_MAP
 
 
@@ -97,6 +96,8 @@ def _dig(par):
         _dig(elt)
 
 
+xml_object = XmlDocument()
+
 def get_object_as_xml(value, cls=None, root_tag_name=None, no_namespace=False):
     '''Returns an ElementTree representation of a
     :class:`spyne.model.complex.ComplexModel` subclass.
@@ -108,7 +109,6 @@ def get_object_as_xml(value, cls=None, root_tag_name=None, no_namespace=False):
 
     if cls is None:
         cls = value.__class__
-    xml_object = XmlDocument()
     parent = etree.Element("parent")
 
     xml_object.to_parent_element(cls, value, cls.get_namespace(),
@@ -129,13 +129,13 @@ def get_xml_as_object(elt, cls):
     :param value: The xml document to be deserialized.
     '''
 
-    xml_object = XmlDocument()
-
     return xml_object.from_element(cls, elt)
+
 
 def parse_schema_string(s, files={}, repr=parser.own_repr):
     elt = etree.fromstring(s, parser=parser.PARSER)
     return parser.parse_schema(parser.ParsingCtx(files, own_repr=repr), elt)
+
 
 def parse_schema_element(elt, files={}, repr=parser.own_repr):
     return parser.parse_schema(parser.ParsingCtx(files, own_repr=repr), elt)
