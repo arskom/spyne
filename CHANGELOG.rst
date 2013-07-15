@@ -6,6 +6,7 @@ spune-2.10.9
 ------------
 * Fix total_seconds quirk for Python 2.6.
 * Make defaults for XMLParser more secure.
+* Drop Python 2.5 support (It wasn't working anyway).
 
 spyne-2.10.8
 ------------
