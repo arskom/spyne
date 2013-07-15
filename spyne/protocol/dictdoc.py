@@ -37,7 +37,7 @@ Let's look at the following object hierarchy: ::
 
     class Outer(ComplexModel):
         a = Integer
-        b = SomeObject
+        b = Inner
 
 For example, the ``Outer(a=1, b=Inner(c=2))`` object would correspond to the
 following hierarchichal dict representation: ::
