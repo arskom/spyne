@@ -296,14 +296,15 @@ def date_from_string(cls, string):
 
 
 if hasattr(datetime.timedelta, 'total_seconds'):
-    def total_seconds(td):
+    def _total_seconds(td):
         return td.total_seconds()
 
 else:
-    def total_seconds(td):
+    def _total_seconds(td):
         return (td.microseconds +
                             (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
 
+@nillable_string
 def duration_to_string(cls, value):
     if value.days < 0:
         value = -value
@@ -311,7 +312,7 @@ def duration_to_string(cls, value):
     else:
         negative = False
 
-    tot_sec = total_seconds(value)
+    tot_sec = _total_seconds(value)
     seconds = value.seconds % 60
     minutes = value.seconds / 60
     hours = minutes / 60
