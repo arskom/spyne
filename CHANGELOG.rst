@@ -18,6 +18,11 @@ spyne-2.11.0
 * Implement JsonP protocol.
 * Steal and integrate the WebSocket tranport for Twisted.
 
+spyne-2.10.9
+------------
+* Fix total_seconds quirk for Python 2.6.
+* Make defaults for XMLParser more secure.
+
 spyne-2.10.8
 ------------
 * Fix Unicode losing pattern on re-customization
