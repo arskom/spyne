@@ -131,6 +131,7 @@ class RunTests(TestCommand):
         ret = call_pytest('interop/test_soap_client_zeromq.py') or ret
         ret = call_pytest('interop/test_suds.py') or ret
         ret = call_trial('interop/test_soap_client_http_twisted.py') or ret
+        ret = call_pytest('test_request_suffix.py') or ret
 
         if ret == 0:
             print GREEN + "All that glisters is not gold." + RESET
@@ -142,7 +143,7 @@ class RunTests(TestCommand):
 test_reqs = [
     'pytest', 'werkzeug', 'sqlalchemy', 'suds',
     'pyparsing<1.99', 'lxml>=2.3', 'pyyaml', 'pyzmq',
-    'twisted', 'colorama', 'msgpack-python',
+    'twisted', 'colorama', 'msgpack-python', 'webtest'
     ]
 
 setup(

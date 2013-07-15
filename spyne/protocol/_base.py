@@ -61,6 +61,7 @@ from spyne.model.primitive import Duration
 from spyne.model.primitive import Boolean
 
 from spyne.protocol._model import *
+from spyne.const import strip_request_suffix
 
 
 class ProtocolBase(object):
