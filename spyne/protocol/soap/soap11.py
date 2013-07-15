@@ -91,21 +91,15 @@ def _parse_xml_string(xml_string, charset=None,
     else:
         string = ''.join(xml_string)
 
+    if isinstance(string, unicode):
+        string = string.encode(charset)
+
     try:
-        try:
-            root, xmlids = etree.XMLID(string, parser)
+        root, xmlids = etree.XMLID(string, parser)
 
-        except XMLSyntaxError, e:
-            logger.error(string)
-            raise Fault('Client.XMLSyntaxError', str(e))
-
-    except ValueError, e:
-        logger.debug('%r -- falling back to str decoding.' % (e))
-        try:
-            root, xmlids = etree.XMLID(string.encode(charset), parser)
-        except XMLSyntaxError, e:
-            logger.error(string)
-            raise Fault('Client.XMLSyntaxError', str(e))
+    except XMLSyntaxError, e:
+        logger.error(string)
+        raise Fault('Client.XMLSyntaxError', str(e)) 
 
     return root, xmlids
 
