@@ -647,7 +647,7 @@ class HierDictDocument(DictDocument):
     def _complex_to_dict(self, class_, inst):
         inst = class_.get_serialization_instance(inst)
 
-        d = dict(self._get_member_pairs(class_, inst))
+        d = self.complex_as(self._get_member_pairs(class_, inst))
         if self.ignore_wrappers:
             return d
         else:
