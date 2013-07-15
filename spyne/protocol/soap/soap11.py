@@ -41,6 +41,7 @@ import spyne.const.xml_ns as ns
 
 from lxml import etree
 from lxml.etree import XMLSyntaxError
+from lxml.etree import XMLParser
 
 from spyne.const.http import HTTP_405
 from spyne.const.http import HTTP_500
@@ -85,8 +86,7 @@ def _from_soap(in_envelope_xml, xmlids=None):
 
     return header, body
 
-def _parse_xml_string(xml_string, charset=None,
-                                  parser=etree.XMLParser(remove_comments=True)):
+def _parse_xml_string(xml_string, parser, charset=None):
     if charset:
         string = ''.join([s.decode(charset) for s in xml_string])
     else:
@@ -192,7 +192,9 @@ class Soap11(XmlDocument):
             content_type = cgi.parse_header(content_type)
             collapse_swa(content_type, ctx.in_string)
 
-        ctx.in_document = _parse_xml_string(ctx.in_string, charset)
+        ctx.in_document = _parse_xml_string(ctx.in_string,
+                                            XMLParser(**self.parser_kwargs),
+                                                                        charset)
 
     def decompose_incoming_envelope(self, ctx, message=XmlDocument.REQUEST):
         envelope_xml, xmlids = ctx.in_document
