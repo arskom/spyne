@@ -202,7 +202,7 @@ class TestXmlSchema(unittest.TestCase):
         assert any[0].attrib['namespace'] == '##other'
         assert any[0].attrib['processContents'] == 'lax'
 
-    def test_xml_data(self):
+    def _test_xml_data(self):
         tns = 'kickass.ns'
         class ProductEdition(ComplexModel):
             __namespace__ = tns
