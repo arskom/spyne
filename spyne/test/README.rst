@@ -1,7 +1,7 @@
 
-*************
-Running Tests
-*************
+*********************
+Running Tests Locally
+*********************
 
 While the test coverage for Spyne is not that bad, we always accept new tests
 that cover new use-cases. Please consider contributing tests even if your
@@ -105,3 +105,18 @@ Here's the directory tree from a working setup:
     |       |-- README.txt
     |       `-- (...)
     `-- (...)
+
+
+***************************
+Integrating with CI systems
+***************************
+
+Spyne is already integrated with Jenkins and travis-ci.org.
+
+The travis configuration file is located in the root of the source repository,
+under its standard name: .travis.yml
+
+A script for running Spyne test suite inside Jenkins can also be found in the
+same directory as this README file, under the name jenkins.sh. Paste it to the
+"executable script" section in jenkins configuration page.
+
