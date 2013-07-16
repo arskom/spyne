@@ -20,6 +20,9 @@
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
+from getpass import getuser
+PSQL_CONN_STR = 'postgres://postgres:@localhost:5432/spyne_test_%s' % getuser()
+
 import unittest
 import sqlalchemy
 
@@ -42,14 +45,15 @@ from sqlalchemy.exc import IntegrityError
 
 from spyne.application import Application
 from spyne.decorator import rpc
-from spyne.model.complex import XmlAttribute
-from spyne.model.complex import XmlData
-from spyne.model.complex import ComplexModel
+from spyne.model import XmlAttribute
+from spyne.model import XmlData
+from spyne.model import ComplexModel
 from spyne.model.complex import xml
-from spyne.model.complex import Array
-from spyne.model.primitive import Integer32
-from spyne.model.primitive import Unicode
-from spyne.model.primitive import Integer
+from spyne.model import Array
+from spyne.model import Integer32
+from spyne.model import Unicode
+from spyne.model import Integer
+from spyne.model import Enum
 from spyne.model.table import TableModel
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.soap import Soap11
@@ -1007,10 +1011,42 @@ class TestSqlAlchemyNested(unittest.TestCase):
             children = Array(SomeChildClass).store_as('xml')
             mirror = SomeChildClass.store_as('json')
 
+        metadata2 = MetaData()
+        metadata2.bind = engine
+        metadata2.reflect()
+
+
+class TestSqlAlchemySchemaWithPostgresql(unittest.TestCase):
+    def test_enum(self):
+        table_name = "test_enum"
+        enums = ('SUBSCRIBED', 'UNSUBSCRIBED', 'UNCONFIRMED')
+
+        engine = create_engine(PSQL_CONN_STR)
+        engine.execute("drop table if exists %s" % table_name)
+        session = sessionmaker(bind=engine)()
+        metadata = NewTableModel.Attributes.sqla_metadata = MetaData()
+        metadata.bind = engine
+
+        class SomeClass(NewTableModel):
+            __tablename__ = table_name
+
+            id = Integer32(primary_key=True)
+            e = Enum(*enums, type_name='status_choices')
+
+        logging.getLogger('sqlalchemy').setLevel(logging.DEBUG)
+        metadata.create_all()
+        logging.getLogger('sqlalchemy').setLevel(logging.CRITICAL)
 
         metadata2 = MetaData()
         metadata2.bind = engine
         metadata2.reflect()
+
+        import sqlalchemy.dialects.postgresql.base
+        t = metadata2.tables[table_name]
+        assert 'e' in t.c
+        assert isinstance(t.c.e.type, sqlalchemy.dialects.postgresql.base.ENUM)
+        assert t.c.e.type.enums == enums
+
 
 if __name__ == '__main__':
     unittest.main()

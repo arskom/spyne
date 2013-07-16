@@ -363,6 +363,9 @@ def get_sqlalchemy_type(cls):
         else:
             return sqlalchemy.Unicode(cls.Attributes.max_len)
 
+    elif issubclass(cls, EnumBase):
+        return sqlalchemy.Enum(*cls.__values__, name=cls.__type_name__)
+
     elif issubclass(cls, AnyXml):
         return PGXml
 
