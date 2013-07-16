@@ -5,7 +5,10 @@ Changelog
 spyne-2.10.9
 ------------
 * Fix total_seconds quirk for Python 2.6.
-* Make defaults for XMLParser more secure.
+* Turn off Xml features like entity resolution by default. This mitigates
+  an information disclosure attack risk in services whose response contain
+  some fragments or all of the request. Also prevents DoS attacks that make use
+  of entity expansion. See https://bitbucket.org/tiran/defusedxml for more info.
 * Drop Python 2.5 support (It wasn't working anyway).
 
 spyne-2.10.8
