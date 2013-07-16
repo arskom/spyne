@@ -142,7 +142,7 @@ class RunTests(TestCommand):
 test_reqs = [
     'pytest', 'werkzeug', 'sqlalchemy', 'suds',
     'pyparsing<1.99', 'lxml>=2.3', 'pyyaml', 'pyzmq',
-    'twisted', 'colorama', 'msgpack-python',
+    'twisted', 'colorama', 'msgpack-python', 'psycopg2',
     ]
 
 setup(
