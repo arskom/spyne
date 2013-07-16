@@ -55,9 +55,11 @@ from spyne.model.primitive import Language
 from spyne.model.primitive import ID
 
 from spyne.model.primitive import Point
+from spyne.model.primitive import Line
 from spyne.model.primitive import LineString
 from spyne.model.primitive import Polygon
 from spyne.model.primitive import MultiPoint
+from spyne.model.primitive import MultiLine
 from spyne.model.primitive import MultiLineString
 from spyne.model.primitive import MultiPolygon
 

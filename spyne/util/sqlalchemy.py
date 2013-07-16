@@ -58,44 +58,48 @@ from sqlalchemy.ext.associationproxy import association_proxy
 
 from sqlalchemy.types import UserDefinedType
 
-from spyne.model import SimpleModel
-from spyne.model.complex import table as c_table
+# internal types
+from spyne.model.enum import EnumBase
+from spyne.model.complex import XmlModifier
+
+# Config types
 from spyne.model.complex import xml as c_xml
 from spyne.model.complex import json as c_json
+from spyne.model.complex import table as c_table
 from spyne.model.complex import msgpack as c_msgpack
 
-from spyne.model.enum import Enum
-from spyne.model.binary import ByteArray
-from spyne.model.complex import XmlModifier
-from spyne.model.complex import Array
-from spyne.model.complex import ComplexModelBase
-from spyne.model.primitive import AnyXml
-from spyne.model.primitive import Uuid
-from spyne.model.primitive import Date
-from spyne.model.primitive import Time
-from spyne.model.primitive import DateTime
-from spyne.model.primitive import Float
-from spyne.model.primitive import Double
-from spyne.model.primitive import Decimal
-from spyne.model.primitive import String
-from spyne.model.primitive import Unicode
-from spyne.model.primitive import Boolean
-from spyne.model.primitive import Integer
-from spyne.model.primitive import Integer8
-from spyne.model.primitive import Integer16
-from spyne.model.primitive import Integer32
-from spyne.model.primitive import Integer64
-from spyne.model.primitive import Point
-from spyne.model.primitive import Line
-from spyne.model.primitive import Polygon
-from spyne.model.primitive import MultiPoint
-from spyne.model.primitive import MultiLine
-from spyne.model.primitive import MultiPolygon
-from spyne.model.primitive import UnsignedInteger
-from spyne.model.primitive import UnsignedInteger8
-from spyne.model.primitive import UnsignedInteger16
-from spyne.model.primitive import UnsignedInteger32
-from spyne.model.primitive import UnsignedInteger64
+from spyne.model import SimpleModel
+from spyne.model import Enum
+from spyne.model import ByteArray
+from spyne.model import Array
+from spyne.model import ComplexModelBase
+from spyne.model import AnyXml
+from spyne.model import Uuid
+from spyne.model import Date
+from spyne.model import Time
+from spyne.model import DateTime
+from spyne.model import Float
+from spyne.model import Double
+from spyne.model import Decimal
+from spyne.model import String
+from spyne.model import Unicode
+from spyne.model import Boolean
+from spyne.model import Integer
+from spyne.model import Integer8
+from spyne.model import Integer16
+from spyne.model import Integer32
+from spyne.model import Integer64
+from spyne.model import Point
+from spyne.model import Line
+from spyne.model import Polygon
+from spyne.model import MultiPoint
+from spyne.model import MultiLine
+from spyne.model import MultiPolygon
+from spyne.model import UnsignedInteger
+from spyne.model import UnsignedInteger8
+from spyne.model import UnsignedInteger16
+from spyne.model import UnsignedInteger32
+from spyne.model import UnsignedInteger64
 
 from spyne.util import sanitize_args
 from spyne.util.xml import get_object_as_xml
