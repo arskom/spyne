@@ -171,7 +171,7 @@ class XmlDocument(ProtocolBase):
     type.add('xml')
 
     def __init__(self, app=None, validator=None, xml_declaration=True,
-                cleanup_namespaces=True, encoding='UTF-8', pretty_print=False,
+                cleanup_namespaces=True, encoding=None, pretty_print=False,
                 attribute_defaults=False,
                 dtd_validation=False,
                 load_dtd=False,
@@ -188,7 +188,11 @@ class XmlDocument(ProtocolBase):
         ProtocolBase.__init__(self, app, validator)
         self.xml_declaration = xml_declaration
         self.cleanup_namespaces = cleanup_namespaces
-        self.encoding = encoding
+        if encoding is None:
+            self.encoding = 'UTF-8'
+        else:
+            self.encoding = encoding
+
         self.pretty_print = pretty_print
 
         self.serialization_handlers = cdict({
@@ -236,6 +240,7 @@ class XmlDocument(ProtocolBase):
             resolve_entities=resolve_entities,
             huge_tree=huge_tree,
             compact=compact,
+            encoding=encoding,
         )
 
     def set_validator(self, validator):
