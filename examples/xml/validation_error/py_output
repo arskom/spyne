@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "validation_internal_error.py", line 31, in <module>
+    schema.validate(elt)
+  File "lxml.etree.pyx", line 3252, in lxml.etree._Validator.validate (src/lxml/lxml.etree.c:143796)
+  File "xmlschema.pxi", line 151, in lxml.etree.XMLSchema.__call__ (src/lxml/lxml.etree.c:152165)
+lxml.etree.XMLSchemaValidateError: Internal error in XML Schema validation.

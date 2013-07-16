@@ -1,0 +1,14 @@
+inst.xml:5: namespace warning : xmlns: URI some_ns is not absolute
+<SomeObject xmlns="some_ns">
+                           ^
+<?xml version="1.0"?>
+<!DOCTYPE dtd [
+<!ENTITY file SYSTEM "some_file">
+]>
+<SomeObject xmlns="some_ns">
+  <d>2013-07-15T20:21:43.476838</d>
+  <i>5</i>
+  <s>&file;</s>
+</SomeObject>
+inst.xml:8: element s: Schemas validity error : Internal error: xmlSchemaVDocWalk, there is at least one entity reference in the node-tree currently being validated. Processing of entities with this XML Schema processor is not supported (yet). Please substitute entities before validation..
+inst.xml validation generated an internal error

@@ -1,0 +1,15 @@
+<xs:schema xmlns:wsa="http://schemas.xmlsoap.org/ws/2003/03/addressing" xmlns:tns="some_ns" xmlns:plink="http://schemas.xmlsoap.org/ws/2003/05/partner-link/" 
+xmlns:xop="http://www.w3.org/2004/08/xop/include" xmlns:soap12env="http://www.w3.org/2003/05/soap-envelope/" xmlns:senc="http://schemas.xmlsoap.org/soap/encoding/" 
+xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/" 
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:soap12enc="http://www.w3.org/2003/05/soap-encoding/" 
+targetNamespace="some_ns" elementFormDefault="qualified">
+  <xs:complexType name="SomeObject">
+    <xs:sequence>
+      <xs:element name="d" type="xs:dateTime" minOccurs="0" nillable="true"/>
+      <xs:element name="i" type="xs:integer" minOccurs="0" nillable="true"/>
+      <xs:element name="s" type="xs:string" minOccurs="0" nillable="true"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="SomeObject" type="tns:SomeObject"/>
+</xs:schema>
+

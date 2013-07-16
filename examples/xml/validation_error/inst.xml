@@ -1,0 +1,10 @@
+<!DOCTYPE dtd [
+ <!ENTITY file SYSTEM "some_file">
+]>
+
+<SomeObject xmlns="some_ns">
+  <d>2013-07-15T20:21:43.476838</d>
+  <i>5</i>
+  <s>&file;</s>
+</SomeObject>
+
