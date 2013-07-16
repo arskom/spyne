@@ -20,7 +20,11 @@
 """The ``spyne.protocol.xml`` package contains an xml-based protocol that
 serializes python objects to xml using Xml Schema conventions.
 
-Logs valid documents to %r and invalid documents to %r.
+Logs valid documents to ``'%r'`` and invalid documents to ``'%r'``. Use the
+usual ``logging.getLogger()`` and friends to configure how these get logged.
+
+Warning! You can get a lot of crap in the 'invalid' logger. You're not advised
+to turn it on for a production system.
 """ % ('spyne.protocol.xml', 'spyne.protocol.xml.invalid')
 
 import logging
