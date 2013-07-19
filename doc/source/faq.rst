@@ -236,6 +236,24 @@ Copying the blog post here in case the original link disappears:
     I’ll update this post if the strategy turns out not to work. So far,
     though, I’m hopeful.
 
+
+My logs are full of 'Unicode strings with encoding declaration are not supported' messages. Should I be worried?
+================================================================================================================
+
+Apparently some WSGI implementations hand a ``unicode`` instance to the
+WSGI application instead of a ``str``\. lxml either wants a ``str`` with
+encoding declaration or a ``unicode`` without one and snobbishly refuses to
+cooperate otherwise. See http://lxml.de/parsing.html#python-unicode-strings for
+more info.
+
+If your WSGI implementation hands you a unicode, it's inefficient. That's
+because it wastes time converting the incoming byte stream to unicode, an
+operation that may or may not be necessary. The decision whether to perform the
+``str`` => ``unicode`` conversion should be left to the protocol.
+
+So if that doesn't seem to be the case, you should fix this -- that's why that
+warning is there.
+
 You mock my pain!
 =================
 
