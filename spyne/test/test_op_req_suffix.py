@@ -104,14 +104,14 @@ class TestOperationRequestSuffix(unittest.TestCase):
     def assert_response_ok(self, resp):
         '''check the default response'''
         self.assertEqual(resp.status_int, 200, resp)
-        self.assertIn(strip_whitespace(self.result_body), strip_whitespace(str(resp)),
+        self.assertTrue(strip_whitespace(self.result_body) in strip_whitespace(str(resp)),
                       '{0} not in {1}'.format(self.result_body, resp))
 
 
     ### application error tests ###
     def assert_application_error(self, suffix, _operation_name = None, _in_message_name=None):
-        with self.assertRaises(ValueError):
-            self.get_app(Soap11(validator='lxml'), suffix, _operation_name, _in_message_name)
+        self.assertRaises(ValueError,
+            self.get_app, Soap11(validator='lxml'), suffix, _operation_name, _in_message_name)
 
 
     def test_assert_application_error(self):
@@ -144,7 +144,7 @@ class TestOperationRequestSuffix(unittest.TestCase):
         # check wsdl
         wsdl = app.get('/?wsdl')
         self.assertEqual(wsdl.status_int, 200, wsdl)
-        self.assertIn(request_name, wsdl)
+        self.assertTrue(request_name in wsdl, '{0} not found in wsdl'.format(request_name))
 
         soap_strings = [
             '<wsdl:operation name="{0}"'.format(operation_name),
@@ -154,10 +154,10 @@ class TestOperationRequestSuffix(unittest.TestCase):
             '<xs:complexType name="{0}">'.format(request_name),
         ]
         for soap_string in soap_strings:
-            self.assertIn(soap_string, wsdl, '{0} not in {1}'.format(soap_string, wsdl))
+            self.assertTrue(soap_string in wsdl, '{0} not in {1}'.format(soap_string, wsdl))
 
         output_name = '<wsdl:output name="{0}Response"'.format(self.default_function_name)
-        self.assertIn(output_name, wsdl, 'REQUEST_SUFFIX or _in_message_name changed the output name, it should be: {0}'.format(output_name))
+        self.assertTrue(output_name in wsdl, 'REQUEST_SUFFIX or _in_message_name changed the output name, it should be: {0}'.format(output_name))
 
         # check soap operation succeeded
         resp = app.post('/', soap_input_body)
