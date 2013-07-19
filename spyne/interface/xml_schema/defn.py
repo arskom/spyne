@@ -129,7 +129,7 @@ TYPE_MAP = dict([
             [v for v in vars(primitive).values()
                             if getattr(v, '__type_name__', None) is not None],
             [
-                binary.ByteArray(),
+                binary.ByteArray(encoding='base64'),
                 binary.ByteArray(encoding='hex'),
             ],
             [
