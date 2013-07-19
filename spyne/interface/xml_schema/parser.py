@@ -38,6 +38,7 @@ from spyne.const import xml_ns
 from spyne.util.odict import odict
 
 from spyne.model import SimpleModel
+from spyne.model.complex import XmlModifier
 from spyne.model.complex import XmlData
 from spyne.model.complex import XmlAttribute
 from spyne.model.complex import Array
@@ -303,14 +304,24 @@ def process_complex_type(ctx, c):
             process_type(a.type, a.name)
 
     if c.simple_content is not None:
-        if c.simple_content.extension is not None: 
-            ext = c.simple_content.extension
+        ext = c.simple_content.extension
+        if ext is not None: 
             if ext.base is not None:
                 # FIXME: find a way to generate _data
                 process_type(ext.base, "_data", XmlData)
 
             if ext.attributes is not None:
                 for a in ext.attributes:
+                    ti.append(process_attribute(ctx, a))
+
+        restr = c.simple_content.restriction
+        if restr is not None:
+            if restr.base is not None:
+                # FIXME: find a way to generate _data
+                process_type(restr.base, "_data", XmlData)
+
+            if restr.attributes is not None:
+                for a in restr.attributes:
                     ti.append(process_attribute(ctx, a))
 
     cls_dict = {
@@ -375,6 +386,7 @@ def print_pending(ctx):
         ctx.debug0(pformat(ctx.pending_types))
         ctx.debug0("%" * 50)
 
+
 def parse_schema(ctx, elt):
     ctx.nsmap = nsmap = elt.nsmap
     ctx.prefmap = prefmap = dict([(v,k) for k,v in ctx.nsmap.items()])
@@ -409,6 +421,7 @@ def parse_schema(ctx, elt):
                 ctx.debug1("%s importing %s", tns, imp.namespace)
                 file_name = ctx.files[imp.namespace]
                 parse_schema_file(ctx.clone(2, dirname(file_name)), file_name)
+                ctx.retval[tns].imports.add(imp.namespace)
 
     ctx.debug0("3 %s processing attributes", G(tns))
     if schema.attributes:

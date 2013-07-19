@@ -38,25 +38,10 @@ class StringAttribute(SchemaBase):
     value = XmlAttribute(Unicode)
 
 
-class Restriction(SchemaBase):
-    _type_info = [
-        ('base', XmlAttribute(Unicode)),
-        ('max_length', IntegerAttribute.customize(sub_name="maxLength")),
-        ('min_length', IntegerAttribute.customize(sub_name="minLength")),
-        ('pattern', StringAttribute),
-        ('enumeration', StringAttribute.customize(max_occurs="unbounded")),
-    ]
-
-
 class SimpleType(SchemaBase):
     _type_info = [
         ('name', XmlAttribute(Unicode)),
-        ('restriction', Restriction),
     ]
-
-
-class Sequence(SchemaBase):
-    element = Element.customize(max_occurs="unbounded")
 
 
 class Attribute(SchemaBase):
@@ -67,6 +52,24 @@ class Attribute(SchemaBase):
      simple_type = SimpleType.customize(sub_name='simpleType')
 
 
+class Restriction(SchemaBase):
+    _type_info = [
+        ('base', XmlAttribute(Unicode)),
+        ('max_length', IntegerAttribute.customize(sub_name="maxLength")),
+        ('min_length', IntegerAttribute.customize(sub_name="minLength")),
+        ('pattern', StringAttribute),
+        ('enumeration', StringAttribute.customize(max_occurs="unbounded")),
+        ('attributes', Attribute.customize(max_occurs="unbounded",
+                                                        sub_name="attribute")),
+    ]
+
+SimpleType._type_info.append(  ('restriction', Restriction)  )
+
+
+class Sequence(SchemaBase):
+    element = Element.customize(max_occurs="unbounded")
+
+
 class Extension(SchemaBase):
     base = XmlAttribute(Unicode)
     attributes = Attribute.customize(max_occurs="unbounded",
@@ -75,7 +78,7 @@ class Extension(SchemaBase):
 
 class SimpleContent(SchemaBase):
     extension = Extension
-
+    restriction = Restriction
 
 class ComplexType(SchemaBase):
     name = XmlAttribute(Unicode)
