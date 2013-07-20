@@ -63,34 +63,43 @@ class _Schema(object):
         self.imports = set()
 
 
-def own_repr(self, i0=0, I = '  '):
-    if not hasattr(self.__class__, '_type_info'):
-        return repr(self)
+def Town_repr(with_ns=False):
+    if with_ns:
+        def get_class_name(c):
+            return "{%s}%s" % (c.get_namespace(), c.get_type_name())
+    else:
+        def get_class_name(c):
+            return c.get_type_name()
 
-    i1 = i0 + 1
-    i2 = i1 + 1
+    def own_repr(self, i0=0, I='  '):
+        if not hasattr(self.__class__, '_type_info'):
+            return repr(self)
 
-    retval = []
-    retval.append(self.__class__.get_type_name())
-    retval.append('(\n')
-    for k,v in self._type_info.items():
-        value = getattr(self, k, None)
-        if (issubclass(v, Array) or v.Attributes.max_occurs > 1) and \
-                                                        value is not None:
-            retval.append("%s%s=[\n" %(I*i1, k))
-            for subval in value:
-                retval.append("%s%s,\n" % (I*i2, own_repr(subval,i2)))
-            retval.append('%s]\n' % (I*i1))
+        i1 = i0 + 1
+        i2 = i1 + 1
 
-        else:
-            retval.append("%s%s=%s,\n" % (I*i1, k,
+        retval = []
+        retval.append(get_class_name(self.__class__))
+        retval.append('(\n')
+        for k,v in self._type_info.items():
+            value = getattr(self, k, None)
+            if (issubclass(v, Array) or v.Attributes.max_occurs > 1) and \
+                                                            value is not None:
+                retval.append("%s%s=[\n" %(I*i1, k))
+                for subval in value:
+                    retval.append("%s%s,\n" % (I*i2, own_repr(subval,i2)))
+                retval.append('%s],\n' % (I*i1))
+
+            else:
+                retval.append("%s%s=%s,\n" % (I*i1, k,
                                         own_repr(getattr(self, k, None),i1)))
-    retval.append('%s)' % (I*i0))
-    return ''.join(retval)
+        retval.append('%s)' % (I*i0))
+        return ''.join(retval)
 
+    return own_repr
 
 class ParsingCtx(object):
-    def __init__(self, files, base_dir=None, own_repr=own_repr):
+    def __init__(self, files, base_dir=None, own_repr=Town_repr(with_ns=False)):
         self.retval = {}
         self.indent = 0
         self.files = files
