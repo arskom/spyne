@@ -809,6 +809,8 @@ class Point(Unicode):
 
         retval = SimpleModel.__new__(cls, **kwargs)
         retval.__namespace__ = 'http://spyne.io/schema'
+        retval.__extends__ = Unicode
+        retval.__orig__ = Unicode
         return retval
 
 
@@ -829,6 +831,8 @@ class Line(Unicode):
 
         retval = SimpleModel.__new__(cls, **kwargs)
         retval.__namespace__ = 'http://spyne.io/schema'
+        retval.__extends__ = Unicode
+        retval.__orig__ = Unicode
         return retval
 
 LineString = Line
@@ -851,6 +855,8 @@ class Polygon(Unicode):
 
         retval = SimpleModel.__new__(cls, **kwargs)
         retval.__namespace__ = 'http://spyne.io/schema'
+        retval.__extends__ = Unicode
+        retval.__orig__ = Unicode
         return retval
 
 
@@ -871,6 +877,8 @@ class MultiPoint(Unicode):
 
         retval = SimpleModel.__new__(cls, **kwargs)
         retval.__namespace__ = 'http://spyne.io/schema'
+        retval.__extends__ = Unicode
+        retval.__orig__ = Unicode
         return retval
 
 
@@ -891,6 +899,8 @@ class MultiLine(Unicode):
 
         retval = SimpleModel.__new__(cls, **kwargs)
         retval.__namespace__ = 'http://spyne.io/schema'
+        retval.__extends__ = Unicode
+        retval.__orig__ = Unicode
         return retval
 
 MultiLineString = MultiLine
@@ -913,6 +923,8 @@ class MultiPolygon(Unicode):
 
         retval = SimpleModel.__new__(cls, **kwargs)
         retval.__namespace__ = 'http://spyne.io/schema'
+        retval.__extends__ = Unicode
+        retval.__orig__ = Unicode
         return retval
 
 
