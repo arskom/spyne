@@ -22,6 +22,8 @@ logger = logging.getLogger(__name__)
 
 import os
 
+from collections import defaultdict
+
 from spyne.model import SimpleModel
 from spyne.model.complex import XmlModifier
 from spyne.model.complex import XmlData
@@ -35,6 +37,8 @@ from spyne.model.complex import ComplexModelMeta
 class CodeGenerator(object):
     def __init__(self):
         self.imports = set()
+        self.classes = set()
+        self.pending = defaultdict(list)
 
     def gen_modifier(self, t):
         return '%s(%s)' % (t.get_type_name(), self.gen_dispatch(t.type))
@@ -51,9 +55,18 @@ class %s(_ComplexBase):
     _type_info = [""" % (t, t.get_type_name()))
 
         for k,v in t._type_info.items():
-            retval.append("        ('%s', %s)," % (k, self.gen_dispatch(v)))
+            if not issubclass(v, ComplexModelBase) or \
+                            v.get_namespace() != self.tns or v in self.classes:
+                retval.append("        ('%s', %s)," % (k, self.gen_dispatch(v)))
+            else:
+                self.pending[v.get_type_name()].append((k, t.get_type_name()))
 
         retval.append("    ]")
+
+        self.classes.add(t)
+
+        for k,orig_t in self.pending[t.get_type_name()]:
+            retval.append('%s._type_info["%s"] = %s' % (orig_t, k, t.get_type_name()))
 
         return retval
 
