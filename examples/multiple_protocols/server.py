@@ -33,23 +33,28 @@
 the same information in different protocols.:
 
     http://localhost:9910/xml/get_utc_time
-    http://localhost:9910/svg/get_utc_time
     http://localhost:9910/html/get_utc_time
     http://localhost:9910/rest/get_utc_time
     http://localhost:9910/soap/get_utc_time
     http://localhost:9910/png/get_utc_time
     http://localhost:9910/svg/get_utc_time
-    http://localhost:9910/json0/get_utc_time
-    http://localhost:9910/json1/get_utc_time
-    http://localhost:9910/json2/get_utc_time
+    http://localhost:9910/json/get_utc_time
+    http://localhost:9910/jsoni/get_utc_time
+    http://localhost:9910/jsonl/get_utc_time
+    http://localhost:9910/jsonil/get_utc_time
     http://localhost:9910/mpo/get_utc_time
-    http://localhost:9910/mprpc/get_utc_time
+    http://localhost:9910/mpr/get_utc_time
     http://localhost:9910/yaml/get_utc_time
 
 You need python bindings for librsvg for svg & png protocols.
 
+    # debian/ubuntu
     apt-get install python-rsvg
+
+    # gentoo
     emerge librsvg-python
+
+along with every other otherwise optional Spyne dependency.
 """
 
 
@@ -97,15 +102,13 @@ class DynProtService(ServiceBase):
     protocols = {}
 
     @rpc(String(values=protocols.keys(), encoding='ascii'), _returns=DateTime,
-                                _patterns=[HttpPattern('/get_utc_time.<prot>')])
+                                _patterns=[HttpPattern('/get_utc_time\\.<prot>')])
     def get_utc_time(ctx, prot):
         DynProtService.protocols[prot](ctx)
 
         return datetime.utcnow()
 
 def main():
-    global protocols
-
     rest = Application([MultiProtService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=HttpRpc())
 
@@ -129,16 +132,16 @@ def main():
 
     jsoni = Application([MultiProtService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=JsonDocument(
-                                                         ignore_wrappers=True))
+                                                        ignore_wrappers=False))
 
     jsonl = Application([MultiProtService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=JsonDocument(complex_as=list))
 
     jsonil = Application([MultiProtService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=JsonDocument(
-                                        ignore_wrappers=True, complex_as=list))
+                                       ignore_wrappers=False, complex_as=list))
 
-    msgpack_doc = Application([MultiProtService], tns=tns,
+    msgpack_obj = Application([MultiProtService], tns=tns,
             in_protocol=HttpRpc(), out_protocol=MessagePackDocument())
 
     msgpack_rpc = Application([MultiProtService], tns=tns,
@@ -172,8 +175,8 @@ def main():
         'jsoni': jsoni,
         'jsonl': jsonl,
         'jsonil': jsonil,
-        'mpd': msgpack_doc,
-        'mprpc': msgpack_rpc,
+        'mpo': msgpack_obj,
+        'mpr': msgpack_rpc,
         'yaml': yaml,
         'dyn': dyn,
     })
@@ -183,7 +186,7 @@ def main():
 
     logging.basicConfig(level=logging.DEBUG)
     logging.info("listening to http://%s:%d" % (host, port))
-    logging.info("navigate to e.g. http://%s:%d/json2/get_utc_time" %
+    logging.info("navigate to e.g. http://%s:%d/json/get_utc_time" %
                                                                   (host, port))
     logging.info("             or: http://%s:%d/xml/get_utc_time" %
                                                                   (host, port))
