@@ -129,7 +129,7 @@ class _ComplexBase(ComplexModelBase):
         retval.append('__all__ = [')
         for c in sorted(chain([c.get_type_name() for c in self.classes],
                                                                 self.simples)):
-            retval.append("    '%s'"  % c)
+            retval.append("    '%s',"  % c)
         retval.append(']')
         retval.append("")
 
