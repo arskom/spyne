@@ -263,20 +263,37 @@ def process_attribute(ctx, a):
 
 
 def process_complex_type(ctx, c):
-    def process_type(tn, name, wrapper=lambda x:x):
+    def process_type(tn, name, wrapper=lambda x:x, element=None):
         t = get_type(ctx, tn)
         key = (c.name, name)
         if t is None:
             ctx.pending_types[key] = c
             ctx.debug2("not found: %r", key)
+            return
 
-        else:
-            if key in ctx.pending_types:
-                del ctx.pending_types[key]
-            assert name is not None, (key, e)
+        if key in ctx.pending_types:
+            del ctx.pending_types[key]
 
-            ti.append( (name, wrapper(t)) )
-            ctx.debug2("    found: %r", key)
+        assert name is not None, (key, e)
+
+        if element is not None:
+            kwargs = {}
+            if e.min_occurs != "1":
+                kwargs['min_occurs'] = int(e.min_occurs)
+
+            if e.max_occurs == "unbounded":
+                kwargs['max_occurs'] = e.max_occurs
+            elif e.max_occurs != "1":
+                kwargs['max_occurs'] = int(e.max_occurs)
+
+            if e.nillable != False:
+                kwargs['nillable'] = e.nillable
+
+            if len(kwargs) > 0:
+                t = t.customize(**kwargs)
+
+        ti.append( (name, wrapper(t)) )
+        ctx.debug2("    found: %r", key)
 
     ti = []
     _pending = False
@@ -295,7 +312,7 @@ def process_complex_type(ctx, c):
             else:
                 raise Exception("dunno seqelt")
 
-            process_type(tn, name)
+            process_type(tn, name, element=e)
 
     if c.attributes is not None:
         for a in c.attributes:
