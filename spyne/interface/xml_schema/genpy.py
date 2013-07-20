@@ -33,12 +33,23 @@ from spyne.model.complex import ComplexModelBase
 from spyne.model.complex import ComplexModelMeta
 
 
+def gen_fn_from_tns(tns):
+    return tns \
+        .replace('http://', '') \
+        .replace('https://', '') \
+        .replace('/', '') \
+        .replace('.', '_') \
+        .replace(':', '_') \
+        .replace('#', '') \
+        .replace('-', '_') \
+
 
 class CodeGenerator(object):
-    def __init__(self):
+    def __init__(self, gen_fn_from_tns=gen_fn_from_tns):
         self.imports = set()
         self.classes = set()
         self.pending = defaultdict(list)
+        self.gen_fn_from_tns = gen_fn_from_tns
 
     def gen_modifier(self, t):
         return '%s(%s)' % (t.get_type_name(), self.gen_dispatch(t.type))
@@ -50,9 +61,8 @@ class CodeGenerator(object):
         retval = []
         retval.append("""
 
-# %r
 class %s(_ComplexBase):
-    _type_info = [""" % (t, t.get_type_name()))
+    _type_info = [""" % (t.get_type_name()))
 
         for k,v in t._type_info.items():
             if not issubclass(v, ComplexModelBase) or \
@@ -80,7 +90,7 @@ class %s(_ComplexBase):
         if t.get_namespace() == self.tns:
             return t.get_type_name()
 
-        i = gen_fn_from_tns(t.get_namespace())
+        i = self.gen_fn_from_tns(t.get_namespace())
         self.imports.add(i)
         return "%s.%s" % (i, t.get_type_name())
 
@@ -112,13 +122,3 @@ class _ComplexBase(ComplexModelBase):
 
         retval.append("")
         return '\n'.join(retval)
-
-def gen_fn_from_tns(tns):
-    return tns \
-        .replace('http://', '') \
-        .replace('https://', '') \
-        .replace('/', '') \
-        .replace('.', '_') \
-        .replace(':', '_') \
-        .replace('#', '') \
-        .replace('-', '_') \
