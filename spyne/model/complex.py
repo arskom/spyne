@@ -186,6 +186,18 @@ class XmlData(XmlModifier):
             else:
                 parent_elt[-1].tail = prot.to_string(cls.type, value)
 
+    @classmethod
+    def get_type_name(cls):
+        return cls.type.get_type_name()
+
+    @classmethod
+    def get_type_name_ns(cls, interface):
+        return cls.type.get_type_name_ns(interface)
+
+    @classmethod
+    def get_namespace(cls):
+        return cls.type.get_namespace()
+
 
 class XmlAttribute(XmlModifier):
     """Items which are marshalled as attributes of the parent element. If

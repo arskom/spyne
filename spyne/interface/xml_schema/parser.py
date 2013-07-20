@@ -209,14 +209,17 @@ def process_simple_type(ctx, s, name=None):
         if restriction.pattern.value:
             kwargs['pattern'] = restriction.pattern.value
 
-    kwargs['type_name'] = s.name
     ctx.debug1("adding   simple type: %s", name)
+    retval = base.customize(**kwargs)
+    if retval.__orig__ is None:
+        retval.__orig__ = base
 
-    # quirk. hmpf.
-    if issubclass(base, SimpleModel):
-        return base(**kwargs)
-    else:
-        return base.customize(**kwargs)
+    if retval.__extends__ is None:
+        retval.__extends__ = base
+        retval.__type_name__ = name
+        retval.__namespace__ = ctx.tns
+
+    return retval
 
 
 def process_element(ctx, e):
