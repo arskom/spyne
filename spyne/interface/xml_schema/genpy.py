@@ -17,6 +17,14 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""
+A barely functional Spyne class serializer. If you're using this as part of
+anything serious, you're insane.
+
+Known issues:
+  - Customizations are not serialized.
+"""
+
 import logging
 logger = logging.getLogger(__name__)
 
