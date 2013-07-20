@@ -780,8 +780,12 @@ class ID(NCName):
     __type_name__ = 'ID'
 
 
-class Language(Token(pattern='[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*')):
+
+class Language(Token):
     __type_name__ = 'language'
+
+    class Attributes(Unicode.Attributes):
+        pattern = '[a-zA-Z]{1,8}(-[a-zA-Z0-9]{1,8})*'
 
 
 class Point(Unicode):
