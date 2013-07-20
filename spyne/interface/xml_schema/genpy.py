@@ -76,7 +76,9 @@ class %s(_ComplexBase):
 
         for k,v in t._type_info.items():
             if not issubclass(v, ComplexModelBase) or \
-                            v.get_namespace() != self.tns or v in self.classes:
+                        v.get_namespace() != self.tns or \
+                            v in self.classes or \
+                                getattr(v, '__orig__', None) in self.classes:
                 retval.append("        ('%s', %s)," % (k, self.gen_dispatch(v)))
             else:
                 self.pending[v.get_type_name()].append((k, t.get_type_name()))
