@@ -242,7 +242,7 @@ def process_element(ctx, e):
 def process_attribute(ctx, a):
     if a.ref is not None:
         t = get_type(ctx, a.ref)
-        return t.get_type_name(), t
+        return t.type.get_type_name(), t
 
     if a.type is not None:
         t = get_type(ctx, a.type)
