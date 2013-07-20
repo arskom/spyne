@@ -244,6 +244,7 @@ def datetime_to_string(cls, value):
     else:
         return string_format % ret_str
 
+@nillable_string
 def datetime_from_string_iso(cls, string):
     match = cls._utc_re.match(string)
     if match:
@@ -260,6 +261,7 @@ def datetime_from_string_iso(cls, string):
 
     return cls.parse(match)
 
+@nillable_string
 def date_from_string_iso(cls, string):
     """This is used by protocols like SOAP who need ISO8601-formatted dates
     no matter what.
