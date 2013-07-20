@@ -766,7 +766,9 @@ class Name(Token):
     __type_name__ = 'Name'
 
     class Attributes(Unicode.Attributes):
-        pattern = "FIXME" # [\i-[:]][\c-[:]]*
+        # Original: '[\i-[:]][\c-[:]]*'
+        # See: http://www.regular-expressions.info/xmlcharclass.html
+        pattern = '[[_:A-Za-z]-[:]][[-._:A-Za-z0-9]-[:]]*'
 
 
 class NCName(Name):
