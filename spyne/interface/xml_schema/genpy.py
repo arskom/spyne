@@ -121,4 +121,12 @@ class _ComplexBase(ComplexModelBase):
             retval.insert(1, "import %s" % i)
 
         retval.append("")
+        retval.append("")
+
+        retval.append('__all__ = [')
+        for c in sorted(self.classes):
+            retval.append("    '%s'"  % c.get_type_name())
+        retval.append(']')
+        retval.append("")
+
         return '\n'.join(retval)
