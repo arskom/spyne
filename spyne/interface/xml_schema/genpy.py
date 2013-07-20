@@ -52,7 +52,7 @@ class CodeGenerator(object):
         self.gen_fn_from_tns = gen_fn_from_tns
 
     def gen_modifier(self, t):
-        return '%s(%s)' % (t.get_type_name(), self.gen_dispatch(t.type))
+        return '%s(%s)' % (t.__name__, self.gen_dispatch(t.type))
 
     def gen_simple(self, t):
         return t.__name__
