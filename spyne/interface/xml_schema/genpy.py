@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 import os
 
 from collections import defaultdict
+from itertools import chain
 
 from spyne.model import SimpleModel
 from spyne.model.complex import XmlModifier
@@ -45,11 +46,12 @@ def gen_fn_from_tns(tns):
 
 
 class CodeGenerator(object):
-    def __init__(self, gen_fn_from_tns=gen_fn_from_tns):
+    def __init__(self, fn_tns_mapper=gen_fn_from_tns):
         self.imports = set()
         self.classes = set()
         self.pending = defaultdict(list)
-        self.gen_fn_from_tns = gen_fn_from_tns
+        self.simples = set()
+        self.fn_tns_mapper = fn_tns_mapper
 
     def gen_modifier(self, t):
         return '%s(%s)' % (t.__name__, self.gen_dispatch(t.type))
@@ -90,7 +92,7 @@ class %s(_ComplexBase):
         if t.get_namespace() == self.tns:
             return t.get_type_name()
 
-        i = self.gen_fn_from_tns(t.get_namespace())
+        i = self.fn_tns_mapper(t.get_namespace())
         self.imports.add(i)
         return "%s.%s" % (i, t.get_type_name())
 
@@ -116,6 +118,7 @@ class _ComplexBase(ComplexModelBase):
                 retval.extend(self.gen_complex(t))
             else:
                 retval.append('%s = %s' % (n, self.gen_dispatch(t)))
+                self.simples.add(n)
 
         for i in self.imports:
             retval.insert(1, "import %s" % i)
@@ -124,8 +127,9 @@ class _ComplexBase(ComplexModelBase):
         retval.append("")
 
         retval.append('__all__ = [')
-        for c in sorted(self.classes):
-            retval.append("    '%s'"  % c.get_type_name())
+        for c in sorted(chain([c.get_type_name() for c in self.classes],
+                                                                self.simples)):
+            retval.append("    '%s'"  % c)
         retval.append(']')
         retval.append("")
 
