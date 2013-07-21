@@ -296,7 +296,7 @@ class TestParseOwnXmlSchema(unittest.TestCase):
         class SomeGuy(ComplexModel):
             __namespace__ = tns
 
-            name = Unicode(max_len=10, pattern="a", min_len=5)
+            name = Unicode(max_len=10, pattern="a", min_len=5, default="aa")
 
         schema = get_schema_documents([SomeGuy], tns)['tns']
         print etree.tostring(schema, pretty_print=True)
@@ -308,6 +308,7 @@ class TestParseOwnXmlSchema(unittest.TestCase):
         assert NewGuy._type_info['name'].Attributes.max_len == 10
         assert NewGuy._type_info['name'].Attributes.min_len == 5
         assert NewGuy._type_info['name'].Attributes.pattern == "a"
+        assert NewGuy._type_info['name'].Attributes.default == "aa"
 
     def test_attribute(self):
         tns = 'some_ns'

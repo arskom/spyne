@@ -168,6 +168,9 @@ def complex_add(document, cls, tags):
 
             member.set('maxOccurs', val)
 
+        if v.Attributes.default is not None:
+            member.set('default', v.Attributes.default)
+
         if bool(v.Attributes.nillable) != False: # False is the xml schema default
             member.set('nillable', 'true')
 

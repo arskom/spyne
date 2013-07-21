@@ -285,9 +285,9 @@ def process_complex_type(ctx, c):
 
         assert name is not None, (key, e)
 
+        kwargs = {}
         if element is not None:
-            kwargs = {}
-            if e.min_occurs != "1":
+            if e.min_occurs != "0": # spyne default
                 kwargs['min_occurs'] = int(e.min_occurs)
 
             if e.max_occurs == "unbounded":
@@ -295,14 +295,17 @@ def process_complex_type(ctx, c):
             elif e.max_occurs != "1":
                 kwargs['max_occurs'] = int(e.max_occurs)
 
-            if e.nillable != False:
+            if e.nillable != True: # spyne default
                 kwargs['nillable'] = e.nillable
+
+            if e.default is not None:
+                kwargs['default'] = e.default
 
             if len(kwargs) > 0:
                 t = t.customize(**kwargs)
 
         ti.append( (name, wrapper(t)) )
-        ctx.debug2("    found: %r", key)
+        ctx.debug2("    found: %r, c: %r" % (key,kwargs))
 
     ti = []
     _pending = False

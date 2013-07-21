@@ -48,6 +48,7 @@ class Attribute(SchemaBase):
      use = XmlAttribute(Unicode)
      name = XmlAttribute(Unicode)
      type = XmlAttribute(Unicode)
+     default = XmlAttribute(Unicode)
      ref = XmlAttribute(Unicode)
      simple_type = SimpleType.customize(sub_name='simpleType')
 
