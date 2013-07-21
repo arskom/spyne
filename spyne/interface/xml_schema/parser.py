@@ -328,8 +328,8 @@ def process_complex_type(ctx, c):
     _pending = False
     ctx.debug1("adding complex type: %s", c.name)
 
-    if c.sequence is not None and c.sequence.element is not None:
-        for e in c.sequence.element:
+    if c.sequence is not None and c.sequence.elements is not None:
+        for e in c.sequence.elements:
             if e.ref is not None:
                 tn = e.ref
                 name = e.ref.split(":", 1)[-1]

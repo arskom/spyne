@@ -47,10 +47,10 @@ class SimpleType(SchemaBase):
 
 class Attribute(SchemaBase):
      use = XmlAttribute(Unicode)
+     ref = XmlAttribute(Unicode)
      name = XmlAttribute(Unicode)
      type = XmlAttribute(Unicode)
      default = XmlAttribute(Unicode)
-     ref = XmlAttribute(Unicode)
      simple_type = SimpleType.customize(sub_name='simpleType')
 
 
@@ -69,7 +69,7 @@ SimpleType._type_info.append(  ('restriction', Restriction)  )
 
 
 class Sequence(SchemaBase):
-    element = Element.customize(max_occurs="unbounded")
+    elements = Element.customize(max_occurs="unbounded", sub_name="element")
 
 
 class Extension(SchemaBase):
