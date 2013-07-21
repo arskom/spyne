@@ -64,12 +64,15 @@ class _Schema(object):
 
 
 def Town_repr(with_ns=False):
-    if with_ns:
+    if with_ns == False:
+        def get_class_name(c):
+            return c.get_type_name()
+    elif with_ns == True:
         def get_class_name(c):
             return "{%s}%s" % (c.get_namespace(), c.get_type_name())
     else:
         def get_class_name(c):
-            return c.get_type_name()
+            return with_ns(c.get_namespace(), c.get_type_name())
 
     def own_repr(self, i0=0, I='  '):
         if not hasattr(self.__class__, '_type_info'):
