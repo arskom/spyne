@@ -324,7 +324,7 @@ class TestParseOwnXmlSchema(unittest.TestCase):
         pprint(objects[tns].types)
 
         NewGuy = objects['some_ns'].types["SomeGuy"]
-        assert NewGuy._type_info['name'] is Unicode
+        assert NewGuy._type_info['name'].type is Unicode
 
 
 class TestParseForeignXmlSchema(unittest.TestCase):

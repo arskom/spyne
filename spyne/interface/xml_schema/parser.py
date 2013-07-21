@@ -333,7 +333,8 @@ def process_complex_type(ctx, c):
             if a.type is None:
                 continue
 
-            process_type(a.type, a.name)
+            process_type(a.type, a.name, XmlAttribute)
+
 
     if c.simple_content is not None:
         ext = c.simple_content.extension
