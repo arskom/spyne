@@ -28,6 +28,7 @@ class Element(SchemaBase):
     # Also Unicode for consistency with max_occurs
     min_occurs = XmlAttribute(Unicode(default="1", sub_name="minOccurs"))
     nillable = XmlAttribute(Boolean(default=False))
+    default = XmlAttribute(Unicode)
 
 
 class IntegerAttribute(SchemaBase):

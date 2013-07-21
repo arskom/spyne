@@ -271,11 +271,18 @@ def process_attribute(ctx, a):
     if t is None:
         raise ValueError(a, 'not found')
 
+    kwargs = {}
+    if a.default is not None:
+        kwargs['default'] = a.default
+
+    if len(kwargs) > 0:
+        t = t.customize(**kwargs)
+        ctx.debug2("t = t.customize(**%r)" % kwargs)
     return (a.name, XmlAttribute(t))
 
 
 def process_complex_type(ctx, c):
-    def process_type(tn, name, wrapper=lambda x:x, element=None):
+    def process_type(tn, name, wrapper=lambda x:x, element=None, attribute=None):
         t = get_type(ctx, tn)
         key = (c.name, name)
         if t is None:
@@ -303,6 +310,13 @@ def process_complex_type(ctx, c):
 
             if e.default is not None:
                 kwargs['default'] = e.default
+
+            if len(kwargs) > 0:
+                t = t.customize(**kwargs)
+
+        if attribute is not None:
+            if attribute.default is not None:
+                kwargs['default'] = a.default
 
             if len(kwargs) > 0:
                 t = t.customize(**kwargs)
@@ -336,7 +350,7 @@ def process_complex_type(ctx, c):
             if a.type is None:
                 continue
 
-            process_type(a.type, a.name, XmlAttribute)
+            process_type(a.type, a.name, XmlAttribute, attribute=a)
 
 
     if c.simple_content is not None:

@@ -218,6 +218,9 @@ class XmlAttribute(XmlModifier):
 
         if cls._use is not None:
             element.set('use', cls._use)
+        d = cls.type.Attributes.default
+        if d is not None:
+            element.set('default', d)
 
 
 class XmlAttributeRef(XmlAttribute):

@@ -326,6 +326,23 @@ class TestParseOwnXmlSchema(unittest.TestCase):
         NewGuy = objects['some_ns'].types["SomeGuy"]
         assert NewGuy._type_info['name'].type is Unicode
 
+    def test_attribute_with_customized_type(self):
+        tns = 'some_ns'
+        class SomeGuy(ComplexModel):
+            __namespace__ = tns
+
+            name = XmlAttribute(Unicode(default="aa"))
+
+        schema = get_schema_documents([SomeGuy], tns)['tns']
+        print etree.tostring(schema, pretty_print=True)
+
+        objects = parse_schema_element(schema)
+        pprint(objects[tns].types)
+
+        NewGuy = objects['some_ns'].types["SomeGuy"]
+        assert NewGuy._type_info['name'].type.__orig__ is Unicode
+        assert NewGuy._type_info['name'].type.Attributes.default == "aa"
+
 
 class TestParseForeignXmlSchema(unittest.TestCase):
     def test_simple_content(self):
