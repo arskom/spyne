@@ -77,7 +77,10 @@ def Enum(*values, **kwargs):
             return hash(self.__value)
 
         def __cmp__(self, other):
-            return isinstance(self, type(other)) and cmp(self.__value, other.__value)
+            if isinstance(self, type(other)):
+                return cmp(self.__value, other.__value)
+            else:
+                return cmp(id(self), id(other))
 
         def __invert__(self):
             return values[maximum - self.__value]
