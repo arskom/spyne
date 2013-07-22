@@ -28,6 +28,7 @@ import decimal
 from lxml import etree
 
 from collections import deque
+from collections import defaultdict
 
 from spyne.const.xml_ns import xsd as _ns_xs
 from spyne.const.xml_ns import xsd as _ns_xsd
@@ -123,8 +124,10 @@ def complex_add(document, cls, tags):
     sequence = etree.Element('{%s}sequence' % _ns_xsd)
 
     deferred = deque()
+    choice_tags = defaultdict(lambda: etree.Element('{%s}choice' % _ns_xsd))
     for k, v in type_info.items():
-        if v.Attributes.exc_interface:
+        a = v.Attributes
+        if a.exc_interface:
             continue
 
         if issubclass(v, XmlAttribute):
@@ -133,34 +136,34 @@ def complex_add(document, cls, tags):
 
         document.add(v, tags)
 
-        name = v.Attributes.sub_name
-        ns = v.Attributes.sub_ns
+        name = a.sub_name
+        ns = a.sub_ns
         if name is None:
             name = k
         if ns is not None:
             name = "{%s}%s" % (ns, name)
 
-        member = etree.SubElement(sequence, v.Attributes.schema_tag)
-        if v.Attributes.schema_tag == '{%s}element' % _ns_xsd:
+        member = etree.Element(a.schema_tag)
+        if a.schema_tag == '{%s}element' % _ns_xsd:
             member.set('name', name)
             member.set('type', v.get_type_name_ns(document.interface))
 
-        elif v.Attributes.schema_tag == '{%s}any' % _ns_xsd and \
+        elif a.schema_tag == '{%s}any' % _ns_xsd and \
                                                     (issubclass(v, AnyXml)):
-            if v.Attributes.namespace is not None:
-                member.set('namespace', v.Attributes.namespace)
-            if v.Attributes.process_contents is not None:
-                member.set('processContents', v.Attributes.process_contents)
+            if a.namespace is not None:
+                member.set('namespace', a.namespace)
+            if a.process_contents is not None:
+                member.set('processContents', a.process_contents)
 
         else:
             raise ValueError("Unhandled schema_tag / type combination. %r %r"
-                    % (v, v.Attributes.schema_tag))
+                    % (v, a.schema_tag))
 
-        if v.Attributes.min_occurs != 1: # 1 is the xml schema default
-            member.set('minOccurs', str(v.Attributes.min_occurs))
+        if a.min_occurs != 1: # 1 is the xml schema default
+            member.set('minOccurs', str(a.min_occurs))
 
-        if v.Attributes.max_occurs != 1: # 1 is the xml schema default
-            val = v.Attributes.max_occurs
+        if a.max_occurs != 1: # 1 is the xml schema default
+            val = a.max_occurs
             if val in (decimal.Decimal('inf'), float('inf')):
                 val = 'unbounded'
             else:
@@ -168,10 +171,10 @@ def complex_add(document, cls, tags):
 
             member.set('maxOccurs', val)
 
-        if v.Attributes.default is not None:
-            member.set('default', v.Attributes.default)
+        if a.default is not None:
+            member.set('default', a.default)
 
-        if bool(v.Attributes.nillable) != False: # False is the xml schema default
+        if bool(a.nillable) != False: # False is the xml schema default
             member.set('nillable', 'true')
 
         if v.Annotations.doc != '':
@@ -180,6 +183,13 @@ def complex_add(document, cls, tags):
 
             doc = etree.SubElement(annotation, "{%s}documentation" % _ns_xsd)
             doc.text = v.Annotations.doc
+
+        if a.xml_choice_group is None:
+            sequence.append(member)
+        else:
+            choice_tags[a.xml_choice_group].append(member)
+
+    sequence.extend(choice_tags.values())
 
     if len(sequence) > 0:
         sequence_parent.append(sequence)

@@ -197,6 +197,11 @@ class ModelBase(object):
         table_name = None
         """Database table name."""
 
+        xml_choice_group = None
+        """When not None, shares the same <choice> tag with fields with the same
+        xml_choice_group value.
+        """
+
         index = None
         """Can be ``True``, a string, or a tuple of two strings.
 

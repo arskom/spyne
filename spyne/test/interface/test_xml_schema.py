@@ -47,6 +47,35 @@ from spyne.interface.xml_schema import XmlSchema
 
 
 class TestXmlSchema(unittest.TestCase):
+    def test_choice_tag(self):
+        class SomeObject(ComplexModel):
+            __namespace__ = "badass_ns"
+
+            one = Integer(xml_choice_group="numbers")
+            two = Integer(xml_choice_group="numbers")
+            punk = Unicode
+
+        class KickassService(ServiceBase):
+            @rpc(_returns=SomeObject)
+            def wooo(ctx):
+                return SomeObject()
+
+        Application([KickassService],
+            tns='kickass.ns',
+            in_protocol=Soap11(validator='lxml'),
+            out_protocol=Soap11()
+        )
+
+        docs = get_schema_documents([SomeObject])
+        doc = docs['tns']
+        print etree.tostring(doc, pretty_print=True)
+        assert len(doc.xpath('/xs:schema/xs:complexType[@name="SomeObject"]'
+                                   '/xs:sequence/xs:element[@name="punk"]',
+            namespaces={'xs': ns.xsd})) > 0
+        assert len(doc.xpath('/xs:schema/xs:complexType[@name="SomeObject"]'
+                    '/xs:sequence/xs:choice/xs:element[@name="one"]',
+            namespaces={'xs': ns.xsd})) > 0
+
     def test_customized_class_with_empty_subclass(self):
         class SummaryStatsOfDouble(ComplexModel):
             _type_info = [('Min', XmlAttribute(Integer, use='required')),
@@ -353,8 +382,8 @@ class TestParseForeignXmlSchema(unittest.TestCase):
             elementFormDefault="qualified" attributeFormDefault="unqualified">
     <xsd:complexType name="SomeGuy">
         <xsd:simpleContent>
-            <xsd:extension base="xsd:normalizedString">
-                <xsd:attribute name="attr" type="xsd:normalizedString" use="optional"/>
+            <xsd:extension base="xsd:string">
+                <xsd:attribute name="attr" type="xsd:string" use="optional"/>
             </xsd:extension>
         </xsd:simpleContent>
     </xsd:complexType>
