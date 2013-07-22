@@ -150,9 +150,6 @@ TYPE_MAP = dict([
             and not cls in (ModelBase,)
 ])
 
-# FIXME: HACK!
-TYPE_MAP["{%s}token" % xml_ns.xsd] = Unicode
-TYPE_MAP["{%s}normalizedString" % xml_ns.xsd] = Unicode
 
 if __name__ == '__main__':
     from pprint import pprint
