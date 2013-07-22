@@ -34,7 +34,7 @@ def cache_order(l, ns):
 wsdl_order = ('types', 'message', 'service', 'portType', 'binding')
 wsdl_order = cache_order(wsdl_order, ns_wsdl)
 
-schema_order = ('import', 'element', 'simpleType', 'complexType')
+schema_order = ('import', 'element', 'simpleType', 'complexType', 'attribute')
 schema_order = cache_order(schema_order, ns_schema)
 
 parser = etree.XMLParser(remove_blank_text=True)

@@ -73,6 +73,7 @@ class TestMultipleMethods(unittest.TestCase):
 
         except ValueError:
             pass
+
         else:
             raise Exception('must fail.')
 
@@ -167,7 +168,8 @@ class TestMultipleMethods(unittest.TestCase):
         except Exception:
             pass
         else:
-            raise Exception("must fail with 'Exception: you can't mix aux and non-aux methods in a single service definition.'")
+            raise Exception("must fail with 'Exception: you can't mix aux and "
+                            "non-aux methods in a single service definition.'")
 
     def __run_service(self, service):
         app = Application([service], 'tns', in_protocol=HttpRpc(), out_protocol=Soap11())
@@ -314,6 +316,24 @@ class TestBodyStyle(unittest.TestCase):
         assert resp[0][0].tag == '{tns}some_call' + RESPONSE_SUFFIX
         assert resp[0][0].text == 'abc'
 
+    def test_implicit_class_conflict(self):
+        class someCallResponse(ComplexModel):
+            __namespace__ = 'tns'
+            s = String
+
+        class SomeService(ServiceBase):
+            @rpc(someCallResponse, _returns=String)
+            def someCall(ctx, x):
+                return ['abc', 'def']
+
+        try:
+            Application([SomeService], 'tns', in_protocol=Soap11(),
+                                out_protocol=Soap11(cleanup_namespaces=True))
+        except ValueError as e:
+            print e
+        else:
+            raise Exception("must fail.")
+
     def test_soap_bare_wrapped_array_output(self):
         class SomeService(ServiceBase):
             @rpc(_body_style='bare', _returns=Array(String))
@@ -321,7 +341,7 @@ class TestBodyStyle(unittest.TestCase):
                 return ['abc', 'def']
 
         app = Application([SomeService], 'tns', in_protocol=Soap11(),
-                                                out_protocol=Soap11(cleanup_namespaces=True))
+                                out_protocol=Soap11(cleanup_namespaces=True))
 
         req = """
         <senv:Envelope  xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/"

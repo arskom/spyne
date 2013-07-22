@@ -6,7 +6,7 @@ from spyne.model.complex import XmlAttribute
 from spyne.model.complex import ComplexModelBase
 from spyne.model.complex import ComplexModelMeta
 
-from arskom.dl.schema import XmlSchema
+from spyne.interface.xml_schema.defn import XmlSchema10
 
 
 class Wsdl11Base(ComplexModelBase):
@@ -20,7 +20,7 @@ class Soap11Base(ComplexModelBase):
 
 
 class Types(Wsdl11Base):
-    schema = XmlSchema.customize(max_occurs="unbounded")
+    schema = XmlSchema10.customize(max_occurs="unbounded")
 
 
 class MessagePart(Wsdl11Base):

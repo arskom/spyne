@@ -37,7 +37,7 @@ Let's look at the following object hierarchy: ::
 
     class Outer(ComplexModel):
         a = Integer
-        b = SomeObject
+        b = Inner
 
 For example, the ``Outer(a=1, b=Inner(c=2))`` object would correspond to the
 following hierarchichal dict representation: ::
@@ -647,7 +647,7 @@ class HierDictDocument(DictDocument):
     def _complex_to_dict(self, class_, inst):
         inst = class_.get_serialization_instance(inst)
 
-        d = dict(self._get_member_pairs(class_, inst))
+        d = self.complex_as(self._get_member_pairs(class_, inst))
         if self.ignore_wrappers:
             return d
         else:

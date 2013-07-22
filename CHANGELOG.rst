@@ -13,6 +13,16 @@ spyne-2.11.0
 * SQLAlchemy: Implement storing arrays of simple types in a table.
 * SQLAlchemy: Make it work with multiple foreign keys from one table to
   another.
+* Implement an Xml Schema parser.
+* Import all model markers to ``spyne.model``.
+* Implement JsonP protocol.
+* Steal and integrate the WebSocket tranport for Twisted.
+
+spyne-2.10.9
+------------
+* Fix total_seconds quirk for Python 2.6.
+* Make defaults for XMLParser more secure.
+* Drop Python 2.5 support (It wasn't working anyway).
 
 spyne-2.10.8
 ------------
@@ -185,8 +195,8 @@ rpclib-2.8.0-rc -> spyne-2.8.0-rc
 * Make DateTime string format customizable.
 * Implement TwistedWebResource that exposes an ``Application`` instance as a
   ``twisted.web.resource.Resource`` child.
-* Remove Deprecated XMLAttribute and XMLAttributeRef. Use ``XmlAttribute``
-  and ``XmlAttributeRef`` instead.
+* Remove Deprecated ``XMLAttribute`` and ``XMLAttributeRef``. Use
+  ``XmlAttribute`` and ``XmlAttributeRef`` instead.
 * Xml Schema: Add support for the <any> tag.
 * Add a chapter about Validation to the manual. Thanks Alex!
 * Interface documents are no longer subclasses of InterfaceBase. It's up

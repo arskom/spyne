@@ -42,6 +42,7 @@ from spyne.util.etreeconv import dict_to_etree
 
 def simple_get_restriction_tag(document, cls):
     simple_type = etree.Element('{%s}simpleType' % _ns_xsd)
+
     simple_type.set('name', cls.get_type_name())
     document.add_simple_type(cls, simple_type)
 

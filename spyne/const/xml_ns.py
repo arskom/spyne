@@ -45,13 +45,17 @@ const_nsmap = {
     'wsdl': wsdl,
     'senc': soap_enc,
     'senv': soap_env,
-    's12env': soap12_env,
-    's12enc': soap12_enc,
+    'soap12env': soap12_env,
+    'soap12enc': soap12_enc,
     'wsa': wsa,
     'xop': xop,
 }
 
-const_prefmap = dict([(b, a) for a, b in const_nsmap.items()])
+def regen_prefmap():
+    global const_prefmap
+    const_prefmap = dict([(b, a) for a, b in const_nsmap.items()])
+
+regen_prefmap()
 
 schema_location = {
     xsd: 'http://www.w3.org/2001/XMLSchema.xsd',

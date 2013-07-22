@@ -33,6 +33,7 @@ class Element(SchemaBase):
 class IntegerAttribute(SchemaBase):
     value = XmlAttribute(UnsignedInteger)
 
+
 class StringAttribute(SchemaBase):
     value = XmlAttribute(Unicode)
 
@@ -62,6 +63,8 @@ class Attribute(SchemaBase):
      use = XmlAttribute(Unicode)
      name = XmlAttribute(Unicode)
      type = XmlAttribute(Unicode)
+     ref = XmlAttribute(Unicode)
+     simple_type = SimpleType.customize(sub_name='simpleType')
 
 
 class Extension(SchemaBase):
@@ -86,7 +89,7 @@ class Include(SchemaBase):
     schema_location = XmlAttribute(Unicode(sub_name="schemaLocation"))
 
 
-class XmlSchema(SchemaBase):
+class XmlSchema10(SchemaBase):
     _type_info = [
         ('target_namespace', XmlAttribute(Unicode(sub_name="targetNamespace"))),
         ('element_form_default', XmlAttribute(Unicode(
@@ -102,6 +105,8 @@ class XmlSchema(SchemaBase):
                                                     sub_name="simpleType")),
         ('complex_types', ComplexType.customize(max_occurs="unbounded",
                                                     sub_name="complexType")),
+        ('attributes', Attribute.customize(max_occurs="unbounded",
+                                                    sub_name="attribute")),
     ]
 
 

@@ -338,7 +338,7 @@ class Wsdl11(XmlSchema):
                 operation = etree.SubElement(port_type, '{%s}operation'
                                                                     % _ns_wsdl)
 
-            operation.set('name', method.name)
+            operation.set('name', method.operation_name)
 
             if method.doc is not None:
                 documentation = etree.SubElement(operation, '{%s}documentation'
@@ -425,7 +425,7 @@ class Wsdl11(XmlSchema):
 
             soap_operation = etree.SubElement(operation, '{%s}operation'
                                                                     % _ns_soap)
-            soap_operation.set('soapAction', method.name)
+            soap_operation.set('soapAction', method.operation_name)
             soap_operation.set('style', 'document')
 
             # get input

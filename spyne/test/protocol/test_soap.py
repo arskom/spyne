@@ -230,7 +230,8 @@ class TestSoap(unittest.TestCase):
   </soap:Body>
 </soap:Envelope>'''
 
-        root, xmlids = _parse_xml_string(envelope_string, 'utf8')
+        root, xmlids = _parse_xml_string(envelope_string,
+                                                    etree.XMLParser(), 'utf8')
         header, payload = _from_soap(root, xmlids)
 
         # quick and dirty test href reconstruction

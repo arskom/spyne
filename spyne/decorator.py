@@ -36,9 +36,10 @@ from spyne._base import BODY_STYLE_BARE
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import TypeInfo
 
-from spyne.const.xml_ns import DEFAULT_NS
+from spyne.const import add_request_suffix
 from spyne.const import RESPONSE_SUFFIX
 from spyne.const import RESULT_SUFFIX
+from spyne.const.xml_ns import DEFAULT_NS
 
 
 def _produce_input_message(f, params, kparams, _in_message_name,
@@ -195,13 +196,24 @@ def rpc(*params, **kparams):
     want to call the methods directly. You can also use the 'function' attribute
     of the returned object to call the function itself.
 
+    ```_operation_name``` vs ```_in_message_name```:
+    Soap clients(SoapUI, Savon, suds) will use the operation name as the function name.
+    The name of the input message(_in_message_name) is irrelevant when interfacing in this
+    manner; this is because the clients mostly wrap around it. However, the soap xml request
+    only uses the input message when posting with the soap server; the other protocols only
+    use the input message as well. ```_operation_name``` cannot be used with ```_in_message_name```
+
     :param _returns: Denotes The return type of the function. It can be a type or
         a sequence of types for functions that have multiple return values.
     :param _in_header: A type or an iterable of types that that this method
         accepts as incoming header.
     :param _out_header: A type or an iterable of types that that this method
         sends as outgoing header.
-    :param _in_message_name: The public name of the function.
+    :param _operation_name: The function's soap operation name. The operation and
+        SoapAction names will equal the value of ```_operation_name```.
+    :param _in_message_name: The public name of the function's input message. If not set
+        explicitly in @srpc, the input message will equal the value of
+        ```_operation_name + REQUEST_SUFFIX```.
     :param _in_variable_names: The public names of the function arguments. It's
         a dict that maps argument names in the code to public ones.
     :param _out_variable_name: The public name of the function response object.
@@ -225,6 +237,8 @@ def rpc(*params, **kparams):
         real functionality besides publishing this information in interface
         documents.
     :param _args: the name of the arguments to expose.
+
+
     '''
 
     def explain(f):
@@ -255,8 +269,18 @@ def rpc(*params, **kparams):
                 _faults = kparams.get('_throws', None)
 
             _in_message_name = kparams.get('_in_message_name', function_name)
+            operation_name = kparams.get('_operation_name', function_name)
+
+            if operation_name is not function_name and _in_message_name is not function_name:
+                raise ValueError("only one of '_operation_name' and '_in_message_name' "
+                                                    "arguments should be given")
+            if _in_message_name is function_name:
+                _in_message_name = add_request_suffix(operation_name)
+
+
             _in_variable_names = kparams.get('_in_variable_names', {})
-            in_message = _produce_input_message(f, params, kparams, 
+
+            in_message = _produce_input_message(f, params, kparams,
                            _in_message_name, _in_variable_names, _no_ctx, _args)
 
             out_message = _produce_output_message(function_name, kparams)
@@ -282,7 +306,7 @@ def rpc(*params, **kparams):
                     _mtom, _in_header, _out_header, _faults,
                     port_type=_port_type, no_ctx=_no_ctx, udp=_udp,
                     class_key=function_name, aux=_aux, patterns=_patterns,
-                    body_style=body_style, args=_args)
+                    body_style=body_style, args=_args, operation_name=operation_name)
 
             return retval
 

@@ -30,10 +30,13 @@ when explicitly enabled due to performance reasons. ::
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
 Initially released in soaplib-0.8.0.
-"""
+
+Logs valid documents to %r and invalid documents to %r.
+""" % (__name__, __name__ + ".invalid")
 
 import logging
 logger = logging.getLogger(__name__)
+logger_invalid = logging.getLogger(__name__ + ".invalid")
 
 import cgi
 
@@ -41,6 +44,7 @@ import spyne.const.xml_ns as ns
 
 from lxml import etree
 from lxml.etree import XMLSyntaxError
+from lxml.etree import XMLParser
 
 from spyne.const.http import HTTP_405
 from spyne.const.http import HTTP_500
@@ -84,22 +88,24 @@ def _from_soap(in_envelope_xml, xmlids=None):
 
     return header, body
 
-def _parse_xml_string(xml_string, charset=None,
-                                  parser=etree.XMLParser(remove_comments=True)):
+def _parse_xml_string(xml_string, parser, charset=None):
     if charset:
         string = ''.join([s.decode(charset) for s in xml_string])
     else:
         string = ''.join(xml_string)
 
-    if isinstance(string, unicode):
-        string = string.encode(charset)
-
     try:
-        root, xmlids = etree.XMLID(string, parser)
+        try:
+            root, xmlids = etree.XMLID(string, parser)
+
+        except ValueError, e:
+            logger.debug('ValueError: Deserializing from unicode strings with '
+                         'encoding declaration is not supported by lxml.')
+            root, xmlids = etree.XMLID(string.encode(charset), parser)
 
     except XMLSyntaxError, e:
-        logger.error(string)
-        raise Fault('Client.XMLSyntaxError', str(e)) 
+        logger_invalid.error(string)
+        raise Fault('Client.XMLSyntaxError', str(e))
 
     return root, xmlids
 
@@ -184,7 +190,9 @@ class Soap11(XmlDocument):
             content_type = cgi.parse_header(content_type)
             collapse_swa(content_type, ctx.in_string)
 
-        ctx.in_document = _parse_xml_string(ctx.in_string, charset)
+        ctx.in_document = _parse_xml_string(ctx.in_string,
+                                            XMLParser(**self.parser_kwargs),
+                                                                        charset)
 
     def decompose_incoming_envelope(self, ctx, message=XmlDocument.REQUEST):
         envelope_xml, xmlids = ctx.in_document

@@ -34,6 +34,9 @@ and the ARRAY_SUFFIX to '' for compatibility with some SOAP deployments."""
 ARRAY_SUFFIX = 'Array'
 """The suffix for Array wrapper objects."""
 
+REQUEST_SUFFIX = ''
+"""The suffix for function response objects."""
+
 RESPONSE_SUFFIX = 'Response'
 """The suffix for function response objects."""
 
@@ -48,3 +51,7 @@ MANDATORY_PREFIX = 'Mandatory'
 
 MANDATORY_SUFFIX = ''
 """The suffix for types created with the :func:`spyne.model.Mandatory`."""
+
+def add_request_suffix(string):
+    """Concatenates REQUEST_SUFFIX to end of string"""
+    return string + REQUEST_SUFFIX

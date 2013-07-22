@@ -67,32 +67,18 @@ ns_test = 'test_namespace'
 
 
 class TestPrimitive(unittest.TestCase):
-    def test_invalid_name(self):
-        class Service(ServiceBase):
-            @srpc()
-            def XResponse():
-                pass
-
-        try:
-            Application([Service], 'hey', in_protocol=XmlDocument(),
-                                          out_protocol=XmlDocument())
-        except:
-            pass
-        else:
-            raise Exception("must fail.")
-
     def test_decimal(self):
         assert Decimal(10,4).Attributes.total_digits == 10
         assert Decimal(10,4).Attributes.fraction_digits == 4
 
     def test_decimal_format(self):
         f = 123456
-        str_format='${:,.2f}'
+        str_format='${0}'
         element = etree.Element('test')
         XmlDocument().to_parent_element(Decimal(str_format=str_format), f, ns_test, element)
         element = element[0]
 
-        self.assertEquals(element.text, '$123,456.00')
+        self.assertEquals(element.text, '$123456')
 
     def test_string(self):
         s = String()

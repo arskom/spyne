@@ -1,7 +1,24 @@
 
+#
+# spyne - Copyright (C) Spyne contributors.
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
+#
+
 import logging
 logger = logging.getLogger(__name__)
-debug = logger.debug
 
 import os
 
@@ -19,6 +36,8 @@ from lxml import etree
 
 from spyne.const import xml_ns
 from spyne.util.odict import odict
+
+from spyne.model import SimpleModel
 from spyne.model.complex import XmlData
 from spyne.model.complex import XmlAttribute
 from spyne.model.complex import Array
@@ -27,9 +46,14 @@ from spyne.model.complex import ComplexModelMeta
 
 from spyne.protocol.xml import XmlDocument
 from spyne.interface.xml_schema.defn import TYPE_MAP
-from spyne.interface.xml_schema.defn import XmlSchema
+from spyne.interface.xml_schema.defn import XmlSchema10
+
+from spyne.util.color import R, G, B, M, Y
 
 PARSER = etree.XMLParser(remove_comments=True)
+
+_prot = XmlDocument()
+
 
 class _Schema(object):
     def __init__(self):
@@ -39,26 +63,29 @@ class _Schema(object):
 
 
 def own_repr(self, i0=0, I = '  '):
-    i1=i0+1; i2=i1+1
+    if not hasattr(self.__class__, '_type_info'):
+        return repr(self)
 
-    if hasattr(self.__class__, '_type_info'):
-        retval = []
-        retval.append(self.__class__.get_type_name())
-        retval.append('(\n')
-        for k,v in self._type_info.items():
-            value = getattr(self, k, None)
-            if (issubclass(v, Array) or v.Attributes.max_occurs > 1) and \
-                                                            value is not None:
-                retval.append("%s%s=[\n" %(I*i1, k))
-                for subval in value:
-                        retval.append("%s%s,\n" % (I*i2, own_repr(subval,i2)))
-                retval.append('%s]\n' % (I*i1))
-            else:
-                retval.append("%s%s=%s,\n" %(I*i1, k,
-                                         own_repr(getattr(self, k, None),i1)))
-        retval.append('%s)' % (I*i0))
-        return ''.join(retval)
-    return repr(self)
+    i1 = i0 + 1
+    i2 = i1 + 1
+
+    retval = []
+    retval.append(self.__class__.get_type_name())
+    retval.append('(\n')
+    for k,v in self._type_info.items():
+        value = getattr(self, k, None)
+        if (issubclass(v, Array) or v.Attributes.max_occurs > 1) and \
+                                                        value is not None:
+            retval.append("%s%s=[\n" %(I*i1, k))
+            for subval in value:
+                retval.append("%s%s,\n" % (I*i2, own_repr(subval,i2)))
+            retval.append('%s]\n' % (I*i1))
+
+        else:
+            retval.append("%s%s=%s,\n" % (I*i1, k,
+                                        own_repr(getattr(self, k, None),i1)))
+    retval.append('%s)' % (I*i0))
+    return ''.join(retval)
 
 
 class ParsingCtx(object):
@@ -96,28 +123,14 @@ class ParsingCtx(object):
 
         return retval
 
-    i0 = lambda self: "  " *  self.indent
-    i1 = lambda self: "  " * (self.indent + 1)
-    i2 = lambda self: "  " * (self.indent + 2)
+    def debug0(self, s, *args, **kwargs):
+        logger.debug("%s%s" % ("  " *  self.indent, s), *args, **kwargs) 
 
-try:
-    import colorama
-    r = lambda s: "%s%s%s%s" % (colorama.Fore.RED, colorama.Style.BRIGHT, s,
-                                                    colorama.Style.RESET_ALL)
-    g = lambda s: "%s%s%s" % (colorama.Fore.GREEN, s, colorama.Fore.RESET)
-    b = lambda s: "%s%s%s%s" % (colorama.Fore.BLUE, colorama.Style.BRIGHT, s,
-                                                    colorama.Style.RESET_ALL)
-    y = lambda s: "%s%s%s%s" % (colorama.Fore.YELLOW, colorama.Style.BRIGHT, s,
-                                                    colorama.Style.RESET_ALL)
-    m = lambda s: "%s%s%s%s" % (colorama.Fore.MAGENTA, colorama.Style.BRIGHT, s,
-                                                    colorama.Style.RESET_ALL)
+    def debug1(self, s, *args, **kwargs):
+        logger.debug("%s%s" % ("  " * (self.indent + 1), s), *args, **kwargs)
 
-except ImportError:
-    r = lambda s: s
-    g = lambda s: s
-    b = lambda s: s
-    y = lambda s: s
-    m = lambda s: s
+    def debug2(self, s, *args, **kwargs):
+        logger.debug("%s%s" % ("  " * (self.indent + 2), s), *args, **kwargs)
 
 
 def parse_schema_file(ctx, file_name):
@@ -130,7 +143,7 @@ def process_includes(ctx, include):
     if file_name is None:
         return
 
-    debug("%s including %s %s", ctx.i1(), ctx.base_dir, file_name)
+    ctx.debug1("including %s %s", ctx.base_dir, file_name)
 
     file_name = abspath(join(ctx.base_dir, file_name))
     data = open(file_name).read()
@@ -138,7 +151,7 @@ def process_includes(ctx, include):
     ctx.nsmap.update(elt.nsmap)
     ctx.prefmap = dict([(v,k) for k,v in ctx.nsmap.items()])
 
-    sub_schema = XmlDocument().from_element(XmlSchema, elt)
+    sub_schema = _prot.from_element(XmlSchema10, elt)
     if sub_schema.includes:
         for inc in sub_schema.includes:
             base_dir = dirname(file_name)
@@ -160,12 +173,18 @@ def process_includes(ctx, include):
 
         setattr(ctx.schema, attr, own)
 
-def process_simple_type(ctx, s):
+
+def process_simple_type(ctx, s, name=None):
+    """Returns the simple Spyne type. Doesn't do any 'pending' processing."""
+
+    if name is None:
+        name = s.name
+
     if s.restriction is None:
-        debug("%s skipping simple type: %s",  ctx.i1(), s.name)
+        ctx.debug1("skipping simple type: %s", name)
         return
     if s.restriction.base is None:
-        debug("%s skipping simple type: %s",  ctx.i1(), s.name)
+        ctx.debug1("skipping simple type: %s", name)
         return
 
     base = get_type(ctx, s.restriction.base)
@@ -189,8 +208,15 @@ def process_simple_type(ctx, s):
         if restriction.pattern.value:
             kwargs['pattern'] = restriction.pattern.value
 
-    debug("%s adding   simple type: %s",  ctx.i1(), s.name)
-    ctx.retval[ctx.tns].types[s.name] = base.customize(**kwargs)
+    kwargs['type_name'] = s.name
+    ctx.debug1("adding   simple type: %s", name)
+
+    # quirk. hmpf.
+    if issubclass(base, SimpleModel):
+        return base(**kwargs)
+    else:
+        return base.customize(**kwargs)
+
 
 def process_element(ctx, e):
     if e.name is None:
@@ -198,7 +224,7 @@ def process_element(ctx, e):
     if e.type is None:
         return
 
-    debug("%s adding element: %s", ctx.i1(), e.name)
+    ctx.debug1("adding element: %s", e.name)
     t = get_type(ctx, e.type)
 
     key = e.name
@@ -211,26 +237,46 @@ def process_element(ctx, e):
     else:
         ctx.pending_elements[key] = e
 
+
+def process_attribute(ctx, a):
+    if a.ref is not None:
+        t = get_type(ctx, a.ref)
+        return t.get_type_name(), t
+
+    if a.type is not None:
+        t = get_type(ctx, a.type)
+
+    elif a.simple_type is not None:
+        t = process_simple_type(ctx, a.simple_type, a.name)
+
+    else:
+        raise Exception("dunno attr")
+
+    if t is None:
+        raise ValueError(a, 'not found')
+
+    return (a.name, XmlAttribute(t))
+
+
 def process_complex_type(ctx, c):
     def process_type(tn, name, wrapper=lambda x:x):
         t = get_type(ctx, tn)
         key = (c.name, name)
         if t is None:
             ctx.pending_types[key] = c
-            debug("%s not found: %r", ctx.i2(), key)
+            ctx.debug2("not found: %r", key)
 
         else:
             if key in ctx.pending_types:
                 del ctx.pending_types[key]
-            assert name, (key, e)
+            assert name is not None, (key, e)
 
             ti.append( (name, wrapper(t)) )
-            debug("%s     found: %r", ctx.i2(), key)
-
+            ctx.debug2("    found: %r", key)
 
     ti = []
     _pending = False
-    debug("%s adding complex type: %s", ctx.i1(), c.name)
+    ctx.debug1("adding complex type: %s", c.name)
 
     if c.sequence is not None and c.sequence.element is not None:
         for e in c.sequence.element:
@@ -241,8 +287,9 @@ def process_complex_type(ctx, c):
             elif e.type is not None:
                 tn = e.type
                 name = e.name
+
             else:
-                raise Exception("dunno")
+                raise Exception("dunno seqelt")
 
             process_type(tn, name)
 
@@ -253,8 +300,7 @@ def process_complex_type(ctx, c):
             if a.type is None:
                 continue
 
-            t = process_type(a.type, a.name)
-
+            process_type(a.type, a.name)
 
     if c.simple_content is not None:
         if c.simple_content.extension is not None: 
@@ -262,9 +308,10 @@ def process_complex_type(ctx, c):
             if ext.base is not None:
                 # FIXME: find a way to generate _data
                 process_type(ext.base, "_data", XmlData)
+
             if ext.attributes is not None:
                 for a in ext.attributes:
-                    process_type(a.type, a.name, XmlAttribute)
+                    ti.append(process_attribute(ctx, a))
 
     cls_dict = {
         '__type_name__': c.name,
@@ -306,32 +353,32 @@ def get_type(ctx, tn):
 
 def process_pending(ctx):
     # process pending
-    debug("%s6 %s processing pending complex_types", ctx.i0(), b(ctx.tns))
+    ctx.debug0("6 %s processing pending complex_types", B(ctx.tns))
     for (c_name, e_name), _v in ctx.pending_types.items():
         process_complex_type(ctx, _v)
 
-    debug("%s7 %s processing pending elements", ctx.i0(), y(ctx.tns))
+    ctx.debug0("7 %s processing pending elements", Y(ctx.tns))
     for _k,_v in ctx.pending_elements.items():
         process_element(ctx, _v)
 
 def print_pending(ctx):
     if len(ctx.pending_elements) > 0 or len(ctx.pending_types) > 0:
-        debug("%" * 50)
-        debug(ctx.tns)
-        debug("")
+        ctx.debug0("%" * 50)
+        ctx.debug0(ctx.tns)
+        ctx.debug0("")
 
-        debug("elements")
-        debug(pformat(ctx.pending_elements))
-        debug("")
+        ctx.debug0("elements")
+        ctx.debug0(pformat(ctx.pending_elements))
+        ctx.debug0("")
 
-        debug("types")
-        debug(pformat(ctx.pending_types))
-        debug("%" * 50)
+        ctx.debug0("types")
+        ctx.debug0(pformat(ctx.pending_types))
+        ctx.debug0("%" * 50)
 
 def parse_schema(ctx, elt):
     ctx.nsmap = nsmap = elt.nsmap
     ctx.prefmap = prefmap = dict([(v,k) for k,v in ctx.nsmap.items()])
-    ctx.schema = schema = XmlDocument().from_element(XmlSchema, elt)
+    ctx.schema = schema = _prot.from_element(XmlSchema10, elt)
 
     ctx.pending_types = {}
     ctx.pending_elements = {}
@@ -341,7 +388,7 @@ def parse_schema(ctx, elt):
         return
     ctx.retval[tns] = _Schema()
 
-    debug("%s1 %s processing includes", ctx.i0(), m(tns))
+    ctx.debug0("1 %s processing includes", M(tns))
     if schema.includes:
         for include in schema.includes:
             process_includes(ctx, include)
@@ -352,26 +399,35 @@ def parse_schema(ctx, elt):
         schema.complex_types = odict([(c.name, c) for c in schema.complex_types])
     if schema.simple_types:
         schema.simple_types = odict([(s.name, s) for s in schema.simple_types])
+    if schema.attributes:
+        schema.attributes = odict([(a.name, a) for a in schema.attributes])
 
-    debug("%s2 %s processing imports", ctx.i0(), r(tns))
+    ctx.debug0("2 %s processing imports", R(tns))
     if schema.imports:
         for imp in schema.imports:
             if not imp.namespace in ctx.retval:
-                debug("%s %s importing %s", ctx.i1(), tns, imp.namespace)
+                ctx.debug1("%s importing %s", tns, imp.namespace)
                 file_name = ctx.files[imp.namespace]
                 parse_schema_file(ctx.clone(2, dirname(file_name)), file_name)
 
-    debug("%s3 %s processing simple_types", ctx.i0(), g(tns))
+    ctx.debug0("3 %s processing attributes", G(tns))
+    if schema.attributes:
+        for s in schema.attributes.values():
+            n, t= process_attribute(ctx, s)
+            ctx.retval[ctx.tns].types[n] = t
+
+    ctx.debug0("4 %s processing simple_types", G(tns))
     if schema.simple_types:
         for s in schema.simple_types.values():
-            process_simple_type(ctx, s)
+            st = process_simple_type(ctx, s)
+            ctx.retval[ctx.tns].types[s.name] = st
 
-    debug("%s4 %s processing complex_types", ctx.i0(), b(tns))
+    ctx.debug0("5 %s processing complex_types", B(tns))
     if schema.complex_types:
         for c in schema.complex_types.values():
             process_complex_type(ctx, c)
 
-    debug("%s5 %s processing elements", ctx.i0(), y(tns))
+    ctx.debug0("6 %s processing elements", Y(tns))
     if schema.elements:
         for e in schema.elements.values():
             process_element(ctx, e)
@@ -383,13 +439,13 @@ def parse_schema(ctx, elt):
             # This is needed for schemas with circular imports
             for c in chain([ctx], ctx.children):
                 print_pending(c)
-            debug('')
+            ctx.debug0('')
 
             for c in chain([ctx], ctx.children):
                 process_pending(c)
             for c in chain([ctx], ctx.children):
                 process_pending(c)
-            debug('')
+            ctx.debug0('')
             for c in chain([ctx], ctx.children):
                 print_pending(c)
 
