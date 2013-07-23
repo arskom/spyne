@@ -68,8 +68,13 @@ class Restriction(SchemaBase):
 SimpleType._type_info.append(  ('restriction', Restriction)  )
 
 
+class Choice(SchemaBase):
+    elements = Element.customize(max_occurs="unbounded", sub_name="element")
+
+
 class Sequence(SchemaBase):
     elements = Element.customize(max_occurs="unbounded", sub_name="element")
+    choices = Choice.customize(max_occurs="unbounded", sub_name="choice")
 
 
 class Extension(SchemaBase):
@@ -82,12 +87,14 @@ class SimpleContent(SchemaBase):
     extension = Extension
     restriction = Restriction
 
+
 class ComplexType(SchemaBase):
     name = XmlAttribute(Unicode)
     sequence = Sequence
     simple_content = SimpleContent.customize(sub_name="simpleContent")
     attributes = Attribute.customize(max_occurs="unbounded",
                                                         sub_name="attribute")
+    choice = Choice
 
 
 class Include(SchemaBase):

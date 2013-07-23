@@ -30,8 +30,9 @@ from os.path import abspath
 from spyne.interface import Interface
 from spyne.interface.xml_schema import XmlSchema
 from spyne.interface.xml_schema import parser
-from spyne.protocol.xml import XmlDocument
 from spyne.interface.xml_schema.defn import TYPE_MAP
+
+from spyne.protocol.xml import XmlDocument
 
 
 class FakeApplication(object):

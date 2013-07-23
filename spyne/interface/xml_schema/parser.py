@@ -48,6 +48,7 @@ from spyne.model.complex import ComplexModelMeta
 
 from spyne.protocol.xml import XmlDocument
 from spyne.interface.xml_schema.defn import TYPE_MAP
+from spyne.interface.xml_schema.defn import SchemaBase
 from spyne.interface.xml_schema.defn import XmlSchema10
 
 from spyne.util.color import R, G, B, M, Y
@@ -101,6 +102,8 @@ def Town_repr(with_ns=False):
         return ''.join(retval)
 
     return own_repr
+
+SchemaBase.__repr__ = Town_repr()
 
 class ParsingCtx(object):
     def __init__(self, files, base_dir=None, own_repr=Town_repr(with_ns=False)):
@@ -235,10 +238,8 @@ def process_simple_type(ctx, s, name=None):
     return retval
 
 
-def process_element(ctx, e):
+def process_schema_element(ctx, e):
     if e.name is None:
-        return
-    if e.type is None:
         return
 
     ctx.debug1("adding element: %s", e.name)
@@ -325,24 +326,41 @@ def process_complex_type(ctx, c):
         ti.append( (name, wrapper(t)) )
         ctx.debug2("    found: %r(%s), c: %r", key,tn,kwargs)
 
+    def process_element(e):
+        if e.ref is not None:
+            tn = e.ref
+            name = e.ref.split(":", 1)[-1]
+
+        elif e.name is not None:
+            tn = e.type
+            name = e.name
+
+        else:
+            raise Exception("dunno")
+
+        process_type(tn, name, element=e)
+
     ti = []
-    _pending = False
-    ctx.debug1("adding complex type: %s", c.name)
+    if c.name in ctx.retval[ctx.tns].types:
+        ctx.debug1("modifying existing %r" % c.name)
+    else:
+        ctx.debug1("adding complex type: %s", c.name)
 
-    if c.sequence is not None and c.sequence.elements is not None:
-        for e in c.sequence.elements:
-            if e.ref is not None:
-                tn = e.ref
-                name = e.ref.split(":", 1)[-1]
+    if c.sequence is not None:
+        if c.sequence.elements is not None:
+            for e in c.sequence.elements:
+                process_element(e)
 
-            elif e.type is not None:
-                tn = e.type
-                name = e.name
+        if c.sequence.choices is not None:
+            for ch in c.sequence.choices:
+                if ch.elements is not None:
+                    for e in ch.elements:
+                        process_element(e)
 
-            else:
-                raise Exception("dunno seqelt")
-
-            process_type(tn, name, element=e)
+    if c.choice is not None:
+        if c.choice.elements is not None:
+            for e in c.choice.elements:
+                process_element(e)
 
     if c.attributes is not None:
         for a in c.attributes:
@@ -352,7 +370,6 @@ def process_complex_type(ctx, c):
                 continue
 
             process_type(a.type, a.name, XmlAttribute, attribute=a)
-
 
     if c.simple_content is not None:
         ext = c.simple_content.extension
@@ -375,15 +392,19 @@ def process_complex_type(ctx, c):
                 for a in restr.attributes:
                     ti.append(process_attribute(ctx, a))
 
-    cls_dict = {
-        '__type_name__': c.name,
-        '__namespace__': ctx.tns,
-        '_type_info': ti,
-    }
-    if ctx.own_repr is not None:
-        cls_dict['__repr__'] = ctx.own_repr
+    if c.name in ctx.retval[ctx.tns].types:
+        ctx.retval[ctx.tns].types[c.name]._type_info.update(ti)
 
-    ctx.retval[ctx.tns].types[c.name] = ComplexModelMeta(str(c.name),
+    else:
+        cls_dict = {
+            '__type_name__': c.name,
+            '__namespace__': ctx.tns,
+            '_type_info': ti,
+        }
+        if ctx.own_repr is not None:
+            cls_dict['__repr__'] = ctx.own_repr
+
+        ctx.retval[ctx.tns].types[c.name] = ComplexModelMeta(str(c.name),
                                                   (ComplexModelBase,), cls_dict)
 
 def get_type(ctx, tn):
@@ -395,10 +416,10 @@ def get_type(ctx, tn):
         ns, qn = tn.split(":",1)
         ns = ctx.nsmap[ns]
     else:
-        if None in ctx.prefmap:
-            ns, qn = ctx.tns, tn
-        else:
+        if None in ctx.nsmap:
             ns, qn = ctx.nsmap[None], tn
+        else:
+            ns, qn = ctx.tns, tn
 
     ti = ctx.retval.get(ns)
     if ti is not None:
@@ -411,7 +432,10 @@ def get_type(ctx, tn):
             if ":" in e.type:
                 return get_type(ctx, e.type)
             else:
-                return get_type(ctx, "{%s}%s" % (ns, e.type))
+                retval = get_type(ctx, "{%s}%s" % (ns, e.type))
+                if retval is None and None in ctx.nsmap:
+                    retval = get_type(ctx, "{%s}%s" % (ctx.nsmap[None], e.type))
+                return retval
 
     return TYPE_MAP.get("{%s}%s" % (ns, qn))
 
@@ -423,10 +447,13 @@ def process_pending(ctx):
 
     ctx.debug0("7 %s processing pending elements", Y(ctx.tns))
     for _k,_v in ctx.pending_elements.items():
-        process_element(ctx, _v)
+        process_schema_element(ctx, _v)
 
-def print_pending(ctx):
+
+def print_pending(ctx, fail=False):
     if len(ctx.pending_elements) > 0 or len(ctx.pending_types) > 0:
+        if fail:
+            logging.basicConfig(level=logging.DEBUG)
         ctx.debug0("%" * 50)
         ctx.debug0(ctx.tns)
         ctx.debug0("")
@@ -438,6 +465,8 @@ def print_pending(ctx):
         ctx.debug0("types")
         ctx.debug0(pformat(ctx.pending_types))
         ctx.debug0("%" * 50)
+        if fail:
+            raise Exception("there are still unresolved elements")
 
 
 def parse_schema(ctx, elt):
@@ -496,7 +525,7 @@ def parse_schema(ctx, elt):
     ctx.debug0("6 %s processing elements", Y(tns))
     if schema.elements:
         for e in schema.elements.values():
-            process_element(ctx, e)
+            process_schema_element(ctx, e)
 
     process_pending(ctx)
 
@@ -512,7 +541,8 @@ def parse_schema(ctx, elt):
             for c in chain([ctx], ctx.children):
                 process_pending(c)
             ctx.debug0('')
+
             for c in chain([ctx], ctx.children):
-                print_pending(c)
+                print_pending(c, fail=True)
 
     return ctx.retval
