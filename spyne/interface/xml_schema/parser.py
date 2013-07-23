@@ -283,12 +283,12 @@ def process_attribute(ctx, a):
 
 
 def process_complex_type(ctx, c):
-    def process_type(tn, name, wrapper=lambda x:x, element=None, attribute=None):
+    def process_type(tn, name, wrapper=lambda x: x, element=None, attribute=None):
         t = get_type(ctx, tn)
         key = (c.name, name)
         if t is None:
             ctx.pending_types[key] = c
-            ctx.debug2("not found: %r", key)
+            ctx.debug2("not found: %r(%s)", key, tn)
             return
 
         if key in ctx.pending_types:
@@ -323,7 +323,7 @@ def process_complex_type(ctx, c):
                 t = t.customize(**kwargs)
 
         ti.append( (name, wrapper(t)) )
-        ctx.debug2("    found: %r, c: %r" % (key,kwargs))
+        ctx.debug2("    found: %r(%s), c: %r", key,tn,kwargs)
 
     ti = []
     _pending = False
@@ -401,7 +401,7 @@ def get_type(ctx, tn):
             ns, qn = ctx.nsmap[None], tn
 
     ti = ctx.retval.get(ns)
-    if ti:
+    if ti is not None:
         t = ti.types.get(qn)
         if t:
             return t
