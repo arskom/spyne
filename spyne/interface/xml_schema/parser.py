@@ -37,6 +37,7 @@ from lxml import etree
 from spyne.const import xml_ns
 from spyne.util.odict import odict
 
+from spyne.model import Null
 from spyne.model import SimpleModel
 from spyne.model.complex import XmlModifier
 from spyne.model.complex import XmlData
@@ -386,6 +387,8 @@ def process_complex_type(ctx, c):
                                                   (ComplexModelBase,), cls_dict)
 
 def get_type(ctx, tn):
+    if tn is None:
+        return Null
     if tn.startswith("{"):
         ns, qn = tn[1:].split('}',1)
     elif ":" in tn:
