@@ -311,14 +311,11 @@ def complex_from_element(prot, cls, element):
 
     xtba_key, xtba_type = cls.Attributes._xml_tag_body_as
     if xtba_key is not None:
-        if issubclass(xtba_type.type, ComplexModelBase):
-            value = prot.from_element(xtba_type.type, element)
+        if issubclass(xtba_type.type, (ByteArray, File)):
+            value = prot.from_string(xtba_type.type, element.text,
+                                                prot.default_binary_encoding)
         else:
-            if issubclass(xtba_type.type, (ByteArray, File)):
-                value = prot.from_string(xtba_type.type, element.text,
-                                                   prot.default_binary_encoding)
-            else:
-                value = prot.from_string(xtba_type.type, element.text)
+            value = prot.from_string(xtba_type.type, element.text)
         setattr(inst, xtba_key, value)
 
     # parse input to set incoming data to related attributes.

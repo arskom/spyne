@@ -341,6 +341,7 @@ def process_complex_type(ctx, c):
         process_type(tn, name, element=e)
 
     ti = []
+    base = ComplexModelBase
     if c.name in ctx.retval[ctx.tns].types:
         ctx.debug1("modifying existing %r", c.name)
     else:
@@ -373,10 +374,10 @@ def process_complex_type(ctx, c):
 
     if c.simple_content is not None:
         ext = c.simple_content.extension
+        base_name = None
         if ext is not None: 
-            if ext.base is not None:
-                # FIXME: find a way to generate _data
-                process_type(ext.base, "_data", XmlData)
+            base_name = ext.base
+            b = get_type(ctx, ext.base)
 
             if ext.attributes is not None:
                 for a in ext.attributes:
@@ -384,13 +385,17 @@ def process_complex_type(ctx, c):
 
         restr = c.simple_content.restriction
         if restr is not None:
-            if restr.base is not None:
-                # FIXME: find a way to generate _data
-                process_type(restr.base, "_data", XmlData)
+            base_name = restr.base
+            b = get_type(ctx, restr.base)
 
             if restr.attributes is not None:
                 for a in restr.attributes:
                     ti.append(process_attribute(ctx, a))
+
+        if issubclass(b, ComplexModelBase):
+            base = b
+        else:
+            process_type(base_name, "_data", XmlData)
 
     if c.name in ctx.retval[ctx.tns].types:
         ctx.retval[ctx.tns].types[c.name]._type_info.update(ti)
@@ -404,8 +409,8 @@ def process_complex_type(ctx, c):
         if ctx.own_repr is not None:
             cls_dict['__repr__'] = ctx.own_repr
 
-        ctx.retval[ctx.tns].types[c.name] = ComplexModelMeta(str(c.name),
-                                                  (ComplexModelBase,), cls_dict)
+        r = ComplexModelMeta(str(c.name), (base,), cls_dict)
+        ctx.retval[ctx.tns].types[c.name] = r
 
 def get_type(ctx, tn):
     if tn is None:
