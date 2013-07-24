@@ -324,7 +324,7 @@ def process_complex_type(ctx, c):
                 t = t.customize(**kwargs)
 
         ti.append( (name, wrapper(t)) )
-        ctx.debug2("    found: %r(%s), c: %r", key,tn,kwargs)
+        ctx.debug2("    found: %r(%s), c: %r", key, tn, kwargs)
 
     def process_element(e):
         if e.ref is not None:
@@ -342,7 +342,7 @@ def process_complex_type(ctx, c):
 
     ti = []
     if c.name in ctx.retval[ctx.tns].types:
-        ctx.debug1("modifying existing %r" % c.name)
+        ctx.debug1("modifying existing %r", c.name)
     else:
         ctx.debug1("adding complex type: %s", c.name)
 
