@@ -86,7 +86,7 @@ def Town_repr(with_ns=False):
         retval = []
         retval.append(get_class_name(self.__class__))
         retval.append('(\n')
-        for k,v in self._type_info.items():
+        for k,v in self.get_flat_type_info(self.__class__).items():
             value = getattr(self, k, None)
             if (issubclass(v, Array) or v.Attributes.max_occurs > 1) and \
                                                             value is not None:
