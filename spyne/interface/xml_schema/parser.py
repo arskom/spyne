@@ -77,16 +77,25 @@ def Town_repr(with_ns=False):
             return with_ns(c.get_namespace(), c.get_type_name())
 
     def own_repr(self, i0=0, I='  '):
-        if not hasattr(self.__class__, '_type_info'):
+        cls = self.__class__
+        if not hasattr(cls, '_type_info'):
             return repr(self)
 
         i1 = i0 + 1
         i2 = i1 + 1
 
         retval = []
-        retval.append(get_class_name(self.__class__))
-        retval.append('(\n')
-        for k,v in self.get_flat_type_info(self.__class__).items():
+        retval.append(get_class_name(cls))
+        retval.append('(')
+
+        xtba_key, xtba_type = cls.Attributes._xml_tag_body_as
+        if xtba_key is not None:
+            value = getattr(self, xtba_key, None)
+            retval.append("%s,\n" % own_repr(value,i1))
+        else:
+            retval.append('\n')
+
+        for k,v in self.get_flat_type_info(cls).items():
             value = getattr(self, k, None)
             if (issubclass(v, Array) or v.Attributes.max_occurs > 1) and \
                                                             value is not None:
@@ -95,9 +104,12 @@ def Town_repr(with_ns=False):
                     retval.append("%s%s,\n" % (I*i2, own_repr(subval,i2)))
                 retval.append('%s],\n' % (I*i1))
 
+            elif issubclass(v, XmlData):
+                pass
+
             else:
-                retval.append("%s%s=%s,\n" % (I*i1, k,
-                                        own_repr(getattr(self, k, None),i1)))
+                retval.append("%s%s=%s,\n" % (I*i1, k, own_repr(value, i1)))
+
         retval.append('%s)' % (I*i0))
         return ''.join(retval)
 

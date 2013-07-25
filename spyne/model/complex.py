@@ -507,9 +507,16 @@ class ComplexModelBase(ModelBase):
 
         _xml_tag_body_as = None, None
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         cls = self.__class__
         fti = cls.get_flat_type_info(cls)
+        xtba_key, xtba_type = cls.Attributes._xml_tag_body_as
+
+        if xtba_key is not None and len(args) == 1:
+            setattr(self, xtba_key, args[0])
+        elif len(args) > 0:
+            raise TypeError("No XmlData field found.")
+
         for k,v in fti.items():
             if k in kwargs:
                 setattr(self, k, kwargs[k])

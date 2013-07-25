@@ -35,16 +35,18 @@ from spyne.protocol import ProtocolBase
 from spyne.protocol.soap import Soap11
 from spyne.const import xml_ns
 
-from spyne.model.binary import ByteArray
-from spyne.model.complex import Array
-from spyne.model.complex import ComplexModel
-from spyne.model.complex import SelfReference
-from spyne.model.complex import XmlAttribute
+from spyne.model import ByteArray
+from spyne.model import Array
+from spyne.model import ComplexModel
+from spyne.model import SelfReference
+from spyne.model import XmlData
+from spyne.model import XmlAttribute
 
-from spyne.model.primitive import DateTime
-from spyne.model.primitive import Float
-from spyne.model.primitive import Integer
-from spyne.model.primitive import String
+from spyne.model import Unicode
+from spyne.model import DateTime
+from spyne.model import Float
+from spyne.model import Integer
+from spyne.model import String
 
 from spyne.protocol.dictdoc import FlatDictDocument
 from spyne.protocol.xml import XmlDocument
@@ -519,6 +521,32 @@ class TestSelfRefence(unittest.TestCase):
 
     def test_array_type_name(self):
         assert Array(String, type_name='punk').__type_name__ == 'punk'
+
+    def test_ctor_kwargs(self):
+        class Category(ComplexModel):
+            id = Integer(min_occurs=1, max_occurs=1, nillable=False)
+            children = Array(Unicode)
+
+        v = Category(id=5, children=['a','b'])
+
+        assert v.id == 5
+        assert v.children == ['a', 'b']
+
+    def test_ctor_args(self):
+        class Category(ComplexModel):
+            id = XmlData(Integer(min_occurs=1, max_occurs=1, nillable=False))
+            children = Array(Unicode)
+
+        v = Category(id=5, children=['a','b'])
+
+        assert v.id == 5
+        assert v.children == ['a', 'b']
+
+        v = Category(5, children=['a','b'])
+
+        assert v.id == 5
+        assert v.children == ['a', 'b']
+
 
 
 if __name__ == '__main__':
