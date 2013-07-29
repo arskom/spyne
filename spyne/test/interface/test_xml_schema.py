@@ -25,18 +25,18 @@ from pprint import pprint
 from lxml import etree
 
 from spyne.util.odict import odict
-from spyne.application import Application
+from spyne import Application
 from spyne.const import xml_ns as ns
-from spyne.decorator import rpc
-from spyne.model.binary import ByteArray
-from spyne.model.complex import ComplexModel
-from spyne.model.complex import XmlAttribute
-from spyne.model.complex import XmlData
-from spyne.model.primitive import AnyXml
-from spyne.model.primitive import Integer
-from spyne.model.primitive import Mandatory
-from spyne.model.primitive import Unicode
-from spyne.model.primitive import Uuid
+from spyne import rpc
+from spyne.model import ByteArray
+from spyne.model import ComplexModel
+from spyne.model import XmlAttribute
+from spyne.model import XmlData
+from spyne.model import AnyXml
+from spyne.model import Integer
+from spyne.model import Mandatory
+from spyne.model import Unicode
+from spyne.model import Uuid
 from spyne.protocol.soap import Soap11
 from spyne.service import ServiceBase
 from spyne.util.xml import get_schema_documents
