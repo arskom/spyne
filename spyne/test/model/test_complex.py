@@ -548,6 +548,5 @@ class TestSelfRefence(unittest.TestCase):
         assert v.children == ['a', 'b']
 
 
-
 if __name__ == '__main__':
     unittest.main()

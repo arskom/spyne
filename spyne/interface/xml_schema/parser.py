@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 import os
 
 from itertools import chain
+
 from pprint import pprint
 from pprint import pformat
 
@@ -548,7 +549,7 @@ def parse_schema(ctx, elt):
     process_pending(ctx)
 
     if ctx.parent is None: # for the top-most schema
-        if ctx.children is not None: # # if it uses <include> or <import>
+        if ctx.children is not None: # if it uses <include> or <import>
             # This is needed for schemas with circular imports
             for c in chain([ctx], ctx.children):
                 print_pending(c)

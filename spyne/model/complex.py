@@ -606,7 +606,7 @@ class ComplexModelBase(ModelBase):
 
     @staticmethod
     def get_simple_type_info(cls, hier_delim="_", retval=None, prefix=None,
-                                            parent=None, is_array=None, tags=None):
+                                        parent=None, is_array=None, tags=None):
         """Returns a _type_info dict that includes members from all base classes
         and whose types are only primitives. It will prefix field names in
         non-top-level complex objects with field name of its parent.
@@ -764,7 +764,7 @@ class ComplexModelBase(ModelBase):
 
         orig = getattr(retval, '__orig__', None)
         if orig is not None:
-            retval.__extends__ = getattr(orig, '__extends__', None)
+            retval.__extends__ = orig
 
         return retval
 
