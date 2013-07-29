@@ -9,12 +9,14 @@ spyne-2.11.0
 * Add support for XmlData modifier. It lets mapping the data in the xml body
   to an object field.
 * Remove deprecated ``JsonObject`` identifier. Just do a gentle
-  ``s/JsonObject/JsonDocument/g``.
+  ``s/JsonObject/JsonDocument/g`` if you're still using it.
 * SQLAlchemy: Implement storing arrays of simple types in a table.
 * SQLAlchemy: Make it work with multiple foreign keys from one table to
   another.
 * Implement an Xml Schema parser.
 * Import all model markers to ``spyne.model``.
+* Import ``@rpc``\, ``@srpc``\, ``ServiceBase`` and ``Application`` inside the
+  ``spyne`` module.
 * Implement JsonP protocol.
 * Steal and integrate the WebSocket tranport for Twisted.
 
