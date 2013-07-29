@@ -36,15 +36,16 @@ from lxml import etree
 
 from spyne.const import xml_ns
 from spyne.util.odict import odict
+from spyne.model.complex import XmlModifier
 
 from spyne.model import Null
 from spyne.model import SimpleModel
-from spyne.model.complex import XmlModifier
-from spyne.model.complex import XmlData
-from spyne.model.complex import XmlAttribute
-from spyne.model.complex import Array
-from spyne.model.complex import ComplexModelBase
-from spyne.model.complex import ComplexModelMeta
+
+from spyne.model import XmlData
+from spyne.model import XmlAttribute
+from spyne.model import Array
+from spyne.model import ComplexModelBase
+from spyne.model import ComplexModelMeta
 
 from spyne.protocol.xml import XmlDocument
 from spyne.interface.xml_schema.defn import TYPE_MAP

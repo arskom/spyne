@@ -107,22 +107,20 @@ class TestXmlSchema(unittest.TestCase):
 
 
     def test_namespaced_xml_attribute(self):
-        class RdfAbout(XmlAttribute):
-            __type_name__ = "about"
-            __namespace__ = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
-
         class Release(ComplexModel):
             __namespace__ = "http://usefulinc.com/ns/doap#"
 
             _type_info = [
-                ('about', RdfAbout(Unicode, ns="http://www.w3.org/1999/02/22-rdf-syntax-ns#")),
+                ('about', XmlAttribute(Unicode,
+                             ns="http://www.w3.org/1999/02/22-rdf-syntax-ns#")),
             ]
 
         class Project(ComplexModel):
             __namespace__ = "http://usefulinc.com/ns/doap#"
 
             _type_info = [
-                ('about', RdfAbout(Unicode, ns="http://www.w3.org/1999/02/22-rdf-syntax-ns#")),
+                ('about', XmlAttribute(Unicode,
+                             ns="http://www.w3.org/1999/02/22-rdf-syntax-ns#")),
                 ('release', Release.customize(max_occurs=float('inf'))),
             ]
 
