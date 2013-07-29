@@ -19,12 +19,13 @@ How do I implement a predefined WSDL?
 
 **Short answer:** By hand.
 
-**Long answer:** Spyne does not have any functionality to parse an existing
-WSDL document, nor a way of producing the necessary Python classes and method
-stubs from an existing interface definition.
+**Long answer:** Some work has been done towards parsing Xml Schema 1.0
+documents and generating Spyne classes from Xml Schema types but it's still in
+pre-alpha stage. Have a look at ``parser`` and ``genpy`` modules in the
+``spyne.interface.xml_schema`` packages and/or get in touch for more
+information.
 
-Patches are welcome for both of these points. Maybe you can start by adapting
-the WSDL parser from `RSL <http://rsl.sf.net>`_.
+Needless to say, patches are welcome.
 
 How do I use variable names that are also Python keywords?
 ==========================================================
