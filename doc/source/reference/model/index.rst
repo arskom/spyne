@@ -27,7 +27,6 @@ Base Classes
 
 .. autoclass:: spyne.model.ModelBase
    :members:
-   :show-inheritance:
    :special-members:
    :exclude-members: __dict__,__weakref__
 
