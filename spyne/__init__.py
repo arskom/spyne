@@ -28,6 +28,11 @@ from spyne._base import MethodContext
 from spyne._base import MethodDescriptor
 from spyne._base import EventManager
 
+from spyne.decorator import rpc
+from spyne.decorator import srpc
+from spyne.service import ServiceBase
+from spyne.application import Application
+
 import sys
 
 if not hasattr(sys, "version_info") or sys.version_info < (2, 5):
