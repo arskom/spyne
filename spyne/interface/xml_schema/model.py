@@ -106,7 +106,7 @@ def complex_add(document, cls, tags):
         if (extends.get_type_name() == cls.get_type_name() and
                                extends.get_namespace() == cls.get_namespace()):
             raise Exception("%r can't extend %r because they are both '{%s}%s'"
-                    % (cls, extends, cls.get_type_name(), cls.get_namespace()))
+                    % (cls, extends, cls.get_namespace(), cls.get_type_name()))
 
         if extends.Attributes.exc_interface:
             # If the parent class is private, it won't be in the schema, so we
