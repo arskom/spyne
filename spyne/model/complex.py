@@ -764,7 +764,7 @@ class ComplexModelBase(ModelBase):
 
         orig = getattr(retval, '__orig__', None)
         if orig is not None:
-            retval.__extends__ = orig
+            retval.__extends__ = getattr(orig, '__extends__', None)
 
         return retval
 
