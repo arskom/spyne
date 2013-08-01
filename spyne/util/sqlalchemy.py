@@ -867,14 +867,14 @@ def get_spyne_type(v):
     elif isinstance(v.type, sqlalchemy.Unicode):
         rpc_type = Unicode(v.type.length)
 
-    elif isinstance(v.type, sqlalchemy.String):
-        rpc_type = String(v.type.length)
-
     elif isinstance(v.type, sqlalchemy.UnicodeText):
         rpc_type = Unicode
 
     elif isinstance(v.type, sqlalchemy.Text):
         rpc_type = String
+
+    elif isinstance(v.type, sqlalchemy.String):
+        rpc_type = String(v.type.length)
 
     elif isinstance(v.type, (sqlalchemy.Numeric)):
         rpc_type = Decimal(v.type.precision, v.type.scale)
