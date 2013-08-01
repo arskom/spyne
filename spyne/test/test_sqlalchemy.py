@@ -25,6 +25,7 @@ logging.basicConfig(level=logging.DEBUG)
 from getpass import getuser
 PSQL_CONN_STR = 'postgres://postgres:@localhost:5432/spyne_test_%s' % getuser()
 
+import random
 import unittest
 import sqlalchemy
 
@@ -94,19 +95,19 @@ class TestSqlAlchemy(unittest.TestCase):
     def test_mapper(self):
         import sqlalchemy
 
-        class User(self.DeclarativeBase):
-            __tablename__ = 'user'
-
-            id = Column(sqlalchemy.Integer, primary_key=True)
-            name = Column(sqlalchemy.String(50))
-            addresses = relationship("Address", backref="user")
-
         class Address(self.DeclarativeBase):
             __tablename__ = 'address'
 
             id = Column(sqlalchemy.Integer, primary_key=True)
             email = Column(sqlalchemy.String(50))
             user_id = Column(sqlalchemy.Integer, ForeignKey('user.id'))
+
+        class User(self.DeclarativeBase):
+            __tablename__ = 'user'
+
+            id = Column(sqlalchemy.Integer, primary_key=True)
+            name = Column(sqlalchemy.String(50))
+            addresses = relationship("Address", backref="user")
 
         self.metadata.create_all(self.engine)
 
