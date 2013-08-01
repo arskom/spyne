@@ -53,7 +53,9 @@ from sqlalchemy.dialects.postgresql.base import PGUuid
 from sqlalchemy.ext.compiler import compiles
 
 from sqlalchemy.orm import relationship
+from sqlalchemy.orm import mapper
 from sqlalchemy.orm.util import class_mapper
+from sqlalchemy.orm.exc import UnmappedClassError
 from sqlalchemy.ext.associationproxy import association_proxy
 
 from sqlalchemy.types import UserDefinedType
@@ -115,6 +117,13 @@ class _SINGLE:
 
 class _JOINED:
     pass
+
+
+def own_mapper(cls):
+    try:
+        return class_mapper(cls)
+    except UnmappedClassError:
+        return mapper
 
 
 _sq2sp_type_map = {
@@ -658,7 +667,7 @@ def gen_sqla_info(cls, cls_bases=()):
                         setattr(self, child_right_col_name, args[0])
 
                     cls_ = type("_" + cls_name, (object,), {'__init__': _i})
-                    class_mapper(cls_)(cls_, child_t)
+                    own_mapper(cls_)(cls_, child_t)
                     props["_" + k] = relationship(cls_)
 
                     # generate association proxy
@@ -832,7 +841,7 @@ def gen_sqla_info(cls, cls_bases=()):
     if inheritance is not _SINGLE:
         mapper_args = (table,) + mapper_args
 
-    cls_mapper = class_mapper(cls)(cls, *mapper_args, **mapper_kwargs)
+    cls_mapper = own_mapper(cls)(cls, *mapper_args, **mapper_kwargs)
 
     def my_load_listener(target, context):
         d = target.__dict__
@@ -905,6 +914,6 @@ def gen_spyne_info(cls):
         mapper_kwargs['include_properties'] = _type_info.keys()
 
     # Map the table to the object
-    cls_mapper = class_mapper(cls)(cls, table, *mapper_args, **mapper_kwargs)
+    cls_mapper = own_mapper(cls)(cls, table, *mapper_args, **mapper_kwargs)
     cls.Attributes.table_name = cls.__tablename__ = table.name
     cls.Attributes.sqla_mapper = cls.__mapper__ = cls_mapper
