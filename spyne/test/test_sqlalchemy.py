@@ -18,6 +18,8 @@
 #
 
 import logging
+from sqlalchemy.orm.mapper import Mapper
+
 logging.basicConfig(level=logging.DEBUG)
 
 from getpass import getuser
@@ -135,6 +137,31 @@ class TestSqlAlchemy(unittest.TestCase):
                 )
 
         AddressDetail.mapper(self.metadata)
+
+    def test_custom_mapper(self):
+        class CustomMapper(Mapper):
+            def __init__(self, class_, local_table, *args, **kwargs):
+                super(CustomMapper, self).__init__(class_, local_table, *args,
+                    **kwargs)
+
+            # Do not configure primary keys to check that CustomerMapper is
+            # actually used
+            def _configure_pks(self):
+                pass
+
+        def custom_mapper(class_, local_table=None, *args, **params):
+            return CustomMapper(class_, local_table, *args, **params)
+
+        CustomDeclarativeBase = declarative_base(metadata=self.metadata,
+                                                   mapper=custom_mapper)
+
+        class User(CustomDeclarativeBase):
+            __tablename__ = 'user'
+
+            # CustomMapper should not fail because of no primary key
+            name = Column(sqlalchemy.String(50))
+
+        self.metadata.create_all(self.engine)
 
     def test_rpc(self):
         import sqlalchemy
