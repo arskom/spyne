@@ -98,6 +98,10 @@ class TestOperationRequestSuffix(unittest.TestCase):
         app = WsgiApplication(application)
 
         testapp = TestApp(app)
+
+        # so that it doesn't interfere with other tests.
+        spyne.const.REQUEST_SUFFIX = ''
+
         return testapp
 
 
