@@ -33,7 +33,6 @@ import decimal
 from collections import deque
 from inspect import isclass
 
-from spyne.util import memoize_id
 from spyne.model import ModelBase
 from spyne.model import PushBase
 from spyne.model.primitive import NATIVE_MAP
@@ -48,6 +47,7 @@ from spyne.const import MANDATORY_SUFFIX
 from spyne.const import MANDATORY_PREFIX
 
 from spyne.util import memoize
+from spyne.util import memoize_id
 from spyne.util import sanitize_args
 from spyne.util.odict import odict
 
