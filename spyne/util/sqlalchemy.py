@@ -68,6 +68,7 @@ from spyne.model.complex import json as c_json
 from spyne.model.complex import table as c_table
 from spyne.model.complex import msgpack as c_msgpack
 
+# public types
 from spyne.model import SimpleModel
 from spyne.model import Enum
 from spyne.model import ByteArray

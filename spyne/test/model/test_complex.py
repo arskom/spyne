@@ -26,22 +26,20 @@ from lxml import etree
 
 from base64 import b64encode
 
-from spyne.application import Application
-from spyne.decorator import rpc
-from spyne.service import ServiceBase
+from spyne import Application
+from spyne import rpc
+from spyne import ServiceBase
+from spyne.const import xml_ns
 from spyne.interface import Interface
 from spyne.interface.wsdl import Wsdl11
 from spyne.protocol import ProtocolBase
 from spyne.protocol.soap import Soap11
-from spyne.const import xml_ns
-
 from spyne.model import ByteArray
 from spyne.model import Array
 from spyne.model import ComplexModel
 from spyne.model import SelfReference
 from spyne.model import XmlData
 from spyne.model import XmlAttribute
-
 from spyne.model import Unicode
 from spyne.model import DateTime
 from spyne.model import Float
@@ -302,6 +300,7 @@ class TestIncompleteInput(unittest.TestCase):
         XmlDocument().to_parent_element(Y, y, 'tns', element)
         msg = element[0]
         r = XmlDocument().from_element(Y, msg)
+
 
 class SisMsg(ComplexModel):
     """Container with metadata for Jiva integration messages
