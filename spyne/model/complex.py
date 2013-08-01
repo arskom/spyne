@@ -812,9 +812,9 @@ class Array(ComplexModelBase):
         else:
             retval._set_serializer(serializer)
 
-        for k, v in kwargs.items():
-            if k == "type_name":
-                retval.__type_name__ = kwargs.get("type_name", ModelBase.Empty)
+        tn = kwargs.get("type_name", None)
+        if tn is not None:
+            retval.__type_name__ = tn
 
         return retval
 
