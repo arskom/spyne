@@ -34,7 +34,7 @@ from spyne.model import XmlAttribute
 from spyne.model import XmlData
 from spyne.model import AnyXml
 from spyne.model import Integer
-from spyne.model import Mandatory
+from spyne.model import Mandatory as M
 from spyne.model import Unicode
 from spyne.model import Uuid
 from spyne.protocol.soap import Soap11
@@ -199,7 +199,7 @@ class TestXmlSchema(unittest.TestCase):
         class ExampleService(ServiceBase):
             __tns__ = 'http://xml.company.com/ns/example/'
 
-            @rpc(Mandatory.Uuid, _returns=Unicode)
+            @rpc(M(Uuid), _returns=Unicode)
             def say_my_uuid(ctx, uuid):
                 return 'Your UUID: %s' % uuid
 
