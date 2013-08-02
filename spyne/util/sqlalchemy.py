@@ -23,6 +23,7 @@ In case it's not obvious, this module is EXPERIMENTAL.
 """
 
 from __future__ import absolute_import
+import decimal
 
 import logging
 logger = logging.getLogger(__name__)
@@ -875,7 +876,8 @@ def get_spyne_type(v):
             rpc_type = Enum(*v.type.enums, **{'type_name': v.type.name})
 
     elif isinstance(v.type, sqlalchemy.Unicode):
-        rpc_type = Unicode(v.type.length)
+        rpc_type = Unicode(decimal.Decimal('inf') if v.type.length is None else
+                           v.type.length)
 
     elif isinstance(v.type, sqlalchemy.UnicodeText):
         rpc_type = Unicode
@@ -884,7 +886,8 @@ def get_spyne_type(v):
         rpc_type = String
 
     elif isinstance(v.type, sqlalchemy.String):
-        rpc_type = String(v.type.length)
+        rpc_type = String(decimal.Decimal('inf') if v.type.length is None else
+                          v.type.length)
 
     elif isinstance(v.type, (sqlalchemy.Numeric)):
         rpc_type = Decimal(v.type.precision, v.type.scale)
