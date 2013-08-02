@@ -159,6 +159,9 @@ class TestOperationRequestSuffix(unittest.TestCase):
         ]
         for soap_string in soap_strings:
             self.assertTrue(soap_string in wsdl, '{0} not in {1}'.format(soap_string, wsdl))
+        if request_name != operation_name:
+            wrong_string = '<wsdl:operation name="{0}"'.format(request_name)
+            self.assertFalse(wrong_string in wsdl, '{0} in {1}'.format(wrong_string, wsdl))
 
         output_name = '<wsdl:output name="{0}Response"'.format(self.default_function_name)
         self.assertTrue(output_name in wsdl, 'REQUEST_SUFFIX or _in_message_name changed the output name, it should be: {0}'.format(output_name))
