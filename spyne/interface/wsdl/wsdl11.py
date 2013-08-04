@@ -421,7 +421,7 @@ class Wsdl11(XmlSchema):
 
         def inner(method, binding):
             operation = etree.Element('{%s}operation' % _ns_wsdl)
-            operation.set('name', method.name)
+            operation.set('name', method.operation_name)
 
             soap_operation = etree.SubElement(operation, '{%s}operation'
                                                                     % _ns_soap)
