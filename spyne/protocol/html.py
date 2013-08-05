@@ -604,8 +604,9 @@ class HtmlPage(object):
         for elt in self.__html.xpath('//*[@id]'):
             key = elt.attrib['id']
             if key in self.__ids:
-                raise ValueError("Don't use duplicate values in id attributes in"
-                                 "template documents.")
+                raise ValueError("Don't use duplicate values in id attributes "
+                                 "of the tags in template documents. "
+                                 "id=%r appears more than once." % key)
             if key in HtmlPage.reserved:
                 raise ValueError("id attribute values %r are reserved." %
                                                               HtmlPage.reserved)
