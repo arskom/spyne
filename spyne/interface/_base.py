@@ -97,7 +97,6 @@ class Interface(object):
         c = self.classes.get('{%s}%s' %
                                     (cls.get_namespace(), cls.get_type_name()))
         if c is not None:
-            print cls, c
             if issubclass(c, ComplexModelBase) and \
                                             issubclass(cls, ComplexModelBase):
                 o1 = getattr(cls, '__orig__', None) or cls
