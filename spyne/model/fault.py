@@ -71,11 +71,13 @@ class Fault(ComplexModelBase, Exception):
     @staticmethod
     def to_dict(cls, value):
         if issubclass(cls, Fault):
-            return {
+            retval =  {
                 "faultcode": value.faultcode,
                 "faultstring": value.faultstring,
-                "detail": value.detail,
             }
+            if value.detail is not None:
+                retval["detail"] = value.detail
+            return retval
 
         else:
             return {

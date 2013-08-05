@@ -55,9 +55,10 @@ class TestSpyneJsonRpc1(unittest.TestCase):
                 return i
 
         ctx = _dry_sjrpc1([SomeService],
-                        {"ver": 1, "body": {"yay": {"i":5}}}, True)
+                    {"ver": 1, "body": {"yay": {"i":5}}}, True)
 
         print ctx
+        print list(ctx.out_string)
         assert ctx.out_document == {"ver": 1, "body": 5}
 
     def test_call_with_header(self):
@@ -72,10 +73,29 @@ class TestSpyneJsonRpc1(unittest.TestCase):
                 return ctx.in_header.i
 
         ctx = _dry_sjrpc1([SomeService], 
-                        {"ver": 1, "body": {"yay": None}, "head": {"i":5}}, True)
+                    {"ver": 1, "body": {"yay": None}, "head": {"i":5}}, True)
 
         print ctx
+        print list(ctx.out_string)
         assert ctx.out_document == {"ver": 1, "body": 5}
+
+    def test_error(self):
+        class SomeHeader(ComplexModel):
+            i = Integer
+
+        class SomeService(ServiceBase):
+            __in_header__ = SomeHeader
+            @rpc(Integer, Integer, _returns=Integer)
+            def div(ctx, dividend, divisor):
+                return dividend / divisor
+
+        ctx = _dry_sjrpc1([SomeService], 
+                    {"ver": 1, "body": {"div": [4,0]}}, True)
+
+        print ctx
+        print list(ctx.out_string)
+        assert ctx.out_document == {"ver": 1, "err": {
+                        'faultcode': 'Server', 'faultstring': 'Internal Error'}}
 
 class Test(unittest.TestCase):
     def test_invalid_input(self):

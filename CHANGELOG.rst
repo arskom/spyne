@@ -18,6 +18,14 @@ spyne-2.11.0
 * Import ``@rpc``\, ``@srpc``\, ``ServiceBase`` and ``Application`` inside the
   ``spyne`` module.
 * Implement JsonP protocol.
+* Implement SpyneJsonRpc 1.0 protocol -- it supports request headers.
+
+  Sample request:  ``{"ver":1, "body": {"div": [4,2]}, "head": {"id": 1234}}``
+  Sample response: ``{"ver":1, "body": 2}``
+
+  Sample request:  ``{"ver":1, "body": {"div": {"dividend":4,"divisor":0]}}``
+  Sample response: ``{"ver":1, "fault": {"faultcode": "Server", "faultstring": "Internal Error"}}}``
+
 * Steal and integrate the WebSocket tranport for Twisted.
 
 spyne-2.10.9

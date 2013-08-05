@@ -179,18 +179,22 @@ class JsonP(JsonDocument):
 
 class _SpyneJsonRpc1(JsonDocument):
     version = 1
+    VERSION = 'ver'
+    BODY = 'body'
+    HEAD = 'head'
+    FAULT = 'fault'
 
     def decompose_incoming_envelope(self, ctx, message=JsonDocument.REQUEST):
         indoc = ctx.in_document
         if not isinstance(indoc, dict):
             raise ValidationError("Invalid Request")
 
-        ver = indoc.get('ver')
+        ver = indoc.get(self.VERSION)
         if ver is None:
             raise ValidationError("Missing Version")
 
-        body = indoc.get('body')
-        err = indoc.get('err')
+        body = indoc.get(self.BODY)
+        err = indoc.get(self.FAULT)
         if body is None and err is None:
             raise ValidationError("Missing request")
 
@@ -204,7 +208,7 @@ class _SpyneJsonRpc1(JsonDocument):
             if not len(body) == 1:
                 raise ValidationError("Need len(body) == 1")
 
-            ctx.in_header_doc = indoc.get('head')
+            ctx.in_header_doc = indoc.get(self.HEAD)
             if not isinstance(ctx.in_header_doc, list):
                 ctx.in_header_doc = [ctx.in_header_doc]
 
@@ -236,7 +240,7 @@ class _SpyneJsonRpc1(JsonDocument):
                 headers = [None] * len(header_class)
                 for i, (header_doc, head_class) in enumerate(
                                           zip(ctx.in_header_doc, header_class)):
-                    if i < len(header_doc):
+                    if header_doc is not None and i < len(header_doc):
                         headers[i] = self._doc_to_object(head_class, header_doc)
 
                 if len(headers) == 1:
@@ -262,11 +266,7 @@ class _SpyneJsonRpc1(JsonDocument):
             "ver": self.version,
         }
         if ctx.out_error is not None:
-            if isinstance(ctx.out_error, Fault):
-                ctx.out_document['err'] = self._object_to_doc(
-                                        ctx.out_error.__class__, ctx.out_error)
-            else:
-                ctx.out_document['err'] = Fault.to_dict(ctx.out_error)
+            ctx.out_document[self.FAULT] = Fault.to_dict(Fault, ctx.out_error)
 
         else:
             if message is self.REQUEST:
@@ -295,7 +295,7 @@ class _SpyneJsonRpc1(JsonDocument):
 
                 setattr(out_object, k, v)
 
-            ctx.out_document['body'] = ctx.out_body_doc = \
+            ctx.out_document[self.BODY] = ctx.out_body_doc = \
                             self._object_to_doc(body_message_class, out_object)
 
             # header
@@ -313,9 +313,9 @@ class _SpyneJsonRpc1(JsonDocument):
                                                                     out_header))
 
                 if len(out_header_doc) > 1:
-                    ctx.out_document['head'] = out_header_doc
+                    ctx.out_document[self.HEAD] = out_header_doc
                 else:
-                    ctx.out_document['head'] = out_header_doc[0]
+                    ctx.out_document[self.HEAD] = out_header_doc[0]
 
         self.event_manager.fire_event('after_serialize', ctx)
 
