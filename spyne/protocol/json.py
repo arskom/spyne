@@ -60,6 +60,7 @@ except ImportError:
     JSONDecodeError = ValueError
 
 from spyne.error import ValidationError
+from spyne.error import ResourceNotFoundError
 
 from spyne.model.binary import BINARY_ENCODING_BASE64
 from spyne.model.primitive import Date
@@ -175,3 +176,155 @@ class JsonP(JsonDocument):
                     ctx.out_string,
                 [');'],
             )
+
+class _SpyneJsonRpc1(JsonDocument):
+    version = 1
+
+    def decompose_incoming_envelope(self, ctx, message=JsonDocument.REQUEST):
+        indoc = ctx.in_document
+        if not isinstance(indoc, dict):
+            raise ValidationError("Invalid Request")
+
+        ver = indoc.get('ver')
+        if ver is None:
+            raise ValidationError("Missing Version")
+
+        body = indoc.get('body')
+        err = indoc.get('err')
+        if body is None and err is None:
+            raise ValidationError("Missing request")
+
+        ctx.protocol.error = False
+        if err is not None:
+            ctx.in_body_doc = err
+            ctx.protocol.error = True
+        else:
+            if not isinstance(body, dict):
+                raise ValidationError("Missing request body")
+            if not len(body) == 1:
+                raise ValidationError("Need len(body) == 1")
+
+            ctx.in_header_doc = indoc.get('head')
+            if not isinstance(ctx.in_header_doc, list):
+                ctx.in_header_doc = [ctx.in_header_doc]
+
+            (ctx.method_request_string,ctx.in_body_doc), = body.items()
+
+    def deserialize(self, ctx, message):
+        assert message in (self.REQUEST, self.RESPONSE)
+
+        self.event_manager.fire_event('before_deserialize', ctx)
+
+        if ctx.descriptor is None:
+            raise ResourceNotFoundError(ctx.method_request_string)
+
+        if ctx.protocol.error:
+            ctx.in_object = None
+            ctx.in_error = self._doc_to_object(Fault, ctx.in_body_doc)
+
+        else:
+            if message is self.REQUEST:
+                header_class = ctx.descriptor.in_header
+                body_class = ctx.descriptor.in_message
+
+            elif message is self.RESPONSE:
+                header_class = ctx.descriptor.out_header
+                body_class = ctx.descriptor.out_message
+
+            # decode header objects
+            if (ctx.in_header_doc is not None and header_class is not None):
+                headers = [None] * len(header_class)
+                for i, (header_doc, head_class) in enumerate(
+                                          zip(ctx.in_header_doc, header_class)):
+                    if i < len(header_doc):
+                        headers[i] = self._doc_to_object(head_class, header_doc)
+
+                if len(headers) == 1:
+                    ctx.in_header = headers[0]
+                else:
+                    ctx.in_header = headers
+            # decode method arguments
+            if ctx.in_body_doc is None:
+                ctx.in_object = [None] * len(body_class._type_info)
+            else:
+                ctx.in_object = self._doc_to_object(body_class, ctx.in_body_doc)
+
+        self.event_manager.fire_event('after_deserialize', ctx)
+
+    def serialize(self, ctx, message):
+        assert message in (self.REQUEST, self.RESPONSE)
+
+        self.event_manager.fire_event('before_serialize', ctx)
+
+        # construct the soap response, and serialize it
+        nsmap = self.app.interface.nsmap
+        ctx.out_document = {
+            "ver": self.version,
+        }
+        if ctx.out_error is not None:
+            if isinstance(ctx.out_error, Fault):
+                ctx.out_document['err'] = self._object_to_doc(
+                                        ctx.out_error.__class__, ctx.out_error)
+            else:
+                ctx.out_document['err'] = Fault.to_dict(ctx.out_error)
+
+        else:
+            if message is self.REQUEST:
+                header_message_class = ctx.descriptor.in_header
+                body_message_class = ctx.descriptor.in_message
+
+            elif message is self.RESPONSE:
+                header_message_class = ctx.descriptor.out_header
+                body_message_class = ctx.descriptor.out_message
+
+            # assign raw result to its wrapper, result_message
+            out_type_info = body_message_class._type_info
+            out_object = body_message_class()
+
+            keys = iter(out_type_info)
+            values = iter(ctx.out_object)
+            while True:
+                try:
+                    k = keys.next()
+                except StopIteration:
+                    break
+                try:
+                    v = values.next()
+                except StopIteration:
+                    v = None
+
+                setattr(out_object, k, v)
+
+            ctx.out_document['body'] = ctx.out_body_doc = \
+                            self._object_to_doc(body_message_class, out_object)
+
+            # header
+            if ctx.out_header is not None and header_message_class is not None:
+                if isinstance(ctx.out_header, (list, tuple)):
+                    out_headers = ctx.out_header
+                else:
+                    out_headers = (ctx.out_header,)
+
+                ctx.out_header_doc = out_header_doc = []
+
+                for header_class, out_header in zip(header_message_class,
+                                                                   out_headers):
+                    out_header_doc.append(self._object_to_doc(header_class,
+                                                                    out_header))
+
+                if len(out_header_doc) > 1:
+                    ctx.out_document['head'] = out_header_doc
+                else:
+                    ctx.out_document['head'] = out_header_doc[0]
+
+        self.event_manager.fire_event('after_serialize', ctx)
+
+
+_json_rpc_flavours = {
+    'spyne': _SpyneJsonRpc1
+}
+
+def JsonRpc(flavour, *args, **kwargs):
+    assert flavour in _json_rpc_flavours, "Unknown JsonRpc flavour"
+
+    return _json_rpc_flavours[flavour](*args, **kwargs)

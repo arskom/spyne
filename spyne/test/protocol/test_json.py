@@ -24,22 +24,58 @@ except ImportError:
     import json
 
 
-from spyne.model.primitive import Integer
-from spyne.test.protocol._test_dictdoc import TDictDocumentTest
+from spyne import MethodContext
+from spyne import Application
+from spyne import rpc,srpc
+from spyne import ServiceBase
+from spyne.model import Integer
+from spyne.model import ComplexModel
 from spyne.protocol.json import JsonP
 from spyne.protocol.json import JsonDocument
 from spyne.protocol.json import JsonEncoder
-
-from spyne import MethodContext
-from spyne.application import Application
-from spyne.decorator import srpc
-from spyne.service import ServiceBase
+from spyne.protocol.json import _SpyneJsonRpc1
 from spyne.server import ServerBase
 from spyne.server.null import NullServer
+
+from spyne.test.protocol._test_dictdoc import TDictDocumentTest
+from spyne.test.protocol._test_dictdoc import TDry
+
 
 TestJsonDocument = TDictDocumentTest(json, JsonDocument,
                                             dumps_kwargs=dict(cls=JsonEncoder))
 
+_dry_sjrpc1 = TDry(json, _SpyneJsonRpc1)
+
+class TestSpyneJsonRpc1(unittest.TestCase):
+    def test_call(self):
+        class SomeService(ServiceBase):
+            @srpc(Integer, _returns=Integer)
+            def yay(i):
+                print i
+                return i
+
+        ctx = _dry_sjrpc1([SomeService],
+                        {"ver": 1, "body": {"yay": {"i":5}}}, True)
+
+        print ctx
+        assert ctx.out_document == {"ver": 1, "body": 5}
+
+    def test_call_with_header(self):
+        class SomeHeader(ComplexModel):
+            i = Integer
+
+        class SomeService(ServiceBase):
+            __in_header__ = SomeHeader
+            @rpc(Integer, _returns=Integer)
+            def yay(ctx, i):
+                print ctx.in_header
+                return ctx.in_header.i
+
+        ctx = _dry_sjrpc1([SomeService], 
+                        {"ver": 1, "body": {"yay": None}, "head": {"i":5}}, True)
+
+        print ctx
+        assert ctx.out_document == {"ver": 1, "body": 5}
 
 class Test(unittest.TestCase):
     def test_invalid_input(self):

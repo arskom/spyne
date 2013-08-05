@@ -22,3 +22,7 @@ class FakeApp(object):
     tns = 'tns'
     name = 'name'
     services = []
+
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logging.getLogger('spyne.util.appreg').setLevel(logging.INFO)

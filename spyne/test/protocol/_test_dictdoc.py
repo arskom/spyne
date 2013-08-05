@@ -19,9 +19,6 @@
 
 import unittest
 
-import logging
-logging.basicConfig(level=logging.DEBUG)
-
 import uuid
 import pytz
 import decimal
@@ -73,7 +70,7 @@ from spyne.model.primitive import MultiLine
 from spyne.model.primitive import MultiPolygon
 
 
-def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
+def TDry(serializer, _DictDocumentChild, dumps_kwargs={}):
     def _dry_me(services, d, ignore_wrappers=False, complex_as=dict,
                          just_ctx=False, just_in_object=False, validator=None):
 
@@ -95,6 +92,10 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
                 server.get_out_string(ctx)
 
         return ctx
+    return _dry_me
+
+def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
+    _dry_me = TDry(serializer, _DictDocumentChild, dumps_kwargs)
 
     class Test(unittest.TestCase):
         def test_complex_with_only_primitive_fields(self):
