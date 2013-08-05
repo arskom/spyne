@@ -37,9 +37,11 @@ from spyne.auxproc.sync import SyncAuxProc
 from spyne.auxproc.thread import ThreadAuxProc
 from spyne.decorator import rpc
 from spyne.decorator import srpc
-from spyne.model.complex import Array
-from spyne.model.complex import ComplexModel
-from spyne.model.primitive import String
+from spyne.model import Array
+from spyne.model import Iterable
+from spyne.model import ComplexModel
+from spyne.model import String
+from spyne.model import Unicode
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.soap import Soap11
 from spyne.server.null import NullServer
@@ -366,6 +368,17 @@ class TestBodyStyle(unittest.TestCase):
         assert resp[0][0].tag == '{tns}some_call' + RESPONSE_SUFFIX
         assert resp[0][0][0].text == 'abc'
         assert resp[0][0][1].text == 'def'
+
+    def test_array_iterable(self):
+        class SomeService(ServiceBase):
+            @rpc(Array(Unicode), Iterable(Unicode))
+            def some_call(ctx, a, b):
+                pass
+
+        app = Application([SomeService], 'tns', in_protocol=Soap11(),
+                                out_protocol=Soap11(cleanup_namespaces=True))
+
+        server = WsgiApplication(app)
 
 
 if __name__ == '__main__':
