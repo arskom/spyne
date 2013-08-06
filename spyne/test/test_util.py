@@ -165,8 +165,13 @@ class TestSafeRepr(unittest.TestCase):
         class Z(ComplexModel):
             z=String
 
-        assert 128 > MAX_STRING_FIELD_LENGTH
-        assert log_repr(Z(z="a"*128)) == "Z(z='%s'(...))" % ('a' * MAX_STRING_FIELD_LENGTH)
+        l = MAX_STRING_FIELD_LENGTH + 100
+        print log_repr(Z(z="a" * l))
+        print "Z(z='%s'(...))" % ('a' * MAX_STRING_FIELD_LENGTH)
+
+        assert log_repr(Z(z="a" * l)) == "Z(z='%s'(...))" % \
+                                                ('a' * MAX_STRING_FIELD_LENGTH)
+        assert log_repr(['a','b','c'], Array(String)) ==  "['a', 'b', 'c']"
 
 
 class TestDeserialize(unittest.TestCase):

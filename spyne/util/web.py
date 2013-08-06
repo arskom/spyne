@@ -272,8 +272,10 @@ def log_repr(obj, cls=None, given_len=None):
                 except TypeError, e:
                     if given_len is not None:
                         l = str(given_len)
-
-                retval.append("%s[%s] (...)" % (cls.get_type_name(), l))
+                if issubclass(cls, ComplexModelBase):
+                    retval.append("%s[%s] (...)" % (cls.get_type_name(), l))
+                else:
+                    retval.append("[%s] (...)" % l)
 
             else:
                 for i,o in enumerate(obj):
@@ -283,7 +285,10 @@ def log_repr(obj, cls=None, given_len=None):
                         retval.append("(...)")
                         break
 
-            retval = "%s([%s])" % (cls.get_type_name(), ', '.join(retval))
+            if issubclass(cls, ComplexModelBase):
+                retval = "%s([%s])" % (cls.get_type_name(), ', '.join(retval))
+            else:
+                retval = "[%s]" % ', '.join(retval)
 
     elif issubclass(cls, ComplexModelBase):
         if cls.Attributes.logged:
@@ -301,18 +306,27 @@ def log_repr(obj, cls=None, given_len=None):
 
 
 def _log_repr_obj(obj, cls):
-    retval = []
+    if not issubclass(cls, ComplexModelBase):
+        return _log_repr_any(obj, cls)
 
-    for k,t in cls.get_flat_type_info(cls).items():
+    retval = []
+    for k, t in cls.get_flat_type_info(cls).items():
         v = getattr(obj, k, None)
         if v is not None and t.Attributes.logged:
-            if issubclass(t, Unicode) and isinstance(v, basestring) and \
-                                               len(v) > MAX_STRING_FIELD_LENGTH:
-                s = '%s=%r(...)' % (k, v[:MAX_STRING_FIELD_LENGTH])
-            else:
-                s = '%s=%r' % (k, v)
-
-            retval.append(s)
+            retval.append(_log_repr_any(v, t, k))
 
     return "%s(%s)" % (cls.get_type_name(), ', '.join(retval))
 
+
+def _log_repr_any(obj, cls, k=None):
+    if issubclass(cls, Unicode) and isinstance(obj, basestring) and \
+                                                len(obj) > MAX_STRING_FIELD_LENGTH:
+        if k is None:
+            return '%r(...)' % (obj[:MAX_STRING_FIELD_LENGTH])
+        else:
+            return '%s=%r(...)' % (k, obj[:MAX_STRING_FIELD_LENGTH])
+    else:
+        if k is None:
+            return repr(obj)
+        else:
+            return '%s=%r' % (k, obj)
