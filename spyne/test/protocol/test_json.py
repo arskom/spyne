@@ -94,7 +94,7 @@ class TestSpyneJsonRpc1(unittest.TestCase):
 
         print ctx
         print list(ctx.out_string)
-        assert ctx.out_document == {"ver": 1, "err": {
+        assert ctx.out_document == {"ver": 1, "fault": {
                         'faultcode': 'Server', 'faultstring': 'Internal Error'}}
 
 class Test(unittest.TestCase):
