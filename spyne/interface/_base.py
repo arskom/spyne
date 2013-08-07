@@ -29,9 +29,10 @@ from spyne.const import TYPE_SUFFIX
 from spyne.const import RESULT_SUFFIX
 from spyne.const import RESPONSE_SUFFIX
 
-from spyne.model.complex import XmlData
+from spyne.model import Array
+from spyne.model import XmlData
+from spyne.model import ComplexModelBase
 from spyne.model.complex import XmlModifier
-from spyne.model.complex import ComplexModelBase
 
 
 class Interface(object):
@@ -105,8 +106,11 @@ class Interface(object):
                 if o1 is o2:
                     return True
                 else:
-                    raise ValueError("classes %r and %r have conflicting names." %
-                                                                       (cls, c))
+                    # So that "Array"s and "Iterable"s don't conflict.
+                    if o1 is Array or o2 is Array:
+                        return True
+                    raise ValueError("classes %r and %r have "
+                                                "conflicting names." % (cls, c))
             else:
                 return True
 
