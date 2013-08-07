@@ -214,7 +214,6 @@ class Interface(object):
                 if method.aux is None:
                     classes.append(method.in_message)
 
-
                 method.out_message.resolve_namespace(method.out_message,
                                                                  self.get_tns())
                 if method.aux is None:
@@ -261,7 +260,7 @@ class Interface(object):
                                 ))
 
         logger.debug("From this point on, you're not supposed to make any "
-                     "changes to the class & method structure of the exposed "
+                     "changes to the class and method structure of the exposed "
                      "services."
                  )
 
