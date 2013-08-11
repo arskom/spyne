@@ -36,9 +36,24 @@ from spyne.const.xml_ns import xsd as _ns_xsd
 from spyne.model.complex import XmlAttribute
 from spyne.model.primitive import AnyXml
 from spyne.model.primitive import Unicode
+from spyne.protocol.xml import XmlDocument
+_prot = XmlDocument()
 
 from spyne.util import memoize
 from spyne.util.etreeconv import dict_to_etree
+
+
+def xml_attribute_add(cls, name, element, document):
+    element.set('name', name)
+    element.set('type', cls.type.get_type_name_ns(document.interface))
+
+    if cls._use is not None:
+        element.set('use', cls._use)
+
+    d = cls.type.Attributes.default
+
+    if d is not None:
+        element.set('default', _prot.to_string(cls.type, d))
 
 
 def simple_get_restriction_tag(document, cls):
@@ -172,7 +187,7 @@ def complex_add(document, cls, tags):
             member.set('maxOccurs', val)
 
         if a.default is not None:
-            member.set('default', a.default)
+            member.set('default', _prot.to_string(v, a.default))
 
         if bool(a.nillable) != False: # False is the xml schema default
             member.set('nillable', 'true')
@@ -198,7 +213,7 @@ def complex_add(document, cls, tags):
         ao = v.attribute_of
         if ao is None: # others will be added at a later loop
             attribute = etree.SubElement(complex_type,'{%s}attribute' % _ns_xsd)
-            v.describe(k, attribute, document)
+            xml_attribute_add(v, k, attribute, document)
             continue
 
         elts = complex_type.xpath("//xsd:element[@name='%s']" % ao,
@@ -221,8 +236,7 @@ def complex_add(document, cls, tags):
         del elt.attrib['type']
 
         attribute = etree.SubElement(_ext, '{%s}attribute' % _ns_xsd)
-        v.describe(k, attribute, document)
-
+        xml_attribute_add(v, k, attribute, document)
 
     document.add_complex_type(cls, complex_type)
 

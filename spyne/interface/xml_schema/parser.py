@@ -119,6 +119,7 @@ def Town_repr(with_ns=False):
 
 SchemaBase.__repr__ = Town_repr()
 
+
 class ParsingCtx(object):
     def __init__(self, files, base_dir=None, own_repr=Town_repr(with_ns=False)):
         self.retval = {}
@@ -289,7 +290,7 @@ def process_attribute(ctx, a):
 
     kwargs = {}
     if a.default is not None:
-        kwargs['default'] = a.default
+        kwargs['default'] = _prot.from_string(t, a.default)
 
     if len(kwargs) > 0:
         t = t.customize(**kwargs)
@@ -325,14 +326,14 @@ def process_complex_type(ctx, c):
                 kwargs['nillable'] = e.nillable
 
             if e.default is not None:
-                kwargs['default'] = e.default
+                kwargs['default'] = _prot.from_string(t, e.default)
 
             if len(kwargs) > 0:
                 t = t.customize(**kwargs)
 
         if attribute is not None:
             if attribute.default is not None:
-                kwargs['default'] = a.default
+                kwargs['default'] = _prot.from_string(t, a.default)
 
             if len(kwargs) > 0:
                 t = t.customize(**kwargs)

@@ -211,17 +211,6 @@ class XmlAttribute(XmlModifier):
         retval.attribute_of = attribute_of
         return retval
 
-    @classmethod
-    def describe(cls, name, element, document):
-        element.set('name', name)
-        element.set('type', cls.type.get_type_name_ns(document.interface))
-
-        if cls._use is not None:
-            element.set('use', cls._use)
-        d = cls.type.Attributes.default
-        if d is not None:
-            element.set('default', d)
-
 
 class XmlAttributeRef(XmlAttribute):
     """Reference to an Xml attribute."""

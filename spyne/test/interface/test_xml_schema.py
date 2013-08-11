@@ -37,6 +37,7 @@ from spyne.model import Integer
 from spyne.model import Mandatory as M
 from spyne.model import Unicode
 from spyne.model import Uuid
+from spyne.model import Boolean
 from spyne.protocol.soap import Soap11
 from spyne.service import ServiceBase
 from spyne.util.xml import get_schema_documents
@@ -336,6 +337,38 @@ class TestParseOwnXmlSchema(unittest.TestCase):
         assert NewGuy._type_info['name'].Attributes.min_len == 5
         assert NewGuy._type_info['name'].Attributes.pattern == "a"
         assert NewGuy._type_info['name'].Attributes.default == "aa"
+
+    def test_boolean_default(self):
+        tns = 'some_ns'
+        class SomeGuy(ComplexModel):
+            __namespace__ = tns
+
+            bald = Boolean(default=True)
+
+        schema = get_schema_documents([SomeGuy], tns)['tns']
+        print etree.tostring(schema, pretty_print=True)
+
+        objects = parse_schema_element(schema)
+        pprint(objects[tns].types)
+
+        NewGuy = objects['some_ns'].types["SomeGuy"]
+        assert NewGuy._type_info['bald'].Attributes.default == True
+
+    def test_boolean_attribute_default(self):
+        tns = 'some_ns'
+        class SomeGuy(ComplexModel):
+            __namespace__ = tns
+
+            bald = XmlAttribute(Boolean(default=True))
+
+        schema = get_schema_documents([SomeGuy], tns)['tns']
+        print etree.tostring(schema, pretty_print=True)
+
+        objects = parse_schema_element(schema)
+        pprint(objects[tns].types)
+
+        NewGuy = objects['some_ns'].types["SomeGuy"]
+        assert NewGuy._type_info['bald'].Attributes.default == True
 
     def test_attribute(self):
         tns = 'some_ns'
