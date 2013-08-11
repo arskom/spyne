@@ -42,23 +42,23 @@ from spyne.error import InvalidCredentialsError
 from spyne.model import ModelBase
 from spyne.model import SimpleModel
 from spyne.model import Null
-from spyne.model.binary import ByteArray
-from spyne.model.binary import File
-from spyne.model.binary import Attachment
-from spyne.model.complex import ComplexModelBase
-from spyne.model.primitive import AnyXml
-from spyne.model.primitive import AnyHtml
-from spyne.model.primitive import Unicode
-from spyne.model.primitive import String
-from spyne.model.primitive import Decimal
-from spyne.model.primitive import Double
-from spyne.model.primitive import Integer
-from spyne.model.primitive import Time
-from spyne.model.primitive import DateTime
-from spyne.model.primitive import Uuid
-from spyne.model.primitive import Date
-from spyne.model.primitive import Duration
-from spyne.model.primitive import Boolean
+from spyne.model import ByteArray
+from spyne.model import File
+from spyne.model import ComplexModelBase
+from spyne.model import AnyXml
+from spyne.model import AnyHtml
+from spyne.model import Unicode
+from spyne.model import String
+from spyne.model import Decimal
+from spyne.model import Double
+from spyne.model import Integer
+from spyne.model import Time
+from spyne.model import DateTime
+from spyne.model import Uuid
+from spyne.model import Date
+from spyne.model import Duration
+from spyne.model import Boolean
+from spyne.model.binary import Attachment # DEPRECATED
 
 from spyne.protocol._model import *
 
