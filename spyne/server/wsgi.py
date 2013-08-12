@@ -198,7 +198,7 @@ class WsgiApplication(HttpBase):
         }
         self._mtx_build_interface_document = threading.Lock()
 
-        if self.doc.wsd11 is not None:
+        if self.doc.wsdl11 is not None:
             self._wsdl = self.doc.wsdl11.get_interface_document()
 
         # Initialize HTTP Patterns
