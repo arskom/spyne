@@ -197,7 +197,9 @@ class WsgiApplication(HttpBase):
             "POST": self.handle_rpc,
         }
         self._mtx_build_interface_document = threading.Lock()
-        self._wsdl = self.doc.wsdl11.get_interface_document()
+
+        if self.doc.wsd11 is not None:
+            self._wsdl = self.doc.wsdl11.get_interface_document()
 
         # Initialize HTTP Patterns
         self._http_patterns = None
