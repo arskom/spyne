@@ -900,7 +900,7 @@ def TTableModel(metadata=None):
 
 
 ### You should not use this and always instantiate explicitly your own
-### TTableModel.
+### TableModel using TTableModel.
 try:
     TableModel = TTableModel()
 except ImportError:

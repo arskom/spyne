@@ -304,7 +304,14 @@ class FlatDictDocument(DictDocument):
                                   member.type.validate_string(member.type, v2)):
                     raise ValidationError((orig_k, v2))
 
-                if issubclass(member.type, (File, ByteArray)):
+                if issubclass(member.type, File):
+                    if isinstance(v2, File.Value):
+                        native_v2 = v2
+                    else:
+                        native_v2 = self.from_string(member.type, v2,
+                                                   self.default_binary_encoding)
+
+                elif issubclass(member.type, ByteArray):
                     native_v2 = self.from_string(member.type, v2,
                                                    self.default_binary_encoding)
                 else:

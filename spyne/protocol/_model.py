@@ -35,6 +35,7 @@ from spyne.model.binary import File
 from spyne.model.binary import Attachment
 from spyne.model.binary import binary_encoding_handlers
 from spyne.model.binary import binary_decoding_handlers
+from spyne.model.binary import BINARY_ENCODING_USE_DEFAULT
 from spyne.model.primitive import _time_re
 from spyne.model.primitive import _duration_re
 
@@ -391,14 +392,15 @@ def boolean_from_string(cls, string):
 @nillable_string
 def byte_array_from_string(cls, value, suggested_encoding=None):
     encoding = cls.Attributes.encoding
-    if encoding is None:
+    if encoding is BINARY_ENCODING_USE_DEFAULT:
         encoding = suggested_encoding
     return binary_decoding_handlers[encoding](value)
 
 @nillable_string
 def byte_array_to_string(cls, value, suggested_encoding=None):
-    if suggested_encoding is None:
-        suggested_encoding = cls.Attributes.encoding
+    encoding = cls.Attributes.encoding
+    if encoding is BINARY_ENCODING_USE_DEFAULT:
+        encoding = suggested_encoding
     return binary_encoding_handlers[suggested_encoding](value)
 
 @nillable_iterable
@@ -409,9 +411,11 @@ def byte_array_to_string_iterable(prot, cls, value):
 @nillable_string
 def file_from_string(cls, value, suggested_encoding=None):
     encoding = cls.Attributes.encoding
-    if encoding is None:
+    if encoding is BINARY_ENCODING_USE_DEFAULT:
         encoding = suggested_encoding
+
     return File.Value(data=binary_decoding_handlers[encoding](value))
+
 
 def _file_to_iter(f):
     data = f.read(65536)

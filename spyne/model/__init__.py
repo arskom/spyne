@@ -104,6 +104,7 @@ from spyne.model.binary import ByteArray
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import ComplexModelBase
 from spyne.model.complex import ComplexModelMeta
+from spyne.model.complex import TTableModel
 
 # Iterables
 from spyne.model.complex import Array

@@ -43,6 +43,7 @@ from spyne.model import SimpleModel
 
 class BINARY_ENCODING_HEX: pass
 class BINARY_ENCODING_BASE64: pass
+class BINARY_ENCODING_USE_DEFAULT: pass
 class BINARY_ENCODING_URLSAFE_BASE64: pass
 
 
@@ -59,7 +60,7 @@ class ByteArray(SimpleModel):
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
 
     class Attributes(SimpleModel.Attributes):
-        encoding = None
+        encoding = BINARY_ENCODING_USE_DEFAULT
         """The binary encoding to use when the protocol does not enforce an
         encoding for binary data.
 
@@ -152,7 +153,7 @@ class File(SimpleModel):
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
 
     class Attributes(SimpleModel.Attributes):
-        encoding = None
+        encoding = BINARY_ENCODING_USE_DEFAULT
         """The binary encoding to use when the protocol does not enforce an
         encoding for binary data.
 
