@@ -408,28 +408,37 @@ class SimpleDictDocument(DictDocument):
         if prefix is None:
             prefix = []
 
-        fti = inst_cls.get_flat_type_info(inst_cls)
-        for k, v in fti.items():
-            new_prefix = list(prefix)
-            new_prefix.append(k)
-            subvalue = getattr(value, k, None)
-            if getattr(v, 'get_flat_type_info', None) is None: # Not a ComplexModel
-                key = hier_delim.join(new_prefix)
+        if value is None and inst_cls.Attributes.min_occurs == 0:
+            return retval
 
-                if retval.get(key, None) is not None:
-                    raise ValueError("%r.%s conflicts with previous value %r" %
-                                                     (inst_cls, k, retval[key]))
+        if issubclass(inst_cls, ComplexModelBase):
+            fti = inst_cls.get_flat_type_info(inst_cls)
 
-                if subvalue is not None or v.Attributes.min_occurs > 0:
-                    try:
-                        retval[key] = subvalue_eater(self, subvalue, v)
-                    except: # FIXME: What?
-                        if v.Attributes.min_occurs > 0:
-                            retval[key] = None
+            for k, v in fti.items():
+                new_prefix = list(prefix)
+                new_prefix.append(k)
+                subvalue = getattr(value, k, None)
 
-            else:
-                self.object_to_flat_dict(fti[k], subvalue, hier_delim,
+                if (issubclass(v, Array) or v.Attributes.max_occurs > 1) and \
+                                                           subvalue is not None:
+                    subtype, = v._type_info.values()
+                    new_prefix.append('')
+                    for i, ssv in enumerate(subvalue):
+                        new_prefix[-1] = '[%d]' % i
+                        self.object_to_simple_dict(subtype, ssv, hier_delim,
                                             retval, new_prefix, parent=inst_cls)
+                else:
+                    self.object_to_simple_dict(v, subvalue, hier_delim,
+                                                retval, new_prefix, parent=inst_cls)
+
+        else:
+            key = hier_delim.join(prefix)
+
+            if key in retval:
+                raise ValueError("%r.%s conflicts with previous value %r" %
+                                                    (inst_cls, k, retval[key]))
+
+            retval[key] = subvalue_eater(self, value, inst_cls)
 
         return retval
 

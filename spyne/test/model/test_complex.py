@@ -468,6 +468,40 @@ class TestFlatDict(unittest.TestCase):
 
         assert len(d) == 4
 
+    def test_array_not_none(self):
+        class CM(ComplexModel):
+            i = Integer
+            s = String
+
+        class CCM(ComplexModel):
+            c = Array(CM)
+
+        val = CCM(c=[CM(i=7, s='b')])
+
+        d = SimpleDictDocument().object_to_simple_dict(CCM, val)
+        print d
+
+        assert d['c_[0]_i'] == 7
+        assert d['c_[0]_s'] == 'b'
+
+        assert len(d) == 2
+
+    def test_array_none(self):
+        class CM(ComplexModel):
+            i = Integer
+            s = String
+
+        class CCM(ComplexModel):
+            c = Array(CM)
+
+        val = CCM()
+
+        d = SimpleDictDocument().object_to_simple_dict(CCM, val)
+        print d
+
+        assert len(d) == 0
+
+
 class TestSelfRefence(unittest.TestCase):
     def test_canonical_case(self):
         class TestSelfReference(ComplexModel):
