@@ -35,7 +35,7 @@ from spyne.error import ResourceNotFoundError
 from spyne.model.binary import BINARY_ENCODING_URLSAFE_BASE64
 from spyne.model.binary import ByteArray
 from spyne.model.primitive import DateTime
-from spyne.protocol.dictdoc import FlatDictDocument
+from spyne.protocol.dictdoc import SimpleDictDocument
 
 try:
     from cStringIO import StringIO
@@ -91,7 +91,7 @@ def to_string(prot, val, cls):
         return prot.to_string(cls, val)
 
 
-class HttpRpc(FlatDictDocument):
+class HttpRpc(SimpleDictDocument):
     """The so-called HttpRpc protocol implementation. It only works with Http
     (wsgi and twisted) transports.
 
@@ -112,13 +112,13 @@ class HttpRpc(FlatDictDocument):
     mime_type = 'text/plain'
     default_binary_encoding = BINARY_ENCODING_URLSAFE_BASE64
 
-    type = set(FlatDictDocument.type)
+    type = set(SimpleDictDocument.type)
     type.add('http')
 
     def __init__(self, app=None, validator=None, mime_type=None,
                     tmp_dir=None, tmp_delete_on_close=True, ignore_uncap=False,
                                                             parse_cookie=False):
-        FlatDictDocument.__init__(self, app, validator, mime_type,
+        SimpleDictDocument.__init__(self, app, validator, mime_type,
                                                       ignore_uncap=ignore_uncap)
 
         self.tmp_dir = tmp_dir
@@ -152,7 +152,7 @@ class HttpRpc(FlatDictDocument):
         ctx.in_document = ctx.transport.req
 
     def decompose_incoming_envelope(self, ctx, message):
-        assert message == FlatDictDocument.REQUEST
+        assert message == SimpleDictDocument.REQUEST
 
         ctx.transport.itself.decompose_incoming_envelope(self, ctx, message)
 
@@ -183,11 +183,11 @@ class HttpRpc(FlatDictDocument):
         if ctx.descriptor.in_header is not None:
             # HttpRpc supports only one header class
             in_header_class = ctx.descriptor.in_header[0]
-            ctx.in_header = self.flat_dict_to_object(ctx.in_header_doc,
+            ctx.in_header = self.simple_dict_to_object(ctx.in_header_doc,
                                                 in_header_class, self.validator)
 
         if ctx.descriptor.in_message is not None:
-            ctx.in_object = self.flat_dict_to_object(ctx.in_body_doc,
+            ctx.in_object = self.simple_dict_to_object(ctx.in_body_doc,
                                       ctx.descriptor.in_message, self.validator)
 
         self.event_manager.fire_event('after_deserialize', ctx)
@@ -244,7 +244,7 @@ class HttpRpc(FlatDictDocument):
                 if isinstance(ctx.out_header, (list, tuple)):
                     out_header = ctx.out_header[0]
 
-                ctx.out_header_doc = self.object_to_flat_dict(header_class,
+                ctx.out_header_doc = self.object_to_simple_dict(header_class,
                                           out_header, subvalue_eater=to_string)
 
         else:

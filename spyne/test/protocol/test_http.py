@@ -55,7 +55,7 @@ from spyne.server.wsgi import WsgiApplication
 from spyne.server.wsgi import WsgiMethodContext
 
 
-class FlatDictDocumentTest(unittest.TestCase):
+class SimpleDictDocumentTest(unittest.TestCase):
     def test_own_parse_qs_01(self):
         assert dict(_parse_qs('')) == {}
     def test_own_parse_qs_02(self):

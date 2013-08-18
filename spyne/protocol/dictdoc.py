@@ -269,12 +269,12 @@ class DictDocument(ProtocolBase):
         raise NotImplementedError()
 
 
-class FlatDictDocument(DictDocument):
+class SimpleDictDocument(DictDocument):
     """This protocol contains logic for protocols that serialize and deserialize
     flat dictionaries. The only example as of now is Http.
     """
 
-    def flat_dict_to_object(self, doc, inst_class, validator=None, hier_delim="_"):
+    def simple_dict_to_object(self, doc, inst_class, validator=None, hier_delim="_"):
         """Converts a flat dict to a native python object.
 
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
@@ -395,7 +395,7 @@ class FlatDictDocument(DictDocument):
 
         return retval
 
-    def object_to_flat_dict(self, inst_cls, value, hier_delim="_", retval=None,
+    def object_to_simple_dict(self, inst_cls, value, hier_delim="_", retval=None,
                      prefix=None, parent=None, subvalue_eater=lambda prot,v,t:v):
         """Converts a native python object to a flat dict.
 

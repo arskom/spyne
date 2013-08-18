@@ -46,7 +46,7 @@ from spyne.model import Float
 from spyne.model import Integer
 from spyne.model import String
 
-from spyne.protocol.dictdoc import FlatDictDocument
+from spyne.protocol.dictdoc import SimpleDictDocument
 from spyne.protocol.xml import XmlDocument
 
 from spyne.test import FakeApp
@@ -446,7 +446,8 @@ class TestSimpleTypeRestrictions(unittest.TestCase):
         else:
             raise Exception("must fail")
 
-    def test_serialization_to_simple_dict(self):
+class TestFlatDict(unittest.TestCase):
+    def test_basic(self):
         class CM(ComplexModel):
             i = Integer
             s = String
@@ -458,7 +459,7 @@ class TestSimpleTypeRestrictions(unittest.TestCase):
 
         val = CCM(i=5, s='a', c=CM(i=7, s='b'))
 
-        d = FlatDictDocument().object_to_flat_dict(CCM, val)
+        d = SimpleDictDocument().object_to_simple_dict(CCM, val)
 
         assert d['i'] == 5
         assert d['s'] == 'a'
