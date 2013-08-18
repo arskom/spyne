@@ -476,15 +476,17 @@ class TestFlatDict(unittest.TestCase):
         class CCM(ComplexModel):
             c = Array(CM)
 
-        val = CCM(c=[CM(i=7, s='b')])
+        val = CCM(c=[CM(i=i, s='b'*(i+1)) for i in range(2)])
 
         d = SimpleDictDocument().object_to_simple_dict(CCM, val)
         print d
 
-        assert d['c_[0]_i'] == 7
+        assert d['c_[0]_i'] == 0
         assert d['c_[0]_s'] == 'b'
+        assert d['c_[1]_i'] == 1
+        assert d['c_[1]_s'] == 'bb'
 
-        assert len(d) == 2
+        assert len(d) == 4
 
     def test_array_none(self):
         class CM(ComplexModel):
@@ -500,6 +502,26 @@ class TestFlatDict(unittest.TestCase):
         print d
 
         assert len(d) == 0
+
+    def test_array_nested(self):
+        class CM(ComplexModel):
+            i = Array(Integer)
+
+        class CCM(ComplexModel):
+            c = Array(CM)
+
+        val = CCM(c=[CM(i=range(i)) for i in range(2, 4) ])
+
+        d = SimpleDictDocument().object_to_simple_dict(CCM, val)
+        pprint(d)
+
+        assert d['c_[0]_i_[0]'] == 0
+        assert d['c_[0]_i_[1]'] == 1
+        assert d['c_[1]_i_[0]'] == 0
+        assert d['c_[1]_i_[1]'] == 1
+        assert d['c_[1]_i_[2]'] == 2
+
+        assert len(d) == len(range(2)) + len(range(3))
 
 
 class TestSelfRefence(unittest.TestCase):
