@@ -421,15 +421,19 @@ class SimpleDictDocument(DictDocument):
 
                 if (issubclass(v, Array) or v.Attributes.max_occurs > 1) and \
                                                            subvalue is not None:
-                    subtype, = v._type_info.values()
+                    if issubclass(v, Array):
+                        subtype, = v._type_info.values()
+                    else:
+                        subtype = v
+
                     new_prefix.append('')
                     for i, ssv in enumerate(subvalue):
                         new_prefix[-1] = '[%d]' % i
-                        self.object_to_simple_dict(subtype, ssv, hier_delim,
+                        self.object_to_simple_dict(v, ssv, hier_delim,
                                             retval, new_prefix, parent=inst_cls)
                 else:
                     self.object_to_simple_dict(v, subvalue, hier_delim,
-                                                retval, new_prefix, parent=inst_cls)
+                                            retval, new_prefix, parent=inst_cls)
 
         else:
             key = hier_delim.join(prefix)
