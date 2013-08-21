@@ -510,7 +510,7 @@ class TestFlatDict(unittest.TestCase):
         class CCM(ComplexModel):
             c = Array(CM)
 
-        val = CCM(c=[CM(i=range(i)) for i in range(2, 4) ])
+        val = CCM(c=[CM(i=range(i)) for i in range(2, 4)])
 
         d = SimpleDictDocument().object_to_simple_dict(CCM, val)
         pprint(d)
