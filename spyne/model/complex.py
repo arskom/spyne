@@ -816,8 +816,7 @@ class Array(ComplexModelBase):
 
         else:
             member_name = serializer.get_type_name()
-            if cls.__type_name__ == cls.__type_name__:
-                cls.__type_name__ = '%s%s%s' % (ARRAY_PREFIX, member_name,
+            cls.__type_name__ = '%s%s%s' % (ARRAY_PREFIX, member_name,
                                                                    ARRAY_SUFFIX)
 
         # hack to default to unbounded arrays when the user didn't specify
