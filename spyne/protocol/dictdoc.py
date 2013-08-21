@@ -429,7 +429,7 @@ class SimpleDictDocument(DictDocument):
                     new_prefix.append('')
                     for i, ssv in enumerate(subvalue):
                         new_prefix[-1] = '[%d]' % i
-                        self.object_to_simple_dict(v, ssv, hier_delim,
+                        self.object_to_simple_dict(subtype, ssv, hier_delim,
                                             retval, new_prefix, parent=inst_cls)
                 else:
                     self.object_to_simple_dict(v, subvalue, hier_delim,
