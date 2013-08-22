@@ -63,11 +63,11 @@ of Spyne:
 * `pyzmq <https://github.com/zeromq/pyzmq>`_ is needed for
   ``spyne.client.zeromq.ZeroMQClient`` and
   ``spyne.server.zeromq.ZeroMQServer``.
-* `Werkzeug <http://werkzeug.pocoo.org/>`_ is needed for
-  ``spyne.protocol.http.HttpRpc``.
+* `Werkzeug <http://werkzeug.pocoo.org/>`_ is needed for using
+  ``spyne.protocol.http.HttpRpc`` under a wsgi transport.
 * `PyParsing<2.0 <http://pypi.python.org/pypi/pyparsing>`_ is needed for
-  using ``HttpPattern``'s with ``spyne.protocol.http.HttpRpc``. PyParsing 2.x is
-  Python 3 only.
+  using ``HttpPattern``'s with ``spyne.protocol.http.HttpRpc``\. (PyParsing>=2.x
+  is Python 3 only).
 * `Twisted <http://twistedmatrix.com/>`_ is needed for
   ``spyne.server.twisted.TwistedWebResource`` and
   ``spyne.client.twisted.TwistedHttpClient``.
