@@ -33,6 +33,7 @@ from spyne.error import Fault
 from spyne.error import InternalError
 from spyne.error import ResourceNotFoundError
 from spyne.service import ServiceBase
+from spyne.util import memoize
 from spyne.util.email import email_exception
 from spyne.model import Unicode
 from spyne.model import Array
@@ -332,3 +333,70 @@ def _log_repr_any(obj, cls, k=None):
             return repr(obj)
         else:
             return '%s=%r' % (k, obj)
+
+
+@memoize
+def TReaderService(T, T_name):
+    class ReaderService(ReaderServiceBase):
+        @rpc(M(UnsignedInteger32), _returns=T,
+                    _in_message_name='get_%s' % T_name,
+                    _in_variable_names={'obj_id': "%s_id" % T_name})
+        def get(ctx, obj_id):
+            return ctx.udc.session.query(T).filter_by(id=obj_id).one()
+
+        @rpc(_returns=Iterable(T),
+                    _in_message_name='get_all_%s' % T_name)
+        def get_all(ctx):
+            return ctx.udc.session.query(T).order_by(T.id)
+
+    return ReaderService
+
+
+@memoize
+def TWriterService(T, T_name, put_not_found='raise'):
+    assert put_not_found in ('raise', 'fix')
+
+    if put_not_found == 'raise':
+        def put_not_found(obj):
+            raise ResourceNotFoundError('%s.id=%d' % (T_name, obj.id))
+
+    elif put_not_found == 'fix':
+        def put_not_found(obj):
+            obj.id = None
+
+    class WriterService(WriterServiceBase):
+        @rpc(M(T), _returns=UnsignedInteger32,
+                    _in_message_name='put_%s' % T_name,
+                    _in_variable_names={'obj': T_name})
+        def put(ctx, obj):
+            if obj.id is None:
+                ctx.udc.session.add(obj)
+                ctx.udc.session.flush() # so that we get the obj.id value
+
+            else:
+                if ctx.udc.session.query(T).get(obj.id) is None:
+                    # this is to prevent the client from setting the primary key
+                    # of a new object instead of the database's own primary-key
+                    # generator.
+                    # Instead of raising an exception, you can also choose to
+                    # ignore the primary key set by the client by silently doing
+                    # obj.id = None in order to have the database assign the
+                    # primary key the traditional way.
+                    put_not_found(obj.id)
+
+                else:
+                    ctx.udc.session.merge(obj)
+
+            return obj.id
+
+        @rpc(M(UnsignedInteger32),
+                    _in_message_name='del_%s' % T_name,
+                    _in_variable_names={'obj_id': '%s_id' % T_name})
+        def del_(ctx, obj_id):
+            count = ctx.udc.session.query(T).filter_by(id=obj_id).count()
+            if count == 0:
+                raise ResourceNotFoundError(obj_id)
+
+            ctx.udc.session.query(T).filter_by(id=obj_id).delete()
+
+    return WriterService
