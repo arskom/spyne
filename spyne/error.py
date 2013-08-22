@@ -71,6 +71,7 @@ class InvalidInputError(Fault):
     def __init__(self, faultstring="", data=""):
         Fault.__init__(self, 'Client.InvalidInput', repr((faultstring, data)))
 
+InvalidRequestError = InvalidInputError
 
 class ValidationError(Fault):
     """Raised when the input stream does not adhere to type constraints."""
