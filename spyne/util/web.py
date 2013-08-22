@@ -19,6 +19,8 @@
 
 """
 An opinionated web framework built on top of Spyne, SQLAlchemy and Twisted.
+
+If you're using this for anything serious, you're insane.
 """
 
 from __future__ import absolute_import
@@ -32,9 +34,9 @@ from spyne.error import InternalError
 from spyne.error import ResourceNotFoundError
 from spyne.service import ServiceBase
 from spyne.util.email import email_exception
-from spyne.model.primitive import Unicode
-from spyne.model.complex import Array
-from spyne.model.complex import ComplexModelBase
+from spyne.model import Unicode
+from spyne.model import Array
+from spyne.model import ComplexModelBase
 
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.orm.exc import NoResultFound
