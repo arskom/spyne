@@ -43,12 +43,12 @@ from spyne.decorator import rpc
 
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.yaml import YamlDocument
-from spyne.model.primitive import Mandatory
-from spyne.model.primitive import Unicode
-from spyne.model.primitive import UnsignedInteger32
-from spyne.model.complex import Array
-from spyne.model.complex import Iterable
-from spyne.model.complex import TTableModel
+from spyne.model import Mandatory as M
+from spyne.model import Unicode
+from spyne.model import UnsignedInteger32
+from spyne.model import Array
+from spyne.model import Iterable
+from spyne.model import TTableModel
 from spyne.server.wsgi import WsgiApplication
 from spyne.service import ServiceBase
 from spyne.util import memoize
@@ -85,13 +85,13 @@ class User(TableModel):
 @memoize
 def TCrudService(T, T_name):
     class CrudService(ServiceBase):
-        @rpc(Mandatory.UnsignedInteger32, _returns=T,
+        @rpc(M(UnsignedInteger32), _returns=T,
                     _in_message_name='get_%s' % T_name,
                     _in_variable_names={'obj_id': "%s_id" % T_name})
         def get(ctx, obj_id):
             return ctx.udc.session.query(T).filter_by(id=obj_id).one()
 
-        @rpc(T, _returns=UnsignedInteger32,
+        @rpc(M(T), _returns=UnsignedInteger32,
                     _in_message_name='put_%s' % T_name,
                     _in_variable_names={'obj': T_name})
         def put(ctx, obj):
@@ -106,7 +106,8 @@ def TCrudService(T, T_name):
                     # generator.
                     # Instead of raising an exception, you can also choose to
                     # ignore the primary key set by the client by silently doing
-                    # obj.id = None
+                    # obj.id = None in order to have the database assign the
+                    # primary key the traditional way.
                     raise ResourceNotFoundError('%s.id=%d' % (T_name, obj.id))
 
                 else:
@@ -114,7 +115,7 @@ def TCrudService(T, T_name):
 
             return obj.id
 
-        @rpc(Mandatory.UnsignedInteger32,
+        @rpc(M(UnsignedInteger32),
                     _in_message_name='del_%s' % T_name,
                     _in_variable_names={'obj_id': '%s_id' % T_name})
         def del_(ctx, obj_id):
