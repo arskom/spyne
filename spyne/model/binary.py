@@ -116,6 +116,9 @@ class ByteArray(SimpleModel):
     @classmethod
     @nillable_string
     def from_urlsafe_base64(cls, value):
+        #FIXME: Find out why we need to do this.
+        if isinstance(value, unicode):
+            value = value.encode('utf8')
         return [urlsafe_b64decode(_bytes_join(value))]
 
     @classmethod
