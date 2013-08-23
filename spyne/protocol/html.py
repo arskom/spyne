@@ -167,7 +167,8 @@ class HtmlMicroFormat(HtmlBase):
     mime_type = 'text/html'
 
     def __init__(self, app=None, validator=None, root_tag='div',
-                                     child_tag='div', field_name_attr='class'):
+                 child_tag='div', field_name_attr='class', 
+                 field_name_tag=None, field_name_class='field_name'):
         """Protocol that returns the response object as a html microformat. See
         https://en.wikipedia.org/wiki/Microformats for more info.
 
@@ -184,6 +185,8 @@ class HtmlMicroFormat(HtmlBase):
             field names of the complex object children.
         :param field_type_attr: The name of the attribute that will contain the
             type names of the complex object children.
+        :param with_field_names: Also return field names in the field tags
+            inside separate tags.
         """
 
         HtmlBase.__init__(self, app, validator)
@@ -191,10 +194,13 @@ class HtmlMicroFormat(HtmlBase):
         assert root_tag in ('div', 'span')
         assert child_tag in ('div', 'span')
         assert field_name_attr in ('class', 'id')
+        assert field_name_tag in ('span', 'div')
 
         self.__root_tag = root_tag
         self.__child_tag = child_tag
         self.__field_name_attr = field_name_attr
+        self._field_name_tag = getattr(E, field_name_tag)
+        self._field_name_class = field_name_class
 
         self.serialization_handlers = cdict({
             ModelBase: self.serialize_model_base,
@@ -218,8 +224,18 @@ class HtmlMicroFormat(HtmlBase):
 
     @nillable_value
     def serialize_model_base(self, cls, value, locale, name):
-        return [ E(self.child_tag, self.to_string(cls, value),
-                                                **{self.field_name_attr: name})]
+        retval = E(self.child_tag, **{self.field_name_attr: name})
+        data_str = self.to_string(cls, value)
+
+        if self._field_name_tag is not None:
+            field_name_tag = \
+                self._field_name_tag(name, **{'class':self._field_name_class})
+            field_name_tag.tail = data_str
+            retval.append(field_name_tag)
+        else:
+            retval.text = data_str
+
+        return [retval]
 
     def serialize_impl(self, cls, value, locale):
         return self.serialize_class(cls, value, locale, cls.get_type_name())
