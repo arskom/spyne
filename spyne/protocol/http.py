@@ -225,7 +225,7 @@ class HttpRpc(SimpleDictDocument):
 
                 else:
                     out_class = result_class
-                    out_object = ctx.out_object
+                    out_object, = ctx.out_object
 
                 if out_class is not None:
                     ctx.out_document = self.to_string_iterable(out_class,
