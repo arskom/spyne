@@ -31,16 +31,16 @@ from spyne.util.cdict import cdict
 from spyne.util.odict import odict
 
 from spyne.model import SimpleModel
-from spyne.model.binary import ByteArray
-from spyne.model.complex import ComplexModelBase
-from spyne.model.enum import EnumBase
-from spyne.model.fault import Fault
-from spyne.model.primitive import Decimal
-from spyne.model.primitive import DateTime
-from spyne.model.primitive import Date
-from spyne.model.primitive import Time
-from spyne.model.primitive import Unicode
+from spyne.model import ByteArray
+from spyne.model import ComplexModelBase
+from spyne.model import Fault
+from spyne.model import Decimal
+from spyne.model import DateTime
+from spyne.model import Date
+from spyne.model import Time
+from spyne.model import Unicode
 
+from spyne.model.enum import EnumBase
 from spyne.interface import InterfaceDocumentBase
 
 from spyne.interface.xml_schema.model import byte_array_add

@@ -45,20 +45,20 @@ from spyne.const.ansi_color import END_COLOR
 
 from spyne.util.cdict import cdict
 from spyne.model import ModelBase
-from spyne.model.binary import Attachment
-from spyne.model.binary import BINARY_ENCODING_BASE64
-from spyne.model.complex import Array
-from spyne.model.complex import Iterable
-from spyne.model.complex import XmlAttribute
-from spyne.model.complex import ComplexModelBase
+from spyne.model import Array
+from spyne.model import Iterable
+from spyne.model import XmlAttribute
+from spyne.model import ComplexModelBase
+from spyne.model import Fault
+from spyne.model import ByteArray
+from spyne.model import AnyHtml
+from spyne.model import AnyXml
+from spyne.model import AnyDict
+from spyne.model import Unicode
 
+from spyne.model.binary import Attachment # deprecated
 from spyne.model.enum import EnumBase
-from spyne.model.fault import Fault
-from spyne.model.binary import ByteArray
-from spyne.model.primitive import AnyHtml
-from spyne.model.primitive import AnyXml
-from spyne.model.primitive import AnyDict
-from spyne.model.primitive import Unicode
+from spyne.model.binary import BINARY_ENCODING_BASE64
 
 from spyne.protocol import ProtocolBase
 
