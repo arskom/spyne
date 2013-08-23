@@ -66,7 +66,7 @@ __all__ = [
     'file_from_string', 'file_to_string_iterable',
     'attachment_to_string', 'attachment_from_string',
     'complex_model_base_to_string', 'complex_model_base_from_string',
-    'simple_model_to_string_iterable',
+    'simple_model_to_string_iterable', 'complex_model_to_string_iterable',
 ]
 
 def null_to_string(cls, value):
@@ -450,6 +450,12 @@ def simple_model_to_string_iterable(prot, cls, value):
     if retval is None:
         return ('',)
     return (retval,)
+
+@nillable_iterable
+def complex_model_to_string_iterable(prot, cls, value):
+    if prot.ignore_uncap:
+        return tuple()
+    raise TypeError("HttpRpc protocol can only serialize primitives.")
 
 @nillable_string
 def attachment_to_string(cls, value):

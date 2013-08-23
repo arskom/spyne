@@ -228,16 +228,8 @@ class HttpRpc(SimpleDictDocument):
                     out_object = ctx.out_object
 
                 if out_class is not None:
-                    try:
-                        ctx.out_document = self.to_string_iterable(out_class,
+                    ctx.out_document = self.to_string_iterable(out_class,
                                                                     out_object)
-                    except (TypeError, AttributeError), e:
-                        logger.exception(e)
-                        if self.ignore_uncap:
-                            return
-                        raise TypeError("HttpRpc protocol can only serialize "
-                                        "primitives.")
-
             # header
             if ctx.out_header is not None:
                 out_header = ctx.out_header
