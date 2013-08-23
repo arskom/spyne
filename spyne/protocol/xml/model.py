@@ -280,26 +280,6 @@ def complex_to_parent_element(prot, cls, value, tns, parent_elt, name=None):
     return get_members_etree(prot, cls, inst, element)
 
 
-@nillable_value
-def alias_to_parent_element(prot, cls, value, tns, parent_elt, name=None):
-    if name is None:
-        name = cls.get_type_name()
-
-    (k,t), = cls._type_info.items()
-    if t is not None:
-        subvalue = getattr(value, k, None)
-        # Don't include empty values for non-nillable optional attributes.
-        if subvalue is not None or t.Attributes.min_occurs > 0:
-            prot.to_parent_element(t, subvalue, tns, parent_elt, name)
-
-
-@nillable_element
-def alias_from_element(prot, cls, element):
-    t, = cls._type_info.values()
-    if t is not None:
-        return prot.from_element(t, element)
-
-
 @nillable_element
 def complex_from_element(prot, cls, element):
     inst = cls.get_deserialization_instance()

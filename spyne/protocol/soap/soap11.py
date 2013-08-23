@@ -42,13 +42,20 @@ import cgi
 
 import spyne.const.xml_ns as ns
 
+from itertools import chain
+
 from lxml import etree
 from lxml.etree import XMLSyntaxError
 from lxml.etree import XMLParser
 
+from spyne import BODY_STYLE_BARE
+from spyne import BODY_STYLE_WRAPPED
+
+from spyne.const.xml_ns import DEFAULT_NS
 from spyne.const.http import HTTP_405
 from spyne.const.http import HTTP_500
 from spyne.error import RequestNotAllowed
+from spyne.model import ComplexModelBase
 from spyne.model.fault import Fault
 from spyne.model.primitive import Date
 from spyne.model.primitive import Time
@@ -292,26 +299,44 @@ class Soap11(XmlDocument):
                                                     '{%s}Body' % ns.soap_env)
 
             # assign raw result to its wrapper, result_message
-            out_type_info = body_message_class._type_info
-            out_object = body_message_class()
+            if ctx.descriptor.body_style is BODY_STYLE_WRAPPED:
+                out_type_info = body_message_class._type_info
+                print body_message_class
+                out_object = body_message_class()
 
-            keys = iter(out_type_info)
-            values = iter(ctx.out_object)
-            while True:
-                try:
-                    k = keys.next()
-                except StopIteration:
-                    break
-                try:
-                    v = values.next()
-                except StopIteration:
-                    v = None
+                keys = iter(out_type_info)
+                values = iter(ctx.out_object)
+                while True:
+                    try:
+                        k = keys.next()
+                    except StopIteration:
+                        break
+                    try:
+                        v = values.next()
+                    except StopIteration:
+                        v = None
 
-                setattr(out_object, k, v)
+                    setattr(out_object, k, v)
+                self.to_parent_element(body_message_class, out_object,
+                        body_message_class.get_namespace(), out_body_doc)
+
+            else:
+                out_object = ctx.out_object[0]
+
+                sub_ns = body_message_class.Attributes.sub_ns
+                if sub_ns is None:
+                    sub_ns = body_message_class.get_namespace()
+                if sub_ns is DEFAULT_NS:
+                    sub_ns = self.app.interface.get_tns()
+
+                sub_name = body_message_class.Attributes.sub_name
+                if sub_name is None:
+                    sub_name = body_message_class.get_type_name()
+
+                self.to_parent_element(body_message_class, out_object,
+                                sub_ns, out_body_doc, sub_name)
 
             # transform the results into an element
-            self.to_parent_element(body_message_class, out_object,
-                                body_message_class.get_namespace(), out_body_doc)
 
             # header
             if ctx.out_header is not None and header_message_class is not None:

@@ -47,11 +47,11 @@ from spyne.util.cdict import cdict
 from spyne.model import ModelBase
 from spyne.model.binary import Attachment
 from spyne.model.binary import BINARY_ENCODING_BASE64
-from spyne.model.complex import Alias
 from spyne.model.complex import Array
 from spyne.model.complex import Iterable
 from spyne.model.complex import XmlAttribute
 from spyne.model.complex import ComplexModelBase
+
 from spyne.model.enum import EnumBase
 from spyne.model.fault import Fault
 from spyne.model.binary import ByteArray
@@ -65,7 +65,6 @@ from spyne.protocol import ProtocolBase
 from spyne.protocol.xml.model import byte_array_to_parent_element
 from spyne.protocol.xml.model import attachment_to_parent_element
 from spyne.protocol.xml.model import base_to_parent_element
-from spyne.protocol.xml.model import alias_to_parent_element
 from spyne.protocol.xml.model import complex_to_parent_element
 from spyne.protocol.xml.model import enum_to_parent_element
 from spyne.protocol.xml.model import fault_to_parent_element
@@ -77,7 +76,6 @@ from spyne.protocol.xml.model import xmlattribute_to_parent_element
 from spyne.protocol.xml.model import attachment_from_element
 from spyne.protocol.xml.model import base_from_element
 from spyne.protocol.xml.model import byte_array_from_element
-from spyne.protocol.xml.model import alias_from_element
 from spyne.protocol.xml.model import complex_from_element
 from spyne.protocol.xml.model import enum_from_element
 from spyne.protocol.xml.model import fault_from_element
@@ -201,7 +199,6 @@ class XmlDocument(ProtocolBase):
 
         self.serialization_handlers = cdict({
             AnyXml: xml_to_parent_element,
-            Alias: alias_to_parent_element,
             Fault: fault_to_parent_element,
             AnyDict: dict_to_parent_element,
             AnyHtml: html_to_parent_element,
@@ -224,7 +221,6 @@ class XmlDocument(ProtocolBase):
             Attachment: attachment_from_element,
             ComplexModelBase: complex_from_element,
 
-            Alias: alias_from_element,
             Iterable: iterable_from_element,
             Array: array_from_element,
         })

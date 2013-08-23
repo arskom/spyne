@@ -258,7 +258,7 @@ class TestBodyStyle(unittest.TestCase):
                 assert s == 'abc'
 
         app = Application([SomeService], 'tns', in_protocol=Soap11(),
-                                                out_protocol=Soap11(cleanup_namespaces=True))
+                                   out_protocol=Soap11(cleanup_namespaces=True))
 
         req = """
         <senv:Envelope  xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/"

@@ -220,7 +220,7 @@ class Interface(object):
                     classes.append(method.out_message)
 
                 for p in method.patterns:
-                    p.endpoint = method.key
+                    p.endpoint = method.name
 
         for c in classes:
             self.add_class(c)
@@ -231,16 +231,18 @@ class Interface(object):
             logger.debug("populating '%s.%s' methods..." % (s.__module__,
                                                                     s.__name__))
             for method in s.public_methods.values():
+                method_key = '{%s}%s' % (self.app.tns, method.name)
+
                 logger.debug('\tadding method %r to match %r tag.' %
-                                                      (method.name, method.key))
+                                                      (method.name, method_key))
 
                 assert not s.get_method_id(method) in self.method_id_map
 
                 self.method_id_map[s.get_method_id(method)] = (s, method)
 
-                val = self.service_method_map.get(method.key, None)
+                val = self.service_method_map.get(method_key, None)
                 if val is None:
-                    val = self.service_method_map[method.key] = []
+                    val = self.service_method_map[method_key] = []
 
                 if len(val) == 0:
                     val.append((s, method))
@@ -255,7 +257,7 @@ class Interface(object):
                     os, om = val[0]
                     raise ValueError("\nThe message %r defined in both '%s.%s'"
                                                                  " and '%s.%s'"
-                                % (method.key, s.__module__, s.__name__,
+                                % (method.name, s.__module__, s.__name__,
                                                os.__module__, os.__name__,
                                 ))
 

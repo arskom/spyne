@@ -82,23 +82,28 @@ def _produce_input_message(f, params, kparams, _in_message_name,
 
     ns = DEFAULT_NS
     if _in_message_name.startswith("{"):
-        ns = _in_message_name[1:].partition("}")[0]
+        ns, _, in_message_name = _in_message_name[1:].partition("}")
 
+    message = None
     if _body_style == 'bare':
         if len(in_params) > 1:
             raise Exception("body_style='bare' can handle at most one function "
                                                                     "argument.")
         in_param = None
-        if len(in_params) == 1:
-            in_param, = in_params.values()
 
-        message = ComplexModel.alias(_in_message_name, ns, in_param)
+        if len(in_params) == 1:
+            message, = in_params.values()
+            message = message.customize(sub_name=_in_message_name, sub_ns=ns)
+            assert message.Attributes.sub_name is not None
+
+        else:
+            message = ComplexModel.produce(type_name=_in_message_name,
+                                               namespace=ns, members=in_params)
 
     else:
         message = ComplexModel.produce(type_name=_in_message_name,
                                                namespace=ns, members=in_params)
         message.__namespace__ = ns
-
 
     return message
 
@@ -133,9 +138,9 @@ def _produce_output_message(func_name, kparams):
 
     _returns = kparams.get('_returns')
     _body_style = _validate_body_style(kparams)
-
     _out_message_name = kparams.get('_out_message', '%s%s' %
-                                                  (func_name, RESPONSE_SUFFIX))
+                                               (func_name, RESPONSE_SUFFIX))
+
     out_params = TypeInfo()
 
     if _returns and _body_style == 'wrapped':
@@ -162,7 +167,7 @@ def _produce_output_message(func_name, kparams):
         ns = _out_message_name[1:].partition("}")[0]
 
     if _body_style == 'bare' and _returns is not None:
-        message = ComplexModel.alias(_out_message_name, ns, _returns)
+        message = _returns.customize(sub_name=_out_message_name, sub_ns=ns)
 
     else:
         message = ComplexModel.produce(type_name=_out_message_name,
@@ -269,20 +274,20 @@ def rpc(*params, **kparams):
                 _faults = kparams.get('_throws', None)
 
             _in_message_name = kparams.get('_in_message_name', function_name)
-            operation_name = kparams.get('_operation_name', function_name)
+            _operation_name = kparams.get('_operation_name', function_name)
 
-            if operation_name is not function_name and _in_message_name is not function_name:
+            if _operation_name != function_name and _in_message_name != function_name:
                 raise ValueError("only one of '_operation_name' and '_in_message_name' "
                                                     "arguments should be given")
-            if _in_message_name is function_name:
-                _in_message_name = add_request_suffix(operation_name)
+            if _in_message_name == function_name:
+                _in_message_name = add_request_suffix(_operation_name)
 
 
             _in_variable_names = kparams.get('_in_variable_names', {})
 
             in_message = _produce_input_message(f, params, kparams,
                            _in_message_name, _in_variable_names, _no_ctx, _args)
-
+            print in_message.Attributes.sub_name
             out_message = _produce_output_message(function_name, kparams)
 
             doc = getattr(f, '__doc__')
@@ -297,8 +302,9 @@ def rpc(*params, **kparams):
             body_style = BODY_STYLE_WRAPPED
             if _validate_body_style(kparams) == 'bare':
                 body_style = BODY_STYLE_BARE
-                t, = in_message._type_info.values()
-                if t is None:
+                t = in_message
+                from spyne.model import ComplexModelBase
+                if issubclass(t, ComplexModelBase) and len(t._type_info) == 0:
                     body_style = BODY_STYLE_EMPTY
 
             retval = MethodDescriptor(f,
@@ -306,7 +312,8 @@ def rpc(*params, **kparams):
                     _mtom, _in_header, _out_header, _faults,
                     port_type=_port_type, no_ctx=_no_ctx, udp=_udp,
                     class_key=function_name, aux=_aux, patterns=_patterns,
-                    body_style=body_style, args=_args, operation_name=operation_name)
+                    body_style=body_style, args=_args,
+                    operation_name=_operation_name)
 
             return retval
 

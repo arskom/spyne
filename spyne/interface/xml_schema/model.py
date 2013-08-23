@@ -248,18 +248,6 @@ def complex_add(document, cls, tags):
     document.add_element(cls, element)
 
 
-def alias_add(document, cls, tags):
-    t, = cls._type_info.values()
-    element = etree.Element('{%s}element' % _ns_xsd)
-    element.set('name', cls.get_type_name())
-    if t is None:
-        etree.SubElement(element, "{%s}complexType" % _ns_xsd)
-    else:
-        element.set('type', t.get_type_name_ns(document.interface))
-
-    document.add_element(cls, element)
-
-
 def enum_add(document, cls, tags):
     simple_type = etree.Element('{%s}simpleType' % _ns_xsd)
     simple_type.set('name', cls.get_type_name())

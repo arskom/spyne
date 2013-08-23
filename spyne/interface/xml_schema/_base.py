@@ -33,7 +33,6 @@ from spyne.util.odict import odict
 from spyne.model import SimpleModel
 from spyne.model.binary import ByteArray
 from spyne.model.complex import ComplexModelBase
-from spyne.model.complex import Alias
 from spyne.model.enum import EnumBase
 from spyne.model.fault import Fault
 from spyne.model.primitive import Decimal
@@ -46,7 +45,6 @@ from spyne.interface import InterfaceDocumentBase
 
 from spyne.interface.xml_schema.model import byte_array_add
 from spyne.interface.xml_schema.model import simple_add
-from spyne.interface.xml_schema.model import alias_add
 from spyne.interface.xml_schema.model import complex_add
 from spyne.interface.xml_schema.model import fault_add
 from spyne.interface.xml_schema.model import enum_add
@@ -58,7 +56,6 @@ from spyne.interface.xml_schema.model import Tget_range_restriction_tag
 
 _add_handlers = cdict({
     object: lambda interface, cls, tags: None,
-    Alias: alias_add,
     ByteArray: byte_array_add,
     SimpleModel: simple_add,
     ComplexModelBase: complex_add,

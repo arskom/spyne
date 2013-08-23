@@ -21,6 +21,7 @@
 import logging
 logger = logging.getLogger(__name__)
 
+from spyne import BODY_STYLE_WRAPPED
 from spyne.model.fault import Fault
 from spyne.interface import Interface
 from spyne._base import EventManager
@@ -136,7 +137,8 @@ class Application(object):
 
             # out object is always an iterable of return values. see
             # MethodContext docstrings for more info
-            if len(ctx.descriptor.out_message._type_info) <= 1:
+            if ctx.descriptor.body_style is not BODY_STYLE_WRAPPED or \
+                                len(ctx.descriptor.out_message._type_info) <= 1:
                 # the return value should already be wrapped by a sequence.
                 ctx.out_object = [ctx.out_object]
 

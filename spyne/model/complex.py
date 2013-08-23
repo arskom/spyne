@@ -703,22 +703,6 @@ class ComplexModelBase(ModelBase):
             '_type_info': TypeInfo(members),
         })
 
-    @staticmethod
-    def alias(type_name, namespace, target):
-        """Return an alias class for the given target class.
-
-        This function is a variation on 'ComplexModel.produce'. The alias will
-        borrow the target's _type_info.
-        """
-
-        retval = Alias.customize()
-
-        retval.__type_name__ = type_name
-        retval.__namespace__ = namespace
-        retval._type_info = {"_target": target}
-
-        return retval
-
     @classmethod
     def customize(cls, **kwargs):
         """Duplicates cls and overwrites the values in ``cls.Attributes`` with
@@ -873,11 +857,6 @@ class Iterable(Array):
 
     class Push(PushBase):
         pass
-
-class Alias(ComplexModelBase):
-    """Different type_name, same _type_info."""
-
-    __metaclass__ = ComplexModelMeta
 
 
 # this has docstring repeated in the documentation at reference/model/complex.rst
