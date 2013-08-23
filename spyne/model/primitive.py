@@ -424,7 +424,7 @@ class Integer(Decimal):
     @staticmethod
     def validate_native(cls, value):
         return (    Decimal.validate_native(cls, value)
-                and int(value) == value
+                and ((value is None) or (int(value) == value))
             )
 
 class UnsignedInteger(Integer):
@@ -435,7 +435,7 @@ class UnsignedInteger(Integer):
     @staticmethod
     def validate_native(cls, value):
         return (    Integer.validate_native(cls, value)
-                and value >= 0
+                and (value is None or value >= 0)
             )
 
 NonNegativeInteger = UnsignedInteger
@@ -458,8 +458,8 @@ def TBoundedInteger(num_bits, type_name):
         @staticmethod
         def validate_native(cls, value):
             return (
-                    _min_b <= value <= _max_b
-                and Integer.validate_native(cls, value)
+                    Integer.validate_native(cls, value)
+                and _min_b <= value <= _max_b
             )
 
     return _BoundedInteger
@@ -481,8 +481,8 @@ def TBoundedUnsignedInteger(num_bits, type_name):
         @staticmethod
         def validate_native(cls, value):
             return (
-                    _min_b <= value < _max_b
-                and UnsignedInteger.validate_native(cls, value)
+                    UnsignedInteger.validate_native(cls, value)
+                and (value is None or (_min_b <= value < _max_b))
             )
 
     return _BoundedUnsignedInteger
