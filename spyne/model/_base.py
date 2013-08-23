@@ -337,8 +337,13 @@ class ModelBase(object):
             cls_dict['__orig__'] = cls
 
         class Attributes(cls.Attributes):
-            translations = {}
-            sqla_column_args = (), {}
+            pass
+
+        if cls.Attributes.translations is None:
+            Attributes.translations = {}
+        if cls.Attributes.sqla_column_args is None:
+            Attributes.sqla_column_args = (), {}
+
         cls_dict['Attributes'] = Attributes
         # as nillable is a property, it gets reset everytime a new class is
         # defined. So we need to reinitialize it explicitly.

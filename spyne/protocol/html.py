@@ -228,8 +228,9 @@ class HtmlMicroFormat(HtmlBase):
         data_str = self.to_string(cls, value)
 
         if self._field_name_tag is not None:
-            field_name_tag = \
-                self._field_name_tag(name, **{'class':self._field_name_class})
+            field_name = cls.Attributes.translations.get(locale, name)
+            field_name_tag = self._field_name_tag(field_name,
+                                            **{'class':self._field_name_class})
             field_name_tag.tail = data_str
             retval.append(field_name_tag)
         else:
