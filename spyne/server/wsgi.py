@@ -563,3 +563,7 @@ class WsgiApplication(HttpBase):
                                                     path=path, handle=v.stream))
 
                 ctx.in_body_doc[k] = val
+
+            for k, v in ctx.in_body_doc.items():
+                if v == ['']:
+                    ctx.in_body_doc[k] = [None]
