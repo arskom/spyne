@@ -604,15 +604,20 @@ class ComplexModelBase(ModelBase):
         and whose types are only primitives. It will prefix field names in
         non-top-level complex objects with field name of its parent.
 
-        For example, given hier_delim='_'; the following hierarchy:
+        For example, given hier_delim='_'; the following hierarchy: ::
 
             {'some_object': [{'some_string': ['abc']}]}
 
-        would be transformed to:
+        would be transformed to: ::
 
             {'some_object_some_string': ['abc']}
 
+        :param prefix:   :class:`collections.deque` instance.
+        :param is_array: :class:`collections.deque` instance.
         """
+
+        assert (prefix is None) and (is_array is None) or \
+               (prefix is not None) and (is_array is not None)
 
         if retval is None:
             retval = TypeInfo()
