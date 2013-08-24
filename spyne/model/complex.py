@@ -637,7 +637,15 @@ class ComplexModelBase(ModelBase):
                 value = retval.get(key, None)
 
                 if value is not None:
-                    raise ValueError("%r.%s conflicts with %r" % (cls, k, value))
+                    if v.__orig__ is not None:
+                        _v = v.__orig__
+                    if value.type.__orig__ is not None:
+                        value = value.type.__orig__
+                    else:
+                        value = value.type
+
+                    if not _v is value:
+                        raise ValueError("%r.%s(%r) conflicts with %r" % (cls, k, _v, value))
 
                 retval[key] = _SimpleTypeInfoElement(path=tuple(prefix),
                                parent=parent, type_=v, is_array=tuple(is_array))
