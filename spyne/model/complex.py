@@ -757,6 +757,12 @@ class ComplexModelBase(ModelBase):
     def novalidate_freq(cls):
         return cls.customize(validate_freq=False)
 
+    @classmethod
+    def init_from(cls, other):
+        retval = cls()
+        for k in cls._type_info:
+            setattr(retval, k, getattr(other, k, None))
+        return retval
 
 class ComplexModel(ComplexModelBase):
     """The general complexType factory. The __call__ method of this class will
