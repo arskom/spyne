@@ -289,7 +289,7 @@ class SimpleDictDocument(DictDocument):
 
         retval = inst_class.get_deserialization_instance()
 
-        for orig_k, v in doc.items():
+        for orig_k, v in sorted(doc.items(), key=lambda k: k[0]):
             k = RE_HTTP_ARRAY_INDEX.sub("", orig_k)
             member = simple_type_info.get(k, None)
             if member is None:
@@ -336,7 +336,8 @@ class SimpleDictDocument(DictDocument):
             indexes = deque(RE_HTTP_ARRAY_INDEX.findall(orig_k))
             for pkey in member.path[:-1]:
                 nidx = 0
-
+                if not pkey in ctype_info:
+		    continue
                 ncls, ninst = ctype_info[pkey], getattr(cinst, pkey, None)
 
                 mo = ncls.Attributes.max_occurs
