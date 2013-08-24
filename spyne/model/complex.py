@@ -654,7 +654,8 @@ class ComplexModelBase(ModelBase):
                         value = value.type
 
                     if not _v is value:
-                        raise ValueError("%r.%s(%r) conflicts with %r" % (cls, k, _v, value))
+                        raise ValueError("%r.%s(%r) conflicts with %r" %
+                                                            (cls, k, _v, value))
 
                 retval[key] = _SimpleTypeInfoElement(path=tuple(prefix),
                                parent=parent, type_=v, is_array=tuple(is_array))
@@ -697,7 +698,7 @@ class ComplexModelBase(ModelBase):
                     child_v.__type_name__ = tn
 
                     v._type_info = TypeInfo({tn: child_v})
-                    v.__type_name__ = '%s%s%s' % (ARRAY_PREFIX,tn,ARRAY_SUFFIX)
+                    v.__type_name__ = '%s%s%s'% (ARRAY_PREFIX, tn, ARRAY_SUFFIX)
 
                 else:
                     v.__type_name__ = "%s_%s%s" % (cls.get_type_name(), k,
@@ -772,6 +773,7 @@ class ComplexModelBase(ModelBase):
         for k in cls._type_info:
             setattr(retval, k, getattr(other, k, None))
         return retval
+
 
 class ComplexModel(ComplexModelBase):
     """The general complexType factory. The __call__ method of this class will

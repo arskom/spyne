@@ -381,8 +381,8 @@ class _HtmlColumnTable(_HtmlTableBase):
     def serialize_complex_model(self, cls, value, locale):
         sti = None
         fti = cls.get_flat_type_info(cls)
-
         first_child = iter(fti.values()).next()
+
         if len(fti) == 1:
             fti = first_child.get_flat_type_info(first_child)
             first_child = iter(fti.values()).next()
