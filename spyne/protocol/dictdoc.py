@@ -291,6 +291,7 @@ class SimpleDictDocument(DictDocument):
 
         for orig_k, v in sorted(doc.items(), key=lambda k: k[0]):
             k = RE_HTTP_ARRAY_INDEX.sub("", orig_k)
+
             member = simple_type_info.get(k, None)
             if member is None:
                 logger.debug("discarding field %r" % k)
@@ -326,7 +327,6 @@ class SimpleDictDocument(DictDocument):
             # assign the native value to the relevant class in the nested object
             # structure.
             cinst = retval
-
             ctype_info = inst_class.get_flat_type_info(inst_class)
 
             idx, nidx = 0, 0
@@ -334,11 +334,12 @@ class SimpleDictDocument(DictDocument):
             cfreq_key = inst_class, idx
 
             indexes = deque(RE_HTTP_ARRAY_INDEX.findall(orig_k))
+
             for pkey in member.path[:-1]:
                 nidx = 0
-                if not pkey in ctype_info:
-		    continue
                 ncls, ninst = ctype_info[pkey], getattr(cinst, pkey, None)
+                if issubclass(ncls, Array):
+                    ncls, = ncls._type_info.values()
 
                 mo = ncls.Attributes.max_occurs
                 if ninst is None:
@@ -348,7 +349,7 @@ class SimpleDictDocument(DictDocument):
                     setattr(cinst, pkey, ninst)
                     frequencies[cfreq_key][pkey] += 1
 
-                if mo > 1 or issubclass(ncls, Array):
+                if mo > 1:
                     if len(indexes) == 0:
                         nidx = 0
                     else:
@@ -359,11 +360,7 @@ class SimpleDictDocument(DictDocument):
                                             "%%r Invalid array index %d." % idx)
 
                     if nidx == len(ninst):
-                        if issubclass(ncls, Array):
-                            _ncls, = ncls._type_info.values()
-                            ninst.append(_ncls.get_deserialization_instance())
-                        else:
-                            ninst.append(ncls.get_deserialization_instance())
+                        ninst.append(ncls.get_deserialization_instance())
                         frequencies[cfreq_key][pkey] += 1
 
                     cinst = ninst[nidx]
