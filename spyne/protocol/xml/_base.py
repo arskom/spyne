@@ -113,7 +113,7 @@ class XmlDocument(ProtocolBase):
     Having ```resolve_entities``` disabled will prevent the 'lxml' validation
     for documents with custom xml entities defined in the DTD. See the example
     in examples/xml/validation_error to play with the settings that work best
-    for you. Please not that enabling ```resolve_entities``` is a security
+    for you. Please note that enabling ```resolve_entities``` is a security
     hazard that can lead to disclosure of sensitive information.
 
     See https://pypi.python.org/pypi/defusedxml for a pragmatic overview of
