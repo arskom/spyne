@@ -593,6 +593,10 @@ class ComplexModelBase(ModelBase):
         """
         return _get_flat_type_info(cls, TypeInfo())
 
+    @classmethod
+    def get_orig(cls):
+        return cls.__orig__ or cls
+
     @staticmethod
     def get_simple_type_info(cls, hier_delim="_", retval=None, prefix=None,
                                         parent=None, is_array=None, tags=None):
