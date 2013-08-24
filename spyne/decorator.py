@@ -287,7 +287,7 @@ def rpc(*params, **kparams):
 
             in_message = _produce_input_message(f, params, kparams,
                            _in_message_name, _in_variable_names, _no_ctx, _args)
-            print in_message.Attributes.sub_name
+
             out_message = _produce_output_message(function_name, kparams)
 
             doc = getattr(f, '__doc__')

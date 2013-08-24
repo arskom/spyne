@@ -301,7 +301,6 @@ class Soap11(XmlDocument):
             # assign raw result to its wrapper, result_message
             if ctx.descriptor.body_style is BODY_STYLE_WRAPPED:
                 out_type_info = body_message_class._type_info
-                print body_message_class
                 out_object = body_message_class()
 
                 keys = iter(out_type_info)
