@@ -32,6 +32,7 @@ import decimal
 
 from collections import deque
 from inspect import isclass
+from spyne.util import safe_setattr
 
 from spyne.model import ModelBase
 from spyne.model import PushBase
@@ -502,24 +503,24 @@ class ComplexModelBase(ModelBase):
         xtba_key, xtba_type = cls.Attributes._xml_tag_body_as
 
         if xtba_key is not None and len(args) == 1:
-            setattr(self, xtba_key, args[0])
+            safe_setattr(self, xtba_key, args[0])
         elif len(args) > 0:
             raise TypeError("No XmlData field found.")
 
         for k,v in fti.items():
             if k in kwargs:
-                setattr(self, k, kwargs[k])
+                safe_setattr(self, k, kwargs[k])
             elif not k in self.__dict__:
                 a = v.Attributes
                 if a.default is not None:
-                    setattr(self, k, v.Attributes.default)
+                    safe_setattr(self, k, v.Attributes.default)
                 elif a.max_occurs > 1 or issubclass(v, Array):
                     try:
-                        setattr(self, k, None)
+                        safe_setattr(self, k, None)
                     except TypeError: # SQLAlchemy does this
-                        setattr(self, k, [])
+                        safe_setattr(self, k, [])
                 else:
-                    setattr(self, k, None)
+                    safe_setattr(self, k, None)
 
     def __len__(self):
         return len(self._type_info)
@@ -559,13 +560,13 @@ class ComplexModelBase(ModelBase):
 
             keys = cls._type_info.keys()
             for i in range(len(value)):
-                setattr(inst, keys[i], value[i])
+                safe_setattr(inst, keys[i], value[i])
 
         elif isinstance(value, dict):
             inst = cls()
 
             for k in cls._type_info:
-                setattr(inst, k, value.get(k, None))
+                safe_setattr(inst, k, value.get(k, None))
 
         else:
             inst = value
@@ -771,7 +772,7 @@ class ComplexModelBase(ModelBase):
     def init_from(cls, other):
         retval = cls()
         for k in cls._type_info:
-            setattr(retval, k, getattr(other, k, None))
+            safe_setattr(retval, k, getattr(other, k, None))
         return retval
 
 
@@ -856,7 +857,7 @@ class Array(ComplexModelBase):
         inst = ComplexModel.__new__(Array)
 
         (member_name,) = cls._type_info.keys()
-        setattr(inst, member_name, value)
+        safe_setattr(inst, member_name, value)
 
         return inst
 

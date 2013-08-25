@@ -145,6 +145,7 @@ RE_HTTP_ARRAY_INDEX = re.compile("\\[([0-9]+)\\]")
 
 from collections import deque
 from collections import defaultdict
+from spyne.util import safe_setattr
 
 from spyne.error import ValidationError
 from spyne.error import ResourceNotFoundError
@@ -346,7 +347,7 @@ class SimpleDictDocument(DictDocument):
                     ninst = ncls.get_deserialization_instance()
                     if mo > 1:
                         ninst = [ninst]
-                    setattr(cinst, pkey, ninst)
+                    safe_setattr(cinst, pkey, ninst)
                     frequencies[cfreq_key][pkey] += 1
 
                 if mo > 1:
@@ -377,13 +378,13 @@ class SimpleDictDocument(DictDocument):
             if member.type.Attributes.max_occurs > 1:
                 _v = getattr(cinst, member.path[-1], None)
                 if _v is None:
-                    setattr(cinst, member.path[-1], value)
+                    safe_setattr(cinst, member.path[-1], value)
                 else:
                     _v.extend(value)
                 logger.debug("\tset array   %r(%r) = %r" %
                                                     (member.path, pkey, value))
             else:
-                setattr(cinst, member.path[-1], value[0])
+                safe_setattr(cinst, member.path[-1], value[0])
                 logger.debug("\tset default %r(%r) = %r" %
                                                     (member.path, pkey, value))
 
@@ -506,7 +507,7 @@ class HierDictDocument(DictDocument):
             # assign raw result to its wrapper, result_message
             for i in range(len(out_type_info)):
                 attr_name = out_type_info.keys()[i]
-                setattr(out_instance, attr_name, ctx.out_object[i])
+                safe_setattr(out_instance, attr_name, ctx.out_object[i])
 
             ctx.out_document = self._object_to_doc(out_type, out_instance),
 
@@ -593,7 +594,7 @@ class HierDictDocument(DictDocument):
             else:
                 value = self._from_dict_value(k, member, v, validator)
 
-            setattr(inst, k, value)
+            safe_setattr(inst, k, value)
 
             frequencies[k] += 1
 

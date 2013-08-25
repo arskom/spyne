@@ -31,6 +31,17 @@ except ImportError: # Python 3
     from urllib.parse import quote
 
 
+def safe_setattr(inst, key, value):
+    """Makes it easy to ignore AttributeError's probably raised by read-only
+    properties.
+    """
+
+    try:
+        setattr(inst, key, value)
+    except AttributeError:
+        pass
+
+
 def split_url(url):
     '''Splits a url into (uri_scheme, host[:port], path)'''
     scheme, remainder = splittype(url)
