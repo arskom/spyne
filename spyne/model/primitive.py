@@ -459,7 +459,7 @@ def TBoundedInteger(num_bits, type_name):
         def validate_native(cls, value):
             return (
                     Integer.validate_native(cls, value)
-                and _min_b <= value <= _max_b
+                and (value is None or (_min_b <= value <= _max_b))
             )
 
     return _BoundedInteger
