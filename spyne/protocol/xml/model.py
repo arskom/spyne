@@ -31,21 +31,23 @@ from lxml import html
 
 from spyne.const.xml_ns import xsi as _ns_xsi
 from spyne.const.xml_ns import soap_env as _ns_soap_env
+from spyne.const.xml_ns import const_prefmap
+_pref_soap_env = const_prefmap[_ns_soap_env]
+
 from spyne.error import Fault
 from spyne.error import ValidationError
 from spyne.model import PushBase
-from spyne.model.binary import File
-from spyne.model.binary import ByteArray
-from spyne.model.complex import XmlData
-from spyne.model.complex import XmlAttribute
-from spyne.model.complex import ComplexModelBase
+from spyne.model import File
+from spyne.model import ByteArray
+from spyne.model import XmlData
+from spyne.model import XmlAttribute
+from spyne.model import ComplexModelBase
 from spyne.util import coroutine
 from spyne.util import Break
 from spyne.util.etreeconv import etree_to_dict
 from spyne.util.etreeconv import dict_to_etree
 
 import spyne.const.xml_ns
-_pref_soap_env = spyne.const.xml_ns.const_prefmap[_ns_soap_env]
 
 
 def nillable_value(func):
