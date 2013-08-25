@@ -145,7 +145,6 @@ RE_HTTP_ARRAY_INDEX = re.compile("\\[([0-9]+)\\]")
 
 from collections import deque
 from collections import defaultdict
-from spyne.util import safe_setattr
 
 from spyne.error import ValidationError
 from spyne.error import ResourceNotFoundError
@@ -347,7 +346,7 @@ class SimpleDictDocument(DictDocument):
                     ninst = ncls.get_deserialization_instance()
                     if mo > 1:
                         ninst = [ninst]
-                    safe_setattr(cinst, pkey, ninst)
+                    cinst._safe_set(pkey, ninst)
                     frequencies[cfreq_key][pkey] += 1
 
                 if mo > 1:
@@ -378,13 +377,13 @@ class SimpleDictDocument(DictDocument):
             if member.type.Attributes.max_occurs > 1:
                 _v = getattr(cinst, member.path[-1], None)
                 if _v is None:
-                    safe_setattr(cinst, member.path[-1], value)
+                    cinst._safe_set(member.path[-1], value)
                 else:
                     _v.extend(value)
                 logger.debug("\tset array   %r(%r) = %r" %
                                                     (member.path, pkey, value))
             else:
-                safe_setattr(cinst, member.path[-1], value[0])
+                cinst._safe_set(member.path[-1], value[0])
                 logger.debug("\tset default %r(%r) = %r" %
                                                     (member.path, pkey, value))
 
@@ -507,7 +506,7 @@ class HierDictDocument(DictDocument):
             # assign raw result to its wrapper, result_message
             for i in range(len(out_type_info)):
                 attr_name = out_type_info.keys()[i]
-                safe_setattr(out_instance, attr_name, ctx.out_object[i])
+                cinst._safe_set(attr_name, ctx.out_object[i])
 
             ctx.out_document = self._object_to_doc(out_type, out_instance),
 
@@ -594,7 +593,7 @@ class HierDictDocument(DictDocument):
             else:
                 value = self._from_dict_value(k, member, v, validator)
 
-            safe_setattr(inst, k, value)
+            cinst._safe_set(k, value)
 
             frequencies[k] += 1
 

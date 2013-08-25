@@ -216,6 +216,9 @@ class ModelBase(object):
           above.
         """
 
+        read_only= False
+        """If True, the attribute won't be initialized from outside values."""
+
     class Annotations(object):
         """The class that holds the annotations for the given type."""
 

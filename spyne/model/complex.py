@@ -32,7 +32,6 @@ import decimal
 
 from collections import deque
 from inspect import isclass
-from spyne.util import safe_setattr
 
 from spyne.model import ModelBase
 from spyne.model import PushBase
@@ -503,24 +502,24 @@ class ComplexModelBase(ModelBase):
         xtba_key, xtba_type = cls.Attributes._xml_tag_body_as
 
         if xtba_key is not None and len(args) == 1:
-            safe_setattr(self, xtba_key, args[0])
+            self._safe_set(xtba_key, args[0])
         elif len(args) > 0:
             raise TypeError("No XmlData field found.")
 
         for k,v in fti.items():
             if k in kwargs:
-                safe_setattr(self, k, kwargs[k])
+                self._safe_set(k, kwargs[k])
             elif not k in self.__dict__:
                 a = v.Attributes
                 if a.default is not None:
-                    safe_setattr(self, k, v.Attributes.default)
+                    self._safe_set(k, v.Attributes.default)
                 elif a.max_occurs > 1 or issubclass(v, Array):
                     try:
-                        safe_setattr(self, k, None)
+                        self._safe_set(k, None)
                     except TypeError: # SQLAlchemy does this
-                        safe_setattr(self, k, [])
+                        self._safe_set(k, [])
                 else:
-                    safe_setattr(self, k, None)
+                    self._safe_set(k, None)
 
     def __len__(self):
         return len(self._type_info)
@@ -533,6 +532,15 @@ class ComplexModelBase(ModelBase):
                ['%s=%r' % (k, self.__dict__.get(k))
                     for k in self.__class__.get_flat_type_info(self.__class__)
                     if self.__dict__.get(k, None) is not None]))
+
+    def _safe_set(self, key, value):
+        t = self.__class__._type_info.get(key)
+        if t is not None:
+            if t.Attributes.read_only:
+                pass
+            else:
+                print key, value
+                setattr(self, key, value)
 
     @classmethod
     def get_serialization_instance(cls, value):
@@ -560,13 +568,13 @@ class ComplexModelBase(ModelBase):
 
             keys = cls._type_info.keys()
             for i in range(len(value)):
-                safe_setattr(inst, keys[i], value[i])
+                setattr(inst, keys[i], value[i])
 
         elif isinstance(value, dict):
             inst = cls()
 
             for k in cls._type_info:
-                safe_setattr(inst, k, value.get(k, None))
+                setattr(inst, k, value.get(k, None))
 
         else:
             inst = value
@@ -764,7 +772,7 @@ class ComplexModelBase(ModelBase):
     def init_from(cls, other):
         retval = cls()
         for k in cls._type_info:
-            safe_setattr(retval, k, getattr(other, k, None))
+            setattr(retval, k, getattr(other, k, None))
         return retval
 
 
@@ -849,7 +857,7 @@ class Array(ComplexModelBase):
         inst = ComplexModel.__new__(Array)
 
         (member_name,) = cls._type_info.keys()
-        safe_setattr(inst, member_name, value)
+        setattr(inst, member_name, value)
 
         return inst
 
