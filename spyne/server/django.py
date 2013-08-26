@@ -230,7 +230,8 @@ class DjangoServer(HttpBase):
 
         """
         for h, v in p_ctx.transport.resp_headers.items():
-            response[h] = v
+            if v is not None:
+                response[h] = v
 
         if p_ctx.transport.resp_code:
             response.status_code = int(p_ctx.transport.resp_code[:3])
