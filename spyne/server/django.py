@@ -80,9 +80,10 @@ class DjangoApplication(WsgiApplication):
         #        Django-1.2.x
         # See http://github.com/arskom/spyne/issues/222.
 
-        # DXist:    if you don't override wsgi.input django and spyne will read
-        #           the same buffer twice. If django read whole buffer spyne
-        #           would hang waiting for extra request data.
+        # If you don't override wsgi.input django and spyne will read
+        # the same buffer twice. If django read whole buffer spyne
+        # would hang waiting for extra request data. Use DjangoServer instead
+        # of monkeypatching wsgi.inpu.
 
         #environ['wsgi.input'] = request
         #environ['wsgi.multithread'] = False
