@@ -20,11 +20,23 @@
 """The ``spyne.server.django`` module contains a Django-compatible Http
 transport. It's a thin wrapper around
 :class:`spyne.server.wsgi.WsgiApplication`.
+
+To put it bluntly, using one WSGI application inside another one sounds
+strange. Two WSGI applications have to share the same WSGI input buffer. This
+approach is error-prone.
+
+Hopefully, the module also provides native Django class based view
+talking with :class:`spyne.server.django.DjangoServer`.
+
 """
 
 from __future__ import absolute_import
 
-from django.http import HttpResponse
+import logging
+from functools import update_wrapper
+from django.conf import settings
+from django.http import HttpResponse, HttpResponseNotAllowed, Http404
+from django.views.decorators.csrf import csrf_exempt
 
 try:
     from django.http import StreamingHttpResponse
@@ -32,7 +44,17 @@ except ImportError, e:
     def StreamingHttpResponse(*args, **kwargs):
         raise e
 
+from spyne.application import get_fault_string_from_exception, Application
+from spyne.auxproc import process_contexts
+from spyne.interface import AllYourInterfaceDocuments
+from spyne.model.fault import Fault
+from spyne.protocol.soap import Soap11
+from spyne.protocol.http import HttpRpc
+from spyne.server.http import HttpBase, HttpMethodContext
 from spyne.server.wsgi import WsgiApplication
+
+
+logger = logging.getLogger(__name__)
 
 
 class DjangoApplication(WsgiApplication):
@@ -57,6 +79,11 @@ class DjangoApplication(WsgiApplication):
         #        They were commented out to fix compatibility issues with
         #        Django-1.2.x
         # See http://github.com/arskom/spyne/issues/222.
+
+        # DXist:    if you don't override wsgi.input django and spyne will read
+        #           the same buffer twice. If django read whole buffer spyne
+        #           would hang waiting for extra request data.
+
         #environ['wsgi.input'] = request
         #environ['wsgi.multithread'] = False
 
@@ -78,3 +105,249 @@ class StreamingDjangoApplication(DjangoApplication):
 
     def set_response(self, retval, response):
         retval.streaming_content = response
+
+
+class DjangoServer(HttpBase):
+
+    """Server talking in Django request/response objects."""
+
+    def __init__(self, app, chunked=False):
+        HttpBase.__init__(self, app, chunked=chunked)
+        self._wsdl = None
+
+    def handle_rpc(self, request, *args, **kwargs):
+        """Handle rpc request.
+
+        :params request: Django HttpRequest instance.
+        :returns: HttpResponse instance.
+
+        """
+        contexts = self.get_contexts(request)
+        p_ctx, others = contexts[0], contexts[1:]
+
+        if p_ctx.in_error:
+            return self.handle_error(p_ctx, others, p_ctx.in_error)
+
+        self.get_in_object(p_ctx)
+        if p_ctx.in_error:
+            logger.error(p_ctx.in_error)
+            return self.handle_error(p_ctx, others, p_ctx.in_error)
+
+        self.get_out_object(p_ctx)
+        if p_ctx.out_error:
+            return self.handle_error(p_ctx, others, p_ctx.out_error)
+
+        try:
+            self.get_out_string(p_ctx)
+
+        except Exception, e:
+            logger.exception(e)
+            p_ctx.out_error = Fault('Server',
+                                    get_fault_string_from_exception(e))
+            return self.handle_error(p_ctx, others, p_ctx.out_error)
+
+        have_protocol_headers = (isinstance(p_ctx.out_protocol, HttpRpc) and
+                                 p_ctx.out_header_doc is not None)
+
+        if have_protocol_headers:
+            p_ctx.transport.resp_headers.update(p_ctx.out_header_doc)
+
+        if p_ctx.descriptor and p_ctx.descriptor.mtom:
+            raise NotImplementedError
+
+        if self.chunked:
+            response = StreamingHttpResponse(p_ctx.out_string)
+        else:
+            return HttpResponse(''.join(p_ctx.out_string))
+
+        p_ctx.close()
+
+        return self.response(response, p_ctx, others)
+
+    def handle_wsdl(self, request, *args, **kwargs):
+        """Return services WSDL."""
+        ctx = HttpMethodContext(self, request,
+                                'text/xml; charset=utf-8')
+
+        if self.doc.wsdl11 is None:
+            raise Http404('WSDL is not available')
+
+        if self._wsdl is None:
+            # Interface document building is not thread safe so we don't use
+            # server interface document shared between threads. Instead we
+            # create and build interface documents in current thread. This
+            # section can be safely repeated in another concurrent thread.
+            doc = AllYourInterfaceDocuments(self.app.interface)
+            doc.wsdl11.build_interface_document(request.build_absolute_uri())
+            self._wsdl = doc.wsdl11.get_interface_document()
+
+        ctx.transport.wsdl = self._wsdl
+        ctx.close()
+
+        response = HttpResponse(ctx.transport.wsdl)
+        return self.response(response, ctx, ())
+
+    def handle_error(self, p_ctx, others, error):
+        """Serialize errors to an iterable of strings and return them.
+
+        :param p_ctx: Primary (non-aux) context.
+        :param others: List if auxiliary contexts (can be empty).
+        :param error: One of ctx.{in,out}_error.
+
+        """
+
+        if p_ctx.transport.resp_code is None:
+            p_ctx.transport.resp_code = \
+                p_ctx.out_protocol.fault_to_http_response_code(error)
+
+        self.get_out_string(p_ctx)
+        resp = HttpResponse(''.join(p_ctx.out_string))
+        return self.response(resp, p_ctx, others, error)
+
+    def get_contexts(self, request):
+        """Generate contexts for rpc request.
+
+        :param response: Django HttpRequest instance.
+        :returns: generated contexts
+
+        """
+        initial_ctx = HttpMethodContext(self, request,
+                                        self.app.out_protocol.mime_type)
+
+        initial_ctx.in_string = request.body
+        in_string_charset = request.encoding or settings.DEFAULT_CHARSET
+
+        return self.generate_contexts(initial_ctx, in_string_charset)
+
+    def response(self, response, p_ctx, others, error=None):
+        """Populate response with transport headers and finalize it.
+
+        :param response: Django HttpResponse.
+        :param p_ctx: Primary (non-aux) context.
+        :param others: List if auxiliary contexts (can be empty).
+        :param error: One of ctx.{in,out}_error.
+        :returns: Django HttpResponse
+
+        """
+        for h, v in p_ctx.transport.resp_headers.items():
+            response[h] = v
+
+        if p_ctx.transport.resp_code:
+            response.status_code = int(p_ctx.transport.resp_code[:3])
+
+        try:
+            process_contexts(self, others, p_ctx, error=error)
+        except Exception, e:
+            # Report but ignore any exceptions from auxiliary methods.
+            logger.exception(e)
+
+        return response
+
+
+class SpyneView(object):
+
+    """Represent spyne service as Django class based view."""
+
+    application = None
+    server = None
+    services = ()
+    tns = 'spyne.application'
+    name = 'Application'
+    in_protocol = Soap11(validator='lxml')
+    out_protocol = Soap11()
+    interface = None
+    chunked = False
+
+    http_method_names = ['get', 'post', 'put', 'patch', 'delete', 'head',
+                         'options', 'trace']
+
+    def __init__(self, server, **kwargs):
+        self.server = server
+
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+    @classmethod
+    def as_view(cls, **initkwargs):
+        """Register application, server and create new view.
+
+        :returns: callable view function
+
+        """
+
+        # sanitize keyword arguments
+        for key in initkwargs:
+            if key in cls.http_method_names:
+                raise TypeError("You tried to pass in the %s method name as a "
+                                "keyword argument to %s(). Don't do that."
+                                % (key, cls.__name__))
+            if not hasattr(cls, key):
+                raise TypeError("%s() received an invalid keyword %r. as_view "
+                                "only accepts arguments that are already "
+                                "attributes of the class." % (cls.__name__,
+                                                              key))
+
+        get = lambda key: initkwargs.get(key) or getattr(cls, key)
+
+        application = get('application') or Application(
+            services=get('services'),
+            tns=get('tns'),
+            name=get('name'),
+            in_protocol=get('in_protocol'),
+            out_protocol=get('out_protocol'),
+            interface=get('interface')
+        )
+        server = get('server') or DjangoServer(application,
+                                               chunked=get('chunked'))
+
+        def view(request, *args, **kwargs):
+            self = cls(server=server, **initkwargs)
+            if hasattr(self, 'get') and not hasattr(self, 'head'):
+                self.head = self.get
+            self.request = request
+            self.args = args
+            self.kwargs = kwargs
+            return self.dispatch(request, *args, **kwargs)
+
+        # take name and docstring from class
+        update_wrapper(view, cls, updated=())
+
+        # and possible attributes set by decorators
+        # like csrf_exempt from dispatch
+        update_wrapper(view, cls.dispatch, assigned=())
+        return view
+
+    @csrf_exempt
+    def dispatch(self, request, *args, **kwargs):
+        # Try to dispatch to the right method; if a method doesn't exist,
+        # defer to the error handler. Also defer to the error handler if the
+        # request method isn't on the approved list.
+        if request.method.lower() in self.http_method_names:
+            handler = getattr(self, request.method.lower(),
+                              self.http_method_not_allowed)
+        else:
+            handler = self.http_method_not_allowed
+        return handler(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        return self.server.handle_wsdl(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        return self.server.handle_rpc(request, *args, **kwargs)
+
+
+    def http_method_not_allowed(self, request, *args, **kwargs):
+        logger.warning('Method Not Allowed (%s): %s', request.method,
+                       request.path, extra={'status_code': 405, 'request':
+                                            self.request})
+        return HttpResponseNotAllowed(self._allowed_methods())
+
+    def options(self, request, *args, **kwargs):
+        """Handle responding to requests for the OPTIONS HTTP verb."""
+        response = HttpResponse()
+        response['Allow'] = ', '.join(self._allowed_methods())
+        response['Content-Length'] = '0'
+        return response
+
+    def _allowed_methods(self):
+        return [m.upper() for m in self.http_method_names if hasattr(self, m)]
