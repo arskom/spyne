@@ -603,6 +603,18 @@ class TestSelfRefence(unittest.TestCase):
         assert v.id == 5
         assert v.children == ['a', 'b']
 
+    def test_ctor_args(self):
+        class Category(ComplexModel):
+            children = Array(Unicode)
+
+        class BetterCategory(Category):
+            sub_category = Unicode
+
+        v = BetterCategory(children=['a','b'], sub_category='aaa')
+
+        assert v.children == ['a', 'b']
+        assert v.sub_category == 'aaa'
+
 
 if __name__ == '__main__':
     unittest.main()
