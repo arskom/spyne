@@ -841,7 +841,7 @@ def gen_sqla_info(cls, cls_bases=()):
     if inheritance is not _SINGLE:
         mapper_args = (table,) + mapper_args
 
-    cls_mapper = own_mapper(cls)(cls, *mapper_args, **mapper_kwargs)
+    cls_mapper = mapper(cls, *mapper_args, **mapper_kwargs)
 
     def my_load_listener(target, context):
         d = target.__dict__

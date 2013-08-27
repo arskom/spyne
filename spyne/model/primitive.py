@@ -673,6 +673,8 @@ class DateTime(SimpleModel):
 
     @staticmethod
     def validate_native(cls, value):
+        if value is not None and isinstance(value, datetime.datetime):
+            value = value.replace(tzinfo=pytz.utc)
         return SimpleModel.validate_native(cls, value) and (
             value is None or (
                 value >  cls.Attributes.gt and

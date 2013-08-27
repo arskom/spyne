@@ -346,7 +346,7 @@ class SimpleDictDocument(DictDocument):
                     ninst = ncls.get_deserialization_instance()
                     if mo > 1:
                         ninst = [ninst]
-                    cinst._safe_set(pkey, ninst)
+                    cinst._safe_set(pkey, ninst, ncls)
                     frequencies[cfreq_key][pkey] += 1
 
                 if mo > 1:
@@ -377,13 +377,13 @@ class SimpleDictDocument(DictDocument):
             if member.type.Attributes.max_occurs > 1:
                 _v = getattr(cinst, member.path[-1], None)
                 if _v is None:
-                    cinst._safe_set(member.path[-1], value)
+                    cinst._safe_set(member.path[-1], value, member.type)
                 else:
                     _v.extend(value)
                 logger.debug("\tset array   %r(%r) = %r" %
                                                     (member.path, pkey, value))
             else:
-                cinst._safe_set(member.path[-1], value[0])
+                cinst._safe_set(member.path[-1], value[0], member.type)
                 logger.debug("\tset default %r(%r) = %r" %
                                                     (member.path, pkey, value))
 
@@ -504,9 +504,9 @@ class HierDictDocument(DictDocument):
             out_instance = out_type()
 
             # assign raw result to its wrapper, result_message
-            for i in range(len(out_type_info)):
-                attr_name = out_type_info.keys()[i]
-                cinst._safe_set(attr_name, ctx.out_object[i])
+            for i, (k, v) in enumerate(out_type_info.items()):
+                attr_name = k
+                cinst._safe_set(attr_name, ctx.out_object[i], v)
 
             ctx.out_document = self._object_to_doc(out_type, out_instance),
 
@@ -593,7 +593,7 @@ class HierDictDocument(DictDocument):
             else:
                 value = self._from_dict_value(k, member, v, validator)
 
-            cinst._safe_set(k, value)
+            cinst._safe_set(k, value, v)
 
             frequencies[k] += 1
 

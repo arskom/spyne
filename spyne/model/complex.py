@@ -502,24 +502,24 @@ class ComplexModelBase(ModelBase):
         xtba_key, xtba_type = cls.Attributes._xml_tag_body_as
 
         if xtba_key is not None and len(args) == 1:
-            self._safe_set(xtba_key, args[0])
+            self._safe_set(xtba_key, args[0], xtba_type)
         elif len(args) > 0:
             raise TypeError("No XmlData field found.")
 
         for k,v in fti.items():
             if k in kwargs:
-                self._safe_set(k, kwargs[k])
+                self._safe_set(k, kwargs[k], v)
             elif not k in self.__dict__:
                 a = v.Attributes
                 if a.default is not None:
-                    self._safe_set(k, v.Attributes.default)
+                    self._safe_set(k, v.Attributes.default, v)
                 elif a.max_occurs > 1 or issubclass(v, Array):
                     try:
-                        self._safe_set(k, None)
+                        self._safe_set(k, None, v)
                     except TypeError: # SQLAlchemy does this
-                        self._safe_set(k, [])
+                        self._safe_set(k, [], v)
                 else:
-                    self._safe_set(k, None)
+                    self._safe_set(k, None, v)
 
     def __len__(self):
         return len(self._type_info)
@@ -533,13 +533,11 @@ class ComplexModelBase(ModelBase):
                     for k in self.__class__.get_flat_type_info(self.__class__)
                     if self.__dict__.get(k, None) is not None]))
 
-    def _safe_set(self, key, value):
-        t = self.__class__._type_info.get(key)
-        if t is not None:
-            if t.Attributes.read_only:
-                pass
-            else:
-                setattr(self, key, value)
+    def _safe_set(self, key, value, t):
+        if t.Attributes.read_only:
+            pass
+        else:
+            setattr(self, key, value)
 
     @classmethod
     def get_serialization_instance(cls, value):

@@ -27,6 +27,7 @@ Warning! You can get a lot of crap in the 'invalid' logger. You're not advised
 to turn it on for a production system.
 """ % ('spyne.protocol.xml', 'spyne.protocol.xml.invalid')
 
+
 import logging
 logger = logging.getLogger('spyne.protocol.xml')
 logger_invalid = logging.getLogger('spyne.protocol.xml.invalid')
