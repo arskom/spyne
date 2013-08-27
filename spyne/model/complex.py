@@ -539,7 +539,6 @@ class ComplexModelBase(ModelBase):
             if t.Attributes.read_only:
                 pass
             else:
-                print key, value
                 setattr(self, key, value)
 
     @classmethod
