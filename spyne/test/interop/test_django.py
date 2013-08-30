@@ -18,11 +18,15 @@
 #
 
 
+from __future__ import absolute_import
+
 from django.test import TestCase, TransactionTestCase, Client
 
 from spyne.client.django import DjangoTestClient
+from spyne.model.fault import Fault
 
-from rpctest.core.views import app, hello_world_service
+from rpctest.core.models import FieldContainer
+from rpctest.core.views import app, hello_world_service, Container
 
 
 class SpyneTestCase(TransactionTestCase):
@@ -44,8 +48,8 @@ class SpyneViewTestCase(TestCase):
         self.assertEqual(len(list_resp), 5)
         self.assertEqual(list_resp, ['Hello, Joe'] * 5)
 
-    def test_greet(self):
-        client = DjangoTestClient('/greet/', app)
+    def test_api_say_hello(self):
+        client = DjangoTestClient('/api/', app)
         resp =  client.service.say_hello('Joe', 5)
         list_resp = list(resp)
         self.assertEqual(len(list_resp), 5)
@@ -61,3 +65,19 @@ class SpyneViewTestCase(TestCase):
         response = client.get('/say_hello/')
         self.assertContains(response,
                             'location="http://testserver/say_hello/"')
+
+
+class ModelTestCase(TestCase):
+
+    """Test mapping between django and spyne models."""
+
+    def test_from_django(self):
+        """Test mapping from Django model to spyne model."""
+        client = DjangoTestClient('/api/', app)
+        rpc_call = lambda: client.service.get_container(2)
+        self.assertRaises(Fault, rpc_call)
+        container = FieldContainer.objects.create(slug_field='container')
+        FieldContainer.objects.create(slug_field='container2',
+                                      foreign_key=container)
+        c = rpc_call()
+        self.assertIsInstance(c, Container)
