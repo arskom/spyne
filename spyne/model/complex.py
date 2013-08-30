@@ -541,6 +541,11 @@ class ComplexModelBase(ModelBase):
             else:
                 setattr(self, key, value)
 
+    def as_dict(self):
+        return dict((
+            (k, getattr(self, k)) for k in self.get_flat_type_info(self)
+        ))
+
     @classmethod
     def get_serialization_instance(cls, value):
         """Returns the native object corresponding to the serialized form passed
