@@ -30,6 +30,7 @@
 
 from django.views.decorators.csrf import csrf_exempt
 
+from spyne.error import ResourceNotFoundError
 from spyne.server.django import DjangoApplication
 from spyne.model.primitive import Unicode, Integer
 from spyne.model.complex import Iterable
@@ -37,6 +38,15 @@ from spyne.service import ServiceBase
 from spyne.protocol.soap import Soap11
 from spyne.application import Application
 from spyne.decorator import rpc
+from spyne.util.django import DjangoComplexModel
+
+from rpctest.core.models import FieldContainer
+
+
+class Container(DjangoComplexModel):
+    class Attributes(DjangoComplexModel.Attributes):
+        django_model = FieldContainer
+
 
 class HelloWorldService(ServiceBase):
     @rpc(Unicode, Integer, _returns=Iterable(Unicode))
@@ -45,7 +55,16 @@ class HelloWorldService(ServiceBase):
             yield 'Hello, %s' % name
 
 
-app = Application([HelloWorldService],
+class TestService(ServiceBase):
+    @rpc(Integer, _returns=Container)
+    def get_container(ctx, pk):
+        try:
+            return FieldContainer.objects.get(pk=pk)
+        except FieldContainer.DoesNotExist:
+            raise ResourceNotFoundError('Container')
+
+
+app = Application([HelloWorldService, TestService],
     'spyne.examples.django',
     in_protocol=Soap11(validator='lxml'),
     out_protocol=Soap11(),
