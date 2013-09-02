@@ -28,6 +28,8 @@ import spyne
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
+sys.path.append(os.path.abspath('../../examples/django'))
+os.environ['DJANGO_SETTINGS_MODULE'] = 'rpctest.settings'
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.intersphinx',

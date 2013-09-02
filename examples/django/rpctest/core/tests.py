@@ -1,0 +1,1 @@
+../../../../spyne/test/interop/test_django.py
