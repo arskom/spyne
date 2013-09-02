@@ -246,7 +246,7 @@ class DjangoComplexModel(ComplexModelBase):
             gender = primitive.Unicode(pattern='^[FM]$')
 
             class Attributes(DjangoComplexModel.Attributes):
-                django_model = Author
+                django_model = Person
 
 
     There is an option to specify custom mapper:
