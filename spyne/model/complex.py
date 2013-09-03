@@ -510,16 +510,16 @@ class ComplexModelBase(ModelBase):
             if k in kwargs:
                 self._safe_set(k, kwargs[k], v)
             elif not k in self.__dict__:
-                a = v.Attributes
-                if a.default is not None:
-                    self._safe_set(k, v.Attributes.default, v)
+                a = v.Attributes; d=a.default
+                if d is not None:
+                    setattr(self, k, d)
                 elif a.max_occurs > 1 or issubclass(v, Array):
                     try:
-                        self._safe_set(k, None, v)
+                        setattr(self, k, d)
                     except TypeError: # SQLAlchemy does this
-                        self._safe_set(k, [], v)
+                        setattr(self, k, [])
                 else:
-                    self._safe_set(k, None, v)
+                    setattr(self, k, None)
 
     def __len__(self):
         return len(self._type_info)
