@@ -24,7 +24,7 @@ subclasses. These are mainly container classes for other simple or
 complex objects -- they don't carry any data by themselves.
 """
 
-
+import copy
 import logging
 logger = logging.getLogger(__name__)
 
@@ -512,7 +512,7 @@ class ComplexModelBase(ModelBase):
             elif not k in self.__dict__:
                 a = v.Attributes
                 if a.default is not None:
-                    self._safe_set(k, v.Attributes.default)
+                    self._safe_set(k, copy.copy(v.Attributes.default))
                 elif a.max_occurs > 1 or issubclass(v, Array):
                     try:
                         self._safe_set(k, None)
