@@ -162,14 +162,16 @@ class DjangoModelMapper(object):
 default_model_mapper = DjangoModelMapper((
     ('AutoField', primitive.Integer),
     ('CharField', primitive.NormalizedString),
-    ('SlugField', primitive.Unicode(type_name='Slug', pattern_re=slug_re)),
+    ('SlugField', primitive.Unicode(type_name='Slug',
+                                    pattern=slug_re.pattern)),
     ('TextField', primitive.String),
-    ('EmailField', primitive.Unicode(type_name='Email', pattern_re=email_re)),
+    ('EmailField', primitive.Unicode(type_name='Email',
+                                     pattern=email_re.pattern)),
     ('CommaSeparatedIntegerField', primitive.Unicode(
         type_name='CommaSeparatedField',
-        pattern_re=comma_separated_int_list_re)),
+        pattern=comma_separated_int_list_re.pattern)),
     ('UrlField', primitive.AnyUri(type_name='Url',
-                                  pattern_re=URLValidator.regex)),
+                                  pattern=URLValidator.regex.pattern)),
     ('FilePathField', primitive.String),
 
     ('BooleanField', primitive.Boolean),
