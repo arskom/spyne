@@ -105,9 +105,10 @@ class JsonDocument(HierDictDocument):
     _decimal_as_string = True
 
     def __init__(self, app=None, validator=None, mime_type=None,
-                        ignore_uncap=False,
-                        # DictDocument specific
-                        ignore_wrappers=True, complex_as=dict, ordered=False):
+                 ignore_uncap=False,
+                 # DictDocument specific
+                 ignore_wrappers=True, complex_as=dict, ordered=False,
+                 encoder_kwargs=None, decoder_kwargs=None):
 
         HierDictDocument.__init__(self, app, validator, mime_type, ignore_uncap,
                                            ignore_wrappers, complex_as, ordered)
@@ -119,6 +120,10 @@ class JsonDocument(HierDictDocument):
         self._to_string_handlers[Double] = lambda cls, val: val
         self._to_string_handlers[Boolean] = lambda cls, val: val
         self._to_string_handlers[Integer] = lambda cls, val: val
+
+        self.encoder_kwargs = encoder_kwargs or {}
+        self.encoder_kwargs.setdefault('cls', JsonEncoder)
+        self.decoder_kwargs = decoder_kwargs or {}
 
     def validate(self, key, cls, val):
         super(JsonDocument, self).validate(key, cls, val)
@@ -133,21 +138,17 @@ class JsonDocument(HierDictDocument):
     def create_in_document(self, ctx, in_string_encoding=None):
         """Sets ``ctx.in_document``  using ``ctx.in_string``."""
 
-        if in_string_encoding is None:
-            in_string_encoding = 'UTF-8'
-
+        string = ''.join(ctx.in_string).decode(in_string_encoding or 'utf-8')
         try:
-            ctx.in_document = json.loads(
-                            ''.join(ctx.in_string).decode(in_string_encoding),
-                        )
+            ctx.in_document = json.loads(string, **self.decoder_kwargs)
 
         except JSONDecodeError, e:
             raise Fault('Client.JsonDecodeError', repr(e))
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         """Sets ``ctx.out_string`` using ``ctx.out_document``."""
-        ctx.out_string = (json.dumps(o, cls=JsonEncoder)
-                                                      for o in ctx.out_document)
+        ctx.out_string = (json.dumps(o, **self.encoder_kwargs)
+                          for o in ctx.out_document)
 
 
 class JsonP(JsonDocument):
