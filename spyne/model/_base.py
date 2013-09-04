@@ -126,6 +126,10 @@ class ModelBase(object):
         default = None
         """The default value if the input is None"""
 
+        default_factory = None
+        """When set to a non-None value, it is called to be used as default
+        value. Has priority over ``default`` attribute."""
+
         nillable = True
         """Set this to false to reject null values. Synonyms with
         ``nullable``."""

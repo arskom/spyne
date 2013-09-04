@@ -506,17 +506,19 @@ class ComplexModelBase(ModelBase):
         elif len(args) > 0:
             raise TypeError("No XmlData field found.")
 
-        for k,v in fti.items():
+        for k, v in fti.items():
             if k in kwargs:
                 self._safe_set(k, kwargs[k])
             elif not k in self.__dict__:
                 a = v.Attributes
-                if a.default is not None:
-                    self._safe_set(k, v.Attributes.default)
+                if a.default_factory is not None:
+                    self._safe_set(k, a.default_factory())
+                elif a.default is not None:
+                    self._safe_set(k, a.default)
                 elif a.max_occurs > 1 or issubclass(v, Array):
                     try:
                         self._safe_set(k, None)
-                    except TypeError: # SQLAlchemy does this
+                    except TypeError:  # SQLAlchemy does this
                         self._safe_set(k, [])
                 else:
                     self._safe_set(k, None)
