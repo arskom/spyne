@@ -506,7 +506,7 @@ class HierDictDocument(DictDocument):
             # assign raw result to its wrapper, result_message
             for i, (k, v) in enumerate(out_type_info.items()):
                 attr_name = k
-                cinst._safe_set(attr_name, ctx.out_object[i], v)
+                out_instance._safe_set(attr_name, ctx.out_object[i], v)
 
             ctx.out_document = self._object_to_doc(out_type, out_instance),
 
@@ -593,7 +593,7 @@ class HierDictDocument(DictDocument):
             else:
                 value = self._from_dict_value(k, member, v, validator)
 
-            cinst._safe_set(k, value, v)
+            inst._safe_set(k, value, member)
 
             frequencies[k] += 1
 
