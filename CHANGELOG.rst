@@ -27,6 +27,8 @@ spyne-2.11.0
   Sample response: ``{"ver":1, "fault": {"faultcode": "Server", "faultstring": "Internal Error"}}}``
 
 * Steal and integrate the WebSocket tranport for Twisted.
+* Support Django natively using ``spyne.server.django.SpyneView`` and
+  ``spyne.server.django.DjangoServer``
 
 spyne-2.10.9
 ------------

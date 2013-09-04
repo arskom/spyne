@@ -18,11 +18,11 @@
 #
 
 
-from django.test import TransactionTestCase
+from django.test import TestCase, TransactionTestCase, Client
 
 from spyne.client.django import DjangoTestClient
 
-from views import hello_world_service
+from rpctest.core.views import app, hello_world_service
 
 
 class SpyneTestCase(TransactionTestCase):
@@ -34,3 +34,30 @@ class SpyneTestCase(TransactionTestCase):
         list_resp = list(resp)
         self.assertEqual(len(list_resp), 5)
         self.assertEqual(list_resp,['Hello, Joe']*5)
+
+
+class SpyneViewTestCase(TestCase):
+    def test_say_hello(self):
+        client = DjangoTestClient('/say_hello/', app)
+        resp =  client.service.say_hello('Joe', 5)
+        list_resp = list(resp)
+        self.assertEqual(len(list_resp), 5)
+        self.assertEqual(list_resp, ['Hello, Joe'] * 5)
+
+    def test_greet(self):
+        client = DjangoTestClient('/greet/', app)
+        resp =  client.service.say_hello('Joe', 5)
+        list_resp = list(resp)
+        self.assertEqual(len(list_resp), 5)
+        self.assertEqual(list_resp, ['Hello, Joe'] * 5)
+
+    def test_error(self):
+        client = Client()
+        response = client.post('/say_hello/', {})
+        self.assertContains(response, 'faultstring', status_code=500)
+
+    def test_wsdl(self):
+        client = Client()
+        response = client.get('/say_hello/')
+        self.assertContains(response,
+                            'location="http://testserver/say_hello/"')
