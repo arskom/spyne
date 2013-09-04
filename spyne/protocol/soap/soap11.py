@@ -68,7 +68,8 @@ from spyne.protocol._model import datetime_from_string_iso
 
 
 def _from_soap(in_envelope_xml, xmlids=None):
-    '''Parses the xml string into the header and payload.'''
+    """Parses the xml string into the header and payload.
+    """
 
     if xmlids:
         resolve_hrefs(in_envelope_xml, xmlids)
@@ -85,21 +86,21 @@ def _from_soap(in_envelope_xml, xmlids=None):
     if len(header_envelope) == 0 and len(body_envelope) == 0:
         raise Fault('Client.SoapError', 'Soap envelope is empty!')
 
-    header=None
+    header = None
     if len(header_envelope) > 0:
         header = header_envelope[0].getchildren()
 
-    body=None
+    body = None
     if len(body_envelope) > 0 and len(body_envelope[0]) > 0:
         body = body_envelope[0][0]
 
     return header, body
 
+
 def _parse_xml_string(xml_string, parser, charset=None):
+    string = ''.join(xml_string)
     if charset:
-        string = ''.join([s.decode(charset) for s in xml_string])
-    else:
-        string = ''.join(xml_string)
+        string = string.decode(charset)
 
     try:
         try:
@@ -115,6 +116,7 @@ def _parse_xml_string(xml_string, parser, charset=None):
         raise Fault('Client.XMLSyntaxError', str(e))
 
     return root, xmlids
+
 
 # see http://www.w3.org/TR/2000/NOTE-SOAP-20000508/
 # section 5.2.1 for an example of how the id and href attributes are used.
