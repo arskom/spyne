@@ -474,7 +474,7 @@ class Test(unittest.TestCase):
 
     def test_http_headers(self):
         DATE = datetime(year=2013, month=1, day=1)
-        STR = 'hey'
+        STR = ['hey', 'yo']
 
         class ResponseHeader(ComplexModel):
             _type_info = {
@@ -492,13 +492,13 @@ class Test(unittest.TestCase):
                                                                 'Expires': DATE})
 
         def start_response(code, headers):
-            assert dict(headers)['Set-Cookie'] == STR
+            assert len([s for s in STR if ('Set-Cookie', s) in headers]) == len(STR)
             assert dict(headers)['Expires'] == 'Tue, 01 Jan 2013 00:00:00 GMT'
 
         ret = ''.join(validator(WsgiApplication(Application([SomeService], 'tns',
             in_protocol=HttpRpc(), out_protocol=HttpRpc())))({
                 'SCRIPT_NAME': '',
-                'QUERY_STRING': '&s=' + STR,
+                'QUERY_STRING': '&s=foo',
                 'PATH_INFO': '/some_call',
                 'REQUEST_METHOD': 'GET',
                 'SERVER_NAME': 'localhost',

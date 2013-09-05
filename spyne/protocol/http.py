@@ -73,7 +73,7 @@ _weekday = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 _month = ['w00t', "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep",
              "Oct", "Nov", "Dec"]
 
-def to_string(prot, val, cls):
+def _header_to_string(prot, val, cls):
     if issubclass(cls, DateTime):
         if val.tzinfo is not None:
             val = val.astimezone(pytz.utc)
@@ -83,10 +83,6 @@ def to_string(prot, val, cls):
         return "%s, %02d %s %04d %02d:%02d:%02d GMT" % (
                             _weekday[val.weekday()], val.day, _month[val.month],
                             val.year, val.hour, val.minute, val.second)
-    elif issubclass(cls, ByteArray):
-        return prot.to_string(cls, val,
-                                suggested_encoding=prot.default_binary_encoding)
-
     else:
         return prot.to_string(cls, val)
 
@@ -237,7 +233,7 @@ class HttpRpc(SimpleDictDocument):
                     out_header = ctx.out_header[0]
 
                 ctx.out_header_doc = self.object_to_simple_dict(header_class,
-                                          out_header, subvalue_eater=to_string)
+                                   out_header, subvalue_eater=_header_to_string)
 
         else:
             ctx.transport.mime_type = 'text/plain'
