@@ -186,7 +186,14 @@ class XmlSchema(InterfaceDocumentBase):
         f = open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r')
 
         logger.debug("building schema...")
-        self.validation_schema = etree.XMLSchema(etree.parse(f))
+        try:
+            self.validation_schema = etree.XMLSchema(etree.parse(f))
+        except Exception as e:
+            f.seek(0)
+            logger.error(etree.tostring(etree.parse(f), pretty_print=True))
+            logger.error("This is a Spyne error. Please seek support with a "
+                         "minimal test case that reproduces this error.")
+            raise
 
         logger.debug("schema %r built, cleaning up..." % self.validation_schema)
         f.close()
