@@ -32,6 +32,7 @@ from spyne.test.interface.wsdl import build_app
 from spyne.test.interface.wsdl.defult_services import TDefaultPortService
 from spyne.test.interface.wsdl.defult_services import TDefaultPortServiceMultipleMethods
 
+from spyne.const import REQUEST_SUFFIX
 from spyne.const import RESPONSE_SUFFIX
 from spyne.const import ARRAY_SUFFIX
 
@@ -186,7 +187,7 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
                 return ss
 
         app = Application([InteropBare], tns='tns',
-                      in_protocol=Soap11(), out_protocol=Soap11())
+                                    in_protocol=Soap11(), out_protocol=Soap11())
         app.transport = 'None'
 
         wsdl = Wsdl11(app.interface)
@@ -195,7 +196,7 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
 
         schema = wsdl.xpath(
                 '/wsdl:definitions/wsdl:types/xs:schema[@targetNamespace]',
-                namespaces=ns
+                namespaces=ns,
             )
 
         assert len(schema) == 1
@@ -204,7 +205,7 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
         assert len(schema[0].xpath(
             'xs:complexType[@name="string%s"]' % ARRAY_SUFFIX, namespaces=ns)) > 0
         elts = schema[0].xpath(
-            'xs:element[@name="echo_complex_bare%s"]' % RESPONSE_SUFFIX, namespaces=ns)
+            'xs:element[@name="echo_complex_bare%s"]' % REQUEST_SUFFIX, namespaces=ns)
 
         assert len(elts) > 0
         assert elts[0].attrib['type'] == 'tns:stringArray'
