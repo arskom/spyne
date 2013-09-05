@@ -423,8 +423,8 @@ class Test(unittest.TestCase):
 
         ctx = _test([SomeService],  'ccm_i=1'
                                    '&ccm_s=s'
-                                   '&ccm_c[1]=a'
-                                   '&ccm_c[0]=b')
+                                   '&ccm_c[1]=b'
+                                   '&ccm_c[0]=a')
         s = ''.join(list(ctx.out_string))
         assert s == "CCM(i=1, c=['a', 'b'], s='s')"
 
