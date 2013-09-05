@@ -241,8 +241,9 @@ def complex_add(document, cls, tags):
     document.add_complex_type(cls, complex_type)
 
     # simple node
+    complex_type_name = cls.Attributes.sub_name or cls.get_type_name()
     element = etree.Element('{%s}element' % _ns_xsd)
-    element.set('name', cls.get_type_name())
+    element.set('name', complex_type_name)
     element.set('type', cls.get_type_name_ns(document.interface))
 
     document.add_element(cls, element)
