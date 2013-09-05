@@ -194,12 +194,14 @@ class HtmlMicroFormat(HtmlBase):
         assert root_tag in ('div', 'span')
         assert child_tag in ('div', 'span')
         assert field_name_attr in ('class', 'id')
-        assert field_name_tag in ('span', 'div')
+        assert field_name_tag in (None, 'span', 'div')
 
         self.__root_tag = root_tag
         self.__child_tag = child_tag
         self.__field_name_attr = field_name_attr
-        self._field_name_tag = getattr(E, field_name_tag)
+        self._field_name_tag = field_name_tag
+        if field_name_tag is not None:
+            self._field_name_tag = getattr(E, field_name_tag)
         self._field_name_class = field_name_class
 
         self.serialization_handlers = cdict({
