@@ -96,6 +96,8 @@ def _produce_input_message(f, params, kparams, _in_message_name,
             message = message.customize(sub_name=_in_message_name, sub_ns=ns)
             assert message.Attributes.sub_name is not None
 
+        # This dates from a time when body_style='bare' could support more
+        # than one parameter. Maybe one day someone will bring that back.
         else:
             message = ComplexModel.produce(type_name=_in_message_name,
                                                namespace=ns, members=in_params)
