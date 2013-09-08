@@ -637,11 +637,14 @@ class DateTime(SimpleModel):
 
         as_time_zone = None
         """When not None, converts incoming and outgoing values to the given
-        time zone (by calling ``astimezone()``) and strips time zone information
-        from the native value (by calling ``replace(tzinfo=None)``).
+        time zone (by calling ``astimezone()``) and later stripping time zone
+        information from the native value (by calling ``replace(tzinfo=None)``).
 
         Either None or a return value of pytz.timezone()
         """
+
+        timezone = None
+        """If not None, overrides as_time_zone."""
 
     @staticmethod
     def parse(date_match, tz=None):
