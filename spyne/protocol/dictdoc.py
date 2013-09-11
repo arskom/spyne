@@ -433,8 +433,9 @@ class SimpleDictDocument(DictDocument):
                         retval[key] = l
 
                     else:
-                        new_prefix.append('')
+                        last_prefix = new_prefix[-1]
                         for i, ssv in enumerate(subvalue):
+                            new_prefix[-1] = '%s[%d]' % (last_prefix, i)
                             self.object_to_simple_dict(subtype, ssv, hier_delim,
                                         retval, new_prefix, parent=inst_cls,
                                         subvalue_eater=subvalue_eater)
