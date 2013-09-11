@@ -310,7 +310,8 @@ class ModelBase(object):
         """
 
         if cls.get_namespace() != None:
-            return "%s:%s" % (cls.get_namespace_prefix(interface), cls.get_type_name())
+            return "%s:%s" % (cls.get_namespace_prefix(interface),
+                                                            cls.get_type_name())
 
     @classmethod
     def get_element_name(cls):
