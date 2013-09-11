@@ -24,6 +24,8 @@ import spyne.const.xml_ns
 from decimal import Decimal
 
 from spyne.util import Break
+from spyne.const.xml_ns import DEFAULT_NS
+
 
 """This module contains the ModelBase class and other building blocks for
 defining models.
@@ -308,7 +310,21 @@ class ModelBase(object):
         """
 
         if cls.get_namespace() != None:
-            return "%s:%s" % (cls.get_namespace_prefix(interface), cls.get_type_name())
+            return "%s:%s" % (cls.get_namespace_prefix(interface),
+                                                            cls.get_type_name())
+
+    @classmethod
+    def get_element_name(cls):
+        return cls.Attributes.sub_name or cls.get_type_name()
+
+    @classmethod
+    def get_element_name_ns(cls, interface):
+        ns = cls.Attributes.sub_ns or cls.get_namespace()
+        if ns is DEFAULT_NS:
+            ns = interface.get_tns()
+        if ns is not None:
+            pref = interface.get_namespace_prefix(ns)
+            return "%s:%s" % (pref, cls.get_element_name())
 
     @classmethod
     @nillable_string

@@ -149,20 +149,21 @@ from collections import defaultdict
 from spyne.error import ValidationError
 from spyne.error import ResourceNotFoundError
 
-from spyne.model.binary import ByteArray
-from spyne.model.binary import File
-from spyne.model.fault import Fault
-from spyne.model.complex import ComplexModelBase
-from spyne.model.complex import Array
-from spyne.model.primitive import AnyDict
-from spyne.model.primitive import AnyXml
-from spyne.model.primitive import AnyHtml
-from spyne.model.primitive import Uuid
-from spyne.model.primitive import DateTime
-from spyne.model.primitive import Date
-from spyne.model.primitive import Time
-from spyne.model.primitive import Duration
-from spyne.model.primitive import Unicode
+from spyne.model import ByteArray
+from spyne.model import File
+from spyne.model import Fault
+from spyne.model import ComplexModelBase
+from spyne.model import Array
+from spyne.model import SimpleModel
+from spyne.model import AnyDict
+from spyne.model import AnyXml
+from spyne.model import AnyHtml
+from spyne.model import Uuid
+from spyne.model import DateTime
+from spyne.model import Date
+from spyne.model import Time
+from spyne.model import Duration
+from spyne.model import Unicode
 
 from spyne.protocol import ProtocolBase
 
@@ -424,22 +425,32 @@ class SimpleDictDocument(DictDocument):
                     else:
                         subtype = v
 
-                    new_prefix.append('')
-                    for i, ssv in enumerate(subvalue):
-                        new_prefix[-1] = '[%d]' % i
-                        self.object_to_simple_dict(subtype, ssv, hier_delim,
-                                            retval, new_prefix, parent=inst_cls)
+                    if issubclass(subtype, SimpleModel):
+                        key = hier_delim.join(new_prefix)
+                        l = []
+                        for ssv in subvalue:
+                            l.append(subvalue_eater(self, ssv, subtype))
+                        retval[key] = l
+
+                    else:
+                        last_prefix = new_prefix[-1]
+                        for i, ssv in enumerate(subvalue):
+                            new_prefix[-1] = '%s[%d]' % (last_prefix, i)
+                            self.object_to_simple_dict(subtype, ssv, hier_delim,
+                                        retval, new_prefix, parent=inst_cls,
+                                        subvalue_eater=subvalue_eater)
 
                 else:
                     self.object_to_simple_dict(v, subvalue, hier_delim,
-                                            retval, new_prefix, parent=inst_cls)
+                                            retval, new_prefix, parent=inst_cls,
+                                            subvalue_eater=subvalue_eater)
 
         else:
             key = hier_delim.join(prefix)
 
             if key in retval:
                 raise ValueError("%r.%s conflicts with previous value %r" %
-                                                    (inst_cls, k, retval[key]))
+                                                    (inst_cls, key, retval[key]))
 
             retval[key] = subvalue_eater(self, value, inst_cls)
 

@@ -198,6 +198,14 @@ class XmlData(XmlModifier):
     def get_namespace(cls):
         return cls.type.get_namespace()
 
+    @classmethod
+    def get_element_name(cls):
+        return cls.type.get_element_name()
+
+    @classmethod
+    def get_element_name_ns(cls, interface):
+        return cls.type.get_element_name_ns(interface)
+
 
 class XmlAttribute(XmlModifier):
     """Items which are marshalled as attributes of the parent element. If

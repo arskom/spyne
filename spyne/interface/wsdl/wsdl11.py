@@ -345,16 +345,17 @@ class Wsdl11(XmlSchema):
                                                                     % _ns_wsdl)
                 documentation.text = method.doc
 
-            operation.set('parameterOrder', method.in_message.get_type_name())
+            operation.set('parameterOrder', method.in_message.get_element_name())
 
             op_input = etree.SubElement(operation, '{%s}input' % _ns_wsdl)
-            op_input.set('name', method.in_message.get_type_name())
-            op_input.set('message', method.in_message.get_type_name_ns(self.interface))
+            op_input.set('name', method.in_message.get_element_name())
+            op_input.set('message', method.in_message.get_element_name_ns(self.interface))
 
             if (not method.is_callback) and (not method.is_async):
                 op_output = etree.SubElement(operation, '{%s}output' % _ns_wsdl)
-                op_output.set('name', method.out_message.get_type_name())
-                op_output.set('message', method.out_message.get_type_name_ns(self.interface))
+                op_output.set('name', method.out_message.get_element_name())
+                op_output.set('message', method.out_message.get_element_name_ns(
+                                                                self.interface))
 
                 if not (method.faults is None):
                     for f in method.faults:
@@ -382,15 +383,15 @@ class Wsdl11(XmlSchema):
                 objs = (obj,)
             for obj in objs:
                 part = etree.SubElement(message, '{%s}part' % _ns_wsdl)
-                part.set('name', obj.get_type_name())
-                part.set('element', obj.get_type_name_ns(self.interface))
+                part.set('name', obj.get_element_name())
+                part.set('element', obj.get_element_name_ns(self.interface))
 
     def add_messages_for_methods(self, service, root, messages):
         for method in service.public_methods.values():
             self._add_message_for_object(root, messages, method.in_message,
-                                    method.in_message.get_type_name())
+                                    method.in_message.get_element_name())
             self._add_message_for_object(root, messages, method.out_message,
-                                    method.out_message.get_type_name())
+                                    method.out_message.get_element_name())
 
             if method.in_header is not None:
                 if len(method.in_header) > 1:
@@ -430,7 +431,7 @@ class Wsdl11(XmlSchema):
 
             # get input
             input = etree.SubElement(operation, '{%s}input' % _ns_wsdl)
-            input.set('name', method.in_message.get_type_name())
+            input.set('name', method.in_message.get_element_name())
 
             soap_body = etree.SubElement(input, '{%s}body' % _ns_soap)
             soap_body.set('use', 'literal')
@@ -462,7 +463,7 @@ class Wsdl11(XmlSchema):
 
             if not (method.is_async or method.is_callback):
                 output = etree.SubElement(operation, '{%s}output' % _ns_wsdl)
-                output.set('name', method.out_message.get_type_name())
+                output.set('name', method.out_message.get_element_name())
 
                 soap_body = etree.SubElement(output, '{%s}body' % _ns_soap)
                 soap_body.set('use', 'literal')

@@ -409,14 +409,17 @@ def get_sqlalchemy_type(cls):
     elif issubclass(cls, Boolean):
         return sqlalchemy.Boolean
 
-    elif issubclass(cls, DateTime):
-        if cls.Attributes.as_time_zone is None:
-            return sqlalchemy.DateTime(timezone=True)
-        else:
-            return sqlalchemy.DateTime(timezone=False)
-
     elif issubclass(cls, Date):
         return sqlalchemy.Date
+
+    elif issubclass(cls, DateTime):
+        if cls.Attributes.timezone is None:
+            if cls.Attributes.as_time_zone is None:
+                return sqlalchemy.DateTime(timezone=True)
+            else:
+                return sqlalchemy.DateTime(timezone=False)
+        else:
+            return sqlalchemy.DateTime(timezone=cls.Attributes.timezone)
 
     elif issubclass(cls, Time):
         return sqlalchemy.Time
