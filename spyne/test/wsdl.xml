@@ -3,12 +3,12 @@
                   xmlns:plink="http://schemas.xmlsoap.org/ws/2003/05/partner-link/"
                   xmlns:s0="punk.tunk"
                   xmlns:s1="hunk.sunk"
-                  xmlns:s12enc="http://www.w3.org/2003/05/soap-encoding/"
-                  xmlns:s12env="http://www.w3.org/2003/05/soap-envelope/"
                   xmlns:s2="bar"
                   xmlns:senc="http://schemas.xmlsoap.org/soap/encoding/"
                   xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/"
                   xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
+                  xmlns:soap12enc="http://www.w3.org/2003/05/soap-encoding/"
+                  xmlns:soap12env="http://www.w3.org/2003/05/soap-envelope/"
                   xmlns:tns="spyne.test.interop.server"
                   xmlns:wsa="http://schemas.xmlsoap.org/ws/2003/03/addressing"
                   xmlns:wsdl="http://schemas.xmlsoap.org/wsdl/"
@@ -72,7 +72,7 @@
       <xs:import namespace="bar" />
       <xs:import namespace="hunk.sunk" />
       <xs:element name="ClassWithSelfReference" type="tns:ClassWithSelfReference" />
-      <xs:element name="Fault" type="tns:Fault" />
+      <xs:element name="DocumentedFault" type="tns:DocumentedFault" />
       <xs:element name="InHeader" type="tns:InHeader" />
       <xs:element name="InTraceHeader" type="tns:InTraceHeader" />
       <xs:element name="OtherClass" type="tns:OtherClass" />
@@ -110,8 +110,6 @@
       <xs:element name="echo_boolean_arrayResponse" type="tns:echo_boolean_arrayResponse" />
       <xs:element name="echo_class_with_self_reference" type="tns:echo_class_with_self_reference" />
       <xs:element name="echo_class_with_self_referenceResponse" type="tns:echo_class_with_self_referenceResponse" />
-      <xs:element name="echo_complex_bare" type="tns:stringArray" />
-      <xs:element name="echo_complex_bareResponse" type="tns:stringArray" />
       <xs:element name="echo_date" type="tns:echo_date" />
       <xs:element name="echo_dateResponse" type="tns:echo_dateResponse" />
       <xs:element name="echo_date_time_array" type="tns:echo_date_time_array" />
@@ -148,8 +146,6 @@
       <xs:element name="echo_nested_classResponse" type="tns:echo_nested_classResponse" />
       <xs:element name="echo_nested_class_array" type="tns:echo_nested_class_array" />
       <xs:element name="echo_nested_class_arrayResponse" type="tns:echo_nested_class_arrayResponse" />
-      <xs:element name="echo_simple_bare" type="xs:string" />
-      <xs:element name="echo_simple_bareResponse" type="xs:string" />
       <xs:element name="echo_simple_boolean_array" type="tns:echo_simple_boolean_array" />
       <xs:element name="echo_simple_boolean_arrayResponse" type="tns:echo_simple_boolean_arrayResponse" />
       <xs:element name="echo_simple_class" type="tns:echo_simple_class" />
@@ -164,11 +160,7 @@
       <xs:element name="echo_timeResponse" type="tns:echo_timeResponse" />
       <xs:element name="echo_time_with_invalid_format" type="tns:echo_time_with_invalid_format" />
       <xs:element name="echo_time_with_invalid_formatResponse" type="tns:echo_time_with_invalid_formatResponse" />
-      <xs:element name="empty_input_bare">
-        <xs:complexType />
-      </xs:element>
-      <xs:element name="empty_input_bareResponse" type="xs:string" />
-      <xs:element name="empty_output_bare" type="xs:string" />
+      <xs:element name="empty_input_bare" type="tns:empty_input_bare" />
       <xs:element name="empty_output_bareResponse" type="tns:empty_output_bareResponse" />
       <xs:element name="floatArray" type="tns:floatArray" />
       <xs:element name="getCustomMessagesMsgOut" type="tns:getCustomMessagesMsgOut" />
@@ -219,7 +211,7 @@
           <xs:element minOccurs="0" name="sr" nillable="true" type="tns:ClassWithSelfReference" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="Fault" />
+      <xs:complexType name="DocumentedFault" />
       <xs:complexType name="InHeader">
         <xs:sequence>
           <xs:element minOccurs="0" name="i" nillable="true" type="xs:integer" />
@@ -287,9 +279,7 @@
           <xs:element maxOccurs="unbounded" minOccurs="0" name="booleanArray" nillable="true" type="tns:booleanArray" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="complex_return">
-        <xs:sequence />
-      </xs:complexType>
+      <xs:complexType name="complex_return" />
       <xs:complexType name="complex_returnResponse">
         <xs:sequence>
           <xs:element minOccurs="0" name="resultCode" nillable="true" type="xs:integer" />
@@ -318,12 +308,8 @@
           <xs:element minOccurs="0" name="do_something_elseResult" nillable="true" type="xs:string" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="documented_exception">
-        <xs:sequence />
-      </xs:complexType>
-      <xs:complexType name="documented_exceptionResponse">
-        <xs:sequence />
-      </xs:complexType>
+      <xs:complexType name="documented_exception" />
+      <xs:complexType name="documented_exceptionResponse" />
       <xs:complexType name="doubleArray">
         <xs:sequence>
           <xs:element maxOccurs="unbounded" minOccurs="0" name="double" nillable="true" type="xs:double" />
@@ -529,18 +515,14 @@
           <xs:element minOccurs="0" name="echo_float_arrayResult" nillable="true" type="tns:floatArray" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="echo_in_complex_header">
-        <xs:sequence />
-      </xs:complexType>
+      <xs:complexType name="echo_in_complex_header" />
       <xs:complexType name="echo_in_complex_headerResponse">
         <xs:sequence>
           <xs:element minOccurs="0" name="echo_in_complex_headerResult0" nillable="true" type="tns:InHeader" />
           <xs:element minOccurs="0" name="echo_in_complex_headerResult1" nillable="true" type="tns:InTraceHeader" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="echo_in_header">
-        <xs:sequence />
-      </xs:complexType>
+      <xs:complexType name="echo_in_header" />
       <xs:complexType name="echo_in_headerResponse">
         <xs:sequence>
           <xs:element minOccurs="0" name="echo_in_headerResult" nillable="true" type="tns:InHeader" />
@@ -656,9 +638,8 @@
           <xs:element minOccurs="0" name="echo_time_with_invalid_formatResult" nillable="true" type="xs:time" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="empty_output_bareResponse">
-        <xs:sequence />
-      </xs:complexType>
+      <xs:complexType name="empty_input_bare" />
+      <xs:complexType name="empty_output_bareResponse" />
       <xs:complexType name="floatArray">
         <xs:sequence>
           <xs:element maxOccurs="unbounded" minOccurs="0" name="float" nillable="true" type="xs:float" />
@@ -669,9 +650,7 @@
           <xs:element minOccurs="0" name="CustomMessages" nillable="true" type="xs:string" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="huge_number">
-        <xs:sequence />
-      </xs:complexType>
+      <xs:complexType name="huge_number" />
       <xs:complexType name="huge_numberResponse">
         <xs:sequence>
           <xs:element minOccurs="0" name="huge_numberResult" nillable="true" type="xs:integer" />
@@ -682,9 +661,7 @@
           <xs:element maxOccurs="unbounded" minOccurs="0" name="integer" nillable="true" type="xs:integer" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="long_string">
-        <xs:sequence />
-      </xs:complexType>
+      <xs:complexType name="long_string" />
       <xs:complexType name="long_stringResponse">
         <xs:sequence>
           <xs:element minOccurs="0" name="long_stringResult" nillable="true" type="xs:string" />
@@ -697,9 +674,7 @@
           <xs:element minOccurs="0" name="dt" nillable="true" type="xs:dateTime" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="multi_paramResponse">
-        <xs:sequence />
-      </xs:complexType>
+      <xs:complexType name="multi_paramResponse" />
       <xs:complexType name="non_nillable">
         <xs:sequence>
           <xs:element minOccurs="0" name="n" nillable="true" type="s1:NonNillableClass" />
@@ -710,23 +685,15 @@
           <xs:element minOccurs="0" name="non_nillableResult" nillable="true" type="xs:string" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="python_exception">
-        <xs:sequence />
-      </xs:complexType>
-      <xs:complexType name="python_exceptionResponse">
-        <xs:sequence />
-      </xs:complexType>
-      <xs:complexType name="return_binary_data">
-        <xs:sequence />
-      </xs:complexType>
+      <xs:complexType name="python_exception" />
+      <xs:complexType name="python_exceptionResponse" />
+      <xs:complexType name="return_binary_data" />
       <xs:complexType name="return_binary_dataResponse">
         <xs:sequence>
           <xs:element minOccurs="0" name="return_binary_dataResult" nillable="true" type="xs:base64Binary" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="return_invalid_data">
-        <xs:sequence />
-      </xs:complexType>
+      <xs:complexType name="return_invalid_data" />
       <xs:complexType name="return_invalid_dataResponse">
         <xs:sequence>
           <xs:element minOccurs="0" name="return_invalid_dataResult" nillable="true" type="xs:integer" />
@@ -742,44 +709,32 @@
           <xs:element minOccurs="0" name="return_other_class_arrayResult" nillable="true" type="tns:OtherClassArray" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="send_out_complex_header">
-        <xs:sequence />
-      </xs:complexType>
+      <xs:complexType name="send_out_complex_header" />
       <xs:complexType name="send_out_complex_headerResponse">
         <xs:sequence>
           <xs:element minOccurs="0" name="send_out_complex_headerResult0" nillable="true" type="tns:OutHeader" />
           <xs:element minOccurs="0" name="send_out_complex_headerResult1" nillable="true" type="tns:OutTraceHeader" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="send_out_header">
-        <xs:sequence />
-      </xs:complexType>
+      <xs:complexType name="send_out_header" />
       <xs:complexType name="send_out_headerResponse">
         <xs:sequence>
           <xs:element minOccurs="0" name="send_out_headerResult" nillable="true" type="tns:OutHeader" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="soap_exception">
-        <xs:sequence />
-      </xs:complexType>
-      <xs:complexType name="soap_exceptionResponse">
-        <xs:sequence />
-      </xs:complexType>
+      <xs:complexType name="soap_exception" />
+      <xs:complexType name="soap_exceptionResponse" />
       <xs:complexType name="stringArray">
         <xs:sequence>
           <xs:element maxOccurs="unbounded" minOccurs="0" name="string" nillable="true" type="xs:string" />
         </xs:sequence>
       </xs:complexType>
-      <xs:complexType name="test_empty">
-        <xs:sequence />
-      </xs:complexType>
-      <xs:complexType name="test_emptyResponse">
-        <xs:sequence />
-      </xs:complexType>
+      <xs:complexType name="test_empty" />
+      <xs:complexType name="test_emptyResponse" />
     </xs:schema>
   </wsdl:types>
-  <wsdl:message name="Fault">
-    <wsdl:part element="tns:Fault" name="Fault" />
+  <wsdl:message name="DocumentedFault">
+    <wsdl:part element="tns:DocumentedFault" name="DocumentedFault" />
   </wsdl:message>
   <wsdl:message name="InHeader">
     <wsdl:part element="tns:InHeader" name="InHeader" />
@@ -1177,7 +1132,7 @@
     <wsdl:operation name="documented_exception" parameterOrder="documented_exception">
       <wsdl:input message="tns:documented_exception" name="documented_exception" />
       <wsdl:output message="tns:documented_exceptionResponse" name="documented_exceptionResponse" />
-      <wsdl:fault message="tns:Fault" name="Fault" />
+      <wsdl:fault message="tns:DocumentedFault" name="DocumentedFault" />
     </wsdl:operation>
     <wsdl:operation name="echo_any" parameterOrder="echo_any">
       <wsdl:input message="tns:echo_any" name="echo_any" />
@@ -1413,8 +1368,8 @@
       <wsdl:output name="documented_exceptionResponse">
         <soap:body use="literal" />
       </wsdl:output>
-      <wsdl:fault name="Fault">
-        <soap:fault name="Fault" use="literal" />
+      <wsdl:fault name="DocumentedFault">
+        <soap:fault name="DocumentedFault" use="literal" />
       </wsdl:fault>
     </wsdl:operation>
     <wsdl:operation name="echo_any">

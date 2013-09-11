@@ -171,6 +171,20 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
             ['echo_default_port_service']
         )
 
+    def test_bare_more(self):
+        from spyne.test.interop.server._service import InteropBare
+        app = Application([InteropBare], tns='tns',
+                                    in_protocol=Soap11(), out_protocol=Soap11())
+        app.transport = 'None'
+
+        wsdl = Wsdl11(app.interface)
+        wsdl.build_interface_document('url')
+        wsdl = etree.fromstring(wsdl.get_interface_document())
+
+        print etree.tostring(wsdl, pretty_print=True)
+
+        assert len(wsdl.xpath('//xs:element[@name="echo_simple_bare"]', namespaces=const_nsmap)) == 1
+
     def test_bare(self):
         ns = {
             'wsdl':'http://schemas.xmlsoap.org/wsdl/',

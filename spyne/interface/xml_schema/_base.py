@@ -225,7 +225,7 @@ class XmlSchema(InterfaceDocumentBase):
         self.build_schema_nodes()
 
     def add_element(self, cls, node):
-        pref = cls.get_namespace_prefix(self.interface)
+        pref = cls.get_element_name_ns(self.interface).split(":")[0]
 
         schema_info = self.get_schema_info(pref)
         schema_info.elements[cls.get_type_name()] = node
