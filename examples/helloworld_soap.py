@@ -58,7 +58,7 @@ from spyne.application import Application
 from spyne.protocol.soap import Soap11
 from spyne.server.wsgi import WsgiApplication
 
-from spyne.decorator import srpc
+from spyne.decorator import rpc
 from spyne.service import ServiceBase
 from spyne.model.complex import Iterable
 from spyne.model.primitive import Integer
@@ -66,8 +66,8 @@ from spyne.model.primitive import Unicode
 
 
 class HelloWorldService(ServiceBase):
-    @srpc(Unicode, Integer, _returns=Iterable(Unicode))
-    def say_hello(name, times):
+    @rpc(Unicode, Integer, _returns=Iterable(Unicode))
+    def say_hello(ctx, name, times):
         '''
         Docstrings for service methods appear as documentation in the wsdl.
         <b>What fun!</b>

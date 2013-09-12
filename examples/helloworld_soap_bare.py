@@ -55,7 +55,7 @@ Here's how to call it using suds:
 
 import logging
 
-from spyne.decorator import srpc
+from spyne.decorator import rpc
 from spyne.service import ServiceBase
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import Iterable
@@ -66,8 +66,8 @@ from spyne.util.simple import wsgi_soap_application
 
 
 class HelloWorldService(ServiceBase):
-    @srpc(Unicode, Integer, _returns=Iterable(Unicode), _body_style='bare')
-    def say_hello(name, times):
+    @rpc(Unicode, _returns=Iterable(Unicode), _body_style='bare')
+    def say_hello(ctx, name):
         '''
         Docstrings for service methods appear as documentation in the wsdl
         <b>what fun</b>
@@ -76,8 +76,7 @@ class HelloWorldService(ServiceBase):
         @return the completed array
         '''
 
-        for i in range(times):
-            yield u'Hello, %s' % name
+        return u'Hello, %s' % name
 
 
 if __name__=='__main__':
