@@ -146,6 +146,7 @@ class HttpRpc(SimpleDictDocument):
                                           % (ctx.transport.type, ctx.transport))
 
         ctx.in_document = ctx.transport.req
+        ctx.transport.request_encoding = in_string_encoding
 
     def decompose_incoming_envelope(self, ctx, message):
         assert message == SimpleDictDocument.REQUEST
@@ -176,15 +177,16 @@ class HttpRpc(SimpleDictDocument):
         if ctx.descriptor is None:
             raise ResourceNotFoundError(ctx.method_request_string)
 
+        req_enc = ctx.transport.request_encoding
         if ctx.descriptor.in_header is not None:
             # HttpRpc supports only one header class
             in_header_class = ctx.descriptor.in_header[0]
             ctx.in_header = self.simple_dict_to_object(ctx.in_header_doc,
-                                                in_header_class, self.validator)
+                            in_header_class, self.validator, req_enc=req_enc)
 
         if ctx.descriptor.in_message is not None:
             ctx.in_object = self.simple_dict_to_object(ctx.in_body_doc,
-                                      ctx.descriptor.in_message, self.validator)
+                    ctx.descriptor.in_message, self.validator, req_enc=req_enc)
 
         self.event_manager.fire_event('after_deserialize', ctx)
 

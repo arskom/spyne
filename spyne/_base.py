@@ -53,6 +53,9 @@ class TransportContext(object):
 
         self.app = transport.app
 
+        self.request_encoding = None
+        """General purpose variable to hold the string identifier of a request
+        encoding. It's nowadays usually 'utf-8', especially with http data"""
 
 class ProtocolContext(object):
     """Generic object that holds transport-specific context information"""

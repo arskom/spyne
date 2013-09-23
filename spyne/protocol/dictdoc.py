@@ -275,7 +275,8 @@ class SimpleDictDocument(DictDocument):
     flat dictionaries. The only example as of now is Http.
     """
 
-    def simple_dict_to_object(self, doc, inst_class, validator=None, hier_delim="_"):
+    def simple_dict_to_object(self, doc, inst_class, validator=None,
+                                                hier_delim="_", req_enc=None):
         """Converts a flat dict to a native python object.
 
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
@@ -302,6 +303,9 @@ class SimpleDictDocument(DictDocument):
             # entries.
             value = []
             for v2 in v:
+                if req_enc is not None and issubclass(member.type, Unicode):
+                    v2 = v2.decode(req_enc)
+
                 if (validator is self.SOFT_VALIDATION and not
                                   member.type.validate_string(member.type, v2)):
                     raise ValidationError((orig_k, v2))

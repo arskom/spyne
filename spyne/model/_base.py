@@ -469,8 +469,10 @@ class SimpleModel(ModelBase):
     @staticmethod
     def validate_string(cls, value):
         return (     ModelBase.validate_string(cls, value)
-                and (len(cls.Attributes.values) == 0 or
-                                                value in cls.Attributes.values)
+                and (len(cls.Attributes.values) == 0 or (
+                     (value is None     and cls.Attributes.nillable) or
+                     (value is not None and value in cls.Attributes.values)
+                ))
             )
 
 
