@@ -308,7 +308,7 @@ class MethodDescriptor(object):
                  out_header=None, faults=None,
                  port_type=None, no_ctx=False, udp=None, class_key=None,
                  aux=None, patterns=None, body_style=None, args=None,
-                 operation_name=None, in_message_name=None):
+                 operation_name=None):
 
         self.__real_function = function
         """The original callable for the user code."""
