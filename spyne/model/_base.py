@@ -455,9 +455,9 @@ class SimpleModel(ModelBase):
         """
 
         retval = cls.customize(**kwargs)
+        retval.__extends__ = cls
 
         if not retval.is_default(retval):
-            retval.__extends__ = cls
             retval.__type_name__ = kwargs.get("type_name", ModelBase.Empty)
 
         return retval
