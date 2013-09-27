@@ -351,7 +351,7 @@ class ModelBase(object):
         Not meant to be overridden.
         """
 
-        cls_dict = {}
+        cls_dict = {'__module__': cls.__module__}
         if getattr(cls, '__orig__', None) is None:
             cls_dict['__orig__'] = cls
 
@@ -459,6 +459,8 @@ class SimpleModel(ModelBase):
 
         if not retval.is_default(retval):
             retval.__type_name__ = kwargs.get("type_name", ModelBase.Empty)
+
+        retval.resolve_namespace(retval, kwargs.get('__namespace__'))
 
         return retval
 

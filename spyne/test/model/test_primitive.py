@@ -417,6 +417,12 @@ class TestPrimitive(unittest.TestCase):
         app = Application([Service], 'hey', in_protocol=XmlDocument(), out_protocol=XmlDocument())
         XmlSchema(app.interface).build_interface_document()
 
+    def test_new_type(self):
+        """Customized primitives go into namespace based on module name."""
+        custom_type = Unicode(pattern='123')
+        self.assertEqual(custom_type.get_namespace(), custom_type.__module__)
+
+
 
 ### Duration Data Type
 ## http://www.w3schools.com/schema/schema_dtypes_date.asp
