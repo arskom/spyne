@@ -36,9 +36,11 @@ class DjangoFieldMapper(object):
             params['max_len'] = field.max_length
 
         required = not (field.has_default() or field.null or field.primary_key)
-        customized_model = self.spyne_model(
-            default=field.get_default(), nullable=field.null,
-            min_occurs=int(required), **params)
+        if field.has_default():
+            params['default'] = field.get_default()
+
+        customized_model = self.spyne_model(nullable=field.null,
+                                            min_occurs=int(required), **params)
 
         return (field.attname, customized_model)
 
@@ -159,19 +161,40 @@ class DjangoModelMapper(object):
         return field_map
 
 
+def strip_metachars(pattern):
+    """Strip ^ and $ from pattern begining and end.
+
+    According to http://www.w3.org/TR/xmlschema-0/#regexAppendix XMLSchema
+    expression language does not contain the metacharacters ^ and $.
+
+    :returns: stripped pattern string
+
+    """
+    start = 0
+    till = len(pattern)
+
+    if pattern.startswith('^'):
+        start = 1
+
+    if pattern.endswith('$'):
+        till -= 1
+
+    return pattern[start:till]
+
+
 default_model_mapper = DjangoModelMapper((
     ('AutoField', primitive.Integer),
     ('CharField', primitive.NormalizedString),
     ('SlugField', primitive.Unicode(type_name='Slug',
-                                    pattern=slug_re.pattern)),
+                                    pattern=strip_metachars(slug_re.pattern))),
     ('TextField', primitive.String),
-    ('EmailField', primitive.Unicode(type_name='Email',
-                                     pattern=email_re.pattern)),
+    ('EmailField', primitive.Unicode(
+        type_name='Email', pattern=strip_metachars(email_re.pattern))),
     ('CommaSeparatedIntegerField', primitive.Unicode(
         type_name='CommaSeparatedField',
-        pattern=comma_separated_int_list_re.pattern)),
-    ('UrlField', primitive.AnyUri(type_name='Url',
-                                  pattern=URLValidator.regex.pattern)),
+        pattern=strip_metachars(comma_separated_int_list_re.pattern))),
+    ('UrlField', primitive.AnyUri(
+        type_name='Url', pattern=strip_metachars(URLValidator.regex.pattern))),
     ('FilePathField', primitive.String),
 
     ('BooleanField', primitive.Boolean),
