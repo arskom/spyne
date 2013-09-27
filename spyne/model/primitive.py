@@ -38,8 +38,7 @@ import decimal
 import datetime
 import platform
 
-import spyne.const.xml_ns
-
+from spyne.const import xml_ns
 from spyne.model import SimpleModel
 from spyne.util import memoize
 
@@ -120,8 +119,8 @@ _duration_re = re.compile(
     )
 
 
-_ns_xs = spyne.const.xml_ns.xsd
-_ns_xsi = spyne.const.xml_ns.xsi
+_ns_xs = xml_ns.xsd
+_ns_xsi = xml_ns.xsi
 
 
 class AnyXml(SimpleModel):
