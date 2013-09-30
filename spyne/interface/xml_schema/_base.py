@@ -174,32 +174,34 @@ class XmlSchema(InterfaceDocumentBase):
         logger.debug("generating schema for targetNamespace=%r, prefix: "
                   "%r in dir %r" % (self.interface.tns, pref_tns, tmp_dir_name))
 
-        # serialize nodes to files
-        for k, v in self.schema_dict.items():
-            file_name = '%s/%s.xsd' % (tmp_dir_name, k)
-            f = open(file_name, 'wb')
-            etree.ElementTree(v).write(f, pretty_print=True)
-            f.close()
-            logger.debug("writing %r for ns %s" % (file_name,
-                                                       self.interface.nsmap[k]))
-
-        f = open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r')
-
-        logger.debug("building schema...")
         try:
-            self.validation_schema = etree.XMLSchema(etree.parse(f))
-        except Exception as e:
-            f.seek(0)
-            logger.error(etree.tostring(etree.parse(f), pretty_print=True))
-            logger.error("This is a Spyne error. Please seek support with a "
-                         "minimal test case that reproduces this error.")
-            raise
+            # serialize nodes to files
+            for k, v in self.schema_dict.items():
+                file_name = '%s/%s.xsd' % (tmp_dir_name, k)
+                with open(file_name, 'wb') as f:
+                    etree.ElementTree(v).write(f, pretty_print=True)
 
-        logger.debug("schema %r built, cleaning up..." % self.validation_schema)
-        f.close()
+                logger.debug("writing %r for ns %s" %
+                             (file_name, self.interface.nsmap[k]))
 
-        shutil.rmtree(tmp_dir_name)
-        logger.debug("removed %r" % tmp_dir_name)
+            logger.debug("building schema...")
+            with open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r') as f:
+                try:
+                    self.validation_schema = etree.XMLSchema(etree.parse(f))
+                except Exception:
+                    f.seek(0)
+                    logger.error(etree.tostring(etree.parse(f),
+                                                pretty_print=True))
+                    logger.error("This is a Spyne error. Please seek support "
+                                 "with a minimal test case that reproduces "
+                                 "this error.")
+                    raise
+
+            logger.debug("schema %r built" % self.validation_schema)
+        finally:
+            logger.debug("cleaning up ...")
+            shutil.rmtree(tmp_dir_name)
+            logger.debug("removed %r" % tmp_dir_name)
 
     def get_schema_node(self, pref):
         """Return schema node for the given namespace prefix."""
