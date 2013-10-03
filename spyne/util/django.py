@@ -183,7 +183,7 @@ def strip_metachars(pattern):
 
 
 default_model_mapper = DjangoModelMapper((
-    ('AutoField', primitive.Integer),
+    ('AutoField', primitive.Integer32),
     ('CharField', primitive.NormalizedString),
     ('SlugField', primitive.Unicode(type_name='Slug',
                                     pattern=strip_metachars(slug_re.pattern))),
@@ -201,7 +201,7 @@ default_model_mapper = DjangoModelMapper((
     ('NullBooleanField', primitive.Boolean),
     ('IntegerField', primitive.Integer),
     ('BigIntegerField', primitive.Integer64),
-    ('PositiveIntegerField', primitive.UnsignedInteger),
+    ('PositiveIntegerField', primitive.UnsignedInteger32),
     ('SmallIntegerField', primitive.Integer16),
     ('PositiveSmallIntegerField', primitive.UnsignedInteger16),
     ('FloatField', primitive.Double),
@@ -210,7 +210,7 @@ default_model_mapper = DjangoModelMapper((
     ('DateField', primitive.Date),
     ('DateTimeField', primitive.DateTime),
 
-    ('ForeignKey', primitive.Integer),
+    ('ForeignKey', primitive.Integer32),
 ))
 
 
