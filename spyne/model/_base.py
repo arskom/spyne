@@ -58,6 +58,8 @@ class AttributesMeta(type(object)):
     """I hate quirks. This is a 10-minute attempt to get rid of a one-letter
     quirk."""
 
+    NULLABLE_DEFAULT = True
+
     def __new__(cls, cls_name, cls_bases, cls_dict):
         # Mapper args should not be inherited.
         if not 'sqla_mapper_args' in cls_dict:
@@ -71,20 +73,25 @@ class AttributesMeta(type(object)):
 
         assert nullable is None or nillable is None or nullable == nillable
 
-        self.__nullable = nullable or nillable or True
+        self.__nullable = nullable or nillable or None
 
         type(object).__init__(self, cls_name, cls_bases, cls_dict)
 
     def get_nullable(self):
-        return self.__nullable
+        return (self.__nullable if self.__nullable is not None else
+                self.NULLABLE_DEFAULT)
+
     def set_nullable(self, what):
         self.__nullable = what
+
     nullable = property(get_nullable, set_nullable)
 
     def get_nillable(self):
-        return self.__nullable
+        return self.nullable
+
     def set_nillable(self, what):
-        self.__nullable = what
+        self.nullable = what
+
     nillable = property(get_nillable, set_nillable)
 
 
