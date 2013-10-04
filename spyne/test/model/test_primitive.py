@@ -417,6 +417,19 @@ class TestPrimitive(unittest.TestCase):
         app = Application([Service], 'hey', in_protocol=XmlDocument(), out_protocol=XmlDocument())
         XmlSchema(app.interface).build_interface_document()
 
+    def test_default_nullable(self):
+        """Test if default nullable changes nullable attribute."""
+        try:
+            self.assertTrue(Unicode.Attributes.nullable)
+            orig_default = Unicode.Attributes.NULLABLE_DEFAULT
+            Unicode.Attributes.NULLABLE_DEFAULT = False
+            self.assertFalse(Unicode.Attributes.nullable)
+            self.assertFalse(Unicode.Attributes.nillable)
+        finally:
+            Unicode.Attributes.NULLABLE_DEFAULT = orig_default
+            self.assertEqual(Unicode.Attributes.nullable, orig_default)
+
+
 
 ### Duration Data Type
 ## http://www.w3schools.com/schema/schema_dtypes_date.asp
