@@ -28,3 +28,4 @@ class FieldContainer(models.Model):
 
     url_field = models.URLField(default='http://example.com')
     file_field = models.FileField(upload_to='test_file', null=True)
+    excluded_field = models.CharField(max_length=32, default='excluded')

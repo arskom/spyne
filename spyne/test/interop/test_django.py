@@ -68,6 +68,12 @@ class ModelTestCase(TestCase):
     def setUp(self):
         self.client = DjangoTestClient('/api/', app)
 
+    def test_exclude(self):
+        """Test if excluded field is not mapped."""
+        type_info = Container.get_flat_type_info(Container)
+        self.assertIn('id', type_info)
+        self.assertNotIn('excluded_field', type_info)
+
     def test_get_container(self):
         """Test mapping from Django model to spyne model."""
         get_container = lambda: self.client.service.get_container(2)

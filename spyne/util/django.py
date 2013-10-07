@@ -131,17 +131,24 @@ class DjangoModelMapper(object):
         """
         self._registry[django_type] = field_mapper
 
-    def map(self, django_model):
+    @staticmethod
+    def _get_fields(django_model, exclude=None):
+        field_names = set(exclude) if exclude is not None else set()
+        return [field for field in django_model._meta.fields if field.name not
+                in field_names]
+
+    def map(self, django_model, exclude=None):
         """Prepare dict of model fields mapped to spyne models.
 
         :param django_model: Django model class.
+        :param exclude: list of fields excluded from mapping.
         :returns: dict mapping attribute names to spyne models
         :raises: :exc:`UnknownFieldMapperException`
 
         """
         field_map = {}
 
-        for field in django_model._meta.fields:
+        for field in self._get_fields(django_model, exclude):
             field_type = field.get_internal_type()
             try:
                 field_mapper = self._registry[field_type]
@@ -153,6 +160,7 @@ class DjangoModelMapper(object):
                         'No mapper for field type {0}'.format(field_type))
                 else:
                     # skip this field
+                    logger.info('Field {0} is skipped from mapping.')
                     continue
 
             attr_name, spyne_model = field_mapper.map(field)
@@ -248,7 +256,8 @@ class DjangoComplexModelMeta(ComplexModelMeta):
 
         mapper = getattr(attributes, 'django_mapper', default_model_mapper)
         attributes.django_mapper = mapper
-        spyne_attrs = mapper.map(attributes.django_model)
+        exclude = getattr(attributes, 'django_exclude', None)
+        spyne_attrs = mapper.map(attributes.django_model, exclude=exclude)
         spyne_attrs.update(attrs)
         return super_new(mcs, name, bases, spyne_attrs)
 
@@ -280,6 +289,13 @@ class DjangoComplexModel(ComplexModelBase):
             class Attributes(DjangoComplexModel.Attributes):
                 django_model = Person
                 django_mapper = my_custom_mapper
+
+    You can also exclude some fields from mapping:
+
+        class PersonType(DjangoComplexModel):
+            class Attributes(DjangoComplexModel.Attributes):
+                django_model = Person
+                django_exclude = ['phone']
 
     """
 

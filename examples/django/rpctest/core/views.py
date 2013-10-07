@@ -47,6 +47,7 @@ from rpctest.core.models import FieldContainer
 class Container(DjangoComplexModel):
     class Attributes(DjangoComplexModel.Attributes):
         django_model = FieldContainer
+        django_exclude = ['excluded_field']
 
 
 class HelloWorldService(ServiceBase):
