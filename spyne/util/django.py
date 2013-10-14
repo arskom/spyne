@@ -134,6 +134,14 @@ class DjangoModelMapper(object):
     @staticmethod
     def _get_fields(django_model, exclude=None):
         field_names = set(exclude) if exclude is not None else set()
+        unknown_fields_names = field_names.difference(
+            django_model._meta.get_all_field_names())
+
+        if unknown_fields_names:
+            raise ImproperlyConfigured(
+                'Unknown field names: {0}'
+                .format(', '.join(unknown_fields_names)))
+
         return [field for field in django_model._meta.fields if field.name not
                 in field_names]
 
