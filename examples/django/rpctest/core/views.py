@@ -28,9 +28,10 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+from django.db.utils import IntegrityError
 from django.views.decorators.csrf import csrf_exempt
 
-from spyne.error import ResourceNotFoundError
+from spyne.error import ResourceNotFoundError, ResourceAlreadyExistsError
 from spyne.server.django import DjangoApplication
 from spyne.model.primitive import Unicode, Integer
 from spyne.model.complex import Iterable
@@ -55,7 +56,7 @@ class HelloWorldService(ServiceBase):
             yield 'Hello, %s' % name
 
 
-class TestService(ServiceBase):
+class ContainerService(ServiceBase):
     @rpc(Integer, _returns=Container)
     def get_container(ctx, pk):
         try:
@@ -63,8 +64,14 @@ class TestService(ServiceBase):
         except FieldContainer.DoesNotExist:
             raise ResourceNotFoundError('Container')
 
+    @rpc(Container, _returns=Container)
+    def create_container(ctx, container):
+        try:
+            return FieldContainer.objects.create(**container.as_dict())
+        except IntegrityError:
+            raise ResourceAlreadyExistsError('Container')
 
-app = Application([HelloWorldService, TestService],
+app = Application([HelloWorldService, ContainerService],
     'spyne.examples.django',
     in_protocol=Soap11(validator='lxml'),
     out_protocol=Soap11(),

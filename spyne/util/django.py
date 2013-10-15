@@ -35,10 +35,10 @@ class DjangoFieldMapper(object):
         if field.max_length:
             params['max_len'] = field.max_length
 
+        required = not (field.has_default() or field.null or field.primary_key)
         customized_model = self.spyne_model(
             default=field.get_default(), nullable=field.null,
-            min_occurs=int(not (field.has_default() or field.null)),
-            **params)
+            min_occurs=int(required), **params)
 
         return (field.attname, customized_model)
 
@@ -171,8 +171,6 @@ default_model_mapper = DjangoModelMapper((
     ('UrlField', primitive.AnyUri(type_name='Url',
                                   pattern_re=URLValidator.regex)),
     ('FilePathField', primitive.String),
-    ('FileField', primitive.String),
-    ('ImageField', primitive.String),
 
     ('BooleanField', primitive.Boolean),
     ('NullBooleanField', primitive.Boolean),

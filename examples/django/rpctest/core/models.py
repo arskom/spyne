@@ -11,7 +11,7 @@ class FieldContainer(models.Model):
 
     char_field = models.CharField(max_length=32, default='test')
     char_field_nullable = models.CharField(max_length=32, null=True)
-    slug_field = models.SlugField(max_length=32)
+    slug_field = models.SlugField(max_length=32, unique=True)
     text_field = models.TextField(default='text_field')
     email_field = models.EmailField()
     boolean_field = models.BooleanField(default=True)
