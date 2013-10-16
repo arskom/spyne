@@ -946,6 +946,32 @@ class TestSqlAlchemyNested(unittest.TestCase):
         session.add(SomeClass())
         session.commit()
 
+    def test_store_as_index(self):
+        engine = create_engine('sqlite:///:memory:')
+        session = sessionmaker(bind=engine)()
+        metadata = NewTableModel.Attributes.sqla_metadata = MetaData()
+        metadata.bind = engine
+
+        class SomeOtherClass(NewTableModel):
+            __tablename__ = 'some_other_class'
+            __table_args__ = {"sqlite_autoincrement": True}
+
+            id = Integer32(primary_key=True)
+            s = Unicode(64)
+
+        class SomeClass(NewTableModel):
+            __tablename__ = 'some_class'
+            __table_args__ = (
+                {"sqlite_autoincrement": True},
+            )
+
+            id = Integer32(primary_key=True)
+            o = SomeOtherClass.customize(store_as='table', index='btree')
+
+        metadata.create_all()
+        idx, = SomeClass.__table__.indexes
+        assert 'o_id' in idx.columns
+
     def test_scalar_collection(self):
         engine = create_engine('sqlite:///:memory:')
         session = sessionmaker(bind=engine)()
