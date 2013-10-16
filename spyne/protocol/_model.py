@@ -296,7 +296,7 @@ def date_from_string(cls, string):
         d = datetime.datetime.strptime(string, cls.Attributes.format)
         return datetime.date(d.year, d.month, d.day)
     except ValueError, e:
-        raise ValidationError(string, "%%r: %r" % e)
+        raise ValidationError(string, "%%r: %s" % repr(e).replace("%", "%%"))
 
 
 if hasattr(datetime.timedelta, 'total_seconds'):
