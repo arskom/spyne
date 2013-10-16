@@ -18,11 +18,16 @@
 #
 
 
+from __future__ import absolute_import
+
+import datetime
 from django.test import TestCase, TransactionTestCase, Client
 
 from spyne.client.django import DjangoTestClient
+from spyne.model.fault import Fault
 
-from rpctest.core.views import app, hello_world_service
+from rpctest.core.models import FieldContainer
+from rpctest.core.views import app, hello_world_service, Container
 
 
 class SpyneTestCase(TransactionTestCase):
@@ -44,13 +49,6 @@ class SpyneViewTestCase(TestCase):
         self.assertEqual(len(list_resp), 5)
         self.assertEqual(list_resp, ['Hello, Joe'] * 5)
 
-    def test_greet(self):
-        client = DjangoTestClient('/greet/', app)
-        resp =  client.service.say_hello('Joe', 5)
-        list_resp = list(resp)
-        self.assertEqual(len(list_resp), 5)
-        self.assertEqual(list_resp, ['Hello, Joe'] * 5)
-
     def test_error(self):
         client = Client()
         response = client.post('/say_hello/', {})
@@ -61,3 +59,33 @@ class SpyneViewTestCase(TestCase):
         response = client.get('/say_hello/')
         self.assertContains(response,
                             'location="http://testserver/say_hello/"')
+
+
+class ModelTestCase(TestCase):
+
+    """Test mapping between django and spyne models."""
+
+    def setUp(self):
+        self.client = DjangoTestClient('/api/', app)
+
+    def test_get_container(self):
+        """Test mapping from Django model to spyne model."""
+        get_container = lambda: self.client.service.get_container(2)
+        self.assertRaises(Fault, get_container)
+        container = FieldContainer.objects.create(slug_field='container')
+        FieldContainer.objects.create(slug_field='container2',
+                                      foreign_key=container, char_field='yo')
+        c = get_container()
+        self.assertIsInstance(c, Container)
+
+    def test_create_container(self):
+        """Test complex input to create Django model."""
+        new_container = FieldContainer(slug_field='container',
+                                       date_field=datetime.date.today(),
+                                       datetime_field=datetime.datetime.now(),
+                                       time_field=datetime.time())
+        create_container = (lambda: self.client.service.create_container(
+            new_container))
+        c = create_container()
+        self.assertIsInstance(c, Container)
+        self.assertRaises(Fault, create_container)

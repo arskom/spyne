@@ -418,7 +418,7 @@ class ComplexModelMeta(type(ModelBase)):
         return type(ModelBase).__new__(cls, cls_name, cls_bases, cls_dict)
 
     def __init__(self, cls_name, cls_bases, cls_dict):
-        type_info = cls_dict['_type_info']
+        type_info = self._type_info
 
         for k,v in type_info.items():
             if issubclass(v, SelfReference):
@@ -546,6 +546,11 @@ class ComplexModelBase(ModelBase):
             pass
         else:
             setattr(self, key, value)
+
+    def as_dict(self):
+        return dict((
+            (k, getattr(self, k)) for k in self.get_flat_type_info(self)
+        ))
 
     @classmethod
     def get_serialization_instance(cls, value):
@@ -811,7 +816,7 @@ class Array(ComplexModelBase):
 
         if issubclass(serializer, SelfReference):
              # hack to make sure the array passes ComplexModel sanity checks
-             # that are there to prevent empty arrays. 
+             # that are there to prevent empty arrays.
             retval._type_info = {'_bogus': serializer}
         else:
             retval._set_serializer(serializer)

@@ -35,6 +35,14 @@ class ResourceNotFoundError(Fault):
         Fault.__init__(self, 'Client.ResourceNotFound',
                                                     fault_string % fault_object)
 
+class ResourceAlreadyExistsError(Fault):
+    """Raised when requested resource already exists."""
+
+    def __init__(self, fault_object, fault_string="Resource %r "
+                 "already exists"):
+        Fault.__init__(self, 'Client.ResourceAlreadyExists',
+                       fault_string % fault_object)
+
 
 class InvalidCredentialsError(Fault):
     """Raised when requested resource is not found."""
