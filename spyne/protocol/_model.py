@@ -360,7 +360,8 @@ def duration_to_string(cls, value):
 def duration_from_string(cls, string):
     duration = _duration_re.match(string).groupdict(0)
     if duration is None:
-        raise ValidationError("time data '%s' does not match regex '%s'" %(string, _duration_re.pattern))
+        raise ValidationError("time data '%s' does not match regex '%s'" %
+                                                (string, _duration_re.pattern))
 
     days = int(duration['days'])
     days += int(duration['months']) * 30

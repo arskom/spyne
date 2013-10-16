@@ -95,7 +95,8 @@ class ModelBase(object):
     """
 
     __orig__ = None
-    """This holds the original class the class .customize()d from. """
+    """This holds the original class the class .customize()d from. Ie if this is
+    None, the class is not a customize()d one."""
 
     __extends__ = None
     """This holds the original class the class inherited or .customize()d from.

@@ -90,7 +90,7 @@ if __name__=='__main__':
           out_protocol=JsonDocument(ignore_wrappers=True),
       )
 
-    # Now that we have our application, we must wrap it inside a transport
+    # Now that we have our application, we must wrap it inside a transport.
     # In this case, we use Spyne's standard Wsgi wrapper. Spyne supports 
     # popular Http wrappers like Twisted, Django, Pyramid, etc. as well as
     # a ZeroMQ (REQ/REP) wrapper.

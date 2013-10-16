@@ -274,7 +274,8 @@ class HttpPattern(object):
 
         host = self.host
         if host is None:
-            host = '<__ignored>'  # this is necessary when host_matching is enabled.
+            host = '<__ignored>'  # for some reason, this is necessary when
+                                  # host_matching is enabled.
 
         return Rule(self.address, host=host, endpoint=self.endpoint,
                                                                 methods=methods)
