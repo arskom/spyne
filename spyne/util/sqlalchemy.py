@@ -433,10 +433,11 @@ def get_pk_columns(cls):
     """Return primary key fields of a Spyne object."""
 
     retval = []
-    for k, v in cls._type_info.items():
+    for k, v in cls.get_flat_type_info(cls).items():
         if v.Attributes.sqla_column_args is not None and \
                     v.Attributes.sqla_column_args[-1].get('primary_key', False):
             retval.append((k,v))
+
     return tuple(retval) if len(retval) > 0 else None
 
 
