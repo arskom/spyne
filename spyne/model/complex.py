@@ -712,6 +712,9 @@ class ComplexModelBase(ModelBase):
                 c.__namespace__ = cls.get_namespace()
                 ComplexModel.resolve_namespace(c, cls.get_namespace(), tags)
 
+        assert not (cls.__namespace__ is ModelBase.Empty)
+        assert not (cls.__type_name__ is ModelBase.Empty)
+
     @staticmethod
     def produce(namespace, type_name, members):
         """Lets you create a class programmatically."""
