@@ -237,7 +237,7 @@ class SelfReference(object):
         raise NotImplementedError()
 
 
-def _get_spyne_type(v):
+def _get_spyne_type(cls_name, k, v):
     try:
         v = NATIVE_MAP.get(v, v)
     except TypeError:
@@ -317,7 +317,7 @@ class ComplexModelMeta(type(ModelBase)):
 
             for k, v in cls_dict.items():
                 if not k.startswith('_'):
-                    v = _get_spyne_type(v)
+                    v = _get_spyne_type(cls_name, k, v)
                     if v is not None:
                         _type_info[k] = v
 
@@ -344,7 +344,7 @@ class ComplexModelMeta(type(ModelBase)):
                 continue
 
             elif not issubclass(v, ModelBase):
-                v = _get_spyne_type(v)
+                v = _get_spyne_type(cls_name, k, v)
                 if v is None:
                     raise ValueError( (cls_name, k, v) )
                 _type_info[k] = v
@@ -800,7 +800,7 @@ class Array(ComplexModelBase):
     def __new__(cls, serializer, **kwargs):
         retval = cls.customize(**kwargs)
 
-        serializer = _get_spyne_type(serializer)
+        serializer = _get_spyne_type(cls.__name__, '__serializer__', serializer)
         if serializer is None:
             raise ValueError(serializer)
 
