@@ -116,8 +116,6 @@ class json:
 
 
 class msgpack:
-    pass  # TODO: not implemented
-
     """Compound option object for msgpack serialization. It's meant to be passed
     to :func:`ComplexModelBase.Attributes.store_as`.
 
@@ -177,9 +175,6 @@ class XmlData(XmlModifier):
 
     @classmethod
     def marshall(cls, prot, name, value, parent_elt):
-        if cls._ns is not None:
-            name = "{%s}%s" % (cls._ns,name)
-
         if value is not None:
             if len(parent_elt) == 0:
                 parent_elt.text = prot.to_string(cls.type, value)
@@ -213,8 +208,8 @@ class XmlAttribute(XmlModifier):
     with given name.
     """
 
-    def __new__(cls, type, use=None, ns=None, attribute_of=None):
-        retval = XmlModifier.__new__(cls, type, ns)
+    def __new__(cls, type_, use=None, ns=None, attribute_of=None):
+        retval = XmlModifier.__new__(cls, type_, ns)
         retval._use = use
         retval.attribute_of = attribute_of
         return retval

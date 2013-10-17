@@ -20,14 +20,10 @@
 import logging
 logger = logging.getLogger(__name__)
 
-import warnings
 import spyne.interface
 
 from spyne import EventManager
 from spyne.const import xml_ns as namespace
-from spyne.const import TYPE_SUFFIX
-from spyne.const import RESULT_SUFFIX
-from spyne.const import RESPONSE_SUFFIX
 
 from spyne.model import Array
 from spyne.model import XmlData
@@ -251,7 +247,7 @@ class Interface(object):
                     val.append((s, method))
 
                 elif val[0][1].aux is not None:
-                    val.insert((s,method), 0)
+                    val.insert((s, method), 0)
 
                 else:
                     os, om = val[0]
@@ -341,7 +337,7 @@ class Interface(object):
                 self.add_class(v)
 
                 if v.get_namespace() is None and cls.get_namespace() is not None:
-                    v.resolve_namespace(v, cls.get_namespace());
+                    v.resolve_namespace(v, cls.get_namespace())
 
                 child_ns = v.get_namespace()
                 if child_ns != ns and not child_ns in self.imports[ns] and \
