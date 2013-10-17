@@ -458,6 +458,25 @@ class ComplexModelMeta(type(ModelBase)):
         type(ModelBase).__init__(self, cls_name, cls_bases, cls_dict)
 
 
+def _fill_empty_type_name(cls, k, v, parent=False):
+    v.__namespace__ = cls.get_namespace()
+    tn = "%s_%s%s" % (cls.get_type_name(), k, TYPE_SUFFIX)
+
+    if issubclass(v, Array):
+        child_v, = v._type_info.values()
+        child_v.__type_name__ = tn
+
+        v._type_info = TypeInfo({tn: child_v})
+        v.__type_name__ = '%s%s%s'% (ARRAY_PREFIX, tn, ARRAY_SUFFIX)
+
+    else:
+        suff = PARENT_SUFFIX
+        if parent:
+            suff = TYPE_SUFFIX + suff
+
+        v.__type_name__ = "%s_%s%s" % (cls.get_type_name(), k, suff)
+
+
 class ComplexModelBase(ModelBase):
     """If you want to make a better class type, this is what you should inherit
     from.
@@ -691,19 +710,7 @@ class ComplexModelBase(ModelBase):
                 continue
 
             if v.__type_name__ is ModelBase.Empty:
-                v.__namespace__ = cls.get_namespace()
-                tn = "%s_%s%s" % (cls.get_type_name(), k, TYPE_SUFFIX)
-
-                if issubclass(v, Array):
-                    child_v, = v._type_info.values()
-                    child_v.__type_name__ = tn
-
-                    v._type_info = TypeInfo({tn: child_v})
-                    v.__type_name__ = '%s%s%s'% (ARRAY_PREFIX, tn, ARRAY_SUFFIX)
-
-                else:
-                    v.__type_name__ = "%s_%s%s" % (cls.get_type_name(), k,
-                                                                   TYPE_SUFFIX)
+                _fill_empty_type_name(cls, k, v)
 
             v.resolve_namespace(v, default_ns, tags)
 
