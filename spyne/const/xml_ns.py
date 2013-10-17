@@ -51,6 +51,7 @@ const_nsmap = {
     'xop': xop,
 }
 
+const_prefmap = None
 def regen_prefmap():
     global const_prefmap
     const_prefmap = dict([(b, a) for a, b in const_nsmap.items()])
