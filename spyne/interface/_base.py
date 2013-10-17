@@ -309,6 +309,9 @@ class Interface(object):
         assert class_key not in self.classes, ("Somehow, you're trying to "
             "overwrite %r by %r for class key %r." %
                                       (self.classes[class_key], cls, class_key))
+
+        assert not (cls.get_type_name() is cls.Empty)
+
         self.classes[class_key] = cls
         if ns == self.get_tns():
             self.classes[tn] = cls

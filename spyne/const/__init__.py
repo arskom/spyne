@@ -46,6 +46,9 @@ RESULT_SUFFIX = 'Result'
 TYPE_SUFFIX = 'Type'
 """The suffix for primitives with unnamed constraints."""
 
+PARENT_SUFFIX = 'Parent'
+"""The suffix for parent classes of primitives with unnamed constraints."""
+
 MANDATORY_PREFIX = 'Mandatory'
 """The prefix for types created with the :func:`spyne.model.Mandatory`."""
 

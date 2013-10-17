@@ -39,7 +39,7 @@ from spyne.model.primitive import NATIVE_MAP
 from spyne.model.primitive import Unicode
 from spyne.model.primitive import Point
 
-from spyne.const import xml_ns as namespace
+from spyne.const import xml_ns as namespace, PARENT_SUFFIX
 from spyne.const import ARRAY_PREFIX
 from spyne.const import ARRAY_SUFFIX
 from spyne.const import TYPE_SUFFIX
@@ -470,11 +470,14 @@ def _fill_empty_type_name(cls, k, v, parent=False):
         v.__type_name__ = '%s%s%s'% (ARRAY_PREFIX, tn, ARRAY_SUFFIX)
 
     else:
-        suff = PARENT_SUFFIX
+        suff = TYPE_SUFFIX
         if parent:
-            suff = TYPE_SUFFIX + suff
+            suff = PARENT_SUFFIX + suff
 
         v.__type_name__ = "%s_%s%s" % (cls.get_type_name(), k, suff)
+        extends = getattr(v, '__extends__', None)
+        if extends is not None and extends.__type_name__ is ModelBase.Empty:
+            _fill_empty_type_name(cls, k, v.__extends__, parent=True)
 
 
 class ComplexModelBase(ModelBase):
@@ -483,7 +486,6 @@ class ComplexModelBase(ModelBase):
     """
 
     __mixin__ = False
-    __extends__ = None
 
     class Attributes(ModelBase.Attributes):
         """ComplexModel-specific attributes"""
