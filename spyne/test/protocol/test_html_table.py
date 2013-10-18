@@ -38,24 +38,7 @@ from spyne.protocol.http import HttpRpc
 from spyne.protocol.html import HtmlTable
 from spyne.service import ServiceBase
 from spyne.server.wsgi import WsgiApplication
-
-def _start_response(code, headers):
-    print(code, pformat(headers))
-
-def _call_wsgi_app_kwargs(app, **kwargs):
-    return _call_wsgi_app(app, kwargs.items())
-
-def _call_wsgi_app(app, pairs):
-    out_string = ''.join(app({
-        'QUERY_STRING': urlencode(pairs),
-        'PATH_INFO': '/some_call',
-        'REQUEST_METHOD': 'GET',
-        'SERVER_NAME': 'spyne.test',
-        'SERVER_PORT': '0',
-        'wsgi.url_scheme': 'http',
-    }, _start_response))
-
-    return out_string
+from spyne.util.test import call_wsgi_app_kwargs, call_wsgi_app
 
 
 class CM(ComplexModel):
@@ -66,6 +49,7 @@ class CCM(ComplexModel):
     c = CM
     i = Integer
     s = String
+
 
 class TestHtmlColumnTable(unittest.TestCase):
     def test_complex_array(self):
@@ -78,7 +62,7 @@ class TestHtmlColumnTable(unittest.TestCase):
                                 out_protocol=HtmlTable(field_name_attr='class'))
         server = WsgiApplication(app)
 
-        out_string = _call_wsgi_app_kwargs(server,
+        out_string = call_wsgi_app_kwargs(server,
                 ccm_i='456',
                 ccm_s='def',
                 ccm_c_i='123',
@@ -136,7 +120,7 @@ class TestHtmlColumnTable(unittest.TestCase):
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HtmlTable())
         server = WsgiApplication(app)
 
-        out_string = _call_wsgi_app(server, (('s', '1'), ('s', '2')) )
+        out_string = call_wsgi_app(server, body_pairs=(('s', '1'), ('s', '2')))
         assert out_string == '<table class="some_callResponse"><tr><th>string</th></tr><tr><td>1</td></tr><tr><td>2</td></tr></table>'
 
     def test_anyuri_string(self):
@@ -154,7 +138,7 @@ class TestHtmlColumnTable(unittest.TestCase):
                  out_protocol=HtmlTable(field_name_attr='class'))
         server = WsgiApplication(app)
 
-        out_string = _call_wsgi_app_kwargs(server)
+        out_string = call_wsgi_app_kwargs(server)
 
         elt = html.fromstring(out_string)
         print(html.tostring(elt, pretty_print=True))
@@ -177,7 +161,7 @@ class TestHtmlColumnTable(unittest.TestCase):
                  out_protocol=HtmlTable(field_name_attr='class'))
         server = WsgiApplication(app)
 
-        out_string = _call_wsgi_app_kwargs(server)
+        out_string = call_wsgi_app_kwargs(server)
 
         elt = html.fromstring(out_string)
         print(html.tostring(elt, pretty_print=True))
@@ -202,7 +186,7 @@ class TestHtmlRowTable(unittest.TestCase):
                  out_protocol=HtmlTable(field_name_attr='class', fields_as='rows'))
         server = WsgiApplication(app)
 
-        out_string = _call_wsgi_app_kwargs(server)
+        out_string = call_wsgi_app_kwargs(server)
 
         elt = html.fromstring(out_string)
         print(html.tostring(elt, pretty_print=True))
@@ -225,7 +209,7 @@ class TestHtmlRowTable(unittest.TestCase):
                  out_protocol=HtmlTable(field_name_attr='class', fields_as='rows'))
         server = WsgiApplication(app)
 
-        out_string = _call_wsgi_app_kwargs(server)
+        out_string = call_wsgi_app_kwargs(server)
 
         elt = html.fromstring(out_string)
         print(html.tostring(elt, pretty_print=True))
@@ -243,7 +227,7 @@ class TestHtmlRowTable(unittest.TestCase):
                  out_protocol=HtmlTable(field_name_attr='class', fields_as='rows'))
         server = WsgiApplication(app)
 
-        out_string = _call_wsgi_app_kwargs(server,
+        out_string = call_wsgi_app_kwargs(server,
                          ccm_c_s='abc', ccm_c_i='123', ccm_i='456', ccm_s='def')
 
         elt = html.fromstring(out_string)
@@ -296,7 +280,7 @@ class TestHtmlRowTable(unittest.TestCase):
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HtmlTable(fields_as='rows'))
         server = WsgiApplication(app)
 
-        out_string = _call_wsgi_app(server, (('s', '1'), ('s', '2')) )
+        out_string = call_wsgi_app(server, body_pairs=(('s', '1'), ('s', '2')) )
         assert out_string == '<table class="some_callResponse"><tr><td>1</td></tr><tr><td>2</td></tr></table>'
 
 
