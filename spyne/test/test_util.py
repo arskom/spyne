@@ -8,6 +8,7 @@ from pprint import pprint
 
 from datetime import datetime
 from lxml import etree
+import pytz
 
 from spyne.const import MAX_STRING_FIELD_LENGTH
 
@@ -108,7 +109,8 @@ class TestXml(unittest.TestCase):
         print(etree.tostring(docs['s0'], pretty_print=True))
         print()
 
-        foo = Foo(a=u'a', b=1, c=decimal.Decimal('3.4'), d=datetime(2011,02,20), e=5)
+        foo = Foo(a=u'a', b=1, c=decimal.Decimal('3.4'),
+                                    d=datetime(2011,02,20,tzinfo=pytz.utc), e=5)
         doc = get_object_as_xml(foo, Foo)
         print(etree.tostring(doc, pretty_print=True))
         foo_back = get_xml_as_object(doc, Foo)
@@ -255,7 +257,7 @@ class TestDictDoc(unittest.TestCase):
                         self.s == other.s and \
                         self.a == other.a
 
-        c = C(i=5, s="x", a=[datetime(2011,12,22)])
+        c = C(i=5, s="x", a=[datetime(2011,12,22, tzinfo=pytz.utc)])
 
         for iw, ca in ((False,dict), (True,dict), (False,list), (True, list)):
             print
