@@ -1,4 +1,4 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf8"?>
 <wsdl:definitions name="Application" targetNamespace="spyne.test.interop.server"
                   xmlns:plink="http://schemas.xmlsoap.org/ws/2003/05/partner-link/"
                   xmlns:s0="punk.tunk"
@@ -110,6 +110,8 @@
       <xs:element name="echo_boolean_arrayResponse" type="tns:echo_boolean_arrayResponse"/>
       <xs:element name="echo_class_with_self_reference" type="tns:echo_class_with_self_reference"/>
       <xs:element name="echo_class_with_self_referenceResponse" type="tns:echo_class_with_self_referenceResponse"/>
+      <xs:element name="echo_complex_bare" type="tns:stringArray"/>
+      <xs:element name="echo_complex_bareResponse" type="tns:stringArray"/>
       <xs:element name="echo_date" type="tns:echo_date"/>
       <xs:element name="echo_dateResponse" type="tns:echo_dateResponse"/>
       <xs:element name="echo_date_time_array" type="tns:echo_date_time_array"/>
@@ -146,6 +148,8 @@
       <xs:element name="echo_nested_classResponse" type="tns:echo_nested_classResponse"/>
       <xs:element name="echo_nested_class_array" type="tns:echo_nested_class_array"/>
       <xs:element name="echo_nested_class_arrayResponse" type="tns:echo_nested_class_arrayResponse"/>
+      <xs:element name="echo_simple_bare" type="xs:string"/>
+      <xs:element name="echo_simple_bareResponse" type="xs:string"/>
       <xs:element name="echo_simple_boolean_array" type="tns:echo_simple_boolean_array"/>
       <xs:element name="echo_simple_boolean_arrayResponse" type="tns:echo_simple_boolean_arrayResponse"/>
       <xs:element name="echo_simple_class" type="tns:echo_simple_class"/>
@@ -161,7 +165,9 @@
       <xs:element name="echo_time_with_invalid_format" type="tns:echo_time_with_invalid_format"/>
       <xs:element name="echo_time_with_invalid_formatResponse" type="tns:echo_time_with_invalid_formatResponse"/>
       <xs:element name="empty_input_bare" type="tns:empty_input_bare"/>
+      <xs:element name="empty_output_bare" type="xs:string"/>
       <xs:element name="empty_output_bareResponse" type="tns:empty_output_bareResponse"/>
+      <xs:element name="empty_output_bareResponseResponse" type="tns:empty_output_bareResponse"/>
       <xs:element name="floatArray" type="tns:floatArray"/>
       <xs:element name="getCustomMessagesMsgOut" type="tns:getCustomMessagesMsgOut"/>
       <xs:element name="huge_number" type="tns:huge_number"/>

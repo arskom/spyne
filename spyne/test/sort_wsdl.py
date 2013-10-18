@@ -39,9 +39,15 @@ schema_order = cache_order(schema_order, ns_schema)
 
 parser = etree.XMLParser(remove_blank_text=True)
 
+
 def main():
     tree = etree.parse(sys.stdin, parser=parser)
+    sort_wsdl(tree)
+    tree.write(sys.stdout, encoding="UTF-8", xml_declaration=True)
+    return 0
 
+
+def sort_wsdl(tree):
     l0 = []
     type_node = None
 
@@ -49,6 +55,7 @@ def main():
         if e.tag == "{%s}types" % ns_wsdl:
             assert type_node is None
             type_node = e
+
         else:
             l0.append(e)
             e.getparent().remove(e)
@@ -89,10 +96,6 @@ def main():
 
         for e in nodes:
             s.append(e)
-
-    tree.write(sys.stdout, encoding="UTF-8", xml_declaration=True)
-
-    return 0
 
 if __name__ == '__main__':
     sys.exit(main())
