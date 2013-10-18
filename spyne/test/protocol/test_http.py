@@ -53,9 +53,41 @@ from spyne.protocol.http import HttpPattern
 from spyne.service import ServiceBase
 from spyne.server.wsgi import WsgiApplication
 from spyne.server.wsgi import WsgiMethodContext
+from spyne.util.test import call_wsgi_app_kwargs
 
 
-class SimpleDictDocumentTest(unittest.TestCase):
+
+class TestString(unittest.TestCase):
+    def setUp(self):
+        class SomeService(ServiceBase):
+            @srpc(String, _returns=String)
+            def echo_string(s):
+                return s
+
+        app = Application([SomeService], 'tns',
+                in_protocol=HttpRpc(validator='soft'),
+                out_protocol=HttpRpc(),
+            )
+
+        self.app = WsgiApplication(app)
+
+    def test_without_content_type(self):
+        headers = None
+        ret = call_wsgi_app_kwargs(self.app, 'echo_string', headers, s="string")
+        assert ret == 'string'
+
+    def test_without_encoding(self):
+        headers = {'CONTENT_TYPE':'text/plain'}
+        ret = call_wsgi_app_kwargs(self.app, 'echo_string', headers, s="string")
+        assert ret == 'string'
+
+    def test_with_encoding(self):
+        headers = {'CONTENT_TYPE':'text/plain; charset=utf8'}
+        ret = call_wsgi_app_kwargs(self.app, 'echo_string', headers, s="string")
+        assert ret == 'string'
+
+
+class TestSimpleDictDocument(unittest.TestCase):
     def test_own_parse_qs_01(self):
         assert dict(_parse_qs('')) == {}
     def test_own_parse_qs_02(self):

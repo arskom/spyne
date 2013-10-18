@@ -150,6 +150,7 @@ from spyne.error import ValidationError
 from spyne.error import ResourceNotFoundError
 
 from spyne.model import ByteArray
+from spyne.model import String
 from spyne.model import File
 from spyne.model import Fault
 from spyne.model import ComplexModelBase
@@ -304,10 +305,11 @@ class SimpleDictDocument(DictDocument):
             value = []
             for v2 in v:
                 # some wsgi implementations pass unicode strings, some pass str
-                # strings. we make sure here we got unicode
+                # strings. we get unicode here when we can and should.
                 if v2 is not None and req_enc is not None \
-                                            and issubclass(member.type, Unicode) \
-                                            and not isinstance(v2, unicode):
+                                        and not issubclass(member.type, String) \
+                                        and issubclass(member.type, Unicode) \
+                                        and not isinstance(v2, unicode):
                     v2 = v2.decode(req_enc)
 
                 if (validator is self.SOFT_VALIDATION and not

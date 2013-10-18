@@ -450,7 +450,7 @@ class WsgiApplication(HttpBase):
             # >>> import cgi; cgi.parse_header("text/xml; charset=utf-8")
             # ('text/xml', {'charset': 'utf-8'})
             content_type = cgi.parse_header(content_type)
-            charset = content_type[1].get('charset', 'utf-8')
+            charset = content_type[1].get('charset', None)
 
         return self.__wsgi_input_to_iterable(http_env), charset
 
