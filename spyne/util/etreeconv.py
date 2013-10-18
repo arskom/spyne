@@ -62,16 +62,18 @@ def dict_to_etree(d, parent):
         if v is None:
             etree.SubElement(parent, k)
 
-        elif not isinstance(v, collections.Sized) or isinstance(v, basestring):
-            child = etree.SubElement(parent, k)
-            child.text=str(v)
-            
-        elif len(v) == 0:
-            etree.SubElement(parent, k)
+        elif isinstance(v, basestring):
+            etree.SubElement(parent, k).text = v
 
         elif isinstance(v, dict) or isinstance(v, odict):
             child = etree.SubElement(parent, k)
             dict_to_etree(v, child)
+
+        elif not isinstance(v, collections.Sized):
+            etree.SubElement(parent, k).text = str(v)
+
+        elif len(v) == 0:
+            etree.SubElement(parent, k)
 
         else:
             for e in v:
