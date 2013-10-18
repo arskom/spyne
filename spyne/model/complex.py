@@ -528,7 +528,9 @@ class ComplexModelBase(ModelBase):
         if xtba_key is not None and len(args) == 1:
             self._safe_set(xtba_key, args[0], xtba_type)
         elif len(args) > 0:
-            raise TypeError("No XmlData field found.")
+            raise TypeError("Positional argument is only for ComplexModels "
+                            "with XmlData field. You must always use keyword "
+                            "arguments in any other case.")
 
         for k,v in fti.items():
             if k in kwargs:
