@@ -204,11 +204,42 @@ class TestDeserialize(unittest.TestCase):
 
 
 class TestEtreeDict(unittest.TestCase):
+
+    longMessage = True
+
     def test_simple(self):
         from lxml.etree import tostring
         from spyne.util.etreeconv import root_dict_to_etree
-
         assert tostring(root_dict_to_etree({'a':{'b':'c'}})) == '<a><b>c</b></a>'
+    
+    def test_not_sized(self):
+        from lxml.etree import tostring
+        from spyne.util.etreeconv import root_dict_to_etree
+
+        complex_value = root_dict_to_etree({'a':{'b':1}})
+        self.assertEqual(tostring(complex_value), '<a><b>1</b></a>',
+            "The integer should be properly rendered in the etree")
+
+        complex_none = root_dict_to_etree({'a':{'b':None}})
+        self.assertEqual(tostring(complex_none), '<a><b/></a>',
+            "None should not be rendered in the etree")
+        
+        simple_value = root_dict_to_etree({'a': 1})
+        self.assertEqual(tostring(simple_value), '<a>1</a>',
+            "The integer should be properly rendered in the etree")
+        
+        none_value = root_dict_to_etree({'a': None})
+        self.assertEqual(tostring(none_value), '<a/>',
+            "None should not be rendered in the etree")
+        
+        string_value = root_dict_to_etree({'a': 'lol'})
+        self.assertEqual(tostring(string_value), '<a>lol</a>',
+            "A string should be rendered as a string")
+        
+        complex_string_value = root_dict_to_etree({'a': {'b': 'lol'}})
+        self.assertEqual(tostring(complex_string_value), '<a><b>lol</b></a>',
+            "A string should be rendered as a string")
+
 
 class TestDictDoc(unittest.TestCase):
     def test_the(self):

@@ -20,6 +20,7 @@
 """This module contains the utility methods that convert an ElementTree
 hierarchy to python dicts and vice versa.
 """
+import collections
 
 from lxml import etree
 
@@ -38,8 +39,13 @@ def root_dict_to_etree(d):
     for val in d.values():
         break
 
+    if val is None:
+        return retval
+    
     if isinstance(val, dict) or isinstance(val, odict):
         dict_to_etree(val, retval)
+    elif not isinstance(val, collections.Sized) or isinstance(val, basestring):
+        retval.text=str(val)
     else:
         for a in val:
             dict_to_etree(a, retval)
@@ -53,7 +59,14 @@ def dict_to_etree(d, parent):
     """
 
     for k, v in d.items():
-        if v is None or len(v) == 0:
+        if v is None:
+            etree.SubElement(parent, k)
+
+        elif not isinstance(v, collections.Sized) or isinstance(v, basestring):
+            child = etree.SubElement(parent, k)
+            child.text=str(v)
+            
+        elif len(v) == 0:
             etree.SubElement(parent, k)
 
         elif isinstance(v, dict) or isinstance(v, odict):
