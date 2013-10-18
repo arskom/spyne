@@ -809,7 +809,7 @@ class Array(ComplexModelBase):
     class Attributes(ComplexModelBase.Attributes):
         _wrapper = True
 
-    def __new__(cls, serializer, **kwargs):
+    def __new__(cls, serializer, member_name=None, **kwargs):
         retval = cls.customize(**kwargs)
 
         serializer = _get_spyne_type(cls.__name__, '__serializer__', serializer)
@@ -821,7 +821,7 @@ class Array(ComplexModelBase):
              # that are there to prevent empty arrays. 
             retval._type_info = {'_bogus': serializer}
         else:
-            retval._set_serializer(serializer)
+            retval._set_serializer(serializer, member_name)
 
         tn = kwargs.get("type_name", None)
         if tn is not None:
@@ -830,16 +830,18 @@ class Array(ComplexModelBase):
         return retval
 
     @classmethod
-    def _set_serializer(cls, serializer):
+    def _set_serializer(cls, serializer, member_name=None):
         if serializer.get_type_name() is ModelBase.Empty: # A customized class
             member_name = "OhNoes"
             # mark array type name as "to be resolved later".
             cls.__type_name__ = ModelBase.Empty
 
         else:
-            member_name = serializer.get_type_name()
-            cls.__type_name__ = '%s%s%s' % (ARRAY_PREFIX, member_name,
+            if member_name is None:
+                member_name = '%s%s%s' % (ARRAY_PREFIX,
+                                                serializer.get_type_name(),
                                                                    ARRAY_SUFFIX)
+            cls.__type_name__ = member_name
 
         # hack to default to unbounded arrays when the user didn't specify
         # max_occurs.

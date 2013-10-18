@@ -168,6 +168,10 @@ class TestComplexModel(unittest.TestCase):
             self.assertEquals(peeps2[i].name, names[i])
             self.assertEquals(peeps2[i].birthdate, dob)
 
+    def test_array_member_name(self):
+        print Array(String, member_name="punk")._type_info
+        assert 'punk' in Array(String, member_name="punk")._type_info
+
     def test_class_nested_array(self):
         peeps = []
         names = ['bob', 'jim', 'peabody', 'mumblesleves']
