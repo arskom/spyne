@@ -677,6 +677,8 @@ class DateTime(SimpleModel):
 
     @staticmethod
     def validate_native(cls, value):
+        if isinstance(value, datetime.datetime) and value.tzinfo is None:
+            value = value.replace(tzinfo=spyne.LOCAL_TZ)
         return SimpleModel.validate_native(cls, value) and (
             value is None or (
                 value >  cls.Attributes.gt and

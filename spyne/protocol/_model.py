@@ -294,8 +294,8 @@ def datetime_from_string_iso(cls, string):
         if match:
             retval = _parse_datetime_iso_match(match)
             if astz:
-                return retval.replace(tzinfo=astz)
-            return retval.replace(tzinfo=spyne.LOCAL_TZ)
+                retval = retval.replace(tzinfo=astz)
+            return retval
 
     raise ValidationError(string)
 
