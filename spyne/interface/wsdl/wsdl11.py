@@ -403,27 +403,25 @@ class Wsdl11(XmlSchema):
             if name is None:
                 name = method.in_message.get_type_name()
 
-            if name in elements:
-                continue
-
-            element = etree.Element('{%s}element' % _ns_xsd)
-            element.set('name', name)
-            element.set('type', method.in_message.get_type_name_ns(
+            if not name in elements:
+                element = etree.Element('{%s}element' % _ns_xsd)
+                element.set('name', name)
+                element.set('type', method.in_message.get_type_name_ns(
                                                                 self.interface))
-            elements[method.name] = element
-            schema_root.append(element)
+                elements[method.name] = element
+                schema_root.append(element)
 
             if method.out_message is not None:
                 name = method.out_message.Attributes.sub_name
                 if name is None:
-                    name = "%s%s" % (method.out_message.get_type_name(),
-                                                                RESPONSE_SUFFIX)
-                element = etree.Element('{%s}element' % _ns_xsd)
-                element.set('name', name)
-                element.set('type', method.out_message \
+                    name = method.out_message.get_type_name()
+                if not name in elements:
+                    element = etree.Element('{%s}element' % _ns_xsd)
+                    element.set('name', name)
+                    element.set('type', method.out_message \
                                               .get_type_name_ns(self.interface))
-                elements[method.name] = element
-                schema_root.append(element)
+                    elements[method.name] = element
+                    schema_root.append(element)
 
 
     def add_messages_for_methods(self, service, root, messages):

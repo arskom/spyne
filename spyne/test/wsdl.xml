@@ -165,9 +165,9 @@
       <xs:element name="echo_time_with_invalid_format" type="tns:echo_time_with_invalid_format"/>
       <xs:element name="echo_time_with_invalid_formatResponse" type="tns:echo_time_with_invalid_formatResponse"/>
       <xs:element name="empty_input_bare" type="tns:empty_input_bare"/>
+      <xs:element name="empty_input_bareResponse" type="xs:string"/>
       <xs:element name="empty_output_bare" type="xs:string"/>
       <xs:element name="empty_output_bareResponse" type="tns:empty_output_bareResponse"/>
-      <xs:element name="empty_output_bareResponseResponse" type="tns:empty_output_bareResponse"/>
       <xs:element name="floatArray" type="tns:floatArray"/>
       <xs:element name="getCustomMessagesMsgOut" type="tns:getCustomMessagesMsgOut"/>
       <xs:element name="huge_number" type="tns:huge_number"/>
