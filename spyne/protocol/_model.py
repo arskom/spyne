@@ -350,8 +350,7 @@ if hasattr(datetime.timedelta, 'total_seconds'):
 
 else:
     def _total_seconds(td):
-        return (td.microseconds +
-                            (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
+        return (td.microseconds + (td.seconds + td.days * 24 * 3600) *1e6) / 1e6
 
 @nillable_string
 def duration_to_string(cls, value):
