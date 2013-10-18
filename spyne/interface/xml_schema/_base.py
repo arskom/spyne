@@ -225,6 +225,7 @@ class XmlSchema(InterfaceDocumentBase):
             with open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r') as f:
                 try:
                     self.validation_schema = etree.XMLSchema(etree.parse(f))
+
                 except Exception:
                     f.seek(0)
                     logger.error(etree.tostring(etree.parse(f),

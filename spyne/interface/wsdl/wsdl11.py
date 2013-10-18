@@ -22,7 +22,6 @@ subset of the Wsdl 1.1 document standard and its helper methods.
 """
 
 import logging
-
 logger = logging.getLogger(__name__)
 
 import re
@@ -32,7 +31,6 @@ import spyne.const.xml_ns
 
 from lxml import etree
 
-from spyne.const import RESPONSE_SUFFIX
 from spyne.interface.xml_schema import XmlSchema
 
 _ns_plink = spyne.const.xml_ns.plink
