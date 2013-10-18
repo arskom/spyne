@@ -533,13 +533,23 @@ class ComplexModelBase(ModelBase):
         for k,v in fti.items():
             if k in kwargs:
                 self._safe_set(k, kwargs[k], v)
+
             elif not k in self.__dict__:
-                a = v.Attributes; d=a.default
-                if d is not None:
-                    setattr(self, k, d)
-                elif a.max_occurs > 1 or issubclass(v, Array):
+                attr = v.Attributes
+                def_val = attr.default
+                def_fac = attr.default_factory
+
+                if def_fac is not None:
+                    # no need to check for read-only for default values
+                    setattr(self, k, def_fac())
+
+                elif def_val is not None:
+                    # no need to check for read-only for default values
+                    setattr(self, k, def_val)
+
+                elif attr.max_occurs > 1 or issubclass(v, Array):
                     try:
-                        setattr(self, k, d)
+                        setattr(self, k, def_val)
                     except TypeError: # SQLAlchemy does this
                         setattr(self, k, [])
                 else:

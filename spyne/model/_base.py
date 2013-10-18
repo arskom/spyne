@@ -129,6 +129,9 @@ class ModelBase(object):
         default = None
         """The default value if the input is None"""
 
+        default_factory = None
+        """The default value if the input is None"""
+
         nillable = True
         """Set this to false to reject null values. Synonyms with
         ``nullable``."""

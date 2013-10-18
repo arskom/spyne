@@ -37,6 +37,9 @@ spyne-2.11.0
   carry time zones. Make sure you adjust your code to this change. It's possible
   to strip timezone information from outgoing types by passing ``timezone=False``
   to the DateTime customizer.
+* Add default_factory to ModelBase customizer. It's a callable that produces
+  default values on demand. Suitable to be used with e.g. lambdas that return
+  mutable defaults.
 
 spyne-2.10.9
 ------------
