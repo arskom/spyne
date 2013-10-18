@@ -81,7 +81,8 @@ class JsonEncoder(json.JSONEncoder):
         except TypeError, e:
             # if json can't serialize it, it's possibly a generator. If not,
             # additional hacks are welcome :)
-            logger.exception(e)
+            if logger.level == logging.DEBUG:
+                logger.exception(e)
             return list(o)
 
 
@@ -107,10 +108,15 @@ class JsonDocument(HierDictDocument):
     def __init__(self, app=None, validator=None, mime_type=None,
                         ignore_uncap=False,
                         # DictDocument specific
-                        ignore_wrappers=True, complex_as=dict, ordered=False):
+                        ignore_wrappers=True, complex_as=dict, ordered=False,
+                        **kwargs):
 
         HierDictDocument.__init__(self, app, validator, mime_type, ignore_uncap,
                                            ignore_wrappers, complex_as, ordered)
+
+        # this is needed when we're overriding a regular instance attribute
+        # with a property.
+        self.__message = HierDictDocument.__getattribute__(self, 'message')
 
         self._from_string_handlers[Double] = lambda cls, val: val
         self._from_string_handlers[Boolean] = lambda cls, val: val
@@ -120,6 +126,8 @@ class JsonDocument(HierDictDocument):
         self._to_string_handlers[Boolean] = lambda cls, val: val
         self._to_string_handlers[Integer] = lambda cls, val: val
 
+        self.kwargs = kwargs
+
     def validate(self, key, cls, val):
         super(JsonDocument, self).validate(key, cls, val)
 
@@ -128,7 +136,15 @@ class JsonDocument(HierDictDocument):
                                                  cls.validate_string(cls, val)):
             raise ValidationError(key, val)
 
+    @property
+    def message(self):
+        return self.__message
 
+    @message.setter
+    def message(self, val):
+        if val is self.RESPONSE and not ('cls' in self.kwargs):
+            self.kwargs['cls'] = JsonEncoder
+        self.__message = val
 
     def create_in_document(self, ctx, in_string_encoding=None):
         """Sets ``ctx.in_document``  using ``ctx.in_string``."""
@@ -325,6 +341,7 @@ _json_rpc_flavours = {
 }
 
 def JsonRpc(flavour, *args, **kwargs):
-    assert flavour in _json_rpc_flavours, "Unknown JsonRpc flavour"
+    assert flavour in _json_rpc_flavours, "Unknown JsonRpc flavour. " \
+                             "Accepted ones are: %r" % tuple(_json_rpc_flavours)
 
     return _json_rpc_flavours[flavour](*args, **kwargs)

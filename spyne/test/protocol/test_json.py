@@ -41,7 +41,7 @@ from spyne.test.protocol._test_dictdoc import TDictDocumentTest
 from spyne.test.protocol._test_dictdoc import TDry
 
 
-TestJsonDocument = TDictDocumentTest(json, JsonDocument,
+TestDictDocument = TDictDocumentTest(json, JsonDocument,
                                             dumps_kwargs=dict(cls=JsonEncoder))
 
 _dry_sjrpc1 = TDry(json, _SpyneJsonRpc1)
@@ -97,7 +97,27 @@ class TestSpyneJsonRpc1(unittest.TestCase):
         assert ctx.out_document == {"ver": 1, "fault": {
                         'faultcode': 'Server', 'faultstring': 'Internal Error'}}
 
-class Test(unittest.TestCase):
+class TestJsonDocument(unittest.TestCase):
+    def test_out_kwargs(self):
+        class SomeService(ServiceBase):
+            @srpc()
+            def yay():
+                pass
+
+        app = Application([SomeService], 'tns',
+                                in_protocol=JsonDocument(),
+                                out_protocol=JsonDocument())
+
+        assert 'cls' in app.out_protocol.kwargs
+        assert not ('cls' in app.in_protocol.kwargs)
+
+        app = Application([SomeService], 'tns',
+                                in_protocol=JsonDocument(),
+                                out_protocol=JsonDocument(cls='hey'))
+
+        assert app.out_protocol.kwargs['cls'] == 'hey'
+        assert not ('cls' in app.in_protocol.kwargs)
+
     def test_invalid_input(self):
         class SomeService(ServiceBase):
             @srpc()
