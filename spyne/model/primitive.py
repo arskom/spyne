@@ -694,6 +694,8 @@ class Date(DateTime):
 
     __type_name__ = 'date'
 
+    _offset_re = re.compile(DATE_PATTERN + '(' + OFFSET_PATTERN + '|Z)')
+
     class Attributes(DateTime.Attributes):
         """Customizable attributes of the :class:`spyne.model.primitive.Date`
         type."""

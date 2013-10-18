@@ -23,6 +23,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 import decimal
+import datetime
 
 from pprint import pprint
 
@@ -37,6 +38,7 @@ from spyne.decorator import srpc
 from spyne.model.primitive import Integer
 from spyne.model.primitive import Decimal
 from spyne.model.primitive import Unicode
+from spyne.model.primitive import Date
 from spyne.model.complex import XmlData
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
@@ -318,6 +320,16 @@ class TestXml(unittest.TestCase):
         assert c.c == 3
         assert c.d == 4
 
+    def test_dates(self):
+        d = Date
+        xml_dates = [etree.fromstring('<d>2013-04-05</d>'), etree.fromstring('<d>2013-04-05+02:00</d>'), etree.fromstring('<d>2013-04-05-02:00</d>'), etree.fromstring('<d>2013-04-05Z</d>')]
+        for xml_date in xml_dates:
+            c = get_xml_as_object(xml_date, d)
+            assert isinstance(c, datetime.date) == True
+            assert c.year == 2013
+            assert c.month == 4
+            assert c.day == 5
+        
 
 if __name__ == '__main__':
     unittest.main()
