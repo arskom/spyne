@@ -104,7 +104,7 @@ class Application(object):
 
         if self.in_protocol is None:
             from spyne.protocol import ProtocolBase
-            self.in_protocol = ProtocolBase(self)
+            self.in_protocol = ProtocolBase()
         self.in_protocol.set_app(self)
         # FIXME: this normally is another parameter to set_app but it's kept
         # separate for backwards compatibility reasons.
@@ -112,7 +112,7 @@ class Application(object):
 
         if self.out_protocol is None:
             from spyne.protocol import ProtocolBase
-            self.out_protocol = ProtocolBase(self)
+            self.out_protocol = ProtocolBase()
         self.out_protocol.set_app(self)
         # FIXME: this normally is another parameter to set_app but it's kept
         # separate for backwards compatibility reasons.
