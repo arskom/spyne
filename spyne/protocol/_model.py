@@ -232,7 +232,7 @@ def time_from_string(cls, string):
 @nillable_string
 def datetime_to_string(cls, value):
     if cls.Attributes.as_timezone is not None and value.tzinfo is not None:
-        value = value.astimezone(cls.Attributes.as_time_zone)
+        value = value.astimezone(cls.Attributes.as_timezone)
     if not cls.Attributes.timezone:
         value = value.replace(tzinfo=None)
 

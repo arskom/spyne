@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import pytz
 import datetime
 import unittest
 
@@ -102,7 +103,6 @@ class Level1(ComplexModel):
 Level1.resolve_namespace(Level1, __name__)
 
 class TestComplexModel(unittest.TestCase):
-
     def test_simple_class(self):
         a = Address()
         a.street = '123 happy way'
@@ -116,7 +116,7 @@ class TestComplexModel(unittest.TestCase):
         element = element[0]
         self.assertEquals(5, len(element.getchildren()))
 
-        a.since = datetime.datetime(year=2011, month=12, day=31)
+        a.since = datetime.datetime(year=2011, month=12, day=31, tzinfo=pytz.utc)
         element = etree.Element('test')
         XmlDocument().to_parent_element(Address, a, ns_test, element)
         element = element[0]
@@ -145,7 +145,7 @@ class TestComplexModel(unittest.TestCase):
     def test_class_array(self):
         peeps = []
         names = ['bob', 'jim', 'peabody', 'mumblesleeves']
-        dob = datetime.datetime(1979, 1, 1)
+        dob = datetime.datetime(1979, 1, 1, tzinfo=pytz.utc)
         for name in names:
             a = Person()
             a.name = name

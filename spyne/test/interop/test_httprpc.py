@@ -93,7 +93,7 @@ class TestHttpRpc(unittest.TestCase):
         assert data == '444'
 
     def test_echo_datetime(self):
-        dt = datetime.now().isoformat()
+        dt = datetime.now(pytz.utc).isoformat()
         params = urlencode({
             'dt': dt,
         })

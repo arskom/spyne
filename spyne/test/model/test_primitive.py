@@ -23,6 +23,7 @@ import unittest
 
 from datetime import timedelta
 from lxml import etree
+import pytz
 
 from spyne.util import total_seconds
 from spyne.const import xml_ns as ns
@@ -91,7 +92,7 @@ class TestPrimitive(unittest.TestCase):
         self.assertEquals(value, 'value')
 
     def test_datetime(self):
-        n = datetime.datetime.now()
+        n = datetime.datetime.now(pytz.utc)
 
         element = etree.Element('test')
         XmlDocument().to_parent_element(DateTime, n, ns_test, element)
@@ -129,12 +130,15 @@ class TestPrimitive(unittest.TestCase):
 
         n = datetime.datetime.now(pytz.timezone('EST'))
         element = etree.Element('test')
-        XmlDocument().to_parent_element(DateTime(as_time_zone=pytz.utc), n, ns_test, element)
+        cls = DateTime(as_timezone=pytz.utc, timezone=False)
+        XmlDocument().to_parent_element(cls, n, ns_test, element)
         element = element[0]
 
         c = n.astimezone(pytz.utc).replace(tzinfo=None)
         self.assertEquals(element.text, c.isoformat())
-        dt = XmlDocument().from_element(DateTime, element)
+        dt = XmlDocument().from_element(cls, element)
+        assert dt.tzinfo is not None
+        dt = dt.replace(tzinfo=None)
         self.assertEquals(c, dt)
 
     def test_time(self):
