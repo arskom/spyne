@@ -38,9 +38,9 @@ from spyne.model.primitive import Integer
 from spyne.model.primitive import Decimal
 from spyne.model.primitive import Unicode
 from spyne.model.complex import XmlData
+from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import XmlAttribute
-from spyne.service import ServiceBase
 from spyne.protocol.xml import XmlDocument
 from spyne.util.xml import get_xml_as_object
 
@@ -201,6 +201,27 @@ class TestXml(unittest.TestCase):
         target = elt.xpath('//s0:b', namespaces=app.interface.nsmap)[0]
         assert target.attrib['{%s}c' % app.interface.nsmap["s1"]] == "bar"
 
+    def test_wrapped_array(self):
+        parent = etree.Element('parent')
+        val = ['a', 'b']
+        cls = Array(Unicode, namespace='tns')
+        XmlDocument().to_parent_element(cls, val, 'tns', parent)
+        print etree.tostring(parent, pretty_print=True)
+        xpath = parent.xpath('//x:stringArray/x:string/text()',
+                                                        namespaces={'x': 'tns'})
+        assert xpath == val
+
+    def test_simple_array(self):
+        class cls(ComplexModel):
+            __namespace__ = 'tns'
+            s = Unicode(max_occurs='unbounded')
+        val = cls(s=['a', 'b'])
+
+        parent = etree.Element('parent')
+        XmlDocument().to_parent_element(cls, val, 'tns', parent)
+        print etree.tostring(parent, pretty_print=True)
+        xpath = parent.xpath('//x:cls/x:s/text()', namespaces={'x': 'tns'})
+        assert xpath == val.s
 
     def test_decimal(self):
         d = decimal.Decimal('1e100')

@@ -850,10 +850,11 @@ class Array(ComplexModelBase):
 
         else:
             if member_name is None:
-                member_name = '%s%s%s' % (ARRAY_PREFIX,
+                member_name = serializer.get_type_name()
+
+            cls.__type_name__ = '%s%s%s' % (ARRAY_PREFIX,
                                                 serializer.get_type_name(),
                                                                    ARRAY_SUFFIX)
-            cls.__type_name__ = member_name
 
         # hack to default to unbounded arrays when the user didn't specify
         # max_occurs.
