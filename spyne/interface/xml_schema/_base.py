@@ -186,7 +186,7 @@ class XmlSchema(InterfaceDocumentBase):
                 element.set('name', name)
                 element.set('type', method.in_message.get_type_name_ns(
                                                                 self.interface))
-                elements[method.name] = element
+                elements[name] = element
                 schema_root.append(element)
 
             if method.out_message is not None:
@@ -198,7 +198,7 @@ class XmlSchema(InterfaceDocumentBase):
                     element.set('name', name)
                     element.set('type', method.out_message \
                                               .get_type_name_ns(self.interface))
-                    elements[method.name] = element
+                    elements[name] = element
                     schema_root.append(element)
 
     def build_validation_schema(self):
@@ -267,7 +267,8 @@ class XmlSchema(InterfaceDocumentBase):
         pref = cls.get_element_name_ns(self.interface).split(":")[0]
 
         schema_info = self.get_schema_info(pref)
-        schema_info.elements[cls.get_type_name()] = node
+        name = cls.Attributes.sub_name or cls.get_type_name()
+        schema_info.elements[name] = node
 
     def add_simple_type(self, cls, node):
         tn = cls.get_type_name()
