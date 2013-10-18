@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-from re import sub
-
 from lxml import etree
 from spyne.test.sort_wsdl import sort_wsdl
 from spyne.interface.wsdl import Wsdl11
@@ -18,7 +16,7 @@ sort_wsdl(elt)
 s = etree.tostring(elt)
 
 # minidom's serialization seems to put attributes in alphabetic order.
-# just like we want.
+# this is exactly what we want here.
 from xml.dom.minidom import parseString
 doc = parseString(s)
 s = doc.toprettyxml(indent='  ', newl='\n', encoding='utf8')
