@@ -109,6 +109,7 @@ class JsonDocument(HierDictDocument):
                         ignore_uncap=False,
                         # DictDocument specific
                         ignore_wrappers=True, complex_as=dict, ordered=False,
+                        default_string_encoding=None,
                         **kwargs):
 
         HierDictDocument.__init__(self, app, validator, mime_type, ignore_uncap,
@@ -126,6 +127,7 @@ class JsonDocument(HierDictDocument):
         self._to_string_handlers[Boolean] = lambda cls, val: val
         self._to_string_handlers[Integer] = lambda cls, val: val
 
+        self.default_string_encoding = default_string_encoding
         self.kwargs = kwargs
 
     def validate(self, key, cls, val):
@@ -149,21 +151,21 @@ class JsonDocument(HierDictDocument):
     def create_in_document(self, ctx, in_string_encoding=None):
         """Sets ``ctx.in_document``  using ``ctx.in_string``."""
 
-        if in_string_encoding is None:
-            in_string_encoding = 'UTF-8'
-
         try:
-            ctx.in_document = json.loads(
-                            ''.join(ctx.in_string).decode(in_string_encoding),
-                        )
+            in_string = ''.join(ctx.in_string)
+            if not isinstance(in_string, unicode):
+                if in_string_encoding is None:
+                    in_string_encoding = self.default_string_encoding
+                if in_string_encoding is not None:
+                    in_string = in_string.decode(in_string_encoding)
+            ctx.in_document = json.loads(in_string, **self.kwargs)
 
         except JSONDecodeError, e:
             raise Fault('Client.JsonDecodeError', repr(e))
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         """Sets ``ctx.out_string`` using ``ctx.out_document``."""
-        ctx.out_string = (json.dumps(o, cls=JsonEncoder)
-                                                      for o in ctx.out_document)
+        ctx.out_string = (json.dumps(o, **self.kwargs) for o in ctx.out_document)
 
 
 class JsonP(JsonDocument):
