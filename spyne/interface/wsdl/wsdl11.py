@@ -200,7 +200,6 @@ class Wsdl11(XmlSchema):
         """Build the wsdl for the application."""
 
         self.build_schema_nodes()
-        self.add_missing_elements_for_methods()
 
         self.url = REGEX_WSDL.sub('', url)
 
@@ -387,42 +386,6 @@ class Wsdl11(XmlSchema):
                 part = etree.SubElement(message, '{%s}part' % _ns_wsdl)
                 part.set('name', obj.get_element_name())
                 part.set('element', obj.get_element_name_ns(self.interface))
-
-    def add_missing_elements_for_methods(self):
-        def missing_methods():
-            for service in self.interface.services:
-                for method in service.public_methods.values():
-                    yield method
-
-        pref_tns = self.interface.prefmap[self.interface.tns]
-
-        elements = self.get_schema_info(pref_tns).elements
-        schema_root = self.schema_dict[pref_tns]
-        for method in missing_methods():
-            name = method.in_message.Attributes.sub_name
-            if name is None:
-                name = method.in_message.get_type_name()
-
-            if not name in elements:
-                element = etree.Element('{%s}element' % _ns_xsd)
-                element.set('name', name)
-                element.set('type', method.in_message.get_type_name_ns(
-                                                                self.interface))
-                elements[method.name] = element
-                schema_root.append(element)
-
-            if method.out_message is not None:
-                name = method.out_message.Attributes.sub_name
-                if name is None:
-                    name = method.out_message.get_type_name()
-                if not name in elements:
-                    element = etree.Element('{%s}element' % _ns_xsd)
-                    element.set('name', name)
-                    element.set('type', method.out_message \
-                                              .get_type_name_ns(self.interface))
-                    elements[method.name] = element
-                    schema_root.append(element)
-
 
     def add_messages_for_methods(self, service, root, messages):
         for method in service.public_methods.values():
