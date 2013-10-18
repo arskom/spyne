@@ -22,6 +22,7 @@ subset of the Wsdl 1.1 document standard and its helper methods.
 """
 
 import logging
+
 logger = logging.getLogger(__name__)
 
 import re
@@ -31,6 +32,7 @@ import spyne.const.xml_ns
 
 from lxml import etree
 
+from spyne.const import RESPONSE_SUFFIX
 from spyne.interface.xml_schema import XmlSchema
 
 _ns_plink = spyne.const.xml_ns.plink
@@ -198,9 +200,9 @@ class Wsdl11(XmlSchema):
         """Build the wsdl for the application."""
 
         self.build_schema_nodes()
+        self.add_missing_elements_for_methods()
 
         self.url = REGEX_WSDL.sub('', url)
-        #self.url = url
 
         service_name = self.interface.get_name()
 
@@ -385,6 +387,44 @@ class Wsdl11(XmlSchema):
                 part = etree.SubElement(message, '{%s}part' % _ns_wsdl)
                 part.set('name', obj.get_element_name())
                 part.set('element', obj.get_element_name_ns(self.interface))
+
+    def add_missing_elements_for_methods(self):
+        def missing_methods():
+            for service in self.interface.services:
+                for method in service.public_methods.values():
+                    yield method
+
+        pref_tns = self.interface.prefmap[self.interface.tns]
+
+        elements = self.get_schema_info(pref_tns).elements
+        schema_root = self.schema_dict[pref_tns]
+        for method in missing_methods():
+            name = method.in_message.Attributes.sub_name
+            if name is None:
+                name = method.in_message.get_type_name()
+
+            if name in elements:
+                continue
+
+            element = etree.Element('{%s}element' % _ns_xsd)
+            element.set('name', name)
+            element.set('type', method.in_message.get_type_name_ns(
+                                                                self.interface))
+            elements[method.name] = element
+            schema_root.append(element)
+
+            if method.out_message is not None:
+                name = method.out_message.Attributes.sub_name
+                if name is None:
+                    name = "%s%s" % (method.out_message.get_type_name(),
+                                                                RESPONSE_SUFFIX)
+                element = etree.Element('{%s}element' % _ns_xsd)
+                element.set('name', name)
+                element.set('type', method.out_message \
+                                              .get_type_name_ns(self.interface))
+                elements[method.name] = element
+                schema_root.append(element)
+
 
     def add_messages_for_methods(self, service, root, messages):
         for method in service.public_methods.values():

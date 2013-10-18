@@ -47,6 +47,10 @@ from spyne.model.primitive import Integer
 from spyne.model.primitive import String
 from spyne.protocol.soap import Soap11
 
+ns = {
+    'wsdl':'http://schemas.xmlsoap.org/wsdl/',
+    'xs':'http://www.w3.org/2001/XMLSchema',
+}
 
 class TestDefaultWSDLBehavior(unittest.TestCase):
     def _default_service(self, app_wrapper, service_name):
@@ -171,37 +175,13 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
             ['echo_default_port_service']
         )
 
-    def test_bare_more(self):
-        from spyne.test.interop.server._service import InteropBare
-        app = Application([InteropBare], tns='tns',
-                                    in_protocol=Soap11(), out_protocol=Soap11())
-        app.transport = 'None'
-
-        wsdl = Wsdl11(app.interface)
-        wsdl.build_interface_document('url')
-        wsdl = etree.fromstring(wsdl.get_interface_document())
-
-        print etree.tostring(wsdl, pretty_print=True)
-
-        assert len(wsdl.xpath('//xs:element[@name="echo_simple_bare"]', namespaces=const_nsmap)) == 1
-
-    def test_bare(self):
-        ns = {
-            'wsdl':'http://schemas.xmlsoap.org/wsdl/',
-            'xs':'http://www.w3.org/2001/XMLSchema',
-        }
-
-        class InteropBare(ServiceBase):
+    def test_bare_simple(self):
+        class SomeService(ServiceBase):
             @srpc(String, _returns=String, _body_style='bare')
-            def echo_simple_bare(ss):
+            def whatever(ss):
                 return ss
 
-            @srpc(Array(String), _returns=Array(String), _body_style='bare')
-            def echo_complex_bare(ss):
-                return ss
-
-        app = Application([InteropBare], tns='tns',
-                                    in_protocol=Soap11(), out_protocol=Soap11())
+        app = Application([SomeService], tns='tns')
         app.transport = 'None'
 
         wsdl = Wsdl11(app.interface)
@@ -209,20 +189,57 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
         wsdl = etree.fromstring(wsdl.get_interface_document())
 
         schema = wsdl.xpath(
-                '/wsdl:definitions/wsdl:types/xs:schema[@targetNamespace]',
+                '/wsdl:definitions/wsdl:types/xs:schema[@targetNamespace="tns"]',
+                namespaces=ns,
+            )
+        assert len(schema) == 1
+
+        print etree.tostring(wsdl, pretty_print=True)
+
+        elts = schema[0].xpath(
+            'xs:element[@name="whatever%s"]' % REQUEST_SUFFIX, namespaces=ns)
+        assert len(elts) > 0
+        assert elts[0].attrib['type'] == 'xs:string'
+
+        elts = schema[0].xpath(
+            'xs:element[@name="whatever%s"]' % RESPONSE_SUFFIX, namespaces=ns)
+        assert len(elts) > 0
+        assert elts[0].attrib['type'] == 'xs:string'
+
+    def test_bare_with_conflicting_types(self):
+        class SomeService(ServiceBase):
+            @srpc(Array(String), _returns=Array(String))
+            def whatever(sa):
+                return sa
+            @srpc(Array(String), _returns=Array(String), _body_style='bare')
+            def whatever_bare(sa):
+                return sa
+
+        app = Application([SomeService], tns='tns')
+        app.transport = 'None'
+
+        wsdl = Wsdl11(app.interface)
+        wsdl.build_interface_document('url')
+        wsdl = etree.fromstring(wsdl.get_interface_document())
+        schema, = wsdl.xpath(
+                '/wsdl:definitions/wsdl:types/xs:schema[@targetNamespace="tns"]',
                 namespaces=ns,
             )
 
-        assert len(schema) == 1
-        print etree.tostring(schema[0], pretty_print=True)
+        print etree.tostring(schema, pretty_print=True)
 
-        assert len(schema[0].xpath(
+        assert len(schema.xpath(
             'xs:complexType[@name="string%s"]' % ARRAY_SUFFIX, namespaces=ns)) > 0
-        elts = schema[0].xpath(
-            'xs:element[@name="echo_complex_bare%s"]' % REQUEST_SUFFIX, namespaces=ns)
 
+        elts = schema.xpath(
+            'xs:element[@name="whatever_bare%s"]' % REQUEST_SUFFIX, namespaces=ns)
         assert len(elts) > 0
-        assert elts[0].attrib['type'] == 'tns:stringArray'
+        assert elts[0].attrib['type'] == 'tns:string%s' % ARRAY_SUFFIX
+
+        elts = schema.xpath(
+            'xs:element[@name="whatever_bare%s"]' % RESPONSE_SUFFIX, namespaces=ns)
+        assert len(elts) > 0
+        assert elts[0].attrib['type'] == 'tns:string%s' % ARRAY_SUFFIX
 
     def test_attribute_of(self):
         class SomeObject(ComplexModel):
