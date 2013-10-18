@@ -47,7 +47,7 @@ logging.basicConfig()
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
-tns = 'spyne.helloworld'
+tns = 'spyne.examples.pyramid.helloworld'
 
 '''
 >>> from suds.client import Client
@@ -100,7 +100,8 @@ class HelloWorldService(ServiceBase):
             yield 'Hello, %s' % name
 
 # view
-soapApp = view_config(route_name="home")(pyramid_soap11_application([HelloWorldService],tns))
+soapApp = view_config(route_name="home")(
+    pyramid_soap11_application([HelloWorldService], tns))
 
 if __name__ == '__main__':
     # configuration settings

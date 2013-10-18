@@ -55,7 +55,7 @@ def create_app(flask_app):
     user con defined context for each method call.
     '''
     application = Application(
-        [HelloWorldService], 'flask-spyne-example',
+        [HelloWorldService], 'spyne.examples.flask',
         # The input protocol is set as HttpRpc to make our service easy to call.
         in_protocol=HttpRpc(validator='soft'),
         out_protocol=JsonDocument(ignore_wrappers=True),

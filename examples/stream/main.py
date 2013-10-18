@@ -67,13 +67,13 @@ header_socket = "tcp://127.0.0.1:5679"
 # your distro's documentation on installing gstreamer and friends.
 
 # FIXME: This is most probably a linux-specific example. Users of other
-# operating systems; Patches are welcome!
+#        operating systems; Patches are welcome!
 
 # FIXME: Does not flush non-keyframe data after sending stream headers like
-# multifdsink does. Patches are welcome!
+#        multifdsink does. Patches are welcome!
 
 # FIXME: Does not support audio. I imagine some small tweak to the below gst
-# pipeline would "Just Work". Patches are welcome!
+#        pipeline would "Just Work". Patches are welcome!
 
 v4l2_pipeline = (
     'v4l2src device=%s '
@@ -98,7 +98,7 @@ def camera_publisher():
     buffer = appsink.emit('pull-preroll')
     caps = buffer.get_caps()[0]
     stream_header = ""
-    if caps.has_key("streamheader"):
+    if "streamheader" in caps:
         stream_header = ''.join([str(h) for h in caps["streamheader"]])
 
     # init zeromq
@@ -140,7 +140,7 @@ def main():
     p.start()
 
     stream_app = WsgiApplication(Application([StreamingService],
-            tns='spyne.examples.streaming',
+            tns='spyne.examples.stream',
             in_protocol=HttpRpc(),
             out_protocol=HttpRpc(mime_type='video/ogg'),
         ))

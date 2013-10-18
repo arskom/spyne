@@ -37,7 +37,6 @@ from twisted.python import log
 from spyne.application import Application
 from spyne.decorator import srpc
 from spyne.protocol.http import HttpRpc
-from spyne.protocol.xml import XmlDocument
 from spyne.service import ServiceBase
 from spyne.model.primitive import Integer
 
@@ -53,15 +52,14 @@ class SomeService(ServiceBase):
         return seconds
 
 
-def initialize(services):
+def initialize(services, tns):
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
     observer = log.PythonLoggingObserver('twisted')
     log.startLoggingWithObserver(observer.emit, setStdout=False)
 
-
-    application = Application(services, 'spyne.examples.hello.twisted',
+    application = Application(services, 'spyne.examples.twisted.hello',
                                 in_protocol=HttpRpc(), out_protocol=HttpRpc())
 
     return application
