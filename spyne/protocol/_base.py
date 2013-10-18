@@ -119,6 +119,8 @@ class ProtocolBase(object):
         self.event_manager = EventManager(self)
         self.set_validator(validator)
         self.ignore_uncap = ignore_uncap
+        self.message = None
+
         if mime_type is not None:
             self.mime_type = mime_type
 
