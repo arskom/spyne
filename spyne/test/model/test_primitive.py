@@ -141,6 +141,14 @@ class TestPrimitive(unittest.TestCase):
         dt = dt.replace(tzinfo=None)
         self.assertEquals(c, dt)
 
+    def test_date_timezone(self):
+        elt = etree.Element('wot')
+        elt.text = '2013-08-09+02:00'
+        dt = XmlDocument().from_element(Date, elt)
+        print "ok without validation."
+        dt = XmlDocument(validator='soft').from_element(Date, elt)
+        print dt
+
     def test_time(self):
         n = datetime.time(1, 2, 3, 4)
 
