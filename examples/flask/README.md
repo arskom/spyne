@@ -16,3 +16,7 @@ Try Flask views to make sure it works
 Here is a Spyne views call example
 
     curl -s http://localhost:5000/soap/hello?name=Anton\&times=3 | python -m json.tool
+
+The same view call, but without explicit name argument, to read default from Flask config
+
+    curl -s http://localhost:5000/soap/hello?times=3 | python -m json.tool
