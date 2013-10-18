@@ -22,7 +22,11 @@ import unittest
 import uuid
 import pytz
 import decimal
-import datetime
+
+from datetime import datetime
+from datetime import date
+from datetime import time
+from datetime import timedelta
 
 import lxml.etree
 
@@ -550,14 +554,14 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
             assert s == d
 
         def test_time(self):
-            d = datetime.time(10, 20, 30).isoformat()
+            d = time(10, 20, 30).isoformat()
 
             class SomeService(ServiceBase):
                 @srpc(Time, _returns=Time)
                 def some_call(p):
                     print p
                     print type(p)
-                    assert type(p) == datetime.time
+                    assert type(p) == time
                     assert p.isoformat() == d
                     return p
 
@@ -571,14 +575,14 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
             assert s == d
 
         def test_date(self):
-            d = datetime.date(2010, 9, 8).isoformat()
+            d = date(2010, 9, 8).isoformat()
 
             class SomeService(ServiceBase):
                 @srpc(Date, _returns=Date)
                 def some_call(p):
                     print p
                     print type(p)
-                    assert type(p) == datetime.date
+                    assert type(p) == date
                     assert p.isoformat() == d
                     return p
 
@@ -591,20 +595,19 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
             print d
             assert s == d
 
-
         def test_datetime(self):
-            d = datetime.datetime(2010, 9, 8, 7, 6, 5).isoformat()
+            d = datetime(2010, 9, 8, 7, 6, 5).isoformat()
 
             class SomeService(ServiceBase):
-                @srpc(DateTime, _returns=DateTime)
+                @srpc(DateTime, _returns=DateTime(timezone=False))
                 def some_call(p):
                     print p
                     print type(p)
-                    assert type(p) == datetime.datetime
-                    assert p.isoformat() == d
+                    assert type(p) == datetime
+                    assert p.replace(tzinfo=None).isoformat() == d
                     return p
 
-            ctx = _dry_me([SomeService], {"some_call":[d]})
+            ctx = _dry_me([SomeService], {"some_call":[d]}, validator='soft')
 
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
@@ -614,18 +617,18 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
             assert s == d
 
         def test_datetime_tz(self):
-            d = datetime.datetime(2010, 9, 8, 7, 6, 5, tzinfo=pytz.UTC).isoformat()
+            d = datetime(2010, 9, 8, 7, 6, 5, tzinfo=pytz.utc).isoformat()
 
             class SomeService(ServiceBase):
-                @srpc(DateTime, _returns=DateTime)
+                @srpc(DateTime, _returns=DateTime(ge=datetime(2010,1,1,tzinfo=pytz.utc)))
                 def some_call(p):
                     print p
                     print type(p)
-                    assert type(p) == datetime.datetime
+                    assert type(p) == datetime
                     assert p.isoformat() == d
                     return p
 
-            ctx = _dry_me([SomeService], {"some_call":[d]})
+            ctx = _dry_me([SomeService], {"some_call":[d]}, validator='soft')
 
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
@@ -635,14 +638,14 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
             assert s == d
 
         def test_duration(self):
-            d = ProtocolBase().to_string(Duration, datetime.timedelta(0, 45))
+            d = ProtocolBase().to_string(Duration, timedelta(0, 45))
 
             class SomeService(ServiceBase):
                 @srpc(Duration, _returns=Duration)
                 def some_call(p):
                     print p
                     print type(p)
-                    assert type(p) == datetime.timedelta
+                    assert type(p) == timedelta
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})

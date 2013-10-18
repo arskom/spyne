@@ -25,6 +25,7 @@ import datetime
 import unittest
 
 from lxml import etree
+import pytz
 
 from spyne.application import Application
 from spyne.decorator import rpc
@@ -287,7 +288,7 @@ class TestSoap(unittest.TestCase):
 
     def test_datetime_fixed_format(self):
         # Soap should ignore formats
-        n = datetime.datetime.now().replace(microsecond=0)
+        n = datetime.datetime.now(pytz.utc).replace(microsecond=0)
         format = "%Y %m %d %H %M %S"
 
         element = etree.Element('test')

@@ -19,6 +19,8 @@
 
 __version__ = '2.11.0'
 
+from pytz import utc as LOCAL_TZ
+
 from spyne._base import BODY_STYLE_WRAPPED
 from spyne._base import BODY_STYLE_BARE
 from spyne._base import AuxMethodContext

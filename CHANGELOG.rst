@@ -5,7 +5,7 @@ Changelog
 spyne-2.11.0
 ------------
 * Add support for altering output protocol by setting ``ctx.out_protocol``.
-* Add returning ctx.out_string support to null server.
+* Add returning ctx.out_string support to null server (The ``ostr`` argument).
 * Add support for XmlData modifier. It lets mapping the data in the xml body
   to an object field.
 * Remove deprecated ``JsonObject`` identifier. Just do a gentle
@@ -28,7 +28,15 @@ spyne-2.11.0
 
 * Steal and integrate the WebSocket tranport for Twisted.
 * Support Django natively using ``spyne.server.django.SpyneView`` and
-  ``spyne.server.django.DjangoServer``
+  ``spyne.server.django.DjangoServer``\.
+* It's now possible to override the ``JsonEncoder`` class ``JsonDocument`` uses.
+* Remove hard-coded utf-8 defaults from almost everywhere.
+* Remove hard-coded pytz.utc defaults from everywhere. Use spyne.LOCAL_TZ to
+  configure the default time zone.
+* As a result of the above change, datetime objects deserialized by Spyne always
+  carry time zones. Make sure you adjust your code to this change. It's possible
+  to strip timezone information from outgoing types by passing ``timezone=False``
+  to the DateTime customizer.
 
 spyne-2.10.9
 ------------

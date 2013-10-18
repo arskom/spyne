@@ -21,6 +21,8 @@
 """
 The ``spyne.model.primitive`` package contains types with values that fit
 in a single field.
+
+See :mod:`spyne.protocol._model` for {to,from}_string implementations.
 """
 
 
@@ -32,7 +34,6 @@ if sys.version > '3':
 
 import re
 import math
-import pytz
 import uuid
 import decimal
 import datetime
@@ -595,9 +596,14 @@ class Time(SimpleModel):
 
 class DateTime(SimpleModel):
     """A compact way to represent dates and times together. Supports time zones.
+    Working with timezones is a bit quirky -- Spyne works very hard to have
+    all datetimes with time zones internally and only strips them when
+    explicitly requested with ``timezone=False``\. See
+    :attr:`DateTime.Attributes.as_timezone` for more information.
 
     Native type is :class:`datetime.datetime`.
     """
+
     __type_name__ = 'dateTime'
 
     _local_re = re.compile(DATETIME_PATTERN)
@@ -608,21 +614,25 @@ class DateTime(SimpleModel):
         """Customizable attributes of the :class:`spyne.model.primitive.DateTime`
         type."""
 
-        gt = datetime.datetime(datetime.MINYEAR, 1, 1, 0, 0, 0, 0, pytz.utc) # minExclusive
-        """The datetime should be greater than this datetime."""
+        gt = datetime.datetime(datetime.MINYEAR, 1, 1, 0, 0, 0, 0, spyne.LOCAL_TZ) # minExclusive
+        """The datetime should be greater than this datetime. It must always
+        have a timezone."""
 
-        ge = datetime.datetime(datetime.MINYEAR, 1, 1, 0, 0, 0, 0, pytz.utc) # minInclusive
-        """The datetime should be greater than or equal to this datetime."""
+        ge = datetime.datetime(datetime.MINYEAR, 1, 1, 0, 0, 0, 0, spyne.LOCAL_TZ) # minInclusive
+        """The datetime should be greater than or equal to this datetime. It
+        must always have a timezone."""
 
-        lt = datetime.datetime(datetime.MAXYEAR, 12, 31, 23, 59, 59, 999999, pytz.utc) # maxExclusive
-        """The datetime should be lower than this datetime."""
+        lt = datetime.datetime(datetime.MAXYEAR, 12, 31, 23, 59, 59, 999999, spyne.LOCAL_TZ) # maxExclusive
+        """The datetime should be lower than this datetime. It must always have
+        a timezone."""
 
-        le = datetime.datetime(datetime.MAXYEAR, 12, 31, 23, 59, 59, 999999, pytz.utc) # maxInclusive
-        """The datetime should be lower than or equal to this datetime."""
+        le = datetime.datetime(datetime.MAXYEAR, 12, 31, 23, 59, 59, 999999, spyne.LOCAL_TZ) # maxInclusive
+        """The datetime should be lower than or equal to this datetime. It must
+        always have a timezone."""
 
         pattern = None
-        """A regular expression that matches the whole datetime. See here for more
-        info: http://www.regular-expressions.info/xml.html"""
+        """A regular expression that matches the whole datetime. See here for
+        more info: http://www.regular-expressions.info/xml.html"""
 
         format = None
         """DateTime format fed to the ``strftime`` function. See:
@@ -635,34 +645,25 @@ class DateTime(SimpleModel):
         string. See here for more info:
         http://docs.python.org/library/stdtypes.html#string-formatting"""
 
-        as_time_zone = None
-        """When not None, converts incoming and outgoing values to the given
-        time zone (by calling ``astimezone()``) and later stripping time zone
-        information from the native value (by calling ``replace(tzinfo=None)``).
+        as_timezone = None
+        """When not None, converts:
+            - Outgoing values to the given time zone (by calling
+              ``.astimezone()``).
+            - Incoming values without tzinfo to the given time zone by calling
+              ``.replace(tzinfo=<as_timezone>)`` and values with tzinfo to the
+               given timezone by calling ``.astimezone()``.
 
         Either None or a return value of pytz.timezone()
+
+        When this is None and a datetime with tzinfo=None comes in, it's
+        converted to spyne.LOCAL_TZ which defaults to ``pytz.utc``. You can use
+        `tzlocal <https://pypi.python.org/pypi/tzlocal>`_ to set it to local
+        time right after ``import spyne``.
         """
 
-        timezone = None
-        """If not None, overrides as_time_zone."""
-
-    @staticmethod
-    def parse(date_match, tz=None):
-        fields = date_match.groupdict()
-
-        year = int(fields.get('year'))
-        month =  int(fields.get('month'))
-        day = int(fields.get('day'))
-        hour = int(fields.get('hr'))
-        min = int(fields.get('min'))
-        sec = int(fields.get('sec'))
-        microsec = fields.get("sec_frac")
-        if microsec is None:
-            microsec = 0
-        else:
-            microsec = int(microsec[1:])
-
-        return datetime.datetime(year, month, day, hour, min, sec, microsec, tz)
+        timezone = True
+        """If False, time zone info is stripped before serialization. Also makes
+        sqlalchemy schema generator emit 'timestamp without timezone'."""
 
     @staticmethod
     def is_default(cls):
@@ -676,8 +677,6 @@ class DateTime(SimpleModel):
 
     @staticmethod
     def validate_native(cls, value):
-        if value is not None and isinstance(value, datetime.datetime):
-            value = value.replace(tzinfo=pytz.utc)
         return SimpleModel.validate_native(cls, value) and (
             value is None or (
                 value >  cls.Attributes.gt and
