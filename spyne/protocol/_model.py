@@ -271,7 +271,11 @@ def date_from_string_iso(cls, string):
     try:
         return datetime.date(*(time.strptime(string, '%Y-%m-%d')[0:3]))
     except ValueError:
-        raise ValidationError(string)
+        match = cls._offset_re.match(string)
+        if match:
+            return datetime.date(int(match.group('year')), int(match.group('month')), int(match.group('day')))
+        else:
+            raise ValidationError(string)
 
 
 @nillable_string
@@ -296,7 +300,11 @@ def date_from_string(cls, string):
         d = datetime.datetime.strptime(string, cls.Attributes.format)
         return datetime.date(d.year, d.month, d.day)
     except ValueError, e:
-        raise ValidationError(string, "%%r: %r" % e)
+        match = cls._offset_re.match(string)
+        if match:
+            return datetime.date(int(match.group('year')), int(match.group('month')), int(match.group('day')))
+        else:
+            raise ValidationError(string, "%%r: %r" % e)
 
 
 if hasattr(datetime.timedelta, 'total_seconds'):
