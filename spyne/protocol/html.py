@@ -378,29 +378,27 @@ class _HtmlTableBase(HtmlBase):
                 out_body_doc_footer,
             )
 
+    def serialize_complex_model(self, cls, inst, locale):
+        raise NotImplementedError()
 
 class _HtmlColumnTable(_HtmlTableBase):
     def serialize_complex_model(self, cls, value, locale):
-        sti = None
+        fti = cls.get_flat_type_info(cls)
+        if cls.Attributes._wrapper and not issubclass(cls, Array):
+            if len(fti) > 1:
+                raise NotImplementedError("Can only serialize one array at a time")
+            cls, = cls._type_info.values()
+            value, = value
+
         fti = cls.get_flat_type_info(cls)
         first_child = iter(fti.values()).next()
 
-        if len(fti) == 1:
-            fti = first_child.get_flat_type_info(first_child)
-            first_child = iter(fti.values()).next()
+        if not issubclass(cls, Array):
+            raise NotImplementedError("Can only serialize Array(...) types")
 
-            if len(fti) == 1 and first_child.Attributes.max_occurs > 1:
-                if issubclass(first_child, ComplexModelBase):
-                    sti = first_child.get_simple_type_info(first_child)
-
-            else:
-                raise NotImplementedError("Can only serialize Array(...) types")
-
-            value = value[0]
-
-        else:
-            raise NotImplementedError("Can only serialize single Array(...) "
-                                                                 "return types")
+        sti = None
+        if issubclass(first_child, ComplexModelBase):
+            sti = first_child.get_simple_type_info(first_child)
 
         # Here, sti can be None when the return type does not have _type_info
         # attribute
@@ -420,6 +418,7 @@ class _HtmlColumnTable(_HtmlTableBase):
             if self.header_cell_class is not None:
                 th['class'] = self.header_cell_class
 
+            # sti is none when the type inside Array is not a ComplexModel.
             if sti is None:
                 header_row.append(E.th(class_name, **th))
 
