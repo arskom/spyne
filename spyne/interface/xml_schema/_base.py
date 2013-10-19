@@ -18,7 +18,7 @@
 #
 
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('spyne.interface.xml_schema')
 
 import shutil
 import tempfile
@@ -170,7 +170,8 @@ class XmlSchema(InterfaceDocumentBase):
         def missing_methods():
             for service in self.interface.services:
                 for method in service.public_methods.values():
-                    yield method
+                    if method.aux is None:
+                        yield method
 
         pref_tns = self.interface.prefmap[self.interface.tns]
 
@@ -221,25 +222,24 @@ class XmlSchema(InterfaceDocumentBase):
                 logger.debug("writing %r for ns %s" %
                              (file_name, self.interface.nsmap[k]))
 
-            logger.debug("building schema...")
             with open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r') as f:
                 try:
                     self.validation_schema = etree.XMLSchema(etree.parse(f))
 
                 except Exception:
                     f.seek(0)
-                    logger.error(etree.tostring(etree.parse(f),
-                                                pretty_print=True))
                     logger.error("This is a Spyne error. Please seek support "
                                  "with a minimal test case that reproduces "
                                  "this error.")
                     raise
 
-            logger.debug("schema %r built" % self.validation_schema)
-        finally:
-            logger.debug("cleaning up ...")
             shutil.rmtree(tmp_dir_name)
-            logger.debug("removed %r" % tmp_dir_name)
+            logger.debug("Schema built. Removed %r" % tmp_dir_name)
+
+        except Exception, e:
+            logger.exception(e)
+            logger.error("The schema files are left at: %r" % tmp_dir_name)
+            raise
 
     def get_schema_node(self, pref):
         """Return schema node for the given namespace prefix."""
