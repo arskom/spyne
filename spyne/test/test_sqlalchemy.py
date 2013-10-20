@@ -630,7 +630,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
         metadata2.bind = self.engine
         metadata2.reflect()
 
-    def test_sqlalchemy_remapping(self):
+    def _test_sqlalchemy_remapping(self):
         class SomeTable(TableModel):
             __tablename__ = 'some_table'
             id = Integer32(pk=True)
