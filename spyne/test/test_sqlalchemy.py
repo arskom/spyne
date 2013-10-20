@@ -437,7 +437,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
         self.session.commit()
         self.session.close()
 
-        assert self.session.query(SomeOtherClass).with_polymorphic('*').get(5).t == 1
+        assert self.session.query(SomeOtherClass).with_polymorphic('*').get(5).t == 2
         self.session.close()
 
     def test_nested_sql_array_as_json(self):
