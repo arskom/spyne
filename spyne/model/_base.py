@@ -54,10 +54,8 @@ def nillable_iterable(func):
     return wrapper
 
 
+# All this code to get rid of a one letter quirk: nillable vs nullable.
 class AttributesMeta(type(object)):
-    """I hate quirks. This is a 10-minute attempt to get rid of a one-letter
-    quirk."""
-
     NULLABLE_DEFAULT = True
 
     def __new__(cls, cls_name, cls_bases, cls_dict):
@@ -68,21 +66,26 @@ class AttributesMeta(type(object)):
         return type(object).__new__(cls, cls_name, cls_bases, cls_dict)
 
     def __init__(self, cls_name, cls_bases, cls_dict):
+        for base in cls_bases:
+            self._nullable = getattr(base, '_nullable', None)
+
         nullable = cls_dict.get('nullable', None)
         nillable = cls_dict.get('nillable', None)
-
-        assert nullable is None or nillable is None or nullable == nillable
-
-        self.__nullable = nullable or nillable or None
+        if nullable is not None:
+            assert nillable is None or nullable == nillable
+            self._nullable = nullable
+        elif nillable is not None:
+            assert nullable is None or nullable == nillable
+            self._nullable = nillable
 
         type(object).__init__(self, cls_name, cls_bases, cls_dict)
 
     def get_nullable(self):
-        return (self.__nullable if self.__nullable is not None else
+        return (self._nullable if self._nullable is not None else
                 self.NULLABLE_DEFAULT)
 
     def set_nullable(self, what):
-        self.__nullable = what
+        self._nullable = what
 
     nullable = property(get_nullable, set_nullable)
 
@@ -139,9 +142,10 @@ class ModelBase(object):
         default_factory = None
         """The default value if the input is None"""
 
-        nillable = True
+        nillable = None
         """Set this to false to reject null values. Synonyms with
-        ``nullable``."""
+        ``nullable``. True by default. The default value can be changed by
+         setting ``AttributesMeta.NULLABLE_DEFAULT``."""
 
         min_occurs = 0
         """Set this to 1 to make this object mandatory. Can be set to any

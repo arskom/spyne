@@ -49,6 +49,46 @@ ns_test = 'test_namespace'
 
 
 class TestPrimitive(unittest.TestCase):
+    def test_nillable_quirks(self):
+        from spyne.model import ModelBase
+        assert ModelBase.Attributes.nillable == True
+        class Attributes(ModelBase.Attributes):
+            nillable = False
+            nullable = False
+
+        assert Attributes.nillable == False
+        assert Attributes.nullable == False
+
+        class Attributes(ModelBase.Attributes):
+            nillable = True
+
+        assert Attributes.nillable == True
+        assert Attributes.nullable == True
+
+        class Attributes(ModelBase.Attributes):
+            nillable = False
+
+        assert Attributes.nillable == False
+        assert Attributes.nullable == False
+
+        class Attributes(ModelBase.Attributes):
+            nullable = True
+
+        assert Attributes.nillable == True
+        assert Attributes.nullable == True
+
+        class Attributes(ModelBase.Attributes):
+            nullable = False
+
+        assert Attributes.nillable == False
+        assert Attributes.nullable == False
+
+        class Attributes(ModelBase.Attributes):
+            nullable = False
+        class Attributes(Attributes):
+            pass
+        assert Attributes.nullable == False
+
     def test_decimal(self):
         assert Decimal(10,4).Attributes.total_digits == 10
         assert Decimal(10,4).Attributes.fraction_digits == 4
