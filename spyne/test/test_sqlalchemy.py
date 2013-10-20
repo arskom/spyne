@@ -18,18 +18,16 @@
 #
 
 import logging
-from sqlalchemy.orm.mapper import Mapper
-
 logging.basicConfig(level=logging.DEBUG)
 
 from getpass import getuser
 PSQL_CONN_STR = 'postgres://postgres:@localhost:5432/spyne_test_%s' % getuser()
 
-import random
 import unittest
 import sqlalchemy
 
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm.mapper import Mapper
 
 from sqlalchemy import create_engine
 from sqlalchemy import MetaData
