@@ -1069,6 +1069,45 @@ class TestSqlAlchemyNested(unittest.TestCase):
         metadata2.bind = engine
         metadata2.reflect()
 
+    def test_sqlalchemy_remapping(self):
+        from sqlalchemy import create_engine
+        from sqlalchemy.orm import sessionmaker
+        from spyne.model import TTableModel, Integer32, Unicode
+
+        TableModel = TTableModel()
+        engine = create_engine('sqlite:///:memory:')
+        session = sessionmaker(bind=engine)()
+        metadata = TableModel.Attributes.sqla_metadata
+        metadata.bind = engine
+
+        class SomeTable(TableModel):
+            __tablename__ = 'some_table'
+            id = Integer32(pk=True)
+            i = Integer32
+            s = Unicode(32)
+
+        class SomeTableSubset(TableModel):
+            __table__ = SomeTable.__table__
+
+            id = Integer32(pk=True) # sqla session doesn't work without pk
+            i = Integer32
+
+        class SomeTableOtherSubset(TableModel):
+            __table__ = SomeTable.__table__
+            _type_info = [(k,v) for k, v in SomeTable._type_info.items() if k in ('id', 's')]
+
+        session.add(SomeTable(id=1,i=2,s='s'))
+        session.commit()
+
+        st = session.query(SomeTableSubset).get(1)
+        sts = session.query(SomeTableOtherSubset).get(1)
+        stos = session.query(SomeTableSubset).get(1)
+
+        sts.i = 3
+        sts.s = 'ss'
+        session.commit()
+
+        assert st.s == 's'
 
 class TestSqlAlchemySchemaWithPostgresql(unittest.TestCase):
     def test_enum(self):
