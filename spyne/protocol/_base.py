@@ -113,12 +113,15 @@ class ProtocolBase(object):
     def __init__(self, app=None, validator=None, mime_type=None,
                                                             ignore_uncap=False):
         self.__app = None
-        self.validator = None
-
         self.set_app(app)
-        self.event_manager = EventManager(self)
+
+        self.validator = None
         self.set_validator(validator)
+
+        self.event_manager = EventManager(self)
         self.ignore_uncap = ignore_uncap
+        self.message = None
+
         if mime_type is not None:
             self.mime_type = mime_type
 
@@ -176,7 +179,8 @@ class ProtocolBase(object):
 
     def set_app(self, value):
         assert self.__app is None, "One protocol instance should belong to one " \
-                                   "application instance."
+                                   "application instance. It currently belongs " \
+                                   "to: %r" % self.__app
         self.__app = value
 
     def create_in_document(self, ctx, in_string_encoding=None):

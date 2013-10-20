@@ -75,6 +75,10 @@ class odict(object):
         del self.__dict[self.__list[key]]
         del self.__list[key]
 
+    def __add__(self, other):
+        self.update(other)
+        return self
+
     def items(self):
         retval = []
         for k in self.__list:

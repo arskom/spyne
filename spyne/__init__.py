@@ -19,6 +19,8 @@
 
 __version__ = '2.11.0'
 
+from pytz import utc as LOCAL_TZ
+
 from spyne._base import BODY_STYLE_WRAPPED
 from spyne._base import BODY_STYLE_BARE
 from spyne._base import AuxMethodContext
@@ -35,7 +37,14 @@ from spyne.application import Application
 
 import sys
 
-if not hasattr(sys, "version_info") or sys.version_info < (2, 5):
-    raise RuntimeError("Spyne requires Python 2.5 or later.")
+if not hasattr(sys, "version_info") or sys.version_info < (2, 6):
+    raise RuntimeError("Spyne requires Python 2.6 or later.")
 
 del sys
+
+try:
+    import colorama
+    colorama.init()
+    del colorama
+except ImportError:
+    pass

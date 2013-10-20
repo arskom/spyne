@@ -29,65 +29,60 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-
 '''
-This is a simple HelloWorld example to show the basics of writing
-a webservice using spyne, starting a server, and creating a service
-client.
-
-Here's how to call it using suds:
-
->>> from suds.client import Client
->>> c = Client('http://localhost:8000/?wsdl')
->>> c.service.say_hello('punk', 5)
-(stringArray){
-   string[] =
-      "Hello, punk",
-      "Hello, punk",
-      "Hello, punk",
-      "Hello, punk",
-      "Hello, punk",
- }
->>>
-
+This is a simple HelloWorld example showing how the NullServer works. The
+NullServer is meant to be used mainly for testing.
 '''
-
 
 import logging
+logging.basicConfig(level=logging.INFO)
+
+from pprint import pprint
+
+from spyne.application import Application
+from spyne.protocol.soap import Soap11
+from spyne.server.null import NullServer
 
 from spyne.decorator import rpc
 from spyne.service import ServiceBase
-from spyne.model.complex import ComplexModel
 from spyne.model.complex import Iterable
 from spyne.model.primitive import Integer
 from spyne.model.primitive import Unicode
 
-from spyne.util.simple import wsgi_soap_application
-
 
 class HelloWorldService(ServiceBase):
-    @rpc(Unicode, _returns=Iterable(Unicode), _body_style='bare')
-    def say_hello(ctx, name):
-        '''
-        Docstrings for service methods appear as documentation in the wsdl
-        <b>what fun</b>
-        @param name the name to say hello to
-        @param the number of times to say hello
-        @return the completed array
-        '''
-
-        return u'Hello, %s' % name
+    @rpc(Unicode, Integer, _returns=Iterable(Unicode))
+    def say_hello(ctx, name, times):
+        for i in range(times):
+            yield u'Hello, %s' % name
 
 
 if __name__=='__main__':
-    from wsgiref.simple_server import make_server
+    application = Application([HelloWorldService], 'spyne.examples.hello.soap',
+                in_protocol=Soap11(validator='lxml'),
+                out_protocol=Soap11(pretty_print=True),
+            )
 
-    logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
+    # mutes context markers. set logging level to logging.INFO to enable
+    # them.
+    logging.getLogger('spyne.server.null').setLevel(logging.CRITICAL)
 
-    logging.info("listening to http://127.0.0.1:8000")
-    logging.info("wsdl is at: http://localhost:8000/?wsdl")
+    print "With serialization"
+    print "=================="
+    print
 
-    wsgi_app = wsgi_soap_application([HelloWorldService], 'spyne.examples.hello.soap')
-    server = make_server('127.0.0.1', 8000, wsgi_app)
-    server.serve_forever()
+    null = NullServer(application, ostr=True)
+    ret_stream = null.service.say_hello('Dave', 5)
+    ret_string = ''.join(ret_stream)
+    print ret_string
+    print
+
+    print "Without serialization"
+    print "====================="
+    print
+
+    null = NullServer(application, ostr=False)
+    ret = null.service.say_hello('Dave', 5)
+    # because the return value is a generator, we need to iterate over it to
+    # see the actual return values.
+    pprint(list(ret))

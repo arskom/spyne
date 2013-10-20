@@ -81,7 +81,8 @@ class JsonEncoder(json.JSONEncoder):
         except TypeError, e:
             # if json can't serialize it, it's possibly a generator. If not,
             # additional hacks are welcome :)
-            logger.exception(e)
+            if logger.level == logging.DEBUG:
+                logger.exception(e)
             return list(o)
 
 
@@ -107,10 +108,16 @@ class JsonDocument(HierDictDocument):
     def __init__(self, app=None, validator=None, mime_type=None,
                         ignore_uncap=False,
                         # DictDocument specific
-                        ignore_wrappers=True, complex_as=dict, ordered=False):
+                        ignore_wrappers=True, complex_as=dict, ordered=False,
+                        default_string_encoding=None,
+                        **kwargs):
 
         HierDictDocument.__init__(self, app, validator, mime_type, ignore_uncap,
                                            ignore_wrappers, complex_as, ordered)
+
+        # this is needed when we're overriding a regular instance attribute
+        # with a property.
+        self.__message = HierDictDocument.__getattribute__(self, 'message')
 
         self._from_string_handlers[Double] = lambda cls, val: val
         self._from_string_handlers[Boolean] = lambda cls, val: val
@@ -120,6 +127,9 @@ class JsonDocument(HierDictDocument):
         self._to_string_handlers[Boolean] = lambda cls, val: val
         self._to_string_handlers[Integer] = lambda cls, val: val
 
+        self.default_string_encoding = default_string_encoding
+        self.kwargs = kwargs
+
     def validate(self, key, cls, val):
         super(JsonDocument, self).validate(key, cls, val)
 
@@ -128,26 +138,34 @@ class JsonDocument(HierDictDocument):
                                                  cls.validate_string(cls, val)):
             raise ValidationError(key, val)
 
+    @property
+    def message(self):
+        return self.__message
 
+    @message.setter
+    def message(self, val):
+        if val is self.RESPONSE and not ('cls' in self.kwargs):
+            self.kwargs['cls'] = JsonEncoder
+        self.__message = val
 
     def create_in_document(self, ctx, in_string_encoding=None):
         """Sets ``ctx.in_document``  using ``ctx.in_string``."""
 
-        if in_string_encoding is None:
-            in_string_encoding = 'UTF-8'
-
         try:
-            ctx.in_document = json.loads(
-                            ''.join(ctx.in_string).decode(in_string_encoding),
-                        )
+            in_string = ''.join(ctx.in_string)
+            if not isinstance(in_string, unicode):
+                if in_string_encoding is None:
+                    in_string_encoding = self.default_string_encoding
+                if in_string_encoding is not None:
+                    in_string = in_string.decode(in_string_encoding)
+            ctx.in_document = json.loads(in_string, **self.kwargs)
 
         except JSONDecodeError, e:
             raise Fault('Client.JsonDecodeError', repr(e))
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         """Sets ``ctx.out_string`` using ``ctx.out_document``."""
-        ctx.out_string = (json.dumps(o, cls=JsonEncoder)
-                                                      for o in ctx.out_document)
+        ctx.out_string = (json.dumps(o, **self.kwargs) for o in ctx.out_document)
 
 
 class JsonP(JsonDocument):
@@ -325,6 +343,7 @@ _json_rpc_flavours = {
 }
 
 def JsonRpc(flavour, *args, **kwargs):
-    assert flavour in _json_rpc_flavours, "Unknown JsonRpc flavour"
+    assert flavour in _json_rpc_flavours, "Unknown JsonRpc flavour. " \
+                             "Accepted ones are: %r" % tuple(_json_rpc_flavours)
 
     return _json_rpc_flavours[flavour](*args, **kwargs)

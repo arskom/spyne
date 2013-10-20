@@ -1,8 +1,7 @@
 #!/usr/bin/env python
 # encoding: utf8
 #
-# Copyright © Burak Arslan <burak at arskom dot com dot tr>,
-#             Arskom Ltd. http://www.arskom.com.tr
+# Copyright © Anton Egorov <anton.egoroff@gmail.com>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -29,37 +28,18 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import logging
-import time
+from werkzeug.wsgi import DispatcherMiddleware
+from spyne.server.wsgi import WsgiApplication
 
-from twisted.python import log
-
-from spyne.application import Application
-from spyne.decorator import srpc
-from spyne.protocol.http import HttpRpc
-from spyne.service import ServiceBase
-from spyne.model.primitive import Integer
-
-host = '127.0.0.1'
-port = 9752
+from apps import spyned
+from apps.flasked import app
 
 
-class SomeService(ServiceBase):
-    @srpc(Integer, _returns=Integer)
-    def block(seconds):
-        """Blocks the current thread for given number of seconds."""
-        time.sleep(seconds)
-        return seconds
+# SOAP services are distinct wsgi applications, we should use dispatcher
+# middleware to bring all aps together
+app.wsgi_app = DispatcherMiddleware(app.wsgi_app, {
+    '/soap': WsgiApplication(spyned.create_app(app))
+})
 
-
-def initialize(services, tns):
-    logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
-
-    observer = log.PythonLoggingObserver('twisted')
-    log.startLoggingWithObserver(observer.emit, setStdout=False)
-
-    application = Application(services, 'spyne.examples.twisted.hello',
-                                in_protocol=HttpRpc(), out_protocol=HttpRpc())
-
-    return application
+if __name__ == '__main__':
+    app.run()

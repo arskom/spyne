@@ -18,7 +18,7 @@
 #
 
 import logging
-logger = logging.getLogger(__name__)
+logger = logging.getLogger('spyne.interface.xml_schema')
 
 import shutil
 import tempfile
@@ -161,8 +161,46 @@ class XmlSchema(InterfaceDocumentBase):
             for node in self.namespaces[pref].elements.values():
                 schema.append(node)
 
+        self.add_missing_elements_for_methods()
+
         self.event_manager.fire_event('document_built', self)
         self.event_manager.fire_event('xml_document_built', self)
+
+    def add_missing_elements_for_methods(self):
+        def missing_methods():
+            for service in self.interface.services:
+                for method in service.public_methods.values():
+                    if method.aux is None:
+                        yield method
+
+        pref_tns = self.interface.prefmap[self.interface.tns]
+
+        elements = self.get_schema_info(pref_tns).elements
+        schema_root = self.schema_dict[pref_tns]
+        for method in missing_methods():
+            name = method.in_message.Attributes.sub_name
+            if name is None:
+                name = method.in_message.get_type_name()
+
+            if not name in elements:
+                element = etree.Element('{%s}element' % _ns_xsd)
+                element.set('name', name)
+                element.set('type', method.in_message.get_type_name_ns(
+                                                                self.interface))
+                elements[name] = element
+                schema_root.append(element)
+
+            if method.out_message is not None:
+                name = method.out_message.Attributes.sub_name
+                if name is None:
+                    name = method.out_message.get_type_name()
+                if not name in elements:
+                    element = etree.Element('{%s}element' % _ns_xsd)
+                    element.set('name', name)
+                    element.set('type', method.out_message \
+                                              .get_type_name_ns(self.interface))
+                    elements[name] = element
+                    schema_root.append(element)
 
     def build_validation_schema(self):
         """Build application schema specifically for xml validation purposes."""
@@ -184,24 +222,24 @@ class XmlSchema(InterfaceDocumentBase):
                 logger.debug("writing %r for ns %s" %
                              (file_name, self.interface.nsmap[k]))
 
-            logger.debug("building schema...")
             with open('%s/%s.xsd' % (tmp_dir_name, pref_tns), 'r') as f:
                 try:
                     self.validation_schema = etree.XMLSchema(etree.parse(f))
+
                 except Exception:
                     f.seek(0)
-                    logger.error(etree.tostring(etree.parse(f),
-                                                pretty_print=True))
                     logger.error("This is a Spyne error. Please seek support "
                                  "with a minimal test case that reproduces "
                                  "this error.")
                     raise
 
-            logger.debug("schema %r built" % self.validation_schema)
-        finally:
-            logger.debug("cleaning up ...")
             shutil.rmtree(tmp_dir_name)
-            logger.debug("removed %r" % tmp_dir_name)
+            logger.debug("Schema built. Removed %r" % tmp_dir_name)
+
+        except Exception, e:
+            logger.exception(e)
+            logger.error("The schema files are left at: %r" % tmp_dir_name)
+            raise
 
     def get_schema_node(self, pref):
         """Return schema node for the given namespace prefix."""
@@ -230,7 +268,8 @@ class XmlSchema(InterfaceDocumentBase):
         pref = cls.get_element_name_ns(self.interface).split(":")[0]
 
         schema_info = self.get_schema_info(pref)
-        schema_info.elements[cls.get_type_name()] = node
+        name = cls.Attributes.sub_name or cls.get_type_name()
+        schema_info.elements[name] = node
 
     def add_simple_type(self, cls, node):
         tn = cls.get_type_name()

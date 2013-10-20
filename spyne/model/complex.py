@@ -39,7 +39,7 @@ from spyne.model.primitive import NATIVE_MAP
 from spyne.model.primitive import Unicode
 from spyne.model.primitive import Point
 
-from spyne.const import xml_ns as namespace
+from spyne.const import xml_ns as namespace, PARENT_SUFFIX
 from spyne.const import ARRAY_PREFIX
 from spyne.const import ARRAY_SUFFIX
 from spyne.const import TYPE_SUFFIX
@@ -116,8 +116,6 @@ class json:
 
 
 class msgpack:
-    pass  # TODO: not implemented
-
     """Compound option object for msgpack serialization. It's meant to be passed
     to :func:`ComplexModelBase.Attributes.store_as`.
 
@@ -177,9 +175,6 @@ class XmlData(XmlModifier):
 
     @classmethod
     def marshall(cls, prot, name, value, parent_elt):
-        if cls._ns is not None:
-            name = "{%s}%s" % (cls._ns,name)
-
         if value is not None:
             if len(parent_elt) == 0:
                 parent_elt.text = prot.to_string(cls.type, value)
@@ -213,8 +208,8 @@ class XmlAttribute(XmlModifier):
     with given name.
     """
 
-    def __new__(cls, type, use=None, ns=None, attribute_of=None):
-        retval = XmlModifier.__new__(cls, type, ns)
+    def __new__(cls, type_, use=None, ns=None, attribute_of=None):
+        retval = XmlModifier.__new__(cls, type_, ns)
         retval._use = use
         retval.attribute_of = attribute_of
         return retval
@@ -242,7 +237,7 @@ class SelfReference(object):
         raise NotImplementedError()
 
 
-def _get_spyne_type(v):
+def _get_spyne_type(cls_name, k, v):
     try:
         v = NATIVE_MAP.get(v, v)
     except TypeError:
@@ -322,7 +317,7 @@ class ComplexModelMeta(type(ModelBase)):
 
             for k, v in cls_dict.items():
                 if not k.startswith('_'):
-                    v = _get_spyne_type(v)
+                    v = _get_spyne_type(cls_name, k, v)
                     if v is not None:
                         _type_info[k] = v
 
@@ -349,7 +344,7 @@ class ComplexModelMeta(type(ModelBase)):
                 continue
 
             elif not issubclass(v, ModelBase):
-                v = _get_spyne_type(v)
+                v = _get_spyne_type(cls_name, k, v)
                 if v is None:
                     raise ValueError( (cls_name, k, v) )
                 _type_info[k] = v
@@ -463,13 +458,34 @@ class ComplexModelMeta(type(ModelBase)):
         type(ModelBase).__init__(self, cls_name, cls_bases, cls_dict)
 
 
+def _fill_empty_type_name(cls, k, v, parent=False):
+    v.__namespace__ = cls.get_namespace()
+    tn = "%s_%s%s" % (cls.get_type_name(), k, TYPE_SUFFIX)
+
+    if issubclass(v, Array):
+        child_v, = v._type_info.values()
+        child_v.__type_name__ = tn
+
+        v._type_info = TypeInfo({tn: child_v})
+        v.__type_name__ = '%s%s%s'% (ARRAY_PREFIX, tn, ARRAY_SUFFIX)
+
+    else:
+        suff = TYPE_SUFFIX
+        if parent:
+            suff = PARENT_SUFFIX + suff
+
+        v.__type_name__ = "%s_%s%s" % (cls.get_type_name(), k, suff)
+        extends = getattr(v, '__extends__', None)
+        if extends is not None and extends.__type_name__ is ModelBase.Empty:
+            _fill_empty_type_name(cls, k, v.__extends__, parent=True)
+
+
 class ComplexModelBase(ModelBase):
     """If you want to make a better class type, this is what you should inherit
     from.
     """
 
     __mixin__ = False
-    __extends__ = None
 
     class Attributes(ModelBase.Attributes):
         """ComplexModel-specific attributes"""
@@ -512,18 +528,30 @@ class ComplexModelBase(ModelBase):
         if xtba_key is not None and len(args) == 1:
             self._safe_set(xtba_key, args[0], xtba_type)
         elif len(args) > 0:
-            raise TypeError("No XmlData field found.")
+            raise TypeError("Positional argument is only for ComplexModels "
+                            "with XmlData field. You must always use keyword "
+                            "arguments in any other case.")
 
         for k,v in fti.items():
             if k in kwargs:
                 self._safe_set(k, kwargs[k], v)
+
             elif not k in self.__dict__:
-                a = v.Attributes; d=a.default
-                if d is not None:
-                    setattr(self, k, d)
-                elif a.max_occurs > 1 or issubclass(v, Array):
+                attr = v.Attributes
+                def_val = attr.default
+                def_fac = attr.default_factory
+
+                if def_fac is not None:
+                    # no need to check for read-only for default values
+                    setattr(self, k, def_fac())
+
+                elif def_val is not None:
+                    # no need to check for read-only for default values
+                    setattr(self, k, def_val)
+
+                elif attr.max_occurs > 1 or issubclass(v, Array):
                     try:
-                        setattr(self, k, d)
+                        setattr(self, k, def_val)
                     except TypeError: # SQLAlchemy does this
                         setattr(self, k, [])
                 else:
@@ -696,19 +724,7 @@ class ComplexModelBase(ModelBase):
                 continue
 
             if v.__type_name__ is ModelBase.Empty:
-                v.__namespace__ = cls.get_namespace()
-                tn = "%s_%s%s" % (cls.get_type_name(), k, TYPE_SUFFIX)
-
-                if issubclass(v, Array):
-                    child_v, = v._type_info.values()
-                    child_v.__type_name__ = tn
-
-                    v._type_info = TypeInfo({tn: child_v})
-                    v.__type_name__ = '%s%s%s'% (ARRAY_PREFIX, tn, ARRAY_SUFFIX)
-
-                else:
-                    v.__type_name__ = "%s_%s%s" % (cls.get_type_name(), k,
-                                                                   TYPE_SUFFIX)
+                _fill_empty_type_name(cls, k, v)
 
             v.resolve_namespace(v, default_ns, tags)
 
@@ -716,6 +732,9 @@ class ComplexModelBase(ModelBase):
             for c in cls._force_own_namespace:
                 c.__namespace__ = cls.get_namespace()
                 ComplexModel.resolve_namespace(c, cls.get_namespace(), tags)
+
+        assert not (cls.__namespace__ is ModelBase.Empty)
+        assert not (cls.__type_name__ is ModelBase.Empty)
 
     @staticmethod
     def produce(namespace, type_name, members):
@@ -802,10 +821,10 @@ class Array(ComplexModelBase):
     class Attributes(ComplexModelBase.Attributes):
         _wrapper = True
 
-    def __new__(cls, serializer, **kwargs):
+    def __new__(cls, serializer, member_name=None, **kwargs):
         retval = cls.customize(**kwargs)
 
-        serializer = _get_spyne_type(serializer)
+        serializer = _get_spyne_type(cls.__name__, '__serializer__', serializer)
         if serializer is None:
             raise ValueError(serializer)
 
@@ -814,7 +833,7 @@ class Array(ComplexModelBase):
              # that are there to prevent empty arrays. 
             retval._type_info = {'_bogus': serializer}
         else:
-            retval._set_serializer(serializer)
+            retval._set_serializer(serializer, member_name)
 
         tn = kwargs.get("type_name", None)
         if tn is not None:
@@ -823,15 +842,18 @@ class Array(ComplexModelBase):
         return retval
 
     @classmethod
-    def _set_serializer(cls, serializer):
+    def _set_serializer(cls, serializer, member_name=None):
         if serializer.get_type_name() is ModelBase.Empty: # A customized class
             member_name = "OhNoes"
             # mark array type name as "to be resolved later".
             cls.__type_name__ = ModelBase.Empty
 
         else:
-            member_name = serializer.get_type_name()
-            cls.__type_name__ = '%s%s%s' % (ARRAY_PREFIX, member_name,
+            if member_name is None:
+                member_name = serializer.get_type_name()
+
+            cls.__type_name__ = '%s%s%s' % (ARRAY_PREFIX,
+                                                serializer.get_type_name(),
                                                                    ARRAY_SUFFIX)
 
         # hack to default to unbounded arrays when the user didn't specify

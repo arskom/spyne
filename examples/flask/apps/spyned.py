@@ -1,8 +1,6 @@
-#!/usr/bin/env python
 # encoding: utf8
 #
-# Copyright © Burak Arslan <burak at arskom dot com dot tr>,
-#             Arskom Ltd. http://www.arskom.com.tr
+# Copyright © Anton Egorov <anton.egoroff@gmail.com>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,71 +28,45 @@
 #
 
 
-'''
-This is a simple HelloWorld example to show the basics of writing
-a webservice using spyne, starting a server, and creating a service
-client.
-
-Here's how to call it using suds:
-
->>> from suds.client import Client
->>> c = Client('http://localhost:8000/?wsdl')
->>> c.service.say_hello('punk', 5)
-(stringArray){
-   string[] =
-      "Hello, punk",
-      "Hello, punk",
-      "Hello, punk",
-      "Hello, punk",
-      "Hello, punk",
- }
->>>
-'''
-
-
-import logging
-
 from spyne.application import Application
-from spyne.protocol.soap import Soap11
-from spyne.server.wsgi import WsgiApplication
-
 from spyne.decorator import rpc
-from spyne.service import ServiceBase
 from spyne.model.complex import Iterable
-from spyne.model.primitive import Integer
-from spyne.model.primitive import Unicode
+from spyne.model.primitive import Integer, Unicode
+from spyne.protocol.http import HttpRpc
+from spyne.protocol.json import JsonDocument
+from spyne.service import ServiceBase
 
 
 class HelloWorldService(ServiceBase):
     @rpc(Unicode, Integer, _returns=Iterable(Unicode))
-    def say_hello(ctx, name, times):
-        '''
-        Docstrings for service methods appear as documentation in the wsdl.
-        <b>What fun!</b>
-
-        @param name the name to say hello to
-        @param the number of times to say hello
-        @return the completed array
-        '''
-
+    def hello(ctx, name, times):
+        name = name or ctx.udc.config['HELLO']
         for i in range(times):
             yield u'Hello, %s' % name
 
 
-if __name__=='__main__':
-    from wsgiref.simple_server import make_server
+class UserDefinedContext(object):
+    def __init__(self, flask_config):
+        self.config = flask_config
 
-    logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
-    logging.info("listening to http://127.0.0.1:8000")
-    logging.info("wsdl is at: http://localhost:8000/?wsdl")
+def create_app(flask_app):
+    '''Creates SOAP services application and distribute Flask config into
+    user con defined context for each method call.
+    '''
+    application = Application(
+        [HelloWorldService], 'spyne.examples.flask',
+        # The input protocol is set as HttpRpc to make our service easy to call.
+        in_protocol=HttpRpc(validator='soft'),
+        out_protocol=JsonDocument(ignore_wrappers=True),
+    )
 
-    application = Application([HelloWorldService], 'spyne.examples.hello.soap',
-                in_protocol=Soap11(validator='lxml'),
-                out_protocol=Soap11()
-            )
-    wsgi_application = WsgiApplication(application)
+    # Use `method_call` hook to pass flask config to each service method
+    # context. But if you have any better ideas do it, make a pull request.
+    # NOTE. I refuse idea to wrap each call into Flask application context
+    # because in fact we inside Spyne app context, not the Flask one.
+    def _flask_config_context(ctx):
+        ctx.udc = UserDefinedContext(flask_app.config)
+    application.event_manager.add_listener('method_call', _flask_config_context)
 
-    server = make_server('127.0.0.1', 8000, wsgi_application)
-    server.serve_forever()
+    return application

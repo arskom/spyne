@@ -150,6 +150,7 @@ from spyne.error import ValidationError
 from spyne.error import ResourceNotFoundError
 
 from spyne.model import ByteArray
+from spyne.model import String
 from spyne.model import File
 from spyne.model import Fault
 from spyne.model import ComplexModelBase
@@ -275,7 +276,8 @@ class SimpleDictDocument(DictDocument):
     flat dictionaries. The only example as of now is Http.
     """
 
-    def simple_dict_to_object(self, doc, inst_class, validator=None, hier_delim="_"):
+    def simple_dict_to_object(self, doc, inst_class, validator=None,
+                                                hier_delim="_", req_enc=None):
         """Converts a flat dict to a native python object.
 
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
@@ -302,6 +304,14 @@ class SimpleDictDocument(DictDocument):
             # entries.
             value = []
             for v2 in v:
+                # some wsgi implementations pass unicode strings, some pass str
+                # strings. we get unicode here when we can and should.
+                if v2 is not None and req_enc is not None \
+                                        and not issubclass(member.type, String) \
+                                        and issubclass(member.type, Unicode) \
+                                        and not isinstance(v2, unicode):
+                    v2 = v2.decode(req_enc)
+
                 if (validator is self.SOFT_VALIDATION and not
                                   member.type.validate_string(member.type, v2)):
                     raise ValidationError((orig_k, v2))

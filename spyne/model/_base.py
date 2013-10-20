@@ -102,7 +102,8 @@ class ModelBase(object):
     """
 
     __orig__ = None
-    """This holds the original class the class .customize()d from. """
+    """This holds the original class the class .customize()d from. Ie if this is
+    None, the class is not a customize()d one."""
 
     __extends__ = None
     """This holds the original class the class inherited or .customize()d from.
@@ -133,6 +134,9 @@ class ModelBase(object):
         # are skipped. just for internal use.
 
         default = None
+        """The default value if the input is None"""
+
+        default_factory = None
         """The default value if the input is None"""
 
         nillable = True
@@ -358,7 +362,7 @@ class ModelBase(object):
         Not meant to be overridden.
         """
 
-        cls_dict = {}
+        cls_dict = {'__module__': cls.__module__}
         if getattr(cls, '__orig__', None) is None:
             cls_dict['__orig__'] = cls
 
@@ -462,10 +466,12 @@ class SimpleModel(ModelBase):
         """
 
         retval = cls.customize(**kwargs)
+        retval.__extends__ = cls
 
         if not retval.is_default(retval):
-            retval.__extends__ = cls
             retval.__type_name__ = kwargs.get("type_name", ModelBase.Empty)
+
+        retval.resolve_namespace(retval, kwargs.get('__namespace__'))
 
         return retval
 
@@ -476,8 +482,10 @@ class SimpleModel(ModelBase):
     @staticmethod
     def validate_string(cls, value):
         return (     ModelBase.validate_string(cls, value)
-                and (len(cls.Attributes.values) == 0 or
-                                                value in cls.Attributes.values)
+                and (len(cls.Attributes.values) == 0 or (
+                     (value is None     and cls.Attributes.nillable) or
+                     (value is not None and value in cls.Attributes.values)
+                ))
             )
 
 

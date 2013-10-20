@@ -200,7 +200,6 @@ class Wsdl11(XmlSchema):
         self.build_schema_nodes()
 
         self.url = REGEX_WSDL.sub('', url)
-        #self.url = url
 
         service_name = self.interface.get_name()
 
@@ -325,8 +324,6 @@ class Wsdl11(XmlSchema):
 
             binding_name = self._get_binding_name(service_name)
             port_binding_names.append((service_name, binding_name))
-
-        port_name = port_type.get('name')
 
         for method in service.public_methods.values():
             check_method_port(service, method)

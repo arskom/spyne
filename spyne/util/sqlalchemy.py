@@ -433,10 +433,11 @@ def get_pk_columns(cls):
     """Return primary key fields of a Spyne object."""
 
     retval = []
-    for k, v in cls._type_info.items():
+    for k, v in cls.get_flat_type_info(cls).items():
         if v.Attributes.sqla_column_args is not None and \
                     v.Attributes.sqla_column_args[-1].get('primary_key', False):
             retval.append((k,v))
+
     return tuple(retval) if len(retval) > 0 else None
 
 
@@ -519,6 +520,34 @@ class _FakeTable(object):
         self.columns.append(col)
         self.c[col.name] = col
 
+
+def _gen_index_info(table, table_name, col, k, v):
+    unique = v.Attributes.unique
+    index = v.Attributes.index
+    if unique and not index:
+        index = True
+
+    try:
+        index_name, index_method = v.Attributes.index
+
+    except (TypeError, ValueError):
+        index_name = "%s_%s%s" % (table_name, k, '_unique' if unique else '')
+        index_method = v.Attributes.index
+
+    if index in (False, None):
+        pass
+
+    else:
+        if index == True:
+            index_args = (index_name, col), dict(unique=unique)
+        else:
+            index_args = (index_name, col), dict(unique=unique,
+                                      postgresql_using=index_method)
+
+        if isinstance(table, _FakeTable):
+            table.indexes.append(index_args)
+        else:
+            Index(*index_args[0], **index_args[1])
 
 def gen_sqla_info(cls, cls_bases=()):
     """Return SQLAlchemy table object corresponding to the passed Spyne object.
@@ -734,6 +763,7 @@ def gen_sqla_info(cls, cls_bases=()):
 
                     p.left = col.key
                     props[k] = rel
+                    _gen_index_info(table, table_name, col, k, v)
 
                 elif isinstance(p, c_xml):
                     if k in table.c:
@@ -769,39 +799,13 @@ def gen_sqla_info(cls, cls_bases=()):
                                                 cls.get_type_name(), k, v, p))
 
         else:
-            unique = v.Attributes.unique
-            index = v.Attributes.index
-            if unique and not index:
-                index = True
-
-            try:
-                index_name, index_method = v.Attributes.index
-
-            except (TypeError, ValueError):
-                index_name = "%s_%s%s" % (table_name, k, '_unique' if unique else '')
-                index_method = v.Attributes.index
-
             if k in table.c:
                 col = table.c[k]
 
             else:
                 col = Column(k, t, *col_args, **col_kwargs)
                 table.append_column(col)
-
-                if index in (False, None):
-                    pass
-
-                else:
-                    if index == True:
-                        index_args = (index_name, col), dict(unique=unique)
-                    else:
-                        index_args = (index_name, col), dict(unique=unique,
-                                                  postgresql_using=index_method)
-
-                    if isinstance(table, _FakeTable):
-                        table.indexes.append(index_args)
-                    else:
-                        Index(*index_args[0], **index_args[1])
+                _gen_index_info(table, table_name, col, k, v)
 
             if not v.Attributes.exc_mapper:
                 props[k] = col

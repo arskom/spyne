@@ -23,6 +23,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 import decimal
+import datetime
 
 from pprint import pprint
 
@@ -37,10 +38,11 @@ from spyne.decorator import srpc
 from spyne.model.primitive import Integer
 from spyne.model.primitive import Decimal
 from spyne.model.primitive import Unicode
+from spyne.model.primitive import Date
 from spyne.model.complex import XmlData
+from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import XmlAttribute
-from spyne.service import ServiceBase
 from spyne.protocol.xml import XmlDocument
 from spyne.util.xml import get_xml_as_object
 
@@ -201,6 +203,27 @@ class TestXml(unittest.TestCase):
         target = elt.xpath('//s0:b', namespaces=app.interface.nsmap)[0]
         assert target.attrib['{%s}c' % app.interface.nsmap["s1"]] == "bar"
 
+    def test_wrapped_array(self):
+        parent = etree.Element('parent')
+        val = ['a', 'b']
+        cls = Array(Unicode, namespace='tns')
+        XmlDocument().to_parent_element(cls, val, 'tns', parent)
+        print etree.tostring(parent, pretty_print=True)
+        xpath = parent.xpath('//x:stringArray/x:string/text()',
+                                                        namespaces={'x': 'tns'})
+        assert xpath == val
+
+    def test_simple_array(self):
+        class cls(ComplexModel):
+            __namespace__ = 'tns'
+            s = Unicode(max_occurs='unbounded')
+        val = cls(s=['a', 'b'])
+
+        parent = etree.Element('parent')
+        XmlDocument().to_parent_element(cls, val, 'tns', parent)
+        print etree.tostring(parent, pretty_print=True)
+        xpath = parent.xpath('//x:cls/x:s/text()', namespaces={'x': 'tns'})
+        assert xpath == val.s
 
     def test_decimal(self):
         d = decimal.Decimal('1e100')
@@ -297,6 +320,16 @@ class TestXml(unittest.TestCase):
         assert c.c == 3
         assert c.d == 4
 
+    def test_dates(self):
+        d = Date
+        xml_dates = [etree.fromstring('<d>2013-04-05</d>'), etree.fromstring('<d>2013-04-05+02:00</d>'), etree.fromstring('<d>2013-04-05-02:00</d>'), etree.fromstring('<d>2013-04-05Z</d>')]
+        for xml_date in xml_dates:
+            c = get_xml_as_object(xml_date, d)
+            assert isinstance(c, datetime.date) == True
+            assert c.year == 2013
+            assert c.month == 4
+            assert c.day == 5
+        
 
 if __name__ == '__main__':
     unittest.main()

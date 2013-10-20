@@ -403,6 +403,32 @@ class TestParseOwnXmlSchema(unittest.TestCase):
         assert NewGuy._type_info['name'].type.__orig__ is Unicode
         assert NewGuy._type_info['name'].type.Attributes.default == "aa"
 
+    def test_simple_type_explicit_customize(self):
+        class Header(ComplexModel):
+            __type_name__ = 'header'
+
+            test = Boolean(min_occurs=0, nillable=False)
+            pw = Unicode.customize(min_occurs=0, nillable=False, min_len=6)
+
+
+        class Params(ComplexModel):
+            __namespace__ = 'dummy'
+
+            sendHeader = Header.customize(nillable=False, min_occurs=1)
+
+
+        class DummyService(ServiceBase):
+            @rpc(Params, _returns=Unicode)
+            def loadServices(ctx, serviceParams):
+                return '42'
+
+        Application([DummyService],
+            tns='dummy',
+            name='DummyService',
+            in_protocol=Soap11(validator='lxml'),
+            out_protocol=Soap11()
+        )
+        # if instantiation doesn't fail, test is green.
 
 class TestParseForeignXmlSchema(unittest.TestCase):
     def test_simple_content(self):

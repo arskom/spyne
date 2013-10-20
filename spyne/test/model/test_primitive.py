@@ -23,6 +23,7 @@ import unittest
 
 from datetime import timedelta
 from lxml import etree
+import pytz
 
 from spyne.util import total_seconds
 from spyne.const import xml_ns as ns
@@ -91,7 +92,7 @@ class TestPrimitive(unittest.TestCase):
         self.assertEquals(value, 'value')
 
     def test_datetime(self):
-        n = datetime.datetime.now()
+        n = datetime.datetime.now(pytz.utc)
 
         element = etree.Element('test')
         XmlDocument().to_parent_element(DateTime, n, ns_test, element)
@@ -129,13 +130,24 @@ class TestPrimitive(unittest.TestCase):
 
         n = datetime.datetime.now(pytz.timezone('EST'))
         element = etree.Element('test')
-        XmlDocument().to_parent_element(DateTime(as_time_zone=pytz.utc), n, ns_test, element)
+        cls = DateTime(as_timezone=pytz.utc, timezone=False)
+        XmlDocument().to_parent_element(cls, n, ns_test, element)
         element = element[0]
 
         c = n.astimezone(pytz.utc).replace(tzinfo=None)
         self.assertEquals(element.text, c.isoformat())
-        dt = XmlDocument().from_element(DateTime, element)
+        dt = XmlDocument().from_element(cls, element)
+        assert dt.tzinfo is not None
+        dt = dt.replace(tzinfo=None)
         self.assertEquals(c, dt)
+
+    def test_date_timezone(self):
+        elt = etree.Element('wot')
+        elt.text = '2013-08-09+02:00'
+        dt = XmlDocument().from_element(Date, elt)
+        print "ok without validation."
+        dt = XmlDocument(validator='soft').from_element(Date, elt)
+        print dt
 
     def test_time(self):
         n = datetime.time(1, 2, 3, 4)
@@ -372,50 +384,10 @@ class TestPrimitive(unittest.TestCase):
         b = XmlDocument().from_element(Boolean, b)
         self.assertEquals(b, None)
 
-    def test_type_names(self):
-        class Test(ComplexModel):
-            any_xml = AnyXml
-            any_dict = AnyDict
-            unicode_ = Unicode
-            any_uri = AnyUri
-            decimal = Decimal
-            double = Double
-            float = Float
-            integer = Integer
-            unsigned = UnsignedInteger
-            int64 = Integer64
-            int32 = Integer32
-            int16 = Integer16
-            int8 = Integer8
-            uint64 = UnsignedInteger64
-            uint32 = UnsignedInteger32
-            uint16 = UnsignedInteger16
-            uint8 = UnsignedInteger8
-            t = Time
-            d = Date
-            dt = DateTime
-            dur = Duration
-            bool = Boolean
-            f = File
-            b = ByteArray
-
-        class Service(ServiceBase):
-            @srpc(Test)
-            def call(t):
-                pass
-
-        AnyXml.__type_name__ = 'oui'
-        try:
-            app.interface.build_interface_document()
-        except:
-            pass
-        else:
-            raise Exception("must fail.")
-
-        AnyXml.__type_name__ = 'anyType'
-
-        app = Application([Service], 'hey', in_protocol=XmlDocument(), out_protocol=XmlDocument())
-        XmlSchema(app.interface).build_interface_document()
+    def test_new_type(self):
+        """Customized primitives go into namespace based on module name."""
+        custom_type = Unicode(pattern='123')
+        self.assertEqual(custom_type.get_namespace(), custom_type.__module__)
 
     def test_default_nullable(self):
         """Test if default nullable changes nullable attribute."""

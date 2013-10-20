@@ -19,6 +19,7 @@
 
 import time
 import unittest
+import pytz
 
 from spyne.model.fault import Fault
 
@@ -186,7 +187,7 @@ class SpyneClientTestBase(object):
         val.simple[1].s = "qwe"
 
         val.other = self.client.factory.create("{spyne.test.interop.server}OtherClass");
-        val.other.dt = datetime.now()
+        val.other.dt = datetime.now(pytz.utc)
         val.other.d = 123.456
         val.other.b = True
 
@@ -215,7 +216,7 @@ class SpyneClientTestBase(object):
         val.simple[1].s = "qwe"
 
         val.other = self.client.factory.create("{spyne.test.interop.server}OtherClass");
-        val.other.dt = datetime.now()
+        val.other.dt = datetime.now(pytz.utc)
         val.other.d = 123.456
         val.other.b = True
 

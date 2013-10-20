@@ -25,13 +25,14 @@ import datetime
 import unittest
 
 from lxml import etree
+import pytz
 
 from spyne.application import Application
 from spyne.decorator import rpc
 from spyne.interface.wsdl import Wsdl11
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
-from spyne.model.primitive import DateTime
+from spyne.model.primitive import DateTime, Date
 from spyne.model.primitive import Float
 from spyne.model.primitive import Integer
 from spyne.model.primitive import String
@@ -287,7 +288,7 @@ class TestSoap(unittest.TestCase):
 
     def test_datetime_fixed_format(self):
         # Soap should ignore formats
-        n = datetime.datetime.now().replace(microsecond=0)
+        n = datetime.datetime.now(pytz.utc).replace(microsecond=0)
         format = "%Y %m %d %H %M %S"
 
         element = etree.Element('test')
@@ -297,6 +298,14 @@ class TestSoap(unittest.TestCase):
 
         dt = Soap11().from_element(DateTime(format=format), element[0])
         assert n == dt
+
+    def test_date_with_tzoffset(self):
+        for iso_d in ('2013-04-05', '2013-04-05+02:00', '2013-04-05-02:00', '2013-04-05Z'):
+            d = Soap11().from_string(Date, iso_d)
+            assert isinstance(d, datetime.date) == True
+            assert d.year == 2013
+            assert d.month == 4
+            assert d.day == 5
 
     def test_to_parent_element_nested(self):
         m = ComplexModel.produce(

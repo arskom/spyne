@@ -18,6 +18,8 @@
 #
 
 
+import spyne
+
 import decimal
 import datetime
 import math
@@ -227,12 +229,12 @@ def time_from_string(cls, string):
     return datetime.time(int(fields['hr']), int(fields['min']),
                                                    int(fields['sec']), microsec)
 
-
 @nillable_string
 def datetime_to_string(cls, value):
-    if cls.Attributes.as_time_zone is not None and value.tzinfo is not None:
-        value = value.astimezone(cls.Attributes.as_time_zone) \
-                                                    .replace(tzinfo=None)
+    if cls.Attributes.as_timezone is not None and value.tzinfo is not None:
+        value = value.astimezone(cls.Attributes.as_timezone)
+    if not cls.Attributes.timezone:
+        value = value.replace(tzinfo=None)
 
     format = cls.Attributes.format
     if format is None:
@@ -246,22 +248,56 @@ def datetime_to_string(cls, value):
     else:
         return string_format % ret_str
 
+
+def _parse_datetime_iso_match(date_match, tz=None):
+    fields = date_match.groupdict()
+
+    year = int(fields.get('year'))
+    month =  int(fields.get('month'))
+    day = int(fields.get('day'))
+    hour = int(fields.get('hr'))
+    min = int(fields.get('min'))
+    sec = int(fields.get('sec'))
+    usec = fields.get("sec_frac")
+    if usec is None:
+        usec = 0
+    else:
+        usec = int(usec[1:])
+
+    return datetime.datetime(year, month, day, hour, min, sec, usec, tz)
+
+
 @nillable_string
 def datetime_from_string_iso(cls, string):
+    astz = cls.Attributes.as_timezone
+
     match = cls._utc_re.match(string)
     if match:
-        return cls.parse(match, tz=pytz.utc)
+        tz = pytz.utc
+        retval = _parse_datetime_iso_match(match, tz=tz)
+        if astz is not None:
+            retval = retval.astimezone(astz)
+        return retval
 
-    match = cls._offset_re.match(string)
-    if match:
-        tz_hr, tz_min = [int(match.group(x)) for x in ("tz_hr", "tz_min")]
-        return cls.parse(match, tz=FixedOffset(tz_hr * 60 + tz_min, {}))
-
-    match = cls._local_re.match(string)
     if match is None:
-        raise ValidationError(string)
+        match = cls._offset_re.match(string)
+        if match:
+            tz_hr, tz_min = [int(match.group(x)) for x in ("tz_hr", "tz_min")]
+            tz = FixedOffset(tz_hr * 60 + tz_min, {})
+            retval = _parse_datetime_iso_match(match, tz=tz)
+            if astz is not None:
+                retval = retval.astimezone(astz)
+            return retval
 
-    return cls.parse(match)
+    if match is None:
+        match = cls._local_re.match(string)
+        if match:
+            retval = _parse_datetime_iso_match(match)
+            if astz:
+                retval = retval.replace(tzinfo=astz)
+            return retval
+
+    raise ValidationError(string)
 
 @nillable_string
 def date_from_string_iso(cls, string):
@@ -271,7 +307,11 @@ def date_from_string_iso(cls, string):
     try:
         return datetime.date(*(time.strptime(string, '%Y-%m-%d')[0:3]))
     except ValueError:
-        raise ValidationError(string)
+        match = cls._offset_re.match(string)
+        if match:
+            return datetime.date(int(match.group('year')), int(match.group('month')), int(match.group('day')))
+        else:
+            raise ValidationError(string)
 
 
 @nillable_string
@@ -281,11 +321,11 @@ def datetime_from_string(cls, string):
     if format is None:
         retval = datetime_from_string_iso(cls, string)
     else:
-        retval = datetime.datetime.strptime(string, format)
+        astz = cls.Attributes.as_timezone
 
-    if cls.Attributes.as_time_zone is not None and retval.tzinfo is not None:
-        retval = retval.astimezone(cls.Attributes.as_time_zone) \
-                                                    .replace(tzinfo=None)
+        retval = datetime.datetime.strptime(string, format)
+        if astz:
+            retval = retval.astimezone(cls.Attributes.as_time_zone)
 
     return retval
 
@@ -296,7 +336,12 @@ def date_from_string(cls, string):
         d = datetime.datetime.strptime(string, cls.Attributes.format)
         return datetime.date(d.year, d.month, d.day)
     except ValueError, e:
-        raise ValidationError(string, "%%r: %r" % e)
+        match = cls._offset_re.match(string)
+        if match:
+            return datetime.date(int(match.group('year')),
+                            int(match.group('month')), int(match.group('day')))
+        else:
+            raise ValidationError(string, "%%r: %s" % repr(e).replace("%", "%%"))
 
 
 if hasattr(datetime.timedelta, 'total_seconds'):
@@ -305,8 +350,7 @@ if hasattr(datetime.timedelta, 'total_seconds'):
 
 else:
     def _total_seconds(td):
-        return (td.microseconds +
-                            (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
+        return (td.microseconds + (td.seconds + td.days * 24 * 3600) *1e6) / 1e6
 
 @nillable_string
 def duration_to_string(cls, value):
@@ -360,7 +404,8 @@ def duration_to_string(cls, value):
 def duration_from_string(cls, string):
     duration = _duration_re.match(string).groupdict(0)
     if duration is None:
-        raise ValidationError("time data '%s' does not match regex '%s'" %(string, _duration_re.pattern))
+        raise ValidationError("time data '%s' does not match regex '%s'" %
+                                                (string, _duration_re.pattern))
 
     days = int(duration['days'])
     days += int(duration['months']) * 30

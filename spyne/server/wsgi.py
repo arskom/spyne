@@ -443,15 +443,14 @@ class WsgiApplication(HttpBase):
     def __reconstruct_wsgi_request(self, http_env):
         """Reconstruct http payload using information in the http header."""
 
-        # fyi, here's what the parse_header function returns:
-        # >>> import cgi; cgi.parse_header("text/xml; charset=utf-8")
-        # ('text/xml', {'charset': 'utf-8'})
         content_type = http_env.get("CONTENT_TYPE")
-        if content_type is None:
-            charset = 'utf-8'
-        else:
+        charset = None
+        if content_type is not None:
+            # fyi, here's what the parse_header function returns:
+            # >>> import cgi; cgi.parse_header("text/xml; charset=utf-8")
+            # ('text/xml', {'charset': 'utf-8'})
             content_type = cgi.parse_header(content_type)
-            charset = content_type[1].get('charset', 'utf-8')
+            charset = content_type[1].get('charset', None)
 
         return self.__wsgi_input_to_iterable(http_env), charset
 
