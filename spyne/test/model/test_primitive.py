@@ -28,8 +28,6 @@ import pytz
 from spyne.util import total_seconds
 from spyne.const import xml_ns as ns
 from spyne.model import Null
-from spyne.model.binary import File
-from spyne.model.binary import ByteArray
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
 from spyne.model.primitive import Date
@@ -40,29 +38,12 @@ from spyne.model.primitive import Duration
 from spyne.model.primitive import Float
 from spyne.model.primitive import Integer
 from spyne.model.primitive import UnsignedInteger
-from spyne.model.primitive import AnyXml
-from spyne.model.primitive import AnyDict
-from spyne.model.primitive import AnyUri
 from spyne.model.primitive import Unicode
 from spyne.model.primitive import String
 from spyne.model.primitive import Decimal
-from spyne.model.primitive import Double
-from spyne.model.primitive import Integer64
-from spyne.model.primitive import Integer32
-from spyne.model.primitive import Integer16
-from spyne.model.primitive import Integer8
-from spyne.model.primitive import UnsignedInteger64
-from spyne.model.primitive import UnsignedInteger32
-from spyne.model.primitive import UnsignedInteger16
-from spyne.model.primitive import UnsignedInteger8
 
 from spyne.protocol import ProtocolBase
 from spyne.protocol.xml import XmlDocument
-
-from spyne.application import Application
-from spyne.decorator import srpc
-from spyne.service import ServiceBase
-from spyne.interface.xml_schema import XmlSchema
 
 ns_test = 'test_namespace'
 
