@@ -412,7 +412,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
 
         self.session.expunge_all()
 
-        session.query(SomeOtherClass).with_polymorphic('*').get(soc_id).t == 1
+        assert self.session.query(SomeOtherClass).with_polymorphic('*').get(soc_id).t == 1
         self.session.close()
 
     def test_inheritance_polymorphic(self):
