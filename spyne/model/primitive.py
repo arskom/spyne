@@ -38,6 +38,7 @@ import uuid
 import decimal
 import datetime
 import platform
+import spyne
 
 import spyne.const.xml_ns
 
