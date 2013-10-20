@@ -403,19 +403,13 @@ class TestParseOwnXmlSchema(unittest.TestCase):
         assert NewGuy._type_info['name'].type.__orig__ is Unicode
         assert NewGuy._type_info['name'].type.Attributes.default == "aa"
 
-    def test_simple_type_explicit_customize(self):
+    def test_simple_type_explicit_customization(self):
         class Header(ComplexModel):
-            __type_name__ = 'header'
-
             test = Boolean(min_occurs=0, nillable=False)
             pw = Unicode.customize(min_occurs=0, nillable=False, min_len=6)
 
-
         class Params(ComplexModel):
-            __namespace__ = 'dummy'
-
             sendHeader = Header.customize(nillable=False, min_occurs=1)
-
 
         class DummyService(ServiceBase):
             @rpc(Params, _returns=Unicode)

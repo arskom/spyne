@@ -465,10 +465,19 @@ class SimpleModel(ModelBase):
         See spyne.model.base.ModelBase for more information.
         """
 
-        retval = cls.customize(**kwargs)
-        retval.__extends__ = cls
+        return cls.customize(**kwargs)
+
+    @classmethod
+    def customize(cls, **kwargs):
+        """Duplicates cls and overwrites the values in ``cls.Attributes`` with
+        ``**kwargs`` and returns the new class."""
+
+        cls_name, cls_bases, cls_dict = cls._s_customize(cls, **kwargs)
+
+        retval = type(cls_name, cls_bases, cls_dict)
 
         if not retval.is_default(retval):
+            retval.__extends__ = cls
             retval.__type_name__ = kwargs.get("type_name", ModelBase.Empty)
 
         retval.resolve_namespace(retval, kwargs.get('__namespace__'))

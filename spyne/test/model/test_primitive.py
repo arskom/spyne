@@ -401,6 +401,9 @@ class TestPrimitive(unittest.TestCase):
             Unicode.Attributes.NULLABLE_DEFAULT = orig_default
             self.assertEqual(Unicode.Attributes.nullable, orig_default)
 
+    def test_simple_type_explicit_customization(self):
+        assert Unicode(max_len=5).__extends__ is not None
+        assert Unicode.customize(max_len=5).__extends__ is not None
 
 
 ### Duration Data Type
