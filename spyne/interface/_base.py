@@ -377,13 +377,11 @@ class Interface(object):
 
 class AllYourInterfaceDocuments(object):
     # AreBelongToUs
-    def __init__(self, interface):
-        if spyne.interface.HAS_WSDL:
+    def __init__(self, interface, wsdl11=None):
+        self.wsdl11 = wsdl11
+        if self.wsdl11 is None and spyne.interface.HAS_WSDL:
             from spyne.interface.wsdl import Wsdl11
             self.wsdl11 = Wsdl11(interface)
-        else:
-            self.wsdl11 = None
-
 
 class InterfaceDocumentBase(object):
     """Base class for all interface document implementations.
