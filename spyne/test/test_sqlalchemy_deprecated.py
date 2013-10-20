@@ -374,3 +374,7 @@ class TestSpyne2Sqlalchemy(unittest.TestCase):
                 break
         else:
             raise Exception("UniqueConstraint is missing.")
+
+
+if __name__ == '__main__':
+    unittest.main()
