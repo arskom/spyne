@@ -74,6 +74,7 @@ class AttributesMeta(type(object)):
         if nullable is not None:
             assert nillable is None or nullable == nillable
             self._nullable = nullable
+
         elif nillable is not None:
             assert nullable is None or nullable == nillable
             self._nullable = nillable

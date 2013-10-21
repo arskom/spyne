@@ -20,10 +20,11 @@
 import re
 import datetime
 import unittest
+import pytz
 
 from datetime import timedelta
+
 from lxml import etree
-import pytz
 
 from spyne.util import total_seconds
 from spyne.const import xml_ns as ns
