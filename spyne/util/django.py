@@ -85,16 +85,14 @@ class DjangoModelMapper(object):
 
     """
 
-    # default registry shared between DjangoModelMapper instances
-    # subclasses may define own registry in __init__
-    _registry = {}
-
     field_mapper_class = DjangoFieldMapper
 
     class UnknownFieldMapperException(Exception):
         """Raises when there is no field mapper for given django_type."""
 
     def __init__(self, django_spyne_models=()):
+        self._registry = {}
+
         for django_type, spyne_model in django_spyne_models:
             self.register(django_type, spyne_model)
 
@@ -198,7 +196,7 @@ def strip_metachars(pattern):
     return pattern[start:till]
 
 
-default_model_mapper = DjangoModelMapper((
+DEFAULT_FIELD_MAP = (
     ('AutoField', primitive.Integer32),
     ('CharField', primitive.NormalizedString),
     ('SlugField', primitive.Unicode(type_name='Slug',
@@ -227,7 +225,9 @@ default_model_mapper = DjangoModelMapper((
     ('DateTimeField', primitive.DateTime),
 
     ('ForeignKey', primitive.Integer32),
-))
+)
+
+default_model_mapper = DjangoModelMapper(DEFAULT_FIELD_MAP)
 
 
 default_model_mapper.register_field_mapper('DecimalField',
