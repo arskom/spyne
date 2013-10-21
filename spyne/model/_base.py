@@ -55,7 +55,7 @@ def nillable_iterable(func):
 
 
 # All this code to get rid of a one letter quirk: nillable vs nullable.
-class AttributesMeta(type(object)):
+class AttributesMeta(type):
     NULLABLE_DEFAULT = True
 
     def __new__(cls, cls_name, cls_bases, cls_dict):
@@ -63,14 +63,11 @@ class AttributesMeta(type(object)):
         if not 'sqla_mapper_args' in cls_dict:
             cls_dict['sqla_mapper_args'] = None
 
-        return type(object).__new__(cls, cls_name, cls_bases, cls_dict)
+        return super(AttributesMeta, cls).__new__(cls, cls_name, cls_bases, cls_dict)
 
     def __init__(self, cls_name, cls_bases, cls_dict):
-        for base in cls_bases:
-            self._nullable = getattr(base, '_nullable', None)
-
-        nullable = cls_dict.get('nullable', None)
-        nillable = cls_dict.get('nillable', None)
+        nullable = cls_dict.get('nullable')
+        nillable = cls_dict.get('nillable')
         if nullable is not None:
             assert nillable is None or nullable == nillable
             self._nullable = nullable
@@ -78,24 +75,18 @@ class AttributesMeta(type(object)):
             assert nullable is None or nullable == nillable
             self._nullable = nillable
 
-        type(object).__init__(self, cls_name, cls_bases, cls_dict)
+        super(AttributesMeta, self).__init__(cls_name, cls_bases, cls_dict)
 
-    def get_nullable(self):
+    @property
+    def nullable(self):
         return (self._nullable if self._nullable is not None else
                 self.NULLABLE_DEFAULT)
 
-    def set_nullable(self, what):
+    @nullable.setter
+    def nullable(self, what):
         self._nullable = what
 
-    nullable = property(get_nullable, set_nullable)
-
-    def get_nillable(self):
-        return self.nullable
-
-    def set_nillable(self, what):
-        self.nullable = what
-
-    nillable = property(get_nillable, set_nillable)
+    nillable = nullable
 
 
 class ModelBase(object):
@@ -146,6 +137,7 @@ class ModelBase(object):
         """Set this to false to reject null values. Synonyms with
         ``nullable``. True by default. The default value can be changed by
          setting ``AttributesMeta.NULLABLE_DEFAULT``."""
+        _nullable = None
 
         min_occurs = 0
         """Set this to 1 to make this object mandatory. Can be set to any
