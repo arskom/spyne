@@ -175,7 +175,7 @@ class DjangoModelMapper(object):
         return field_map
 
 
-def strip_metachars(pattern):
+def strip_regex_metachars(pattern):
     """Strip ^ and $ from pattern begining and end.
 
     According to http://www.w3.org/TR/xmlschema-0/#regexAppendix XMLSchema
@@ -199,16 +199,17 @@ def strip_metachars(pattern):
 DEFAULT_FIELD_MAP = (
     ('AutoField', primitive.Integer32),
     ('CharField', primitive.NormalizedString),
-    ('SlugField', primitive.Unicode(type_name='Slug',
-                                    pattern=strip_metachars(slug_re.pattern))),
+    ('SlugField', primitive.String(
+        type_name='Slug', pattern=strip_regex_metachars(slug_re.pattern))),
     ('TextField', primitive.String),
-    ('EmailField', primitive.Unicode(
-        type_name='Email', pattern=strip_metachars(email_re.pattern))),
-    ('CommaSeparatedIntegerField', primitive.Unicode(
+    ('EmailField', primitive.String(
+        type_name='Email', pattern=strip_regex_metachars(email_re.pattern))),
+    ('CommaSeparatedIntegerField', primitive.String(
         type_name='CommaSeparatedField',
-        pattern=strip_metachars(comma_separated_int_list_re.pattern))),
+        pattern=strip_regex_metachars(comma_separated_int_list_re.pattern))),
     ('UrlField', primitive.AnyUri(
-        type_name='Url', pattern=strip_metachars(URLValidator.regex.pattern))),
+        type_name='Url',
+        pattern=strip_regex_metachars(URLValidator.regex.pattern))),
     ('FilePathField', primitive.String),
 
     ('BooleanField', primitive.Boolean),
