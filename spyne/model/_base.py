@@ -66,7 +66,7 @@ class AttributesMeta(type(object)):
         return type(object).__new__(cls, cls_name, cls_bases, cls_dict)
 
     def __init__(self, cls_name, cls_bases, cls_dict):
-        for base in cls_bases:
+        for base in reversed(cls_bases):
             self._nullable = getattr(base, '_nullable', None)
 
         nullable = cls_dict.get('nullable', None)

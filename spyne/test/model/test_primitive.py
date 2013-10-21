@@ -89,6 +89,13 @@ class TestPrimitive(unittest.TestCase):
             pass
         assert Attributes.nullable == False
 
+        class AttrMixin:
+            pass
+        class Attributes(Attributes, AttrMixin):
+            pass
+
+        assert Attributes.nullable is False
+
     def test_decimal(self):
         assert Decimal(10,4).Attributes.total_digits == 10
         assert Decimal(10,4).Attributes.fraction_digits == 4
