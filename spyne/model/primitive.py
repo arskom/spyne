@@ -443,6 +443,17 @@ NonNegativeInteger = UnsignedInteger
 """The arbitrary-size unsigned integer, alias for UnsignedInteger."""
 
 
+class PositiveInteger(NonNegativeInteger):
+
+    """The arbitrary-size positive integer (natural number)."""
+
+    __type_name__ = 'positiveInteger'
+
+    @staticmethod
+    def validate_native(cls, value):
+        return (Integer.validate_native(cls, value)
+                and (value is None or value > 0))
+
 @memoize
 def TBoundedInteger(num_bits, type_name):
     _min_b = -(0x8<<(num_bits-4))     # 0x8 is 4 bits.
