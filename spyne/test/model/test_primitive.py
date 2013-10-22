@@ -552,7 +552,6 @@ class TestDurationPrimitive(unittest.TestCase):
         s1 = XmlDocument().from_element(SomeBlob, element)
         assert total_seconds(s1.howlong) == total_seconds(gg.howlong)
 
-
     def test_duration_positive_minutes_and_seconds_only(self):
         answer = 'PT5M35S'
         gg = SomeBlob()

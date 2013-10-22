@@ -416,6 +416,7 @@ class TestSimpleTypeRestrictions(unittest.TestCase):
             s = String
 
         sti = CCM.get_simple_type_info(CCM)
+
         assert "i" in sti
         assert sti["i"].path == ('i',)
         assert sti["i"].type is Integer
