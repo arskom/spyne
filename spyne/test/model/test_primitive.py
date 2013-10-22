@@ -48,10 +48,10 @@ from spyne.protocol.xml import XmlDocument
 
 ns_test = 'test_namespace'
 
+from spyne.model import ModelBase
 
 class TestPrimitive(unittest.TestCase):
     def test_nillable_quirks(self):
-        from spyne.model import ModelBase
         assert ModelBase.Attributes.nillable == True
         class Attributes(ModelBase.Attributes):
             nillable = False
@@ -90,12 +90,22 @@ class TestPrimitive(unittest.TestCase):
             pass
         assert Attributes.nullable == False
 
+    def test_nillable_inheritance_quirks(self):
+        class Attributes(ModelBase.Attributes):
+            nullable = False
+
         class AttrMixin:
             pass
-        class Attributes(Attributes, AttrMixin):
+        class NewAttributes(Attributes, AttrMixin):
+            pass
+        assert NewAttributes.nullable is False
+
+        class AttrMixin:
+            pass
+        class NewAttributes(AttrMixin, Attributes):
             pass
 
-        assert Attributes.nullable is False
+        assert NewAttributes.nullable is False
 
     def test_decimal(self):
         assert Decimal(10,4).Attributes.total_digits == 10
