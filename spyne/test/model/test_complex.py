@@ -403,6 +403,15 @@ class TestXmlAttribute(unittest.TestCase):
         s1 = Soap11().from_element(PacketAttribute, element)
         assert s1.Data[0] == test_string
 
+    def test_customized_type(self):
+        class SomeClass(ComplexModel):
+            a = XmlAttribute(Integer(ge=4))
+        class SomeService(ServiceBase):
+            @rpc(SomeClass)
+            def some_call(ctx, some_class):
+                pass
+        app = Application([SomeService], 'some_tns')
+
 
 class TestSimpleTypeRestrictions(unittest.TestCase):
     def test_simple_type_info(self):

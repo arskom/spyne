@@ -155,6 +155,8 @@ class XmlModifier(ModelBase):
         retval.type = type
         retval.Attributes = type.Attributes
         retval._ns = ns
+        if type.__type_name__ is ModelBase.Empty:
+            retval.__type_name__ = ModelBase.Empty
         return retval
 
     @staticmethod
@@ -458,12 +460,20 @@ class ComplexModelMeta(type(ModelBase)):
         type(ModelBase).__init__(self, cls_name, cls_bases, cls_dict)
 
 
+# FIXME: what an ugly hack.
 def _fill_empty_type_name(cls, k, v, parent=False):
     v.__namespace__ = cls.get_namespace()
     tn = "%s_%s%s" % (cls.get_type_name(), k, TYPE_SUFFIX)
 
     if issubclass(v, Array):
         child_v, = v._type_info.values()
+        child_v.__type_name__ = tn
+
+        v._type_info = TypeInfo({tn: child_v})
+        v.__type_name__ = '%s%s%s'% (ARRAY_PREFIX, tn, ARRAY_SUFFIX)
+
+    elif issubclass(v, XmlModifier):
+        child_v = v.type
         child_v.__type_name__ = tn
 
         v._type_info = TypeInfo({tn: child_v})
