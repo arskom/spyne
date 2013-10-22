@@ -298,7 +298,7 @@ class TwistedWebResource(Resource):
                                                       "text/xml; charset=utf-8")
         url = _reconstruct_url(request)
 
-        if self.doc.wsdl11 is None:
+        if self.http_transport.doc.wsdl11 is None:
             return HTTP_404
 
         if self._wsdl is None:
