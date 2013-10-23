@@ -56,3 +56,8 @@ Development principles
   implementation instead of explicitly specifying the parent class. This is
   needed to correctly call all implementations of the overridden method
   according to MRO in cases of multiple inheritance.
+
+* Unit tests should test the root functionality as closely as possible.
+  This way, instead of getting a useless "something broke" alert, we'd get
+  e.g. "something broke in the validation of customized types used as xml
+  attributes" alert.
