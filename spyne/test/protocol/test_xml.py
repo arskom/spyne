@@ -39,11 +39,13 @@ from spyne.model.primitive import Integer
 from spyne.model.primitive import Decimal
 from spyne.model.primitive import Unicode
 from spyne.model.primitive import Date
+from spyne.model.primitive import Mandatory
 from spyne.model.complex import XmlData
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import XmlAttribute
 from spyne.protocol.xml import XmlDocument
+from spyne.protocol.xml._base import SchemaValidationError
 from spyne.util.xml import get_xml_as_object
 
 
@@ -329,7 +331,49 @@ class TestXml(unittest.TestCase):
             assert c.year == 2013
             assert c.month == 4
             assert c.day == 5
-        
+
+    def _get_ctx(self, server, in_string):
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = in_string
+        ctx, = server.generate_contexts(initial_ctx)
+        server.get_in_object(ctx)
+        return ctx
+
+    def test_mandatory_elements(self):
+        class SomeService(ServiceBase):
+            @srpc(Mandatory.Unicode, _returns=Unicode)
+            def some_call(s):
+                assert s == 'hello'
+                return s
+
+        app = Application([SomeService], "tns", name="test_mandatory_elements",
+                          in_protocol=XmlDocument(validator='lxml'),
+                          out_protocol=XmlDocument())
+        server = ServerBase(app)
+
+        # Valid call with all mandatory elements in
+        ctx = self._get_ctx(server, [
+            '<some_call xmlns="tns">'
+                '<s>hello</s>'
+            '</some_call>'
+        ])
+        server.get_out_object(ctx)
+        server.get_out_string(ctx)
+        ret = etree.fromstring(''.join(ctx.out_string)).xpath(
+            '//tns:some_call%s/text()' % RESULT_SUFFIX,
+            namespaces=app.interface.nsmap)[0]
+        assert ret == 'hello'
+
+
+        # Invalid call
+        ctx = self._get_ctx(server, [
+            '<some_call xmlns="tns">'
+                # no mandatory elements here...
+            '</some_call>'
+        ])
+        with self.assertRaises(SchemaValidationError):
+            server.get_out_object(ctx)
+
 
 if __name__ == '__main__':
     unittest.main()
