@@ -374,6 +374,40 @@ class TestXml(unittest.TestCase):
         with self.assertRaises(SchemaValidationError):
             server.get_out_object(ctx)
 
+    def test_mandatory_subelements(self):
+        class C(ComplexModel):
+            foo = Mandatory.Unicode
+
+        class SomeService(ServiceBase):
+            @srpc(C.customize(min_occurs=1), _returns=Unicode)
+            def some_call(c):
+                assert c is not None
+                assert c.foo == 'hello'
+                return c.foo
+
+        app = Application(
+            [SomeService], "tns", name="test_mandatory_subelements",
+            in_protocol=XmlDocument(validator='lxml'),
+            out_protocol=XmlDocument())
+        server = ServerBase(app)
+
+        ctx = self._get_ctx(server, [
+            '<some_call xmlns="tns">'
+                # no mandatory elements at all...
+            '</some_call>'
+        ])
+        with self.assertRaises(SchemaValidationError):
+            server.get_out_object(ctx)
+
+        ctx = self._get_ctx(server, [
+            '<some_call xmlns="tns">'
+                '<c>'
+                    # no mandatory elements here...
+                '</c>'
+            '</some_call>'
+        ])
+        with self.assertRaises(SchemaValidationError):
+            server.get_out_object(ctx)
 
 if __name__ == '__main__':
     unittest.main()
