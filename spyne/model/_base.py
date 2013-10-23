@@ -63,7 +63,7 @@ class AttributesMeta(type(object)):
         if not 'sqla_mapper_args' in cls_dict:
             cls_dict['sqla_mapper_args'] = None
 
-        return type(object).__new__(cls, cls_name, cls_bases, cls_dict)
+        return super(AttributesMeta, cls).__new__(cls, cls_name, cls_bases, cls_dict)
 
     def __init__(self, cls_name, cls_bases, cls_dict):
         nullable = cls_dict.get('nullable', None)
@@ -79,7 +79,7 @@ class AttributesMeta(type(object)):
         if getattr(self, '_nullable', None) is None:
             self._nullable = None
 
-        type(object).__init__(self, cls_name, cls_bases, cls_dict)
+        super(AttributesMeta, self).__init__(cls_name, cls_bases, cls_dict)
 
     def get_nullable(self):
         return (self._nullable if self._nullable is not None else
@@ -437,6 +437,20 @@ class Null(ModelBase):
     pass
 
 
+class SimpleModelAttributesMeta(ModelBase.Attributes.__metaclass__):
+    def __init__(self, cls_name, cls_bases, cls_dict):
+        super(SimpleModelAttributesMeta, self).__init__(cls_name, cls_bases, cls_dict)
+        if getattr(self, '_pattern', None) is None:
+            self._pattern = None
+    def get_pattern(self):
+        return self._pattern
+    def set_pattern(self, pattern):
+        self._pattern = pattern
+        if pattern is not None:
+            self._pattern_re = re.compile(pattern)
+    pattern = property(get_pattern, set_pattern)
+
+
 class SimpleModel(ModelBase):
     """The base class for primitives."""
 
@@ -445,18 +459,7 @@ class SimpleModel(ModelBase):
     class Attributes(ModelBase.Attributes):
         """The class that holds the constraints for the given type."""
 
-        class __metaclass__(AttributesMeta):
-            def __init__(self, cls_name, cls_bases, cls_dict):
-                AttributesMeta.__init__(self, cls_name, cls_bases, cls_dict)
-                if getattr(self, '_pattern', None) is None:
-                    self._pattern = None
-            def get_pattern(self):
-                return self._pattern
-            def set_pattern(self, pattern):
-                self._pattern = pattern
-                if pattern is not None:
-                    self._pattern_re = re.compile(pattern)
-            pattern = property(get_pattern, set_pattern)
+        __metaclass__ = SimpleModelAttributesMeta
 
         values = set()
         """The set of possible values for this type."""

@@ -49,6 +49,6 @@ class _RemoteProcedure(RemoteProcedureBase):
 
 class ZeroMQClient(ClientBase):
     def __init__(self, url, app):
-        ClientBase.__init__(self, url, app)
+        super(ZeroMQClient, self).__init__(url, app)
 
         self.service = Service(_RemoteProcedure, url, app)

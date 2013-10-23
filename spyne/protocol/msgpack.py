@@ -44,7 +44,7 @@ from spyne.model.primitive import Integer
 
 class MessagePackDecodeError(Fault):
     def __init__(self, data=None):
-        Fault.__init__(self, "Client.MessagePackDecodeError", data)
+        super(MessagePackDecodeError, self).__init__("Client.MessagePackDecodeError", data)
 
 
 def _integer_from_string(cls, value):
@@ -78,7 +78,7 @@ class MessagePackDocument(HierDictDocument):
                                         complex_as=dict,
                                         ordered=False):
 
-        HierDictDocument.__init__(self, app, validator, mime_type, ignore_uncap,
+        super(MessagePackDocument, self).__init__(app, validator, mime_type, ignore_uncap,
                                            ignore_wrappers, complex_as, ordered)
 
         self._from_string_handlers[Double] = lambda cls, val: val

@@ -59,7 +59,7 @@ class NullServer(ServerBase):
     transport = 'noconn://null.spyne'
 
     def __init__(self, app, ostr=False):
-        ServerBase.__init__(self, app)
+        super(NullServer, self).__init__(app)
 
         self.service = _FunctionProxy(self, self.app, ostr)
         self.factory = Factory(self.app)

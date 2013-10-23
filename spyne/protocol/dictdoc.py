@@ -205,7 +205,7 @@ class DictDocument(ProtocolBase):
     def __init__(self, app=None, validator=None, mime_type=None,
             ignore_uncap=False, ignore_wrappers=True, complex_as=dict,
                                                                 ordered=False):
-        ProtocolBase.__init__(self, app, validator, mime_type, ignore_uncap)
+        super(DictDocument, self).__init__(app, validator, mime_type, ignore_uncap)
 
         self.ignore_wrappers = ignore_wrappers
         self.complex_as = complex_as

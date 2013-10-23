@@ -131,7 +131,7 @@ PSSM_VALUES = {'json': json, 'xml': xml, 'msgpack': msgpack, 'table': table}
 
 class TypeInfo(odict):
     def __init__(self, *args, **kwargs):
-        odict.__init__(self, *args, **kwargs)
+        super(TypeInfo, self).__init__(*args, **kwargs)
         self.attributes = {}
 
 
@@ -211,7 +211,7 @@ class XmlAttribute(XmlModifier):
     """
 
     def __new__(cls, type_, use=None, ns=None, attribute_of=None):
-        retval = XmlModifier.__new__(cls, type_, ns)
+        retval = super(XmlAttribute, cls).__new__(cls, type_, ns)
         retval._use = use
         retval.attribute_of = attribute_of
         return retval
@@ -412,7 +412,7 @@ class ComplexModelMeta(type(ModelBase)):
         targs = cls_dict.get('__table_args__', None)
         attrs.sqla_table_args = _join_args(attrs.sqla_table_args, targs)
 
-        return type(ModelBase).__new__(cls, cls_name, cls_bases, cls_dict)
+        return super(ComplexModelMeta, cls).__new__(cls, cls_name, cls_bases, cls_dict)
 
     def __init__(self, cls_name, cls_bases, cls_dict):
         type_info = cls_dict['_type_info']
@@ -457,7 +457,7 @@ class ComplexModelMeta(type(ModelBase)):
 
             gen_sqla_info(self, cls_bases)
 
-        type(ModelBase).__init__(self, cls_name, cls_bases, cls_dict)
+        super(ComplexModelMeta, self).__init__(cls_name, cls_bases, cls_dict)
 
 
 # FIXME: what an ugly hack.

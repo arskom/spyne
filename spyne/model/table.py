@@ -202,7 +202,7 @@ class TableModelMeta(DeclarativeMeta, ComplexModelMeta):
                 if _is_interesting(k, v):
                     _type_info[k] = _process_item(v)
 
-        return DeclarativeMeta.__new__(cls, cls_name, cls_bases, cls_dict)
+        return super(TableModelMeta, cls).__new__(cls, cls_name, cls_bases, cls_dict)
 
 
 class TableModel(ComplexModelBase):

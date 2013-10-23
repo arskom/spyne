@@ -104,7 +104,7 @@ class HtmlBase(ProtocolBase):
             type names of the complex object children.
         """
 
-        ProtocolBase.__init__(self, app, validator)
+        super(HtmlBase, self).__init__(app, validator)
 
     def serialize_class(self, cls, value, locale, name):
         handler = self.serialization_handlers[cls]
@@ -189,7 +189,7 @@ class HtmlMicroFormat(HtmlBase):
             inside separate tags.
         """
 
-        HtmlBase.__init__(self, app, validator)
+        super(HtmlMicroFormat, self).__init__(app, validator)
 
         assert root_tag in ('div', 'span')
         assert child_tag in ('div', 'span')
@@ -323,7 +323,7 @@ class _HtmlTableBase(HtmlBase):
     def __init__(self, app, validator, produce_header, table_name_attr,
              field_name_attr, border, row_class, cell_class, header_cell_class):
 
-        HtmlBase.__init__(self, app, validator)
+        super(_HtmlTableBase, self).__init__(app, validator)
 
         assert table_name_attr in (None, 'class', 'id')
         assert field_name_attr in (None, 'class', 'id')

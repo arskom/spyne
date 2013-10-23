@@ -27,7 +27,7 @@ class HttpTransportContext(TransportContext):
     :class:`HttpMethodContext` class and its subclasses."""
 
     def __init__(self, transport, request, content_type):
-        TransportContext.__init__(self, transport, 'http')
+        super(HttpTransportContext, self).__init__(transport, 'http')
 
         self.req = request
         """HTTP Request. This is transport-specific"""
@@ -70,7 +70,7 @@ class HttpMethodContext(MethodContext):
     """
 
     def __init__(self, transport, req_env, content_type):
-        MethodContext.__init__(self, transport)
+        super(HttpMethodContext, self).__init__(transport)
 
         self.transport = HttpTransportContext(transport, req_env, content_type)
         """Holds the WSGI-specific information"""
@@ -90,7 +90,7 @@ class HttpBase(ServerBase):
     def __init__(self, app, chunked=False,
                 max_content_length=2 * 1024 * 1024,
                 block_length=8 * 1024):
-        ServerBase.__init__(self, app)
+        super(HttpBase, self).__init__(app)
 
         self.chunked = chunked
         self.max_content_length = max_content_length

@@ -109,7 +109,7 @@ class XmlSchema(InterfaceDocumentBase):
     """
 
     def __init__(self, interface):
-        InterfaceDocumentBase.__init__(self, interface)
+        super(XmlSchema, self).__init__(interface)
 
         self.schema_dict = {}
         self.validation_schema = None

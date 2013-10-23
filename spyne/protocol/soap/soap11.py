@@ -172,7 +172,7 @@ class Soap11(XmlDocument):
 
     def __init__(self, app=None, validator=None, xml_declaration=True,
                 cleanup_namespaces=True, encoding='UTF-8', pretty_print=False):
-        XmlDocument.__init__(self, app, validator, xml_declaration,
+        super(Soap11, self).__init__(app, validator, xml_declaration,
                                     cleanup_namespaces, encoding, pretty_print)
 
         # SOAP requires DateTime strings to be in iso format. The following
