@@ -950,7 +950,7 @@ except ImportError:
     pass
 
 
-def Mandatory(cls):
+def Mandatory(cls, **_kwargs):
     """Customizes the given type to be a mandatory one. Has special cases for
     :class:`spyne.model.primitive.Unicode` and
     :class:`spyne.model.complex.Array`\.
@@ -959,7 +959,7 @@ def Mandatory(cls):
     kwargs = dict(min_occurs=1, nillable=False,
                 type_name='%s%s%s' % (MANDATORY_PREFIX, cls.get_type_name(),
                                                               MANDATORY_SUFFIX))
-
+    kwargs.update(_kwargs)
     if issubclass(cls, Unicode):
         kwargs.update(dict(min_len=1))
 
