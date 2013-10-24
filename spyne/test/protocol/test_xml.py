@@ -371,8 +371,7 @@ class TestXml(unittest.TestCase):
                 # no mandatory elements here...
             '</some_call>'
         ])
-        with self.assertRaises(SchemaValidationError):
-            server.get_out_object(ctx)
+        self.assertRaises(SchemaValidationError, server.get_out_object, ctx)
 
     def test_mandatory_subelements(self):
         class C(ComplexModel):
@@ -396,8 +395,7 @@ class TestXml(unittest.TestCase):
                 # no mandatory elements at all...
             '</some_call>'
         ])
-        with self.assertRaises(SchemaValidationError):
-            server.get_out_object(ctx)
+        self.assertRaises(SchemaValidationError, server.get_out_object, ctx)
 
         ctx = self._get_ctx(server, [
             '<some_call xmlns="tns">'
@@ -406,8 +404,7 @@ class TestXml(unittest.TestCase):
                 '</c>'
             '</some_call>'
         ])
-        with self.assertRaises(SchemaValidationError):
-            server.get_out_object(ctx)
+        self.assertRaises(SchemaValidationError, server.get_out_object, ctx)
 
     def test_mandatory_element_attributes(self):
         class C(ComplexModel):
@@ -432,8 +429,7 @@ class TestXml(unittest.TestCase):
                 # no mandatory elements at all...
             '</some_call>'
         ])
-        with self.assertRaises(SchemaValidationError):
-            server.get_out_object(ctx)
+        self.assertRaises(SchemaValidationError, server.get_out_object, ctx)
 
         ctx = self._get_ctx(server, [
             '<some_call xmlns="tns">'
@@ -442,8 +438,7 @@ class TestXml(unittest.TestCase):
                 '</c>'
             '</some_call>'
         ])
-        with self.assertRaises(SchemaValidationError):
-            server.get_out_object(ctx)
+        self.assertRaises(SchemaValidationError, server.get_out_object, ctx)
 
 
 if __name__ == '__main__':
