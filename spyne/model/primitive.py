@@ -947,10 +947,10 @@ class MultiPolygon(Unicode):
         return retval
 
 
-# a class that is really a namespace
+# This class is DEPRECATED. Use the spyne.model.Mandatory like this:
+# >>> from spyne.model import Mandatory as M, Unicode
+# >>> MandatoryEmail = M(Unicode(pattern='[^@]+@[^@]+'))
 class Mandatory:
-    """Class that contains mandatory variants of primitives."""
-
     Unicode = Unicode(type_name="MandatoryString", min_occurs=1, nillable=False, min_len=1)
     String = String(type_name="MandatoryString", min_occurs=1, nillable=False, min_len=1)
 

@@ -36,6 +36,7 @@ Other Goodies
    tests
    faq
    h_and_f
+   ../../CONTRIBUTING.rst
 
 ##################
 Indices and tables
