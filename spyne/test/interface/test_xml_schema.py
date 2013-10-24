@@ -299,6 +299,19 @@ class TestXmlSchema(unittest.TestCase):
         assert len(xpath(seq, 'xs:element[@name="{cc}c"]')) == 1
         assert len(xpath(seq, 'xs:element[@name="{dd}dd"]')) == 1
 
+    def test_mandatory(self):
+        xpath = lambda o, x: o.xpath(x, namespaces={"xs": ns.xsd})
+
+        class C(ComplexModel):
+            __namespace__ = "aa"
+            foo = XmlAttribute(M(Unicode))
+
+        elt = get_schema_documents([C])['tns']
+        print etree.tostring(elt, pretty_print=True)
+        foo, = xpath(elt, 'xs:complexType/xs:attribute[@name="foo"]')
+        attrs = foo.attrib
+        assert 'use' in attrs and attrs['use'] == 'required'
+
 
 class TestParseOwnXmlSchema(unittest.TestCase):
     def test_simple(self):

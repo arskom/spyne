@@ -43,7 +43,9 @@ from spyne.model.complex import XmlData
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import XmlAttribute
+from spyne.model.complex import Mandatory as M
 from spyne.protocol.xml import XmlDocument
+from spyne.protocol.xml._base import SchemaValidationError
 from spyne.util.xml import get_xml_as_object
 
 
@@ -329,7 +331,115 @@ class TestXml(unittest.TestCase):
             assert c.year == 2013
             assert c.month == 4
             assert c.day == 5
-        
+
+    def _get_ctx(self, server, in_string):
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = in_string
+        ctx, = server.generate_contexts(initial_ctx)
+        server.get_in_object(ctx)
+        return ctx
+
+    def test_mandatory_elements(self):
+        class SomeService(ServiceBase):
+            @srpc(M(Unicode), _returns=Unicode)
+            def some_call(s):
+                assert s == 'hello'
+                return s
+
+        app = Application([SomeService], "tns", name="test_mandatory_elements",
+                          in_protocol=XmlDocument(validator='lxml'),
+                          out_protocol=XmlDocument())
+        server = ServerBase(app)
+
+        # Valid call with all mandatory elements in
+        ctx = self._get_ctx(server, [
+            '<some_call xmlns="tns">'
+                '<s>hello</s>'
+            '</some_call>'
+        ])
+        server.get_out_object(ctx)
+        server.get_out_string(ctx)
+        ret = etree.fromstring(''.join(ctx.out_string)).xpath(
+            '//tns:some_call%s/text()' % RESULT_SUFFIX,
+            namespaces=app.interface.nsmap)[0]
+        assert ret == 'hello'
+
+
+        # Invalid call
+        ctx = self._get_ctx(server, [
+            '<some_call xmlns="tns">'
+                # no mandatory elements here...
+            '</some_call>'
+        ])
+        self.assertRaises(SchemaValidationError, server.get_out_object, ctx)
+
+    def test_mandatory_subelements(self):
+        class C(ComplexModel):
+            foo = M(Unicode)
+
+        class SomeService(ServiceBase):
+            @srpc(C.customize(min_occurs=1), _returns=Unicode)
+            def some_call(c):
+                assert c is not None
+                assert c.foo == 'hello'
+                return c.foo
+
+        app = Application(
+            [SomeService], "tns", name="test_mandatory_subelements",
+            in_protocol=XmlDocument(validator='lxml'),
+            out_protocol=XmlDocument())
+        server = ServerBase(app)
+
+        ctx = self._get_ctx(server, [
+            '<some_call xmlns="tns">'
+                # no mandatory elements at all...
+            '</some_call>'
+        ])
+        self.assertRaises(SchemaValidationError, server.get_out_object, ctx)
+
+        ctx = self._get_ctx(server, [
+            '<some_call xmlns="tns">'
+                '<c>'
+                    # no mandatory elements here...
+                '</c>'
+            '</some_call>'
+        ])
+        self.assertRaises(SchemaValidationError, server.get_out_object, ctx)
+
+    def test_mandatory_element_attributes(self):
+        class C(ComplexModel):
+            bar = XmlAttribute(M(Unicode))
+
+        class SomeService(ServiceBase):
+            @srpc(C.customize(min_occurs=1), _returns=Unicode)
+            def some_call(c):
+                assert c is not None
+                assert hasattr(c, 'foo')
+                assert c.foo == 'hello'
+                return c.foo
+
+        app = Application(
+            [SomeService], "tns", name="test_mandatory_element_attributes",
+            in_protocol=XmlDocument(validator='lxml'),
+            out_protocol=XmlDocument())
+        server = ServerBase(app)
+
+        ctx = self._get_ctx(server, [
+            '<some_call xmlns="tns">'
+                # no mandatory elements at all...
+            '</some_call>'
+        ])
+        self.assertRaises(SchemaValidationError, server.get_out_object, ctx)
+
+        ctx = self._get_ctx(server, [
+            '<some_call xmlns="tns">'
+                '<c>'
+                    # no mandatory elements here...
+                '</c>'
+            '</some_call>'
+        ])
+        self.assertRaises(SchemaValidationError, server.get_out_object, ctx)
+
 
 if __name__ == '__main__':
     unittest.main()
