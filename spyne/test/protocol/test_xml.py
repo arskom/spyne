@@ -39,11 +39,11 @@ from spyne.model.primitive import Integer
 from spyne.model.primitive import Decimal
 from spyne.model.primitive import Unicode
 from spyne.model.primitive import Date
-from spyne.model.primitive import Mandatory
 from spyne.model.complex import XmlData
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import XmlAttribute
+from spyne.model.complex import Mandatory as M
 from spyne.protocol.xml import XmlDocument
 from spyne.protocol.xml._base import SchemaValidationError
 from spyne.util.xml import get_xml_as_object
@@ -341,7 +341,7 @@ class TestXml(unittest.TestCase):
 
     def test_mandatory_elements(self):
         class SomeService(ServiceBase):
-            @srpc(Mandatory.Unicode, _returns=Unicode)
+            @srpc(M(Unicode), _returns=Unicode)
             def some_call(s):
                 assert s == 'hello'
                 return s
@@ -376,7 +376,7 @@ class TestXml(unittest.TestCase):
 
     def test_mandatory_subelements(self):
         class C(ComplexModel):
-            foo = Mandatory.Unicode
+            foo = M(Unicode)
 
         class SomeService(ServiceBase):
             @srpc(C.customize(min_occurs=1), _returns=Unicode)
@@ -411,7 +411,7 @@ class TestXml(unittest.TestCase):
 
     def test_mandatory_element_attributes(self):
         class C(ComplexModel):
-            bar = XmlAttribute(Mandatory.Unicode)
+            bar = XmlAttribute(M(Unicode))
 
         class SomeService(ServiceBase):
             @srpc(C.customize(min_occurs=1), _returns=Unicode)
