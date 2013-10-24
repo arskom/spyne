@@ -213,6 +213,8 @@ class XmlAttribute(XmlModifier):
     def __new__(cls, type_, use=None, ns=None, attribute_of=None):
         retval = XmlModifier.__new__(cls, type_, ns)
         retval._use = use
+        if retval.type.Attributes.min_occurs > 0 and retval._use is None:
+            retval._use = 'required'
         retval.attribute_of = attribute_of
         return retval
 
