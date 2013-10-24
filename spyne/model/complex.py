@@ -530,6 +530,10 @@ class ComplexModelBase(ModelBase):
         """When ``False``, soft validation ignores missing mandatory attributes.
         """
 
+        child_attrs = None
+        """Customize child attributes in one go. It's a dict of dicts. This is
+        ignored unless used via explicit customization."""
+
         _xml_tag_body_as = None, None
 
     def __init__(self, *args, **kwargs):
@@ -781,6 +785,12 @@ class ComplexModelBase(ModelBase):
         retval._type_info = cls._type_info
         retval.__type_name__ = cls.__type_name__
         retval.__namespace__ = cls.__namespace__
+
+        child_attrs = kwargs.get('child_attrs', None)
+        if child_attrs is not None:
+            ti = retval._type_info
+            for k, v in child_attrs.items():
+                ti[k] = ti[k].customize(**v)
 
         tn = kwargs.get("type_name", None)
         if tn is not None:
