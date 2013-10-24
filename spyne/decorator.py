@@ -82,7 +82,7 @@ def _produce_input_message(f, params, kparams, _in_message_name,
 
     ns = DEFAULT_NS
     if _in_message_name.startswith("{"):
-        ns, _, in_message_name = _in_message_name[1:].partition("}")
+        ns, _, _in_message_name = _in_message_name[1:].partition("}")
 
     message = None
     if _body_style == 'bare':
