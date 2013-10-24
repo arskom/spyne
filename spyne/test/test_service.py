@@ -100,6 +100,15 @@ class TestMultipleMethods(unittest.TestCase):
 
         assert data == ['hey', 'hey']
 
+    def test_namespace_in_message_name(self):
+
+        class S(ServiceBase):
+            @srpc(String, _in_message_name='{tns}inMessageName')
+            def call(s):
+                pass
+
+        app = Application([S], 'tns', 'name', Soap11(), Soap11())
+
     def test_simple_aux_wsgi(self):
         data = []
 
