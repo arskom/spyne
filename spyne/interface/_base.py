@@ -232,7 +232,8 @@ class Interface(object):
                 logger.debug('\tadding method %r to match %r tag.' %
                                                       (method.name, method_key))
 
-                assert not s.get_method_id(method) in self.method_id_map
+                assert not s.get_method_id(method) in self.method_id_map, \
+                                                                     method.name
 
                 self.method_id_map[s.get_method_id(method)] = (s, method)
 
