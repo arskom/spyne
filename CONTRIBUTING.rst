@@ -32,17 +32,20 @@ continue working on Spyne while waiting for your pull request to be reviewed.
 Pull requests
 -------------
 
-When submitting a pull request:
+When submitting a pull request, make sure:
 
-* Add and run tests.
-* If needed, shortly describe the changes in ``CHANGELOG.rst``.
-* Create a pull request from your topic branch to ``master`` in upstream Spyne
-  repo, unless the work you're doing is part of a bigger ongoing effort under
-  the Spyne project.
+* Your commit messages are to-the-point and the actual patches are in line with
+  the commit messages. Don't hesitate to push as many commits as possible. Git
+  makes it very easy to split changes to relevant hunks once your work is done.
+  You can either use ```git gui``` or ```git add -i``` -- they're a joy to work
+  with once you get the hang of all this DVCS story.
+* You have added tests for the feature you're adding or the bug you're fixing.
+* You also have added short description of the changes in ``CHANGELOG.rst`` if
+  you think it's needed.
 
-Do note that we keep the master branch on the upstream repository clean. So we
-never merge pull requests with failing tests. So make sure all old and new tests
-pass before submitting pull requests.
+Do note that we keep the master branch on the upstream repository "clean" --
+i.e. we never merge pull requests with failing tests. So make sure all old and
+new tests pass before submitting pull requests.
 
 Regular contributors may be invited to join as a core Spyne committer on
 GitHub. Even if this gives the core committers the power to commit directly
