@@ -36,7 +36,7 @@ When submitting a pull request, make sure:
 
 * Your commit messages are to-the-point and the actual patches are in line with
   the commit messages. Don't hesitate to push as many commits as possible. Git
-  makes it very easy to split changes to relevant hunks once your work is done.
+  makes it very easy to split changes to relevant chunks once your work is done.
   You can either use ```git gui``` or ```git add -i``` -- they're a joy to work
   with once you get the hang of all this DVCS story.
 * You have added tests for the feature you're adding or the bug you're fixing.
