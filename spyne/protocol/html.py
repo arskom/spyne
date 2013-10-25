@@ -436,6 +436,9 @@ class _HtmlColumnTable(_HtmlTableBase):
 
             yield header_row
 
+        if value is None:
+            raise StopIteration()
+
         if sti is None:
             if self.field_name_attr is None:
                 for val in value:
