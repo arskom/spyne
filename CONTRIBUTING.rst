@@ -1,4 +1,3 @@
-
 Spyne development guidelines
 ============================
 
@@ -61,6 +60,6 @@ Development principles
   according to MRO in cases of multiple inheritance.
 
 * Unit tests should test the root functionality as closely as possible.
-  This way, instead of getting a useless "something broke" alert, we'd get
+  This way, instead of getting a less useful "something broke" alert, we'd get
   e.g. "something broke in the validation of customized types used as xml
   attributes" alert.
