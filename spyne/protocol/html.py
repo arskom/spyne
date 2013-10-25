@@ -392,7 +392,6 @@ class _HtmlColumnTable(_HtmlTableBase):
 
         fti = cls.get_flat_type_info(cls)
         first_child = iter(fti.values()).next()
-
         if not issubclass(cls, Array):
             raise NotImplementedError("Can only serialize Array(...) types")
 

@@ -457,7 +457,7 @@ class PositiveInteger(NonNegativeInteger):
 @memoize
 def TBoundedInteger(num_bits, type_name):
     _min_b = -(0x8<<(num_bits-4))     # 0x8 is 4 bits.
-    _max_b =  (0x8<<(num_bits-4)) - 1 # -1? c'est la vie ;)
+    _max_b =  (0x8<<(num_bits-4)) - 1 # -1? c'est la vie
 
     class _BoundedInteger(Integer):
         __type_name__ = type_name

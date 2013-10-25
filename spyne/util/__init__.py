@@ -179,3 +179,45 @@ else:
     def total_seconds(td):
         return (td.microseconds +
                             (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
+
+def TAttrDict(default=None):
+    class AttrDict(dict):
+        if default is None:
+            def __getattr__(self, key):
+                return self[key]
+        else:
+            def __getattr__(self, key):
+                if key in self:
+                    return self[key]
+                else:
+                    return default()
+
+        def __setattr__(self, key, value):
+            self[key] = value
+
+        def __call__(self, **kwargs):
+            retval = AttrDict(self)
+            retval.update(kwargs)
+            return retval
+
+    return AttrDict
+
+AttrDict = TAttrDict()
+DefaultAttrDict = TAttrDict(lambda: None)
+
+class AttrDictColl(object):
+    AttrDictImpl = DefaultAttrDict
+    def __init__(self, *args):
+        for a in args:
+            setattr(self, a, AttrDictColl.AttrDictImpl(NAME=a))
+
+    def __getattribute__(self, item):
+        try:
+            retval = super(AttrDictColl, self).__getattribute__(item)
+        except AttributeError:
+            retval = None
+
+        if retval is None:
+            retval = AttrDictColl.AttrDictImpl(NAME=item)
+            setattr(self, item, retval)
+        return retval
