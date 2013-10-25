@@ -455,10 +455,7 @@ class _HtmlColumnTable(_HtmlTableBase):
                         subvalue = getattr(subvalue, p, None)
 
                     if subvalue is None:
-                        if v.type.Attributes.min_occurs == 0:
-                            continue
-                        else:
-                            subvalue = ""
+                        subvalue = ""
                     else:
                         subvalue = _subvalue_to_html(self, v, subvalue)
 
