@@ -117,3 +117,10 @@ class odict(object):
     def append(self, t):
         k, v = t
         self[k] = v
+
+    def insert(self, index, item):
+        k,v = item
+        if k in self.__dict:
+            del self.__list[self.__list.index(k)]
+        self.__list.insert(index, k)
+        self.__dict[k] = v
