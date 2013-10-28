@@ -146,7 +146,7 @@ class Wsdl11(XmlSchema):
     #    xsd, xsi, wsdl, etc.
 
     def __init__(self, interface=None, _with_partnerlink=False):
-        XmlSchema.__init__(self, interface)
+        super(Wsdl11, self).__init__(interface)
 
         self._with_plink = _with_partnerlink
 

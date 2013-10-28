@@ -85,7 +85,7 @@ class Consumer(ServerBase):
     transport = 'http://sqlalchemy.persistent.queue/'
 
     def __init__(self, db, app, consumer_id):
-        ServerBase.__init__(self, app)
+        super(Consumer, self).__init__(app)
 
         self.session = sessionmaker(bind=db)()
         self.id = consumer_id
@@ -152,7 +152,7 @@ class Consumer(ServerBase):
 
 class RemoteProcedure(RemoteProcedureBase):
     def __init__(self, db, app, name, out_header):
-        RemoteProcedureBase.__init__(self, db, app, name, out_header)
+        super(RemoteProcedure, self).__init__(db, app, name, out_header)
 
         self.Session = sessionmaker(bind=db)
 
@@ -174,7 +174,7 @@ class RemoteProcedure(RemoteProcedureBase):
 
 class Producer(ClientBase):
     def __init__(self, db, app):
-        ClientBase.__init__(self, db, app)
+        super(Producer, self).__init__(db, app)
 
         self.service = Service(RemoteProcedure, db, app)
 

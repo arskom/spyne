@@ -112,7 +112,7 @@ class JsonDocument(HierDictDocument):
                         default_string_encoding=None,
                         **kwargs):
 
-        HierDictDocument.__init__(self, app, validator, mime_type, ignore_uncap,
+        super(JsonDocument, self).__init__(app, validator, mime_type, ignore_uncap,
                                            ignore_wrappers, complex_as, ordered)
 
         # this is needed when we're overriding a regular instance attribute

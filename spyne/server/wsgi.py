@@ -121,7 +121,7 @@ class WsgiTransportContext(HttpTransportContext):
     :class:`WsgiMethodContext` class."""
 
     def __init__(self, transport, req_env, content_type):
-        HttpTransportContext.__init__(self, transport, req_env, content_type)
+        super(WsgiTransportContext, self).__init__(transport, req_env, content_type)
 
         self.req_env = self.req
         """WSGI Request environment"""
@@ -136,7 +136,7 @@ class WsgiMethodContext(HttpMethodContext):
     """
 
     def __init__(self, transport, req_env, content_type):
-        HttpMethodContext.__init__(self, transport, req_env, content_type)
+        super(WsgiMethodContext, self).__init__(transport, req_env, content_type)
 
         self.transport = WsgiTransportContext(transport, req_env, content_type)
         """Holds the WSGI-specific information"""
@@ -203,7 +203,7 @@ class WsgiApplication(HttpBase):
     def __init__(self, app, chunked=True,
                 max_content_length=2 * 1024 * 1024,
                 block_length=8 * 1024):
-        HttpBase.__init__(self, app, chunked, max_content_length, block_length)
+        super(WsgiApplication, self).__init__(app, chunked, max_content_length, block_length)
 
         self._mtx_build_interface_document = threading.Lock()
 

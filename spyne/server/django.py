@@ -113,7 +113,7 @@ class DjangoServer(HttpBase):
     """Server talking in Django request/response objects."""
 
     def __init__(self, app, chunked=False):
-        HttpBase.__init__(self, app, chunked=chunked)
+        super(DjangoServer, self).__init__(app, chunked=chunked)
         self._wsdl = None
 
     def handle_rpc(self, request, *args, **kwargs):

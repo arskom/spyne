@@ -57,11 +57,11 @@ from spyne.server.wsgi import WsgiApplication
 from spyne.service import ServiceBase
 
 
-class PublicKeyError(ResourceNotFoundError):
+class PublicKeyError(Fault):
     __namespace__ = 'spyne.examples.authentication'
 
     def __init__(self, value):
-        ResourceNotFoundError.__init__(self,
+        super(PublicKeyError, self).__init__(
                 faultstring='Value %r not found' % value
             )
 
@@ -72,7 +72,7 @@ class AuthenticationError(Fault):
     def __init__(self, user_name):
         # TODO: self.transport.http.resp_code = HTTP_401
 
-        Fault.__init__(self,
+        super(AuthenticationError, self).__init__(
                 faultcode='Client.AuthenticationError',
                 faultstring='Invalid authentication request for %r' % user_name
             )
@@ -84,7 +84,7 @@ class AuthorizationError(Fault):
     def __init__(self):
         # TODO: self.transport.http.resp_code = HTTP_401
 
-        Fault.__init__(self,
+        super(AuthorizationError, self).__init__(
                 faultcode='Client.AuthorizationError',
                 faultstring='You are not authozied to access this resource.'
             )

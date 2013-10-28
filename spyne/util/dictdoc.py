@@ -34,7 +34,7 @@ class _UtilProtocol(HierDictDocument):
                                         complex_as=dict,
                                         ordered=False):
 
-        HierDictDocument.__init__(self, app, validator, mime_type, ignore_uncap,
+        super(_UtilProtocol, self).__init__(app, validator, mime_type, ignore_uncap,
                                            ignore_wrappers, complex_as, ordered)
 
         self._from_string_handlers[Double] = lambda cls, val: val

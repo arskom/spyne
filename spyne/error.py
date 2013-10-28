@@ -32,7 +32,7 @@ class ResourceNotFoundError(Fault):
 
     def __init__(self, fault_object,
                                 fault_string="Requested resource %r not found"):
-        Fault.__init__(self, 'Client.ResourceNotFound',
+        super(ResourceNotFoundError, self).__init__('Client.ResourceNotFound',
                                                     fault_string % fault_object)
 
 
@@ -41,35 +41,35 @@ class InvalidCredentialsError(Fault):
 
     def __init__(self, fault_object,
              fault_string="You do not have permission to access this resource"):
-        Fault.__init__(self, 'Client.InvalidCredentialsError', fault_string)
+        super(InvalidCredentialsError, self).__init__('Client.InvalidCredentialsError', fault_string)
 
 
 class RequestTooLongError(Fault):
     """Raised when request is too long."""
 
     def __init__(self, faultstring="Request too long"):
-        Fault.__init__(self, 'Client.RequestTooLong', faultstring)
+        super(RequestTooLongError, self).__init__('Client.RequestTooLong', faultstring)
 
 
 class RequestNotAllowed(Fault):
     """Raised when request is incomplete."""
 
     def __init__(self, faultstring=""):
-        Fault.__init__(self, 'Client.RequestNotAllowed', faultstring)
+        super(RequestNotAllowed, self).__init__('Client.RequestNotAllowed', faultstring)
 
 
 class ArgumentError(Fault):
     """Raised when there is a general problem with input data."""
 
     def __init__(self, faultstring=""):
-        Fault.__init__(self, 'Client.ArgumentError', faultstring)
+        super(ArgumentError, self).__init__('Client.ArgumentError', faultstring)
 
 
 class InvalidInputError(Fault):
     """Raised when there is a general problem with input data."""
 
     def __init__(self, faultstring="", data=""):
-        Fault.__init__(self, 'Client.InvalidInput', repr((faultstring, data)))
+        super(InvalidInputError, self).__init__('Client.InvalidInput', repr((faultstring, data)))
 
 InvalidRequestError = InvalidInputError
 
@@ -82,10 +82,10 @@ class ValidationError(Fault):
         if len(s) > MAX_STRING_FIELD_LENGTH:
             s = s[:MAX_STRING_FIELD_LENGTH] + "(...)"
 
-        Fault.__init__(self, 'Client.ValidationError', custom_msg % s)
+        super(ValidationError, self).__init__('Client.ValidationError', custom_msg % s)
 
 
 class InternalError(Fault):
     """Raised to communicate server-side errors."""
     def __init__(self, error):
-        Fault.__init__(self, 'Server', "InternalError: An unknown error has occured.")
+        super(InternalError, self).__init__('Server', "InternalError: An unknown error has occured.")
