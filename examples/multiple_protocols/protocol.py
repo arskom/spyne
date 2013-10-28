@@ -45,7 +45,7 @@ class SvgClock(ProtocolBase):
     mime_type = 'image/svg+xml'
 
     def __init__(self, app=None):
-        ProtocolBase.__init__(self, app, validator=None)
+        super(SvgClock, self).__init__(app, validator=None)
 
         self.length = 500 # if you change this, you should re-scale the svg file
                           # as well.

@@ -57,7 +57,7 @@ def _on_method_context_closed(ctx):
 class MyApplication(Application):
     def __init__(self, services, tns, name=None,
                                          in_protocol=None, out_protocol=None):
-        Application.__init__(self, services, tns, name, in_protocol,
+        super(MyApplication, self).__init__(services, tns, name, in_protocol,
                                                                  out_protocol)
 
         self.event_manager.add_listener('method_call', _on_method_call)

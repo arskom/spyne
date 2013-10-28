@@ -32,7 +32,7 @@ context = zmq.Context()
 
 class ZmqMethodContext(MethodContext):
     def __init__(self, app):
-        MethodContext.__init__(self, app)
+        super(ZmqMethodContext, self).__init__(app)
         self.transport.type = 'zmq'
 
 class ZeroMQServer(ServerBase):
@@ -40,7 +40,7 @@ class ZeroMQServer(ServerBase):
     transport = 'http://rfc.zeromq.org/'
 
     def __init__(self, app, app_url, wsdl_url=None):
-        ServerBase.__init__(self, app)
+        super(ZeroMQServer, self).__init__(app)
 
         self.app_url = app_url
         self.wsdl_url = wsdl_url

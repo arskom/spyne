@@ -91,7 +91,7 @@ class SchemaValidationError(Fault):
     """Raised when the input stream could not be validated by the Xml Schema."""
 
     def __init__(self, faultstring):
-        Fault.__init__(self, 'Client.SchemaValidationError', faultstring)
+        super(SchemaValidationError, self).__init__('Client.SchemaValidationError', faultstring)
 
 
 class XmlDocument(ProtocolBase):
@@ -188,7 +188,7 @@ class XmlDocument(ProtocolBase):
                 huge_tree=False,
                 compact=True
             ):
-        ProtocolBase.__init__(self, app, validator)
+        super(XmlDocument, self).__init__(app, validator)
         self.xml_declaration = xml_declaration
         self.cleanup_namespaces = cleanup_namespaces
         if encoding is None:

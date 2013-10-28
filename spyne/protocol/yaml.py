@@ -89,7 +89,7 @@ class YamlDocument(HierDictDocument):
                                         # YamlDocument specific
                                         safe=True, **kwargs):
 
-        HierDictDocument.__init__(self, app, validator, mime_type, ignore_uncap,
+        super(YamlDocument, self).__init__(app, validator, mime_type, ignore_uncap,
                                            ignore_wrappers, complex_as, ordered)
 
         self._from_string_handlers[Double] = lambda cls, val: val

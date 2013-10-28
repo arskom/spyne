@@ -138,6 +138,6 @@ class _RemoteProcedure(RemoteProcedureBase):
 
 class TwistedHttpClient(ClientBase):
     def __init__(self, url, app):
-        ClientBase.__init__(self, url, app)
+        super(TwistedHttpClient, self).__init__(url, app)
 
         self.service = Service(_RemoteProcedure, url, app)

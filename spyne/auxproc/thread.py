@@ -36,7 +36,7 @@ class ThreadAuxProc(AuxProcBase):
     """
 
     def __init__(self, pool_size=1):
-        AuxProcBase.__init__(self)
+        super(ThreadAuxProc, self).__init__()
 
         self.pool = None
         self.__pool_size = pool_size

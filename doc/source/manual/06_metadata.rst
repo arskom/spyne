@@ -80,7 +80,7 @@ Here's a sample custom public exception: ::
         __namespace__ = 'spyne.examples.authentication'
 
         def __init__(self, value):
-            Fault.__init__(self,
+            super(PublicKeyError, self).__init__(
                     faultcode='Client.KeyError',
                     faultstring='Value %r not found' % value
                 )
