@@ -33,13 +33,16 @@ spyne-2.11.0
 * Remove hard-coded utf-8 defaults from almost everywhere.
 * Remove hard-coded pytz.utc defaults from everywhere. Use spyne.LOCAL_TZ to
   configure the default time zone.
-* As a result of the above change, datetime objects deserialized by Spyne always
-  carry time zones. Make sure you adjust your code to this change. It's possible
-  to strip timezone information from outgoing types by passing ``timezone=False``
-  to the DateTime customizer.
+* As a result of the above change, datetime objects deserialized by Spyne are
+  are forced to the above time zone during soft validtion (nothing should have
+  changed from the user code perspective).
 * Add default_factory to ModelBase customizer. It's a callable that produces
   default values on demand. Suitable to be used with e.g. lambdas that return
   mutable defaults.
+* New spyne.util.AttrDict can be used for passing various dynamic configuration
+  data.
+* ``child_attrs`` can now be passed to the ComplexModelBase customizer in order
+  to make object-specific in-place customizations to child types.
 * Many, many, many bugs fixed.
 
 spyne-2.10.9
