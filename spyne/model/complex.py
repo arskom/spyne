@@ -530,6 +530,10 @@ class ComplexModelBase(ModelBase):
         """When ``False``, soft validation ignores missing mandatory attributes.
         """
 
+        child_attrs = None
+        """Customize child attributes in one go. It's a dict of dicts. This is
+        ignored unless used via explicit customization."""
+
         _xml_tag_body_as = None, None
 
     def __init__(self, *args, **kwargs):
@@ -778,9 +782,15 @@ class ComplexModelBase(ModelBase):
         cls_dict['__module__'] = cls.__module__
 
         retval = type(cls_name, cls_bases, cls_dict)
-        retval._type_info = cls._type_info
+        retval._type_info = TypeInfo(cls._type_info)
         retval.__type_name__ = cls.__type_name__
         retval.__namespace__ = cls.__namespace__
+
+        child_attrs = kwargs.get('child_attrs', None)
+        if child_attrs is not None:
+            ti = retval._type_info
+            for k, v in child_attrs.items():
+                ti[k] = ti[k].customize(**v)
 
         tn = kwargs.get("type_name", None)
         if tn is not None:
@@ -950,7 +960,7 @@ except ImportError:
     pass
 
 
-def Mandatory(cls):
+def Mandatory(cls, **_kwargs):
     """Customizes the given type to be a mandatory one. Has special cases for
     :class:`spyne.model.primitive.Unicode` and
     :class:`spyne.model.complex.Array`\.
@@ -959,7 +969,7 @@ def Mandatory(cls):
     kwargs = dict(min_occurs=1, nillable=False,
                 type_name='%s%s%s' % (MANDATORY_PREFIX, cls.get_type_name(),
                                                               MANDATORY_SUFFIX))
-
+    kwargs.update(_kwargs)
     if issubclass(cls, Unicode):
         kwargs.update(dict(min_len=1))
 

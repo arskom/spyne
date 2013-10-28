@@ -40,6 +40,7 @@ spyne-2.11.0
 * Add default_factory to ModelBase customizer. It's a callable that produces
   default values on demand. Suitable to be used with e.g. lambdas that return
   mutable defaults.
+* Many, many, many bugs fixed.
 
 spyne-2.10.9
 ------------

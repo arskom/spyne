@@ -392,7 +392,6 @@ class _HtmlColumnTable(_HtmlTableBase):
 
         fti = cls.get_flat_type_info(cls)
         first_child = iter(fti.values()).next()
-
         if not issubclass(cls, Array):
             raise NotImplementedError("Can only serialize Array(...) types")
 
@@ -436,6 +435,9 @@ class _HtmlColumnTable(_HtmlTableBase):
 
             yield header_row
 
+        if value is None:
+            raise StopIteration()
+
         if sti is None:
             if self.field_name_attr is None:
                 for val in value:
@@ -455,10 +457,7 @@ class _HtmlColumnTable(_HtmlTableBase):
                         subvalue = getattr(subvalue, p, None)
 
                     if subvalue is None:
-                        if v.type.Attributes.min_occurs == 0:
-                            continue
-                        else:
-                            subvalue = ""
+                        subvalue = ""
                     else:
                         subvalue = _subvalue_to_html(self, v, subvalue)
 

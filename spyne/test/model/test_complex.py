@@ -103,6 +103,13 @@ class Level1(ComplexModel):
 Level1.resolve_namespace(Level1, __name__)
 
 class TestComplexModel(unittest.TestCase):
+    def test_child_customization(self):
+        class C(ComplexModel):
+            u = Unicode
+        CC = C.customize(child_attrs=dict(u=dict(min_len=5)))
+        assert CC._type_info['u'].Attributes.min_len == 5
+        assert C._type_info['u'].Attributes.min_len != 5
+
     def test_simple_class(self):
         a = Address()
         a.street = '123 happy way'

@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 
 import unittest
-
+import pytz
 import decimal
 
 from pprint import pprint
 
 from datetime import datetime
 from lxml import etree
-import pytz
 
 from spyne.const import MAX_STRING_FIELD_LENGTH
 
@@ -25,6 +24,8 @@ from spyne.model.primitive import Integer
 from spyne.model.primitive import Unicode
 
 from spyne.service import ServiceBase
+
+from spyne.util import AttrDict, AttrDictColl
 
 from spyne.util.protocol import deserialize_request_string
 
@@ -269,6 +270,14 @@ class TestDictDoc(unittest.TestCase):
             print c
             assert o == c
 
+class TestAttrDict(unittest.TestCase):
+    def test_attr_dict(self):
+        assert AttrDict(a=1)['a'] == 1
+
+    def test_attr_dict_coll(self):
+        assert AttrDictColl().SomeDict.NAME == 'SomeDict'
+        assert AttrDictColl().SomeDict(a=1)['a'] == 1
+        assert AttrDictColl().SomeDict(a=1).NAME == 'SomeDict'
 
 if __name__ == '__main__':
     unittest.main()

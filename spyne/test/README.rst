@@ -18,12 +18,17 @@ your own fork of Spyne with travis-ci.org, which should come in handy even if
 you don't plan to be a long-time contributor to Spyne. Just sign in with your
 Github account and follow instructions.
 
-If you want to run the tests yourself, just run: ::
+If you want to run the tests locally, just run: ::
 
     python setup.py test
 
 This call will install *every* possible dependency of Spyne in the current
-working directory.
+working directory, which takes care of most of the tedium of setting up a
+testing environment. The last thing you need to do is to make sure there is a
+live PostgreSQL instance, so that all of the db integration tests also work.
+
+Spyne's generic test script does not run WS-I tests. Also see the related
+section below.
 
 If you don't want this or just want to run a specific test,
 `pytest <http://pytest.org/latest/>`_  is a nice tool that lets you do just
@@ -50,10 +55,10 @@ SOAP Interoperability Tests
 The interoperability servers require twisted.web.
 
 Python
--------
+------
 
-Python interop tests currently use Spyne's own clients and suds. For The suds
-test is the first thing we check and try not to break.
+Python interop tests currently use Spyne's own clients and suds. The suds test
+is the first thing we check and try not to break.
 
 Ruby
 ----
@@ -118,5 +123,4 @@ under its standard name: .travis.yml
 
 A script for running Spyne test suite inside Jenkins can also be found in the
 same directory as this README file, under the name jenkins.sh. Paste it to the
-"executable script" section in jenkins configuration page.
-
+"executable script" section in Jenkins configuration page.
