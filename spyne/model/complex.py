@@ -782,7 +782,7 @@ class ComplexModelBase(ModelBase):
         cls_dict['__module__'] = cls.__module__
 
         retval = type(cls_name, cls_bases, cls_dict)
-        retval._type_info = cls._type_info
+        retval._type_info = TypeInfo(cls._type_info)
         retval.__type_name__ = cls.__type_name__
         retval.__namespace__ = cls.__namespace__
 

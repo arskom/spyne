@@ -108,6 +108,7 @@ class TestComplexModel(unittest.TestCase):
             u = Unicode
         CC = C.customize(child_attrs=dict(u=dict(min_len=5)))
         assert CC._type_info['u'].Attributes.min_len == 5
+        assert C._type_info['u'].Attributes.min_len != 5
 
     def test_simple_class(self):
         a = Address()
