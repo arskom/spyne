@@ -99,7 +99,7 @@ def _dig(par):
 
 xml_object = XmlDocument()
 
-def get_object_as_xml(value, cls=None, root_tag_name=None, no_namespace=False):
+def get_object_as_xml(value, cls=None, root_tag_name=None, no_namespace=None):
     '''Returns an ElementTree representation of a
     :class:`spyne.model.complex.ComplexModel` subclass.
 
@@ -110,6 +110,13 @@ def get_object_as_xml(value, cls=None, root_tag_name=None, no_namespace=False):
 
     if cls is None:
         cls = value.__class__
+
+    if cls.get_namespace() is None and no_namespace is None:
+        no_namespace = True
+
+    if no_namespace is None:
+        no_namespace = False
+
     parent = etree.Element("parent")
 
     xml_object.to_parent_element(cls, value, cls.get_namespace(),
