@@ -37,7 +37,7 @@ from spyne.model import DateTime
 from spyne.model import Unicode
 from spyne.model import Integer
 from spyne.model import ComplexModel
-from spyne.interface.xml_schema.parser import own_repr
+from spyne.interface.xml_schema.parser import hier_repr
 
 from spyne.util.xml import get_schema_documents
 from spyne.util.xml import get_object_as_xml
@@ -50,7 +50,7 @@ class SomeObject(ComplexModel):
     i = Integer
     s = Unicode
     d = DateTime
-    __repr__ = own_repr
+    __repr__ = hier_repr
 
 # Instantiate the object
 instance = SomeObject(i=5, s="str", d=datetime.now())

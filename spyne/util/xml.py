@@ -133,16 +133,16 @@ def get_xml_as_object(elt, cls):
     return xml_object.from_element(cls, elt)
 
 
-def parse_schema_string(s, files={}, repr=parser.Town_repr(with_ns=False)):
+def parse_schema_string(s, files={}, repr=parser.Thier_repr(with_ns=False)):
     elt = etree.fromstring(s, parser=parser.PARSER)
-    return parser.parse_schema(parser.ParsingCtx(files, own_repr=repr), elt)
+    return parser.parse_schema(parser.ParsingCtx(files, repr=repr), elt)
 
 
-def parse_schema_element(elt, files={}, repr=parser.Town_repr(with_ns=False)):
-    return parser.parse_schema(parser.ParsingCtx(files, own_repr=repr), elt)
+def parse_schema_element(elt, files={}, repr=parser.Thier_repr(with_ns=False)):
+    return parser.parse_schema(parser.ParsingCtx(files, repr=repr), elt)
 
 
-def parse_schema_file(file_name, files={}, repr=parser.Town_repr(with_ns=False)):
+def parse_schema_file(file_name, files={}, repr=parser.Thier_repr(with_ns=False)):
     elt = etree.fromstring(open(file_name).read(), parser=parser.PARSER)
     return parser.parse_schema(parser.ParsingCtx(files,
-                    abspath(dirname(file_name)), own_repr=repr), elt)
+                    abspath(dirname(file_name)), repr=repr), elt)

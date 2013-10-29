@@ -23,10 +23,7 @@ logger = logging.getLogger(__name__)
 import os
 
 from itertools import chain
-
-from pprint import pprint
 from pprint import pformat
-
 from copy import copy
 
 from os.path import dirname
@@ -35,13 +32,10 @@ from os.path import join
 
 from lxml import etree
 
-from spyne.const import xml_ns
+from spyne.util import memoize
 from spyne.util.odict import odict
-from spyne.model.complex import XmlModifier
 
 from spyne.model import Null
-from spyne.model import SimpleModel
-
 from spyne.model import XmlData
 from spyne.model import XmlAttribute
 from spyne.model import Array
@@ -67,7 +61,15 @@ class _Schema(object):
         self.imports = set()
 
 
-def Town_repr(with_ns=False):
+@memoize
+def Thier_repr(with_ns=False):
+    """Template for ``hier_repr``, a ``repr`` variant that shows spyne
+    ``ComplexModel``s in a hierarchical format.
+
+    :param with_ns: either bool or a callable that returns the class name
+    as string
+    """
+
     if with_ns == False:
         def get_class_name(c):
             return c.get_type_name()
@@ -78,7 +80,7 @@ def Town_repr(with_ns=False):
         def get_class_name(c):
             return with_ns(c.get_namespace(), c.get_type_name())
 
-    def own_repr(self, i0=0, I='  '):
+    def hier_repr(self, i0=0, I='  '):
         cls = self.__class__
         if not hasattr(cls, '_type_info'):
             return repr(self)
@@ -93,7 +95,7 @@ def Town_repr(with_ns=False):
         xtba_key, xtba_type = cls.Attributes._xml_tag_body_as
         if xtba_key is not None:
             value = getattr(self, xtba_key, None)
-            retval.append("%s,\n" % own_repr(value,i1))
+            retval.append("%s,\n" % hier_repr(value,i1))
         else:
             retval.append('\n')
 
@@ -103,30 +105,30 @@ def Town_repr(with_ns=False):
                                                             value is not None:
                 retval.append("%s%s=[\n" %(I*i1, k))
                 for subval in value:
-                    retval.append("%s%s,\n" % (I*i2, own_repr(subval,i2)))
+                    retval.append("%s%s,\n" % (I*i2, hier_repr(subval,i2)))
                 retval.append('%s],\n' % (I*i1))
 
             elif issubclass(v, XmlData):
                 pass
 
             else:
-                retval.append("%s%s=%s,\n" % (I*i1, k, own_repr(value, i1)))
+                retval.append("%s%s=%s,\n" % (I*i1, k, hier_repr(value, i1)))
 
         retval.append('%s)' % (I*i0))
         return ''.join(retval)
 
-    return own_repr
+    return hier_repr
 
-SchemaBase.__repr__ = Town_repr()
+SchemaBase.__repr__ = Thier_repr()
 
 
 class ParsingCtx(object):
-    def __init__(self, files, base_dir=None, own_repr=Town_repr(with_ns=False)):
+    def __init__(self, files, base_dir=None, repr=Thier_repr(with_ns=False)):
         self.retval = {}
         self.indent = 0
         self.files = files
         self.base_dir = base_dir
-        self.own_repr = own_repr
+        self.repr = repr
         if self.base_dir is None:
             self.base_dir = os.getcwd()
         self.parent = None
@@ -421,8 +423,8 @@ def process_complex_type(ctx, c):
             '__namespace__': ctx.tns,
             '_type_info': ti,
         }
-        if ctx.own_repr is not None:
-            cls_dict['__repr__'] = ctx.own_repr
+        if ctx.repr is not None:
+            cls_dict['__repr__'] = ctx.repr
 
         r = ComplexModelMeta(str(c.name), (base,), cls_dict)
         ctx.retval[ctx.tns].types[c.name] = r
