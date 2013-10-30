@@ -815,6 +815,20 @@ class ComplexModelBase(ModelBase):
         return retval
 
     @classmethod
+    def append_field(cls, field_name, field_type):
+        cls._type_info[field_name] = field_type
+        if cls.Attributes._variants is not None:
+            for c in cls.Attributes._variants:
+                c.append_field(field_name, field_type)
+
+    @classmethod
+    def insert_field(cls, index, field_name, field_type):
+        cls._type_info.insert(index, (field_name, field_type))
+        if cls.Attributes._variants is not None:
+            for c in cls.Attributes._variants:
+                c.insert_field(index, field_name, field_type)
+
+    @classmethod
     def store_as(cls, what):
         return cls.customize(store_as=what)
 

@@ -103,6 +103,18 @@ class Level1(ComplexModel):
 Level1.resolve_namespace(Level1, __name__)
 
 class TestComplexModel(unittest.TestCase):
+    def test_add_field(self):
+        class C(ComplexModel):
+            u = Unicode
+        C.append_field('i', Integer)
+        assert C._type_info['i'] is Integer
+
+    def test_insert_field(self):
+        class C(ComplexModel):
+            u = Unicode
+        C.insert_field(0, 'i', Integer)
+        assert C._type_info.keys() == ['i', 'u']
+
     def test_variants(self):
         class C(ComplexModel):
             u = Unicode
