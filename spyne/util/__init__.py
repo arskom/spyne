@@ -210,14 +210,3 @@ class AttrDictColl(object):
     def __init__(self, *args):
         for a in args:
             setattr(self, a, AttrDictColl.AttrDictImpl(NAME=a))
-
-    def __getattribute__(self, item):
-        try:
-            retval = super(AttrDictColl, self).__getattribute__(item)
-        except AttributeError:
-            retval = None
-
-        if retval is None:
-            retval = AttrDictColl.AttrDictImpl(NAME=item)
-            setattr(self, item, retval)
-        return retval

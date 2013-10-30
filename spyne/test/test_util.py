@@ -275,9 +275,9 @@ class TestAttrDict(unittest.TestCase):
         assert AttrDict(a=1)['a'] == 1
 
     def test_attr_dict_coll(self):
-        assert AttrDictColl().SomeDict.NAME == 'SomeDict'
-        assert AttrDictColl().SomeDict(a=1)['a'] == 1
-        assert AttrDictColl().SomeDict(a=1).NAME == 'SomeDict'
+        assert AttrDictColl('SomeDict').SomeDict.NAME == 'SomeDict'
+        assert AttrDictColl('SomeDict').SomeDict(a=1)['a'] == 1
+        assert AttrDictColl('SomeDict').SomeDict(a=1).NAME == 'SomeDict'
 
 if __name__ == '__main__':
     unittest.main()
