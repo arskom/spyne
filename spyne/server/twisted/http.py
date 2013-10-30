@@ -81,6 +81,7 @@ from spyne.model.fault import Fault
 from spyne.server import ServerBase
 from spyne.server.http import HttpBase
 from spyne.server.http import HttpMethodContext
+from spyne.server.http import HttpTransportContext
 
 
 def _reconstruct_url(request):
@@ -140,6 +141,18 @@ class _Producer(object):
             self.deferred.errback(
                                Exception("Consumer asked us to stop producing"))
         self.deferred = None
+
+
+class TwistedHttpTransportContext(HttpTransportContext):
+
+    def set_mime_type(self, what):
+        super(TwistedHttpTransportContext, self).set_mime_type(what)
+        self.req.setHeader('Content-Type', what)
+
+
+class TwistedHttpMethodContext(HttpMethodContext):
+
+    default_transport_context = TwistedHttpTransportContext
 
 
 class TwistedHttpTransport(HttpBase):
@@ -211,7 +224,7 @@ class TwistedWebResource(Resource):
         return retval
 
     def handle_rpc(self, request):
-        initial_ctx = HttpMethodContext(self.http_transport, request,
+        initial_ctx = TwistedHttpMethodContext(self.http_transport, request,
                                  self.http_transport.app.out_protocol.mime_type)
         initial_ctx.in_string = [request.content.getvalue()]
 
@@ -294,7 +307,7 @@ class TwistedWebResource(Resource):
         return NOT_DONE_YET
 
     def __handle_wsdl_request(self, request):
-        ctx = HttpMethodContext(self.http_transport, request,
+        ctx = TwistedHttpMethodContext(self.http_transport, request,
                                                       "text/xml; charset=utf-8")
         url = _reconstruct_url(request)
 
