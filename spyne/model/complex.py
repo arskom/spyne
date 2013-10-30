@@ -956,6 +956,38 @@ class Iterable(Array):
         pass
 
 
+@memoize
+def TTableModelBase():
+    from sqlalchemy import MetaData
+    from sqlalchemy.orm import relationship
+
+    def add_to_mapper(cls, field_name, field_type):
+        rel = None
+        mapper = cls.Attributes.sqla_mapper
+        if issubclass(field_type, Array):
+            rel = relationship(field_type)
+        elif issubclass(field_type, ComplexModelBase):
+            rel = relationship(field_type, uselist=False)
+        else:
+            raise NotImplementedError()
+
+        mapper.add_property(field_name, rel)
+
+    class TableModelBase(ComplexModelBase):
+        # FIXME: These two also need to add table column if needed.
+        @classmethod
+        def append_field(cls, field_name, field_type):
+            super(TableModelBase, cls).append_field(field_name, field_type)
+            add_to_mapper(cls, field_name, field_type)
+
+        @classmethod
+        def insert_field(cls, index, field_name, field_type):
+            super(TableModelBase, cls).insert_field(index, field_name, field_type)
+            add_to_mapper(cls, field_name, field_type)
+
+    return TableModelBase
+
+
 # this has docstring repeated in the documentation at reference/model/complex.rst
 @memoize_id
 def TTableModel(metadata=None):
@@ -964,38 +996,9 @@ def TTableModel(metadata=None):
     """
 
     from sqlalchemy import MetaData
-    from sqlalchemy.orm import relationship
 
-    def add_to_mapper(cls, field_name, field_type):
-        rel = None
-        if issubclass(field_type, Array):
-            rel = relationship(field_type)
-        elif issubclass(field_type, ComplexModelBase):
-            rel = relationship(field_type, uselist=False)
-        else:
-            raise NotImplementedError()
-
-        cls.Attributes.sqla_mapper.add_property(field_name, rel)
-
-    class TableModel(ComplexModelBase):
+    class TableModel(TTableModelBase()):
         __metaclass__ = ComplexModelMeta
-
-        class Attributes(ComplexModelBase.Attributes):
-            sqla_metadata = metadata or MetaData()
-
-        # FIXME: These two also need to add table column if needed.
-        @classmethod
-        def append_field(cls, field_name, field_type):
-            super(TableModel, cls).append_field(field_name, field_type)
-            add_to_mapper(cls, field_name, field_type)
-
-        @classmethod
-        def insert_field(cls, index, field_name, field_type):
-            super(TableModel, cls).insert_field(index, field_name, field_type)
-            add_to_mapper(cls, field_name, field_type)
-
-    return TableModel
-
 
 ### You should not use this and always instantiate explicitly your own
 ### TableModel using TTableModel.
@@ -1003,6 +1006,10 @@ try:
     TableModel = TTableModel()
 except ImportError:
     pass
+        class Attributes(ComplexModelBase.Attributes):
+            sqla_metadata = metadata or MetaData()
+
+    return TableModel
 
 
 def Mandatory(cls, **_kwargs):

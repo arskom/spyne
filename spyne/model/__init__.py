@@ -101,9 +101,10 @@ from spyne.model.binary import File
 from spyne.model.binary import ByteArray
 
 # Classes
-from spyne.model.complex import ComplexModel
-from spyne.model.complex import ComplexModelBase
 from spyne.model.complex import ComplexModelMeta
+from spyne.model.complex import ComplexModelBase
+from spyne.model.complex import ComplexModel
+from spyne.model.complex import TTableModelBase
 from spyne.model.complex import TTableModel
 
 # Iterables
