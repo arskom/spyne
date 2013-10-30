@@ -26,6 +26,8 @@ complex objects -- they don't carry any data by themselves.
 
 
 import logging
+from weakref import WeakKeyDictionary
+
 logger = logging.getLogger(__name__)
 
 import decimal
@@ -807,8 +809,8 @@ class ComplexModelBase(ModelBase):
         if orig is not None:
             retval.__extends__ = getattr(orig, '__extends__', None)
             if orig.Attributes._variants is None:
-                orig.Attributes._variants = set()
-            orig.Attributes._variants.add(retval)
+                orig.Attributes._variants = WeakKeyDictionary()
+            orig.Attributes._variants[retval] = True
             # _variants is only for the root class.
             retval.Attributes._variants = None
 
