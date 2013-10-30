@@ -964,6 +964,9 @@ def TTableModelBase():
     def add_to_mapper(cls, field_name, field_type):
         rel = None
         mapper = cls.Attributes.sqla_mapper
+        if mapper.has_property(field_name):
+            return
+
         if issubclass(field_type, Array):
             rel = relationship(field_type)
         elif issubclass(field_type, ComplexModelBase):
