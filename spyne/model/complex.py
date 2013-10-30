@@ -967,6 +967,10 @@ def TTableModelBase():
         if mapper.has_property(field_name):
             return
 
+        orig = getattr(field_type, '__orig__', None)
+        if orig is not None:
+            field_type = orig
+
         if issubclass(field_type, Array):
             rel = relationship(field_type)
         elif issubclass(field_type, ComplexModelBase):
