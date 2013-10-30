@@ -701,26 +701,25 @@ class HierDictDocument(DictDocument):
 
 
 def _fill(simple_type_info, inst_class, frequencies):
+    """This function initializes the frequencies dict with null values. If this
+    is not done, it won't be possible to catch missing elements when validating
+    the incoming document.
+    """
+
     for k, member in simple_type_info.items():
         if member.type.Attributes.min_occurs == 0:
             continue
 
         ctype_info = inst_class.get_flat_type_info(inst_class)
-
-        idx, nidx = 0, 0
-        pkey = member.path[0]
-        cfreq_key = inst_class, idx
+        cfreq_key = inst_class, 0
 
         for i in range(len(member.path) - 1):
             pkey = member.path[i]
-            nidx = 0
+            frequencies[cfreq_key][pkey] = 0
 
             ncls = ctype_info[pkey]
 
-            frequencies[cfreq_key][pkey] += 0
-
-            cfreq_key = cfreq_key + (ncls, nidx)
-            idx = nidx
+            cfreq_key = cfreq_key + (ncls, 0)
             ctype_info = ncls._type_info
 
         frequencies[cfreq_key][member.path[-1]] += 0
