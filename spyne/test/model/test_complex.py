@@ -103,6 +103,16 @@ class Level1(ComplexModel):
 Level1.resolve_namespace(Level1, __name__)
 
 class TestComplexModel(unittest.TestCase):
+    def test_variants(self):
+        class C(ComplexModel):
+            u = Unicode
+        CC = C.customize(child_attrs=dict(u=dict(min_len=5)))
+        assert C.Attributes._variants == set([CC])
+        assert CC.Attributes.parent_variant is C
+        C.append_field('i', Integer)
+        assert C._type_info['i'] is Integer
+        assert CC._type_info['i'] is Integer
+
     def test_child_customization(self):
         class C(ComplexModel):
             u = Unicode

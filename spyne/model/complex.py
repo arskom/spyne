@@ -534,6 +534,8 @@ class ComplexModelBase(ModelBase):
         """Customize child attributes in one go. It's a dict of dicts. This is
         ignored unless used via explicit customization."""
 
+        parent_variant = None
+        _variants = None
         _xml_tag_body_as = None, None
 
     def __init__(self, *args, **kwargs):
@@ -785,6 +787,7 @@ class ComplexModelBase(ModelBase):
         retval._type_info = TypeInfo(cls._type_info)
         retval.__type_name__ = cls.__type_name__
         retval.__namespace__ = cls.__namespace__
+        retval.Attributes.parent_variant = cls
 
         child_attrs = kwargs.get('child_attrs', None)
         if child_attrs is not None:
@@ -803,6 +806,11 @@ class ComplexModelBase(ModelBase):
         orig = getattr(retval, '__orig__', None)
         if orig is not None:
             retval.__extends__ = getattr(orig, '__extends__', None)
+            if orig.Attributes._variants is None:
+                orig.Attributes._variants = set()
+            orig.Attributes._variants.add(retval)
+            # _variants is only for the root class.
+            retval.Attributes._variants = None
 
         return retval
 
