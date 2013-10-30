@@ -26,7 +26,7 @@ import unittest
 from StringIO import StringIO
 from Cookie import SimpleCookie
 from datetime import datetime
-from wsgiref.validate import validator
+from wsgiref.validate import validator as wsgiref_validator
 
 from collections import defaultdict
 from pprint import pprint
@@ -164,7 +164,6 @@ def _test(services, qs, validator='soft'):
     return ctx
 
 class TestValidation(unittest.TestCase):
-
     def test_validation_frequency(self):
         class SomeService(ServiceBase):
             @srpc(ByteArray(min_occurs=1), _returns=ByteArray)
@@ -172,7 +171,7 @@ class TestValidation(unittest.TestCase):
                 pass
 
         try:
-            ctx = _test([SomeService], '', validator='soft')
+            _test([SomeService], '', validator='soft')
         except ValidationError:
             pass
         else:
@@ -185,7 +184,7 @@ class TestValidation(unittest.TestCase):
                 pass
 
         try:
-            ctx = _test([SomeService], 'p', validator='soft')
+            _test([SomeService], 'p', validator='soft')
         except ValidationError:
             pass
         else:
@@ -198,7 +197,7 @@ class TestValidation(unittest.TestCase):
                 pass
 
         try:
-            ctx = _test([SomeService], "p=duduk", validator='soft')
+            _test([SomeService], "p=duduk", validator='soft')
         except ValidationError:
             pass
         else:
@@ -211,7 +210,7 @@ class TestValidation(unittest.TestCase):
                 pass
 
         try:
-            ctx = _test([SomeService], 'p=10', validator='soft')
+            _test([SomeService], 'p=10', validator='soft')
         except ValidationError:
             pass
         else:
@@ -224,20 +223,20 @@ class TestValidation(unittest.TestCase):
                 pass
 
         try:
-            ctx = _test([SomeService], "p=-129", validator='soft')
+            _test([SomeService], "p=-129", validator='soft')
         except ValidationError:
             pass
         else:
             raise Exception("must raise ValidationError")
 
-    def test_validation_integer_type(self):
+    def test_validation_integer_type_2(self):
         class SomeService(ServiceBase):
             @srpc(Integer8)
             def some_call(p):
                 pass
 
         try:
-            ctx = _test([SomeService], "p=1.2", validator='soft')
+            _test([SomeService], "p=1.2", validator='soft')
         except ValidationError:
             pass
         else:
@@ -246,9 +245,6 @@ class TestValidation(unittest.TestCase):
 
 class Test(unittest.TestCase):
     def test_multiple_return(self):
-        class SomeNotSoComplexModel(ComplexModel):
-            s = String
-
         class SomeService(ServiceBase):
             @srpc(_returns=[Integer, String])
             def some_call():
@@ -469,7 +465,7 @@ class Test(unittest.TestCase):
 
 
     def test_cookie_parse(self):
-        STR = 'some_string'
+        string = 'some_string'
         class RequestHeader(ComplexModel):
             some_field = String
 
@@ -478,15 +474,15 @@ class Test(unittest.TestCase):
 
             @rpc(String)
             def some_call(ctx, s):
-                assert ctx.in_header.some_field == STR
+                assert ctx.in_header.some_field == string
 
         def start_response(code, headers):
             assert code == HTTP_200
 
         c = SimpleCookie()
-        c['some_field'] = STR
+        c['some_field'] = string
 
-        ''.join(validator(WsgiApplication(Application([SomeService], 'tns',
+        ''.join(wsgiref_validator(WsgiApplication(Application([SomeService], 'tns',
             in_protocol=HttpRpc(parse_cookie=True), out_protocol=HttpRpc())))({
                 'SCRIPT_NAME': '',
                 'QUERY_STRING': '',
@@ -505,8 +501,8 @@ class Test(unittest.TestCase):
             }, start_response))
 
     def test_http_headers(self):
-        DATE = datetime(year=2013, month=1, day=1)
-        STR = ['hey', 'yo']
+        d = datetime(year=2013, month=1, day=1)
+        string = ['hey', 'yo']
 
         class ResponseHeader(ComplexModel):
             _type_info = {
@@ -520,14 +516,14 @@ class Test(unittest.TestCase):
             @rpc(String)
             def some_call(ctx, s):
                 assert s is not None
-                ctx.out_header = ResponseHeader(**{'Set-Cookie': STR,
-                                                                'Expires': DATE})
+                ctx.out_header = ResponseHeader(**{'Set-Cookie': string,
+                                                                'Expires': d})
 
         def start_response(code, headers):
-            assert len([s for s in STR if ('Set-Cookie', s) in headers]) == len(STR)
+            assert len([s for s in string if ('Set-Cookie', s) in headers]) == len(string)
             assert dict(headers)['Expires'] == 'Tue, 01 Jan 2013 00:00:00 GMT'
 
-        ret = ''.join(validator(WsgiApplication(Application([SomeService], 'tns',
+        ret = ''.join(wsgiref_validator(WsgiApplication(Application([SomeService], 'tns',
             in_protocol=HttpRpc(), out_protocol=HttpRpc())))({
                 'SCRIPT_NAME': '',
                 'QUERY_STRING': '&s=foo',
