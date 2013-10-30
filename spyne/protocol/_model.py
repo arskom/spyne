@@ -262,7 +262,7 @@ def _parse_datetime_iso_match(date_match, tz=None):
     if usec is None:
         usec = 0
     else:
-        usec = int(usec[1:])
+        usec = min(int(usec[1:]), 999999)
 
     return datetime.datetime(year, month, day, hour, min, sec, usec, tz)
 
