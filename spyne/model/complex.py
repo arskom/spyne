@@ -963,13 +963,36 @@ def TTableModel(metadata=None):
     call. If metadata is not supplied, a new one is instantiated.
     """
 
-    import sqlalchemy
+    from sqlalchemy import MetaData
+    from sqlalchemy.orm import relationship
+
+    def add_to_mapper(cls, field_name, field_type):
+        rel = None
+        if issubclass(field_type, Array):
+            rel = relationship(field_type)
+        elif issubclass(field_type, ComplexModelBase):
+            rel = relationship(field_type, uselist=False)
+        else:
+            raise NotImplementedError()
+
+        cls.Attributes.sqla_mapper.add_property(field_name, rel)
 
     class TableModel(ComplexModelBase):
         __metaclass__ = ComplexModelMeta
 
         class Attributes(ComplexModelBase.Attributes):
-            sqla_metadata = metadata or sqlalchemy.MetaData()
+            sqla_metadata = metadata or MetaData()
+
+        # FIXME: These two also need to add table column if needed.
+        @classmethod
+        def append_field(cls, field_name, field_type):
+            super(TableModel, cls).append_field(field_name, field_type)
+            add_to_mapper(cls, field_name, field_type)
+
+        @classmethod
+        def insert_field(cls, index, field_name, field_type):
+            super(TableModel, cls).insert_field(index, field_name, field_type)
+            add_to_mapper(cls, field_name, field_type)
 
     return TableModel
 
