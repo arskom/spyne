@@ -1000,12 +1000,6 @@ def TTableModel(metadata=None):
     class TableModel(TTableModelBase()):
         __metaclass__ = ComplexModelMeta
 
-### You should not use this and always instantiate explicitly your own
-### TableModel using TTableModel.
-try:
-    TableModel = TTableModel()
-except ImportError:
-    pass
         class Attributes(ComplexModelBase.Attributes):
             sqla_metadata = metadata or MetaData()
 
