@@ -21,25 +21,19 @@
 A barely functional Spyne class serializer. If you're using this as part of
 anything serious, you're insane.
 
-Known issues:
+TODO:
   - Customizations are not serialized.
 """
 
 import logging
 logger = logging.getLogger(__name__)
 
-import os
-
 from collections import defaultdict
 from itertools import chain
 
 from spyne.model import SimpleModel
 from spyne.model.complex import XmlModifier
-from spyne.model.complex import XmlData
-from spyne.model.complex import XmlAttribute
-from spyne.model.complex import Array
 from spyne.model.complex import ComplexModelBase
-from spyne.model.complex import ComplexModelMeta
 
 
 def gen_fn_from_tns(tns):
@@ -50,7 +44,7 @@ def gen_fn_from_tns(tns):
         .replace('.', '_') \
         .replace(':', '_') \
         .replace('#', '') \
-        .replace('-', '_') \
+        .replace('-', '_')
 
 
 class CodeGenerator(object):

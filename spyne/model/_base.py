@@ -396,10 +396,10 @@ class ModelBase(object):
             elif k in ("doc", "appinfo"):
                 setattr(Annotations, k, v)
 
-            elif k in ('primary_key','pk'):
+            elif k in ('primary_key', 'pk'):
                 Attributes.sqla_column_args[-1]['primary_key'] = v
 
-            elif k in ('foreign_key','fk'):
+            elif k in ('foreign_key', 'fk'):
                 from sqlalchemy.schema import ForeignKey
                 t, d = Attributes.sqla_column_args
                 fkt = (ForeignKey(v),)

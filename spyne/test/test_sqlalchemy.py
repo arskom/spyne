@@ -35,7 +35,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import mapper
 from sqlalchemy.orm import sessionmaker
 
-from spyne.model import XmlAttribute
+from spyne.model import XmlAttribute, Decimal
 from spyne.model import XmlData
 from spyne.model import ComplexModel
 from spyne.model import Array
@@ -693,6 +693,19 @@ class TestSqlAlchemySchemaWithPostgresql(unittest.TestCase):
         assert 'e' in t.c
         assert isinstance(t.c.e.type, sqlalchemy.dialects.postgresql.base.ENUM)
         assert t.c.e.type.enums == enums
+
+    def test_add_field_complex(self):
+        class C(TableModel):
+            __tablename__ = "C"
+            u = Unicode(pk=True)
+
+        class D(TableModel):
+            __tablename__ = "d"
+            d = Decimal(pk=True)
+            c = C.store_as('table')
+
+        C.append_field('d', D)
+        assert C.Attributes.sqla_mapper.get_property('d').argument is D
 
 
 if __name__ == '__main__':

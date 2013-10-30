@@ -192,7 +192,7 @@ class ProtocolBase(object):
         if applicable.
         """
 
-    def deserialize(self, ctx):
+    def deserialize(self, ctx, message):
         """Takes a MethodContext instance and a string containing ONE document
         instance in the ``ctx.in_string`` attribute.
 
@@ -200,7 +200,7 @@ class ProtocolBase(object):
         attribute.
         """
 
-    def serialize(self, ctx):
+    def serialize(self, ctx, message):
         """Takes a MethodContext instance and the object to be serialized in the
         ctx.out_object attribute.
 

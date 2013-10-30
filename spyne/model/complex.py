@@ -26,6 +26,8 @@ complex objects -- they don't carry any data by themselves.
 
 
 import logging
+from weakref import WeakKeyDictionary
+
 logger = logging.getLogger(__name__)
 
 import decimal
@@ -534,6 +536,8 @@ class ComplexModelBase(ModelBase):
         """Customize child attributes in one go. It's a dict of dicts. This is
         ignored unless used via explicit customization."""
 
+        parent_variant = None
+        _variants = None
         _xml_tag_body_as = None, None
 
     def __init__(self, *args, **kwargs):
@@ -785,6 +789,7 @@ class ComplexModelBase(ModelBase):
         retval._type_info = TypeInfo(cls._type_info)
         retval.__type_name__ = cls.__type_name__
         retval.__namespace__ = cls.__namespace__
+        retval.Attributes.parent_variant = cls
 
         child_attrs = kwargs.get('child_attrs', None)
         if child_attrs is not None:
@@ -803,8 +808,27 @@ class ComplexModelBase(ModelBase):
         orig = getattr(retval, '__orig__', None)
         if orig is not None:
             retval.__extends__ = getattr(orig, '__extends__', None)
+            if orig.Attributes._variants is None:
+                orig.Attributes._variants = WeakKeyDictionary()
+            orig.Attributes._variants[retval] = True
+            # _variants is only for the root class.
+            retval.Attributes._variants = None
 
         return retval
+
+    @classmethod
+    def append_field(cls, field_name, field_type):
+        cls._type_info[field_name] = field_type
+        if cls.Attributes._variants is not None:
+            for c in cls.Attributes._variants:
+                c.append_field(field_name, field_type)
+
+    @classmethod
+    def insert_field(cls, index, field_name, field_type):
+        cls._type_info.insert(index, (field_name, field_type))
+        if cls.Attributes._variants is not None:
+            for c in cls.Attributes._variants:
+                c.insert_field(index, field_name, field_type)
 
     @classmethod
     def store_as(cls, what):
@@ -934,6 +958,45 @@ class Iterable(Array):
         pass
 
 
+@memoize
+def TTableModelBase():
+    from sqlalchemy import MetaData
+    from sqlalchemy.orm import relationship
+
+    def add_to_mapper(cls, field_name, field_type):
+        rel = None
+        mapper = cls.Attributes.sqla_mapper
+        if mapper.has_property(field_name):
+            return
+
+        orig = getattr(field_type, '__orig__', None)
+        if orig is not None:
+            field_type = orig
+
+        if issubclass(field_type, Array):
+            rel = relationship(field_type)
+        elif issubclass(field_type, ComplexModelBase):
+            rel = relationship(field_type, uselist=False)
+        else:
+            raise NotImplementedError()
+
+        mapper.add_property(field_name, rel)
+
+    class TableModelBase(ComplexModelBase):
+        # FIXME: These two also need to add table column if needed.
+        @classmethod
+        def append_field(cls, field_name, field_type):
+            super(TableModelBase, cls).append_field(field_name, field_type)
+            add_to_mapper(cls, field_name, field_type)
+
+        @classmethod
+        def insert_field(cls, index, field_name, field_type):
+            super(TableModelBase, cls).insert_field(index, field_name, field_type)
+            add_to_mapper(cls, field_name, field_type)
+
+    return TableModelBase
+
+
 # this has docstring repeated in the documentation at reference/model/complex.rst
 @memoize_id
 def TTableModel(metadata=None):
@@ -941,23 +1004,15 @@ def TTableModel(metadata=None):
     call. If metadata is not supplied, a new one is instantiated.
     """
 
-    import sqlalchemy
+    from sqlalchemy import MetaData
 
-    class TableModel(ComplexModelBase):
+    class TableModel(TTableModelBase()):
         __metaclass__ = ComplexModelMeta
 
         class Attributes(ComplexModelBase.Attributes):
-            sqla_metadata = metadata or sqlalchemy.MetaData()
+            sqla_metadata = metadata or MetaData()
 
     return TableModel
-
-
-### You should not use this and always instantiate explicitly your own
-### TableModel using TTableModel.
-try:
-    TableModel = TTableModel()
-except ImportError:
-    pass
 
 
 def Mandatory(cls, **_kwargs):

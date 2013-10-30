@@ -99,7 +99,7 @@ def _dig(par):
 
 xml_object = XmlDocument()
 
-def get_object_as_xml(value, cls=None, root_tag_name=None, no_namespace=False):
+def get_object_as_xml(value, cls=None, root_tag_name=None, no_namespace=None):
     '''Returns an ElementTree representation of a
     :class:`spyne.model.complex.ComplexModel` subclass.
 
@@ -110,6 +110,13 @@ def get_object_as_xml(value, cls=None, root_tag_name=None, no_namespace=False):
 
     if cls is None:
         cls = value.__class__
+
+    if cls.get_namespace() is None and no_namespace is None:
+        no_namespace = True
+
+    if no_namespace is None:
+        no_namespace = False
+
     parent = etree.Element("parent")
 
     xml_object.to_parent_element(cls, value, cls.get_namespace(),
@@ -133,16 +140,16 @@ def get_xml_as_object(elt, cls):
     return xml_object.from_element(cls, elt)
 
 
-def parse_schema_string(s, files={}, repr=parser.Town_repr(with_ns=False)):
+def parse_schema_string(s, files={}, repr=parser.Thier_repr(with_ns=False)):
     elt = etree.fromstring(s, parser=parser.PARSER)
-    return parser.parse_schema(parser.ParsingCtx(files, own_repr=repr), elt)
+    return parser.parse_schema(parser.ParsingCtx(files, repr=repr), elt)
 
 
-def parse_schema_element(elt, files={}, repr=parser.Town_repr(with_ns=False)):
-    return parser.parse_schema(parser.ParsingCtx(files, own_repr=repr), elt)
+def parse_schema_element(elt, files={}, repr=parser.Thier_repr(with_ns=False)):
+    return parser.parse_schema(parser.ParsingCtx(files, repr=repr), elt)
 
 
-def parse_schema_file(file_name, files={}, repr=parser.Town_repr(with_ns=False)):
+def parse_schema_file(file_name, files={}, repr=parser.Thier_repr(with_ns=False)):
     elt = etree.fromstring(open(file_name).read(), parser=parser.PARSER)
     return parser.parse_schema(parser.ParsingCtx(files,
-                    abspath(dirname(file_name)), own_repr=repr), elt)
+                    abspath(dirname(file_name)), repr=repr), elt)

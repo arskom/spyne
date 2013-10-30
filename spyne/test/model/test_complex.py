@@ -103,6 +103,29 @@ class Level1(ComplexModel):
 Level1.resolve_namespace(Level1, __name__)
 
 class TestComplexModel(unittest.TestCase):
+    def test_add_field(self):
+        class C(ComplexModel):
+            u = Unicode
+        C.append_field('i', Integer)
+        assert C._type_info['i'] is Integer
+
+    def test_insert_field(self):
+        class C(ComplexModel):
+            u = Unicode
+        C.insert_field(0, 'i', Integer)
+        assert C._type_info.keys() == ['i', 'u']
+
+    def test_variants(self):
+        class C(ComplexModel):
+            u = Unicode
+        CC = C.customize(child_attrs=dict(u=dict(min_len=5)))
+        r, = C.Attributes._variants
+        assert r is CC
+        assert CC.Attributes.parent_variant is C
+        C.append_field('i', Integer)
+        assert C._type_info['i'] is Integer
+        assert CC._type_info['i'] is Integer
+
     def test_child_customization(self):
         class C(ComplexModel):
             u = Unicode
@@ -328,16 +351,6 @@ class EncExtractXs(ComplexModel):
     mbr_idn = Integer(nillable=False, min_occurs=1, max_occurs=1, max_len=18)
     enc_idn = Integer(nillable=False, min_occurs=1, max_occurs=1, max_len=18)
     hist_idn = Integer(nillable=False, min_occurs=1, max_occurs=1, max_len=18)
-
-
-class EncExtractSisMsg(SisMsg):
-    """Message indicating a Jiva episode needs to be extracted.
-
-    Desirable API: Will it work?
-    >>> msg = XmlDocument().from_element(EncExtractSisMsg, raw_xml)
-    >>> msg.body.mbr_idn
-    """
-    body = EncExtractXs
 
 
 class TestXmlAttribute(unittest.TestCase):
