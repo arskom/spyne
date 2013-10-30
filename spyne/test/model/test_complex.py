@@ -352,16 +352,6 @@ class EncExtractXs(ComplexModel):
     hist_idn = Integer(nillable=False, min_occurs=1, max_occurs=1, max_len=18)
 
 
-class EncExtractSisMsg(SisMsg):
-    """Message indicating a Jiva episode needs to be extracted.
-
-    Desirable API: Will it work?
-    >>> msg = XmlDocument().from_element(EncExtractSisMsg, raw_xml)
-    >>> msg.body.mbr_idn
-    """
-    body = EncExtractXs
-
-
 class TestXmlAttribute(unittest.TestCase):
     def assertIsNotNone(self, obj, msg=None):
         """Stolen from Python 2.7 stdlib."""
