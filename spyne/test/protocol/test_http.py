@@ -111,32 +111,6 @@ class TestSimpleDictDocument(unittest.TestCase):
     def test_own_parse_qs_11(self):
         assert dict(_parse_qs('p=1&q=2&p=3')) == {'p': ['1', '3'], 'q': ['2']}
 
-    def test_fill(self):
-        class CM(ComplexModel):
-            i = Integer
-            s = Unicode
-            a = Array(Boolean)
-
-        class CCM(ComplexModel):
-            c = CM
-            i = Integer
-            s = Unicode
-
-        inst_class = CCM
-        frequencies = defaultdict(lambda: defaultdict(int))
-
-        simple_type_info = CCM.get_simple_type_info(inst_class)
-        _fill(simple_type_info, inst_class, frequencies)
-
-        pprint(dict(frequencies))
-        assert frequencies[(CCM,0)]['c'] == 0
-        assert frequencies[(CCM,0)]['i'] == 0
-        assert frequencies[(CCM,0)]['s'] == 0
-        assert frequencies[(CCM,0,CM,0)]['i'] == 0
-        assert frequencies[(CCM,0,CM,0)]['s'] == 0
-        assert frequencies[(CCM,0,CM,0)]['a'] == 0
-
-
 def _test(services, qs, validator='soft'):
     app = Application(services, 'tns', in_protocol=HttpRpc(validator=validator),
                                        out_protocol=HttpRpc())
@@ -177,6 +151,71 @@ class TestValidation(unittest.TestCase):
         else:
             raise Exception("must raise ValidationError")
 
+    def _test_validation_frequency_simple_bare(self):
+        class SomeService(ServiceBase):
+            @srpc(ByteArray(min_occurs=1), _body_style='bare', _returns=ByteArray)
+            def some_call(p):
+                pass
+
+        try:
+            _test([SomeService], '', validator='soft')
+        except ValidationError:
+            pass
+        else:
+            raise Exception("must raise ValidationError")
+
+    def test_validation_frequency_complex_bare_parent(self):
+        class C(ComplexModel):
+            i=Integer(min_occurs=1)
+            s=String
+
+        class SomeService(ServiceBase):
+            @srpc(C, _body_style='bare')
+            def some_call(p):
+                pass
+
+        # must not complain about missing s
+        _test([SomeService], 'i=5', validator='soft')
+
+        # must raise validation error for missing i
+        try:
+            _test([SomeService], 's=a', validator='soft')
+        except ValidationError:
+            pass
+        else:
+            raise Exception("must raise ValidationError")
+
+        # must raise validation error for missing i
+        try:
+            _test([SomeService], '', validator='soft')
+        except ValidationError:
+            pass
+        else:
+            raise Exception("must raise ValidationError")
+
+
+    def test_validation_frequency_parent(self):
+        class C(ComplexModel):
+            i=Integer(min_occurs=1)
+            s=String
+
+        class SomeService(ServiceBase):
+            @srpc(C)
+            def some_call(p):
+                pass
+
+        # must not complain about missing s
+        _test([SomeService], 'p_i=5', validator='soft')
+        try:
+            # must raise validation error for missing i
+            _test([SomeService], 'p_s=a', validator='soft')
+        except ValidationError:
+            pass
+        else:
+            raise Exception("must raise ValidationError")
+
+        # must not raise anything for missing p because C has min_occurs=0
+        _test([SomeService], '', validator='soft')
 
     def test_validation_array(self):
         class C(ComplexModel):

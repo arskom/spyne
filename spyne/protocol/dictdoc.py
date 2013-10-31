@@ -282,15 +282,15 @@ class SimpleDictDocument(DictDocument):
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
         """
 
-        simple_type_info = inst_class.get_simple_type_info(inst_class)
 
         # this is for validating cls.Attributes.{min,max}_occurs
         frequencies = defaultdict(lambda: defaultdict(int))
         validate_freq = inst_class.Attributes.validate_freq
         if validator is self.SOFT_VALIDATION and validate_freq:
-            _fill(simple_type_info, inst_class, frequencies)
+            _fill(inst_class, frequencies)
 
         retval = inst_class.get_deserialization_instance()
+        simple_type_info = inst_class.get_simple_type_info(inst_class)
 
         for orig_k, v in sorted(doc.items(), key=lambda k: k[0]):
             k = RE_HTTP_ARRAY_INDEX.sub("", orig_k)
@@ -701,26 +701,15 @@ class HierDictDocument(DictDocument):
             yield v
 
 
-def _fill(simple_type_info, inst_class, frequencies):
+def _fill(inst_class, frequencies):
     """This function initializes the frequencies dict with null values. If this
     is not done, it won't be possible to catch missing elements when validating
     the incoming document.
     """
 
-    for k, member in simple_type_info.items():
-        if member.type.Attributes.min_occurs == 0:
-            continue
+    ctype_info = inst_class.get_flat_type_info(inst_class)
+    cfreq_key = inst_class, 0
 
-        ctype_info = inst_class.get_flat_type_info(inst_class)
-        cfreq_key = inst_class, 0
-
-        for i in range(len(member.path) - 1):
-            pkey = member.path[i]
-            frequencies[cfreq_key][pkey] = 0
-
-            ncls = ctype_info[pkey]
-
-            cfreq_key = cfreq_key + (ncls, 0)
-            ctype_info = ncls._type_info
-
-        frequencies[cfreq_key][member.path[-1]] += 0
+    for k,v in ctype_info.items():
+        if v.Attributes.min_occurs > 0:
+            frequencies[cfreq_key][k] = 0
