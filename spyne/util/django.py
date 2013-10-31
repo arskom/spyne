@@ -67,7 +67,7 @@ class DjangoModelMapper(object):
 
     r"""Mapper from django models to spyne complex models.
 
-    You can extend it registering new field types:
+    You can extend it registering new field types: ::
 
         class NullBooleanMapper(DjangoFieldMapper):
 
@@ -275,15 +275,15 @@ class DjangoComplexModel(ComplexModelBase):
 
     """Base class with Django model mapping support.
 
-    Sample usage:
+    Sample usage: ::
 
         class PersonType(DjangoComplexModel):
             class Attributes(DjangoComplexModel.Attributes):
                 django_model = Person
 
 
-    Attribute :attr:``django_model` is required for Django model mapping
-    machinery. You can customize your types defining custom type fields:
+    Attribute :attr:`django_model` is required for Django model mapping
+    machinery. You can customize your types defining custom type fields: ::
 
         class PersonType(DjangoComplexModel):
             gender = primitive.Unicode(pattern='^[FM]$')
@@ -292,14 +292,14 @@ class DjangoComplexModel(ComplexModelBase):
                 django_model = Person
 
 
-    There is an option to specify custom mapper:
+    There is an option to specify custom mapper: ::
 
         class PersonType(DjangoComplexModel):
             class Attributes(DjangoComplexModel.Attributes):
                 django_model = Person
                 django_mapper = my_custom_mapper
 
-    You can also exclude some fields from mapping:
+    You can also exclude some fields from mapping: ::
 
         class PersonType(DjangoComplexModel):
             class Attributes(DjangoComplexModel.Attributes):
