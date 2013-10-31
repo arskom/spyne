@@ -177,6 +177,56 @@ class TestValidation(unittest.TestCase):
         else:
             raise Exception("must raise ValidationError")
 
+
+    def test_validation_array(self):
+        class C(ComplexModel):
+            i=Integer(min_occurs=1)
+            s=String
+
+        class SomeService(ServiceBase):
+            @srpc(Array(C))
+            def some_call(p):
+                pass
+
+        # must not complain about missing s
+        _test([SomeService], 'p[0]_i=5', validator='soft')
+        try:
+            # must raise validation error for missing i
+            _test([SomeService], 'p[0]_s=a', validator='soft')
+        except ValidationError:
+            pass
+        else:
+            raise Exception("must raise ValidationError")
+
+        # must not raise anything for missing p because C has min_occurs=0
+        _test([SomeService], '', validator='soft')
+
+    def test_validation_nested_array(self):
+        class CC(ComplexModel):
+            d = DateTime
+
+        class C(ComplexModel):
+            i=Integer(min_occurs=1)
+            cc=Array(CC)
+
+        class SomeService(ServiceBase):
+            @srpc(Array(C))
+            def some_call(p):
+                print p
+
+        # must not complain about missing s
+        _test([SomeService], 'p[0]_i=5', validator='soft')
+        try:
+            # must raise validation error for missing i
+            _test([SomeService], 'p[0]_cc[0]_d=2013-01-01', validator='soft')
+        except ValidationError:
+            pass
+        else:
+            raise Exception("must raise ValidationError")
+
+        # must not raise anything for missing p because C has min_occurs=0
+        _test([SomeService], '', validator='soft')
+
     def test_validation_nullable(self):
         class SomeService(ServiceBase):
             @srpc(ByteArray(nullable=False), _returns=ByteArray)
