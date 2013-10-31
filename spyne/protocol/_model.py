@@ -262,9 +262,15 @@ def _parse_datetime_iso_match(date_match, tz=None):
     if usec is None:
         usec = 0
     else:
-        usec = min(int(usec[1:]), 999999)
+        usec = int(usec[1:])
 
-    return datetime.datetime(year, month, day, hour, min, sec, usec, tz)
+    if usec > 999999:
+        usec_delta = usec - 999999
+        td = datetime.timedelta(0, 0, usec_delta)
+    else:
+        td = datetime.timedelta(0)
+
+    return datetime.datetime(year, month, day, hour, min, sec, usec, tz) + td
 
 
 @nillable_string
