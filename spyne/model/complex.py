@@ -494,7 +494,7 @@ def _fill_empty_type_name(cls, k, v, parent=False):
         if extends is not None and extends.__type_name__ is ModelBase.Empty:
             _fill_empty_type_name(cls, k, v.__extends__, parent=True)
 
-
+_is_array = lambda v: issubclass(v, Array) or (v.Attributes.min_occurs > 1)
 class ComplexModelBase(ModelBase):
     """If you want to make a better class type, this is what you should inherit
     from.
@@ -661,8 +661,7 @@ class ComplexModelBase(ModelBase):
         return cls.__orig__ or cls
 
     @staticmethod
-    def get_simple_type_info(cls, hier_delim="_", retval=None, prefix=None,
-                                        parent=None, is_array=None, tags=None):
+    def get_simple_type_info(cls, hier_delim="_"):
         """Returns a _type_info dict that includes members from all base classes
         and whose types are only primitives. It will prefix field names in
         non-top-level complex objects with field name of its parent.
@@ -679,32 +678,27 @@ class ComplexModelBase(ModelBase):
         :param is_array: :class:`collections.deque` instance.
         """
 
-        assert (prefix is None) and (is_array is None) or \
-               (prefix is not None) and (is_array is not None)
-
-        if retval is None:
-            retval = TypeInfo()
-
-        if prefix is None:
-            prefix = deque()
-
-        if is_array is None:
-            is_array = deque()
-
-        if tags is None:
-            tags = set()
-
         fti = cls.get_flat_type_info(cls)
-        tags.add(getattr(cls, "__orig__", None) or cls)
 
-        for k, v in fti.items():
+        retval = TypeInfo()
+        tags = set()
+        queue = deque([(k, v, (k,), (_is_array(v),), cls)
+                                                        for k,v in fti.items()])
+        tags.add(cls)
+
+        while len(queue) > 0:
+            k, v, prefix, is_array, parent = queue.popleft()
             if issubclass(v, Array) and v.Attributes.max_occurs == 1:
                 v, = v._type_info.values()
 
-            prefix.append(k)
-            is_array.append(v.Attributes.max_occurs > 1)
-
-            if not issubclass(v, ComplexModelBase):
+            if issubclass(v, ComplexModelBase):
+                if not (v in tags):
+                    tags.add(v)
+                    queue.extend([
+                        (k2, v2, prefix + (k2,),
+                            is_array + (v.Attributes.max_occurs > 1,), v)
+                                   for k2, v2 in v.get_flat_type_info(v).items()])
+            else:
                 key = hier_delim.join(prefix)
                 value = retval.get(key, None)
 
@@ -714,14 +708,6 @@ class ComplexModelBase(ModelBase):
 
                 retval[key] = _SimpleTypeInfoElement(path=tuple(prefix),
                                parent=parent, type_=v, is_array=tuple(is_array))
-
-            else:
-                if not (getattr(v, "__orig__", None) or v) in tags:
-                    v.get_simple_type_info(v, hier_delim, retval, prefix, cls,
-                                                                is_array, tags)
-
-            prefix.pop()
-            is_array.pop()
 
         return retval
 

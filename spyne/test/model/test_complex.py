@@ -449,20 +449,20 @@ class TestSimpleTypeRestrictions(unittest.TestCase):
         assert "i" in sti
         assert sti["i"].path == ('i',)
         assert sti["i"].type is Integer
-        assert sti["s"].parent is None
+        assert sti["s"].parent is CCM
         assert "s" in sti
         assert sti["s"].path == ('s',)
         assert sti["s"].type is String
-        assert sti["s"].parent is None
+        assert sti["s"].parent is CCM
 
         assert "c_i" in sti
         assert sti["c_i"].path == ('c','i')
         assert sti["c_i"].type is Integer
-        assert sti["c_i"].parent is CCM
+        assert sti["c_i"].parent is CM
         assert "c_s" in sti
         assert sti["c_s"].path == ('c','s')
         assert sti["c_s"].type is String
-        assert sti["c_s"].parent is CCM
+        assert sti["c_s"].parent is CM
 
     def test_simple_type_info_conflicts(self):
         class CM(ComplexModel):
