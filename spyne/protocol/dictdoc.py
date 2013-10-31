@@ -169,24 +169,23 @@ from spyne.model import Unicode
 from spyne.protocol import ProtocolBase
 
 
-def check_freq_dict(cls, d, fti=None):
+def _check_freq_dict(cls, d, fti=None):
     if fti is None:
         fti = cls.get_flat_type_info(cls)
 
-    if cls.Attributes.validate_freq:
-        for k,v in fti.items():
-            val = d[k]
+    for k,v in fti.items():
+        val = d[k]
 
+        min_o, max_o = v.Attributes.min_occurs, v.Attributes.max_occurs
+        if issubclass(v, Array) and v.Attributes.max_occurs == 1:
+            v, = v._type_info.values()
             min_o, max_o = v.Attributes.min_occurs, v.Attributes.max_occurs
-            if issubclass(v, Array) and v.Attributes.max_occurs == 1:
-                v, = v._type_info.values()
-                min_o, max_o = v.Attributes.min_occurs, v.Attributes.max_occurs
 
-            if val < min_o:
-                raise ValidationError(k,
+        if val < min_o:
+            raise ValidationError(k,
                             '%%r member must occur at least %d times.' % min_o)
-            elif val > max_o:
-                raise ValidationError(k,
+        elif val > max_o:
+            raise ValidationError(k,
                             '%%r member must occur at most %d times.' % max_o)
 
 
@@ -287,7 +286,8 @@ class SimpleDictDocument(DictDocument):
 
         # this is for validating cls.Attributes.{min,max}_occurs
         frequencies = defaultdict(lambda: defaultdict(int))
-        if validator is self.SOFT_VALIDATION:
+        validate_freq = inst_class.Attributes.validate_freq
+        if validator is self.SOFT_VALIDATION and validate_freq:
             _fill(simple_type_info, inst_class, frequencies)
 
         retval = inst_class.get_deserialization_instance()
@@ -345,6 +345,7 @@ class SimpleDictDocument(DictDocument):
             cfreq_key = inst_class, idx
 
             indexes = deque(RE_HTTP_ARRAY_INDEX.findall(orig_k))
+            validates = deque()
 
             for pkey in member.path[:-1]:
                 nidx = 0
@@ -398,9 +399,9 @@ class SimpleDictDocument(DictDocument):
                 logger.debug("\tset default %r(%r) = %r" %
                                                     (member.path, pkey, value))
 
-        if validator is self.SOFT_VALIDATION:
+        if validator is self.SOFT_VALIDATION and validate_freq:
             for k, d in frequencies.items():
-                check_freq_dict(k[-2], d)
+                _check_freq_dict(k[-2], d)
 
         return retval
 
@@ -618,8 +619,8 @@ class HierDictDocument(DictDocument):
 
             frequencies[k] += 1
 
-        if validator is self.SOFT_VALIDATION:
-            check_freq_dict(class_, frequencies, flat_type_info)
+        if validator is self.SOFT_VALIDATION and class_.Attributes.validate_freq:
+            _check_freq_dict(class_, frequencies, flat_type_info)
 
         return inst
 
