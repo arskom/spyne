@@ -644,7 +644,7 @@ def gen_sqla_info(cls, cls_bases=()):
                                                           *(col_own, col_child))
 
                     props[k] = relationship(child, secondary=rel_t,
-                                                              backref=p.backref)
+                                           backref=p.backref, cascade=p.cascade)
 
                 elif issubclass(child, SimpleModel): # one to many simple type
                     # get left (fk) column info
@@ -739,7 +739,7 @@ def gen_sqla_info(cls, cls_bases=()):
                         child.__mapper__.add_property(col.name, col)
 
                     props[k] = relationship(child, foreign_keys=[col],
-                                                              backref=p.backref)
+                                          backref=p.backref, cascade=p.cascade)
 
             elif p is not None and issubclass(v, ComplexModelBase):
                 # v has the Attribute values we need whereas real_v is what the
@@ -758,7 +758,7 @@ def gen_sqla_info(cls, cls_bases=()):
                                             "relationship"
 
                     col = _get_col_o2o(cls, k, v, p.left)
-                    rel = relationship(real_v, uselist=False,
+                    rel = relationship(real_v, uselist=False, cascade=p.cascade,
                                           foreign_keys=[col], backref=p.backref)
 
                     p.left = col.key

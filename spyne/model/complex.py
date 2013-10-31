@@ -93,12 +93,13 @@ class table:
     """
 
     def __init__(self, multi=False, left=None, right=None, backref=None,
-                                                              id_backref=None):
+                                                  id_backref=None, cascade=None):
         self.multi = multi
         self.left = left
         self.right = right
         self.backref = backref
         self.id_backref = id_backref
+        self.cascade = cascade
 
 
 class json:
