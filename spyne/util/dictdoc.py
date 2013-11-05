@@ -18,7 +18,19 @@
 #
 
 from spyne.protocol.dictdoc import HierDictDocument
-from spyne.protocol.json import json
+
+try:
+    from spyne.protocol.json import JsonDocument
+except ImportError as e:
+    def JsonDocument(*args, **kwargs):
+        raise e
+
+try:
+    from spyne.protocol.yaml import YamlDocument
+except ImportError as e:
+    def YamlDocument(*args, **kwargs):
+        raise e
+
 
 from spyne.model.primitive import Double
 from spyne.model.primitive import Boolean
@@ -58,6 +70,19 @@ def get_object_as_dict(o, cls, ignore_wrappers=True, complex_as=dict):
                                    complex_as=complex_as)._object_to_doc(cls, o)
 
 
-def get_object_as_json(o, cls, ignore_wrappers=True, complex_as=list):
-    d = get_object_as_dict(o, cls, ignore_wrappers, complex_as)
-    return json.dumps(d)
+class FakeContext(object):
+    def __init__(self, out_document):
+        self.out_document = out_document
+
+
+def get_object_as_json(o, cls, ignore_wrappers=True, complex_as=list, encoding='utf8'):
+    prot = JsonDocument(ignore_wrappers=ignore_wrappers, complex_as=complex_as)
+    ctx = FakeContext(out_document=[prot._object_to_doc(cls,o)])
+    prot.create_out_string(ctx, encoding)
+    return ''.join(ctx.out_string)
+
+def get_object_as_yaml(o, cls, ignore_wrappers=False, complex_as=dict, encoding='utf8'):
+    prot = YamlDocument(ignore_wrappers=ignore_wrappers, complex_as=complex_as)
+    ctx = FakeContext(out_document=[prot._object_to_doc(cls,o)])
+    prot.create_out_string(ctx, encoding)
+    return ''.join(ctx.out_string)
