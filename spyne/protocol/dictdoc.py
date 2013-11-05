@@ -291,7 +291,6 @@ class SimpleDictDocument(DictDocument):
 
         retval = inst_class.get_deserialization_instance()
         simple_type_info = inst_class.get_simple_type_info(inst_class)
-
         for orig_k, v in sorted(doc.items(), key=lambda k: k[0]):
             k = RE_HTTP_ARRAY_INDEX.sub("", orig_k)
 
@@ -624,27 +623,27 @@ class HierDictDocument(DictDocument):
 
         return inst
 
-    def _object_to_doc(self, class_, value):
+    def _object_to_doc(self, cls, value):
         retval = None
 
         if self.ignore_wrappers:
-            ti = getattr(class_, '_type_info', {})
+            ti = getattr(cls, '_type_info', {})
 
-            while class_.Attributes._wrapper and len(ti) == 1:
+            while cls.Attributes._wrapper and len(ti) == 1:
                 # Wrappers are auto-generated objects that have exactly one
                 # child type.
                 key, = ti.keys()
-                if not issubclass(class_, Array):
+                if not issubclass(cls, Array):
                     value = getattr(value, key, None)
-                class_, = ti.values()
-                ti = getattr(class_, '_type_info', {})
+                cls, = ti.values()
+                ti = getattr(cls, '_type_info', {})
 
         # transform the results into a dict:
-        if class_.Attributes.max_occurs > 1:
+        if cls.Attributes.max_occurs > 1:
             if value is not None:
-                retval = [self._to_value(class_, inst) for inst in value]
+                retval = [self._to_value(cls, inst) for inst in value]
         else:
-            retval = self._to_value(class_, value)
+            retval = self._to_value(cls, value)
 
         return retval
 
