@@ -80,22 +80,31 @@ def Thier_repr(with_ns=False):
         def get_class_name(c):
             return with_ns(c.get_namespace(), c.get_type_name())
 
-    def hier_repr(inst, i0=0, I='  '):
+    def hier_repr(inst, i0=0, I='  ', tags=None):
+        if tags is None:
+            tags = set()
+
         cls = inst.__class__
         if not hasattr(cls, '_type_info'):
             return repr(inst)
+
+        clsid = "%s<%d>" % (get_class_name(cls), id(cls))
+        if id(inst) in tags:
+            return clsid
+
+        tags.add(id(inst))
 
         i1 = i0 + 1
         i2 = i1 + 1
 
         retval = []
-        retval.append(get_class_name(cls))
+        retval.append(clsid)
         retval.append('(')
 
         xtba_key, xtba_type = cls.Attributes._xml_tag_body_as
         if xtba_key is not None:
             value = getattr(inst, xtba_key, None)
-            retval.append("%s,\n" % hier_repr(value,i1))
+            retval.append("%s,\n" % hier_repr(value, i1, I, tags))
         else:
             retval.append('\n')
 
@@ -105,14 +114,14 @@ def Thier_repr(with_ns=False):
                                                             value is not None:
                 retval.append("%s%s=[\n" % (I*i1, k))
                 for subval in value:
-                    retval.append("%s%s,\n" % (I*i2, hier_repr(subval,i2)))
+                    retval.append("%s%s,\n" % (I*i2, hier_repr(subval,i2, I, tags)))
                 retval.append('%s],\n' % (I*i1))
 
             elif issubclass(v, XmlData):
                 pass
 
             else:
-                retval.append("%s%s=%s,\n" % (I*i1, k, hier_repr(value, i1)))
+                retval.append("%s%s=%s,\n" % (I*i1, k, hier_repr(value, i1, I, tags)))
 
         retval.append('%s)' % (I*i0))
         return ''.join(retval)
