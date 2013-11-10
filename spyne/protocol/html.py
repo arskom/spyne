@@ -249,8 +249,7 @@ class HtmlMicroFormat(HtmlBase):
 
         (k,v), = cls._type_info.items()
         for subval in value:
-            for val in self.serialize_class(cls=v,
-                            value=subval, locale=locale, name=k):
+            for val in self.serialize_class(cls=v, value=subval, locale=locale, name=k):
                 yield val
 
         yield '</%s>' % self.root_tag
