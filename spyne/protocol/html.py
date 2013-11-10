@@ -52,6 +52,7 @@ from spyne.model.primitive import AnyUri
 from spyne.model.primitive import ImageUri
 from spyne.protocol import ProtocolBase
 from spyne.util.cdict import cdict
+from spyne import BODY_STYLE_WRAPPED
 
 
 def translate(cls, locale, default):
@@ -116,6 +117,7 @@ class HtmlBase(ProtocolBase):
         """
 
         assert message in (self.RESPONSE, )
+        result_message_class = ctx.descriptor.out_message
 
         self.event_manager.fire_event('before_serialize', ctx)
 
@@ -124,15 +126,19 @@ class HtmlBase(ProtocolBase):
 
         else:
             # instantiate the result message
-            result_message_class = ctx.descriptor.out_message
-            result_message = result_message_class()
-
             # assign raw result to its wrapper, result_message
-            out_type_info = result_message_class._type_info
+            if ctx.descriptor.body_style == BODY_STYLE_WRAPPED:
+                result_message = result_message_class()
 
-            for i in range(len(out_type_info)):
-                attr_name = result_message_class._type_info.keys()[i]
-                setattr(result_message, attr_name, ctx.out_object[i])
+                # assign raw result to its wrapper, result_message
+                out_type_info = result_message_class._type_info
+
+                for i in range(len(out_type_info)):
+                    attr_name = result_message_class._type_info.keys()[i]
+                    setattr(result_message, attr_name, ctx.out_object[i])
+
+            else:
+                result_message = ctx.out_object
 
             ctx.out_header_doc = None
             ctx.out_body_doc = self.serialize_impl(result_message_class,
