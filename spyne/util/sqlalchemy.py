@@ -850,7 +850,7 @@ def gen_sqla_info(cls, cls_bases=()):
 
     cls_mapper = mapper(cls, *mapper_args, **mapper_kwargs)
 
-    def my_load_listener(target, context):
+    def on_load(target, context):
         d = target.__dict__
 
         for k, v in cls.get_flat_type_info(cls).items():
@@ -861,7 +861,7 @@ def gen_sqla_info(cls, cls_bases=()):
                     d[k] = None
 
 
-    event.listen(cls, 'load', my_load_listener)
+    event.listen(cls, 'load', on_load)
 
     cls.__tablename__ = cls.Attributes.table_name
     cls.Attributes.sqla_mapper = cls.__mapper__ = cls_mapper
