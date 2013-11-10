@@ -661,6 +661,7 @@ class ComplexModelBase(ModelBase):
         return cls.__orig__ or cls
 
     @staticmethod
+    @memoize
     def get_simple_type_info(cls, hier_delim="_"):
         """Returns a _type_info dict that includes members from all base classes
         and whose types are only primitives. It will prefix field names in
@@ -809,6 +810,8 @@ class ComplexModelBase(ModelBase):
         if cls.Attributes._variants is not None:
             for c in cls.Attributes._variants:
                 c.append_field(field_name, field_type)
+        ComplexModelBase.get_flat_type_info.memo.clear()
+        ComplexModelBase.get_simple_type_info.memo.clear()
 
     @classmethod
     def insert_field(cls, index, field_name, field_type):
@@ -816,6 +819,8 @@ class ComplexModelBase(ModelBase):
         if cls.Attributes._variants is not None:
             for c in cls.Attributes._variants:
                 c.insert_field(index, field_name, field_type)
+        ComplexModelBase.get_flat_type_info.memo.clear()
+        ComplexModelBase.get_simple_type_info.memo.clear()
 
     @classmethod
     def store_as(cls, what):
