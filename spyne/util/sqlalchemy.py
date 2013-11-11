@@ -549,19 +549,13 @@ def _gen_index_info(table, table_name, col, k, v):
         else:
             Index(*index_args[0], **index_args[1])
 
-def gen_sqla_info(cls, cls_bases=()):
-    """Return SQLAlchemy table object corresponding to the passed Spyne object.
-    Also maps given class to the returned table.
-    """
-
-    metadata = cls.Attributes.sqla_metadata
+def _check_inheritance(cls, cls_bases):
     table_name = cls.Attributes.table_name
 
-    inc = [] # include_properties
-
-    # check inheritance
+    inc = []
     inheritance = None
     base_class = getattr(cls, '__extends__', None)
+
     if base_class is None:
         for b in cls_bases:
             if getattr(b, '_type_info', None) is not None and b.__mixin__:
@@ -584,16 +578,6 @@ def gen_sqla_info(cls, cls_bases=()):
             if exc_prop is not None:
                 inc = [_p for _p in inc if not _p in exc_prop]
 
-    # check whether the object already has a table
-    table = None
-    if table_name in metadata.tables:
-        table = metadata.tables[table_name]
-    else:
-        # We need FakeTable because table_args can contain all sorts of stuff
-        # that can require a fully-constructed table, and we don't have that
-        # information here yet.
-        table = _FakeTable()
-
     # check whether the base classes are already mapped
     base_mapper = None
     if base_class is not None:
@@ -607,9 +591,35 @@ def gen_sqla_info(cls, cls_bases=()):
                 base_mapper = bm
                 inheritance = _SINGLE
 
-    props = {}
+    return inheritance, base_class, base_mapper, inc
 
-    # For each Spyne field
+def _check_table(cls):
+    table_name = cls.Attributes.table_name
+    metadata = cls.Attributes.sqla_metadata
+
+    # check whether the object already has a table
+    table = None
+    if table_name in metadata.tables:
+        table = metadata.tables[table_name]
+    else:
+        # We need FakeTable because table_args can contain all sorts of stuff
+        # that can require a fully-constructed table, and we don't have that
+        # information here yet.
+        table = _FakeTable()
+
+    return table
+
+def gen_sqla_info(cls, cls_bases=()):
+    """Return SQLAlchemy table object corresponding to the passed Spyne object.
+    Also maps given class to the returned table.
+    """
+
+    metadata = cls.Attributes.sqla_metadata
+    table_name = cls.Attributes.table_name
+    inheritance, base_class, base_mapper, inc = _check_inheritance(cls, cls_bases)
+    table = _check_table(cls)
+
+    props = {}
     for k, v in cls._type_info.items():
         if v.Attributes.exc_table:
             continue
