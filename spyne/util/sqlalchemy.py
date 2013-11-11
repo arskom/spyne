@@ -499,11 +499,10 @@ def _get_col_o2m(cls, fk_col_name):
     yield col
 
 
-def _get_cols_m2m(cls, k, v, left_fk_col_name, right_fk_col_name):
+def _get_cols_m2m(cls, k, child, left_fk_col_name, right_fk_col_name):
     """Gets the parent and child classes and returns foreign keys to both
     tables. These columns can be used to create a relation table."""
 
-    child, = v._type_info.values()
     col_info, left_col = _get_col_o2m(cls, left_fk_col_name)
     right_col = _get_col_o2o(cls, k, child, right_fk_col_name)
     left_col.primary_key = right_col.primary_key = True
@@ -633,9 +632,122 @@ def _add_simple_type(cls, props, table, k, v, sqla_type):
     if not v.Attributes.exc_mapper:
         props[k] = col
 
+def _gen_array_m2m(cls, props, k, child, p):
+    metadata = cls.Attributes.sqla_metadata
+
+    col_own, col_child = _get_cols_m2m(cls, k, child, p.left, p.right)
+
+    p.left = col_own.key
+    p.right = col_child.key
+
+    if p.multi == True:
+        rel_table_name = '_'.join([cls.Attributes.table_name, k])
+    else:
+        rel_table_name = p.multi
+
+    # FIXME: Handle the case where the table already exists.
+    rel_t = Table(rel_table_name, metadata, *(col_own, col_child))
+
+    props[k] = relationship(child, secondary=rel_t,
+              backref=p.backref, cascade=p.cascade, lazy=p.lazy)
+
+def _gen_array_simple(cls, props, k, child_cust, p):
+    table_name = cls.Attributes.table_name
+    metadata = cls.Attributes.sqla_metadata
+
+    # get left (fk) column info
+    _gen_col = _get_col_o2m(cls, p.left)
+    col_info = _gen_col.next() # gets the column name
+    p.left, child_left_col_type = col_info[0] # FIXME: Add support for multi-column primary keys.
+    child_left_col_name = p.left
+
+    # get right(data) column info
+    child_right_col_type = get_sqlalchemy_type(child_cust)
+    child_right_col_name = p.right # this is the data column
+    if child_right_col_name is None:
+        child_right_col_name = k
+
+    # get table name
+    child_table_name = child_cust.Attributes.table_name
+    if child_table_name is None:
+        child_table_name = '_'.join([table_name, k])
+
+    if child_table_name in metadata.tables:
+        child_t = metadata.tables[child_table_name]
+        assert child_right_col_type is \
+               child_t.c[child_right_col_name].type.__class__
+        assert child_left_col_type is \
+               child_t.c[child_left_col_name].type.__class__
+
+    else:
+        # table does not exist, generate table
+        child_right_col = Column(child_right_col_name,
+                                        child_right_col_type)
+        _sp_attrs_to_sqla_constraints(cls, child_cust,
+                                            col=child_right_col)
+
+        child_left_col = _gen_col.next()
+        _sp_attrs_to_sqla_constraints(cls, child_cust,
+                                            col=child_left_col)
+
+        child_t = Table(child_table_name , metadata,
+            Column('id', sqlalchemy.Integer, primary_key=True),
+                                child_left_col, child_right_col)
+
+    # generate temporary class for association proxy
+    cls_name = ''.join(x.capitalize() or '_' for x in
+                                    child_table_name.split('_'))
+                            # generates camelcase class name.
+
+    def _i(self, *args):
+        setattr(self, child_right_col_name, args[0])
+
+    cls_ = type("_" + cls_name, (object,), {'__init__': _i})
+    own_mapper(cls_)(cls_, child_t)
+    props["_" + k] = relationship(cls_)
+
+    # generate association proxy
+    setattr(cls, k, association_proxy("_" + k, child_right_col_name))
+
+
+def _gen_array_o2m(cls, props, k, child, child_cust, p):
+    _gen_col = _get_col_o2m(cls, p.right)
+    col_info = _gen_col.next() # gets the column name
+    p.right, col_type = col_info[0] # FIXME: Add support for multi-column primary keys.
+
+    assert p.left is None, \
+        "'left' is ignored in one-to-many relationships " \
+        "with complex types (because they already have a " \
+        "table). You probably meant to use 'right'."
+
+    child_t = child.__table__
+
+    if p.right in child_t.c:
+        # FIXME: This branch MUST be tested.
+        assert col_type is child_t.c[p.right].type.__class__
+
+        # if the column is there, the decision about whether
+        # it should be in child's mapper should also have been
+        # made.
+        #
+        # so, not adding the child column to to child mapper
+        # here.
+        col = child_t.c[p.right]
+
+    else:
+        col = _gen_col.next()
+
+        _sp_attrs_to_sqla_constraints(cls, child_cust, col=col)
+
+        child_t.append_column(col)
+        child.__mapper__.add_property(col.name, col)
+
+    props[k] = relationship(child, foreign_keys=[col],
+              backref=p.backref, cascade=p.cascade, lazy=p.lazy)
+
+
 
 def _add_complex_type(cls, props, table, k, v):
-    metadata = cls.Attributes.sqla_metadata
     table_name = cls.Attributes.table_name
     col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
     _sp_attrs_to_sqla_constraints(cls, v, col_kwargs)
@@ -649,117 +761,13 @@ def _add_complex_type(cls, props, table, k, v):
             child = child_cust
 
         if p.multi != False: # many to many
-            col_own, col_child = _get_cols_m2m(cls, k, v, p.left, p.right)
-
-            p.left = col_own.key
-            p.right = col_child.key
-
-            if p.multi == True:
-                rel_table_name = '_'.join([cls.Attributes.table_name, k])
-            else:
-                rel_table_name = p.multi
-
-            # FIXME: Handle the case where the table already exists.
-            rel_t = Table(rel_table_name, metadata,
-                                                  *(col_own, col_child))
-
-            props[k] = relationship(child, secondary=rel_t,
-                      backref=p.backref, cascade=p.cascade, lazy=p.lazy)
+            _gen_array_m2m(cls, props, k, child, p)
 
         elif issubclass(child, SimpleModel): # one to many simple type
-            # get left (fk) column info
-            _gen_col = _get_col_o2m(cls, p.left)
-            col_info = _gen_col.next() # gets the column name
-            p.left, child_left_col_type = col_info[0] # FIXME: Add support for multi-column primary keys.
-            child_left_col_name = p.left
-
-            # get right(data) column info
-            child_right_col_type = get_sqlalchemy_type(child_cust)
-            child_right_col_name = p.right # this is the data column
-            if child_right_col_name is None:
-                child_right_col_name = k
-
-            # get table name
-            child_table_name = child_cust.Attributes.table_name
-            if child_table_name is None:
-                child_table_name = '_'.join([table_name, k])
-
-            if child_table_name in metadata.tables:
-                # table exists, get releavant info
-                child_t = metadata.tables[child_table_name]
-                assert child_right_col_type is \
-                       child_t.c[child_right_col_name].type.__class__
-                assert child_left_col_type is \
-                       child_t.c[child_left_col_name].type.__class__
-
-                child_right_col = child_t.c[child_right_col_name]
-                child_left_col = child_t.c[child_left_col_name]
-
-            else:
-                # table does not exist, generate table
-                child_right_col = Column(child_right_col_name,
-                                                child_right_col_type)
-                _sp_attrs_to_sqla_constraints(cls, child_cust,
-                                                    col=child_right_col)
-
-                child_left_col = _gen_col.next()
-                _sp_attrs_to_sqla_constraints(cls, child_cust,
-                                                    col=child_left_col)
-
-                child_t = Table(child_table_name , metadata,
-                    Column('id', sqlalchemy.Integer, primary_key=True),
-                                        child_left_col, child_right_col)
-
-            # generate temporary class for association proxy
-            cls_name = ''.join(x.capitalize() or '_' for x in
-                                            child_table_name.split('_'))
-                                    # generates camelcase class name.
-
-            def _i(self, *args):
-                setattr(self, child_right_col_name, args[0])
-
-            cls_ = type("_" + cls_name, (object,), {'__init__': _i})
-            own_mapper(cls_)(cls_, child_t)
-            props["_" + k] = relationship(cls_)
-
-            # generate association proxy
-            setattr(cls, k, association_proxy("_" + k, child_right_col_name))
-
+            _gen_array_simple(cls, props, k, child_cust, p)
 
         else: # one to many complex type
-            _gen_col = _get_col_o2m(cls, p.right)
-            col_info = _gen_col.next() # gets the column name
-            p.right, col_type = col_info[0] # FIXME: Add support for multi-column primary keys.
-
-            assert p.left is None, \
-                "'left' is ignored in one-to-many relationships " \
-                "with complex types (because they already have a " \
-                "table). You probably meant to use 'right'."
-
-            child_t = child.__table__
-
-            if p.right in child_t.c:
-                # FIXME: This branch MUST be tested.
-                assert col_type is child_t.c[p.right].type.__class__
-
-                # if the column is there, the decision about whether
-                # it should be in child's mapper should also have been
-                # made.
-                #
-                # so, not adding the child column to to child mapper
-                # here.
-                col = child_t.c[p.right]
-
-            else:
-                col = _gen_col.next()
-
-                _sp_attrs_to_sqla_constraints(cls, child_cust, col=col)
-
-                child_t.append_column(col)
-                child.__mapper__.add_property(col.name, col)
-
-            props[k] = relationship(child, foreign_keys=[col],
-                      backref=p.backref, cascade=p.cascade, lazy=p.lazy)
+            _gen_array_o2m(cls, props, k, child, child_cust, p)
 
     elif p is not None and issubclass(v, ComplexModelBase):
         # v has the Attribute values we need whereas real_v is what the
