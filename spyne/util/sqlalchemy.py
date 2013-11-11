@@ -745,39 +745,43 @@ def _gen_array_o2m(cls, props, k, child, child_cust, p):
     props[k] = relationship(child, foreign_keys=[col],
               backref=p.backref, cascade=p.cascade, lazy=p.lazy)
 
-
+def _is_array(v):
+    return (v.Attributes.max_occurs > 1 or issubclass(v, Array))
 
 def _add_complex_type(cls, props, table, k, v):
+    p = getattr(v.Attributes, 'store_as', None)
     table_name = cls.Attributes.table_name
     col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
     _sp_attrs_to_sqla_constraints(cls, v, col_kwargs)
+    col = None
 
-    p = getattr(v.Attributes, 'store_as', None)
-    if p is not None and issubclass(v, Array) and isinstance(p, c_table):
-        child_cust, = v._type_info.values()
-        if child_cust.__orig__ is not None:
-            child = child_cust.__orig__
-        else:
+    if isinstance(p, c_table):
+        if _is_array(v):
+            child_cust = v
+            if issubclass(v, Array):
+                child_cust, = v._type_info.values()
+
             child = child_cust
+            if child_cust.__orig__ is not None:
+                child = child_cust.__orig__
 
-        if p.multi != False: # many to many
-            _gen_array_m2m(cls, props, k, child, p)
+            if p.multi != False: # many to many
+                _gen_array_m2m(cls, props, k, child, p)
 
-        elif issubclass(child, SimpleModel): # one to many simple type
-            _gen_array_simple(cls, props, k, child_cust, p)
+            elif issubclass(child, SimpleModel): # one to many simple type
+                _gen_array_simple(cls, props, k, child_cust, p)
 
-        else: # one to many complex type
-            _gen_array_o2m(cls, props, k, child, child_cust, p)
+            else: # one to many complex type
+                _gen_array_o2m(cls, props, k, child, child_cust, p)
 
-    elif p is not None and issubclass(v, ComplexModelBase):
-        # v has the Attribute values we need whereas real_v is what the
-        # user instantiates (thus what sqlalchemy needs)
-        if v.__orig__ is None: # vanilla class
-            real_v = v
-        else: # customized class
-            real_v = v.__orig__
+        else:
+            # v has the Attribute values we need whereas real_v is what the
+            # user instantiates (thus what sqlalchemy needs)
+            if v.__orig__ is None: # vanilla class
+                real_v = v
+            else: # customized class
+                real_v = v.__orig__
 
-        if isinstance(p, c_table):
             assert not getattr(p, 'multi', False), (
                                 'Storing a single element-type using a '
                                 'relation table is pointless.')
@@ -793,38 +797,32 @@ def _add_complex_type(cls, props, table, k, v):
             props[k] = rel
             _gen_index_info(table, table_name, col, k, v)
 
-        elif isinstance(p, c_xml):
-            if k in table.c:
-                col = table.c[k]
-            else:
-                col = Column(k, PGObjectXml(v, p.root_tag, p.no_ns),
-                                                *col_args, **col_kwargs)
-
-        elif isinstance(p, c_json):
-            if k in table.c:
-                col = table.c[k]
-            else:
-                col = Column(k, PGObjectJson(v,
-                                    ignore_wrappers=p.ignore_wrappers,
-                                    complex_as=p.complex_as
-                                ),
-                                *col_args, **col_kwargs
-                    )
-
-        elif isinstance(p, c_msgpack):
-            raise NotImplementedError()
-
+    elif isinstance(p, c_xml):
+        if k in table.c:
+            col = table.c[k]
         else:
-            raise ValueError(p)
+            t = PGObjectXml(v, p.root_tag, p.no_ns)
+            col = Column(k, t, *col_args, **col_kwargs)
 
+    elif isinstance(p, c_json):
+        if k in table.c:
+            col = table.c[k]
+        else:
+            t = PGObjectJson(v, ignore_wrappers=p.ignore_wrappers,
+                                                    complex_as=p.complex_as)
+            col = Column(k, t, *col_args, **col_kwargs)
+
+    elif isinstance(p, c_msgpack):
+        raise NotImplementedError(c_msgpack)
+
+    else:
+        raise ValueError(p)
+
+    if col is not None:
         props[col.name] = col
         if not k in table.c:
             table.append_column(col)
 
-    else:
-        logger.debug("Skipping %s.%s.%s: %r, store_as: %r" % (
-                                        cls.get_namespace(),
-                                        cls.get_type_name(), k, v, p))
 
 def _convert_fake_table(cls, table):
     metadata = cls.Attributes.sqla_metadata
@@ -839,6 +837,7 @@ def _convert_fake_table(cls, table):
         Index(*index_args, **index_kwargs)
 
     return table
+
 
 def _gen_mapper(cls, props, table, cls_bases):
     """
@@ -904,8 +903,14 @@ def gen_sqla_info(cls, cls_bases=()):
     for k, v in table_fields(cls):
         t = get_sqlalchemy_type(v)
 
-        if t is None:
-            _add_complex_type(cls, props, table, k, v)
+        if t is None: # complex model
+            p = getattr(v.Attributes, 'store_as', None)
+            if p is None:
+                logger.debug("Skipping %s.%s.%s: %r, store_as: %r" % (
+                                                cls.get_namespace(),
+                                                cls.get_type_name(), k, v, p))
+            else:
+                _add_complex_type(cls, props, table, k, v)
         else:
             _add_simple_type(cls, props, table, k, v, t)
 
