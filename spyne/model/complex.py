@@ -93,7 +93,7 @@ class table:
     """
 
     def __init__(self, multi=False, left=None, right=None, backref=None,
-                                      id_backref=None, cascade=None, lazy=None):
+                                  id_backref=None, cascade=False, lazy='select'):
         self.multi = multi
         self.left = left
         self.right = right
