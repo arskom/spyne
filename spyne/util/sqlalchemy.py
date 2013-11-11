@@ -609,228 +609,238 @@ def _check_table(cls):
 
     return table
 
-def gen_sqla_info(cls, cls_bases=()):
-    """Return SQLAlchemy table object corresponding to the passed Spyne object.
-    Also maps given class to the returned table.
-    """
 
+def table_fields(cls):
+    for k, v in cls._type_info.items():
+        if not v.Attributes.exc_table:
+            yield k, v
+
+
+def _add_simple_type(cls, props, table, k, v, sqla_type):
+    col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
+    _sp_attrs_to_sqla_constraints(cls, v, col_kwargs)
+
+    table_name = cls.Attributes.table_name
+
+    if k in table.c:
+        col = table.c[k]
+
+    else:
+        col = Column(k, sqla_type, *col_args, **col_kwargs)
+        table.append_column(col)
+        _gen_index_info(table, table_name, col, k, v)
+
+    if not v.Attributes.exc_mapper:
+        props[k] = col
+
+
+def _add_complex_type(cls, props, table, k, v):
     metadata = cls.Attributes.sqla_metadata
     table_name = cls.Attributes.table_name
-    inheritance, base_class, base_mapper, inc = _check_inheritance(cls, cls_bases)
-    table = _check_table(cls)
+    col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
+    _sp_attrs_to_sqla_constraints(cls, v, col_kwargs)
 
-    props = {}
-    for k, v in cls._type_info.items():
-        if v.Attributes.exc_table:
-            continue
+    p = getattr(v.Attributes, 'store_as', None)
+    if p is not None and issubclass(v, Array) and isinstance(p, c_table):
+        child_cust, = v._type_info.values()
+        if child_cust.__orig__ is not None:
+            child = child_cust.__orig__
+        else:
+            child = child_cust
 
-        col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
-        _sp_attrs_to_sqla_constraints(cls, v, col_kwargs)
+        if p.multi != False: # many to many
+            col_own, col_child = _get_cols_m2m(cls, k, v, p.left, p.right)
 
-        t = get_sqlalchemy_type(v)
+            p.left = col_own.key
+            p.right = col_child.key
 
-        if t is None:
-            p = getattr(v.Attributes, 'store_as', None)
-            if p is not None and issubclass(v, Array) and isinstance(p, c_table):
-                child_cust, = v._type_info.values()
-                if child_cust.__orig__ is not None:
-                    child = child_cust.__orig__
-                else:
-                    child = child_cust
+            if p.multi == True:
+                rel_table_name = '_'.join([cls.Attributes.table_name, k])
+            else:
+                rel_table_name = p.multi
 
-                if p.multi != False: # many to many
-                    col_own, col_child = _get_cols_m2m(cls, k, v, p.left, p.right)
+            # FIXME: Handle the case where the table already exists.
+            rel_t = Table(rel_table_name, metadata,
+                                                  *(col_own, col_child))
 
-                    p.left = col_own.key
-                    p.right = col_child.key
+            props[k] = relationship(child, secondary=rel_t,
+                      backref=p.backref, cascade=p.cascade, lazy=p.lazy)
 
-                    if p.multi == True:
-                        rel_table_name = '_'.join([cls.Attributes.table_name, k])
-                    else:
-                        rel_table_name = p.multi
+        elif issubclass(child, SimpleModel): # one to many simple type
+            # get left (fk) column info
+            _gen_col = _get_col_o2m(cls, p.left)
+            col_info = _gen_col.next() # gets the column name
+            p.left, child_left_col_type = col_info[0] # FIXME: Add support for multi-column primary keys.
+            child_left_col_name = p.left
 
-                    # FIXME: Handle the case where the table already exists.
-                    rel_t = Table(rel_table_name, metadata,
-                                                          *(col_own, col_child))
+            # get right(data) column info
+            child_right_col_type = get_sqlalchemy_type(child_cust)
+            child_right_col_name = p.right # this is the data column
+            if child_right_col_name is None:
+                child_right_col_name = k
 
-                    props[k] = relationship(child, secondary=rel_t,
-                              backref=p.backref, cascade=p.cascade, lazy=p.lazy)
+            # get table name
+            child_table_name = child_cust.Attributes.table_name
+            if child_table_name is None:
+                child_table_name = '_'.join([table_name, k])
 
-                elif issubclass(child, SimpleModel): # one to many simple type
-                    # get left (fk) column info
-                    _gen_col = _get_col_o2m(cls, p.left)
-                    col_info = _gen_col.next() # gets the column name
-                    p.left, child_left_col_type = col_info[0] # FIXME: Add support for multi-column primary keys.
-                    child_left_col_name = p.left
+            if child_table_name in metadata.tables:
+                # table exists, get releavant info
+                child_t = metadata.tables[child_table_name]
+                assert child_right_col_type is \
+                       child_t.c[child_right_col_name].type.__class__
+                assert child_left_col_type is \
+                       child_t.c[child_left_col_name].type.__class__
 
-                    # get right(data) column info
-                    child_right_col_type = get_sqlalchemy_type(child_cust)
-                    child_right_col_name = p.right # this is the data column
-                    if child_right_col_name is None:
-                        child_right_col_name = k
-
-                    # get table name
-                    child_table_name = child_cust.Attributes.table_name
-                    if child_table_name is None:
-                        child_table_name = '_'.join([table_name, k])
-
-                    if child_table_name in metadata.tables:
-                        # table exists, get releavant info
-                        child_t = metadata.tables[child_table_name]
-                        assert child_right_col_type is \
-                               child_t.c[child_right_col_name].type.__class__
-                        assert child_left_col_type is \
-                               child_t.c[child_left_col_name].type.__class__
-
-                        child_right_col = child_t.c[child_right_col_name]
-                        child_left_col = child_t.c[child_left_col_name]
-
-                    else:
-                        # table does not exist, generate table
-                        child_right_col = Column(child_right_col_name,
-                                                        child_right_col_type)
-                        _sp_attrs_to_sqla_constraints(cls, child_cust,
-                                                            col=child_right_col)
-
-                        child_left_col = _gen_col.next()
-                        _sp_attrs_to_sqla_constraints(cls, child_cust,
-                                                            col=child_left_col)
-
-                        child_t = Table(child_table_name , metadata,
-                            Column('id', sqlalchemy.Integer, primary_key=True),
-                                                child_left_col, child_right_col)
-
-                    # generate temporary class for association proxy
-                    cls_name = ''.join(x.capitalize() or '_' for x in
-                                                    child_table_name.split('_'))
-                                            # generates camelcase class name.
-
-                    def _i(self, *args):
-                        setattr(self, child_right_col_name, args[0])
-
-                    cls_ = type("_" + cls_name, (object,), {'__init__': _i})
-                    own_mapper(cls_)(cls_, child_t)
-                    props["_" + k] = relationship(cls_)
-
-                    # generate association proxy
-                    setattr(cls, k, association_proxy("_" + k, child_right_col_name))
-
-
-                else: # one to many complex type
-                    _gen_col = _get_col_o2m(cls, p.right)
-                    col_info = _gen_col.next() # gets the column name
-                    p.right, col_type = col_info[0] # FIXME: Add support for multi-column primary keys.
-
-                    assert p.left is None, \
-                        "'left' is ignored in one-to-many relationships " \
-                        "with complex types (because they already have a " \
-                        "table). You probably meant to use 'right'."
-
-                    child_t = child.__table__
-
-                    if p.right in child_t.c:
-                        # FIXME: This branch MUST be tested.
-                        assert col_type is child_t.c[p.right].type.__class__
-
-                        # if the column is there, the decision about whether
-                        # it should be in child's mapper should also have been
-                        # made.
-                        #
-                        # so, not adding the child column to to child mapper
-                        # here.
-                        col = child_t.c[p.right]
-
-                    else:
-                        col = _gen_col.next()
-
-                        _sp_attrs_to_sqla_constraints(cls, child_cust, col=col)
-
-                        child_t.append_column(col)
-                        child.__mapper__.add_property(col.name, col)
-
-                    props[k] = relationship(child, foreign_keys=[col],
-                              backref=p.backref, cascade=p.cascade, lazy=p.lazy)
-
-            elif p is not None and issubclass(v, ComplexModelBase):
-                # v has the Attribute values we need whereas real_v is what the
-                # user instantiates (thus what sqlalchemy needs)
-                if v.__orig__ is None: # vanilla class
-                    real_v = v
-                else: # customized class
-                    real_v = v.__orig__
-
-                if isinstance(p, c_table):
-                    assert not getattr(p, 'multi', False), (
-                                        'Storing a single element-type using a '
-                                        'relation table is pointless.')
-
-                    assert p.right is None, "'right' is ignored in a one-to-one " \
-                                            "relationship"
-
-                    col = _get_col_o2o(cls, k, v, p.left)
-                    rel = relationship(real_v, uselist=False, cascade=p.cascade,
-                             foreign_keys=[col], backref=p.backref, lazy=p.lazy)
-
-                    p.left = col.key
-                    props[k] = rel
-                    _gen_index_info(table, table_name, col, k, v)
-
-                elif isinstance(p, c_xml):
-                    if k in table.c:
-                        col = table.c[k]
-                    else:
-                        col = Column(k, PGObjectXml(v, p.root_tag, p.no_ns),
-                                                        *col_args, **col_kwargs)
-
-                elif isinstance(p, c_json):
-                    if k in table.c:
-                        col = table.c[k]
-                    else:
-                        col = Column(k, PGObjectJson(v,
-                                            ignore_wrappers=p.ignore_wrappers,
-                                            complex_as=p.complex_as
-                                        ),
-                                        *col_args, **col_kwargs
-                            )
-
-                elif isinstance(p, c_msgpack):
-                    raise NotImplementedError()
-
-                else:
-                    raise ValueError(p)
-
-                props[col.name] = col
-                if not k in table.c:
-                    table.append_column(col)
+                child_right_col = child_t.c[child_right_col_name]
+                child_left_col = child_t.c[child_left_col_name]
 
             else:
-                logger.debug("Skipping %s.%s.%s: %r, store_as: %r" % (
-                                                cls.get_namespace(),
-                                                cls.get_type_name(), k, v, p))
+                # table does not exist, generate table
+                child_right_col = Column(child_right_col_name,
+                                                child_right_col_type)
+                _sp_attrs_to_sqla_constraints(cls, child_cust,
+                                                    col=child_right_col)
 
-        else:
+                child_left_col = _gen_col.next()
+                _sp_attrs_to_sqla_constraints(cls, child_cust,
+                                                    col=child_left_col)
+
+                child_t = Table(child_table_name , metadata,
+                    Column('id', sqlalchemy.Integer, primary_key=True),
+                                        child_left_col, child_right_col)
+
+            # generate temporary class for association proxy
+            cls_name = ''.join(x.capitalize() or '_' for x in
+                                            child_table_name.split('_'))
+                                    # generates camelcase class name.
+
+            def _i(self, *args):
+                setattr(self, child_right_col_name, args[0])
+
+            cls_ = type("_" + cls_name, (object,), {'__init__': _i})
+            own_mapper(cls_)(cls_, child_t)
+            props["_" + k] = relationship(cls_)
+
+            # generate association proxy
+            setattr(cls, k, association_proxy("_" + k, child_right_col_name))
+
+
+        else: # one to many complex type
+            _gen_col = _get_col_o2m(cls, p.right)
+            col_info = _gen_col.next() # gets the column name
+            p.right, col_type = col_info[0] # FIXME: Add support for multi-column primary keys.
+
+            assert p.left is None, \
+                "'left' is ignored in one-to-many relationships " \
+                "with complex types (because they already have a " \
+                "table). You probably meant to use 'right'."
+
+            child_t = child.__table__
+
+            if p.right in child_t.c:
+                # FIXME: This branch MUST be tested.
+                assert col_type is child_t.c[p.right].type.__class__
+
+                # if the column is there, the decision about whether
+                # it should be in child's mapper should also have been
+                # made.
+                #
+                # so, not adding the child column to to child mapper
+                # here.
+                col = child_t.c[p.right]
+
+            else:
+                col = _gen_col.next()
+
+                _sp_attrs_to_sqla_constraints(cls, child_cust, col=col)
+
+                child_t.append_column(col)
+                child.__mapper__.add_property(col.name, col)
+
+            props[k] = relationship(child, foreign_keys=[col],
+                      backref=p.backref, cascade=p.cascade, lazy=p.lazy)
+
+    elif p is not None and issubclass(v, ComplexModelBase):
+        # v has the Attribute values we need whereas real_v is what the
+        # user instantiates (thus what sqlalchemy needs)
+        if v.__orig__ is None: # vanilla class
+            real_v = v
+        else: # customized class
+            real_v = v.__orig__
+
+        if isinstance(p, c_table):
+            assert not getattr(p, 'multi', False), (
+                                'Storing a single element-type using a '
+                                'relation table is pointless.')
+
+            assert p.right is None, "'right' is ignored in a one-to-one " \
+                                    "relationship"
+
+            col = _get_col_o2o(cls, k, v, p.left)
+            rel = relationship(real_v, uselist=False, cascade=p.cascade,
+                     foreign_keys=[col], backref=p.backref, lazy=p.lazy)
+
+            p.left = col.key
+            props[k] = rel
+            _gen_index_info(table, table_name, col, k, v)
+
+        elif isinstance(p, c_xml):
             if k in table.c:
                 col = table.c[k]
-
             else:
-                col = Column(k, t, *col_args, **col_kwargs)
-                table.append_column(col)
-                _gen_index_info(table, table_name, col, k, v)
+                col = Column(k, PGObjectXml(v, p.root_tag, p.no_ns),
+                                                *col_args, **col_kwargs)
 
-            if not v.Attributes.exc_mapper:
-                props[k] = col
+        elif isinstance(p, c_json):
+            if k in table.c:
+                col = table.c[k]
+            else:
+                col = Column(k, PGObjectJson(v,
+                                    ignore_wrappers=p.ignore_wrappers,
+                                    complex_as=p.complex_as
+                                ),
+                                *col_args, **col_kwargs
+                    )
 
-    if isinstance(table, _FakeTable):
-        _table = table
-        table_args, table_kwargs = sanitize_args(cls.Attributes.sqla_table_args)
-        table = Table(table_name, metadata,
-                           *(tuple(table.columns) + table_args), **table_kwargs)
+        elif isinstance(p, c_msgpack):
+            raise NotImplementedError()
 
-        for index_args, index_kwargs in _table.indexes:
-            Index(*index_args, **index_kwargs)
+        else:
+            raise ValueError(p)
 
-        del _table
+        props[col.name] = col
+        if not k in table.c:
+            table.append_column(col)
 
+    else:
+        logger.debug("Skipping %s.%s.%s: %r, store_as: %r" % (
+                                        cls.get_namespace(),
+                                        cls.get_type_name(), k, v, p))
+
+def _convert_fake_table(cls, table):
+    metadata = cls.Attributes.sqla_metadata
+    table_name = cls.Attributes.table_name
+
+    _table = table
+    table_args, table_kwargs = sanitize_args(cls.Attributes.sqla_table_args)
+    table = Table(table_name, metadata,
+                       *(tuple(table.columns) + table_args), **table_kwargs)
+
+    for index_args, index_kwargs in _table.indexes:
+        Index(*index_args, **index_kwargs)
+
+    return table
+
+def _gen_mapper(cls, props, table, cls_bases):
+    """
+    :param cls: La Class.
+    :param props: a dict.
+    :param table: a Table instance. Not a _FakeTable.
+    :param cls_bases: Class bases.
+    """
+
+    inheritance, base_class, base_mapper, inc = _check_inheritance(cls, cls_bases)
     # Map the table to the object
     mapper_args, mapper_kwargs = sanitize_args(cls.Attributes.sqla_mapper_args)
 
@@ -870,8 +880,31 @@ def gen_sqla_info(cls, cls_bases=()):
                 else:
                     d[k] = None
 
-
     event.listen(cls, 'load', on_load)
+
+    return cls_mapper
+
+
+def gen_sqla_info(cls, cls_bases=()):
+    """Return SQLAlchemy table object corresponding to the passed Spyne object.
+    Also maps given class to the returned table.
+    """
+
+    table = _check_table(cls)
+    props = {}
+
+    for k, v in table_fields(cls):
+        t = get_sqlalchemy_type(v)
+
+        if t is None:
+            _add_complex_type(cls, props, table, k, v)
+        else:
+            _add_simple_type(cls, props, table, k, v, t)
+
+    if isinstance(table, _FakeTable):
+        table = _convert_fake_table(cls, table)
+
+    cls_mapper = _gen_mapper(cls, props, table, cls_bases)
 
     cls.__tablename__ = cls.Attributes.table_name
     cls.Attributes.sqla_mapper = cls.__mapper__ = cls_mapper
