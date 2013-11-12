@@ -815,6 +815,9 @@ def _add_complex_type(cls, props, table, k, v):
     elif isinstance(p, c_msgpack):
         raise NotImplementedError(c_msgpack)
 
+    elif p is None:
+        pass
+
     else:
         raise ValueError(p)
 
@@ -848,7 +851,6 @@ def _gen_mapper(cls, props, table, cls_bases):
     """
 
     inheritance, base_class, base_mapper, inc = _check_inheritance(cls, cls_bases)
-    # Map the table to the object
     mapper_args, mapper_kwargs = sanitize_args(cls.Attributes.sqla_mapper_args)
 
     _props = mapper_kwargs.get('properties', None)
@@ -892,13 +894,38 @@ def _gen_mapper(cls, props, table, cls_bases):
     return cls_mapper
 
 
+def add_column(cls, k, v):
+    """Add field to the given Spyne object also mapped as a SQLAlchemy object
+    to a SQLAlchemy table
+
+    :param cls: The class to add the column to.
+    :param k: The column name
+    :param v: The column type, a ModelBase subclass.
+    """
+
+    table = cls.__table__
+    mapper_props = {}
+
+    # Add to table
+    t = get_sqlalchemy_type(v)
+    if t is None: # complex model
+        _add_complex_type(cls, mapper_props, table, k, v)
+    else:
+        _add_simple_type(cls, mapper_props, table, k, v, t)
+
+    # Add to mapper
+    mapper = cls.Attributes.sqla_mapper
+    for k,v in mapper_props.items():
+        mapper.add_property(k, v)
+
+
 def gen_sqla_info(cls, cls_bases=()):
     """Return SQLAlchemy table object corresponding to the passed Spyne object.
     Also maps given class to the returned table.
     """
 
     table = _check_table(cls)
-    props = {}
+    mapper_props = {}
 
     for k, v in table_fields(cls):
         t = get_sqlalchemy_type(v)
@@ -910,14 +937,14 @@ def gen_sqla_info(cls, cls_bases=()):
                                                 cls.get_namespace(),
                                                 cls.get_type_name(), k, v, p))
             else:
-                _add_complex_type(cls, props, table, k, v)
+                _add_complex_type(cls, mapper_props, table, k, v)
         else:
-            _add_simple_type(cls, props, table, k, v, t)
+            _add_simple_type(cls, mapper_props, table, k, v, t)
 
     if isinstance(table, _FakeTable):
         table = _convert_fake_table(cls, table)
 
-    cls_mapper = _gen_mapper(cls, props, table, cls_bases)
+    cls_mapper = _gen_mapper(cls, mapper_props, table, cls_bases)
 
     cls.__tablename__ = cls.Attributes.table_name
     cls.Attributes.sqla_mapper = cls.__mapper__ = cls_mapper

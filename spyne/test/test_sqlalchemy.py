@@ -661,6 +661,20 @@ class TestSqlAlchemySchema(unittest.TestCase):
         assert st.s == 's'
         assert stos.i == 3
 
+    def test_add_field_complex(self):
+        class C(TableModel):
+            __tablename__ = "C"
+            u = Unicode(pk=True)
+
+        class D(TableModel):
+            __tablename__ = "d"
+            d = Integer32(pk=True)
+            c = C.store_as('table')
+
+        C.append_field('d', D.store_as('table'))
+        assert C.Attributes.sqla_mapper.get_property('d').argument is D
+
+
 class TestSqlAlchemySchemaWithPostgresql(unittest.TestCase):
     def setUp(self):
         self.engine = create_engine(PSQL_CONN_STR)
@@ -693,19 +707,6 @@ class TestSqlAlchemySchemaWithPostgresql(unittest.TestCase):
         assert 'e' in t.c
         assert isinstance(t.c.e.type, sqlalchemy.dialects.postgresql.base.ENUM)
         assert t.c.e.type.enums == enums
-
-    def test_add_field_complex(self):
-        class C(TableModel):
-            __tablename__ = "C"
-            u = Unicode(pk=True)
-
-        class D(TableModel):
-            __tablename__ = "d"
-            d = Decimal(pk=True)
-            c = C.store_as('table')
-
-        C.append_field('d', D)
-        assert C.Attributes.sqla_mapper.get_property('d').argument is D
 
 
 if __name__ == '__main__':

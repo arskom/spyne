@@ -980,11 +980,15 @@ def TTableModelBase():
         @classmethod
         def append_field(cls, field_name, field_type):
             super(TableModelBase, cls).append_field(field_name, field_type)
+            # FIXME: To be tested and replaced
+            #add_column(cls, field_name, field_type)
             add_to_mapper(cls, field_name, field_type)
 
         @classmethod
         def insert_field(cls, index, field_name, field_type):
             super(TableModelBase, cls).insert_field(index, field_name, field_type)
+            # FIXME: To be tested and replaced
+            #add_column(cls, field_name, field_type)
             add_to_mapper(cls, field_name, field_type)
 
     return TableModelBase
