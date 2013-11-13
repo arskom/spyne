@@ -674,6 +674,19 @@ class TestSqlAlchemySchema(unittest.TestCase):
         C.append_field('d', D.store_as('table'))
         assert C.Attributes.sqla_mapper.get_property('d').argument is D
 
+    def test_add_field_complex_existing_column_2(self):
+        class C(TableModel):
+            __tablename__ = "c"
+            id = Integer32(5, pk=True)
+
+        # c already also produces c_id. this is undefined behaviour, one of them
+        # gets ignored, whichever comes first.
+        class D(TableModel):
+            __tablename__ = "d"
+            id = Integer32(pk=True)
+            c = C.store_as('table')
+            c_id = Integer32(15)
+
     def test_add_field_complex_new_column(self):
         class C(TableModel):
             __tablename__ = "c"
