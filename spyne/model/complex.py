@@ -953,43 +953,18 @@ class Iterable(Array):
 
 @memoize
 def TTableModelBase():
-    from sqlalchemy import MetaData
-    from sqlalchemy.orm import relationship
-
-    def add_to_mapper(cls, field_name, field_type):
-        rel = None
-        mapper = cls.Attributes.sqla_mapper
-        if mapper.has_property(field_name):
-            return
-
-        orig = getattr(field_type, '__orig__', None)
-        if orig is not None:
-            field_type = orig
-
-        if issubclass(field_type, Array):
-            rel = relationship(field_type)
-        elif issubclass(field_type, ComplexModelBase):
-            rel = relationship(field_type, uselist=False)
-        else:
-            raise NotImplementedError()
-
-        mapper.add_property(field_name, rel)
+    from spyne.util.sqlalchemy import add_column
 
     class TableModelBase(ComplexModelBase):
-        # FIXME: These two also need to add table column if needed.
         @classmethod
         def append_field(cls, field_name, field_type):
             super(TableModelBase, cls).append_field(field_name, field_type)
-            # FIXME: To be tested and replaced
-            #add_column(cls, field_name, field_type)
-            add_to_mapper(cls, field_name, field_type)
+            add_column(cls, field_name, field_type)
 
         @classmethod
         def insert_field(cls, index, field_name, field_type):
             super(TableModelBase, cls).insert_field(index, field_name, field_type)
-            # FIXME: To be tested and replaced
-            #add_column(cls, field_name, field_type)
-            add_to_mapper(cls, field_name, field_type)
+            add_column(cls, field_name, field_type)
 
     return TableModelBase
 

@@ -661,9 +661,9 @@ class TestSqlAlchemySchema(unittest.TestCase):
         assert st.s == 's'
         assert stos.i == 3
 
-    def test_add_field_complex(self):
+    def test_add_field_complex_existing_column(self):
         class C(TableModel):
-            __tablename__ = "C"
+            __tablename__ = "c"
             u = Unicode(pk=True)
 
         class D(TableModel):
@@ -674,6 +674,47 @@ class TestSqlAlchemySchema(unittest.TestCase):
         C.append_field('d', D.store_as('table'))
         assert C.Attributes.sqla_mapper.get_property('d').argument is D
 
+    def test_add_field_complex_new_column(self):
+        class C(TableModel):
+            __tablename__ = "c"
+            u = Unicode(pk=True)
+
+        class D(TableModel):
+            __tablename__ = "d"
+            id = Integer32(pk=True)
+
+        C.append_field('d', D.store_as('table'))
+        assert C.Attributes.sqla_mapper.get_property('d').argument is D
+        assert isinstance(C.Attributes.sqla_table.c['d_id'].type, sqlalchemy.Integer)
+
+    def test_add_field_array(self):
+        class C(TableModel):
+            __tablename__ = "c"
+            id = Integer32(pk=True)
+
+        class D(TableModel):
+            __tablename__ = "d"
+            id = Integer32(pk=True)
+
+        C.append_field('d', Array(D).store_as('table'))
+        assert C.Attributes.sqla_mapper.get_property('d').argument is D
+        print repr(D.Attributes.sqla_table)
+        assert isinstance(D.Attributes.sqla_table.c['c_id'].type, sqlalchemy.Integer)
+
+    def test_add_field_array_many(self):
+        class C(TableModel):
+            __tablename__ = "c"
+            id = Integer32(pk=True)
+
+        class D(TableModel):
+            __tablename__ = "d"
+            id = Integer32(pk=True)
+
+        C.append_field('d', Array(D).store_as(table(multi='c_d')))
+        assert C.Attributes.sqla_mapper.get_property('d').argument is D
+        rel_table = C.Attributes.sqla_metadata.tables['c_d']
+        assert 'c_id' in rel_table.c
+        assert 'd_id' in rel_table.c
 
 class TestSqlAlchemySchemaWithPostgresql(unittest.TestCase):
     def setUp(self):

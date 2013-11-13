@@ -753,7 +753,6 @@ def _add_complex_type(cls, props, table, k, v):
     table_name = cls.Attributes.table_name
     col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
     _sp_attrs_to_sqla_constraints(cls, v, col_kwargs)
-    col = None
 
     if isinstance(p, c_table):
         if _is_array(v):
@@ -794,8 +793,12 @@ def _add_complex_type(cls, props, table, k, v):
                      foreign_keys=[col], backref=p.backref, lazy=p.lazy)
 
             p.left = col.key
-            props[k] = rel
             _gen_index_info(table, table_name, col, k, v)
+
+            props[k] = rel
+            props[col.name] = col
+            if not col.name in table.c:
+                table.append_column(col)
 
     elif isinstance(p, c_xml):
         if k in table.c:
@@ -803,6 +806,10 @@ def _add_complex_type(cls, props, table, k, v):
         else:
             t = PGObjectXml(v, p.root_tag, p.no_ns)
             col = Column(k, t, *col_args, **col_kwargs)
+
+        props[k] = col
+        if not k in table.c:
+            table.append_column(col)
 
     elif isinstance(p, c_json):
         if k in table.c:
@@ -812,6 +819,10 @@ def _add_complex_type(cls, props, table, k, v):
                                                     complex_as=p.complex_as)
             col = Column(k, t, *col_args, **col_kwargs)
 
+        props[k] = col
+        if not k in table.c:
+            table.append_column(col)
+
     elif isinstance(p, c_msgpack):
         raise NotImplementedError(c_msgpack)
 
@@ -820,11 +831,6 @@ def _add_complex_type(cls, props, table, k, v):
 
     else:
         raise ValueError(p)
-
-    if col is not None:
-        props[col.name] = col
-        if not k in table.c:
-            table.append_column(col)
 
 
 def _convert_fake_table(cls, table):
@@ -914,9 +920,10 @@ def add_column(cls, k, v):
         _add_simple_type(cls, mapper_props, table, k, v, t)
 
     # Add to mapper
-    mapper = cls.Attributes.sqla_mapper
+    sqla_mapper = cls.Attributes.sqla_mapper
     for k,v in mapper_props.items():
-        mapper.add_property(k, v)
+        if not sqla_mapper.has_property(k):
+            sqla_mapper.add_property(k, v)
 
 
 def gen_sqla_info(cls, cls_bases=()):
