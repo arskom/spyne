@@ -652,7 +652,9 @@ class DateTime(SimpleModel):
         if microsec is None:
             microsec = 0
         else:
-            microsec = int(microsec[1:])
+            # we only get the most significant 6 digits because that's what
+            # datetime can handle.
+            microsec = int(float(microsec) * 1e6)
 
         return datetime.datetime(year, month, day, hour, min, sec, microsec, tz)
 

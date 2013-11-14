@@ -218,7 +218,9 @@ def time_from_string(cls, string):
     if microsec is None or microsec == 0:
         microsec = 0
     else:
-        microsec = int(microsec[1:])
+        # we only get the most significant 6 digits because that's what
+        # datetime can handle.
+        microsec = int(float(microsec) * 1e6)
 
     return datetime.time(int(fields['hr']), int(fields['min']),
                                                    int(fields['sec']), microsec)
