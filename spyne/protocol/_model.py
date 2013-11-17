@@ -18,8 +18,6 @@
 #
 
 
-import spyne
-
 import decimal
 import datetime
 import math
@@ -449,7 +447,7 @@ def byte_array_to_string(cls, value, suggested_encoding=None):
     encoding = cls.Attributes.encoding
     if encoding is BINARY_ENCODING_USE_DEFAULT:
         encoding = suggested_encoding
-    return binary_encoding_handlers[suggested_encoding](value)
+    return binary_encoding_handlers[encoding](value)
 
 @nillable_iterable
 def byte_array_to_string_iterable(prot, cls, value):
