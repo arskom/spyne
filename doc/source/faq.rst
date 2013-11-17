@@ -22,8 +22,7 @@ How do I implement a predefined WSDL?
 **Long answer:** Some work has been done towards parsing Xml Schema 1.0
 documents and generating Spyne classes from Xml Schema types but it's still in
 pre-alpha stage. Have a look at ``parser`` and ``genpy`` modules in the
-``spyne.interface.xml_schema`` packages and/or get in touch for more
-information.
+``spyne.interface.xml_schema`` packages. Get in touch for more information.
 
 Needless to say, patches are welcome.
 
