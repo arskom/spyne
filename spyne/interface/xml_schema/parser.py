@@ -88,7 +88,7 @@ def Thier_repr(with_ns=False):
         if not hasattr(cls, '_type_info'):
             return repr(inst)
 
-        clsid = "%s<%d>" % (get_class_name(cls), id(cls))
+        clsid = "%s" % (get_class_name(cls))
         if id(inst) in tags:
             return clsid
 
@@ -253,14 +253,15 @@ def process_simple_type(ctx, s, name=None):
 
     ctx.debug1("adding   simple type: %s", name)
     retval = base.customize(**kwargs)
+    retval.__type_name__ = name
+    retval.__namespace__ = ctx.tns
     if retval.__orig__ is None:
         retval.__orig__ = base
 
     if retval.__extends__ is None:
         retval.__extends__ = base
-        retval.__type_name__ = name
-        retval.__namespace__ = ctx.tns
 
+    assert not retval.get_type_name() is retval.Empty
     return retval
 
 
@@ -366,7 +367,12 @@ def process_complex_type(ctx, c):
 
         process_type(tn, name, element=e)
 
-    ti = []
+    class L(list):
+        def append(self, a):
+            k, v = a
+            assert isinstance(k, basestring), k
+            super(L, self).append(a)
+    ti = L()
     base = ComplexModelBase
     if c.name in ctx.retval[ctx.tns].types:
         ctx.debug1("modifying existing %r", c.name)
