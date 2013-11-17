@@ -789,16 +789,19 @@ def _add_complex_type(cls, props, table, k, v):
                                     "relationship"
 
             col = _get_col_o2o(cls, k, v, p.left)
-            rel = relationship(real_v, uselist=False, cascade=p.cascade,
-                     foreign_keys=[col], backref=p.backref, lazy=p.lazy)
+            p.left = col.name
 
-            p.left = col.key
+            if col.name in table.c:
+                col = table.c[col.name]
+            else:
+                table.append_column(col)
+            rel = relationship(real_v, uselist=False, cascade=p.cascade,
+                            foreign_keys=[col], backref=p.backref, lazy=p.lazy)
+
             _gen_index_info(table, table_name, col, k, v)
 
             props[k] = rel
             props[col.name] = col
-            if not col.name in table.c:
-                table.append_column(col)
 
     elif isinstance(p, c_xml):
         if k in table.c:

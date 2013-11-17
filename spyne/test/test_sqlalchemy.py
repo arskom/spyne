@@ -674,10 +674,10 @@ class TestSqlAlchemySchema(unittest.TestCase):
         C.append_field('d', D.store_as('table'))
         assert C.Attributes.sqla_mapper.get_property('d').argument is D
 
-    def test_add_field_complex_existing_column_2(self):
+    def _test_add_field_complex_explicit_existing_column(self):
         class C(TableModel):
             __tablename__ = "c"
-            id = Integer32(5, pk=True)
+            id = Integer32(pk=True)
 
         # c already also produces c_id. this is undefined behaviour, one of them
         # gets ignored, whichever comes first.
@@ -686,6 +686,25 @@ class TestSqlAlchemySchema(unittest.TestCase):
             id = Integer32(pk=True)
             c = C.store_as('table')
             c_id = Integer32(15)
+
+    def test_add_field_complex_circular_array(self):
+        class C(TableModel):
+            __tablename__ = "cc"
+            id = Integer32(pk=True)
+
+        class D(TableModel):
+            __tablename__ = "dd"
+            id = Integer32(pk=True)
+            c = Array(C).customize(store_as=table(right='dd_id'))
+
+        C.append_field('d', D.customize(store_as=table(left='dd_id')))
+        self.metadata.create_all()
+
+        c1, c2 = C(id=1), C(id=2)
+        d = D(id=1, c=[c1,c2])
+        self.session.add(d)
+        self.session.commit()
+        assert c1.d.id == 1
 
     def test_add_field_complex_new_column(self):
         class C(TableModel):
