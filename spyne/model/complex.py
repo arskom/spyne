@@ -993,9 +993,10 @@ def Mandatory(cls, **_kwargs):
     :class:`spyne.model.complex.Array`\.
     """
 
-    kwargs = dict(min_occurs=1, nillable=False,
-                type_name='%s%s%s' % (MANDATORY_PREFIX, cls.get_type_name(),
-                                                              MANDATORY_SUFFIX))
+    kwargs = dict(min_occurs=1, nillable=False)
+    if cls.get_type_name() is not cls.Empty:
+        kwargs['type_name'] = '%s%s%s' % (MANDATORY_PREFIX, cls.get_type_name(),
+                                                              MANDATORY_SUFFIX)
     kwargs.update(_kwargs)
     if issubclass(cls, Unicode):
         kwargs.update(dict(min_len=1))
