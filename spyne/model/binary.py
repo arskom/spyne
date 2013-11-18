@@ -238,6 +238,10 @@ class File(SimpleModel):
         return "File(name=%r, path=%r, type=%r, data=%r)" % (self.name,
                                                 self.path, self.type, self.data)
 
+    @classmethod
+    def store_as(cls, what):
+        return cls.customize(store_as=what)
+
 # **DEPRECATED!** Use ByteArray or File instead.
 class Attachment(ModelBase):
     __type_name__ = 'base64Binary'
