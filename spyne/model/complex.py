@@ -619,7 +619,10 @@ class ComplexModelBase(ModelBase):
         if isinstance(value, list) or isinstance(value, tuple):
             assert len(value) <= len(cls._type_info)
 
-            inst = cls()
+            cls_orig = cls
+            if cls.__orig__ is not None:
+                cls_orig = cls.__orig__
+            inst = cls_orig()
 
             keys = cls._type_info.keys()
             for i in range(len(value)):
