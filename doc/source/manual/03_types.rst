@@ -411,6 +411,14 @@ ignores attributes that:
 1. Begin with an underscore (``_``)
 2. Are not subclasses of the ``ModelBase``.
 
+If you want to set some defaults (e.g. namespace) with your objects, you can
+define your own ``ComplexModel`` base class as follows: ::
+
+    class MyAppComplexModel(ComplexModelBase):
+        __namespace__ = "http://example.com/myapp"
+        __metaclass__ = ComplexModelMeta
+
+
 If you want to use Python keywords as field names, or need leading underscores
 in field names, or you just want your Spyne definition and other code to be
 separate, you can do away with the metaclass magic and do this: ::
@@ -433,13 +441,18 @@ you need to pass a sequence of ``(field_name, field_type)`` tuples, like so: ::
             ('feature', Unicode),
         ]
 
-If you want to set some defaults (e.g. namespace) with your objects, you can
-define your own ``CompexModel`` base class as follows: ::
+This comes with the added bonus of a predictable field order [#]_.  A second
+way of getting a predictable field order is to set the 
+:attr:`spyne.model.complex.ComplexModel.Attributes.declare_order` attribute.
+The default value of that attribute is going to change in future version
+of Spyne to ``"name"``.  Since the preivous example had the fields sorted by
+name this will produce the same outcome: ::
 
-    class MyAppComplexModel(ComplexModelBase):
-        __namespace__ = "http://example.com/myapp"
-        __metaclass__ = ComplexModelMeta
+    PredictableComplexModel = ComplexModel.customize(declare_order="name")
 
+    class Permission(PredictableComplexModel):
+        application = Unicode
+        feature = Unicode
 
 Arrays
 ^^^^^^
@@ -646,6 +659,22 @@ defining complex objects and using events.
        instances. However, using a ``str`` as the value to ``ctx.out_string``
        would cause sending data in one-byte chunks, which is very inefficient.
        See e.g. how HTTP's chunked encoding works.
+
+.. [#] The "field order" is the order Spyne sends the fields in a
+       ``ComplexModel`` to the client, and the order they are declared
+       in the SOAP WSDL.  Currently Spyne's default field order is whatever
+       is returned by a ``dict`` iterator.  This can change when the run time
+       environment changes.  Things like adding a field, Spyne releasing a
+       new version, or using a different version of the Python interpreter
+       can cause the field order to change.  Such a changes are especially
+       painful for SOAP clients because they typically fetch the WSDL once and
+       assume it won't change - often requiring a recompile if it does.
+       Spyne is moving away from it's current unpredicable field order to one
+       controlled by
+       :attr:`spyne.model.complex.ComplexModel.Attributes.declare_order`.
+       It currently defaults to ``"random"`` but this will change in the
+       future.  If an unpredictable field order might cause you problems set
+       ``declare_order`` to ``"name"`` or ``"declared"``.
 
 .. [#] When you add a new key to a python dict, the entry order can get
        shuffled. This will make the tag order in your schema change. If for
