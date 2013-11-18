@@ -70,6 +70,10 @@ class Application(object):
     * method_return_object:
         Called right after the service method is executed
 
+    * method_fault_object
+        Called when a fault occurred in a service method, before the
+        method_exception_object is called. Useful for custom fault logging.
+
     * method_exception_object:
         Called when an exception occurred in a service method, before the
         exception is serialized.
@@ -152,15 +156,19 @@ class Application(object):
                                                     'method_return_object', ctx)
 
         except Fault, e:
-            logger.exception(e)
+            logger.debug(e, exc_info=True)
 
             ctx.out_error = e
 
             # fire events
+            self.event_manager.fire_event('method_fault_object', ctx)
             self.event_manager.fire_event('method_exception_object', ctx)
             if ctx.service_class is not None:
                 ctx.service_class.event_manager.fire_event(
-                                               'method_exception_object', ctx)
+                    'method_fault_object', ctx)
+
+                ctx.service_class.event_manager.fire_event(
+                    'method_exception_object', ctx)
 
         except Exception, e:
             logger.exception(e)
