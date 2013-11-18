@@ -39,6 +39,7 @@ from spyne.model.primitive import Integer
 from spyne.model.primitive import Decimal
 from spyne.model.primitive import Unicode
 from spyne.model.primitive import Date
+from spyne.model.primitive import DateTime
 from spyne.model.complex import XmlData
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
@@ -324,13 +325,36 @@ class TestXml(unittest.TestCase):
 
     def test_dates(self):
         d = Date
-        xml_dates = [etree.fromstring('<d>2013-04-05</d>'), etree.fromstring('<d>2013-04-05+02:00</d>'), etree.fromstring('<d>2013-04-05-02:00</d>'), etree.fromstring('<d>2013-04-05Z</d>')]
+        xml_dates = [
+            etree.fromstring('<d>2013-04-05</d>'),
+            etree.fromstring('<d>2013-04-05+02:00</d>'),
+            etree.fromstring('<d>2013-04-05-02:00</d>'),
+            etree.fromstring('<d>2013-04-05Z</d>'),
+        ]
+
         for xml_date in xml_dates:
             c = get_xml_as_object(xml_date, d)
             assert isinstance(c, datetime.date) == True
             assert c.year == 2013
             assert c.month == 4
             assert c.day == 5
+
+    def test_datetime_usec(self):
+        fs = etree.fromstring
+        d = get_xml_as_object(fs('<d>2013-04-05T06:07:08.123456</d>'), DateTime)
+        assert d.microsecond == 123456
+
+        # rounds up
+        d = get_xml_as_object(fs('<d>2013-04-05T06:07:08.1234567</d>'), DateTime)
+        assert d.microsecond == 123457
+
+        # rounds down
+        d = get_xml_as_object(fs('<d>2013-04-05T06:07:08.1234564</d>'), DateTime)
+        assert d.microsecond == 123456
+
+        # rounds up as well
+        d = get_xml_as_object(fs('<d>2013-04-05T06:07:08.1234565</d>'), DateTime)
+        assert d.microsecond == 123457
 
     def _get_ctx(self, server, in_string):
         initial_ctx = MethodContext(server)
