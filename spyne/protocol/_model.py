@@ -222,7 +222,7 @@ def time_from_string(cls, string):
     if microsec is None or microsec == 0:
         microsec = 0
     else:
-        microsec = int(float(microsec) * 1e6)
+        microsec = int(round(float(microsec) * 1e6))
 
     return datetime.time(int(fields['hr']), int(fields['min']),
                                                    int(fields['sec']), microsec)
@@ -262,7 +262,7 @@ def _parse_datetime_iso_match(date_match, tz=None):
     else:
         # we only get the most significant 6 digits because that's what
         # datetime can handle.
-        usec = int(float(usec) * 1e6)
+        usec = int(round(float(usec) * 1e6))
 
     return datetime.datetime(year, month, day, hour, min, sec, usec, tz)
 
