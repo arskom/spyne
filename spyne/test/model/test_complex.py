@@ -133,6 +133,13 @@ class TestComplexModel(unittest.TestCase):
         assert CC._type_info['u'].Attributes.min_len == 5
         assert C._type_info['u'].Attributes.min_len != 5
 
+    def test_child_array_customization(self):
+        CC = Array(Unicode).customize(
+            serializer_attrs=dict(min_len=5), punks='roll',
+        )
+        assert CC.Attributes.punks == 'roll'
+        assert CC._type_info[0].Attributes.min_len == 5
+
     def test_simple_class(self):
         a = Address()
         a.street = '123 happy way'

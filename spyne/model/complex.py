@@ -884,6 +884,17 @@ class Array(ComplexModelBase):
         return retval
 
     @classmethod
+    def customize(cls, **kwargs):
+        serializer_attrs = kwargs.get('serializer_attrs', None)
+        if serializer_attrs is None:
+            return super(Array, cls).customize(**kwargs)
+
+        del kwargs['serializer_attrs']
+
+        serializer, = cls._type_info.values()
+        return cls(serializer.customize(**serializer_attrs)).customize(**kwargs)
+
+    @classmethod
     def _set_serializer(cls, serializer, member_name=None):
         if serializer.get_type_name() is ModelBase.Empty: # A customized class
             member_name = "OhNoes"
