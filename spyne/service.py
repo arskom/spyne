@@ -17,6 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""
+This module contains the :class:`ServiceBase` class and its helper objects.
+"""
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -25,13 +29,10 @@ from spyne._base import BODY_STYLE_BARE
 from spyne._base import EventManager
 from spyne.util.oset import oset
 
-'''This module contains the :class:`ServiceBase` class and its helper objects.
-'''
-
 class ServiceBaseMeta(type):
-    '''Creates the :class:`spyne.MethodDescriptor` objects by iterating over
+    """Creates the :class:`spyne.MethodDescriptor` objects by iterating over
     tagged methods.
-    '''
+    """
 
     def __init__(self, cls_name, cls_bases, cls_dict):
         super(ServiceBaseMeta, self).__init__(cls_name, cls_bases, cls_dict)
@@ -79,7 +80,7 @@ class ServiceBaseMeta(type):
 
 
 class ServiceBase(object):
-    '''The ``ServiceBase`` class is the base class for all service definitions.
+    """The ``ServiceBase`` class is the base class for all service definitions.
 
     The convention is to have public methods defined under a subclass of this
     class along with common properties of public methods like header classes or
@@ -119,7 +120,7 @@ class ServiceBase(object):
         * ``method_exception_string``
             Called by the transport right before passing the exception string to
             the client.
-    '''
+    """
 
     __metaclass__ = ServiceBaseMeta
 
@@ -182,7 +183,7 @@ class ServiceBase(object):
 
     @classmethod
     def _has_callbacks(cls):
-        '''Determines if this service definition has callback methods or not.'''
+        """Determines if this service definition has callback methods or not."""
 
         for method in cls.public_methods.values():
             if method.is_callback:
@@ -192,13 +193,13 @@ class ServiceBase(object):
 
     @classmethod
     def call_wrapper(cls, ctx):
-        '''Called in place of the original method call. You can override this to
+        """Called in place of the original method call. You can override this to
         do your own exception handling.
 
         :param ctx: The method context.
 
         The overriding function must call this function by convention.
-        '''
+        """
 
         if ctx.descriptor.body_style is BODY_STYLE_BARE:
             ctx.in_object = [ctx.in_object]
