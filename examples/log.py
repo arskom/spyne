@@ -10,8 +10,12 @@ from spyne.util.color import G
 
 class SomeService(ServiceBase):
     @rpc()
-    def server_fault(ctx):
+    def server_exception(ctx):
         raise Exception("boo!")
+
+    @rpc()
+    def server_fault(ctx):
+        raise Fault("Server", "boo and you know it!")
 
     @rpc()
     def client_fault(ctx):
@@ -28,6 +32,10 @@ if __name__ == "__main__":
     logging.info(G("all fault tracebacks are logged"))
     logging.getLogger('spyne.application').setLevel(logging.DEBUG)
 
+    try:
+        server.service.server_exception()
+    except:
+        pass
     try:
         server.service.server_fault()
     except:

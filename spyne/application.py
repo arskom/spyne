@@ -153,7 +153,10 @@ class Application(object):
                                                     'method_return_object', ctx)
 
         except Fault, e:
-            logger_client.exception(e)
+            if e.faultcode == 'Client' or e.faultcode.startswith('Client.'):
+                logger_client.exception(e)
+            else:
+                logger.exception(e)
 
             ctx.out_error = e
 
