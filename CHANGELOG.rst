@@ -34,18 +34,21 @@ spyne-2.11.0
 * Remove hard-coded pytz.utc defaults from everywhere. Use spyne.LOCAL_TZ to
   configure the default time zone.
 * As a result of the above change, datetime objects deserialized by Spyne are
-  are forced to the above time zone during soft validtion (nothing should have
+  are forced to the above time zone during soft validation (nothing should have
   changed from the user code perspective).
 * Add default_factory to ModelBase customizer. It's a callable that produces
   default values on demand. Suitable to be used with e.g. lambdas that return
   mutable defaults.
-* New spyne.util.AttrDict can be used for passing various dynamic configuration
-  data.
+* New ``spyne.util.AttrDict`` can be used for passing various dynamic
+  configuration data.
 * ``child_attrs`` can now be passed to the ComplexModelBase customizer in order
   to make object-specific in-place customizations to child types.
-* Many, many, many bugs fixed.
 * Add mapper between Django models and :class:`spyne.util.django.DjangoComplexModel`
   types.
+* Removed ``@nillable_string`` and ``@nillable_string_iterable`` decorators from
+  type (de)serializers from/to string. These methods are meant to be used via the
+  wrapper functions {from,to}_string in ``ProtocolBase``\.
+* Many, many, many bugs fixed.
 
 spyne-2.10.9
 ------------
