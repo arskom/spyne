@@ -110,10 +110,10 @@ def unicode_from_string(cls, value):
     retval = value
     if isinstance(value, str):
         if cls.Attributes.encoding is None:
-            retval = unicode(value, errors = cls.Attributes.unicode_errors)
+            retval = unicode(value, errors=cls.Attributes.unicode_errors)
         else:
             retval = unicode(value, cls.Attributes.encoding,
-                                    errors = cls.Attributes.unicode_errors)
+                                    errors=cls.Attributes.unicode_errors)
     return retval
 
 
