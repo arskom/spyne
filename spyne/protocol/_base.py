@@ -284,13 +284,22 @@ class ProtocolBase(object):
         self.validator = None
 
     def from_string(self, class_, string, *args, **kwargs):
+        if string is None:
+            return None
+
         handler = self._from_string_handlers[class_]
         return handler(class_, string, *args, **kwargs)
 
     def to_string(self, class_, value, *args, **kwargs):
+        if value is None:
+            return None
+
         handler = self._to_string_handlers[class_]
         return handler(class_, value, *args, **kwargs)
 
     def to_string_iterable(self, class_, value):
+        if value is None:
+            return []
+
         handler = self._to_string_iterable_handlers[class_]
         return handler(self, class_, value)

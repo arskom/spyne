@@ -30,8 +30,6 @@ from collections import deque
 from pytz import FixedOffset
 
 from spyne.error import ValidationError
-from spyne.model import nillable_string
-from spyne.model import nillable_iterable
 from spyne.model.binary import File
 from spyne.model.binary import Attachment
 from spyne.model.binary import binary_encoding_handlers
@@ -76,36 +74,29 @@ def null_from_string(cls, value):
     return None
 
 
-@nillable_string
 def any_xml_to_string(cls, value):
     return etree.tostring(value)
 
-@nillable_string
 def any_xml_from_string(cls, string):
     try:
         return etree.fromstring(string)
     except etree.XMLSyntaxError, e:
         raise ValidationError(string, "%%r: %r" % e)
 
-@nillable_string
 def any_html_to_string(cls, value):
     return html.tostring(value)
 
-@nillable_string
 def any_html_from_string(cls, string):
     return html.fromstring(string)
 
 
-@nillable_string
 def uuid_to_string(cls, value):
     return str(value)
 
-@nillable_string
 def uuid_from_string(cls, string):
     return uuid.UUID(string)
 
 
-@nillable_string
 def unicode_to_string(cls, value):
     retval = value
     if cls.Attributes.encoding is not None and isinstance(value, unicode):
@@ -115,7 +106,6 @@ def unicode_to_string(cls, value):
     else:
         return cls.Attributes.format % retval
 
-@nillable_string
 def unicode_from_string(cls, value):
     retval = value
     if isinstance(value, str):
@@ -127,7 +117,6 @@ def unicode_from_string(cls, value):
     return retval
 
 
-@nillable_string
 def string_from_string(cls, value):
     retval = value
     if isinstance(value, unicode):
@@ -140,7 +129,6 @@ def string_from_string(cls, value):
     return retval
 
 
-@nillable_string
 def decimal_to_string(cls, value):
     decimal.Decimal(value)
     if cls.Attributes.str_format is not None:
@@ -150,7 +138,6 @@ def decimal_to_string(cls, value):
     else:
         return str(value)
 
-@nillable_string
 def decimal_from_string(cls, string):
     if cls.Attributes.max_str_len is not None and len(string) > \
                                                      cls.Attributes.max_str_len:
@@ -163,7 +150,6 @@ def decimal_from_string(cls, string):
         raise ValidationError(string, "%%r: %r" % e)
 
 
-@nillable_string
 def double_to_string(cls, value):
     float(value) # sanity check
 
@@ -172,7 +158,6 @@ def double_to_string(cls, value):
     else:
         return cls.Attributes.format % value
 
-@nillable_string
 def double_from_string(cls, string):
     try:
         return float(string)
@@ -180,7 +165,6 @@ def double_from_string(cls, string):
         raise ValidationError(string, "%%r: %r" % e)
 
 
-@nillable_string
 def integer_to_string(cls, value):
     int(value) # sanity check
 
@@ -189,7 +173,6 @@ def integer_to_string(cls, value):
     else:
         return cls.Attributes.format % value
 
-@nillable_string
 def integer_from_string(cls, string):
     if cls.Attributes.max_str_len is not None and len(string) > \
                                                      cls.Attributes.max_str_len:
@@ -202,13 +185,11 @@ def integer_from_string(cls, string):
         raise ValidationError(string, "Could not cast %r to integer")
 
 
-@nillable_string
 def time_to_string(cls, value):
     """Returns ISO formatted dates."""
 
     return value.isoformat()
 
-@nillable_string
 def time_from_string(cls, string):
     """Expects ISO formatted times."""
 
@@ -227,7 +208,6 @@ def time_from_string(cls, string):
     return datetime.time(int(fields['hr']), int(fields['min']),
                                                    int(fields['sec']), microsec)
 
-@nillable_string
 def datetime_to_string(cls, value):
     if cls.Attributes.as_timezone is not None and value.tzinfo is not None:
         value = value.astimezone(cls.Attributes.as_timezone)
@@ -267,7 +247,6 @@ def _parse_datetime_iso_match(date_match, tz=None):
     return datetime.datetime(year, month, day, hour, min, sec, usec, tz)
 
 
-@nillable_string
 def datetime_from_string_iso(cls, string):
     astz = cls.Attributes.as_timezone
 
@@ -299,7 +278,6 @@ def datetime_from_string_iso(cls, string):
 
     raise ValidationError(string)
 
-@nillable_string
 def date_from_string_iso(cls, string):
     """This is used by protocols like SOAP who need ISO8601-formatted dates
     no matter what.
@@ -314,7 +292,6 @@ def date_from_string_iso(cls, string):
             raise ValidationError(string)
 
 
-@nillable_string
 def datetime_from_string(cls, string):
     format = cls.Attributes.format
 
@@ -330,7 +307,6 @@ def datetime_from_string(cls, string):
     return retval
 
 
-@nillable_string
 def date_from_string(cls, string):
     try:
         d = datetime.datetime.strptime(string, cls.Attributes.format)
@@ -352,7 +328,6 @@ else:
     def _total_seconds(td):
         return (td.microseconds + (td.seconds + td.days * 24 * 3600) *1e6) / 1e6
 
-@nillable_string
 def duration_to_string(cls, value):
     if value.days < 0:
         value = -value
@@ -400,7 +375,6 @@ def duration_to_string(cls, value):
 
     return ''.join(retval)
 
-@nillable_string
 def duration_from_string(cls, string):
     duration = _duration_re.match(string).groupdict(0)
     if duration is None:
@@ -426,35 +400,29 @@ def duration_from_string(cls, string):
     return delta
 
 
-@nillable_string
 def boolean_to_string(cls, value):
     return str(bool(value)).lower()
 
-@nillable_string
 def boolean_from_string(cls, string):
     return (string.lower() in ['true', '1'])
 
 
-@nillable_string
 def byte_array_from_string(cls, value, suggested_encoding=None):
     encoding = cls.Attributes.encoding
     if encoding is BINARY_ENCODING_USE_DEFAULT:
         encoding = suggested_encoding
     return binary_decoding_handlers[encoding](value)
 
-@nillable_string
 def byte_array_to_string(cls, value, suggested_encoding=None):
     encoding = cls.Attributes.encoding
     if encoding is BINARY_ENCODING_USE_DEFAULT:
         encoding = suggested_encoding
     return binary_encoding_handlers[encoding](value)
 
-@nillable_iterable
 def byte_array_to_string_iterable(prot, cls, value):
     return value
 
 
-@nillable_string
 def file_from_string(cls, value, suggested_encoding=None):
     encoding = cls.Attributes.encoding
     if encoding is BINARY_ENCODING_USE_DEFAULT:
@@ -471,7 +439,6 @@ def _file_to_iter(f):
 
     f.close()
 
-@nillable_iterable
 def file_to_string_iterable(prot, cls, value):
     if value.data is None:
         if value.handle is None:
@@ -489,20 +456,17 @@ def file_to_string_iterable(prot, cls, value):
     else:
         return iter(value.data)
 
-@nillable_iterable
 def simple_model_to_string_iterable(prot, cls, value):
     retval = prot.to_string(cls, value)
     if retval is None:
         return ('',)
     return (retval,)
 
-@nillable_iterable
 def complex_model_to_string_iterable(prot, cls, value):
     if prot.ignore_uncap:
         return tuple()
     raise TypeError("HttpRpc protocol can only serialize primitives.")
 
-@nillable_string
 def attachment_to_string(cls, value):
     if not (value.data is None):
         # the data has already been loaded, just encode
@@ -519,15 +483,12 @@ def attachment_to_string(cls, value):
 
     return data
 
-@nillable_string
 def attachment_from_string(cls, value):
     return Attachment(data=value)
 
 
-@nillable_string
 def complex_model_base_to_string(cls, value):
     raise TypeError("Only primitives can be serialized to string.")
 
-@nillable_string
 def complex_model_base_from_string(cls, string):
     raise TypeError("Only primitives can be deserialized from string.")

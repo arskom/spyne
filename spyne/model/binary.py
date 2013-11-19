@@ -37,7 +37,6 @@ except ImportError: # Python 3
 
 from spyne.error import ValidationError
 from spyne.util import _bytes_join
-from spyne.model import nillable_string
 from spyne.model import ModelBase
 from spyne.model import SimpleModel
 
@@ -96,12 +95,10 @@ class ByteArray(SimpleModel):
         return True
 
     @classmethod
-    @nillable_string
     def to_base64(cls, value):
         return b64encode(_bytes_join(value))
 
     @classmethod
-    @nillable_string
     def from_base64(cls, value):
         try:
             return [b64decode(_bytes_join(value))]
@@ -109,12 +106,10 @@ class ByteArray(SimpleModel):
             raise ValidationError(value)
 
     @classmethod
-    @nillable_string
     def to_urlsafe_base64(cls, value):
         return urlsafe_b64encode(_bytes_join(value))
 
     @classmethod
-    @nillable_string
     def from_urlsafe_base64(cls, value):
         #FIXME: Find out why we need to do this.
         if isinstance(value, unicode):
@@ -122,12 +117,10 @@ class ByteArray(SimpleModel):
         return [urlsafe_b64decode(_bytes_join(value))]
 
     @classmethod
-    @nillable_string
     def to_hex(cls, value):
         return hexlify(_bytes_join(value))
 
     @classmethod
-    @nillable_string
     def from_hex(cls, value):
         return [unhexlify(_bytes_join(value))]
 
@@ -216,8 +209,10 @@ class File(SimpleModel):
             self.data = None
 
     @classmethod
-    @nillable_string
     def to_base64(cls, value):
+        if value is None:
+            raise StopIteration()
+
         assert value.path, "You need to write data to persistent storage first " \
                            "if you want to read it back."
         f = open(value.path, 'rb')
@@ -230,8 +225,9 @@ class File(SimpleModel):
         f.close()
 
     @classmethod
-    @nillable_string
     def from_base64(cls, value):
+        if value is None:
+            return None
         return File.Value(data=[base64.b64decode(value)])
 
     def __repr__(self):
@@ -280,8 +276,10 @@ class Attachment(ModelBase):
         f.close()
 
     @classmethod
-    @nillable_string
     def to_base64(cls, value):
+        if value is None:
+            return None
+
         ostream = StringIO()
         if not (value.data is None):
             istream = StringIO(value.data)
@@ -298,8 +296,9 @@ class Attachment(ModelBase):
         return ostream.read()
 
     @classmethod
-    @nillable_string
     def from_base64(cls, value):
+        if value is None:
+            return None
         istream = StringIO(value)
         ostream = StringIO()
 
