@@ -724,10 +724,13 @@ def _gen_array_o2m(cls, props, k, child, child_cust, p):
 
     if p.right in child_t.c:
         # FIXME: This branch MUST be tested.
-        assert col_type is child_t.c[p.right].type.__class__
+        new_col_type = child_t.c[p.right].type.__class__
+        assert col_type is child_t.c[p.right].type.__class__, "Existing column " \
+            "type %r disagrees with new column type %r" % \
+                                                        (col_type, new_col_type)
 
-        # if the column is there, the decision about whether
-        # it should be in child's mapper should also have been
+        # if the column is already there, the decision about whether
+        # it should be in child's mapper or not should also have been
         # made.
         #
         # so, not adding the child column to to child mapper
