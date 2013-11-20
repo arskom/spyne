@@ -26,11 +26,11 @@ complex objects -- they don't carry any data by themselves.
 
 
 import logging
-from weakref import WeakKeyDictionary
-
 logger = logging.getLogger(__name__)
 
 import decimal
+
+from weakref import WeakKeyDictionary
 
 from collections import deque
 from inspect import isclass
