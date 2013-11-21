@@ -27,15 +27,6 @@ from spyne.model.fault import Fault
 from spyne.const import MAX_STRING_FIELD_LENGTH
 
 
-class ResourceNotFoundError(Fault):
-    """Raised when requested resource is not found."""
-
-    def __init__(self, fault_object,
-                                fault_string="Requested resource %r not found"):
-        super(ResourceNotFoundError, self).__init__('Client.ResourceNotFound',
-                                                    fault_string % fault_object)
-
-
 class InvalidCredentialsError(Fault):
     """Raised when requested resource is not found."""
 
@@ -89,3 +80,22 @@ class InternalError(Fault):
     """Raised to communicate server-side errors."""
     def __init__(self, error):
         super(InternalError, self).__init__('Server', "InternalError: An unknown error has occured.")
+
+
+class ResourceNotFoundError(Fault):
+    """Raised when requested resource is not found."""
+
+    def __init__(self, fault_object,
+                 fault_string="Requested resource %r not found"):
+        super(ResourceNotFoundError, self).__init__(
+            'Client.ResourceNotFound', fault_string % fault_object)
+
+
+class ResourceAlreadyExistsError(Fault):
+    """Raised when requested resource already exists on server side."""
+
+    def __init__(self, fault_object,
+                 fault_string="Resource %r already exists"):
+        super(ResourceAlreadyExistsError,
+              self).__init__('Client.ResourceAlreadyExists', fault_string %
+                             fault_object)

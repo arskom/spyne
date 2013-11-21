@@ -8,6 +8,15 @@ Class Dictionary
 .. automodule:: spyne.util.cdict
     :members:
 
+
+.. _spyne.util.django:
+
+Django Integration Utils
+------------------------
+
+.. automodule:: spyne.util.django
+    :members:
+
 Element Tree Conversion
 -----------------------
 

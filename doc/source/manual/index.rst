@@ -17,5 +17,6 @@ aspects of Spyne by examples.
     04_usermanager
     05-01_sqlalchemy
     05-02_validation
+    05-03_django
     06_metadata
     07_t_and_p
