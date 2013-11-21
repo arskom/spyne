@@ -32,12 +32,11 @@ class HttpTransportContext(TransportContext):
         self.req = request
         """HTTP Request. This is transport-specific"""
 
-        assert isinstance(content_type, str)
         self.resp_headers = {
-            'Content-Type': content_type,
-            'Content-Length': None,
         }
         """HTTP Response headers."""
+
+        self.mime_type = content_type
 
         self.resp_code = None
         """HTTP Response code."""
@@ -50,16 +49,16 @@ class HttpTransportContext(TransportContext):
         """The error when handling WSDL requests."""
 
     def get_mime_type(self):
-        return self.resp_headers['Content-Type']
+        return self.resp_headers.get('Content-Type', None)
 
     def set_mime_type(self, what):
         self.resp_headers['Content-Type'] = what
 
-    mime_type = property(get_mime_type, set_mime_type)
+    mime_type = property(lambda self: self.get_mime_type(), lambda self, what: self.set_mime_type(what))
     """Provides an easy way to set outgoing mime type. Synonym for
     `content_type`"""
 
-    content_type = property(get_mime_type, set_mime_type)
+    content_type = mime_type
     """Provides an easy way to set outgoing mime type. Synonym for
     `mime_type`"""
 
@@ -69,10 +68,12 @@ class HttpMethodContext(MethodContext):
     the transport attribute using the :class:`HttpTransportContext` class.
     """
 
+    default_transport_context = HttpTransportContext
+
     def __init__(self, transport, req_env, content_type):
         super(HttpMethodContext, self).__init__(transport)
 
-        self.transport = HttpTransportContext(transport, req_env, content_type)
+        self.transport = self.default_transport_context(transport, req_env, content_type)
         """Holds the WSGI-specific information"""
 
 
