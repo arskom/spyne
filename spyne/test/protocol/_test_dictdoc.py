@@ -1078,7 +1078,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
         def test_validation_freq_parent(self):
             class C(ComplexModel):
                 i=Integer(min_occurs=1)
-                s=String
+                s=Unicode
 
             class SomeService(ServiceBase):
                 @srpc(C)
