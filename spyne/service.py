@@ -96,6 +96,10 @@ class ServiceBase(object):
         * ``method_return_object``
             Called right after the service method is executed
 
+        * ``method_fault_object``
+            Called when a fault occurred in a service method, before the
+            ``method_exception_object`` is called.
+
         * ``method_exception_object``
             Called when an exception occurred in a service method, before the
             exception is serialized.
