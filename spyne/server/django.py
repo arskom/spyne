@@ -109,7 +109,6 @@ class StreamingDjangoApplication(DjangoApplication):
 
 
 class DjangoServer(HttpBase):
-
     """Server talking in Django request/response objects."""
 
     def __init__(self, app, chunked=False):
@@ -246,8 +245,7 @@ class DjangoServer(HttpBase):
         return response
 
 
-class SpyneView(object):
-
+class DjangoView(object):
     """Represent spyne service as Django class based view."""
 
     application = None

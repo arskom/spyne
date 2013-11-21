@@ -141,7 +141,7 @@ project/urls.py: ::
     configure_spyne()
     from spyne.application import Application
     from spyne.protocol.soap import Soap11
-    from spyne.server.django import SpyneView
+    from spyne.server.django import DjangoView
 
     from project.todo.todolists import TodoService
 
@@ -150,12 +150,12 @@ project/urls.py: ::
 
     urlpatterns = patterns(
         '',
-        url(r'^api/0.1/', SpyneView.as_view(application=api), name='api'),
+        url(r'^api/0.1/', DjangoView.as_view(application=api), name='api'),
     )
 
 First we configure spyne defaults. Then we create Spyne application that stores
 configuration for our setup.  Finally we define view `api` bound to specific url.
-``SpyneView.as_view`` created for us :class:`spyne.server.django.DjangoServer`
+``DjangoView.as_view`` created for us :class:`spyne.server.django.DjangoServer`
 instance that will handle rpc requests.
 
 Now we can run Django development server and look at WSDL that defines protocol

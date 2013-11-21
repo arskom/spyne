@@ -41,7 +41,7 @@ class SpyneTestCase(TransactionTestCase):
         self.assertEqual(list_resp,['Hello, Joe']*5)
 
 
-class SpyneViewTestCase(TestCase):
+class DjangoViewTestCase(TestCase):
     def test_say_hello(self):
         client = DjangoTestClient('/say_hello/', app)
         resp =  client.service.say_hello('Joe', 5)

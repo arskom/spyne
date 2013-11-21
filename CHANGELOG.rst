@@ -27,7 +27,7 @@ spyne-2.11.0
   Sample response: ``{"ver":1, "fault": {"faultcode": "Server", "faultstring": "Internal Error"}}}``
 
 * Steal and integrate the WebSocket tranport for Twisted.
-* Support Django natively using :class:`spyne.server.django.SpyneView` and
+* Support Django natively using :class:`spyne.server.django.DjangoView` and
   :class:`spyne.server.django.DjangoServer`.
 * It's now possible to override the ``JsonEncoder`` class ``JsonDocument`` uses.
 * Remove hard-coded utf-8 defaults from almost everywhere.
