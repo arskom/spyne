@@ -564,8 +564,8 @@ be logged and ignored.
 
 However, it is important to return *instances* and not classes themselves. Due
 to the way Spyne serialization works, the classes themselves will also work as
-return values until you actually seeing funky responses under load in
-production. Don't do this! [#]_
+return values until you start seeing funky responses under load in production.
+Don't do this! [#]_
 
 Fault
 -----

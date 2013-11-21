@@ -70,49 +70,58 @@ def Thier_repr(with_ns=False):
     as string
     """
 
-    if with_ns == False:
+    if with_ns is False:
         def get_class_name(c):
             return c.get_type_name()
-    elif with_ns == True:
+    elif with_ns is True or with_ns is 1:
         def get_class_name(c):
             return "{%s}%s" % (c.get_namespace(), c.get_type_name())
     else:
         def get_class_name(c):
             return with_ns(c.get_namespace(), c.get_type_name())
 
-    def hier_repr(self, i0=0, I='  '):
-        cls = self.__class__
+    def hier_repr(inst, i0=0, I='  ', tags=None):
+        if tags is None:
+            tags = set()
+
+        cls = inst.__class__
         if not hasattr(cls, '_type_info'):
-            return repr(self)
+            return repr(inst)
+
+        clsid = "%s" % (get_class_name(cls))
+        if id(inst) in tags:
+            return clsid
+
+        tags.add(id(inst))
 
         i1 = i0 + 1
         i2 = i1 + 1
 
         retval = []
-        retval.append(get_class_name(cls))
+        retval.append(clsid)
         retval.append('(')
 
         xtba_key, xtba_type = cls.Attributes._xml_tag_body_as
         if xtba_key is not None:
-            value = getattr(self, xtba_key, None)
-            retval.append("%s,\n" % hier_repr(value,i1))
+            value = getattr(inst, xtba_key, None)
+            retval.append("%s,\n" % hier_repr(value, i1, I, tags))
         else:
             retval.append('\n')
 
-        for k,v in self.get_flat_type_info(cls).items():
-            value = getattr(self, k, None)
+        for k,v in inst.get_flat_type_info(cls).items():
+            value = getattr(inst, k, None)
             if (issubclass(v, Array) or v.Attributes.max_occurs > 1) and \
                                                             value is not None:
-                retval.append("%s%s=[\n" %(I*i1, k))
+                retval.append("%s%s=[\n" % (I*i1, k))
                 for subval in value:
-                    retval.append("%s%s,\n" % (I*i2, hier_repr(subval,i2)))
+                    retval.append("%s%s,\n" % (I*i2, hier_repr(subval,i2, I, tags)))
                 retval.append('%s],\n' % (I*i1))
 
             elif issubclass(v, XmlData):
                 pass
 
             else:
-                retval.append("%s%s=%s,\n" % (I*i1, k, hier_repr(value, i1)))
+                retval.append("%s%s=%s,\n" % (I*i1, k, hier_repr(value, i1, I, tags)))
 
         retval.append('%s)' % (I*i0))
         return ''.join(retval)
@@ -244,14 +253,15 @@ def process_simple_type(ctx, s, name=None):
 
     ctx.debug1("adding   simple type: %s", name)
     retval = base.customize(**kwargs)
+    retval.__type_name__ = name
+    retval.__namespace__ = ctx.tns
     if retval.__orig__ is None:
         retval.__orig__ = base
 
     if retval.__extends__ is None:
         retval.__extends__ = base
-        retval.__type_name__ = name
-        retval.__namespace__ = ctx.tns
 
+    assert not retval.get_type_name() is retval.Empty
     return retval
 
 
@@ -357,7 +367,12 @@ def process_complex_type(ctx, c):
 
         process_type(tn, name, element=e)
 
-    ti = []
+    class L(list):
+        def append(self, a):
+            k, v = a
+            assert isinstance(k, basestring), k
+            super(L, self).append(a)
+    ti = L()
     base = ComplexModelBase
     if c.name in ctx.retval[ctx.tns].types:
         ctx.debug1("modifying existing %r", c.name)

@@ -29,6 +29,7 @@ from datetime import time
 from datetime import timedelta
 
 import lxml.etree
+import lxml.html
 
 from lxml.builder import E
 
@@ -53,15 +54,11 @@ from spyne.model.primitive import AnyXml
 from spyne.model.primitive import AnyHtml
 from spyne.model.primitive import AnyDict
 from spyne.model.primitive import Unicode
-from spyne.model.primitive import String
 from spyne.model.primitive import AnyUri
 from spyne.model.primitive import ImageUri
-from spyne.model.primitive import Decimal
 from spyne.model.primitive import Double
-from spyne.model.primitive import Integer
 from spyne.model.primitive import Integer8
 from spyne.model.primitive import Time
-from spyne.model.primitive import DateTime
 from spyne.model.primitive import Date
 from spyne.model.primitive import Duration
 from spyne.model.primitive import Boolean
@@ -74,7 +71,10 @@ from spyne.model.primitive import MultiLine
 from spyne.model.primitive import MultiPolygon
 
 
-def TDry(serializer, _DictDocumentChild, dumps_kwargs={}):
+def TDry(serializer, _DictDocumentChild, dumps_kwargs=None):
+    if not dumps_kwargs:
+        dumps_kwargs = {}
+
     def _dry_me(services, d, ignore_wrappers=False, complex_as=dict,
                          just_ctx=False, just_in_object=False, validator=None):
 
@@ -98,7 +98,9 @@ def TDry(serializer, _DictDocumentChild, dumps_kwargs={}):
         return ctx
     return _dry_me
 
-def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
+def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
+    if not dumps_kwargs:
+        dumps_kwargs = {}
     _dry_me = TDry(serializer, _DictDocumentChild, dumps_kwargs)
 
     class Test(unittest.TestCase):
@@ -292,7 +294,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
                 def some_call():
                     raise Fault()
 
-            ctx = _dry_me([SomeService], {"some_call":[]})
+            _dry_me([SomeService], {"some_call":[]})
 
         def test_prune_none_and_optional(self):
             class SomeObject(ComplexModel):
@@ -302,7 +304,14 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
             class SomeService(ServiceBase):
                 @srpc(_returns=SomeObject)
                 def some_call():
-                    raise SomeObject()
+                    return SomeObject()
+
+            ctx = _dry_me([SomeService], {"some_call":[]})
+
+            ret = serializer.loads(''.join(ctx.out_string))
+
+            assert ret == {"some_callResponse": {'some_callResult':
+                                                    {'SomeObject':{'s': None}}}}
 
         def test_any_xml(self):
             d = lxml.etree.tostring(E('{ns1}x', E('{ns2}Y', "some data")))
@@ -323,7 +332,6 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
             print s
             print d
             assert s == d
-
 
         def test_any_html(self):
             d = lxml.html.tostring(E('div', E('span', "something")))
@@ -508,7 +516,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
             print d
             assert s == d
 
-        def test_integer(self):
+        def test_integer_way_small(self):
             d = -1<<1000
             if _DictDocumentChild._huge_numbers_as_string:
                 d = str(d)
@@ -531,7 +539,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
             print d
             assert s == d
 
-        def test_integer_2(self):
+        def test_integer_way_big(self):
             d = 1<<1000
             if _DictDocumentChild._huge_numbers_as_string:
                 d = str(d)
@@ -957,8 +965,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
             beh = binary_encoding_handlers[dbe]
 
             data = ''.join([chr(x) for x in range(0xff)])
-            if beh is not None:
-                encoded_data = beh(data)
+            encoded_data = beh(data)
 
             class SomeService(ServiceBase):
                 @srpc(ByteArray, _returns=ByteArray)
@@ -987,8 +994,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
                     pass
 
             try:
-                ctx = _dry_me([SomeService], {"some_call": []},
-                                                            validator='soft')
+                _dry_me([SomeService], {"some_call": []}, validator='soft')
             except ValidationError:
                 pass
             else:
@@ -1001,7 +1007,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
                     pass
 
             try:
-                ctx = _dry_me([SomeService], {"some_call": [None]},
+                _dry_me([SomeService], {"some_call": [None]},
                                                             validator='soft')
             except ValidationError:
                 pass
@@ -1016,7 +1022,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
                     pass
 
             try:
-                ctx = _dry_me([SomeService], {"some_call": ["duduk"]},
+                _dry_me([SomeService], {"some_call": ["duduk"]},
                                                             validator='soft')
             except ValidationError:
                 pass
@@ -1031,7 +1037,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
                     pass
 
             try:
-                ctx = _dry_me([SomeService], {"some_call": [10]},
+                _dry_me([SomeService], {"some_call": [10]},
                                                             validator='soft')
             except ValidationError:
                 pass
@@ -1046,7 +1052,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
                     pass
 
             try:
-                ctx = _dry_me([SomeService], {"some_call": [-129]},
+                _dry_me([SomeService], {"some_call": [-129]},
                                                             validator='soft')
             except ValidationError:
                 pass
@@ -1054,19 +1060,40 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs={}):
             else:
                 raise Exception("must raise ValidationError")
 
-        def test_validation_integer_type(self):
+        def test_validation_integer_type_2(self):
             class SomeService(ServiceBase):
                 @srpc(Integer8)
                 def some_call(p):
                     pass
 
             try:
-                ctx = _dry_me([SomeService], {"some_call": [1.2]},
+                _dry_me([SomeService], {"some_call": [1.2]},
                                                             validator='soft')
             except ValidationError:
                 pass
 
             else:
                 raise Exception("must raise ValidationError")
+
+        def test_validation_freq_parent(self):
+            class C(ComplexModel):
+                i=Integer(min_occurs=1)
+                s=String
+
+            class SomeService(ServiceBase):
+                @srpc(C)
+                def some_call(p):
+                    pass
+
+            try:
+                # must raise validation error for missing i
+                _dry_me([SomeService], {"some_call": {'p':{'s':'a'}}}, validator='soft')
+            except ValidationError:
+                pass
+            else:
+                raise Exception("must raise ValidationError")
+
+            # must not raise anything for missing p because C has min_occurs=0
+            _dry_me([SomeService], {"some_call": {}}, validator='soft')
 
     return Test

@@ -661,6 +661,93 @@ class TestSqlAlchemySchema(unittest.TestCase):
         assert st.s == 's'
         assert stos.i == 3
 
+    def test_add_field_complex_existing_column(self):
+        class C(TableModel):
+            __tablename__ = "c"
+            u = Unicode(pk=True)
+
+        class D(TableModel):
+            __tablename__ = "d"
+            d = Integer32(pk=True)
+            c = C.store_as('table')
+
+        C.append_field('d', D.store_as('table'))
+        assert C.Attributes.sqla_mapper.get_property('d').argument is D
+
+    def _test_add_field_complex_explicit_existing_column(self):
+        class C(TableModel):
+            __tablename__ = "c"
+            id = Integer32(pk=True)
+
+        # c already also produces c_id. this is undefined behaviour, one of them
+        # gets ignored, whichever comes first.
+        class D(TableModel):
+            __tablename__ = "d"
+            id = Integer32(pk=True)
+            c = C.store_as('table')
+            c_id = Integer32(15)
+
+    def test_add_field_complex_circular_array(self):
+        class C(TableModel):
+            __tablename__ = "cc"
+            id = Integer32(pk=True)
+
+        class D(TableModel):
+            __tablename__ = "dd"
+            id = Integer32(pk=True)
+            c = Array(C).customize(store_as=table(right='dd_id'))
+
+        C.append_field('d', D.customize(store_as=table(left='dd_id')))
+        self.metadata.create_all()
+
+        c1, c2 = C(id=1), C(id=2)
+        d = D(id=1, c=[c1,c2])
+        self.session.add(d)
+        self.session.commit()
+        assert c1.d.id == 1
+
+    def test_add_field_complex_new_column(self):
+        class C(TableModel):
+            __tablename__ = "c"
+            u = Unicode(pk=True)
+
+        class D(TableModel):
+            __tablename__ = "d"
+            id = Integer32(pk=True)
+
+        C.append_field('d', D.store_as('table'))
+        assert C.Attributes.sqla_mapper.get_property('d').argument is D
+        assert isinstance(C.Attributes.sqla_table.c['d_id'].type, sqlalchemy.Integer)
+
+    def test_add_field_array(self):
+        class C(TableModel):
+            __tablename__ = "c"
+            id = Integer32(pk=True)
+
+        class D(TableModel):
+            __tablename__ = "d"
+            id = Integer32(pk=True)
+
+        C.append_field('d', Array(D).store_as('table'))
+        assert C.Attributes.sqla_mapper.get_property('d').argument is D
+        print repr(D.Attributes.sqla_table)
+        assert isinstance(D.Attributes.sqla_table.c['c_id'].type, sqlalchemy.Integer)
+
+    def test_add_field_array_many(self):
+        class C(TableModel):
+            __tablename__ = "c"
+            id = Integer32(pk=True)
+
+        class D(TableModel):
+            __tablename__ = "d"
+            id = Integer32(pk=True)
+
+        C.append_field('d', Array(D).store_as(table(multi='c_d')))
+        assert C.Attributes.sqla_mapper.get_property('d').argument is D
+        rel_table = C.Attributes.sqla_metadata.tables['c_d']
+        assert 'c_id' in rel_table.c
+        assert 'd_id' in rel_table.c
+
 class TestSqlAlchemySchemaWithPostgresql(unittest.TestCase):
     def setUp(self):
         self.engine = create_engine(PSQL_CONN_STR)
@@ -693,19 +780,6 @@ class TestSqlAlchemySchemaWithPostgresql(unittest.TestCase):
         assert 'e' in t.c
         assert isinstance(t.c.e.type, sqlalchemy.dialects.postgresql.base.ENUM)
         assert t.c.e.type.enums == enums
-
-    def test_add_field_complex(self):
-        class C(TableModel):
-            __tablename__ = "C"
-            u = Unicode(pk=True)
-
-        class D(TableModel):
-            __tablename__ = "d"
-            d = Decimal(pk=True)
-            c = C.store_as('table')
-
-        C.append_field('d', D)
-        assert C.Attributes.sqla_mapper.get_property('d').argument is D
 
 
 if __name__ == '__main__':

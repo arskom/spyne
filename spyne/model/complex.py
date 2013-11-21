@@ -26,11 +26,11 @@ complex objects -- they don't carry any data by themselves.
 
 
 import logging
-from weakref import WeakKeyDictionary
-
 logger = logging.getLogger(__name__)
 
 import decimal
+
+from weakref import WeakKeyDictionary
 
 from collections import deque
 from inspect import isclass
@@ -93,12 +93,14 @@ class table:
     """
 
     def __init__(self, multi=False, left=None, right=None, backref=None,
-                                                              id_backref=None):
+                                  id_backref=None, cascade=False, lazy='select'):
         self.multi = multi
         self.left = left
         self.right = right
         self.backref = backref
         self.id_backref = id_backref
+        self.cascade = cascade
+        self.lazy = lazy
 
 
 class json:
@@ -419,7 +421,7 @@ class ComplexModelMeta(type(ModelBase)):
         return super(ComplexModelMeta, cls).__new__(cls, cls_name, cls_bases, cls_dict)
 
     def __init__(self, cls_name, cls_bases, cls_dict):
-        type_info = cls_dict['_type_info']
+        type_info = self._type_info
 
         for k,v in type_info.items():
             if issubclass(v, SelfReference):
@@ -493,7 +495,7 @@ def _fill_empty_type_name(cls, k, v, parent=False):
         if extends is not None and extends.__type_name__ is ModelBase.Empty:
             _fill_empty_type_name(cls, k, v.__extends__, parent=True)
 
-
+_is_array = lambda v: issubclass(v, Array) or (v.Attributes.min_occurs > 1)
 class ComplexModelBase(ModelBase):
     """If you want to make a better class type, this is what you should inherit
     from.
@@ -595,6 +597,11 @@ class ComplexModelBase(ModelBase):
         else:
             setattr(self, key, value)
 
+    def as_dict(self):
+        return dict((
+            (k, getattr(self, k)) for k in self.get_flat_type_info(self)
+        ))
+
     @classmethod
     def get_serialization_instance(cls, value):
         """Returns the native object corresponding to the serialized form passed
@@ -617,7 +624,10 @@ class ComplexModelBase(ModelBase):
         if isinstance(value, list) or isinstance(value, tuple):
             assert len(value) <= len(cls._type_info)
 
-            inst = cls()
+            cls_orig = cls
+            if cls.__orig__ is not None:
+                cls_orig = cls.__orig__
+            inst = cls_orig()
 
             keys = cls._type_info.keys()
             for i in range(len(value)):
@@ -660,8 +670,8 @@ class ComplexModelBase(ModelBase):
         return cls.__orig__ or cls
 
     @staticmethod
-    def get_simple_type_info(cls, hier_delim="_", retval=None, prefix=None,
-                                        parent=None, is_array=None, tags=None):
+    @memoize
+    def get_simple_type_info(cls, hier_delim="_"):
         """Returns a _type_info dict that includes members from all base classes
         and whose types are only primitives. It will prefix field names in
         non-top-level complex objects with field name of its parent.
@@ -678,32 +688,27 @@ class ComplexModelBase(ModelBase):
         :param is_array: :class:`collections.deque` instance.
         """
 
-        assert (prefix is None) and (is_array is None) or \
-               (prefix is not None) and (is_array is not None)
-
-        if retval is None:
-            retval = TypeInfo()
-
-        if prefix is None:
-            prefix = deque()
-
-        if is_array is None:
-            is_array = deque()
-
-        if tags is None:
-            tags = set()
-
         fti = cls.get_flat_type_info(cls)
-        tags.add(getattr(cls, "__orig__", None) or cls)
 
-        for k, v in fti.items():
+        retval = TypeInfo()
+        tags = set()
+        queue = deque([(k, v, (k,), (_is_array(v),), cls)
+                                                        for k,v in fti.items()])
+        tags.add(cls)
+
+        while len(queue) > 0:
+            k, v, prefix, is_array, parent = queue.popleft()
             if issubclass(v, Array) and v.Attributes.max_occurs == 1:
                 v, = v._type_info.values()
 
-            prefix.append(k)
-            is_array.append(v.Attributes.max_occurs > 1)
-
-            if not issubclass(v, ComplexModelBase):
+            if issubclass(v, ComplexModelBase):
+                if not (v in tags):
+                    tags.add(v)
+                    queue.extend([
+                        (k2, v2, prefix + (k2,),
+                            is_array + (v.Attributes.max_occurs > 1,), v)
+                                   for k2, v2 in v.get_flat_type_info(v).items()])
+            else:
                 key = hier_delim.join(prefix)
                 value = retval.get(key, None)
 
@@ -713,14 +718,6 @@ class ComplexModelBase(ModelBase):
 
                 retval[key] = _SimpleTypeInfoElement(path=tuple(prefix),
                                parent=parent, type_=v, is_array=tuple(is_array))
-
-            else:
-                if not (getattr(v, "__orig__", None) or v) in tags:
-                    v.get_simple_type_info(v, hier_delim, retval, prefix, cls,
-                                                                is_array, tags)
-
-            prefix.pop()
-            is_array.pop()
 
         return retval
 
@@ -822,6 +819,8 @@ class ComplexModelBase(ModelBase):
         if cls.Attributes._variants is not None:
             for c in cls.Attributes._variants:
                 c.append_field(field_name, field_type)
+        ComplexModelBase.get_flat_type_info.memo.clear()
+        ComplexModelBase.get_simple_type_info.memo.clear()
 
     @classmethod
     def insert_field(cls, index, field_name, field_type):
@@ -829,6 +828,8 @@ class ComplexModelBase(ModelBase):
         if cls.Attributes._variants is not None:
             for c in cls.Attributes._variants:
                 c.insert_field(index, field_name, field_type)
+        ComplexModelBase.get_flat_type_info.memo.clear()
+        ComplexModelBase.get_simple_type_info.memo.clear()
 
     @classmethod
     def store_as(cls, what):
@@ -876,7 +877,7 @@ class Array(ComplexModelBase):
 
         if issubclass(serializer, SelfReference):
              # hack to make sure the array passes ComplexModel sanity checks
-             # that are there to prevent empty arrays. 
+             # that are there to prevent empty arrays.
             retval._type_info = {'_bogus': serializer}
         else:
             retval._set_serializer(serializer, member_name)
@@ -886,6 +887,17 @@ class Array(ComplexModelBase):
             retval.__type_name__ = tn
 
         return retval
+
+    @classmethod
+    def customize(cls, **kwargs):
+        serializer_attrs = kwargs.get('serializer_attrs', None)
+        if serializer_attrs is None:
+            return super(Array, cls).customize(**kwargs)
+
+        del kwargs['serializer_attrs']
+
+        serializer, = cls._type_info.values()
+        return cls(serializer.customize(**serializer_attrs)).customize(**kwargs)
 
     @classmethod
     def _set_serializer(cls, serializer, member_name=None):
@@ -960,39 +972,18 @@ class Iterable(Array):
 
 @memoize
 def TTableModelBase():
-    from sqlalchemy import MetaData
-    from sqlalchemy.orm import relationship
-
-    def add_to_mapper(cls, field_name, field_type):
-        rel = None
-        mapper = cls.Attributes.sqla_mapper
-        if mapper.has_property(field_name):
-            return
-
-        orig = getattr(field_type, '__orig__', None)
-        if orig is not None:
-            field_type = orig
-
-        if issubclass(field_type, Array):
-            rel = relationship(field_type)
-        elif issubclass(field_type, ComplexModelBase):
-            rel = relationship(field_type, uselist=False)
-        else:
-            raise NotImplementedError()
-
-        mapper.add_property(field_name, rel)
+    from spyne.util.sqlalchemy import add_column
 
     class TableModelBase(ComplexModelBase):
-        # FIXME: These two also need to add table column if needed.
         @classmethod
         def append_field(cls, field_name, field_type):
             super(TableModelBase, cls).append_field(field_name, field_type)
-            add_to_mapper(cls, field_name, field_type)
+            add_column(cls, field_name, field_type)
 
         @classmethod
         def insert_field(cls, index, field_name, field_type):
             super(TableModelBase, cls).insert_field(index, field_name, field_type)
-            add_to_mapper(cls, field_name, field_type)
+            add_column(cls, field_name, field_type)
 
     return TableModelBase
 
@@ -1021,9 +1012,10 @@ def Mandatory(cls, **_kwargs):
     :class:`spyne.model.complex.Array`\.
     """
 
-    kwargs = dict(min_occurs=1, nillable=False,
-                type_name='%s%s%s' % (MANDATORY_PREFIX, cls.get_type_name(),
-                                                              MANDATORY_SUFFIX))
+    kwargs = dict(min_occurs=1, nillable=False)
+    if cls.get_type_name() is not cls.Empty:
+        kwargs['type_name'] = '%s%s%s' % (MANDATORY_PREFIX, cls.get_type_name(),
+                                                              MANDATORY_SUFFIX)
     kwargs.update(_kwargs)
     if issubclass(cls, Unicode):
         kwargs.update(dict(min_len=1))

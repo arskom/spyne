@@ -127,8 +127,10 @@ class _FunctionCall(object):
             # to hide the following
             logger.warning( "%s start context %s" % (_small_header, _small_footer) )
             logger.warning( "%r.%r" % (ctx.service_class, ctx.descriptor.function) )
-            self.app.process_request(ctx)
-            logger.warning( "%s  end context  %s" % (_small_header, _small_footer) )
+            try:
+                self.app.process_request(ctx)
+            finally:
+                logger.warning( "%s  end context  %s" % (_small_header, _small_footer) )
 
             if ctx.out_error:
                 raise ctx.out_error

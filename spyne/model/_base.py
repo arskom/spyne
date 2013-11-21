@@ -32,28 +32,6 @@ defining models.
 """
 
 
-def nillable_string(func):
-    """Decorator that retuns None if input is None."""
-
-    def wrapper(cls, string, *args, **kwargs):
-        if string is None:
-            return None
-        else:
-            return func(cls, string, *args, **kwargs)
-    return wrapper
-
-
-def nillable_iterable(func):
-    """Decorator that retuns [] if input is None."""
-
-    def wrapper(prot, cls, string):
-        if string is None:
-            return []
-        else:
-            return func(prot, cls, string)
-    return wrapper
-
-
 # All this code to get rid of a one letter quirk: nillable vs nullable.
 class AttributesMeta(type(object)):
     NULLABLE_DEFAULT = True
@@ -343,11 +321,9 @@ class ModelBase(object):
             return "%s:%s" % (pref, cls.get_element_name())
 
     @classmethod
-    @nillable_string
     def to_string(cls, value):
         """Returns str(value). This should be overridden if this is not enough.
         """
-
         return str(value)
 
     @classmethod

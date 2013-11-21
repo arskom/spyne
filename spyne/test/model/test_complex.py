@@ -133,6 +133,24 @@ class TestComplexModel(unittest.TestCase):
         assert CC._type_info['u'].Attributes.min_len == 5
         assert C._type_info['u'].Attributes.min_len != 5
 
+    def test_array_customization(self):
+        CC = Array(Unicode).customize(
+            serializer_attrs=dict(min_len=5), punks='roll',
+        )
+        assert CC.Attributes.punks == 'roll'
+        assert CC._type_info[0].Attributes.min_len == 5
+
+    def test_array_customization_complex(self):
+        class C(ComplexModel):
+            u = Unicode
+
+        CC = Array(C).customize(
+            punks='roll',
+            serializer_attrs=dict(bidik=True)
+        )
+        assert CC.Attributes.punks == 'roll'
+        assert CC._type_info[0].Attributes.bidik == True
+
     def test_simple_class(self):
         a = Address()
         a.street = '123 happy way'
@@ -449,20 +467,20 @@ class TestSimpleTypeRestrictions(unittest.TestCase):
         assert "i" in sti
         assert sti["i"].path == ('i',)
         assert sti["i"].type is Integer
-        assert sti["s"].parent is None
+        assert sti["s"].parent is CCM
         assert "s" in sti
         assert sti["s"].path == ('s',)
         assert sti["s"].type is String
-        assert sti["s"].parent is None
+        assert sti["s"].parent is CCM
 
         assert "c_i" in sti
         assert sti["c_i"].path == ('c','i')
         assert sti["c_i"].type is Integer
-        assert sti["c_i"].parent is CCM
+        assert sti["c_i"].parent is CM
         assert "c_s" in sti
         assert sti["c_s"].path == ('c','s')
         assert sti["c_s"].type is String
-        assert sti["c_s"].parent is CCM
+        assert sti["c_s"].parent is CM
 
     def test_simple_type_info_conflicts(self):
         class CM(ComplexModel):

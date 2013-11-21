@@ -26,7 +26,7 @@ import unittest
 from StringIO import StringIO
 from Cookie import SimpleCookie
 from datetime import datetime
-from wsgiref.validate import validator
+from wsgiref.validate import validator as wsgiref_validator
 
 from collections import defaultdict
 from pprint import pprint
@@ -111,32 +111,6 @@ class TestSimpleDictDocument(unittest.TestCase):
     def test_own_parse_qs_11(self):
         assert dict(_parse_qs('p=1&q=2&p=3')) == {'p': ['1', '3'], 'q': ['2']}
 
-    def test_fill(self):
-        class CM(ComplexModel):
-            i = Integer
-            s = Unicode
-            a = Array(Boolean)
-
-        class CCM(ComplexModel):
-            c = CM
-            i = Integer
-            s = Unicode
-
-        inst_class = CCM
-        frequencies = defaultdict(lambda: defaultdict(int))
-
-        simple_type_info = CCM.get_simple_type_info(inst_class)
-        _fill(simple_type_info, inst_class, frequencies)
-
-        pprint(dict(frequencies))
-        assert frequencies[(CCM,0)]['c'] == 0
-        assert frequencies[(CCM,0)]['i'] == 0
-        assert frequencies[(CCM,0)]['s'] == 0
-        assert frequencies[(CCM,0,CM,0)]['i'] == 0
-        assert frequencies[(CCM,0,CM,0)]['s'] == 0
-        assert frequencies[(CCM,0,CM,0)]['a'] == 0
-
-
 def _test(services, qs, validator='soft'):
     app = Application(services, 'tns', in_protocol=HttpRpc(validator=validator),
                                        out_protocol=HttpRpc())
@@ -164,7 +138,6 @@ def _test(services, qs, validator='soft'):
     return ctx
 
 class TestValidation(unittest.TestCase):
-
     def test_validation_frequency(self):
         class SomeService(ServiceBase):
             @srpc(ByteArray(min_occurs=1), _returns=ByteArray)
@@ -172,11 +145,126 @@ class TestValidation(unittest.TestCase):
                 pass
 
         try:
-            ctx = _test([SomeService], '', validator='soft')
+            _test([SomeService], '', validator='soft')
         except ValidationError:
             pass
         else:
             raise Exception("must raise ValidationError")
+
+    def _test_validation_frequency_simple_bare(self):
+        class SomeService(ServiceBase):
+            @srpc(ByteArray(min_occurs=1), _body_style='bare', _returns=ByteArray)
+            def some_call(p):
+                pass
+
+        try:
+            _test([SomeService], '', validator='soft')
+        except ValidationError:
+            pass
+        else:
+            raise Exception("must raise ValidationError")
+
+    def test_validation_frequency_complex_bare_parent(self):
+        class C(ComplexModel):
+            i=Integer(min_occurs=1)
+            s=String
+
+        class SomeService(ServiceBase):
+            @srpc(C, _body_style='bare')
+            def some_call(p):
+                pass
+
+        # must not complain about missing s
+        _test([SomeService], 'i=5', validator='soft')
+
+        # must raise validation error for missing i
+        try:
+            _test([SomeService], 's=a', validator='soft')
+        except ValidationError:
+            pass
+        else:
+            raise Exception("must raise ValidationError")
+
+        # must raise validation error for missing i
+        try:
+            _test([SomeService], '', validator='soft')
+        except ValidationError:
+            pass
+        else:
+            raise Exception("must raise ValidationError")
+
+
+    def test_validation_frequency_parent(self):
+        class C(ComplexModel):
+            i=Integer(min_occurs=1)
+            s=String
+
+        class SomeService(ServiceBase):
+            @srpc(C)
+            def some_call(p):
+                pass
+
+        # must not complain about missing s
+        _test([SomeService], 'p_i=5', validator='soft')
+        try:
+            # must raise validation error for missing i
+            _test([SomeService], 'p_s=a', validator='soft')
+        except ValidationError:
+            pass
+        else:
+            raise Exception("must raise ValidationError")
+
+        # must not raise anything for missing p because C has min_occurs=0
+        _test([SomeService], '', validator='soft')
+
+    def test_validation_array(self):
+        class C(ComplexModel):
+            i=Integer(min_occurs=1)
+            s=String
+
+        class SomeService(ServiceBase):
+            @srpc(Array(C))
+            def some_call(p):
+                pass
+
+        # must not complain about missing s
+        _test([SomeService], 'p[0]_i=5', validator='soft')
+        try:
+            # must raise validation error for missing i
+            _test([SomeService], 'p[0]_s=a', validator='soft')
+        except ValidationError:
+            pass
+        else:
+            raise Exception("must raise ValidationError")
+
+        # must not raise anything for missing p because C has min_occurs=0
+        _test([SomeService], '', validator='soft')
+
+    def test_validation_nested_array(self):
+        class CC(ComplexModel):
+            d = DateTime
+
+        class C(ComplexModel):
+            i=Integer(min_occurs=1)
+            cc=Array(CC)
+
+        class SomeService(ServiceBase):
+            @srpc(Array(C))
+            def some_call(p):
+                print p
+
+        # must not complain about missing s
+        _test([SomeService], 'p[0]_i=5', validator='soft')
+        try:
+            # must raise validation error for missing i
+            _test([SomeService], 'p[0]_cc[0]_d=2013-01-01', validator='soft')
+        except ValidationError:
+            pass
+        else:
+            raise Exception("must raise ValidationError")
+
+        # must not raise anything for missing p because C has min_occurs=0
+        _test([SomeService], '', validator='soft')
 
     def test_validation_nullable(self):
         class SomeService(ServiceBase):
@@ -185,7 +273,7 @@ class TestValidation(unittest.TestCase):
                 pass
 
         try:
-            ctx = _test([SomeService], 'p', validator='soft')
+            _test([SomeService], 'p', validator='soft')
         except ValidationError:
             pass
         else:
@@ -198,7 +286,7 @@ class TestValidation(unittest.TestCase):
                 pass
 
         try:
-            ctx = _test([SomeService], "p=duduk", validator='soft')
+            _test([SomeService], "p=duduk", validator='soft')
         except ValidationError:
             pass
         else:
@@ -211,7 +299,7 @@ class TestValidation(unittest.TestCase):
                 pass
 
         try:
-            ctx = _test([SomeService], 'p=10', validator='soft')
+            _test([SomeService], 'p=10', validator='soft')
         except ValidationError:
             pass
         else:
@@ -224,20 +312,20 @@ class TestValidation(unittest.TestCase):
                 pass
 
         try:
-            ctx = _test([SomeService], "p=-129", validator='soft')
+            _test([SomeService], "p=-129", validator='soft')
         except ValidationError:
             pass
         else:
             raise Exception("must raise ValidationError")
 
-    def test_validation_integer_type(self):
+    def test_validation_integer_type_2(self):
         class SomeService(ServiceBase):
             @srpc(Integer8)
             def some_call(p):
                 pass
 
         try:
-            ctx = _test([SomeService], "p=1.2", validator='soft')
+            _test([SomeService], "p=1.2", validator='soft')
         except ValidationError:
             pass
         else:
@@ -246,9 +334,6 @@ class TestValidation(unittest.TestCase):
 
 class Test(unittest.TestCase):
     def test_multiple_return(self):
-        class SomeNotSoComplexModel(ComplexModel):
-            s = String
-
         class SomeService(ServiceBase):
             @srpc(_returns=[Integer, String])
             def some_call():
@@ -469,7 +554,7 @@ class Test(unittest.TestCase):
 
 
     def test_cookie_parse(self):
-        STR = 'some_string'
+        string = 'some_string'
         class RequestHeader(ComplexModel):
             some_field = String
 
@@ -478,15 +563,15 @@ class Test(unittest.TestCase):
 
             @rpc(String)
             def some_call(ctx, s):
-                assert ctx.in_header.some_field == STR
+                assert ctx.in_header.some_field == string
 
         def start_response(code, headers):
             assert code == HTTP_200
 
         c = SimpleCookie()
-        c['some_field'] = STR
+        c['some_field'] = string
 
-        ''.join(validator(WsgiApplication(Application([SomeService], 'tns',
+        ''.join(wsgiref_validator(WsgiApplication(Application([SomeService], 'tns',
             in_protocol=HttpRpc(parse_cookie=True), out_protocol=HttpRpc())))({
                 'SCRIPT_NAME': '',
                 'QUERY_STRING': '',
@@ -505,8 +590,8 @@ class Test(unittest.TestCase):
             }, start_response))
 
     def test_http_headers(self):
-        DATE = datetime(year=2013, month=1, day=1)
-        STR = ['hey', 'yo']
+        d = datetime(year=2013, month=1, day=1)
+        string = ['hey', 'yo']
 
         class ResponseHeader(ComplexModel):
             _type_info = {
@@ -520,14 +605,14 @@ class Test(unittest.TestCase):
             @rpc(String)
             def some_call(ctx, s):
                 assert s is not None
-                ctx.out_header = ResponseHeader(**{'Set-Cookie': STR,
-                                                                'Expires': DATE})
+                ctx.out_header = ResponseHeader(**{'Set-Cookie': string,
+                                                                'Expires': d})
 
         def start_response(code, headers):
-            assert len([s for s in STR if ('Set-Cookie', s) in headers]) == len(STR)
+            assert len([s for s in string if ('Set-Cookie', s) in headers]) == len(string)
             assert dict(headers)['Expires'] == 'Tue, 01 Jan 2013 00:00:00 GMT'
 
-        ret = ''.join(validator(WsgiApplication(Application([SomeService], 'tns',
+        ret = ''.join(wsgiref_validator(WsgiApplication(Application([SomeService], 'tns',
             in_protocol=HttpRpc(), out_protocol=HttpRpc())))({
                 'SCRIPT_NAME': '',
                 'QUERY_STRING': '&s=foo',

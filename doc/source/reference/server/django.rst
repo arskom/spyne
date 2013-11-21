@@ -1,5 +1,6 @@
 
 .. _reference-server-django:
+.. _spyne.server.django:
 
 Http (Django)
 -------------

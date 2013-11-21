@@ -5,7 +5,7 @@ import pytz
 import decimal
 
 from pprint import pprint
-
+from decimal import Decimal as D
 from datetime import datetime
 from lxml import etree
 
@@ -29,7 +29,8 @@ from spyne.util import AttrDict, AttrDictColl
 
 from spyne.util.protocol import deserialize_request_string
 
-from spyne.util.dictdoc import get_dict_as_object
+from spyne.util.dictdoc import get_dict_as_object, get_object_as_yaml, \
+    get_object_as_json
 from spyne.util.dictdoc import get_object_as_dict
 
 from spyne.util.xml import get_object_as_xml
@@ -278,6 +279,29 @@ class TestAttrDict(unittest.TestCase):
         assert AttrDictColl('SomeDict').SomeDict.NAME == 'SomeDict'
         assert AttrDictColl('SomeDict').SomeDict(a=1)['a'] == 1
         assert AttrDictColl('SomeDict').SomeDict(a=1).NAME == 'SomeDict'
+
+class TestYaml(unittest.TestCase):
+    def test_deser(self):
+        class C(ComplexModel):
+            a = Unicode
+            b = Decimal
+
+        ret = get_object_as_yaml(C(a='burak', b=D(30)), C)
+        assert ret == """C:
+    a: burak
+    b: '30'
+"""
+
+class TestJson(unittest.TestCase):
+    def test_deser(self):
+        class C(ComplexModel):
+            a = Unicode
+            b = Decimal
+
+        ret = get_object_as_json(C(a='burak', b=D(30)), C)
+        assert ret == '["burak", "30"]'
+        ret = get_object_as_json(C(a='burak', b=D(30)), C, complex_as=dict)
+        assert ret == '{"a": "burak", "b": "30"}'
 
 if __name__ == '__main__':
     unittest.main()

@@ -169,24 +169,23 @@ from spyne.model import Unicode
 from spyne.protocol import ProtocolBase
 
 
-def check_freq_dict(cls, d, fti=None):
+def _check_freq_dict(cls, d, fti=None):
     if fti is None:
         fti = cls.get_flat_type_info(cls)
 
-    if cls.Attributes.validate_freq:
-        for k,v in fti.items():
-            val = d[k]
+    for k,v in fti.items():
+        val = d[k]
 
+        min_o, max_o = v.Attributes.min_occurs, v.Attributes.max_occurs
+        if issubclass(v, Array) and v.Attributes.max_occurs == 1:
+            v, = v._type_info.values()
             min_o, max_o = v.Attributes.min_occurs, v.Attributes.max_occurs
-            if issubclass(v, Array) and v.Attributes.max_occurs == 1:
-                v, = v._type_info.values()
-                min_o, max_o = v.Attributes.min_occurs, v.Attributes.max_occurs
 
-            if val < min_o:
-                raise ValidationError(k,
+        if val < min_o:
+            raise ValidationError(k,
                             '%%r member must occur at least %d times.' % min_o)
-            elif val > max_o:
-                raise ValidationError(k,
+        elif val > max_o:
+            raise ValidationError(k,
                             '%%r member must occur at most %d times.' % max_o)
 
 
@@ -283,15 +282,15 @@ class SimpleDictDocument(DictDocument):
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
         """
 
-        simple_type_info = inst_class.get_simple_type_info(inst_class)
 
         # this is for validating cls.Attributes.{min,max}_occurs
         frequencies = defaultdict(lambda: defaultdict(int))
-        if validator is self.SOFT_VALIDATION:
-            _fill(simple_type_info, inst_class, frequencies)
+        validate_freq = inst_class.Attributes.validate_freq
+        if validator is self.SOFT_VALIDATION and validate_freq:
+            _fill(inst_class, frequencies)
 
         retval = inst_class.get_deserialization_instance()
-
+        simple_type_info = inst_class.get_simple_type_info(inst_class)
         for orig_k, v in sorted(doc.items(), key=lambda k: k[0]):
             k = RE_HTTP_ARRAY_INDEX.sub("", orig_k)
 
@@ -345,6 +344,7 @@ class SimpleDictDocument(DictDocument):
             cfreq_key = inst_class, idx
 
             indexes = deque(RE_HTTP_ARRAY_INDEX.findall(orig_k))
+            validates = deque()
 
             for pkey in member.path[:-1]:
                 nidx = 0
@@ -398,9 +398,9 @@ class SimpleDictDocument(DictDocument):
                 logger.debug("\tset default %r(%r) = %r" %
                                                     (member.path, pkey, value))
 
-        if validator is self.SOFT_VALIDATION:
+        if validator is self.SOFT_VALIDATION and validate_freq:
             for k, d in frequencies.items():
-                check_freq_dict(k[-2], d)
+                _check_freq_dict(k[-2], d)
 
         return retval
 
@@ -618,32 +618,32 @@ class HierDictDocument(DictDocument):
 
             frequencies[k] += 1
 
-        if validator is self.SOFT_VALIDATION:
-            check_freq_dict(class_, frequencies, flat_type_info)
+        if validator is self.SOFT_VALIDATION and class_.Attributes.validate_freq:
+            _check_freq_dict(class_, frequencies, flat_type_info)
 
         return inst
 
-    def _object_to_doc(self, class_, value):
+    def _object_to_doc(self, cls, value):
         retval = None
 
         if self.ignore_wrappers:
-            ti = getattr(class_, '_type_info', {})
+            ti = getattr(cls, '_type_info', {})
 
-            while class_.Attributes._wrapper and len(ti) == 1:
+            while cls.Attributes._wrapper and len(ti) == 1:
                 # Wrappers are auto-generated objects that have exactly one
                 # child type.
                 key, = ti.keys()
-                if not issubclass(class_, Array):
+                if not issubclass(cls, Array):
                     value = getattr(value, key, None)
-                class_, = ti.values()
-                ti = getattr(class_, '_type_info', {})
+                cls, = ti.values()
+                ti = getattr(cls, '_type_info', {})
 
         # transform the results into a dict:
-        if class_.Attributes.max_occurs > 1:
+        if cls.Attributes.max_occurs > 1:
             if value is not None:
-                retval = [self._to_value(class_, inst) for inst in value]
+                retval = [self._to_value(cls, inst) for inst in value]
         else:
-            retval = self._to_value(class_, value)
+            retval = self._to_value(cls, value)
 
         return retval
 
@@ -700,27 +700,15 @@ class HierDictDocument(DictDocument):
             yield v
 
 
-def _fill(simple_type_info, inst_class, frequencies):
-    for k, member in simple_type_info.items():
-        if member.type.Attributes.min_occurs == 0:
-            continue
+def _fill(inst_class, frequencies):
+    """This function initializes the frequencies dict with null values. If this
+    is not done, it won't be possible to catch missing elements when validating
+    the incoming document.
+    """
 
-        ctype_info = inst_class.get_flat_type_info(inst_class)
+    ctype_info = inst_class.get_flat_type_info(inst_class)
+    cfreq_key = inst_class, 0
 
-        idx, nidx = 0, 0
-        pkey = member.path[0]
-        cfreq_key = inst_class, idx
-
-        for i in range(len(member.path) - 1):
-            pkey = member.path[i]
-            nidx = 0
-
-            ncls = ctype_info[pkey]
-
-            frequencies[cfreq_key][pkey] += 0
-
-            cfreq_key = cfreq_key + (ncls, nidx)
-            idx = nidx
-            ctype_info = ncls._type_info
-
-        frequencies[cfreq_key][member.path[-1]] += 0
+    for k,v in ctype_info.items():
+        if v.Attributes.min_occurs > 0:
+            frequencies[cfreq_key][k] = 0

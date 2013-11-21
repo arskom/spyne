@@ -65,7 +65,7 @@ class Restriction(SchemaBase):
                                                         sub_name="attribute")),
     ]
 
-SimpleType._type_info.append(  ('restriction', Restriction)  )
+SimpleType.append_field('restriction', Restriction)
 
 
 class Choice(SchemaBase):

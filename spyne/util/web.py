@@ -261,8 +261,8 @@ def log_repr(obj, cls=None, given_len=None):
 
         else:
             retval = []
-
-            cls, = cls._type_info.values()
+            if issubclass(cls, Array):
+                cls, = cls._type_info.values()
 
             if not cls.Attributes.logged:
                 retval.append("%s (...)" % cls.get_type_name())

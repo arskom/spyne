@@ -20,6 +20,7 @@
 
 import logging
 logger = logging.getLogger(__name__)
+logger_client = logging.getLogger('.'.join([__name__, 'client']))
 
 from spyne import BODY_STYLE_WRAPPED
 from spyne.model.fault import Fault
@@ -152,7 +153,10 @@ class Application(object):
                                                     'method_return_object', ctx)
 
         except Fault, e:
-            logger.exception(e)
+            if e.faultcode == 'Client' or e.faultcode.startswith('Client.'):
+                logger_client.exception(e)
+            else:
+                logger.exception(e)
 
             ctx.out_error = e
 

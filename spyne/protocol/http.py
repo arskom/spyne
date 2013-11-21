@@ -177,7 +177,7 @@ class HttpRpc(SimpleDictDocument):
         if ctx.descriptor is None:
             raise ResourceNotFoundError(ctx.method_request_string)
 
-        req_enc = ctx.transport.request_encoding
+        req_enc = getattr(ctx.transport, 'request_encoding', None)
         if ctx.descriptor.in_header is not None:
             # HttpRpc supports only one header class
             in_header_class = ctx.descriptor.in_header[0]
