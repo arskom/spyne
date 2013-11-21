@@ -633,11 +633,6 @@ class HtmlPage(object):
                 raise ValueError("id attribute values %r are reserved." %
                                                               HtmlPage.reserved)
 
-            if key.startswith('_'):
-                logger.debug(
-                     '%r is ignored because it starts with an underscore' % key)
-                continue
-
             self.__ids[key] = elt
             s = "%r -> %r" % (key, elt)
             logger.debug(s)
