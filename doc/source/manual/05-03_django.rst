@@ -20,6 +20,10 @@ SOAP.  Here are our Django models from project/todo/models.py: ::
 
         name = models.CharField(max_length=100, unique=True)
 
+        @property
+        def entries(self):
+            return self.todoentry_set.all()
+
 
     class TodoEntry(models.Model):
 
@@ -64,25 +68,13 @@ TodoList and TodoEntry types:
         class Attributes(DjangoComplexModel.Attributes):
             django_model = DjTodoList
 
-        @classmethod
-        def init_from(cls, django_todo_list):
-            """Init entries field.
-
-            :returns: `TodoList` instance
-
-            """
-            todo_list = super(TodoList, cls).init_from(django_todo_list)
-            entries = django_todo_list.todoentry_set.all()
-            todo_list.entries = [TodoEntry.init_from(e) for e in entries]
-            return todo_list
-
 
 :class:`DjangoComplexModel` creates mapper for us that maps
 fields of corresponding Django models to fields of todo types. We decided to add
 extra ``entries`` field so we can pass todo list with all its entries via API.
 This field is nullable because empty todo list can be represented as null value.
-And we extended ``init_from`` method to initialize ``TodoList`` instance from ``DjTodoList``
-instance.
+The field is populated from ``DjTodoList.entries`` property that returns
+entries queryset.
 
 If you want to customize mapping between Django and Spyne models or you have
 custom Django fields you can create own mapper and pass it as `django_mapper =
@@ -113,10 +105,13 @@ Now we are going to define our RPC service: ::
             """
 
             try:
-                dj_todo_list = DjTodoList.objects.get(name=list_name)
-                return TodoList.init_from(dj_todo_list)
+                return DjTodoList.objects.get(name=list_name)
             except DjTodoList.DoesNotExist:
                 raise ResourceNotFoundError(list_name)
+
+You may notice that we defined ``TodoList`` as return value of `get_todo_list` RPC
+method but in fact ``DjTodoList`` instance is returned.  This trick works
+because our Django models and Spyne types have common attribute interface.
 
 By default Spyne creates types that are nullable and optional. Let's override
 defaults and make our API more strict. We are going to define configuration
@@ -141,7 +136,7 @@ project/urls.py: ::
     configure_spyne()
     from spyne.application import Application
     from spyne.protocol.soap import Soap11
-    from spyne.server.django import DjangoView
+    from spyne.server.django import DjangoView as RPCView
 
     from project.todo.todolists import TodoService
 
@@ -150,7 +145,7 @@ project/urls.py: ::
 
     urlpatterns = patterns(
         '',
-        url(r'^api/0.1/', DjangoView.as_view(application=api), name='api'),
+        url(r'^api/0.1/', RPCView.as_view(application=api), name='api'),
     )
 
 First we configure spyne defaults. Then we create Spyne application that stores
