@@ -299,9 +299,9 @@ class MethodContext(object):
     out_protocol = property(get_out_protocol, set_out_protocol)
 
 class MethodDescriptor(object):
-    '''This class represents the method signature of an exposed service. It is
+    """This class represents the method signature of an exposed service. It is
     produced by the :func:`spyne.decorator.srpc` decorator.
-    '''
+    """
 
     def __init__(self, function, in_message, out_message, doc,
                  is_callback=False, is_async=False, mtom=False, in_header=None,
