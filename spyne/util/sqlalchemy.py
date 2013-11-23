@@ -321,8 +321,14 @@ class PGObjectJson(UserDefinedType):
 
     def result_processor(self, dialect, col_type):
         def process(value):
+            if isinstance(value, basestring):
+                return get_dict_as_object(json.loads(value), self.cls,
+                        ignore_wrappers=self.ignore_wrappers,
+                        complex_as=self.complex_as)
             if value is not None:
-                return get_dict_as_object(json.loads(value), self.cls)
+                return get_dict_as_object(value, self.cls,
+                        ignore_wrappers=self.ignore_wrappers,
+                        complex_as=self.complex_as)
 
         return process
 
