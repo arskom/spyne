@@ -47,10 +47,10 @@ def return_traceback_in_unhandled_exceptions():
 
 
 class Application(object):
-    '''The Application class is the glue between one or more service
+    """The Application class is the glue between one or more service
     definitions, input and output protocols.
 
-    :param services:     An iterable of ServiceBase subclasses that define
+    :param services:     An iterable of ServiceBase subclasses that defines
                          the exposed services.
     :param tns:          The targetNamespace attribute of the exposed
                          service.
@@ -82,7 +82,7 @@ class Application(object):
             which in turn is called by the transport when the response is fully
             sent to the client (or in the client case, the response is fully
             received from server).
-    '''
+    """
 
     transport = None
 

@@ -353,7 +353,7 @@ class Interface(object):
 
         # add fields
         if issubclass(cls, ComplexModelBase):
-            for k,v in cls._type_info.items():
+            for k, v in cls._type_info.items():
                 if v is None:
                     continue
 
@@ -416,6 +416,7 @@ class AllYourInterfaceDocuments(object):
         if self.wsdl11 is None and spyne.interface.HAS_WSDL:
             from spyne.interface.wsdl import Wsdl11
             self.wsdl11 = Wsdl11(interface)
+
 
 class InterfaceDocumentBase(object):
     """Base class for all interface document implementations.

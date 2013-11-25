@@ -28,22 +28,22 @@ complex objects -- they don't carry any data by themselves.
 import logging
 logger = logging.getLogger(__name__)
 
+import sys
 import decimal
+import spyne
 
 from weakref import WeakKeyDictionary
-import sys
-
 from collections import deque
 from inspect import isclass
 
-import spyne
 from spyne.model import ModelBase
 from spyne.model import PushBase
+from spyne.model import Unicode
+from spyne.model import Point
 from spyne.model.primitive import NATIVE_MAP
-from spyne.model.primitive import Unicode
-from spyne.model.primitive import Point
 
-from spyne.const import xml_ns as namespace, PARENT_SUFFIX
+from spyne.const import xml_ns as namespace
+from spyne.const import PARENT_SUFFIX
 from spyne.const import ARRAY_PREFIX
 from spyne.const import ARRAY_SUFFIX
 from spyne.const import TYPE_SUFFIX
@@ -236,9 +236,9 @@ class XmlAttributeRef(XmlAttribute):
 
 
 class SelfReference(object):
-    '''Use this as a placeholder type in classes that contain themselves. See
+    """Use this as a placeholder type in classes that contain themselves. See
     :func:`spyne.test.model.test_complex.TestComplexModel.test_self_reference`.
-    '''
+    """
 
     def __init__(self):
         raise NotImplementedError()
@@ -279,9 +279,9 @@ def _join_args(x, y):
 
 
 class ComplexModelMeta(type(ModelBase)):
-    '''This metaclass sets ``_type_info``, ``__type_name__`` and ``__extends__``
+    """This metaclass sets ``_type_info``, ``__type_name__`` and ``__extends__``
     which are going to be used for (de)serialization and schema generation.
-    '''
+    """
 
     __DECLARE_SORT = {
         'declared': lambda item: (item[1].__declare_order__, item[0]),
@@ -297,9 +297,9 @@ class ComplexModelMeta(type(ModelBase)):
         __DECLARE_SORT[None] = __DECLARE_SORT["random"]
 
     def __new__(cls, cls_name, cls_bases, cls_dict):
-        '''This function initializes the class and registers attributes for
+        """This function initializes the class and registers attributes for
         serialization.
-        '''
+        """
 
         type_name = cls_dict.get("__type_name__", None)
         if type_name is None:
@@ -431,9 +431,9 @@ class ComplexModelMeta(type(ModelBase)):
         if attrs.table_name is None:
             attrs.table_name = table_name
 
-        table = cls_dict.get('__table__', None)
+        _cls_table = cls_dict.get('__table__', None)
         if attrs.sqla_table is None:
-            attrs.sqla_table = table
+            attrs.sqla_table = _cls_table
 
         metadata = cls_dict.get('__metadata__', None)
         if attrs.sqla_metadata is None:
@@ -760,8 +760,8 @@ class ComplexModelBase(ModelBase):
 
             {'some_object_some_string': ['abc']}
 
-        :param prefix:   :class:`collections.deque` instance.
-        :param is_array: :class:`collections.deque` instance.
+        :param hier_delim: String that will be used as delimiter between field
+            names. Default is ``'_'``.
         """
 
         fti = cls.get_flat_type_info(cls)

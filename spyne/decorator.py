@@ -318,14 +318,14 @@ def rpc(*params, **kparams):
 
 
 def srpc(*params, **kparams):
-    '''Method decorator to tag a method as a remote procedure call. See
+    """Method decorator to tag a method as a remote procedure call. See
     :func:`spyne.decorator.rpc` for detailed information.
 
     The initial "s" stands for "static". In Spyne terms, that means no implicit
     first argument is passed to the user callable, which really means the
     method is "stateless" rather than static. It's meant to be used for
     existing functions that can't be changed.
-    '''
+    """
 
     kparams["_no_ctx"] = True
     return rpc(*params, **kparams)

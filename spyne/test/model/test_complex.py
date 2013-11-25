@@ -332,7 +332,6 @@ class TestComplexModel(unittest.TestCase):
         self.assertEquals(["field3", "field1", "field2"], list(DeclareOrder_declare._type_info))
 
 
-
 class X(ComplexModel):
     __namespace__ = 'tns'
     x = Integer(nillable=True, max_occurs='unbounded')
