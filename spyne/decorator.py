@@ -195,32 +195,35 @@ def srpc(*params, **kparams):
     kparams["_no_ctx"] = True
     return rpc(*params, **kparams)
 
+
 def rpc(*params, **kparams):
-    '''Method decorator to tag a method as a remote procedure call in a
+    """Method decorator to tag a method as a remote procedure call in a
     :class:`spyne.service.ServiceBase` subclass.
 
     You should use the :class:`spyne.server.null.NullServer` transport if you
     want to call the methods directly. You can also use the 'function' attribute
     of the returned object to call the function itself.
 
-    ```_operation_name``` vs ```_in_message_name```:
-    Soap clients(SoapUI, Savon, suds) will use the operation name as the function name.
-    The name of the input message(_in_message_name) is irrelevant when interfacing in this
-    manner; this is because the clients mostly wrap around it. However, the soap xml request
-    only uses the input message when posting with the soap server; the other protocols only
-    use the input message as well. ```_operation_name``` cannot be used with ```_in_message_name```
+    ``_operation_name`` vs ``_in_message_name``:
+    Soap clients(SoapUI, Savon, suds) will use the operation name as the
+    function name. The name of the input message(_in_message_name) is irrelevant
+    when interfacing in this manner; this is because the clients mostly wrap
+    around it. However, the soap xml request only uses the input message when
+    posting with the soap server; the other protocols only use the input message
+    as well. ``_operation_name`` cannot be used with ``_in_message_name``.
 
-    :param _returns: Denotes The return type of the function. It can be a type or
-        a sequence of types for functions that have multiple return values.
+    :param _returns: Denotes The return type of the function. It can be a
+        type or a sequence of types for functions that have multiple return
+         values.
     :param _in_header: A type or an iterable of types that that this method
         accepts as incoming header.
     :param _out_header: A type or an iterable of types that that this method
         sends as outgoing header.
-    :param _operation_name: The function's soap operation name. The operation and
-        SoapAction names will equal the value of ```_operation_name```.
-    :param _in_message_name: The public name of the function's input message. If not set
-        explicitly in @srpc, the input message will equal the value of
-        ```_operation_name + REQUEST_SUFFIX```.
+    :param _operation_name: The function's soap operation name. The operation
+        and SoapAction names will equal the value of ``_operation_name``.
+    :param _in_message_name: The public name of the function's input message.
+        If not set explicitly in @srpc, the input message will equal the value
+        of ``_operation_name + REQUEST_SUFFIX``.
     :param _in_variable_names: The public names of the function arguments. It's
         a dict that maps argument names in the code to public ones.
     :param _out_variable_name: The public name of the function response object.
@@ -233,8 +236,9 @@ def rpc(*params, **kparams):
     :param _body_style: One of ``('bare', 'wrapped')``. Default: ``'wrapped'``.
         In wrapped mode, wraps response objects in an additional class.
     :param _soap_body_style: One of ('rpc', 'document'). Default ``'document'``.
-        ``_soap_body_style='document'`` is an alias for ``_body_style='wrapped'``.
-        ``_soap_body_style='rpc'`` is an alias for ``_body_style='bare'``.
+        ``_soap_body_style='document'`` is an alias for
+        ``_body_style='wrapped'``. ``_soap_body_style='rpc'`` is an alias for
+        ``_body_style='bare'``.
     :param _port_type: Soap port type string.
     :param _no_ctx: Don't pass implicit ctx object to the user method.
     :param _udp: Short for UserDefinedProperties, you can use this to mark the
@@ -244,13 +248,10 @@ def rpc(*params, **kparams):
         real functionality besides publishing this information in interface
         documents.
     :param _args: the name of the arguments to expose.
-
-
-    '''
+    """
 
     def explain(f):
         def explain_method(*args, **kwargs):
-            retval = None
             function_name = kwargs['_default_function_name']
 
             _is_callback = kparams.get('_is_callback', False)
