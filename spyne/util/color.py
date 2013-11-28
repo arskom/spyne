@@ -19,15 +19,16 @@
 
 try:
     import colorama
-    R = lambda s: "%s%s%s%s" % (colorama.Fore.RED, colorama.Style.BRIGHT, s,
-                                                    colorama.Style.RESET_ALL)
-    G = lambda s: "%s%s%s" % (colorama.Fore.GREEN, s, colorama.Fore.RESET)
-    B = lambda s: "%s%s%s%s" % (colorama.Fore.BLUE, colorama.Style.BRIGHT, s,
-                                                    colorama.Style.RESET_ALL)
-    Y = lambda s: "%s%s%s%s" % (colorama.Fore.YELLOW, colorama.Style.BRIGHT, s,
-                                                    colorama.Style.RESET_ALL)
-    M = lambda s: "%s%s%s%s" % (colorama.Fore.MAGENTA, colorama.Style.BRIGHT, s,
-                                                    colorama.Style.RESET_ALL)
+    R = lambda s: ''.join((colorama.Fore.RED, colorama.Style.BRIGHT, s,
+                                                    colorama.Style.RESET_ALL))
+    G = lambda s: ''.join((colorama.Fore.GREEN, colorama.Style.BRIGHT, s,
+                                                    colorama.Style.RESET_ALL))
+    B = lambda s: ''.join((colorama.Fore.BLUE, colorama.Style.BRIGHT, s,
+                                                    colorama.Style.RESET_ALL))
+    Y = lambda s: ''.join((colorama.Fore.YELLOW, colorama.Style.BRIGHT, s,
+                                                    colorama.Style.RESET_ALL))
+    M = lambda s: ''.join((colorama.Fore.MAGENTA, colorama.Style.BRIGHT, s,
+                                                    colorama.Style.RESET_ALL))
 
 except ImportError:
     R = lambda s: s
