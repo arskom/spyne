@@ -543,7 +543,7 @@ def _gen_index_info(table, table_name, col, k, v):
         pass
 
     else:
-        if index == True:
+        if index is True:
             index_args = (index_name, col), dict(unique=unique)
         else:
             index_args = (index_name, col), dict(unique=unique,
@@ -552,7 +552,15 @@ def _gen_index_info(table, table_name, col, k, v):
         if isinstance(table, _FakeTable):
             table.indexes.append(index_args)
         else:
-            Index(*index_args[0], **index_args[1])
+            indexes = dict([(idx.name, idx) for idx in col.table.indexes])
+            existing_idx = indexes.get(index_name, None)
+            if existing_idx is None:
+                Index(*index_args[0], **index_args[1])
+
+            else:
+                assert existing_idx.unique == unique
+                assert existing_idx.kwargs.get('postgresql_using') == index_method
+
 
 def _check_inheritance(cls, cls_bases):
     table_name = cls.Attributes.table_name
