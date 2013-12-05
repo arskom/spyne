@@ -141,7 +141,7 @@ class AnyXml(SimpleModel):
 
 # EXPERIMENTAL
 class AnyHtml(SimpleModel):
-    pass
+    __type_name__ = 'string'
 
 class AnyDict(SimpleModel):
     """A dict instance that can contain other dicts, iterables or primitive

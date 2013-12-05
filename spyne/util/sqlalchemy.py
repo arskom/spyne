@@ -37,6 +37,7 @@ import sqlalchemy
 from inspect import isclass
 
 from lxml import etree
+from lxml import html
 
 from sqlalchemy import sql
 from sqlalchemy import event
@@ -77,6 +78,7 @@ from spyne.model import ByteArray
 from spyne.model import Array
 from spyne.model import ComplexModelBase
 from spyne.model import AnyXml
+from spyne.model import AnyHtml
 from spyne.model import Uuid
 from spyne.model import Date
 from spyne.model import Time
@@ -224,7 +226,8 @@ def compile_geometry_sqlite(type_, compiler, **kw):
 
 class PGXml(UserDefinedType):
     def __init__(self, pretty_print=False, xml_declaration=False,
-                                                             encoding='UTF-8'):
+                                                              encoding='UTF-8'):
+        super(PGXml, self).__init__()
         self.xml_declaration = xml_declaration
         self.pretty_print = pretty_print
         self.encoding = encoding
@@ -250,6 +253,34 @@ class PGXml(UserDefinedType):
         return process
 
 sqlalchemy.dialects.postgresql.base.ischema_names['xml'] = PGXml
+
+
+class PGHtml(UserDefinedType):
+    def __init__(self, pretty_print=False, encoding='UTF-8'):
+        super(PGHtml, self).__init__()
+
+        self.pretty_print = pretty_print
+        self.encoding = encoding
+
+    def get_col_spec(self):
+        return "text"
+
+    def bind_processor(self, dialect):
+        def process(value):
+            if isinstance(value, str) or value is None:
+                return value
+            else:
+                return html.tostring(value, pretty_print=self.pretty_print,
+                                                         encoding=self.encoding)
+        return process
+
+    def result_processor(self, dialect, col_type):
+        def process(value):
+            if value is not None:
+                return html.fromstring(value)
+            else:
+                return value
+        return process
 
 
 class PGJson(UserDefinedType):
@@ -384,6 +415,9 @@ def get_sqlalchemy_type(cls):
 
     elif issubclass(cls, AnyXml):
         return PGXml
+
+    elif issubclass(cls, AnyHtml):
+        return PGHtml
 
     elif issubclass(cls, ByteArray):
         return sqlalchemy.LargeBinary
@@ -1006,8 +1040,11 @@ def get_spyne_type(v):
     elif isinstance(v.type, (sqlalchemy.Numeric)):
         rpc_type = Decimal(v.type.precision, v.type.scale)
 
-    elif isinstance(v.type, (PGXml)):
+    elif isinstance(v.type, PGXml):
         rpc_type = AnyXml
+
+    elif isinstance(v.type, PGHtml):
+        rpc_type = AnyHtml
 
     elif type(v.type) in _sq2sp_type_map:
         rpc_type = _sq2sp_type_map[type(v.type)]
