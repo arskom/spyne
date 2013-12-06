@@ -307,9 +307,9 @@ class ComplexModelMeta(type(ModelBase)):
             cls_dict["__type_name__"] = cls_name
 
         base_type_info = {}
+
         # get base class (if exists) and enforce single inheritance
         extends = cls_dict.get('__extends__', None)
-
         if extends is None:
             for b in cls_bases:
                 base_types = getattr(b, "_type_info", None)
