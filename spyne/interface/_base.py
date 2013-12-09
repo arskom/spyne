@@ -149,6 +149,13 @@ class Interface(object):
             return self.app.tns
 
     def add_method(self, method):
+        """Generator method that adds the given method descriptor to the
+        interface. Also extracts and yields all the types found in there.
+
+        :param method: A :class:`MethodDescriptor` instance
+        :returns: Sequence of :class:`spyne.model.ModelBase` subclasses.
+        """
+
         if not (method.in_header is None):
             if not isinstance(method.in_header, (list, tuple)):
                 method.in_header = (method.in_header,)
