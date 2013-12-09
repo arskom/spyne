@@ -598,6 +598,9 @@ class ComplexModelBase(ModelBase):
         parent_variant = None
         """FIXME: document me yo."""
 
+        methods = None
+        """FIXME: document me yo."""
+
         _variants = None
         _xml_tag_body_as = None, None
 
