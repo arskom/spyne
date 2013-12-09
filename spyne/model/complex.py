@@ -31,10 +31,12 @@ logger = logging.getLogger(__name__)
 import decimal
 
 from weakref import WeakKeyDictionary
+import sys
 
 from collections import deque
 from inspect import isclass
 
+import spyne
 from spyne.model import ModelBase
 from spyne.model import PushBase
 from spyne.model.primitive import NATIVE_MAP
@@ -284,6 +286,19 @@ class ComplexModelMeta(type(ModelBase)):
     which are going to be used for (de)serialization and schema generation.
     '''
 
+    __DECLARE_SORT = {
+        'declared': lambda item: (item[1].__declare_order__, item[0]),
+        'name': lambda item: item[0],
+        'random': False,
+    }
+    if sys.version_info[0] >= 3:
+        __DECLARE_SORT['declared'] = False
+        __DECLARE_SORT[None] = __DECLARE_SORT['declared']
+    elif int(spyne.__version__.split(".")[0]) >= 3:
+        __DECLARE_SORT[None] = __DECLARE_SORT["name"]
+    else:
+        __DECLARE_SORT[None] = __DECLARE_SORT["random"]
+
     def __new__(cls, cls_name, cls_bases, cls_dict):
         '''This function initializes the class and registers attributes for
         serialization.
@@ -318,16 +333,37 @@ class ComplexModelMeta(type(ModelBase)):
                             logger.error(repr(extends))
                             raise
 
+        # Initialize Attributes
+        attrs = cls_dict.get('Attributes', None)
+        if attrs is None:
+            for b in cls_bases:
+                if hasattr(b, 'Attributes'):
+                    class Attributes(b.Attributes):
+                        pass
+                    attrs = cls_dict['Attributes'] = Attributes
+                    break
+            else:
+                raise Exception("No ModelBase subclass in bases? Huh?")
+
         # populate children
         if not ('_type_info' in cls_dict):
             cls_dict['_type_info'] = _type_info = TypeInfo()
             _type_info.update(base_type_info)
 
+            class_fields = []
             for k, v in cls_dict.items():
                 if not k.startswith('_'):
                     v = _get_spyne_type(cls_name, k, v)
                     if v is not None:
-                        _type_info[k] = v
+                        class_fields.append((k, v))
+
+            declare_sort = cls.__DECLARE_SORT.get(attrs.declare_order, None)
+            if declare_sort is None:
+                msg = "The declare_order attribute value %r is invalid in %s"
+                raise Exception(msg % (attrs.declare_sort, cls_name))
+            if declare_sort:
+                class_fields.sort(key=declare_sort)
+            _type_info.update(class_fields)
 
         else:
             _type_info = cls_dict['_type_info']
@@ -387,18 +423,6 @@ class ComplexModelMeta(type(ModelBase)):
                                                         (key, _type_info[key]))
                 _type_info_alt[key] = v, k
 
-        # Initialize Attributes
-        attrs = cls_dict.get('Attributes', None)
-        if attrs is None:
-            for b in cls_bases:
-                if hasattr(b, 'Attributes'):
-                    class Attributes(b.Attributes):
-                        pass
-                    attrs = cls_dict['Attributes'] = Attributes
-                    break
-            else:
-                raise Exception("No ModelBase subclass in bases? Huh?")
-
         # Move sqlalchemy parameters
         table_name = cls_dict.get('__tablename__', None)
         if attrs.table_name is None:
@@ -417,6 +441,9 @@ class ComplexModelMeta(type(ModelBase)):
 
         targs = cls_dict.get('__table_args__', None)
         attrs.sqla_table_args = _join_args(attrs.sqla_table_args, targs)
+
+        if type(cls_dict) is not dict:
+            cls_dict = dict(cls_dict)
 
         return super(ComplexModelMeta, cls).__new__(cls, cls_name, cls_bases, cls_dict)
 
@@ -464,6 +491,16 @@ class ComplexModelMeta(type(ModelBase)):
             gen_sqla_info(self, cls_bases)
 
         super(ComplexModelMeta, self).__init__(cls_name, cls_bases, cls_dict)
+
+    #
+    # This is only meaningful in Python 3, see PEP 3315.
+    #
+    # In Python 3 we record the order fields are defined, so we can declare
+    # them in the same order in the WSDL.
+    #
+    @classmethod
+    def __prepare__(cls, name, bases, **kwds):
+        return TypeInfo()
 
 
 # FIXME: what an ugly hack.
@@ -537,6 +574,28 @@ class ComplexModelBase(ModelBase):
         child_attrs = None
         """Customize child attributes in one go. It's a dict of dicts. This is
         ignored unless used via explicit customization."""
+
+        declare_order = None
+        """The order fields of the :class:``ComplexModel`` are to be declared
+        in the SOAP WSDL.  The string ``random`` declares then in a random
+        order in the WSDL.  This randomised order can change can time the
+        program is run.  This is what earlier versions of spyne did if you
+        didn't set _type_info.  It means that clients who are manually
+        complied or generated from the WSDL will likely need to be recompiled
+        every time it changes.  The string ``name`` means the field names are
+        sorted in the WSDL declaration.  The string ``declared`` means in the
+        order the field type was declared in Python 2, and the order the
+        field was declared in Python 3.  If you create a new field type for
+        each field, ie always declare a field with ``field = Unicode()``
+        instead of ``field = Unicode`` the Python 2 behaviour for
+        ``declared`` becomes the same as Python 3.  The default is
+        :data:``declared`` in Python 3 and above, otherwise :data:``random``
+        in spyne versions below 3, and ``name`` when spyne version 3 or
+        above is used with Python 2.
+        
+        If you are using Python 2 explicitly setting this to ``name`` will
+        avoid problems in the future.  If you are using ``declared`` with
+        Python 2 be sure to create a new type for each field declaration."""
 
         parent_variant = None
         _variants = None

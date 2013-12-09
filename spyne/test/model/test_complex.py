@@ -102,6 +102,16 @@ class Level1(ComplexModel):
 
 Level1.resolve_namespace(Level1, __name__)
 
+class DeclareOrder_name(ComplexModel.customize(declare_order='name')):
+    field3 = Integer()
+    field1 = Integer()
+    field2 = Integer()
+
+class DeclareOrder_declare(ComplexModel.customize(declare_order='declared')):
+    field3 = Integer()
+    field1 = Integer()
+    field2 = Integer()
+
 class TestComplexModel(unittest.TestCase):
     def test_add_field(self):
         class C(ComplexModel):
@@ -314,6 +324,10 @@ class TestComplexModel(unittest.TestCase):
         self.assertEquals(Derived.Attributes.prop1, Base.Attributes.prop1)
         self.assertNotEquals(Derived2.Attributes.prop1, Base.Attributes.prop1)
         self.assertEquals(Derived3.Attributes.prop1, Base.Attributes.prop1)
+
+    def test_declare_order(self):
+        self.assertEquals(["field1", "field2", "field3"], list(DeclareOrder_name._type_info))
+        self.assertEquals(["field3", "field1", "field2"], list(DeclareOrder_declare._type_info))
 
 
 
