@@ -20,6 +20,8 @@
 import logging
 logger = logging.getLogger(__name__)
 
+from collections import deque
+
 import spyne.interface
 
 from spyne import EventManager
@@ -225,7 +227,21 @@ class Interface(object):
 
                 classes.extend(self.add_method(method))
 
+        member_method_classes = deque()
         for c in classes:
+            self.add_class(c)
+
+            if c.Attributes.methods is not None:
+                for method_name in c.Attributes.methods:
+                    assert hasattr(c, method_name)
+
+                    method = getattr(c, method_name)
+                    assert hasattr(method, '_is_rpc')
+
+                    descriptor = method(default_name=method_name)
+                    member_method_classes.extend(self.add_method(descriptor))
+
+        for c in member_method_classes:
             self.add_class(c)
 
         # populate call routes
