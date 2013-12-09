@@ -32,6 +32,7 @@ from spyne._base import EventManager
 
 from spyne.decorator import rpc
 from spyne.decorator import srpc
+from spyne.decorator import mrpc
 from spyne.service import ServiceBase
 from spyne.application import Application
 
