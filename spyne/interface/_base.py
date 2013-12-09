@@ -33,6 +33,13 @@ from spyne.model import ComplexModelBase
 from spyne.model.complex import XmlModifier
 
 
+def _generate_method_id(cls, descriptor):
+    return '.'.join([
+            cls.__module__,
+            cls.__name__,
+            descriptor.name,
+        ])
+
 class Interface(object):
     """The ``Interface`` class holds all information needed to build an
     interface document.
@@ -42,22 +49,18 @@ class Interface(object):
 
     def __init__(self, app=None, import_base_namespaces=False):
         self.__ns_counter = 0
-        self.import_base_namespaces = import_base_namespaces
-
-        self.url = None
-
         self.__app = None
-
+        self.url = None
         self.classes = {}
         self.imports = {}
         self.service_method_map = {}
         self.method_id_map = {}
         self.nsmap = {}
         self.prefmap = {}
-        self.__app = app
+        self.member_methods = deque()
 
-        self.reset_interface()
-        self.populate_interface()
+        self.import_base_namespaces = import_base_namespaces
+        self.app = app
 
     def set_app(self, value):
         assert self.__app is None, "One interface instance can belong to only " \
@@ -85,6 +88,7 @@ class Interface(object):
         self.method_id_map = {}
         self.nsmap = dict(namespace.const_nsmap)
         self.prefmap = dict(namespace.const_prefmap)
+        self.member_methods = deque()
 
         self.nsmap['tns'] = self.get_tns()
         self.prefmap[self.get_tns()] = 'tns'
@@ -203,6 +207,38 @@ class Interface(object):
         for p in method.patterns:
             p.endpoint = method.name
 
+    def process_method(self, s, method):
+        method_key = '{%s}%s' % (self.app.tns, method.name)
+
+        logger.debug('\tadding method %r to match %r tag.' %
+                                                      (method.name, method_key))
+
+        assert not _generate_method_id(s, method) in self.method_id_map, method.name
+
+        self.method_id_map[_generate_method_id(s, method)] = s, method
+
+        val = self.service_method_map.get(method_key, None)
+        if val is None:
+            val = self.service_method_map[method_key] = []
+
+        if len(val) == 0:
+            val.append((s, method))
+
+        elif method.aux is not None:
+            val.append((s, method))
+
+        elif val[0][1].aux is not None:
+            val.insert((s, method), 0)
+
+        else:
+            os, om = val[0]
+            raise ValueError("\nThe message %r defined in both '%s.%s'"
+                                                         " and '%s.%s'"
+                        % (method.name, s.__module__, s.__name__,
+                                       os.__module__, os.__name__,
+                        ))
+
+
     def populate_interface(self, types=None):
         """Harvests the information stored in individual classes' _type_info
         dictionaries. It starts from function definitions and includes only
@@ -224,63 +260,25 @@ class Interface(object):
                 if method.aux is None:
                     method.aux = s.__aux__
                 if method.aux is not None:
-                    method.aux.methods.append(s.get_method_id(method))
+                    method.aux.methods.append(_generate_method_id(s, method))
 
-                classes.extend(self.add_method(method))
+                for cls in self.add_method(method):
+                    self.add_class(cls)
 
-        member_method_classes = deque()
         for c in classes:
             self.add_class(c)
 
-            if c.Attributes.methods is not None:
-                for method_name in c.Attributes.methods:
-                    assert hasattr(c, method_name)
-
-                    method = getattr(c, method_name)
-                    assert hasattr(method, '_is_rpc')
-
-                    descriptor = method(default_name=method_name)
-                    member_method_classes.extend(self.add_method(descriptor))
-
-        for c in member_method_classes:
-            self.add_class(c)
-
-        # populate call routes
+        # populate call routes for service methods
         for s in self.services:
             s.__tns__ = self.get_tns()
             logger.debug("populating '%s.%s' methods..." % (s.__module__,
                                                                     s.__name__))
             for method in s.public_methods.values():
-                method_key = '{%s}%s' % (self.app.tns, method.name)
+                self.process_method(s, method)
 
-                logger.debug('\tadding method %r to match %r tag.' %
-                                                      (method.name, method_key))
-
-                assert not s.get_method_id(method) in self.method_id_map, \
-                                                                     method.name
-
-                self.method_id_map[s.get_method_id(method)] = (s, method)
-
-                val = self.service_method_map.get(method_key, None)
-                if val is None:
-                    val = self.service_method_map[method_key] = []
-
-                if len(val) == 0:
-                    val.append((s, method))
-
-                elif method.aux is not None:
-                    val.append((s, method))
-
-                elif val[0][1].aux is not None:
-                    val.insert((s, method), 0)
-
-                else:
-                    os, om = val[0]
-                    raise ValueError("\nThe message %r defined in both '%s.%s'"
-                                                                 " and '%s.%s'"
-                                % (method.name, s.__module__, s.__name__,
-                                               os.__module__, os.__name__,
-                                ))
+        # populate call routes for member methods
+        for cls, descriptor in self.member_methods:
+            self.process_method(cls, descriptor)
 
         logger.debug("From this point on, you're not supposed to make any "
                      "changes to the class and method structure of the exposed "
@@ -390,6 +388,17 @@ class Interface(object):
                         cls.__type_name__ = v.type.get_type_name()
                         logger.debug("\tXmlData overrides %r with %r",
                                                 old, cls.get_type_name_ns(self))
+
+            if cls.Attributes.methods is not None:
+                logger.debug("\tpopulating member methods for '%s.%s'..." % \
+                                     (cls.get_namespace(), cls.get_type_name()))
+
+                for method_key, descriptor in cls.Attributes.methods.items():
+                    assert hasattr(cls, method_key)
+
+                    self.member_methods.append((cls, descriptor))
+                    for c in self.add_method(descriptor):
+                        self.add_class(c)
 
     def is_valid_import(self, ns):
         """This will return False for base namespaces unless told otherwise."""

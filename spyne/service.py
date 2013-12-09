@@ -211,11 +211,3 @@ class ServiceBase(object):
                 return ctx.function(*ctx.in_object)
             else:
                 return ctx.function(ctx, *ctx.in_object)
-
-    @classmethod
-    def get_method_id(cls, descriptor):
-        return '.'.join([
-                cls.__module__,
-                cls.__name__,
-                descriptor.name,
-            ])

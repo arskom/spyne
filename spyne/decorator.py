@@ -43,19 +43,21 @@ from spyne.const.xml_ns import DEFAULT_NS
 
 
 def _produce_input_message(f, params, kparams, _in_message_name,
-                                            _in_variable_names, no_ctx, args):
+                                      _in_variable_names, no_ctx, no_self, args):
     _body_style = _validate_body_style(kparams)
 
-    if no_ctx is True:
-        arg_start=0
-    else:
-        arg_start=1
+    arg_start = 0
+    if no_ctx is False:
+        arg_start += 1
+    if no_self is False:
+        arg_start += 1
 
     if args is None:
         try:
             argcount = f.func_code.co_argcount
             param_names = f.func_code.co_varnames[arg_start:argcount]
-        except AttributeError,e:
+
+        except AttributeError:
             raise TypeError(
                 "It's not possible to instrospect builtins. You must pass a "
                 "sequence of argument names as the '_args' argument to the "
@@ -67,18 +69,16 @@ def _produce_input_message(f, params, kparams, _in_message_name,
         argcount = len(args)
         param_names = args
 
+    argcount -= arg_start
+    if len(params) != len(param_names):
+        raise Exception("%r function has %d argument(s) but its decorator has "
+                        "%d." % (f.func_name, len(param_names), len(params)))
+
     in_params = TypeInfo()
-    try:
-        for i, n in enumerate(param_names):
-            if args is None or n in args:
-                e0 = _in_variable_names.get(n,n)
-                e1 = params[i]
-
-                in_params[e0] = e1
-
-    except IndexError, e:
-        raise Exception("The parameter numbers of the %r function and its "
-                        "decorator mismatch." % f.func_name)
+    for k, v in zip(param_names, params):
+        if args is None or n in args:
+            k = _in_variable_names.get(k, k)
+            in_params[k] = v
 
     ns = DEFAULT_NS
     if _in_message_name.startswith("{"):
@@ -278,7 +278,7 @@ def rpc(*params, **kparams):
             _in_variable_names = kparams.get('_in_variable_names', {})
 
             in_message = _produce_input_message(f, params, kparams,
-                           _in_message_name, _in_variable_names, _no_ctx, _args)
+                 _in_message_name, _in_variable_names, _no_ctx, _no_self, _args)
 
             out_message = _produce_output_message(function_name, kparams)
 

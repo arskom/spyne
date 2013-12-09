@@ -29,6 +29,7 @@ from base64 import b64encode
 
 from spyne import Application
 from spyne import rpc
+from spyne import mrpc
 from spyne import ServiceBase
 from spyne.const import xml_ns
 from spyne.interface import Interface
@@ -681,17 +682,45 @@ class TestSelfRefence(unittest.TestCase):
 
 
     def test_member_rpc(self):
-        from spyne import mrpc
+        class SomeComplexModel(ComplexModel):
+            @mrpc()
+            def put(self, ctx):
+                return "PUNK!!!"
+
+        methods = SomeComplexModel.Attributes.methods
+        print methods
+        assert 'put' in methods
+
+    def test_member_rpc_callable(self):
+        v = 'whatever'
 
         class SomeComplexModel(ComplexModel):
             @mrpc()
-            def put(self, ctx, simple_fee):
+            def put(self, ctx):
+                return v
+
+        assert SomeComplexModel().put(None) == v
+
+    def test_member_rpc_interface(self):
+        class SomeComplexModel(ComplexModel):
+            @mrpc()
+            def member_method(self, ctx):
                 pass
+
+        methods = SomeComplexModel.Attributes.methods
+        print methods
+        assert 'member_method' in methods
 
         class SomeService(ServiceBase):
             @rpc(_returns=SomeComplexModel)
-            def get(ctx):
+            def service_method(ctx):
                 return SomeComplexModel()
+
+        app = Application([SomeService], 'some_ns')
+
+        mmm = __name__ + '.SomeComplexModel.member_method'
+        assert mmm in app.interface.method_id_map
+
 
 if __name__ == '__main__':
     unittest.main()
