@@ -1,10 +1,9 @@
 
 from spyne.const import xml_ns
 
-from spyne.model.primitive import Boolean
+from spyne.model.primitive import Boolean, AnyHtml
 from spyne.model.primitive import Unicode
 from spyne.model.primitive import UnsignedInteger
-from spyne.model.complex import Array
 from spyne.model.complex import XmlAttribute
 from spyne.model.complex import ComplexModelBase
 from spyne.model.complex import ComplexModelMeta
@@ -153,7 +152,7 @@ TYPE_MAP = dict([
 
         if isclass(cls)
             and issubclass(cls, ModelBase)
-            and not issubclass(cls, Fault)
+            and not issubclass(cls, (Fault, AnyHtml))
             and not cls in (ModelBase,)
 ])
 
