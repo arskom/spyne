@@ -596,6 +596,8 @@ class ComplexModelBase(ModelBase):
         Python 2 be sure to create a new type for each field declaration."""
 
         parent_variant = None
+        """FIXME: document me yo."""
+
         _variants = None
         _xml_tag_body_as = None, None
 
