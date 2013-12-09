@@ -209,7 +209,8 @@ class Interface(object):
         the used objects.
         """
 
-        classes = []
+        classes = deque()
+
         # populate types
         for s in self.services:
             logger.debug("populating '%s.%s (%s)' types..." % (s.__module__,
