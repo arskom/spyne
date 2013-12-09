@@ -17,6 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+"""This module contains the ModelBase class and other building blocks for
+defining models.
+"""
+
 import re
 
 import spyne.const.xml_ns
@@ -25,11 +29,6 @@ from decimal import Decimal
 
 from spyne.util import Break
 from spyne.const.xml_ns import DEFAULT_NS
-
-
-"""This module contains the ModelBase class and other building blocks for
-defining models.
-"""
 
 
 # All this code to get rid of a one letter quirk: nillable vs nullable.
