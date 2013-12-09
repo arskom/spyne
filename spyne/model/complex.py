@@ -138,7 +138,6 @@ class TypeInfo(odict):
         super(TypeInfo, self).__init__(*args, **kwargs)
         self.attributes = {}
 
-
 class _SimpleTypeInfoElement(object):
     __slots__ = ['path', 'parent', 'type', 'is_array']
 
@@ -613,7 +612,7 @@ class ComplexModelBase(ModelBase):
             self._safe_set(xtba_key, args[0], xtba_type)
         elif len(args) > 0:
             raise TypeError("Positional argument is only for ComplexModels "
-                            "with XmlData field. You must always use keyword "
+                            "with XmlData field. You must use keyword "
                             "arguments in any other case.")
 
         for k,v in fti.items():
