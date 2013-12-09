@@ -148,6 +148,52 @@ class Interface(object):
         if self.app:
             return self.app.tns
 
+    def add_method(self, method):
+        if not (method.in_header is None):
+            if not isinstance(method.in_header, (list, tuple)):
+                method.in_header = (method.in_header,)
+
+            for in_header in method.in_header:
+                in_header.resolve_namespace(in_header, self.get_tns())
+                if method.aux is None:
+                    yield in_header
+                if in_header.get_namespace() != self.get_tns():
+                    self.imports[self.get_tns()].add(in_header.get_namespace())
+
+        if not (method.out_header is None):
+            if not isinstance(method.out_header, (list, tuple)):
+                method.out_header = (method.out_header,)
+
+            for out_header in method.out_header:
+                out_header.resolve_namespace(out_header, self.get_tns())
+                if method.aux is None:
+                    yield out_header
+                if out_header.get_namespace() != self.get_tns():
+                    self.imports[self.get_tns()].add(
+                                             out_header.get_namespace())
+
+        if method.faults is None:
+            method.faults = []
+        elif not (isinstance(method.faults, (list, tuple))):
+            method.faults = (method.faults,)
+
+        for fault in method.faults:
+            fault.__namespace__ = self.get_tns()
+            fault.resolve_namespace(fault, self.get_tns())
+            if method.aux is None:
+                yield fault
+
+        method.in_message.resolve_namespace(method.in_message, self.get_tns())
+        if method.aux is None:
+            yield method.in_message
+
+        method.out_message.resolve_namespace(method.out_message, self.get_tns())
+        if method.aux is None:
+            yield method.out_message
+
+        for p in method.patterns:
+            p.endpoint = method.name
+
     def populate_interface(self, types=None):
         """Harvests the information stored in individual classes' _type_info
         dictionaries. It starts from function definitions and includes only
@@ -170,53 +216,7 @@ class Interface(object):
                 if method.aux is not None:
                     method.aux.methods.append(s.get_method_id(method))
 
-                if not (method.in_header is None):
-                    if not isinstance(method.in_header, (list, tuple)):
-                        method.in_header = (method.in_header,)
-
-                    for in_header in method.in_header:
-                        in_header.resolve_namespace(in_header, self.get_tns())
-                        if method.aux is None:
-                            classes.append(in_header)
-                        if in_header.get_namespace() != self.get_tns():
-                            self.imports[self.get_tns()].add(
-                                                      in_header.get_namespace())
-
-                if not (method.out_header is None):
-                    if not isinstance(method.out_header, (list, tuple)):
-                        method.out_header = (method.out_header,)
-
-                    for out_header in method.out_header:
-                        out_header.resolve_namespace(out_header, self.get_tns())
-                        if method.aux is None:
-                            classes.append(out_header)
-                        if out_header.get_namespace() != self.get_tns():
-                            self.imports[self.get_tns()].add(
-                                                     out_header.get_namespace())
-
-                if method.faults is None:
-                    method.faults = []
-                elif not (isinstance(method.faults, (list, tuple))):
-                    method.faults = (method.faults,)
-
-                for fault in method.faults:
-                    fault.__namespace__ = self.get_tns()
-                    fault.resolve_namespace(fault, self.get_tns())
-                    if method.aux is None:
-                        classes.append(fault)
-
-                method.in_message.resolve_namespace(method.in_message,
-                                                                 self.get_tns())
-                if method.aux is None:
-                    classes.append(method.in_message)
-
-                method.out_message.resolve_namespace(method.out_message,
-                                                                 self.get_tns())
-                if method.aux is None:
-                    classes.append(method.out_message)
-
-                for p in method.patterns:
-                    p.endpoint = method.name
+                classes.extend(self.add_method(method))
 
         for c in classes:
             self.add_class(c)
