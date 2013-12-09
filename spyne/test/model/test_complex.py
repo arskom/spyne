@@ -26,6 +26,7 @@ from pprint import pprint
 from lxml import etree
 
 from base64 import b64encode
+from spyne.server.null import NullServer
 
 from spyne import Application
 from spyne import rpc
@@ -667,7 +668,7 @@ class TestSelfRefence(unittest.TestCase):
         assert v.id == 5
         assert v.children == ['a', 'b']
 
-    def test_ctor_args(self):
+    def test_ctor_args_2(self):
         class Category(ComplexModel):
             children = Array(Unicode)
 
