@@ -861,6 +861,13 @@ class ComplexModelBase(ModelBase):
         if ns is not None:
             retval.__namespace__ = ns
 
+        if not cls is ComplexModel:
+            cls._process_variants(retval)
+
+        return retval
+
+    @classmethod
+    def _process_variants(cls, retval):
         orig = getattr(retval, '__orig__', None)
         if orig is not None:
             retval.__extends__ = getattr(orig, '__extends__', None)
@@ -869,8 +876,6 @@ class ComplexModelBase(ModelBase):
             orig.Attributes._variants[retval] = True
             # _variants is only for the root class.
             retval.Attributes._variants = None
-
-        return retval
 
     @classmethod
     def append_field(cls, field_name, field_type):

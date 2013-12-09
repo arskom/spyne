@@ -129,6 +129,7 @@ class TestComplexModel(unittest.TestCase):
         class C(ComplexModel):
             u = Unicode
         CC = C.customize(child_attrs=dict(u=dict(min_len=5)))
+        print dict(C.Attributes._variants.items())
         r, = C.Attributes._variants
         assert r is CC
         assert CC.Attributes.parent_variant is C
