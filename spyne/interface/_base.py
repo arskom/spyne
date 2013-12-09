@@ -418,7 +418,7 @@ class InterfaceDocumentBase(object):
         self.interface = interface
         self.event_manager = EventManager(self)
 
-    def build_interface_document(self, cls):
+    def build_interface_document(self):
         """This function is supposed to be called just once, as late as possible
         into the process start. It builds the interface document and caches it
         somewhere. The overriding function should never call the overridden
@@ -427,7 +427,7 @@ class InterfaceDocumentBase(object):
 
         raise NotImplementedError('Extend and override.')
 
-    def get_interface_document(self, cls):
+    def get_interface_document(self):
         """This function is called by server transports that try to satisfy the
         request for the interface document. This should just return a previously
         cached interface document.
