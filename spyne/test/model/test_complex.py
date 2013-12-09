@@ -26,7 +26,6 @@ from pprint import pprint
 from lxml import etree
 
 from base64 import b64encode
-from spyne.server.null import NullServer
 
 from spyne import Application
 from spyne import rpc
@@ -680,6 +679,19 @@ class TestSelfRefence(unittest.TestCase):
         assert v.children == ['a', 'b']
         assert v.sub_category == 'aaa'
 
+
+    def test_member_rpc(self):
+        from spyne import mrpc
+
+        class SomeComplexModel(ComplexModel):
+            @mrpc()
+            def put(self, ctx, simple_fee):
+                pass
+
+        class SomeService(ServiceBase):
+            @rpc(_returns=SomeComplexModel)
+            def get(ctx):
+                return SomeComplexModel()
 
 if __name__ == '__main__':
     unittest.main()
