@@ -298,6 +298,7 @@ class MethodContext(object):
 
     out_protocol = property(get_out_protocol, set_out_protocol)
 
+
 class MethodDescriptor(object):
     """This class represents the method signature of an exposed service. It is
     produced by the :func:`spyne.decorator.srpc` decorator.
@@ -308,7 +309,7 @@ class MethodDescriptor(object):
                  out_header=None, faults=None,
                  port_type=None, no_ctx=False, udp=None, class_key=None,
                  aux=None, patterns=None, body_style=None, args=None,
-                 operation_name=None):
+                 operation_name=None, no_self=None):
 
         self.__real_function = function
         """The original callable for the user code."""
@@ -400,6 +401,10 @@ class MethodDescriptor(object):
 
         self.args = args
         """A sequence of the names of the exposed arguments, or None."""
+
+        # FIXME: docstring yo.
+        self.no_self = no_self
+        """FIXME: docstring yo."""
 
     @property
     def key(self):

@@ -241,6 +241,8 @@ def rpc(*params, **kparams):
         ``_body_style='bare'``.
     :param _port_type: Soap port type string.
     :param _no_ctx: Don't pass implicit ctx object to the user method.
+    :param _no_self: This method does not get an implicit 'self' argument
+        (before any other argument, including ctx).
     :param _udp: Short for UserDefinedProperties, you can use this to mark the
         method with arbitrary metadata.
     :param _aux: The auxiliary backend to run this method. ``None`` if primary.
@@ -261,6 +263,7 @@ def rpc(*params, **kparams):
             _out_header = kparams.get('_out_header', None)
             _port_type = kparams.get('_soap_port_type', None)
             _no_ctx = kparams.get('_no_ctx', False)
+            _no_self = kparams.get('_no_self', True)
             _udp = kparams.get('_udp', None)
             _aux = kparams.get('_aux', None)
             _pattern = kparams.get("_pattern",None)
@@ -311,12 +314,13 @@ def rpc(*params, **kparams):
                     body_style = BODY_STYLE_EMPTY
 
             retval = MethodDescriptor(f,
-                    in_message, out_message, doc, _is_callback, _is_async,
-                    _mtom, _in_header, _out_header, _faults,
-                    port_type=_port_type, no_ctx=_no_ctx, udp=_udp,
-                    class_key=function_name, aux=_aux, patterns=_patterns,
-                    body_style=body_style, args=_args,
-                    operation_name=_operation_name)
+                in_message, out_message, doc, _is_callback, _is_async,
+                _mtom, _in_header, _out_header, _faults,
+                port_type=_port_type, no_ctx=_no_ctx, udp=_udp,
+                class_key=function_name, aux=_aux, patterns=_patterns,
+                body_style=body_style, args=_args,
+                operation_name=_operation_name, no_self=_no_self,
+            )
 
             return retval
 
