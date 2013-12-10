@@ -217,7 +217,7 @@ class WsgiApplication(HttpBase):
 
         for k,v in self.app.interface.service_method_map.items():
             # p_ stands for primary
-            p_service_class, p_method_descriptor = v[0]
+            p_method_descriptor = v[0]
             for patt in p_method_descriptor.patterns:
                 if isinstance(patt, HttpPattern):
                     r = patt.as_werkzeug_rule()

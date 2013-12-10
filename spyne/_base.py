@@ -135,9 +135,9 @@ class MethodContext(object):
 
         self.__descriptor = None
 
-        # This is set based on the value of the descriptor.
-        self.service_class = None
-        """The service definition class the method belongs to."""
+        self.parent_class = None
+        """The ComplexModel subclass the method belongs to. Only set for @mrpc
+        methods."""
 
         #
         # Input
@@ -259,6 +259,12 @@ class MethodContext(object):
     in the public interface. The contents of this property should not be changed
     by the user code.
     """
+
+    # Deprecated.
+    @property
+    def service_class(self):
+        if self.descriptor is not None:
+            return self.descriptor.service_class
 
     def __setattr__(self, k, v):
         if not self.frozen or k in self.__dict__ or k in \

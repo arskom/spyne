@@ -229,14 +229,11 @@ class ProtocolBase(object):
             raise ResourceNotFoundError(ctx.method_request_string)
 
         retval = []
-        for sc, d in call_handles:
+        for d in call_handles:
+            assert d is not None
+
             c = copy(ctx)
-
-            assert d != None
-
             c.descriptor = d
-            c.service_class = sc
-
             retval.append(c)
 
         return retval

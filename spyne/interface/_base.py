@@ -24,7 +24,7 @@ from collections import deque
 
 import spyne.interface
 
-from spyne import EventManager
+from spyne import EventManager, ServiceBase
 from spyne.const import xml_ns as namespace
 
 from spyne.model import Array
@@ -215,23 +215,26 @@ class Interface(object):
 
         assert not _generate_method_id(s, method) in self.method_id_map, method.name
 
-        self.method_id_map[_generate_method_id(s, method)] = s, method
+        self.method_id_map[_generate_method_id(s, method)] = method
 
         val = self.service_method_map.get(method_key, None)
         if val is None:
             val = self.service_method_map[method_key] = []
 
         if len(val) == 0:
-            val.append((s, method))
+            val.append(method)
 
         elif method.aux is not None:
-            val.append((s, method))
+            val.append(method)
 
         elif val[0][1].aux is not None:
-            val.insert((s, method), 0)
+            val.insert(method, 0)
 
         else:
-            os, om = val[0]
+            om = val[0]
+            os = om.service_class
+            if os is None:
+                os = om.parent_class
             raise ValueError("\nThe message %r defined in both '%s.%s'"
                                                          " and '%s.%s'"
                         % (method.name, s.__module__, s.__name__,

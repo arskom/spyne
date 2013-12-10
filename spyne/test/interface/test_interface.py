@@ -86,12 +86,12 @@ class TestInterface(unittest.TestCase):
         assert imports['4'] == set(['2'])
 
         assert smm['{%s}some_call' % tns]
-        assert smm['{%s}some_call' % tns][0][0] == Service1
-        assert smm['{%s}some_call' % tns][0][1].function == Service1.some_call
+        assert smm['{%s}some_call' % tns][0].service_class == Service1
+        assert smm['{%s}some_call' % tns][0].function == Service1.some_call
 
         assert smm['{%s}some_other_call' % tns]
-        assert smm['{%s}some_other_call' % tns][0][0] == Service2
-        assert smm['{%s}some_other_call' % tns][0][1].function == Service2.some_other_call
+        assert smm['{%s}some_other_call' % tns][0].service_class == Service2
+        assert smm['{%s}some_other_call' % tns][0].function == Service2.some_other_call
 
 if __name__ == '__main__':
     unittest.main()

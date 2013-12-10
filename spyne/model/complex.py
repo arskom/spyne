@@ -448,14 +448,9 @@ class ComplexModelMeta(type(ModelBase)):
         if type(cls_dict) is not dict:
             cls_dict = dict(cls_dict)
 
-        # Move method parameters
-        if attrs.methods is None:
-            if len(methods) > 0:
-                attrs.methods = methods
-        else:
-            non_existent_methods = set(attrs.methods) - set(methods)
-            assert len(non_existent_methods) == 0
-            attrs.methods.update(methods)
+        # set methods
+        if len(methods) > 0:
+            attrs.methods = methods
 
         return super(ComplexModelMeta, cls).__new__(cls, cls_name, cls_bases, cls_dict)
 

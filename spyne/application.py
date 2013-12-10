@@ -134,7 +134,8 @@ class Application(object):
         try:
             # fire events
             self.event_manager.fire_event('method_call', ctx)
-            ctx.service_class.event_manager.fire_event('method_call', ctx)
+            if ctx.service_class is not None:
+                ctx.service_class.event_manager.fire_event('method_call', ctx)
 
             # call the method
             ctx.out_object = self.call_wrapper(ctx)
@@ -148,7 +149,8 @@ class Application(object):
 
             # fire events
             self.event_manager.fire_event('method_return_object', ctx)
-            ctx.service_class.event_manager.fire_event(
+            if ctx.service_class is not None:
+                ctx.service_class.event_manager.fire_event(
                                                     'method_return_object', ctx)
 
         except Fault, e:
@@ -182,7 +184,7 @@ class Application(object):
         management.
         """
 
-        return ctx.service_class.call_wrapper(ctx)
+        return ctx.descriptor.service_class.call_wrapper(ctx)
 
     def _has_callbacks(self):
         return self.interface._has_callbacks()
@@ -192,7 +194,7 @@ class Application(object):
 
         server = ServerBase(self)
         aux_memo = set()
-        for s, d in self.interface.method_id_map.values():
+        for d in self.interface.method_id_map.values():
             if d.aux is not None and not id(d.aux) in aux_memo:
                 d.aux.initialize(server)
                 aux_memo.add(id(d.aux))
