@@ -25,7 +25,7 @@ It's possible to create custom decorators that wrap the @srpc decorator in order
 to have a more elegant way of passing frequently-used parameter values. The @rpc
 decorator is a simple example of this.
 """
-
+from copy import copy
 
 from spyne import MethodDescriptor
 
@@ -55,7 +55,7 @@ def _produce_input_message(f, params, kparams, _in_message_name,
     if args is None:
         try:
             argcount = f.func_code.co_argcount
-            param_names = f.func_code.co_varnames[arg_start:argcount]
+            args = f.func_code.co_varnames[arg_start:argcount]
 
         except AttributeError:
             raise TypeError(
@@ -65,20 +65,19 @@ def _produce_input_message(f, params, kparams, _in_message_name,
                 "function accepts."
             )
 
+        if len(params) != len(args):
+            raise Exception("%r function has %d argument(s) but its decorator "
+                       "has %d." % (f.func_name, len(args), len(params)))
     else:
-        argcount = len(args)
-        param_names = args
-
-    argcount -= arg_start
-    if len(params) != len(param_names):
-        raise Exception("%r function has %d argument(s) but its decorator has "
-                        "%d." % (f.func_name, len(param_names), len(params)))
+        args = copy(args)
+        if len(params) != len(args):
+            raise Exception("%r function has %d argument(s) but the _args "
+                     "argument has %d." % (f.func_name, len(args), len(params)))
 
     in_params = TypeInfo()
-    for k, v in zip(param_names, params):
-        if args is None or n in args:
-            k = _in_variable_names.get(k, k)
-            in_params[k] = v
+    for k, v in zip(args, params):
+        k = _in_variable_names.get(k, k)
+        in_params[k] = v
 
     ns = DEFAULT_NS
     if _in_message_name.startswith("{"):
@@ -89,18 +88,13 @@ def _produce_input_message(f, params, kparams, _in_message_name,
         if len(in_params) > 1:
             raise Exception("body_style='bare' can handle at most one function "
                                                                     "argument.")
-        in_param = None
-
-        if len(in_params) == 1:
+        if len(in_params) == 0:
+            message = ComplexModel.produce(type_name=_in_message_name,
+                                               namespace=ns, members=in_params)
+        else:
             message, = in_params.values()
             message = message.customize(sub_name=_in_message_name, sub_ns=ns)
             assert message.Attributes.sub_name is not None
-
-        # This dates from a time when body_style='bare' could support more
-        # than one parameter. Maybe one day someone will bring that back.
-        else:
-            message = ComplexModel.produce(type_name=_in_message_name,
-                                               namespace=ns, members=in_params)
 
     else:
         message = ComplexModel.produce(type_name=_in_message_name,
