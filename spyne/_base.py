@@ -57,6 +57,7 @@ class TransportContext(object):
         """General purpose variable to hold the string identifier of a request
         encoding. It's nowadays usually 'utf-8', especially with http data"""
 
+
 class ProtocolContext(object):
     """Generic object that holds transport-specific context information"""
     def __init__(self, transport, type=None):
@@ -411,6 +412,9 @@ class MethodDescriptor(object):
         # FIXME: docstring yo.
         self.no_self = no_self
         """FIXME: docstring yo."""
+
+        self.service_class = None
+        """The ServiceBase subclass the method belongs to, if there's any."""
 
     @property
     def key(self):
