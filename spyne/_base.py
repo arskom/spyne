@@ -136,10 +136,6 @@ class MethodContext(object):
 
         self.__descriptor = None
 
-        self.parent_class = None
-        """The ComplexModel subclass the method belongs to. Only set for @mrpc
-        methods."""
-
         #
         # Input
         #
@@ -415,6 +411,11 @@ class MethodDescriptor(object):
 
         self.service_class = None
         """The ServiceBase subclass the method belongs to, if there's any."""
+
+        self.parent_class = None
+        """The ComplexModel subclass the method belongs to. Only set for @mrpc
+        methods."""
+
 
     @property
     def key(self):

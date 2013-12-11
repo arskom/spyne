@@ -480,6 +480,11 @@ class ComplexModelMeta(type(ModelBase)):
         meta = self.Attributes.sqla_metadata
         t = self.Attributes.sqla_table
 
+        methods = self.Attributes.methods
+        if methods is not None:
+            for descriptor in methods.values():
+                descriptor.parent_class = self
+
         # for spyne objects reflecting an existing db table
         if tn is None:
             if t is not None:
