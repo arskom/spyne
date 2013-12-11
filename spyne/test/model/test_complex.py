@@ -26,6 +26,7 @@ from pprint import pprint
 from lxml import etree
 
 from base64 import b64encode
+from spyne.server.null import NullServer
 
 from spyne import Application
 from spyne import rpc
@@ -720,6 +721,26 @@ class TestSelfRefence(unittest.TestCase):
         mmm = __name__ + '.SomeComplexModel.member_method'
         assert mmm in app.interface.method_id_map
 
+    def test_member_rpc_call(self):
+        from spyne import mrpc
+
+        class SomeComplexModel(ComplexModel):
+            @mrpc()
+            def put(self, ctx):
+                pass
+
+        class SomeService(ServiceBase):
+            @rpc(_returns=SomeComplexModel)
+            def get(ctx):
+                return SomeComplexModel()
+
+        null = NullServer(
+            Application([SomeService], tns='some_tns')
+        )
+
+        print null.service.put()
+
+        assert False
 
 if __name__ == '__main__':
     unittest.main()
