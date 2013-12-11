@@ -23,6 +23,7 @@ definition document standards along with the
 to generate those documents.
 """
 
+from spyne.interface._base import generate_method_id
 from spyne.interface._base import Interface
 from spyne.interface._base import InterfaceDocumentBase
 from spyne.interface._base import AllYourInterfaceDocuments
