@@ -17,13 +17,11 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-
 """The ``spyne.model.complex`` module contains
 :class:`spyne.model.complex.ComplexBase` class and its helper objects and
 subclasses. These are mainly container classes for other simple or
 complex objects -- they don't carry any data by themselves.
 """
-
 
 import logging
 logger = logging.getLogger(__name__)

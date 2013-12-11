@@ -29,6 +29,7 @@ from spyne._base import BODY_STYLE_BARE
 from spyne._base import EventManager
 from spyne.util.oset import oset
 
+
 class ServiceBaseMeta(type):
     """Creates the :class:`spyne.MethodDescriptor` objects by iterating over
     tagged methods.
