@@ -34,6 +34,7 @@ from weakref import WeakKeyDictionary
 from collections import deque
 from inspect import isclass
 
+from spyne import BODY_STYLE_BARE, BODY_STYLE_WRAPPED
 from spyne.model import ModelBase
 from spyne.model import PushBase
 from spyne.model import Unicode
@@ -484,6 +485,13 @@ class ComplexModelMeta(type(ModelBase)):
         if methods is not None:
             for descriptor in methods.values():
                 descriptor.parent_class = self
+                if descriptor.body_style is BODY_STYLE_BARE:
+                    descriptor.in_message.insert_field(0, self)
+                    # FIXME: is the if needed here?
+                    if descriptor.body_style != BODY_STYLE_WRAPPED:
+                        descriptor.body_style = BODY_STYLE_WRAPPED
+                else:
+                    descriptor.in_message = self
 
         # for spyne objects reflecting an existing db table
         if tn is None:

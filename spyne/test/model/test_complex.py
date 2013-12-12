@@ -769,13 +769,12 @@ class TestMemberRpc(unittest.TestCase):
 
     def test_remote_call_success(self):
         from spyne import mrpc
-        v = 'deger'
 
         class SomeComplexModel(ComplexModel):
             i = Integer
             @mrpc(_returns=SelfReference)
             def echo(self, ctx):
-                return v
+                return self
 
         class SomeService(ServiceBase):
             @rpc(_returns=SomeComplexModel)

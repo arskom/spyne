@@ -193,6 +193,7 @@ class Application(object):
         elif ctx.descriptor.body_style is BODY_STYLE_EMPTY:
             ctx.in_object = []
 
+        # service rpc
         if ctx.descriptor.service_class is not None:
             return ctx.descriptor.service_class.call_wrapper(ctx)
 
@@ -202,11 +203,12 @@ class Application(object):
         if inst is None:
             raise ResourceNotFoundError('{%s}%s' %
                                      (cls.get_namespace(), cls.get_type_name()))
+        args = ctx.in_object[1:]
         if ctx.function is not None:
             if ctx.descriptor.no_ctx:
-                return ctx.function(inst, *ctx.in_object)
+                return ctx.function(inst, *args)
             else:
-                return ctx.function(inst, ctx, *ctx.in_object)
+                return ctx.function(inst, ctx, *args)
 
     def _has_callbacks(self):
         return self.interface._has_callbacks()
