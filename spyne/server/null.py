@@ -58,11 +58,13 @@ class NullServer(ServerBase):
 
     transport = 'noconn://null.spyne'
 
-    def __init__(self, app, ostr=False):
+    def __init__(self, app, ostr=False, locale='C'):
         super(NullServer, self).__init__(app)
 
-        self.service = _FunctionProxy(self, self.app, ostr)
+        self.service = _FunctionProxy(self, self.app)
         self.factory = Factory(self.app)
+        self.ostr = ostr
+        self.locale = locale
 
     def get_wsdl(self):
         return self.app.get_interface_document(self.url)
@@ -72,31 +74,32 @@ class NullServer(ServerBase):
 
 
 class _FunctionProxy(object):
-    def __init__(self, server, app, ostr):
+    def __init__(self, server, app):
         self.__app = app
         self.__server = server
         self.in_header = None
-        self.ostr = ostr
 
     def __getattr__(self, key):
         return _FunctionCall(self.__app, self.__server, key, self.in_header,
-                                                                      self.ostr)
+                                       self.__server.ostr, self.__server.locale)
 
 
 class _FunctionCall(object):
-    def __init__(self, app, server, key, in_header, ostr):
+    def __init__(self, app, server, key, in_header, ostr, locale):
         self.app = app
 
         self.__key = key
         self.__server = server
         self.__in_header = in_header
         self.__ostr = ostr
+        self.__locale = locale
 
     def __call__(self, *args, **kwargs):
         initial_ctx = MethodContext(self)
         initial_ctx.method_request_string = self.__key
         initial_ctx.in_header = self.__in_header
         initial_ctx.transport.type = NullServer.transport
+        initial_ctx.locale = self.__locale
 
         contexts = self.app.in_protocol.generate_method_contexts(initial_ctx)
 
