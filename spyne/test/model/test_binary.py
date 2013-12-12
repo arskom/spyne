@@ -31,7 +31,7 @@ ns_test = 'test_namespace'
 
 class TestBinary(unittest.TestCase):
     def setUp(self):
-        self.data = map(chr, xrange(256))
+        self.data = map(chr, range(256))
 
     def test_data(self):
         element = etree.Element('test')
