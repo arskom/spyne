@@ -194,7 +194,7 @@ class TestMultipleMethods(unittest.TestCase):
         }, start_response, "http://null"))
 
         elt = etree.fromstring(''.join(return_string))
-        print etree.tostring(elt, pretty_print=True)
+        print(etree.tostring(elt, pretty_print=True))
 
         return elt, app.interface.nsmap
 
@@ -289,7 +289,7 @@ class TestBodyStyle(unittest.TestCase):
             'wsgi.input': StringIO(req)
         }, start_response, "http://null")))
 
-        print etree.tostring(resp, pretty_print=True)
+        print(etree.tostring(resp, pretty_print=True))
 
         assert resp[0].tag == '{http://schemas.xmlsoap.org/soap/envelope/}Body'
         assert len(resp[0]) == 1
@@ -323,7 +323,7 @@ class TestBodyStyle(unittest.TestCase):
             'wsgi.input': StringIO(req)
         }, start_response, "http://null")))
 
-        print etree.tostring(resp, pretty_print=True)
+        print(etree.tostring(resp, pretty_print=True))
 
         assert resp[0].tag == '{http://schemas.xmlsoap.org/soap/envelope/}Body'
         assert resp[0][0].tag == '{tns}some_call' + RESPONSE_SUFFIX
@@ -343,7 +343,7 @@ class TestBodyStyle(unittest.TestCase):
             Application([SomeService], 'tns', in_protocol=Soap11(),
                                 out_protocol=Soap11(cleanup_namespaces=True))
         except ValueError as e:
-            print e
+            print(e)
         else:
             raise Exception("must fail.")
 
@@ -373,7 +373,7 @@ class TestBodyStyle(unittest.TestCase):
             'wsgi.input': StringIO(req)
         }, start_response, "http://null")))
 
-        print etree.tostring(resp, pretty_print=True)
+        print(etree.tostring(resp, pretty_print=True))
 
         assert resp[0].tag == '{http://schemas.xmlsoap.org/soap/envelope/}Body'
         assert resp[0][0].tag == '{tns}some_call' + RESPONSE_SUFFIX

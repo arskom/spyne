@@ -69,7 +69,7 @@ class TestXmlSchema(unittest.TestCase):
 
         docs = get_schema_documents([SomeObject])
         doc = docs['tns']
-        print etree.tostring(doc, pretty_print=True)
+        print(etree.tostring(doc, pretty_print=True))
         assert len(doc.xpath('/xs:schema/xs:complexType[@name="SomeObject"]'
                                    '/xs:sequence/xs:element[@name="punk"]',
             namespaces={'xs': ns.xsd})) > 0
@@ -258,7 +258,7 @@ class TestXmlSchema(unittest.TestCase):
         schema.build_interface_document()
 
         doc = schema.get_interface_document()['tns']
-        print etree.tostring(doc, pretty_print=True)
+        print(etree.tostring(doc, pretty_print=True))
 
         assert len(doc.xpath(
                 '/xs:schema/xs:complexType[@name="Product"]'
@@ -286,7 +286,7 @@ class TestXmlSchema(unittest.TestCase):
             d = Integer(sub_ns="dd", sub_name="dd")
 
         elt = get_schema_documents([C], "aa")['tns']
-        print etree.tostring(elt, pretty_print=True)
+        print(etree.tostring(elt, pretty_print=True))
 
         seq, = xpath(elt, "xs:complexType/xs:sequence")
 
@@ -307,7 +307,7 @@ class TestXmlSchema(unittest.TestCase):
             foo = XmlAttribute(M(Unicode))
 
         elt = get_schema_documents([C])['tns']
-        print etree.tostring(elt, pretty_print=True)
+        print(etree.tostring(elt, pretty_print=True))
         foo, = xpath(elt, 'xs:complexType/xs:attribute[@name="foo"]')
         attrs = foo.attrib
         assert 'use' in attrs and attrs['use'] == 'required'
@@ -322,7 +322,7 @@ class TestParseOwnXmlSchema(unittest.TestCase):
             id = Integer
 
         schema = get_schema_documents([SomeGuy], tns)['tns']
-        print etree.tostring(schema, pretty_print=True)
+        print(etree.tostring(schema, pretty_print=True))
 
         objects = parse_schema_element(schema)
         pprint(objects[tns].types)
@@ -340,7 +340,7 @@ class TestParseOwnXmlSchema(unittest.TestCase):
             name = Unicode(max_len=10, pattern="a", min_len=5, default="aa")
 
         schema = get_schema_documents([SomeGuy], tns)['tns']
-        print etree.tostring(schema, pretty_print=True)
+        print(etree.tostring(schema, pretty_print=True))
 
         objects = parse_schema_element(schema)
         pprint(objects[tns].types)
@@ -359,7 +359,7 @@ class TestParseOwnXmlSchema(unittest.TestCase):
             bald = Boolean(default=True)
 
         schema = get_schema_documents([SomeGuy], tns)['tns']
-        print etree.tostring(schema, pretty_print=True)
+        print(etree.tostring(schema, pretty_print=True))
 
         objects = parse_schema_element(schema)
         pprint(objects[tns].types)
@@ -375,7 +375,7 @@ class TestParseOwnXmlSchema(unittest.TestCase):
             bald = XmlAttribute(Boolean(default=True))
 
         schema = get_schema_documents([SomeGuy], tns)['tns']
-        print etree.tostring(schema, pretty_print=True)
+        print(etree.tostring(schema, pretty_print=True))
 
         objects = parse_schema_element(schema)
         pprint(objects[tns].types)
@@ -391,7 +391,7 @@ class TestParseOwnXmlSchema(unittest.TestCase):
             name = XmlAttribute(Unicode)
 
         schema = get_schema_documents([SomeGuy], tns)['tns']
-        print etree.tostring(schema, pretty_print=True)
+        print(etree.tostring(schema, pretty_print=True))
 
         objects = parse_schema_element(schema)
         pprint(objects[tns].types)
@@ -407,7 +407,7 @@ class TestParseOwnXmlSchema(unittest.TestCase):
             name = XmlAttribute(Unicode(default="aa"))
 
         schema = get_schema_documents([SomeGuy], tns)['tns']
-        print etree.tostring(schema, pretty_print=True)
+        print(etree.tostring(schema, pretty_print=True))
 
         objects = parse_schema_element(schema)
         pprint(objects[tns].types)

@@ -184,9 +184,9 @@ class TestPrimitive(unittest.TestCase):
         elt = etree.Element('wot')
         elt.text = '2013-08-09+02:00'
         dt = XmlDocument().from_element(Date, elt)
-        print "ok without validation."
+        print("ok without validation.")
         dt = XmlDocument(validator='soft').from_element(Date, elt)
-        print dt
+        print(dt)
 
     def test_time(self):
         n = datetime.time(1, 2, 3, 4)
@@ -473,8 +473,8 @@ class TestDurationPrimitive(unittest.TestCase):
         XmlDocument().to_parent_element(SomeBlob, gg, gg.get_namespace(), element)
         element = element[0]
 
-        print gg.howlong
-        print etree.tostring(element, pretty_print=True)
+        print(gg.howlong)
+        print(etree.tostring(element, pretty_print=True))
         assert element[0].text == answer
 
         data = element.find('{%s}howlong' % gg.get_namespace()).text
@@ -505,8 +505,8 @@ class TestDurationPrimitive(unittest.TestCase):
             XmlDocument().to_parent_element(SomeBlob, gg, gg.get_namespace(), element)
             element = element[0]
 
-            print gg.howlong
-            print etree.tostring(element, pretty_print=True)
+            print(gg.howlong)
+            print(etree.tostring(element, pretty_print=True))
             assert element[0].text == answer
 
             data = element.find('{%s}howlong' % gg.get_namespace()).text
@@ -525,8 +525,8 @@ class TestDurationPrimitive(unittest.TestCase):
                 XmlDocument().to_parent_element(SomeBlob, gg, gg.get_namespace(), element)
                 element = element[0]
 
-                print gg.howlong
-                print etree.tostring(element, pretty_print=True)
+                print(gg.howlong)
+                print(etree.tostring(element, pretty_print=True))
                 assert element[0].text == answer
 
                 data = element.find('{%s}howlong' % gg.get_namespace()).text
@@ -543,8 +543,8 @@ class TestDurationPrimitive(unittest.TestCase):
         XmlDocument().to_parent_element(SomeBlob, gg, gg.get_namespace(), element)
         element = element[0]
 
-        print gg.howlong
-        print etree.tostring(element, pretty_print=True)
+        print(gg.howlong)
+        print(etree.tostring(element, pretty_print=True))
         assert element[0].text == answer
 
         data = element.find('{%s}howlong' % gg.get_namespace()).text
@@ -561,8 +561,8 @@ class TestDurationPrimitive(unittest.TestCase):
         XmlDocument().to_parent_element(SomeBlob, gg, gg.get_namespace(), element)
         element = element[0]
 
-        print gg.howlong
-        print etree.tostring(element, pretty_print=True)
+        print(gg.howlong)
+        print(etree.tostring(element, pretty_print=True))
         assert element[0].text == answer
 
         data = element.find('{%s}howlong' % gg.get_namespace()).text
@@ -579,8 +579,8 @@ class TestDurationPrimitive(unittest.TestCase):
         XmlDocument().to_parent_element(SomeBlob, gg, gg.get_namespace(), element)
         element = element[0]
 
-        print gg.howlong
-        print etree.tostring(element, pretty_print=True)
+        print(gg.howlong)
+        print(etree.tostring(element, pretty_print=True))
         assert element[0].text == answer
 
         data = element.find('{%s}howlong' % gg.get_namespace()).text

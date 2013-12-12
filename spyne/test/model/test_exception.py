@@ -187,7 +187,7 @@ class FaultTests(unittest.TestCase):
         self.assertEqual(c_elt.get('name'), 'cls')
 
         from lxml import etree
-        print etree.tostring(c_elt, pretty_print=True)
+        print(etree.tostring(c_elt, pretty_print=True))
         self.assertEqual(len(c_elt), 0)
 
 class DummySchemaEntries:

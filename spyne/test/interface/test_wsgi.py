@@ -36,7 +36,7 @@ class Test(unittest.TestCase):
         class SomeService(ServiceBase):
             @rpc(Unicode)
             def some_call(ctx, some_str):
-                print some_str
+                print(some_str)
 
 
         app = Application([SomeService], "some_tns", in_protocol=Soap11(),

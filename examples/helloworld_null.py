@@ -67,19 +67,19 @@ if __name__=='__main__':
     # them.
     logging.getLogger('spyne.server.null').setLevel(logging.CRITICAL)
 
-    print "With serialization"
-    print "=================="
-    print
+    print("With serialization")
+    print("==================")
+    print()
 
     null = NullServer(application, ostr=True)
     ret_stream = null.service.say_hello('Dave', 5)
     ret_string = ''.join(ret_stream)
-    print ret_string
-    print
+    print(ret_string)
+    print()
 
-    print "Without serialization"
-    print "====================="
-    print
+    print("Without serialization")
+    print("=====================")
+    print()
 
     null = NullServer(application, ostr=False)
     ret = null.service.say_hello('Dave', 5)

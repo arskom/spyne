@@ -23,4 +23,4 @@ s = doc.toprettyxml(indent='  ', newl='\n', encoding='utf8')
 s = s.replace(" xmlns:","\n                  xmlns:")
 
 open('wsdl.xml', 'w').write(s)
-print 'wsdl.xml written'
+print('wsdl.xml written')

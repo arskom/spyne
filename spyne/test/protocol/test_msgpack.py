@@ -105,8 +105,8 @@ class TestMessagePackRpc(unittest.TestCase):
         }, start_response)
 
         ret = ''.join(ret)
-        print repr(ret)
-        print msgpack.unpackb(ret)
+        print(repr(ret))
+        print(msgpack.unpackb(ret))
         s = msgpack.packb([1, 0, None, {'get_valuesResponse': {
             'get_valuesResult': [
                   {"KeyValuePair": {'value': 'b', 'key': 'a'}},
@@ -114,7 +114,7 @@ class TestMessagePackRpc(unittest.TestCase):
                 ]
             }}
         ])
-        print s
+        print(s)
         assert ret == s
 
 if __name__ == '__main__':

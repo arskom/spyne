@@ -277,19 +277,19 @@ def main():
         if not t:
             continue
 
-        print '-' * 50
-        print t
+        print('-' * 50)
+        print(t)
         try:
-            print count(invregexp(t))
+            print(count(invregexp(t)))
             for s in invregexp(t):
-                print s
+                print(s)
 
         except ParseFatalException as pfe:
-            print pfe.msg
-            print
+            print(pfe.msg)
+            print()
             continue
 
-        print
+        print()
 
 
 if __name__ == "__main__":

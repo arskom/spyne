@@ -67,10 +67,10 @@ instance_elt = get_object_as_xml(instance, SomeObject)
 # Serialize the element tree to string
 data = etree.tostring(instance_elt, pretty_print=True)
 
-print instance
-print
-print schema
-print data
+print(instance)
+print()
+print(schema)
+print(data)
 
 # parse the schema document
 parsed_schema = parse_schema_string(schema)['some_ns']
@@ -79,12 +79,12 @@ parsed_schema = parse_schema_string(schema)['some_ns']
 NewObject = parsed_schema.types['SomeObject']
 
 # We print an empty instance just to see the parsed fields.
-print NewObject()
+print(NewObject())
 
 # Deserialize the xml document using the definition from the schema.
 new_instance = get_xml_as_object(etree.fromstring(data), NewObject)
 
-print new_instance
+print(new_instance)
 
 assert new_instance.s == instance.s
 assert new_instance.i == instance.i
