@@ -18,7 +18,7 @@ try:
     RED = Fore.RED
 
 
-except ImportError, e:
+except ImportError:
     RESET = ''
     GREEN = ''
     RED = ''
@@ -62,9 +62,9 @@ def call_test(f, a, tests):
 
     ret = queue.get()
     if ret == 0:
-        print tests, "OK"
+        print(tests, "OK")
     else:
-        print tests, "FAIL"
+        print(tests, "FAIL")
 
     return ret
 
@@ -120,7 +120,7 @@ class RunTests(TestCommand):
         self.test_suite = True
 
     def run_tests(self):
-        print "running tests"
+        print("running tests")
         ret = 0
         ret = call_pytest('interface', 'model', 'protocol',
                           'test_null_server.py', 'test_service.py',
@@ -133,17 +133,23 @@ class RunTests(TestCommand):
         ret = call_trial('interop/test_soap_client_http_twisted.py') or ret
 
         if ret == 0:
-            print GREEN + "All that glisters is not gold." + RESET
+            print(GREEN + "All that glisters is not gold." + RESET)
         else:
-            print RED + "Something is rotten in the state of Denmark." + RESET
+            print(RED + "Something is rotten in the state of Denmark." + RESET)
 
         raise SystemExit(ret)
 
 test_reqs = [
-    'pytest', 'werkzeug', 'sqlalchemy', 'suds',
-    'pyparsing<1.99', 'lxml>=2.3', 'pyyaml', 'pyzmq', 'twisted', 'colorama',
+    'pytest', 'werkzeug', 'sqlalchemy',
+     'lxml>=2.3', 'pyyaml', 'pyzmq', 'twisted', 'colorama',
     'msgpack-python', 'psycopg2', 'webtest',
 ]
+
+import sys
+if sys.version_info < (3,0):
+    test_reqs.extend(['pyparsing<1.99', 'suds'])
+else:
+    test_reqs.extend(['pyparsing'])
 
 setup(
     name='spyne',
