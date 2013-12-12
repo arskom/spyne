@@ -486,12 +486,20 @@ class ComplexModelMeta(type(ModelBase)):
             for descriptor in methods.values():
                 descriptor.parent_class = self
                 if descriptor.body_style is BODY_STYLE_BARE:
-                    descriptor.in_message.insert_field(0, self)
+                    descriptor.in_message = self
+                else:
+                    descriptor.in_message.insert_field(0, 'self', self)
                     # FIXME: is the if needed here?
                     if descriptor.body_style != BODY_STYLE_WRAPPED:
                         descriptor.body_style = BODY_STYLE_WRAPPED
-                else:
-                    descriptor.in_message = self
+
+                for k, v in descriptor.in_message._type_info.items():
+                    if v is descriptor.in_message:
+                        descriptor.in_message._type_info[k] = self
+
+                for k, v in descriptor.out_message._type_info.items():
+                    if v is descriptor.out_message:
+                        descriptor.out_message._type_info[k] = self
 
         # for spyne objects reflecting an existing db table
         if tn is None:
