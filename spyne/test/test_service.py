@@ -38,6 +38,7 @@ from spyne.auxproc.thread import ThreadAuxProc
 from spyne.decorator import rpc
 from spyne.decorator import srpc
 from spyne.model import Array
+from spyne.model import SelfReference
 from spyne.model import Iterable
 from spyne.model import ComplexModel
 from spyne.model import String
@@ -388,6 +389,15 @@ class TestBodyStyle(unittest.TestCase):
                                 out_protocol=Soap11(cleanup_namespaces=True))
 
         server = WsgiApplication(app)
+
+    def test_invalid_self_reference(self):
+        class SomeService(ServiceBase):
+            @rpc(_returns=SelfReference)
+            def method(ctx):
+                pass
+
+        raise Exception("Must fail with: "
+                        "'SelfReference can't be used inside @rpc and its ilk'")
 
 
 if __name__ == '__main__':
