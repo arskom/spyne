@@ -24,8 +24,6 @@ This module contains the :class:`ServiceBase` class and its helper objects.
 import logging
 logger = logging.getLogger(__name__)
 
-from spyne._base import BODY_STYLE_EMPTY
-from spyne._base import BODY_STYLE_BARE
 from spyne._base import EventManager
 from spyne.util.oset import oset
 
@@ -203,11 +201,6 @@ class ServiceBase(object):
 
         The overriding function must call this function by convention.
         """
-
-        if ctx.descriptor.body_style is BODY_STYLE_BARE:
-            ctx.in_object = [ctx.in_object]
-        elif ctx.descriptor.body_style is BODY_STYLE_EMPTY:
-            ctx.in_object = []
 
         if ctx.function is not None:
             if ctx.descriptor.no_ctx:

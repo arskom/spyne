@@ -26,17 +26,18 @@ from pprint import pprint
 from lxml import etree
 
 from base64 import b64encode
-from spyne.server.null import NullServer
 
 from spyne import Application
 from spyne import rpc
 from spyne import mrpc
 from spyne import ServiceBase
 from spyne.const import xml_ns
+from spyne.error import ResourceNotFoundError
 from spyne.interface import Interface
 from spyne.interface.wsdl import Wsdl11
 from spyne.protocol import ProtocolBase
 from spyne.protocol.soap import Soap11
+from spyne.server.null import NullServer
 from spyne.model import ByteArray
 from spyne.model import Array
 from spyne.model import ComplexModel
@@ -681,7 +682,8 @@ class TestSelfRefence(unittest.TestCase):
         assert v.sub_category == 'aaa'
 
 
-    def test_member_rpc(self):
+class TestMemberRpc(unittest.TestCase):
+    def test_simple(self):
         class SomeComplexModel(ComplexModel):
             @mrpc()
             def put(self, ctx):
@@ -691,7 +693,7 @@ class TestSelfRefence(unittest.TestCase):
         print methods
         assert 'put' in methods
 
-    def test_member_rpc_callable(self):
+    def test_native_call(self):
         v = 'whatever'
 
         class SomeComplexModel(ComplexModel):
@@ -701,7 +703,7 @@ class TestSelfRefence(unittest.TestCase):
 
         assert SomeComplexModel().put(None) == v
 
-    def test_member_rpc_interface(self):
+    def test_interface(self):
         class SomeComplexModel(ComplexModel):
             @mrpc()
             def member_method(self, ctx):
@@ -721,26 +723,30 @@ class TestSelfRefence(unittest.TestCase):
         mmm = __name__ + '.SomeComplexModel.member_method'
         assert mmm in app.interface.method_id_map
 
-    def test_member_rpc_call(self):
+    def test_remote_call_error(self):
         from spyne import mrpc
+        v = 'deger'
 
         class SomeComplexModel(ComplexModel):
-            @mrpc()
+            @mrpc(_returns=SelfReference)
             def put(self, ctx):
-                pass
+                return v
 
         class SomeService(ServiceBase):
             @rpc(_returns=SomeComplexModel)
             def get(ctx):
                 return SomeComplexModel()
 
-        null = NullServer(
-            Application([SomeService], tns='some_tns')
-        )
+        null = NullServer(Application([SomeService], tns='some_tns'))
 
-        print null.service.put()
+        try:
+            null.service.put()
+        except ResourceNotFoundError:
+            pass
+        else:
+            raise Exception("Must fail with: \"Requested resource "
+                "'{spyne.test.model.test_complex}SomeComplexModel' not found\"")
 
-        assert False
 
 if __name__ == '__main__':
     unittest.main()

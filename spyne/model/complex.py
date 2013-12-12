@@ -925,6 +925,12 @@ class ComplexModelBase(ModelBase):
             setattr(retval, k, getattr(other, k, None))
         return retval
 
+    @classmethod
+    def __respawn__(cls, ctx=None):
+        if ctx is not None and ctx.in_object is not None and \
+                                                         len(ctx.in_object) > 0:
+            return ctx.in_object[0]
+
 
 class ComplexModel(ComplexModelBase):
     """The general complexType factory. The __call__ method of this class will

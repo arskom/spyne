@@ -22,11 +22,15 @@ import logging
 logger = logging.getLogger(__name__)
 logger_client = logging.getLogger('.'.join([__name__, 'client']))
 
+from spyne import BODY_STYLE_EMPTY
+from spyne import BODY_STYLE_BARE
 from spyne import BODY_STYLE_WRAPPED
 from spyne.model.fault import Fault
 from spyne.interface import Interface
-from spyne._base import EventManager
+from spyne import EventManager
 from spyne.util.appreg import register_application
+from spyne.error import ResourceNotFoundError
+
 
 
 def get_fault_string_from_exception(e):
@@ -184,7 +188,25 @@ class Application(object):
         management.
         """
 
-        return ctx.descriptor.service_class.call_wrapper(ctx)
+        if ctx.descriptor.body_style is BODY_STYLE_BARE:
+            ctx.in_object = [ctx.in_object]
+        elif ctx.descriptor.body_style is BODY_STYLE_EMPTY:
+            ctx.in_object = []
+
+        if ctx.descriptor.service_class is not None:
+            return ctx.descriptor.service_class.call_wrapper(ctx)
+
+        # class rpc
+        cls = ctx.descriptor.parent_class
+        inst = cls.__respawn__(ctx)
+        if inst is None:
+            raise ResourceNotFoundError('{%s}%s' %
+                                     (cls.get_namespace(), cls.get_type_name()))
+        if ctx.function is not None:
+            if ctx.descriptor.no_ctx:
+                return ctx.function(inst, *ctx.in_object)
+            else:
+                return ctx.function(inst, ctx, *ctx.in_object)
 
     def _has_callbacks(self):
         return self.interface._has_callbacks()
