@@ -747,6 +747,45 @@ class TestMemberRpc(unittest.TestCase):
             raise Exception("Must fail with: \"Requested resource "
                 "'{spyne.test.model.test_complex}SomeComplexModel' not found\"")
 
+    def test_signature(self):
+        class SomeComplexModel(ComplexModel):
+            @mrpc()
+            def member_method(self, ctx):
+                pass
+
+        methods = SomeComplexModel.Attributes.methods
+        assert methods['member_method'].in_message._type_info[0] is SomeComplexModel
+
+    def test_self_reference(self):
+        from spyne import mrpc
+
+        class SomeComplexModel(ComplexModel):
+            @mrpc(_returns=SelfReference)
+            def method(self, ctx):
+                pass
+
+        methods = SomeComplexModel.Attributes.methods
+        assert methods['method'].out_message._type_info[0] is SomeComplexModel
+
+    def test_remote_call_success(self):
+        from spyne import mrpc
+        v = 'deger'
+
+        class SomeComplexModel(ComplexModel):
+            i = Integer
+            @mrpc(_returns=SelfReference)
+            def echo(self, ctx):
+                return v
+
+        class SomeService(ServiceBase):
+            @rpc(_returns=SomeComplexModel)
+            def get(ctx):
+                return SomeComplexModel()
+
+        null = NullServer(Application([SomeService], tns='some_tns'))
+        v = SomeComplexModel(i=5)
+        assert null.service.echo(v) is v
+
 
 if __name__ == '__main__':
     unittest.main()
