@@ -392,12 +392,15 @@ class TestBodyStyle(unittest.TestCase):
         server = WsgiApplication(app)
 
     def test_invalid_self_reference(self):
-        class SomeService(ServiceBase):
-            @rpc(_returns=SelfReference)
-            def method(ctx):
-                pass
-
-        raise Exception("Must fail with: "
+        try:
+            class SomeService(ServiceBase):
+                @rpc(_returns=SelfReference)
+                def method(ctx):
+                    pass
+        except ValueError:
+            pass
+        else:
+            raise Exception("Must fail with: "
                         "'SelfReference can't be used inside @rpc and its ilk'")
 
 
