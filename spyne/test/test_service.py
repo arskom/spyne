@@ -255,6 +255,7 @@ class TestNativeTypes(unittest.TestCase):
                 @rpc(Array(t))
                 def some_call(ctx, arg):
                     pass
+
             nt, = SomeService.public_methods['some_call'].in_message._type_info.values()
             nt, = nt._type_info.values()
             assert issubclass(nt, NATIVE_MAP[t])
