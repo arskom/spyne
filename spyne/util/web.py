@@ -136,11 +136,11 @@ class Application(AppBase):
         except NoResultFound:
             raise ResourceNotFoundError(ctx.in_object)
 
-        except Fault, e:
+        except Fault as e:
             log.err()
             raise
 
-        except Exception, e:
+        except Exception as e:
             log.err()
             # This should not happen! Let the team know via email!
             if EXCEPTION_ADDRESS:
@@ -166,11 +166,11 @@ def _et(f):
         except NoResultFound:
             raise ResourceNotFoundError(self.ctx.in_object)
 
-        except Fault, e:
+        except Fault as e:
             log.err()
             raise
 
-        except Exception, e:
+        except Exception as e:
             log.err()
             # This should not happen! Let the team know via email!
             email_exception(EXCEPTION_ADDRESS)
@@ -272,7 +272,7 @@ def log_repr(obj, cls=None, given_len=None):
 
                 try:
                     l = str(len(obj))
-                except TypeError, e:
+                except TypeError as e:
                     if given_len is not None:
                         l = str(given_len)
                 if issubclass(cls, ComplexModelBase):

@@ -40,7 +40,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 try:
     from django.http import StreamingHttpResponse
-except ImportError, e:
+except ImportError as e:
     def StreamingHttpResponse(*args, **kwargs):
         raise e
 
@@ -140,7 +140,7 @@ class DjangoServer(HttpBase):
         try:
             self.get_out_string(p_ctx)
 
-        except Exception, e:
+        except Exception as e:
             logger.exception(e)
             p_ctx.out_error = Fault('Server',
                                     get_fault_string_from_exception(e))
@@ -238,7 +238,7 @@ class DjangoServer(HttpBase):
 
         try:
             process_contexts(self, others, p_ctx, error=error)
-        except Exception, e:
+        except Exception as e:
             # Report but ignore any exceptions from auxiliary methods.
             logger.exception(e)
 

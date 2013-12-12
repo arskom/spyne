@@ -56,28 +56,28 @@ class TestHttpRpc(unittest.TestCase):
         url = 'http://localhost:9751/404'
         try:
             data = urlopen(url).read()
-        except HTTPError, e:
+        except HTTPError as e:
             assert e.code == 404
 
     def test_413(self):
         url = "http://localhost:9751"
         try:
             data = Request(url,("foo"*3*1024*1024))
-        except HTTPError,e:
+        except HTTPError as e:
             assert e.code == 413
 
     def test_500(self):
         url = 'http://localhost:9751/python_exception'
         try:
             data = urlopen(url).read()
-        except HTTPError, e:
+        except HTTPError as e:
             assert e.code == 500
 
     def test_500_2(self):
         url = 'http://localhost:9751/soap_exception'
         try:
             data = urlopen(url).read()
-        except HTTPError, e:
+        except HTTPError as e:
             assert e.code == 500
 
     def test_echo_string(self):

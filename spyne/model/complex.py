@@ -324,7 +324,7 @@ class ComplexModelMeta(type(ModelBase)):
                             if len(base_types) > 0 and issubclass(b, ModelBase):
                                 cls_dict["__extends__"] = b
 
-                        except Exception,e:
+                        except Exception as e:
                             logger.exception(e)
                             logger.error(repr(extends))
                             raise

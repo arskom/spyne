@@ -67,7 +67,7 @@ class ServerBase(object):
             # when the requested method also has bound auxiliary methods.
             retval = self.app.in_protocol.generate_method_contexts(ctx)
 
-        except Fault, e:
+        except Fault as e:
             ctx.in_object = None
             ctx.in_error = e
             ctx.out_error = e
@@ -85,7 +85,7 @@ class ServerBase(object):
             self.app.in_protocol.deserialize(ctx,
                                            message=self.app.in_protocol.REQUEST)
 
-        except Fault, e:
+        except Fault as e:
             logger.exception(e)
 
             ctx.in_object = None

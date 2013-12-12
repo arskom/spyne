@@ -657,7 +657,7 @@ class HierDictDocument(DictDocument):
             try:
                 sub_value = getattr(inst, k, None)
             # to guard against e.g. sqlalchemy throwing NoSuchColumnError
-            except Exception, e:
+            except Exception as e:
                 logger.error("Error getting %r: %r" %(k,e))
                 sub_value = None
 

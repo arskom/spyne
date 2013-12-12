@@ -284,7 +284,7 @@ def main():
             for s in invregexp(t):
                 print s
 
-        except ParseFatalException,pfe:
+        except ParseFatalException as pfe:
             print pfe.msg
             print
             continue

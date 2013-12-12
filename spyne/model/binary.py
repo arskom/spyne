@@ -102,7 +102,7 @@ class ByteArray(SimpleModel):
     def from_base64(cls, value):
         try:
             return [b64decode(_bytes_join(value))]
-        except TypeError, e:
+        except TypeError as e:
             raise ValidationError(value)
 
     @classmethod

@@ -78,7 +78,7 @@ class JsonEncoder(json.JSONEncoder):
         try:
             return super(JsonEncoder, self).default(o)
 
-        except TypeError, e:
+        except TypeError as e:
             # if json can't serialize it, it's possibly a generator. If not,
             # additional hacks are welcome :)
             if logger.level == logging.DEBUG:
@@ -160,7 +160,7 @@ class JsonDocument(HierDictDocument):
                     in_string = in_string.decode(in_string_encoding)
             ctx.in_document = json.loads(in_string, **self.kwargs)
 
-        except JSONDecodeError, e:
+        except JSONDecodeError as e:
             raise Fault('Client.JsonDecodeError', repr(e))
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):

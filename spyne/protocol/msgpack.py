@@ -99,7 +99,7 @@ class MessagePackDocument(HierDictDocument):
 
         try:
             ctx.in_document = msgpack.unpackb(''.join(ctx.in_string))
-        except ValueError, e:
+        except ValueError as e:
             raise MessagePackDecodeError(''.join(e.args))
 
         if not isinstance(ctx.in_document, dict):
@@ -129,7 +129,7 @@ class MessagePackRpc(MessagePackDocument):
         # TODO: Use feed api
         try:
             ctx.in_document = msgpack.unpackb(''.join(ctx.in_string))
-        except ValueError, e:
+        except ValueError as e:
             raise MessagePackDecodeError(''.join(e.args))
 
         try:

@@ -53,7 +53,7 @@ def email_exception(exception_address, message=""):
         smtp_object.sendmail(sender, receivers, msg.as_string())
         logger.error("Error email sent")
 
-    except Exception, e:
+    except Exception as e:
         logger.error("Error: unable to send email")
         logger.exception(e)
 

@@ -157,7 +157,7 @@ class Application(object):
                 ctx.service_class.event_manager.fire_event(
                                                     'method_return_object', ctx)
 
-        except Fault, e:
+        except Fault as e:
             if e.faultcode == 'Client' or e.faultcode.startswith('Client.'):
                 logger_client.exception(e)
             else:
@@ -171,7 +171,7 @@ class Application(object):
                 ctx.service_class.event_manager.fire_event(
                                                'method_exception_object', ctx)
 
-        except Exception, e:
+        except Exception as e:
             logger.exception(e)
 
             ctx.out_error = Fault('Server', get_fault_string_from_exception(e))

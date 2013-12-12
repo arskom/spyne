@@ -37,7 +37,7 @@ except ImportError: #python 2.5
 
 try:
     from werkzeug.formparser import parse_form_data
-except ImportError, e:
+except ImportError as e:
     def parse_form_data(*args, **kwargs):
         raise e
 
@@ -63,7 +63,7 @@ from spyne.const.http import HTTP_500
 
 try:
     from spyne.protocol.soap.mime import apply_mtom
-except ImportError, e:
+except ImportError as e:
     def apply_mtom(*args, **kwargs):
         raise e
 
@@ -275,7 +275,7 @@ class WsgiApplication(HttpBase):
                     ctx.transport.wsdl = self._wsdl = \
                                         self.doc.wsdl11.get_interface_document()
 
-            except Exception, e:
+            except Exception as e:
                 logger.exception(e)
                 ctx.transport.wsdl_error = e
 
@@ -324,7 +324,7 @@ class WsgiApplication(HttpBase):
 
         try:
             process_contexts(self, others, p_ctx, error=error)
-        except Exception,e:
+        except Exception as e:
             # Report but ignore any exceptions from auxiliary methods.
             logger.exception(e)
 
@@ -362,7 +362,7 @@ class WsgiApplication(HttpBase):
         try:
             self.get_out_string(p_ctx)
 
-        except Exception, e:
+        except Exception as e:
             logger.exception(e)
             p_ctx.out_error = Fault('Server', get_fault_string_from_exception(e))
             return self.handle_error(p_ctx, others, p_ctx.out_error,
@@ -429,7 +429,7 @@ class WsgiApplication(HttpBase):
 
         try:
             process_contexts(self, others, p_ctx, error=None)
-        except Exception, e:
+        except Exception as e:
             # Report but ignore any exceptions from auxiliary methods.
             logger.exception(e)
 

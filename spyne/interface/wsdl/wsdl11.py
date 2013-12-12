@@ -62,7 +62,7 @@ def check_method_port(service, method):
         if (not method.port_type is None):
             index = service.__port_types__.index(method.port_type)
 
-    except ValueError, e:
+    except ValueError as e:
         raise ValueError("""
             The port specified in the rpc decorator does not match any of
             the ports defined by the service class

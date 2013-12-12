@@ -112,7 +112,7 @@ class SpyneClientTestBase(object):
             ret = self.client.service.non_nillable(non_nillable_class)
             raise Exception("must fail")
 
-        except Fault, e:
+        except Fault as e:
             assert e.faultcode in ('senv:Client.SchemaValidationError', 'senv:Client.ValidationError')
 
     def test_echo_in_header(self):
@@ -242,7 +242,7 @@ class SpyneClientTestBase(object):
     def test_python_exception(self):
         try:
             self.client.service.python_exception()
-        except Exception, e:
+        except Exception as e:
             pass
         else:
             raise Exception("must fail")
@@ -250,7 +250,7 @@ class SpyneClientTestBase(object):
     def test_soap_exception(self):
         try:
             self.client.service.soap_exception()
-        except Exception, e:
+        except Exception as e:
             pass
         else:
             raise Exception("must fail")
