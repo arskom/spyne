@@ -18,7 +18,8 @@
 #
 
 
-from spyne.const import TYPE_SUFFIX
+import spyne.const
+
 from spyne.model.complex import ComplexModelMeta
 from spyne.model.complex import ComplexModelBase
 
@@ -100,7 +101,8 @@ class Fault(ComplexModelBase, Exception):
         for k, v in cls._type_info.items():
             if v.__type_name__ is ComplexModelBase.Empty:
                 v.__namespace__ = cls.get_namespace()
-                v.__type_name__ = "%s_%s%s" % (cls.get_type_name(), k, TYPE_SUFFIX)
+                v.__type_name__ = "%s_%s%s" % (cls.get_type_name(), k,
+                                                        spyne.const.TYPE_SUFFIX)
 
             if not issubclass(v, cls):
                 v.resolve_namespace(v, default_ns)

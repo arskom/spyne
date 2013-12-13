@@ -25,6 +25,9 @@ It's possible to create custom decorators that wrap the @srpc decorator in order
 to have a more elegant way of passing frequently-used parameter values. The @rpc
 decorator is a simple example of this.
 """
+
+import spyne.const.xml_ns
+
 from copy import copy
 
 from spyne import MethodDescriptor
@@ -37,9 +40,6 @@ from spyne.model.complex import ComplexModel
 from spyne.model.complex import TypeInfo
 
 from spyne.const import add_request_suffix
-from spyne.const import RESPONSE_SUFFIX
-from spyne.const import RESULT_SUFFIX
-from spyne.const.xml_ns import DEFAULT_NS
 
 
 def _produce_input_message(f, params, kparams, _in_message_name,
@@ -79,7 +79,7 @@ def _produce_input_message(f, params, kparams, _in_message_name,
         k = _in_variable_names.get(k, k)
         in_params[k] = v
 
-    ns = DEFAULT_NS
+    ns = spyne.const.xml_ns.DEFAULT_NS
     if _in_message_name.startswith("{"):
         ns, _, _in_message_name = _in_message_name[1:].partition("}")
 
@@ -135,14 +135,14 @@ def _produce_output_message(func_name, kparams):
     _returns = kparams.get('_returns')
     _body_style = _validate_body_style(kparams)
     _out_message_name = kparams.get('_out_message', '%s%s' %
-                                               (func_name, RESPONSE_SUFFIX))
+                                       (func_name, spyne.const.RESPONSE_SUFFIX))
 
     out_params = TypeInfo()
 
     if _returns and _body_style == 'wrapped':
         if isinstance(_returns, (list, tuple)):
-            default_names = ['%s%s%d' % (func_name, RESULT_SUFFIX, i) for i in
-                                                          range(len(_returns))]
+            default_names = ['%s%s%d' % (func_name, spyne.const.RESULT_SUFFIX, i)
+                                                  for i in range(len(_returns))]
 
             _out_variable_names = kparams.get('_out_variable_names',
                                                                  default_names)
@@ -154,11 +154,11 @@ def _produce_output_message(func_name, kparams):
 
         else:
             _out_variable_name = kparams.get('_out_variable_name',
-                                           '%s%s' % (func_name, RESULT_SUFFIX))
+                               '%s%s' % (func_name, spyne.const.RESULT_SUFFIX))
 
             out_params[_out_variable_name] = _returns
 
-    ns = DEFAULT_NS
+    ns = spyne.const.xml_ns.DEFAULT_NS
     if _out_message_name.startswith("{"):
         ns = _out_message_name[1:].partition("}")[0]
 
