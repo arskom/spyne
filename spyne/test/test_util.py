@@ -112,7 +112,7 @@ class TestXml(unittest.TestCase):
         print()
 
         foo = Foo(a=u'a', b=1, c=decimal.Decimal('3.4'),
-                                    d=datetime(2011,02,20,tzinfo=pytz.utc), e=5)
+                                    d=datetime(2011,2,20,tzinfo=pytz.utc), e=5)
         doc = get_object_as_xml(foo, Foo)
         print(etree.tostring(doc, pretty_print=True))
         foo_back = get_xml_as_object(doc, Foo)
