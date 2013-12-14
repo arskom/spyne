@@ -44,7 +44,7 @@ def root_dict_to_etree(d):
 
     if val is None:
         return retval
-    
+
     if isinstance(val, dict) or isinstance(val, odict):
         dict_to_etree(val, retval)
     elif not isinstance(val, collections.Sized) or isinstance(val, six.string_types):
