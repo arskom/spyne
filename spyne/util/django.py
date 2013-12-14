@@ -1,10 +1,11 @@
-# coding: utf-8
+# encoding: utf-8
 
 """Support for Django model <-> spyne type mapping."""
 
 from __future__ import absolute_import
 
 import logging
+
 from django.core.exceptions import ImproperlyConfigured
 from django.core.validators import (email_re, slug_re,
                                     comma_separated_int_list_re, URLValidator)
@@ -271,8 +272,8 @@ class DjangoComplexModelMeta(ComplexModelMeta):
         return super_new(mcs, name, bases, spyne_attrs)
 
 
+@add_metaclasss(DjangoComplexModelMeta)
 class DjangoComplexModel(ComplexModelBase):
-
     """Base class with Django model mapping support.
 
     Sample usage: ::
@@ -307,5 +308,3 @@ class DjangoComplexModel(ComplexModelBase):
                 django_exclude = ['phone']
 
     """
-
-    __metaclass__ = DjangoComplexModelMeta

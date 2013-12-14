@@ -20,10 +20,13 @@
 
 import spyne.const
 
+from six import add_metaclass
+
 from spyne.model.complex import ComplexModelMeta
 from spyne.model.complex import ComplexModelBase
 
 
+@add_metaclass(ComplexModelMeta)
 class Fault(ComplexModelBase, Exception):
     """Use this class as a base for all public exceptions.
     The Fault object adheres to the
@@ -50,7 +53,6 @@ class Fault(ComplexModelBase, Exception):
     :param detail: Additional information dict.
     """
 
-    __metaclass__ = ComplexModelMeta
     __type_name__ = "Fault"
 
     def __init__(self, faultcode='Server', faultstring="", faultactor="",

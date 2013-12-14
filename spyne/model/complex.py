@@ -1095,9 +1095,8 @@ def TTableModel(metadata=None):
 
     from sqlalchemy import MetaData
 
+    @add_metaclass(ComplexModelMeta)
     class TableModel(TTableModelBase()):
-        __metaclass__ = ComplexModelMeta
-
         class Attributes(ComplexModelBase.Attributes):
             sqla_metadata = metadata or MetaData()
 

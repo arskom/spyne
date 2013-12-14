@@ -67,11 +67,11 @@ logger = logging.getLogger(__name__)
 
 import sqlalchemy
 
+from six import add_metaclass
+
 from sqlalchemy import Column
 from sqlalchemy.orm import RelationshipProperty
-
 from sqlalchemy.ext.declarative import DeclarativeMeta
-
 from sqlalchemy.dialects.postgresql import UUID
 
 from spyne.model import primitive
@@ -205,6 +205,7 @@ class TableModelMeta(DeclarativeMeta, ComplexModelMeta):
         return super(TableModelMeta, cls).__new__(cls, cls_name, cls_bases, cls_dict)
 
 
+@add_metaclass(ComplexModelMeta)
 class TableModel(ComplexModelBase):
     """The main base class for complex types shared by both SQLAlchemy and
     spyne. Classes that inherit from this class should also inherit from
@@ -212,5 +213,4 @@ class TableModel(ComplexModelBase):
     section for more info.
     """
 
-    __metaclass__ = TableModelMeta
     _decl_class_registry = {}
