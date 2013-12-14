@@ -26,17 +26,17 @@ import six
 
 if six.PY2:
     import thread
-else:
-    import _thread as thread
 
-try:
     from urllib import urlencode
     from urllib2 import urlopen
     from urllib2 import Request
     from urllib2 import HTTPError
-except ImportError:
+else:
+    import _thread as thread
+
     from urllib.parse import urlencode
     from urllib.request import urlopen
+    from urllib.request import Request
     from urllib.error import HTTPError
 
 from datetime import datetime
