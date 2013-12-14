@@ -923,7 +923,7 @@ def _gen_mapper(cls, props, table, cls_bases):
 
     _inc = mapper_kwargs.get('include_properties', None)
     if _inc is None:
-        mapper_kwargs['include_properties'] = inc + props.keys()
+        mapper_kwargs['include_properties'] = inc + list(props.keys())
 
     po = mapper_kwargs.get('polymorphic_on', None)
     if po is not None:
