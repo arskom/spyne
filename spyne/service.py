@@ -24,6 +24,7 @@ This module contains the :class:`ServiceBase` class and its helper objects.
 import logging
 logger = logging.getLogger(__name__)
 
+from six import add_metaclass
 from spyne._base import EventManager
 from spyne.util.oset import oset
 
@@ -80,6 +81,7 @@ class ServiceBaseMeta(type):
         return self.__has_aux_methods
 
 
+@add_metaclass(ServiceBaseMeta)
 class ServiceBase(object):
     """The ``ServiceBase`` class is the base class for all service definitions.
 
@@ -122,8 +124,6 @@ class ServiceBase(object):
             Called by the transport right before passing the exception string to
             the client.
     """
-
-    __metaclass__ = ServiceBaseMeta
 
     __tns__ = None
     """For internal use only. You should use the ``tns`` argument to the

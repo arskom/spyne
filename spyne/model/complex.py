@@ -30,6 +30,7 @@ import sys
 import decimal
 import spyne
 
+from six import add_metaclass
 from weakref import WeakKeyDictionary
 from collections import deque
 from inspect import isclass
@@ -944,6 +945,7 @@ class ComplexModelBase(ModelBase):
             return ctx.in_object[0]
 
 
+@add_metaclass(ComplexModelMeta)
 class ComplexModel(ComplexModelBase):
     """The general complexType factory. The __call__ method of this class will
     return instances, contrary to primivites where the same call will result in
@@ -952,15 +954,12 @@ class ComplexModel(ComplexModelBase):
     (see :class:``spyne.model.ModelBase``).
     """
 
-    __metaclass__ = ComplexModelMeta
 
-
+@add_metaclass(ComplexModelMeta)
 class Array(ComplexModelBase):
     """This class generates a ComplexModel child that has one attribute that has
     the same name as the serialized class. It's contained in a Python list.
     """
-
-    __metaclass__ = ComplexModelMeta
 
     class Attributes(ComplexModelBase.Attributes):
         _wrapper = True
