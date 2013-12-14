@@ -19,7 +19,13 @@
 
 import time
 import pytz
+import six
 import unittest
+
+if six.PY2:
+    import thread
+else:
+    import _thread as thread
 
 try:
     from urllib import urlencode
@@ -44,7 +50,6 @@ class TestHttpRpc(unittest.TestCase):
                 from spyne.test.interop.server.httprpc_pod_basic import main
                 main()
 
-            import thread
             thread.start_new_thread(run_server, ())
 
             # FIXME: Does anybody have a better idea?
