@@ -706,7 +706,7 @@ def _gen_array_simple(cls, props, k, child_cust, p):
 
     # get left (fk) column info
     _gen_col = _get_col_o2m(cls, p.left)
-    col_info = _gen_col.next() # gets the column name
+    col_info = next(_gen_col) # gets the column name
     p.left, child_left_col_type = col_info[0] # FIXME: Add support for multi-column primary keys.
     child_left_col_name = p.left
 
@@ -735,7 +735,7 @@ def _gen_array_simple(cls, props, k, child_cust, p):
         _sp_attrs_to_sqla_constraints(cls, child_cust,
                                             col=child_right_col)
 
-        child_left_col = _gen_col.next()
+        child_left_col = next(_gen_col)
         _sp_attrs_to_sqla_constraints(cls, child_cust,
                                             col=child_left_col)
 
@@ -761,7 +761,7 @@ def _gen_array_simple(cls, props, k, child_cust, p):
 
 def _gen_array_o2m(cls, props, k, child, child_cust, p):
     _gen_col = _get_col_o2m(cls, p.right)
-    col_info = _gen_col.next() # gets the column name
+    col_info = next(_gen_col) # gets the column name
     p.right, col_type = col_info[0] # FIXME: Add support for multi-column primary keys.
 
     assert p.left is None, \
@@ -787,7 +787,7 @@ def _gen_array_o2m(cls, props, k, child, child_cust, p):
         col = child_t.c[p.right]
 
     else:
-        col = _gen_col.next()
+        col = next(_gen_col)
 
         _sp_attrs_to_sqla_constraints(cls, child_cust, col=col)
 

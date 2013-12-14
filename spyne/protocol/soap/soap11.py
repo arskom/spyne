@@ -309,11 +309,11 @@ class Soap11(XmlDocument):
                 values = iter(ctx.out_object)
                 while True:
                     try:
-                        k = keys.next()
+                        k = next(keys)
                     except StopIteration:
                         break
                     try:
-                        v = values.next()
+                        v = next(values)
                     except StopIteration:
                         v = None
 

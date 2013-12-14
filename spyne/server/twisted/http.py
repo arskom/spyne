@@ -122,7 +122,7 @@ class _Producer(object):
 
     def resumeProducing(self):
         try:
-            chunk = self.body.next()
+            chunk = next(self.body)
 
         except StopIteration as e:
             self.consumer.unregisterProducer()

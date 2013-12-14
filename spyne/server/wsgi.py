@@ -417,7 +417,7 @@ class WsgiApplication(HttpBase):
         except TypeError:
             retval_iter = iter(p_ctx.out_string)
             try:
-                first_chunk = retval_iter.next()
+                first_chunk = next(retval_iter)
             except StopIteration:
                 first_chunk = ''
 
