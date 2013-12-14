@@ -557,7 +557,7 @@ class HierDictDocument(DictDocument):
                                 and not class_.validate_string(class_, value)):
                 raise ValidationError((key, value))
 
-            if issubclass(class_, (ByteArray, file)):
+            if issubclass(class_, (ByteArray, File)):
                 retval = self.from_string(class_, value,
                                                    self.default_binary_encoding)
 
