@@ -54,8 +54,8 @@ def _produce_input_message(f, params, kparams, _in_message_name,
 
     if args is None:
         try:
-            argcount = f.func_code.co_argcount
-            args = f.func_code.co_varnames[arg_start:argcount]
+            argcount = f.__code__.co_argcount
+            args = f.__code__.co_varnames[arg_start:argcount]
 
         except AttributeError:
             raise TypeError(
@@ -67,12 +67,12 @@ def _produce_input_message(f, params, kparams, _in_message_name,
 
         if len(params) != len(args):
             raise Exception("%r function has %d argument(s) but its decorator "
-                       "has %d." % (f.func_name, len(args), len(params)))
+                       "has %d." % (f.__name__, len(args), len(params)))
     else:
         args = copy(args)
         if len(params) != len(args):
             raise Exception("%r function has %d argument(s) but the _args "
-                     "argument has %d." % (f.func_name, len(args), len(params)))
+                     "argument has %d." % (f.__name__, len(args), len(params)))
 
     in_params = TypeInfo()
     for k, v in zip(args, params):
