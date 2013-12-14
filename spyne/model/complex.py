@@ -28,6 +28,8 @@ logger = logging.getLogger(__name__)
 
 import sys
 import decimal
+import six
+
 import spyne
 
 from six import add_metaclass
@@ -378,7 +380,7 @@ class ComplexModelMeta(type(ModelBase)):
 
         # make sure _type_info contents are sane
         for k, v in _type_info.items():
-            if not isinstance(k, basestring):
+            if not isinstance(k, six.string_types):
                 raise ValueError("Invalid class key", k)
             if not isclass(v):
                 raise ValueError(v)

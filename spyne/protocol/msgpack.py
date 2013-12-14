@@ -31,6 +31,8 @@ from __future__ import absolute_import
 import logging
 logger = logging.getLogger(__name__)
 
+import six
+
 import msgpack
 
 from spyne.model.fault import Fault
@@ -48,7 +50,7 @@ class MessagePackDecodeError(Fault):
 
 
 def _integer_from_string(cls, value):
-    if isinstance(value, basestring):
+    if isinstance(value, six.string_types):
         return integer_from_string(cls, value)
     else:
         return value

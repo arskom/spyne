@@ -32,6 +32,7 @@ try:
 except ImportError:
     import json
 
+import six
 import sqlalchemy
 
 from inspect import isclass
@@ -352,7 +353,7 @@ class PGObjectJson(UserDefinedType):
 
     def result_processor(self, dialect, col_type):
         def process(value):
-            if isinstance(value, basestring):
+            if isinstance(value, six.string_types):
                 return get_dict_as_object(json.loads(value), self.cls,
                         ignore_wrappers=self.ignore_wrappers,
                         complex_as=self.complex_as)

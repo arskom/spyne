@@ -37,6 +37,8 @@ look at it.
 import logging
 logger = logging.getLogger(__name__)
 
+import six
+
 from itertools import chain
 
 from lxml import html
@@ -667,7 +669,7 @@ class HtmlPage(object):
                 raise AttributeError(key)
 
             # set it in.
-            if isinstance(value, basestring):
+            if isinstance(value, six.string_types):
                 elt.text = value
             else:
                 elt.addnext(value)

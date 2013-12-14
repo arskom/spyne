@@ -50,6 +50,8 @@ from __future__ import absolute_import
 import logging
 logger = logging.getLogger(__name__)
 
+import six
+
 from itertools import chain
 
 try:
@@ -134,7 +136,7 @@ class JsonDocument(HierDictDocument):
         super(JsonDocument, self).validate(key, cls, val)
 
         if issubclass(cls, (DateTime, Date, Time)) and not (
-                                    isinstance(val, basestring) and
+                                    isinstance(val, six.string_types) and
                                                  cls.validate_string(cls, val)):
             raise ValidationError(key, val)
 

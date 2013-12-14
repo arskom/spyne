@@ -22,6 +22,7 @@ import unittest
 import uuid
 import pytz
 import decimal
+import six
 
 from datetime import datetime
 from datetime import date
@@ -422,7 +423,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
                 def some_call(p):
                     print(p)
                     print(type(p))
-                    assert isinstance(p, basestring)
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
@@ -442,7 +443,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
                 def some_call(p):
                     print(p)
                     print(type(p))
-                    assert isinstance(p, basestring)
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
@@ -713,7 +714,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
                 def some_call(p):
                     print(p)
                     print(type(p))
-                    assert isinstance(p, basestring)
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
@@ -733,7 +734,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
                 def some_call(p):
                     print(p)
                     print(type(p))
-                    assert isinstance(p, basestring)
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
@@ -753,7 +754,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
                 def some_call(p):
                     print(p)
                     print(type(p))
-                    assert isinstance(p, basestring)
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
@@ -773,7 +774,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
                 def some_call(p):
                     print(p)
                     print(type(p))
-                    assert isinstance(p, basestring)
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
@@ -793,7 +794,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
                 def some_call(p):
                     print(p)
                     print(type(p))
-                    assert isinstance(p, basestring)
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
@@ -813,7 +814,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
                 def some_call(p):
                     print(p)
                     print(type(p))
-                    assert isinstance(p, basestring)
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
@@ -833,7 +834,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
                 def some_call(p):
                     print(p)
                     print(type(p))
-                    assert isinstance(p, basestring)
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
@@ -853,7 +854,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
                 def some_call(p):
                     print(p)
                     print(type(p))
-                    assert isinstance(p, basestring)
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
@@ -873,7 +874,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
                 def some_call(p):
                     print(p)
                     print(type(p))
-                    assert isinstance(p, basestring)
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
@@ -893,7 +894,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
                 def some_call(p):
                     print(p)
                     print(type(p))
-                    assert isinstance(p, basestring)
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
@@ -913,7 +914,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
                 def some_call(p):
                     print(p)
                     print(type(p))
-                    assert isinstance(p, basestring)
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
@@ -933,7 +934,7 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
                 def some_call(p):
                     print(p)
                     print(type(p))
-                    assert isinstance(p, basestring)
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
