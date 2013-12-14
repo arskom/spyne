@@ -24,6 +24,9 @@ import pytz
 import decimal
 import six
 
+if six.PY3:
+    long = int
+
 from datetime import datetime
 from datetime import date
 from datetime import time
