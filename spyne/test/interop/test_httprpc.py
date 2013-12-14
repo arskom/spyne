@@ -17,10 +17,12 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import unittest
+
 import time
+
 import pytz
 import six
-import unittest
 
 if six.PY2:
     import thread
