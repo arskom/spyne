@@ -17,9 +17,17 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import time
 import unittest
+
+import time
+
 import pytz
+import six
+
+if six.PY2:
+    import thread
+else:
+    import _thread as thread
 
 from spyne.model.fault import Fault
 
@@ -54,7 +62,6 @@ def run_server(server_type):
         def run_server():
             main()
 
-        import thread
         thread.start_new_thread(run_server, ())
 
         # FIXME: Does anybody have a better idea?
