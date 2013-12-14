@@ -205,7 +205,7 @@ class TableModelMeta(DeclarativeMeta, ComplexModelMeta):
         return super(TableModelMeta, cls).__new__(cls, cls_name, cls_bases, cls_dict)
 
 
-@add_metaclass(ComplexModelMeta)
+@add_metaclass(TableModelMeta)
 class TableModel(ComplexModelBase):
     """The main base class for complex types shared by both SQLAlchemy and
     spyne. Classes that inherit from this class should also inherit from

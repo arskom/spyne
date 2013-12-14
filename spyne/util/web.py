@@ -220,7 +220,7 @@ class DalMeta(type(object)):
         self._pool = DBThreadPool(what)
 
 
-@six.add_metaclass(DalBaseMeta)
+@six.add_metaclass(DalMeta)
 class DalBase(object):
     _db = None
     _pool = None
