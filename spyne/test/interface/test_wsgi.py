@@ -20,7 +20,8 @@
 import unittest
 
 import six
-if six.PY2:
+
+if six.PY3:
     from io import StringIO
 else:
     from StringIO import StringIO
