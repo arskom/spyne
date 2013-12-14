@@ -68,6 +68,7 @@ def _produce_input_message(f, params, kparams, _in_message_name,
         if len(params) != len(args):
             raise Exception("%r function has %d argument(s) but its decorator "
                        "has %d." % (f.__name__, len(args), len(params)))
+
     else:
         args = copy(args)
         if len(params) != len(args):
