@@ -25,6 +25,8 @@ import time
 import pytz
 import uuid
 
+import six
+
 from collections import deque
 
 from pytz import FixedOffset
@@ -99,7 +101,7 @@ def uuid_from_string(cls, string):
 
 def unicode_to_string(cls, value):
     retval = value
-    if cls.Attributes.encoding is not None and isinstance(value, unicode):
+    if cls.Attributes.encoding is not None and isinstance(value, six.text_type):
         retval = value.encode(cls.Attributes.encoding)
     if cls.Attributes.format is None:
         return retval
@@ -110,16 +112,16 @@ def unicode_from_string(cls, value):
     retval = value
     if isinstance(value, str):
         if cls.Attributes.encoding is None:
-            retval = unicode(value, errors=cls.Attributes.unicode_errors)
+            retval = six.text_type(value, errors=cls.Attributes.unicode_errors)
         else:
-            retval = unicode(value, cls.Attributes.encoding,
-                                    errors=cls.Attributes.unicode_errors)
+            retval = six.text_type(value, cls.Attributes.encoding,
+                                          errors=cls.Attributes.unicode_errors)
     return retval
 
 
 def string_from_string(cls, value):
     retval = value
-    if isinstance(value, unicode):
+    if isinstance(value, six.text_type):
         if cls.Attributes.encoding is None:
             raise Exception("You need to define an encoding to convert the "
                             "incoming unicode values to.")
