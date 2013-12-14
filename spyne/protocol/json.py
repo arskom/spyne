@@ -155,7 +155,7 @@ class JsonDocument(HierDictDocument):
 
         try:
             in_string = ''.join(ctx.in_string)
-            if not isinstance(in_string, unicode):
+            if not isinstance(in_string, six.text_type):
                 if in_string_encoding is None:
                     in_string_encoding = self.default_string_encoding
                 if in_string_encoding is not None:
