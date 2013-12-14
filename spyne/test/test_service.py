@@ -27,7 +27,10 @@ logging.basicConfig(level=logging.DEBUG)
 import unittest
 
 from lxml import etree
-from StringIO import StringIO
+try:
+    from io import StringIO
+except ImportError: # Python 2
+    from StringIO import StringIO
 
 from spyne.const import RESPONSE_SUFFIX
 from spyne.model.primitive import NATIVE_MAP

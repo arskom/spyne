@@ -27,23 +27,25 @@ logger = logging.getLogger(__name__)
 import pytz
 import tempfile
 
-from Cookie import SimpleCookie
+try:
+    from http.cookies import SimpleCookie
+except ImportError:
+    from Cookie import SimpleCookie
 
 from spyne import BODY_STYLE_WRAPPED
-from spyne import BODY_STYLE_BARE
 from spyne.error import ResourceNotFoundError
 from spyne.model.binary import BINARY_ENCODING_URLSAFE_BASE64
-from spyne.model.binary import ByteArray
 from spyne.model.primitive import DateTime
 from spyne.protocol.dictdoc import SimpleDictDocument
 
+
 try:
-    from cStringIO import StringIO
-except ImportError:
+    from io import StringIO
+except ImportError: # Python 2
     try:
+        from cStringIO import StringIO
+    except ImportError:
         from StringIO import StringIO
-    except ImportError: # Python 3
-        from io import StringIO
 
 
 TEMPORARY_DIR = None

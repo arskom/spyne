@@ -23,7 +23,10 @@ logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 
-from StringIO import StringIO
+try:
+    from io import StringIO
+except ImportError: # Python 2
+    from StringIO import StringIO
 from Cookie import SimpleCookie
 from datetime import datetime
 from wsgiref.validate import validator as wsgiref_validator

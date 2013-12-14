@@ -31,9 +31,9 @@ import threading
 import itertools
 
 try:
+    from urllib.parse import unquote
+except ImportError: # Python 2
     from urlparse import unquote
-except ImportError: #python 2.5
-    from urllib import unquote
 
 try:
     from werkzeug.formparser import parse_form_data
