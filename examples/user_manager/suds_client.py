@@ -52,10 +52,10 @@ permission.application = 'table'
 permission.operation = 'read'
 u.permissions.Permission.append(permission)
 
-print u
+print(u)
 
 retval = c.service.add_user(u)
-print retval
+print(retval)
 
-print c.service.get_user(retval)
-print c.service.get_all_user()
+print(c.service.get_user(retval))
+print(c.service.get_all_user())

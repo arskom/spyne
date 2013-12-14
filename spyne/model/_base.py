@@ -27,6 +27,8 @@ import spyne.const.xml_ns
 
 from decimal import Decimal
 
+from six import add_metaclass
+
 from spyne.util import Break
 from spyne.const.xml_ns import DEFAULT_NS
 
@@ -95,13 +97,12 @@ class ModelBaseMeta(type):
         return ModelBaseMeta.__order
 
 
+@add_metaclass(ModelBaseMeta)
 class ModelBase(object):
     """The base class for type markers. It defines the model interface for the
     interface generators to use and also manages class customizations that are
     mainly used for defining constraints on input values.
     """
-
-    __metaclass__ = ModelBaseMeta
 
     __orig__ = None
     """This holds the original class the class .customize()d from. Ie if this is
@@ -131,10 +132,9 @@ class ModelBase(object):
     #
     # Please note that min_occurs and max_occurs must be validated in the
     # ComplexModelBase deserializer.
+    @add_metaclass(AttributesMeta)
     class Attributes(object):
         """The class that holds the constraints for the given type."""
-
-        __metaclass__ = AttributesMeta
 
         _wrapper = False
         # when skip_wrappers=True is passed to a protocol, these objects
@@ -438,17 +438,20 @@ class Null(ModelBase):
     pass
 
 
-class SimpleModelAttributesMeta(ModelBase.Attributes.__metaclass__):
+class SimpleModelAttributesMeta(AttributesMeta):
     def __init__(self, cls_name, cls_bases, cls_dict):
         super(SimpleModelAttributesMeta, self).__init__(cls_name, cls_bases, cls_dict)
         if getattr(self, '_pattern', None) is None:
             self._pattern = None
+
     def get_pattern(self):
         return self._pattern
+
     def set_pattern(self, pattern):
         self._pattern = pattern
         if pattern is not None:
             self._pattern_re = re.compile(pattern)
+
     pattern = property(get_pattern, set_pattern)
 
 
@@ -457,10 +460,9 @@ class SimpleModel(ModelBase):
 
     __namespace__ = "http://www.w3.org/2001/XMLSchema"
 
+    @add_metaclass(SimpleModelAttributesMeta)
     class Attributes(ModelBase.Attributes):
         """The class that holds the constraints for the given type."""
-
-        __metaclass__ = SimpleModelAttributesMeta
 
         values = set()
         """The set of possible values for this type."""

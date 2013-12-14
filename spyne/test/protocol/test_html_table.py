@@ -23,7 +23,10 @@ logging.basicConfig(level=logging.DEBUG)
 import unittest
 
 from pprint import pformat
-from urllib import urlencode
+try:
+    from urllib.parse import urlencode
+except ImportError:
+    from urllib import urlencode
 
 from lxml import html
 

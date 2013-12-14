@@ -17,9 +17,17 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import time
 import unittest
+
+import time
+
 import pytz
+import six
+
+if six.PY2:
+    import thread
+else:
+    import _thread as thread
 
 from spyne.model.fault import Fault
 
@@ -54,7 +62,6 @@ def run_server(server_type):
         def run_server():
             main()
 
-        import thread
         thread.start_new_thread(run_server, ())
 
         # FIXME: Does anybody have a better idea?
@@ -112,7 +119,7 @@ class SpyneClientTestBase(object):
             ret = self.client.service.non_nillable(non_nillable_class)
             raise Exception("must fail")
 
-        except Fault, e:
+        except Fault as e:
             assert e.faultcode in ('senv:Client.SchemaValidationError', 'senv:Client.ValidationError')
 
     def test_echo_in_header(self):
@@ -242,7 +249,7 @@ class SpyneClientTestBase(object):
     def test_python_exception(self):
         try:
             self.client.service.python_exception()
-        except Exception, e:
+        except Exception as e:
             pass
         else:
             raise Exception("must fail")
@@ -250,7 +257,7 @@ class SpyneClientTestBase(object):
     def test_soap_exception(self):
         try:
             self.client.service.soap_exception()
-        except Exception, e:
+        except Exception as e:
             pass
         else:
             raise Exception("must fail")

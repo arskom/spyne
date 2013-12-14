@@ -51,14 +51,14 @@ class TestSpyneJsonRpc1(unittest.TestCase):
         class SomeService(ServiceBase):
             @srpc(Integer, _returns=Integer)
             def yay(i):
-                print i
+                print(i)
                 return i
 
         ctx = _dry_sjrpc1([SomeService],
                     {"ver": 1, "body": {"yay": {"i":5}}}, True)
 
-        print ctx
-        print list(ctx.out_string)
+        print(ctx)
+        print(list(ctx.out_string))
         assert ctx.out_document == {"ver": 1, "body": 5}
 
     def test_call_with_header(self):
@@ -69,14 +69,14 @@ class TestSpyneJsonRpc1(unittest.TestCase):
             __in_header__ = SomeHeader
             @rpc(Integer, _returns=Integer)
             def yay(ctx, i):
-                print ctx.in_header
+                print(ctx.in_header)
                 return ctx.in_header.i
 
         ctx = _dry_sjrpc1([SomeService], 
                     {"ver": 1, "body": {"yay": None}, "head": {"i":5}}, True)
 
-        print ctx
-        print list(ctx.out_string)
+        print(ctx)
+        print(list(ctx.out_string))
         assert ctx.out_document == {"ver": 1, "body": 5}
 
     def test_error(self):
@@ -92,8 +92,8 @@ class TestSpyneJsonRpc1(unittest.TestCase):
         ctx = _dry_sjrpc1([SomeService], 
                     {"ver": 1, "body": {"div": [4,0]}}, True)
 
-        print ctx
-        print list(ctx.out_string)
+        print(ctx)
+        print(list(ctx.out_string))
         assert ctx.out_document == {"ver": 1, "fault": {
                         'faultcode': 'Server', 'faultstring': 'Internal Error'}}
 
@@ -176,7 +176,7 @@ class TestJsonP(unittest.TestCase):
                             out_protocol=JsonDocument(ignore_wrappers=False))
 
         server = NullServer(app, ostr=True)
-        print ''.join(server.service.yay())
+        print(''.join(server.service.yay()))
         # assert false
 
 if __name__ == '__main__':

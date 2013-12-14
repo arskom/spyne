@@ -106,12 +106,12 @@ def _parse_xml_string(xml_string, parser, charset=None):
         try:
             root, xmlids = etree.XMLID(string, parser)
 
-        except ValueError, e:
+        except ValueError as e:
             logger.debug('ValueError: Deserializing from unicode strings with '
                          'encoding declaration is not supported by lxml.')
             root, xmlids = etree.XMLID(string.encode(charset), parser)
 
-    except XMLSyntaxError, e:
+    except XMLSyntaxError as e:
         logger_invalid.error(string)
         raise Fault('Client.XMLSyntaxError', str(e))
 
@@ -309,11 +309,11 @@ class Soap11(XmlDocument):
                 values = iter(ctx.out_object)
                 while True:
                     try:
-                        k = keys.next()
+                        k = next(keys)
                     except StopIteration:
                         break
                     try:
-                        v = values.next()
+                        v = next(values)
                     except StopIteration:
                         v = None
 

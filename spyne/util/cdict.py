@@ -65,7 +65,7 @@ class cdict(dict):
         try:
             return dict.__getitem__(self, cls)
 
-        except KeyError,e:
+        except KeyError as e:
             for b in cls.__bases__:
                 try:
                     retval = self[b]

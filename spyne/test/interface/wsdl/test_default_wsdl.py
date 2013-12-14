@@ -194,7 +194,7 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
             )
         assert len(schema) == 1
 
-        print etree.tostring(wsdl, pretty_print=True)
+        print(etree.tostring(wsdl, pretty_print=True))
 
         elts = schema[0].xpath(
             'xs:element[@name="whatever%s"]' % REQUEST_SUFFIX, namespaces=ns)
@@ -226,7 +226,7 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
                 namespaces=ns,
             )
 
-        print etree.tostring(schema, pretty_print=True)
+        print(etree.tostring(schema, pretty_print=True))
 
         assert len(schema.xpath(
             'xs:complexType[@name="string%s"]' % ARRAY_SUFFIX, namespaces=ns)) > 0
@@ -259,7 +259,7 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
         wsdl.build_interface_document('url')
 
         wsdl = etree.fromstring(wsdl.get_interface_document())
-        print etree.tostring(wsdl, pretty_print=True)
+        print(etree.tostring(wsdl, pretty_print=True))
         assert len(wsdl.xpath(
             "/wsdl:definitions/wsdl:types/xs:schema[@targetNamespace='%s']"
             "/xs:complexType[@name='SomeObject']/xs:sequence/xs:element[@name='c']"

@@ -22,6 +22,10 @@ import unittest
 import uuid
 import pytz
 import decimal
+import six
+
+if six.PY3:
+    long = int
 
 from datetime import datetime
 from datetime import date
@@ -119,8 +123,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                     {"SomeComplexModel": {"i": 5, "s": "5x"}}}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_complex(self):
@@ -319,8 +323,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(AnyXml, _returns=AnyXml)
                 def some_call(p):
-                    print p
-                    print type(p)
+                    print(p)
+                    print(type(p))
                     assert type(p) == lxml.etree._Element
                     return p
 
@@ -329,8 +333,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_any_html(self):
@@ -339,8 +343,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(AnyHtml, _returns=AnyHtml)
                 def some_call(p):
-                    print p
-                    print type(p)
+                    print(p)
+                    print(type(p))
                     assert type(p) == lxml.html.HtmlElement
                     return p
 
@@ -349,8 +353,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
 
@@ -360,8 +364,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(AnyDict, _returns=AnyDict)
                 def some_call(p):
-                    print p
-                    print type(p)
+                    print(p)
+                    print(type(p))
                     assert type(p) == dict
                     return p
 
@@ -370,8 +374,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_unicode(self):
@@ -380,8 +384,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(Unicode, _returns=Unicode)
                 def some_call(p):
-                    print p
-                    print type(p)
+                    print(p)
+                    print(type(p))
                     assert type(p) == unicode
                     return p
 
@@ -390,8 +394,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_string(self):
@@ -400,8 +404,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(String(encoding='utf8'), _returns=String)
                 def some_call(p):
-                    print p
-                    print type(p)
+                    print(p)
+                    print(type(p))
                     assert isinstance(p, str)
                     return p
 
@@ -410,8 +414,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_any_uri(self):
@@ -420,9 +424,9 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(AnyUri, _returns=AnyUri)
                 def some_call(p):
-                    print p
-                    print type(p)
-                    assert isinstance(p, basestring)
+                    print(p)
+                    print(type(p))
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
@@ -430,8 +434,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_image_uri(self):
@@ -440,9 +444,9 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(ImageUri, _returns=ImageUri)
                 def some_call(p):
-                    print p
-                    print type(p)
-                    assert isinstance(p, basestring)
+                    print(p)
+                    print(type(p))
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
@@ -450,8 +454,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_decimal(self):
@@ -462,8 +466,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(Decimal, _returns=Decimal)
                 def some_call(p):
-                    print p
-                    print type(p)
+                    print(p)
+                    print(type(p))
                     assert type(p) == decimal.Decimal
                     return p
 
@@ -472,8 +476,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse":
                                         {"some_callResult": d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_double(self):
@@ -482,8 +486,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(Double, _returns=Double)
                 def some_call(p):
-                    print p
-                    print type(p)
+                    print(p)
+                    print(type(p))
                     assert type(p) == float
                     return p
 
@@ -492,8 +496,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_integer(self):
@@ -502,8 +506,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(Integer, _returns=Integer)
                 def some_call(p):
-                    print p
-                    print type(p)
+                    print(p)
+                    print(type(p))
                     assert type(p) == int
                     return p
 
@@ -512,8 +516,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_integer_way_small(self):
@@ -524,8 +528,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(Integer, _returns=Integer)
                 def some_call(p):
-                    print p
-                    print type(p)
+                    print(p)
+                    print(type(p))
                     assert type(p) == long
                     return p
 
@@ -535,8 +539,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
 
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_integer_way_big(self):
@@ -547,8 +551,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(Integer, _returns=Integer)
                 def some_call(p):
-                    print p
-                    print type(p)
+                    print(p)
+                    print(type(p))
                     assert type(p) == long
                     return p
 
@@ -557,8 +561,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_time(self):
@@ -567,8 +571,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(Time, _returns=Time)
                 def some_call(p):
-                    print p
-                    print type(p)
+                    print(p)
+                    print(type(p))
                     assert type(p) == time
                     assert p.isoformat() == d
                     return p
@@ -578,8 +582,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_date(self):
@@ -588,8 +592,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(Date, _returns=Date)
                 def some_call(p):
-                    print p
-                    print type(p)
+                    print(p)
+                    print(type(p))
                     assert type(p) == date
                     assert p.isoformat() == d
                     return p
@@ -599,8 +603,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_datetime(self):
@@ -609,8 +613,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(DateTime, _returns=DateTime(timezone=False))
                 def some_call(p):
-                    print p
-                    print type(p)
+                    print(p)
+                    print(type(p))
                     assert type(p) == datetime
                     assert p.replace(tzinfo=None).isoformat() == d
                     return p
@@ -620,8 +624,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_datetime_tz(self):
@@ -630,8 +634,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(DateTime, _returns=DateTime(ge=datetime(2010,1,1,tzinfo=pytz.utc)))
                 def some_call(p):
-                    print p
-                    print type(p)
+                    print(p)
+                    print(type(p))
                     assert type(p) == datetime
                     assert p.isoformat() == d
                     return p
@@ -641,8 +645,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_duration(self):
@@ -651,8 +655,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(Duration, _returns=Duration)
                 def some_call(p):
-                    print p
-                    print type(p)
+                    print(p)
+                    print(type(p))
                     assert type(p) == timedelta
                     return p
 
@@ -661,8 +665,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_boolean(self):
@@ -671,8 +675,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(Boolean, _returns=Boolean)
                 def some_call(p):
-                    print p
-                    print type(p)
+                    print(p)
+                    print(type(p))
                     assert type(p) == bool
                     return p
 
@@ -681,8 +685,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_uuid(self):
@@ -691,8 +695,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(Uuid, _returns=Uuid)
                 def some_call(p):
-                    print p
-                    print type(p)
+                    print(p)
+                    print(type(p))
                     assert type(p) == uuid.UUID
                     return p
 
@@ -701,8 +705,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_point2d(self):
@@ -711,9 +715,9 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(Point, _returns=Point)
                 def some_call(p):
-                    print p
-                    print type(p)
-                    assert isinstance(p, basestring)
+                    print(p)
+                    print(type(p))
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
@@ -721,8 +725,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_point3d(self):
@@ -731,9 +735,9 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(Point, _returns=Point)
                 def some_call(p):
-                    print p
-                    print type(p)
-                    assert isinstance(p, basestring)
+                    print(p)
+                    print(type(p))
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
@@ -741,8 +745,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_line2d(self):
@@ -751,9 +755,9 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(Line, _returns=Line)
                 def some_call(p):
-                    print p
-                    print type(p)
-                    assert isinstance(p, basestring)
+                    print(p)
+                    print(type(p))
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
@@ -761,8 +765,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_line3d(self):
@@ -771,9 +775,9 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(Line, _returns=Line)
                 def some_call(p):
-                    print p
-                    print type(p)
-                    assert isinstance(p, basestring)
+                    print(p)
+                    print(type(p))
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
@@ -781,8 +785,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_polygon2d(self):
@@ -791,9 +795,9 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(Polygon(2), _returns=Polygon(2))
                 def some_call(p):
-                    print p
-                    print type(p)
-                    assert isinstance(p, basestring)
+                    print(p)
+                    print(type(p))
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
@@ -801,8 +805,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_polygon3d(self):
@@ -811,9 +815,9 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(Polygon(3), _returns=Polygon(3))
                 def some_call(p):
-                    print p
-                    print type(p)
-                    assert isinstance(p, basestring)
+                    print(p)
+                    print(type(p))
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
@@ -821,8 +825,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_multipoint2d(self):
@@ -831,9 +835,9 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(MultiPoint(2), _returns=MultiPoint(2))
                 def some_call(p):
-                    print p
-                    print type(p)
-                    assert isinstance(p, basestring)
+                    print(p)
+                    print(type(p))
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
@@ -841,8 +845,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_multipoint3d(self):
@@ -851,9 +855,9 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(MultiPoint(3), _returns=MultiPoint(3))
                 def some_call(p):
-                    print p
-                    print type(p)
-                    assert isinstance(p, basestring)
+                    print(p)
+                    print(type(p))
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
@@ -861,8 +865,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_multiline2d(self):
@@ -871,9 +875,9 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(MultiLine(2), _returns=MultiLine(2))
                 def some_call(p):
-                    print p
-                    print type(p)
-                    assert isinstance(p, basestring)
+                    print(p)
+                    print(type(p))
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
@@ -881,8 +885,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_multiline3d(self):
@@ -891,9 +895,9 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(MultiLine(3), _returns=MultiLine(3))
                 def some_call(p):
-                    print p
-                    print type(p)
-                    assert isinstance(p, basestring)
+                    print(p)
+                    print(type(p))
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
@@ -901,8 +905,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_multipolygon2d(self):
@@ -911,9 +915,9 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(MultiPolygon(2), _returns=MultiPolygon(2))
                 def some_call(p):
-                    print p
-                    print type(p)
-                    assert isinstance(p, basestring)
+                    print(p)
+                    print(type(p))
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
@@ -921,8 +925,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_multipolygon3d(self):
@@ -931,9 +935,9 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(MultiPolygon(3), _returns=MultiPolygon(3))
                 def some_call(p):
-                    print p
-                    print type(p)
-                    assert isinstance(p, basestring)
+                    print(p)
+                    print(type(p))
+                    assert isinstance(p, six.string_types)
                     return p
 
             ctx = _dry_me([SomeService], {"some_call":[d]})
@@ -941,8 +945,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                         d}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_generator(self):
@@ -956,8 +960,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                   range(1000)}}, **dumps_kwargs)
-            print s
-            print d
+            print(s)
+            print(d)
             assert s == d
 
         def test_bytearray(self):
@@ -970,8 +974,8 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(ByteArray, _returns=ByteArray)
                 def some_call(p):
-                    print p
-                    print type(p)
+                    print(p)
+                    print(type(p))
                     assert isinstance(p, list)
                     assert p == [data]
                     return p
@@ -982,9 +986,9 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                 encoded_data}}, **dumps_kwargs)
 
-            print s
-            print d
-            print encoded_data
+            print(s)
+            print(d)
+            print(encoded_data)
             assert s == d
 
         def test_validation_frequency(self):

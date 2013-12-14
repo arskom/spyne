@@ -25,6 +25,8 @@ import time
 import pytz
 import uuid
 
+import six
+
 from collections import deque
 
 from pytz import FixedOffset
@@ -80,7 +82,7 @@ def any_xml_to_string(cls, value):
 def any_xml_from_string(cls, string):
     try:
         return etree.fromstring(string)
-    except etree.XMLSyntaxError, e:
+    except etree.XMLSyntaxError as e:
         raise ValidationError(string, "%%r: %r" % e)
 
 def any_html_to_string(cls, value):
@@ -99,7 +101,7 @@ def uuid_from_string(cls, string):
 
 def unicode_to_string(cls, value):
     retval = value
-    if cls.Attributes.encoding is not None and isinstance(value, unicode):
+    if cls.Attributes.encoding is not None and isinstance(value, six.text_type):
         retval = value.encode(cls.Attributes.encoding)
     if cls.Attributes.format is None:
         return retval
@@ -110,16 +112,16 @@ def unicode_from_string(cls, value):
     retval = value
     if isinstance(value, str):
         if cls.Attributes.encoding is None:
-            retval = unicode(value, errors=cls.Attributes.unicode_errors)
+            retval = six.text_type(value, errors=cls.Attributes.unicode_errors)
         else:
-            retval = unicode(value, cls.Attributes.encoding,
-                                    errors=cls.Attributes.unicode_errors)
+            retval = six.text_type(value, cls.Attributes.encoding,
+                                          errors=cls.Attributes.unicode_errors)
     return retval
 
 
 def string_from_string(cls, value):
     retval = value
-    if isinstance(value, unicode):
+    if isinstance(value, six.text_type):
         if cls.Attributes.encoding is None:
             raise Exception("You need to define an encoding to convert the "
                             "incoming unicode values to.")
@@ -146,7 +148,7 @@ def decimal_from_string(cls, string):
 
     try:
         return decimal.Decimal(string)
-    except decimal.InvalidOperation, e:
+    except decimal.InvalidOperation as e:
         raise ValidationError(string, "%%r: %r" % e)
 
 
@@ -161,7 +163,7 @@ def double_to_string(cls, value):
 def double_from_string(cls, string):
     try:
         return float(string)
-    except (TypeError, ValueError), e:
+    except (TypeError, ValueError) as e:
         raise ValidationError(string, "%%r: %r" % e)
 
 
@@ -311,7 +313,7 @@ def date_from_string(cls, string):
     try:
         d = datetime.datetime.strptime(string, cls.Attributes.format)
         return datetime.date(d.year, d.month, d.day)
-    except ValueError, e:
+    except ValueError as e:
         match = cls._offset_re.match(string)
         if match:
             return datetime.date(int(match.group('year')),

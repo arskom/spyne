@@ -56,7 +56,7 @@ permission.operation = 'read'
 u.permissions.append(permission)
 
 retval = c.service.add_user(u)
-print retval
+print(retval)
 
 pprint(c.service.get_user(retval))
 pprint(list(c.service.get_all_user()))

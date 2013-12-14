@@ -87,13 +87,13 @@ class TestXml(unittest.TestCase):
         server.get_out_object(ctx)
         server.get_out_string(ctx)
 
-        print ctx.out_string
+        print(ctx.out_string)
         pprint(app.interface.nsmap)
 
         ret = etree.fromstring(''.join(ctx.out_string)).xpath(
             '//tns:some_call' + RESULT_SUFFIX, namespaces=app.interface.nsmap)[0]
 
-        print etree.tostring(ret, pretty_print=True)
+        print(etree.tostring(ret, pretty_print=True))
 
         assert ret.text == "a"
         assert ret.attrib['b'] == "b"
@@ -129,11 +129,11 @@ class TestXml(unittest.TestCase):
         server.get_out_string(ctx)
 
         ret = ''.join(ctx.out_string)
-        print ret
+        print(ret)
         ret = etree.fromstring(ret)
         ret = ret.xpath('//s0:a', namespaces=app.interface.nsmap)[0]
 
-        print etree.tostring(ret, pretty_print=True)
+        print(etree.tostring(ret, pretty_print=True))
 
         assert ret.text == "a"
         assert ret.attrib['b'] == "b"
@@ -173,8 +173,8 @@ class TestXml(unittest.TestCase):
         ret = etree.fromstring(''.join(ctx.out_string)).xpath('//s0:e',
                                                  namespaces=app.interface.nsmap)
 
-        print etree.tostring(ret[0], pretty_print=True)
-        print etree.tostring(ret[1], pretty_print=True)
+        print(etree.tostring(ret[0], pretty_print=True))
+        print(etree.tostring(ret[1], pretty_print=True))
 
         assert ret[0].text == "e0"
         assert ret[0].attrib['a'] == "a0"
@@ -211,7 +211,7 @@ class TestXml(unittest.TestCase):
         val = ['a', 'b']
         cls = Array(Unicode, namespace='tns')
         XmlDocument().to_parent_element(cls, val, 'tns', parent)
-        print etree.tostring(parent, pretty_print=True)
+        print(etree.tostring(parent, pretty_print=True))
         xpath = parent.xpath('//x:stringArray/x:string/text()',
                                                         namespaces={'x': 'tns'})
         assert xpath == val
@@ -224,7 +224,7 @@ class TestXml(unittest.TestCase):
 
         parent = etree.Element('parent')
         XmlDocument().to_parent_element(cls, val, 'tns', parent)
-        print etree.tostring(parent, pretty_print=True)
+        print(etree.tostring(parent, pretty_print=True))
         xpath = parent.xpath('//x:cls/x:s/text()', namespaces={'x': 'tns'})
         assert xpath == val.s
 
@@ -234,8 +234,8 @@ class TestXml(unittest.TestCase):
         class SomeService(ServiceBase):
             @srpc(Decimal(120,4), _returns=Decimal)
             def some_call(p):
-                print p
-                print type(p)
+                print(p)
+                print(type(p))
                 assert type(p) == decimal.Decimal
                 assert d == p
                 return p
@@ -254,7 +254,7 @@ class TestXml(unittest.TestCase):
 
         elt = etree.fromstring(''.join(ctx.out_string))
 
-        print etree.tostring(elt, pretty_print=True)
+        print(etree.tostring(elt, pretty_print=True))
         target = elt.xpath('//tns:some_callResult/text()',
                                               namespaces=app.interface.nsmap)[0]
         assert target == str(d)
@@ -277,7 +277,7 @@ class TestXml(unittest.TestCase):
             d = Integer(sub_ns="dd", sub_name="dd")
 
         elt = get_object_as_xml(C(a=1, b=2, c=3, d=4), C)
-        print etree.tostring(elt, pretty_print=True)
+        print(etree.tostring(elt, pretty_print=True))
 
         assert elt.xpath("s0:a/text()",  namespaces=m) == ["1"]
         assert elt.xpath("s0:bb/text()", namespaces=m) == ["2"]
@@ -285,7 +285,7 @@ class TestXml(unittest.TestCase):
         assert elt.xpath("s3:dd/text()", namespaces=m) == ["4"]
 
         c = get_xml_as_object(elt, C)
-        print c
+        print(c)
         assert c.a == 1
         assert c.b == 2
         assert c.c == 3
@@ -309,7 +309,7 @@ class TestXml(unittest.TestCase):
             d = XmlAttribute(Integer(sub_ns="dd", sub_name="dd"))
 
         elt = get_object_as_xml(C(a=1, b=2, c=3, d=4), C)
-        print etree.tostring(elt, pretty_print=True)
+        print(etree.tostring(elt, pretty_print=True))
 
         assert elt.xpath("//*/@a")  == ["1"]
         assert elt.xpath("//*/@bb") == ["2"]
@@ -317,7 +317,7 @@ class TestXml(unittest.TestCase):
         assert elt.xpath("//*/@s3:dd", namespaces=m) == ["4"]
 
         c = get_xml_as_object(elt, C)
-        print c
+        print(c)
         assert c.a == 1
         assert c.b == 2
         assert c.c == 3

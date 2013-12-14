@@ -125,7 +125,7 @@ class YamlDocument(HierDictDocument):
             ctx.in_document = yaml.load(''.join(ctx.in_string).decode(
                          in_string_encoding), **self.in_kwargs)
 
-        except ParserError, e:
+        except ParserError as e:
             raise Fault('Client.YamlDecodeError', repr(e))
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):

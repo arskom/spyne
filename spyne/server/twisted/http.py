@@ -122,9 +122,9 @@ class _Producer(object):
 
     def resumeProducing(self):
         try:
-            chunk = self.body.next()
+            chunk = next(self.body)
 
-        except StopIteration, e:
+        except StopIteration as e:
             self.consumer.unregisterProducer()
             if self.deferred is not None:
                 self.deferred.callback(self.consumer)
@@ -331,7 +331,7 @@ class TwistedWebResource(Resource):
 
             return ctx.transport.wsdl
 
-        except Exception, e:
+        except Exception as e:
             ctx.transport.wsdl_error = e
             self.http_transport.event_manager.fire_event('wsdl_exception', ctx)
             raise

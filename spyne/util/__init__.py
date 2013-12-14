@@ -102,7 +102,7 @@ def coroutine(func):
         ret = func(*args, **kwargs)
 
         try:
-            ret.next()
+            next(ret)
 
         except StopIteration:
             return None

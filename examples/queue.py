@@ -164,7 +164,7 @@ class RemoteProcedure(RemoteProcedureBase):
             self.get_out_string(ctx)
 
             out_string = ''.join(ctx.out_string)
-            print out_string
+            print(out_string)
 
             session.add(TaskQueue(data=out_string))
 

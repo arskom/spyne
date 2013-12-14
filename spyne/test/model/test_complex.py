@@ -132,7 +132,7 @@ class TestComplexModel(unittest.TestCase):
         class C(ComplexModel):
             u = Unicode
         CC = C.customize(child_attrs=dict(u=dict(min_len=5)))
-        print dict(C.Attributes._variants.items())
+        print(dict(C.Attributes._variants.items()))
         r, = C.Attributes._variants
         assert r is CC
         assert CC.Attributes.parent_variant is C
@@ -231,7 +231,7 @@ class TestComplexModel(unittest.TestCase):
             self.assertEquals(peeps2[i].birthdate, dob)
 
     def test_array_member_name(self):
-        print Array(String, member_name="punk")._type_info
+        print(Array(String, member_name="punk")._type_info)
         assert 'punk' in Array(String, member_name="punk")._type_info
 
     def test_class_nested_array(self):
@@ -548,7 +548,7 @@ class TestFlatDict(unittest.TestCase):
         val = CCM(c=[CM(i=i, s='b'*(i+1)) for i in range(2)])
 
         d = SimpleDictDocument().object_to_simple_dict(CCM, val)
-        print d
+        print(d)
 
         assert d['c[0]_i'] == 0
         assert d['c[0]_s'] == 'b'
@@ -568,7 +568,7 @@ class TestFlatDict(unittest.TestCase):
         val = CCM()
 
         d = SimpleDictDocument().object_to_simple_dict(CCM, val)
-        print d
+        print(d)
 
         assert len(d) == 0
 
@@ -690,7 +690,7 @@ class TestMemberRpc(unittest.TestCase):
                 return "PUNK!!!"
 
         methods = SomeComplexModel.Attributes.methods
-        print methods
+        print(methods)
         assert 'put' in methods
 
     def test_native_call(self):
@@ -710,7 +710,7 @@ class TestMemberRpc(unittest.TestCase):
                 pass
 
         methods = SomeComplexModel.Attributes.methods
-        print methods
+        print(methods)
         assert 'member_method' in methods
 
         class SomeService(ServiceBase):

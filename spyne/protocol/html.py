@@ -37,6 +37,8 @@ look at it.
 import logging
 logger = logging.getLogger(__name__)
 
+import six
+
 from itertools import chain
 
 from lxml import html
@@ -396,7 +398,7 @@ class _HtmlColumnTable(_HtmlTableBase):
             value, = value
 
         fti = cls.get_flat_type_info(cls)
-        first_child = iter(fti.values()).next()
+        first_child = next(iter(fti.values()))
         if not issubclass(cls, Array):
             raise NotImplementedError("Can only serialize Array(...) types")
 
@@ -527,7 +529,7 @@ class _HtmlRowTable(_HtmlTableBase):
                 raise NotImplementedError(
                                      "Can only serialize complex return types")
 
-            first_child_2 = iter(fti.values()).next()
+            first_child_2 = next(iter(fti.values()))
 
             if len(fti) == 1 and first_child_2.Attributes.max_occurs > 1:
                 if issubclass(first_child_2, ComplexModelBase):
@@ -667,7 +669,7 @@ class HtmlPage(object):
                 raise AttributeError(key)
 
             # set it in.
-            if isinstance(value, basestring):
+            if isinstance(value, six.string_types):
                 elt.text = value
             else:
                 elt.addnext(value)

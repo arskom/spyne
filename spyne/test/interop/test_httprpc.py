@@ -17,18 +17,26 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import time
-import pytz
 import unittest
 
-try:
+import time
+
+import pytz
+import six
+
+if six.PY2:
+    import thread
+
     from urllib import urlencode
     from urllib2 import urlopen
     from urllib2 import Request
     from urllib2 import HTTPError
-except ImportError:
+else:
+    import _thread as thread
+
     from urllib.parse import urlencode
     from urllib.request import urlopen
+    from urllib.request import Request
     from urllib.error import HTTPError
 
 from datetime import datetime
@@ -44,7 +52,6 @@ class TestHttpRpc(unittest.TestCase):
                 from spyne.test.interop.server.httprpc_pod_basic import main
                 main()
 
-            import thread
             thread.start_new_thread(run_server, ())
 
             # FIXME: Does anybody have a better idea?
@@ -56,28 +63,28 @@ class TestHttpRpc(unittest.TestCase):
         url = 'http://localhost:9751/404'
         try:
             data = urlopen(url).read()
-        except HTTPError, e:
+        except HTTPError as e:
             assert e.code == 404
 
     def test_413(self):
         url = "http://localhost:9751"
         try:
             data = Request(url,("foo"*3*1024*1024))
-        except HTTPError,e:
+        except HTTPError as e:
             assert e.code == 413
 
     def test_500(self):
         url = 'http://localhost:9751/python_exception'
         try:
             data = urlopen(url).read()
-        except HTTPError, e:
+        except HTTPError as e:
             assert e.code == 500
 
     def test_500_2(self):
         url = 'http://localhost:9751/soap_exception'
         try:
             data = urlopen(url).read()
-        except HTTPError, e:
+        except HTTPError as e:
             assert e.code == 500
 
     def test_echo_string(self):

@@ -303,7 +303,7 @@ class XmlDocument(ProtocolBase):
                              'lxml.')
                 ctx.in_document = etree.fromstring(string.decode(charset),
                                                                     self.parser)
-        except XMLSyntaxError, e:
+        except XMLSyntaxError as e:
             logger_invalid.error(string)
             raise Fault('Client.XMLSyntaxError', str(e))
 

@@ -50,6 +50,8 @@ from __future__ import absolute_import
 import logging
 logger = logging.getLogger(__name__)
 
+import six
+
 from itertools import chain
 
 try:
@@ -78,7 +80,7 @@ class JsonEncoder(json.JSONEncoder):
         try:
             return super(JsonEncoder, self).default(o)
 
-        except TypeError, e:
+        except TypeError as e:
             # if json can't serialize it, it's possibly a generator. If not,
             # additional hacks are welcome :)
             if logger.level == logging.DEBUG:
@@ -134,7 +136,7 @@ class JsonDocument(HierDictDocument):
         super(JsonDocument, self).validate(key, cls, val)
 
         if issubclass(cls, (DateTime, Date, Time)) and not (
-                                    isinstance(val, basestring) and
+                                    isinstance(val, six.string_types) and
                                                  cls.validate_string(cls, val)):
             raise ValidationError(key, val)
 
@@ -153,14 +155,14 @@ class JsonDocument(HierDictDocument):
 
         try:
             in_string = ''.join(ctx.in_string)
-            if not isinstance(in_string, unicode):
+            if not isinstance(in_string, six.text_type):
                 if in_string_encoding is None:
                     in_string_encoding = self.default_string_encoding
                 if in_string_encoding is not None:
                     in_string = in_string.decode(in_string_encoding)
             ctx.in_document = json.loads(in_string, **self.kwargs)
 
-        except JSONDecodeError, e:
+        except JSONDecodeError as e:
             raise Fault('Client.JsonDecodeError', repr(e))
 
     def create_out_string(self, ctx, out_string_encoding='utf8'):
@@ -303,11 +305,11 @@ class _SpyneJsonRpc1(JsonDocument):
             values = iter(ctx.out_object)
             while True:
                 try:
-                    k = keys.next()
+                    k = next(keys)
                 except StopIteration:
                     break
                 try:
-                    v = values.next()
+                    v = next(values)
                 except StopIteration:
                     v = None
 

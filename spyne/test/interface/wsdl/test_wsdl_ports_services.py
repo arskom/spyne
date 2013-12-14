@@ -208,7 +208,7 @@ class TestWSDLPortServiceBehavior(unittest.TestCase):
         wsdl.build_interface_document(self.url)
 
         from lxml import etree
-        print etree.tostring(wsdl.root_elt, pretty_print=True)
+        print(etree.tostring(wsdl.root_elt, pretty_print=True))
         self.assertEquals(2, len(wsdl.root_elt.findall(self.port_type_string)))
 
 if __name__ == '__main__':

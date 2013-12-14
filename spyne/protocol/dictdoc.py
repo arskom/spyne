@@ -143,6 +143,8 @@ logger = logging.getLogger(__name__)
 import re
 RE_HTTP_ARRAY_INDEX = re.compile("\\[([0-9]+)\\]")
 
+import six
+
 from collections import deque
 from collections import defaultdict
 
@@ -535,7 +537,7 @@ class HierDictDocument(DictDocument):
 
     def validate(self, key, class_, value):
         # validate raw input
-        if issubclass(class_, Unicode) and not isinstance(value, basestring):
+        if issubclass(class_, Unicode) and not isinstance(value, six.string_types):
             raise ValidationError((key, value))
 
     def _from_dict_value(self, key, class_, value, validator):
@@ -551,11 +553,11 @@ class HierDictDocument(DictDocument):
 
         else:
             if (validator is self.SOFT_VALIDATION
-                                and isinstance(value, basestring)
+                                and isinstance(value, six.string_types)
                                 and not class_.validate_string(class_, value)):
                 raise ValidationError((key, value))
 
-            if issubclass(class_, (ByteArray, file)):
+            if issubclass(class_, (ByteArray, File)):
                 retval = self.from_string(class_, value,
                                                    self.default_binary_encoding)
 
@@ -657,7 +659,7 @@ class HierDictDocument(DictDocument):
             try:
                 sub_value = getattr(inst, k, None)
             # to guard against e.g. sqlalchemy throwing NoSuchColumnError
-            except Exception, e:
+            except Exception as e:
                 logger.error("Error getting %r: %r" %(k,e))
                 sub_value = None
 

@@ -1,4 +1,6 @@
 
+from six import add_metaclass
+
 from spyne.const import xml_ns
 
 from spyne.model.primitive import Unicode
@@ -8,15 +10,14 @@ from spyne.model.complex import ComplexModelMeta
 
 from spyne.interface.xml_schema.defn import XmlSchema10
 
-
+@add_metaclass(ComplexModelMeta)
 class Wsdl11Base(ComplexModelBase):
     __namespace__ = xml_ns.wsdl
-    __metaclass__ = ComplexModelMeta
 
 
+@add_metaclass(ComplexModelMeta)
 class Soap11Base(ComplexModelBase):
     __namespace__ = xml_ns.soap
-    __metaclass__ = ComplexModelMeta
 
 
 class Types(Wsdl11Base):

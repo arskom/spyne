@@ -107,7 +107,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
         self.session.close()
 
         sc_db = self.session.query(SomeClass).get(1)
-        print sc_db
+        print(sc_db)
         assert sc_db.o.s == 'ehe'
         assert sc_db.o_id == 1
 
@@ -730,7 +730,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
 
         C.append_field('d', Array(D).store_as('table'))
         assert C.Attributes.sqla_mapper.get_property('d').argument is D
-        print repr(D.Attributes.sqla_table)
+        print(repr(D.Attributes.sqla_table))
         assert isinstance(D.Attributes.sqla_table.c['c_id'].type, sqlalchemy.Integer)
 
     def test_add_field_array_many(self):

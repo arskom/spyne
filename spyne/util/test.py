@@ -18,7 +18,11 @@
 #
 
 from pprint import pformat
-from urllib import urlencode
+
+try:
+    from urllib.parse import urlencode
+except ImportError: # Python 2
+    from urllib import urlencode
 
 
 def _start_response(code, headers):
@@ -41,7 +45,7 @@ def call_wsgi_app(app, mn='some_call', headers=None, body_pairs=None):
         'SERVER_PORT': '0',
         'wsgi.url_scheme': 'http',
     }
-    print headers
+    print(headers)
     request.update(headers)
     out_string = ''.join(app(request, _start_response))
 

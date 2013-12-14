@@ -135,7 +135,7 @@ class TestHtmlMicroFormat(unittest.TestCase):
         #
 
         elt = html.fromstring(''.join(ctx.out_string))
-        print html.tostring(elt, pretty_print=True)
+        print(html.tostring(elt, pretty_print=True))
 
         resp = elt.find_class('some_callResponse')
         assert len(resp) == 1
@@ -165,7 +165,7 @@ class TestHtmlMicroFormat(unittest.TestCase):
         class SomeService(ServiceBase):
             @srpc(String(max_occurs='unbounded'), _returns=String)
             def some_call(s):
-                print s
+                print(s)
                 return '\n'.join(s)
 
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
@@ -248,7 +248,7 @@ class TestHtmlMicroFormat(unittest.TestCase):
         #
 
         elt = html.fromstring(''.join(ctx.out_string))
-        print html.tostring(elt, pretty_print=True)
+        print(html.tostring(elt, pretty_print=True))
 
         resp = elt.find_class('some_callResponse')
         assert len(resp) == 1

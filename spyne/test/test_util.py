@@ -50,19 +50,19 @@ class TestXml(unittest.TestCase):
         c = C(i=5, s="x")
 
         ret = get_object_as_xml(c, C)
-        print etree.tostring(ret)
+        print(etree.tostring(ret))
         assert ret.tag == "{tns}C"
 
         ret = get_object_as_xml(c, C, "X")
-        print etree.tostring(ret)
+        print(etree.tostring(ret))
         assert ret.tag == "{tns}X"
 
         ret = get_object_as_xml(c, C, "X", no_namespace=True)
-        print etree.tostring(ret)
+        print(etree.tostring(ret))
         assert ret.tag == "X"
 
         ret = get_object_as_xml(c, C, no_namespace=True)
-        print etree.tostring(ret)
+        print(etree.tostring(ret))
         assert ret.tag == "C"
 
     def test_deserialize(self):
@@ -112,7 +112,7 @@ class TestXml(unittest.TestCase):
         print()
 
         foo = Foo(a=u'a', b=1, c=decimal.Decimal('3.4'),
-                                    d=datetime(2011,02,20,tzinfo=pytz.utc), e=5)
+                                    d=datetime(2011,2,20,tzinfo=pytz.utc), e=5)
         doc = get_object_as_xml(foo, Foo)
         print(etree.tostring(doc, pretty_print=True))
         foo_back = get_xml_as_object(doc, Foo)
@@ -170,8 +170,8 @@ class TestSafeRepr(unittest.TestCase):
             z=String
 
         l = MAX_STRING_FIELD_LENGTH + 100
-        print log_repr(Z(z="a" * l))
-        print "Z(z='%s'(...))" % ('a' * MAX_STRING_FIELD_LENGTH)
+        print(log_repr(Z(z="a" * l)))
+        print("Z(z='%s'(...))" % ('a' * MAX_STRING_FIELD_LENGTH))
 
         assert log_repr(Z(z="a" * l)) == "Z(z='%s'(...))" % \
                                                 ('a' * MAX_STRING_FIELD_LENGTH)
@@ -254,7 +254,7 @@ class TestDictDoc(unittest.TestCase):
             a = Array(DateTime)
 
             def __eq__(self, other):
-                print "Yaaay!"
+                print("Yaaay!")
                 return  self.i == other.i and \
                         self.s == other.s and \
                         self.a == other.a
@@ -262,13 +262,13 @@ class TestDictDoc(unittest.TestCase):
         c = C(i=5, s="x", a=[datetime(2011,12,22, tzinfo=pytz.utc)])
 
         for iw, ca in ((False,dict), (True,dict), (False,list), (True, list)):
-            print
-            print 'complex_as:', ca
+            print()
+            print('complex_as:', ca)
             d = get_object_as_dict(c, C, complex_as=ca)
-            print d
+            print(d)
             o = get_dict_as_object(d, C, complex_as=ca)
-            print o
-            print c
+            print(o)
+            print(c)
             assert o == c
 
 class TestAttrDict(unittest.TestCase):

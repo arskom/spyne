@@ -1,6 +1,25 @@
 
-from spyne.const import xml_ns
+#
+# spyne - Copyright (C) Spyne contributors.
+#
+# This library is free software; you can redistribute it and/or
+# modify it under the terms of the GNU Lesser General Public
+# License as published by the Free Software Foundation; either
+# version 2.1 of the License, or (at your option) any later version.
+#
+# This library is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with this library; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
+#
 
+from six import add_metaclass
+
+from spyne.const import xml_ns
 from spyne.model.primitive import Boolean, AnyHtml
 from spyne.model.primitive import Unicode
 from spyne.model.primitive import UnsignedInteger
@@ -9,9 +28,9 @@ from spyne.model.complex import ComplexModelBase
 from spyne.model.complex import ComplexModelMeta
 
 
+@add_metaclass(ComplexModelMeta)
 class SchemaBase(ComplexModelBase):
     __namespace__ = xml_ns.xsd
-    __metaclass__ = ComplexModelMeta
 
 
 class Import(SchemaBase):
@@ -124,7 +143,6 @@ class XmlSchema10(SchemaBase):
 from itertools import chain
 from inspect import isclass
 
-from spyne.const import xml_ns
 from spyne.model import ModelBase
 from spyne.model import primitive
 from spyne.model import binary

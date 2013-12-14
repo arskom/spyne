@@ -32,6 +32,7 @@ try:
 except ImportError:
     import json
 
+import six
 import sqlalchemy
 
 from inspect import isclass
@@ -352,7 +353,7 @@ class PGObjectJson(UserDefinedType):
 
     def result_processor(self, dialect, col_type):
         def process(value):
-            if isinstance(value, basestring):
+            if isinstance(value, six.string_types):
                 return get_dict_as_object(json.loads(value), self.cls,
                         ignore_wrappers=self.ignore_wrappers,
                         complex_as=self.complex_as)
@@ -705,7 +706,7 @@ def _gen_array_simple(cls, props, k, child_cust, p):
 
     # get left (fk) column info
     _gen_col = _get_col_o2m(cls, p.left)
-    col_info = _gen_col.next() # gets the column name
+    col_info = next(_gen_col) # gets the column name
     p.left, child_left_col_type = col_info[0] # FIXME: Add support for multi-column primary keys.
     child_left_col_name = p.left
 
@@ -734,7 +735,7 @@ def _gen_array_simple(cls, props, k, child_cust, p):
         _sp_attrs_to_sqla_constraints(cls, child_cust,
                                             col=child_right_col)
 
-        child_left_col = _gen_col.next()
+        child_left_col = next(_gen_col)
         _sp_attrs_to_sqla_constraints(cls, child_cust,
                                             col=child_left_col)
 
@@ -760,7 +761,7 @@ def _gen_array_simple(cls, props, k, child_cust, p):
 
 def _gen_array_o2m(cls, props, k, child, child_cust, p):
     _gen_col = _get_col_o2m(cls, p.right)
-    col_info = _gen_col.next() # gets the column name
+    col_info = next(_gen_col) # gets the column name
     p.right, col_type = col_info[0] # FIXME: Add support for multi-column primary keys.
 
     assert p.left is None, \
@@ -786,7 +787,7 @@ def _gen_array_o2m(cls, props, k, child, child_cust, p):
         col = child_t.c[p.right]
 
     else:
-        col = _gen_col.next()
+        col = next(_gen_col)
 
         _sp_attrs_to_sqla_constraints(cls, child_cust, col=col)
 
@@ -922,7 +923,7 @@ def _gen_mapper(cls, props, table, cls_bases):
 
     _inc = mapper_kwargs.get('include_properties', None)
     if _inc is None:
-        mapper_kwargs['include_properties'] = inc + props.keys()
+        mapper_kwargs['include_properties'] = inc + list(props.keys())
 
     po = mapper_kwargs.get('polymorphic_on', None)
     if po is not None:

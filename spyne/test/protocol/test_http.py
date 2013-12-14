@@ -23,8 +23,16 @@ logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 
-from StringIO import StringIO
-from Cookie import SimpleCookie
+import six
+
+if six.PY3:
+    from io import StringIO
+    from http.cookies import SimpleCookie
+
+else:
+    from StringIO import StringIO
+    from Cookie import SimpleCookie
+
 from datetime import datetime
 from wsgiref.validate import validator as wsgiref_validator
 
@@ -251,7 +259,7 @@ class TestValidation(unittest.TestCase):
         class SomeService(ServiceBase):
             @srpc(Array(C))
             def some_call(p):
-                print p
+                print(p)
 
         # must not complain about missing s
         _test([SomeService], 'p[0]_i=5', validator='soft')
@@ -665,7 +673,7 @@ class TestHttpPatterns(unittest.TestCase):
             foo.append(i)
 
         assert len(foo) == 1
-        print foo
+        print(foo)
         assert ctx.descriptor is not None
 
         server.get_in_object(ctx)

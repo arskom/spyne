@@ -104,7 +104,7 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
 
         try:
             self.client.service.non_nillable(non_nillable_class)
-        except WebFault, e:
+        except WebFault as e:
             pass
         else:
             raise Exception("must fail")
@@ -329,14 +329,14 @@ class TestSuds(SpyneClientTestBase, unittest.TestCase):
         try:
             self.client.service.python_exception()
             raise Exception("must fail")
-        except WebFault, e:
+        except WebFault as e:
             pass
 
     def test_soap_exception(self):
         try:
             self.client.service.soap_exception()
             raise Exception("must fail")
-        except WebFault, e:
+        except WebFault as e:
             pass
 
     def test_complex_return(self):

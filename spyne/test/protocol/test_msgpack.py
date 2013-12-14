@@ -17,10 +17,15 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import msgpack
 import unittest
+import six
 
-from StringIO import StringIO
+if six.PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
+
+import msgpack
 
 from spyne import MethodContext
 from spyne.application import Application
@@ -105,8 +110,8 @@ class TestMessagePackRpc(unittest.TestCase):
         }, start_response)
 
         ret = ''.join(ret)
-        print repr(ret)
-        print msgpack.unpackb(ret)
+        print(repr(ret))
+        print(msgpack.unpackb(ret))
         s = msgpack.packb([1, 0, None, {'get_valuesResponse': {
             'get_valuesResult': [
                   {"KeyValuePair": {'value': 'b', 'key': 'a'}},
@@ -114,7 +119,7 @@ class TestMessagePackRpc(unittest.TestCase):
                 ]
             }}
         ])
-        print s
+        print(s)
         assert ret == s
 
 if __name__ == '__main__':

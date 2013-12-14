@@ -21,6 +21,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 import os
+import six
 
 from itertools import chain
 from pprint import pformat
@@ -370,7 +371,7 @@ def process_complex_type(ctx, c):
     class L(list):
         def append(self, a):
             k, v = a
-            assert isinstance(k, basestring), k
+            assert isinstance(k, six.string_types), k
             super(L, self).append(a)
     ti = L()
     base = ComplexModelBase

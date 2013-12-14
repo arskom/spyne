@@ -23,6 +23,8 @@ import os
 import base64
 import tempfile
 
+import six
+
 from base64 import b64encode
 from base64 import b64decode
 from base64 import urlsafe_b64encode
@@ -30,9 +32,9 @@ from base64 import urlsafe_b64decode
 from binascii import hexlify
 from binascii import unhexlify
 
-try:
+if six.PY2:
     from cStringIO import StringIO
-except ImportError: # Python 3
+else:
     from io import StringIO
 
 from spyne.error import ValidationError
@@ -102,7 +104,7 @@ class ByteArray(SimpleModel):
     def from_base64(cls, value):
         try:
             return [b64decode(_bytes_join(value))]
-        except TypeError, e:
+        except TypeError as e:
             raise ValidationError(value)
 
     @classmethod

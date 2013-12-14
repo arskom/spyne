@@ -179,15 +179,15 @@ class FaultTests(unittest.TestCase):
         self.assertEqual(len(schema.types), 1)
         self.assertEqual(len(interface.classes), 1)
 
-        c_cls = interface.classes.values()[0]
-        c_elt = schema.types.values()[0]
+        c_cls = next(iter(interface.classes.values()))
+        c_elt = next(iter(schema.types.values()))
 
         self.failUnless(c_cls is cls)
         self.assertEqual(c_elt.tag, '{%s}complexType' % ns_xsd)
         self.assertEqual(c_elt.get('name'), 'cls')
 
         from lxml import etree
-        print etree.tostring(c_elt, pretty_print=True)
+        print(etree.tostring(c_elt, pretty_print=True))
         self.assertEqual(len(c_elt), 0)
 
 class DummySchemaEntries:

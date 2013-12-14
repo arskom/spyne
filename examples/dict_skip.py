@@ -47,7 +47,7 @@ class SomeMapping(ComplexModel):
     can_insert= Boolean
     can_update = Boolean
 
-print list(get_object_as_dict(SomeMapping(
+print(list(get_object_as_dict(SomeMapping(
     compact=True,
     solid=True,
     object_name="Cat",
@@ -57,5 +57,5 @@ print list(get_object_as_dict(SomeMapping(
     can_delete=False,
     can_insert= True,
     can_update=True
-), SomeMapping, ignore_wrappers=True, complex_as=list))
+), SomeMapping, ignore_wrappers=True, complex_as=list)))
 

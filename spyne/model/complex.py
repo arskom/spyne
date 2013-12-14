@@ -28,26 +28,25 @@ logger = logging.getLogger(__name__)
 
 import sys
 import decimal
+import six
+
 import spyne
 
+from six import add_metaclass
 from weakref import WeakKeyDictionary
 from collections import deque
 from inspect import isclass
 
 from spyne import BODY_STYLE_BARE, BODY_STYLE_WRAPPED
+from spyne import const
+
+from spyne.const import xml_ns
+
 from spyne.model import ModelBase
 from spyne.model import PushBase
 from spyne.model import Unicode
 from spyne.model import Point
 from spyne.model.primitive import NATIVE_MAP
-
-from spyne.const import xml_ns as namespace
-from spyne.const import PARENT_SUFFIX
-from spyne.const import ARRAY_PREFIX
-from spyne.const import ARRAY_SUFFIX
-from spyne.const import TYPE_SUFFIX
-from spyne.const import MANDATORY_SUFFIX
-from spyne.const import MANDATORY_PREFIX
 
 from spyne.util import memoize
 from spyne.util import memoize_id
@@ -170,7 +169,7 @@ class XmlModifier(ModelBase):
         if cls.__namespace__ is None:
             cls.__namespace__ = cls.type.get_namespace()
 
-        if cls.__namespace__ in namespace.const_prefmap:
+        if cls.__namespace__ in xml_ns.const_prefmap:
             cls.__namespace__ = default_ns
 
 
@@ -324,7 +323,7 @@ class ComplexModelMeta(type(ModelBase)):
                             if len(base_types) > 0 and issubclass(b, ModelBase):
                                 cls_dict["__extends__"] = b
 
-                        except Exception,e:
+                        except Exception as e:
                             logger.exception(e)
                             logger.error(repr(extends))
                             raise
@@ -381,7 +380,7 @@ class ComplexModelMeta(type(ModelBase)):
 
         # make sure _type_info contents are sane
         for k, v in _type_info.items():
-            if not isinstance(k, basestring):
+            if not isinstance(k, six.string_types):
                 raise ValueError("Invalid class key", k)
             if not isclass(v):
                 raise ValueError(v)
@@ -532,26 +531,26 @@ class ComplexModelMeta(type(ModelBase)):
 # FIXME: what an ugly hack.
 def _fill_empty_type_name(cls, k, v, parent=False):
     v.__namespace__ = cls.get_namespace()
-    tn = "%s_%s%s" % (cls.get_type_name(), k, TYPE_SUFFIX)
+    tn = "%s_%s%s" % (cls.get_type_name(), k, const.TYPE_SUFFIX)
 
     if issubclass(v, Array):
         child_v, = v._type_info.values()
         child_v.__type_name__ = tn
 
         v._type_info = TypeInfo({tn: child_v})
-        v.__type_name__ = '%s%s%s'% (ARRAY_PREFIX, tn, ARRAY_SUFFIX)
+        v.__type_name__ = '%s%s%s'% (const.ARRAY_PREFIX, tn, const.ARRAY_SUFFIX)
 
     elif issubclass(v, XmlModifier):
         child_v = v.type
         child_v.__type_name__ = tn
 
         v._type_info = TypeInfo({tn: child_v})
-        v.__type_name__ = '%s%s%s'% (ARRAY_PREFIX, tn, ARRAY_SUFFIX)
+        v.__type_name__ = '%s%s%s'% (const.ARRAY_PREFIX, tn, const.ARRAY_SUFFIX)
 
     else:
-        suff = TYPE_SUFFIX
+        suff = const.TYPE_SUFFIX
         if parent:
-            suff = PARENT_SUFFIX + suff
+            suff = const.PARENT_SUFFIX + suff
 
         v.__type_name__ = "%s_%s%s" % (cls.get_type_name(), k, suff)
         extends = getattr(v, '__extends__', None)
@@ -948,6 +947,7 @@ class ComplexModelBase(ModelBase):
             return ctx.in_object[0]
 
 
+@add_metaclass(ComplexModelMeta)
 class ComplexModel(ComplexModelBase):
     """The general complexType factory. The __call__ method of this class will
     return instances, contrary to primivites where the same call will result in
@@ -956,15 +956,12 @@ class ComplexModel(ComplexModelBase):
     (see :class:``spyne.model.ModelBase``).
     """
 
-    __metaclass__ = ComplexModelMeta
 
-
+@add_metaclass(ComplexModelMeta)
 class Array(ComplexModelBase):
     """This class generates a ComplexModel child that has one attribute that has
     the same name as the serialized class. It's contained in a Python list.
     """
-
-    __metaclass__ = ComplexModelMeta
 
     class Attributes(ComplexModelBase.Attributes):
         _wrapper = True
@@ -1011,9 +1008,9 @@ class Array(ComplexModelBase):
             if member_name is None:
                 member_name = serializer.get_type_name()
 
-            cls.__type_name__ = '%s%s%s' % (ARRAY_PREFIX,
+            cls.__type_name__ = '%s%s%s' % (const.ARRAY_PREFIX,
                                                 serializer.get_type_name(),
-                                                                   ARRAY_SUFFIX)
+                                                             const.ARRAY_SUFFIX)
 
         # hack to default to unbounded arrays when the user didn't specify
         # max_occurs.
@@ -1033,7 +1030,7 @@ class Array(ComplexModelBase):
         if cls.__namespace__ is None:
             cls.__namespace__ = serializer.get_namespace()
 
-        if cls.__namespace__ in namespace.const_prefmap:
+        if cls.__namespace__ in xml_ns.const_prefmap:
             cls.__namespace__ = default_ns
 
         ComplexModel.resolve_namespace(cls, default_ns, tags)
@@ -1098,9 +1095,8 @@ def TTableModel(metadata=None):
 
     from sqlalchemy import MetaData
 
+    @add_metaclass(ComplexModelMeta)
     class TableModel(TTableModelBase()):
-        __metaclass__ = ComplexModelMeta
-
         class Attributes(ComplexModelBase.Attributes):
             sqla_metadata = metadata or MetaData()
 
@@ -1115,8 +1111,8 @@ def Mandatory(cls, **_kwargs):
 
     kwargs = dict(min_occurs=1, nillable=False)
     if cls.get_type_name() is not cls.Empty:
-        kwargs['type_name'] = '%s%s%s' % (MANDATORY_PREFIX, cls.get_type_name(),
-                                                              MANDATORY_SUFFIX)
+        kwargs['type_name'] = '%s%s%s' % (const.MANDATORY_PREFIX,
+                                    cls.get_type_name(), const.MANDATORY_SUFFIX)
     kwargs.update(_kwargs)
     if issubclass(cls, Unicode):
         kwargs.update(dict(min_len=1))

@@ -43,6 +43,6 @@ print('Preferences for %r:' % user_name)
 print(c.service.get_preferences(user_name))
 
 try:
-    print c.service.get_preferences('smith')
+    print(c.service.get_preferences('smith'))
 except WebFault, e:
-    print e
+    print(e)

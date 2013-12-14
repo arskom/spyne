@@ -236,7 +236,7 @@ class XmlSchema(InterfaceDocumentBase):
             shutil.rmtree(tmp_dir_name)
             logger.debug("Schema built. Removed %r" % tmp_dir_name)
 
-        except Exception, e:
+        except Exception as e:
             logger.exception(e)
             logger.error("The schema files are left at: %r" % tmp_dir_name)
             raise
