@@ -26,10 +26,11 @@ logger = logging.getLogger(__name__)
 
 import pytz
 import tempfile
+import six
 
-try:
+if six.PY3:
     from http.cookies import SimpleCookie
-except ImportError:
+else:
     from Cookie import SimpleCookie
 
 from spyne import BODY_STYLE_WRAPPED

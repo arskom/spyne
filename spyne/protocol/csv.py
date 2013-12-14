@@ -30,12 +30,13 @@ import logging
 logger = logging.getLogger(__name__)
 
 import csv
+import six
 
 from spyne.protocol.dictdoc import HierDictDocument
 
-try:
+if six.PY2:
     from StringIO import StringIO
-except ImportError: # Python 3
+else:
     from io import StringIO
 
 

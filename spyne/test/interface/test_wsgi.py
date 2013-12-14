@@ -19,7 +19,12 @@
 
 import unittest
 
-from StringIO import StringIO
+import six
+if six.PY2:
+    from io import StringIO
+else:
+    from StringIO import StringIO
+
 from spyne.protocol.soap.soap11 import Soap11
 from spyne.server.wsgi import WsgiApplication
 from spyne.application import Application
@@ -28,8 +33,10 @@ from spyne.decorator import rpc
 from spyne.const.xml_ns import wsdl as NS_WSDL
 from spyne.service import ServiceBase
 
+
 def start_response(code, headers):
     print(code, headers)
+
 
 class Test(unittest.TestCase):
     def setUp(self):

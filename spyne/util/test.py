@@ -18,7 +18,11 @@
 #
 
 from pprint import pformat
-from urllib import urlencode
+
+try:
+    from urllib.parse import urlencode
+except ImportError: # Python 2
+    from urllib import urlencode
 
 
 def _start_response(code, headers):

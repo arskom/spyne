@@ -26,10 +26,13 @@ logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 
+import six
+
 from lxml import etree
-try:
+
+if six.PY3:
     from io import StringIO
-except ImportError: # Python 2
+else:
     from StringIO import StringIO
 
 from spyne.const import RESPONSE_SUFFIX

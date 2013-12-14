@@ -17,10 +17,15 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-import msgpack
 import unittest
+import six
 
-from StringIO import StringIO
+if six.PY3:
+    from io import StringIO
+else:
+    from StringIO import StringIO
+
+import msgpack
 
 from spyne import MethodContext
 from spyne.application import Application
