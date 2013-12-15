@@ -24,7 +24,7 @@ from spyne.test.interop.server.soap_http_basic import soap_application
 from spyne.server.zeromq import ZeroMQServer
 
 host = '127.0.0.1'
-port = 5555
+port = 55555
 
 def main():
     url = "tcp://%s:%d" % (host,port)
