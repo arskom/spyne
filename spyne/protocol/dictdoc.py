@@ -328,7 +328,11 @@ class SimpleDictDocument(DictDocument):
                     native_v2 = self.from_string(member.type, v2,
                                                    self.default_binary_encoding)
                 else:
-                    native_v2 = self.from_string(member.type, v2)
+                    try:
+                        native_v2 = self.from_string(member.type, v2)
+                    except ValidationError as e:
+                        raise ValidationError(str(e),
+                            "Validation failed for %r.%r: %%r" % (inst_class, k))
 
                 if (validator is self.SOFT_VALIDATION and not
                            member.type.validate_native(member.type, native_v2)):
