@@ -23,7 +23,7 @@ hierarchy to python dicts and vice versa.
 
 import collections
 
-import six
+from spyne.util import six
 
 from lxml import etree
 

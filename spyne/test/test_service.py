@@ -26,7 +26,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 
-import six
+from spyne.util import six
 
 from lxml import etree
 

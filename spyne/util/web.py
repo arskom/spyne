@@ -25,7 +25,7 @@ If you're using this for anything serious, you're insane.
 
 from __future__ import absolute_import
 
-import six
+from spyne.util import six
 
 from spyne import BODY_STYLE_WRAPPED
 from spyne.application import Application as AppBase

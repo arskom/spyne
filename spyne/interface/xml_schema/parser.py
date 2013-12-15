@@ -21,7 +21,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 import os
-import six
+from spyne.util import six
 
 from itertools import chain
 from pprint import pformat

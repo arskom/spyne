@@ -143,7 +143,7 @@ logger = logging.getLogger(__name__)
 import re
 RE_HTTP_ARRAY_INDEX = re.compile("\\[([0-9]+)\\]")
 
-import six
+from spyne.util import six
 
 from collections import deque
 from collections import defaultdict

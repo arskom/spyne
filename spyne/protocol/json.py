@@ -50,7 +50,7 @@ from __future__ import absolute_import
 import logging
 logger = logging.getLogger(__name__)
 
-import six
+from spyne.util import six
 
 from itertools import chain
 

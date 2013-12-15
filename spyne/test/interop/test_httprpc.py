@@ -22,7 +22,7 @@ import unittest
 import time
 
 import pytz
-import six
+from spyne.util import six
 
 if six.PY2:
     import thread

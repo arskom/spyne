@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 import pytz
 import tempfile
-import six
+from spyne.util import six
 
 if six.PY3:
     from http.cookies import SimpleCookie

@@ -23,7 +23,7 @@ import os
 import base64
 import tempfile
 
-import six
+from spyne.util import six
 
 from base64 import b64encode
 from base64 import b64decode

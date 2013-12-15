@@ -25,7 +25,7 @@ import time
 import pytz
 import uuid
 
-import six
+from spyne.util import six
 
 from collections import deque
 

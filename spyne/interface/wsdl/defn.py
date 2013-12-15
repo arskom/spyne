@@ -1,5 +1,5 @@
 
-from six import add_metaclass
+from spyne.util.six import add_metaclass
 
 from spyne.const import xml_ns
 

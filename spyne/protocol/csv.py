@@ -30,7 +30,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 import csv
-import six
+from spyne.util import six
 
 from spyne.protocol.dictdoc import HierDictDocument
 

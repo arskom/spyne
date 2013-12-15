@@ -37,7 +37,7 @@ look at it.
 import logging
 logger = logging.getLogger(__name__)
 
-import six
+from spyne.util import six
 
 from itertools import chain
 

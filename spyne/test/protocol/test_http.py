@@ -23,7 +23,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 
-import six
+from spyne.util import six
 
 if six.PY3:
     from io import StringIO

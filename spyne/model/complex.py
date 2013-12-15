@@ -28,11 +28,11 @@ logger = logging.getLogger(__name__)
 
 import sys
 import decimal
-import six
+from spyne.util import six
 
 import spyne
 
-from six import add_metaclass
+from spyne.util.six import add_metaclass
 from weakref import WeakKeyDictionary
 from collections import deque
 from inspect import isclass

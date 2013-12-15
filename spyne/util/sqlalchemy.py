@@ -32,7 +32,7 @@ try:
 except ImportError:
     import json
 
-import six
+from spyne.util import six
 import sqlalchemy
 
 from inspect import isclass

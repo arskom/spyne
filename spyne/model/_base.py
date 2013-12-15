@@ -27,7 +27,7 @@ import spyne.const.xml_ns
 
 from decimal import Decimal
 
-from six import add_metaclass
+from spyne.util.six import add_metaclass
 
 from spyne.util import Break
 from spyne.const.xml_ns import DEFAULT_NS

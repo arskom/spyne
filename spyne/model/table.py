@@ -67,7 +67,7 @@ logger = logging.getLogger(__name__)
 
 import sqlalchemy
 
-from six import add_metaclass
+from spyne.util.six import add_metaclass
 
 from sqlalchemy import Column
 from sqlalchemy.orm import RelationshipProperty

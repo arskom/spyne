@@ -24,7 +24,7 @@ This module contains the :class:`ServiceBase` class and its helper objects.
 import logging
 logger = logging.getLogger(__name__)
 
-from six import add_metaclass, string_types
+from spyne.util.six import add_metaclass, string_types
 from spyne import EventManager
 from spyne.util.oset import oset
 

@@ -22,7 +22,7 @@ import unittest
 import uuid
 import pytz
 import decimal
-import six
+from spyne.util import six
 
 if six.PY3:
     long = int
