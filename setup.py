@@ -27,6 +27,8 @@ except ImportError:
 v = open(os.path.join(os.path.dirname(__file__), 'spyne', '__init__.py'), 'r')
 VERSION = re.match(r".*__version__ = '(.*?)'", v.read(), re.S).group(1)
 
+SHORT_DESC="""A transport and architecture agnostic rpc library that focuses on
+exposing public services with a well-defined API."""
 
 LONG_DESC = """Spyne aims to save the protocol implementers the hassle of
 implementing their own remote procedure call api and the application programmers
@@ -34,16 +36,11 @@ the hassle of jumping through hoops just to expose their services using multiple
 protocols and transports.
 """
 
-
 try:
     os.stat('CHANGELOG.rst')
     LONG_DESC += "\n\n" + open('CHANGELOG.rst', 'r').read()
 except OSError:
     pass
-
-
-SHORT_DESC="""A transport and architecture agnostic rpc library that focuses on
-exposing public services with a well-defined API."""
 
 
 def call_test(f, a, tests):
@@ -86,6 +83,26 @@ _ctr = 0
 def call_pytest(*tests):
     global _ctr
     import pytest
+    import spyne.test
+    from glob import glob
+    from itertools import chain
+
+    _ctr += 1
+    file_name = 'test_result.%d.xml' % _ctr
+    if os.path.isfile(file_name):
+        os.unlink(file_name)
+
+    tests_dir = os.path.dirname(spyne.test.__file__)
+
+    args = ['-v', '--tb=short', '--junitxml=%s' % file_name]
+    args.extend(chain(*[glob("%s/%s" % (tests_dir, test)) for test in tests]))
+
+    return pytest.main(args)
+
+
+def call_pytest_subprocess(*tests):
+    global _ctr
+    import pytest
     _ctr += 1
     file_name = 'test_result.%d.xml' % _ctr
     if os.path.isfile(file_name):
@@ -94,7 +111,6 @@ def call_pytest(*tests):
 
 
 def call_trial(*tests):
-    from twisted.scripts.trial import usage
     from twisted.scripts.trial import Options
     from twisted.scripts.trial import _makeRunner
     from twisted.scripts.trial import _getSuite
@@ -123,13 +139,13 @@ class RunTests(TestCommand):
         print("running tests")
         ret = 0
         ret = call_pytest('interface', 'model', 'protocol',
-                          'test_null_server.py', 'test_service.py',
-                          'test_soft_validation.py', 'test_util.py') or ret
-        ret = call_pytest('test_sqlalchemy.py', 'test_sqlalchemy_deprecated.py') or ret
-        ret = call_pytest('interop/test_httprpc.py') or ret
-        ret = call_pytest('interop/test_soap_client_http.py') or ret
-        ret = call_pytest('interop/test_soap_client_zeromq.py') or ret
-        ret = call_pytest('interop/test_suds.py') or ret
+                  'test_null_server.py', 'test_service.py',
+                  'test_soft_validation.py', 'test_util.py',
+                  'test_sqlalchemy.py', 'test_sqlalchemy_deprecated.py') or ret
+        ret = call_pytest_subprocess('interop/test_httprpc.py') or ret
+        ret = call_pytest_subprocess('interop/test_soap_client_http.py') or ret
+        ret = call_pytest_subprocess('interop/test_soap_client_zeromq.py') or ret
+        ret = call_pytest_subprocess('interop/test_suds.py') or ret
         ret = call_trial('interop/test_soap_client_http_twisted.py') or ret
 
         if ret == 0:
