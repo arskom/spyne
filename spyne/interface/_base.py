@@ -105,7 +105,7 @@ class Interface(object):
             return False
 
         if issubclass(c, ComplexModelBase) and \
-                                        issubclass(cls, ComplexModelBase):
+                                              issubclass(cls, ComplexModelBase):
             o1 = getattr(cls, '__orig__', None) or cls
             o2 = getattr(c, '__orig__', None) or c
 
@@ -116,7 +116,7 @@ class Interface(object):
             if o1 is Array or o2 is Array:
                 return True
 
-            raise ValueError("classes %r and %r have  conflicting names." %
+            raise ValueError("classes %r and %r have conflicting names." %
                                                                        (cls, c))
         return True
 

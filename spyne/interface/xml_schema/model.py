@@ -73,10 +73,9 @@ def simple_get_restriction_tag(document, cls):
     return restriction
 
 
-def simple_add(interface, cls, tags):
+def simple_add(document, cls, tags):
     if not cls.is_default(cls):
-        interface.get_restriction_tag(cls)
-
+        document.get_restriction_tag(cls)
 
 def byte_array_add(interface, cls, tags):
     simple_add(interface, cls, tags)
