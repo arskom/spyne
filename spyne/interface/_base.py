@@ -97,26 +97,28 @@ class Interface(object):
         """Returns true if the given class is already included in the interface
         object somewhere."""
 
-        c = self.classes.get('{%s}%s' %
-                                    (cls.get_namespace(), cls.get_type_name()))
-        if c is not None:
-            if issubclass(c, ComplexModelBase) and \
-                                            issubclass(cls, ComplexModelBase):
-                o1 = getattr(cls, '__orig__', None) or cls
-                o2 = getattr(c, '__orig__', None) or c
+        ns = cls.get_namespace()
+        tn = cls.get_type_name()
 
-                if o1 is o2:
-                    return True
-                else:
-                    # So that "Array"s and "Iterable"s don't conflict.
-                    if o1 is Array or o2 is Array:
-                        return True
-                    raise ValueError("classes %r and %r have "
-                                                "conflicting names." % (cls, c))
-            else:
+        c = self.classes.get('{%s}%s' % (ns, tn))
+        if c is None:
+            return False
+
+        if issubclass(c, ComplexModelBase) and \
+                                        issubclass(cls, ComplexModelBase):
+            o1 = getattr(cls, '__orig__', None) or cls
+            o2 = getattr(c, '__orig__', None) or c
+
+            if o1 is o2:
                 return True
 
-        return False
+            # So that "Array"s and "Iterable"s don't conflict.
+            if o1 is Array or o2 is Array:
+                return True
+
+            raise ValueError("classes %r and %r have  conflicting names." %
+                                                                       (cls, c))
+        return True
 
     def get_class(self, key):
         """Returns the class definition that corresponds to the given key.
