@@ -16,8 +16,12 @@
 #      'PYVER'. and set it to the Python versions you'd like to test, separated
 #      by whitespace. For example: '2.7 3.3'
 #   3. Set up other stuff like git repo the usual way.
-#   4. Call this script from Jenkins' "executable script" section in the
-#      configuration page. In other words, type in './run_tests.sh'.
+#   4. Add a new "Execute Shell" build step and type in './run_tests.sh'.
+#   5. Add a new "Publish JUnit test report" post-build action and type in
+#      '**/test_result.*.xml'
+#   6. If you have the "Cobertura Coverage Report" plug-in, add a
+#      'Publish Cobertura Coverage Report' post-build action and type in
+#      '**/coverage.xml'.
 #
 
 [ -z "$PYVER" ] && PYVER=2.7
