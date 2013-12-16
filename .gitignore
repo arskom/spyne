@@ -1,5 +1,5 @@
 # All files to globally ignore
-.test
+.data
 
 # python cruft
 *.pyc
