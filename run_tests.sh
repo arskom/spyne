@@ -26,12 +26,12 @@
 
 [ -z "$PYVER" ] && PYVER=2.7
 
+if [ -z "$(which easy_install-$PYVER)" ]; then
+  echo "missing easy_install-$PYVER executable. aborting.";
+  exit 1;
+fi;
+
 echo pyver: $PYVER
-mkdir -p .test
-
-(
-
-cd .test;
 
 easy_install-$PYVER -U --user virtualenv
 if [ '!' -d _ve ]; then
@@ -42,7 +42,6 @@ source _ve-$PYVER/bin/activate
 
 easy_install coverage
 
-bash -c "coverage run --source=../spyne ../setup.py test; exit 0"
+bash -c "coverage run --source=spyne setup.py test; exit 0"
 coverage xml -i --omit=../spyne/test/*;
 
-);
