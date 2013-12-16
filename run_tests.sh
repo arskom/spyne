@@ -42,7 +42,7 @@ fi;
 PREFIX="$(basename $FN .tgz)";
 
 # Set up python
-if [ ! -x "$WORKSPACE/$PREFIX/bin/easy_install-$PYVER" ]; then
+if [ ! -f "$WORKSPACE/$PREFIX/bin/easy_install-$PYVER" ]; then
     # Set up the interpreter
     wget -ct0 http://www.python.org/ftp/python/$FN;
     tar xf $(basename $FN);
