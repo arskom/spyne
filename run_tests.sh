@@ -1,11 +1,13 @@
 #!/bin/bash -x
 #
 # Requirements:
-#   1. A working build environment
+#   1. A working build environment. Only tested on linux.
 #
 # Usage:
 #   Run it like this:
 #     $ PYVER=3.3 ./run_tests.sh
+#
+#   When missing, PYVER defaults to '2.7'.
 #
 # Jenkins guide:
 #   1. Create a multi configuration project
@@ -59,11 +61,13 @@ if [ ! -f "$EA" ]; then
 
   # Set up distribute
   $PYTHON "$WORKSPACE"/bin/distribute_setup.py
+
+  # Set up coverage
+  $EA coverage
 fi;
 
 # Run tests
-$EA coverage
-$PYTHON setup.py develop
-
 bash -c "$COVERAGE run --source=spyne setup.py test; exit 0"
+
+# Generate coverage report
 $COVERAGE xml -i --omit=spyne/test/*;
