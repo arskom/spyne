@@ -69,7 +69,10 @@ else
     exit 2;
 fi;
 
-MONOVER=3.2.5
+MONOVER=2.11.4
+MONOPREFIX="$WORKSPACE/mono-$MONOVER"
+XBUILD="$MONOPREFIX/bin/xbuild"
+
 PYTHON="$WORKSPACE/$PREFIX/bin/python$PYVER";
 EASY="$WORKSPACE/$PREFIX/bin/easy_install-$PYVER";
 COVERAGE="$WORKSPACE/$PREFIX/bin/coverage-$PYVER";
@@ -92,13 +95,15 @@ if [ $PYIMPL == 'cpy' ]; then
 elif [ $PYIMPL == 'ipy' ]; then
     # Set up Mono first
     # See: http://www.mono-project.com/Compiling_Mono_From_Tarball
-    if [ ! -x "$MONO" ]; then
+    if [ ! -x "$XBUILD" ]; then
       (
+        mkdir -p .data; cd .data;
+
         wget -ct0 http://download.mono-project.com/sources/mono/mono-$MONOVER.tar.bz2
         tar xf mono-$MONOVER.tar.bz2;
         cd mono-$MONOVER;
         ./configure --prefix=$WORKSPACE/mono-$MONOVER;
-        make -j2 && make install;
+        make -j5 && make install;
       );
     fi
 
@@ -106,19 +111,19 @@ elif [ $PYIMPL == 'ipy' ]; then
     # See: https://github.com/IronLanguages/main/wiki/Building#the-mono-runtime
     if [ ! -x "$PYTHON" ]; then
       (
-        mkdir -p .data;
-        cd .data;
+        mkdir -p .data; cd .data;
+        export PATH="$(dirname "$XBUILD"):$PATH"
 
         wget -ct0 "https://github.com/IronLanguages/main/archive/$FN";
-        unzip "$FN";
+        unzip -q "$FN";
         cd "main-$PREFIX";
 
-        xbuild /p:Configuration=Release Solutions/IronPython.sln
+        $XBUILD /p:Configuration=Release Solutions/IronPython.sln || exit 1
 
         mkdir -p "$(dirname "$PYTHON")";
         echo 'mono "$PWD/bin/Release/ir.exe" "${@}"' > $PYTHON;
         chmod +x $PYTHON;
-      );
+      ) || exit 1;
     fi;
 
 fi;
