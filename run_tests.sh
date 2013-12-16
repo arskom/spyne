@@ -40,9 +40,12 @@ else
 fi;
 
 PREFIX="$(basename $FN .tgz)";
+PYTHON="$WORKSPACE/$PREFIX/bin/python$PYVER";
+EA="$WORKSPACE/$PREFIX/bin/easy_install-$PYVER";
+COVERAGE="$WORKSPACE/$PREFIX/bin/coverage-$PYVER";
 
 # Set up python
-if [ ! -f "$WORKSPACE/$PREFIX/bin/easy_install-$PYVER" ]; then
+if [ ! -f "$EA" ]; then
     # Set up the interpreter
     wget -ct0 http://www.python.org/ftp/python/$FN;
     tar xf $(basename $FN);
@@ -51,13 +54,8 @@ if [ ! -f "$WORKSPACE/$PREFIX/bin/easy_install-$PYVER" ]; then
     make -j2 && make install;
 
     # Set up distribute
-    wget -ct0 http://python-distribute.org/distribute_setup.py
-    $PYTHON distribute_setup.py
+    $PYTHON "$WORKSPACE"/bin/distribute_setup.py
 fi;
-
-export PYTHON="$WORKSPACE/$PREFIX/bin/python$PYVER";
-export EA="$WORKSPACE/$PREFIX/bin/easy_install-$PYVER";
-export COVERAGE="$WORKSPACE/$PREFIX/bin/coverage-$PYVER";
 
 # Run tests
 $EA coverage
