@@ -47,14 +47,18 @@ COVERAGE="$WORKSPACE/$PREFIX/bin/coverage-$PYVER";
 # Set up python
 if [ ! -f "$EA" ]; then
     # Set up the interpreter
+  (
+    mkdir -p .data
+    cd .data
     wget -ct0 http://www.python.org/ftp/python/$FN;
     tar xf $(basename $FN);
     cd "$PREFIX";
     ./configure --prefix="$WORKSPACE/$PREFIX";
     make -j2 && make install;
+  );
 
-    # Set up distribute
-    $PYTHON "$WORKSPACE"/bin/distribute_setup.py
+  # Set up distribute
+  $PYTHON "$WORKSPACE"/bin/distribute_setup.py
 fi;
 
 # Run tests
