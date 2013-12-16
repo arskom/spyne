@@ -7,7 +7,7 @@
 #   Run it like this:
 #     $ PYVER=3.3 ./run_tests.sh
 #
-#   When missing, PYVER defaults to '2.7'.
+#   When missing, PYVER defaults to '2.7'. WORKSPACE is normally set by Jenkins.
 #
 # Jenkins guide:
 #   1. Create a multi configuration project
@@ -46,23 +46,26 @@ PYTHON="$WORKSPACE/$PREFIX/bin/python$PYVER";
 EA="$WORKSPACE/$PREFIX/bin/easy_install-$PYVER";
 COVERAGE="$WORKSPACE/$PREFIX/bin/coverage-$PYVER";
 
-# Set up python
-if [ ! -f "$EA" ]; then
-    # Set up the interpreter
+# Set up python interpreter
+if [ ! -x "$PYTHON" ]; then
   (
-    mkdir -p .data
-    cd .data
+    mkdir -p .data;
+    cd .data;
     wget -ct0 http://www.python.org/ftp/python/$FN;
     tar xf $(basename $FN);
     cd "$PREFIX";
     ./configure --prefix="$WORKSPACE/$PREFIX";
     make -j2 && make install;
   );
+fi;
 
-  # Set up distribute
-  $PYTHON "$WORKSPACE"/bin/distribute_setup.py
+# Set up distribute
+if [ ! -x "$EA" ]; then
+  $PYTHON "$WORKSPACE"/bin/distribute_setup.py;
+fi;
 
-  # Set up coverage
+# Set up coverage
+if [ ! -x "$COVERAGE" ]; then
   $EA coverage
 fi;
 
