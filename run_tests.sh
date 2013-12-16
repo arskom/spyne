@@ -33,7 +33,7 @@
 [ -z "$PYVER" ] && PYVER=2.7;
 [ -z "$WORKSPACE" ] && WORKSPACE="$PWD";
 
-if [ PYIMPL == "cpy" ]; then
+if [ $PYIMPL == "cpy" ]; then
 
     if   [ $PYVER == "2.6" ]; then
         FN=2.6.9/Python-2.6.9.tgz;
