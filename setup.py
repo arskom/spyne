@@ -158,7 +158,7 @@ class RunTests(TestCommand):
 test_reqs = [
     'pytest', 'werkzeug', 'sqlalchemy',
      'lxml>=2.3', 'pyyaml', 'pyzmq', 'twisted', 'colorama',
-    'msgpack-python', 'psycopg2', 'webtest',
+    'msgpack-python', 'webtest',
 ]
 
 import sys

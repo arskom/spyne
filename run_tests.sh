@@ -42,13 +42,6 @@ source _ve-$PYVER/bin/activate
 
 easy_install coverage
 
-# set up postgres
-if [ $(psql -tAlU postgres | cut -d "|" -f1 | grep -w spyne_test_$USER_${PYVER/./} | wc -l) -eq 1 ]; then
-   psql -c "drop database spyne_test_$USER_${PYVER/./}" -U postgres
-fi;
-
-psql -c "create database spyne_test_$USER_${PYVER/./}" -U postgres
-
 bash -c "coverage run --source=../spyne ../setup.py test; exit 0"
 coverage xml -i --omit=../spyne/test/*;
 

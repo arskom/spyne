@@ -20,9 +20,6 @@
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
-from getpass import getuser
-PSQL_CONN_STR = 'postgres://postgres:@localhost:5432/spyne_test_%s' % getuser()
-
 import unittest
 import sqlalchemy
 
@@ -750,14 +747,10 @@ class TestSqlAlchemySchema(unittest.TestCase):
 
 class TestSqlAlchemySchemaWithPostgresql(unittest.TestCase):
     def setUp(self):
-        self.engine = create_engine(PSQL_CONN_STR)
-        self.session = sessionmaker(bind=self.engine)()
         self.metadata = TableModel.Attributes.sqla_metadata = MetaData()
-        self.metadata.bind = self.engine
 
     def test_enum(self):
         table_name = "test_enum"
-        self.engine.execute("drop table if exists %s" % table_name)
 
         enums = ('SUBSCRIBED', 'UNSUBSCRIBED', 'UNCONFIRMED')
 
@@ -767,18 +760,8 @@ class TestSqlAlchemySchemaWithPostgresql(unittest.TestCase):
             id = Integer32(primary_key=True)
             e = Enum(*enums, type_name='status_choices')
 
-        logging.getLogger('sqlalchemy').setLevel(logging.DEBUG)
-        self.metadata.create_all()
-        logging.getLogger('sqlalchemy').setLevel(logging.CRITICAL)
-
-        metadata2 = MetaData()
-        metadata2.bind = self.engine
-        metadata2.reflect()
-
-        import sqlalchemy.dialects.postgresql.base
-        t = metadata2.tables[table_name]
+        t = self.metadata.tables[table_name]
         assert 'e' in t.c
-        assert isinstance(t.c.e.type, sqlalchemy.dialects.postgresql.base.ENUM)
         assert t.c.e.type.enums == enums
 
 
