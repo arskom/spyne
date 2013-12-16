@@ -23,41 +23,98 @@
 #      '**/coverage.xml'.
 #
 
-[ -z "$PYVER" ] && PYVER=2.7
-[ -z "$WORKSPACE" ] && WORKSPACE="$PWD"
+[ -z "$PYIMPL" ] && PYIMPL=cpy;
+[ -z "$PYVER" ] && PYVER=2.7;
+[ -z "$WORKSPACE" ] && WORKSPACE="$PWD";
 
-if   [ $PYVER == "2.6" ]; then
-    FN=2.6.9/Python-2.6.9.tgz;
+if [ PYIMPL == "cpy" ]; then
 
-elif [ $PYVER == "2.7" ]; then
-    FN=2.7.6/Python-2.7.6.tgz;
+    if   [ $PYVER == "2.6" ]; then
+        FN=2.6.9/Python-2.6.9.tgz;
 
-elif [ $PYVER == "3.3" ]; then
-    FN=3.3.3/Python-3.3.3.tgz;
+    elif [ $PYVER == "2.7" ]; then
+        FN=2.7.6/Python-2.7.6.tgz;
+
+    elif [ $PYVER == "3.3" ]; then
+        FN=3.3.3/Python-3.3.3.tgz;
+
+    else
+        echo "Unknown python version $PYIMPL-$PYVER";
+        exit 2;
+
+    fi;
+
+    PREFIX="$(basename $FN .tgz)";
+
+elif [ $PYIMPL == "ipy" ]; then
+    if [ $PYVER == "2.7" ]; then
+        FN=ipy-2.7.4.zip
+
+    else
+        echo "Unknown Python version $PYIMPL-$PYVER";
+        exit 2;
+
+    fi;
+
+    PREFIX="$(basename $FN .zip)";
 
 else
-    echo "Unknown python version $PYVER";
+    echo "Unknown Python implementation $PYIMPL";
     exit 2;
-
 fi;
 
-PREFIX="$(basename $FN .tgz)";
+MONOVER=3.2.5
 PYTHON="$WORKSPACE/$PREFIX/bin/python$PYVER";
 EA="$WORKSPACE/$PREFIX/bin/easy_install-$PYVER";
 COVERAGE="$WORKSPACE/$PREFIX/bin/coverage-$PYVER";
 COVERAGE2="$HOME/.local/bin/coverage-$PYVER"
 
-# Set up CPython
-if [ ! -x "$PYTHON" ]; then
-  (
-    mkdir -p .data;
-    cd .data;
-    wget -ct0 http://www.python.org/ftp/python/$FN;
-    tar xf $(basename $FN);
-    cd "$PREFIX";
-    ./configure --prefix="$WORKSPACE/$PREFIX";
-    make -j2 && make install;
-  );
+if [ $PYIMPL == 'cpy' ]; then
+    # Set up CPython
+    if [ ! -x "$PYTHON" ]; then
+      (
+        mkdir -p .data;
+        cd .data;
+        wget -ct0 http://www.python.org/ftp/python/$FN;
+        tar xf $(basename $FN);
+        cd "$PREFIX";
+        ./configure --prefix="$WORKSPACE/$PREFIX";
+        make -j2 && make install;
+      );
+    fi;
+
+elif [ $PYIMPL == 'ipy' ]; then
+    # Set up Mono first
+    # See: http://www.mono-project.com/Compiling_Mono_From_Tarball
+    if [ ! -x "$MONO" ]; then
+      (
+        wget -ct0 http://download.mono-project.com/sources/mono/mono-$MONOVER.tar.bz2
+        tar xf mono-$MONOVER.tar.bz2;
+        cd mono-$MONOVER;
+        ./configure --prefix=$WORKSPACE/mono-$MONOVER;
+        make -j2 && make install;
+      );
+    fi
+
+    # Set up IronPython
+    # See: https://github.com/IronLanguages/main/wiki/Building#the-mono-runtime
+    if [ ! -x "$PYTHON" ]; then
+      (
+        mkdir -p .data;
+        cd .data;
+
+        wget -ct0 "https://github.com/IronLanguages/main/archive/$FN";
+        unzip "$FN";
+        cd "main-$PREFIX";
+
+        xbuild /p:Configuration=Release Solutions/IronPython.sln
+
+        mkdir -p "$(dirname "$PYTHON")";
+        echo 'mono "$PWD/bin/Release/ir.exe" "${@}"' > $PYTHON;
+        chmod +x $PYTHON;
+      );
+    fi;
+
 fi;
 
 # Set up distribute
