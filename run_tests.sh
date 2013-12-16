@@ -92,8 +92,8 @@ if [ $PYIMPL == 'cpy' ]; then
     # Set up CPython
     if [ ! -x "$PYTHON" ]; then
       (
-        mkdir -p .data;
-        cd .data;
+        mkdir -p .data; cd .data;
+
         wget -ct0 http://www.python.org/ftp/python/$FN;
         tar xf $(basename $FN);
         cd "$PREFIX";
