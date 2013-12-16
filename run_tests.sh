@@ -1,26 +1,32 @@
 #!/bin/bash -x
 #
+# Sets up a Python testing environment from scratch. Mainly written for Jenkins.
+#
 # Requirements:
-#   1. A working build environment. Only tested on linux.
+#   A working build environment inside the container. Only tested on Linux
+#   variants.
 #
 # Usage:
 #   Run it like this:
+#
 #     $ PYVER=3.3 ./run_tests.sh
 #
-#   When missing, PYVER defaults to '2.7'. WORKSPACE is normally set by Jenkins.
+#   - PYVER defaults to '2.7'.
+#   - WORKSPACE defaults to $PWD. It's normally set by Jenkins.
 #
 # Jenkins guide:
-#   1. Create a multi configuration project
-#   2. In the 'Configuration Matrix' section, create a user-defined axis named
+#   1. Create a 'Multi configuration project'.
+#   2. Set up stuff like git repo the usual way.
+#   3. In the 'Configuration Matrix' section, create a user-defined axis named
 #      'PYVER'. and set it to the Python versions you'd like to test, separated
 #      by whitespace. For example: '2.7 3.3'
-#   3. Set up other stuff like git repo the usual way.
 #   4. Add a new "Execute Shell" build step and type in './run_tests.sh'.
 #   5. Add a new "Publish JUnit test report" post-build action and type in
-#      '**/test_result.*.xml'
-#   6. If you have the "Cobertura Coverage Report" plug-in, add a
-#      'Publish Cobertura Coverage Report' post-build action and type in
-#      '**/coverage.xml'.
+#      'test_result.*.xml'
+#   6. Add a new "Publish Cobertura Coverage Report" post-build action and type
+#      in 'coverage.xml'. Install the "Cobertura Coverage Report" plug-in if you
+#      don't see this option.
+#   7. Have fun!
 #
 
 [ -z "$PYIMPL" ] && PYIMPL=cpy;
@@ -65,7 +71,7 @@ fi;
 
 MONOVER=3.2.5
 PYTHON="$WORKSPACE/$PREFIX/bin/python$PYVER";
-EA="$WORKSPACE/$PREFIX/bin/easy_install-$PYVER";
+EASY="$WORKSPACE/$PREFIX/bin/easy_install-$PYVER";
 COVERAGE="$WORKSPACE/$PREFIX/bin/coverage-$PYVER";
 COVERAGE2="$HOME/.local/bin/coverage-$PYVER"
 
@@ -118,13 +124,13 @@ elif [ $PYIMPL == 'ipy' ]; then
 fi;
 
 # Set up distribute
-if [ ! -x "$EA" ]; then
+if [ ! -x "$EASY" ]; then
   $PYTHON "$WORKSPACE"/bin/distribute_setup.py;
 fi;
 
 # Set up coverage
 if [ ! -x "$COVERAGE" ]; then
-  $EA coverage
+  $EASY coverage
 fi;
 
 # Sometimes, easy_install works in mysterious ways...
