@@ -24,7 +24,6 @@
 [ -z "$PYVER" ] && PYVER=2.7
 [ -z "$WORKSPACE" ] && WORKSPACE="$PWD"
 
-# Set up python
 if   [ $PYVER == "2.6" ]; then
     FN=2.6.9/Python-2.6.9.tgz;
 
@@ -42,22 +41,25 @@ fi;
 
 PREFIX="$(basename $FN .tgz)";
 
+# Set up python
 if [ ! -x "$WORKSPACE/$PREFIX/bin/easy_install-$PYVER" ]; then
+    # Set up the interpreter
     wget -ct0 http://www.python.org/ftp/python/$FN;
     tar xf $(basename $FN);
     cd "$PREFIX";
     ./configure --prefix="$WORKSPACE/$PREFIX";
     make -j2 && make install;
+
+    # Set up distribute
+    wget -ct0 http://python-distribute.org/distribute_setup.py
+    $PYTHON distribute_setup.py
 fi;
 
 export PYTHON="$WORKSPACE/$PREFIX/bin/python$PYVER";
 export EA="$WORKSPACE/$PREFIX/bin/easy_install-$PYVER";
 export COVERAGE="$WORKSPACE/$PREFIX/bin/coverage-$PYVER";
 
-# Set up distribute
-wget -ct0 http://python-distribute.org/distribute_setup.py
-$PYTHON distribute_setup.py
-
+# Run tests
 $EA coverage
 $PYTHON setup.py develop
 
