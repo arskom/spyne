@@ -693,6 +693,38 @@ class TestMemberRpc(unittest.TestCase):
         print(methods)
         assert 'put' in methods
 
+    def test_simple_customize(self):
+        class SomeComplexModel(ComplexModel):
+            @mrpc()
+            def put(self, ctx):
+                return "PUNK!!!"
+
+        methods = SomeComplexModel.customize(zart='zurt').Attributes.methods
+        print(methods)
+        assert 'put' in methods
+
+    def test_simple_with_fields(self):
+        class SomeComplexModel(ComplexModel):
+            a = Integer
+            @mrpc()
+            def put(self, ctx):
+                return "PUNK!!!"
+
+        methods = SomeComplexModel.Attributes.methods
+        print(methods)
+        assert 'put' in methods
+
+    def test_simple_with_explicit_fields(self):
+        class SomeComplexModel(ComplexModel):
+            _type_info = [('a', Integer)]
+            @mrpc()
+            def put(self, ctx):
+                return "PUNK!!!"
+
+        methods = SomeComplexModel.Attributes.methods
+        print(methods)
+        assert 'put' in methods
+
     def test_native_call(self):
         v = 'whatever'
 

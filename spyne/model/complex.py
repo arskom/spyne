@@ -340,7 +340,6 @@ class ComplexModelMeta(type(ModelBase)):
             else:
                 raise Exception("No ModelBase subclass in bases? Huh?")
 
-        methods = {}
         # populate children
         if not ('_type_info' in cls_dict):
             cls_dict['_type_info'] = _type_info = TypeInfo()
@@ -349,11 +348,6 @@ class ComplexModelMeta(type(ModelBase)):
             class_fields = []
             for k, v in cls_dict.items():
                 if not k.startswith('_'):
-                    if hasattr(v, '_is_rpc'):
-                        descriptor = v(_default_function_name=k)
-                        cls_dict[k] = descriptor.function
-                        methods[k] = descriptor
-
                     v = _get_spyne_type(cls_name, k, v)
                     if v is not None:
                         class_fields.append((k, v))
@@ -371,6 +365,15 @@ class ComplexModelMeta(type(ModelBase)):
 
             if not isinstance(_type_info, TypeInfo):
                 _type_info = cls_dict['_type_info'] = TypeInfo(_type_info)
+
+        # populate methods
+        methods = {}
+        for k, v in cls_dict.items():
+            if not k.startswith('_'):
+                if hasattr(v, '_is_rpc'):
+                    descriptor = v(_default_function_name=k)
+                    cls_dict[k] = descriptor.function
+                    methods[k] = descriptor
 
         # used for sub_name and sub_ns
         _type_info_alt = cls_dict['_type_info_alt'] = TypeInfo()
