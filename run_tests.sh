@@ -45,6 +45,7 @@ PREFIX="$(basename $FN .tgz)";
 PYTHON="$WORKSPACE/$PREFIX/bin/python$PYVER";
 EA="$WORKSPACE/$PREFIX/bin/easy_install-$PYVER";
 COVERAGE="$WORKSPACE/$PREFIX/bin/coverage-$PYVER";
+COVERAGE2="$HOME/.local/bin/coverage-$PYVER"
 
 # Set up python interpreter
 if [ ! -x "$PYTHON" ]; then
@@ -67,6 +68,11 @@ fi;
 # Set up coverage
 if [ ! -x "$COVERAGE" ]; then
   $EA coverage
+fi;
+
+# Sometimes, easy_install works in mysterious ways...
+if [ ! -x "$COVERAGE" ]; then
+  COVERAGE="$COVERAGE2"
 fi;
 
 # Run tests
