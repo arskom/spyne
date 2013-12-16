@@ -47,12 +47,12 @@ if [ ! -x "$WORKSPACE/$PREFIX/bin/easy_install-$PYVER" ]; then
     tar xf $(basename $FN);
     cd "$PREFIX";
     ./configure --prefix="$WORKSPACE/$PREFIX";
-    make -j5 && make install;
+    make -j2 && make install;
 fi;
 
 export PYTHON="$WORKSPACE/$PREFIX/bin/python$PYVER";
 export EA="$WORKSPACE/$PREFIX/bin/easy_install-$PYVER";
-export COVERAGE="$wORKSPACE/$PREFIX/bin/coverage-$PYVER";
+export COVERAGE="$WORKSPACE/$PREFIX/bin/coverage-$PYVER";
 
 # Set up distribute
 wget -ct0 http://python-distribute.org/distribute_setup.py
