@@ -218,11 +218,14 @@ class Interface(object):
         if key in self.method_id_map:
             c = self.method_id_map[key].parent_class
             if c.__orig__ is None:
-                assert c is s.__orig__
+                assert c is s.__orig__, "%r.%s conflicts with %r.%s" % \
+                                        (c, key, s.__orig__, key)
             elif s.__orig__ is None:
-                assert c.__orig__ is s
+                assert c.__orig__ is s, "%r.%s conflicts with %r.%s" % \
+                                        (c.__orig__, key, s, key)
             else:
-                assert c.__orig__ is s.__orig__
+                assert c.__orig__ is s.__orig__, "%r.%s conflicts with %r.%s" % \
+                                        (c.__orig__, key, s.__orig__, key)
             return
 
         self.method_id_map[generate_method_id(s, method)] = method
