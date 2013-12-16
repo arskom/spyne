@@ -755,6 +755,30 @@ class TestMemberRpc(unittest.TestCase):
         mmm = __name__ + '.SomeComplexModel.member_method'
         assert mmm in app.interface.method_id_map
 
+    def test_interface_mult(self):
+        class SomeComplexModel(ComplexModel):
+            @mrpc()
+            def member_method(self, ctx):
+                pass
+
+        methods = SomeComplexModel.Attributes.methods
+        print(methods)
+        assert 'member_method' in methods
+
+        class SomeService(ServiceBase):
+            @rpc(_returns=SomeComplexModel)
+            def service_method(ctx):
+                return SomeComplexModel()
+
+            @rpc(_returns=SomeComplexModel.customize(type_name='zon'))
+            def service_method_2(ctx):
+                return SomeComplexModel()
+
+        app = Application([SomeService], 'some_ns')
+
+        mmm = __name__ + '.SomeComplexModel.member_method'
+        assert mmm in app.interface.method_id_map
+
     def test_remote_call_error(self):
         from spyne import mrpc
         v = 'deger'

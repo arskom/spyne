@@ -214,8 +214,16 @@ class Interface(object):
 
         logger.debug('\tadding method %r to match %r tag.' %
                                                       (method.name, method_key))
-
-        assert not generate_method_id(s, method) in self.method_id_map, method.name
+        key = generate_method_id(s, method)
+        if key in self.method_id_map:
+            c = self.method_id_map[key].parent_class
+            if c.__orig__ is None:
+                assert c is s.__orig__
+            elif s.__orig__ is None:
+                assert c.__orig__ is s
+            else:
+                assert c.__orig__ is s.__orig__
+            return
 
         self.method_id_map[generate_method_id(s, method)] = method
 
@@ -229,7 +237,7 @@ class Interface(object):
         elif method.aux is not None:
             val.append(method)
 
-        elif val[0][1].aux is not None:
+        elif val[0].aux is not None:
             val.insert(method, 0)
 
         else:
