@@ -46,7 +46,7 @@ PYTHON="$WORKSPACE/$PREFIX/bin/python$PYVER";
 EA="$WORKSPACE/$PREFIX/bin/easy_install-$PYVER";
 COVERAGE="$WORKSPACE/$PREFIX/bin/coverage-$PYVER";
 
-# Set up python interpreter
+# Set up CPython
 if [ ! -x "$PYTHON" ]; then
   (
     mkdir -p .data;
