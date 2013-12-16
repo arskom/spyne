@@ -29,9 +29,19 @@
 #   7. Have fun!
 #
 
-[ -z "$PYIMPL" ] && PYIMPL=cpy;
-[ -z "$PYVER" ] && PYVER=2.7;
+[ -z "$PYVER" ] && PYVER=cpy-2.7;
 [ -z "$WORKSPACE" ] && WORKSPACE="$PWD";
+
+PYIMPL=(${PYVER//-/ })
+PYVER=${PYIMPL[1]}
+
+if [ -z "$PYVER" ]; then
+    PYVER=${PYIMPL[0]};
+    PYIMPL=cpy;
+else
+    PYIMPL=${PYIMPL[0]}
+
+fi
 
 if [ $PYIMPL == "cpy" ]; then
 
