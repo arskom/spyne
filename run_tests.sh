@@ -25,7 +25,6 @@
 [ -z "$WORKSPACE" ] && WORKSPACE="$PWD"
 
 # Set up python
-
 if   [ $PYVER == "2.6" ]; then
     FN=2.6.9/Python-2.6.9.tgz;
 
@@ -43,30 +42,24 @@ fi;
 
 PREFIX="$(basename $FN .tgz)";
 
-if [ -z "$(which easy_install-$PYVER)" ]; then
+if [ ! -x "$WORKSPACE/$PREFIX/bin/easy_install-$PYVER" ]; then
     wget -ct0 http://www.python.org/ftp/python/$FN;
     tar xf $(basename $FN);
     cd "$PREFIX";
     ./configure --prefix="$WORKSPACE/$PREFIX";
-    make -j2 && make install;
+    make -j5 && make install;
 fi;
+
+export PYTHON="$WORKSPACE/$PREFIX/bin/python$PYVER";
+export EA="$WORKSPACE/$PREFIX/bin/easy_install-$PYVER";
+export COVERAGE="$wORKSPACE/$PREFIX/bin/coverage-$PYVER";
 
 # Set up distribute
-export PATH="$WORKSPACE/$PREFIX/bin:$PATH";
 wget -ct0 http://python-distribute.org/distribute_setup.py
-python$PYVER distribute_setup.py
+$PYTHON distribute_setup.py
 
-# Run tests
-echo pyver: $PYVER
+$EA coverage
+$PYTHON setup.py develop
 
-easy_install-$PYVER -U --user virtualenv
-if [ '!' -d _ve ]; then
-    ~/.local/bin/virtualenv-$PYVER --distribute _ve-$PYVER
-fi;
-
-source _ve-$PYVER/bin/activate
-
-easy_install coverage
-
-bash -c "coverage run --source=spyne setup.py test; exit 0"
-coverage xml -i --omit=../spyne/test/*;
+bash -c "$COVERAGE run --source=spyne setup.py test; exit 0"
+$COVERAGE xml -i --omit=spyne/test/*;
