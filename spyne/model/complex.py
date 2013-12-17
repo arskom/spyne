@@ -976,12 +976,12 @@ class Array(ComplexModelBase):
         if _serializer is None:
             raise ValueError("serializer=%r is not a valid spyne type" % serializer)
 
-        if issubclass(serializer, SelfReference):
+        if issubclass(_serializer, SelfReference):
              # hack to make sure the array passes ComplexModel sanity checks
              # that are there to prevent empty arrays.
-            retval._type_info = {'_bogus': serializer}
+            retval._type_info = {'_bogus': _serializer}
         else:
-            retval._set_serializer(serializer, member_name)
+            retval._set_serializer(_serializer, member_name)
 
         tn = kwargs.get("type_name", None)
         if tn is not None:
