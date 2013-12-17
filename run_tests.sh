@@ -9,16 +9,16 @@
 # Usage:
 #   Run it like this:
 #
-#     $ PYVER=3.3 ./run_tests.sh
+#     $ PYFLAV=3.3 ./run_tests.sh
 #
-#   - PYVER defaults to '2.7'.
+#   - PYFLAV defaults to '2.7'.
 #   - WORKSPACE defaults to $PWD. It's normally set by Jenkins.
 #
 # Jenkins guide:
 #   1. Create a 'Multi configuration project'.
 #   2. Set up stuff like git repo the usual way.
 #   3. In the 'Configuration Matrix' section, create a user-defined axis named
-#      'PYVER'. and set it to the Python versions you'd like to test, separated
+#      'PYFLAV'. and set it to the Python versions you'd like to test, separated
 #      by whitespace. For example: '2.7 3.3'
 #   4. Add a new "Execute Shell" build step and type in './run_tests.sh'.
 #   5. Add a new "Publish JUnit test report" post-build action and type in
@@ -29,29 +29,29 @@
 #   7. Have fun!
 #
 
-[ -z "$PYVER" ] && PYVER=2.7
+[ -z "$PYFLAV" ] && PYFLAV=2.7
 [ -z "$WORKSPACE" ] && WORKSPACE="$PWD"
 
-if   [ $PYVER == "2.6" ]; then
+if   [ $PYFLAV == "2.6" ]; then
     FN=2.6.9/Python-2.6.9.tgz;
 
-elif [ $PYVER == "2.7" ]; then
+elif [ $PYFLAV == "2.7" ]; then
     FN=2.7.6/Python-2.7.6.tgz;
 
-elif [ $PYVER == "3.3" ]; then
+elif [ $PYFLAV == "3.3" ]; then
     FN=3.3.3/Python-3.3.3.tgz;
 
 else
-    echo "Unknown python version $PYVER";
+    echo "Unknown python version $PYFLAV";
     exit 2;
 
 fi;
 
 PREFIX="$(basename $FN .tgz)";
-PYTHON="$WORKSPACE/$PREFIX/bin/python$PYVER";
-EASY="$WORKSPACE/$PREFIX/bin/easy_install-$PYVER";
-COVERAGE="$WORKSPACE/$PREFIX/bin/coverage-$PYVER";
-COVERAGE2="$HOME/.local/bin/coverage-$PYVER"
+PYTHON="$WORKSPACE/$PREFIX/bin/python$PYFLAV";
+EASY="$WORKSPACE/$PREFIX/bin/easy_install-$PYFLAV";
+COVERAGE="$WORKSPACE/$PREFIX/bin/coverage-$PYFLAV";
+COVERAGE2="$HOME/.local/bin/coverage-$PYFLAV"
 
 # Set up CPython
 if [ ! -x "$PYTHON" ]; then
