@@ -172,7 +172,10 @@ fi;
 
 # Set up distribute
 if [ ! -x "$EASY" ]; then
-  $PYTHON "$WORKSPACE"/bin/distribute_setup.py;
+  (
+    mkdir -p .data; cd .data;
+    $PYTHON "$WORKSPACE"/bin/distribute_setup.py;
+  )
 fi;
 
 if [ $PYIMPL == 'jpy' ]; then
