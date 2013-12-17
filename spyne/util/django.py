@@ -17,7 +17,10 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-"""Support for Django model <-> spyne type mapping."""
+"""Support for Django model <-> spyne type mapping.
+
+This module is EXPERIMENTAL. Tests and patches are welcome.
+"""
 
 from __future__ import absolute_import
 

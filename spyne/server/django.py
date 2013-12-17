@@ -21,13 +21,7 @@
 transport. It's a thin wrapper around
 :class:`spyne.server.wsgi.WsgiApplication`.
 
-To put it bluntly, using one WSGI application inside another one sounds
-strange. Two WSGI applications have to share the same WSGI input buffer. This
-approach is error-prone.
-
-Hopefully, the module also provides native Django class based view
-talking with :class:`spyne.server.django.DjangoServer`.
-
+This module is EXPERIMENTAL. Tests and patches are welcome.
 """
 
 from __future__ import absolute_import
@@ -99,7 +93,8 @@ class DjangoApplication(WsgiApplication):
 
 class StreamingDjangoApplication(DjangoApplication):
     """You should use this when you're generating HUGE data as response.
-    This is new in Django 1.5.
+
+    New in Django 1.5.
     """
 
     HttpResponseObject = StreamingHttpResponse
@@ -209,8 +204,8 @@ class DjangoServer(HttpBase):
 
         :param response: Django HttpRequest instance.
         :returns: generated contexts
-
         """
+
         initial_ctx = HttpMethodContext(self, request,
                                         self.app.out_protocol.mime_type)
 
@@ -344,6 +339,7 @@ class DjangoView(object):
 
     def options(self, request, *args, **kwargs):
         """Handle responding to requests for the OPTIONS HTTP verb."""
+
         response = HttpResponse()
         response['Allow'] = ', '.join(self._allowed_methods())
         response['Content-Length'] = '0'
