@@ -972,9 +972,9 @@ class Array(ComplexModelBase):
     def __new__(cls, serializer, member_name=None, **kwargs):
         retval = cls.customize(**kwargs)
 
-        serializer = _get_spyne_type(cls.__name__, '__serializer__', serializer)
-        if serializer is None:
-            raise ValueError(serializer)
+        _serializer = _get_spyne_type(cls.__name__, '__serializer__', serializer)
+        if _serializer is None:
+            raise ValueError("serializer=%r is not a valid spyne type" % serializer)
 
         if issubclass(serializer, SelfReference):
              # hack to make sure the array passes ComplexModel sanity checks
