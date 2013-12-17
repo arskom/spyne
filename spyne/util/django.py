@@ -22,15 +22,14 @@
 from __future__ import absolute_import
 
 import logging
+logger = logging.getLogger(__name__)
 
 from django.core.exceptions import ImproperlyConfigured
 from django.core.validators import (email_re, slug_re,
                                     comma_separated_int_list_re, URLValidator)
 from spyne.model.complex import ComplexModelMeta, ComplexModelBase
 from spyne.model import primitive
-
-
-logger = logging.getLogger(__name__)
+from spyne.util.six import add_metaclass
 
 
 class DjangoFieldMapper(object):
@@ -289,7 +288,7 @@ class DjangoComplexModelMeta(ComplexModelMeta):
         return super_new(mcs, name, bases, spyne_attrs)
 
 
-@add_metaclasss(DjangoComplexModelMeta)
+@add_metaclass(DjangoComplexModelMeta)
 class DjangoComplexModel(ComplexModelBase):
     """Base class with Django model mapping support.
 
