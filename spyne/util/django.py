@@ -219,18 +219,18 @@ def strip_regex_metachars(pattern):
 DEFAULT_FIELD_MAP = (
     ('AutoField', primitive.Integer32),
     ('CharField', primitive.NormalizedString),
-    ('SlugField', primitive.String(
+    ('SlugField', primitive.Unicode(
         type_name='Slug', pattern=strip_regex_metachars(slug_re.pattern))),
-    ('TextField', primitive.String),
-    ('EmailField', primitive.String(
+    ('TextField', primitive.Unicode),
+    ('EmailField', primitive.Unicode(
         type_name='Email', pattern=strip_regex_metachars(email_re.pattern))),
-    ('CommaSeparatedIntegerField', primitive.String(
+    ('CommaSeparatedIntegerField', primitive.Unicode(
         type_name='CommaSeparatedField',
         pattern=strip_regex_metachars(comma_separated_int_list_re.pattern))),
     ('UrlField', primitive.AnyUri(
         type_name='Url',
         pattern=strip_regex_metachars(URLValidator.regex.pattern))),
-    ('FilePathField', primitive.String),
+    ('FilePathField', primitive.Unicode),
 
     ('BooleanField', primitive.Boolean),
     ('NullBooleanField', primitive.Boolean),
