@@ -44,6 +44,7 @@ else
 fi
 
 if [ $PYIMPL == "cpy" ]; then
+    PYNAME=python$PYVER
 
     if   [ $PYVER == "2.6" ]; then
         FN=2.6.9/Python-2.6.9.tgz;
@@ -63,6 +64,8 @@ if [ $PYIMPL == "cpy" ]; then
     PREFIX="$(basename $FN .tgz)";
 
 elif [ $PYIMPL == "ipy" ]; then
+    PYNAME=python$PYVER
+
     if [ $PYVER == "2.7" ]; then
         FN=ipy-2.7.4.zip
 
@@ -83,7 +86,7 @@ MONOVER=2.11.4
 MONOPREFIX="$WORKSPACE/mono-$MONOVER"
 XBUILD="$MONOPREFIX/bin/xbuild"
 
-PYTHON="$WORKSPACE/$PREFIX/bin/python$PYVER";
+PYTHON="$WORKSPACE/$PREFIX/bin/$PYNAME";
 EASY="$WORKSPACE/$PREFIX/bin/easy_install-$PYVER";
 COVERAGE="$WORKSPACE/$PREFIX/bin/coverage-$PYVER";
 COVERAGE2="$HOME/.local/bin/coverage-$PYVER"
