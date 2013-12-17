@@ -1,6 +1,9 @@
 # All files to globally ignore
 .data
 
+# test cruft
+jython-installer-*
+
 # python cruft
 *.pyc
 *.pyo
