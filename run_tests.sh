@@ -39,12 +39,10 @@
 [ -z "$WORKSPACE" ] && WORKSPACE="$PWD";
 [ -z "$MAKEOPTS" ] && MAKEOPTS="-j2";
 
-PYNAME=python$PYVER;
 PYIMPL=(${PYFLAV//-/ });
 PYVER=${PYIMPL[1]};
 PYFLAV="${PYFLAV/-/}";
 PYFLAV="${PYFLAV/./}";
-
 if [ -z "$PYVER" ]; then
     PYVER=${PYIMPL[0]};
     PYIMPL=cpy;
@@ -52,6 +50,8 @@ if [ -z "$PYVER" ]; then
 else
     PYIMPL=${PYIMPL[0]};
 fi
+
+PYNAME=python$PYVER;
 
 if [ -z "$FN" ]; then
     declare -A URLS;
