@@ -1,3 +1,4 @@
+# coding: utf-8
 #!/usr/bin/env python
 #
 # spyne - Copyright (C) Spyne contributors.
@@ -90,6 +91,22 @@ class ModelTestCase(TestCase):
                                        date_field=datetime.date.today(),
                                        datetime_field=datetime.datetime.now(),
                                        time_field=datetime.time())
+        create_container = (lambda: self.client.service.create_container(
+            new_container))
+        c = create_container()
+        self.assertIsInstance(c, Container)
+        self.assertRaises(Fault, create_container)
+
+    def test_create_container_unicode(self):
+        """Test complex unicode input to create Django model."""
+        new_container = FieldContainer(
+            char_field=u'спайн',
+            text_field=u'спайн',
+            slug_field=u'спайн',
+            date_field=datetime.date.today(),
+            datetime_field=datetime.datetime.now(),
+            time_field=datetime.time()
+        )
         create_container = (lambda: self.client.service.create_container(
             new_container))
         c = create_container()
