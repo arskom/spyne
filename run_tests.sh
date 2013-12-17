@@ -29,92 +29,73 @@
 #   7. Have fun!
 #
 
-[ -z "$PYVER" ] && PYVER=cpy-2.7;
-[ -z "$WORKSPACE" ] && WORKSPACE="$PWD";
-[ -z "$MONOVER" ] MONOVER=2.11.4
 
-PYIMPL=(${PYVER//-/ })
+# Initialization
+[ -z "PYFLAV" ] && PYFLAV=cpy-2.7;
+[ -z "$MONOVER" ] && MONOVER=2.11.4
+[ -z "$WORKSPACE" ] && WORKSPACE="$PWD";
+
+declare -A PYNAMES
+declare -A URLS
+
+IRONPYTHON_URL_BASE=https://github.com/IronLanguages/main/archive
+CPYTHON_URL_BASE=http://www.python.org/ftp/python
+JYTHON_URL_BASE=http://search.maven.org/remotecontent?filepath=org/python/jython-installer
+
+URLS=(["cpy-2.6"]="2.6.9/Python-2.6.9.tgz")
+URLS=(["cpy-2.7"]="2.7.6/Python-2.7.6.tgz")
+URLS=(["cpy-3.3"]="3.3.3/Python-3.3.3.tgz")
+URLS=(["jyt-2.5"]="2.5.3/jython-installer-2.5.3.jar")
+URLS=(["jyt-2.7"]="2.7-b1/jython-installer-2.7-b1.jar")
+URLS=(["ipy-2.7"]="ipy-2.7.4.zip")
+
+FN="${URLS["$PYFLAV"]}"
+
+if [ -z "$FN" ]; then
+    echo "Unknown Python version $PYFLAV";
+    exit 2;
+fi;
+
+PYNAME=python$PYVER
+PYIMPL=(${PYFLAV//-/ })
 PYVER=${PYIMPL[1]}
 
 if [ -z "$PYVER" ]; then
     PYVER=${PYIMPL[0]};
     PYIMPL=cpy;
 else
-    PYIMPL=${PYIMPL[0]}
-
+    PYIMPL=${PYIMPL[0]};
 fi
 
+
+# Set specific variables
 if [ $PYIMPL == "cpy" ]; then
-    PYNAME=python$PYVER
-
-    if   [ $PYVER == "2.6" ]; then
-        FN=2.6.9/Python-2.6.9.tgz;
-
-    elif [ $PYVER == "2.7" ]; then
-        FN=2.7.6/Python-2.7.6.tgz;
-
-    elif [ $PYVER == "3.3" ]; then
-        FN=3.3.3/Python-3.3.3.tgz;
-
-    else
-        echo "Unknown python version $PYIMPL-$PYVER";
-        exit 2;
-
-    fi;
-
     PREFIX="$(basename $FN .tgz)";
 
 elif [ $PYIMPL == "ipy" ]; then
-    PYNAME=python$PYVER
-
-    if [ $PYVER == "2.7" ]; then
-        FN=ipy-2.7.4.zip
-
-    else
-        echo "Unknown Python version $PYIMPL-$PYVER";
-        exit 2;
-
-    fi;
-
     PREFIX="$(basename $FN .zip)";
+    MONOPREFIX="$WORKSPACE/mono-$MONOVER"
+    XBUILD="$MONOPREFIX/bin/xbuild"
 
-elif [ $PYIMPL == "jpy" ]; then
-    PYNAME=jython
-
-    if [ $PYVER == "2.5" ]; then
-        FN=2.5.3/jython-installer-2.5.3.jar;
-
-    elif [ $PYVER == "2.7" ]; then
-        FN=2.7-b1/jython-installer-2.7-b1.jar;
-
-    else
-        echo "Unknown Python version $PYIMPL-$PYVER";
-        exit 2;
-
-    fi;
-
+elif [ $PYIMPL == "jyt" ]; then
+    PYNAME=jython;
     PREFIX="$(basename $FN .jar)";
-
-else
-    echo "Unknown Python implementation $PYIMPL";
-    exit 2;
-
 fi;
 
-MONOPREFIX="$WORKSPACE/mono-$MONOVER"
-XBUILD="$MONOPREFIX/bin/xbuild"
+# Set common variables
 PYTHON="$WORKSPACE/$PREFIX/bin/$PYNAME";
 EASY="$WORKSPACE/$PREFIX/bin/easy_install-$PYVER";
 COVERAGE="$WORKSPACE/$PREFIX/bin/coverage-$PYVER";
 COVERAGE2="$HOME/.local/bin/coverage-$PYVER"
 
+
+# Set up requested python environment.
 if [ $PYIMPL == 'cpy' ]; then
-    # Set up CPython
     if [ ! -x "$PYTHON" ]; then
       (
         mkdir -p .data; cd .data;
 
-        wget -ct0 http://www.python.org/ftp/python/$FN;
+        wget -ct0 $CPYTHON_URL_BASE/$FN;
         tar xf $(basename $FN);
         cd "$PREFIX";
         ./configure --prefix="$WORKSPACE/$PREFIX";
@@ -122,13 +103,13 @@ if [ $PYIMPL == 'cpy' ]; then
       );
     fi;
 
-elif [ $PYIMPL == 'jpy' ]; then
+elif [ $PYIMPL == 'jyt' ]; then
     if [ ! -x "$PYTHON" ]; then
       (
         mkdir -p .data; cd .data;
 
         FILE=$(basename $FN);
-        wget -O $FILE -ct0 "http://search.maven.org/remotecontent?filepath=org/python/jython-installer/$FN";
+        wget -O $FILE -ct0 "$JYTHON_URL_BASE/$FN";
         java -jar $FILE -s -d "$WORKSPACE/$PREFIX"
 
       );
@@ -156,7 +137,7 @@ elif [ $PYIMPL == 'ipy' ]; then
         mkdir -p .data; cd .data;
         export PATH="$(dirname "$XBUILD"):$PATH"
 
-        wget -ct0 "https://github.com/IronLanguages/main/archive/$FN";
+        wget -ct0 "$IRONPYTHON_URL_BASE/$FN";
         unzip -q "$FN";
         cd "main-$PREFIX";
 
@@ -178,7 +159,7 @@ if [ ! -x "$EASY" ]; then
   )
 fi;
 
-if [ $PYIMPL == 'jpy' ]; then
+if [ $PYIMPL == 'jyt' ]; then
     # Run tests. No coverage in jython.
     $PYTHON setup.py test;
 
