@@ -48,6 +48,7 @@ PYFLAV="${PYFLAV/./}";
 if [ -z "$PYVER" ]; then
     PYVER=${PYIMPL[0]};
     PYIMPL=cpy;
+    PYFLAV=cpy27;
 else
     PYIMPL=${PYIMPL[0]};
 fi
