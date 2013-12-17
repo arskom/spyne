@@ -77,6 +77,23 @@ elif [ $PYIMPL == "ipy" ]; then
 
     PREFIX="$(basename $FN .zip)";
 
+elif [ $PYIMPL == "jpy" ]; then
+    PYNAME=jython
+
+    if [ $PYVER == "2.5" ]; then
+        FN=2.5.3/jython-installer-2.5.3.jar;
+
+    elif [ $PYVER == "2.7" ]; then
+        FN=2.7-b1/jython-installer-2.7-b1.jar;
+
+    else
+        echo "Unknown Python version $PYIMPL-$PYVER";
+        exit 2;
+
+    fi;
+
+    PREFIX="$(basename $FN .jar)";
+
 else
     echo "Unknown Python implementation $PYIMPL";
     exit 2;
@@ -104,6 +121,18 @@ if [ $PYIMPL == 'cpy' ]; then
         make -j2 && make install;
       );
     fi;
+
+elif [ $PYIMPL == 'jpy' ]; then
+    if [ ! -x "$PYTHON" ]; then
+      (
+        mkdir -p .data; cd .data;
+
+        FILE=$(basename $FN);
+        wget -O $FILE -ct0 "http://search.maven.org/remotecontent?filepath=org/python/jython-installer/$FN";
+        java -jar $FILE -s -d "$WORKSPACE/$PREFIX"
+
+      );
+    fi
 
 elif [ $PYIMPL == 'ipy' ]; then
     # Set up Mono first
@@ -146,18 +175,24 @@ if [ ! -x "$EASY" ]; then
   $PYTHON "$WORKSPACE"/bin/distribute_setup.py;
 fi;
 
-# Set up coverage
-if [ ! -x "$COVERAGE" ]; then
-  $EASY coverage
+if [ $PYIMPL == 'jpy' ]; then
+    # Run tests. No coverage in jython.
+    $PYTHON setup.py test;
+
+else
+    # Set up coverage
+    if [ ! -x "$COVERAGE" ]; then
+      $EASY coverage
+    fi;
+
+    # Sometimes, easy_install works in mysterious ways...
+    if [ ! -x "$COVERAGE" ]; then
+      COVERAGE="$COVERAGE2"
+    fi;
+
+    # Run tests
+    bash -c "$COVERAGE run --source=spyne setup.py test; exit 0"
+
+    # Generate coverage report
+    $COVERAGE xml -i --omit=spyne/test/*;
 fi;
-
-# Sometimes, easy_install works in mysterious ways...
-if [ ! -x "$COVERAGE" ]; then
-  COVERAGE="$COVERAGE2"
-fi;
-
-# Run tests
-bash -c "$COVERAGE run --source=spyne setup.py test; exit 0"
-
-# Generate coverage report
-$COVERAGE xml -i --omit=spyne/test/*;
