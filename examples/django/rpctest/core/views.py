@@ -34,7 +34,7 @@ from django.views.decorators.csrf import csrf_exempt
 from spyne.error import ResourceNotFoundError, ResourceAlreadyExistsError
 from spyne.server.django import DjangoApplication
 from spyne.model.primitive import Unicode, Integer
-from spyne.model.complex import Iterable
+from spyne.model.complex import Iterable, Array
 from spyne.service import ServiceBase
 from spyne.protocol.soap import Soap11
 from spyne.application import Application
@@ -71,6 +71,10 @@ class ContainerService(ServiceBase):
             return FieldContainer.objects.create(**container.as_dict())
         except IntegrityError:
             raise ResourceAlreadyExistsError('Container')
+
+    @rpc(_returns=Array(FieldContainer))
+    def get_containers(ctx):
+        return FieldContainer.objects.all()
 
 app = Application([HelloWorldService, ContainerService],
     'spyne.examples.django',
