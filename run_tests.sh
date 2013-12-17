@@ -31,6 +31,7 @@
 
 [ -z "$PYVER" ] && PYVER=cpy-2.7;
 [ -z "$WORKSPACE" ] && WORKSPACE="$PWD";
+[ -z "$MONOVER" ] MONOVER=2.11.4
 
 PYIMPL=(${PYVER//-/ })
 PYVER=${PYIMPL[1]}
@@ -97,12 +98,11 @@ elif [ $PYIMPL == "jpy" ]; then
 else
     echo "Unknown Python implementation $PYIMPL";
     exit 2;
+
 fi;
 
-MONOVER=2.11.4
 MONOPREFIX="$WORKSPACE/mono-$MONOVER"
 XBUILD="$MONOPREFIX/bin/xbuild"
-
 PYTHON="$WORKSPACE/$PREFIX/bin/$PYNAME";
 EASY="$WORKSPACE/$PREFIX/bin/easy_install-$PYVER";
 COVERAGE="$WORKSPACE/$PREFIX/bin/coverage-$PYVER";
