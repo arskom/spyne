@@ -153,8 +153,8 @@ def complex_add(document, cls, tags):
         ns = a.sub_ns
         if name is None:
             name = k
-        if ns is not None:
-            name = "{%s}%s" % (ns, name)
+        #if ns is not None:
+        #    name = "{%s}%s" % (ns, name)
 
         member = etree.Element(a.schema_tag)
         if a.schema_tag == '{%s}element' % _ns_xsd:
