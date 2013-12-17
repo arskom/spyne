@@ -137,11 +137,15 @@ class RunTests(TestCommand):
 
     def run_tests(self):
         print("running tests")
+        sys.path.append('./examples/django/')
+        os.environ['DJANGO_SETTINGS_MODULE'] = 'rpctest.settings'
         ret = 0
         ret = call_pytest('interface', 'model', 'protocol',
-                  'test_null_server.py', 'test_service.py',
-                  'test_soft_validation.py', 'test_util.py',
-                  'test_sqlalchemy.py', 'test_sqlalchemy_deprecated.py') or ret
+                          'test_null_server.py', 'test_service.py',
+                          'test_soft_validation.py', 'test_util.py',
+                          'test_sqlalchemy.py',
+                          'test_sqlalchemy_deprecated.py',
+                          'interop/test_django.py') or ret
         ret = call_pytest_subprocess('interop/test_httprpc.py') or ret
         ret = call_pytest_subprocess('interop/test_soap_client_http.py') or ret
         ret = call_pytest_subprocess('interop/test_soap_client_zeromq.py') or ret
@@ -157,8 +161,8 @@ class RunTests(TestCommand):
 
 test_reqs = [
     'pytest', 'werkzeug', 'sqlalchemy',
-     'lxml>=2.3', 'pyyaml', 'pyzmq', 'twisted', 'colorama',
-    'msgpack-python', 'webtest',
+    'lxml>=2.3', 'pyyaml', 'pyzmq', 'twisted', 'colorama',
+    'msgpack-python', 'webtest', 'pytest-django'
 ]
 
 import sys
