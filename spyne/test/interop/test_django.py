@@ -95,3 +95,8 @@ class ModelTestCase(TestCase):
         c = create_container()
         self.assertIsInstance(c, Container)
         self.assertRaises(Fault, create_container)
+
+    def test_get_containers(self):
+        """Regression test for empty array."""
+        hello_array = self.client.service.get_containers()
+        self.assertEqual(len(hello_array), 0)
