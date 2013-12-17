@@ -162,7 +162,7 @@ class RunTests(TestCommand):
 test_reqs = [
     'pytest', 'werkzeug', 'sqlalchemy',
     'lxml>=2.3', 'pyyaml', 'pyzmq', 'twisted', 'colorama',
-    'msgpack-python', 'webtest', 'django>=1.4,<1.6', 'pytest-django'
+    'msgpack-python', 'webtest', 'django<1.5.99', 'pytest_django',
 ]
 
 import sys
