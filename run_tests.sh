@@ -7,12 +7,15 @@
 #   variants.
 #
 # Usage:
-#   Run it like this:
+#   Example:
 #
-#     $ PYVER=3.3 ./run_tests.sh
+#     $ PYFLAV=cpy-3.3 ./run_tests.sh
 #
-#   - PYVER defaults to '2.7'.
-#   - WORKSPACE defaults to $PWD. It's normally set by Jenkins.
+#   Variables:
+#     - PYFLAV: Defaults to 'cpy-2.7'. See other values below.
+#     - WORKSPACE: Defaults to $PWD. It's normally set by Jenkins.
+#     - MAKEOPTS: Defaults to '-j2'.
+#     - MONOVER: Defaults to '2.11.4'. Only relevant for ipy-* flavors.
 #
 # Jenkins guide:
 #   1. Create a 'Multi configuration project'.
@@ -30,35 +33,17 @@
 #
 
 
-# Initialization
-[ -z "PYFLAV" ] && PYFLAV=cpy-2.7;
-[ -z "$MONOVER" ] && MONOVER=2.11.4
+# Sanitization
+[ -z "$PYFLAV" ] && PYFLAV=cpy-2.7;
+[ -z "$MONOVER" ] && MONOVER=2.11.4;
 [ -z "$WORKSPACE" ] && WORKSPACE="$PWD";
+[ -z "$MAKEOPTS" ] && MAKEOPTS="-j2";
 
-declare -A PYNAMES
-declare -A URLS
-
-IRONPYTHON_URL_BASE=https://github.com/IronLanguages/main/archive
-CPYTHON_URL_BASE=http://www.python.org/ftp/python
-JYTHON_URL_BASE=http://search.maven.org/remotecontent?filepath=org/python/jython-installer
-
-URLS=(["cpy-2.6"]="2.6.9/Python-2.6.9.tgz")
-URLS=(["cpy-2.7"]="2.7.6/Python-2.7.6.tgz")
-URLS=(["cpy-3.3"]="3.3.3/Python-3.3.3.tgz")
-URLS=(["jyt-2.5"]="2.5.3/jython-installer-2.5.3.jar")
-URLS=(["jyt-2.7"]="2.7-b1/jython-installer-2.7-b1.jar")
-URLS=(["ipy-2.7"]="ipy-2.7.4.zip")
-
-FN="${URLS["$PYFLAV"]}"
-
-if [ -z "$FN" ]; then
-    echo "Unknown Python version $PYFLAV";
-    exit 2;
-fi;
-
-PYNAME=python$PYVER
-PYIMPL=(${PYFLAV//-/ })
-PYVER=${PYIMPL[1]}
+PYNAME=python$PYVER;
+PYIMPL=(${PYFLAV//-/ });
+PYVER=${PYIMPL[1]};
+PYFLAV="${PYFLAV/-/}";
+PYFLAV="${PYFLAV/./}";
 
 if [ -z "$PYVER" ]; then
     PYVER=${PYIMPL[0]};
@@ -66,6 +51,29 @@ if [ -z "$PYVER" ]; then
 else
     PYIMPL=${PYIMPL[0]};
 fi
+
+if [ -z "$FN" ]; then
+    declare -A URLS;
+    URLS["cpy26"]="2.6.9/Python-2.6.9.tgz";
+    URLS["cpy27"]="2.7.6/Python-2.7.6.tgz";
+    URLS["cpy33"]="3.3.3/Python-3.3.3.tgz";
+    URLS["jyt25"]="2.5.3/jython-installer-2.5.3.jar";
+    URLS["jyt27"]="2.7-b1/jython-installer-2.7-b1.jar";
+    URLS["ipy27"]="ipy-2.7.4.zip";
+
+    FN="${URLS["$PYFLAV"]}";
+
+    if [ -z "$FN" ]; then
+        echo "Unknown Python version $PYFLAV";
+        exit 2;
+    fi;
+fi;
+
+# Initialization
+IRONPYTHON_URL_BASE=https://github.com/IronLanguages/main/archive;
+CPYTHON_URL_BASE=http://www.python.org/ftp/python;
+JYTHON_URL_BASE=http://search.maven.org/remotecontent?filepath=org/python/jython-installer;
+MAKE="make $MAKEOPTS";
 
 
 # Set specific variables
@@ -99,7 +107,7 @@ if [ $PYIMPL == 'cpy' ]; then
         tar xf $(basename $FN);
         cd "$PREFIX";
         ./configure --prefix="$WORKSPACE/$PREFIX";
-        make -j2 && make install;
+        $MAKE && make install;
       );
     fi;
 
@@ -126,7 +134,7 @@ elif [ $PYIMPL == 'ipy' ]; then
         tar xf mono-$MONOVER.tar.bz2;
         cd mono-$MONOVER;
         ./configure --prefix=$WORKSPACE/mono-$MONOVER;
-        make -j5 && make install;
+        $MAKE && make install;
       );
     fi
 
