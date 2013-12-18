@@ -371,6 +371,15 @@ class _MethodsDict(dict):
                                                           cls.novalidate_freq())
                 descriptor.body_style = BODY_STYLE_WRAPPED
 
+                for k, v in descriptor.in_message._type_info.items():
+                    # SelfReference is replaced by descriptor.in_message itself.
+                    # However, in the context of mrpc, SelfReference means
+                    # parent class. here, we do that substitution. It's a safe
+                    # hack, a hack nevertheless.
+                    if v is descriptor.in_message:
+                        descriptor.in_message._type_info[k] = cls
+
+            # Same as above, for the output type.
             for k, v in descriptor.out_message._type_info.items():
                 if v is descriptor.out_message:
                     descriptor.out_message._type_info[k] = cls
