@@ -810,7 +810,9 @@ class TestMemberRpc(unittest.TestCase):
                 pass
 
         methods = SomeComplexModel.Attributes.methods
-        assert methods['member_method'].in_message._type_info[0] is SomeComplexModel
+
+        # we use __orig__ because implicit classes are .customize(validate_freq=False)'d
+        assert methods['member_method'].in_message._type_info[0].__orig__ is SomeComplexModel
 
     def test_self_reference(self):
         from spyne import mrpc

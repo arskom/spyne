@@ -354,6 +354,27 @@ class _MethodsDict(dict):
 
         self._processed = False
 
+    def sanitize(self, cls):
+        if self._processed:
+            return
+
+        self._processed = True
+
+        for descriptor in self.values():
+            descriptor.parent_class = cls
+
+            if descriptor.body_style in (BODY_STYLE_BARE, BODY_STYLE_EMPTY):
+                descriptor.in_message = cls.novalidate_freq()
+                descriptor.body_style = BODY_STYLE_BARE
+            else:
+                descriptor.in_message.insert_field(0, 'self',
+                                                          cls.novalidate_freq())
+                descriptor.body_style = BODY_STYLE_WRAPPED
+
+            for k, v in descriptor.out_message._type_info.items():
+                if v is descriptor.out_message:
+                    descriptor.out_message._type_info[k] = cls
+
 
 def _gen_methods(cls_dict):
     methods = _MethodsDict()
@@ -519,24 +540,8 @@ class ComplexModelMeta(type(ModelBase)):
         t = self.Attributes.sqla_table
 
         methods = self.Attributes.methods
-        if methods is not None and not methods._processed:
-            methods._processed = True
-
-            for descriptor in methods.values():
-                descriptor.parent_class = self
-
-                if descriptor.body_style in (BODY_STYLE_BARE, BODY_STYLE_EMPTY):
-                    descriptor.in_message = self.novalidate_freq()
-                    descriptor.body_style = BODY_STYLE_BARE
-                else:
-                    in_message = descriptor.in_message.novalidate_freq()
-                    descriptor.in_message.insert_field(0, 'self',
-                                                         self.novalidate_freq())
-                    descriptor.body_style = BODY_STYLE_WRAPPED
-
-                for k, v in descriptor.out_message._type_info.items():
-                    if v is descriptor.out_message:
-                        descriptor.out_message._type_info[k] = self
+        if methods is not None:
+            methods.sanitize(self)
 
         # For spyne objects reflecting an existing db table
         if tn is None:
