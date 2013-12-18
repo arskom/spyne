@@ -418,7 +418,12 @@ class MethodDescriptor(object):
 
         # HATEOAS Stuff
         self.translations = translations
+        """None or a dict of locale-translation pairs."""
+
         self.when = when
+        """None or a callable that takes the object instance and returns a
+        boolean value. If true, the object can process that action.
+        """
 
     @property
     def key(self):
