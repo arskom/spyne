@@ -276,23 +276,178 @@ def _join_args(x, y):
     return xa + ya, xk
 
 
+def _get_base_type_info(cls_bases, cls_dict):
+    """Get base class (if exists) and enforce single inheritance."""
+
+    retval = {}
+    extends = cls_dict.get('__extends__', None)
+    if extends is None:
+        for b in cls_bases:
+            base_types = getattr(b, "_type_info", None)
+
+            if not (base_types is None):
+                if getattr(b, '__mixin__', False) == True:
+                    retval.update(b._type_info)
+                else:
+                    if not (extends in (None, b)):
+                        raise Exception("WSDL 1.1 does not support multiple "
+                                        "inheritance")
+
+                    try:
+                        if len(base_types) > 0 and issubclass(b, ModelBase):
+                            cls_dict["__extends__"] = b
+
+                    except Exception as e:
+                        logger.exception(e)
+                        logger.error(repr(extends))
+                        raise
+    return retval
+
+
+def _gen_attrs(cls_bases, cls_dict):
+    attrs = cls_dict.get('Attributes', None)
+    if attrs is None:
+        for b in cls_bases:
+            if hasattr(b, 'Attributes'):
+                class Attributes(b.Attributes):
+                    pass
+                attrs = cls_dict['Attributes'] = Attributes
+                break
+        else:
+            raise Exception("No ModelBase subclass in bases? Huh?")
+
+    return attrs
+
+
+def _get_type_info(cls, cls_name, cls_dict, attrs, base_type_info):
+    if not ('_type_info' in cls_dict):
+        cls_dict['_type_info'] = _type_info = TypeInfo()
+        _type_info.update(base_type_info)
+
+        class_fields = []
+        for k, v in cls_dict.items():
+            if not k.startswith('_'):
+                v = _get_spyne_type(cls_name, k, v)
+                if v is not None:
+                    class_fields.append((k, v))
+
+        declare_sort = cls._DECLARE_SORT.get(attrs.declare_order, None)
+        if declare_sort is None:
+            msg = "The declare_order attribute value %r is invalid in %s"
+            raise Exception(msg % (attrs.declare_sort, cls_name))
+        if declare_sort:
+            class_fields.sort(key=declare_sort)
+        _type_info.update(class_fields)
+
+    else:
+        _type_info = cls_dict['_type_info']
+
+        if not isinstance(_type_info, TypeInfo):
+            _type_info = cls_dict['_type_info'] = TypeInfo(_type_info)
+
+    return _type_info
+
+
+def _gen_methods(cls_dict):
+    methods = {}
+    for k, v in cls_dict.items():
+        if not k.startswith('_'):
+            if hasattr(v, '_is_rpc'):
+                descriptor = v(_default_function_name=k)
+                cls_dict[k] = descriptor.function
+                methods[k] = descriptor
+
+    return methods
+
+
+def _sanitize_sqlalchemy_parameters(cls_dict, attrs):
+    table_name = cls_dict.get('__tablename__', None)
+    if attrs.table_name is None:
+        attrs.table_name = table_name
+
+    _cls_table = cls_dict.get('__table__', None)
+    if attrs.sqla_table is None:
+        attrs.sqla_table = _cls_table
+
+    metadata = cls_dict.get('__metadata__', None)
+    if attrs.sqla_metadata is None:
+        attrs.sqla_metadata = metadata
+
+    margs = cls_dict.get('__mapper_args__', None)
+    attrs.sqla_mapper_args = _join_args(attrs.sqla_mapper_args, margs)
+
+    targs = cls_dict.get('__table_args__', None)
+    attrs.sqla_table_args = _join_args(attrs.sqla_table_args, targs)
+
+
+def _sanitize_type_info(cls_name, _type_info, _type_info_alt):
+    # make sure _type_info contents are sane
+    for k, v in _type_info.items():
+        if not isinstance(k, six.string_types):
+            raise ValueError("Invalid class key", k)
+        if not isclass(v):
+            raise ValueError(v)
+
+        if issubclass(v, SelfReference):
+            continue
+
+        elif not issubclass(v, ModelBase):
+            v = _get_spyne_type(cls_name, k, v)
+            if v is None:
+                raise ValueError( (cls_name, k, v) )
+            _type_info[k] = v
+
+        elif issubclass(v, Array) and len(v._type_info) != 1:
+            raise Exception("Invalid Array definition in %s.%s." %
+                                                        (cls_name, k))
+        sub_ns = v.Attributes.sub_ns
+        sub_name = v.Attributes.sub_name
+
+        if sub_ns is None and sub_name is None:
+            pass
+
+        elif sub_ns is not None and sub_name is not None:
+            key = "{%s}%s" % (sub_ns, sub_name)
+            if key in _type_info:
+                raise Exception("%r is already defined: %r" %
+                                                         (key, _type_info[key]))
+            _type_info_alt[key] = v, k
+
+        elif sub_ns is None:
+            key = sub_name
+            if sub_ns in _type_info:
+                raise Exception("%r is already defined: %r" %
+                                                        (key, _type_info[key]))
+            _type_info_alt[key] = v, k
+
+        elif sub_name is None:
+            key = "{%s}%s" % (sub_ns, k)
+            if key in _type_info:
+                raise Exception("%r is already defined: %r" %
+                                                        (key, _type_info[key]))
+            _type_info_alt[key] = v, k
+
+
 class ComplexModelMeta(type(ModelBase)):
     """This metaclass sets ``_type_info``, ``__type_name__`` and ``__extends__``
     which are going to be used for (de)serialization and schema generation.
     """
 
-    __DECLARE_SORT = {
+    _DECLARE_SORT = {
         'declared': lambda item: (item[1].__declare_order__, item[0]),
         'name': lambda item: item[0],
         'random': False,
     }
+
     if sys.version_info[0] >= 3:
-        __DECLARE_SORT['declared'] = False
-        __DECLARE_SORT[None] = __DECLARE_SORT['declared']
+        _DECLARE_SORT['declared'] = False
+        _DECLARE_SORT[None] = _DECLARE_SORT['declared']
+
     elif int(spyne.__version__.split(".")[0]) >= 3:
-        __DECLARE_SORT[None] = __DECLARE_SORT["name"]
+        _DECLARE_SORT[None] = _DECLARE_SORT["name"]
+
     else:
-        __DECLARE_SORT[None] = __DECLARE_SORT["random"]
+        _DECLARE_SORT[None] = _DECLARE_SORT["random"]
 
     def __new__(cls, cls_name, cls_bases, cls_dict):
         """This function initializes the class and registers attributes for
@@ -303,77 +458,14 @@ class ComplexModelMeta(type(ModelBase)):
         if type_name is None:
             cls_dict["__type_name__"] = cls_name
 
-        base_type_info = {}
+        base_type_info = _get_base_type_info(cls_bases, cls_dict)
+        attrs = _gen_attrs(cls_bases, cls_dict)
+        _type_info = _get_type_info(cls, cls_name, cls_dict, attrs,
+                                                                 base_type_info)
 
-        # get base class (if exists) and enforce single inheritance
-        extends = cls_dict.get('__extends__', None)
-        if extends is None:
-            for b in cls_bases:
-                base_types = getattr(b, "_type_info", None)
-
-                if not (base_types is None):
-                    if getattr(b, '__mixin__', False) == True:
-                        base_type_info.update(b._type_info)
-                    else:
-                        if not (extends in (None, b)):
-                            raise Exception("WSDL 1.1 does not support multiple "
-                                            "inheritance")
-
-                        try:
-                            if len(base_types) > 0 and issubclass(b, ModelBase):
-                                cls_dict["__extends__"] = b
-
-                        except Exception as e:
-                            logger.exception(e)
-                            logger.error(repr(extends))
-                            raise
-
-        # Initialize Attributes
-        attrs = cls_dict.get('Attributes', None)
-        if attrs is None:
-            for b in cls_bases:
-                if hasattr(b, 'Attributes'):
-                    class Attributes(b.Attributes):
-                        pass
-                    attrs = cls_dict['Attributes'] = Attributes
-                    break
-            else:
-                raise Exception("No ModelBase subclass in bases? Huh?")
-
-        # populate children
-        if not ('_type_info' in cls_dict):
-            cls_dict['_type_info'] = _type_info = TypeInfo()
-            _type_info.update(base_type_info)
-
-            class_fields = []
-            for k, v in cls_dict.items():
-                if not k.startswith('_'):
-                    v = _get_spyne_type(cls_name, k, v)
-                    if v is not None:
-                        class_fields.append((k, v))
-
-            declare_sort = cls.__DECLARE_SORT.get(attrs.declare_order, None)
-            if declare_sort is None:
-                msg = "The declare_order attribute value %r is invalid in %s"
-                raise Exception(msg % (attrs.declare_sort, cls_name))
-            if declare_sort:
-                class_fields.sort(key=declare_sort)
-            _type_info.update(class_fields)
-
-        else:
-            _type_info = cls_dict['_type_info']
-
-            if not isinstance(_type_info, TypeInfo):
-                _type_info = cls_dict['_type_info'] = TypeInfo(_type_info)
-
-        # populate methods
-        methods = {}
-        for k, v in cls_dict.items():
-            if not k.startswith('_'):
-                if hasattr(v, '_is_rpc'):
-                    descriptor = v(_default_function_name=k)
-                    cls_dict[k] = descriptor.function
-                    methods[k] = descriptor
+        methods = _gen_methods(cls_dict)
+        if len(methods) > 0:
+            attrs.methods = methods
 
         # used for sub_name and sub_ns
         _type_info_alt = cls_dict['_type_info_alt'] = TypeInfo()
@@ -381,77 +473,13 @@ class ComplexModelMeta(type(ModelBase)):
             if hasattr(b, '_type_info_alt'):
                 _type_info_alt.update(b._type_info_alt)
 
-        # make sure _type_info contents are sane
-        for k, v in _type_info.items():
-            if not isinstance(k, six.string_types):
-                raise ValueError("Invalid class key", k)
-            if not isclass(v):
-                raise ValueError(v)
+        _sanitize_type_info(cls_name, _type_info, _type_info_alt)
 
-            if issubclass(v, SelfReference):
-                continue
+        _sanitize_sqlalchemy_parameters(cls_dict, attrs)
 
-            elif not issubclass(v, ModelBase):
-                v = _get_spyne_type(cls_name, k, v)
-                if v is None:
-                    raise ValueError( (cls_name, k, v) )
-                _type_info[k] = v
-
-            elif issubclass(v, Array) and len(v._type_info) != 1:
-                raise Exception("Invalid Array definition in %s.%s."
-                                                            % (cls_name, k))
-            sub_ns = v.Attributes.sub_ns
-            sub_name = v.Attributes.sub_name
-
-            if sub_ns is None and sub_name is None:
-                pass
-
-            elif sub_ns is not None and sub_name is not None:
-                key = "{%s}%s" % (sub_ns, sub_name)
-                if key in _type_info:
-                    raise Exception("%r is already defined: %r" %
-                                                        (key, _type_info[key]))
-                _type_info_alt[key] = v, k
-
-            elif sub_ns is None:
-                key = sub_name
-                if sub_ns in _type_info:
-                    raise Exception("%r is already defined: %r" %
-                                                        (key, _type_info[key]))
-                _type_info_alt[key] = v, k
-
-            elif sub_name is None:
-                key = "{%s}%s" % (sub_ns, k)
-                if key in _type_info:
-                    raise Exception("%r is already defined: %r" %
-                                                        (key, _type_info[key]))
-                _type_info_alt[key] = v, k
-
-        # Move sqlalchemy parameters
-        table_name = cls_dict.get('__tablename__', None)
-        if attrs.table_name is None:
-            attrs.table_name = table_name
-
-        _cls_table = cls_dict.get('__table__', None)
-        if attrs.sqla_table is None:
-            attrs.sqla_table = _cls_table
-
-        metadata = cls_dict.get('__metadata__', None)
-        if attrs.sqla_metadata is None:
-            attrs.sqla_metadata = metadata
-
-        margs = cls_dict.get('__mapper_args__', None)
-        attrs.sqla_mapper_args = _join_args(attrs.sqla_mapper_args, margs)
-
-        targs = cls_dict.get('__table_args__', None)
-        attrs.sqla_table_args = _join_args(attrs.sqla_table_args, targs)
-
+        # ???
         if type(cls_dict) is not dict:
             cls_dict = dict(cls_dict)
-
-        # set methods
-        if len(methods) > 0:
-            attrs.methods = methods
 
         return super(ComplexModelMeta, cls).__new__(cls, cls_name, cls_bases, cls_dict)
 
