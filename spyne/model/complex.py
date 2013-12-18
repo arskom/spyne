@@ -37,7 +37,7 @@ from weakref import WeakKeyDictionary
 from collections import deque
 from inspect import isclass
 
-from spyne import BODY_STYLE_BARE, BODY_STYLE_WRAPPED
+from spyne import BODY_STYLE_BARE, BODY_STYLE_WRAPPED, BODY_STYLE_EMPTY
 from spyne import const
 
 from spyne.const import xml_ns
@@ -348,8 +348,15 @@ def _get_type_info(cls, cls_name, cls_dict, attrs, base_type_info):
     return _type_info
 
 
+class _MethodsDict(dict):
+    def __init__(self, *args, **kwargs):
+        super(_MethodsDict, self).__init__(*args, **kwargs)
+
+        self._processed = False
+
+
 def _gen_methods(cls_dict):
-    methods = {}
+    methods = _MethodsDict()
     for k, v in cls_dict.items():
         if not k.startswith('_'):
             if hasattr(v, '_is_rpc'):
@@ -512,18 +519,20 @@ class ComplexModelMeta(type(ModelBase)):
         t = self.Attributes.sqla_table
 
         methods = self.Attributes.methods
-        if methods is not None:
+        if methods is not None and not methods._processed:
+            methods._processed = True
+
             for descriptor in methods.values():
                 descriptor.parent_class = self
-                if descriptor.body_style is BODY_STYLE_BARE:
-                    descriptor.in_message = self
-                else:
-                    descriptor.in_message.insert_field(0, 'self', self)
-                    descriptor.body_style = BODY_STYLE_WRAPPED
 
-                for k, v in descriptor.in_message._type_info.items():
-                    if v is descriptor.in_message:
-                        descriptor.in_message._type_info[k] = self
+                if descriptor.body_style in (BODY_STYLE_BARE, BODY_STYLE_EMPTY):
+                    descriptor.in_message = self.novalidate_freq()
+                    descriptor.body_style = BODY_STYLE_BARE
+                else:
+                    in_message = descriptor.in_message.novalidate_freq()
+                    descriptor.in_message.insert_field(0, 'self',
+                                                         self.novalidate_freq())
+                    descriptor.body_style = BODY_STYLE_WRAPPED
 
                 for k, v in descriptor.out_message._type_info.items():
                     if v is descriptor.out_message:
