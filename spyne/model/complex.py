@@ -519,9 +519,7 @@ class ComplexModelMeta(type(ModelBase)):
                     descriptor.in_message = self
                 else:
                     descriptor.in_message.insert_field(0, 'self', self)
-                    # FIXME: is the if needed here?
-                    if descriptor.body_style != BODY_STYLE_WRAPPED:
-                        descriptor.body_style = BODY_STYLE_WRAPPED
+                    descriptor.body_style = BODY_STYLE_WRAPPED
 
                 for k, v in descriptor.in_message._type_info.items():
                     if v is descriptor.in_message:
@@ -531,7 +529,7 @@ class ComplexModelMeta(type(ModelBase)):
                     if v is descriptor.out_message:
                         descriptor.out_message._type_info[k] = self
 
-        # for spyne objects reflecting an existing db table
+        # For spyne objects reflecting an existing db table
         if tn is None:
             if t is not None:
                 self.Attributes.sqla_metadata = t.metadata
@@ -539,7 +537,7 @@ class ComplexModelMeta(type(ModelBase)):
 
                 gen_spyne_info(self)
 
-        # for spyne objects being converted to a sqlalchemy table
+        # For spyne objects being converted to a sqlalchemy table
         elif meta is not None and (tn is not None or t is not None) and \
                                                        len(self._type_info) > 0:
             from spyne.util.sqlalchemy import gen_sqla_info
