@@ -312,7 +312,7 @@ class MethodDescriptor(object):
                  out_header=None, faults=None,
                  port_type=None, no_ctx=False, udp=None, class_key=None,
                  aux=None, patterns=None, body_style=None, args=None,
-                 operation_name=None, no_self=None, translations=None):
+                 operation_name=None, no_self=None, translations=None, when=None):
 
         self.__real_function = function
         """The original callable for the user code."""
@@ -416,7 +416,9 @@ class MethodDescriptor(object):
         """The ComplexModel subclass the method belongs to. Only set for @mrpc
         methods."""
 
+        # HATEOAS Stuff
         self.translations = translations
+        self.when = when
 
     @property
     def key(self):

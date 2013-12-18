@@ -251,6 +251,7 @@ def rpc(*params, **kparams):
             _patterns = kparams.get("_patterns",[])
             _args = kparams.get("_args",None)
             _translations = kparams.get("_translations", None)
+            _when = kparams.get("_when", None)
 
             if _no_self:
                 from spyne.model import SelfReference
@@ -309,7 +310,7 @@ def rpc(*params, **kparams):
                 class_key=function_name, aux=_aux, patterns=_patterns,
                 body_style=body_style, args=_args,
                 operation_name=_operation_name, no_self=_no_self,
-                translations=_translations,
+                translations=_translations, when=_when,
             )
 
             return retval
