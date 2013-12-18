@@ -199,6 +199,8 @@ class Application(object):
 
         # class rpc
         cls = ctx.descriptor.parent_class
+        if cls.__orig__ is not None:
+            cls = cls.__orig__
         inst = cls.__respawn__(ctx)
         if inst is None:
             raise ResourceNotFoundError('{%s}%s' %
