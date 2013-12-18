@@ -381,12 +381,12 @@ class WsgiApplication(HttpBase):
             # following test.
             out_type_info = p_ctx.descriptor.out_message._type_info
             if len(out_type_info) == 1:
-                out_object = [out_object]
+                p_ctx.out_object = [p_ctx.out_object]
 
             p_ctx.transport.resp_headers, p_ctx.out_string = apply_mtom(
                     p_ctx.transport.resp_headers, p_ctx.out_string,
                     p_ctx.descriptor.out_message._type_info.values(),
-                    out_object
+                    p_ctx.out_object,
                 )
 
         self.event_manager.fire_event('wsgi_return', p_ctx)
@@ -399,7 +399,7 @@ class WsgiApplication(HttpBase):
         else:
             p_ctx.out_string = [''.join(p_ctx.out_string)]
 
-        # if the out_string is a generator function, this hack lets the user
+        # if the out_string is a generator function, this hack makes the user
         # code run until first yield, which lets it set response headers and
         # whatnot before calling start_response. Is there a better way?
         try:
