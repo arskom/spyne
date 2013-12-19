@@ -168,11 +168,14 @@ if [ ! -x "$EASY" ]; then
   )
 fi;
 
-if [ $PYIMPL == 'jyt' ]; then
-    # Run tests. No coverage in jython.
-    $PYTHON setup.py test;
 
-else
+# hack to work around... ???
+$PYTHON setup.py install_test_deps;
+$PYTHON setup.py install_test_deps;
+$PYTHON setup.py install_test_deps;
+
+
+if [ $PYIMPL == 'cpy' ]; then
     # Set up coverage
     if [ ! -x "$COVERAGE" ]; then
       $EASY coverage
@@ -188,4 +191,9 @@ else
 
     # Generate coverage report
     $COVERAGE xml -i --omit=spyne/test/*;
+
+else
+    # Run tests. No coverage in jython.
+    $PYTHON setup.py test;
+
 fi;

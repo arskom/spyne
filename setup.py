@@ -25,7 +25,6 @@ from os.path import join, dirname, abspath
 OWN_PATH = abspath(inspect.getfile(inspect.currentframe()))
 TEST_DIR = join(dirname(OWN_PATH), 'test')
 EXAMPLES_DIR = join(dirname(OWN_PATH), 'examples')
-tests_require = ['pytest', 'coverage'],
 
 v = open(os.path.join(os.path.dirname(__file__), 'spyne', '__init__.py'), 'r')
 VERSION = re.match(r".*__version__ = '(.*?)'", v.read(), re.S).group(1)
@@ -131,6 +130,10 @@ def call_trial(*tests):
     return call_test(run, [], tests)
 
 
+class InstallTestDeps(TestCommand):
+    pass
+
+
 class RunTests(TestCommand):
     def finalize_options(self):
         TestCommand.finalize_options(self)
@@ -163,7 +166,7 @@ class RunTests(TestCommand):
         raise SystemExit(ret)
 
 test_reqs = [
-    'pytest', 'werkzeug', 'sqlalchemy',
+    'pytest', 'werkzeug', 'sqlalchemy', 'coverage',
     'lxml>=2.3', 'pyyaml', 'pyzmq', 'twisted', 'colorama',
     'msgpack-python', 'webtest', 'django<1.5.99', 'pytest_django',
 ]
@@ -213,5 +216,5 @@ setup(
     },
 
     tests_require = test_reqs,
-    cmdclass = {'test': RunTests},
+    cmdclass = {'test': RunTests, 'install_test_deps': InstallTestDeps},
 )

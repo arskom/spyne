@@ -6,8 +6,10 @@ before_script:
   - psql -c "create database spyne_test_$USER;" -U postgres
 before_install:
   - sudo apt-get install -qq libzmq3-dev
-install: python setup.py develop
+install:
+  - python setup.py develop
 script:
   # Temporary solution to travis issue #155
   - sudo rm -rf /dev/shm && sudo ln -s /run/shm /dev/shm
+  - bash -c "python setup.py install_test_deps; python setup.py install_test_deps; exit 0"
   - python setup.py test
