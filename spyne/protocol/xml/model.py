@@ -41,7 +41,6 @@ from spyne.model import File
 from spyne.model import ByteArray
 from spyne.model import XmlData
 from spyne.model import XmlAttribute
-from spyne.model import ComplexModelBase
 from spyne.util import coroutine
 from spyne.util import Break
 from spyne.util.etreeconv import etree_to_dict
@@ -494,7 +493,7 @@ def unicode_from_element(prot, cls, element):
     retval = prot.from_string(cls, s)
 
     if prot.validator is prot.SOFT_VALIDATION and not (
-                                        cls.validate_native(cls, retval)):
+                                              cls.validate_native(cls, retval)):
         raise ValidationError(retval)
 
     return retval

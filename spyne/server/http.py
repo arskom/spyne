@@ -33,8 +33,7 @@ class HttpTransportContext(TransportContext):
         self.req = request
         """HTTP Request. This is transport-specific"""
 
-        self.resp_headers = {
-        }
+        self.resp_headers = {}
         """HTTP Response headers."""
 
         self.mime_type = content_type
