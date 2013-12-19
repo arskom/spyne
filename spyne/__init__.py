@@ -37,9 +37,8 @@ from spyne.decorator import mrpc
 from spyne.service import ServiceBase
 from spyne.application import Application
 
-import sys
-
-if not hasattr(sys, "version_info") or sys.version_info < (2, 6):
-    raise RuntimeError("Spyne requires Python 2.6 or later.")
-
-del sys
+def _vercheck():
+    import sys
+    if not hasattr(sys, "version_info") or sys.version_info < (2, 6):
+        raise RuntimeError("Spyne requires Python 2.6 or later. Trust us.")
+_vercheck()
