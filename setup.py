@@ -23,6 +23,12 @@ except ImportError:
     GREEN = ''
     RED = ''
 
+import inspect
+from os.path import join, dirname, abspath
+OWN_PATH = abspath(inspect.getfile(inspect.currentframe()))
+TEST_DIR = join(dirname(OWN_PATH), 'test')
+EXAMPLES_DIR = join(dirname(OWN_PATH), 'examples')
+tests_require = ['pytest', 'coverage'],
 
 v = open(os.path.join(os.path.dirname(__file__), 'spyne', '__init__.py'), 'r')
 VERSION = re.match(r".*__version__ = '(.*?)'", v.read(), re.S).group(1)
@@ -137,7 +143,7 @@ class RunTests(TestCommand):
 
     def run_tests(self):
         print("running tests")
-        sys.path.append('./examples/django/')
+        sys.path.append(join(EXAMPLES_DIR, 'django'))
         os.environ['DJANGO_SETTINGS_MODULE'] = 'rpctest.settings'
         ret = 0
         ret = call_pytest('interface', 'model', 'protocol',
