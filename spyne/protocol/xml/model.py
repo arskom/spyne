@@ -75,12 +75,12 @@ def byte_array_from_element(prot, cls, element):
     return retval
 
 
-def byte_array_to_parent(prot, cls, value, tns, parent_elt, name='retval'):
-    elt = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
+def byte_array_to_parent(prot, cls, value, tns, parent, name='retval'):
+    elt = etree.SubElement(parent, "{%s}%s" % (tns, name))
     elt.text = prot.to_string(cls, value, prot.default_binary_encoding)
 
 
-def base_to_parent(prot, cls, value, tns, parent_elt, name='retval'):
+def base_to_parent(prot, cls, value, tns, parent, name='retval'):
     """Creates a lxml.etree SubElement as a child of a 'parent' Element
 
     :param prot:  The protocol that will be used to serialize the given value.
@@ -90,17 +90,17 @@ def base_to_parent(prot, cls, value, tns, parent_elt, name='retval'):
                   created SubElement
     :param tns:   The target namespace of the new SubElement, used with 'name'
                   to set the tag.
-    :param parent_elt: The parent Element to which the new child will be
+    :param parent: The parent Element to which the new child will be
                   appended.
     :param name:  The tag name of the new SubElement, 'retval' by default.
     """
 
-    elt = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
+    elt = etree.SubElement(parent, "{%s}%s" % (tns, name))
     elt.text = prot.to_string(cls, value)
 
 
-def null_to_parent(prot, cls, value, tns, parent_elt, name='retval'):
-    element = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
+def null_to_parent(prot, cls, value, tns, parent, name='retval'):
+    element = etree.SubElement(parent, "{%s}%s" % (tns, name))
     element.set('{%s}nil' % _ns_xsi, 'true')
 
 
@@ -108,7 +108,7 @@ def null_from_element(prot, cls, element):
     return None
 
 
-def xmlattribute_to_parent(prot, cls, value, tns, parent_elt, name):
+def xmlattribute_to_parent(prot, cls, value, tns, parent, name):
     ns = cls._ns
     if ns is None:
         ns = cls.Attributes.sub_ns
@@ -118,19 +118,19 @@ def xmlattribute_to_parent(prot, cls, value, tns, parent_elt, name):
 
     if value is not None:
         if issubclass(cls.type, (ByteArray, File)):
-            parent_elt.set(name, prot.to_string(cls.type, value,
+            parent.set(name, prot.to_string(cls.type, value,
                                                 prot.default_binary_encoding))
         else:
-            parent_elt.set(name, prot.to_string(cls.type, value))
+            parent.set(name, prot.to_string(cls.type, value))
 
 
-def attachment_to_parent(prot, cls, value, tns, parent_elt, name='retval'):
+def attachment_to_parent(prot, cls, value, tns, parent, name='retval'):
     """This class method takes the data from the attachment and base64 encodes
     it as the text of an Element. An attachment can specify a file_name and if
     no data is given, it will read the data from the file.
     """
 
-    element = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
+    element = etree.SubElement(parent, "{%s}%s" % (tns, name))
     element.text = ''.join([b.decode('ascii') for b in cls.to_base64(value)])
 
 
@@ -236,10 +236,10 @@ def get_members_etree(prot, cls, inst, parent):
                                                                 attr_parent, k)
 
 
-def complex_to_parent(prot, cls, value, tns, parent_elt, name=None):
+def complex_to_parent(prot, cls, value, tns, parent, name=None):
     if name is None:
         name = cls.get_type_name()
-    element = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
+    element = etree.SubElement(parent, "{%s}%s" % (tns, name))
     inst = cls.get_serialization_instance(value)
     return get_members_etree(prot, cls, inst, element)
 
@@ -355,10 +355,10 @@ def iterable_from_element(prot, cls, element):
         yield prot.from_element(serializer, child)
 
 
-def enum_to_parent(prot, cls, value, tns, parent_elt, name='retval'):
+def enum_to_parent(prot, cls, value, tns, parent, name='retval'):
     if name is None:
         name = cls.get_type_name()
-    base_to_parent(prot, cls, str(value), tns, parent_elt, name)
+    base_to_parent(prot, cls, str(value), tns, parent, name)
 
 
 def enum_from_element(prot, cls, element):
@@ -368,8 +368,8 @@ def enum_from_element(prot, cls, element):
     return getattr(cls, element.text)
 
 
-def fault_to_parent(prot, cls, value, tns, parent_elt, name=None):
-    element = etree.SubElement(parent_elt, "{%s}Fault" % _ns_soap_env)
+def fault_to_parent(prot, cls, value, tns, parent):
+    element = etree.SubElement(parent, "{%s}Fault" % _ns_soap_env)
 
     etree.SubElement(element, 'faultcode').text = '%s:%s' % (_pref_soap_env,
                                                                 value.faultcode)
@@ -404,24 +404,24 @@ def xml_from_element(prot, cls, element):
     return retval
 
 
-def xml_to_parent(prot, cls, value, tns, parent_elt, name='retval'):
+def xml_to_parent(prot, cls, value, tns, parent, name='retval'):
     if isinstance(value, str) or isinstance(value, unicode):
         value = etree.fromstring(value)
 
-    e = etree.SubElement(parent_elt, '{%s}%s' % (tns, name))
+    e = etree.SubElement(parent, '{%s}%s' % (tns, name))
     e.append(value)
 
 
-def html_to_parent(prot, cls, value, tns, parent_elt, name='retval'):
+def html_to_parent(prot, cls, value, tns, parent, name='retval'):
     if isinstance(value, str) or isinstance(value, unicode):
         value = html.fromstring(value)
 
-    e = etree.SubElement(parent_elt, '{%s}%s' % (tns, name))
+    e = etree.SubElement(parent, '{%s}%s' % (tns, name))
     e.append(value)
 
 
-def dict_to_parent(prot, cls, value, tns, parent_elt, name='retval'):
-    e = etree.SubElement(parent_elt, '{%s}%s' % (tns, name))
+def dict_to_parent(prot, cls, value, tns, parent, name='retval'):
+    e = etree.SubElement(parent, '{%s}%s' % (tns, name))
     dict_to_etree(value, e)
 
 
