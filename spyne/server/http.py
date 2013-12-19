@@ -21,6 +21,7 @@
 from spyne import TransportContext
 from spyne import MethodContext
 from spyne.server import ServerBase
+from spyne.const.http import gen_body_redirect, HTTP_301, HTTP_302
 
 
 class HttpTransportContext(TransportContext):
@@ -53,6 +54,17 @@ class HttpTransportContext(TransportContext):
 
     def set_mime_type(self, what):
         self.resp_headers['Content-Type'] = what
+
+    def respond(self, resp_code, **kwargs):
+        self.resp_code = resp_code
+        if resp_code in (HTTP_301, HTTP_302):
+            l = kwargs.pop('location')
+            self.resp_headers['Location'] = l
+            self.parent.out_string = [gen_body_redirect(resp_code, l)]
+
+        else:
+            # So that deserialization is skipped.
+            self.parent.out_string = []
 
     mime_type = property(
         lambda self: self.get_mime_type(),

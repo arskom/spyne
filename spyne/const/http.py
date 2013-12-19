@@ -94,3 +94,23 @@ HTTP_510 = '510 Not Extended' # (RFC 2774)
 HTTP_511 = '511 Network Authentication Required' # (RFC 6585)
 HTTP_598 = '598 Network read timeout error' # (Unknown)
 HTTP_599 = '599 Network connect timeout error' # (Unknown)
+
+
+def gen_body_redirect(code, location):
+    from lxml.html.builder import E
+    from lxml.html import tostring
+    return tostring(E.HTML(
+        E.HEAD(
+            E.meta(**{
+                "http-equiv": "content-type",
+                "content": "text/html;charset=utf-8",
+            }),
+            E.TITLE(code),
+        ),
+        E.BODY(
+            E.H1(code),
+            E.P("The document has moved"),
+            E.A("here", HREF=location),
+            ".",
+        )
+    ))
