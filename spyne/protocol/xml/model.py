@@ -76,8 +76,8 @@ def byte_array_from_element(prot, cls, element):
 
 
 def byte_array_to_parent(prot, cls, value, tns, parent, name='retval'):
-    elt = etree.SubElement(parent, "{%s}%s" % (tns, name))
-    elt.text = prot.to_string(cls, value, prot.default_binary_encoding)
+    etree.SubElement(parent, "{%s}%s" % (tns, name)).text = \
+                        prot.to_string(cls, value, prot.default_binary_encoding)
 
 
 def base_to_parent(prot, cls, value, tns, parent, name='retval'):
@@ -95,13 +95,13 @@ def base_to_parent(prot, cls, value, tns, parent, name='retval'):
     :param name:  The tag name of the new SubElement, 'retval' by default.
     """
 
-    elt = etree.SubElement(parent, "{%s}%s" % (tns, name))
-    elt.text = prot.to_string(cls, value)
+    etree.SubElement(parent, "{%s}%s" % (tns, name)).text = \
+                                                      prot.to_string(cls, value)
 
 
 def null_to_parent(prot, cls, value, tns, parent, name='retval'):
-    element = etree.SubElement(parent, "{%s}%s" % (tns, name))
-    element.set('{%s}nil' % _ns_xsi, 'true')
+    etree.SubElement(parent, "{%s}%s" % (tns, name)) \
+                                            .set('{%s}nil' % _ns_xsi, 'true')
 
 
 def null_from_element(prot, cls, element):
@@ -130,8 +130,8 @@ def attachment_to_parent(prot, cls, value, tns, parent, name='retval'):
     no data is given, it will read the data from the file.
     """
 
-    element = etree.SubElement(parent, "{%s}%s" % (tns, name))
-    element.text = ''.join([b.decode('ascii') for b in cls.to_base64(value)])
+    etree.SubElement(parent, "{%s}%s" % (tns, name)).text = \
+                    ''.join([b.decode('ascii') for b in cls.to_base64(value)])
 
 
 def attachment_from_element(prot, cls, element):
@@ -239,9 +239,9 @@ def get_members_etree(prot, cls, inst, parent):
 def complex_to_parent(prot, cls, value, tns, parent, name=None):
     if name is None:
         name = cls.get_type_name()
-    element = etree.SubElement(parent, "{%s}%s" % (tns, name))
-    inst = cls.get_serialization_instance(value)
-    return get_members_etree(prot, cls, inst, element)
+
+    return get_members_etree(prot, cls, cls.get_serialization_instance(value),
+                               etree.SubElement(parent, "{%s}%s" % (tns, name)))
 
 
 def complex_from_element(prot, cls, element):
@@ -408,16 +408,14 @@ def xml_to_parent(prot, cls, value, tns, parent, name='retval'):
     if isinstance(value, str) or isinstance(value, unicode):
         value = etree.fromstring(value)
 
-    e = etree.SubElement(parent, '{%s}%s' % (tns, name))
-    e.append(value)
+    etree.SubElement(parent, '{%s}%s' % (tns, name)).append(value)
 
 
 def html_to_parent(prot, cls, value, tns, parent, name='retval'):
     if isinstance(value, str) or isinstance(value, unicode):
         value = html.fromstring(value)
 
-    e = etree.SubElement(parent, '{%s}%s' % (tns, name))
-    e.append(value)
+    etree.SubElement(parent, '{%s}%s' % (tns, name)).append(value)
 
 
 def dict_to_parent(prot, cls, value, tns, parent, name='retval'):
