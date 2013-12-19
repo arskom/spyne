@@ -27,8 +27,8 @@ class HttpTransportContext(TransportContext):
     """The abstract base class that is used in the transport attribute of the
     :class:`HttpMethodContext` class and its subclasses."""
 
-    def __init__(self, transport, request, content_type):
-        super(HttpTransportContext, self).__init__(transport, 'http')
+    def __init__(self, parent, transport, request, content_type):
+        super(HttpTransportContext, self).__init__(parent, transport, 'http')
 
         self.req = request
         """HTTP Request. This is transport-specific"""
@@ -77,7 +77,7 @@ class HttpMethodContext(MethodContext):
     def __init__(self, transport, req_env, content_type):
         super(HttpMethodContext, self).__init__(transport)
 
-        self.transport = self.default_transport_context(transport, req_env,
+        self.transport = self.default_transport_context(self, transport, req_env,
                                                                    content_type)
         """Holds the WSGI-specific information"""
 

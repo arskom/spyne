@@ -120,8 +120,8 @@ class WsgiTransportContext(HttpTransportContext):
     """The class that is used in the transport attribute of the
     :class:`WsgiMethodContext` class."""
 
-    def __init__(self, transport, req_env, content_type):
-        super(WsgiTransportContext, self).__init__(transport, req_env, content_type)
+    def __init__(self, parent, transport, req_env, content_type):
+        super(WsgiTransportContext, self).__init__(parent, transport, req_env, content_type)
 
         self.req_env = self.req
         """WSGI Request environment"""
@@ -138,7 +138,7 @@ class WsgiMethodContext(HttpMethodContext):
     def __init__(self, transport, req_env, content_type):
         super(WsgiMethodContext, self).__init__(transport, req_env, content_type)
 
-        self.transport = WsgiTransportContext(transport, req_env, content_type)
+        self.transport = WsgiTransportContext(self, transport, req_env, content_type)
         """Holds the WSGI-specific information"""
 
 

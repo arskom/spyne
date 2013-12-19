@@ -34,8 +34,8 @@ class BODY_STYLE_BARE: pass
 
 class AuxMethodContext(object):
     """Generic object that holds information specific to auxiliary methods"""
-    def __init__(self, p_ctx, error):
-        self.p_ctx = p_ctx
+    def __init__(self, parent, error):
+        self.parent = parent
         """Primary context that this method was bound to."""
 
         self.error = error
@@ -44,7 +44,10 @@ class AuxMethodContext(object):
 
 class TransportContext(object):
     """Generic object that holds transport-specific context information"""
-    def __init__(self, transport, type=None):
+    def __init__(self, parent, transport, type=None):
+        self.parent = parent;
+        """The MethodContext this object belongs to"""
+
         self.itself = transport
         """The transport itself; i.e. a ServerBase instance."""
 
@@ -60,7 +63,10 @@ class TransportContext(object):
 
 class ProtocolContext(object):
     """Generic object that holds transport-specific context information"""
-    def __init__(self, transport, type=None):
+    def __init__(self, parent, transport, type=None):
+        self.parent = parent;
+        """The MethodContext this object belongs to"""
+
         self.itself = transport
         """The transport itself; i.e. a ServerBase instance."""
 
@@ -70,8 +76,9 @@ class ProtocolContext(object):
 
 class EventContext(object):
     """Generic object that holds event-specific context information"""
-    def __init__(self, event_id=None):
-        self.event_id=event_id
+    def __init__(self, parent, event_id=None):
+        self.parent = parent
+        self.event_id = event_id
 
 
 class MethodContext(object):
@@ -112,15 +119,15 @@ class MethodContext(object):
         self.udc = None
         """The user defined context. Use it to your liking."""
 
-        self.transport = TransportContext(transport)
+        self.transport = TransportContext(self, transport)
         """The transport-specific context. Transport implementors can use this
         to their liking."""
 
-        self.protocol = ProtocolContext(transport)
+        self.protocol = ProtocolContext(self, transport)
         """The protocol-specific context. Protocol implementors can use this
         to their liking."""
 
-        self.event = EventContext()
+        self.event = EventContext(self)
         """Event-specific context. Use this as you want, preferably only in
         events, as you'd probably want to separate the event data from the
         method data."""
