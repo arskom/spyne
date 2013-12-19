@@ -46,39 +46,7 @@ from spyne.util import Break
 from spyne.util.etreeconv import etree_to_dict
 from spyne.util.etreeconv import dict_to_etree
 
-import spyne.const.xml_ns
 
-
-def nillable_value(func):
-    def wrapper(prot, cls, value, tns, parent_elt, *args, **kwargs):
-        if value is None:
-            if cls.Attributes.default is None:
-                return null_to_parent_element(prot, cls, value, tns, parent_elt,
-                                                                *args, **kwargs)
-            else:
-                return func(prot, cls, cls.Attributes.default, tns, parent_elt,
-                                                                *args, **kwargs)
-        else:
-            return func(prot, cls, value, tns, parent_elt, *args, **kwargs)
-
-    return wrapper
-
-
-def nillable_element(func):
-    def wrapper(prot, cls, element):
-        if bool(element.get('{%s}nil' % _ns_xsi)):
-            if prot.validator is prot.SOFT_VALIDATION and not \
-                                                      cls.Attributes.nillable:
-                raise ValidationError('')
-            else:
-                return cls.Attributes.default
-        else:
-            return func(prot, cls, element)
-
-    return wrapper
-
-
-@nillable_element
 def base_from_element(prot, cls, element):
     if prot.validator is prot.SOFT_VALIDATION and not (
                                         cls.validate_string(cls, element.text)):
@@ -93,7 +61,6 @@ def base_from_element(prot, cls, element):
     return retval
 
 
-@nillable_element
 def byte_array_from_element(prot, cls, element):
     if prot.validator is prot.SOFT_VALIDATION and not (
                                         cls.validate_string(cls, element.text)):
@@ -108,13 +75,11 @@ def byte_array_from_element(prot, cls, element):
     return retval
 
 
-@nillable_value
 def byte_array_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     elt = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
     elt.text = prot.to_string(cls, value, prot.default_binary_encoding)
 
 
-@nillable_value
 def base_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     '''Creates a lxml.etree SubElement as a child of a 'parent' Element
 
@@ -143,7 +108,6 @@ def null_from_element(prot, cls, element):
     return None
 
 
-@nillable_value
 def xmlattribute_to_parent_element(prot, cls, value, tns, parent_elt, name):
     ns = cls._ns
     if ns is None:
@@ -170,7 +134,6 @@ def attachment_to_parent_element(prot, cls, value, tns, parent_elt, name='retval
     element.text = ''.join([b.decode('ascii') for b in cls.to_base64(value)])
 
 
-@nillable_element
 def attachment_from_element(prot, cls, element):
     '''This method returns an Attachment object that contains
     the base64 decoded string of the text of the given element
@@ -272,7 +235,6 @@ def get_members_etree(prot, cls, inst, parent):
                                                                 attr_parent, k)
 
 
-@nillable_value
 def complex_to_parent_element(prot, cls, value, tns, parent_elt, name=None):
     if name is None:
         name = cls.get_type_name()
@@ -281,7 +243,6 @@ def complex_to_parent_element(prot, cls, value, tns, parent_elt, name=None):
     return get_members_etree(prot, cls, inst, element)
 
 
-@nillable_element
 def complex_from_element(prot, cls, element):
     inst = cls.get_deserialization_instance()
 
@@ -376,7 +337,6 @@ def complex_from_element(prot, cls, element):
     return inst
 
 
-@nillable_element
 def array_from_element(prot, cls, element):
     retval = [ ]
     (serializer,) = cls._type_info.values()
@@ -387,7 +347,6 @@ def array_from_element(prot, cls, element):
     return retval
 
 
-@nillable_element
 def iterable_from_element(prot, cls, element):
     (serializer,) = cls._type_info.values()
 
@@ -395,14 +354,12 @@ def iterable_from_element(prot, cls, element):
         yield prot.from_element(serializer, child)
 
 
-@nillable_value
 def enum_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     if name is None:
         name = cls.get_type_name()
     base_to_parent_element(prot, cls, str(value), tns, parent_elt, name)
 
 
-@nillable_element
 def enum_from_element(prot, cls, element):
     if prot.validator is prot.SOFT_VALIDATION and not (
                                         cls.validate_string(cls, element.text)):
@@ -436,7 +393,6 @@ def fault_from_element(prot, cls, element):
                                                                   detail=detail)
 
 
-@nillable_element
 def xml_from_element(prot, cls, element):
     children = element.getchildren()
     retval = None
@@ -447,7 +403,6 @@ def xml_from_element(prot, cls, element):
     return retval
 
 
-@nillable_value
 def xml_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     if isinstance(value, str) or isinstance(value, unicode):
         value = etree.fromstring(value)
@@ -456,7 +411,6 @@ def xml_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     e.append(value)
 
 
-@nillable_value
 def html_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     if isinstance(value, str) or isinstance(value, unicode):
         value = html.fromstring(value)
@@ -465,13 +419,11 @@ def html_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     e.append(value)
 
 
-@nillable_value
 def dict_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     e = etree.SubElement(parent_elt, '{%s}%s' % (tns, name))
     dict_to_etree(value, e)
 
 
-@nillable_element
 def dict_from_element(prot, cls, element):
     children = element.getchildren()
     if children:
@@ -480,7 +432,6 @@ def dict_from_element(prot, cls, element):
     return None
 
 
-@nillable_element
 def unicode_from_element(prot, cls, element):
     if prot.validator is prot.SOFT_VALIDATION and not (
                                         cls.validate_string(cls, element.text)):

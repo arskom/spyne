@@ -40,9 +40,11 @@ from spyne import BODY_STYLE_WRAPPED
 
 from spyne.util import _bytes_join
 
+from spyne.error import ValidationError
 from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import LIGHT_RED
 from spyne.const.ansi_color import END_COLOR
+from spyne.const.xml_ns import xsi as _ns_xsi
 
 from spyne.util.cdict import cdict
 from spyne.model import ModelBase
@@ -73,6 +75,7 @@ from spyne.protocol.xml.model import xml_to_parent_element
 from spyne.protocol.xml.model import html_to_parent_element
 from spyne.protocol.xml.model import dict_to_parent_element
 from spyne.protocol.xml.model import xmlattribute_to_parent_element
+from spyne.protocol.xml.model import null_to_parent_element
 
 from spyne.protocol.xml.model import attachment_from_element
 from spyne.protocol.xml.model import base_from_element
@@ -261,11 +264,24 @@ class XmlDocument(ProtocolBase):
         self.validation_schema = None
 
     def from_element(self, cls, element):
+        if bool(element.get('{%s}nil' % _ns_xsi)):
+            if self.validator is self.SOFT_VALIDATION and not \
+                                                      cls.Attributes.nillable:
+                raise ValidationError('')
+            return cls.Attributes.default
         handler = self.deserialization_handlers[cls]
         return handler(self, cls, element)
 
     def to_parent_element(self, cls, value, tns, parent_elt, *args, **kwargs):
         handler = self.serialization_handlers[cls]
+
+        if value is None:
+            value = cls.Attributes.default
+
+        if value is None:
+            return null_to_parent_element(self, cls, value, tns, parent_elt,
+                                                                *args, **kwargs)
+
         return handler(self, cls, value, tns, parent_elt, *args, **kwargs)
 
     def validate_body(self, ctx, message):
