@@ -35,7 +35,7 @@ class TestBinary(unittest.TestCase):
 
     def test_data(self):
         element = etree.Element('test')
-        Soap11().to_parent_element(ByteArray, self.data, ns_test, element)
+        Soap11().to_parent(ByteArray, self.data, ns_test, element)
         print(etree.tostring(element, pretty_print=True))
         element = element[0]
 

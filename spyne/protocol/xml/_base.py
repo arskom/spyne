@@ -65,17 +65,17 @@ from spyne.model.binary import BINARY_ENCODING_BASE64
 
 from spyne.protocol import ProtocolBase
 
-from spyne.protocol.xml.model import byte_array_to_parent_element
-from spyne.protocol.xml.model import attachment_to_parent_element
-from spyne.protocol.xml.model import base_to_parent_element
-from spyne.protocol.xml.model import complex_to_parent_element
-from spyne.protocol.xml.model import enum_to_parent_element
-from spyne.protocol.xml.model import fault_to_parent_element
-from spyne.protocol.xml.model import xml_to_parent_element
-from spyne.protocol.xml.model import html_to_parent_element
-from spyne.protocol.xml.model import dict_to_parent_element
-from spyne.protocol.xml.model import xmlattribute_to_parent_element
-from spyne.protocol.xml.model import null_to_parent_element
+from spyne.protocol.xml.model import byte_array_to_parent
+from spyne.protocol.xml.model import attachment_to_parent
+from spyne.protocol.xml.model import base_to_parent
+from spyne.protocol.xml.model import complex_to_parent
+from spyne.protocol.xml.model import enum_to_parent
+from spyne.protocol.xml.model import fault_to_parent
+from spyne.protocol.xml.model import xml_to_parent
+from spyne.protocol.xml.model import html_to_parent
+from spyne.protocol.xml.model import dict_to_parent
+from spyne.protocol.xml.model import xmlattribute_to_parent
+from spyne.protocol.xml.model import null_to_parent
 
 from spyne.protocol.xml.model import attachment_from_element
 from spyne.protocol.xml.model import base_from_element
@@ -202,16 +202,16 @@ class XmlDocument(ProtocolBase):
         self.pretty_print = pretty_print
 
         self.serialization_handlers = cdict({
-            AnyXml: xml_to_parent_element,
-            Fault: fault_to_parent_element,
-            AnyDict: dict_to_parent_element,
-            AnyHtml: html_to_parent_element,
-            EnumBase: enum_to_parent_element,
-            ModelBase: base_to_parent_element,
-            ByteArray: byte_array_to_parent_element,
-            Attachment: attachment_to_parent_element,
-            XmlAttribute: xmlattribute_to_parent_element,
-            ComplexModelBase: complex_to_parent_element,
+            AnyXml: xml_to_parent,
+            Fault: fault_to_parent,
+            AnyDict: dict_to_parent,
+            AnyHtml: html_to_parent,
+            EnumBase: enum_to_parent,
+            ModelBase: base_to_parent,
+            ByteArray: byte_array_to_parent,
+            Attachment: attachment_to_parent,
+            XmlAttribute: xmlattribute_to_parent,
+            ComplexModelBase: complex_to_parent,
         })
 
         self.deserialization_handlers = cdict({
@@ -339,14 +339,14 @@ class XmlDocument(ProtocolBase):
         handler = self.deserialization_handlers[cls]
         return handler(self, cls, element)
 
-    def to_parent_element(self, cls, value, tns, parent_elt, *args, **kwargs):
+    def to_parent(self, cls, value, tns, parent_elt, *args, **kwargs):
         handler = self.serialization_handlers[cls]
 
         if value is None:
             value = cls.Attributes.default
 
         if value is None:
-            return null_to_parent_element(self, cls, value, tns, parent_elt,
+            return null_to_parent(self, cls, value, tns, parent_elt,
                                                                 *args, **kwargs)
 
         return handler(self, cls, value, tns, parent_elt, *args, **kwargs)
@@ -355,7 +355,7 @@ class XmlDocument(ProtocolBase):
         """Takes a MethodContext instance and a string containing ONE root xml
         tag.
 
-        Returns the corresponding native python object
+        Returns the corresponding native python object.
 
         Not meant to be overridden.
         """
@@ -390,10 +390,10 @@ class XmlDocument(ProtocolBase):
 
         self.event_manager.fire_event('after_deserialize', ctx)
 
-    def serialize(self, ctx, message):
-        """Uses ctx.out_object, ctx.out_header or ctx.out_error to set
-        ctx.out_body_doc, ctx.out_header_doc and ctx.out_document as an
-        lxml.etree._Element instance.
+    def serialize(self, ctx, message, ostream=None):
+        """Uses ``ctx.out_object``, ``ctx.out_header`` or ``ctx.out_error`` to
+        set ``ctx.out_body_doc``, ``ctx.out_header_doc`` and
+        ``ctx.out_document`` as an ``lxml.etree._Element instance``.
 
         Not meant to be overridden.
         """
@@ -405,7 +405,7 @@ class XmlDocument(ProtocolBase):
         if ctx.out_error is not None:
             # FIXME: There's no way to alter soap response headers for the user.
             tmp_elt = etree.Element('punk')
-            retval = self.to_parent_element(ctx.out_error.__class__, ctx.out_error,
+            retval = self.to_parent(ctx.out_error.__class__, ctx.out_error,
                                     self.app.interface.get_tns(), tmp_elt)
 
             ctx.out_document = tmp_elt[0]
@@ -429,8 +429,8 @@ class XmlDocument(ProtocolBase):
 
             # transform the results into an element
             tmp_elt = etree.Element('punk')
-            retval = self.to_parent_element(result_message_class,
-                        result_message, self.app.interface.get_tns(), tmp_elt)
+            retval = self.to_parent(result_message_class,
+                      result_message, self.app.interface.get_tns(), tmp_elt)
             ctx.out_document = tmp_elt[0]
 
         if self.cleanup_namespaces:

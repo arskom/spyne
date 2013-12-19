@@ -164,7 +164,7 @@ class TestMultiple(unittest.TestCase):
         self.assertEquals(len(message._type_info), 3)
 
         sent_xml = etree.Element('test')
-        self.app.out_protocol.to_parent_element(message_class, ('a', 'b', 'c'),
+        self.app.out_protocol.to_parent(message_class, ('a', 'b', 'c'),
                                     MultipleReturnService.get_tns(), sent_xml)
         sent_xml = sent_xml[0]
 
@@ -189,7 +189,7 @@ class TestSoap(unittest.TestCase):
         m_inst = m(s="a", i=43)
 
         e = etree.Element('test')
-        Soap11().to_parent_element(m, m_inst, m.get_namespace(), e)
+        Soap11().to_parent(m, m_inst, m.get_namespace(), e)
         e=e[0]
 
         self.assertEquals(e.tag, '{%s}myMessage' % m.get_namespace())
@@ -249,12 +249,12 @@ class TestSoap(unittest.TestCase):
         mi.s = 'a'
 
         e = etree.Element('test')
-        Soap11().to_parent_element(m, mi, m.get_namespace(), e)
+        Soap11().to_parent(m, mi, m.get_namespace(), e)
         e=e[0]
 
         self.assertEquals(e.tag, '{some_namespace}myMessage')
 
-    def test_class_to_parent_element(self):
+    def test_class_to_parent(self):
         m = ComplexModel.produce(
             namespace=None,
             type_name='myMessage',
@@ -270,7 +270,7 @@ class TestSoap(unittest.TestCase):
         m_inst.p.addresses = []
 
         element=etree.Element('test')
-        Soap11().to_parent_element(m, m_inst, m.get_namespace(), element)
+        Soap11().to_parent(m, m_inst, m.get_namespace(), element)
         element=element[0]
 
         self.assertEquals(element.tag, '{%s}myMessage' % m.get_namespace())
@@ -292,7 +292,7 @@ class TestSoap(unittest.TestCase):
         format = "%Y %m %d %H %M %S"
 
         element = etree.Element('test')
-        Soap11().to_parent_element(DateTime(format=format), n,
+        Soap11().to_parent(DateTime(format=format), n,
                                                       'some_namespace', element)
         assert element[0].text == n.isoformat()
 
@@ -307,7 +307,7 @@ class TestSoap(unittest.TestCase):
             assert d.month == 4
             assert d.day == 5
 
-    def test_to_parent_element_nested(self):
+    def test_to_parent_nested(self):
         m = ComplexModel.produce(
             namespace=None,
             type_name='myMessage',
@@ -332,7 +332,7 @@ class TestSoap(unittest.TestCase):
         m_inst = m(p=p)
 
         element=etree.Element('test')
-        Soap11().to_parent_element(m, m_inst, m.get_namespace(), element)
+        Soap11().to_parent(m, m_inst, m.get_namespace(), element)
         element=element[0]
 
         self.assertEquals('{%s}myMessage' % m.get_namespace(), element.tag)

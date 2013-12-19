@@ -119,8 +119,7 @@ def get_object_as_xml(value, cls=None, root_tag_name=None, no_namespace=None):
 
     parent = etree.Element("parent")
 
-    xml_object.to_parent_element(cls, value, cls.get_namespace(),
-                                                          parent, root_tag_name)
+    xml_object.to_parent(cls, value, cls.get_namespace(), parent, root_tag_name)
 
     if no_namespace:
         _dig(parent)

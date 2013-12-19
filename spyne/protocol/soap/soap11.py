@@ -284,7 +284,7 @@ class Soap11(XmlDocument):
             # FIXME: There's no way to alter soap response headers for the user.
             ctx.out_body_doc = out_body_doc = etree.SubElement(ctx.out_document,
                             '{%s}Body' % ns.soap_env, nsmap=nsmap)
-            self.to_parent_element(ctx.out_error.__class__, ctx.out_error,
+            self.to_parent(ctx.out_error.__class__, ctx.out_error,
                                     self.app.interface.get_tns(), out_body_doc)
 
         else:
@@ -318,7 +318,7 @@ class Soap11(XmlDocument):
                         v = None
 
                     setattr(out_object, k, v)
-                self.to_parent_element(body_message_class, out_object,
+                self.to_parent(body_message_class, out_object,
                         body_message_class.get_namespace(), out_body_doc)
 
             else:
@@ -334,7 +334,7 @@ class Soap11(XmlDocument):
                 if sub_name is None:
                     sub_name = body_message_class.get_type_name()
 
-                self.to_parent_element(body_message_class, out_object,
+                self.to_parent(body_message_class, out_object,
                                 sub_ns, out_body_doc, sub_name)
 
             # transform the results into an element
@@ -351,7 +351,7 @@ class Soap11(XmlDocument):
 
                 for header_class, out_header in zip(header_message_class,
                                                                    out_headers):
-                    self.to_parent_element(header_class,
+                    self.to_parent(header_class,
                         out_header,
                         header_class.get_namespace(),
                         soap_header_elt,

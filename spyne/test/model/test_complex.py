@@ -174,13 +174,13 @@ class TestComplexModel(unittest.TestCase):
         a.longitude = 88.0
 
         element = etree.Element('test')
-        XmlDocument().to_parent_element(Address, a, ns_test, element)
+        XmlDocument().to_parent(Address, a, ns_test, element)
         element = element[0]
         self.assertEquals(5, len(element.getchildren()))
 
         a.since = datetime.datetime(year=2011, month=12, day=31, tzinfo=pytz.utc)
         element = etree.Element('test')
-        XmlDocument().to_parent_element(Address, a, ns_test, element)
+        XmlDocument().to_parent(Address, a, ns_test, element)
         element = element[0]
         self.assertEquals(6, len(element.getchildren()))
 
@@ -196,7 +196,7 @@ class TestComplexModel(unittest.TestCase):
     def test_nested_class(self): # FIXME: this test is incomplete
         p = Person()
         element = etree.Element('test')
-        XmlDocument().to_parent_element(Person, p, ns_test, element)
+        XmlDocument().to_parent(Person, p, ns_test, element)
         element = element[0]
 
         self.assertEquals(None, p.name)
@@ -220,7 +220,7 @@ class TestComplexModel(unittest.TestCase):
 
         element = etree.Element('test')
 
-        XmlDocument().to_parent_element(type, peeps, ns_test, element)
+        XmlDocument().to_parent(type, peeps, ns_test, element)
         element = element[0]
 
         self.assertEquals(4, len(element.getchildren()))
@@ -255,7 +255,7 @@ class TestComplexModel(unittest.TestCase):
         type = Array(Person)
         type.resolve_namespace(type, __name__)
         element = etree.Element('test')
-        XmlDocument().to_parent_element(type, peeps, ns_test, element)
+        XmlDocument().to_parent(type, peeps, ns_test, element)
         element = element[0]
 
         self.assertEquals(4, len(element.getchildren()))
@@ -285,7 +285,7 @@ class TestComplexModel(unittest.TestCase):
             l.level4.append(a)
 
         element = etree.Element('test')
-        XmlDocument().to_parent_element(Level1, l, ns_test, element)
+        XmlDocument().to_parent(Level1, l, ns_test, element)
         element = element[0]
         l1 = XmlDocument().from_element(Level1, element)
 
@@ -347,7 +347,7 @@ class TestIncompleteInput(unittest.TestCase):
         x = X()
         x.x = [1, 2]
         element = etree.Element('test')
-        XmlDocument().to_parent_element(X, x, 'tns', element)
+        XmlDocument().to_parent(X, x, 'tns', element)
         msg = element[0]
         r = XmlDocument().from_element(X, msg)
         self.assertEqual(r.x, [1, 2])
@@ -356,7 +356,7 @@ class TestIncompleteInput(unittest.TestCase):
         x = X()
         x.x = [1, 2]
         element = etree.Element('test')
-        XmlDocument().to_parent_element(X, x, 'tns', element)
+        XmlDocument().to_parent(X, x, 'tns', element)
         msg = element[0]
         r = XmlDocument().from_element(Y, msg)
         self.assertEqual(r.x, [1, 2])
@@ -366,7 +366,7 @@ class TestIncompleteInput(unittest.TestCase):
         y.x = [1, 2]
         y.y = 38
         element = etree.Element('test')
-        XmlDocument().to_parent_element(Y, y, 'tns', element)
+        XmlDocument().to_parent(Y, y, 'tns', element)
         msg = element[0]
         r = XmlDocument().from_element(Y, msg)
 
@@ -430,7 +430,7 @@ class TestXmlAttribute(unittest.TestCase):
         gg = PacketNonAttribute(Data=test_string)
 
         element = etree.Element('test')
-        Soap11().to_parent_element(PacketNonAttribute, gg, gg.get_namespace(), element)
+        Soap11().to_parent(PacketNonAttribute, gg, gg.get_namespace(), element)
 
         element = element[0]
         #print etree.tostring(element, pretty_print=True)
@@ -449,7 +449,7 @@ class TestXmlAttribute(unittest.TestCase):
         gg = PacketAttribute(Data=test_string)
 
         element = etree.Element('test')
-        Soap11().to_parent_element(PacketAttribute, gg, gg.get_namespace(), element)
+        Soap11().to_parent(PacketAttribute, gg, gg.get_namespace(), element)
 
         element = element[0]
         #print etree.tostring(element, pretty_print=True)

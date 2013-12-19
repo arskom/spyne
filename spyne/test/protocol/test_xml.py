@@ -210,7 +210,7 @@ class TestXml(unittest.TestCase):
         parent = etree.Element('parent')
         val = ['a', 'b']
         cls = Array(Unicode, namespace='tns')
-        XmlDocument().to_parent_element(cls, val, 'tns', parent)
+        XmlDocument().to_parent(cls, val, 'tns', parent)
         print(etree.tostring(parent, pretty_print=True))
         xpath = parent.xpath('//x:stringArray/x:string/text()',
                                                         namespaces={'x': 'tns'})
@@ -223,7 +223,7 @@ class TestXml(unittest.TestCase):
         val = cls(s=['a', 'b'])
 
         parent = etree.Element('parent')
-        XmlDocument().to_parent_element(cls, val, 'tns', parent)
+        XmlDocument().to_parent(cls, val, 'tns', parent)
         print(etree.tostring(parent, pretty_print=True))
         xpath = parent.xpath('//x:cls/x:s/text()', namespaces={'x': 'tns'})
         assert xpath == val.s

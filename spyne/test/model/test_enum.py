@@ -93,7 +93,7 @@ class TestEnum(unittest.TestCase):
         print((repr(mo)))
 
         elt = etree.Element('test')
-        XmlDocument().to_parent_element(DaysOfWeekEnum, mo, 'test_namespace', elt)
+        XmlDocument().to_parent(DaysOfWeekEnum, mo, 'test_namespace', elt)
         elt = elt[0]
         ret = XmlDocument().from_element(DaysOfWeekEnum, elt)
 
@@ -124,7 +124,7 @@ class TestEnum(unittest.TestCase):
         DaysOfWeekEnumArray.__namespace__ = 'tns'
 
         elt = etree.Element('test')
-        XmlDocument().to_parent_element(DaysOfWeekEnumArray, days,
+        XmlDocument().to_parent(DaysOfWeekEnumArray, days,
                                                           'test_namespace', elt)
 
         elt = elt[0]
@@ -151,7 +151,7 @@ class TestEnum(unittest.TestCase):
         Test.resolve_namespace(Test, 'tns')
 
         elt = etree.Element('test')
-        XmlDocument().to_parent_element(Test, t, 'test_namespace', elt)
+        XmlDocument().to_parent(Test, t, 'test_namespace', elt)
         elt = elt[0]
 
         print((etree.tostring(elt, pretty_print=True)))
