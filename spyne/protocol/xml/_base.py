@@ -104,8 +104,8 @@ class XmlDocument(ProtocolBase):
     * http://www.w3.org/TR/xmlschema-1/
     * http://www.w3.org/TR/xmlschema-2/
 
-    Receiving Xml from untrusted sources is a difficult dance in terms of
-    security, as the Xml attack surface is huge.
+    Receiving Xml from untrusted sources is a dodgy security dance as the Xml
+    attack surface is /huge/.
 
     Spyne's ```lxml.etree.XMLParser``` instance has ```resolve_pis```,
     ```load_dtd```, ```resolve_entities```, ```dtd_validation```,
@@ -135,8 +135,8 @@ class XmlDocument(ProtocolBase):
         format.
 
     The following are parsed straight to the XMLParser() instance. Docs are
-    plagiarized from the lxml documentation. Some of the defaults are different
-    to make it safer by default.
+    plagiarized from the lxml documentation. Please note that some of the
+    defaults are different to make parsing safer by default.
 
     :param attribute_defaults: read the DTD (if referenced by the document) and
         add the default attributes from it. Off by default.
@@ -213,17 +213,16 @@ class XmlDocument(ProtocolBase):
 
         self.deserialization_handlers = cdict({
             AnyXml: xml_from_element,
+            Array: array_from_element,
             Fault: fault_from_element,
             AnyDict: dict_from_element,
             EnumBase: enum_from_element,
             ModelBase: base_from_element,
             Unicode: unicode_from_element,
+            Iterable: iterable_from_element,
             ByteArray: byte_array_from_element,
             Attachment: attachment_from_element,
             ComplexModelBase: complex_from_element,
-
-            Iterable: iterable_from_element,
-            Array: array_from_element,
         })
 
         self.log_messages = (logger.level == logging.DEBUG)
