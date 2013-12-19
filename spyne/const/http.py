@@ -64,7 +64,6 @@ HTTP_420 = '420 Enhance Your Calm' # (Twitter)
 HTTP_422 = '422 Unprocessable Entity' # (WebDAV; RFC 4918)
 HTTP_423 = '423 Locked' # (WebDAV; RFC 4918)
 HTTP_424 = '424 Failed Dependency' # (WebDAV; RFC 4918)
-HTTP_424 = '424 Method Failure' # (WebDAV)[14]
 
 HTTP_425 = '425 Unordered Collection' # (Internet draft)
 HTTP_426 = '426 Upgrade Required' # (RFC 2817)
