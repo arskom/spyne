@@ -3,7 +3,6 @@
 
 import os
 import re
-import sys
 
 from setuptools import setup
 from setuptools import find_packages
@@ -16,8 +15,6 @@ try:
     RESET = Fore.RESET
     GREEN = Fore.GREEN
     RED = Fore.RED
-
-
 except ImportError:
     RESET = ''
     GREEN = ''
