@@ -17,6 +17,7 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+
 from spyne import TransportContext
 from spyne import MethodContext
 from spyne.server import ServerBase
@@ -54,7 +55,10 @@ class HttpTransportContext(TransportContext):
     def set_mime_type(self, what):
         self.resp_headers['Content-Type'] = what
 
-    mime_type = property(lambda self: self.get_mime_type(), lambda self, what: self.set_mime_type(what))
+    mime_type = property(
+        lambda self: self.get_mime_type(),
+        lambda self, what: self.set_mime_type(what),
+    )
     """Provides an easy way to set outgoing mime type. Synonym for
     `content_type`"""
 
@@ -73,9 +77,9 @@ class HttpMethodContext(MethodContext):
     def __init__(self, transport, req_env, content_type):
         super(HttpMethodContext, self).__init__(transport)
 
-        self.transport = self.default_transport_context(transport, req_env, content_type)
+        self.transport = self.default_transport_context(transport, req_env,
+                                                                   content_type)
         """Holds the WSGI-specific information"""
-
 
     def set_out_protocol(self, what):
         self._out_protocol = what
@@ -84,6 +88,7 @@ class HttpMethodContext(MethodContext):
 
     out_protocol = property(MethodContext.get_out_protocol, set_out_protocol)
     """Assigning an out protocol overrides the mime type of the transport."""
+
 
 class HttpBase(ServerBase):
     transport = 'http://schemas.xmlsoap.org/soap/http'
