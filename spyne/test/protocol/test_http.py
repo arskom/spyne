@@ -36,9 +36,6 @@ else:
 from datetime import datetime
 from wsgiref.validate import validator as wsgiref_validator
 
-from collections import defaultdict
-from pprint import pprint
-from spyne.protocol.dictdoc import _fill
 from spyne.model.complex import Array
 
 from spyne.server.wsgi import _parse_qs
@@ -51,8 +48,6 @@ from spyne.model.binary import ByteArray
 from spyne.model.primitive import DateTime
 from spyne.model.primitive import Uuid
 from spyne.model.primitive import String
-from spyne.model.primitive import Unicode
-from spyne.model.primitive import Boolean
 from spyne.model.primitive import Integer
 from spyne.model.primitive import Integer8
 from spyne.model.complex import ComplexModel

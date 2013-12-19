@@ -81,7 +81,7 @@ def byte_array_to_parent_element(prot, cls, value, tns, parent_elt, name='retval
 
 
 def base_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
-    '''Creates a lxml.etree SubElement as a child of a 'parent' Element
+    """Creates a lxml.etree SubElement as a child of a 'parent' Element
 
     :param prot:  The protocol that will be used to serialize the given value.
     :param cls:   The type of the value that's going to determine how to pack
@@ -93,7 +93,7 @@ def base_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
     :param parent_elt: The parent Element to which the new child will be
                   appended.
     :param name:  The tag name of the new SubElement, 'retval' by default.
-    '''
+    """
 
     elt = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
     elt.text = prot.to_string(cls, value)
@@ -125,19 +125,20 @@ def xmlattribute_to_parent_element(prot, cls, value, tns, parent_elt, name):
 
 
 def attachment_to_parent_element(prot, cls, value, tns, parent_elt, name='retval'):
-    '''This class method takes the data from the attachment and
-    base64 encodes it as the text of an Element. An attachment can
-    specify a file_name and if no data is given, it will read the data
-    from the file
-    '''
+    """This class method takes the data from the attachment and base64 encodes
+    it as the text of an Element. An attachment can specify a file_name and if
+    no data is given, it will read the data from the file.
+    """
+
     element = etree.SubElement(parent_elt, "{%s}%s" % (tns, name))
     element.text = ''.join([b.decode('ascii') for b in cls.to_base64(value)])
 
 
 def attachment_from_element(prot, cls, element):
-    '''This method returns an Attachment object that contains
-    the base64 decoded string of the text of the given element
-    '''
+    """This method returns an Attachment object that contains the base64
+    decoded string of the text of the given element.
+    """
+
     return cls.from_base64([element.text])
 
 

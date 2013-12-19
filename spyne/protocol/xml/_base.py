@@ -39,6 +39,7 @@ from lxml.etree import XMLParser
 from spyne import BODY_STYLE_WRAPPED
 
 from spyne.util import _bytes_join
+from spyne.util.cdict import cdict
 
 from spyne.error import ValidationError
 from spyne.const.ansi_color import LIGHT_GREEN
@@ -46,7 +47,6 @@ from spyne.const.ansi_color import LIGHT_RED
 from spyne.const.ansi_color import END_COLOR
 from spyne.const.xml_ns import xsi as _ns_xsi
 
-from spyne.util.cdict import cdict
 from spyne.model import ModelBase
 from spyne.model import Array
 from spyne.model import Iterable
