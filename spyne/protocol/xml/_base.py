@@ -263,27 +263,6 @@ class XmlDocument(ProtocolBase):
 
         self.validation_schema = None
 
-    def from_element(self, cls, element):
-        if bool(element.get('{%s}nil' % _ns_xsi)):
-            if self.validator is self.SOFT_VALIDATION and not \
-                                                      cls.Attributes.nillable:
-                raise ValidationError('')
-            return cls.Attributes.default
-        handler = self.deserialization_handlers[cls]
-        return handler(self, cls, element)
-
-    def to_parent_element(self, cls, value, tns, parent_elt, *args, **kwargs):
-        handler = self.serialization_handlers[cls]
-
-        if value is None:
-            value = cls.Attributes.default
-
-        if value is None:
-            return null_to_parent_element(self, cls, value, tns, parent_elt,
-                                                                *args, **kwargs)
-
-        return handler(self, cls, value, tns, parent_elt, *args, **kwargs)
-
     def validate_body(self, ctx, message):
         """Sets ctx.method_request_string and calls :func:`generate_contexts`
         for validation."""
@@ -301,6 +280,27 @@ class XmlDocument(ProtocolBase):
             if self.log_messages:
                 logger.debug("%s %s" % (line_header, ctx.method_request_string))
                 logger.debug(etree.tostring(ctx.in_document, pretty_print=True))
+
+    def set_app(self, value):
+        ProtocolBase.set_app(self, value)
+
+        self.validation_schema = None
+
+        if value:
+            from spyne.interface.xml_schema import XmlSchema
+
+            xml_schema = XmlSchema(value.interface)
+            xml_schema.build_validation_schema()
+
+            self.validation_schema = xml_schema.validation_schema
+
+    def __validate_lxml(self, payload):
+        ret = self.validation_schema.validate(payload)
+
+        logger.debug("Validated ? %s" % str(ret))
+        if ret == False:
+            raise SchemaValidationError(
+                               str(self.validation_schema.error_log.last_error))
 
     def create_in_document(self, ctx, charset=None):
         """Uses the iterable of string fragments in ``ctx.in_string`` to set
@@ -330,21 +330,26 @@ class XmlDocument(ProtocolBase):
         ctx.method_request_string = ctx.in_body_doc.tag
         self.validate_body(ctx, message)
 
-    def create_out_string(self, ctx, charset=None):
-        """Sets an iterable of string fragments to ctx.out_string"""
+    def from_element(self, cls, element):
+        if bool(element.get('{%s}nil' % _ns_xsi)):
+            if self.validator is self.SOFT_VALIDATION and not \
+                                                      cls.Attributes.nillable:
+                raise ValidationError('')
+            return cls.Attributes.default
+        handler = self.deserialization_handlers[cls]
+        return handler(self, cls, element)
 
-        if charset is None:
-            charset = self.encoding
+    def to_parent_element(self, cls, value, tns, parent_elt, *args, **kwargs):
+        handler = self.serialization_handlers[cls]
 
-        ctx.out_string = [etree.tostring(ctx.out_document,
-                                          encoding=charset,
-                                          pretty_print=self.pretty_print,
-                                          xml_declaration=self.xml_declaration)]
+        if value is None:
+            value = cls.Attributes.default
 
-        if self.log_messages:
-            logger.debug('%sResponse%s %s' % (LIGHT_RED, END_COLOR,
-                            etree.tostring(ctx.out_document,
-                                          pretty_print=True, encoding='UTF-8')))
+        if value is None:
+            return null_to_parent_element(self, cls, value, tns, parent_elt,
+                                                                *args, **kwargs)
+
+        return handler(self, cls, value, tns, parent_elt, *args, **kwargs)
 
     def deserialize(self, ctx, message):
         """Takes a MethodContext instance and a string containing ONE root xml
@@ -435,23 +440,18 @@ class XmlDocument(ProtocolBase):
 
         return retval
 
-    def set_app(self, value):
-        ProtocolBase.set_app(self, value)
+    def create_out_string(self, ctx, charset=None):
+        """Sets an iterable of string fragments to ctx.out_string"""
 
-        self.validation_schema = None
+        if charset is None:
+            charset = self.encoding
 
-        if value:
-            from spyne.interface.xml_schema import XmlSchema
+        ctx.out_string = [etree.tostring(ctx.out_document,
+                                          encoding=charset,
+                                          pretty_print=self.pretty_print,
+                                          xml_declaration=self.xml_declaration)]
 
-            xml_schema = XmlSchema(value.interface)
-            xml_schema.build_validation_schema()
-
-            self.validation_schema = xml_schema.validation_schema
-
-    def __validate_lxml(self, payload):
-        ret = self.validation_schema.validate(payload)
-
-        logger.debug("Validated ? %s" % str(ret))
-        if ret == False:
-            raise SchemaValidationError(
-                               str(self.validation_schema.error_log.last_error))
+        if self.log_messages:
+            logger.debug('%sResponse%s %s' % (LIGHT_RED, END_COLOR,
+                            etree.tostring(ctx.out_document,
+                                          pretty_print=True, encoding='UTF-8')))
