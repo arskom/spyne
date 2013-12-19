@@ -496,3 +496,12 @@ class EventManager(object):
         handlers = self.handlers.get(event_name, oset())
         for handler in handlers:
             handler(ctx)
+
+class FakeContext(object):
+    def __init__(self, app=None, descriptor=None, out_object=None, out_error=None,
+                                                             out_document=None):
+        self.app = app
+        self.descriptor = descriptor
+        self.out_error = out_error
+        self.out_object = out_object
+        self.out_document = out_document

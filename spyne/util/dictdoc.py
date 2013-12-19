@@ -16,6 +16,7 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
+from spyne._base import FakeContext
 
 from spyne.protocol.dictdoc import HierDictDocument
 
@@ -68,11 +69,6 @@ def get_dict_as_object(d, cls, ignore_wrappers=True, complex_as=list):
 def get_object_as_dict(o, cls, ignore_wrappers=True, complex_as=dict):
     return _UtilProtocol(ignore_wrappers=ignore_wrappers,
                                    complex_as=complex_as)._object_to_doc(cls, o)
-
-
-class FakeContext(object):
-    def __init__(self, out_document):
-        self.out_document = out_document
 
 
 def get_object_as_json(o, cls, ignore_wrappers=True, complex_as=list, encoding='utf8'):
