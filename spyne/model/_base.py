@@ -240,10 +240,11 @@ class ModelBase(object):
         read_only= False
         """If True, the attribute won't be initialized from outside values."""
 
-        protocol_attrs = None
-        """Customize child attributes for protocols. It's a dict of dicts.
-        The key is either a ProtocolBase subclass or a ProtocolBase instance.
-        Instances override classes."""
+        prot_attrs = None
+        """to be implemented."""
+        #"""Customize child attributes for protocols. It's a dict of dicts.
+        #The key is either a ProtocolBase subclass or a ProtocolBase instance.
+        #Instances override classes."""
 
     class Annotations(object):
         """The class that holds the annotations for the given type."""
