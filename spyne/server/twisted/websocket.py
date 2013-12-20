@@ -84,7 +84,7 @@ from spyne.server.http import HttpMethodContext
 
 
 class WebSocketTransportContext(TransportContext):
-    def __init__(self, parent, transport, type, client_handle, parent):
+    def __init__(self, parent, transport, type, client_handle):
         TransportContext.__init__(self, parent, transport, type)
 
         self.client_handle = client_handle
@@ -95,11 +95,11 @@ class WebSocketTransportContext(TransportContext):
 
 
 class WebSocketMethodContext(MethodContext):
-    def __init__(self, parent, transport, client_handle):
+    def __init__(self, transport, client_handle):
         MethodContext.__init__(self, parent, transport)
 
-        self.transport = WebSocketTransportContext(transport, 'ws',
-                                                            client_handle, self)
+        self.transport = WebSocketTransportContext(self, transport, 'ws',
+                                                                  client_handle)
 
 
 class TwistedWebSocketProtocol(WebSocketsProtocol):
@@ -139,7 +139,7 @@ class TwistedWebSocketProtocol(WebSocketsProtocol):
     def frameReceived(self, opcode, data, fin):
         tpt = self._spyne_transport
 
-        initial_ctx = WebSocketMethodContext(tpt, client_handle=self)
+        initial_ctx = WebSocketMethodContext(self, tpt, client_handle=self)
         initial_ctx.in_string = [data]
 
         contexts = tpt.generate_contexts(initial_ctx)
