@@ -24,8 +24,6 @@ from copy import copy
 
 from spyne import EventManager
 
-from spyne.util.cdict import cdict
-
 from spyne.const.http import HTTP_400
 from spyne.const.http import HTTP_401
 from spyne.const.http import HTTP_404
@@ -60,6 +58,7 @@ from spyne.model import Duration
 from spyne.model import Boolean
 from spyne.model.binary import Attachment # DEPRECATED
 
+from spyne.util.cdict import cdict
 from spyne.protocol._model import *
 
 
@@ -201,11 +200,14 @@ class ProtocolBase(object):
         """
 
     def serialize(self, ctx, message):
-        """Takes a MethodContext instance and the object to be serialized in the
-        ctx.out_object attribute.
+        """Serializes ``ctx.out_object``.
 
-        Returns the corresponding document structure in the ctx.out_document
-        attribute.
+        If ctx.out_stream is not None,  ``ctx.out_document`` and
+        ``ctx.out_string`` are skipped and the response is written directly to
+        ``ctx.out_stream``.
+
+        :param ctx: :class:`MethodContext` instance.
+        :param message: One of ``(ProtocolBase.REQUEST, ProtocolBase.RESPONSE)``.
         """
 
     def create_out_string(self, ctx, out_string_encoding=None):

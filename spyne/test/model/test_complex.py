@@ -31,6 +31,7 @@ from spyne import Application
 from spyne import rpc
 from spyne import mrpc
 from spyne import ServiceBase
+from spyne._base import FakeContext
 from spyne.const import xml_ns
 from spyne.error import ResourceNotFoundError
 from spyne.interface import Interface
@@ -54,6 +55,7 @@ from spyne.protocol.dictdoc import SimpleDictDocument
 from spyne.protocol.xml import XmlDocument
 
 from spyne.test import FakeApp
+from spyne.util.six import StringIO
 
 ns_test = 'test_namespace'
 

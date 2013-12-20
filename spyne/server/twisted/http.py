@@ -271,18 +271,14 @@ class TwistedWebResource(Resource):
             ret.addErrback(_eb_deferred, request)
 
         elif isinstance(ret, PushBase):
-            gen = self.http_transport.get_out_string(p_ctx)
+            p_ctx.out_stream = request
+            gen = self.http_transport.get_out_string_push(p_ctx)
 
             assert isgenerator(gen), "It looks like this protocol is not " \
                                      "async-compliant yet."
 
             def _cb_push():
                 process_contexts(self.http_transport, others, p_ctx)
-
-                producer = _Producer(p_ctx.out_string, request)
-                producer.deferred.addCallbacks(_cb_request_finished,
-                                                           _eb_request_finished)
-                request.registerProducer(producer, False)
 
             ret.init(p_ctx, request, gen, _cb_push, None)
 

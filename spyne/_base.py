@@ -226,6 +226,10 @@ class MethodContext(object):
         """The pull interface to the outgoing bytestream. It's a sequence of
         strings (which could also be a generator)."""
 
+        self.out_stream = None
+        """The push interface to the outgoing bytestream. It's a file-like
+        object."""
+
         #self.out_stream = None
         #"""The push interface to the outgoing bytestream. It's a file-like
         #object."""
@@ -497,11 +501,13 @@ class EventManager(object):
         for handler in handlers:
             handler(ctx)
 
+
 class FakeContext(object):
     def __init__(self, app=None, descriptor=None, out_object=None, out_error=None,
-                                                             out_document=None):
+                                             out_document=None, out_string=None):
         self.app = app
         self.descriptor = descriptor
         self.out_error = out_error
         self.out_object = out_object
         self.out_document = out_document
+        self.out_string = out_string

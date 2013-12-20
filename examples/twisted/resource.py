@@ -30,7 +30,7 @@
 #
 
 
-'''This is a blocking example running in a single-process twisted setup.
+"""This is a blocking example running in a single-process twisted setup.
 
 In this example, user code runs directly in the reactor loop. So unless your
 code fully adheres to the asynchronous programming principles, you can block
@@ -63,7 +63,7 @@ If you call sleep, it sleeps by returning a deferred: ::
     real    0m10.013s
     user    0m0.000s
     sys     0m0.000s
-'''
+"""
 
 
 import logging
