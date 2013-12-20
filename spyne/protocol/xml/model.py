@@ -27,6 +27,7 @@ logger = logging.getLogger(__name__)
 from collections import defaultdict
 
 from lxml import etree
+from lxml.builder import E
 from lxml import html
 
 from spyne.const.xml_ns import xsi as _ns_xsi
@@ -42,7 +43,6 @@ from spyne.model import ByteArray
 from spyne.model import XmlData
 from spyne.model import XmlAttribute
 from spyne.util import coroutine
-from spyne.util import Break
 from spyne.util.etreeconv import etree_to_dict
 from spyne.util.etreeconv import dict_to_etree
 
@@ -76,8 +76,8 @@ def byte_array_from_element(prot, cls, element):
 
 
 def byte_array_to_parent(prot, cls, value, tns, parent, name='retval'):
-    etree.SubElement(parent, "{%s}%s" % (tns, name)).text = \
-                        prot.to_string(cls, value, prot.default_binary_encoding)
+    parent.append(E("{%s}%s" % (tns, name),
+                    prot.to_string(cls, value, prot.default_binary_encoding)))
 
 
 def base_to_parent(prot, cls, value, tns, parent, name='retval'):
@@ -95,13 +95,11 @@ def base_to_parent(prot, cls, value, tns, parent, name='retval'):
     :param name:  The tag name of the new SubElement, 'retval' by default.
     """
 
-    etree.SubElement(parent, "{%s}%s" % (tns, name)).text = \
-                                                      prot.to_string(cls, value)
+    parent.append(E("{%s}%s" % (tns, name), prot.to_string(cls, value)))
 
 
 def null_to_parent(prot, cls, value, tns, parent, name='retval'):
-    etree.SubElement(parent, "{%s}%s" % (tns, name)) \
-                                            .set('{%s}nil' % _ns_xsi, 'true')
+    parent.append(E("{%s}%s" % (tns, name), **{'{%s}nil' % _ns_xsi: 'true'}))
 
 
 def null_from_element(prot, cls, element):
@@ -130,8 +128,8 @@ def attachment_to_parent(prot, cls, value, tns, parent, name='retval'):
     no data is given, it will read the data from the file.
     """
 
-    etree.SubElement(parent, "{%s}%s" % (tns, name)).text = \
-                    ''.join([b.decode('ascii') for b in cls.to_base64(value)])
+    parent.append(E("{%s}%s" % (tns, name),
+                    ''.join([b.decode('ascii') for b in cls.to_base64(value)])))
 
 
 def attachment_from_element(prot, cls, element):
@@ -147,72 +145,66 @@ def get_members_etree(prot, cls, inst, parent):
     delay = set()
     parent_cls = getattr(cls, '__extends__', None)
 
-    try:
-        if not (parent_cls is None):
-            ret = get_members_etree(prot, parent_cls, inst, parent)
+    if not (parent_cls is None):
+        ret = get_members_etree(prot, parent_cls, inst, parent)
+        if ret is not None:
+            while True:
+                sv2 = (yield)
+                ret.send(sv2)
+
+    for k, v in cls._type_info.items():
+        try:
+            subvalue = getattr(inst, k, None)
+        except: # to guard against e.g. SqlAlchemy throwing NoSuchColumnError
+            subvalue = None
+
+        # This is a tight loop, so enable this only when necessary.
+        # logger.debug("get %r(%r) from %r: %r" % (k, v, inst, subvalue))
+
+        sub_ns = v.Attributes.sub_ns
+        if sub_ns is None:
+            sub_ns = cls.get_namespace()
+
+        sub_name = v.Attributes.sub_name
+        if sub_name is None:
+            sub_name = k
+
+        if issubclass(v, XmlAttribute):
+            if v.attribute_of in cls._type_info.keys():
+                delay.add(k)
+                continue
+
+        elif issubclass(v, XmlData):
+            v.marshall(prot, sub_name, subvalue, parent)
+            continue
+
+        mo = v.Attributes.max_occurs
+        if subvalue is not None and mo > 1:
+            if isinstance(subvalue, PushBase):
+                while True:
+                    sv = (yield)
+                    ret = prot.to_parent(v, sv, sub_ns, parent, sub_name)
+                    if ret is not None:
+                        while True:
+                            sv2 = (yield)
+                            ret.send(sv2)
+
+            else:
+                for sv in subvalue:
+                    ret = prot.to_parent(v, sv, sub_ns, parent, sub_name)
+
+                    if ret is not None:
+                        while True:
+                            sv2 = (yield)
+                            ret.send(sv2)
+
+        # Don't include empty values for non-nillable optional attributes.
+        elif subvalue is not None or v.Attributes.min_occurs > 0:
+            ret = prot.to_parent(v, subvalue, sub_ns, parent, sub_name)
             if ret is not None:
                 while True:
                     sv2 = (yield)
                     ret.send(sv2)
-
-        for k, v in cls._type_info.items():
-            try:
-                subvalue = getattr(inst, k, None)
-            except: # to guard against sqlalchemy throwing NoSuchColumnError
-                subvalue = None
-
-            # This is a tight loop, so enable this only when necessary.
-            # logger.debug("get %r(%r) from %r: %r" % (k, v, inst, subvalue))
-
-            sub_ns = v.Attributes.sub_ns
-            if sub_ns is None:
-                sub_ns = cls.get_namespace()
-
-            sub_name = v.Attributes.sub_name
-            if sub_name is None:
-                sub_name = k
-
-            if issubclass(v, XmlAttribute):
-                if v.attribute_of in cls._type_info.keys():
-                    delay.add(k)
-                    continue
-
-            elif issubclass(v, XmlData):
-                v.marshall(prot, sub_name, subvalue, parent)
-                continue
-
-            mo = v.Attributes.max_occurs
-            if subvalue is not None and mo > 1:
-                if isinstance(subvalue, PushBase):
-                    while True:
-                        sv = (yield)
-                        ret = prot.to_parent(v, sv, sub_ns, parent,
-                                                                      sub_name)
-                        if ret is not None:
-                            while True:
-                                sv2 = (yield)
-                                ret.send(sv2)
-
-                else:
-                    for sv in subvalue:
-                        ret = prot.to_parent(v, sv, sub_ns, parent,
-                                                                      sub_name)
-
-                        if ret is not None:
-                            while True:
-                                sv2 = (yield)
-                                ret.send(sv2)
-
-            # Don't include empty values for non-nillable optional attributes.
-            elif subvalue is not None or v.Attributes.min_occurs > 0:
-                ret = prot.to_parent(v, subvalue, sub_ns, parent,
-                                                                      sub_name)
-                if ret is not None:
-                    while True:
-                        sv2 = (yield)
-                        ret.send(sv2)
-    except Break:
-        pass
 
     for k in delay:
         v = cls._type_info[k]
@@ -227,21 +219,74 @@ def get_members_etree(prot, cls, inst, parent):
 
         if cls._type_info[a_of].Attributes.max_occurs > 1:
             for subsubvalue, attr_parent in zip(subvalue, attr_parents):
-                prot.to_parent(v, subsubvalue, v.get_namespace(),
-                                                                attr_parent, k)
+                prot.to_parent(v, subsubvalue, v.get_namespace(), attr_parent,k)
 
         else:
             for attr_parent in attr_parents:
-                prot.to_parent(v, subvalue, v.get_namespace(),
-                                                                attr_parent, k)
+                prot.to_parent(v, subvalue, v.get_namespace(), attr_parent, k)
 
 
 def complex_to_parent(prot, cls, value, tns, parent, name=None):
     if name is None:
         name = cls.get_type_name()
 
-    return get_members_etree(prot, cls, cls.get_serialization_instance(value),
-                               etree.SubElement(parent, "{%s}%s" % (tns, name)))
+    tag_name = "{%s}%s" % (tns, name)
+    inst = cls.get_serialization_instance(value)
+
+    if isinstance(parent, etree._Element):
+        elt = etree.SubElement(parent, tag_name)
+        return get_members_etree(prot, cls, inst, elt)
+
+    with parent.element(tag_name):
+        return get_members_etree(prot, cls, inst, parent)
+
+
+def fault_to_parent(prot, cls, value, tns, parent):
+    tag_name = "{%s}Fault" % _ns_soap_env
+
+    elts = [
+        E("faultcode", '%s:%s' % (_pref_soap_env, value.faultcode)),
+        E("faultstring", value.faultstring),
+        E("faultactor", value.faultactor),
+    ]
+    if value.detail != None:
+        elts.append(E('detail', value.detail))
+
+    # add other nonstandard fault subelements with get_members_etree
+    if isinstance(parent, etree._Element):
+        elt = E(tag_name, *elts)
+        parent.append(elt)
+        return get_members_etree(prot, cls, value, elt)
+
+    with parent.element(tag_name):
+        with parent.element(tag_name):
+            for e in elts:
+                parent.write(e)
+            return get_members_etree(prot, cls, value, parent)
+
+
+def enum_to_parent(prot, cls, value, tns, parent, name='retval'):
+    base_to_parent(prot, cls, str(value), tns, parent, name)
+
+
+def xml_to_parent(prot, cls, value, tns, parent, name):
+    if isinstance(value, str) or isinstance(value, unicode):
+        value = etree.fromstring(value)
+
+    parent.append(E('{%s}%s' % (tns, name), value))
+
+
+def html_to_parent(prot, cls, value, tns, parent, name):
+    if isinstance(value, str) or isinstance(value, unicode):
+        value = html.fromstring(value)
+
+    parent.append(E('{%s}%s' % (tns, name), value))
+
+
+def dict_to_parent(prot, cls, value, tns, parent, name):
+    elt = E('{%s}%s' % (tns, name))
+    dict_to_etree(value, elt)
+    parent.append(elt)
 
 
 def complex_from_element(prot, cls, element):
@@ -355,31 +400,11 @@ def iterable_from_element(prot, cls, element):
         yield prot.from_element(serializer, child)
 
 
-def enum_to_parent(prot, cls, value, tns, parent, name='retval'):
-    if name is None:
-        name = cls.get_type_name()
-    base_to_parent(prot, cls, str(value), tns, parent, name)
-
-
 def enum_from_element(prot, cls, element):
     if prot.validator is prot.SOFT_VALIDATION and not (
                                         cls.validate_string(cls, element.text)):
         raise ValidationError(element.text)
     return getattr(cls, element.text)
-
-
-def fault_to_parent(prot, cls, value, tns, parent):
-    element = etree.SubElement(parent, "{%s}Fault" % _ns_soap_env)
-
-    etree.SubElement(element, 'faultcode').text = '%s:%s' % (_pref_soap_env,
-                                                                value.faultcode)
-    etree.SubElement(element, 'faultstring').text = value.faultstring
-    etree.SubElement(element, 'faultactor').text = value.faultactor
-    if value.detail != None:
-        etree.SubElement(element, 'detail').append(value.detail)
-
-    # add other nonstandard fault subelements
-    get_members_etree(prot, cls, value, element)
 
 
 def fault_from_element(prot, cls, element):
@@ -402,25 +427,6 @@ def xml_from_element(prot, cls, element):
         retval = element.getchildren()[0]
 
     return retval
-
-
-def xml_to_parent(prot, cls, value, tns, parent, name='retval'):
-    if isinstance(value, str) or isinstance(value, unicode):
-        value = etree.fromstring(value)
-
-    etree.SubElement(parent, '{%s}%s' % (tns, name)).append(value)
-
-
-def html_to_parent(prot, cls, value, tns, parent, name='retval'):
-    if isinstance(value, str) or isinstance(value, unicode):
-        value = html.fromstring(value)
-
-    etree.SubElement(parent, '{%s}%s' % (tns, name)).append(value)
-
-
-def dict_to_parent(prot, cls, value, tns, parent, name='retval'):
-    e = etree.SubElement(parent, '{%s}%s' % (tns, name))
-    dict_to_etree(value, e)
 
 
 def dict_from_element(prot, cls, element):
