@@ -42,20 +42,16 @@ import cgi
 
 import spyne.const.xml_ns as ns
 
-from itertools import chain
-
 from lxml import etree
 from lxml.etree import XMLSyntaxError
 from lxml.etree import XMLParser
 
-from spyne import BODY_STYLE_BARE
 from spyne import BODY_STYLE_WRAPPED
 
 from spyne.const.xml_ns import DEFAULT_NS
 from spyne.const.http import HTTP_405
 from spyne.const.http import HTTP_500
 from spyne.error import RequestNotAllowed
-from spyne.model import ComplexModelBase
 from spyne.model.fault import Fault
 from spyne.model.primitive import Date
 from spyne.model.primitive import Time

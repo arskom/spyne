@@ -20,16 +20,16 @@
 """The ``spyne.protocol.xml.model`` module contains type-specific serialization
 logic.
 """
-from inspect import isgenerator
 
 import logging
 logger = logging.getLogger(__name__)
 
+from inspect import isgenerator
 from collections import defaultdict
 
 from lxml import etree
-from lxml.builder import E
 from lxml import html
+from lxml.builder import E
 
 from spyne.const.xml_ns import xsi as _ns_xsi
 from spyne.const.xml_ns import soap_env as _ns_soap_env
@@ -254,6 +254,7 @@ def _get_members_etree(prot, cls, inst, parent, delay):
     except Break:
         pass
 
+    # attribute_of won't work with async.
     if isinstance(parent, etree._Element):
         for k in delay:
             v = cls._type_info[k]
@@ -320,6 +321,7 @@ def html_to_parent(prot, cls, value, tns, parent, name):
 def dict_to_parent(prot, cls, value, tns, parent, name):
     elt = E('{%s}%s' % (tns, name))
     dict_to_etree(value, elt)
+
     append(parent, elt)
 
 

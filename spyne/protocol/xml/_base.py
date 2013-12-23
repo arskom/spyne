@@ -344,6 +344,10 @@ class XmlDocument(ProtocolBase):
         return handler(self, cls, element)
 
     def to_parent(self, cls, value, tns, parent_elt, *args, **kwargs):
+        subprot = getattr(cls.Attributes, 'prot', None)
+        if subprot is not None:
+            return subprot.serialize(cls, value, tns, parent_elt, *args, **kwargs)
+
         handler = self.serialization_handlers[cls]
 
         if value is None:

@@ -48,15 +48,8 @@ logger = logging.getLogger(__name__)
 
 from inspect import isgenerator
 
-from spyne.error import InternalError
-from twisted.python.log import err
-from twisted.internet.interfaces import IPullProducer
 from twisted.internet.defer import Deferred
 from twisted.internet.protocol import Factory
-from twisted.web.iweb import UNKNOWN_LENGTH
-from twisted.web.resource import Resource
-from twisted.web.server import NOT_DONE_YET
-from twisted.python import log
 
 # FIXME: Switch to:
 #    from twisted.web.websockets import WebSocketsProtocol
@@ -67,20 +60,14 @@ from spyne.util._twisted_ws import WebSocketsProtocol
 from spyne.util._twisted_ws import WebSocketsResource
 from spyne.util._twisted_ws import CONTROLS
 
-from zope.interface import implements
 
 from spyne import MethodContext
 from spyne import TransportContext
 from spyne.auxproc import process_contexts
-from spyne.const.ansi_color import LIGHT_GREEN
-from spyne.const.ansi_color import END_COLOR
-from spyne.const.http import HTTP_404
 from spyne.model import PushBase
 from spyne.model.complex import ComplexModel
 from spyne.model.fault import Fault
 from spyne.server import ServerBase
-from spyne.server.http import HttpBase
-from spyne.server.http import HttpMethodContext
 
 
 class WebSocketTransportContext(TransportContext):
@@ -96,7 +83,7 @@ class WebSocketTransportContext(TransportContext):
 
 class WebSocketMethodContext(MethodContext):
     def __init__(self, transport, client_handle):
-        MethodContext.__init__(self, parent, transport)
+        MethodContext.__init__(self, transport)
 
         self.transport = WebSocketTransportContext(self, transport, 'ws',
                                                                   client_handle)
@@ -122,7 +109,7 @@ class TwistedWebSocketProtocol(WebSocketsProtocol):
         entry = self._clients.get(self.__app_id, None)
 
         if entry:
-            del self._clients[old_id]
+            del self._clients[self.__app_id]
             self._clients[what] = entry
 
         self.__app_id = what
@@ -139,7 +126,7 @@ class TwistedWebSocketProtocol(WebSocketsProtocol):
     def frameReceived(self, opcode, data, fin):
         tpt = self._spyne_transport
 
-        initial_ctx = WebSocketMethodContext(self, tpt, client_handle=self)
+        initial_ctx = WebSocketMethodContext(tpt, client_handle=self)
         initial_ctx.in_string = [data]
 
         contexts = tpt.generate_contexts(initial_ctx)
