@@ -29,37 +29,56 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import logging
-import time
+port = 8000
+host = '127.0.0.1'
 
-from twisted.python import log
+import logging
+import sys
+
+from twisted.internet import reactor
+from twisted.internet.task import deferLater
+from twisted.web.server import Site
 
 from spyne.application import Application
-from spyne.decorator import srpc
 from spyne.protocol.http import HttpRpc
+from spyne.protocol.xml import XmlDocument
+from spyne.server.twisted import TwistedWebResource
+
+from spyne.decorator import rpc
 from spyne.service import ServiceBase
-from spyne.model.primitive import Integer
-
-host = '127.0.0.1'
-port = 9752
+from spyne.model.complex import Iterable
+from spyne.model.primitive import Unicode
 
 
-class SomeService(ServiceBase):
-    @srpc(Integer, _returns=Integer)
-    def block(seconds):
-        """Blocks the current thread for given number of seconds."""
-        time.sleep(seconds)
-        return seconds
+class HelloWorldService(ServiceBase):
+    @rpc(Unicode, _returns=Iterable(Unicode))
+    def say_hello_forever(ctx, name):
+        def _cb(response):
+            response.append(u'Hello, %s' % name)
+            return deferLater(reactor, 0.1, _cb, response)
+
+        return Iterable.Push(_cb)
 
 
-def initialize(services, tns='spyne.examples.twisted.resource'):
+if __name__=='__main__':
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 
-    observer = log.PythonLoggingObserver('twisted')
-    log.startLoggingWithObserver(observer.emit, setStdout=False)
+    logging.info("listening to http://127.0.0.1:8000")
+    logging.info("wsdl is at: http://localhost:8000/?wsdl")
 
-    application = Application(services, 'spyne.examples.twisted.hello',
-                                in_protocol=HttpRpc(), out_protocol=HttpRpc())
+    application = Application([HelloWorldService],
+            'spyne.examples.twisted.resource_push',
+            in_protocol=HttpRpc(),
+            out_protocol=XmlDocument(),
+        )
 
-    return application
+    resource = TwistedWebResource(application)
+    site = Site(resource)
+
+    reactor.listenTCP(port, site, interface=host)
+
+    logging.info("listening on: %s:%d" % (host,port))
+    logging.info('wsdl is at: http://%s:%d/?wsdl' % (host, port))
+
+    sys.exit(reactor.run())
