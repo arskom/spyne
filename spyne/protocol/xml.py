@@ -338,21 +338,22 @@ class XmlDocument(ProtocolBase):
         handler = self.deserialization_handlers[cls]
         return handler(ctx, cls, element)
 
-    def to_parent(self, ctx, cls, value, ns, parent, *args, **kwargs):
+    # TODO: ctx, cls, inst, ns, name, parent, *args, **kwargs
+    def to_parent(self, ctx, cls, inst, ns, parent, name, *args, **kwargs):
         subprot = getattr(cls.Attributes, 'prot', None)
         if subprot is not None:
-            return subprot.subserialize(ctx, cls, value, ns, parent,
+            return subprot.subserialize(ctx, cls, inst, ns, name, parent,
                                                                 *args, **kwargs)
 
         handler = self.serialization_handlers[cls]
 
-        if value is None:
-            value = cls.Attributes.default
+        if inst is None:
+            inst = cls.Attributes.default
 
-        if value is None:
-            return self.null_to_parent(ctx, cls, value, ns, parent,
+        if inst is None:
+            return self.null_to_parent(ctx, cls, inst, ns, parent,
                                                                 *args, **kwargs)
-        return handler(ctx, cls, value, ns, parent, *args, **kwargs)
+        return handler(ctx, cls, inst, ns, parent, *args, **kwargs)
 
     def deserialize(self, ctx, message):
         """Takes a MethodContext instance and a string containing ONE root xml
