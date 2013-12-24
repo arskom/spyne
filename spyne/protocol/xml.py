@@ -242,6 +242,9 @@ class XmlDocument(ProtocolBase):
             encoding=encoding,
         )
 
+    def subserialize(self, ctx, cls, inst, parent, ns=None, name=None):
+        return self.to_parent(ctx, cls, inst, parent, name)
+
     def set_validator(self, validator):
         if validator in ('lxml', 'schema') or \
                                     validator is self.SCHEMA_VALIDATION:
