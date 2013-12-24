@@ -35,11 +35,11 @@ class TestBinary(unittest.TestCase):
 
     def test_data(self):
         element = etree.Element('test')
-        Soap11().to_parent(ByteArray, self.data, ns_test, element)
+        Soap11().to_parent(None, ByteArray, self.data, ns_test, element)
         print(etree.tostring(element, pretty_print=True))
         element = element[0]
 
-        a2 = Soap11().from_element(ByteArray, element)
+        a2 = Soap11().from_element(None, ByteArray, element)
         self.assertEquals(_bytes_join(self.data), _bytes_join(a2))
 
 if __name__ == '__main__':

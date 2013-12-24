@@ -164,12 +164,12 @@ class TestMultiple(unittest.TestCase):
         self.assertEquals(len(message._type_info), 3)
 
         sent_xml = etree.Element('test')
-        self.app.out_protocol.to_parent(message_class, ('a', 'b', 'c'),
+        self.app.out_protocol.to_parent(None, message_class, ('a', 'b', 'c'),
                                     MultipleReturnService.get_tns(), sent_xml)
         sent_xml = sent_xml[0]
 
         print((etree.tostring(sent_xml, pretty_print=True)))
-        response_data = self.app.out_protocol.from_element(message_class, sent_xml)
+        response_data = self.app.out_protocol.from_element(None, message_class, sent_xml)
 
         self.assertEquals(len(response_data), 3)
         self.assertEqual(response_data[0], 'a')
@@ -189,7 +189,7 @@ class TestSoap(unittest.TestCase):
         m_inst = m(s="a", i=43)
 
         e = etree.Element('test')
-        Soap11().to_parent(m, m_inst, m.get_namespace(), e)
+        Soap11().to_parent(None, m, m_inst, m.get_namespace(), e)
         e=e[0]
 
         self.assertEquals(e.tag, '{%s}myMessage' % m.get_namespace())
@@ -197,7 +197,7 @@ class TestSoap(unittest.TestCase):
         self.assertEquals(e.find('{%s}s' % m.get_namespace()).text, 'a')
         self.assertEquals(e.find('{%s}i' % m.get_namespace()).text, '43')
 
-        values = Soap11().from_element(m, e)
+        values = Soap11().from_element(None, m, e)
 
         self.assertEquals('a', values.s)
         self.assertEquals(43, values.i)
@@ -249,7 +249,7 @@ class TestSoap(unittest.TestCase):
         mi.s = 'a'
 
         e = etree.Element('test')
-        Soap11().to_parent(m, mi, m.get_namespace(), e)
+        Soap11().to_parent(None, m, mi, m.get_namespace(), e)
         e=e[0]
 
         self.assertEquals(e.tag, '{some_namespace}myMessage')
@@ -270,7 +270,7 @@ class TestSoap(unittest.TestCase):
         m_inst.p.addresses = []
 
         element=etree.Element('test')
-        Soap11().to_parent(m, m_inst, m.get_namespace(), element)
+        Soap11().to_parent(None, m, m_inst, m.get_namespace(), element)
         element=element[0]
 
         self.assertEquals(element.tag, '{%s}myMessage' % m.get_namespace())
@@ -280,7 +280,7 @@ class TestSoap(unittest.TestCase):
         self.assertEquals(
               len(element[0].find('{%s}addresses' % Person.get_namespace())), 0)
 
-        p1 = Soap11().from_element(m, element)[0]
+        p1 = Soap11().from_element(None, m, element)[0]
 
         self.assertEquals(p1.name, m_inst.p.name)
         self.assertEquals(p1.age, m_inst.p.age)
@@ -292,11 +292,11 @@ class TestSoap(unittest.TestCase):
         format = "%Y %m %d %H %M %S"
 
         element = etree.Element('test')
-        Soap11().to_parent(DateTime(format=format), n,
+        Soap11().to_parent(None, DateTime(format=format), n,
                                                       'some_namespace', element)
         assert element[0].text == n.isoformat()
 
-        dt = Soap11().from_element(DateTime(format=format), element[0])
+        dt = Soap11().from_element(None, DateTime(format=format), element[0])
         assert n == dt
 
     def test_date_with_tzoffset(self):
@@ -332,7 +332,7 @@ class TestSoap(unittest.TestCase):
         m_inst = m(p=p)
 
         element=etree.Element('test')
-        Soap11().to_parent(m, m_inst, m.get_namespace(), element)
+        Soap11().to_parent(None, m, m_inst, m.get_namespace(), element)
         element=element[0]
 
         self.assertEquals('{%s}myMessage' % m.get_namespace(), element.tag)
@@ -358,7 +358,7 @@ class TestSoap(unittest.TestCase):
   </soap:Body>
 </soap:Envelope>""")
 
-        ret = Soap11().from_element(Fault, element[0][0])
+        ret = Soap11().from_element(None, Fault, element[0][0])
         assert ret.faultcode == "soap:Client"
 
 

@@ -228,7 +228,7 @@ class Soap11(XmlDocument):
 
         if ctx.in_body_doc.tag == "{%s}Fault" % ns.soap_env:
             ctx.in_object = None
-            ctx.in_error = self.from_element(Fault, ctx.in_body_doc)
+            ctx.in_error = self.from_element(ctx, Fault, ctx.in_body_doc)
 
         else:
             if message is self.REQUEST:
@@ -245,7 +245,7 @@ class Soap11(XmlDocument):
                 for i, (header_doc, head_class) in enumerate(
                                           zip(ctx.in_header_doc, header_class)):
                     if i < len(header_doc):
-                        headers[i] = self.from_element(head_class, header_doc)
+                        headers[i] = self.from_element(ctx, head_class, header_doc)
 
                 if len(headers) == 1:
                     ctx.in_header = headers[0]
@@ -256,7 +256,7 @@ class Soap11(XmlDocument):
             if ctx.in_body_doc is None:
                 ctx.in_object = [None] * len(body_class._type_info)
             else:
-                ctx.in_object = self.from_element(body_class, ctx.in_body_doc)
+                ctx.in_object = self.from_element(ctx, body_class, ctx.in_body_doc)
 
         self.event_manager.fire_event('after_deserialize', ctx)
 
@@ -280,7 +280,7 @@ class Soap11(XmlDocument):
             # FIXME: There's no way to alter soap response headers for the user.
             ctx.out_body_doc = out_body_doc = etree.SubElement(ctx.out_document,
                             '{%s}Body' % ns.soap_env, nsmap=nsmap)
-            self.to_parent(ctx.out_error.__class__, ctx.out_error,
+            self.to_parent(ctx, ctx.out_error.__class__, ctx.out_error,
                                     self.app.interface.get_tns(), out_body_doc)
 
         else:
@@ -314,7 +314,7 @@ class Soap11(XmlDocument):
                         v = None
 
                     setattr(out_object, k, v)
-                self.to_parent(body_message_class, out_object,
+                self.to_parent(ctx, body_message_class, out_object,
                         body_message_class.get_namespace(), out_body_doc)
 
             else:
@@ -330,7 +330,7 @@ class Soap11(XmlDocument):
                 if sub_name is None:
                     sub_name = body_message_class.get_type_name()
 
-                self.to_parent(body_message_class, out_object,
+                self.to_parent(ctx, body_message_class, out_object,
                                 sub_ns, out_body_doc, sub_name)
 
             # transform the results into an element
@@ -347,8 +347,8 @@ class Soap11(XmlDocument):
 
                 for header_class, out_header in zip(header_message_class,
                                                                    out_headers):
-                    self.to_parent(header_class,
-                        out_header,
+                    self.to_parent(ctx,
+                        header_class, out_header,
                         header_class.get_namespace(),
                         soap_header_elt,
                         header_class.get_type_name(),

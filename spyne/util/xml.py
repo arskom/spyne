@@ -119,7 +119,8 @@ def get_object_as_xml(value, cls=None, root_tag_name=None, no_namespace=None):
 
     parent = etree.Element("parent")
 
-    xml_object.to_parent(cls, value, cls.get_namespace(), parent, root_tag_name)
+    xml_object.to_parent(None, cls, value, cls.get_namespace(),
+                                                          parent, root_tag_name)
 
     if no_namespace:
         _dig(parent)
@@ -129,14 +130,14 @@ def get_object_as_xml(value, cls=None, root_tag_name=None, no_namespace=None):
 
 
 def get_xml_as_object(elt, cls):
-    '''Returns a native :class:`spyne.model.complex.ComplexModel` child from an
+    """Returns a native :class:`spyne.model.complex.ComplexModel` child from an
     ElementTree representation of the same class.
 
-    :param value: The class the xml document represents.
-    :param value: The xml document to be deserialized.
-    '''
+    :param elt: The xml document to be deserialized.
+    :param cls: The class the xml document represents.
+    """
 
-    return xml_object.from_element(cls, elt)
+    return xml_object.from_element(None, cls, elt)
 
 
 def parse_schema_string(s, files={}, repr=parser.Thier_repr(with_ns=False)):

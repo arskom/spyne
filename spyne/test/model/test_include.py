@@ -67,7 +67,7 @@ class TestInclude(unittest.TestCase):
         body = soaptree.find("{%s}Body" % ns.soap_env)
         response = body.getchildren()[0]
         result = response.getchildren()[0]
-        r = XmlDocument().from_element(DownloadPartFileResult, result)
+        r = XmlDocument().from_element(None, DownloadPartFileResult, result)
 
         self.assertEquals(payload, r.Data)
 
