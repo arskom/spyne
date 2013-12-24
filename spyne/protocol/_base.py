@@ -110,7 +110,7 @@ class ProtocolBase(object):
     default_binary_encoding = None
 
     def __init__(self, app=None, validator=None, mime_type=None,
-                                                            ignore_uncap=False):
+                                       ignore_uncap=False, ignore_wrappers=False):
         self.__app = None
         self.set_app(app)
 
@@ -119,6 +119,7 @@ class ProtocolBase(object):
 
         self.event_manager = EventManager(self)
         self.ignore_uncap = ignore_uncap
+        self.ignore_wrappers = ignore_wrappers
         self.message = None
 
         if mime_type is not None:
