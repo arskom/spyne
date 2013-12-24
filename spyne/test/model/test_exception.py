@@ -60,7 +60,7 @@ class FaultTests(unittest.TestCase):
         fault = Fault()
         cls = Fault
 
-        XmlDocument().to_parent(None, cls, fault, 'urn:ignored', element)
+        XmlDocument().to_parent(None, cls, fault, element, 'urn:ignored')
 
         (child,) = element.getchildren()
         self.assertEqual(child.tag, '{%s}Fault' % ns_soap_env)
@@ -76,7 +76,7 @@ class FaultTests(unittest.TestCase):
         fault = Fault(detail=detail)
         cls = Fault
 
-        XmlDocument().to_parent(None, cls, fault, 'urn:ignored', element)
+        XmlDocument().to_parent(None, cls, fault, element, 'urn:ignored')
 
         (child,) = element.getchildren()
         self.failUnless(child.find('detail').find('something') is detail)

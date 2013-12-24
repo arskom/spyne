@@ -281,7 +281,7 @@ class Soap11(XmlDocument):
             ctx.out_body_doc = out_body_doc = etree.SubElement(ctx.out_document,
                             '{%s}Body' % ns.soap_env, nsmap=nsmap)
             self.to_parent(ctx, ctx.out_error.__class__, ctx.out_error,
-                                    self.app.interface.get_tns(), out_body_doc)
+                                    out_body_doc, self.app.interface.get_tns())
 
         else:
             if message is self.REQUEST:
@@ -314,8 +314,8 @@ class Soap11(XmlDocument):
                         v = None
 
                     setattr(out_object, k, v)
-                self.to_parent(ctx, body_message_class, out_object,
-                        body_message_class.get_namespace(), out_body_doc)
+                self.to_parent(ctx, body_message_class, out_object, out_body_doc,
+                                            body_message_class.get_namespace())
 
             else:
                 out_object = ctx.out_object[0]
@@ -330,10 +330,8 @@ class Soap11(XmlDocument):
                 if sub_name is None:
                     sub_name = body_message_class.get_type_name()
 
-                self.to_parent(ctx, body_message_class, out_object,
-                                sub_ns, out_body_doc, sub_name)
-
-            # transform the results into an element
+                self.to_parent(ctx, body_message_class, out_object, out_body_doc,
+                                                            sub_ns, sub_name)
 
             # header
             if ctx.out_header is not None and header_message_class is not None:
@@ -349,8 +347,8 @@ class Soap11(XmlDocument):
                                                                    out_headers):
                     self.to_parent(ctx,
                         header_class, out_header,
-                        header_class.get_namespace(),
                         soap_header_elt,
+                        header_class.get_namespace(),
                         header_class.get_type_name(),
                     )
 

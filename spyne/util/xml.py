@@ -99,17 +99,19 @@ def _dig(par):
 
 xml_object = XmlDocument()
 
-def get_object_as_xml(value, cls=None, root_tag_name=None, no_namespace=None):
-    '''Returns an ElementTree representation of a
+def get_object_as_xml(inst, cls=None, root_tag_name=None, no_namespace=None):
+    """Returns an ElementTree representation of a
     :class:`spyne.model.complex.ComplexModel` subclass.
 
-    :param value: The instance of the class to be serialized.
-    :param value: The root tag string to use. Defaults to the output of
+    :param inst: The instance of the class to be serialized.
+    :param cls: The class to be serialized. Optional.
+    :param root_tag_name: The root tag string to use. Defaults to the output of
         ``value.__class__.get_type_name_ns()``.
-    '''
+    :param no_namespace: When true, namespace information is discarded.
+    """
 
     if cls is None:
-        cls = value.__class__
+        cls = inst.__class__
 
     if cls.get_namespace() is None and no_namespace is None:
         no_namespace = True
@@ -119,8 +121,8 @@ def get_object_as_xml(value, cls=None, root_tag_name=None, no_namespace=None):
 
     parent = etree.Element("parent")
 
-    xml_object.to_parent(None, cls, value, cls.get_namespace(),
-                                                          parent, root_tag_name)
+    xml_object.to_parent(None, cls, inst, parent, cls.get_namespace(),
+                                                                  root_tag_name)
 
     if no_namespace:
         _dig(parent)

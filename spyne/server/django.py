@@ -188,12 +188,11 @@ class DjangoServer(HttpBase):
         :param p_ctx: Primary (non-aux) context.
         :param others: List if auxiliary contexts (can be empty).
         :param error: One of ctx.{in,out}_error.
-
         """
 
         if p_ctx.transport.resp_code is None:
             p_ctx.transport.resp_code = \
-                p_ctx.out_protocol.fault_to_http_response_code(error)
+                           p_ctx.out_protocol.fault_to_http_response_code(error)
 
         self.get_out_string(p_ctx)
         resp = HttpResponse(''.join(p_ctx.out_string))
@@ -202,7 +201,7 @@ class DjangoServer(HttpBase):
     def get_contexts(self, request):
         """Generate contexts for rpc request.
 
-        :param response: Django HttpRequest instance.
+        :param request: Django HttpRequest instance.
         :returns: generated contexts
         """
 

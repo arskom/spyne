@@ -115,7 +115,7 @@ class TestPrimitive(unittest.TestCase):
         f = 123456
         str_format='${0}'
         element = etree.Element('test')
-        XmlDocument().to_parent(None, Decimal(str_format=str_format), f, ns_test, element)
+        XmlDocument().to_parent(None, Decimal(str_format=str_format), f, element, ns_test)
         element = element[0]
 
         self.assertEquals(element.text, '$123456')
@@ -123,7 +123,7 @@ class TestPrimitive(unittest.TestCase):
     def test_string(self):
         s = String()
         element = etree.Element('test')
-        XmlDocument().to_parent(None, String, 'value', ns_test, element)
+        XmlDocument().to_parent(None, String, 'value', element, ns_test)
         element=element[0]
 
         self.assertEquals(element.text, 'value')
@@ -134,7 +134,7 @@ class TestPrimitive(unittest.TestCase):
         n = datetime.datetime.now(pytz.utc)
 
         element = etree.Element('test')
-        XmlDocument().to_parent(None, DateTime, n, ns_test, element)
+        XmlDocument().to_parent(None, DateTime, n, element, ns_test)
         element = element[0]
 
         self.assertEquals(element.text, n.isoformat())
@@ -146,7 +146,7 @@ class TestPrimitive(unittest.TestCase):
         format = "%Y %m %d %H %M %S"
 
         element = etree.Element('test')
-        XmlDocument().to_parent(None, DateTime(format=format), n, ns_test, element)
+        XmlDocument().to_parent(None, DateTime(format=format), n, element, ns_test)
         element = element[0]
 
         assert element.text == datetime.datetime.strftime(n, format)
@@ -158,7 +158,7 @@ class TestPrimitive(unittest.TestCase):
         format = "%Y %m %d"
 
         element = etree.Element('test')
-        XmlDocument().to_parent(None, Date(format=format), t, ns_test, element)
+        XmlDocument().to_parent(None, Date(format=format), t, element, ns_test)
         assert element[0].text == datetime.date.strftime(t, format)
 
         dt = XmlDocument().from_element(None, Date(format=format), element[0])
@@ -170,7 +170,7 @@ class TestPrimitive(unittest.TestCase):
         n = datetime.datetime.now(pytz.timezone('EST'))
         element = etree.Element('test')
         cls = DateTime(as_timezone=pytz.utc, timezone=False)
-        XmlDocument().to_parent(None, cls, n, ns_test, element)
+        XmlDocument().to_parent(None, cls, n, element, ns_test)
         element = element[0]
 
         c = n.astimezone(pytz.utc).replace(tzinfo=None)
@@ -232,7 +232,7 @@ class TestPrimitive(unittest.TestCase):
         integer = Integer()
 
         element = etree.Element('test')
-        XmlDocument().to_parent(None, Integer, i, ns_test, element)
+        XmlDocument().to_parent(None, Integer, i, element, ns_test)
         element = element[0]
 
         self.assertEquals(element.text, '12')
@@ -261,7 +261,7 @@ class TestPrimitive(unittest.TestCase):
         integer = Integer()
 
         element = etree.Element('test')
-        XmlDocument().to_parent(None, Integer, i, ns_test, element)
+        XmlDocument().to_parent(None, Integer, i, element, ns_test)
         element = element[0]
 
         self.assertEquals(element.text, '128375873458473')
@@ -272,7 +272,7 @@ class TestPrimitive(unittest.TestCase):
         f = 1.22255645
 
         element = etree.Element('test')
-        XmlDocument().to_parent(None, Float, f, ns_test, element)
+        XmlDocument().to_parent(None, Float, f, element, ns_test)
         element = element[0]
 
         self.assertEquals(element.text, repr(f))
@@ -287,7 +287,7 @@ class TestPrimitive(unittest.TestCase):
         values = ['a', 'b', 'c', 'd', 'e', 'f']
 
         element = etree.Element('test')
-        XmlDocument().to_parent(None, type, values, ns_test, element)
+        XmlDocument().to_parent(None, type, values, element, ns_test)
         element = element[0]
 
         self.assertEquals(len(values), len(element.getchildren()))
@@ -302,7 +302,7 @@ class TestPrimitive(unittest.TestCase):
         values = []
 
         element = etree.Element('test')
-        XmlDocument().to_parent(None, type, values, ns_test, element)
+        XmlDocument().to_parent(None, type, values, element, ns_test)
         element = element[0]
 
         self.assertEquals(len(values), len(element.getchildren()))
@@ -314,7 +314,7 @@ class TestPrimitive(unittest.TestCase):
         s = u'\x34\x55\x65\x34'
         self.assertEquals(4, len(s))
         element = etree.Element('test')
-        XmlDocument().to_parent(None, String, s, 'test_ns', element)
+        XmlDocument().to_parent(None, String, s, element, 'test_ns')
         element = element[0]
         value = XmlDocument().from_element(None, String, element)
         self.assertEquals(value, s)
@@ -333,7 +333,7 @@ class TestPrimitive(unittest.TestCase):
 
     def test_null(self):
         element = etree.Element('test')
-        XmlDocument().to_parent(None, Null, None, ns_test, element)
+        XmlDocument().to_parent(None, Null, None, element, ns_test)
         print(etree.tostring(element))
 
         element = element[0]
@@ -390,17 +390,17 @@ class TestPrimitive(unittest.TestCase):
 
     def test_boolean(self):
         b = etree.Element('test')
-        XmlDocument().to_parent(None, Boolean, True, ns_test, b)
+        XmlDocument().to_parent(None, Boolean, True, b, ns_test)
         b = b[0]
         self.assertEquals('true', b.text)
 
         b = etree.Element('test')
-        XmlDocument().to_parent(None, Boolean, 0, ns_test, b)
+        XmlDocument().to_parent(None, Boolean, 0, b, ns_test)
         b = b[0]
         self.assertEquals('false', b.text)
 
         b = etree.Element('test')
-        XmlDocument().to_parent(None, Boolean, 1, ns_test, b)
+        XmlDocument().to_parent(None, Boolean, 1, b, ns_test)
         b = b[0]
         self.assertEquals('true', b.text)
 
@@ -408,7 +408,7 @@ class TestPrimitive(unittest.TestCase):
         self.assertEquals(b, True)
 
         b = etree.Element('test')
-        XmlDocument().to_parent(None, Boolean, False, ns_test, b)
+        XmlDocument().to_parent(None, Boolean, False, b, ns_test)
         b = b[0]
         self.assertEquals('false', b.text)
 
@@ -416,7 +416,7 @@ class TestPrimitive(unittest.TestCase):
         self.assertEquals(b, False)
 
         b = etree.Element('test')
-        XmlDocument().to_parent(None, Boolean, None, ns_test, b)
+        XmlDocument().to_parent(None, Boolean, None, b, ns_test)
         b = b[0]
         self.assertEquals('true', b.get('{%s}nil' % ns.xsi))
 
@@ -470,7 +470,7 @@ class TestDurationPrimitive(unittest.TestCase):
         gg.howlong = timedelta(hours=1, minutes=1, seconds=1)
 
         element = etree.Element('test')
-        XmlDocument().to_parent(None, SomeBlob, gg, gg.get_namespace(), element)
+        XmlDocument().to_parent(None, SomeBlob, gg, element, gg.get_namespace())
         element = element[0]
 
         print(gg.howlong)
@@ -502,7 +502,7 @@ class TestDurationPrimitive(unittest.TestCase):
             gg.howlong = timedelta(seconds=secs)
 
             element = etree.Element('test')
-            XmlDocument().to_parent(None, SomeBlob, gg, gg.get_namespace(), element)
+            XmlDocument().to_parent(None, SomeBlob, gg, element, gg.get_namespace())
             element = element[0]
 
             print(gg.howlong)
@@ -522,7 +522,7 @@ class TestDurationPrimitive(unittest.TestCase):
                 gg.howlong = timedelta(seconds=secs)
 
                 element = etree.Element('test')
-                XmlDocument().to_parent(None, SomeBlob, gg, gg.get_namespace(), element)
+                XmlDocument().to_parent(None, SomeBlob, gg, element, gg.get_namespace())
                 element = element[0]
 
                 print(gg.howlong)
@@ -540,7 +540,7 @@ class TestDurationPrimitive(unittest.TestCase):
         gg.howlong = timedelta(seconds=35)
 
         element = etree.Element('test')
-        XmlDocument().to_parent(None, SomeBlob, gg, gg.get_namespace(), element)
+        XmlDocument().to_parent(None, SomeBlob, gg, element, gg.get_namespace())
         element = element[0]
 
         print(gg.howlong)
@@ -558,7 +558,7 @@ class TestDurationPrimitive(unittest.TestCase):
         gg.howlong = timedelta(minutes=5, seconds=35)
 
         element = etree.Element('test')
-        XmlDocument().to_parent(None, SomeBlob, gg, gg.get_namespace(), element)
+        XmlDocument().to_parent(None, SomeBlob, gg, element, gg.get_namespace())
         element = element[0]
 
         print(gg.howlong)
@@ -576,7 +576,7 @@ class TestDurationPrimitive(unittest.TestCase):
         gg.howlong = timedelta(milliseconds=666)
 
         element = etree.Element('test')
-        XmlDocument().to_parent(None, SomeBlob, gg, gg.get_namespace(), element)
+        XmlDocument().to_parent(None, SomeBlob, gg, element, gg.get_namespace())
         element = element[0]
 
         print(gg.howlong)

@@ -338,11 +338,25 @@ class XmlDocument(ProtocolBase):
         handler = self.deserialization_handlers[cls]
         return handler(ctx, cls, element)
 
-    # TODO: ctx, cls, inst, ns, name, parent, *args, **kwargs
-    def to_parent(self, ctx, cls, inst, ns, parent, name, *args, **kwargs):
+    def to_parent(self, ctx, cls, inst, parent, ns, *args, **kwargs):
+        """Serializes inst to an Element instance and appends it to the 'parent'.
+
+        :param self:  The protocol that will be used to serialize the given
+            value.
+        :param cls:   The type of the value that's going to determine how to
+            pack the given value.
+        :param inst: The value to be set for the 'text' element of the newly
+            created SubElement
+        :param parent: The parent Element to which the new child will be
+            appended.
+        :param ns:   The target namespace of the new SubElement, used with
+            'name' to set the tag.
+        :param name:  The tag name of the new SubElement, 'retval' by default.
+        """
+
         subprot = getattr(cls.Attributes, 'prot', None)
         if subprot is not None:
-            return subprot.subserialize(ctx, cls, inst, ns, name, parent,
+            return subprot.subserialize(ctx, cls, inst, parent, ns,
                                                                 *args, **kwargs)
 
         handler = self.serialization_handlers[cls]
@@ -351,9 +365,9 @@ class XmlDocument(ProtocolBase):
             inst = cls.Attributes.default
 
         if inst is None:
-            return self.null_to_parent(ctx, cls, inst, ns, parent,
+            return self.null_to_parent(ctx, cls, inst, parent, ns,
                                                                 *args, **kwargs)
-        return handler(ctx, cls, inst, ns, parent, *args, **kwargs)
+        return handler(ctx, cls, inst, parent, ns, *args, **kwargs)
 
     def deserialize(self, ctx, message):
         """Takes a MethodContext instance and a string containing ONE root xml
@@ -407,11 +421,9 @@ class XmlDocument(ProtocolBase):
         self.event_manager.fire_event('before_serialize', ctx)
 
         if ctx.out_error is not None:
-            # FIXME: There's no way to alter soap response headers for the user.
             tmp_elt = etree.Element('punk')
-            retval = self.to_parent(ctx.out_error.__class__, ctx.out_error,
-                                    self.app.interface.get_tns(), tmp_elt)
-
+            retval = self.to_parent(ctx, ctx.out_error.__class__, ctx.out_error,
+                                    tmp_elt, self.app.interface.get_tns())
             ctx.out_document = tmp_elt[0]
 
         else:
@@ -434,12 +446,13 @@ class XmlDocument(ProtocolBase):
             if ctx.out_stream is None:
                 tmp_elt = etree.Element('punk')
                 retval = self.to_parent(ctx, result_message_class,
-                          result_message, self.app.interface.get_tns(), tmp_elt)
+                          result_message, tmp_elt, self.app.interface.get_tns())
                 ctx.out_document = tmp_elt[0]
 
             else:
-                retval = self._incgen(ctx, result_message_class,
+                retval = self.incgen(ctx, result_message_class,
                                   result_message, self.app.interface.get_tns())
+
         if self.cleanup_namespaces and ctx.out_document is not None:
             etree.cleanup_namespaces(ctx.out_document)
 
@@ -464,9 +477,11 @@ class XmlDocument(ProtocolBase):
                                           pretty_print=True, encoding='UTF-8')))
 
     @coroutine
-    def _incgen(self, ctx, cls, inst, ns):
+    def incgen(self, ctx, cls, inst, ns, name=None):
+        if name is None:
+            name = cls.get_type_name()
         with etree.xmlfile(ctx.out_stream) as xf:
-            ret = self.to_parent(ctx, cls, inst, ns, xf)
+            ret = self.to_parent(ctx, cls, inst, xf, ns, name)
             if isgenerator(ret):
                 try:
                     while True:
@@ -482,37 +497,20 @@ class XmlDocument(ProtocolBase):
         if hasattr(ctx.out_stream, 'finish'):
             ctx.out_stream.finish()
 
-    def byte_array_to_parent(self, ctx, cls, value, ns, parent, name='retval'):
+    def byte_array_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
         _append(parent, E("{%s}%s" % (ns, name),
-                        self.to_string(cls, value, self.default_binary_encoding)))
+                        self.to_string(cls, inst, self.default_binary_encoding)))
 
-    def base_to_parent(self, ctx, cls, value, ns, parent, name='retval'):
-        """Creates a lxml.etree SubElement as a child of a 'parent' Element
+    def base_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
+        _append(parent, E("{%s}%s" % (ns, name), self.to_string(cls, inst)))
 
-        :param self:  The protocol that will be used to serialize the given
-        value.
-        :param cls:   The type of the value that's going to determine how to
-        pack
-                      the given value.
-        :param value: The value to be set for the 'text' element of the newly
-                      created SubElement
-        :param ns:   The target namespace of the new SubElement, used with
-        'name'
-                      to set the tag.
-        :param parent: The parent Element to which the new child will be
-                      appended.
-        :param name:  The tag name of the new SubElement, 'retval' by default.
-        """
-
-        _append(parent, E("{%s}%s" % (ns, name), self.to_string(cls, value)))
-
-    def null_to_parent(self, ctx, cls, value, ns, parent, name='retval'):
+    def null_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
         _append(parent, E("{%s}%s" % (ns, name), **{'{%s}nil' % _ns_xsi: 'true'}))
 
     def null_from_element(self, ctx, cls, element):
         return None
 
-    def xmlattribute_to_parent(self, ctx, cls, inst, ns, parent, name):
+    def xmlattribute_to_parent(self, ctx, cls, inst, parent, ns, name):
         ns = cls._ns
         if ns is None:
             ns = cls.Attributes.sub_ns
@@ -534,6 +532,9 @@ class XmlDocument(ProtocolBase):
     @coroutine
     def gen_members_parent(self, ctx, cls, inst, parent, tag_name, subelts):
         delay = set()
+        print (ctx, cls, inst, parent, tag_name)
+        assert isinstance(tag_name, basestring)
+        assert not isinstance(parent, basestring)
 
         if isinstance(parent, etree._Element):
             elt = E(tag_name, *subelts)
@@ -611,7 +612,7 @@ class XmlDocument(ProtocolBase):
                     if isinstance(subvalue, PushBase):
                         while True:
                             sv = (yield)
-                            ret = self.to_parent(ctx, v, sv, sub_ns, parent,
+                            ret = self.to_parent(ctx, v, sv, parent, sub_ns,
                                                                        sub_name)
                             if ret is not None:
                                 while True:
@@ -620,7 +621,7 @@ class XmlDocument(ProtocolBase):
 
                     else:
                         for sv in subvalue:
-                            ret = self.to_parent(ctx, v, sv, sub_ns, parent,
+                            ret = self.to_parent(ctx, v, sv, parent, sub_ns,
                                                                        sub_name)
 
                             if ret is not None:
@@ -630,7 +631,7 @@ class XmlDocument(ProtocolBase):
 
                 # Don't include empty values for non-nillable optional attributes.
                 elif subvalue is not None or v.Attributes.min_occurs > 0:
-                    ret = self.to_parent(ctx, v, subvalue, sub_ns, parent,
+                    ret = self.to_parent(ctx, v, subvalue, parent, sub_ns,
                                                                        sub_name)
                     if ret is not None:
                         while True:
@@ -656,25 +657,25 @@ class XmlDocument(ProtocolBase):
 
                 if cls._type_info[a_of].Attributes.max_occurs > 1:
                     for subsubvalue, attr_parent in zip(subvalue, attr_parents):
-                        self.to_parent(ctx, v, subsubvalue, v.get_namespace(),
-                                                                attr_parent, k)
+                        self.to_parent(ctx, v, subsubvalue, attr_parent,
+                                                           v.get_namespace(), k)
 
                 else:
                     for attr_parent in attr_parents:
-                        self.to_parent(ctx, v, subvalue, v.get_namespace(),
-                                                                attr_parent, k)
+                        self.to_parent(ctx, v, subvalue, attr_parent,
+                                                           v.get_namespace(), k)
 
 
-    def complex_to_parent(self, ctx, cls, value, ns, parent, name=None):
+    def complex_to_parent(self, ctx, cls, inst, parent, ns, name=None):
         if name is None:
             name = cls.get_type_name()
 
         tag_name = "{%s}%s" % (ns, name)
-        inst = cls.get_serialization_instance(value)
+        inst = cls.get_serialization_instance(inst)
 
         return self.gen_members_parent(ctx, cls, inst, parent, tag_name, [])
 
-    def fault_to_parent(self, ctx, cls, inst, ns, parent):
+    def fault_to_parent(self, ctx, cls, inst, parent, ns):
         tag_name = "{%s}Fault" % _ns_soap_env
 
         subelts = [
@@ -688,28 +689,28 @@ class XmlDocument(ProtocolBase):
         # add other nonstandard fault subelements with get_members_etree
         return self.gen_members_parent(ctx, cls, inst, parent, tag_name, subelts)
 
-    def enum_to_parent(self, ctx, cls, value, ns, parent, name='retval'):
-        self.base_to_parent(ctx, cls, str(value), ns, parent, name)
+    def enum_to_parent(self, ctx, cls, inst, parent, ns, name='retval'):
+        self.base_to_parent(ctx, cls, str(inst), parent, ns, name)
 
-    def xml_to_parent(self, ctx, cls, value, ns, parent, name):
-        if isinstance(value, str) or isinstance(value, unicode):
-            value = etree.fromstring(value)
+    def xml_to_parent(self, ctx, cls, inst, parent, ns, name):
+        if isinstance(inst, str) or isinstance(inst, unicode):
+            inst = etree.fromstring(inst)
 
-        _append(parent, E('{%s}%s' % (ns, name), value))
+        _append(parent, E('{%s}%s' % (ns, name), inst))
 
-    def html_to_parent(self, ctx, cls, value, ns, parent, name):
-        if isinstance(value, str) or isinstance(value, unicode):
-            value = html.fromstring(value)
+    def html_to_parent(self, ctx, cls, inst, parent, ns, name):
+        if isinstance(inst, str) or isinstance(inst, unicode):
+            inst = html.fromstring(inst)
 
-        _append(parent, E('{%s}%s' % (ns, name), value))
+        _append(parent, E('{%s}%s' % (ns, name), inst))
 
-    def dict_to_parent(self, ctx, cls, value, ns, parent, name):
+    def dict_to_parent(self, ctx, cls, inst, parent, ns, name):
         elt = E('{%s}%s' % (ns, name))
-        dict_to_etree(value, elt)
+        dict_to_etree(inst, elt)
 
         _append(parent, elt)
 
-    def complex_from_element(self, ctx, cls, element):
+    def complex_from_element(self, ctx, cls, elt):
         inst = cls.get_deserialization_instance()
 
         flat_type_info = cls.get_flat_type_info(cls)
@@ -720,14 +721,14 @@ class XmlDocument(ProtocolBase):
         xtba_key, xtba_type = cls.Attributes._xml_tag_body_as
         if xtba_key is not None:
             if issubclass(xtba_type.type, (ByteArray, File)):
-                value = self.from_string(xtba_type.type, element.text,
+                value = self.from_string(xtba_type.type, elt.text,
                                                     self.default_binary_encoding)
             else:
-                value = self.from_string(xtba_type.type, element.text)
+                value = self.from_string(xtba_type.type, elt.text)
             setattr(inst, xtba_key, value)
 
         # parse input to set incoming data to related attributes.
-        for c in element:
+        for c in elt:
             key = c.tag.split('}')[-1]
             frequencies[key] += 1
 
@@ -775,7 +776,7 @@ class XmlDocument(ProtocolBase):
 
                 setattr(inst, key, value)
 
-        for key, value_str in element.attrib.items():
+        for key, value_str in elt.attrib.items():
             member = flat_type_info.get(key, None)
             if member is None:
                 member, key = cls._type_info_alt.get(key, (None, key))

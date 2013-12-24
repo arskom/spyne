@@ -96,7 +96,7 @@ def call_pytest(*tests):
 
     tests_dir = os.path.dirname(spyne.test.__file__)
 
-    args = ['-v', '--tb=short', '--junitxml=%s' % file_name]
+    args = ['--tb=short', '--junitxml=%s' % file_name]
     args.extend(chain(*[glob("%s/%s" % (tests_dir, test)) for test in tests]))
 
     return pytest.main(args)
@@ -109,7 +109,7 @@ def call_pytest_subprocess(*tests):
     file_name = 'test_result.%d.xml' % _ctr
     if os.path.isfile(file_name):
         os.unlink(file_name)
-    return call_test(pytest.main, ['-v', '--tb=short', '--junitxml=%s' % file_name], tests)
+    return call_test(pytest.main, ['--tb=line', '--junitxml=%s' % file_name], tests)
 
 
 def call_trial(*tests):

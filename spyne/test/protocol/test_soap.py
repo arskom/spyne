@@ -165,7 +165,7 @@ class TestMultiple(unittest.TestCase):
 
         sent_xml = etree.Element('test')
         self.app.out_protocol.to_parent(None, message_class, ('a', 'b', 'c'),
-                                    MultipleReturnService.get_tns(), sent_xml)
+                                      sent_xml, MultipleReturnService.get_tns())
         sent_xml = sent_xml[0]
 
         print((etree.tostring(sent_xml, pretty_print=True)))
@@ -189,7 +189,7 @@ class TestSoap(unittest.TestCase):
         m_inst = m(s="a", i=43)
 
         e = etree.Element('test')
-        Soap11().to_parent(None, m, m_inst, m.get_namespace(), e)
+        Soap11().to_parent(None, m, m_inst, e, m.get_namespace())
         e=e[0]
 
         self.assertEquals(e.tag, '{%s}myMessage' % m.get_namespace())
@@ -249,7 +249,7 @@ class TestSoap(unittest.TestCase):
         mi.s = 'a'
 
         e = etree.Element('test')
-        Soap11().to_parent(None, m, mi, m.get_namespace(), e)
+        Soap11().to_parent(None, m, mi, e, m.get_namespace())
         e=e[0]
 
         self.assertEquals(e.tag, '{some_namespace}myMessage')
@@ -270,7 +270,7 @@ class TestSoap(unittest.TestCase):
         m_inst.p.addresses = []
 
         element=etree.Element('test')
-        Soap11().to_parent(None, m, m_inst, m.get_namespace(), element)
+        Soap11().to_parent(None, m, m_inst, element, m.get_namespace())
         element=element[0]
 
         self.assertEquals(element.tag, '{%s}myMessage' % m.get_namespace())
@@ -293,7 +293,7 @@ class TestSoap(unittest.TestCase):
 
         element = etree.Element('test')
         Soap11().to_parent(None, DateTime(format=format), n,
-                                                      'some_namespace', element)
+                                                      element, 'some_namespace')
         assert element[0].text == n.isoformat()
 
         dt = Soap11().from_element(None, DateTime(format=format), element[0])
@@ -332,7 +332,7 @@ class TestSoap(unittest.TestCase):
         m_inst = m(p=p)
 
         element=etree.Element('test')
-        Soap11().to_parent(None, m, m_inst, m.get_namespace(), element)
+        Soap11().to_parent(None, m, m_inst, element, m.get_namespace())
         element=element[0]
 
         self.assertEquals('{%s}myMessage' % m.get_namespace(), element.tag)
