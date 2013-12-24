@@ -259,3 +259,6 @@ class TestHtmlMicroFormat(unittest.TestCase):
 
         # We don't need to test the rest as the test_complex test takes care of
         # that
+
+if __name__ == '__main__':
+    unittest.main()
