@@ -72,47 +72,39 @@ class TestHtmlColumnTable(unittest.TestCase):
                 ccm_c_s='abc',
             )
 
-        elt = html.fromstring(out_string)
-        print(html.tostring(elt, pretty_print=True))
+        from lxml import etree
+        elt = etree.fromstring(out_string)
+        print(etree.tostring(elt, pretty_print=True))
 
+        elt = html.fromstring(out_string)
         resp = elt.find_class('some_callResponse')
         assert len(resp) == 1
-        for i in range(len(elt)):
-            row = elt[i]
-            if i == 0:  # check for field names in table header
-                cell = row.findall('th[@class="i"]')
-                assert len(cell) == 1
-                assert cell[0].text == 'i'
 
-                cell = row.findall('th[@class="c_i"]')
-                assert len(cell) == 1
-                assert cell[0].text == 'c_i'
+        row, = elt[0] # thead
+        cell = row.findall('th[@class="i"]')
+        assert len(cell) == 1
+        assert cell[0].text == 'i'
 
-                cell = row.findall('th[@class="c_s"]')
-                assert len(cell) == 1
-                assert cell[0].text == 'c_s'
+        cell = row.findall('th[@class="s"]')
+        assert len(cell) == 1
+        assert cell[0].text == 's'
 
-                cell = row.findall('th[@class="s"]')
-                assert len(cell) == 1
-                assert cell[0].text == 's'
+        for row in elt[1]: # tbody
+            cell = row.xpath('td[@class="i"]')
+            assert len(cell) == 1
+            assert cell[0].text == '456'
 
+            cell = row.xpath('td[@class="c"]//td[@class="i"]')
+            assert len(cell) == 1
+            assert cell[0].text == '123'
 
-            else: # check for field values in table body
-                cell = row.findall('td[@class="i"]')
-                assert len(cell) == 1
-                assert cell[0].text == '456'
+            cell = row.xpath('td[@class="c"]//td[@class="s"]')
+            assert len(cell) == 1
+            assert cell[0].text == 'abc'
 
-                cell = row.findall('td[@class="c_i"]')
-                assert len(cell) == 1
-                assert cell[0].text == '123'
-
-                cell = row.findall('td[@class="c_s"]')
-                assert len(cell) == 1
-                assert cell[0].text == 'abc'
-
-                cell = row.findall('td[@class="s"]')
-                assert len(cell) == 1
-                assert cell[0].text == 'def'
+            cell = row.xpath('td[@class="s"]')
+            assert len(cell) == 1
+            assert cell[0].text == 'def'
 
     def test_string_array(self):
         class SomeService(ServiceBase):
@@ -124,7 +116,7 @@ class TestHtmlColumnTable(unittest.TestCase):
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app(server, body_pairs=(('s', '1'), ('s', '2')))
-        assert out_string == '<table class="some_callResponse"><tr><th>string</th></tr><tr><td>1</td></tr><tr><td>2</td></tr></table>'
+        assert out_string == '<table class="some_callResponse"><thead><tr><th>some_callResponse</th></tr></thead><tbody><tr><td>1</td></tr><tr><td>2</td></tr></tbody></table>'
 
     def test_anyuri_string(self):
         _link = "http://arskom.com.tr/"
@@ -239,40 +231,50 @@ class TestHtmlRowTable(unittest.TestCase):
         # Here's what this is supposed to return
         """
         <table class="some_callResponse">
+          <tbody>
             <tr>
-                <th class="i">i</th>
-                <td class="i">456</td>
+              <th class="i">i</th>
+              <td class="i">456</td>
+            </tr>
+            <tr class="c">
+              <th class="c">c</th>
+              <td class="c">
+                <table class="c">
+                  <tbody>
+                    <tr>
+                      <th class="i">i</th>
+                      <td class="i">123</td>
+                    </tr>
+                    <tr>
+                      <th class="s">s</th>
+                      <td class="s">abc</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </td>
             </tr>
             <tr>
-                <th class="c_i">c_i</th>
-                <td class="c_i">123</td>
+              <th class="s">s</th>
+              <td class="s">def</td>
             </tr>
-            <tr>
-                <th class="c_s">c_s</th>
-                <td class="c_s">abc</td>
-            </tr>
-            <tr>
-                <th class="s">s</th>
-                <td class="s">def</td>
-            </tr>
+          </tbody>
         </table>
         """
 
         resp = elt.find_class('some_callResponse')
         assert len(resp) == 1
 
-        assert elt.xpath('//th[@class="i"]/text()')[0] == 'i'
-        assert elt.xpath('//td[@class="i"]/text()')[0] == '456'
+        assert elt.xpath('tbody/tr/th[@class="i"]/text()')[0] == 'i'
+        assert elt.xpath('tbody/tr/td[@class="i"]/text()')[0] == '456'
 
-        assert elt.xpath('//th[@class="c_i"]/text()')[0] == 'c_i'
-        assert elt.xpath('//td[@class="c_i"]/text()')[0] == '123'
+        assert elt.xpath('tbody/tr/td[@class="c"]//th[@class="i"]/text()')[0] == 'i'
+        assert elt.xpath('tbody/tr/td[@class="c"]//td[@class="i"]/text()')[0] == '123'
 
-        assert elt.xpath('//th[@class="c_s"]/text()')[0] == 'c_s'
-        assert elt.xpath('//td[@class="c_s"]/text()')[0] == 'abc'
+        assert elt.xpath('tbody/tr/td[@class="c"]//th[@class="s"]/text()')[0] == 's'
+        assert elt.xpath('tbody/tr/td[@class="c"]//td[@class="s"]/text()')[0] == 'abc'
 
-        assert elt.xpath('//th[@class="s"]/text()')[0] == 's'
-        assert elt.xpath('//td[@class="s"]/text()')[0] == 'def'
-
+        assert elt.xpath('tbody/tr/th[@class="s"]/text()')[0] == 's'
+        assert elt.xpath('tbody/tr/td[@class="s"]/text()')[0] == 'def'
 
     def test_string_array(self):
         class SomeService(ServiceBase):
@@ -284,8 +286,20 @@ class TestHtmlRowTable(unittest.TestCase):
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app(server, body_pairs=(('s', '1'), ('s', '2')) )
-        assert out_string == '<table class="some_callResponse"><tr><td>1</td></tr><tr><td>2</td></tr></table>'
+        assert out_string == '<table class="some_callResponse"><tbody><tr><th>string</th><td>1</td></tr><tr><th>string</th><td>2</td></tr></tbody></table>'
 
+    def test_string_array_no_header(self):
+        class SomeService(ServiceBase):
+            @srpc(String(max_occurs='unbounded'), _returns=Array(String))
+            def some_call(s):
+                return s
+
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
+                out_protocol=HtmlTable(fields_as='rows', produce_header=False))
+        server = WsgiApplication(app)
+
+        out_string = call_wsgi_app(server, body_pairs=(('s', '1'), ('s', '2')) )
+        assert out_string == '<table class="some_callResponse"><tbody><tr><td>1</td></tr><tr><td>2</td></tr></tbody></table>'
 
 if __name__ == '__main__':
     unittest.main()
