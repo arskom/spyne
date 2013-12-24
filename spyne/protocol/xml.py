@@ -80,10 +80,8 @@ from spyne.protocol import ProtocolBase
 
 def _append(parent, child_elt):
     if hasattr(parent, 'append'):
-        print 'append', parent
         parent.append(child_elt)
     else:
-        print 'write', parent
         parent.write(child_elt)
 
 class SchemaValidationError(Fault):
@@ -532,9 +530,6 @@ class XmlDocument(ProtocolBase):
     @coroutine
     def gen_members_parent(self, ctx, cls, inst, parent, tag_name, subelts):
         delay = set()
-        print (ctx, cls, inst, parent, tag_name)
-        assert isinstance(tag_name, basestring)
-        assert not isinstance(parent, basestring)
 
         if isinstance(parent, etree._Element):
             elt = E(tag_name, *subelts)
