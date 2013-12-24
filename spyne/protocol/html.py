@@ -17,7 +17,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-
 """The ``spyne.protocol.html`` module contains various EXPERIMENTAL protocols
 for generating server-side Html. It seeks to eliminate the need for html
 templates by:
@@ -37,14 +36,18 @@ look at it.
 import logging
 logger = logging.getLogger(__name__)
 
-from spyne.util import six
+from spyne.util import six, coroutine, Break
 
 from itertools import chain
+from inspect import isgenerator
 
 from lxml import html
 from lxml.html.builder import E
 
-from spyne.model import ModelBase
+from spyne.util.six import StringIO
+
+from spyne import BODY_STYLE_WRAPPED
+from spyne.model import ModelBase, PushBase
 from spyne.model.binary import ByteArray
 from spyne.model.binary import Attachment
 from spyne.model.complex import Array
@@ -54,7 +57,6 @@ from spyne.model.primitive import AnyUri
 from spyne.model.primitive import ImageUri
 from spyne.protocol import ProtocolBase
 from spyne.util.cdict import cdict
-from spyne import BODY_STYLE_WRAPPED
 
 
 def translate(cls, locale, default):
@@ -66,98 +68,92 @@ def translate(cls, locale, default):
     return retval
 
 
-def serialize_null(prot, cls, locale, name):
-    return [ E(prot.child_tag, **{prot.field_name_attr: name}) ]
-
-
-def nillable_value(func):
-    def wrapper(prot, cls, value, locale, name):
-        if value is None:
-            if cls.Attributes.default is None:
-                return serialize_null(prot, cls, locale, name)
-            else:
-                return func(prot, cls, cls.Attributes.default, locale, name)
-        else:
-            return func(prot, cls, value, locale, name)
-
-    return wrapper
-
-
-def not_supported(prot, cls, *args, **kwargs):
+def _not_supported(prot, cls, *args, **kwargs):
     raise Exception("Serializing %r Not Supported!" % cls)
 
 
 class HtmlBase(ProtocolBase):
-    def __init__(self, app=None, validator=None):
-        """Protocol that returns the response object as a html microformat. See
-        https://en.wikipedia.org/wiki/Microformats for more info.
-
-        The simple flavour is like the XmlDocument protocol, but returns data in
-        <div> or <span> tags.
-
-        :param app: A spyne.application.Application instance.
-        :param validator: The validator to use. Ignored.
-        :param root_tag: The type of the root tag that encapsulates the return
-            data.
-        :param child_tag: The type of the tag that encapsulates the fields of
-            the returned object.
-        :param field_name_attr: The name of the attribute that will contain the
-            field names of the complex object children.
-        :param field_type_attr: The name of the attribute that will contain the
-            type names of the complex object children.
-        """
-
-        super(HtmlBase, self).__init__(app, validator)
-
     def serialize_class(self, cls, value, locale, name):
         handler = self.serialization_handlers[cls]
         return handler(cls, value, locale, name)
 
     def serialize(self, ctx, message):
-        """Uses ctx.out_object, ctx.out_header or ctx.out_error to set
-        ctx.out_body_doc, ctx.out_header_doc and ctx.out_document.
+        """Uses ``ctx.out_object``, ``ctx.out_header`` or ``ctx.out_error`` to
+        set ``ctx.out_body_doc``, ``ctx.out_header_doc`` and
+        ``ctx.out_document`` as an ``lxml.etree._Element instance``.
+
+        Not meant to be overridden.
         """
 
-        assert message in (self.RESPONSE, )
-        result_message_class = ctx.descriptor.out_message
+        assert message in (self.REQUEST, self.RESPONSE)
 
         self.event_manager.fire_event('before_serialize', ctx)
 
         if ctx.out_error is not None:
-            ctx.out_document = [ctx.out_error.to_string(ctx.out_error)]
+            # All errors at this point must be Fault subclasses.
+            cls = ctx.out_error.__class__
+            tns = self.app.interface.get_tns()
+
+            if ctx.out_stream is None:
+                ctx.out_stream = StringIO()
+
+            ctx.out_document = E.div()
+            from lxml import etree
+            with etree.xmlfile(ctx.out_stream) as xf:
+                retval = HtmlMicroFormat().to_parent(ctx,
+                    ctx.out_error.__class__, ctx.out_error, xf,
+                    ctx.out_error.get_type_name(), ctx.locale)
 
         else:
-            # instantiate the result message
+            assert message is self.RESPONSE
+            result_message_class = ctx.descriptor.out_message
+
             # assign raw result to its wrapper, result_message
             if ctx.descriptor.body_style == BODY_STYLE_WRAPPED:
                 result_message = result_message_class()
 
-                # assign raw result to its wrapper, result_message
-                out_type_info = result_message_class._type_info
-
-                for i in range(len(out_type_info)):
-                    attr_name = result_message_class._type_info.keys()[i]
+                for i, attr_name in enumerate(
+                                        result_message_class._type_info.keys()):
                     setattr(result_message, attr_name, ctx.out_object[i])
 
             else:
                 result_message = ctx.out_object
 
-            ctx.out_header_doc = None
-            ctx.out_body_doc = self.serialize_impl(result_message_class,
-                                                result_message, ctx.locale)
+            if ctx.out_stream is None:
+                ctx.out_stream = StringIO()
 
-            ctx.out_document = ctx.out_body_doc
+            name = result_message.get_type_name()
+            retval = self.incgen(ctx, result_message_class, result_message,
+                                                               name, ctx.locale)
 
         self.event_manager.fire_event('after_serialize', ctx)
 
-    def __generate_out_string(self, ctx, charset):
-        for d in ctx.out_document:
-            if d is None:
-                continue
-            elif isinstance(d, str):
-                yield d
-            else:
-                yield html.tostring(d, encoding=charset)
+        return retval
+
+    @coroutine
+    def incgen(self, ctx, cls, inst, name, locale):
+        if name is None:
+            name = cls.get_type_name()
+
+        from lxml import etree
+        # FIXME: html.htmlfile olmali
+        with etree.xmlfile(ctx.out_stream) as xf:
+            ret = self.to_parent(ctx, cls, inst, xf, name, locale)
+
+            if isgenerator(ret):
+                try:
+                    while True:
+                        y = (yield) # may throw Break
+                        ret.send(y)
+
+                except Break:
+                    try:
+                        ret.throw(Break())
+                    except StopIteration:
+                        pass
+
+        if hasattr(ctx.out_stream, 'finish'):
+            ctx.out_stream.finish()
 
     def create_out_string(self, ctx, charset=None):
         """Sets an iterable of string fragments to ctx.out_string"""
@@ -165,10 +161,18 @@ class HtmlBase(ProtocolBase):
         if charset is None:
             charset = 'UTF-8'
 
-        ctx.out_string = self.__generate_out_string(ctx, charset)
+        ctx.out_string = [ctx.out_stream.getvalue()]
+
+    def subserialize(self, ctx, cls, inst, parent, ns=None, name=None):
+        if name is None:
+            name = cls.get_type_name()
+        return self.to_parent(ctx, cls, inst, parent, name, ctx.locale)
 
     def decompose_incoming_envelope(self, ctx, message):
         raise NotImplementedError("This is an output-only protocol.")
+
+    def to_parent(self, ctx, cls, inst, parent, locale, name):
+        raise NotImplementedError("This must be implemented in a subclass.")
 
 
 class HtmlMicroFormat(HtmlBase):
@@ -191,10 +195,6 @@ class HtmlMicroFormat(HtmlBase):
             the returned object.
         :param field_name_attr: The name of the attribute that will contain the
             field names of the complex object children.
-        :param field_type_attr: The name of the attribute that will contain the
-            type names of the complex object children.
-        :param with_field_names: Also return field names in the field tags
-            inside separate tags.
         """
 
         super(HtmlMicroFormat, self).__init__(app, validator)
@@ -204,79 +204,150 @@ class HtmlMicroFormat(HtmlBase):
         assert field_name_attr in ('class', 'id')
         assert field_name_tag in (None, 'span', 'div')
 
-        self.__root_tag = root_tag
-        self.__child_tag = child_tag
-        self.__field_name_attr = field_name_attr
-        self._field_name_tag = field_name_tag
+        self.root_tag = root_tag
+        self.child_tag = child_tag
+        self.field_name_attr = field_name_attr
+        self.field_name_tag = field_name_tag
         if field_name_tag is not None:
-            self._field_name_tag = getattr(E, field_name_tag)
+            self.field_name_tag = getattr(E, field_name_tag)
         self._field_name_class = field_name_class
 
         self.serialization_handlers = cdict({
             ModelBase: self.serialize_model_base,
-            ByteArray: not_supported,
-            Attachment: not_supported,
+            ByteArray: _not_supported,
+            Attachment: _not_supported,
             ComplexModelBase: self.serialize_complex_model,
             Array: self.serialize_array,
         })
 
-    @property
-    def root_tag(self):
-        return self.__root_tag
-
-    @property
-    def child_tag(self):
-        return self.__child_tag
-
-    @property
-    def field_name_attr(self):
-        return self.__field_name_attr
-
-    @nillable_value
-    def serialize_model_base(self, cls, value, locale, name):
+    def serialize_model_base(self, ctx, cls, inst, parent, name, locale):
         retval = E(self.child_tag, **{self.field_name_attr: name})
-        data_str = self.to_string(cls, value)
+        data_str = self.to_string(cls, inst)
 
-        if self._field_name_tag is not None:
+        if self.field_name_tag is not None:
             field_name = cls.Attributes.translations.get(locale, name)
-            field_name_tag = self._field_name_tag(field_name,
-                                            **{'class':self._field_name_class})
+            field_name_tag = self.field_name_tag(field_name,
+                                             **{'class':self._field_name_class})
             field_name_tag.tail = data_str
             retval.append(field_name_tag)
+
         else:
             retval.text = data_str
 
-        return [retval]
+        parent.write(retval)
 
-    def serialize_impl(self, cls, value, locale):
-        return self.serialize_class(cls, value, locale, cls.get_type_name())
+    def to_parent(self, ctx, cls, inst, parent, name, locale):
+        subprot = getattr(cls.Attributes, 'prot', None)
+        if subprot is not None:
+            return subprot.subserialize(ctx, cls, inst, parent, None, name)
 
-    @nillable_value
-    def serialize_array(self, cls, value, locale, name):
-        yield '<%s %s="%s">' % (self.root_tag, self.field_name_attr, name)
+        handler = self.serialization_handlers[cls]
+        if inst is None:
+            if cls.Attributes.default is None:
+                return self.serialize_null(ctx, cls, inst, parent, name, locale)
+            return handler(ctx, cls, cls.Attributes.default, parent, name, locale)
+        return handler(ctx, cls, inst, parent, name, locale)
 
-        (k,v), = cls._type_info.items()
-        for subval in value:
-            for val in self.serialize_class(cls=v, value=subval, locale=locale, name=k):
-                yield val
+    @coroutine
+    def _get_members(self, ctx, cls, inst, parent, locale):
+        parent_cls = getattr(cls, '__extends__', None)
+        if not (parent_cls is None):
+            ret = self._get_members(ctx, parent_cls, inst, parent)
+            if ret is not None:
+                while True:
+                    sv2 = (yield)
+                    ret.send(sv2)
 
-        yield '</%s>' % self.root_tag
+        for k, v in cls._type_info.items():
+            try:
+                subvalue = getattr(inst, k, None)
+            except: # to guard against e.g. SqlAlchemy throwing NoSuchColumnError
+                subvalue = None
 
-    @nillable_value
-    def serialize_complex_model(self, cls, value, locale, name):
-        yield '<%s %s="%s">' % (self.root_tag, self.field_name_attr, name)
+            sub_name = v.Attributes.sub_name
+            if sub_name is None:
+                sub_name = k
 
-        if name is None:
-            name = cls.get_type_name()
+            mo = v.Attributes.max_occurs
+            if subvalue is not None and mo > 1:
+                if isinstance(subvalue, PushBase):
+                    while True:
+                        sv = (yield)
+                        ret = self.to_parent(ctx, v, sv, parent, sub_name, locale)
+                        if ret is not None:
+                            while True:
+                                sv2 = (yield)
+                                ret.send(sv2)
 
-        inst = cls.get_serialization_instance(value)
+                else:
+                    for sv in subvalue:
+                        ret = self.to_parent(ctx, v, sv, parent, sub_name, locale)
 
-        for k, v in cls.get_flat_type_info(cls).items():
-            for val in self.serialize_class(cls=v,
-                        value=getattr(inst, k, None), locale=locale, name=k):
-                yield val
+                        if ret is not None:
+                            while True:
+                                sv2 = (yield)
+                                ret.send(sv2)
 
-        yield '</%s>' % self.root_tag
+            # Don't include empty values for non-nillable optional attributes.
+            elif subvalue is not None or v.Attributes.min_occurs > 0:
+                ret = self.to_parent(ctx, v, subvalue, parent, sub_name, locale)
+                if ret is not None:
+                    while True:
+                        sv2 = (yield)
+                        ret.send(sv2)
+
+    @coroutine
+    def serialize_complex_model(self, ctx, cls, inst, parent, name, locale):
+        attrs = {self.field_name_attr: name}
+        with parent.element(self.root_tag, attrs):
+            ret = self._get_members(ctx, cls, inst, parent, locale)
+            if isgenerator(ret):
+                try:
+                    while True:
+                        y = (yield) # Break could be thrown here
+                        ret.send(y)
+
+                except Break:
+                    try:
+                        ret.throw(Break())
+                    except StopIteration:
+                        pass
+
+    @coroutine
+    def serialize_array(self, ctx, cls, inst, parent, name, locale):
+        attrs = {self.field_name_attr: name}
+
+        if issubclass(cls, Array):
+            cls, = cls._type_info.values()
+
+        name = cls.get_type_name()
+        with parent.element(self.root_tag, attrs):
+            if isinstance(inst, PushBase):
+                while True:
+                    sv = (yield)
+                    ret = self.to_parent(ctx, cls, sv, parent, name, locale)
+                    if ret is not None:
+                        while True:
+                            sv2 = (yield)
+                            ret.send(sv2)
+
+            else:
+                for sv in inst:
+                    ret = self.to_parent(ctx, cls, sv, parent, name, locale)
+                    if isgenerator(ret):
+                        try:
+                            while True:
+                                y = (yield) # Break could be thrown here
+                                ret.send(y)
+
+                        except Break:
+                            try:
+                                ret.throw(Break())
+                            except StopIteration:
+                                pass
+
+    def serialize_null(self, ctx, cls, inst, parent, name, locale):
+        return [ E(self.child_tag, **{self.field_name_attr: name}) ]
 
 
 def HtmlTable(app=None, validator=None, produce_header=True,
@@ -300,8 +371,8 @@ def HtmlTable(app=None, validator=None, produce_header=True,
         field names of the complex object children for every table cell. Set
         to None to disable.
     :param fields_as: One of 'columns', 'rows'.
-    :param row_cell_class: value that goes inside the <tr class="">
-    :param cell_cell_class: value that goes inside the <td class="">
+    :param row_class: value that goes inside the <tr class="">
+    :param cell_class: value that goes inside the <td class="">
     :param header_cell_class: value that goes inside the <th class="">
 
     "Fields as rows" returns one record per table in a table with two
@@ -335,10 +406,10 @@ class _HtmlTableBase(HtmlBase):
         assert table_name_attr in (None, 'class', 'id')
         assert field_name_attr in (None, 'class', 'id')
 
-        self.__produce_header = produce_header
-        self.__table_name_attr = table_name_attr
-        self.__field_name_attr = field_name_attr
-        self.__border = border
+        self.produce_header = produce_header
+        self.table_name_attr = table_name_attr
+        self.field_name_attr = field_name_attr
+        self.border = border
         self.row_class = row_class
         self.cell_class = cell_class
         self.header_cell_class = header_cell_class
@@ -349,22 +420,6 @@ class _HtmlTableBase(HtmlBase):
         if self.header_cell_class is not None and field_name_attr == 'class':
             raise Exception("Either 'header_cell_class' should be None or "
                             "field_name_attr should be != 'class'")
-
-    @property
-    def border(self):
-        return self.__border
-
-    @property
-    def produce_header(self):
-        return self.__produce_header
-
-    @property
-    def table_name_attr(self):
-        return self.__table_name_attr
-
-    @property
-    def field_name_attr(self):
-        return self.__field_name_attr
 
     def serialize_impl(self, cls, inst, locale):
         name = cls.get_type_name()
