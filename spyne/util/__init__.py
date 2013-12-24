@@ -20,6 +20,8 @@
 import sys
 import datetime
 
+from collections import deque
+
 try:
     from urllib import splittype
     from urllib import splithost
@@ -210,3 +212,19 @@ class AttrDictColl(object):
     def __init__(self, *args):
         for a in args:
             setattr(self, a, AttrDictColl.AttrDictImpl(NAME=a))
+
+
+# needs some magic with semaphores
+class GeneratorIO(object):
+    def __init__(self):
+        self.buffer = deque()
+
+    def __iter__(self):
+        return self.gen()
+
+    def write(self, data):
+        self.data.append(data)
+
+    def gen(self):
+        while len(self.data) > 0:
+            yield self.popleft()
