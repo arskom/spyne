@@ -3,6 +3,8 @@
 
 # test cruft
 jython-installer-*
+Python-2.[67].*
+Python-3.[3456789].*
 
 # python cruft
 *.pyc
