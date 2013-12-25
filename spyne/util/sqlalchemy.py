@@ -277,10 +277,10 @@ class PGHtml(UserDefinedType):
 
     def result_processor(self, dialect, col_type):
         def process(value):
-            if value is not None:
+            if value is not None and len(value) > 0:
                 return html.fromstring(value)
             else:
-                return value
+                return None
         return process
 
 
@@ -293,7 +293,7 @@ class PGJson(UserDefinedType):
 
     def bind_processor(self, dialect):
         def process(value):
-            if isinstance(value, str) or value is None:
+            if isinstance(value, six.string_types) or value is None:
                 return value
             else:
                 return json.dumps(value, encoding=self.encoding)
@@ -301,10 +301,10 @@ class PGJson(UserDefinedType):
 
     def result_processor(self, dialect, col_type):
         def process(value):
-            if value is not None:
+            if value is not None and len(value) > 0:
                 return json.loads(value)
             else:
-                return value
+                return None
         return process
 
 sqlalchemy.dialects.postgresql.base.ischema_names['json'] = PGJson
