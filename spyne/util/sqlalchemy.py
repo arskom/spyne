@@ -551,7 +551,8 @@ def _get_cols_m2m(cls, k, child, left_fk_col_name, right_fk_col_name):
 
 
 class _FakeTable(object):
-    def __init__(self):
+    def __init__(self, name):
+        self.name = name
         self.c = {}
         self.columns = []
         self.indexes = []
@@ -561,7 +562,14 @@ class _FakeTable(object):
         self.c[col.name] = col
 
 
-def _gen_index_info(table, table_name, col, k, v):
+def _gen_index_info(table, col, k, v):
+    """
+    :param table: sqla table
+    :param col: sqla col
+    :param k: field name (not necessarily == k)
+    :param v: spyne type
+    """
+
     unique = v.Attributes.unique
     index = v.Attributes.index
     if unique and not index:
@@ -571,7 +579,7 @@ def _gen_index_info(table, table_name, col, k, v):
         index_name, index_method = v.Attributes.index
 
     except (TypeError, ValueError):
-        index_name = "%s_%s%s" % (table_name, k, '_unique' if unique else '')
+        index_name = "%s_%s%s" % (table.name, k, '_unique' if unique else '')
         index_method = v.Attributes.index
 
     if index in (False, None):
@@ -653,7 +661,7 @@ def _check_table(cls):
         # We need FakeTable because table_args can contain all sorts of stuff
         # that can require a fully-constructed table, and we don't have that
         # information here yet.
-        table = _FakeTable()
+        table = _FakeTable(table_name)
 
     return table
 
@@ -668,15 +676,13 @@ def _add_simple_type(cls, props, table, k, v, sqla_type):
     col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
     _sp_attrs_to_sqla_constraints(cls, v, col_kwargs)
 
-    table_name = cls.Attributes.table_name
-
     if k in table.c:
         col = table.c[k]
 
     else:
         col = Column(k, sqla_type, *col_args, **col_kwargs)
         table.append_column(col)
-        _gen_index_info(table, table_name, col, k, v)
+        _gen_index_info(table, col, k, v)
 
     if not v.Attributes.exc_mapper:
         props[k] = col
@@ -723,30 +729,43 @@ def _gen_array_simple(cls, props, k, child_cust, p):
 
     if child_table_name in metadata.tables:
         child_t = metadata.tables[child_table_name]
-        assert child_right_col_type is \
-               child_t.c[child_right_col_name].type.__class__
-        assert child_left_col_type is \
-               child_t.c[child_left_col_name].type.__class__
+
+        # if we have the table, we sure have the right column (data column)
+        assert child_right_col_type.__class__ is \
+               child_t.c[child_right_col_name].type.__class__, "%s.%s: %r != %r" % \
+                   (cls, child_right_col_name, child_right_col_type.__class__,
+                               child_t.c[child_right_col_name].type.__class__)
+
+        # Table exists but our own foreign key doesn't.
+        if child_left_col_name in child_t.c:
+            assert child_left_col_type.__class__ is \
+                child_t.c[child_left_col_name].type.__class__, "%r != %r" % \
+                   (child_left_col_type.__class__,
+                               child_t.c[child_left_col_name].type.__class__)
+        else:
+            child_left_col = next(_gen_col)
+            _sp_attrs_to_sqla_constraints(cls, child_cust, col=child_left_col)
+            child_t.append_column(child_left_col)
 
     else:
         # table does not exist, generate table
-        child_right_col = Column(child_right_col_name,
-                                        child_right_col_type)
-        _sp_attrs_to_sqla_constraints(cls, child_cust,
-                                            col=child_right_col)
+        child_right_col = Column(child_right_col_name, child_right_col_type)
+        _sp_attrs_to_sqla_constraints(cls, child_cust, col=child_right_col)
 
         child_left_col = next(_gen_col)
-        _sp_attrs_to_sqla_constraints(cls, child_cust,
-                                            col=child_left_col)
+        _sp_attrs_to_sqla_constraints(cls, child_cust, col=child_left_col)
 
         child_t = Table(child_table_name , metadata,
             Column('id', sqlalchemy.Integer, primary_key=True),
-                                child_left_col, child_right_col)
+            child_left_col,
+            child_right_col,
+        )
+        _gen_index_info(child_t, child_right_col, child_right_col_name, child_cust)
 
     # generate temporary class for association proxy
     cls_name = ''.join(x.capitalize() or '_' for x in
-                                    child_table_name.split('_'))
-                            # generates camelcase class name.
+                                                child_table_name.split('_'))
+                                                # generates camelcase class name.
 
     def _i(self, *args):
         setattr(self, child_right_col_name, args[0])
@@ -850,7 +869,7 @@ def _add_complex_type(cls, props, table, k, v):
             rel = relationship(real_v, uselist=False, cascade=p.cascade,
                             foreign_keys=[col], backref=p.backref, lazy=p.lazy)
 
-            _gen_index_info(table, table_name, col, k, v)
+            _gen_index_info(table, col, k, v)
 
             props[k] = rel
             props[col.name] = col
