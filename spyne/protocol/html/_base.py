@@ -18,6 +18,7 @@
 #
 
 from inspect import isgenerator
+
 from lxml.html.builder import E
 from spyne import BODY_STYLE_WRAPPED
 from spyne.model import PushBase, Array

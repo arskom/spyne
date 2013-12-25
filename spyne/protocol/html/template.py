@@ -21,6 +21,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from lxml import html
+from spyne.util import six
 
 
 class HtmlPage(object):

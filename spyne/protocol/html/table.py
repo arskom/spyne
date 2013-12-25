@@ -16,7 +16,9 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
+
 from inspect import isgenerator
+
 from lxml.html.builder import E
 from spyne.model import ModelBase, ByteArray, ComplexModelBase, Array, AnyHtml, AnyUri, ImageUri
 from spyne.model.binary import Attachment
