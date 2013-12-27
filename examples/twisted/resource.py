@@ -72,6 +72,7 @@ import sys
 from twisted.internet import reactor
 from twisted.web.server import Site
 from twisted.internet.task import deferLater
+from spyne.model import Unicode, Integer, Double
 
 from spyne.model.binary import ByteArray
 from spyne.model.complex import Iterable
@@ -88,7 +89,7 @@ port = 9758
 
 
 class SomeNonBlockingService(ServiceBase):
-    @srpc(int, _returns=str)
+    @srpc(Integer, _returns=Unicode)
     def sleep(seconds):
         """Waits without blocking reactor for given number of seconds by
         returning a deferred."""
@@ -98,16 +99,16 @@ class SomeNonBlockingService(ServiceBase):
 
         return deferLater(reactor, seconds, _cb)
 
-    @srpc(str, int, int, _returns=ByteArray)
+    @srpc(Unicode, Double, Double, _returns=ByteArray)
     def say_hello_with_sleep(name, times, seconds):
         """Sends multiple hello messages by waiting given number of seconds
         inbetween."""
 
-        times = [times] # Workaround for Python 2.7's lacking of nonlocal
+        times = [times] # Workaround for Python 2's lacking of nonlocal
         def _cb(response):
             if times[0] > 0:
                 response.append(
-                    "Hello %s, sleeping for %d seconds for %d more time(s)."
+                    "Hello %s, sleeping for %f seconds for %d more time(s)."
                                                    % (name, seconds, times[0]))
                 times[0] -= 1
                 return deferLater(reactor, seconds, _cb, response)

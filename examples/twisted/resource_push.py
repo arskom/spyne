@@ -41,7 +41,11 @@ from twisted.web.server import Site
 
 from spyne.application import Application
 from spyne.protocol.http import HttpRpc
+
 from spyne.protocol.xml import XmlDocument
+from spyne.protocol.html.microformat import HtmlMicroFormat
+from spyne.protocol.html import HtmlTable
+
 from spyne.server.twisted import TwistedWebResource
 
 from spyne.decorator import rpc
@@ -54,9 +58,13 @@ class HelloWorldService(ServiceBase):
     @rpc(Unicode(default='World'), _returns=Iterable(Unicode))
     def say_hello_forever(ctx, name):
         def _cb(push):
+            # This callback is called immediately after the function returns.
+            # The object passed to the append() method is immediately serialized
+            # to bytes and pushed to the response stream's file-like object.
             push.append(u'Hello, %s' % name)
             return deferLater(reactor, 0.1, _cb, push)
 
+        # This is Spyne's way of returning NOT_DONE_YET
         return Iterable.Push(_cb)
 
 
@@ -70,7 +78,7 @@ if __name__=='__main__':
     application = Application([HelloWorldService],
             'spyne.examples.twisted.resource_push',
             in_protocol=HttpRpc(),
-            out_protocol=XmlDocument(),
+            out_protocol=HtmlTable(),
         )
 
     resource = TwistedWebResource(application)
