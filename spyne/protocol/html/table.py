@@ -20,7 +20,13 @@
 from inspect import isgenerator
 
 from lxml.html.builder import E
-from spyne.model import ModelBase, ByteArray, ComplexModelBase, Array, AnyHtml, AnyUri, ImageUri
+
+from spyne.model import ModelBase
+from spyne.model import ByteArray
+from spyne.model import ComplexModelBase
+from spyne.model import Array
+from spyne.model import AnyUri
+from spyne.model import ImageUri
 from spyne.model.binary import Attachment
 from spyne.protocol.html import HtmlBase
 from spyne.util import coroutine
@@ -110,14 +116,16 @@ class _HtmlTableBase(HtmlBase):
         if self.table_name_attr is not None:
             attrs[self.table_name_attr] = name
         with parent.element('td', attrs):
-            super(_HtmlTableBase, self).anyuri_to_parent(ctx, cls, inst, parent, name, locale, **kwargs)
+            super(_HtmlTableBase, self).anyuri_to_parent(ctx, cls, inst,
+                                                 parent, name, locale, **kwargs)
 
     def imageuri_to_parent(self, ctx, cls, inst, parent, name, locale, **kwargs):
         attrs = {}
         if self.table_name_attr is not None:
             attrs[self.table_name_attr] = name
         with parent.element('td', attrs):
-            super(_HtmlTableBase, self).imageuri_to_parent(ctx, cls, inst, parent, name, locale, **kwargs)
+            super(_HtmlTableBase, self).imageuri_to_parent(ctx, cls, inst,
+                                                parent, name, locale, **kwargs)
 
 class _HtmlColumnTable(_HtmlTableBase):
     def __init__(self, *args, **kwargs):
@@ -134,7 +142,6 @@ class _HtmlColumnTable(_HtmlTableBase):
         })
 
     def model_base_to_parent(self, ctx, cls, inst, parent, name, locale, tr_child=False, **kwargs):
-        print self, "\t\tser mb ", cls, inst
         attrs = {}
         if self.field_name_attr is not None:
             attrs = {self.field_name_attr: name}
@@ -185,8 +192,8 @@ class _HtmlColumnTable(_HtmlTableBase):
 
             with parent.element('tbody'):
                 if cls.Attributes.max_occurs > 1:
-                    print self, "subser array", cls
-                    ret = self.array_to_parent(ctx, cls, inst, parent, name, ctx.locale)
+                    ret = self.array_to_parent(ctx, cls, inst, parent, name,
+                                                                     ctx.locale)
 
                     if isgenerator(ret):
                         while True:
@@ -194,10 +201,9 @@ class _HtmlColumnTable(_HtmlTableBase):
                             ret.send(y)
 
                 else:
-                    print self, "subser complex", cls
                     with parent.element('tr'):
-                        ret = self.to_parent(ctx, cls, inst, parent, name, locale)
-
+                        ret = self.to_parent(ctx, cls, inst, parent, name,
+                                                                         locale)
                         if isgenerator(ret):
                             while True:
                                 y = (yield)
@@ -205,7 +211,7 @@ class _HtmlColumnTable(_HtmlTableBase):
 
     @coroutine
     def complex_model_to_parent(self, ctx, cls, inst, parent, name, locale,
-                                                    tr_child=False, **kwargs):
+                                                      tr_child=False, **kwargs):
         attrs = {}
         if tr_child is False:
             with parent.element('tr', attrs):
@@ -225,8 +231,6 @@ class _HtmlColumnTable(_HtmlTableBase):
                     while True:
                         y = (yield)
                         ret.send(y)
-
-        print self, "ser com exit", cls
 
 
 class _HtmlRowTable(_HtmlTableBase):
@@ -253,8 +257,8 @@ class _HtmlRowTable(_HtmlTableBase):
         with parent.element('table', attrs):
             with parent.element('tbody'):
                 if cls.Attributes.max_occurs > 1:
-                    print self, "subser array", cls
-                    ret = self.array_to_parent(ctx, cls, inst, parent, name, ctx.locale)
+                    ret = self.array_to_parent(ctx, cls, inst, parent, name,
+                                                                     ctx.locale)
 
                     if isgenerator(ret):
                         while True:
@@ -262,9 +266,9 @@ class _HtmlRowTable(_HtmlTableBase):
                             ret.send(y)
 
                 else:
-                    print self, "subser complex", cls
                     with parent.element('tr'):
-                        ret = self.to_parent(ctx, cls, inst, parent, name, locale)
+                        ret = self.to_parent(ctx, cls, inst, parent, name,
+                                                                     locale)
 
                         if isgenerator(ret):
                             while True:
@@ -297,10 +301,8 @@ class _HtmlRowTable(_HtmlTableBase):
                             y = (yield)
                             ret.send(y)
 
-        print self, "ser com exit", cls
-
-    def model_base_to_parent(self, ctx, cls, inst, parent, name, locale, **kwargs_to_parent):
-        print self, "\t\tser mb ", cls, inst
+    def model_base_to_parent(self, ctx, cls, inst, parent, name, locale,
+                                                                      **kwargs):
         retval = E.tr()
         attr = {}
         if self.field_name_attr is not None:
