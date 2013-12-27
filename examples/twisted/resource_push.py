@@ -51,11 +51,11 @@ from spyne.model.primitive import Unicode
 
 
 class HelloWorldService(ServiceBase):
-    @rpc(Unicode, _returns=Iterable(Unicode))
+    @rpc(Unicode(default='World'), _returns=Iterable(Unicode))
     def say_hello_forever(ctx, name):
-        def _cb(response):
-            response.append(u'Hello, %s' % name)
-            return deferLater(reactor, 0.1, _cb, response)
+        def _cb(push):
+            push.append(u'Hello, %s' % name)
+            return deferLater(reactor, 0.1, _cb, push)
 
         return Iterable.Push(_cb)
 
