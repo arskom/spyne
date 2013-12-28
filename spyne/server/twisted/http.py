@@ -286,17 +286,13 @@ class TwistedWebResource(Resource):
 
             if isinstance(retval, Deferred):
                 def _eb_push_close(f):
-                    print "_eb_push_close"
                     ret.close()
 
                 def _cb_push_close(r):
                     def _eb_inner(f):
-                        print "_eb_inner"
                         return f
 
-                    print "_cb_push_close", r
                     if r is None:
-                        print "ret close"
                         ret.close()
                     else:
                         r.addCallback(_cb_push_close).addErrback(_eb_inner)
