@@ -104,9 +104,6 @@ class HtmlBase(ProtocolBase):
                     y = (yield)
                     ret.send(y)
 
-        if hasattr(ctx.out_stream, 'finish'):
-            ctx.out_stream.finish()
-
     def create_out_string(self, ctx, charset=None):
         """Sets an iterable of string fragments to ctx.out_string"""
 
