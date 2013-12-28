@@ -21,7 +21,13 @@ from inspect import isgenerator
 
 from lxml.html.builder import E
 
-from spyne.model import Array, ComplexModelBase, ByteArray, ModelBase, PushBase, ImageUri, AnyUri
+from spyne.model import Array
+from spyne.model import ComplexModelBase
+from spyne.model import ByteArray
+from spyne.model import ModelBase
+from spyne.model import PushBase
+from spyne.model import ImageUri
+from spyne.model import AnyUri
 from spyne.model.binary import Attachment
 from spyne.protocol.html import HtmlBase
 from spyne.util import coroutine, Break
@@ -75,12 +81,12 @@ class HtmlMicroFormat(HtmlBase):
             Array: self.array_to_parent,
         })
 
-    def model_base_to_parent(self, ctx, cls, inst, parent, name, locale, **kwargs):
+    def model_base_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         retval = E(self.child_tag, **{self.field_name_attr: name})
         data_str = self.to_string(cls, inst)
 
         if self.field_name_tag is not None:
-            field_name = cls.Attributes.translations.get(locale, name)
+            field_name = cls.Attributes.translations.get( name)
             field_name_tag = self.field_name_tag(field_name,
                                              **{'class':self._field_name_class})
             field_name_tag.tail = data_str
@@ -92,17 +98,17 @@ class HtmlMicroFormat(HtmlBase):
         parent.write(retval)
 
     @coroutine
-    def complex_model_to_parent(self, ctx, cls, inst, parent, name, locale, **kwargs):
+    def complex_model_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         attrs = {self.field_name_attr: name}
         with parent.element(self.root_tag, attrs):
-            ret = self._get_members(ctx, cls, inst, parent, locale, **kwargs)
+            ret = self._get_members(ctx, cls, inst, parent, **kwargs)
             if isgenerator(ret):
                 while True:
                     y = (yield) # Break could be thrown here
                     ret.send(y)
 
     @coroutine
-    def array_to_parent(self, ctx, cls, inst, parent, name, locale, **kwargs):
+    def array_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         attrs = {self.field_name_attr: name}
 
         if issubclass(cls, Array):
@@ -113,7 +119,7 @@ class HtmlMicroFormat(HtmlBase):
             if isinstance(inst, PushBase):
                 while True:
                     sv = (yield)
-                    ret = self.to_parent(ctx, cls, sv, parent, name, locale, **kwargs)
+                    ret = self.to_parent(ctx, cls, sv, parent, name, **kwargs)
                     if isgenerator(ret):
                         try:
                             while True:
@@ -127,7 +133,7 @@ class HtmlMicroFormat(HtmlBase):
 
             else:
                 for sv in inst:
-                    ret = self.to_parent(ctx, cls, sv, parent, name, locale, **kwargs)
+                    ret = self.to_parent(ctx, cls, sv, parent, name, **kwargs)
                     if isgenerator(ret):
                         try:
                             while True:
@@ -139,7 +145,7 @@ class HtmlMicroFormat(HtmlBase):
                             except StopIteration:
                                 pass
 
-    def null_to_parent(self, ctx, cls, inst, parent, name, locale, **kwargs):
+    def null_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         return [ E(self.child_tag, **{self.field_name_attr: name}) ]
 
 # yuck.

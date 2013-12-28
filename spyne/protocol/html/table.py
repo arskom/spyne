@@ -111,21 +111,21 @@ class _HtmlTableBase(HtmlBase):
             raise Exception("Either 'header_cell_class' should be None or "
                             "field_name_attr should be != 'class'")
 
-    def anyuri_to_parent(self, ctx, cls, inst, parent, name, locale, **kwargs):
+    def anyuri_to_parent(self, ctx, cls, inst, parent, name,  **kwargs):
         attrs = {}
         if self.table_name_attr is not None:
             attrs[self.table_name_attr] = name
         with parent.element('td', attrs):
             super(_HtmlTableBase, self).anyuri_to_parent(ctx, cls, inst,
-                                                 parent, name, locale, **kwargs)
+                                                 parent, name,  **kwargs)
 
-    def imageuri_to_parent(self, ctx, cls, inst, parent, name, locale, **kwargs):
+    def imageuri_to_parent(self, ctx, cls, inst, parent, name,  **kwargs):
         attrs = {}
         if self.table_name_attr is not None:
             attrs[self.table_name_attr] = name
         with parent.element('td', attrs):
             super(_HtmlTableBase, self).imageuri_to_parent(ctx, cls, inst,
-                                                parent, name, locale, **kwargs)
+                                                parent, name,  **kwargs)
 
 class _HtmlColumnTable(_HtmlTableBase):
     def __init__(self, *args, **kwargs):
@@ -141,7 +141,7 @@ class _HtmlColumnTable(_HtmlTableBase):
             Array: self.array_to_parent,
         })
 
-    def model_base_to_parent(self, ctx, cls, inst, parent, name, locale, tr_child=False, **kwargs):
+    def model_base_to_parent(self, ctx, cls, inst, parent, name,  tr_child=False, **kwargs):
         attrs = {}
         if self.field_name_attr is not None:
             attrs = {self.field_name_attr: name}
@@ -173,27 +173,26 @@ class _HtmlColumnTable(_HtmlTableBase):
                     if fti is None:
                         if self.field_name_attr is not None:
                             th[self.field_name_attr] = name
-                        header_name = self.translate(cls, locale, name)
+                        header_name = self.translate(cls, ctx.locale, name)
                         header_row.append(E.th(header_name, **th))
 
                     else:
                         if self.field_name_attr is None:
                             for k, v in fti.items():
-                                header_name = self.translate(v, locale, k)
+                                header_name = self.translate(v, ctx.locale, k)
                                 header_row.append(E.th(header_name, **th))
 
                         else:
                             for k, v in fti.items():
                                 th[self.field_name_attr] = k
-                                header_name = self.translate(v, locale, k)
+                                header_name = self.translate(v, ctx.locale, k)
                                 header_row.append(E.th(header_name, **th))
 
                     parent.write(header_row)
 
             with parent.element('tbody'):
                 if cls.Attributes.max_occurs > 1:
-                    ret = self.array_to_parent(ctx, cls, inst, parent, name,
-                                                                     ctx.locale)
+                    ret = self.array_to_parent(ctx, cls, inst, parent, name)
                     if isgenerator(ret):
                         try:
                             while True:
@@ -207,8 +206,7 @@ class _HtmlColumnTable(_HtmlTableBase):
 
                 else:
                     with parent.element('tr'):
-                        ret = self.to_parent(ctx, cls, inst, parent, name,
-                                                                         locale)
+                        ret = self.to_parent(ctx, cls, inst, parent, name)
                         if isgenerator(ret):
                             try:
                                 while True:
@@ -221,12 +219,12 @@ class _HtmlColumnTable(_HtmlTableBase):
                                     pass
 
     @coroutine
-    def complex_model_to_parent(self, ctx, cls, inst, parent, name, locale,
+    def complex_model_to_parent(self, ctx, cls, inst, parent, name, 
                                                       tr_child=False, **kwargs):
         attrs = {}
         if tr_child is False:
             with parent.element('tr', attrs):
-                ret = self._get_members(ctx, cls, inst, parent, locale,
+                ret = self._get_members(ctx, cls, inst, parent, 
                                                     tr_child=True, **kwargs)
                 if isgenerator(ret):
                     try:
@@ -270,12 +268,10 @@ class _HtmlRowTable(_HtmlTableBase):
         if self.table_name_attr is not None:
             attrs[self.table_name_attr] = name
 
-        locale =ctx.locale
         with parent.element('table', attrs):
             with parent.element('tbody'):
                 if cls.Attributes.max_occurs > 1:
-                    ret = self.array_to_parent(ctx, cls, inst, parent, name,
-                                                                     ctx.locale)
+                    ret = self.array_to_parent(ctx, cls, inst, parent, name)
                     if isgenerator(ret):
                         try:
                             while True:
@@ -289,8 +285,7 @@ class _HtmlRowTable(_HtmlTableBase):
 
                 else:
                     with parent.element('tr'):
-                        ret = self.to_parent(ctx, cls, inst, parent, name,
-                                                                     locale)
+                        ret = self.to_parent(ctx, cls, inst, parent, name)
                         if isgenerator(ret):
                             try:
                                 while True:
@@ -303,11 +298,11 @@ class _HtmlRowTable(_HtmlTableBase):
                                     pass
 
     @coroutine
-    def complex_model_to_parent(self, ctx, cls, inst, parent, name, locale,
+    def complex_model_to_parent(self, ctx, cls, inst, parent, name, 
                                                     tr_child=False, **kwargs):
         attrs = {}
         if tr_child is False:
-            ret = self._get_members(ctx, cls, inst, parent, locale,
+            ret = self._get_members(ctx, cls, inst, parent, 
                                                 tr_child=True, **kwargs)
             if isgenerator(ret):
                 try:
@@ -326,7 +321,7 @@ class _HtmlRowTable(_HtmlTableBase):
 
             with parent.element('tr', attrs):
                 if self.produce_header:
-                    parent.write(E.th(self.translate(cls, locale, name),
+                    parent.write(E.th(self.translate(cls, ctx.locale, name),
                                                 **{self.field_name_attr: name}))
                 with parent.element('td', attrs):
                     ret = self.subserialize(ctx, cls, inst, parent, None, name)
@@ -341,15 +336,14 @@ class _HtmlRowTable(_HtmlTableBase):
                             except StopIteration:
                                 pass
 
-    def model_base_to_parent(self, ctx, cls, inst, parent, name, locale,
-                                                                      **kwargs):
+    def model_base_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         retval = E.tr()
         attr = {}
         if self.field_name_attr is not None:
             attr = {self.field_name_attr: name}
 
         if self.produce_header:
-            retval.append(E.th(self.translate(cls, locale, name), **attr))
+            retval.append(E.th(self.translate(cls, ctx.locale, name), **attr))
 
         retval.append(E.td(self.to_string(cls, inst), **attr))
         parent.write(retval)

@@ -56,7 +56,7 @@ class HtmlBase(ProtocolBase):
             from lxml import etree
             with etree.xmlfile(ctx.out_stream) as xf:
                 retval = HtmlBase.HtmlMicroFormat() \
-                                .to_parent(ctx, cls, inst, xf, name, ctx.locale)
+                                            .to_parent(ctx, cls, inst, xf, name)
 
         else:
             assert message is self.RESPONSE
@@ -122,16 +122,14 @@ class HtmlBase(ProtocolBase):
         if name is None:
             name = cls.get_type_name()
         if cls.Attributes.max_occurs > 1:
-            print self, "subser array", cls
-            return self.array(ctx, cls, inst, parent, name, ctx.locale_to_parent)
-        print self, "subser normal", cls
-        return self.to_parent(ctx, cls, inst, parent, name, ctx.locale)
+            return self.array_to_parent(ctx, cls, inst, parent, name)
+        return self.to_parent(ctx, cls, inst, parent, name)
 
     def decompose_incoming_envelope(self, ctx, message):
         raise NotImplementedError("This is an output-only protocol.")
 
     @coroutine
-    def array_to_parent(self, ctx, cls, inst, parent, name, locale, **kwargs):
+    def array_to_parent(self, ctx, cls, inst, parent, name,  **kwargs):
         attrs = {self.field_name_attr: name}
 
         if issubclass(cls, Array):
@@ -141,7 +139,7 @@ class HtmlBase(ProtocolBase):
         if isinstance(inst, PushBase):
             while True:
                 sv = (yield)
-                ret = self.to_parent(ctx, cls, sv, parent, name, locale, **kwargs)
+                ret = self.to_parent(ctx, cls, sv, parent, name,  **kwargs)
                 if isgenerator(ret):
                     try:
                         while True:
@@ -155,7 +153,7 @@ class HtmlBase(ProtocolBase):
 
         else:
             for sv in inst:
-                ret = self.to_parent(ctx, cls, sv, parent, name, locale, **kwargs)
+                ret = self.to_parent(ctx, cls, sv, parent, name,  **kwargs)
                 if isgenerator(ret):
                     try:
                         while True:
@@ -167,20 +165,26 @@ class HtmlBase(ProtocolBase):
                         except StopIteration:
                             pass
 
-    def to_parent(self, ctx, cls, inst, parent, name, locale, **kwargs):
+    def to_parent(self, ctx, cls, inst, parent, name,  **kwargs):
         subprot = getattr(cls.Attributes, 'prot', None)
+        """:type : HtmlBase"""
         if subprot is not None:
             return subprot.subserialize(ctx, cls, inst, parent, None, name)
 
         handler = self.serialization_handlers[cls]
         if inst is None:
             if cls.Attributes.default is None:
-                return self.null(ctx, cls, inst, parent, name, locale, **kwargs)
-            return handler(ctx, cls, cls.Attributes.default, parent, name, locale, **kwargs)
-        return handler(ctx, cls, inst, parent, name, locale, **kwargs)
+                return self.null_to_parent(ctx, cls, inst, parent, name,
+                                                                **kwargs)
+            return handler(ctx, cls, cls.Attributes.default, parent, name,
+                                                                **kwargs)
+        return handler(ctx, cls, inst, parent, name,  **kwargs)
+
+    def null_to_parent(ctx, cls, inst, parent, name,  **kwargs):
+        pass
 
     @coroutine
-    def _get_members(self, ctx, cls, inst, parent, locale, **kwargs):
+    def _get_members(self, ctx, cls, inst, parent,  **kwargs):
         for k, v in cls.get_flat_type_info(cls).items():
             try:
                 subvalue = getattr(inst, k, None)
@@ -194,7 +198,8 @@ class HtmlBase(ProtocolBase):
             mo = v.Attributes.max_occurs
             if subvalue is not None and mo > 1:
                 print self, "\tser arr", v, subvalue
-                ret = self.array(ctx, v, subvalue, parent, sub_name, locale, **kwargs)
+                ret = self.array_to_parent(ctx, v, subvalue, parent, sub_name,
+                                                                 **kwargs)
                 if ret is not None:
                     try:
                         while True:
@@ -209,7 +214,7 @@ class HtmlBase(ProtocolBase):
             # Don't include empty values for non-nillable optional attributes.
             elif subvalue is not None or v.Attributes.min_occurs > 0:
                 print self, "\tser nor", v, subvalue
-                ret = self.to_parent(ctx, v, subvalue, parent, sub_name, locale, **kwargs)
+                ret = self.to_parent(ctx, v, subvalue, parent, sub_name,  **kwargs)
                 if ret is not None:
                     try:
                         while True:
@@ -225,27 +230,24 @@ class HtmlBase(ProtocolBase):
     def translate(cls, locale, default):
         """
         :param cls: class
-        :param locale: locale
+        :param locale: locale string
         :param default: default string if no translation found
         :returns: translated string
         """
 
-        retval = None
         if cls.Attributes.translations is not None:
-            retval = cls.Attributes.translations.get(locale, None)
-        if retval is None:
-            return default
-        return retval
+            return cls.Attributes.translations.get(locale, default)
+        return default
 
 
     @staticmethod
     def not_supported(prot, cls, *args, **kwargs):
         raise Exception("Serializing %r Not Supported!" % cls)
 
-    def anyhtml_to_parent(self, ctx, cls, inst, parent, name, locale, **kwargs):
+    def anyhtml_to_parent(self, ctx, cls, inst, parent, name,  **kwargs):
         parent.write(inst)
 
-    def anyuri_to_parent(self, ctx, cls, inst, parent, name, locale, **kwargs):
+    def anyuri_to_parent(self, ctx, cls, inst, parent, name,  **kwargs):
         href = getattr(inst, 'href', None)
         if href is None: # this is not a AnyUri.Value instance.
             href = inst
@@ -265,7 +267,7 @@ class HtmlBase(ProtocolBase):
             retval.append(content)
         parent.write(retval)
 
-    def imageuri_to_parent(self, ctx, cls, inst, parent, name, locale, **kwargs):
+    def imageuri_to_parent(self, ctx, cls, inst, parent, name,  **kwargs):
         href = getattr(inst, 'href', None)
         if href is None: # this is not a AnyUri.Value instance.
             href = inst
