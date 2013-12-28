@@ -277,10 +277,33 @@ class TwistedWebResource(Resource):
             assert isgenerator(gen), "It looks like this protocol is not " \
                                      "async-compliant yet."
 
-            def _cb_push():
+            def _cb_push_finish():
+                p_ctx.out_stream.finish()
                 process_contexts(self.http_transport, others, p_ctx)
 
-            ret.init(p_ctx, request, gen, _cb_push, None)
+            retval = ret.init(p_ctx, request, gen, _cb_push_finish, None)
+            """:type : Deferred"""
+
+            if isinstance(retval, Deferred):
+                def _eb_push_close(f):
+                    print "_eb_push_close"
+                    ret.close()
+
+                def _cb_push_close(r):
+                    def _eb_inner(f):
+                        print "_eb_inner"
+                        return f
+
+                    print "_cb_push_close", r
+                    if r is None:
+                        print "ret close"
+                        ret.close()
+                    else:
+                        r.addCallback(_cb_push_close).addErrback(_eb_inner)
+
+                retval.addCallback(_cb_push_close).addErrback(_eb_push_close)
+            else:
+                ret.close()
 
         else:
             _cb_deferred(p_ctx.out_object, request, cb=False)
