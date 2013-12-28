@@ -29,7 +29,6 @@ from decimal import Decimal
 
 from spyne.util.six import add_metaclass
 
-from spyne.util import Break
 from spyne.const.xml_ns import DEFAULT_NS
 
 
@@ -516,7 +515,7 @@ class SimpleModel(ModelBase):
 
 
 class PushBase(object):
-    def __init__(self, callback, errback=None):
+    def __init__(self, callback=None, errback=None):
         self._cb = callback
         self._eb = errback
 
@@ -542,7 +541,8 @@ class PushBase(object):
 
     def init(self, ctx, response, gen, _cb_finish, _eb_finish):
         self._init(ctx, response, gen, _cb_finish, _eb_finish)
-        return self._cb(self)
+        if self._cb is not None:
+            return self._cb(self)
 
     def __len__(self):
         return self.length
@@ -552,9 +552,5 @@ class PushBase(object):
         self.length += 1
 
     def close(self):
-        try:
-            self.gen.throw(Break())
-        except StopIteration:
-            pass
-
+        self.gen.close()
         self._cb_finish()
