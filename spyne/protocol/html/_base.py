@@ -113,9 +113,6 @@ class HtmlBase(ProtocolBase):
     def create_out_string(self, ctx, charset=None):
         """Sets an iterable of string fragments to ctx.out_string"""
 
-        if charset is None:
-            charset = 'UTF-8'
-
         ctx.out_string = [ctx.out_stream.getvalue()]
 
     def subserialize(self, ctx, cls, inst, parent, ns=None, name=None):
@@ -130,8 +127,6 @@ class HtmlBase(ProtocolBase):
 
     @coroutine
     def array_to_parent(self, ctx, cls, inst, parent, name,  **kwargs):
-        attrs = {self.field_name_attr: name}
-
         if issubclass(cls, Array):
             cls, = cls._type_info.values()
 
@@ -261,31 +256,24 @@ class HtmlBase(ProtocolBase):
 
             content = getattr(inst, 'content', None)
 
-        retval = E.a(href=href)
-        retval.text = text
+        retval = E.a(text, href=href)
         if content is not None:
             retval.append(content)
         parent.write(retval)
 
     def imageuri_to_parent(self, ctx, cls, inst, parent, name,  **kwargs):
+        # with ImageUri, content is ignored.
         href = getattr(inst, 'href', None)
         if href is None: # this is not a AnyUri.Value instance.
             href = inst
             text = getattr(cls.Attributes, 'text', None)
-            content = None
 
         else:
             text = getattr(inst, 'text', None)
             if text is None:
                 text = getattr(cls.Attributes, 'text', None)
 
-            content = getattr(inst, 'content', None)
-
         retval = E.img(src=href)
-
         if text is not None:
             retval.attrib['alt'] = text
-
         parent.write(retval)
-
-        # content is ignored with ImageUri.

@@ -82,17 +82,9 @@ class HelloWorldService(ServiceBase):
     @rpc(Unicode(default='World'), _returns=Iterable(Unicode))
     def say_hello_forever(ctx, name):
         def _cb(push):
-            # This callback is called immediately after the function returns.
-            # The object passed to the append() method is immediately serialized
-            # to bytes and pushed to the response stream's file-like object.
             push.append(u'Hello, %s' % name)
-
-            # The return value of push-callbacks are ignored unless they're a
-            # deferred. When a push-callback returns None, response gets
-            # finalized.
             return deferLater(reactor, 0.1, _cb, push)
 
-        # This is Spyne's way of returning NOT_DONE_YET
         return Iterable.Push(_cb)
 
 
