@@ -84,11 +84,11 @@ v4l2_pipeline = (
     '! theoraenc quality=32 ! oggmux ! appsink name=sink sync=False' % video_device)
 
 # use this if you want to publish your screen.
-xsrc_pipeline = (
-    'ximagesrc '
-    '! video/x-raw-rgb,framerate=2/1 '
-    '! ffmpegcolorspace '
-    '! theoraenc quality=32 ! oggmux ! appsink name=sink sync=False' )
+#xsrc_pipeline = (
+#    'ximagesrc '
+#    '! video/x-raw-rgb,framerate=2/1 '
+#    '! ffmpegcolorspace '
+#    '! theoraenc quality=32 ! oggmux ! appsink name=sink sync=False' )
 
 def camera_publisher():
     # init gst
