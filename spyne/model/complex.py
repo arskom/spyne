@@ -28,11 +28,8 @@ logger = logging.getLogger(__name__)
 
 import sys
 import decimal
-from spyne.util import six
-
 import spyne
 
-from spyne.util.six import add_metaclass
 from weakref import WeakKeyDictionary
 from collections import deque
 from inspect import isclass
@@ -48,10 +45,12 @@ from spyne.model import Unicode
 from spyne.model import Point
 from spyne.model.primitive import NATIVE_MAP
 
+from spyne.util import six
 from spyne.util import memoize
 from spyne.util import memoize_id
 from spyne.util import sanitize_args
 from spyne.util.odict import odict
+from spyne.util.six import add_metaclass
 
 
 def _get_flat_type_info(cls, retval):
@@ -135,6 +134,7 @@ class TypeInfo(odict):
     def __init__(self, *args, **kwargs):
         super(TypeInfo, self).__init__(*args, **kwargs)
         self.attributes = {}
+
 
 class _SimpleTypeInfoElement(object):
     __slots__ = ['path', 'parent', 'type', 'is_array']

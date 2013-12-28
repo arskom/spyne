@@ -156,7 +156,7 @@ class _HtmlColumnTable(_HtmlTableBase):
         if self.table_name_attr is not None:
             attrs[self.table_name_attr] = name
 
-        locale =ctx.locale
+        locale = ctx.locale
         with parent.element('table', attrs):
             fti = None
             if issubclass(cls, ComplexModelBase):

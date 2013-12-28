@@ -146,7 +146,7 @@ class HtmlBase(ProtocolBase):
                 ret = self.to_parent(ctx, cls, sv, parent, name, locale, **kwargs)
                 if isgenerator(ret):
                     while True:
-                        y = (yield) # Break could be thrown here
+                        y = (yield)
                         ret.send(y)
 
     def to_parent(self, ctx, cls, inst, parent, name, locale, **kwargs):

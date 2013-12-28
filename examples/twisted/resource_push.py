@@ -42,8 +42,6 @@ from twisted.web.server import Site
 from spyne.application import Application
 from spyne.protocol.http import HttpRpc
 
-from spyne.protocol.xml import XmlDocument
-from spyne.protocol.html.microformat import HtmlMicroFormat
 from spyne.protocol.html import HtmlTable
 
 from spyne.server.twisted import TwistedWebResource
@@ -51,7 +49,7 @@ from spyne.server.twisted import TwistedWebResource
 from spyne.decorator import rpc
 from spyne.service import ServiceBase
 from spyne.model.complex import Iterable
-from spyne.model.primitive import Unicode
+from spyne.model.primitive import Unicode, UnsignedInteger
 
 
 class HelloWorldService(ServiceBase):
@@ -88,6 +86,10 @@ class HelloWorldService(ServiceBase):
             # The object passed to the append() method is immediately serialized
             # to bytes and pushed to the response stream's file-like object.
             push.append(u'Hello, %s' % name)
+
+            # The return value of push-callbacks are ignored unless they're a
+            # deferred. When a push-callback returns None, response gets
+            # finalized.
             return deferLater(reactor, 0.1, _cb, push)
 
         # This is Spyne's way of returning NOT_DONE_YET
@@ -95,12 +97,6 @@ class HelloWorldService(ServiceBase):
 
 
 if __name__=='__main__':
-    logging.basicConfig(level=logging.DEBUG)
-    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
-
-    logging.info("listening to http://127.0.0.1:8000")
-    logging.info("wsdl is at: http://localhost:8000/?wsdl")
-
     application = Application([HelloWorldService],
             'spyne.examples.twisted.resource_push',
             in_protocol=HttpRpc(),
@@ -112,6 +108,8 @@ if __name__=='__main__':
 
     reactor.listenTCP(port, site, interface=host)
 
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
     logging.info("listening on: %s:%d" % (host,port))
     logging.info('wsdl is at: http://%s:%d/?wsdl' % (host, port))
 

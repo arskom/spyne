@@ -34,7 +34,7 @@ except ImportError: # Python 3
 
 
 def split_url(url):
-    '''Splits a url into (uri_scheme, host[:port], path)'''
+    """Splits a url into (uri_scheme, host[:port], path)"""
     scheme, remainder = splittype(url)
     host, path = splithost(remainder)
     return scheme.lower(), host, path
@@ -42,13 +42,12 @@ def split_url(url):
 
 def reconstruct_url(environ, protocol=True, server_name=True, path=True,
                                                              query_string=True):
-
-    '''Rebuilds the calling url from values found in the
+    """Rebuilds the calling url from values found in the
     environment.
 
     This algorithm was found via PEP 333, the wsgi spec and
     contributed by Ian Bicking.
-    '''
+    """
 
     url = ''
     if protocol:
