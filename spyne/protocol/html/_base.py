@@ -196,6 +196,13 @@ class HtmlBase(ProtocolBase):
 
     @staticmethod
     def translate(cls, locale, default):
+        """
+        :param cls: class
+        :param locale: locale
+        :param default: default string if no translation found
+        :returns: translated string
+        """
+
         retval = None
         if cls.Attributes.translations is not None:
             retval = cls.Attributes.translations.get(locale, None)
