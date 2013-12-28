@@ -24,7 +24,7 @@ from spyne import BODY_STYLE_WRAPPED
 from spyne.model import PushBase, Array
 
 from spyne.protocol import ProtocolBase
-from spyne.util import coroutine
+from spyne.util import coroutine, Break
 from spyne.util.six import StringIO
 
 
@@ -100,9 +100,15 @@ class HtmlBase(ProtocolBase):
             ret = self.subserialize(ctx, cls, inst, xf, None, name)
 
             if isgenerator(ret):
-                while True:
-                    y = (yield)
-                    ret.send(y)
+                try:
+                    while True:
+                        sv2 = (yield)
+                        ret.send(sv2)
+                except Break as b:
+                    try:
+                        ret.throw(b)
+                    except StopIteration:
+                        pass
 
     def create_out_string(self, ctx, charset=None):
         """Sets an iterable of string fragments to ctx.out_string"""
@@ -136,18 +142,30 @@ class HtmlBase(ProtocolBase):
             while True:
                 sv = (yield)
                 ret = self.to_parent(ctx, cls, sv, parent, name, locale, **kwargs)
-                if ret is not None:
-                    while True:
-                        sv2 = (yield)
-                        ret.send(sv2)
+                if isgenerator(ret):
+                    try:
+                        while True:
+                            sv2 = (yield)
+                            ret.send(sv2)
+                    except Break as e:
+                        try:
+                            ret.throw(e)
+                        except StopIteration:
+                            pass
 
         else:
             for sv in inst:
                 ret = self.to_parent(ctx, cls, sv, parent, name, locale, **kwargs)
                 if isgenerator(ret):
-                    while True:
-                        y = (yield)
-                        ret.send(y)
+                    try:
+                        while True:
+                            sv2 = (yield)
+                            ret.send(sv2)
+                    except Break as e:
+                        try:
+                            ret.throw(e)
+                        except StopIteration:
+                            pass
 
     def to_parent(self, ctx, cls, inst, parent, name, locale, **kwargs):
         subprot = getattr(cls.Attributes, 'prot', None)
@@ -178,18 +196,30 @@ class HtmlBase(ProtocolBase):
                 print self, "\tser arr", v, subvalue
                 ret = self.array(ctx, v, subvalue, parent, sub_name, locale, **kwargs)
                 if ret is not None:
-                    while True:
-                        sv2 = (yield)
-                        ret.send(sv2)
+                    try:
+                        while True:
+                            sv2 = (yield)
+                            ret.send(sv2)
+                    except Break as b:
+                        try:
+                            ret.throw(b)
+                        except StopIteration:
+                            pass
 
             # Don't include empty values for non-nillable optional attributes.
             elif subvalue is not None or v.Attributes.min_occurs > 0:
                 print self, "\tser nor", v, subvalue
                 ret = self.to_parent(ctx, v, subvalue, parent, sub_name, locale, **kwargs)
                 if ret is not None:
-                    while True:
-                        sv2 = (yield)
-                        ret.send(sv2)
+                    try:
+                        while True:
+                            sv2 = (yield)
+                            ret.send(sv2)
+                    except Break as b:
+                        try:
+                            ret.throw(b)
+                        except StopIteration:
+                            pass
 
     @staticmethod
     def translate(cls, locale, default):

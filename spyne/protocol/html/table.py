@@ -29,7 +29,7 @@ from spyne.model import AnyUri
 from spyne.model import ImageUri
 from spyne.model.binary import Attachment
 from spyne.protocol.html import HtmlBase
-from spyne.util import coroutine
+from spyne.util import coroutine, Break
 from spyne.util.cdict import cdict
 
 
@@ -194,20 +194,31 @@ class _HtmlColumnTable(_HtmlTableBase):
                 if cls.Attributes.max_occurs > 1:
                     ret = self.array_to_parent(ctx, cls, inst, parent, name,
                                                                      ctx.locale)
-
                     if isgenerator(ret):
-                        while True:
-                            y = (yield)
-                            ret.send(y)
+                        try:
+                            while True:
+                                y = (yield)
+                                ret.send(y)
+                        except Break as b:
+                            try:
+                                ret.throw(b)
+                            except StopIteration:
+                                pass
 
                 else:
                     with parent.element('tr'):
                         ret = self.to_parent(ctx, cls, inst, parent, name,
                                                                          locale)
                         if isgenerator(ret):
-                            while True:
-                                y = (yield)
-                                ret.send(y)
+                            try:
+                                while True:
+                                    y = (yield)
+                                    ret.send(y)
+                            except Break as b:
+                                try:
+                                    ret.throw(b)
+                                except StopIteration:
+                                    pass
 
     @coroutine
     def complex_model_to_parent(self, ctx, cls, inst, parent, name, locale,
@@ -218,9 +229,15 @@ class _HtmlColumnTable(_HtmlTableBase):
                 ret = self._get_members(ctx, cls, inst, parent, locale,
                                                     tr_child=True, **kwargs)
                 if isgenerator(ret):
-                    while True:
-                        y = (yield)
-                        ret.send(y)
+                    try:
+                        while True:
+                            sv2 = (yield)
+                            ret.send(sv2)
+                    except Break as b:
+                        try:
+                            ret.throw(b)
+                        except StopIteration:
+                            pass
 
         else:
             if self.table_name_attr is not None:
@@ -229,8 +246,8 @@ class _HtmlColumnTable(_HtmlTableBase):
                 ret = self.subserialize(ctx, cls, inst, parent, None, name)
                 if isgenerator(ret):
                     while True:
-                        y = (yield)
-                        ret.send(y)
+                        sv2 = (yield)
+                        ret.send(sv2)
 
 
 class _HtmlRowTable(_HtmlTableBase):
@@ -259,21 +276,31 @@ class _HtmlRowTable(_HtmlTableBase):
                 if cls.Attributes.max_occurs > 1:
                     ret = self.array_to_parent(ctx, cls, inst, parent, name,
                                                                      ctx.locale)
-
                     if isgenerator(ret):
-                        while True:
-                            y = (yield)
-                            ret.send(y)
+                        try:
+                            while True:
+                                sv2 = (yield)
+                                ret.send(sv2)
+                        except Break as b:
+                            try:
+                                ret.throw(b)
+                            except StopIteration:
+                                pass
 
                 else:
                     with parent.element('tr'):
                         ret = self.to_parent(ctx, cls, inst, parent, name,
                                                                      locale)
-
                         if isgenerator(ret):
-                            while True:
-                                y = (yield)
-                                ret.send(y)
+                            try:
+                                while True:
+                                    sv2 = (yield)
+                                    ret.send(sv2)
+                            except Break as b:
+                                try:
+                                    ret.throw(b)
+                                except StopIteration:
+                                    pass
 
     @coroutine
     def complex_model_to_parent(self, ctx, cls, inst, parent, name, locale,
@@ -283,13 +310,20 @@ class _HtmlRowTable(_HtmlTableBase):
             ret = self._get_members(ctx, cls, inst, parent, locale,
                                                 tr_child=True, **kwargs)
             if isgenerator(ret):
-                while True:
-                    y = (yield)
-                    ret.send(y)
+                try:
+                    while True:
+                        sv2 = (yield)
+                        ret.send(sv2)
+                except Break as b:
+                    try:
+                        ret.throw(b)
+                    except StopIteration:
+                        pass
 
         else:
             if self.table_name_attr is not None:
                 attrs[self.table_name_attr] = name
+
             with parent.element('tr', attrs):
                 if self.produce_header:
                     parent.write(E.th(self.translate(cls, locale, name),
@@ -297,9 +331,15 @@ class _HtmlRowTable(_HtmlTableBase):
                 with parent.element('td', attrs):
                     ret = self.subserialize(ctx, cls, inst, parent, None, name)
                     if isgenerator(ret):
-                        while True:
-                            y = (yield)
-                            ret.send(y)
+                        try:
+                            while True:
+                                sv2 = (yield)
+                                ret.send(sv2)
+                        except Break as b:
+                            try:
+                                ret.throw(b)
+                            except StopIteration:
+                                pass
 
     def model_base_to_parent(self, ctx, cls, inst, parent, name, locale,
                                                                       **kwargs):

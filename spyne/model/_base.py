@@ -27,6 +27,7 @@ import spyne.const.xml_ns
 
 from decimal import Decimal
 
+from spyne.util import Break
 from spyne.util.six import add_metaclass
 
 from spyne.const.xml_ns import DEFAULT_NS
@@ -552,5 +553,8 @@ class PushBase(object):
         self.length += 1
 
     def close(self):
-        self.gen.close()
+        try:
+            self.gen.throw(Break())
+        except Break:
+            pass
         self._cb_finish()

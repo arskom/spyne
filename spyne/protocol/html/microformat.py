@@ -24,7 +24,7 @@ from lxml.html.builder import E
 from spyne.model import Array, ComplexModelBase, ByteArray, ModelBase, PushBase, ImageUri, AnyUri
 from spyne.model.binary import Attachment
 from spyne.protocol.html import HtmlBase
-from spyne.util import coroutine
+from spyne.util import coroutine, Break
 from spyne.util.cdict import cdict
 
 
@@ -115,17 +115,29 @@ class HtmlMicroFormat(HtmlBase):
                     sv = (yield)
                     ret = self.to_parent(ctx, cls, sv, parent, name, locale, **kwargs)
                     if isgenerator(ret):
-                        while True:
-                            sv2 = (yield)
-                            ret.send(sv2)
+                        try:
+                            while True:
+                                sv2 = (yield)
+                                ret.send(sv2)
+                        except Break as e:
+                            try:
+                                ret.throw(e)
+                            except StopIteration:
+                                pass
 
             else:
                 for sv in inst:
                     ret = self.to_parent(ctx, cls, sv, parent, name, locale, **kwargs)
                     if isgenerator(ret):
-                        while True:
-                            y = (yield) # Break could be thrown here
-                            ret.send(y)
+                        try:
+                            while True:
+                                sv2 = (yield)
+                                ret.send(sv2)
+                        except Break as e:
+                            try:
+                                ret.throw(e)
+                            except StopIteration:
+                                pass
 
     def null_to_parent(self, ctx, cls, inst, parent, name, locale, **kwargs):
         return [ E(self.child_tag, **{self.field_name_attr: name}) ]

@@ -575,9 +575,16 @@ class XmlDocument(ProtocolBase):
             if not (parent_cls is None):
                 ret = self._get_members_etree(ctx, parent_cls, inst, parent, delay)
                 if ret is not None:
-                    while True:
-                        sv2 = (yield)
-                        ret.send(sv2)
+                    try:
+                        while True:
+                            sv2 = (yield) # may throw Break
+                            ret.send(sv2)
+
+                    except Break:
+                        try:
+                            ret.throw(Break())
+                        except StopIteration:
+                            pass
 
             for k, v in cls._type_info.items():
                 try:
@@ -613,9 +620,16 @@ class XmlDocument(ProtocolBase):
                             ret = self.to_parent(ctx, v, sv, parent, sub_ns,
                                                                        sub_name)
                             if ret is not None:
-                                while True:
-                                    sv2 = (yield)
-                                    ret.send(sv2)
+                                try:
+                                    while True:
+                                        sv2 = (yield) # may throw Break
+                                        ret.send(sv2)
+
+                                except Break:
+                                    try:
+                                        ret.throw(Break())
+                                    except StopIteration:
+                                        pass
 
                     else:
                         for sv in subvalue:
@@ -623,18 +637,31 @@ class XmlDocument(ProtocolBase):
                                                                        sub_name)
 
                             if ret is not None:
-                                while True:
-                                    sv2 = (yield)
-                                    ret.send(sv2)
+                                try:
+                                    while True:
+                                        sv2 = (yield) # may throw Break
+                                        ret.send(sv2)
+
+                                except Break:
+                                    try:
+                                        ret.throw(Break())
+                                    except StopIteration:
+                                        pass
 
                 # Don't include empty values for non-nillable optional attributes.
                 elif subvalue is not None or v.Attributes.min_occurs > 0:
                     ret = self.to_parent(ctx, v, subvalue, parent, sub_ns,
                                                                        sub_name)
                     if ret is not None:
-                        while True:
-                            sv2 = (yield)
-                            ret.send(sv2)
+                        try:
+                            while True:
+                                sv2 = (yield)
+                                ret.send(sv2)
+                        except Break as b:
+                            try:
+                                ret.throw(b)
+                            except StopIteration:
+                                pass
 
         except Break:
             pass
