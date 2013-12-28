@@ -55,6 +55,32 @@ from spyne.model.primitive import Unicode
 
 
 class HelloWorldService(ServiceBase):
+    @rpc(Unicode(default='World'), UnsignedInteger(default=5),
+                                                    _returns=Iterable(Unicode))
+    def say_hello(ctx, name, times):
+        # workaround for Python2's lacking of nonlocal
+        times = [times]
+        def _cb(push):
+            # This callback is called immediately after the function returns.
+
+            if times[0] > 0:
+                times[0] -= 1
+
+                data = u'Hello, %s' % name
+                print data
+
+                # The object passed to the append() method is immediately
+                # serialized to bytes and pushed to the response stream's
+                # file-like object.
+                push.append(data)
+
+                # When a push-callback returns anything other than a deferred,
+                # the response gets closed.
+                return deferLater(reactor, 1, _cb, push)
+
+        # This is Spyne's way of returning NOT_DONE_YET
+        return Iterable.Push(_cb)
+
     @rpc(Unicode(default='World'), _returns=Iterable(Unicode))
     def say_hello_forever(ctx, name):
         def _cb(push):
