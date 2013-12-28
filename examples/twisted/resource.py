@@ -78,7 +78,7 @@ from spyne.model.binary import ByteArray
 from spyne.model.complex import Iterable
 
 from spyne.server.twisted import TwistedWebResource
-from spyne.decorator import srpc
+from spyne.decorator import rpc
 from spyne.service import ServiceBase
 
 from _service import initialize
@@ -89,8 +89,8 @@ port = 9758
 
 
 class SomeNonBlockingService(ServiceBase):
-    @srpc(Integer, _returns=Unicode)
-    def sleep(seconds):
+    @rpc(Integer, _returns=Unicode)
+    def sleep(ctx, seconds):
         """Waits without blocking reactor for given number of seconds by
         returning a deferred."""
 
@@ -99,8 +99,8 @@ class SomeNonBlockingService(ServiceBase):
 
         return deferLater(reactor, seconds, _cb)
 
-    @srpc(Unicode, Double, Double, _returns=ByteArray)
-    def say_hello_with_sleep(name, times, seconds):
+    @rpc(Unicode, Double, Double, _returns=ByteArray)
+    def say_hello_with_sleep(ctx, name, times, seconds):
         """Sends multiple hello messages by waiting given number of seconds
         inbetween."""
 
@@ -112,9 +112,6 @@ class SomeNonBlockingService(ServiceBase):
                                                    % (name, seconds, times[0]))
                 times[0] -= 1
                 return deferLater(reactor, seconds, _cb, response)
-
-            else:
-                response.close()
 
         return Iterable.Push(_cb)
 
