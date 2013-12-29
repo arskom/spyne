@@ -77,9 +77,9 @@ header_socket = "tcp://127.0.0.1:5679"
 
 v4l2_pipeline = (
     'v4l2src device=%s '
-    '! video/x-raw-yuv '
-    '! videoscale ! video/x-raw-yuv, width=400, height=300 '
-    '! videorate ! video/x-raw-yuv,framerate=25/2 '
+    '! video/x-raw-rgb '
+    '! videoscale ! video/x-raw-rgb, width=400, height=300 '
+    '! videorate ! video/x-raw-rgb,framerate=25/2 '
     '! ffmpegcolorspace '
     '! theoraenc quality=32 ! oggmux ! appsink name=sink sync=False' % video_device)
 
