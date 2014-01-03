@@ -199,6 +199,9 @@ def TAttrDict(default=None):
         def __setitem__(self, key, value):
             self.__data[key] = value
 
+        def __iter__(self):
+            return iter(self.__data)
+
         if default is None:
             def __getattr__(self, key):
                 return self.__data[key]
