@@ -182,29 +182,37 @@ else:
                             (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
 
 def TAttrDict(default=None):
-    class AttrDict(dict):
-        if default is None:
-            def __getattr__(self, key):
-                return self[key]
-        else:
-            def __getattr__(self, key):
-                if key in self:
-                    return self[key]
-                else:
-                    return default()
-
-        def __setattr__(self, key, value):
-            self[key] = value
+    class AttrDict(object):
+        def __init__(self, *args, **kwargs):
+            self.__data = dict(*args, **kwargs)
 
         def __call__(self, **kwargs):
             retval = AttrDict(self)
             retval.update(kwargs)
             return retval
 
+        def __setattr__(self, key, value):
+            if key == "_AttrDict__data":
+                return object.__setattr__(self, key, value)
+            self.__data[key] = value
+
+        if default is None:
+            def __getattr__(self, key):
+                return self.__data[key]
+        else:
+            def __getattr__(self, key):
+                if key == "_AttrDict__data":
+                    return object.__getattribute__(self, '__data')
+                if key in self.__data:
+                    return self.__data[key]
+                else:
+                    return default()
+
     return AttrDict
 
 AttrDict = TAttrDict()
 DefaultAttrDict = TAttrDict(lambda: None)
+
 
 class AttrDictColl(object):
     AttrDictImpl = DefaultAttrDict
