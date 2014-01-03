@@ -164,7 +164,11 @@ class HtmlBase(ProtocolBase):
         subprot = getattr(cls.Attributes, 'prot', None)
         """:type : HtmlBase"""
         if subprot is not None:
-            return subprot.subserialize(ctx, cls, inst, parent, None, name)
+            if isinstance(subprot, HtmlBase):
+                if not subprot.__class__ is self.__class__:
+                    subprot.to_parent(ctx, cls, inst, parent, name, **kwargs)
+            else:
+                return subprot.subserialize(ctx, cls, inst, parent, None, name)
 
         handler = self.serialization_handlers[cls]
         if inst is None:
@@ -173,6 +177,7 @@ class HtmlBase(ProtocolBase):
                                                                 **kwargs)
             return handler(ctx, cls, cls.Attributes.default, parent, name,
                                                                 **kwargs)
+        print handler
         return handler(ctx, cls, inst, parent, name,  **kwargs)
 
     def null_to_parent(ctx, cls, inst, parent, name,  **kwargs):
