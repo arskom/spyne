@@ -196,10 +196,20 @@ def TAttrDict(default=None):
                 return object.__setattr__(self, key, value)
             self.__data[key] = value
 
+        def __setitem__(self, key, value):
+            self.__data[key] = value
+
         if default is None:
             def __getattr__(self, key):
                 return self.__data[key]
+            def __getitem__(self, key):
+                return self.__data[key]
         else:
+            def __getitem__(self, key):
+                if key in self.__data:
+                    return self.__data[key]
+                else:
+                    return default()
             def __getattr__(self, key):
                 if key == "_AttrDict__data":
                     return object.__getattribute__(self, '__data')
