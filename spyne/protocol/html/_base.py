@@ -177,7 +177,7 @@ class HtmlBase(ProtocolBase):
                                                                 **kwargs)
         return handler(ctx, cls, inst, parent, name, **kwargs)
 
-    def null_to_parent(ctx, cls, inst, parent, name,  **kwargs):
+    def null_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         pass
 
     @coroutine
