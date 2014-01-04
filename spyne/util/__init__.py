@@ -181,14 +181,17 @@ else:
         return (td.microseconds +
                             (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
 
+from pprint import pformat
+
 def TAttrDict(default=None):
     class AttrDict(object):
         def __init__(self, *args, **kwargs):
             self.__data = dict(*args, **kwargs)
 
         def __call__(self, **kwargs):
-            retval = AttrDict(self)
-            retval.update(kwargs)
+            retval = AttrDict(self.__data.items())
+            for k,v in kwargs.items():
+                setattr(retval, k, v)
             return retval
 
         def __setattr__(self, key, value):
@@ -201,6 +204,10 @@ def TAttrDict(default=None):
 
         def __iter__(self):
             return iter(self.__data)
+
+        def __repr__(self):
+            return "AttrDict(%s)" % ', '.join(['%s=%r' % (k,v)
+                    for k,v in sorted(self.__data.items(), key=lambda x:x[0])])
 
         if default is None:
             def __getattr__(self, key):
