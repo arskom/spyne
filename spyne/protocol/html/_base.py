@@ -70,10 +70,8 @@ class HtmlBase(ProtocolBase):
                     while result_message_class.Attributes._wrapper:
                         result_message_class = next(iter(
                                       result_message_class._type_info.values()))
-                        print "ignore_wrappers", result_message_class
 
                 else:
-                    print "not ignore_wrappers", result_message_class
                     result_message = result_message_class()
 
                     for i, attr_name in enumerate(
@@ -177,7 +175,6 @@ class HtmlBase(ProtocolBase):
                                                                 **kwargs)
             return handler(ctx, cls, cls.Attributes.default, parent, name,
                                                                 **kwargs)
-        print handler
         return handler(ctx, cls, inst, parent, name,  **kwargs)
 
     def null_to_parent(ctx, cls, inst, parent, name,  **kwargs):
@@ -197,7 +194,6 @@ class HtmlBase(ProtocolBase):
 
             mo = v.Attributes.max_occurs
             if subvalue is not None and mo > 1:
-                print self, "\tser arr", v, subvalue
                 ret = self.array_to_parent(ctx, v, subvalue, parent, sub_name,
                                                                  **kwargs)
                 if ret is not None:
@@ -213,7 +209,6 @@ class HtmlBase(ProtocolBase):
 
             # Don't include empty values for non-nillable optional attributes.
             elif subvalue is not None or v.Attributes.min_occurs > 0:
-                print self, "\tser nor", v, subvalue
                 ret = self.to_parent(ctx, v, subvalue, parent, sub_name,  **kwargs)
                 if ret is not None:
                     try:
