@@ -27,6 +27,7 @@ from __future__ import absolute_import
 import logging
 logger = logging.getLogger(__name__)
 
+import re
 from django.core.exceptions import ImproperlyConfigured
 from django.core.validators import (slug_re,
                                     comma_separated_int_list_re, URLValidator)
