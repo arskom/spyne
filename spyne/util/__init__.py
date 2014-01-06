@@ -197,6 +197,8 @@ def TAttrDict(default=None):
         def __setattr__(self, key, value):
             if key == "_AttrDict__data":
                 return object.__setattr__(self, key, value)
+            if key == 'items':
+                raise ValueError("'items' is part of dict interface")
             self.__data[key] = value
 
         def __setitem__(self, key, value):
@@ -204,6 +206,9 @@ def TAttrDict(default=None):
 
         def __iter__(self):
             return iter(self.__data)
+
+        def items(self):
+            return self.__data.items()
 
         def __repr__(self):
             return "AttrDict(%s)" % ', '.join(['%s=%r' % (k,v)
@@ -221,7 +226,7 @@ def TAttrDict(default=None):
                 else:
                     return default()
             def __getattr__(self, key):
-                if key == "_AttrDict__data":
+                if key in ("_AttrDict__data", 'items'):
                     return object.__getattribute__(self, '__data')
                 if key in self.__data:
                     return self.__data[key]
