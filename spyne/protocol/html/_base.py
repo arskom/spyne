@@ -164,8 +164,7 @@ class HtmlBase(ProtocolBase):
 
         if subprot is not None:
             if isinstance(subprot, HtmlBase):
-                if not subprot.__class__ is self.__class__:
-                    subprot.to_parent(ctx, cls, inst, parent, name, **kwargs)
+                subprot.to_parent(ctx, cls, inst, parent, name, **kwargs)
             else:
                 return subprot.subserialize(ctx, cls, inst, parent, None, name)
 
