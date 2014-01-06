@@ -161,6 +161,7 @@ class HtmlBase(ProtocolBase):
     def to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         subprot = getattr(cls.Attributes, 'prot', None)
         """:type : HtmlBase"""
+
         if subprot is not None:
             if isinstance(subprot, HtmlBase):
                 if not subprot.__class__ is self.__class__:
