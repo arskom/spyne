@@ -566,7 +566,7 @@ class xml:
 
     :param root_tag: Root tag of the xml element that contains the field values.
     :param no_ns: When true, the xml document is stripped from namespace
-        information. Use with caution.
+        information. This is generally a stupid thing to do. Use with caution.
     """
 
     def __init__(self, root_tag=None, no_ns=False):
