@@ -30,9 +30,6 @@ from __future__ import absolute_import
 
 import sys
 
-if sys.version > '3':
-    long = int
-
 import re
 import math
 import uuid
