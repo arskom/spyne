@@ -27,6 +27,12 @@ from spyne.model._base import PushBase
 from spyne.model._base import Null
 from spyne.model._base import SimpleModel
 
+# store_as values
+from spyne.model._base import xml
+from spyne.model._base import json
+from spyne.model._base import table
+from spyne.model._base import msgpack
+
 # Boolean
 from spyne.model.primitive import Boolean
 
