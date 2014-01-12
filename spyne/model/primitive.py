@@ -41,6 +41,7 @@ import spyne
 from spyne.const import xml_ns
 from spyne.model import SimpleModel
 from spyne.util import memoize
+from spyne.model._base import apply_pssm, msgpack, xml, json
 
 string_encoding = 'utf8'
 
@@ -154,6 +155,18 @@ class AnyDict(SimpleModel):
         """Method for serializing to persistent storage. One of 'xml', 'json' or
         'msgpack'. It makes sense to specify this only when this object is
         child of a `ComplexModel` sublass."""
+
+    @classmethod
+    def customize(cls, **kwargs):
+        """Duplicates cls and overwrites the values in ``cls.Attributes`` with
+        ``**kwargs`` and returns the new class."""
+
+        store_as = apply_pssm(kwargs.get('store_as', None),
+                                {'json': json, 'xml': xml, 'msgpack': msgpack})
+        if store_as is not None:
+            kwargs['store_as'] = store_as
+
+        return super(AnyDict, cls).customize(**kwargs)
 
 
 class Unicode(SimpleModel):

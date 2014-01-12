@@ -28,7 +28,7 @@ from lxml import etree
 
 from spyne.util import total_seconds
 from spyne.const import xml_ns as ns
-from spyne.model import Null
+from spyne.model import Null, AnyDict
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
 from spyne.model.primitive import Date
@@ -443,6 +443,10 @@ class TestPrimitive(unittest.TestCase):
     def test_simple_type_explicit_customization(self):
         assert Unicode(max_len=5).__extends__ is not None
         assert Unicode.customize(max_len=5).__extends__ is not None
+
+    def test_anydict_customization(self):
+        from spyne.model import json
+        assert isinstance(AnyDict.customize(store_as='json').Attributes.store_as, json)
 
 
 ### Duration Data Type
