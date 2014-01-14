@@ -73,7 +73,7 @@ from spyne.model.complex import table as c_table
 from spyne.model.complex import msgpack as c_msgpack
 
 # public types
-from spyne.model import SimpleModel
+from spyne.model import SimpleModel, AnyDict
 from spyne.model import Enum
 from spyne.model import ByteArray
 from spyne.model import Array
@@ -419,6 +419,12 @@ def get_sqlalchemy_type(cls):
 
     elif issubclass(cls, AnyHtml):
         return PGHtml
+
+    elif issubclass(cls, AnyDict):
+        sa = cls.Attributes.store_as
+        if isinstance(sa, c_json):
+            return PGJson
+        raise NotImplementedError(dict(cls=AnyDict, store_as=sa))
 
     elif issubclass(cls, ByteArray):
         return sqlalchemy.LargeBinary
@@ -821,7 +827,6 @@ def _is_array(v):
 
 def _add_complex_type(cls, props, table, k, v):
     p = getattr(v.Attributes, 'store_as', None)
-    table_name = cls.Attributes.table_name
     col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
     _sp_attrs_to_sqla_constraints(cls, v, col_kwargs)
 
