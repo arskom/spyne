@@ -303,5 +303,35 @@ class TestJson(unittest.TestCase):
         ret = get_object_as_json(C(a='burak', b=D(30)), C, complex_as=dict)
         assert ret == '{"a": "burak", "b": "30"}'
 
+class TestFifo(unittest.TestCase):
+    def test_msgpack_fifo(self):
+        import msgpack
+
+        v1 = [1, 2, 3, 4]
+        v2 = [5, 6, 7, 8]
+        v3 = {"a": 9, "b": 10, "c": 11}
+
+        s1 = msgpack.packb(v1)
+        s2 = msgpack.packb(v2)
+        s3 = msgpack.packb(v3)
+
+        unpacker = msgpack.Unpacker()
+        unpacker.feed(s1)
+        unpacker.feed(s2)
+        unpacker.feed(s3[:4])
+
+        assert iter(unpacker).next() == v1
+        assert iter(unpacker).next() == v2
+        try:
+            iter(unpacker).next()
+        except StopIteration:
+            pass
+        else:
+            raise Exception("must fail")
+
+        unpacker.feed(s3[4:])
+        assert iter(unpacker).next() == v3
+
+
 if __name__ == '__main__':
     unittest.main()
