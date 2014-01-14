@@ -627,9 +627,11 @@ class msgpack:
 
 def apply_pssm(val, pssm_map):
     if val is not None:
-        val = pssm_map.get(val, None)
-        if val is None:
+        val_c = pssm_map.get(val, None)
+        if val_c is None:
             assert isinstance(val, tuple(pssm_map.values())), \
              "'store_as' should be one of: %r or an instance of %r not %r" \
              % (tuple(pssm_map.keys()), tuple(pssm_map.values()), val)
-        return val()
+
+            return val
+        return val_c()
