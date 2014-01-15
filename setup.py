@@ -135,6 +135,7 @@ def call_trial(*tests):
         suite = _getSuite(config)
         test_result = trialRunner.run(suite)
 
+    subunit2junitxml(_ctr)
 
     return int(not test_result.wasSuccessful())
 
@@ -142,6 +143,37 @@ def call_trial(*tests):
 class InstallTestDeps(TestCommand):
     pass
 
+
+def subunit2junitxml(ctr):
+    from testtools import ExtendedToStreamDecorator
+    from testtools import StreamToExtendedDecorator
+
+    from subunit import StreamResultToBytes
+    from subunit.filters import filter_by_result
+    from subunit.filters import run_tests_from_stream
+
+    from spyne.util.six import BytesIO
+
+    from junitxml import JUnitXmlResult
+
+    sys.argv = ['subunit-1to2']
+    subunit1_file_name = 'test_result.%d.subunit' % ctr
+
+    subunit2 = BytesIO()
+    run_tests_from_stream(open(subunit1_file_name, 'rb'),
+                    ExtendedToStreamDecorator(StreamResultToBytes(subunit2)))
+    subunit2.seek(0)
+
+    sys.argv = ['subunit2junitxml']
+    sys.stdin = subunit2
+
+    def f(output):
+        return StreamToExtendedDecorator(JUnitXmlResult(output))
+
+    junit_file_name = 'test_result.%d.xml' % ctr
+
+    filter_by_result(f, junit_file_name, True, False, protocol_version=2,
+                                passthrough_subunit=True, input_stream=subunit2)
 
 class RunTests(TestCommand):
     def finalize_options(self):
