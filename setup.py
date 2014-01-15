@@ -137,7 +137,11 @@ def call_trial(*tests):
         suite = _getSuite(config)
         test_result = trialRunner.run(suite)
 
-    subunit2junitxml(_ctr)
+    try:
+        subunit2junitxml(_ctr)
+    except Exception as e:
+        # this is not super important.
+        print e
 
     return int(not test_result.wasSuccessful())
 
@@ -206,7 +210,6 @@ class RunTests(TestCommand):
             print(GREEN + "All that glisters is not gold." + RESET)
         else:
             print(RED + "Something is rotten in the state of Denmark." + RESET)
-
 
         raise SystemExit(ret)
 
