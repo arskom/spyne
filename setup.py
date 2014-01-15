@@ -113,7 +113,6 @@ def call_pytest_subprocess(*tests):
         os.unlink(file_name)
     return call_test(pytest.main, ['--tb=line', '--junitxml=%s' % file_name], tests)
 
-
 def call_trial(*tests):
     import spyne.test
     from glob import glob
@@ -200,12 +199,14 @@ class RunTests(TestCommand):
         ret = call_pytest_subprocess('interop/test_soap_client_http.py') or ret
         ret = call_pytest_subprocess('interop/test_soap_client_zeromq.py') or ret
         ret = call_pytest_subprocess('interop/test_suds.py') or ret
-        ret = call_trial('interop/test_soap_client_http_twisted.py') or ret
+        ret = call_trial('interop/test_soap_client_http_twisted.py',
+                         'transport/test_msgpack.py') or ret
 
         if ret == 0:
             print(GREEN + "All that glisters is not gold." + RESET)
         else:
             print(RED + "Something is rotten in the state of Denmark." + RESET)
+
 
         raise SystemExit(ret)
 
