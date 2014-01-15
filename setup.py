@@ -23,7 +23,6 @@ except ImportError:
 import inspect
 from os.path import join, dirname, abspath
 OWN_PATH = abspath(inspect.getfile(inspect.currentframe()))
-TEST_DIR = join(dirname(OWN_PATH), 'test')
 EXAMPLES_DIR = join(dirname(OWN_PATH), 'examples')
 
 v = open(os.path.join(os.path.dirname(__file__), 'spyne', '__init__.py'), 'r')
@@ -52,7 +51,7 @@ def call_test(f, a, tests):
     from multiprocessing import Process, Queue
 
     tests_dir = os.path.dirname(spyne.test.__file__)
-    a.extend(chain(*[glob("%s/%s" % (tests_dir, test)) for test in tests]))
+    a.extend(chain(*[glob(join(tests_dir, test)) for test in tests]))
 
     queue = Queue()
     p = Process(target=_wrapper(f), args=[a, queue])
