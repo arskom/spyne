@@ -50,13 +50,9 @@ from inspect import isgenerator
 
 from spyne.error import InternalError
 from twisted.python.log import err
-from twisted.internet.interfaces import IPullProducer
 from twisted.internet.defer import Deferred
-from twisted.web.iweb import UNKNOWN_LENGTH
 from twisted.web.resource import Resource
 from twisted.web.server import NOT_DONE_YET
-
-from zope.interface import implements
 
 from spyne.auxproc import process_contexts
 from spyne.const.ansi_color import LIGHT_GREEN
@@ -67,6 +63,8 @@ from spyne.model.fault import Fault
 from spyne.server.http import HttpBase
 from spyne.server.http import HttpMethodContext
 from spyne.server.http import HttpTransportContext
+from spyne.server.twisted._base import Producer
+
 
 
 def _reconstruct_url(request):
@@ -81,51 +79,6 @@ def _reconstruct_url(request):
         url_scheme = 'http'
 
     return ''.join([url_scheme, "://", server_name, request.uri])
-
-
-class _Producer(object):
-    implements(IPullProducer)
-
-    deferred = None
-
-    def __init__(self, body, consumer):
-        """:param body: an iterable of strings"""
-
-        # check to see if we can determine the length
-        try:
-            len(body) # iterator?
-            self.length = sum([len(fragment) for fragment in body])
-            self.body = iter(body)
-
-        except TypeError:
-            self.length = UNKNOWN_LENGTH
-            self.body = body
-
-        self.deferred = Deferred()
-
-        self.consumer = consumer
-
-    def resumeProducing(self):
-        try:
-            chunk = next(self.body)
-
-        except StopIteration as e:
-            self.consumer.unregisterProducer()
-            if self.deferred is not None:
-                self.deferred.callback(self.consumer)
-                self.deferred = None
-            return
-
-        self.consumer.write(chunk)
-
-    def pauseProducing(self):
-        pass
-
-    def stopProducing(self):
-        if self.deferred is not None:
-            self.deferred.errback(
-                               Exception("Consumer asked us to stop producing"))
-        self.deferred = None
 
 
 class TwistedHttpTransportContext(HttpTransportContext):
