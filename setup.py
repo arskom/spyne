@@ -44,6 +44,9 @@ except OSError:
     pass
 
 
+###############################
+# Testing stuff
+
 def call_test(f, a, tests):
     import spyne.test
     from glob import glob
@@ -259,6 +262,9 @@ class SubUnitTee(object):
     def flush(self):
         self.stdout.flush()
         self.stderr.flush()
+
+# Testing stuff ends here.
+###############################
 
 setup(
     name='spyne',
