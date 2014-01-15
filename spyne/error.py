@@ -72,8 +72,12 @@ class ValidationError(Fault):
 
         if len(s) > MAX_STRING_FIELD_LENGTH:
             s = s[:MAX_STRING_FIELD_LENGTH] + "(...)"
+        try:
+            msg = custom_msg % s
+        except TypeError:
+            msg = custom_msg
 
-        super(ValidationError, self).__init__('Client.ValidationError', custom_msg % s)
+        super(ValidationError, self).__init__('Client.ValidationError', msg)
 
 
 class InternalError(Fault):
