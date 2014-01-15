@@ -117,23 +117,24 @@ def call_trial(*tests):
     from itertools import chain
 
     global _ctr
+    _ctr += 1
     file_name = 'test_result.%d.subunit' % _ctr
-    t = Tee(file_name)
+    with SubUnitTee(file_name):
+        tests_dir = os.path.dirname(spyne.test.__file__)
+        sys.argv = ['trial', '--reporter=subunit']
+        sys.argv.extend(chain(*[glob(join(tests_dir, test)) for test in tests]))
 
-    tests_dir = os.path.dirname(spyne.test.__file__)
-    sys.argv = ['trial', '--reporter=subunit']
-    sys.argv.extend(chain(*[glob(join(tests_dir, test)) for test in tests]))
+        from twisted.scripts.trial import Options
+        from twisted.scripts.trial import _makeRunner
+        from twisted.scripts.trial import _getSuite
 
-    from twisted.scripts.trial import Options
-    from twisted.scripts.trial import _makeRunner
-    from twisted.scripts.trial import _getSuite
+        config = Options()
+        config.parseOptions()
 
-    config = Options()
-    config.parseOptions()
+        trialRunner = _makeRunner(config)
+        suite = _getSuite(config)
+        test_result = trialRunner.run(suite)
 
-    trialRunner = _makeRunner(config)
-    suite = _getSuite(config)
-    test_result = trialRunner.run(suite)
 
     return int(not test_result.wasSuccessful())
 
@@ -187,14 +188,16 @@ else:
     test_reqs.extend(['pyparsing'])
 
 
-class Tee(object):
+class SubUnitTee(object):
     def __init__(self, name):
-        self.file = open(name, 'wb')
+        self.name = name
+    def __enter__(self):
+        self.file = open(self.name, 'wb')
         self.stdout = sys.stdout
         self.stderr = sys.stderr
         sys.stdout = sys.stderr = self
 
-    def __del__(self):
+    def __exit__(self, *args):
         sys.stdout = self.stdout
         sys.stderr = self.stderr
         print "CLOSED"
