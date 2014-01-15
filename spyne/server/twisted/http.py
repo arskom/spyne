@@ -176,52 +176,18 @@ class TwistedWebResource(Resource):
             self.http_transport.get_in_object(p_ctx)
 
             if p_ctx.in_error:
-                return self.handle_rpc_error(p_ctx, others, p_ctx.in_error, request)
-
-            else:
-                self.http_transport.get_out_object(p_ctx)
-                if p_ctx.out_error:
-                    return self.handle_rpc_error(p_ctx, others, p_ctx.out_error,
+                return self.handle_rpc_error(p_ctx, others, p_ctx.in_error,
                                                                         request)
 
-        def _cb_request_finished(request):
-            request.finish()
-            p_ctx.close()
-
-        def _eb_request_finished(request):
-            err(request)
-            p_ctx.close()
-            request.finish()
-
-        def _cb_deferred(retval, request, cb=True):
-            if cb and len(p_ctx.descriptor.out_message._type_info) <= 1:
-                p_ctx.out_object = [retval]
-            else:
-                p_ctx.out_object = retval
-
-            self.http_transport.get_out_string(p_ctx)
-
-            process_contexts(self.http_transport, others, p_ctx)
-
-            producer = _Producer(p_ctx.out_string, request)
-            producer.deferred.addCallbacks(_cb_request_finished,
-                                                           _eb_request_finished)
-            request.registerProducer(producer, False)
-
-        def _eb_deferred(retval, request):
-            p_ctx.out_error = retval.value
-            if not issubclass(retval.type, Fault):
-                retval.printTraceback()
-                p_ctx.out_error = InternalError(retval.value)
-
-            ret = self.handle_rpc_error(p_ctx, others, p_ctx.out_error, request)
-            request.write(ret)
-            request.finish()
+            self.http_transport.get_out_object(p_ctx)
+            if p_ctx.out_error:
+                return self.handle_rpc_error(p_ctx, others, p_ctx.out_error,
+                                                                        request)
 
         ret = p_ctx.out_object[0]
         if isinstance(ret, Deferred):
-            ret.addCallback(_cb_deferred, request)
-            ret.addErrback(_eb_deferred, request)
+            ret.addCallback(_cb_deferred, request, p_ctx, others, self)
+            ret.addErrback(_eb_deferred, request, p_ctx, others, self)
 
         elif isinstance(ret, PushBase):
             p_ctx.out_stream = request
@@ -255,7 +221,7 @@ class TwistedWebResource(Resource):
                 ret.close()
 
         else:
-            _cb_deferred(p_ctx.out_object, request, cb=False)
+            _cb_deferred(p_ctx.out_object, request, p_ctx, others, self, cb=False)
 
         return NOT_DONE_YET
 
@@ -291,3 +257,39 @@ class TwistedWebResource(Resource):
 
         finally:
             ctx.close()
+
+
+def _cb_request_finished(request, p_ctx):
+    request.finish()
+    p_ctx.close()
+
+def _eb_request_finished(request, p_ctx):
+    err(request)
+    p_ctx.close()
+    request.finish()
+
+def _cb_deferred(retval, request, p_ctx, others, resource, cb=True):
+    if cb and len(p_ctx.descriptor.out_message._type_info) <= 1:
+        p_ctx.out_object = [retval]
+    else:
+        p_ctx.out_object = retval
+
+    resource.http_transport.get_out_string(p_ctx)
+
+    process_contexts(resource.http_transport, others, p_ctx)
+
+    producer = Producer(p_ctx.out_string, request)
+    producer.deferred.addCallback(_cb_request_finished, p_ctx, others, resource)
+    producer.deferred.addErrback(_eb_request_finished, p_ctx, others, resource)
+
+    request.registerProducer(producer, False)
+
+def _eb_deferred(retval, request, p_ctx, others, resource):
+    p_ctx.out_error = retval.value
+    if not issubclass(retval.type, Fault):
+        retval.printTraceback()
+        p_ctx.out_error = InternalError(retval.value)
+
+    ret = resource.handle_rpc_error(p_ctx, others, p_ctx.out_error, request)
+    request.write(ret)
+    request.finish()
