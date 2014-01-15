@@ -112,21 +112,30 @@ def call_pytest_subprocess(*tests):
 
 
 def call_trial(*tests):
+    import spyne.test
+    from glob import glob
+    from itertools import chain
+
+    global _ctr
+    file_name = 'test_result.%d.subunit' % _ctr
+    t = Tee(file_name)
+
+    tests_dir = os.path.dirname(spyne.test.__file__)
+    sys.argv = ['trial', '--reporter=subunit']
+    sys.argv.extend(chain(*[glob(join(tests_dir, test)) for test in tests]))
+
     from twisted.scripts.trial import Options
     from twisted.scripts.trial import _makeRunner
     from twisted.scripts.trial import _getSuite
 
-    def run():
-        config = Options()
-        config.parseOptions()
+    config = Options()
+    config.parseOptions()
 
-        trialRunner = _makeRunner(config)
-        suite = _getSuite(config)
-        test_result = trialRunner.run(suite)
+    trialRunner = _makeRunner(config)
+    suite = _getSuite(config)
+    test_result = trialRunner.run(suite)
 
-        return int(not test_result.wasSuccessful())
-
-    return call_test(run, [], tests)
+    return int(not test_result.wasSuccessful())
 
 
 class InstallTestDeps(TestCommand):
@@ -168,6 +177,7 @@ test_reqs = [
     'pytest', 'werkzeug', 'sqlalchemy', 'coverage',
     'lxml>=2.3', 'pyyaml', 'pyzmq', 'twisted', 'colorama',
     'msgpack-python', 'webtest', 'django<1.5.99', 'pytest_django',
+    'python-subunit', 'junitxml', # to get junitxml output from trial
 ]
 
 import sys
@@ -175,6 +185,45 @@ if sys.version_info < (3,0):
     test_reqs.extend(['pyparsing<1.99', 'suds'])
 else:
     test_reqs.extend(['pyparsing'])
+
+
+class Tee(object):
+    def __init__(self, name):
+        self.file = open(name, 'wb')
+        self.stdout = sys.stdout
+        self.stderr = sys.stderr
+        sys.stdout = sys.stderr = self
+
+    def __del__(self):
+        sys.stdout = self.stdout
+        sys.stderr = self.stderr
+        print "CLOSED"
+        self.file.close()
+
+    def writelines(self, data):
+        for d in data:
+            self.write(data)
+            self.write('\n')
+
+    def write(self, data):
+        if data.startswith("test:") \
+                or data.startswith("successful:") \
+                or data.startswith("error:") \
+                or data.startswith("failure:") \
+                or data.startswith("skip:") \
+                or data.startswith("notsupported:"):
+            self.file.write(data)
+            if not data.endswith("\n"):
+                self.file.write("\n")
+
+        self.stdout.write(data)
+
+    def read(self,d=0):
+        return ''
+
+    def flush(self):
+        self.stdout.flush()
+        self.stderr.flush()
 
 setup(
     name='spyne',
