@@ -33,7 +33,7 @@ from spyne.server import ServerBase
 
 
 def _process_v1_msg(prot, msg):
-    ctx = MethodContext(prot)
+    ctx = MessagePackMethodContext(prot)
 
     header = None
     body = msg[1]
@@ -51,27 +51,29 @@ def _process_v1_msg(prot, msg):
     return ctx
 
 
-class MsgPackTransportContext(TransportContext):
+class MessagePackTransportContext(TransportContext):
     def __init__(self, parent, transport):
-        super(MsgPackTransportContext, self).__init__(parent, transport)
+        super(MessagePackTransportContext, self).__init__(parent, transport)
 
         self.in_header = None
 
 
-class MsgPackMethodContext(MethodContext):
+class MessagePackMethodContext(MethodContext):
     def __init__(self, transport):
-        super(MsgPackMethodContext, self).__init__(transport)
+        super(MessagePackMethodContext, self).__init__(transport)
 
-        self.transport = MsgPackTransportContext()
-
-
-_version_map = {
-    1: _process_v1_msg
-}
+        self.transport = MessagePackTransportContext(self, transport)
 
 
-class MsgPackServerBase(ServerBase):
+class MessagePackServerBase(ServerBase):
     """Contains the transport protocol logic but not the transport itself."""
+
+    def __init__(self, app):
+        super(MessagePackServerBase, self).__init__(app)
+
+        self._version_map = {
+            1: _process_v1_msg
+        }
 
     def produce_contexts(self, msg):
         """ msg = [1, body, header] """
@@ -85,7 +87,7 @@ class MsgPackServerBase(ServerBase):
         if not isinstance(msg[0], int):
             raise ValidationError("Request version must be an integer.")
 
-        processor = _version_map.get(msg[0], None)
+        processor = self._version_map.get(msg[0], None)
         if processor is None:
             raise ValidationError("Unknown request version")
 

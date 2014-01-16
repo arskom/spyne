@@ -26,19 +26,27 @@ import msgpack
 
 from twisted.internet.defer import Deferred
 from twisted.python.log import err
-from twisted.internet.protocol import Protocol
+from twisted.internet.protocol import Protocol, Factory
 
 from spyne.auxproc import process_contexts
 from spyne.error import ValidationError, InternalError
 from spyne.model import Fault
-from spyne.server.msgpack import MsgPackServerBase
+from spyne.server.msgpack import MessagePackServerBase
 
+
+class TwistedMessagePackProtocolFactory(Factory):
+    def __init__(self, app, base=MessagePackServerBase):
+        self.app = app
+        self.base = base
+
+    def buildProtocol(self, address):
+        return TwistedMessagePackProtocol(self.app, self.base)
 
 class TwistedMessagePackProtocol(Protocol):
-    def __init__(self, app):
+    def __init__(self, app, base=MessagePackServerBase):
         # FIXME: So, how do we prevent the buffer from growing indefinitely?
         self._buffer = msgpack.Unpacker()
-        self._transport = MsgPackServerBase(app)
+        self._transport = base(app)
 
     def dataReceived(self, data):
         self._buffer.feed(data)
