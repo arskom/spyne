@@ -48,6 +48,12 @@ class TwistedMessagePackProtocol(Protocol):
         self._buffer = msgpack.Unpacker()
         self._transport = base(app)
 
+    def connectionLost(self):
+        logger.info("%r connection lost.", self)
+
+    def connectionMade(self):
+        logger.info("%r connection made.", self)
+
     def dataReceived(self, data):
         self._buffer.feed(data)
 
