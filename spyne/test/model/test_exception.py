@@ -51,7 +51,7 @@ class FaultTests(unittest.TestCase):
         self.assertEqual(fault.faultstring, 'Overridden')
         self.assertEqual(repr(fault), "Fault(Server: 'Overridden')")
 
-    def test_to_parent_element_wo_detail(self):
+    def test_to_parent_wo_detail(self):
         from lxml.etree import Element
         import spyne.const.xml_ns
         ns_soap_env = spyne.const.xml_ns.soap_env
@@ -60,7 +60,7 @@ class FaultTests(unittest.TestCase):
         fault = Fault()
         cls = Fault
 
-        XmlDocument().to_parent_element(cls, fault, 'urn:ignored', element)
+        XmlDocument().to_parent(None, cls, fault, element, 'urn:ignored')
 
         (child,) = element.getchildren()
         self.assertEqual(child.tag, '{%s}Fault' % ns_soap_env)
@@ -69,14 +69,14 @@ class FaultTests(unittest.TestCase):
         self.assertEqual(child.find('faultactor').text, '')
         self.failIf(child.findall('detail'))
 
-    def test_to_parent_element_w_detail(self):
+    def test_to_parent_w_detail(self):
         from lxml.etree import Element
         element = Element('testing')
         detail = Element('something')
         fault = Fault(detail=detail)
         cls = Fault
 
-        XmlDocument().to_parent_element(cls, fault, 'urn:ignored', element)
+        XmlDocument().to_parent(None, cls, fault, element, 'urn:ignored')
 
         (child,) = element.getchildren()
         self.failUnless(child.find('detail').find('something') is detail)
@@ -95,7 +95,7 @@ class FaultTests(unittest.TestCase):
         actor = SubElement(element, 'faultactor')
         actor.text = 'phreddy'
 
-        fault = XmlDocument().from_element(Fault, element)
+        fault = XmlDocument().from_element(None, Fault, element)
 
         self.assertEqual(fault.faultcode, 'senv:other')
         self.assertEqual(fault.faultstring, 'Testing')
@@ -117,7 +117,7 @@ class FaultTests(unittest.TestCase):
         actor.text = 'phreddy'
         detail = SubElement(element, 'detail')
 
-        fault = XmlDocument().from_element(Fault, element)
+        fault = XmlDocument().from_element(None, Fault, element)
 
         self.failUnless(fault.detail is detail)
 

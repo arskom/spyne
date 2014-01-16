@@ -150,9 +150,9 @@ def complex_add(document, cls, tags):
         document.add(v, tags)
 
         name = a.sub_name
-        ns = a.sub_ns
         if name is None:
             name = k
+        #ns = a.sub_ns
         #if ns is not None:
         #    name = "{%s}%s" % (ns, name)
 
@@ -161,8 +161,7 @@ def complex_add(document, cls, tags):
             member.set('name', name)
             member.set('type', v.get_type_name_ns(document.interface))
 
-        elif a.schema_tag == '{%s}any' % _ns_xsd and \
-                                                    (issubclass(v, AnyXml)):
+        elif a.schema_tag == '{%s}any' % _ns_xsd and issubclass(v, AnyXml):
             if a.namespace is not None:
                 member.set('namespace', a.namespace)
             if a.process_contents is not None:
@@ -172,10 +171,10 @@ def complex_add(document, cls, tags):
             raise ValueError("Unhandled schema_tag / type combination. %r %r"
                     % (v, a.schema_tag))
 
-        if a.min_occurs != 1: # 1 is the xml schema default
+        if a.min_occurs != 1:  # 1 is the xml schema default
             member.set('minOccurs', str(a.min_occurs))
 
-        if a.max_occurs != 1: # 1 is the xml schema default
+        if a.max_occurs != 1:  # 1 is the xml schema default
             val = a.max_occurs
             if val in (decimal.Decimal('inf'), float('inf')):
                 val = 'unbounded'

@@ -29,100 +29,79 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-
-"""This is a blocking example running in a single-process twisted setup.
-
-In this example, user code runs directly in the reactor loop. So unless your
-code fully adheres to the asynchronous programming principles, you can block
-the reactor loop. ::
-
-    $ time curl -s "http://localhost:9757/block?seconds=10" > /dev/null & \
-      time curl -s "http://localhost:9757/block?seconds=10" > /dev/null &
-    [1] 27559
-    [2] 27560
-
-    real    0m10.026s
-    user    0m0.005s
-    sys     0m0.008s
-
-    real    0m20.045s
-    user    0m0.009s
-    sys     0m0.005s
-
-If you call sleep, it sleeps by returning a deferred: ::
-
-    $ time curl -s "http://localhost:9757/sleep?seconds=10" > /dev/null & \
-      time curl -s "http://localhost:9757/sleep?seconds=10" > /dev/null &
-    [1] 27778
-    [2] 27779
-
-    real    0m10.012s
-    user    0m0.000s
-    sys     0m0.000s
-
-    real    0m10.013s
-    user    0m0.000s
-    sys     0m0.000s
-"""
-
+port = 8000
+host = '127.0.0.1'
 
 import logging
 import sys
 
 from twisted.internet import reactor
-from twisted.web.server import Site
 from twisted.internet.task import deferLater
-from spyne.model import Unicode, Integer, Double
+from twisted.web.server import Site
 
-from spyne.model.binary import ByteArray
-from spyne.model.complex import Iterable
+from spyne.application import Application
+from spyne.protocol.http import HttpRpc
+
+from spyne.protocol.html import HtmlTable
 
 from spyne.server.twisted import TwistedWebResource
+
 from spyne.decorator import rpc
 from spyne.service import ServiceBase
-
-from _service import initialize
-from _service import SomeService
-
-host = '0.0.0.0'
-port = 9758
+from spyne.model.complex import Iterable
+from spyne.model.primitive import Unicode, UnsignedInteger
 
 
-class SomeNonBlockingService(ServiceBase):
-    @rpc(Integer, _returns=Unicode)
-    def sleep(ctx, seconds):
-        """Waits without blocking reactor for given number of seconds by
-        returning a deferred."""
+class HelloWorldService(ServiceBase):
+    @rpc(Unicode(default='World'), UnsignedInteger(default=5),
+                                                    _returns=Iterable(Unicode))
+    def say_hello(ctx, name, times):
+        # workaround for Python2's lacking of nonlocal
+        times = [times]
+        def _cb(push):
+            # This callback is called immediately after the function returns.
 
-        def _cb():
-            return "slept for %r seconds" % seconds
-
-        return deferLater(reactor, seconds, _cb)
-
-    @rpc(Unicode, Double, Double, _returns=ByteArray)
-    def say_hello_with_sleep(ctx, name, times, seconds):
-        """Sends multiple hello messages by waiting given number of seconds
-        inbetween."""
-
-        times = [times] # Workaround for Python 2's lacking of nonlocal
-        def _cb(response):
             if times[0] > 0:
-                response.append(
-                    "Hello %s, sleeping for %f seconds for %d more time(s)."
-                                                   % (name, seconds, times[0]))
                 times[0] -= 1
-                return deferLater(reactor, seconds, _cb, response)
+
+                data = u'Hello, %s' % name
+                print data
+
+                # The object passed to the append() method is immediately
+                # serialized to bytes and pushed to the response stream's
+                # file-like object.
+                push.append(data)
+
+                # When a push-callback returns anything other than a deferred,
+                # the response gets closed.
+                return deferLater(reactor, 1, _cb, push)
+
+        # This is Spyne's way of returning NOT_DONE_YET
+        return Iterable.Push(_cb)
+
+    @rpc(Unicode(default='World'), _returns=Iterable(Unicode))
+    def say_hello_forever(ctx, name):
+        def _cb(push):
+            push.append(u'Hello, %s' % name)
+            return deferLater(reactor, 0.1, _cb, push)
 
         return Iterable.Push(_cb)
 
 
 if __name__=='__main__':
-    application = initialize([SomeService, SomeNonBlockingService])
+    application = Application([HelloWorldService],
+            'spyne.examples.twisted.resource_push',
+            in_protocol=HttpRpc(),
+            out_protocol=HtmlTable(),
+        )
+
     resource = TwistedWebResource(application)
     site = Site(resource)
 
     reactor.listenTCP(port, site, interface=host)
 
+    logging.basicConfig(level=logging.DEBUG)
+    logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
     logging.info("listening on: %s:%d" % (host,port))
     logging.info('wsdl is at: http://%s:%d/?wsdl' % (host, port))
 

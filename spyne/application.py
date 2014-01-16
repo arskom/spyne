@@ -32,8 +32,8 @@ from spyne.util.appreg import register_application
 from spyne.error import ResourceNotFoundError
 
 
-
 def get_fault_string_from_exception(e):
+    # haha.
     return "Internal Error"
 
 

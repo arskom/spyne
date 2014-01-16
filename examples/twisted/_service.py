@@ -52,7 +52,7 @@ class SomeService(ServiceBase):
         return seconds
 
 
-def initialize(services, tns):
+def initialize(services, tns='spyne.examples.twisted.resource'):
     logging.basicConfig(level=logging.DEBUG)
     logging.getLogger('spyne.protocol.xml').setLevel(logging.DEBUG)
 

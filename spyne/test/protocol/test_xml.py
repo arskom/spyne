@@ -29,12 +29,14 @@ from pprint import pprint
 
 from lxml import etree
 
-from spyne import MethodContext
+from spyne import MethodContext, rpc
+from spyne._base import FakeContext
 from spyne.const import RESULT_SUFFIX
 from spyne.service import ServiceBase
 from spyne.server import ServerBase
 from spyne.application import Application
 from spyne.decorator import srpc
+from spyne.util.six import StringIO
 from spyne.model.primitive import Integer
 from spyne.model.primitive import Decimal
 from spyne.model.primitive import Unicode
@@ -46,7 +48,7 @@ from spyne.model.complex import ComplexModel
 from spyne.model.complex import XmlAttribute
 from spyne.model.complex import Mandatory as M
 from spyne.protocol.xml import XmlDocument
-from spyne.protocol.xml._base import SchemaValidationError
+from spyne.protocol.xml import SchemaValidationError
 from spyne.util.xml import get_xml_as_object
 
 
@@ -204,13 +206,15 @@ class TestXml(unittest.TestCase):
 
         elt = etree.fromstring(''.join(ctx.out_string))
         target = elt.xpath('//s0:b', namespaces=app.interface.nsmap)[0]
+
+        print etree.tostring(elt, pretty_print=True)
         assert target.attrib['{%s}c' % app.interface.nsmap["s1"]] == "bar"
 
     def test_wrapped_array(self):
         parent = etree.Element('parent')
         val = ['a', 'b']
         cls = Array(Unicode, namespace='tns')
-        XmlDocument().to_parent_element(cls, val, 'tns', parent)
+        XmlDocument().to_parent(None, cls, val, parent, 'tns')
         print(etree.tostring(parent, pretty_print=True))
         xpath = parent.xpath('//x:stringArray/x:string/text()',
                                                         namespaces={'x': 'tns'})
@@ -223,7 +227,7 @@ class TestXml(unittest.TestCase):
         val = cls(s=['a', 'b'])
 
         parent = etree.Element('parent')
-        XmlDocument().to_parent_element(cls, val, 'tns', parent)
+        XmlDocument().to_parent(None, cls, val, parent, 'tns')
         print(etree.tostring(parent, pretty_print=True))
         xpath = parent.xpath('//x:cls/x:s/text()', namespaces={'x': 'tns'})
         assert xpath == val.s
@@ -463,6 +467,66 @@ class TestXml(unittest.TestCase):
             '</some_call>'
         ])
         self.assertRaises(SchemaValidationError, server.get_out_object, ctx)
+
+
+class TestIncremental(unittest.TestCase):
+    def test_one(self):
+        class SomeComplexModel(ComplexModel):
+            s = Unicode
+            i = Integer
+
+        v = SomeComplexModel(s='a', i=1),
+
+        class SomeService(ServiceBase):
+            @rpc(_returns=SomeComplexModel)
+            def get(ctx):
+                return v
+
+        desc = SomeService.public_methods['get']
+        ctx = FakeContext(out_object=v, descriptor=desc)
+        ostr = ctx.out_stream = StringIO()
+        XmlDocument(Application([SomeService], __name__)) \
+                             .serialize(ctx, XmlDocument.RESPONSE)
+
+        elt = etree.fromstring(ostr.getvalue())
+        print etree.tostring(elt, pretty_print=True)
+
+        assert elt.xpath('x:getResult/x:i/text()',
+                                            namespaces={'x':__name__}) == ['1']
+        assert elt.xpath('x:getResult/x:s/text()',
+                                            namespaces={'x':__name__}) == ['a']
+
+    def test_many(self):
+        class SomeComplexModel(ComplexModel):
+            s = Unicode
+            i = Integer
+
+        v = [
+            SomeComplexModel(s='a', i=1),
+            SomeComplexModel(s='b', i=2),
+            SomeComplexModel(s='c', i=3),
+            SomeComplexModel(s='d', i=4),
+            SomeComplexModel(s='e', i=5),
+        ]
+
+        class SomeService(ServiceBase):
+            @rpc(_returns=Array(SomeComplexModel))
+            def get(ctx):
+                return v
+
+        desc = SomeService.public_methods['get']
+        ctx = FakeContext(out_object=[v], descriptor=desc)
+        ostr = ctx.out_stream = StringIO()
+        XmlDocument(Application([SomeService], __name__)) \
+                            .serialize(ctx, XmlDocument.RESPONSE)
+
+        elt = etree.fromstring(ostr.getvalue())
+        print etree.tostring(elt, pretty_print=True)
+
+        assert elt.xpath('x:getResult/x:SomeComplexModel/x:i/text()',
+                        namespaces={'x':__name__}) == ['1', '2', '3', '4', '5']
+        assert elt.xpath('x:getResult/x:SomeComplexModel/x:s/text()',
+                        namespaces={'x':__name__}) == ['a', 'b', 'c', 'd', 'e']
 
 
 if __name__ == '__main__':

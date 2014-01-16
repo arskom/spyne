@@ -23,7 +23,6 @@ except ImportError:
 import inspect
 from os.path import join, dirname, abspath
 OWN_PATH = abspath(inspect.getfile(inspect.currentframe()))
-TEST_DIR = join(dirname(OWN_PATH), 'test')
 EXAMPLES_DIR = join(dirname(OWN_PATH), 'examples')
 
 v = open(os.path.join(os.path.dirname(__file__), 'spyne', '__init__.py'), 'r')
@@ -45,6 +44,9 @@ except OSError:
     pass
 
 
+###############################
+# Testing stuff
+
 def call_test(f, a, tests):
     import spyne.test
     from glob import glob
@@ -52,7 +54,7 @@ def call_test(f, a, tests):
     from multiprocessing import Process, Queue
 
     tests_dir = os.path.dirname(spyne.test.__file__)
-    a.extend(chain(*[glob("%s/%s" % (tests_dir, test)) for test in tests]))
+    a.extend(chain(*[glob(join(tests_dir, test)) for test in tests]))
 
     queue = Queue()
     p = Process(target=_wrapper(f), args=[a, queue])
@@ -96,7 +98,7 @@ def call_pytest(*tests):
 
     tests_dir = os.path.dirname(spyne.test.__file__)
 
-    args = ['-v', '--tb=short', '--junitxml=%s' % file_name]
+    args = ['--tb=short', '--junitxml=%s' % file_name]
     args.extend(chain(*[glob("%s/%s" % (tests_dir, test)) for test in tests]))
 
     return pytest.main(args)
@@ -109,15 +111,25 @@ def call_pytest_subprocess(*tests):
     file_name = 'test_result.%d.xml' % _ctr
     if os.path.isfile(file_name):
         os.unlink(file_name)
-    return call_test(pytest.main, ['-v', '--tb=short', '--junitxml=%s' % file_name], tests)
-
+    return call_test(pytest.main, ['--tb=line', '--junitxml=%s' % file_name], tests)
 
 def call_trial(*tests):
-    from twisted.scripts.trial import Options
-    from twisted.scripts.trial import _makeRunner
-    from twisted.scripts.trial import _getSuite
+    import spyne.test
+    from glob import glob
+    from itertools import chain
 
-    def run():
+    global _ctr
+    _ctr += 1
+    file_name = 'test_result.%d.subunit' % _ctr
+    with SubUnitTee(file_name):
+        tests_dir = os.path.dirname(spyne.test.__file__)
+        sys.argv = ['trial', '--reporter=subunit']
+        sys.argv.extend(chain(*[glob(join(tests_dir, test)) for test in tests]))
+
+        from twisted.scripts.trial import Options
+        from twisted.scripts.trial import _makeRunner
+        from twisted.scripts.trial import _getSuite
+
         config = Options()
         config.parseOptions()
 
@@ -125,14 +137,49 @@ def call_trial(*tests):
         suite = _getSuite(config)
         test_result = trialRunner.run(suite)
 
-        return int(not test_result.wasSuccessful())
+    try:
+        subunit2junitxml(_ctr)
+    except Exception as e:
+        # this is not super important.
+        print e
 
-    return call_test(run, [], tests)
+    return int(not test_result.wasSuccessful())
 
 
 class InstallTestDeps(TestCommand):
     pass
 
+
+def subunit2junitxml(ctr):
+    from testtools import ExtendedToStreamDecorator
+    from testtools import StreamToExtendedDecorator
+
+    from subunit import StreamResultToBytes
+    from subunit.filters import filter_by_result
+    from subunit.filters import run_tests_from_stream
+
+    from spyne.util.six import BytesIO
+
+    from junitxml import JUnitXmlResult
+
+    sys.argv = ['subunit-1to2']
+    subunit1_file_name = 'test_result.%d.subunit' % ctr
+
+    subunit2 = BytesIO()
+    run_tests_from_stream(open(subunit1_file_name, 'rb'),
+                    ExtendedToStreamDecorator(StreamResultToBytes(subunit2)))
+    subunit2.seek(0)
+
+    sys.argv = ['subunit2junitxml']
+    sys.stdin = subunit2
+
+    def f(output):
+        return StreamToExtendedDecorator(JUnitXmlResult(output))
+
+    junit_file_name = 'test_result.%d.xml' % ctr
+
+    filter_by_result(f, junit_file_name, True, False, protocol_version=2,
+                                passthrough_subunit=True, input_stream=subunit2)
 
 class RunTests(TestCommand):
     def finalize_options(self):
@@ -156,7 +203,8 @@ class RunTests(TestCommand):
         ret = call_pytest_subprocess('interop/test_soap_client_http.py') or ret
         ret = call_pytest_subprocess('interop/test_soap_client_zeromq.py') or ret
         ret = call_pytest_subprocess('interop/test_suds.py') or ret
-        ret = call_trial('interop/test_soap_client_http_twisted.py') or ret
+        ret = call_trial('interop/test_soap_client_http_twisted.py',
+                         'transport/test_msgpack.py') or ret
 
         if ret == 0:
             print(GREEN + "All that glisters is not gold." + RESET)
@@ -169,6 +217,7 @@ test_reqs = [
     'pytest', 'werkzeug', 'sqlalchemy', 'coverage',
     'lxml>=2.3', 'pyyaml', 'pyzmq', 'twisted', 'colorama',
     'msgpack-python', 'webtest', 'django<1.5.99', 'pytest_django',
+    'python-subunit', 'junitxml', # to get junitxml output from trial
 ]
 
 import sys
@@ -176,6 +225,50 @@ if sys.version_info < (3,0):
     test_reqs.extend(['pyparsing<1.99', 'suds'])
 else:
     test_reqs.extend(['pyparsing'])
+
+
+class SubUnitTee(object):
+    def __init__(self, name):
+        self.name = name
+    def __enter__(self):
+        self.file = open(self.name, 'wb')
+        self.stdout = sys.stdout
+        self.stderr = sys.stderr
+        sys.stdout = sys.stderr = self
+
+    def __exit__(self, *args):
+        sys.stdout = self.stdout
+        sys.stderr = self.stderr
+        print "CLOSED"
+        self.file.close()
+
+    def writelines(self, data):
+        for d in data:
+            self.write(data)
+            self.write('\n')
+
+    def write(self, data):
+        if data.startswith("test:") \
+                or data.startswith("successful:") \
+                or data.startswith("error:") \
+                or data.startswith("failure:") \
+                or data.startswith("skip:") \
+                or data.startswith("notsupported:"):
+            self.file.write(data)
+            if not data.endswith("\n"):
+                self.file.write("\n")
+
+        self.stdout.write(data)
+
+    def read(self,d=0):
+        return ''
+
+    def flush(self):
+        self.stdout.flush()
+        self.stderr.flush()
+
+# Testing stuff ends here.
+###############################
 
 setup(
     name='spyne',

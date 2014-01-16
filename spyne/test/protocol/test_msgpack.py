@@ -18,12 +18,10 @@
 #
 
 import unittest
-from spyne.util import six
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
-if six.PY3:
-    from io import StringIO
-else:
-    from StringIO import StringIO
+from spyne.util.six import StringIO
 
 import msgpack
 
@@ -46,7 +44,6 @@ from spyne.test.test_service import start_response
 
 
 TestMessagePackDocument  = TDictDocumentTest(msgpack, MessagePackDocument)
-
 
 class TestMessagePackRpc(unittest.TestCase):
     def test_invalid_input(self):
@@ -121,6 +118,7 @@ class TestMessagePackRpc(unittest.TestCase):
         ])
         print(s)
         assert ret == s
+
 
 if __name__ == '__main__':
     unittest.main()

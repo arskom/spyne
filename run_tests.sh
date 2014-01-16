@@ -107,7 +107,7 @@ if [ $PYIMPL == 'cpy' ]; then
         wget -ct0 $CPYTHON_URL_BASE/$FN;
         tar xf $(basename $FN);
         cd "$PREFIX";
-        ./configure --prefix="$WORKSPACE/$PREFIX";
+        ./configure --prefix="$WORKSPACE/$PREFIX" --with-pydebug;
         $MAKE && make install;
       );
     fi;

@@ -510,7 +510,7 @@ def print_pending(ctx, fail=False):
 def parse_schema(ctx, elt):
     ctx.nsmap = nsmap = elt.nsmap
     ctx.prefmap = prefmap = dict([(v,k) for k,v in ctx.nsmap.items()])
-    ctx.schema = schema = _prot.from_element(XmlSchema10, elt)
+    ctx.schema = schema = _prot.from_element(ctx, XmlSchema10, elt)
 
     ctx.pending_types = {}
     ctx.pending_elements = {}

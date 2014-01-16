@@ -27,9 +27,9 @@ import spyne.const.xml_ns
 
 from decimal import Decimal
 
+from spyne.util import Break
 from spyne.util.six import add_metaclass
 
-from spyne.util import Break
 from spyne.const.xml_ns import DEFAULT_NS
 
 
@@ -516,7 +516,7 @@ class SimpleModel(ModelBase):
 
 
 class PushBase(object):
-    def __init__(self, callback, errback=None):
+    def __init__(self, callback=None, errback=None):
         self._cb = callback
         self._eb = errback
 
@@ -542,7 +542,8 @@ class PushBase(object):
 
     def init(self, ctx, response, gen, _cb_finish, _eb_finish):
         self._init(ctx, response, gen, _cb_finish, _eb_finish)
-        return self._cb(self)
+        if self._cb is not None:
+            return self._cb(self)
 
     def __len__(self):
         return self.length
@@ -554,7 +555,83 @@ class PushBase(object):
     def close(self):
         try:
             self.gen.throw(Break())
-        except StopIteration:
+        except Break:
             pass
-
         self._cb_finish()
+
+
+class xml:
+    """Compound option object for xml serialization. It's meant to be passed to
+    :func:`ComplexModelBase.Attributes.store_as`.
+
+    :param root_tag: Root tag of the xml element that contains the field values.
+    :param no_ns: When true, the xml document is stripped from namespace
+        information. This is generally a stupid thing to do. Use with caution.
+    """
+
+    def __init__(self, root_tag=None, no_ns=False):
+        self.root_tag = root_tag
+        self.no_ns = no_ns
+
+
+class table:
+    """Compound option object for for storing the class instance as in row in a
+    table in a relational database. It's meant to be passed to
+    :func:`ComplexModelBase.Attributes.store_as`.
+
+    :param multi: When False, configures a one-to-many relationship where the
+        child table has a foreign key to the parent. When not ``False``,
+        configures a many-to-many relationship by creating an intermediate
+        relation table that has foreign keys to both parent and child classes
+        and generates a table name automatically. When ``True``, the table name
+        is generated automatically. Otherwise, it should be a string, as the
+        value is used as the name of the intermediate table.
+    :param left: Name of the left join column.
+    :param right: Name of the right join column.
+    """
+
+    def __init__(self, multi=False, left=None, right=None, backref=None,
+                                  id_backref=None, cascade=False, lazy='select'):
+        self.multi = multi
+        self.left = left
+        self.right = right
+        self.backref = backref
+        self.id_backref = id_backref
+        self.cascade = cascade
+        self.lazy = lazy
+
+
+class json:
+    """Compound option object for json serialization. It's meant to be passed to
+    :func:`ComplexModelBase.Attributes.store_as`.
+
+    Make sure you don't mix this with the json package when importing.
+    """
+
+    def __init__(self, ignore_wrappers=True, complex_as=dict):
+        if ignore_wrappers != True:
+            raise NotImplementedError("ignore_wrappers != True")
+        self.ignore_wrappers = ignore_wrappers
+        self.complex_as = complex_as
+
+
+class msgpack:
+    """Compound option object for msgpack serialization. It's meant to be passed
+    to :func:`ComplexModelBase.Attributes.store_as`.
+
+    Make sure you don't mix this with the msgpack package when importing.
+    """
+    def __init__(self):
+        pass
+
+
+def apply_pssm(val, pssm_map):
+    if val is not None:
+        val_c = pssm_map.get(val, None)
+        if val_c is None:
+            assert isinstance(val, tuple(pssm_map.values())), \
+             "'store_as' should be one of: %r or an instance of %r not %r" \
+             % (tuple(pssm_map.keys()), tuple(pssm_map.values()), val)
+
+            return val
+        return val_c()

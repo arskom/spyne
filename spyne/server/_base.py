@@ -103,7 +103,7 @@ class ServerBase(object):
             raise ctx.in_error
 
     @coroutine
-    def get_out_string(self, ctx):
+    def get_out_string_pull(self, ctx):
         """Uses the ``ctx.out_object`` to set ``ctx.out_document`` and later
         ``ctx.out_string``."""
 
@@ -113,8 +113,7 @@ class ServerBase(object):
             return
 
         if ctx.out_document is None:
-            ret = ctx.out_protocol.serialize(ctx,
-                                        message=ctx.out_protocol.RESPONSE)
+            ret = ctx.out_protocol.serialize(ctx, message=ProtocolBase.RESPONSE)
             if isgenerator(ret):
                 try:
                     while True:
@@ -147,6 +146,25 @@ class ServerBase(object):
 
         if ctx.out_string is None:
             ctx.out_string = [""]
+
+    get_out_string = get_out_string_pull
+
+    @coroutine
+    def get_out_string_push(self, ctx):
+        """Uses the ``ctx.out_object`` to directly set ``ctx.out_string``."""
+
+        ret = ctx.out_protocol.serialize(ctx, message=ProtocolBase.RESPONSE)
+        if isgenerator(ret):
+            try:
+                while True:
+                    y = (yield)
+                    ret.send(y)
+
+            except Break:
+                try:
+                    ret.throw(Break())
+                except StopIteration:
+                    pass
 
     def serve_forever():
         """Implement your event loop here, if needed."""

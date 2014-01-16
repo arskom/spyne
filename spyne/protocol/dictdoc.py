@@ -206,9 +206,8 @@ class DictDocument(ProtocolBase):
     def __init__(self, app=None, validator=None, mime_type=None,
             ignore_uncap=False, ignore_wrappers=True, complex_as=dict,
                                                                 ordered=False):
-        super(DictDocument, self).__init__(app, validator, mime_type, ignore_uncap)
+        super(DictDocument, self).__init__(app, validator, mime_type, ignore_uncap, ignore_wrappers)
 
-        self.ignore_wrappers = ignore_wrappers
         self.complex_as = complex_as
         self.ordered = ordered
         if ordered:

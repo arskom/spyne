@@ -28,11 +28,8 @@ logger = logging.getLogger(__name__)
 
 import sys
 import decimal
-from spyne.util import six
-
 import spyne
 
-from spyne.util.six import add_metaclass
 from weakref import WeakKeyDictionary
 from collections import deque
 from inspect import isclass
@@ -46,13 +43,19 @@ from spyne.model import ModelBase
 from spyne.model import PushBase
 from spyne.model import Unicode
 from spyne.model import Point
+from spyne.model import json, xml, msgpack, table
+from spyne.model._base import apply_pssm
 from spyne.model.primitive import NATIVE_MAP
 
+from spyne.util import six
 from spyne.util import memoize
 from spyne.util import memoize_id
 from spyne.util import sanitize_args
 from spyne.util.odict import odict
+from spyne.util.six import add_metaclass
 
+
+PSSM_VALUES = {'json': json, 'xml': xml, 'msgpack': msgpack, 'table': table}
 
 def _get_flat_type_info(cls, retval):
     parent = getattr(cls, '__extends__', None)
@@ -62,79 +65,11 @@ def _get_flat_type_info(cls, retval):
     return retval
 
 
-class xml:
-    """Compound option object for xml serialization. It's meant to be passed to
-    :func:`ComplexModelBase.Attributes.store_as`.
-
-    :param root_tag: Root tag of the xml element that contains the field values.
-    :param no_ns: When true, the xml document is stripped from namespace
-        information. use with caution.
-    """
-
-    def __init__(self, root_tag=None, no_ns=False):
-        self.root_tag = root_tag
-        self.no_ns = no_ns
-
-
-class table:
-    """Compound option object for for storing the class instance as in row in a
-    table in a relational database. It's meant to be passed to
-    :func:`ComplexModelBase.Attributes.store_as`.
-
-    :param multi: When False, configures a one-to-many relationship where the
-        child table has a foreign key to the parent. When not ``False``,
-        configures a many-to-many relationship by creating an intermediate
-        relation table that has foreign keys to both parent and child classes
-        and generates a table name automatically. When ``True``, the table name
-        is generated automatically. Otherwise, it should be a string, as the
-        value is used as the name of the intermediate table.
-    :param left: Name of the left join column.
-    :param right: Name of the right join column.
-    """
-
-    def __init__(self, multi=False, left=None, right=None, backref=None,
-                                  id_backref=None, cascade=False, lazy='select'):
-        self.multi = multi
-        self.left = left
-        self.right = right
-        self.backref = backref
-        self.id_backref = id_backref
-        self.cascade = cascade
-        self.lazy = lazy
-
-
-class json:
-    """Compound option object for json serialization. It's meant to be passed to
-    :func:`ComplexModelBase.Attributes.store_as`.
-
-    Make sure you don't mix this with the json package when importing.
-    """
-
-    def __init__(self, ignore_wrappers=True, complex_as=dict):
-        if ignore_wrappers != True:
-            raise NotImplementedError("ignore_wrappers != True")
-        self.ignore_wrappers = ignore_wrappers
-        self.complex_as = complex_as
-
-
-class msgpack:
-    """Compound option object for msgpack serialization. It's meant to be passed
-    to :func:`ComplexModelBase.Attributes.store_as`.
-
-    Make sure you don't mix this with the msgpack package when importing.
-    """
-    def __init__(self):
-        pass
-
-
-#Persistent storage serialization method values
-PSSM_VALUES = {'json': json, 'xml': xml, 'msgpack': msgpack, 'table': table}
-
-
 class TypeInfo(odict):
     def __init__(self, *args, **kwargs):
         super(TypeInfo, self).__init__(*args, **kwargs)
         self.attributes = {}
+
 
 class _SimpleTypeInfoElement(object):
     __slots__ = ['path', 'parent', 'type', 'is_array']
@@ -909,16 +844,9 @@ class ComplexModelBase(ModelBase):
         """Duplicates cls and overwrites the values in ``cls.Attributes`` with
         ``**kwargs`` and returns the new class."""
 
-        store_as = kwargs.get('store_as', None)
+        store_as = apply_pssm(kwargs.get('store_as', None), PSSM_VALUES)
         if store_as is not None:
-            val = PSSM_VALUES.get(store_as, None)
-            if val is None:
-                assert isinstance(store_as, tuple(PSSM_VALUES.values())), \
-                 "'store_as' should be one of: %r or an instance of %r not %r" \
-                 % (tuple(PSSM_VALUES.keys()), tuple(PSSM_VALUES.values()),
-                                                                        store_as)
-            else:
-                kwargs['store_as'] = val()
+            kwargs['store_as'] = store_as
 
         cls_name, cls_bases, cls_dict = cls._s_customize(cls, **kwargs)
         cls_dict['__module__'] = cls.__module__

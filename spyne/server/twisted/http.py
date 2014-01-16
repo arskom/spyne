@@ -50,38 +50,21 @@ from inspect import isgenerator
 
 from spyne.error import InternalError
 from twisted.python.log import err
-from twisted.internet.interfaces import IPullProducer
 from twisted.internet.defer import Deferred
-from twisted.internet.protocol import Factory
-from twisted.web.iweb import UNKNOWN_LENGTH
 from twisted.web.resource import Resource
 from twisted.web.server import NOT_DONE_YET
-from twisted.python import log
 
-# FIXME: Switch to:
-#    from twisted.web.websockets import WebSocketsProtocol
-#    from twisted.web.websockets import WebSocketsResource
-#    from twisted.web.websockets import CONTROLS
-
-from spyne.util._twisted_ws import WebSocketsProtocol
-from spyne.util._twisted_ws import WebSocketsResource
-from spyne.util._twisted_ws import CONTROLS
-
-from zope.interface import implements
-
-from spyne import MethodContext
-from spyne import TransportContext
 from spyne.auxproc import process_contexts
 from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
 from spyne.const.http import HTTP_404
 from spyne.model import PushBase
-from spyne.model.complex import ComplexModel
 from spyne.model.fault import Fault
-from spyne.server import ServerBase
 from spyne.server.http import HttpBase
 from spyne.server.http import HttpMethodContext
 from spyne.server.http import HttpTransportContext
+from spyne.server.twisted._base import Producer
+
 
 
 def _reconstruct_url(request):
@@ -96,51 +79,6 @@ def _reconstruct_url(request):
         url_scheme = 'http'
 
     return ''.join([url_scheme, "://", server_name, request.uri])
-
-
-class _Producer(object):
-    implements(IPullProducer)
-
-    deferred = None
-
-    def __init__(self, body, consumer):
-        """:param body: an iterable of strings"""
-
-        # check to see if we can determine the length
-        try:
-            len(body) # iterator?
-            self.length = sum([len(fragment) for fragment in body])
-            self.body = iter(body)
-
-        except TypeError:
-            self.length = UNKNOWN_LENGTH
-            self.body = body
-
-        self.deferred = Deferred()
-
-        self.consumer = consumer
-
-    def resumeProducing(self):
-        try:
-            chunk = next(self.body)
-
-        except StopIteration as e:
-            self.consumer.unregisterProducer()
-            if self.deferred is not None:
-                self.deferred.callback(self.consumer)
-                self.deferred = None
-            return
-
-        self.consumer.write(chunk)
-
-    def pauseProducing(self):
-        pass
-
-    def stopProducing(self):
-        if self.deferred is not None:
-            self.deferred.errback(
-                               Exception("Consumer asked us to stop producing"))
-        self.deferred = None
 
 
 class TwistedHttpTransportContext(HttpTransportContext):
@@ -238,71 +176,52 @@ class TwistedWebResource(Resource):
             self.http_transport.get_in_object(p_ctx)
 
             if p_ctx.in_error:
-                return self.handle_rpc_error(p_ctx, others, p_ctx.in_error, request)
-
-            else:
-                self.http_transport.get_out_object(p_ctx)
-                if p_ctx.out_error:
-                    return self.handle_rpc_error(p_ctx, others, p_ctx.out_error,
+                return self.handle_rpc_error(p_ctx, others, p_ctx.in_error,
                                                                         request)
 
-        def _cb_request_finished(request):
-            request.finish()
-            p_ctx.close()
-
-        def _eb_request_finished(request):
-            err(request)
-            p_ctx.close()
-            request.finish()
-
-        def _cb_deferred(retval, request, cb=True):
-            if cb and len(p_ctx.descriptor.out_message._type_info) <= 1:
-                p_ctx.out_object = [retval]
-            else:
-                p_ctx.out_object = retval
-
-            self.http_transport.get_out_string(p_ctx)
-
-            process_contexts(self.http_transport, others, p_ctx)
-
-            producer = _Producer(p_ctx.out_string, request)
-            producer.deferred.addCallbacks(_cb_request_finished,
-                                                           _eb_request_finished)
-            request.registerProducer(producer, False)
-
-        def _eb_deferred(retval, request):
-            p_ctx.out_error = retval.value
-            if not issubclass(retval.type, Fault):
-                retval.printTraceback()
-                p_ctx.out_error = InternalError(retval.value)
-
-            ret = self.handle_rpc_error(p_ctx, others, p_ctx.out_error, request)
-            request.write(ret)
-            request.finish()
+            self.http_transport.get_out_object(p_ctx)
+            if p_ctx.out_error:
+                return self.handle_rpc_error(p_ctx, others, p_ctx.out_error,
+                                                                        request)
 
         ret = p_ctx.out_object[0]
         if isinstance(ret, Deferred):
-            ret.addCallback(_cb_deferred, request)
-            ret.addErrback(_eb_deferred, request)
+            ret.addCallback(_cb_deferred, request, p_ctx, others, self)
+            ret.addErrback(_eb_deferred, request, p_ctx, others, self)
 
         elif isinstance(ret, PushBase):
-            gen = self.http_transport.get_out_string(p_ctx)
+            p_ctx.out_stream = request
+            gen = self.http_transport.get_out_string_push(p_ctx)
 
             assert isgenerator(gen), "It looks like this protocol is not " \
                                      "async-compliant yet."
 
-            def _cb_push():
+            def _cb_push_finish():
+                p_ctx.out_stream.finish()
                 process_contexts(self.http_transport, others, p_ctx)
 
-                producer = _Producer(p_ctx.out_string, request)
-                producer.deferred.addCallbacks(_cb_request_finished,
-                                                           _eb_request_finished)
-                request.registerProducer(producer, False)
+            retval = ret.init(p_ctx, request, gen, _cb_push_finish, None)
+            """:type : Deferred"""
 
-            ret.init(p_ctx, request, gen, _cb_push, None)
+            if isinstance(retval, Deferred):
+                def _eb_push_close(f):
+                    ret.close()
+
+                def _cb_push_close(r):
+                    def _eb_inner(f):
+                        return f
+
+                    if r is None:
+                        ret.close()
+                    else:
+                        r.addCallback(_cb_push_close).addErrback(_eb_inner)
+
+                retval.addCallback(_cb_push_close).addErrback(_eb_push_close)
+            else:
+                ret.close()
 
         else:
-            _cb_deferred(p_ctx.out_object, request, cb=False)
+            _cb_deferred(p_ctx.out_object, request, p_ctx, others, self, cb=False)
 
         return NOT_DONE_YET
 
@@ -338,3 +257,39 @@ class TwistedWebResource(Resource):
 
         finally:
             ctx.close()
+
+
+def _cb_request_finished(request, p_ctx):
+    request.finish()
+    p_ctx.close()
+
+def _eb_request_finished(request, p_ctx):
+    err(request)
+    p_ctx.close()
+    request.finish()
+
+def _cb_deferred(retval, request, p_ctx, others, resource, cb=True):
+    if cb and len(p_ctx.descriptor.out_message._type_info) <= 1:
+        p_ctx.out_object = [retval]
+    else:
+        p_ctx.out_object = retval
+
+    resource.http_transport.get_out_string(p_ctx)
+
+    process_contexts(resource.http_transport, others, p_ctx)
+
+    producer = Producer(p_ctx.out_string, request)
+    producer.deferred.addCallback(_cb_request_finished, p_ctx, others, resource)
+    producer.deferred.addErrback(_eb_request_finished, p_ctx, others, resource)
+
+    request.registerProducer(producer, False)
+
+def _eb_deferred(retval, request, p_ctx, others, resource):
+    p_ctx.out_error = retval.value
+    if not issubclass(retval.type, Fault):
+        retval.printTraceback()
+        p_ctx.out_error = InternalError(retval.value)
+
+    ret = resource.handle_rpc_error(p_ctx, others, p_ctx.out_error, request)
+    request.write(ret)
+    request.finish()

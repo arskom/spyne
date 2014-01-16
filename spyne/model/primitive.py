@@ -29,8 +29,6 @@ See :mod:`spyne.protocol._model` for {to,from}_string implementations.
 from __future__ import absolute_import
 
 import sys
-if sys.version > '3':
-    long = int
 
 import re
 import math
@@ -43,6 +41,7 @@ import spyne
 from spyne.const import xml_ns
 from spyne.model import SimpleModel
 from spyne.util import memoize
+from spyne.model._base import apply_pssm, msgpack, xml, json
 
 string_encoding = 'utf8'
 
@@ -143,12 +142,31 @@ class AnyXml(SimpleModel):
 class AnyHtml(SimpleModel):
     __type_name__ = 'string'
 
+
 class AnyDict(SimpleModel):
     """A dict instance that can contain other dicts, iterables or primitive
     types. Its serialization is protocol-dependent.
     """
 
     __type_name__ = 'anyType'
+
+    class Attributes(SimpleModel.Attributes):
+        store_as = None
+        """Method for serializing to persistent storage. One of 'xml', 'json' or
+        'msgpack'. It makes sense to specify this only when this object is
+        child of a `ComplexModel` sublass."""
+
+    @classmethod
+    def customize(cls, **kwargs):
+        """Duplicates cls and overwrites the values in ``cls.Attributes`` with
+        ``**kwargs`` and returns the new class."""
+
+        store_as = apply_pssm(kwargs.get('store_as', None),
+                                {'json': json, 'xml': xml, 'msgpack': msgpack})
+        if store_as is not None:
+            kwargs['store_as'] = store_as
+
+        return super(AnyDict, cls).customize(**kwargs)
 
 
 class Unicode(SimpleModel):
@@ -207,8 +225,7 @@ class Unicode(SimpleModel):
     def validate_string(cls, value):
         return (     SimpleModel.validate_string(cls, value)
             and (value is None or (
-                    len(value) >= cls.Attributes.min_len
-                and len(value) <= cls.Attributes.max_len
+                cls.Attributes.min_len <= len(value) <= cls.Attributes.max_len
                 and _re_match_with_span(cls.Attributes, value)
             )))
 
@@ -350,16 +367,16 @@ class Decimal(SimpleModel):
                 and cls.Attributes.ge == Decimal.Attributes.ge
                 and cls.Attributes.lt == Decimal.Attributes.lt
                 and cls.Attributes.le == Decimal.Attributes.le
-                and cls.Attributes.total_digits == \
-                                         Decimal.Attributes.total_digits
-                and cls.Attributes.fraction_digits == \
-                                         Decimal.Attributes.fraction_digits
+                and cls.Attributes.total_digits ==
+                                             Decimal.Attributes.total_digits
+                and cls.Attributes.fraction_digits ==
+                                             Decimal.Attributes.fraction_digits
             )
 
     @staticmethod
     def validate_string(cls, value):
         return SimpleModel.validate_string(cls, value) and (
-            value is None or (len(value) <= (cls.Attributes.max_str_len))
+            value is None or (len(value) <= cls.Attributes.max_str_len)
         )
 
     @staticmethod
@@ -425,7 +442,7 @@ class Integer(Decimal):
     @staticmethod
     def validate_native(cls, value):
         return (    Decimal.validate_native(cls, value)
-                and ((value is None) or (int(value) == value))
+                and (value is None or int(value) == value)
             )
 
 class UnsignedInteger(Integer):
@@ -1017,8 +1034,9 @@ NATIVE_MAP = {
     uuid.UUID: Uuid,
 }
 
+from spyne.util import six
 
-if sys.version > '3':
+if six.PY3:
     NATIVE_MAP.update({
         str: Unicode,
         int: Integer,

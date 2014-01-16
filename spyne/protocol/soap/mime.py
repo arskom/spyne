@@ -205,7 +205,7 @@ def apply_mtom(headers, envelope, params, paramvals):
     :param envelope  Iterable containing SOAP envelope string that would have
                      originally been sent.
     :param params    params attribute from the Message object used for the SOAP
-    :param paramvals values of the params, passed to Message.to_parent_element
+    :param paramvals values of the params, passed to Message.to_parent
     '''
 
     # grab the XML element of the message in the SOAP body

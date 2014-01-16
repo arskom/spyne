@@ -57,7 +57,8 @@ of Spyne:
 
 * A Wsgi server of your choice is needed to wrap
   ``spyne.server.wsgi.WsgiApplication``
-* `lxml>=2.3 <http://lxml.de>`_ is needed for any xml or html related protocol.
+* `lxml>=3.2.5 <http://lxml.de>`_ is needed for any xml-related protocol.
+* `lxml>=3.4.0 <http://lxml.de>`_ is needed for any html-related protocol.
 * `SQLAlchemy <http://sqlalchemy.org>`_ is needed for
   ``spyne.model.complex.TTableModel``.
 * `pyzmq <https://github.com/zeromq/pyzmq>`_ is needed for

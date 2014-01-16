@@ -20,6 +20,8 @@
 import sys
 import datetime
 
+from collections import deque
+
 try:
     from urllib import splittype
     from urllib import splithost
@@ -32,7 +34,7 @@ except ImportError: # Python 3
 
 
 def split_url(url):
-    '''Splits a url into (uri_scheme, host[:port], path)'''
+    """Splits a url into (uri_scheme, host[:port], path)"""
     scheme, remainder = splittype(url)
     host, path = splithost(remainder)
     return scheme.lower(), host, path
@@ -40,13 +42,12 @@ def split_url(url):
 
 def reconstruct_url(environ, protocol=True, server_name=True, path=True,
                                                              query_string=True):
-
-    '''Rebuilds the calling url from values found in the
+    """Rebuilds the calling url from values found in the
     environment.
 
     This algorithm was found via PEP 333, the wsgi spec and
     contributed by Ian Bicking.
-    '''
+    """
 
     url = ''
     if protocol:
@@ -180,33 +181,82 @@ else:
         return (td.microseconds +
                             (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
 
-def TAttrDict(default=None):
-    class AttrDict(dict):
-        if default is None:
-            def __getattr__(self, key):
-                return self[key]
-        else:
-            def __getattr__(self, key):
-                if key in self:
-                    return self[key]
-                else:
-                    return default()
+from pprint import pformat
 
-        def __setattr__(self, key, value):
-            self[key] = value
+def TAttrDict(default=None):
+    class AttrDict(object):
+        def __init__(self, *args, **kwargs):
+            self.__data = dict(*args, **kwargs)
 
         def __call__(self, **kwargs):
-            retval = AttrDict(self)
-            retval.update(kwargs)
+            retval = AttrDict(self.__data.items())
+            for k,v in kwargs.items():
+                setattr(retval, k, v)
             return retval
+
+        def __setattr__(self, key, value):
+            if key == "_AttrDict__data":
+                return object.__setattr__(self, key, value)
+            if key == 'items':
+                raise ValueError("'items' is part of dict interface")
+            self.__data[key] = value
+
+        def __setitem__(self, key, value):
+            self.__data[key] = value
+
+        def __iter__(self):
+            return iter(self.__data)
+
+        def items(self):
+            return self.__data.items()
+
+        def __repr__(self):
+            return "AttrDict(%s)" % ', '.join(['%s=%r' % (k,v)
+                    for k,v in sorted(self.__data.items(), key=lambda x:x[0])])
+
+        if default is None:
+            def __getattr__(self, key):
+                return self.__data[key]
+            def __getitem__(self, key):
+                return self.__data[key]
+        else:
+            def __getitem__(self, key):
+                if key in self.__data:
+                    return self.__data[key]
+                else:
+                    return default()
+            def __getattr__(self, key):
+                if key in ("_AttrDict__data", 'items'):
+                    return object.__getattribute__(self, '__data')
+                if key in self.__data:
+                    return self.__data[key]
+                else:
+                    return default()
 
     return AttrDict
 
 AttrDict = TAttrDict()
 DefaultAttrDict = TAttrDict(lambda: None)
 
+
 class AttrDictColl(object):
     AttrDictImpl = DefaultAttrDict
     def __init__(self, *args):
         for a in args:
             setattr(self, a, AttrDictColl.AttrDictImpl(NAME=a))
+
+
+# needs some magic with semaphores. i.e. STAY AWAY FROM THIS!!!!1111!! :)
+class GeneratorIO(object):
+    def __init__(self):
+        self.buffer = deque()
+
+    def __iter__(self):
+        return self.gen()
+
+    def write(self, data):
+        self.data.append(data)
+
+    def gen(self):
+        while len(self.data) > 0:
+            yield self.popleft()

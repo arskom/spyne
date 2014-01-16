@@ -23,8 +23,6 @@ import os
 import base64
 import tempfile
 
-from spyne.util import six
-
 from base64 import b64encode
 from base64 import b64decode
 from base64 import urlsafe_b64encode
@@ -32,11 +30,7 @@ from base64 import urlsafe_b64decode
 from binascii import hexlify
 from binascii import unhexlify
 
-if six.PY2:
-    from cStringIO import StringIO
-else:
-    from io import StringIO
-
+from spyne.util.six import StringIO
 from spyne.error import ValidationError
 from spyne.util import _bytes_join
 from spyne.model import ModelBase

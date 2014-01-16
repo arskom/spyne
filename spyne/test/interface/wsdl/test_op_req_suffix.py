@@ -237,15 +237,15 @@ class TestOperationRequestSuffix(unittest.TestCase):
 
 
     ### HttpRpc tests ###
-
-
     def assert_httprpc_ok(self, suffix, _operation_name = None, _in_message_name=None):
-        '''helper to test HttpRpc requests'''
+        """Helper to test HttpRpc requests"""
 
         # setup
-        app = self.get_app(HttpRpc(validator='soft'), suffix, _operation_name, _in_message_name)
+        app = self.get_app(HttpRpc(validator='soft'),
+                                    suffix, _operation_name, _in_message_name)
 
-        function_name, operation_name, request_name = self.get_function_names(suffix, _operation_name, _in_message_name)
+        function_name, operation_name, request_name =\
+            self.get_function_names(suffix, _operation_name, _in_message_name)
 
         url = "/{0}?string=test&times=2".format(request_name)
 

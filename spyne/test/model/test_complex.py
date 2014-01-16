@@ -31,6 +31,7 @@ from spyne import Application
 from spyne import rpc
 from spyne import mrpc
 from spyne import ServiceBase
+from spyne._base import FakeContext
 from spyne.const import xml_ns
 from spyne.error import ResourceNotFoundError
 from spyne.interface import Interface
@@ -54,6 +55,7 @@ from spyne.protocol.dictdoc import SimpleDictDocument
 from spyne.protocol.xml import XmlDocument
 
 from spyne.test import FakeApp
+from spyne.util.six import StringIO
 
 ns_test = 'test_namespace'
 
@@ -174,17 +176,17 @@ class TestComplexModel(unittest.TestCase):
         a.longitude = 88.0
 
         element = etree.Element('test')
-        XmlDocument().to_parent_element(Address, a, ns_test, element)
+        XmlDocument().to_parent(None, Address, a, element, ns_test)
         element = element[0]
         self.assertEquals(5, len(element.getchildren()))
 
         a.since = datetime.datetime(year=2011, month=12, day=31, tzinfo=pytz.utc)
         element = etree.Element('test')
-        XmlDocument().to_parent_element(Address, a, ns_test, element)
+        XmlDocument().to_parent(None, Address, a, element, ns_test)
         element = element[0]
         self.assertEquals(6, len(element.getchildren()))
 
-        r = XmlDocument().from_element(Address, element)
+        r = XmlDocument().from_element(None, Address, element)
 
         self.assertEquals(a.street, r.street)
         self.assertEquals(a.city, r.city)
@@ -196,7 +198,7 @@ class TestComplexModel(unittest.TestCase):
     def test_nested_class(self): # FIXME: this test is incomplete
         p = Person()
         element = etree.Element('test')
-        XmlDocument().to_parent_element(Person, p, ns_test, element)
+        XmlDocument().to_parent(None, Person, p, element, ns_test)
         element = element[0]
 
         self.assertEquals(None, p.name)
@@ -220,12 +222,12 @@ class TestComplexModel(unittest.TestCase):
 
         element = etree.Element('test')
 
-        XmlDocument().to_parent_element(type, peeps, ns_test, element)
+        XmlDocument().to_parent(None, type, peeps, element, ns_test)
         element = element[0]
 
         self.assertEquals(4, len(element.getchildren()))
 
-        peeps2 = XmlDocument().from_element(type, element)
+        peeps2 = XmlDocument().from_element(None, type, element)
         for i in range(0, 4):
             self.assertEquals(peeps2[i].name, names[i])
             self.assertEquals(peeps2[i].birthdate, dob)
@@ -255,12 +257,12 @@ class TestComplexModel(unittest.TestCase):
         type = Array(Person)
         type.resolve_namespace(type, __name__)
         element = etree.Element('test')
-        XmlDocument().to_parent_element(type, peeps, ns_test, element)
+        XmlDocument().to_parent(None, type, peeps, element, ns_test)
         element = element[0]
 
         self.assertEquals(4, len(element.getchildren()))
 
-        peeps2 = XmlDocument().from_element(type, element)
+        peeps2 = XmlDocument().from_element(None, type, element)
         for peep in peeps2:
             self.assertEquals(27, peep.age)
             self.assertEquals(25, len(peep.addresses))
@@ -285,9 +287,9 @@ class TestComplexModel(unittest.TestCase):
             l.level4.append(a)
 
         element = etree.Element('test')
-        XmlDocument().to_parent_element(Level1, l, ns_test, element)
+        XmlDocument().to_parent(None, Level1, l, element, ns_test)
         element = element[0]
-        l1 = XmlDocument().from_element(Level1, element)
+        l1 = XmlDocument().from_element(None, Level1, element)
 
         self.assertEquals(l1.level2.arg1, l.level2.arg1)
         self.assertEquals(l1.level2.arg2, l.level2.arg2)
@@ -347,18 +349,18 @@ class TestIncompleteInput(unittest.TestCase):
         x = X()
         x.x = [1, 2]
         element = etree.Element('test')
-        XmlDocument().to_parent_element(X, x, 'tns', element)
+        XmlDocument().to_parent(None, X, x, element, 'tns')
         msg = element[0]
-        r = XmlDocument().from_element(X, msg)
+        r = XmlDocument().from_element(None, X, msg)
         self.assertEqual(r.x, [1, 2])
 
     def test_y_fromxml(self):
         x = X()
         x.x = [1, 2]
         element = etree.Element('test')
-        XmlDocument().to_parent_element(X, x, 'tns', element)
+        XmlDocument().to_parent(None, X, x, element, 'tns')
         msg = element[0]
-        r = XmlDocument().from_element(Y, msg)
+        r = XmlDocument().from_element(None, Y, msg)
         self.assertEqual(r.x, [1, 2])
 
     def test_y_toxml(self):
@@ -366,9 +368,9 @@ class TestIncompleteInput(unittest.TestCase):
         y.x = [1, 2]
         y.y = 38
         element = etree.Element('test')
-        XmlDocument().to_parent_element(Y, y, 'tns', element)
+        XmlDocument().to_parent(None, Y, y, element, 'tns')
         msg = element[0]
-        r = XmlDocument().from_element(Y, msg)
+        r = XmlDocument().from_element(None, Y, msg)
 
 
 class SisMsg(ComplexModel):
@@ -430,13 +432,13 @@ class TestXmlAttribute(unittest.TestCase):
         gg = PacketNonAttribute(Data=test_string)
 
         element = etree.Element('test')
-        Soap11().to_parent_element(PacketNonAttribute, gg, gg.get_namespace(), element)
+        Soap11().to_parent(None, PacketNonAttribute, gg, element, gg.get_namespace())
 
         element = element[0]
         #print etree.tostring(element, pretty_print=True)
         data = element.find('{%s}Data' % gg.get_namespace()).text
         self.assertEquals(data, b64string)
-        s1 = Soap11().from_element(PacketNonAttribute, element)
+        s1 = Soap11().from_element(None, PacketNonAttribute, element)
         assert s1.Data[0] == test_string
 
     def test_b64_attribute(self):
@@ -449,13 +451,13 @@ class TestXmlAttribute(unittest.TestCase):
         gg = PacketAttribute(Data=test_string)
 
         element = etree.Element('test')
-        Soap11().to_parent_element(PacketAttribute, gg, gg.get_namespace(), element)
+        Soap11().to_parent(None, PacketAttribute, gg, element, gg.get_namespace())
 
         element = element[0]
         #print etree.tostring(element, pretty_print=True)
         self.assertEquals(element.attrib['Data'], b64string)
 
-        s1 = Soap11().from_element(PacketAttribute, element)
+        s1 = Soap11().from_element(None, PacketAttribute, element)
         assert s1.Data[0] == test_string
 
     def test_customized_type(self):
