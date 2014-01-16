@@ -33,7 +33,6 @@ from spyne.server import ServerBase
 
 
 def _process_v1_msg(prot, msg):
-
     header = None
     body = msg[1]
     if not isinstance(body, basestring):
@@ -43,6 +42,8 @@ def _process_v1_msg(prot, msg):
         header = msg[2]
         if not isinstance(header, dict):
             raise ValidationError(header, "Header must be a dict.")
+        for k,v in header.items():
+            header[k] = msgpack.unpackb(v)
 
     ctx = MessagePackMethodContext(prot)
     ctx.in_string = [body]
@@ -56,6 +57,7 @@ class MessagePackTransportContext(TransportContext):
         super(MessagePackTransportContext, self).__init__(parent, transport)
 
         self.in_header = None
+        self.protocol = None
 
 
 class MessagePackMethodContext(MethodContext):

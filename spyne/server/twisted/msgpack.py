@@ -61,6 +61,7 @@ class TwistedMessagePackProtocol(Protocol):
             p_ctx = others = None
             try:
                 p_ctx, others = self._transport.produce_contexts(msg)
+                p_ctx.transport.protocol = self
                 return self.process_contexts(p_ctx, others)
 
             except ValidationError as e:
