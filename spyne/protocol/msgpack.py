@@ -191,6 +191,8 @@ class MessagePackRpc(MessagePackDocument):
             body_class = ctx.descriptor.in_message
         elif message is self.RESPONSE:
             body_class = ctx.descriptor.out_message
+        else:
+            raise Exception("what?")
 
         if body_class:
             ctx.in_object = body_class.get_serialization_instance(
@@ -216,6 +218,8 @@ class MessagePackRpc(MessagePackDocument):
                 out_type = ctx.descriptor.in_message
             elif message is self.RESPONSE:
                 out_type = ctx.descriptor.out_message
+            else:
+                raise Exception("what?")
 
             if out_type is None:
                 return

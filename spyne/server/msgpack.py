@@ -33,7 +33,6 @@ from spyne.server import ServerBase
 
 
 def _process_v1_msg(prot, msg):
-    ctx = MessagePackMethodContext(prot)
 
     header = None
     body = msg[1]
@@ -45,6 +44,7 @@ def _process_v1_msg(prot, msg):
         if not isinstance(header, dict):
             raise ValidationError(header, "Header must be a dict.")
 
+    ctx = MessagePackMethodContext(prot)
     ctx.in_string = [body]
     ctx.transport.in_header = header
 
@@ -76,7 +76,9 @@ class MessagePackServerBase(ServerBase):
         }
 
     def produce_contexts(self, msg):
-        """ msg = [1, body, header] """
+        """msg = [1, body, header]"""
+
+        logger.debug("Request object: %r", msg)
 
         if not isinstance(msg, list):
             raise ValidationError("Request must be a list")
