@@ -32,7 +32,6 @@ from spyne.auxproc import process_contexts
 from spyne.error import ValidationError, InternalError
 from spyne.model import Fault
 from spyne.server.msgpack import MsgPackServerBase
-from spyne.server.twisted._base import Producer
 
 
 class TwistedMessagePackProtocol(Protocol):

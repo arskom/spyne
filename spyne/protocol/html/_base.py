@@ -195,7 +195,7 @@ class HtmlBase(ProtocolBase):
             mo = v.Attributes.max_occurs
             if subvalue is not None and mo > 1:
                 ret = self.array_to_parent(ctx, v, subvalue, parent, sub_name,
-                                                                 **kwargs)
+                                                                       **kwargs)
                 if ret is not None:
                     try:
                         while True:
@@ -243,6 +243,7 @@ class HtmlBase(ProtocolBase):
         parent.write(inst)
 
     def anyuri_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        assert name is not None
         href = getattr(inst, 'href', None)
         if href is None: # this is not a AnyUri.Value instance.
             href = inst
@@ -253,12 +254,19 @@ class HtmlBase(ProtocolBase):
             text = getattr(inst, 'text', None)
             if text is None:
                 text = getattr(cls.Attributes, 'text', name)
-
             content = getattr(inst, 'content', None)
 
-        retval = E.a(text, href=href)
+        if text is None:
+            text = name
+
+        retval = E.a(text)
+
+        if href is not None:
+            retval.attrib['href'] = href
+
         if content is not None:
             retval.append(content)
+
         parent.write(retval)
 
     def imageuri_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
