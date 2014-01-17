@@ -26,7 +26,7 @@ import msgpack
 
 from twisted.internet.defer import Deferred
 from twisted.python.log import err
-from twisted.internet.protocol import Protocol, Factory
+from twisted.internet.protocol import Protocol, Factory, connectionDone
 
 from spyne.auxproc import process_contexts
 from spyne.error import ValidationError, InternalError
@@ -48,11 +48,11 @@ class TwistedMessagePackProtocol(Protocol):
         self._buffer = msgpack.Unpacker()
         self._transport = base(app)
 
-    def connectionLost(self):
-        logger.info("%r connection lost.", self)
-
     def connectionMade(self):
         logger.info("%r connection made.", self)
+
+    def connectionLost(self, reason=connectionDone):
+        logger.info("%r connection lost.", self)
 
     def dataReceived(self, data):
         self._buffer.feed(data)
