@@ -80,8 +80,8 @@ class MessagePackDocument(HierDictDocument):
                                         complex_as=dict,
                                         ordered=False):
 
-        super(MessagePackDocument, self).__init__(app, validator, mime_type, ignore_uncap,
-                                           ignore_wrappers, complex_as, ordered)
+        super(MessagePackDocument, self).__init__(app, validator, mime_type,
+                            ignore_uncap, ignore_wrappers, complex_as, ordered)
 
         self._from_string_handlers[Double] = lambda cls, val: val
         self._from_string_handlers[Boolean] = lambda cls, val: val
