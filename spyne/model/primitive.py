@@ -784,6 +784,8 @@ class Uuid(Unicode(pattern=UUID_PATTERN)):
     __namespace__ = 'http://spyne.io/schema'
     __type_name__ = 'uuid'
 
+    class Attributes(Unicode(pattern=UUID_PATTERN).Attributes):
+        serialize_as = None
 
 class NormalizedString(Unicode):
     __type_name__ = 'normalizedString'

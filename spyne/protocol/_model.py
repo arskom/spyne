@@ -92,12 +92,37 @@ def any_html_from_string(cls, string):
     return html.fromstring(string)
 
 
+_uuid_serialize = {
+    None: str,
+    'hex': lambda u:u.hex,
+    'urn': lambda u:u.urn,
+    'bytes': lambda u:u.bytes,
+    'bytes_le': lambda u:u.bytes_le,
+    'fields': lambda u:u.fields,
+    'int': lambda u:u.int,
+}
+
+if six.PY3:
+    long = int
+
+_uuid_deserialize = {
+    None: lambda s: uuid.UUID(s),
+    'hex': lambda s: uuid.UUID(hex=s),
+    'urn': lambda s: uuid.UUID(hex=s),
+    'bytes': lambda s: uuid.UUID(bytes=s),
+    'bytes_le': lambda s: uuid.UUID(bytes_le=s),
+    'fields': lambda s: uuid.UUID(fields=s),
+    'int': lambda s: _uuid_deserialize[('int', type(s))](s),
+    ('int', int): lambda s: uuid.UUID(int=s),
+    ('int', long): lambda s: uuid.UUID(int=s),
+    ('int', str): lambda s: uuid.UUID(int=int(s)),
+}
+
 def uuid_to_string(cls, value):
-    return str(value)
+    return _uuid_serialize[cls.Attributes.serialize_as](value)
 
 def uuid_from_string(cls, string):
-    return uuid.UUID(string)
-
+    return _uuid_deserialize[cls.Attributes.serialize_as](string)
 
 def unicode_to_string(cls, value):
     retval = value

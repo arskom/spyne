@@ -21,6 +21,7 @@ import re
 import datetime
 import unittest
 import pytz
+import uuid
 
 from datetime import timedelta
 
@@ -28,7 +29,7 @@ from lxml import etree
 
 from spyne.util import total_seconds
 from spyne.const import xml_ns as ns
-from spyne.model import Null, AnyDict
+from spyne.model import Null, AnyDict, Uuid
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
 from spyne.model.primitive import Date
@@ -448,6 +449,42 @@ class TestPrimitive(unittest.TestCase):
         from spyne.model import json
         assert isinstance(AnyDict.customize(store_as='json').Attributes.store_as, json)
 
+    def test_uuid_serialize(self):
+        value = uuid.UUID('12345678123456781234567812345678')
+
+        assert ProtocolBase().to_string(Uuid, value) == \
+                                '12345678-1234-5678-1234-567812345678'
+        assert ProtocolBase().to_string(Uuid(serialize_as='hex'), value) == \
+                                '12345678123456781234567812345678'
+        assert ProtocolBase().to_string(Uuid(serialize_as='urn'), value) == \
+                                'urn:uuid:12345678-1234-5678-1234-567812345678'
+        assert ProtocolBase().to_string(Uuid(serialize_as='bytes'), value) == \
+                                '\x124Vx\x124Vx\x124Vx\x124Vx'
+        assert ProtocolBase().to_string(Uuid(serialize_as='bytes_le'), value) == \
+                                'xV4\x124\x12xV\x124Vx\x124Vx'
+        assert ProtocolBase().to_string(Uuid(serialize_as='fields'), value) == \
+                                (305419896L, 4660L, 22136L, 18L, 52L, 95073701484152L)
+        assert ProtocolBase().to_string(Uuid(serialize_as='int'), value) == \
+                                24197857161011715162171839636988778104
+
+    def test_uuid_deserialize(self):
+        value = uuid.UUID('12345678123456781234567812345678')
+
+        assert ProtocolBase().from_string(Uuid,
+                '12345678-1234-5678-1234-567812345678') == value
+        assert ProtocolBase().from_string(Uuid(serialize_as='hex'),
+                '12345678123456781234567812345678') == value
+        assert ProtocolBase().from_string(Uuid(serialize_as='urn'),
+                'urn:uuid:12345678-1234-5678-1234-567812345678') == value
+        assert ProtocolBase().from_string(Uuid(serialize_as='bytes'),
+                '\x124Vx\x124Vx\x124Vx\x124Vx') == value
+        assert ProtocolBase().from_string(Uuid(serialize_as='bytes_le'),
+                'xV4\x124\x12xV\x124Vx\x124Vx') == value
+        assert ProtocolBase().from_string(Uuid(serialize_as='fields'),
+                (305419896L, 4660L, 22136L, 18L, 52L, 95073701484152L)) == value
+        assert ProtocolBase().from_string(Uuid(serialize_as='int'),
+                24197857161011715162171839636988778104) == value
+
 
 ### Duration Data Type
 ## http://www.w3schools.com/schema/schema_dtypes_date.asp
@@ -604,7 +641,6 @@ class TestDurationPrimitive(unittest.TestCase):
 
         self.assertEquals(dur, ProtocolBase().from_string(Duration,
                                ProtocolBase().to_string(Duration, dur)))
-
 
 if __name__ == '__main__':
     unittest.main()
