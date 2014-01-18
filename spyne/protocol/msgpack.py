@@ -153,8 +153,8 @@ class MessagePackRpc(MessagePackDocument):
         if len(ctx.in_document) == 3:
             msgtype, msgid, msgname = ctx.in_document
 
-        elif len(ctx.in_document) == 4:
-            msgtype, msgid, msgname, msgparams = ctx.in_document
+        else:
+            msgtype, msgid, msgname, msgparams = ctx.in_document[:4]
 
         if msgtype == MessagePackRpc.MSGPACK_REQUEST:
             assert message == MessagePackRpc.REQUEST
