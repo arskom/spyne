@@ -25,7 +25,6 @@ logger = logging.getLogger(__name__)
 import msgpack
 
 from twisted.internet.defer import Deferred
-from twisted.python.log import err
 from twisted.internet.protocol import Protocol, Factory, connectionDone
 
 from spyne.auxproc import process_contexts
@@ -121,8 +120,12 @@ def _cb_deferred(retval, prot, p_ctx, others, nowrap=False):
         print "PC", p_ctx.out_string
         prot.transport.write(''.join(p_ctx.out_string))
 
-    except:
-        err(retval)
+    except Exception as e:
+        logger.exception(e)
+        p_ctx.out_error = InternalError(e)
+        p_ctx.out_object = None
+        prot.handle_error(p_ctx, others, e)
+        print "Pe", str(p_ctx.out_error)
 
     finally:
         p_ctx.close()
