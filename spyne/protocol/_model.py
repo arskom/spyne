@@ -253,18 +253,52 @@ def _datetime_to_string(cls, value):
     else:
         return string_format % ret_str
 
+_dt_sec = lambda cls, val: \
+        int(time.mktime(val.timetuple()))
+_dt_sec_float = lambda cls, val: \
+        time.mktime(val.timetuple()) + (val.microsecond / 1e6)
+
+_dt_msec = lambda cls, val: \
+        int(time.mktime(val.timetuple())) * 1000 + (val.microsecond // 1000)
+_dt_msec_float = lambda cls, val: \
+        time.mktime(val.timetuple()) * 1000 + (val.microsecond / 1000.0)
+
+_dt_usec = lambda cls, val: \
+        int(time.mktime(val.timetuple())) * 1000000 + val.microsecond
+
 _datetime_smap = {
     None: _datetime_to_string,
-    'sec': lambda cls, val:
-        int(time.mktime(val.timetuple())),
-    'sec_float': lambda cls, val:
-        time.mktime(val.timetuple()) + (val.microsecond / 1e6),
-    'msec': lambda cls, val:
-        int(time.mktime(val.timetuple())) * 1000 + (val.microsecond // 1000),
-    'msec_float': lambda cls, val:
-        time.mktime(val.timetuple()) * 1000 + (val.microsecond / 1000.0),
-    'usec': lambda cls, val:
-        int(time.mktime(val.timetuple())) * 1000000 + val.microsecond,
+
+    'sec': _dt_sec,
+    'secs': _dt_sec,
+    'second': _dt_sec,
+    'seconds': _dt_sec,
+
+    'sec_float': _dt_sec_float,
+    'secs_float': _dt_sec_float,
+    'second_float': _dt_sec_float,
+    'seconds_float': _dt_sec_float,
+
+    'msec': _dt_msec,
+    'msecs': _dt_msec,
+    'msecond': _dt_msec,
+    'mseconds': _dt_msec,
+    'millisecond': _dt_msec,
+    'milliseconds': _dt_msec,
+
+    'msec_float': _dt_msec_float,
+    'msecs_float': _dt_msec_float,
+    'msecond_float': _dt_msec_float,
+    'mseconds_float': _dt_msec_float,
+    'millisecond_float': _dt_msec_float,
+    'milliseconds_float': _dt_msec_float,
+
+    'usec': _dt_usec,
+    'usecs': _dt_usec,
+    'usecond': _dt_usec,
+    'useconds': _dt_usec,
+    'microsecond': _dt_usec,
+    'microseconds': _dt_usec,
 }
 
 def datetime_to_string(cls, val):
