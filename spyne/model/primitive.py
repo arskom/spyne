@@ -694,6 +694,9 @@ class DateTime(SimpleModel):
         """If False, time zone info is stripped before serialization. Also makes
         sqlalchemy schema generator emit 'timestamp without timezone'."""
 
+        serialize_as = None
+        """One of (None, 'sec', 'sec_float', 'msec', 'msec_float', 'usec')"""
+
     @staticmethod
     def is_default(cls):
         return (    SimpleModel.is_default(cls)

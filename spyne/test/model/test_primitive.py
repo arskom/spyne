@@ -485,6 +485,40 @@ class TestPrimitive(unittest.TestCase):
         assert ProtocolBase().from_string(Uuid(serialize_as='int'),
                 24197857161011715162171839636988778104) == value
 
+    def test_datetime_serialize_as(self):
+        i = 1234567890123456
+        v = datetime.datetime.fromtimestamp(i / 1e6)
+
+        assert ProtocolBase().to_string(
+                            DateTime(serialize_as='sec'), v) == i//1e6
+        assert ProtocolBase().to_string(
+                            DateTime(serialize_as='sec_float'), v) == i/1e6
+        assert ProtocolBase().to_string(
+                            DateTime(serialize_as='msec'), v) == i//1e3
+        assert ProtocolBase().to_string(
+                            DateTime(serialize_as='msec_float'), v) == i/1e3
+        assert ProtocolBase().to_string(
+                            DateTime(serialize_as='usec'), v) == i
+
+    def test_datetime_deserialize(self):
+        i = 1234567890123456
+        v = datetime.datetime.fromtimestamp(i / 1e6)
+
+        assert ProtocolBase().from_string(
+                    DateTime(serialize_as='sec'), i//1e6) == \
+                                     datetime.datetime.fromtimestamp(i//1e6)
+        assert ProtocolBase().from_string(
+                    DateTime(serialize_as='sec_float'), i/1e6) == v
+
+        assert ProtocolBase().from_string(
+                    DateTime(serialize_as='msec'), i//1e3) == \
+                                     datetime.datetime.fromtimestamp(i/1e3//1000)
+        assert ProtocolBase().from_string(
+                    DateTime(serialize_as='msec_float'), i/1e3) == v
+
+        assert ProtocolBase().from_string(
+                    DateTime(serialize_as='usec'), i) == v
+
 
 ### Duration Data Type
 ## http://www.w3schools.com/schema/schema_dtypes_date.asp

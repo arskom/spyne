@@ -18,6 +18,8 @@
 #
 
 import logging
+from spyne.util import DefaultAttrDict, memoize_id
+
 logger = logging.getLogger(__name__)
 
 from copy import copy
@@ -303,3 +305,12 @@ class ProtocolBase(object):
 
         handler = self._to_string_iterable_handlers[class_]
         return handler(self, class_, value)
+
+    @memoize_id
+    def get_cls_attrs(self, cls):
+        attr = DefaultAttrDict([(k, getattr(cls.Attributes, k))
+                        for k in dir(cls.Attributes) if not k.startswith('__')])
+        if cls.Attributes.prot_attrs:
+            attr.update(cls.Attributes.prot_attrs.get(prot.__class__, {}))
+            attr.update(cls.Attributes.prot_attrs.get(prot, {}))
+        return attr

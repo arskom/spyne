@@ -235,7 +235,7 @@ def time_from_string(cls, string):
     return datetime.time(int(fields['hr']), int(fields['min']),
                                                    int(fields['sec']), microsec)
 
-def datetime_to_string(cls, value):
+def _datetime_to_string(cls, value):
     if cls.Attributes.as_timezone is not None and value.tzinfo is not None:
         value = value.astimezone(cls.Attributes.as_timezone)
     if not cls.Attributes.timezone:
@@ -253,6 +253,22 @@ def datetime_to_string(cls, value):
     else:
         return string_format % ret_str
 
+_datetime_smap = {
+    None: _datetime_to_string,
+    'sec': lambda cls, val:
+        int(time.mktime(val.timetuple())),
+    'sec_float': lambda cls, val:
+        time.mktime(val.timetuple()) + (val.microsecond / 1e6),
+    'msec': lambda cls, val:
+        int(time.mktime(val.timetuple())) * 1000 + (val.microsecond // 1000),
+    'msec_float': lambda cls, val:
+        time.mktime(val.timetuple()) * 1000 + (val.microsecond / 1000.0),
+    'usec': lambda cls, val:
+        int(time.mktime(val.timetuple())) * 1000000 + val.microsecond,
+}
+
+def datetime_to_string(cls, val):
+    return _datetime_smap[cls.Attributes.serialize_as](cls, val)
 
 def _parse_datetime_iso_match(date_match, tz=None):
     fields = date_match.groupdict()
@@ -319,8 +335,9 @@ def date_from_string_iso(cls, string):
             raise ValidationError(string)
 
 
-def datetime_from_string(cls, string):
-    format = cls.Attributes.format
+def _datetime_from_string(cls, string):
+    attrs = cls.Attributes
+    format = attrs.format
 
     if format is None:
         retval = datetime_from_string_iso(cls, string)
@@ -332,6 +349,18 @@ def datetime_from_string(cls, string):
             retval = retval.astimezone(cls.Attributes.as_time_zone)
 
     return retval
+
+_datetime_dsmap = {
+    None: _datetime_from_string,
+    'sec': lambda c, s: datetime.datetime.fromtimestamp(s),
+    'sec_float': lambda c, s: datetime.datetime.fromtimestamp(s),
+    'msec': lambda c, s: datetime.datetime.fromtimestamp(s//1000),
+    'msec_float': lambda c, s: datetime.datetime.fromtimestamp(s/1000),
+    'usec': lambda c, s: datetime.datetime.fromtimestamp(s/1e6),
+}
+
+def datetime_from_string(cls, string):
+    return _datetime_dsmap[cls.Attributes.serialize_as](cls, string)
 
 
 def date_from_string(cls, string):
