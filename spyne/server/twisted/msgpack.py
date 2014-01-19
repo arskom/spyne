@@ -37,6 +37,7 @@ NO_ERROR = 0
 CLIENT_ERROR = 1
 SERVER_ERROR = 2
 
+
 class TwistedMessagePackProtocolFactory(Factory):
     def __init__(self, app, base=MessagePackServerBase):
         self.app = app
@@ -44,6 +45,7 @@ class TwistedMessagePackProtocolFactory(Factory):
 
     def buildProtocol(self, address):
         return TwistedMessagePackProtocol(self.app, self.base)
+
 
 class TwistedMessagePackProtocol(Protocol):
     def __init__(self, app, base=MessagePackServerBase,
@@ -74,18 +76,25 @@ class TwistedMessagePackProtocol(Protocol):
                 self.handle_error(p_ctx, others, e)
 
     def handle_error(self, p_ctx, others, exc):
+        self._transport.get_out_string(p_ctx)
+
         if isinstance(exc, InternalError):
             error = SERVER_ERROR
         else:
             error = CLIENT_ERROR
-        self._transport.get_out_string(p_ctx)
+
         out_string = msgpack.packb({
             error: msgpack.packb(p_ctx.out_document[0].values()),
         })
         self.transport.write(out_string)
         print "HE", repr(out_string)
         p_ctx.close()
-        process_contexts(self._transport, others, p_ctx, error=exc)
+
+        try:
+            process_contexts(self, others, p_ctx, error=error)
+        except Exception as e:
+            # Report but ignore any exceptions from auxiliary methods.
+            logger.exception(e)
 
     def process_contexts(self, p_ctx, others):
         if p_ctx.in_error:
