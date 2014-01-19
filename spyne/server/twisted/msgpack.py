@@ -33,6 +33,10 @@ from spyne.model import Fault
 from spyne.server.msgpack import MessagePackServerBase
 
 
+NO_ERROR = 0
+CLIENT_ERROR = 1
+SERVER_ERROR = 2
+
 class TwistedMessagePackProtocolFactory(Factory):
     def __init__(self, app, base=MessagePackServerBase):
         self.app = app
@@ -70,8 +74,18 @@ class TwistedMessagePackProtocol(Protocol):
                 self.handle_error(p_ctx, others, e)
 
     def handle_error(self, p_ctx, others, exc):
-        self.transport.write(msgpack.packb(str(exc)))
-        self.transport.loseConnection()
+        if isinstance(exc, InternalError):
+            error = SERVER_ERROR
+        else:
+            error = CLIENT_ERROR
+        self._transport.get_out_string(p_ctx)
+        out_string = msgpack.packb({
+            error: msgpack.packb(p_ctx.out_document[0].values()),
+        })
+        self.transport.write(out_string)
+        print "HE", repr(out_string)
+        p_ctx.close()
+        process_contexts(self._transport, others, p_ctx, error=exc)
 
     def process_contexts(self, p_ctx, others):
         if p_ctx.in_error:
@@ -116,16 +130,15 @@ def _cb_deferred(retval, prot, p_ctx, others, nowrap=False):
 
     try:
         prot._transport.get_out_string(p_ctx)
-        p_ctx.out_string = list(p_ctx.out_string)
-        print "PC", p_ctx.out_string
-        prot.transport.write(''.join(p_ctx.out_string))
+        out_string = msgpack.packb({
+            NO_ERROR: ''.join(p_ctx.out_string),
+        })
+        prot.transport.write(out_string)
+        print "PC", repr(out_string)
 
     except Exception as e:
         logger.exception(e)
-        p_ctx.out_error = InternalError(e)
-        p_ctx.out_object = None
-        prot.handle_error(p_ctx, others, e)
-        print "Pe", str(p_ctx.out_error)
+        prot.handle_error(p_ctx, others, InternalError(e))
 
     finally:
         p_ctx.close()
