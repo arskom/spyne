@@ -46,9 +46,9 @@ class TwistedMessagePackProtocolFactory(Factory):
         return TwistedMessagePackProtocol(self.app, self.base)
 
 class TwistedMessagePackProtocol(Protocol):
-    def __init__(self, app, base=MessagePackServerBase):
-        # FIXME: So, how do we prevent the buffer from growing indefinitely?
-        self._buffer = msgpack.Unpacker()
+    def __init__(self, app, base=MessagePackServerBase,
+                                                  max_buffer_size=10*1024*1024):
+        self._buffer = msgpack.Unpacker(max_buffer_size=max_buffer_size)
         self._transport = base(app)
 
     def connectionMade(self):
