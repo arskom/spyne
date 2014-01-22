@@ -136,3 +136,13 @@ Contributing
 
 Please see the CONTRIBUTING.rst file in the Spyne source distribution for
 information about how you can help Spyne get more awesome.
+
+Acknowledgments
+===============
+
+.. image:: http://www.jetbrains.com/img/logos/pycharm_logo142x29.gif
+        :target: http://www.jetbrains.com/pycharm/
+
+Spyne committers get a free license for PyCharm Professional Edition, courtesy
+of JetBrains. Thanks a lot guys!..
+
