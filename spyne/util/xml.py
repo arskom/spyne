@@ -75,6 +75,7 @@ def get_validation_schema(models, default_namespace=None):
 
     interface = Interface(fake_app)
     for m in models:
+        m.resolve_namespace(m, default_namespace)
         interface.add_class(m)
 
     schema = XmlSchema(interface)
