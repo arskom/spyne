@@ -80,8 +80,8 @@ class MessagePackDocument(HierDictDocument):
                                         complex_as=dict,
                                         ordered=False):
 
-        super(MessagePackDocument, self).__init__(app, validator, mime_type, ignore_uncap,
-                                           ignore_wrappers, complex_as, ordered)
+        super(MessagePackDocument, self).__init__(app, validator, mime_type,
+                            ignore_uncap, ignore_wrappers, complex_as, ordered)
 
         self._from_string_handlers[Double] = lambda cls, val: val
         self._from_string_handlers[Boolean] = lambda cls, val: val
@@ -153,8 +153,8 @@ class MessagePackRpc(MessagePackDocument):
         if len(ctx.in_document) == 3:
             msgtype, msgid, msgname = ctx.in_document
 
-        elif len(ctx.in_document) == 4:
-            msgtype, msgid, msgname, msgparams = ctx.in_document
+        else:
+            msgtype, msgid, msgname, msgparams = ctx.in_document[:4]
 
         if msgtype == MessagePackRpc.MSGPACK_REQUEST:
             assert message == MessagePackRpc.REQUEST
@@ -191,6 +191,8 @@ class MessagePackRpc(MessagePackDocument):
             body_class = ctx.descriptor.in_message
         elif message is self.RESPONSE:
             body_class = ctx.descriptor.out_message
+        else:
+            raise Exception("what?")
 
         if body_class:
             ctx.in_object = body_class.get_serialization_instance(
@@ -216,6 +218,8 @@ class MessagePackRpc(MessagePackDocument):
                 out_type = ctx.descriptor.in_message
             elif message is self.RESPONSE:
                 out_type = ctx.descriptor.out_message
+            else:
+                raise Exception("what?")
 
             if out_type is None:
                 return
@@ -233,12 +237,9 @@ class MessagePackRpc(MessagePackDocument):
             # transform the results into a dict:
             if out_type.Attributes.max_occurs > 1:
                 ctx.out_document = [[MessagePackRpc.MSGPACK_RESPONSE, 0, None,
-                        (self._to_value(out_type, inst)
-                                                      for inst in out_instance)
-                    ]]
+                     (self._to_value(out_type, inst) for inst in out_instance)]]
             else:
                 ctx.out_document = [[MessagePackRpc.MSGPACK_RESPONSE, 0, None,
-                                        self._to_value(out_type, out_instance),
-                                   ]]
+                                        self._to_value(out_type, out_instance)]]
 
             self.event_manager.fire_event('after_serialize', ctx)

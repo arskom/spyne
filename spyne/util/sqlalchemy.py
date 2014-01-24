@@ -268,7 +268,7 @@ class PGHtml(UserDefinedType):
 
     def bind_processor(self, dialect):
         def process(value):
-            if isinstance(value, str) or value is None:
+            if isinstance(value, basestring) or value is None:
                 return value
             else:
                 return html.tostring(value, pretty_print=self.pretty_print,

@@ -694,6 +694,9 @@ class DateTime(SimpleModel):
         """If False, time zone info is stripped before serialization. Also makes
         sqlalchemy schema generator emit 'timestamp without timezone'."""
 
+        serialize_as = None
+        """One of (None, 'sec', 'sec_float', 'msec', 'msec_float', 'usec')"""
+
     @staticmethod
     def is_default(cls):
         return (    SimpleModel.is_default(cls)
@@ -778,11 +781,49 @@ class Boolean(SimpleModel):
     __type_name__ = 'boolean'
 
 
+def _uuid_validate_string(cls, value):
+    return (     SimpleModel.validate_string(cls, value)
+        and (value is None or (
+            cls.Attributes.min_len <= len(value) <= cls.Attributes.max_len
+            and _re_match_with_span(cls.Attributes, value)
+        )))
+
+
+def _Tuuid_validate(key):
+    from uuid import UUID
+
+    def _uvalid(cls, v):
+        try:
+            UUID(**{key:v})
+        except ValueError:
+            return False
+        return True
+    return _uvalid
+
+
+_uuid_validate = {
+    None: _uuid_validate_string,
+    'hex': _Tuuid_validate('hex'),
+    'urn': _Tuuid_validate('urn'),
+    'bytes': _Tuuid_validate('bytes'),
+    'bytes_le': _Tuuid_validate('bytes_le'),
+    'fields': _Tuuid_validate('fields'),
+    'int': _Tuuid_validate('int'),
+}
+
+
 class Uuid(Unicode(pattern=UUID_PATTERN)):
     """Unicode subclass for Universially-Unique Identifiers."""
 
     __namespace__ = 'http://spyne.io/schema'
     __type_name__ = 'uuid'
+
+    class Attributes(Unicode(pattern=UUID_PATTERN).Attributes):
+        serialize_as = None
+
+    @staticmethod
+    def validate_string(cls, value):
+        return _uuid_validate[cls.Attributes.serialize_as](cls, value)
 
 
 class NormalizedString(Unicode):

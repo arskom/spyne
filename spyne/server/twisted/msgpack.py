@@ -25,20 +25,39 @@ logger = logging.getLogger(__name__)
 import msgpack
 
 from twisted.internet.defer import Deferred
-from twisted.python.log import err
-from twisted.internet.protocol import Protocol
+from twisted.internet.protocol import Protocol, Factory, connectionDone
 
 from spyne.auxproc import process_contexts
 from spyne.error import ValidationError, InternalError
 from spyne.model import Fault
-from spyne.server.msgpack import MsgPackServerBase
+from spyne.server.msgpack import MessagePackServerBase
+
+
+NO_ERROR = 0
+CLIENT_ERROR = 1
+SERVER_ERROR = 2
+
+
+class TwistedMessagePackProtocolFactory(Factory):
+    def __init__(self, app, base=MessagePackServerBase):
+        self.app = app
+        self.base = base
+
+    def buildProtocol(self, address):
+        return TwistedMessagePackProtocol(self.app, self.base)
 
 
 class TwistedMessagePackProtocol(Protocol):
-    def __init__(self, app):
-        # FIXME: So, how do we prevent the buffer from growing indefinitely?
-        self._buffer = msgpack.Unpacker()
-        self._transport = MsgPackServerBase(app)
+    def __init__(self, app, base=MessagePackServerBase,
+                                                  max_buffer_size=10*1024*1024):
+        self._buffer = msgpack.Unpacker(max_buffer_size=max_buffer_size)
+        self._transport = base(app)
+
+    def connectionMade(self):
+        logger.info("%r connection made.", self)
+
+    def connectionLost(self, reason=connectionDone):
+        logger.info("%r connection lost.", self)
 
     def dataReceived(self, data):
         self._buffer.feed(data)
@@ -47,6 +66,7 @@ class TwistedMessagePackProtocol(Protocol):
             p_ctx = others = None
             try:
                 p_ctx, others = self._transport.produce_contexts(msg)
+                p_ctx.transport.protocol = self
                 return self.process_contexts(p_ctx, others)
 
             except ValidationError as e:
@@ -56,8 +76,25 @@ class TwistedMessagePackProtocol(Protocol):
                 self.handle_error(p_ctx, others, e)
 
     def handle_error(self, p_ctx, others, exc):
-        self.transport.write(msgpack.packb(str(exc)))
-        self.transport.loseConnection()
+        self._transport.get_out_string(p_ctx)
+
+        if isinstance(exc, InternalError):
+            error = SERVER_ERROR
+        else:
+            error = CLIENT_ERROR
+
+        out_string = msgpack.packb({
+            error: msgpack.packb(p_ctx.out_document[0].values()),
+        })
+        self.transport.write(out_string)
+        print "HE", repr(out_string)
+        p_ctx.close()
+
+        try:
+            process_contexts(self, others, p_ctx, error=error)
+        except Exception as e:
+            # Report but ignore any exceptions from auxiliary methods.
+            logger.exception(e)
 
     def process_contexts(self, p_ctx, others):
         if p_ctx.in_error:
@@ -102,12 +139,15 @@ def _cb_deferred(retval, prot, p_ctx, others, nowrap=False):
 
     try:
         prot._transport.get_out_string(p_ctx)
-        p_ctx.out_string = list(p_ctx.out_string)
-        print "PC", p_ctx.out_string
-        prot.transport.write(''.join(p_ctx.out_string))
+        out_string = msgpack.packb({
+            NO_ERROR: ''.join(p_ctx.out_string),
+        })
+        prot.transport.write(out_string)
+        print "PC", repr(out_string)
 
-    except:
-        err(retval)
+    except Exception as e:
+        logger.exception(e)
+        prot.handle_error(p_ctx, others, InternalError(e))
 
     finally:
         p_ctx.close()

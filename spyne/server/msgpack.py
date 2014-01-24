@@ -33,8 +33,6 @@ from spyne.server import ServerBase
 
 
 def _process_v1_msg(prot, msg):
-    ctx = MethodContext(prot)
-
     header = None
     body = msg[1]
     if not isinstance(body, basestring):
@@ -44,37 +42,45 @@ def _process_v1_msg(prot, msg):
         header = msg[2]
         if not isinstance(header, dict):
             raise ValidationError(header, "Header must be a dict.")
+        for k,v in header.items():
+            header[k] = msgpack.unpackb(v)
 
+    ctx = MessagePackMethodContext(prot)
     ctx.in_string = [body]
     ctx.transport.in_header = header
 
     return ctx
 
 
-class MsgPackTransportContext(TransportContext):
+class MessagePackTransportContext(TransportContext):
     def __init__(self, parent, transport):
-        super(MsgPackTransportContext, self).__init__(parent, transport)
+        super(MessagePackTransportContext, self).__init__(parent, transport)
 
         self.in_header = None
+        self.protocol = None
 
 
-class MsgPackMethodContext(MethodContext):
+class MessagePackMethodContext(MethodContext):
     def __init__(self, transport):
-        super(MsgPackMethodContext, self).__init__(transport)
+        super(MessagePackMethodContext, self).__init__(transport)
 
-        self.transport = MsgPackTransportContext()
-
-
-_version_map = {
-    1: _process_v1_msg
-}
+        self.transport = MessagePackTransportContext(self, transport)
 
 
-class MsgPackServerBase(ServerBase):
+class MessagePackServerBase(ServerBase):
     """Contains the transport protocol logic but not the transport itself."""
 
+    def __init__(self, app):
+        super(MessagePackServerBase, self).__init__(app)
+
+        self._version_map = {
+            1: _process_v1_msg
+        }
+
     def produce_contexts(self, msg):
-        """ msg = [1, body, header] """
+        """msg = [1, body, header]"""
+
+        logger.debug("Request object: %r", msg)
 
         if not isinstance(msg, list):
             raise ValidationError("Request must be a list")
@@ -85,7 +91,7 @@ class MsgPackServerBase(ServerBase):
         if not isinstance(msg[0], int):
             raise ValidationError("Request version must be an integer.")
 
-        processor = _version_map.get(msg[0], None)
+        processor = self._version_map.get(msg[0], None)
         if processor is None:
             raise ValidationError("Unknown request version")
 
