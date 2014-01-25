@@ -121,16 +121,19 @@ class JsonDocument(HierDictDocument):
         # with a property.
         self.__message = HierDictDocument.__getattribute__(self, 'message')
 
-        self._from_string_handlers[Double] = lambda cls, val: val
-        self._from_string_handlers[Boolean] = lambda cls, val: val
-        self._from_string_handlers[Integer] = lambda cls, val: val
+        self._from_string_handlers[Double] = self._ret
+        self._from_string_handlers[Boolean] = self._ret
+        self._from_string_handlers[Integer] = self._ret
 
-        self._to_string_handlers[Double] = lambda cls, val: val
-        self._to_string_handlers[Boolean] = lambda cls, val: val
-        self._to_string_handlers[Integer] = lambda cls, val: val
+        self._to_string_handlers[Double] = self._ret
+        self._to_string_handlers[Boolean] = self._ret
+        self._to_string_handlers[Integer] = self._ret
 
         self.default_string_encoding = default_string_encoding
         self.kwargs = kwargs
+
+    def _ret(self, cls, value):
+        return value
 
     def validate(self, key, cls, val):
         super(JsonDocument, self).validate(key, cls, val)

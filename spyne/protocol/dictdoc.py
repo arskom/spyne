@@ -670,24 +670,25 @@ class HierDictDocument(DictDocument):
             if val is not None or v.Attributes.min_occurs > 0:
                 yield (k, val)
 
-    def _to_value(self, class_, value):
-        if issubclass(class_, AnyDict):
+    def _to_value(self, cls, value):
+        #import ipdb; ipdb.set_trace()
+        if issubclass(cls, AnyDict):
             return value
 
-        if issubclass(class_, Array):
-            st, = class_._type_info.values()
+        if issubclass(cls, Array):
+            st, = cls._type_info.values()
             return self._object_to_doc(st, value)
 
-        if issubclass(class_, ComplexModelBase):
+        if issubclass(cls, ComplexModelBase):
             if self.complex_as is list:
-                return list(self._complex_to_list(class_, value))
+                return list(self._complex_to_list(cls, value))
             else:
-                return self._complex_to_dict(class_, value)
+                return self._complex_to_dict(cls, value)
 
-        if issubclass(class_, (ByteArray, File)):
-            return self.to_string(class_, value, self.default_binary_encoding)
+        if issubclass(cls, (ByteArray, File)):
+            return self.to_string(cls, value, self.default_binary_encoding)
 
-        return self.to_string(class_, value)
+        return self.to_string(cls, value)
 
     def _complex_to_dict(self, class_, inst):
         inst = class_.get_serialization_instance(inst)
