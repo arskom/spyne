@@ -164,6 +164,7 @@ class ProtocolBase(object):
             Duration: self.duration_to_string,
             ByteArray: self.byte_array_to_string,
             Attachment: self.attachment_to_string,
+            XmlAttribute: self.xmlattribute_to_string,
             ComplexModelBase: self.complex_model_base_to_string,
         })
 
@@ -656,6 +657,12 @@ class ProtocolBase(object):
 
     def complex_model_base_from_string(self, cls, string):
         raise TypeError("Only primitives can be deserialized from string.")
+
+    def xmlattribute_to_string(self, cls, string):
+        return self.to_string(cls.type, string)
+
+    def xmlattribute_from_string(self, cls, value):
+        return self.from_string(cls.type, value)
 
     def model_base_to_string_iterable(self, cls, value):
         return cls.to_string_iterable(value)
