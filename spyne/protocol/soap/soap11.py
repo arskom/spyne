@@ -59,9 +59,6 @@ from spyne.model.primitive import DateTime
 from spyne.protocol.xml import XmlDocument
 from spyne.protocol.soap.mime import collapse_swa
 
-from spyne.protocol._model import date_from_string_iso
-from spyne.protocol._model import datetime_from_string_iso
-
 
 def _from_soap(in_envelope_xml, xmlids=None):
     """Parses the xml string into the header and payload.
@@ -177,8 +174,8 @@ class Soap11(XmlDocument):
         self._to_string_handlers[Time] = lambda cls, value: value.isoformat()
         self._to_string_handlers[DateTime] = lambda cls, value: value.isoformat()
 
-        self._from_string_handlers[Date] = date_from_string_iso
-        self._from_string_handlers[DateTime] = datetime_from_string_iso
+        self._from_string_handlers[Date] = self.date_from_string_iso
+        self._from_string_handlers[DateTime] = self.datetime_from_string_iso
 
     def create_in_document(self, ctx, charset=None):
         if ctx.transport.type == 'wsgi':

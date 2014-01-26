@@ -18,6 +18,8 @@
 #
 
 import logging
+from time import strptime, mktime
+
 logger = logging.getLogger(__name__)
 
 import pytz
@@ -198,6 +200,26 @@ class ProtocolBase(object):
             ComplexModelBase: self.complex_model_base_from_string
         })
 
+        self._datetime_dsmap = {
+            None: self._datetime_from_string,
+            'sec': self._datetime_from_sec,
+            'sec_float': self._datetime_from_sec_float,
+            'msec': self._datetime_from_msec,
+            'msec_float': self._datetime_from_msec_float,
+            'usec': self._datetime_from_usec,
+        }
+
+    def _datetime_from_sec(self, cls, value):
+        return datetime.fromtimestamp(value)
+    def _datetime_from_sec_float(self, cls, value):
+        return datetime.fromtimestamp(value)
+    def _datetime_from_msec(self, cls, value):
+        return datetime.fromtimestamp(value // 1000)
+    def _datetime_from_msec_float(self, cls, value):
+        return datetime.fromtimestamp(value / 1000)
+    def _datetime_from_usec(self, cls, value):
+        return datetime.fromtimestamp(value / 1e6)
+
     @property
     def app(self):
         return self.__app
@@ -327,7 +349,7 @@ class ProtocolBase(object):
             return []
 
         handler = self._to_string_iterable_handlers[class_]
-        return handler(self, class_, value)
+        return handler(class_, value)
 
     @memoize_id
     def get_cls_attrs(self, cls):
@@ -437,7 +459,7 @@ class ProtocolBase(object):
         else:
             return cls.Attributes.format % value
 
-    def integer_from_string(cls, string):
+    def integer_from_string(self, cls, string):
         if cls.Attributes.max_str_len is not None and len(string) > \
                                                      cls.Attributes.max_str_len:
             raise ValidationError(string,
@@ -480,7 +502,7 @@ class ProtocolBase(object):
         no matter what.
         """
         try:
-            return date(*(time.strptime(string, '%Y-%m-%d')[0:3]))
+            return date(*(strptime(string, '%Y-%m-%d')[0:3]))
         except ValueError:
             match = cls._offset_re.match(string)
             if match:
@@ -491,8 +513,39 @@ class ProtocolBase(object):
     def model_base_from_string(self, cls, value):
         return cls.from_string(value)
 
+    def datetime_from_string_iso(self, cls, string):
+        astz = cls.Attributes.as_timezone
+
+        match = cls._utc_re.match(string)
+        if match:
+            tz = pytz.utc
+            retval = _parse_datetime_iso_match(match, tz=tz)
+            if astz is not None:
+                retval = retval.astimezone(astz)
+            return retval
+
+        if match is None:
+            match = cls._offset_re.match(string)
+            if match:
+                tz_hr, tz_min = [int(match.group(x)) for x in ("tz_hr", "tz_min")]
+                tz = FixedOffset(tz_hr * 60 + tz_min, {})
+                retval = _parse_datetime_iso_match(match, tz=tz)
+                if astz is not None:
+                    retval = retval.astimezone(astz)
+                return retval
+
+        if match is None:
+            match = cls._local_re.match(string)
+            if match:
+                retval = _parse_datetime_iso_match(match)
+                if astz:
+                    retval = retval.replace(tzinfo=astz)
+                return retval
+
+        raise ValidationError(string)
+
     def datetime_from_string(self, cls, string):
-        return _datetime_dsmap[cls.Attributes.serialize_as](cls, string)
+        return self._datetime_dsmap[cls.Attributes.serialize_as](cls, string)
 
     def date_from_string(self, cls, string):
         try:
@@ -670,6 +723,21 @@ class ProtocolBase(object):
     def model_base_to_string(self, cls, value):
         return cls.to_string(value)
 
+    def _datetime_from_string(self, cls, string):
+        attrs = cls.Attributes
+        format = attrs.format
+
+        if format is None:
+            retval = self.datetime_from_string_iso(cls, string)
+        else:
+            astz = cls.Attributes.as_timezone
+
+            retval = datetime.strptime(string, format)
+            if astz:
+                retval = retval.astimezone(cls.Attributes.as_time_zone)
+
+        return retval
+
 _uuid_serialize = {
     None: str,
     'hex': lambda u:u.hex,
@@ -706,31 +774,6 @@ else:
         return (td.microseconds + (td.seconds + td.days * 24 * 3600) *1e6) / 1e6
 
 
-def _datetime_from_string(cls, string):
-    attrs = cls.Attributes
-    format = attrs.format
-
-    if format is None:
-        retval = datetime_from_string_iso(cls, string)
-    else:
-        astz = cls.Attributes.as_timezone
-
-        retval = datetime.strptime(string, format)
-        if astz:
-            retval = retval.astimezone(cls.Attributes.as_time_zone)
-
-    return retval
-
-_datetime_dsmap = {
-    None: _datetime_from_string,
-    'sec': lambda c, s: datetime.fromtimestamp(s),
-    'sec_float': lambda c, s: datetime.fromtimestamp(s),
-    'msec': lambda c, s: datetime.fromtimestamp(s//1000),
-    'msec_float': lambda c, s: datetime.fromtimestamp(s/1000),
-    'usec': lambda c, s: datetime.fromtimestamp(s/1e6),
-}
-
-
 def _parse_datetime_iso_match(date_match, tz=None):
     fields = date_match.groupdict()
 
@@ -749,37 +792,6 @@ def _parse_datetime_iso_match(date_match, tz=None):
         usec = int(round(float(usec) * 1e6))
 
     return datetime(year, month, day, hour, min, sec, usec, tz)
-
-def datetime_from_string_iso(cls, string):
-    astz = cls.Attributes.as_timezone
-
-    match = cls._utc_re.match(string)
-    if match:
-        tz = pytz.utc
-        retval = _parse_datetime_iso_match(match, tz=tz)
-        if astz is not None:
-            retval = retval.astimezone(astz)
-        return retval
-
-    if match is None:
-        match = cls._offset_re.match(string)
-        if match:
-            tz_hr, tz_min = [int(match.group(x)) for x in ("tz_hr", "tz_min")]
-            tz = FixedOffset(tz_hr * 60 + tz_min, {})
-            retval = _parse_datetime_iso_match(match, tz=tz)
-            if astz is not None:
-                retval = retval.astimezone(astz)
-            return retval
-
-    if match is None:
-        match = cls._local_re.match(string)
-        if match:
-            retval = _parse_datetime_iso_match(match)
-            if astz:
-                retval = retval.replace(tzinfo=astz)
-            return retval
-
-    raise ValidationError(string)
 
 
 def _datetime_to_string(cls, value):
@@ -802,17 +814,17 @@ def _datetime_to_string(cls, value):
 
 
 _dt_sec = lambda cls, val: \
-        int(time.mktime(val.timetuple()))
+        int(mktime(val.timetuple()))
 _dt_sec_float = lambda cls, val: \
-        time.mktime(val.timetuple()) + (val.microsecond / 1e6)
+        mktime(val.timetuple()) + (val.microsecond / 1e6)
 
 _dt_msec = lambda cls, val: \
-        int(time.mktime(val.timetuple())) * 1000 + (val.microsecond // 1000)
+        int(mktime(val.timetuple())) * 1000 + (val.microsecond // 1000)
 _dt_msec_float = lambda cls, val: \
-        time.mktime(val.timetuple()) * 1000 + (val.microsecond / 1000.0)
+        mktime(val.timetuple()) * 1000 + (val.microsecond / 1000.0)
 
 _dt_usec = lambda cls, val: \
-        int(time.mktime(val.timetuple())) * 1000000 + val.microsecond
+        int(mktime(val.timetuple())) * 1000000 + val.microsecond
 
 _datetime_smap = {
     None: _datetime_to_string,
