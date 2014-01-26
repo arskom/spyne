@@ -37,8 +37,6 @@ import msgpack
 
 from spyne.model.fault import Fault
 from spyne.protocol.dictdoc import HierDictDocument
-from spyne.protocol._model import integer_to_string
-from spyne.protocol._model import integer_from_string
 from spyne.model.primitive import Double
 from spyne.model.primitive import Boolean
 from spyne.model.primitive import Integer
@@ -48,18 +46,6 @@ class MessagePackDecodeError(Fault):
     def __init__(self, data=None):
         super(MessagePackDecodeError, self).__init__("Client.MessagePackDecodeError", data)
 
-
-def _integer_from_string(cls, value):
-    if isinstance(value, six.string_types):
-        return integer_from_string(cls, value)
-    else:
-        return value
-
-def _integer_to_string(cls, value):
-    if -1<<63 <= value < 1<<64: # if it's inside the range msgpack can deal with
-        return value
-    else:
-        return integer_to_string(cls, value)
 
 class MessagePackDocument(HierDictDocument):
     """An integration class for the msgpack protocol."""
@@ -83,13 +69,16 @@ class MessagePackDocument(HierDictDocument):
         super(MessagePackDocument, self).__init__(app, validator, mime_type,
                             ignore_uncap, ignore_wrappers, complex_as, ordered)
 
-        self._from_string_handlers[Double] = lambda cls, val: val
-        self._from_string_handlers[Boolean] = lambda cls, val: val
-        self._from_string_handlers[Integer] = _integer_from_string
+        self._from_string_handlers[Double] = self._ret
+        self._from_string_handlers[Boolean] = self._ret
+        self._from_string_handlers[Integer] = self.integer_from_string
 
-        self._to_string_handlers[Double] = lambda cls, val: val
-        self._to_string_handlers[Boolean] = lambda cls, val: val
-        self._to_string_handlers[Integer] = _integer_to_string
+        self._to_string_handlers[Double] = self._ret
+        self._to_string_handlers[Boolean] = self._ret
+        self._to_string_handlers[Integer] = self.integer_to_string
+
+    def _ret(self, cls, value):
+        return value
 
     def create_in_document(self, ctx, in_string_encoding=None):
         """Sets ``ctx.in_document``,  using ``ctx.in_string``.
@@ -111,6 +100,17 @@ class MessagePackDocument(HierDictDocument):
     def create_out_string(self, ctx, out_string_encoding='utf8'):
         ctx.out_string = (msgpack.packb(o) for o in ctx.out_document)
 
+    def integer_from_string(self, cls, value):
+        if isinstance(value, six.string_types):
+            return super(MessagePackDocument, self).integer_from_string(cls, value)
+        else:
+            return value
+
+    def integer_to_string(self, cls, value):
+        if -1<<63 <= value < 1<<64: # if it's inside the range msgpack can deal with
+            return value
+        else:
+            return super(MessagePackDocument, self).integer_to_string(cls, value)
 
 class MessagePackRpc(MessagePackDocument):
     """An integration class for the msgpack-rpc protocol."""
@@ -243,3 +243,4 @@ class MessagePackRpc(MessagePackDocument):
                                         self._to_value(out_type, out_instance)]]
 
             self.event_manager.fire_event('after_serialize', ctx)
+
