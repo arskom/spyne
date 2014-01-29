@@ -67,13 +67,13 @@ def HtmlTable(app=None, validator=None, produce_header=True,
     """
 
     if fields_as == 'columns':
-        return _HtmlColumnTable(app, validator,
+        return HtmlColumnTable(app, validator,
                                     ignore_uncap, ignore_wrappers,
                                     produce_header,
                                     table_name_attr, field_name_attr, border,
                                     row_class, cell_class, header_cell_class)
     elif fields_as == 'rows':
-        return _HtmlRowTable(app, validator,
+        return HtmlRowTable(app, validator,
                                     ignore_uncap, ignore_wrappers,
                                     produce_header,
                                     table_name_attr, field_name_attr, border,
@@ -82,15 +82,16 @@ def HtmlTable(app=None, validator=None, produce_header=True,
     else:
         raise ValueError(fields_as)
 
-class _HtmlTableBase(HtmlBase):
+class HtmlTableBase(HtmlBase):
     mime_type = 'text/html'
 
-    def __init__(self, app, validator,
-            ignore_uncap, ignore_wrappers,
-            produce_header, table_name_attr,
-            field_name_attr, border, row_class, cell_class, header_cell_class):
+    def __init__(self, app=None, validator=None, ignore_uncap=False,
+                                                           ignore_wrappers=True,
+                                produce_header=True, table_name_attr='class',
+                                field_name_attr=None, border=0, row_class=None,
+                                cell_class=None, header_cell_class=None):
 
-        super(_HtmlTableBase, self).__init__(app, validator, None,
+        super(HtmlTableBase, self).__init__(app, validator, None,
                                                   ignore_uncap, ignore_wrappers)
 
         assert table_name_attr in (None, 'class', 'id')
@@ -116,7 +117,7 @@ class _HtmlTableBase(HtmlBase):
         if self.table_name_attr is not None:
             attrs[self.table_name_attr] = name
         with parent.element('td', attrs):
-            super(_HtmlTableBase, self).anyuri_to_parent(ctx, cls, inst,
+            super(HtmlTableBase, self).anyuri_to_parent(ctx, cls, inst,
                                                  parent, name,  **kwargs)
 
     def imageuri_to_parent(self, ctx, cls, inst, parent, name,  **kwargs):
@@ -124,12 +125,12 @@ class _HtmlTableBase(HtmlBase):
         if self.table_name_attr is not None:
             attrs[self.table_name_attr] = name
         with parent.element('td', attrs):
-            super(_HtmlTableBase, self).imageuri_to_parent(ctx, cls, inst,
+            super(HtmlTableBase, self).imageuri_to_parent(ctx, cls, inst,
                                                 parent, name,  **kwargs)
 
-class _HtmlColumnTable(_HtmlTableBase):
+class HtmlColumnTable(HtmlTableBase):
     def __init__(self, *args, **kwargs):
-        super(_HtmlColumnTable, self).__init__(*args, **kwargs)
+        super(HtmlColumnTable, self).__init__(*args, **kwargs)
 
         self.serialization_handlers = cdict({
             ModelBase: self.model_base_to_parent,
@@ -248,9 +249,9 @@ class _HtmlColumnTable(_HtmlTableBase):
                         ret.send(sv2)
 
 
-class _HtmlRowTable(_HtmlTableBase):
+class HtmlRowTable(HtmlTableBase):
     def __init__(self, *args, **kwargs):
-        super(_HtmlRowTable, self).__init__(*args, **kwargs)
+        super(HtmlRowTable, self).__init__(*args, **kwargs)
 
         self.serialization_handlers = cdict({
             ModelBase: self.model_base_to_parent,
