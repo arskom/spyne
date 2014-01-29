@@ -3,8 +3,12 @@
 # Sets up a Python testing environment from scratch. Mainly written for Jenkins.
 #
 # Requirements:
-#   A working build environment inside the container. Only tested on Linux
-#   variants.
+#   A working build environment inside the container with OpenSSL, bzip2,
+#   libxml2 and libxsld development files. Only tested on Linux variants.
+#
+#   Last time we looked, for ubuntu, that meant:
+#     $ sudo apt-get install build-essential libssl-dev lilbbz2-dev \
+#                                                       libxml2-dev libxslt-dev
 #
 # Usage:
 #   Example:
