@@ -869,6 +869,8 @@ def _add_complex_type(cls, props, table, k, v):
 
             if col.name in table.c:
                 col = table.c[col.name]
+                if col_kwargs.get('nullable') is False:
+                    col.nullable = False
             else:
                 table.append_column(col)
             rel = relationship(real_v, uselist=False, cascade=p.cascade,

@@ -745,6 +745,22 @@ class TestSqlAlchemySchema(unittest.TestCase):
         assert 'c_id' in rel_table.c
         assert 'd_id' in rel_table.c
 
+    def test_add_field_complex_cust(self):
+        class C(TableModel):
+            __tablename__ = "c"
+            id = Integer32(pk=True)
+
+        class D(TableModel):
+            __tablename__ = "d"
+            id = Integer32(pk=True)
+            c = Array(C).store_as('table')
+
+        C.append_field('d', D.customize(
+            nullable=False,
+            store_as=table(left='d_id'),
+        ))
+        assert C.__table__.c['d_id'].nullable == False
+
 class TestSqlAlchemySchemaWithPostgresql(unittest.TestCase):
     def setUp(self):
         self.metadata = TableModel.Attributes.sqla_metadata = MetaData()
