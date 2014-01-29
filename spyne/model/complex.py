@@ -617,6 +617,7 @@ class ComplexModelBase(ModelBase):
 
         _variants = None
         _xml_tag_body_as = None, None
+        _delayed_child_attrs = None
 
     def __init__(self, *args, **kwargs):
         cls = self.__class__
@@ -857,11 +858,20 @@ class ComplexModelBase(ModelBase):
         retval.__namespace__ = cls.__namespace__
         retval.Attributes.parent_variant = cls
 
+        dca = retval.Attributes._delayed_child_attrs
+        if retval.Attributes._delayed_child_attrs is None:
+            retval.Attributes._delayed_child_attrs = {}
+        else:
+            retval.Attributes._delayed_child_attrs = dict(dca.items())
+
         child_attrs = kwargs.get('child_attrs', None)
         if child_attrs is not None:
             ti = retval._type_info
             for k, v in child_attrs.items():
-                ti[k] = ti[k].customize(**v)
+                if k in ti:
+                    ti[k] = ti[k].customize(**v)
+                else:
+                    retval.Attributes._delayed_child_attrs[k] = v
 
         tn = kwargs.get("type_name", None)
         if tn is not None:
@@ -889,6 +899,12 @@ class ComplexModelBase(ModelBase):
 
     @classmethod
     def append_field(cls, field_name, field_type):
+        dca = cls.Attributes._delayed_child_attrs
+        if dca is not None:
+            d_cust = dca.get(field_name, None)
+            if d_cust is not None:
+                field_type = field_type.customize(**d_cust)
+
         cls._type_info[field_name] = field_type
         if cls.Attributes._variants is not None:
             for c in cls.Attributes._variants:
@@ -898,6 +914,12 @@ class ComplexModelBase(ModelBase):
 
     @classmethod
     def insert_field(cls, index, field_name, field_type):
+        dca = cls.Attributes._delayed_child_attrs
+        if dca is not None:
+            if field_name in dca:
+                d_cust = dca.pop(field_name)
+                field_type = field_type.customize(**d_cust)
+
         cls._type_info.insert(index, (field_name, field_type))
         if cls.Attributes._variants is not None:
             for c in cls.Attributes._variants:
@@ -1056,12 +1078,16 @@ def TTableModelBase():
         @classmethod
         def append_field(cls, field_name, field_type):
             super(TableModelBase, cls).append_field(field_name, field_type)
-            add_column(cls, field_name, field_type)
+            # There could have been changes to field_type in ComplexModel so we
+            # should not use field_type directly from above
+            add_column(cls, field_name, cls._type_info[field_name])
 
         @classmethod
         def insert_field(cls, index, field_name, field_type):
             super(TableModelBase, cls).insert_field(index, field_name, field_type)
-            add_column(cls, field_name, field_type)
+            # There could have been changes to field_type in ComplexModel so we
+            # should not use field_type directly from above
+            add_column(cls, field_name, cls._type_info[field_name])
 
     return TableModelBase
 

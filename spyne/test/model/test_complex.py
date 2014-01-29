@@ -31,7 +31,6 @@ from spyne import Application
 from spyne import rpc
 from spyne import mrpc
 from spyne import ServiceBase
-from spyne._base import FakeContext
 from spyne.const import xml_ns
 from spyne.error import ResourceNotFoundError
 from spyne.interface import Interface
@@ -55,7 +54,6 @@ from spyne.protocol.dictdoc import SimpleDictDocument
 from spyne.protocol.xml import XmlDocument
 
 from spyne.test import FakeApp
-from spyne.util.six import StringIO
 
 ns_test = 'test_namespace'
 
@@ -148,6 +146,22 @@ class TestComplexModel(unittest.TestCase):
         CC = C.customize(child_attrs=dict(u=dict(min_len=5)))
         assert CC._type_info['u'].Attributes.min_len == 5
         assert C._type_info['u'].Attributes.min_len != 5
+
+    def test_delayed_child_customization_append(self):
+        class C(ComplexModel):
+            u = Unicode
+        CC = C.customize(child_attrs=dict(i=dict(ge=5)))
+        CC.append_field('i', Integer)
+        assert CC._type_info['i'].Attributes.ge == 5
+        assert not 'i' in C._type_info
+
+    def test_delayed_child_customization_insert(self):
+        class C(ComplexModel):
+            u = Unicode
+        CC = C.customize(child_attrs=dict(i=dict(ge=5)))
+        CC.insert_field(1, 'i', Integer)
+        assert CC._type_info['i'].Attributes.ge == 5
+        assert not 'i' in C._type_info
 
     def test_array_customization(self):
         CC = Array(Unicode).customize(
