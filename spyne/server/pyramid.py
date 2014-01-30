@@ -41,7 +41,8 @@ class PyramidApplication(WsgiApplication):
             for header, value in headers:
                 retval.headers[header] = value
 
-        response = WsgiApplication.__call__(self, request, start_response)
+        response = WsgiApplication.__call__(self, request.environ,
+                                            start_response)
         retval.body = "".join(response)
 
         return retval

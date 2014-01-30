@@ -198,7 +198,8 @@ class RunTests(TestCommand):
                           'test_soft_validation.py', 'test_util.py',
                           'test_sqlalchemy.py',
                           'test_sqlalchemy_deprecated.py',
-                          'interop/test_django.py') or ret
+                          'interop/test_django.py',
+                          'interop/test_pyramid.py') or ret
         ret = call_pytest_subprocess('interop/test_httprpc.py') or ret
         ret = call_pytest_subprocess('interop/test_soap_client_http.py') or ret
         ret = call_pytest_subprocess('interop/test_soap_client_zeromq.py') or ret
@@ -217,7 +218,8 @@ test_reqs = [
     'pytest', 'werkzeug', 'sqlalchemy', 'coverage',
     'lxml>=2.3', 'pyyaml', 'pyzmq', 'twisted', 'colorama',
     'msgpack-python', 'webtest', 'django<1.5.99', 'pytest_django',
-    'python-subunit', 'junitxml', # to get junitxml output from trial
+    'python-subunit', 'pyramid',
+    'junitxml',  # to get junitxml output from trial
 ]
 
 import sys
