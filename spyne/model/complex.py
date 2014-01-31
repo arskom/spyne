@@ -748,7 +748,7 @@ class ComplexModelBase(ModelBase):
 
     @staticmethod
     @memoize
-    def get_simple_type_info(cls, hier_delim="_"):
+    def get_simple_type_info(cls, hier_delim="."):
         """Returns a _type_info dict that includes members from all base classes
         and whose types are only primitives. It will prefix field names in
         non-top-level complex objects with field name of its parent.

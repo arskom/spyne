@@ -277,7 +277,7 @@ class SimpleDictDocument(DictDocument):
     """
 
     def simple_dict_to_object(self, doc, inst_class, validator=None,
-                                                hier_delim="_", req_enc=None):
+                                                hier_delim=".", req_enc=None):
         """Converts a flat dict to a native python object.
 
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
@@ -291,7 +291,7 @@ class SimpleDictDocument(DictDocument):
             _fill(inst_class, frequencies)
 
         retval = inst_class.get_deserialization_instance()
-        simple_type_info = inst_class.get_simple_type_info(inst_class)
+        simple_type_info = inst_class.get_simple_type_info(inst_class, hier_delim)
         for orig_k, v in sorted(doc.items(), key=lambda k: k[0]):
             k = RE_HTTP_ARRAY_INDEX.sub("", orig_k)
 
@@ -409,7 +409,7 @@ class SimpleDictDocument(DictDocument):
 
         return retval
 
-    def object_to_simple_dict(self, inst_cls, value, hier_delim="_", retval=None,
+    def object_to_simple_dict(self, inst_cls, value, hier_delim=".", retval=None,
                      prefix=None, parent=None, subvalue_eater=lambda prot,v,t:v):
         """Converts a native python object to a flat dict.
 
