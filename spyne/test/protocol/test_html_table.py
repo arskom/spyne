@@ -22,12 +22,8 @@ logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 
-from pprint import pformat
-try:
-    from urllib.parse import urlencode
-except ImportError:
-    from urllib import urlencode
-
+from os import makedirs
+from os.path import join
 from lxml import html
 
 from spyne.application import Application
@@ -39,9 +35,17 @@ from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
 from spyne.protocol.http import HttpRpc
 from spyne.protocol.html import HtmlTable
+from spyne.protocol.html.table import HtmlColumnTable, HtmlRowTable
 from spyne.service import ServiceBase
 from spyne.server.wsgi import WsgiApplication
 from spyne.util.test import call_wsgi_app_kwargs, call_wsgi_app
+
+
+def show(elt, tn):
+    out_string = html.tostring(elt, pretty_print=True)
+    print(out_string)
+    makedirs('html')
+    open(join("html", '%s.html' % tn), 'w').write(out_string)
 
 
 class CM(ComplexModel):
@@ -62,7 +66,7 @@ class TestHtmlColumnTable(unittest.TestCase):
                 return [ccm] * 5
 
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
-                                out_protocol=HtmlTable(field_name_attr='class'))
+                        out_protocol=HtmlColumnTable(field_name_attr='class'))
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app_kwargs(server,
@@ -112,7 +116,8 @@ class TestHtmlColumnTable(unittest.TestCase):
             def some_call(s):
                 return s
 
-        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HtmlTable())
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
+                                               out_protocol=HtmlColumnTable())
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app(server, body_pairs=(('s', '1'), ('s', '2')))
@@ -130,7 +135,7 @@ class TestHtmlColumnTable(unittest.TestCase):
                 return [C(c=_link)]
 
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
-                 out_protocol=HtmlTable(field_name_attr='class'))
+                 out_protocol=HtmlColumnTable(field_name_attr='class'))
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app_kwargs(server)
@@ -153,7 +158,7 @@ class TestHtmlColumnTable(unittest.TestCase):
                 return [C(c=AnyUri.Value(_link, text=_text))]
 
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
-                 out_protocol=HtmlTable(field_name_attr='class'))
+                 out_protocol=HtmlColumnTable(field_name_attr='class'))
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app_kwargs(server)
@@ -163,7 +168,6 @@ class TestHtmlColumnTable(unittest.TestCase):
         assert elt.xpath('//td[@class="c"]')[0][0].tag == 'a'
         assert elt.xpath('//td[@class="c"]')[0][0].text == _text
         assert elt.xpath('//td[@class="c"]')[0][0].attrib['href'] == _link
-
 
 class TestHtmlRowTable(unittest.TestCase):
     def test_anyuri_string(self):
@@ -178,7 +182,7 @@ class TestHtmlRowTable(unittest.TestCase):
                 return C(c=_link)
 
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
-                 out_protocol=HtmlTable(field_name_attr='class', fields_as='rows'))
+                        out_protocol=HtmlRowTable(field_name_attr='class'))
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app_kwargs(server)
@@ -201,7 +205,7 @@ class TestHtmlRowTable(unittest.TestCase):
                 return C(c=AnyUri.Value(_link, text=_text))
 
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
-                 out_protocol=HtmlTable(field_name_attr='class', fields_as='rows'))
+                 out_protocol=HtmlRowTable(field_name_attr='class'))
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app_kwargs(server)
@@ -219,7 +223,7 @@ class TestHtmlRowTable(unittest.TestCase):
                 return ccm
 
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
-                 out_protocol=HtmlTable(field_name_attr='class', fields_as='rows'))
+                 out_protocol=HtmlRowTable(field_name_attr='class'))
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app_kwargs(server,
@@ -282,7 +286,8 @@ class TestHtmlRowTable(unittest.TestCase):
             def some_call(s):
                 return s
 
-        app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HtmlTable(fields_as='rows'))
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
+                                                    out_protocol=HtmlRowTable())
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app(server, body_pairs=(('s', '1'), ('s', '2')) )
@@ -299,6 +304,7 @@ class TestHtmlRowTable(unittest.TestCase):
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app(server, body_pairs=(('s', '1'), ('s', '2')) )
+        #FIXME: Needs a proper test with xpaths and all.
         assert out_string == '<table class="some_callResponse"><tbody><tr><td>1</td></tr><tr><td>2</td></tr></tbody></table>'
 
 if __name__ == '__main__':
