@@ -21,6 +21,8 @@ import sys
 import datetime
 
 from collections import deque
+from inspect import isgeneratorfunction
+
 
 try:
     from urllib import splittype
@@ -99,6 +101,7 @@ class Break(Exception):
 
 
 def coroutine(func):
+    assert isgeneratorfunction(func)
     def start(*args, **kwargs):
         ret = func(*args, **kwargs)
 
