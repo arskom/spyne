@@ -276,8 +276,17 @@ class SimpleDictDocument(DictDocument):
     flat dictionaries. The only example as of now is Http.
     """
 
-    def simple_dict_to_object(self, doc, inst_class, validator=None,
-                                                hier_delim=".", req_enc=None):
+    def __init__(self, app=None, validator=None, mime_type=None,
+                 ignore_uncap=False, ignore_wrappers=True, complex_as=dict,
+                 ordered=False, hier_delim='_'):
+        super(SimpleDictDocument, self).__init__(app=app, validator=validator,
+                        mime_type=mime_type, ignore_uncap=ignore_uncap,
+                        ignore_wrappers=ignore_wrappers, complex_as=complex_as,
+                        ordered=ordered)
+
+        self.hier_delim = hier_delim
+
+    def simple_dict_to_object(self, doc, inst_class, validator=None, req_enc=None):
         """Converts a flat dict to a native python object.
 
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
@@ -291,7 +300,8 @@ class SimpleDictDocument(DictDocument):
             _fill(inst_class, frequencies)
 
         retval = inst_class.get_deserialization_instance()
-        simple_type_info = inst_class.get_simple_type_info(inst_class, hier_delim)
+        simple_type_info = inst_class.get_simple_type_info(inst_class,
+                                                     hier_delim=self.hier_delim)
         for orig_k, v in sorted(doc.items(), key=lambda k: k[0]):
             k = RE_HTTP_ARRAY_INDEX.sub("", orig_k)
 
@@ -349,8 +359,6 @@ class SimpleDictDocument(DictDocument):
             cfreq_key = inst_class, idx
 
             indexes = deque(RE_HTTP_ARRAY_INDEX.findall(orig_k))
-            validates = deque()
-
             for pkey in member.path[:-1]:
                 nidx = 0
                 ncls, ninst = ctype_info[pkey], getattr(cinst, pkey, None)
@@ -409,7 +417,7 @@ class SimpleDictDocument(DictDocument):
 
         return retval
 
-    def object_to_simple_dict(self, inst_cls, value, hier_delim=".", retval=None,
+    def object_to_simple_dict(self, inst_cls, value, retval=None,
                      prefix=None, parent=None, subvalue_eater=lambda prot,v,t:v):
         """Converts a native python object to a flat dict.
 
@@ -441,7 +449,7 @@ class SimpleDictDocument(DictDocument):
                         subtype = v
 
                     if issubclass(subtype, SimpleModel):
-                        key = hier_delim.join(new_prefix)
+                        key = self.hier_delim.join(new_prefix)
                         l = []
                         for ssv in subvalue:
                             l.append(subvalue_eater(self, ssv, subtype))
@@ -451,17 +459,16 @@ class SimpleDictDocument(DictDocument):
                         last_prefix = new_prefix[-1]
                         for i, ssv in enumerate(subvalue):
                             new_prefix[-1] = '%s[%d]' % (last_prefix, i)
-                            self.object_to_simple_dict(subtype, ssv, hier_delim,
-                                        retval, new_prefix, parent=inst_cls,
-                                        subvalue_eater=subvalue_eater)
+                            self.object_to_simple_dict(subtype, ssv,
+                                   retval, new_prefix, parent=inst_cls,
+                                   subvalue_eater=subvalue_eater)
 
                 else:
-                    self.object_to_simple_dict(v, subvalue, hier_delim,
-                                            retval, new_prefix, parent=inst_cls,
-                                            subvalue_eater=subvalue_eater)
+                    self.object_to_simple_dict(v, subvalue, retval, new_prefix,
+                                 parent=inst_cls, subvalue_eater=subvalue_eater)
 
         else:
-            key = hier_delim.join(prefix)
+            key = self.hier_delim.join(prefix)
 
             if key in retval:
                 raise ValueError("%r.%s conflicts with previous value %r" %
