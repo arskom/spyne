@@ -21,7 +21,7 @@ from inspect import isgenerator
 
 from lxml.html.builder import E
 from spyne import BODY_STYLE_WRAPPED
-from spyne.model import PushBase, Array
+from spyne.model import PushBase, ComplexModelBase
 
 from spyne.protocol import ProtocolBase
 from spyne.util import coroutine, Break
@@ -30,6 +30,12 @@ from spyne.util.six import StringIO
 
 class HtmlBase(ProtocolBase):
     mime_type = 'text/html'
+
+    def __init__(self, app=None, validator=None, mime_type=None,
+                 ignore_uncap=False, ignore_wrappers=True):
+        super(HtmlBase, self).__init__(app=app, validator=validator,
+                                mime_type=mime_type, ignore_uncap=ignore_uncap,
+                                ignore_wrappers=ignore_wrappers)
 
     def serialize(self, ctx, message):
         """Uses ``ctx.out_object``, ``ctx.out_header`` or ``ctx.out_error`` to
@@ -113,26 +119,22 @@ class HtmlBase(ProtocolBase):
 
         ctx.out_string = [ctx.out_stream.getvalue()]
 
-    def subserialize(self, ctx, cls, inst, parent, ns=None, name=None):
+    def subserialize(self, ctx, cls, inst, parent, ns=None, name=None, **kwargs):
         if name is None:
             name = cls.get_type_name()
-        if cls.Attributes.max_occurs > 1:
-            return self.array_to_parent(ctx, cls, inst, parent, name)
-        return self.to_parent(ctx, cls, inst, parent, name)
+        return self.to_parent(ctx, cls, inst, parent, name, **kwargs)
 
     def decompose_incoming_envelope(self, ctx, message):
         raise NotImplementedError("This is an output-only protocol.")
 
     @coroutine
     def array_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        if issubclass(cls, Array):
-            cls, = cls._type_info.values()
-
         name = cls.get_type_name()
         if isinstance(inst, PushBase):
             while True:
                 sv = (yield)
-                ret = self.to_parent(ctx, cls, sv, parent, name, **kwargs)
+                ret = self.to_parent(ctx, cls, sv, parent, name,
+                                                        from_arr=True, **kwargs)
                 if isgenerator(ret):
                     try:
                         while True:
@@ -146,7 +148,8 @@ class HtmlBase(ProtocolBase):
 
         else:
             for sv in inst:
-                ret = self.to_parent(ctx, cls, sv, parent, name, **kwargs)
+                ret = self.to_parent(ctx, cls, sv, parent, name,
+                                                        from_arr=True, **kwargs)
                 if isgenerator(ret):
                     try:
                         while True:
@@ -158,24 +161,27 @@ class HtmlBase(ProtocolBase):
                         except StopIteration:
                             pass
 
-    def to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+    def to_parent(self, ctx, cls, inst, parent, name, from_arr=False, **kwargs):
         subprot = getattr(cls.Attributes, 'prot', None)
         """:type : HtmlBase"""
 
         if subprot is not None and not (subprot is self):
-            if isinstance(subprot, HtmlBase):
-                return subprot.to_parent(ctx, cls, inst, parent, name, **kwargs)
-            else:
-                return subprot.subserialize(ctx, cls, inst, parent, None, name)
+            return subprot.subserialize(ctx, cls, inst, parent, None, name, **kwargs)
 
         handler = self.serialization_handlers[cls]
         if inst is None:
-            if cls.Attributes.default is None:
-                return self.null_to_parent(ctx, cls, inst, parent, name,
-                                                                **kwargs)
-            return handler(ctx, cls, cls.Attributes.default, parent, name,
-                                                                **kwargs)
-        return handler(ctx, cls, inst, parent, name, **kwargs)
+            inst = cls.Attributes.default
+
+        if inst is None:
+            return self.null_to_parent(ctx, cls, inst, parent, name, **kwargs)
+
+        if issubclass(cls, ComplexModelBase) and self.ignore_wrappers:
+            cls, inst = self.strip_wrappers(cls, inst)
+
+        if not from_arr and cls.Attributes.max_occurs > 1:
+            return self.array_to_parent(ctx, cls, inst, parent, name, **kwargs)
+
+        return handler(ctx, cls, inst, parent, name, from_arr=from_arr, **kwargs)
 
     def null_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         pass
@@ -183,6 +189,7 @@ class HtmlBase(ProtocolBase):
     @coroutine
     def _get_members(self, ctx, cls, inst, parent, **kwargs):
         for k, v in cls.get_flat_type_info(cls).items():
+            print "_get_members", k, v
             try:
                 subvalue = getattr(inst, k, None)
             except: # to guard against e.g. SqlAlchemy throwing NoSuchColumnError
@@ -192,23 +199,8 @@ class HtmlBase(ProtocolBase):
             if sub_name is None:
                 sub_name = k
 
-            mo = v.Attributes.max_occurs
-            if subvalue is not None and mo > 1:
-                ret = self.array_to_parent(ctx, v, subvalue, parent, sub_name,
-                                                                       **kwargs)
-                if ret is not None:
-                    try:
-                        while True:
-                            sv2 = (yield)
-                            ret.send(sv2)
-                    except Break as b:
-                        try:
-                            ret.throw(b)
-                        except StopIteration:
-                            pass
-
             # Don't include empty values for non-nillable optional attributes.
-            elif subvalue is not None or v.Attributes.min_occurs > 0:
+            if subvalue is not None or v.Attributes.min_occurs > 0:
                 ret = self.to_parent(ctx, v, subvalue, parent, sub_name, **kwargs)
                 if ret is not None:
                     try:

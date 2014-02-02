@@ -35,6 +35,8 @@ from spyne.protocol.html import HtmlMicroFormat
 from spyne.service import ServiceBase
 from spyne.server.wsgi import WsgiMethodContext
 from spyne.server.wsgi import WsgiApplication
+from spyne.util.test import show, call_wsgi_app_kwargs
+
 
 class TestHtmlMicroFormat(unittest.TestCase):
     def test_simple(self):
@@ -212,17 +214,7 @@ class TestHtmlMicroFormat(unittest.TestCase):
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(), out_protocol=HtmlMicroFormat())
         server = WsgiApplication(app)
 
-        initial_ctx = WsgiMethodContext(server, {
-            'QUERY_STRING': 'ccm_c_s=abc&ccm_c_i=123&ccm_i=456&ccm_s=def',
-            'PATH_INFO': '/some_call',
-            'REQUEST_METHOD': 'GET',
-            'SERVER_NAME': 'localhost',
-        }, 'some-content-type')
-
-        ctx, = server.generate_contexts(initial_ctx)
-        server.get_in_object(ctx)
-        server.get_out_object(ctx)
-        server.get_out_string(ctx)
+        out_string = call_wsgi_app_kwargs(server, ccm_c_s='abc', ccm_c_i=123, ccm_i=456, ccm_s='def')
 
         #
         # Here's what this is supposed to return:
@@ -247,8 +239,8 @@ class TestHtmlMicroFormat(unittest.TestCase):
         # </div></div>
         #
 
-        elt = html.fromstring(''.join(ctx.out_string))
-        print(html.tostring(elt, pretty_print=True))
+        elt = html.fromstring(''.join(out_string))
+        show(elt, "TestHtmlMicroFormat.test_complex_array")
 
         resp = elt.find_class('some_callResponse')
         assert len(resp) == 1

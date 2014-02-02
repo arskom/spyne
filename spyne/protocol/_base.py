@@ -62,7 +62,7 @@ from spyne.model.binary import BINARY_ENCODING_USE_DEFAULT
 from spyne.model.primitive import _time_re
 from spyne.model.primitive import _duration_re
 
-from spyne.model import ModelBase, XmlAttribute
+from spyne.model import ModelBase, XmlAttribute, Array
 from spyne.model import SimpleModel
 from spyne.model import Null
 from spyne.model import ByteArray
@@ -223,6 +223,21 @@ class ProtocolBase(object):
     @property
     def app(self):
         return self.__app
+
+    @staticmethod
+    def strip_wrappers(cls, inst):
+        ti = getattr(cls, '_type_info', {})
+
+        while len(ti) == 1 and cls.Attributes._wrapper:
+            # Wrappers are auto-generated objects that have exactly one
+            # child type.
+            key, = ti.keys()
+            if not issubclass(cls, Array):
+                inst = getattr(inst, key, None)
+            cls, = ti.values()
+            ti = getattr(cls, '_type_info', {})
+
+        return cls, inst
 
     def set_app(self, value):
         assert self.__app is None, "One protocol instance should belong to one " \

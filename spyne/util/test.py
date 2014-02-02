@@ -37,6 +37,8 @@ def call_wsgi_app(app, mn='some_call', headers=None, body_pairs=None):
     if body_pairs is None:
         body_pairs = []
 
+    body_pairs = [(k,str(v)) for k,v in body_pairs]
+
     request = {
         'QUERY_STRING': urlencode(body_pairs),
         'PATH_INFO': '/%s' % mn,
@@ -50,3 +52,17 @@ def call_wsgi_app(app, mn='some_call', headers=None, body_pairs=None):
     out_string = ''.join(app(request, _start_response))
 
     return out_string
+
+from os import mkdir
+from os.path import join
+
+def show(elt, tn):
+    from lxml import html, etree
+    out_string = etree.tostring(elt, pretty_print=True)
+    print(out_string)
+    try:
+        mkdir('html')
+    except OSError:
+        pass
+
+    open(join("html", '%s.html' % tn), 'w').write(html.tostring(elt, pretty_print=True))

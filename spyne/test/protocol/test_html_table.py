@@ -22,9 +22,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 
-from os import mkdir
-from os.path import join
-from lxml import html, etree
+from lxml import html
 
 from spyne.application import Application
 from spyne.decorator import srpc
@@ -38,19 +36,7 @@ from spyne.protocol.html import HtmlTable
 from spyne.protocol.html.table import HtmlColumnTable, HtmlRowTable
 from spyne.service import ServiceBase
 from spyne.server.wsgi import WsgiApplication
-from spyne.util.test import call_wsgi_app_kwargs, call_wsgi_app
-
-
-def show(elt, tn):
-    out_string = etree.tostring(elt, pretty_print=True)
-    print(out_string)
-    try:
-        mkdir('html')
-    except OSError:
-        pass
-
-    open(join("html", '%s.html' % tn), 'w').write(html.tostring(elt, pretty_print=True))
-
+from spyne.util.test import show, call_wsgi_app_kwargs, call_wsgi_app
 
 class CM(ComplexModel):
     i = Integer
@@ -85,8 +71,6 @@ class TestHtmlColumnTable(unittest.TestCase):
         show(elt, 'TestHtmlColumnTable.test_complex_array')
 
         elt = html.fromstring(out_string)
-        resp = elt.find_class('some_callResponse')
-        assert len(resp) == 1
 
         row, = elt[0] # thead
         cell = row.findall('th[@class="i"]')
@@ -125,7 +109,10 @@ class TestHtmlColumnTable(unittest.TestCase):
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app(server, body_pairs=(('s', '1'), ('s', '2')))
-        assert out_string == '<table class="some_callResponse"><thead><tr><th>some_callResponse</th></tr></thead><tbody><tr><td>1</td></tr><tr><td>2</td></tr></tbody></table>'
+        assert out_string == '<table class="string">' \
+            '<thead><tr><th class="some_callResponse">some_callResponse</th></tr></thead>' \
+            '<tbody><tr><td>1</td></tr><tr><td>2</td></tr></tbody>' \
+        '</table>'
 
     def test_anyuri_string(self):
         _link = "http://arskom.com.tr/"
@@ -234,11 +221,11 @@ class TestHtmlRowTable(unittest.TestCase):
                          ccm_c_s='abc', ccm_c_i='123', ccm_i='456', ccm_s='def')
 
         elt = html.fromstring(out_string)
-        print(html.tostring(elt, pretty_print=True))
+        show(elt, "TestHtmlRowTable.test_complex")
 
         # Here's what this is supposed to return
         """
-        <table class="some_callResponse">
+        <table class="CCM">
           <tbody>
             <tr>
               <th class="i">i</th>
@@ -269,7 +256,7 @@ class TestHtmlRowTable(unittest.TestCase):
         </table>
         """
 
-        resp = elt.find_class('some_callResponse')
+        resp = elt.find_class('CCM')
         assert len(resp) == 1
 
         assert elt.xpath('tbody/tr/th[@class="i"]/text()')[0] == 'i'
@@ -295,7 +282,7 @@ class TestHtmlRowTable(unittest.TestCase):
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app(server, body_pairs=(('s', '1'), ('s', '2')) )
-        assert out_string == '<table class="some_callResponse"><tbody><tr><th>string</th><td>1</td></tr><tr><th>string</th><td>2</td></tr></tbody></table>'
+        assert out_string == '<div><table class="some_callResponse"><tr><th>string</th><td><table><tr><td>1</td></tr><tr><td>2</td></tr></table></td></tr></table></div>'
 
     def test_string_array_no_header(self):
         class SomeService(ServiceBase):
@@ -309,7 +296,29 @@ class TestHtmlRowTable(unittest.TestCase):
 
         out_string = call_wsgi_app(server, body_pairs=(('s', '1'), ('s', '2')) )
         #FIXME: Needs a proper test with xpaths and all.
-        assert out_string == '<table class="some_callResponse"><tbody><tr><td>1</td></tr><tr><td>2</td></tr></tbody></table>'
+        assert out_string == '<div><table class="some_callResponse"><tr><td><table><tr><td>1</td></tr><tr><td>2</td></tr></table></td></tr></table></div>'
+
+    def test_complex_array(self):
+        v = [
+            CM(i=1, s='a'),
+            CM(i=2, s='b'),
+            CM(i=3, s='c'),
+            CM(i=4, s='d'),
+        ]
+        class SomeService(ServiceBase):
+            @srpc(_returns=Array(CM))
+            def some_call():
+                return v
+
+        app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
+                out_protocol=HtmlRowTable())
+        server = WsgiApplication(app)
+
+        out_string = call_wsgi_app_kwargs(server)
+        show(html.fromstring(out_string), 'TestHtmlRowTable.test_complex_array')
+        #FIXME: Needs a proper test with xpaths and all.
+        assert out_string == '<div><table class="CM"><tbody><tr><th class="i">i</th><td class="i">1</td></tr><tr><th class="s">s</th><td class="s">a</td></tr></tbody></table><table class="CM"><tbody><tr><th class="i">i</th><td class="i">2</td></tr><tr><th class="s">s</th><td class="s">b</td></tr></tbody></table><table class="CM"><tbody><tr><th class="i">i</th><td class="i">3</td></tr><tr><th class="s">s</th><td class="s">c</td></tr></tbody></table><table class="CM"><tbody><tr><th class="i">i</th><td class="i">4</td></tr><tr><th class="s">s</th><td class="s">d</td></tr></tbody></table></div>'
+
 
 if __name__ == '__main__':
     unittest.main()
