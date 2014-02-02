@@ -22,9 +22,9 @@ logging.basicConfig(level=logging.DEBUG)
 
 import unittest
 
-from os import makedirs
+from os import mkdir
 from os.path import join
-from lxml import html
+from lxml import html, etree
 
 from spyne.application import Application
 from spyne.decorator import srpc
@@ -42,10 +42,14 @@ from spyne.util.test import call_wsgi_app_kwargs, call_wsgi_app
 
 
 def show(elt, tn):
-    out_string = html.tostring(elt, pretty_print=True)
+    out_string = etree.tostring(elt, pretty_print=True)
     print(out_string)
-    makedirs('html')
-    open(join("html", '%s.html' % tn), 'w').write(out_string)
+    try:
+        mkdir('html')
+    except OSError:
+        pass
+
+    open(join("html", '%s.html' % tn), 'w').write(html.tostring(elt, pretty_print=True))
 
 
 class CM(ComplexModel):
@@ -78,7 +82,7 @@ class TestHtmlColumnTable(unittest.TestCase):
 
         from lxml import etree
         elt = etree.fromstring(out_string)
-        print(etree.tostring(elt, pretty_print=True))
+        show(elt, 'TestHtmlColumnTable.test_complex_array')
 
         elt = html.fromstring(out_string)
         resp = elt.find_class('some_callResponse')
@@ -205,7 +209,7 @@ class TestHtmlRowTable(unittest.TestCase):
                 return C(c=AnyUri.Value(_link, text=_text))
 
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
-                 out_protocol=HtmlRowTable(field_name_attr='class'))
+                            out_protocol=HtmlRowTable(field_name_attr='class'))
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app_kwargs(server)
@@ -226,7 +230,7 @@ class TestHtmlRowTable(unittest.TestCase):
                  out_protocol=HtmlRowTable(field_name_attr='class'))
         server = WsgiApplication(app)
 
-        out_string = call_wsgi_app_kwargs(server,
+        out_string = call_wsgi_app_kwargs(server, 'some_call',
                          ccm_c_s='abc', ccm_c_i='123', ccm_i='456', ccm_s='def')
 
         elt = html.fromstring(out_string)
