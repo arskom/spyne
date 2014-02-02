@@ -226,10 +226,9 @@ class HtmlBase(ProtocolBase):
             return cls.Attributes.translations.get(locale, default)
         return default
 
-
-    @staticmethod
-    def not_supported(prot, cls, *args, **kwargs):
-        raise Exception("Serializing %r Not Supported!" % cls)
+    def not_supported(self, cls, *args, **kwargs):
+        if not self.ignore_uncap:
+            raise NotImplementedError("Serializing %r not supported!" % cls)
 
     def anyhtml_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         parent.write(inst)

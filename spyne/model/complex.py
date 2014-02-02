@@ -511,7 +511,7 @@ class ComplexModelMeta(type(ModelBase)):
     # them in the same order in the WSDL.
     #
     @classmethod
-    def __prepare__(cls, name, bases, **kwds):
+    def __prepare__(mcs, name, bases, **kwds):
         return TypeInfo()
 
 

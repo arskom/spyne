@@ -17,6 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
+import logging
+logger = logging.getLogger(__name__)
+
 import sys
 import datetime
 
@@ -110,6 +113,10 @@ def coroutine(func):
 
         except StopIteration:
             return None
+
+        except Exception as e:
+            logger.exception(e)
+            raise
 
         return ret
 

@@ -497,6 +497,7 @@ class TestSimpleTypeRestrictions(unittest.TestCase):
 
         sti = CCM.get_simple_type_info(CCM)
 
+        pprint(sti)
         assert "i" in sti
         assert sti["i"].path == ('i',)
         assert sti["i"].type is Integer
@@ -506,14 +507,14 @@ class TestSimpleTypeRestrictions(unittest.TestCase):
         assert sti["s"].type is String
         assert sti["s"].parent is CCM
 
-        assert "c_i" in sti
-        assert sti["c_i"].path == ('c','i')
-        assert sti["c_i"].type is Integer
-        assert sti["c_i"].parent is CM
-        assert "c_s" in sti
-        assert sti["c_s"].path == ('c','s')
-        assert sti["c_s"].type is String
-        assert sti["c_s"].parent is CM
+        assert "c.i" in sti
+        assert sti["c.i"].path == ('c','i')
+        assert sti["c.i"].type is Integer
+        assert sti["c.i"].parent is CM
+        assert "c.s" in sti
+        assert sti["c.s"].path == ('c','s')
+        assert sti["c.s"].type is String
+        assert sti["c.s"].parent is CM
 
     def test_simple_type_info_conflicts(self):
         class CM(ComplexModel):
@@ -525,7 +526,7 @@ class TestSimpleTypeRestrictions(unittest.TestCase):
             c_i = Float
 
         try:
-            CCM.get_simple_type_info(CCM)
+            CCM.get_simple_type_info(CCM, hier_delim='_')
         except ValueError:
             pass
         else:
