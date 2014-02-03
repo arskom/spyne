@@ -173,7 +173,7 @@ if [ ! -x "$EASY" ]; then
 fi;
 
 
-# hack to work around... ???
+# hack to work around dependency graph resolution bugs... ??? I guess??
 $PYTHON setup.py install_test_deps;
 $PYTHON setup.py install_test_deps;
 $PYTHON setup.py install_test_deps;

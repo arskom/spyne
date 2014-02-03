@@ -164,7 +164,6 @@ class HtmlBase(ProtocolBase):
     def to_parent(self, ctx, cls, inst, parent, name, from_arr=False, **kwargs):
         subprot = getattr(cls.Attributes, 'prot', None)
         """:type : HtmlBase"""
-
         if subprot is not None and not (subprot is self):
             return subprot.subserialize(ctx, cls, inst, parent, None, name, **kwargs)
 

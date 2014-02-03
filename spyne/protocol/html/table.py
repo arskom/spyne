@@ -108,6 +108,7 @@ class HtmlTableBase(HtmlBase):
         if self.cell_class is not None and field_name_attr == 'class':
             raise Exception("Either 'cell_class' should be None or "
                             "field_name_attr should be != 'class'")
+
         if self.header_cell_class is not None and field_name_attr == 'class':
             raise Exception("Either 'header_cell_class' should be None or "
                             "field_name_attr should be != 'class'")
@@ -129,7 +130,8 @@ class HtmlColumnTable(HtmlTableBase):
             Array: self.array_to_parent,
         })
 
-    def model_base_to_parent(self, ctx, cls, inst, parent, name, from_arr=False, **kwargs):
+    def model_base_to_parent(self, ctx, cls, inst, parent, name,
+                                                      from_arr=False, **kwargs):
         if from_arr:
             td_attrs = {}
             #if self.field_name_attr:
@@ -226,7 +228,8 @@ class HtmlColumnTable(HtmlTableBase):
                         except StopIteration:
                             pass
 
-    def complex_model_to_parent(self, ctx, cls, inst, parent, name, from_arr=False, **kwargs):
+    def complex_model_to_parent(self, ctx, cls, inst, parent, name,
+                                                      from_arr=False, **kwargs):
         # If this is direct child of an array, table is already set up in the
         # array_to_parent.
         if from_arr:
@@ -310,7 +313,8 @@ class HtmlRowTable(HtmlTableBase):
     def array_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         with parent.element('div'):
             if issubclass(cls, ComplexModelBase):
-                ret = super(HtmlRowTable, self).array_to_parent(ctx, cls, inst, parent, name, **kwargs)
+                ret = super(HtmlRowTable, self).array_to_parent(
+                                         ctx, cls, inst, parent, name, **kwargs)
                 if isgenerator(ret):
                     try:
                         while True:
@@ -327,10 +331,13 @@ class HtmlRowTable(HtmlTableBase):
                 with parent.element('table', table_attrs):
                     with parent.element('tr'):
                         if self.produce_header:
-                            parent.write(E.th(self.translate(cls, ctx.locale, cls.get_type_name())))
+                            parent.write(E.th(self.translate(cls, ctx.locale,
+                                                          cls.get_type_name())))
                         with parent.element('td'):
                             with parent.element('table'):
-                                ret = super(HtmlRowTable, self).array_to_parent(ctx, cls, inst, parent, name, **kwargs)
+                                ret = super(HtmlRowTable, self) \
+                                    .array_to_parent(ctx, cls, inst, parent,
+                                                                 name, **kwargs)
                                 if isgenerator(ret):
                                     try:
                                         while True:
