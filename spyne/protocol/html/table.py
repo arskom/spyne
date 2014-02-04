@@ -177,33 +177,33 @@ class HtmlColumnTable(HtmlTableBase):
                             except StopIteration:
                                 pass
 
+
     def _gen_header(self, ctx, cls, name, parent):
-        header_row = E.tr()
+        with parent.write('thead'):
+            with parent.write('tr'):
+                th = {}
+                if self.field_name_attr is not None:
+                    th[self.field_name_attr] = name
 
-        th = {}
-        if self.field_name_attr is not None:
-            th[self.field_name_attr] = name
+                # fti is none when the type inside Array is not a ComplexModel.
+                if issubclass(cls, ComplexModelBase):
+                    fti = cls.get_flat_type_info(cls)
+                    if self.field_name_attr is None:
+                        for k, v in fti.items():
+                            header_name = self.translate(v, ctx.locale, k)
+                            parent.write(E.th(header_name, **th))
+                    else:
+                        for k, v in fti.items():
+                            th[self.field_name_attr] = k
+                            header_name = self.translate(v, ctx.locale, k)
+                            parent.write(E.th(header_name, **th))
 
-        # fti is none when the type inside Array is not a ComplexModel.
-        if issubclass(cls, ComplexModelBase):
-            fti = cls.get_flat_type_info(cls)
-            if self.field_name_attr is None:
-                for k, v in fti.items():
-                    header_name = self.translate(v, ctx.locale, k)
-                    header_row.append(E.th(header_name, **th))
-            else:
-                for k, v in fti.items():
-                    th[self.field_name_attr] = k
-                    header_name = self.translate(v, ctx.locale, k)
-                    header_row.append(E.th(header_name, **th))
+                else:
+                    if self.field_name_attr is not None:
+                        th[self.field_name_attr] = name
+                    header_name = self.translate(cls, ctx.locale, name)
+                    parent.write(E.th(header_name, **th))
 
-        else:
-            if self.field_name_attr is not None:
-                th[self.field_name_attr] = name
-            header_name = self.translate(cls, ctx.locale, name)
-            header_row.append(E.th(header_name, **th))
-
-        parent.write(E.thead(header_row))
 
     @coroutine
     def _gen_table(self, ctx, cls, inst, parent, name, gen_rows, **kwargs):
