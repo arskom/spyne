@@ -150,6 +150,12 @@ class HtmlColumnTable(HtmlTableBase):
     def _gen_row(self, ctx, cls, inst, parent, name, array_index=None, **kwargs):
         with parent.element('tr'):
             for k, v in cls.get_flat_type_info(cls).items():
+                # FIXME: To be fixed to work with prot_attrs and renamed to exc
+                if getattr(v.Attributes, 'exc_html', False) == True:
+                    continue
+                if getattr(v.Attributes, 'read', True) == False:
+                    continue
+
                 try:
                     sub_value = getattr(inst, k, None)
                 except: # to guard against e.g. SQLAlchemy throwing NoSuchColumnError
@@ -177,6 +183,7 @@ class HtmlColumnTable(HtmlTableBase):
                             except StopIteration:
                                 pass
 
+            self.extend_data_row(ctx, cls, inst, parent, name, **kwargs)
 
     def _gen_header(self, ctx, cls, name, parent):
         with parent.write('thead'):
@@ -204,6 +211,7 @@ class HtmlColumnTable(HtmlTableBase):
                     header_name = self.translate(cls, ctx.locale, name)
                     parent.write(E.th(header_name, **th))
 
+                self.extend_header_row(ctx, cls, name, parent)
 
     @coroutine
     def _gen_table(self, ctx, cls, inst, parent, name, gen_rows, **kwargs):
@@ -228,6 +236,18 @@ class HtmlColumnTable(HtmlTableBase):
                         except StopIteration:
                             pass
 
+                ret = self.extend_table(ctx, cls, parent, name, **kwargs)
+                if isgenerator(ret):
+                    try:
+                        while True:
+                            sv2 = (yield)
+                            ret.send(sv2)
+                    except Break as b:
+                        try:
+                            ret.throw(b)
+                        except StopIteration:
+                            pass
+
     def complex_model_to_parent(self, ctx, cls, inst, parent, name,
                                                       from_arr=False, **kwargs):
         # If this is direct child of an array, table is already set up in the
@@ -241,6 +261,15 @@ class HtmlColumnTable(HtmlTableBase):
     def array_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         return self._gen_table(ctx, cls, inst, parent, name,
                          super(HtmlColumnTable, self).array_to_parent, **kwargs)
+
+    def extend_table(self, ctx, cls, parent, name, **kwargs):
+        pass
+
+    def extend_data_row(self, ctx, cls, inst, parent, name, **kwargs):
+        pass
+
+    def extend_header_row(self, ctx, cls, parent, name, **kwargs):
+        pass
 
 
 class HtmlRowTable(HtmlTableBase):
@@ -326,8 +355,10 @@ class HtmlRowTable(HtmlTableBase):
                         except StopIteration:
                             pass
             else:
+                table_attrs = {}
                 if self.table_name_attr:
-                    table_attrs={self.table_name_attr: name}
+                    table_attrs = {self.table_name_attr: name}
+
                 with parent.element('table', table_attrs):
                     with parent.element('tr'):
                         if self.produce_header:
