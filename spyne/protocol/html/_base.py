@@ -128,13 +128,16 @@ class HtmlBase(ProtocolBase):
         raise NotImplementedError("This is an output-only protocol.")
 
     @coroutine
-    def array_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+    def array_to_parent(self, ctx, cls, inst, parent, name, array_index=None, **kwargs):
         name = cls.get_type_name()
         if isinstance(inst, PushBase):
+            ctx.protocol.array_index = -1
             while True:
                 sv = (yield)
-                ret = self.to_parent(ctx, cls, sv, parent, name,
-                                                        from_arr=True, **kwargs)
+                ctx.protocol.array_index += 1
+                ret = self.to_parent(ctx, cls, sv, parent, name, from_arr=True,
+                                 array_index=ctx.protocol.array_index, **kwargs)
+
                 if isgenerator(ret):
                     try:
                         while True:
@@ -147,9 +150,10 @@ class HtmlBase(ProtocolBase):
                             pass
 
         else:
-            for sv in inst:
+            for index, sv in enumerate(inst):
+                ctx.protocol.array_index = index
                 ret = self.to_parent(ctx, cls, sv, parent, name,
-                                                        from_arr=True, **kwargs)
+                                     array_index=index, from_arr=True, **kwargs)
                 if isgenerator(ret):
                     try:
                         while True:
