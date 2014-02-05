@@ -588,10 +588,11 @@ class table:
         value is used as the name of the intermediate table.
     :param left: Name of the left join column.
     :param right: Name of the right join column.
+    :param back_populates: See http://docs.sqlalchemy.org/en/rel_0_9/orm/relationships.html#sqlalchemy.orm.relationship.params.back_populates
     """
 
     def __init__(self, multi=False, left=None, right=None, backref=None,
-                                  id_backref=None, cascade=False, lazy='select'):
+            id_backref=None, cascade=False, lazy='select', back_populates=None):
         self.multi = multi
         self.left = left
         self.right = right
@@ -599,6 +600,7 @@ class table:
         self.id_backref = id_backref
         self.cascade = cascade
         self.lazy = lazy
+        self.back_populates = back_populates
 
 
 class json:

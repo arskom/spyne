@@ -709,8 +709,8 @@ def _gen_array_m2m(cls, props, k, child, p):
     # FIXME: Handle the case where the table already exists.
     rel_t = Table(rel_table_name, metadata, *(col_own, col_child))
 
-    props[k] = relationship(child, secondary=rel_t,
-              backref=p.backref, cascade=p.cascade, lazy=p.lazy)
+    props[k] = relationship(child, secondary=rel_t, backref=p.backref,
+                back_populates=p.back_populates, cascade=p.cascade, lazy=p.lazy)
 
 def _gen_array_simple(cls, props, k, child_cust, p):
     table_name = cls.Attributes.table_name
@@ -819,8 +819,8 @@ def _gen_array_o2m(cls, props, k, child, child_cust, p):
         child_t.append_column(col)
         child.__mapper__.add_property(col.name, col)
 
-    props[k] = relationship(child, foreign_keys=[col],
-              backref=p.backref, cascade=p.cascade, lazy=p.lazy)
+    props[k] = relationship(child, foreign_keys=[col], backref=p.backref,
+                back_populates=p.back_populates, cascade=p.cascade, lazy=p.lazy)
 
 def _is_array(v):
     return (v.Attributes.max_occurs > 1 or issubclass(v, Array))
@@ -874,7 +874,8 @@ def _add_complex_type(cls, props, table, k, v):
             else:
                 table.append_column(col)
             rel = relationship(real_v, uselist=False, cascade=p.cascade,
-                            foreign_keys=[col], backref=p.backref, lazy=p.lazy)
+                            foreign_keys=[col], back_populates=p.back_populates,
+                            backref=p.backref, lazy=p.lazy)
 
             _gen_index_info(table, col, k, v)
 
