@@ -220,6 +220,12 @@ def TAttrDict(default=None):
         def items(self):
             return self.__data.items()
 
+        def get(self, key, *args):
+            return self.__data.get(key, *args)
+
+        def update(self, d):
+            return self.__data.update(d)
+
         def __repr__(self):
             return "AttrDict(%s)" % ', '.join(['%s=%r' % (k,v)
                     for k,v in sorted(self.__data.items(), key=lambda x:x[0])])
@@ -236,7 +242,7 @@ def TAttrDict(default=None):
                 else:
                     return default()
             def __getattr__(self, key):
-                if key in ("_AttrDict__data", 'items'):
+                if key in ("_AttrDict__data", 'items', 'get', 'update'):
                     return object.__getattribute__(self, '__data')
                 if key in self.__data:
                     return self.__data[key]
