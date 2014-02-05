@@ -191,7 +191,6 @@ else:
         return (td.microseconds +
                             (td.seconds + td.days * 24 * 3600) * 10**6) / 10**6
 
-from pprint import pformat
 
 def TAttrDict(default=None):
     class AttrDict(object):
@@ -227,7 +226,7 @@ def TAttrDict(default=None):
             return self.__data.update(d)
 
         def __repr__(self):
-            return "AttrDict(%s)" % ', '.join(['%s=%r' % (k,v)
+            return "AttrDict(%s)" % ', '.join(['%s=%r' % (k, v)
                     for k,v in sorted(self.__data.items(), key=lambda x:x[0])])
 
         if default is None:
