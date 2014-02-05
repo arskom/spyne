@@ -899,6 +899,8 @@ class ComplexModelBase(ModelBase):
 
     @classmethod
     def append_field(cls, field_name, field_type):
+        assert isinstance(field_name, basestring)
+
         dca = cls.Attributes._delayed_child_attrs
         if dca is not None:
             d_cust = dca.get(field_name, None)
@@ -914,6 +916,9 @@ class ComplexModelBase(ModelBase):
 
     @classmethod
     def insert_field(cls, index, field_name, field_type):
+        assert isinstance(index, int)
+        assert isinstance(field_name, basestring)
+
         dca = cls.Attributes._delayed_child_attrs
         if dca is not None:
             if field_name in dca:
@@ -1019,6 +1024,7 @@ class Array(ComplexModelBase):
         if serializer.Attributes.max_occurs == 1:
             serializer = serializer.customize(max_occurs=decimal.Decimal('inf'))
 
+        assert isinstance(member_name, basestring), member_name
         cls._type_info = {member_name: serializer}
 
     # the array belongs to its child's namespace, it doesn't have its own

@@ -32,6 +32,7 @@ from collections import defaultdict
 
 from spyne.const.xml_ns import xsd as _ns_xsd
 
+from spyne.model import ModelBase
 from spyne.model.complex import XmlAttribute
 from spyne.model.primitive import AnyXml
 from spyne.model.primitive import Unicode
@@ -138,7 +139,11 @@ def complex_add(document, cls, tags):
 
     deferred = deque()
     choice_tags = defaultdict(lambda: etree.Element('{%s}choice' % _ns_xsd))
+
     for k, v in type_info.items():
+        assert isinstance(k, basestring)
+        assert issubclass(v, ModelBase)
+
         a = v.Attributes
         if a.exc_interface:
             continue
