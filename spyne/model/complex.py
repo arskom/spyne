@@ -648,12 +648,8 @@ class ComplexModelBase(ModelBase):
                     # no need to check for read-only for default values
                     setattr(self, k, def_val)
 
-                elif attr.max_occurs > 1 or issubclass(v, Array):
-                    try:
-                        setattr(self, k, def_val)
-                    except TypeError: # SQLAlchemy does this
-                        setattr(self, k, [])
-                else:
+                # sqlalchemy objects do their own init.
+                elif not ('_sa_class_manager' in cls.__dict__):
                     setattr(self, k, None)
 
     def __len__(self):
