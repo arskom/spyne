@@ -649,7 +649,11 @@ class ComplexModelBase(ModelBase):
                     setattr(self, k, def_val)
 
                 # sqlalchemy objects do their own init.
-                elif not ('_sa_class_manager' in cls.__dict__):
+                elif '_sa_class_manager' in cls.__dict__:
+                    # except the attributes that sqlalchemy doesn't know about
+                    if v.Attributes.exc_table:
+                        setattr(self, k, None)
+                else:
                     setattr(self, k, None)
 
     def __len__(self):
