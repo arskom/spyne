@@ -641,11 +641,11 @@ class ComplexModelBase(ModelBase):
                 def_fac = attr.default_factory
 
                 if def_fac is not None:
-                    # no need to check for read-only for default values
+                    # should not check for read-only for default values
                     setattr(self, k, def_fac())
 
                 elif def_val is not None:
-                    # no need to check for read-only for default values
+                    # should not check for read-only for default values
                     setattr(self, k, def_val)
 
                 # sqlalchemy objects do their own init.
