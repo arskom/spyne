@@ -418,7 +418,7 @@ class SimpleDictDocument(DictDocument):
         return retval
 
     def object_to_simple_dict(self, inst_cls, value, retval=None,
-                     prefix=None, parent=None, subvalue_eater=lambda prot,v,t:v):
+         prefix=None, parent=None, subvalue_eater=lambda prot,v,t:v, tags=None):
         """Converts a native python object to a flat dict.
 
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
@@ -432,6 +432,12 @@ class SimpleDictDocument(DictDocument):
 
         if value is None and inst_cls.Attributes.min_occurs == 0:
             return retval
+
+        if tags is None:
+            tags = {id(value)}
+        else:
+            if id(value) in tags:
+                return retval
 
         if issubclass(inst_cls, ComplexModelBase):
             fti = inst_cls.get_flat_type_info(inst_cls)
@@ -461,11 +467,11 @@ class SimpleDictDocument(DictDocument):
                             new_prefix[-1] = '%s[%d]' % (last_prefix, i)
                             self.object_to_simple_dict(subtype, ssv,
                                    retval, new_prefix, parent=inst_cls,
-                                   subvalue_eater=subvalue_eater)
+                                   subvalue_eater=subvalue_eater, tags=tags)
 
                 else:
                     self.object_to_simple_dict(v, subvalue, retval, new_prefix,
-                                 parent=inst_cls, subvalue_eater=subvalue_eater)
+                      parent=inst_cls, subvalue_eater=subvalue_eater, tags=tags)
 
         else:
             key = self.hier_delim.join(prefix)
