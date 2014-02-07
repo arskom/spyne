@@ -19,6 +19,7 @@
 from spyne._base import FakeContext
 
 from spyne.protocol.dictdoc import HierDictDocument
+from spyne.protocol.dictdoc import SimpleDictDocument
 
 try:
     from spyne.protocol.json import JsonDocument
@@ -69,6 +70,11 @@ def get_dict_as_object(d, cls, ignore_wrappers=True, complex_as=list):
 def get_object_as_dict(o, cls, ignore_wrappers=True, complex_as=dict):
     return _UtilProtocol(ignore_wrappers=ignore_wrappers,
                                    complex_as=complex_as)._object_to_doc(cls, o)
+
+
+def get_object_as_simple_dict(o, cls, hier_delim='_'):
+    return SimpleDictDocument(hier_delim=hier_delim) \
+                                                  .object_to_simple_dict(cls, o)
 
 
 def get_object_as_json(o, cls, ignore_wrappers=True, complex_as=list, encoding='utf8'):
