@@ -186,8 +186,8 @@ class HtmlColumnTable(HtmlTableBase):
             self.extend_data_row(ctx, cls, inst, parent, name, **kwargs)
 
     def _gen_header(self, ctx, cls, name, parent):
-        with parent.write('thead'):
-            with parent.write('tr'):
+        with parent.element('thead'):
+            with parent.element('tr'):
                 th = {}
                 if self.field_name_attr is not None:
                     th[self.field_name_attr] = name
