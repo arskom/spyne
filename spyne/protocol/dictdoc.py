@@ -143,11 +143,11 @@ logger = logging.getLogger(__name__)
 import re
 RE_HTTP_ARRAY_INDEX = re.compile("\\[([0-9]+)\\]")
 
-from spyne.util import six
-
+from pprint import pprint
 from collections import deque
 from collections import defaultdict
 
+from spyne.util import six
 from spyne.error import ValidationError
 from spyne.error import ResourceNotFoundError
 
@@ -175,7 +175,9 @@ def _check_freq_dict(cls, d, fti=None):
     if fti is None:
         fti = cls.get_flat_type_info(cls)
 
-    for k,v in fti.items():
+    pprint(d)
+    for k, v in fti.items():
+        print cls, k, v
         val = d[k]
 
         min_o, max_o = v.Attributes.min_occurs, v.Attributes.max_occurs
@@ -184,11 +186,12 @@ def _check_freq_dict(cls, d, fti=None):
             min_o, max_o = v.Attributes.min_occurs, v.Attributes.max_occurs
 
         if val < min_o:
-            raise ValidationError(k,
-                            '%%r member must occur at least %d times.' % min_o)
+            raise ValidationError("%r.%s" % (cls, k),
+                            '%%s member must occur at least %d times.' % min_o)
         elif val > max_o:
-            raise ValidationError(k,
-                            '%%r member must occur at most %d times.' % max_o)
+            print cls, k
+            raise ValidationError("%r.%s" % (cls, k),
+                            '%%s member must occur at most %d times.' % max_o)
 
 
 class DictDocument(ProtocolBase):
@@ -295,8 +298,7 @@ class SimpleDictDocument(DictDocument):
 
         # this is for validating cls.Attributes.{min,max}_occurs
         frequencies = defaultdict(lambda: defaultdict(int))
-        validate_freq = inst_class.Attributes.validate_freq
-        if validator is self.SOFT_VALIDATION and validate_freq:
+        if validator is self.SOFT_VALIDATION:
             _fill(inst_class, frequencies)
 
         retval = inst_class.get_deserialization_instance()
@@ -411,9 +413,13 @@ class SimpleDictDocument(DictDocument):
                 logger.debug("\tset default %r(%r) = %r" %
                                                     (member.path, pkey, value))
 
-        if validator is self.SOFT_VALIDATION and validate_freq:
+        if validator is self.SOFT_VALIDATION:
             for k, d in frequencies.items():
-                _check_freq_dict(k[-2], d)
+                for path_cls in k[:-1:2]:
+                    if not path_cls.Attributes.validate_freq:
+                        break
+                else:
+                    _check_freq_dict(path_cls, d)
 
         return retval
 
