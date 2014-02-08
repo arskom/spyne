@@ -157,7 +157,7 @@ def _is_wsdl_request(req_env):
 
 
 class WsgiApplication(HttpBase):
-    '''A `PEP-3333 <http://www.python.org/dev/peps/pep-3333>`_
+    """A `PEP-3333 <http://www.python.org/dev/peps/pep-3333>`_
     compliant callable class.
 
     If you want to have a hard-coded URL in the wsdl document, this is how to do
@@ -198,7 +198,7 @@ class WsgiApplication(HttpBase):
         * ``wsgi_close``
             Called after the whole data has been returned to the client. It's
             called both from success and error cases.
-    '''
+    """
 
     def __init__(self, app, chunked=True,
                 max_content_length=2 * 1024 * 1024,
@@ -235,11 +235,11 @@ class WsgiApplication(HttpBase):
         return self._http_patterns is not None
 
     def __call__(self, req_env, start_response, wsgi_url=None):
-        '''This method conforms to the WSGI spec for callable wsgi applications
+        """This method conforms to the WSGI spec for callable wsgi applications
         (PEP 333). It looks in environ['wsgi.input'] for a fully formed rpc
         message envelope, will deserialize the request parameters and call the
         method on the object returned by the get_handler() method.
-        '''
+        """
 
         url = wsgi_url
         if url is None:
