@@ -190,36 +190,7 @@ class TwistedWebResource(Resource):
             ret.addErrback(_eb_deferred, request, p_ctx, others, self)
 
         elif isinstance(ret, PushBase):
-            p_ctx.out_stream = request
-            gen = self.http_transport.get_out_string_push(p_ctx)
-
-            assert isgenerator(gen), "It looks like this protocol is not " \
-                                     "async-compliant yet."
-
-            def _cb_push_finish():
-                p_ctx.out_stream.finish()
-                process_contexts(self.http_transport, others, p_ctx)
-
-            retval = ret.init(p_ctx, request, gen, _cb_push_finish, None)
-            """:type : Deferred"""
-
-            if isinstance(retval, Deferred):
-                def _eb_push_close(f):
-                    ret.close()
-
-                def _cb_push_close(r):
-                    def _eb_inner(f):
-                        return f
-
-                    if r is None:
-                        ret.close()
-                    else:
-                        r.addCallback(_cb_push_close).addErrback(_eb_inner)
-
-                retval.addCallback(_cb_push_close).addErrback(_eb_push_close)
-            else:
-                ret.close()
-
+            _init_push(ret, request, p_ctx, others, self)
         else:
             _cb_deferred(p_ctx.out_object, request, p_ctx, others, self, cb=False)
 
@@ -268,21 +239,62 @@ def _eb_request_finished(request, p_ctx):
     p_ctx.close()
     request.finish()
 
-def _cb_deferred(retval, request, p_ctx, others, resource, cb=True):
-    if cb and len(p_ctx.descriptor.out_message._type_info) <= 1:
-        p_ctx.out_object = [retval]
-    else:
-        p_ctx.out_object = retval
 
-    resource.http_transport.get_out_string(p_ctx)
+def _init_push(ret, request, p_ctx, others, resource):
+    p_ctx.out_stream = request
+    gen = resource.http_transport.get_out_string_push(p_ctx)
+
+    assert isgenerator(gen), "It looks like this protocol is not " \
+                             "async-compliant yet."
+
+    def _cb_push_finish():
+        p_ctx.out_stream.finish()
+        process_contexts(resource.http_transport, others, p_ctx)
+
+    retval = ret.init(p_ctx, request, gen, _cb_push_finish, None)
+    """:type : Deferred"""
+
+    if isinstance(retval, Deferred):
+        def _eb_push_close(f):
+            retval.close()
+
+        def _cb_push_close(r):
+            def _eb_inner(f):
+                return f
+
+            if r is None:
+                retval.close()
+            else:
+                r.addCallback(_cb_push_close).addErrback(_eb_inner)
+
+        retval.addCallback(_cb_push_close).addErrback(_eb_push_close)
+    else:
+        retval.close()
+
+    return retval
+
+
+def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
+    if cb and len(p_ctx.descriptor.out_message._type_info) <= 1:
+        p_ctx.out_object = [ret]
+    else:
+        p_ctx.out_object = ret
+
+    retval = None
+    if isinstance(ret, PushBase):
+        retval = _init_push(ret, request, p_ctx, others, resource)
+    else:
+        resource.http_transport.get_out_string(p_ctx)
+
+        producer = Producer(p_ctx.out_string, request)
+        producer.deferred.addCallback(_cb_request_finished, p_ctx, others, resource)
+        producer.deferred.addErrback(_eb_request_finished, p_ctx, others, resource)
+
+        request.registerProducer(producer, False)
 
     process_contexts(resource.http_transport, others, p_ctx)
 
-    producer = Producer(p_ctx.out_string, request)
-    producer.deferred.addCallback(_cb_request_finished, p_ctx, others, resource)
-    producer.deferred.addErrback(_eb_request_finished, p_ctx, others, resource)
-
-    request.registerProducer(producer, False)
+    return retval
 
 def _eb_deferred(retval, request, p_ctx, others, resource):
     p_ctx.out_error = retval.value
