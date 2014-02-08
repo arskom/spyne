@@ -259,19 +259,3 @@ class AttrDictColl(object):
     def __init__(self, *args):
         for a in args:
             setattr(self, a, AttrDictColl.AttrDictImpl(NAME=a))
-
-
-# needs some magic with semaphores. i.e. STAY AWAY FROM THIS!!!!1111!! :)
-class GeneratorIO(object):
-    def __init__(self):
-        self.buffer = deque()
-
-    def __iter__(self):
-        return self.gen()
-
-    def write(self, data):
-        self.data.append(data)
-
-    def gen(self):
-        while len(self.data) > 0:
-            yield self.popleft()
