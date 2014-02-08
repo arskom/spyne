@@ -241,11 +241,13 @@ def _eb_request_finished(request, p_ctx):
 
 
 def _init_push(ret, request, p_ctx, others, resource):
+    assert isinstance(ret, PushBase)
+
     p_ctx.out_stream = request
     gen = resource.http_transport.get_out_string_push(p_ctx)
 
     assert isgenerator(gen), "It looks like this protocol is not " \
-                             "async-compliant yet."
+                             "async-compliant. Yet."
 
     def _cb_push_finish():
         p_ctx.out_stream.finish()
@@ -256,20 +258,21 @@ def _init_push(ret, request, p_ctx, others, resource):
 
     if isinstance(retval, Deferred):
         def _eb_push_close(f):
-            retval.close()
+            ret.close()
 
         def _cb_push_close(r):
             def _eb_inner(f):
                 return f
 
             if r is None:
-                retval.close()
+                ret.close()
             else:
                 r.addCallback(_cb_push_close).addErrback(_eb_inner)
 
         retval.addCallback(_cb_push_close).addErrback(_eb_push_close)
+
     else:
-        retval.close()
+        ret.close()
 
     return retval
 
