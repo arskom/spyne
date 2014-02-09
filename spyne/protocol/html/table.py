@@ -197,10 +197,14 @@ class HtmlColumnTable(HtmlTableBase):
                     fti = cls.get_flat_type_info(cls)
                     if self.field_name_attr is None:
                         for k, v in fti.items():
+                            if getattr(v.Attributes, 'exc_html', None):
+                                continue
                             header_name = self.translate(v, ctx.locale, k)
                             parent.write(E.th(header_name, **th))
                     else:
                         for k, v in fti.items():
+                            if getattr(v.Attributes, 'exc_html', None):
+                                continue
                             th[self.field_name_attr] = k
                             header_name = self.translate(v, ctx.locale, k)
                             parent.write(E.th(header_name, **th))
