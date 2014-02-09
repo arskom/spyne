@@ -225,6 +225,8 @@ class HtmlBase(ProtocolBase):
         :returns: translated string
         """
 
+        if locale is None:
+            locale = 'en_US'
         if cls.Attributes.translations is not None:
             return cls.Attributes.translations.get(locale, default)
         return default
