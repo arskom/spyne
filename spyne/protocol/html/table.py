@@ -219,9 +219,18 @@ class HtmlColumnTable(HtmlTableBase):
 
     @coroutine
     def _gen_table(self, ctx, cls, inst, parent, name, gen_rows, **kwargs):
-        attrs = {}
-        if self.table_name_attr is not None:
-            attrs[self.table_name_attr] = cls.get_type_name()
+      attrs = {}
+      if self.table_name_attr is not None:
+        attrs[self.table_name_attr] = cls.get_type_name()
+
+      with parent.element('body'):
+        parent.write(E.style("""
+            td,th {
+                border-left: 1px solid #ccc;
+                border-right: 1px solid #ccc;
+                border-bottom: 1px solid;
+                margin: 0;
+            }""", type="text/css"))
 
         with parent.element('table', attrs):
             if self.produce_header:
