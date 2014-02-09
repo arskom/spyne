@@ -99,11 +99,24 @@ class HtmlBase(ProtocolBase):
             name = cls.get_type_name()
 
         from lxml import etree
-        # FIXME: html.htmlfile olmali
-        with etree.xmlfile(ctx.out_stream) as xf:
-            ret = self.subserialize(ctx, cls, inst, xf, None, name)
-
-            if isgenerator(ret):
+        if not hasattr(ctx.protocol, 'file'):
+            # FIXME: html.htmlfile olmali
+            with etree.xmlfile(ctx.out_stream) as xf:
+                ctx.protocol.file = xf
+                ret = self.subserialize(ctx, cls, inst, xf, None, name)
+                if isgenerator(ret): # Poor man's yield from
+                    try:
+                        while True:
+                            sv2 = (yield)
+                            ret.send(sv2)
+                    except Break as b:
+                        try:
+                            ret.throw(b)
+                        except StopIteration:
+                            pass
+        else:
+            ret = self.subserialize(ctx, cls, inst, ctx.protocol.file, None, name)
+            if isgenerator(ret): # Poor man's yield from
                 try:
                     while True:
                         sv2 = (yield)
@@ -113,11 +126,6 @@ class HtmlBase(ProtocolBase):
                         ret.throw(b)
                     except StopIteration:
                         pass
-
-    def create_out_string(self, ctx, charset=None):
-        """Sets an iterable of string fragments to ctx.out_string"""
-
-        ctx.out_string = [ctx.out_stream.getvalue()]
 
     def subserialize(self, ctx, cls, inst, parent, ns=None, name=None, **kwargs):
         if name is None:

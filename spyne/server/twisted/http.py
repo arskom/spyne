@@ -244,6 +244,12 @@ def _init_push(ret, request, p_ctx, others, resource):
     assert isinstance(ret, PushBase)
 
     p_ctx.out_stream = request
+
+    # fire events
+    p_ctx.app.event_manager.fire_event('method_return_push', p_ctx)
+    if p_ctx.service_class is not None:
+        p_ctx.service_class.event_manager.fire_event('method_return_push', p_ctx)
+
     gen = resource.http_transport.get_out_string_push(p_ctx)
 
     assert isgenerator(gen), "It looks like this protocol is not " \
