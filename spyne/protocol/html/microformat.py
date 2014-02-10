@@ -108,8 +108,9 @@ class HtmlMicroFormat(HtmlBase):
                     ret.send(y)
 
     @coroutine
-    def array_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+    def array_to_parent(self, ctx, cls, inst, parent, name, from_arr=False, **kwargs):
         attrs = {self.field_name_attr: name}
+        print "ATP", name, cls, inst
 
         if issubclass(cls, Array):
             cls, = cls._type_info.values()
@@ -119,7 +120,8 @@ class HtmlMicroFormat(HtmlBase):
             if isinstance(inst, PushBase):
                 while True:
                     sv = (yield)
-                    ret = self.to_parent(ctx, cls, sv, parent, name, **kwargs)
+                    ret = self.to_parent(ctx, cls, sv, parent, name,
+                                                        from_arr=True, **kwargs)
                     if isgenerator(ret):
                         try:
                             while True:
@@ -133,7 +135,8 @@ class HtmlMicroFormat(HtmlBase):
 
             else:
                 for sv in inst:
-                    ret = self.to_parent(ctx, cls, sv, parent, name, **kwargs)
+                    ret = self.to_parent(ctx, cls, sv, parent, name,
+                                                        from_arr=True, **kwargs)
                     if isgenerator(ret):
                         try:
                             while True:
