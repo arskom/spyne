@@ -103,9 +103,15 @@ class HtmlMicroFormat(HtmlBase):
         with parent.element(self.root_tag, attrs):
             ret = self._get_members(ctx, cls, inst, parent, **kwargs)
             if isgenerator(ret):
-                while True:
-                    y = (yield) # Break could be thrown here
-                    ret.send(y)
+                try:
+                    while True:
+                        sv2 = (yield)
+                        ret.send(sv2)
+                except Break as e:
+                    try:
+                        ret.throw(e)
+                    except StopIteration:
+                        pass
 
     @coroutine
     def array_to_parent(self, ctx, cls, inst, parent, name, from_arr=False, **kwargs):
