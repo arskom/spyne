@@ -672,26 +672,25 @@ def _check_table(cls):
     return table
 
 
-def table_fields(cls):
-    for k, v in cls._type_info.items():
-        if not v.Attributes.exc_table:
-            yield k, v
-
-
 def _add_simple_type(cls, props, table, k, v, sqla_type):
     col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
     _sp_attrs_to_sqla_constraints(cls, v, col_kwargs)
 
-    if k in table.c:
-        col = table.c[k]
+    mp = getattr(v.Attributes, 'mapper_property', None)
+    if not v.Attributes.exc_table:
+        if k in table.c:
+            col = table.c[k]
 
-    else:
-        col = Column(k, sqla_type, *col_args, **col_kwargs)
-        table.append_column(col)
-        _gen_index_info(table, col, k, v)
+        else:
+            col = Column(k, sqla_type, *col_args, **col_kwargs)
+            table.append_column(col)
+            _gen_index_info(table, col, k, v)
 
-    if not v.Attributes.exc_mapper:
-        props[k] = col
+        if not v.Attributes.exc_mapper:
+            props[k] = col
+
+    elif mp is not None:
+        props[k] = mp
 
 def _gen_array_m2m(cls, props, k, child, p):
     metadata = cls.Attributes.sqla_metadata
@@ -1016,7 +1015,7 @@ def gen_sqla_info(cls, cls_bases=()):
     table = _check_table(cls)
     mapper_props = {}
 
-    for k, v in table_fields(cls):
+    for k, v in cls._type_info.items():
         t = get_sqlalchemy_type(v)
 
         if t is None: # complex model
