@@ -323,7 +323,6 @@ class SimpleDictDocument(DictDocument):
                                         and issubclass(member.type, Unicode) \
                                         and not isinstance(v2, unicode):
                     v2 = v2.decode(req_enc)
-
                 if (validator is self.SOFT_VALIDATION and not
                                   member.type.validate_string(member.type, v2)):
                     raise ValidationError((orig_k, v2))

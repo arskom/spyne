@@ -116,7 +116,6 @@ class HtmlMicroFormat(HtmlBase):
     @coroutine
     def array_to_parent(self, ctx, cls, inst, parent, name, from_arr=False, **kwargs):
         attrs = {self.field_name_attr: name}
-        print "ATP", name, cls, inst
 
         if issubclass(cls, Array):
             cls, = cls._type_info.values()

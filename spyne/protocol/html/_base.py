@@ -49,6 +49,7 @@ class HtmlBase(ProtocolBase):
 
         self.event_manager.fire_event('before_serialize', ctx)
 
+        print "YYYYY"
         if ctx.out_stream is None:
             ctx.out_stream = StringIO()
 
