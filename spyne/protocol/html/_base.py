@@ -49,7 +49,6 @@ class HtmlBase(ProtocolBase):
 
         self.event_manager.fire_event('before_serialize', ctx)
 
-        print "YYYYY"
         if ctx.out_stream is None:
             ctx.out_stream = StringIO()
 
@@ -93,6 +92,12 @@ class HtmlBase(ProtocolBase):
         self.event_manager.fire_event('after_serialize', ctx)
 
         return retval
+
+    def create_out_string(self, ctx, charset=None):
+        """Sets an iterable of string fragments to ctx.out_string"""
+
+        if ctx.out_stream is not None:
+            ctx.out_string = [ctx.out_stream.getvalue()]
 
     @coroutine
     def incgen(self, ctx, cls, inst, name):
