@@ -250,10 +250,8 @@ class Interface(object):
                 os = om.parent_class
             raise ValueError("\nThe message %r defined in both '%s.%s'"
                                                          " and '%s.%s'"
-                        % (method.name, s.__module__, s.__name__,
-                                       os.__module__, os.__name__,
-                        ))
-
+                                    % (method.name, s.__module__,  s.__name__,
+                                                   os.__module__, os.__name__))
 
     def populate_interface(self, types=None):
         """Harvests the information stored in individual classes' _type_info

@@ -388,9 +388,6 @@ class TestIncompleteInput(unittest.TestCase):
 
 
 class SisMsg(ComplexModel):
-    """Container with metadata for Jiva integration messages
-    carried in the MQ payload.
-    """
     data_source = String(nillable=False, min_occurs=1, max_occurs=1, max_len=50)
     direction = String(nillable=False, min_occurs=1, max_occurs=1, max_len=50)
     interface_name = String(nillable=False, min_occurs=1, max_occurs=1, max_len=50)

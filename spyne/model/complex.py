@@ -323,11 +323,10 @@ class _MethodsDict(dict):
 def _gen_methods(cls_dict):
     methods = _MethodsDict()
     for k, v in cls_dict.items():
-        if not k.startswith('_'):
-            if hasattr(v, '_is_rpc'):
-                descriptor = v(_default_function_name=k)
-                cls_dict[k] = descriptor.function
-                methods[k] = descriptor
+        if not k.startswith('_') and hasattr(v, '_is_rpc'):
+            descriptor = v(_default_function_name=k)
+            cls_dict[k] = descriptor.function
+            methods[k] = descriptor
 
     return methods
 
@@ -446,7 +445,6 @@ class ComplexModelMeta(type(ModelBase)):
                 _type_info_alt.update(b._type_info_alt)
 
         _sanitize_type_info(cls_name, _type_info, _type_info_alt)
-
         _sanitize_sqlalchemy_parameters(cls_dict, attrs)
 
         # ???
