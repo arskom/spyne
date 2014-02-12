@@ -33,7 +33,7 @@ from spyne.model import ComplexModelBase
 from spyne.model.complex import XmlModifier
 
 
-def generate_method_id(cls, descriptor):
+def _generate_method_id(cls, descriptor):
     return '.'.join([
             cls.__module__,
             cls.__name__,
@@ -214,7 +214,7 @@ class Interface(object):
 
         logger.debug('\tadding method %r to match %r tag.' %
                                                       (method.name, method_key))
-        key = generate_method_id(s, method)
+        key = _generate_method_id(s, method)
         if key in self.method_id_map:
             c = self.method_id_map[key].parent_class
             if c.__orig__ is None:
@@ -228,7 +228,7 @@ class Interface(object):
                                         (c.__orig__, key, s.__orig__, key)
             return
 
-        self.method_id_map[generate_method_id(s, method)] = method
+        self.method_id_map[key] = method
 
         val = self.service_method_map.get(method_key, None)
         if val is None:
@@ -276,7 +276,7 @@ class Interface(object):
                 if method.aux is None:
                     method.aux = s.__aux__
                 if method.aux is not None:
-                    method.aux.methods.append(generate_method_id(s, method))
+                    method.aux.methods.append(_generate_method_id(s, method))
 
                 for cls in self.add_method(method):
                     self.add_class(cls)
