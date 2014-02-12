@@ -436,6 +436,20 @@ class MethodDescriptor(object):
         boolean value. If true, the object can process that action.
         """
 
+    def translate(self, locale, default):
+        """
+        :param cls: class
+        :param locale: locale string
+        :param default: default string if no translation found
+        :returns: translated string
+        """
+
+        if locale is None:
+            locale = 'en_US'
+        if self.translations is not None:
+            return self.translations.get(locale, default)
+        return default
+
     @property
     def key(self):
         """The function identifier in '{namespace}name' form."""
