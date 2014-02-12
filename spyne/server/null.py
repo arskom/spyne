@@ -83,6 +83,9 @@ class _FunctionProxy(object):
         return _FunctionCall(self.__app, self.__server, key, self.in_header,
                                        self.__server.ostr, self.__server.locale)
 
+    def __getitem__(self, key):
+        return self.__getattr__(key)
+
 
 class _FunctionCall(object):
     def __init__(self, app, server, key, in_header, ostr, locale):

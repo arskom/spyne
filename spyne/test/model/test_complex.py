@@ -854,8 +854,9 @@ class TestMemberRpc(unittest.TestCase):
                 return SomeComplexModel()
 
         null = NullServer(Application([SomeService], tns='some_tns'))
+
         v = SomeComplexModel(i=5)
-        assert null.service.echo(v) is v
+        assert null.service['SomeComplexModel.echo'](v) is v
 
 
 if __name__ == '__main__':
