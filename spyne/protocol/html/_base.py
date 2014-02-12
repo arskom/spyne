@@ -73,9 +73,10 @@ class HtmlBase(ProtocolBase):
                 if self.ignore_wrappers:
                     ctx.out_object = ctx.out_object[0]
                     result_message = ctx.out_object
-                    while result_message_class.Attributes._wrapper:
-                        result_message_class = next(iter(
-                                      result_message_class._type_info.values()))
+                    while result_message_class.Attributes._wrapper and \
+                                      len(result_message_class._type_info) == 1:
+                        result_message_class, = \
+                                        result_message_class._type_info.values()
 
                 else:
                     result_message = result_message_class()
