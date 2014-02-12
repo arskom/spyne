@@ -24,7 +24,7 @@ from collections import deque
 
 import spyne.interface
 
-from spyne import EventManager, ServiceBase
+from spyne import EventManager, ServiceBase, MethodDescriptor
 from spyne.const import xml_ns as namespace
 
 from spyne.model import Array
@@ -210,7 +210,16 @@ class Interface(object):
             p.endpoint = method.name
 
     def process_method(self, s, method):
+        assert isinstance(method, MethodDescriptor)
+
         method_key = '{%s}%s' % (self.app.tns, method.name)
+
+        if issubclass(s, ComplexModelBase) and \
+                                            not method.in_message_name_override:
+            method_key = '{%s}%s.%s' % (self.app.tns,
+                                                 s.get_type_name(), method.name)
+            method.in_message.__type_name__ = '%s.%s' % \
+                                                (s.get_type_name(), method.name)
 
         logger.debug('\tadding method %r to match %r tag.' %
                                                       (method.name, method_key))
