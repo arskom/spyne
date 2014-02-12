@@ -28,11 +28,13 @@ from spyne.const import MAX_STRING_FIELD_LENGTH
 
 
 class InvalidCredentialsError(Fault):
-    """Raised when requested resource is not found."""
+    """Raised when requested resource is forbidden."""
 
-    def __init__(self, fault_object,
-             fault_string="You do not have permission to access this resource"):
-        super(InvalidCredentialsError, self).__init__('Client.InvalidCredentialsError', fault_string)
+    STR = "You do not have permission to access this resource"
+
+    def __init__(self, fault_string=STR, fault_object=None):
+        super(InvalidCredentialsError, self).__init__(
+            'Client.InvalidCredentialsError', fault_string, detail=fault_object)
 
 
 class RequestTooLongError(Fault):
