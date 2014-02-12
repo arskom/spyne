@@ -42,8 +42,9 @@ from spyne.model.complex import TypeInfo
 from spyne.const import add_request_suffix
 
 
-def _produce_input_message(f, params, kparams, _in_message_name,
-                                      _in_variable_names, no_ctx, no_self, args):
+def _produce_input_message(f, params, kparams, in_message_name,
+                                      in_variable_names, no_ctx, no_self, args):
+
     _body_style = _validate_body_style(kparams)
 
     arg_start = 0
@@ -77,12 +78,12 @@ def _produce_input_message(f, params, kparams, _in_message_name,
 
     in_params = TypeInfo()
     for k, v in zip(args, params):
-        k = _in_variable_names.get(k, k)
+        k = in_variable_names.get(k, k)
         in_params[k] = v
 
     ns = spyne.const.xml_ns.DEFAULT_NS
-    if _in_message_name.startswith("{"):
-        ns, _, _in_message_name = _in_message_name[1:].partition("}")
+    if in_message_name.startswith("{"):
+        ns, _, in_message_name = in_message_name[1:].partition("}")
 
     message = None
     if _body_style == 'bare':
@@ -90,15 +91,15 @@ def _produce_input_message(f, params, kparams, _in_message_name,
             raise Exception("body_style='bare' can handle at most one function "
                                                                     "argument.")
         if len(in_params) == 0:
-            message = ComplexModel.produce(type_name=_in_message_name,
+            message = ComplexModel.produce(type_name=in_message_name,
                                                namespace=ns, members=in_params)
         else:
             message, = in_params.values()
-            message = message.customize(sub_name=_in_message_name, sub_ns=ns)
+            message = message.customize(sub_name=in_message_name, sub_ns=ns)
             assert message.Attributes.sub_name is not None
 
     else:
-        message = ComplexModel.produce(type_name=_in_message_name,
+        message = ComplexModel.produce(type_name=in_message_name,
                                                namespace=ns, members=in_params)
         message.__namespace__ = ns
 

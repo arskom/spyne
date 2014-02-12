@@ -34,15 +34,15 @@ from weakref import WeakKeyDictionary
 from collections import deque
 from inspect import isclass
 
+from spyne import MethodDescriptor
 from spyne import BODY_STYLE_BARE, BODY_STYLE_WRAPPED, BODY_STYLE_EMPTY
 from spyne import const
-
 from spyne.const import xml_ns
 
-from spyne.model import ModelBase
-from spyne.model import PushBase
-from spyne.model import Unicode
 from spyne.model import Point
+from spyne.model import Unicode
+from spyne.model import PushBase
+from spyne.model import ModelBase
 from spyne.model import json, xml, msgpack, table
 from spyne.model._base import apply_pssm
 from spyne.model.primitive import NATIVE_MAP
@@ -270,6 +270,7 @@ def _get_type_info(cls, cls_name, cls_dict, attrs, base_type_info):
         if declare_sort is None:
             msg = "The declare_order attribute value %r is invalid in %s"
             raise Exception(msg % (attrs.declare_sort, cls_name))
+
         if declare_sort:
             class_fields.sort(key=declare_sort)
         _type_info.update(class_fields)
@@ -296,11 +297,15 @@ class _MethodsDict(dict):
         self._processed = True
 
         for descriptor in self.values():
+            assert isinstance(descriptor, MethodDescriptor)
             descriptor.parent_class = cls
 
             if descriptor.body_style in (BODY_STYLE_BARE, BODY_STYLE_EMPTY):
+                # The method only needs the primary key(s) and shouldn't
+                # complain when other mandatory fields are missing.
                 descriptor.in_message = cls.novalidate_freq()
                 descriptor.body_style = BODY_STYLE_BARE
+
             else:
                 descriptor.in_message.insert_field(0, 'self',
                                                           cls.novalidate_freq())
@@ -310,7 +315,7 @@ class _MethodsDict(dict):
                     # SelfReference is replaced by descriptor.in_message itself.
                     # However, in the context of mrpc, SelfReference means
                     # parent class. here, we do that substitution. It's a safe
-                    # hack, a hack nevertheless.
+                    # hack but a hack nevertheless.
                     if v is descriptor.in_message:
                         descriptor.in_message._type_info[k] = cls
 
@@ -483,6 +488,7 @@ class ComplexModelMeta(type(ModelBase)):
 
         methods = self.Attributes.methods
         if methods is not None:
+            assert isinstance(methods, _MethodsDict)
             methods.sanitize(self)
 
         # For spyne objects reflecting an existing db table
@@ -542,7 +548,10 @@ def _fill_empty_type_name(cls, k, v, parent=False):
         if extends is not None and extends.__type_name__ is ModelBase.Empty:
             _fill_empty_type_name(cls, k, v.__extends__, parent=True)
 
+
 _is_array = lambda v: issubclass(v, Array) or (v.Attributes.min_occurs > 1)
+
+
 class ComplexModelBase(ModelBase):
     """If you want to make a better class type, this is what you should inherit
     from.
