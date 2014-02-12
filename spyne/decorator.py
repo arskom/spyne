@@ -269,7 +269,9 @@ def rpc(*params, **kparams):
             elif '_throws' in kparams:
                 _faults = kparams.get('_throws', None)
 
+            _in_message_name_override = ('_in_message_name' in kparams)
             _in_message_name = kparams.get('_in_message_name', function_name)
+
             _operation_name = kparams.get('_operation_name', function_name)
 
             if _operation_name != function_name and _in_message_name != function_name:
@@ -311,6 +313,7 @@ def rpc(*params, **kparams):
                 body_style=body_style, args=_args,
                 operation_name=_operation_name, no_self=_no_self,
                 translations=_translations, when=_when,
+                in_message_name_override=_in_message_name_override,
             )
 
             return retval

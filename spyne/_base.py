@@ -323,7 +323,8 @@ class MethodDescriptor(object):
                  out_header=None, faults=None,
                  port_type=None, no_ctx=False, udp=None, class_key=None,
                  aux=None, patterns=None, body_style=None, args=None,
-                 operation_name=None, no_self=None, translations=None, when=None):
+                 operation_name=None, no_self=None, translations=None, when=None,
+                 in_message_name_override=False):
 
         self.__real_function = function
         """The original callable for the user code."""
@@ -435,6 +436,10 @@ class MethodDescriptor(object):
         """None or a callable that takes the object instance and returns a
         boolean value. If true, the object can process that action.
         """
+
+        self.in_message_name_override = in_message_name_override
+        """When True, no mangling of in message name will be performed by later
+        stages of the interface generation."""
 
     def translate(self, locale, default):
         """
