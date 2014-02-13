@@ -70,6 +70,10 @@ class TypeInfo(odict):
         super(TypeInfo, self).__init__(*args, **kwargs)
         self.attributes = {}
 
+    def __setitem__(self, key, val):
+        assert isinstance(key, basestring)
+        super(TypeInfo, self).__setitem__(key, val)
+
 
 class _SimpleTypeInfoElement(object):
     __slots__ = ['path', 'parent', 'type', 'is_array']
@@ -667,7 +671,15 @@ class ComplexModelBase(ModelBase):
         return len(self._type_info)
 
     def __getitem__(self, i):
-        return getattr(self, self._type_info.keys()[i], None)
+        if isinstance(i, slice):
+            retval = []
+            for key in self._type_info.keys()[i]:
+                retval.append(getattr(self, key, None))
+
+        else:
+            retval = getattr(self, self._type_info.keys()[i], None)
+
+        return retval
 
     def __repr__(self):
         return "%s(%s)" % (self.get_type_name(), ', '.join(
