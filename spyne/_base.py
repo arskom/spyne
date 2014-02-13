@@ -268,7 +268,7 @@ class MethodContext(object):
     by the user code.
     """
 
-    # Deprecated.
+    # Deprecated. Use self.descriptor.service_class.
     @property
     def service_class(self):
         if self.descriptor is not None:
@@ -324,7 +324,7 @@ class MethodDescriptor(object):
                  port_type=None, no_ctx=False, udp=None, class_key=None,
                  aux=None, patterns=None, body_style=None, args=None,
                  operation_name=None, no_self=None, translations=None, when=None,
-                 in_message_name_override=False):
+                 in_message_name_override=False, service_class=None):
 
         self.__real_function = function
         """The original callable for the user code."""
@@ -421,7 +421,7 @@ class MethodDescriptor(object):
         self.no_self = no_self
         """FIXME: docstring yo."""
 
-        self.service_class = None
+        self.service_class = service_class
         """The ServiceBase subclass the method belongs to, if there's any."""
 
         self.parent_class = None

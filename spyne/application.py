@@ -192,37 +192,45 @@ class Application(object):
         elif ctx.descriptor.body_style is BODY_STYLE_EMPTY:
             ctx.in_object = []
 
+        retval = None
+
         # service rpc
-        if ctx.descriptor.service_class is not None:
-            return ctx.descriptor.service_class.call_wrapper(ctx)
+        if ctx.descriptor.no_self:
+            retval = ctx.descriptor.service_class.call_wrapper(ctx)
 
         # class rpc
-        cls = ctx.descriptor.parent_class
-        if cls.__orig__ is not None:
-            cls = cls.__orig__
-
-        inst = cls.__respawn__(ctx)
-        if inst is None:
-            raise ResourceNotFoundError('{%s}%s' %
-                                     (cls.get_namespace(), cls.get_type_name()))
-        in_cls = ctx.descriptor.in_message
-
-        args = ctx.in_object
-        if args is None:
-            args = []
-
-        elif ctx.descriptor.body_style is BODY_STYLE_WRAPPED and \
-                                    len(in_cls.get_flat_type_info(in_cls)) <= 1:
-            args = []
-
         else:
-            args = args[1:]
+            cls = ctx.descriptor.parent_class
+            if cls.__orig__ is not None:
+                cls = cls.__orig__
 
-        if ctx.function is not None:
-            if ctx.descriptor.no_ctx:
-                return ctx.function(inst, *args)
+            inst = cls.__respawn__(ctx)
+            if inst is None:
+                raise ResourceNotFoundError('{%s}%s' %
+                                         (cls.get_namespace(), cls.get_type_name()))
+            in_cls = ctx.descriptor.in_message
+
+            args = ctx.in_object
+            if args is None:
+                args = []
+
+            elif ctx.descriptor.body_style is BODY_STYLE_WRAPPED and \
+                                        len(in_cls.get_flat_type_info(in_cls)) <= 1:
+                args = []
+
             else:
-                return ctx.function(inst, ctx, *args)
+                args = args[1:]
+
+            if ctx.descriptor.service_class is None:
+                retval = ctx.descriptor.service_class.call_wrapper(ctx)
+
+            elif ctx.function is not None:
+                if ctx.descriptor.no_ctx:
+                    retval = ctx.function(inst, *args)
+                else:
+                    retval = ctx.function(inst, ctx, *args)
+
+        return retval
 
     def _has_callbacks(self):
         return self.interface._has_callbacks()
