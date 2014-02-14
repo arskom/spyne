@@ -125,11 +125,15 @@ class TwistedHttpTransport(HttpBase):
                 match = patt.verb_re.match(request.method)
                 if match is None:
                     continue
+                if not (match.span() == (0, len(request.method))):
+                    continue
                 params.update(match.groupdict())
 
             if patt.host is not None:
                 match = patt.host_re.match(request.host)
                 if match is None:
+                    continue
+                if not (match.span() == (0, len(request.host))):
                     continue
                 params.update(match.groupdict())
 
@@ -137,7 +141,8 @@ class TwistedHttpTransport(HttpBase):
                 match = patt.address_re.match(request.uri)
                 if match is None:
                     continue
-
+                if not (match.span() == (0, len(request.uri))):
+                    continue
                 params.update(match.groupdict())
 
             ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
