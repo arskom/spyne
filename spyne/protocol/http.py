@@ -24,6 +24,7 @@ implementation.
 import logging
 logger = logging.getLogger(__name__)
 
+import re
 import pytz
 import tempfile
 from spyne.util import six
@@ -33,7 +34,7 @@ if six.PY3:
 else:
     from Cookie import SimpleCookie
 
-from spyne import BODY_STYLE_WRAPPED
+from spyne import BODY_STYLE_WRAPPED, MethodDescriptor
 from spyne.error import ResourceNotFoundError
 from spyne.model.binary import BINARY_ENCODING_URLSAFE_BASE64
 from spyne.model.primitive import DateTime
@@ -253,6 +254,8 @@ class HttpRpc(SimpleDictDocument):
         ctx.out_string = ctx.out_document
 
 
+_pattern_re = re.compile('<([^>]+)>')
+
 class HttpPattern(object):
     """Experimental. Stay away.
 
@@ -261,11 +264,28 @@ class HttpPattern(object):
     :param host: HTTP "Host:" header pattern
     """
 
+    @staticmethod
+    def _compile_pattern(pattern):
+        if pattern is None:
+            return None
+        pattern_regex = _pattern_re.sub(r'(?P<\1>.*)', pattern)
+        return re.compile(pattern_regex)
+
     def __init__(self, address, verb=None, host=None, endpoint=None):
+        assert isinstance(address, basestring)
+
         self.address = address
+        self.address_re = self._compile_pattern(self.address)
+
         self.host = host
+        self.host_re = self._compile_pattern(self.host)
+
         self.verb = verb
+        self.verb_re = self._compile_pattern(self.verb)
+
         self.endpoint = endpoint
+        if self.endpoint is not None:
+            assert isinstance(self.endpoint, MethodDescriptor)
 
     def as_werkzeug_rule(self):
         from werkzeug.routing import Rule
@@ -280,5 +300,9 @@ class HttpPattern(object):
             host = '<__ignored>'  # for some reason, this is necessary when
                                   # host_matching is enabled.
 
-        return Rule(self.address, host=host, endpoint=self.endpoint,
+        return Rule(self.address, host=host, endpoint=self.endpoint.name,
                                                                 methods=methods)
+
+    def __repr__(self):
+        return "HttpPattern(address=%r, host=%r, verb=%r, endpoint=%r" % (
+                    self.address, self.host, self.verb, self.endpoint.name)

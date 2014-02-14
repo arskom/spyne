@@ -207,7 +207,7 @@ class Interface(object):
             yield method.out_message
 
         for p in method.patterns:
-            p.endpoint = method.name
+            p.endpoint = method
 
     def process_method(self, s, method):
         assert isinstance(method, MethodDescriptor)

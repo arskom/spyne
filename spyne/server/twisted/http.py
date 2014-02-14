@@ -52,7 +52,7 @@ from spyne.error import InternalError
 from twisted.python.log import err
 from twisted.internet.defer import Deferred
 from twisted.web.resource import Resource
-from twisted.web.server import NOT_DONE_YET
+from twisted.web.server import NOT_DONE_YET, Request
 
 from spyne.auxproc import process_contexts
 from spyne.const.ansi_color import LIGHT_GREEN
@@ -60,11 +60,11 @@ from spyne.const.ansi_color import END_COLOR
 from spyne.const.http import HTTP_404
 from spyne.model import PushBase
 from spyne.model.fault import Fault
+from spyne.protocol.http import HttpPattern
 from spyne.server.http import HttpBase
 from spyne.server.http import HttpMethodContext
 from spyne.server.http import HttpTransportContext
 from spyne.server.twisted._base import Producer
-
 
 
 def _reconstruct_url(request):
@@ -94,16 +94,58 @@ class TwistedHttpMethodContext(HttpMethodContext):
 
 
 class TwistedHttpTransport(HttpBase):
-    @staticmethod
-    def decompose_incoming_envelope(prot, ctx, message):
+    def __init__(self, app, chunked=False, max_content_length=2 * 1024 * 1024,
+                                                         block_length=8 * 1024):
+        super(TwistedHttpTransport, self).__init__(app, chunked=chunked,
+               max_content_length=max_content_length, block_length=block_length)
+
+        self._http_patterns = set()
+
+        for k, v in self.app.interface.service_method_map.items():
+            # p_ stands for primary
+            p_method_descriptor = v[0]
+            for patt in p_method_descriptor.patterns:
+                if isinstance(patt, HttpPattern):
+                    self._http_patterns.add(patt)
+
+    def decompose_incoming_envelope(self, prot, ctx, message):
         """This function is only called by the HttpRpc protocol to have the
         twisted web's Request object is parsed into ``ctx.in_body_doc`` and
         ``ctx.in_header_doc``.
         """
 
         request = ctx.in_document
+        assert isinstance(request, Request)
 
-        ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
+        for patt in self._http_patterns:
+            params = {}
+            assert isinstance(patt, HttpPattern)
+
+            if patt.verb is not None:
+                match = patt.verb_re.match(request.method)
+                if match is None:
+                    continue
+                params.update(match.groupdict())
+
+            if patt.host is not None:
+                match = patt.host_re.match(request.host)
+                if match is None:
+                    continue
+                params.update(match.groupdict())
+
+            if patt.address is not None:
+                match = patt.address_re.match(request.uri)
+                if match is None:
+                    continue
+
+                params.update(match.groupdict())
+
+            ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
+                                                    patt.endpoint.name)
+            break
+        else:
+            params = {}
+            ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
                                                     request.path.split('/')[-1])
 
         logger.debug("%sMethod name: %r%s" % (LIGHT_GREEN,
@@ -111,6 +153,12 @@ class TwistedHttpTransport(HttpBase):
 
         ctx.in_header_doc = dict(request.requestHeaders.getAllRawHeaders())
         ctx.in_body_doc = request.args
+
+        for k, v in params.items():
+             if k in ctx.in_body_doc:
+                 ctx.in_body_doc[k].append(v)
+             else:
+                 ctx.in_body_doc[k] = [v]
 
 
 class TwistedWebResource(Resource):
@@ -230,11 +278,11 @@ class TwistedWebResource(Resource):
             ctx.close()
 
 
-def _cb_request_finished(request, p_ctx):
+def _cb_request_finished(retval, request, p_ctx):
     request.finish()
     p_ctx.close()
 
-def _eb_request_finished(request, p_ctx):
+def _eb_request_finished(retval, request, p_ctx):
     err(request)
     p_ctx.close()
     request.finish()
@@ -296,8 +344,8 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
         resource.http_transport.get_out_string(p_ctx)
 
         producer = Producer(p_ctx.out_string, request)
-        producer.deferred.addCallback(_cb_request_finished, p_ctx, others, resource)
-        producer.deferred.addErrback(_eb_request_finished, p_ctx, others, resource)
+        producer.deferred.addCallback(_cb_request_finished, request, p_ctx)
+        producer.deferred.addErrback(_eb_request_finished, request, p_ctx)
 
         request.registerProducer(producer, False)
 
