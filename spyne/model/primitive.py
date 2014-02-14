@@ -29,7 +29,6 @@ See :mod:`spyne.protocol._model` for {to,from}_string implementations.
 from __future__ import absolute_import
 
 import sys
-
 import re
 import math
 import uuid
@@ -616,10 +615,10 @@ class Time(SimpleModel):
     def validate_native(cls, value):
         return SimpleModel.validate_native(cls, value) and (
             value is None or (
-                value >  cls.Attributes.gt and
-                value >= cls.Attributes.ge and
-                value <  cls.Attributes.lt and
-                value <= cls.Attributes.le
+                    value >  cls.Attributes.gt
+                and value >= cls.Attributes.ge
+                and value <  cls.Attributes.lt
+                and value <= cls.Attributes.le
             ))
 
 
@@ -713,10 +712,10 @@ class DateTime(SimpleModel):
             value = value.replace(tzinfo=spyne.LOCAL_TZ)
         return SimpleModel.validate_native(cls, value) and (
             value is None or (
-                value >  cls.Attributes.gt and
-                value >= cls.Attributes.ge and
-                value <  cls.Attributes.lt and
-                value <= cls.Attributes.le
+                    value >  cls.Attributes.gt
+                and value >= cls.Attributes.ge
+                and value <  cls.Attributes.lt
+                and value <= cls.Attributes.le
             ))
 
 
