@@ -57,7 +57,7 @@ from twisted.web.server import NOT_DONE_YET, Request
 from spyne.auxproc import process_contexts
 from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
-from spyne.const.http import HTTP_404
+from spyne.const.http import HTTP_404, HTTP_200
 from spyne.model import PushBase
 from spyne.model.fault import Fault
 from spyne.protocol.http import HttpPattern
@@ -65,6 +65,18 @@ from spyne.server.http import HttpBase
 from spyne.server.http import HttpMethodContext
 from spyne.server.http import HttpTransportContext
 from spyne.server.twisted._base import Producer
+
+
+def _set_response_headers(request, headers):
+    retval = []
+
+    for k, v in headers.items():
+        if isinstance(v, (list, tuple)):
+            request.responseHeaders.setRawHeaders(k, v)
+        else:
+            request.responseHeaders.setRawHeaders(k, [v])
+
+    return retval
 
 
 def _reconstruct_url(request):
@@ -237,6 +249,14 @@ class TwistedWebResource(Resource):
                 return self.handle_rpc_error(p_ctx, others, p_ctx.out_error,
                                                                         request)
 
+        resp_code = p_ctx.transport.resp_code
+        # If user code set its own response code, don't touch it.
+        if resp_code is None:
+            resp_code = HTTP_200
+        request.setResponseCode(int(resp_code[:3]))
+
+        _set_response_headers(request, p_ctx.transport.resp_headers)
+
         ret = p_ctx.out_object[0]
         if isinstance(ret, Deferred):
             ret.addCallback(_cb_deferred, request, p_ctx, others, self)
@@ -244,6 +264,7 @@ class TwistedWebResource(Resource):
 
         elif isinstance(ret, PushBase):
             _init_push(ret, request, p_ctx, others, self)
+
         else:
             _cb_deferred(p_ctx.out_object, request, p_ctx, others, self, cb=False)
 
@@ -341,6 +362,7 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
         p_ctx.out_object = [ret]
     else:
         p_ctx.out_object = ret
+
 
     retval = None
     if isinstance(ret, PushBase):
