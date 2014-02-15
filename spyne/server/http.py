@@ -61,6 +61,7 @@ class HttpTransportContext(TransportContext):
             l = kwargs.pop('location')
             self.resp_headers['Location'] = l
             self.parent.out_string = [gen_body_redirect(resp_code, l)]
+            self.mime_type = 'text/html'
 
         else:
             # So that deserialization is skipped.
