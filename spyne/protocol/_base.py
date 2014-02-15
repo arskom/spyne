@@ -25,7 +25,6 @@ logger = logging.getLogger(__name__)
 import pytz
 import uuid
 
-from copy import copy
 from collections import deque
 from datetime import timedelta, time, datetime, date
 from math import modf
@@ -297,8 +296,9 @@ class ProtocolBase(object):
         for d in call_handles:
             assert d is not None
 
-            c = copy(ctx)
+            c = ctx.copy()
             c.descriptor = d
+
             retval.append(c)
 
         return retval

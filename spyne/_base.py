@@ -21,7 +21,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 from time import time
-
+from copy import copy
 from collections import deque
 
 from spyne.const.xml_ns import DEFAULT_NS
@@ -87,6 +87,20 @@ class MethodContext(object):
     """
 
     frozen = False
+
+    def copy(self):
+        retval = copy(self)
+
+        if retval.transport is not None:
+            retval.transport.parent = retval
+        if retval.protocol is not None:
+            retval.protocol.parent = retval
+        if retval.event is not None:
+            retval.event.parent = retval
+        if retval.aux is not None:
+            retval.aux.parent = retval
+
+        return retval
 
     @property
     def method_name(self):
