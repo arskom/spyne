@@ -51,7 +51,7 @@ from inspect import isgenerator
 from spyne.error import InternalError
 from twisted.python.log import err
 from twisted.internet.defer import Deferred
-from twisted.web.resource import Resource
+from twisted.web.resource import Resource, NoResource
 from twisted.web.server import NOT_DONE_YET, Request
 
 from spyne.auxproc import process_contexts
@@ -183,8 +183,6 @@ class TwistedWebResource(Resource):
     Resource.
     """
 
-    isLeaf = True
-
     def __init__(self, app, chunked=False, max_content_length=2 * 1024 * 1024,
                                            block_length=8 * 1024):
         Resource.__init__(self)
@@ -192,6 +190,12 @@ class TwistedWebResource(Resource):
         self.http_transport = TwistedHttpTransport(app, chunked,
                                             max_content_length, block_length)
         self._wsdl = None
+
+    def getChild(self, path, request):
+        retval = Resource.getChild(self, path, request)
+        if isinstance(retval, NoResource):
+            return self
+        return retval
 
     def render_GET(self, request):
         if request.uri.endswith('.wsdl') or request.uri.endswith('?wsdl'):
