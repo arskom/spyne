@@ -33,7 +33,7 @@ class HtmlBase(ProtocolBase):
 
     @staticmethod
     def _methods(cls, inst):
-        while cls.Attributes._wrapper:
+        while cls.Attributes._wrapper and len(cls._type_info) > 0:
             cls, = cls._type_info.values()
 
         if cls.Attributes.methods is not None:
