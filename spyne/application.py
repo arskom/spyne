@@ -221,7 +221,7 @@ class Application(object):
             else:
                 args = args[1:]
 
-            if ctx.descriptor.service_class is None:
+            if ctx.descriptor.service_class is not None:
                 retval = ctx.descriptor.service_class.call_wrapper(ctx)
 
             elif ctx.function is not None:
