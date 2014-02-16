@@ -31,12 +31,6 @@ from spyne.util.six import StringIO
 class HtmlBase(ProtocolBase):
     mime_type = 'text/html'
 
-    def __init__(self, app=None, validator=None, mime_type=None,
-                 ignore_uncap=False, ignore_wrappers=True):
-        super(HtmlBase, self).__init__(app=app, validator=validator,
-                                mime_type=mime_type, ignore_uncap=ignore_uncap,
-                                ignore_wrappers=ignore_wrappers)
-
     def serialize(self, ctx, message):
         """Uses ``ctx.out_object``, ``ctx.out_header`` or ``ctx.out_error`` to
         set ``ctx.out_body_doc``, ``ctx.out_header_doc`` and
