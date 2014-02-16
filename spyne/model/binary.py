@@ -67,10 +67,19 @@ class ByteArray(SimpleModel):
         if 'encoding' in kwargs:
             v = kwargs['encoding']
 
-            if v in (None, 'base64', 'base64Binary', BINARY_ENCODING_BASE64):
+            if v is None:
+                kwargs['encoding'] = BINARY_ENCODING_USE_DEFAULT
+
+            elif v in ('base64', 'base64Binary', BINARY_ENCODING_BASE64):
                 # This string is defined in the Xml Schema Standard
                 tn = 'base64Binary'
                 kwargs['encoding'] = BINARY_ENCODING_BASE64
+
+            elif v in ('urlsafe_base64', BINARY_ENCODING_URLSAFE_BASE64):
+                # the Xml Schema Standard does not define urlsafe base64
+                # FIXME: produce a regexp that validates urlsafe base64 strings
+                tn = 'string'
+                kwargs['encoding'] = BINARY_ENCODING_URLSAFE_BASE64
 
             elif v in ('hex', 'hexBinary', BINARY_ENCODING_HEX):
                 # This string is defined in the Xml Schema Standard
