@@ -191,10 +191,15 @@ class TwistedWebResource(Resource):
                                             max_content_length, block_length)
         self._wsdl = None
 
-    def getChild(self, path, request):
-        retval = Resource.getChild(self, path, request)
+    def getChildWithDefault(self, path, request):
+        if path in self.children:
+            retval = self.children[path]
+        else:
+            retval = self.getChild(path, request)
+
         if isinstance(retval, NoResource):
-            return self
+            retval = self
+
         return retval
 
     def render_GET(self, request):
