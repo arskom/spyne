@@ -33,6 +33,9 @@ class HtmlBase(ProtocolBase):
 
     @staticmethod
     def _methods(cls, inst):
+        while cls.Attributes._wrapper:
+            cls, = cls._type_info.values()
+
         if cls.Attributes.methods is not None:
             for k, v in cls.Attributes.methods.items():
                 is_shown = True
