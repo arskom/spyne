@@ -64,6 +64,16 @@ from spyne.const.ansi_color import END_COLOR
 from spyne.const.http import HTTP_404
 from spyne.const.http import HTTP_405
 
+def _set_response_headers(request, headers):
+    retval = []
+
+    for k, v in headers.items():
+        if isinstance(v, (list, tuple)):
+            request.responseHeaders.setRawHeaders(k, v)
+        else:
+            request.responseHeaders.setRawHeaders(k, [v])
+
+    return retval
 
 def _reconstruct_url(request):
     server_name = request.getRequestHostname()
@@ -228,6 +238,7 @@ class TwistedWebResource(Resource):
                 p_ctx.out_object = retval
 
             self.http_transport.get_out_string(p_ctx)
+            _set_response_headers(request, p_ctx.transport.resp_headers)
 
             process_contexts(self.http_transport, others, p_ctx)
 
@@ -255,13 +266,14 @@ class TwistedWebResource(Resource):
                                                       "text/xml; charset=utf-8")
         url = _reconstruct_url(request)
 
-        if self.doc.wsdl11 is None:
+        if self.http_transport.doc.wsdl11 is None:
             return HTTP_404
 
         if self._wsdl is None:
             self._wsdl = self.http_transport.doc.wsdl11.get_interface_document()
 
         ctx.transport.wsdl = self._wsdl
+        _set_response_headers(request, ctx.transport.resp_headers)
 
         try:
             if self._wsdl is None:
