@@ -77,3 +77,7 @@ test_result.*
 
 # vim cruft
 *.swp
+
+# test cruft
+.data
+Python-*
