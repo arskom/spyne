@@ -219,6 +219,7 @@ class TwistedWebResource(Resource):
             resp_code = p_ctx.out_protocol.fault_to_http_response_code(error)
 
         request.setResponseCode(int(resp_code[:3]))
+        _set_response_headers(request, p_ctx.transport.resp_headers)
 
         # In case user code set its own out_* attributes before failing.
         p_ctx.out_document = None
@@ -291,6 +292,7 @@ class TwistedWebResource(Resource):
             self._wsdl = self.http_transport.doc.wsdl11.get_interface_document()
 
         ctx.transport.wsdl = self._wsdl
+        _set_response_headers(request, ctx.transport.resp_headers)
 
         try:
             if self._wsdl is None:
