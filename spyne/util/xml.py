@@ -32,13 +32,13 @@ class FakeApplication(object):
 
 
 def get_schema_documents(models, default_namespace=None):
-    '''Returns the schema documents in a dict whose keys are namespace prefixes
+    """Returns the schema documents in a dict whose keys are namespace prefixes
     and values are Element objects.
 
     :param models: A list of spyne.model classes that will be represented in
                    the schema.
 
-    '''
+    """
 
     if default_namespace is None:
         default_namespace = models[0].get_namespace()
@@ -59,12 +59,12 @@ def get_schema_documents(models, default_namespace=None):
 
 
 def get_validation_schema(models, default_namespace=None):
-    '''Returns the validation schema object for the given models.
+    """Returns the validation schema object for the given models.
 
     :param models: A list of spyne.model classes that will be represented in
                    the schema.
 
-    '''
+    """
 
     if default_namespace is None:
         default_namespace = models[0].get_namespace()
@@ -91,13 +91,13 @@ def _dig(par):
 
 
 def get_object_as_xml(value, cls=None, root_tag_name=None, no_namespace=False):
-    '''Returns an ElementTree representation of a
+    """Returns an ElementTree representation of a
     :class:`spyne.model.complex.ComplexModel` subclass.
 
     :param value: The instance of the class to be serialized.
     :param value: The root tag string to use. Defaults to the output of
         ``value.__class__.get_type_name_ns()``.
-    '''
+    """
 
     if cls is None:
         cls = value.__class__
@@ -115,12 +115,12 @@ def get_object_as_xml(value, cls=None, root_tag_name=None, no_namespace=False):
 
 
 def get_xml_as_object(elt, cls):
-    '''Returns a native :class:`spyne.model.complex.ComplexModel` child from an
+    """Returns a native :class:`spyne.model.complex.ComplexModel` child from an
     ElementTree representation of the same class.
 
     :param value: The class the xml document represents.
     :param value: The xml document to be deserialized.
-    '''
+    """
 
     xml_object = XmlDocument()
 
