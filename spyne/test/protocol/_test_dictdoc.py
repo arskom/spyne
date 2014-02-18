@@ -23,6 +23,7 @@ import uuid
 import pytz
 import decimal
 from spyne.util import six
+from spyne.util.dictdoc import get_object_as_dict
 
 if six.PY3:
     long = int
@@ -43,7 +44,7 @@ from spyne.server import ServerBase
 from spyne.application import Application
 from spyne.decorator import srpc
 from spyne.error import ValidationError
-from spyne.model.binary import binary_encoding_handlers
+from spyne.model.binary import binary_encoding_handlers, File
 from spyne.model.complex import ComplexModel
 from spyne.model.complex import Iterable
 from spyne.model.fault import Fault
@@ -986,10 +987,81 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             d = serializer.dumps({"some_callResponse": {"some_callResult":
                                                 encoded_data}}, **dumps_kwargs)
 
-            print(s)
-            print(d)
-            print(encoded_data)
+            print(repr(s))
+            print(repr(d))
+            print(repr(encoded_data))
             assert s == d
+
+        def test_file_data(self):
+            # the only difference with the bytearray test is/are the types
+            # inside @srpc
+            dbe = _DictDocumentChild.default_binary_encoding
+            beh = binary_encoding_handlers[dbe]
+
+            data = ''.join([chr(x) for x in range(0xff)])
+            encoded_data = beh(data)
+
+            class SomeService(ServiceBase):
+                @srpc(File, _returns=File)
+                def some_call(p):
+                    import ipdb; ipdb.set_trace()
+                    print(p)
+                    print(type(p))
+                    assert isinstance(p, File.Value)
+                    assert p.data == [data]
+                    return p.data
+
+            ctx = _dry_me([SomeService], {"some_call": [encoded_data]})
+
+            s = ''.join(ctx.out_string)
+            d = serializer.dumps({"some_callResponse": {"some_callResult":
+                                                encoded_data}}, **dumps_kwargs)
+
+            print(repr(s))
+            print(repr(d))
+            print(repr(encoded_data))
+            assert s == d
+
+        def test_file_value(self):
+            dbe = _DictDocumentChild.default_binary_encoding
+            beh = binary_encoding_handlers[dbe]
+
+            # Prepare data
+            v = File.Value(
+                name='some_file.bin',
+                type='application/octet-stream',
+            )
+            file_data = ''.join([chr(x) for x in range(0xff)])
+            v.data = beh(file_data)
+
+            class SomeService(ServiceBase):
+                @srpc(File, _returns=File)
+                def some_call(p):
+                    print(p)
+                    print(type(p))
+                    assert isinstance(p, File.Value)
+                    assert p.data == [file_data]
+                    assert p.type == v.type
+                    assert p.name == v.name
+                    return p
+
+            d = get_object_as_dict(v, File)
+            assert d['name'] == v.name
+            assert d['type'] == v.type
+            assert d['data'] == v.data
+
+            ctx = _dry_me([SomeService], {"some_call": {'p': d}})
+            s = ''.join(ctx.out_string)
+            d = serializer.dumps({"some_callResponse": {"some_callResult": { "Value": {
+                'name': v.name,
+                'type': v.type,
+                'data': v.data,
+            }}}}, **dumps_kwargs)
+
+            print(repr(s))
+            print(repr(d))
+            print(v)
+            assert serializer.unpackb(s) == serializer.unpackb(d)
 
         def test_validation_frequency(self):
             class SomeService(ServiceBase):
