@@ -717,7 +717,7 @@ class TestSqlAlchemyNested(unittest.TestCase):
         session.commit()
         session.close()
 
-        assert session.query(Employee).with_polymorphic('*').get(1).type == 'manager'
+        assert session.query(Employee).with_polymorphic('*').filter_by(employee_id=1).one().type == 'manager'
 
     def test_inheritance_polymorphic_with_non_nullables_in_subclasses(self):
         engine = create_engine('sqlite:///:memory:')
@@ -773,7 +773,7 @@ class TestSqlAlchemyNested(unittest.TestCase):
 
         session.expunge_all()
 
-        session.query(SomeOtherClass).with_polymorphic('*').get(soc_id).t == 1
+        assert session.query(SomeOtherClass).with_polymorphic('*').filter_by(id=soc_id).one().t == 1
         session.close()
 
     def test_inheritance_polymorphic(self):
@@ -802,7 +802,7 @@ class TestSqlAlchemyNested(unittest.TestCase):
         session.commit()
         session.close()
 
-        session.query(SomeOtherClass).with_polymorphic('*').get(5).t == 1
+        assert session.query(SomeOtherClass).with_polymorphic('*').filter_by(id=5).one().t == 2
         session.close()
 
     def test_nested_sql_array_as_json(self):
