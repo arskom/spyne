@@ -740,7 +740,8 @@ class Array(ComplexModelBase):
 
         else:
             member_name = serializer.get_type_name()
-            if cls.__type_name__ == member_name:
+
+            if cls.__type_name__ == 'Array':
                 cls.__type_name__ = '%s%s%s' % (ARRAY_PREFIX, member_name,
                                                                    ARRAY_SUFFIX)
 

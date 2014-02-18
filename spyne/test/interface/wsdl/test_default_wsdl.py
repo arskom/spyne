@@ -197,6 +197,7 @@ class TestDefaultWSDLBehavior(unittest.TestCase):
                 '/wsdl:definitions/wsdl:types/xs:schema[@targetNamespace]',
                 namespaces=ns
             )
+        print etree.tostring(schema[0], pretty_print=True)
         assert len(schema[0].xpath(
             'xs:complexType[@name="string%s"]' % ARRAY_SUFFIX, namespaces=ns)) > 0
         elts = schema[0].xpath(
