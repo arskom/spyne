@@ -50,6 +50,13 @@ spyne-2.11.0
   wrapper functions {from,to}_string in ``ProtocolBase``\.
 * Many, many, many bugs fixed.
 
+spyne-2.10.10
+-------------
+* Fix wsdl rendering in TwistedWebResource.
+* Fix http response header propagetion in TwistedWebResource.
+* Fix handling of fractions in microsecond values.
+* Fix spyne.util.get_validation_schema()
+
 spyne-2.10.9
 ------------
 * Fix total_seconds quirk for Python 2.6.
