@@ -1004,21 +1004,22 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             class SomeService(ServiceBase):
                 @srpc(File, _returns=File)
                 def some_call(p):
-                    import ipdb; ipdb.set_trace()
                     print(p)
                     print(type(p))
                     assert isinstance(p, File.Value)
                     assert p.data == [data]
                     return p.data
 
+            # encoded data is inside a list because that's the native value of
+            # byte array -- a sequence of byte chunks.
             ctx = _dry_me([SomeService], {"some_call": [encoded_data]})
 
             s = ''.join(ctx.out_string)
             d = serializer.dumps({"some_callResponse": {"some_callResult":
-                                                encoded_data}}, **dumps_kwargs)
+                                                 encoded_data}}, **dumps_kwargs)
 
-            print(repr(s))
-            print(repr(d))
+            print(serializer.loads(s))
+            print(serializer.loads(d))
             print(repr(encoded_data))
             assert s == d
 
@@ -1052,16 +1053,16 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
 
             ctx = _dry_me([SomeService], {"some_call": {'p': d}})
             s = ''.join(ctx.out_string)
-            d = serializer.dumps({"some_callResponse": {"some_callResult": { "Value": {
+            d = serializer.dumps({"some_callResponse": {"some_callResult": {
                 'name': v.name,
                 'type': v.type,
                 'data': v.data,
-            }}}}, **dumps_kwargs)
+            }}}, **dumps_kwargs)
 
-            print(repr(s))
-            print(repr(d))
+            print(serializer.loads(s))
+            print(serializer.loads(d))
             print(v)
-            assert serializer.unpackb(s) == serializer.unpackb(d)
+            assert serializer.loads(s) == serializer.loads(d)
 
         def test_validation_frequency(self):
             class SomeService(ServiceBase):

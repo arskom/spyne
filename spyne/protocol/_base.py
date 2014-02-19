@@ -18,8 +18,6 @@
 #
 
 import logging
-from time import strptime, mktime
-
 logger = logging.getLogger(__name__)
 
 import pytz
@@ -30,6 +28,8 @@ from datetime import timedelta, time, datetime, date
 from math import modf
 from decimal import Decimal as D, InvalidOperation
 from pytz import FixedOffset
+from mmap import mmap, ACCESS_READ
+from time import strptime, mktime
 
 try:
     from lxml import etree
@@ -54,7 +54,6 @@ from spyne.error import RequestNotAllowed
 from spyne.error import InvalidCredentialsError
 from spyne.error import ValidationError
 
-from spyne.model.binary import Attachment
 from spyne.model.binary import binary_encoding_handlers
 from spyne.model.binary import binary_decoding_handlers
 from spyne.model.binary import BINARY_ENCODING_USE_DEFAULT
@@ -151,6 +150,7 @@ class ProtocolBase(object):
 
         self._to_string_handlers = cdict({
             ModelBase: self.model_base_to_string,
+            File: self.file_to_string,
             Time: self.time_to_string,
             Uuid: self.uuid_to_string,
             Null: self.null_to_string,
@@ -672,6 +672,31 @@ class ProtocolBase(object):
             encoding = suggested_encoding
 
         return File.Value(data=binary_decoding_handlers[encoding](value))
+
+    def file_to_string(self, cls, value, suggested_encoding=None):
+        """
+        :param cls: A :class:`spyne.model.File` subclass
+        :param value: Either a sequence of byte chunks or a
+            :class:`spyne.model.File.Value` instance.
+        """
+
+        encoding = cls.Attributes.encoding
+        if encoding is BINARY_ENCODING_USE_DEFAULT:
+            encoding = suggested_encoding
+
+        if isinstance(value, File.Value):
+            if value.handle is not None:
+                assert isinstance(value.handle, file)
+
+                fileno = value.handle.fileno()
+                data = mmap(fileno, 0, access=ACCESS_READ)
+
+                return binary_encoding_handlers[encoding](data)
+
+            elif value.data is not None:
+                return binary_encoding_handlers[encoding](value.data)
+        else:
+            return binary_encoding_handlers[encoding](value)
 
     def file_to_string_iterable(self, cls, value):
         if value.data is None:

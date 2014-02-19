@@ -99,10 +99,6 @@ from spyne.model.primitive import UnsignedLong
 from spyne.model.primitive import NonNegativeInteger # Xml Schema calls it so
 from spyne.model.primitive import UnsignedInteger
 
-# Binary
-from spyne.model.binary import File
-from spyne.model.binary import ByteArray
-
 # Classes
 from spyne.model.complex import ComplexModelMeta
 from spyne.model.complex import ComplexModelBase
@@ -122,6 +118,10 @@ from spyne.model.complex import XmlData
 
 # Markers
 from spyne.model.complex import SelfReference
+
+# Binary
+from spyne.model.binary import File
+from spyne.model.binary import ByteArray
 
 # Enum
 from spyne.model.enum import Enum

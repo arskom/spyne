@@ -33,7 +33,7 @@ from binascii import unhexlify
 from spyne.util.six import StringIO
 from spyne.error import ValidationError
 from spyne.util import _bytes_join
-from spyne.model import ModelBase
+from spyne.model import ModelBase, ComplexModel, Unicode
 from spyne.model import SimpleModel
 
 class BINARY_ENCODING_HEX: pass
@@ -161,7 +161,7 @@ class File(SimpleModel):
         One of (None, 'base64', 'hex')
         """
 
-    class Value(object):
+    class Value(ComplexModel):
         """The class for values marked as ``File``.
 
         :param name: Original name of the file
@@ -173,8 +173,16 @@ class File(SimpleModel):
             It is ignored unless the ``path`` argument is ``None``.
         """
 
-        def __init__(self, name=None, path=None, type='application/octet-stream',
-                                                            data=None, handle=None):
+        _type_info = [
+            ('name', Unicode),
+            ('type', Unicode),
+            ('data', ByteArray),
+        ]
+
+        def __init__(self, name=None, path=None,
+                                        type='application/octet-stream',
+                                                        data=None, handle=None):
+
             self.name = name
             if self.name is not None:
                 assert os.path.basename(self.name) == self.name
@@ -236,12 +244,13 @@ class File(SimpleModel):
         return File.Value(data=[base64.b64decode(value)])
 
     def __repr__(self):
-        return "File(name=%r, path=%r, type=%r, data=%r)" % (self.name,
-                                                self.path, self.type, self.data)
+        return "File(name=%r, path=%r, type=%r, data=%r)" % \
+                                    (self.name, self.path, self.type, self.data)
 
     @classmethod
     def store_as(cls, what):
         return cls.customize(store_as=what)
+
 
 # **DEPRECATED!** Use ByteArray or File instead.
 class Attachment(ModelBase):
@@ -253,12 +262,12 @@ class Attachment(ModelBase):
         self.file_name = file_name
 
     def save_to_file(self):
-        '''This method writes the data to the specified file.  This method
+        """This method writes the data to the specified file.  This method
         assumes that the file_name is the full path to the file to be written.
         This method also assumes that self.data is the base64 decoded data,
         and will do no additional transformations on it, simply write it to
         disk.
-        '''
+        """
 
         if not self.data:
             raise Exception("No data to write")
@@ -271,9 +280,9 @@ class Attachment(ModelBase):
         f.close()
 
     def load_from_file(self):
-        '''This method loads the data from the specified file, and does
+        """This method loads the data from the specified file, and does
         no encoding/decoding of the data
-        '''
+        """
         if not self.file_name:
             raise Exception("No file_name specified")
         f = open(self.file_name, 'rb')

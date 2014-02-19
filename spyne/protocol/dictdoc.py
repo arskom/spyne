@@ -138,6 +138,8 @@ purposes.
 """
 
 import logging
+from spyne.util.six import binary_type
+
 logger = logging.getLogger(__name__)
 
 import re
@@ -439,7 +441,7 @@ class SimpleDictDocument(DictDocument):
             return retval
 
         if tags is None:
-            tags = {id(value)}
+            tags = set([id(value)])
         else:
             if id(value) in tags:
                 return retval
@@ -569,7 +571,10 @@ class HierDictDocument(DictDocument):
             return value
 
         # get native type
-        if issubclass(class_, ComplexModelBase):
+        if issubclass(class_, File) and isinstance(value, dict):
+            retval = self._doc_to_object(File.Value, value, validator)
+
+        elif issubclass(class_, ComplexModelBase):
             retval = self._doc_to_object(class_, value, validator)
 
         else:
@@ -581,7 +586,6 @@ class HierDictDocument(DictDocument):
             if issubclass(class_, (ByteArray, File)):
                 retval = self.from_string(class_, value,
                                                    self.default_binary_encoding)
-
             else:
                 retval = self.from_string(class_, value)
 
@@ -617,10 +621,12 @@ class HierDictDocument(DictDocument):
         try:
             items = doc.items()
         except AttributeError:
+            # Input is not a dict, so we assume it's a sequence that we can pair
+            # with the incoming sequence with field names.
             items = zip(class_._type_info.keys(), doc)
 
         # parse input to set incoming data to related attributes.
-        for k,v in items:
+        for k, v in items:
             member = flat_type_info.get(k, None)
             if member is None:
                 continue
@@ -689,7 +695,6 @@ class HierDictDocument(DictDocument):
                 yield (k, val)
 
     def _to_value(self, cls, value):
-        #import ipdb; ipdb.set_trace()
         if issubclass(cls, AnyDict):
             return value
 
@@ -702,6 +707,12 @@ class HierDictDocument(DictDocument):
                 return list(self._complex_to_list(cls, value))
             else:
                 return self._complex_to_dict(cls, value)
+
+        if issubclass(cls, File) and isinstance(value, File.Value):
+            retval = self._complex_to_dict(File.Value, value)
+            if not self.ignore_wrappers:
+                retval = iter(retval.values()).next()
+            return retval
 
         if issubclass(cls, (ByteArray, File)):
             return self.to_string(cls, value, self.default_binary_encoding)
