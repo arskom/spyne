@@ -5,7 +5,7 @@ Changelog
 spyne-2.10.10
 ------------
 * Fix wsdl rendering in TwistedWebResource.
-* Fix http response header propagetion in TwistedWebResource.
+* Fix http response header propagation in TwistedWebResource.
 * Fix handling of fractions in microsecond values.
 * Fix spyne.util.get_validation_schema()
 
