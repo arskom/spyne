@@ -110,12 +110,12 @@ class MessagePackServerBase(ServerBase):
             logger.error(p_ctx.in_error)
             return self.handle_error(p_ctx, others, p_ctx.in_error)
 
-        self.get_out_object(contexts)
-        if contexts.out_error:
-            return self.handle_error(contexts, others, contexts.out_error)
+        self.get_out_object(p_ctx)
+        if p_ctx.out_error:
+            return self.handle_error(p_ctx, others, p_ctx.out_error)
 
         try:
-            self.get_out_string(contexts)
+            self.get_out_string(p_ctx)
 
         except Exception as e:
             logger.exception(e)
