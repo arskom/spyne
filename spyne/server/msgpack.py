@@ -20,15 +20,14 @@
 from __future__ import absolute_import
 
 import logging
-from spyne.auxproc import process_contexts
-from spyne.model import Fault
-
 logger = logging.getLogger(__name__)
 
 import msgpack
 
 from spyne import MethodContext, TransportContext
+from spyne.auxproc import process_contexts
 from spyne.error import ValidationError
+from spyne.model import Fault
 from spyne.server import ServerBase
 
 

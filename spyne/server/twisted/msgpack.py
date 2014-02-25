@@ -131,6 +131,7 @@ def _eb_deferred(retval, prot, p_ctx, others):
     prot.transport.write(ret)
     prot.transport.loseConnection()
 
+
 def _cb_deferred(retval, prot, p_ctx, others, nowrap=False):
     if len(p_ctx.descriptor.out_message._type_info) > 1 or nowrap:
         p_ctx.out_object = retval
