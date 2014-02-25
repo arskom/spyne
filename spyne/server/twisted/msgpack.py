@@ -30,12 +30,8 @@ from twisted.internet.protocol import Protocol, Factory, connectionDone
 from spyne.auxproc import process_contexts
 from spyne.error import ValidationError, InternalError
 from spyne.model import Fault
-from spyne.server.msgpack import MessagePackServerBase
-
-
-NO_ERROR = 0
-CLIENT_ERROR = 1
-SERVER_ERROR = 2
+from spyne.server.msgpack import MessagePackServerBase, SERVER_ERROR, \
+    CLIENT_ERROR
 
 
 class TwistedMessagePackProtocolFactory(Factory):
@@ -140,9 +136,9 @@ def _cb_deferred(retval, prot, p_ctx, others, nowrap=False):
 
     try:
         prot._transport.get_out_string(p_ctx)
-        out_string = msgpack.packb({
-            NO_ERROR: ''.join(p_ctx.out_string),
-        })
+        prot._transport.pack(p_ctx)
+
+        out_string = ''.join(p_ctx.out_string)
         prot.transport.write(out_string)
         print "PC", repr(out_string)
 
