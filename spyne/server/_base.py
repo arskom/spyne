@@ -166,7 +166,7 @@ class ServerBase(object):
                 except StopIteration:
                     pass
 
-    def serve_forever():
+    def serve_forever(self):
         """Implement your event loop here, if needed."""
 
         raise NotImplementedError()
