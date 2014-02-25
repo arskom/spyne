@@ -72,7 +72,10 @@ class MessagePackMethodContext(MethodContext):
 
 
 class MessagePackServerBase(ServerBase):
-    """Contains the transport protocol logic but not the transport itself."""
+    """Contains the transport protocol logic but not the transport itself.
+
+    Subclasses should implement logic to move bitstreams in and out of this
+    class."""
 
     def __init__(self, app):
         super(MessagePackServerBase, self).__init__(app)
