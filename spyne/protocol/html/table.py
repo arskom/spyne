@@ -94,8 +94,6 @@ class HtmlTableBase(HtmlBase):
         super(HtmlTableBase, self).__init__(app, validator, None,
                                                   ignore_uncap, ignore_wrappers)
 
-        assert table_name_attr in (None, 'class', 'id')
-        assert field_name_attr in (None, 'class', 'id')
 
         self.produce_header = produce_header
         self.table_name_attr = table_name_attr
