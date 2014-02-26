@@ -301,10 +301,10 @@ class PGJson(UserDefinedType):
 
     def result_processor(self, dialect, col_type):
         def process(value):
-            if value is not None and len(value) > 0:
+            if isinstance(value, basestring):
                 return json.loads(value)
             else:
-                return None
+                return value
         return process
 
 sqlalchemy.dialects.postgresql.base.ischema_names['json'] = PGJson
