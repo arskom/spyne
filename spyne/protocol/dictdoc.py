@@ -571,7 +571,7 @@ class HierDictDocument(DictDocument):
             return value
 
         # get native type
-        if issubclass(class_, File) and isinstance(value, dict):
+        if issubclass(class_, File) and isinstance(value, self.complex_as):
             retval = self._doc_to_object(File.Value, value, validator)
 
         elif issubclass(class_, ComplexModelBase):
