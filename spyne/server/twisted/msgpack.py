@@ -45,7 +45,7 @@ class TwistedMessagePackProtocolFactory(Factory):
 
 class TwistedMessagePackProtocol(Protocol):
     def __init__(self, app, base=MessagePackServerBase,
-                                                  max_buffer_size=10*1024*1024):
+                                                  max_buffer_size=2*1024*1024):
         self._buffer = msgpack.Unpacker(max_buffer_size=max_buffer_size)
         self._transport = base(app)
 
