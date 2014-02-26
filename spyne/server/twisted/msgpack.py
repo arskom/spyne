@@ -30,8 +30,8 @@ from twisted.internet.protocol import Protocol, Factory, connectionDone
 from spyne.auxproc import process_contexts
 from spyne.error import ValidationError, InternalError
 from spyne.model import Fault
-from spyne.server.msgpack import MessagePackServerBase, SERVER_ERROR, \
-    CLIENT_ERROR
+from spyne.server.msgpack import MessagePackServerBase, RESPONSE_SERVER_ERROR, \
+    RESPONSE_CLIENT_ERROR
 
 
 class TwistedMessagePackProtocolFactory(Factory):
@@ -75,9 +75,9 @@ class TwistedMessagePackProtocol(Protocol):
         self._transport.get_out_string(p_ctx)
 
         if isinstance(exc, InternalError):
-            error = SERVER_ERROR
+            error = RESPONSE_SERVER_ERROR
         else:
-            error = CLIENT_ERROR
+            error = RESPONSE_CLIENT_ERROR
 
         out_string = msgpack.packb({
             error: msgpack.packb(p_ctx.out_document[0].values()),

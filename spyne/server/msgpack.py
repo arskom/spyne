@@ -31,9 +31,9 @@ from spyne.model import Fault
 from spyne.server import ServerBase
 
 
-NO_ERROR = 0
-CLIENT_ERROR = 1
-SERVER_ERROR = 2
+RESPONSE_NO_ERROR = 0
+RESPONSE_CLIENT_ERROR = 1
+RESPONSE_SERVER_ERROR = 2
 
 
 def _process_v1_msg(prot, msg):
@@ -142,4 +142,4 @@ class MessagePackServerBase(ServerBase):
         return msgpack.pack(str(error))
 
     def pack(self, ctx):
-        ctx.out_string = msgpack.packb({NO_ERROR: ''.join(ctx.out_string)}),
+        ctx.out_string = msgpack.packb({RESPONSE_NO_ERROR: ''.join(ctx.out_string)}),
