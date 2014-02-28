@@ -30,8 +30,9 @@ from twisted.internet.protocol import Protocol, Factory, connectionDone
 from spyne.auxproc import process_contexts
 from spyne.error import ValidationError, InternalError
 from spyne.model import Fault
-from spyne.server.msgpack import MessagePackServerBase, RESPONSE_SERVER_ERROR, \
-    RESPONSE_CLIENT_ERROR
+from spyne.server.msgpack import MessagePackServerBase
+from spyne.server.msgpack import OUT_RESPONSE_SERVER_ERROR, \
+    OUT_RESPONSE_CLIENT_ERROR
 
 
 class TwistedMessagePackProtocolFactory(Factory):
@@ -61,9 +62,7 @@ class TwistedMessagePackProtocol(Protocol):
         for msg in self._buffer:
             p_ctx = others = None
             try:
-                p_ctx, others = self._transport.produce_contexts(msg)
-                p_ctx.transport.protocol = self
-                return self.process_contexts(p_ctx, others)
+                self.process(msg)
 
             except ValidationError as e:
                 import traceback
@@ -71,13 +70,18 @@ class TwistedMessagePackProtocol(Protocol):
                 logger.exception(e)
                 self.handle_error(p_ctx, others, e)
 
+    def process(self, msg):
+        p_ctx, others = self._transport.produce_contexts(msg)
+        p_ctx.transport.protocol = self
+        self.process_contexts(p_ctx, others)
+
     def handle_error(self, p_ctx, others, exc):
         self._transport.get_out_string(p_ctx)
 
         if isinstance(exc, InternalError):
-            error = RESPONSE_SERVER_ERROR
+            error = OUT_RESPONSE_SERVER_ERROR
         else:
-            error = RESPONSE_CLIENT_ERROR
+            error = OUT_RESPONSE_CLIENT_ERROR
 
         out_string = msgpack.packb({
             error: msgpack.packb(p_ctx.out_document[0].values()),
@@ -112,7 +116,7 @@ class TwistedMessagePackProtocol(Protocol):
         if isinstance(ret, Deferred):
             ret.addCallback(_cb_deferred, self, p_ctx, others)
             ret.addErrback(_eb_deferred)
-            return ret
+            return
 
         _cb_deferred(p_ctx.out_object, self, p_ctx, others, nowrap=True)
 

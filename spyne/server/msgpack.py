@@ -31,10 +31,11 @@ from spyne.model import Fault
 from spyne.server import ServerBase
 
 
-RESPONSE_NO_ERROR = 0
-RESPONSE_CLIENT_ERROR = 1
-RESPONSE_SERVER_ERROR = 2
+OUT_RESPONSE_NO_ERROR = 0
+OUT_RESPONSE_CLIENT_ERROR = 1
+OUT_RESPONSE_SERVER_ERROR = 2
 
+IN_REQUEST = 1
 
 def _process_v1_msg(prot, msg):
     header = None
@@ -81,11 +82,11 @@ class MessagePackServerBase(ServerBase):
         super(MessagePackServerBase, self).__init__(app)
 
         self._version_map = {
-            1: _process_v1_msg
+            IN_REQUEST: _process_v1_msg
         }
 
     def produce_contexts(self, msg):
-        """msg = [1, body, header]"""
+        """msg = [IN_REQUEST, body, header]"""
 
         logger.debug("Request object: %r", msg)
 
@@ -104,6 +105,7 @@ class MessagePackServerBase(ServerBase):
 
         initial_ctx = processor(self, msg)
         contexts = self.generate_contexts(initial_ctx)
+
         return contexts[0], contexts[1:]
 
     def process_contexts(self, contexts):
@@ -142,4 +144,4 @@ class MessagePackServerBase(ServerBase):
         return msgpack.pack(str(error))
 
     def pack(self, ctx):
-        ctx.out_string = msgpack.packb({RESPONSE_NO_ERROR: ''.join(ctx.out_string)}),
+        ctx.out_string = msgpack.packb({OUT_RESPONSE_NO_ERROR: ''.join(ctx.out_string)}),
