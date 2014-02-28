@@ -703,21 +703,25 @@ class HierDictDocument(DictDocument):
             return self._object_to_doc(st, value)
 
         if issubclass(cls, ComplexModelBase):
-            if self.complex_as is list:
-                return list(self._complex_to_list(cls, value))
-            else:
-                return self._complex_to_dict(cls, value)
+            return self._complex_to_doc(cls, value)
 
         if issubclass(cls, File) and isinstance(value, File.Value):
-            retval = self._complex_to_dict(File.Value, value)
-            if not self.ignore_wrappers:
+            retval = self._complex_to_doc(File.Value, value)
+            if self.complex_as is dict and not self.ignore_wrappers:
                 retval = iter(retval.values()).next()
+
             return retval
 
         if issubclass(cls, (ByteArray, File)):
             return self.to_string(cls, value, self.default_binary_encoding)
 
         return self.to_string(cls, value)
+
+    def _complex_to_doc(self, cls, value):
+        if self.complex_as is list:
+            return list(self._complex_to_list(cls, value))
+        else:
+            return self._complex_to_dict(cls, value)
 
     def _complex_to_dict(self, class_, inst):
         inst = class_.get_serialization_instance(inst)
