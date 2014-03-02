@@ -98,7 +98,7 @@ def camera_publisher():
     buffer = appsink.emit('pull-preroll')
     caps = buffer.get_caps()[0]
     stream_header = ""
-    if "streamheader" in caps:
+    if caps.has_field("streamheader"):
         stream_header = ''.join([str(h) for h in caps["streamheader"]])
 
     # init zeromq
