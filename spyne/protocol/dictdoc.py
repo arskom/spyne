@@ -683,6 +683,9 @@ class HierDictDocument(DictDocument):
                 yield r
 
         for k, v in class_._type_info.items():
+            if getattr(v.Attributes, 'exc_dict', None):
+                continue
+
             try:
                 sub_value = getattr(inst, k, None)
             # to guard against e.g. sqlalchemy throwing NoSuchColumnError
@@ -690,8 +693,13 @@ class HierDictDocument(DictDocument):
                 logger.error("Error getting %r: %r" %(k,e))
                 sub_value = None
 
+            if sub_value is None:
+                sub_value = v.Attributes.default
+
             val = self._object_to_doc(v, sub_value)
-            if val is not None or v.Attributes.min_occurs > 0:
+            min_o = v.Attributes.min_occurs
+
+            if val is not None or min_o > 0 or self.complex_as is list:
                 yield (k, val)
 
     def _to_value(self, cls, value):

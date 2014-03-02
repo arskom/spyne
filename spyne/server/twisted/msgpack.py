@@ -26,10 +26,10 @@ import msgpack
 
 from twisted.internet.defer import Deferred
 from twisted.internet.protocol import Protocol, Factory, connectionDone
+from twisted.python.failure import Failure
 
 from spyne.auxproc import process_contexts
 from spyne.error import ValidationError, InternalError
-from spyne.model import Fault
 from spyne.server.msgpack import MessagePackServerBase
 from spyne.server.msgpack import OUT_RESPONSE_SERVER_ERROR, \
     OUT_RESPONSE_CLIENT_ERROR
@@ -84,7 +84,7 @@ class TwistedMessagePackProtocol(Protocol):
             error = OUT_RESPONSE_CLIENT_ERROR
 
         out_string = msgpack.packb({
-            error: msgpack.packb(p_ctx.out_document[0].values()),
+            error: msgpack.packb(p_ctx.out_document[0]),
         })
         self.transport.write(out_string)
         print "HE", repr(out_string)
@@ -115,7 +115,7 @@ class TwistedMessagePackProtocol(Protocol):
         ret = p_ctx.out_object[0]
         if isinstance(ret, Deferred):
             ret.addCallback(_cb_deferred, self, p_ctx, others)
-            ret.addErrback(_eb_deferred)
+            ret.addErrback(_eb_deferred, self, p_ctx, others)
             return
 
         _cb_deferred(p_ctx.out_object, self, p_ctx, others, nowrap=True)
@@ -123,13 +123,17 @@ class TwistedMessagePackProtocol(Protocol):
 
 def _eb_deferred(retval, prot, p_ctx, others):
     p_ctx.out_error = retval.value
-    if not issubclass(retval.type, Fault):
+    tb = None
+    if issubclass(retval.type, Failure):
+        tb=retval.getTraceback()
         retval.printTraceback()
         p_ctx.out_error = InternalError(retval.value)
 
-    ret = prot.handle_rpc_error(p_ctx, others, p_ctx.out_error)
+    ret = prot.handle_error(p_ctx, others, p_ctx.out_error)
     prot.transport.write(ret)
     prot.transport.loseConnection()
+
+    return Failure(p_ctx.out_error, p_ctx.out_error.__class__, tb)
 
 
 def _cb_deferred(retval, prot, p_ctx, others, nowrap=False):
