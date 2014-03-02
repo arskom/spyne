@@ -62,7 +62,7 @@ class TwistedMessagePackProtocol(Protocol):
         for msg in self._buffer:
             p_ctx = others = None
             try:
-                self.process(msg)
+                self.process_incoming_message(msg)
 
             except ValidationError as e:
                 import traceback
@@ -70,7 +70,7 @@ class TwistedMessagePackProtocol(Protocol):
                 logger.exception(e)
                 self.handle_error(p_ctx, others, e)
 
-    def process(self, msg):
+    def process_incoming_message(self, msg):
         p_ctx, others = self._transport.produce_contexts(msg)
         p_ctx.transport.protocol = self
         self.process_contexts(p_ctx, others)
