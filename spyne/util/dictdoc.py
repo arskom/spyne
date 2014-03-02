@@ -16,6 +16,7 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
+
 from spyne._base import FakeContext
 
 from spyne.protocol.dictdoc import HierDictDocument
@@ -82,6 +83,7 @@ def get_object_as_json(o, cls, ignore_wrappers=True, complex_as=list, encoding='
     ctx = FakeContext(out_document=[prot._object_to_doc(cls,o)])
     prot.create_out_string(ctx, encoding)
     return ''.join(ctx.out_string)
+
 
 def get_object_as_yaml(o, cls, ignore_wrappers=False, complex_as=dict, encoding='utf8'):
     prot = YamlDocument(ignore_wrappers=ignore_wrappers, complex_as=complex_as)
