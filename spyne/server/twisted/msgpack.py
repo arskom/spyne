@@ -28,6 +28,7 @@ from twisted.internet.defer import Deferred
 from twisted.internet.protocol import Protocol, Factory, connectionDone
 from twisted.python.failure import Failure
 
+from spyne import EventManager
 from spyne.auxproc import process_contexts
 from spyne.error import ValidationError, InternalError
 from spyne.server.msgpack import MessagePackServerBase
@@ -39,22 +40,28 @@ class TwistedMessagePackProtocolFactory(Factory):
     def __init__(self, app, base=MessagePackServerBase):
         self.app = app
         self.base = base
+        self.event_manager = EventManager(self)
 
     def buildProtocol(self, address):
-        return TwistedMessagePackProtocol(self.app, self.base)
+        return TwistedMessagePackProtocol(self.app, self.base, factory=self)
 
 
 class TwistedMessagePackProtocol(Protocol):
     def __init__(self, app, base=MessagePackServerBase,
-                                                  max_buffer_size=2*1024*1024):
+                                     max_buffer_size=2*1024*1024, factory=None):
+        self.factory = factory
         self._buffer = msgpack.Unpacker(max_buffer_size=max_buffer_size)
         self._transport = base(app)
 
     def connectionMade(self):
         logger.info("%r connection made.", self)
+        if self.factory is not None:
+            self.factory.event_manager.fire_event("connection_made", self)
 
     def connectionLost(self, reason=connectionDone):
-        logger.info("%r connection lost.", self)
+        logger.info("%r connection lost yo.", self)
+        if self.factory is not None:
+            self.factory.event_manager.fire_event("connection_lost", self)
 
     def dataReceived(self, data):
         self._buffer.feed(data)
