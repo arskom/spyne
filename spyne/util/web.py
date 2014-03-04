@@ -27,7 +27,7 @@ from __future__ import absolute_import
 
 from spyne.util import six
 
-from spyne import BODY_STYLE_WRAPPED
+from spyne import BODY_STYLE_WRAPPED, rpc
 from spyne.application import Application as AppBase
 from spyne.const import MAX_STRING_FIELD_LENGTH
 from spyne.const import MAX_ARRAY_ELEMENT_NUM
@@ -37,6 +37,7 @@ from spyne.error import ResourceNotFoundError
 from spyne.service import ServiceBase
 from spyne.util import memoize
 from spyne.util.email import email_exception
+from spyne.model import Mandatory as M, UnsignedInteger32
 from spyne.model import Unicode
 from spyne.model import Array
 from spyne.model import ComplexModelBase
@@ -245,7 +246,7 @@ class Context(object):
             self.session.close()
 
 
-def log_repr(obj, cls=None, given_len=None):
+def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False):
     """Use this function if you want to echo a ComplexModel subclass. It will
     limit output size of the String types, making your logs smaller.
     """
@@ -256,49 +257,67 @@ def log_repr(obj, cls=None, given_len=None):
     if cls is None:
         cls = obj.__class__
 
-    if issubclass(cls, Array) or cls.Attributes.max_occurs > 1:
+    if issubclass(cls, Array) or cls.Attributes.max_occurs > 1 and not from_array:
+        retval = []
+        if issubclass(cls, Array):
+            cls, = cls._type_info.values()
+
         if not cls.Attributes.logged:
-            retval = "%s(...)" % cls.get_type_name()
+            retval.append("%s (...)" % cls.get_type_name())
+
+        elif cls.Attributes.logged == 'len':
+            l = '?'
+
+            try:
+                l = str(len(obj))
+            except TypeError as e:
+                if given_len is not None:
+                    l = str(given_len)
+            if issubclass(cls, ComplexModelBase):
+                retval.append("%s[%s] (...)" % (cls.get_type_name(), l))
+            else:
+                retval.append("[%s] (...)" % l)
 
         else:
-            retval = []
-            if issubclass(cls, Array):
-                cls, = cls._type_info.values()
+            for i, o in enumerate(obj):
+                retval.append(log_repr(o, cls, from_array=True))
 
-            if not cls.Attributes.logged:
-                retval.append("%s (...)" % cls.get_type_name())
+                if i > MAX_ARRAY_ELEMENT_NUM:
+                    retval.append("(...)")
+                    break
 
-            elif cls.Attributes.logged == 'len':
-                l = '?'
-
-                try:
-                    l = str(len(obj))
-                except TypeError as e:
-                    if given_len is not None:
-                        l = str(given_len)
-                if issubclass(cls, ComplexModelBase):
-                    retval.append("%s[%s] (...)" % (cls.get_type_name(), l))
-                else:
-                    retval.append("[%s] (...)" % l)
-
-            else:
-                for i,o in enumerate(obj):
-                    retval.append(_log_repr_obj(o, cls))
-
-                    if i > MAX_ARRAY_ELEMENT_NUM:
-                        retval.append("(...)")
-                        break
-
-            if issubclass(cls, ComplexModelBase):
-                retval = "%s([%s])" % (cls.get_type_name(), ', '.join(retval))
-            else:
-                retval = "[%s]" % ', '.join(retval)
+        if issubclass(cls, ComplexModelBase):
+            retval = "%s([%s])" % (cls.get_type_name(), ', '.join(retval))
+        else:
+            retval = "[%s]" % ', '.join(retval)
 
     elif issubclass(cls, ComplexModelBase):
-        if cls.Attributes.logged:
-            retval = _log_repr_obj(obj, cls)
+        retval = []
+
+        for k, t in cls.get_flat_type_info(cls).items():
+            if k == 'f':
+                import ipdb; ipdb.set_trace()
+            v = getattr(obj, k, None)
+            if t.Attributes.logged:
+                if v is not None:
+                    retval.append(log_repr(v, t, parent=k))
+            else:
+                retval.append("%s=(...)" % k)
+
+        return "%s(%s)" % (cls.get_type_name(), ', '.join(retval))
+
+    elif issubclass(cls, Unicode) and isinstance(obj, six.string_types):
+        if len(obj) > MAX_STRING_FIELD_LENGTH:
+            if parent is None:
+                return '%r(...)' % (obj[:MAX_STRING_FIELD_LENGTH])
+            else:
+                return '%s=%r(...)' % (parent, obj[:MAX_STRING_FIELD_LENGTH])
+
         else:
-            retval = "%s(...)" % cls.get_type_name()
+            if parent is None:
+                return repr(obj)
+            else:
+                return '%s=%r' % (parent, obj)
 
     else:
         retval = repr(obj)
@@ -307,33 +326,6 @@ def log_repr(obj, cls=None, given_len=None):
             retval = retval[:MAX_STRING_FIELD_LENGTH] + "(...)"
 
     return retval
-
-
-def _log_repr_obj(obj, cls):
-    if not issubclass(cls, ComplexModelBase):
-        return _log_repr_any(obj, cls)
-
-    retval = []
-    for k, t in cls.get_flat_type_info(cls).items():
-        v = getattr(obj, k, None)
-        if v is not None and t.Attributes.logged:
-            retval.append(_log_repr_any(v, t, k))
-
-    return "%s(%s)" % (cls.get_type_name(), ', '.join(retval))
-
-
-def _log_repr_any(obj, cls, k=None):
-    if issubclass(cls, Unicode) and isinstance(obj, six.string_types) and \
-                                                len(obj) > MAX_STRING_FIELD_LENGTH:
-        if k is None:
-            return '%r(...)' % (obj[:MAX_STRING_FIELD_LENGTH])
-        else:
-            return '%s=%r(...)' % (k, obj[:MAX_STRING_FIELD_LENGTH])
-    else:
-        if k is None:
-            return repr(obj)
-        else:
-            return '%s=%r' % (k, obj)
 
 
 @memoize

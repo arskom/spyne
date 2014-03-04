@@ -159,10 +159,9 @@ class TestCDict(unittest.TestCase):
             raise Exception("Must fail.")
 
 
-class TestSafeRepr(unittest.TestCase):
-    def test_log_repr(self):
+class TestLogRepr(unittest.TestCase):
+    def test_log_repr_simple(self):
         from spyne.model.complex import ComplexModel
-        from spyne.model.primitive import Integer
         from spyne.model.primitive import String
         from spyne.util.web import log_repr
 
@@ -176,6 +175,26 @@ class TestSafeRepr(unittest.TestCase):
         assert log_repr(Z(z="a" * l)) == "Z(z='%s'(...))" % \
                                                 ('a' * MAX_STRING_FIELD_LENGTH)
         assert log_repr(['a','b','c'], Array(String)) ==  "['a', 'b', 'c']"
+
+    def test_log_repr_complex(self):
+        from spyne.model import ByteArray
+        from spyne.model import File
+        from spyne.model.complex import ComplexModel
+        from spyne.model.primitive import String
+        from spyne.util.web import log_repr
+
+        class Z(ComplexModel):
+            _type_info = [
+                ('f', File(logged=False)),
+                ('t', ByteArray(logged=False)),
+                ('z', Array(String)),
+            ]
+
+        l = MAX_STRING_FIELD_LENGTH + 100
+        val = Z(z=["abc"] * l, t=['t'], f=File.Value(name='aaa', data=['t']))
+        print(repr(val))
+        print
+        assert log_repr(val) == "Z(f=(...), t=(...), ['abc', 'abc', 'abc', 'abc', (...)])"
 
 
 class TestDeserialize(unittest.TestCase):
