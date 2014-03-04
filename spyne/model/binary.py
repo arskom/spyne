@@ -176,7 +176,7 @@ class File(SimpleModel):
         _type_info = [
             ('name', Unicode),
             ('type', Unicode),
-            ('data', ByteArray),
+            ('data', ByteArray(logged=False)),
         ]
 
         def __init__(self, name=None, path=None,
