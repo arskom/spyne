@@ -136,8 +136,8 @@ def _eb_deferred(retval, prot, p_ctx, others):
         retval.printTraceback()
         p_ctx.out_error = InternalError(retval.value)
 
-    ret = prot.handle_error(p_ctx, others, p_ctx.out_error)
-    prot.transport.write(ret)
+    prot.handle_error(p_ctx, others, p_ctx.out_error)
+    prot.transport.write(''.join(p_ctx.out_string))
     prot.transport.loseConnection()
 
     return Failure(p_ctx.out_error, p_ctx.out_error.__class__, tb)
