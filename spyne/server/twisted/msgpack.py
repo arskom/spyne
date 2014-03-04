@@ -27,6 +27,7 @@ import msgpack
 from twisted.internet.defer import Deferred
 from twisted.internet.protocol import Protocol, Factory, connectionDone
 from twisted.python.failure import Failure
+from twisted.python import log
 
 from spyne import EventManager
 from spyne.auxproc import process_contexts
@@ -123,6 +124,7 @@ class TwistedMessagePackProtocol(Protocol):
         if isinstance(ret, Deferred):
             ret.addCallback(_cb_deferred, self, p_ctx, others)
             ret.addErrback(_eb_deferred, self, p_ctx, others)
+            ret.addErrback(log.err)
             return
 
         _cb_deferred(p_ctx.out_object, self, p_ctx, others, nowrap=True)
