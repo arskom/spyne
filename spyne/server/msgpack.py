@@ -88,8 +88,6 @@ class MessagePackServerBase(ServerBase):
     def produce_contexts(self, msg):
         """msg = [IN_REQUEST, body, header]"""
 
-        logger.debug("Request object: %r", msg)
-
         if not isinstance(msg, list):
             raise ValidationError("Request must be a list")
 
