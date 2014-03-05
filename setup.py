@@ -246,9 +246,9 @@ class RunDjangoTests(TestCommand):
         ret = call_pytest('interop/test_django.py',) or ret
 
         if ret == 0:
-            print(GREEN + "Django tests are passed." + RESET)
+            print(GREEN + "All Django tests passed." + RESET)
         else:
-            print(RED + "Django tests are failed." + RESET)
+            print(RED + "At least one Django test failed." + RESET)
 
         raise SystemExit(ret)
 
