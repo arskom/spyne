@@ -82,26 +82,32 @@ def _wrapper(f):
     return _
 
 
-_ctr = 0
-
-def call_pytest(*tests):
-    global _ctr
-    import pytest
+def run_tests_and_create_report(report_name, *tests):
     import spyne.test
+    import pytest
     from glob import glob
     from itertools import chain
 
-    _ctr += 1
-    file_name = 'test_result.%d.xml' % _ctr
-    if os.path.isfile(file_name):
-        os.unlink(file_name)
+    if os.path.isfile(report_name):
+        os.unlink(report_name)
 
     tests_dir = os.path.dirname(spyne.test.__file__)
 
-    args = ['--tb=short', '--junitxml=%s' % file_name]
+    args = ['--tb=short', '--junitxml=%s' % report_name]
     args.extend(chain(*[glob("%s/%s" % (tests_dir, test)) for test in tests]))
 
     return pytest.main(args)
+
+
+_ctr = 0
+
+
+def call_pytest(*tests):
+    global _ctr
+
+    _ctr += 1
+    file_name = 'test_result.%d.xml' % _ctr
+    return run_tests_and_create_report(file_name, *tests)
 
 
 def call_pytest_subprocess(*tests):
@@ -239,11 +245,12 @@ class RunDjangoTests(TestCommand):
         self.test_suite = True
 
     def run_tests(self):
+        import django
         print("running django tests")
         sys.path.append(join(EXAMPLES_DIR, 'django'))
         os.environ['DJANGO_SETTINGS_MODULE'] = 'rpctest.settings'
-        ret = 0
-        ret = call_pytest('interop/test_django.py',) or ret
+        file_name = 'test_result_django_{0}.xml'.format(django.get_version())
+        ret = run_tests_and_create_report(file_name, 'interop/test_django.py')
 
         if ret == 0:
             print(GREEN + "All Django tests passed." + RESET)
