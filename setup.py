@@ -204,6 +204,8 @@ class RunTests(TestCommand):
                           'test_soft_validation.py', 'test_util.py',
                           'test_sqlalchemy.py',
                           'test_sqlalchemy_deprecated.py',
+                          # here we run django tests in the same process
+                          # for coverage reason
                           'interop/test_django.py',
                           'interop/test_pyramid.py') or ret
         # test different versions of Django
