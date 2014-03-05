@@ -220,7 +220,15 @@ class RunTests(TestCommand):
 
         raise SystemExit(ret)
 
+
 class RunDjangoTests(TestCommand):
+
+    """Run django interoperability tests.
+
+    Useful for Tox.
+
+    """
+
     def finalize_options(self):
         TestCommand.finalize_options(self)
 
@@ -228,7 +236,7 @@ class RunDjangoTests(TestCommand):
         self.test_suite = True
 
     def run_tests(self):
-        print("running tests")
+        print("running django tests")
         sys.path.append(join(EXAMPLES_DIR, 'django'))
         os.environ['DJANGO_SETTINGS_MODULE'] = 'rpctest.settings'
         ret = 0
@@ -240,6 +248,7 @@ class RunDjangoTests(TestCommand):
             print(RED + "Something is rotten in the state of Denmark." + RESET)
 
         raise SystemExit(ret)
+
 
 test_reqs = [
     'pytest', 'werkzeug', 'sqlalchemy', 'coverage',
