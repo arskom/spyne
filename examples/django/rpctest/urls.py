@@ -28,7 +28,7 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from django.conf.urls.defaults import patterns, include, url
+from django.conf.urls import patterns, url
 from spyne.protocol.soap import Soap11
 from spyne.server.django import DjangoView
 from rpctest.core.views import app, HelloWorldService
