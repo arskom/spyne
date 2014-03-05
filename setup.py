@@ -201,7 +201,7 @@ class RunTests(TestCommand):
                           'interop/test_django.py',
                           'interop/test_pyramid.py') or ret
         # test different versions of Django
-        # FIXME: better to use tox as CI script
+        # FIXME: better to use tox in CI script
         # For now we run it here
         import tox
         tox_args = []
@@ -244,7 +244,7 @@ class RunDjangoTests(TestCommand):
 test_reqs = [
     'pytest', 'werkzeug', 'sqlalchemy', 'coverage',
     'lxml>=2.3', 'pyyaml', 'pyzmq', 'twisted', 'colorama',
-    'msgpack-python', 'webtest', 'django<1.5.99', 'pytest_django',
+    'msgpack-python', 'webtest', 'django', 'pytest_django',
     'python-subunit', 'pyramid',
     'junitxml',  # to get junitxml output from trial
     'tox'
