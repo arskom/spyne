@@ -203,9 +203,12 @@ class RunTests(TestCommand):
         # test different versions of Django
         # FIXME: better to use tox in CI script
         # For now we run it here
-        import tox
+        from tox._config import parseconfig
+        from tox._cmdline import Session
         tox_args = []
-        ret = tox.cmdline(tox_args) or ret
+        config = parseconfig(tox_args, 'tox')
+        ret = Session(config).runcommand()
+
         ret = call_pytest_subprocess('interop/test_httprpc.py') or ret
         ret = call_pytest_subprocess('interop/test_soap_client_http.py') or ret
         ret = call_pytest_subprocess('interop/test_soap_client_zeromq.py') or ret
@@ -243,9 +246,9 @@ class RunDjangoTests(TestCommand):
         ret = call_pytest('interop/test_django.py',) or ret
 
         if ret == 0:
-            print(GREEN + "All that glisters is not gold." + RESET)
+            print(GREEN + "Django tests are passed." + RESET)
         else:
-            print(RED + "Something is rotten in the state of Denmark." + RESET)
+            print(RED + "Django tests are failed." + RESET)
 
         raise SystemExit(ret)
 
