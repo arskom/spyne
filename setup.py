@@ -200,6 +200,12 @@ class RunTests(TestCommand):
                           'test_sqlalchemy_deprecated.py',
                           'interop/test_django.py',
                           'interop/test_pyramid.py') or ret
+        # test different versions of Django
+        # FIXME: better to use tox as CI script
+        # For now we run it here
+        import tox
+        tox_args = []
+        ret = tox.cmdline(tox_args) or ret
         ret = call_pytest_subprocess('interop/test_httprpc.py') or ret
         ret = call_pytest_subprocess('interop/test_soap_client_http.py') or ret
         ret = call_pytest_subprocess('interop/test_soap_client_zeromq.py') or ret
@@ -214,12 +220,34 @@ class RunTests(TestCommand):
 
         raise SystemExit(ret)
 
+class RunDjangoTests(TestCommand):
+    def finalize_options(self):
+        TestCommand.finalize_options(self)
+
+        self.test_args = []
+        self.test_suite = True
+
+    def run_tests(self):
+        print("running tests")
+        sys.path.append(join(EXAMPLES_DIR, 'django'))
+        os.environ['DJANGO_SETTINGS_MODULE'] = 'rpctest.settings'
+        ret = 0
+        ret = call_pytest('interop/test_django.py',) or ret
+
+        if ret == 0:
+            print(GREEN + "All that glisters is not gold." + RESET)
+        else:
+            print(RED + "Something is rotten in the state of Denmark." + RESET)
+
+        raise SystemExit(ret)
+
 test_reqs = [
     'pytest', 'werkzeug', 'sqlalchemy', 'coverage',
     'lxml>=2.3', 'pyyaml', 'pyzmq', 'twisted', 'colorama',
     'msgpack-python', 'webtest', 'django<1.5.99', 'pytest_django',
     'python-subunit', 'pyramid',
     'junitxml',  # to get junitxml output from trial
+    'tox'
 ]
 
 import sys
@@ -311,5 +339,6 @@ setup(
     },
 
     tests_require = test_reqs,
-    cmdclass = {'test': RunTests, 'install_test_deps': InstallTestDeps},
+    cmdclass = {'test': RunTests, 'install_test_deps': InstallTestDeps,
+                'test_django': RunDjangoTests},
 )
