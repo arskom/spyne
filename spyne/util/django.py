@@ -20,6 +20,7 @@
 """Support for Django model <-> spyne type mapping.
 
 This module is EXPERIMENTAL. Tests and patches are welcome.
+
 """
 
 from __future__ import absolute_import
@@ -37,11 +38,16 @@ from spyne.util.six import add_metaclass
 
 
 email_re = re.compile(
-    r"(^[-!#$%&'*+/=?^_`{}|~0-9A-Z]+(\.[-!#$%&'*+/=?^_`{}|~0-9A-Z]+)*"  # dot-atom
+    # dot-atom
+    r"(^[-!#$%&'*+/=?^_`{}|~0-9A-Z]+(\.[-!#$%&'*+/=?^_`{}|~0-9A-Z]+)*"
     # quoted-string, see also http://tools.ietf.org/html/rfc2822#section-3.2.5
-    r'|^"([\001-\010\013\014\016-\037!#-\[\]-\177]|\\[\001-\011\013\014\016-\177])*"'
-    r')@((?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)$)'  # domain
-    r'|\[(25[0-5]|2[0-4]\d|[0-1]?\d?\d)(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}\]$', re.IGNORECASE)  # literal form, ipv4 address (SMTP 4.1.3)
+    r'|^"([\001-\010\013\014\016-\037!#-\[\]-\177]'
+    r'|\\[\001-\011\013\014\016-\177])*"'
+    r')@((?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+'
+    r'(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)$)'  # domain
+    # literal form, ipv4 address (SMTP 4.1.3)
+    r'|\[(25[0-5]|2[0-4]\d|[0-1]?\d?\d)'
+    r'(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}\]$', re.IGNORECASE)
 
 
 class DjangoFieldMapper(object):
@@ -161,16 +167,17 @@ class DjangoModelMapper(object):
     @staticmethod
     def _get_fields(django_model, exclude=None):
         field_names = set(exclude) if exclude is not None else set()
+        meta = django_model._meta  # pylint: disable=W0212
         unknown_fields_names = field_names.difference(
-            django_model._meta.get_all_field_names())
+            meta.get_all_field_names())
 
         if unknown_fields_names:
             raise ImproperlyConfigured(
                 'Unknown field names: {0}'
                 .format(', '.join(unknown_fields_names)))
 
-        return [field for field in django_model._meta.fields if field.name not
-                in field_names]
+        return [field for field in meta.fields if field.name not in
+                field_names]
 
     def map(self, django_model, exclude=None):
         """Prepare dict of model fields mapped to spyne models.
@@ -269,7 +276,7 @@ class DjangoComplexModelMeta(ComplexModelMeta):
 
     """Meta class for complex spyne models representing Django models."""
 
-    def __new__(mcs, name, bases, attrs):
+    def __new__(mcs, name, bases, attrs):  # pylint: disable=C0202
         super_new = super(DjangoComplexModelMeta, mcs).__new__
 
         try:
@@ -303,6 +310,7 @@ class DjangoComplexModelMeta(ComplexModelMeta):
 
 @add_metaclass(DjangoComplexModelMeta)
 class DjangoComplexModel(ComplexModelBase):
+
     """Base class with Django model mapping support.
 
     Sample usage: ::
