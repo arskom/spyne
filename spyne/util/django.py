@@ -255,6 +255,7 @@ DEFAULT_FIELD_MAP = (
     ('DateTimeField', primitive.DateTime),
 
     ('ForeignKey', primitive.Integer32),
+    ('OneToOneField', primitive.Integer32),
 )
 
 default_model_mapper = DjangoModelMapper(DEFAULT_FIELD_MAP)

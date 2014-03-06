@@ -81,7 +81,9 @@ class ModelTestCase(TestCase):
         self.assertRaises(Fault, get_container)
         container = FieldContainer.objects.create(slug_field='container')
         FieldContainer.objects.create(slug_field='container2',
-                                      foreign_key=container, char_field='yo')
+                                      foreign_key=container,
+                                      one_to_one_field=container,
+                                      char_field='yo')
         c = get_container()
         self.assertIsInstance(c, Container)
 
