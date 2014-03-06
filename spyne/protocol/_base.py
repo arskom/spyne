@@ -404,7 +404,8 @@ class ProtocolBase(object):
 
     def unicode_to_string(self, cls, value):
         retval = value
-        if cls.Attributes.encoding is not None and isinstance(value, six.text_type):
+        if cls.Attributes.encoding is not None and \
+                                               isinstance(value, six.text_type):
             retval = value.encode(cls.Attributes.encoding)
         if cls.Attributes.format is None:
             return retval
@@ -415,10 +416,11 @@ class ProtocolBase(object):
         retval = value
         if isinstance(value, str):
             if cls.Attributes.encoding is None:
-                retval = six.text_type(value, errors=cls.Attributes.unicode_errors)
+                retval = six.text_type(value,
+                                           errors=cls.Attributes.unicode_errors)
             else:
                 retval = six.text_type(value, cls.Attributes.encoding,
-                                              errors=cls.Attributes.unicode_errors)
+                                           errors=cls.Attributes.unicode_errors)
         return retval
 
     def string_from_string(self, cls, value):
