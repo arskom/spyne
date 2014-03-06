@@ -24,7 +24,9 @@ class FieldContainer(models.Model):
     date_field = models.DateField(auto_now_add=True)
     datetime_field = models.DateTimeField(auto_now_add=True)
 
-    foreign_key = models.ForeignKey('self', null=True)
+    foreign_key = models.ForeignKey('self', null=True,
+                                    related_name='related_containers')
+    one_to_one_field = models.OneToOneField('self', null=True)
 
     url_field = models.URLField(default='http://example.com')
     file_field = models.FileField(upload_to='test_file', null=True)

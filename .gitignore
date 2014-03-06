@@ -80,10 +80,13 @@ examples/file_manager/files/
 # kate cruft
 .kateproject.d
 
+# tox envs
+.tox
+
 # test output
 coverage.xml
-test_result.*
 spyne/test/protocol/html
+test_result*
 
 # vim cruft
 *.swp
