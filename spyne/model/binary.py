@@ -29,6 +29,7 @@ from base64 import urlsafe_b64encode
 from base64 import urlsafe_b64decode
 from binascii import hexlify
 from binascii import unhexlify
+from os.path import abspath, isdir
 
 from spyne.util.six import StringIO
 from spyne.error import ValidationError
@@ -143,6 +144,19 @@ binary_decoding_handlers = {
     BINARY_ENCODING_BASE64: ByteArray.from_base64,
     BINARY_ENCODING_URLSAFE_BASE64: ByteArray.from_urlsafe_base64,
 }
+
+
+class HybridStore(object):
+    """Hybrid Sql/Filesystem store."""
+
+    def __init__(self, store, db_format):
+        self.store = abspath(store)
+        self.db_format = db_format
+
+        if not isdir(self.store):
+            os.makedirs(self.store)
+
+        assert isdir(self.store)
 
 
 class File(SimpleModel):

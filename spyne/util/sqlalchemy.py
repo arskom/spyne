@@ -25,6 +25,8 @@ In case it's not obvious, this module is EXPERIMENTAL.
 from __future__ import absolute_import
 
 import logging
+from mmap import mmap, PROT_READ
+
 logger = logging.getLogger(__name__)
 
 try:
@@ -35,6 +37,8 @@ except ImportError:
 from spyne.util import six
 import sqlalchemy
 
+from os.path import join, getsize
+from uuid import uuid1
 from inspect import isclass
 
 from lxml import etree
@@ -64,13 +68,14 @@ from sqlalchemy.types import UserDefinedType
 
 # internal types
 from spyne.model.enum import EnumBase
-from spyne.model.complex import XmlModifier
+from spyne.model.complex import XmlModifier, ComplexModel
 
 # Config types
 from spyne.model.complex import xml as c_xml
 from spyne.model.complex import json as c_json
 from spyne.model.complex import table as c_table
 from spyne.model.complex import msgpack as c_msgpack
+from spyne.model.binary import HybridStore
 
 # public types
 from spyne.model import SimpleModel, AnyDict
@@ -106,6 +111,7 @@ from spyne.model import UnsignedInteger8
 from spyne.model import UnsignedInteger16
 from spyne.model import UnsignedInteger32
 from spyne.model import UnsignedInteger64
+from spyne.model import File
 
 from spyne.util import sanitize_args
 from spyne.util.xml import get_object_as_xml
@@ -361,6 +367,62 @@ class PGObjectJson(UserDefinedType):
                 return get_dict_as_object(value, self.cls,
                         ignore_wrappers=self.ignore_wrappers,
                         complex_as=self.complex_as)
+
+        return process
+
+class PGFileJson(PGObjectJson):
+    class FileData(ComplexModel):
+        _type_info = [
+            ('name', Unicode),
+            ('type', Unicode),
+            ('path', Unicode),
+        ]
+
+    def __init__(self, store):
+        super(PGFileJson, self).__init__(PGFileJson.FileData,
+                                         ignore_wrappers=True, complex_as=list)
+        self.store = store
+
+    def bind_processor(self, dialect):
+        def process(value):
+            if value is not None:
+                if value.data is not None:
+                    value.path = uuid1().get_hex()
+                    with open(join(self.store, value.path), 'wb') as file:
+                        for d in value.data:
+                            file.write(d)
+                else:
+                    in_file_path = join(self.store, value.path)
+                    with open(in_file_path, 'rb') as in_file:
+                        value.path = uuid1().get_hex()
+                        data = mmap(in_file.fileno(), 0) # 0 = whole file
+                        with open(join(self.store, value.path), 'wb') as out_file:
+                            out_file.write(data)
+
+                retval = get_object_as_json(value, self.cls,
+                        ignore_wrappers=self.ignore_wrappers,
+                        complex_as=self.complex_as,
+                    )
+
+                return retval
+        return process
+
+    def result_processor(self, dialect, col_type):
+        def process(value):
+            retval = None
+
+            if isinstance(value, six.string_types):
+                value = json.loads(value)
+
+            if value is not None:
+                retval = get_dict_as_object(value, self.cls,
+                        ignore_wrappers=self.ignore_wrappers,
+                        complex_as=self.complex_as)
+
+                retval.handle = open(join(self.store, retval.path), 'rb')
+                retval.data = [mmap(retval.handle.fileno(), 0, access=PROT_READ)]
+
+            return retval
 
         return process
 
@@ -825,6 +887,9 @@ def _is_array(v):
     return (v.Attributes.max_occurs > 1 or issubclass(v, Array))
 
 def _add_complex_type(cls, props, table, k, v):
+    if issubclass(v, File):
+        return _add_file_type(cls, props, table, k, v)
+
     p = getattr(v.Attributes, 'store_as', None)
     col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
     _sp_attrs_to_sqla_constraints(cls, v, col_kwargs)
@@ -979,6 +1044,27 @@ def _gen_mapper(cls, props, table, cls_bases):
     event.listen(cls, 'load', on_load)
 
     return cls_mapper
+
+
+def _add_file_type(cls, props, table, k, v):
+    p = getattr(v.Attributes, 'store_as', None)
+    col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
+    _sp_attrs_to_sqla_constraints(cls, v, col_kwargs)
+
+    if isinstance(p, HybridStore):
+        if k in table.c:
+            col = table.c[k]
+        else:
+            t = PGFileJson(p.store)
+            col = Column(k, t, *col_args, **col_kwargs)
+
+        props[k] = col
+        if not k in table.c:
+            table.append_column(col)
+
+    else:
+        raise NotImplementedError(p)
+
 
 
 def add_column(cls, k, v):
