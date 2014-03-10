@@ -138,8 +138,6 @@ purposes.
 """
 
 import logging
-from spyne.util.six import binary_type
-
 logger = logging.getLogger(__name__)
 
 import re
@@ -296,7 +294,6 @@ class SimpleDictDocument(DictDocument):
 
         See :func:`spyne.model.complex.ComplexModelBase.get_flat_type_info`.
         """
-
 
         # this is for validating cls.Attributes.{min,max}_occurs
         frequencies = defaultdict(lambda: defaultdict(int))
