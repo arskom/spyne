@@ -174,7 +174,7 @@ class File(SimpleModel):
         """
 
         _type_info = [
-            ('name', Unicode),
+            ('name', Unicode(encoding='utf8')),
             ('type', Unicode),
             ('data', ByteArray(logged=False)),
         ]
