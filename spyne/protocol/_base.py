@@ -196,6 +196,7 @@ class ProtocolBase(object):
             ByteArray: self.byte_array_from_string,
             ModelBase: self.model_base_from_string,
             Attachment: self.attachment_from_string,
+            XmlAttribute: self.xmlattribute_from_string,
             ComplexModelBase: self.complex_model_base_from_string
         })
 
