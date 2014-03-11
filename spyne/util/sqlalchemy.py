@@ -1066,7 +1066,6 @@ def _add_file_type(cls, props, table, k, v):
         raise NotImplementedError(p)
 
 
-
 def add_column(cls, k, v):
     """Add field to the given Spyne object also mapped as a SQLAlchemy object
     to a SQLAlchemy table
