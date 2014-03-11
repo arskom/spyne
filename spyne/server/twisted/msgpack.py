@@ -91,9 +91,9 @@ class TwistedMessagePackProtocol(Protocol):
         else:
             error = OUT_RESPONSE_CLIENT_ERROR
 
-        out_string = msgpack.packb({
-            error: msgpack.packb(p_ctx.out_document[0]),
-        })
+        out_string = msgpack.packb([
+            error, msgpack.packb(p_ctx.out_document[0].values()),
+        ])
         self.transport.write(out_string)
         print "HE", repr(out_string)
         p_ctx.close()
@@ -133,8 +133,9 @@ class TwistedMessagePackProtocol(Protocol):
 def _eb_deferred(retval, prot, p_ctx, others):
     p_ctx.out_error = retval.value
     tb = None
-    if issubclass(retval.type, Failure):
-        tb=retval.getTraceback()
+
+    if isinstance(retval, Failure):
+        tb = retval.getTracebackObject()
         retval.printTraceback()
         p_ctx.out_error = InternalError(retval.value)
 
