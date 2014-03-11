@@ -931,7 +931,9 @@ def TDictDocumentTest(serializer, _DictDocumentChild, dumps_kwargs=None):
             assert s == d
 
         def test_multipolygon3d(self):
-            d = 'MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)),((20 35, 45 20, 30 5, 10 10, 10 30, 20 35),(30 20, 20 25, 20 15, 30 20)))'
+            d = 'MULTIPOLYGON (((40 40, 20 45, 45 30, 40 40)),' \
+                              '((20 35, 45 20, 30 5, 10 10, 10 30, 20 35),' \
+                               '(30 20, 20 25, 20 15, 30 20)))'
 
             class SomeService(ServiceBase):
                 @srpc(MultiPolygon(3), _returns=MultiPolygon(3))

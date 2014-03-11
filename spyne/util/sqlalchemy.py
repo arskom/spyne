@@ -116,7 +116,7 @@ from spyne.model import File
 from spyne.util import sanitize_args
 from spyne.util.xml import get_object_as_xml
 from spyne.util.xml import get_xml_as_object
-from spyne.util.dictdoc import get_dict_as_object
+from spyne.util.dictdoc import get_dict_as_object, JsonDocument
 from spyne.util.dictdoc import get_object_as_json
 
 
@@ -362,11 +362,15 @@ class PGObjectJson(UserDefinedType):
             if isinstance(value, six.string_types):
                 return get_dict_as_object(json.loads(value), self.cls,
                         ignore_wrappers=self.ignore_wrappers,
-                        complex_as=self.complex_as)
+                        complex_as=self.complex_as,
+                        protocol=JsonDocument,
+                    )
             if value is not None:
                 return get_dict_as_object(value, self.cls,
                         ignore_wrappers=self.ignore_wrappers,
-                        complex_as=self.complex_as)
+                        complex_as=self.complex_as,
+                        protocol=JsonDocument,
+                    )
 
         return process
 

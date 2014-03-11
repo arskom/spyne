@@ -63,13 +63,15 @@ class _UtilProtocol(HierDictDocument):
         self._to_string_handlers[Integer] = lambda cls, val: val
 
 
-def get_dict_as_object(d, cls, ignore_wrappers=True, complex_as=list):
-    return _UtilProtocol(ignore_wrappers=ignore_wrappers,
+def get_dict_as_object(d, cls, ignore_wrappers=True, complex_as=list,
+                                                        protocol=_UtilProtocol):
+    return protocol(ignore_wrappers=ignore_wrappers,
                                    complex_as=complex_as)._doc_to_object(cls, d)
 
 
-def get_object_as_dict(o, cls, ignore_wrappers=True, complex_as=dict):
-    return _UtilProtocol(ignore_wrappers=ignore_wrappers,
+def get_object_as_dict(o, cls, ignore_wrappers=True, complex_as=dict,
+                                                        protocol=_UtilProtocol):
+    return protocol(ignore_wrappers=ignore_wrappers,
                                    complex_as=complex_as)._object_to_doc(cls, o)
 
 
