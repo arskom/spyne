@@ -230,6 +230,7 @@ class XmlDocument(SubXmlBase):
             Attachment: self.attachment_to_parent,
             XmlAttribute: self.xmlattribute_to_parent,
             ComplexModelBase: self.complex_to_parent,
+            SchemaValidationError: self.schema_validation_error_to_parent,
         })
 
         self.deserialization_handlers = cdict({
@@ -714,6 +715,21 @@ class XmlDocument(SubXmlBase):
         subelts = [
             E("faultcode", '%s:%s' % (_pref_soap_env, inst.faultcode)),
             E("faultstring", inst.faultstring),
+            E("faultactor", inst.faultactor),
+        ]
+        if inst.detail != None:
+            _append(subelts, E('detail', inst.detail))
+
+        # add other nonstandard fault subelements with get_members_etree
+        return self.gen_members_parent(ctx, cls, inst, parent, tag_name, subelts)
+
+    def schema_validation_error_to_parent(self, ctx, cls, inst, parent, ns):
+        tag_name = "{%s}Fault" % _ns_soap_env
+
+        subelts = [
+            E("faultcode", '%s:%s' % (_pref_soap_env, inst.faultcode)),
+            # HACK: Does anyone know a better way of injecting raw xml entities?
+            E("faultstring", html.fromstring(inst.faultstring).text),
             E("faultactor", inst.faultactor),
         ]
         if inst.detail != None:
