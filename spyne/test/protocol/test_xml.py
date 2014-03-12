@@ -426,7 +426,7 @@ class TestXml(unittest.TestCase):
 
         resp = server({
             'QUERY_STRING': '',
-            'PATH_INFO': '/call',
+            'PATH_INFO': '/',
             'REQUEST_METHOD': 'POST',
             'SERVER_NAME': 'localhost',
             'SERVER_PORT': '80',

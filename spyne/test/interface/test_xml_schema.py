@@ -17,17 +17,15 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-
 import logging
 import unittest
 
 from pprint import pprint
 from lxml import etree
 
-from spyne.util.odict import odict
 from spyne import Application
-from spyne.const import xml_ns as ns
 from spyne import rpc
+from spyne.const import xml_ns as ns
 from spyne.model import ByteArray
 from spyne.model import ComplexModel
 from spyne.model import XmlAttribute
