@@ -318,10 +318,11 @@ class XmlDocument(SubXmlBase):
     def __validate_lxml(self, payload):
         ret = self.validation_schema.validate(payload)
 
-        logger.debug("Validated ? %s" % str(ret))
+        logger.debug("Validated ? %r" % ret)
         if ret == False:
-            raise SchemaValidationError(
-                               str(self.validation_schema.error_log.last_error))
+            error_text = unicode(self.validation_schema.error_log.last_error)
+            raise SchemaValidationError(error_text.encode('ascii',
+                                                           'xmlcharrefreplace'))
 
     def create_in_document(self, ctx, charset=None):
         """Uses the iterable of string fragments in ``ctx.in_string`` to set
