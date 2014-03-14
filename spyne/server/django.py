@@ -153,7 +153,7 @@ class DjangoServer(HttpBase):
         if self.chunked:
             response = StreamingHttpResponse(p_ctx.out_string)
         else:
-            return HttpResponse(''.join(p_ctx.out_string))
+            response = HttpResponse(''.join(p_ctx.out_string))
 
         p_ctx.close()
 
