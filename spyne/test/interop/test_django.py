@@ -50,6 +50,12 @@ class DjangoViewTestCase(TestCase):
         self.assertEqual(len(list_resp), 5)
         self.assertEqual(list_resp, ['Hello, Joe'] * 5)
 
+    def test_response_encoding(self):
+        client = DjangoTestClient('/say_hello/', app)
+        response = client.service.say_hello.get_django_response('Joe', 5)
+        self.assertTrue('Content-Type' in response)
+        self.assertTrue(response['Content-Type'].startswith('text/xml'))
+
     def test_error(self):
         client = Client()
         response = client.post('/say_hello/', {})
