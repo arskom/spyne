@@ -33,6 +33,23 @@ from spyne.client import RemoteProcedureBase
 
 class _RemoteProcedure(RemoteProcedureBase):
     def __call__(self, *args, **kwargs):
+        response = self.get_django_response(*args, **kwargs)
+        code = response.status_code
+        self.ctx.in_string = [response.content]
+
+        # this sets ctx.in_error if there's an error, and ctx.in_object if
+        # there's none.
+        self.get_in_object(self.ctx)
+
+        if not (self.ctx.in_error is None):
+            raise self.ctx.in_error
+        elif code >= 400:
+            raise self.ctx.in_error
+        else:
+            return self.ctx.in_object
+
+    def get_django_response(self, *args, **kwargs):
+        """Return Django ``HttpResponse`` object as RPC result."""
         # there's no point in having a client making the same request more than
         # once, so if there's more than just one context, it is a bug.
         # the comma-in-assignment trick is a general way of getting the first
@@ -49,20 +66,7 @@ class _RemoteProcedure(RemoteProcedureBase):
         out_string = ''.join(self.ctx.out_string)
         # Hack
         client = Client()
-        response = client.post(self.url, content_type='text/xml', data=out_string)
-        code = response.status_code
-        self.ctx.in_string = [response.content]
-
-        # this sets ctx.in_error if there's an error, and ctx.in_object if
-        # there's none.
-        self.get_in_object(self.ctx)
-
-        if not (self.ctx.in_error is None):
-            raise self.ctx.in_error
-        elif code >= 400:
-            raise self.ctx.in_error
-        else:
-            return self.ctx.in_object
+        return client.post(self.url, content_type='text/xml', data=out_string)
 
 
 class DjangoTestClient(ClientBase):
