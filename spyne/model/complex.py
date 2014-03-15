@@ -520,7 +520,7 @@ class ComplexModelMeta(type(ModelBase)):
     #
     @classmethod
     def __prepare__(mcs, name, bases, **kwds):
-        return TypeInfo()
+        return odict()
 
 
 # FIXME: what an ugly hack.
