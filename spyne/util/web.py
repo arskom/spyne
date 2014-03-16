@@ -295,8 +295,6 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False):
         retval = []
 
         for k, t in cls.get_flat_type_info(cls).items():
-            if k == 'f':
-                import ipdb; ipdb.set_trace()
             v = getattr(obj, k, None)
             if t.Attributes.logged:
                 if v is not None:
