@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 #encoding: utf8
+from __future__ import print_function
 
 import os
 import re
@@ -147,7 +148,7 @@ def call_trial(*tests):
         subunit2junitxml(_ctr)
     except Exception as e:
         # this is not super important.
-        print e
+        print(e)
 
     return int(not test_result.wasSuccessful())
 
@@ -290,7 +291,7 @@ class SubUnitTee(object):
     def __exit__(self, *args):
         sys.stdout = self.stdout
         sys.stderr = self.stderr
-        print "CLOSED"
+        print("CLOSED")
         self.file.close()
 
     def writelines(self, data):
