@@ -1,0 +1,82 @@
+# coding: utf-8
+
+"""Metaclass utilities."""
+
+
+import sys
+import inspect
+from functools import wraps
+from spyne.util.odict import odict
+from spyne.util import six
+
+
+class ClassNotFoundException(Exception):
+
+    """Raise when class declaration is not found in defining_frame."""
+
+
+class Prepareable(type):
+
+    """Implement __prepare__ for Python2."""
+
+    if not six.PY3:
+        def __new__(cls, name, bases, attributes):
+            try:
+                constructor = attributes["__new__"]
+            except KeyError:
+                return type.__new__(cls, name, bases, attributes)
+
+            def preparing_constructor(cls, name, bases, attributes):
+                try:
+                    cls.__prepare__
+                except AttributeError:
+                    return constructor(cls, name, bases, attributes)
+
+                if isinstance(attributes, odict):
+                    # we create class dinamically with passed OrderedDict
+                    return constructor(cls, name, bases, attributes)
+
+                namespace = cls.__prepare__(name, bases)
+                current_frame = sys._getframe()
+                class_declaration = None
+
+                while class_declaration is None:
+
+                    literals = list(reversed(current_frame.f_code.co_consts))
+
+                    for literal in literals:
+                        if inspect.iscode(literal) and literal.co_name == name:
+                            class_declaration = literal
+                            break
+
+                    if current_frame.f_back:
+                        current_frame = current_frame.f_back
+                    else:
+                        raise ClassNotFoundException(
+                            "Can't find class declaration in all frames")
+
+                def get_index(attribute_name,
+                              _names=class_declaration.co_names):
+                    try:
+                        return _names.index(attribute_name)
+                    except ValueError:
+                        return 0
+
+                by_appearance = sorted(
+                    attributes.items(), key=lambda item: get_index(item[0])
+                )
+
+                for key, value in by_appearance:
+                    namespace[key] = value
+
+                new_cls = constructor(cls, name, bases, namespace)
+
+                found_module = inspect.getmodule(class_declaration).__name__
+                assert found_module == new_cls.__module__, (
+                    'Found wrong class declaration of {0}: {1} != {2}.'
+                    .format(name, found_module, new_cls.__module__))
+
+                return new_cls
+
+            attributes["__new__"] = wraps(constructor)(preparing_constructor)
+            return type.__new__(cls, name, bases, attributes)

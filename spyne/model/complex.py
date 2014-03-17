@@ -26,9 +26,7 @@ complex objects -- they don't carry any data by themselves.
 import logging
 logger = logging.getLogger(__name__)
 
-import sys
 import decimal
-import spyne
 
 from weakref import WeakKeyDictionary
 from collections import deque
@@ -51,8 +49,9 @@ from spyne.util import six
 from spyne.util import memoize
 from spyne.util import memoize_id
 from spyne.util import sanitize_args
+from spyne.util.meta import Prepareable
 from spyne.util.odict import odict
-from spyne.util.six import add_metaclass
+from spyne.util.six import add_metaclass, with_metaclass
 
 
 PSSM_VALUES = {'json': json, 'xml': xml, 'msgpack': msgpack, 'table': table}
@@ -266,10 +265,16 @@ def _get_type_info(cls, cls_name, cls_dict, attrs, base_type_info):
                 if v is not None:
                     class_fields.append((k, v))
 
-        declare_sort = cls._DECLARE_SORT.get(attrs.declare_order, None)
-        if declare_sort is None:
+        if (attrs.declare_order is not None and not attrs.declare_order in
+            cls._DECLARE_SORT):
+
             msg = "The declare_order attribute value %r is invalid in %s"
             raise Exception(msg % (attrs.declare_sort, cls_name))
+
+
+        declare_order = attrs.declare_order or const.DEFAULT_DECLARE_ORDER
+        declare_sort = cls._DECLARE_SORT[declare_order]
+
         if declare_sort:
             class_fields.sort(key=declare_sort)
         _type_info.update(class_fields)
@@ -400,32 +405,23 @@ def _sanitize_type_info(cls_name, _type_info, _type_info_alt):
             _type_info_alt[key] = v, k
 
 
-class ComplexModelMeta(type(ModelBase)):
+class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
     """This metaclass sets ``_type_info``, ``__type_name__`` and ``__extends__``
     which are going to be used for (de)serialization and schema generation.
     """
 
     _DECLARE_SORT = {
-        'declared': lambda item: (item[1].__declare_order__, item[0]),
+        'declared': False,
         'name': lambda item: item[0],
         'random': False,
     }
-
-    if sys.version_info[0] >= 3:
-        _DECLARE_SORT['declared'] = False
-        _DECLARE_SORT[None] = _DECLARE_SORT['declared']
-
-    elif int(spyne.__version__.split(".")[0]) >= 3:
-        _DECLARE_SORT[None] = _DECLARE_SORT["name"]
-
-    else:
-        _DECLARE_SORT[None] = _DECLARE_SORT["random"]
 
     def __new__(cls, cls_name, cls_bases, cls_dict):
         """This function initializes the class and registers attributes for
         serialization.
         """
 
+        assert isinstance(cls_dict, odict)
         type_name = cls_dict.get("__type_name__", None)
         if type_name is None:
             cls_dict["__type_name__"] = cls_name
@@ -449,11 +445,8 @@ class ComplexModelMeta(type(ModelBase)):
 
         _sanitize_sqlalchemy_parameters(cls_dict, attrs)
 
-        # ???
-        if type(cls_dict) is not dict:
-            cls_dict = dict(cls_dict)
-
-        return super(ComplexModelMeta, cls).__new__(cls, cls_name, cls_bases, cls_dict)
+        return super(ComplexModelMeta, cls).__new__(cls, cls_name, cls_bases,
+                                                    cls_dict)
 
     def __init__(self, cls_name, cls_bases, cls_dict):
         type_info = self._type_info
@@ -505,14 +498,15 @@ class ComplexModelMeta(type(ModelBase)):
         super(ComplexModelMeta, self).__init__(cls_name, cls_bases, cls_dict)
 
     #
-    # This is only meaningful in Python 3, see PEP 3315.
+    # For Python 3 __prepare__ works out of the box, see PEP 3115.
+    # For Python 2 we use `Preparable` metaclass
     #
-    # In Python 3 we record the order fields are defined, so we can declare
+    # We record the order fields are defined, so we can declare
     # them in the same order in the WSDL.
     #
     @classmethod
-    def __prepare__(cls, name, bases, **kwds):
-        return TypeInfo()
+    def __prepare__(mcs, name, bases, **kwds):
+        return odict()
 
 
 # FIXME: what an ugly hack.
@@ -604,7 +598,7 @@ class ComplexModelBase(ModelBase):
         :data:``declared`` in Python 3 and above, otherwise :data:``random``
         in spyne versions below 3, and ``name`` when spyne version 3 or
         above is used with Python 2.
-        
+
         If you are using Python 2 explicitly setting this to ``name`` will
         avoid problems in the future.  If you are using ``declared`` with
         Python 2 be sure to create a new type for each field declaration."""
@@ -833,11 +827,11 @@ class ComplexModelBase(ModelBase):
     def produce(namespace, type_name, members):
         """Lets you create a class programmatically."""
 
-        return ComplexModelMeta(type_name, (ComplexModel,), {
+        return ComplexModelMeta(type_name, (ComplexModel,), odict({
             '__namespace__': namespace,
             '__type_name__': type_name,
             '_type_info': TypeInfo(members),
-        })
+        }))
 
     @classmethod
     def customize(cls, **kwargs):

@@ -168,7 +168,7 @@ class ParsingCtx(object):
         return retval
 
     def debug0(self, s, *args, **kwargs):
-        logger.debug("%s%s" % ("  " *  self.indent, s), *args, **kwargs) 
+        logger.debug("%s%s" % ("  " *  self.indent, s), *args, **kwargs)
 
     def debug1(self, s, *args, **kwargs):
         logger.debug("%s%s" % ("  " * (self.indent + 1), s), *args, **kwargs)
@@ -408,7 +408,7 @@ def process_complex_type(ctx, c):
     if c.simple_content is not None:
         ext = c.simple_content.extension
         base_name = None
-        if ext is not None: 
+        if ext is not None:
             base_name = ext.base
             b = get_type(ctx, ext.base)
 
@@ -434,11 +434,11 @@ def process_complex_type(ctx, c):
         ctx.retval[ctx.tns].types[c.name]._type_info.update(ti)
 
     else:
-        cls_dict = {
+        cls_dict = odict({
             '__type_name__': c.name,
             '__namespace__': ctx.tns,
             '_type_info': ti,
-        }
+        })
         if ctx.repr is not None:
             cls_dict['__repr__'] = ctx.repr
 

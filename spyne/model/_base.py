@@ -28,6 +28,7 @@ import spyne.const.xml_ns
 from decimal import Decimal
 
 from spyne.util import Break
+from spyne.util.odict import odict
 from spyne.util.six import add_metaclass
 
 from spyne.const.xml_ns import DEFAULT_NS
@@ -78,26 +79,6 @@ class AttributesMeta(type(object)):
     nillable = property(get_nillable, set_nillable)
 
 
-class ModelBaseMeta(type):
-    """Meta class for spyne.model.ModelBase.  It's sole job in life to
-    to record the order instances of spyne.modem.ModelBase and it's subclasses
-    are created.  This allows spyne.model.complex.ComplexModelBase to
-    create a WSDL with class members in the same order they were declared
-    in Python"""
-
-    __order = 0
-
-    def __new__(cls, name, bases, dct):
-        dct["__declare_order__"] = cls.declare_ordering()
-        return super(ModelBaseMeta, cls).__new__(cls, name, bases, dct)
-
-    @classmethod
-    def declare_ordering(cls):
-        ModelBaseMeta.__order += 1
-        return ModelBaseMeta.__order
-
-
-@add_metaclass(ModelBaseMeta)
 class ModelBase(object):
     """The base class for type markers. It defines the model interface for the
     interface generators to use and also manages class customizations that are
@@ -120,11 +101,6 @@ class ModelBase(object):
     __type_name__ = None
     """The public type name of the class. Use ``get_type_name()`` instead of
     accessing it directly."""
-
-    __declare_order__ = None
-    """The number of Models created so far.  In other words this can be used
-    to determine the order subclasses and instances of sypne.model.ModelBase
-    are created."""
 
     # These are not the xml schema defaults. The xml schema defaults are
     # considered in XmlSchema's add() method. the defaults here are to reflect
@@ -374,7 +350,8 @@ class ModelBase(object):
         Not meant to be overridden.
         """
 
-        cls_dict = {'__module__': cls.__module__}
+        cls_dict = odict({'__module__': cls.__module__})
+
         if getattr(cls, '__orig__', None) is None:
             cls_dict['__orig__'] = cls
 
