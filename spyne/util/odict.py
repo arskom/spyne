@@ -19,40 +19,36 @@
 
 """This module contains a sort of an ordered dictionary implementation."""
 
-class odict(object):
+class odict(dict):
     """Sort of an ordered dictionary implementation."""
 
     def __init__(self, data=[]):
         if isinstance(data, self.__class__):
             self.__list = list(data.__list)
-            self.__dict = dict(data.__dict)
+            super(odict, self).__init__(data)
 
         else:
             self.__list = []
-            self.__dict = {}
-
+            super(odict, self).__init__()
             self.update(data)
 
     def __getitem__(self, key):
         if isinstance(key, int):
-            return self.__dict[self.__list[key]]
+            return super(odict, self).__getitem__(self.__list[key])
         else:
-            return self.__dict[key]
+            return super(odict, self).__getitem__(key)
 
     def __setitem__(self, key, val):
         if isinstance(key, int):
-            self.__dict[self.__list[key]] = val
+            super(odict, self).__setitem__(self.__list[key], val)
 
         else:
-            if not (key in self.__dict):
+            if not (key in self):
                 self.__list.append(key)
-            self.__dict[key] = val
+            super(odict, self).__setitem__(key, val)
 
-        assert len(self.__list) == len(self.__dict), (repr(self.__list),
-                                                              repr(self.__dict))
-
-    def __contains__(self, what):
-        return (what in self.__dict)
+        assert len(self.__list) == super(odict, self).__len__(), (
+            repr(self.__list), super(odict, self).__repr__())
 
     def __repr__(self):
         return "{%s}" % ','.join(["%r: %r" % (k, v) for k, v in self.items()])
@@ -61,8 +57,7 @@ class odict(object):
         return repr(self)
 
     def __len__(self):
-        assert len(self.__list) == len(self.__dict)
-
+        assert len(self.__list) == super(odict, self).__len__()
         return len(self.__list)
 
     def __iter__(self):
@@ -72,7 +67,7 @@ class odict(object):
         if not isinstance(key, int):
             key = self.__list.index(key) # ouch.
 
-        del self.__dict[self.__list[key]]
+        super(odict, self).__delitem__(self.__list[key])
         del self.__list[key]
 
     def __add__(self, other):
@@ -82,12 +77,12 @@ class odict(object):
     def items(self):
         retval = []
         for k in self.__list:
-            retval.append( (k, self.__dict[k]) )
+            retval.append( (k, super(odict, self).__getitem__(k)) )
         return retval
 
     def iteritems(self):
         for k in self.__list:
-            yield k, self.__dict[k]
+            yield k, super(odict, self).__getitem__(k)
 
     def keys(self):
         return self.__list
@@ -102,15 +97,15 @@ class odict(object):
     def values(self):
         retval = []
         for l in self.__list:
-            retval.append( self.__dict[l] )
+            retval.append(super(odict, self).__getitem__(l))
         return retval
 
     def itervalues(self):
         for l in self.__list:
-            yield self.__dict[l]
+            yield self[l]
 
     def get(self, key, default=None):
-        if key in self.__dict:
+        if key in self:
             return self[key]
         return default
 
@@ -120,7 +115,7 @@ class odict(object):
 
     def insert(self, index, item):
         k,v = item
-        if k in self.__dict:
+        if k in self:
             del self.__list[self.__list.index(k)]
         self.__list.insert(index, k)
-        self.__dict[k] = v
+        super(odict, self).__setitem__(k, v)
