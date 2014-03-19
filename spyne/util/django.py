@@ -51,12 +51,9 @@ email_re = re.compile(
     r'(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}\]$', re.IGNORECASE)
 
 
-class DjangoFieldMapper(object):
+class BaseDjangoFieldMapper(object):
 
-    """Base mapper for django fields."""
-
-    def __init__(self, spyne_model):
-        self.spyne_model = spyne_model
+    """Abstrace base class for field mappers."""
 
     def map(self, field, **kwargs):
         """Map field to spyne model.
@@ -75,10 +72,28 @@ class DjangoFieldMapper(object):
         if field.has_default():
             params['default'] = field.get_default()
 
-        customized_model = self.spyne_model(nullable=field.null,
-                                            min_occurs=int(required), **params)
+        spyne_model = self.get_spyne_model(field, **kwargs)
+        customized_model = spyne_model(nullable=field.null,
+                                       min_occurs=int(required), **params)
 
         return (field.attname, customized_model)
+
+    def get_spyne_model(self, field, **kwargs):
+        """Return spyne model for given Django field."""
+        raise NotImplementedError
+
+
+class DjangoFieldMapper(BaseDjangoFieldMapper):
+
+    """Basic mapper for django fields."""
+
+    def __init__(self, spyne_model):
+        """Django field mapper constructor."""
+        self.spyne_model = spyne_model
+
+    def get_spyne_model(self, field, **kwargs):
+        """Return configured spyne model."""
+        return self.spyne_model
 
 
 class DecimalMapper(DjangoFieldMapper):
@@ -97,6 +112,24 @@ class DecimalMapper(DjangoFieldMapper):
             'fraction_digits': field.decimal_places,
         })
         return super(DecimalMapper, self).map(field, **params)
+
+
+class RelationMapper(BaseDjangoFieldMapper):
+
+    """Mapper for relation fields (ForeignKey, OneToOneField)."""
+
+    def __init__(self, django_model_mapper):
+        """Constructor for relation field mapper."""
+        self.django_model_mapper = django_model_mapper
+
+    def get_spyne_model(self, field, **kwargs):
+        """Return spyne model configured by related field."""
+        related_field = field.rel.get_related_field()
+        field_type = related_field.get_internal_type()
+        field_mapper = self.django_model_mapper.get_field_mapper(field_type)
+
+        _, related_spyne_model = field_mapper.map(related_field)
+        return related_spyne_model
 
 
 class DjangoModelMapper(object):
@@ -124,9 +157,11 @@ class DjangoModelMapper(object):
     field_mapper_class = DjangoFieldMapper
 
     class UnknownFieldMapperException(Exception):
+
         """Raises when there is no field mapper for given django_type."""
 
     def __init__(self, django_spyne_models=()):
+        """Register field mappers in internal registry."""
         self._registry = {}
 
         for django_type, spyne_model in django_spyne_models:
@@ -262,15 +297,34 @@ DEFAULT_FIELD_MAP = (
     ('DateField', primitive.Date),
     ('DateTimeField', primitive.DateTime),
 
+    # simple fixed defaults for relation fields
     ('ForeignKey', primitive.Integer32),
     ('OneToOneField', primitive.Integer32),
 )
 
-default_model_mapper = DjangoModelMapper(DEFAULT_FIELD_MAP)
+
+def model_mapper_factory(mapper_class, field_map):
+    """Factory for model mappers.
+
+    The factory is useful to create custom field mappers based on default one.
+
+    """
+    model_mapper = mapper_class(field_map)
+
+    # register relation field mappers that are aware of related field type
+    model_mapper.register_field_mapper(
+        'ForeignKey', RelationMapper(model_mapper))
+
+    model_mapper.register_field_mapper(
+        'OneToOneField', RelationMapper(model_mapper))
+
+    model_mapper.register_field_mapper('DecimalField',
+                                       DecimalMapper(primitive.Decimal))
+    return model_mapper
 
 
-default_model_mapper.register_field_mapper('DecimalField',
-                                           DecimalMapper(primitive.Decimal))
+default_model_mapper = model_mapper_factory(DjangoModelMapper,
+                                            DEFAULT_FIELD_MAP)
 
 
 class DjangoComplexModelMeta(ComplexModelMeta):
@@ -278,6 +332,7 @@ class DjangoComplexModelMeta(ComplexModelMeta):
     """Meta class for complex spyne models representing Django models."""
 
     def __new__(mcs, name, bases, attrs):  # pylint: disable=C0202
+        """Populate new complex type from configured Django model."""
         super_new = super(DjangoComplexModelMeta, mcs).__new__
 
         try:
