@@ -27,7 +27,7 @@ from django.test import TestCase, TransactionTestCase, Client
 from spyne.client.django import DjangoTestClient
 from spyne.model.fault import Fault
 
-from rpctest.core.models import FieldContainer
+from rpctest.core.models import FieldContainer, RelatedFieldContainer
 from rpctest.core.views import app, hello_world_service, Container
 
 
@@ -95,14 +95,20 @@ class ModelTestCase(TestCase):
 
     def test_create_container(self):
         """Test complex input to create Django model."""
+        related_container = RelatedFieldContainer(id='related')
         new_container = FieldContainer(slug_field='container',
                                        date_field=datetime.date.today(),
                                        datetime_field=datetime.datetime.now(),
-                                       time_field=datetime.time())
+                                       time_field=datetime.time(),
+                                       custom_foreign_key=related_container,
+                                       custom_one_to_one_field=related_container)
         create_container = (lambda: self.client.service.create_container(
             new_container))
         c = create_container()
+
         self.assertIsInstance(c, Container)
+        self.assertEqual(c.custom_one_to_one_field_id, 'related')
+        self.assertEqual(c.custom_foreign_key_id, 'related')
         self.assertRaises(Fault, create_container)
 
     def _test_create_container_unicode(self):
