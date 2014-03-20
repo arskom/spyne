@@ -498,11 +498,12 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
         super(ComplexModelMeta, self).__init__(cls_name, cls_bases, cls_dict)
 
     #
-    # For Python 3 __prepare__ works out of the box, see PEP 3115.
-    # For Python 2 we use `Preparable` metaclass
+    # We record the order fields are defined into ordered dict, so we can
+    # declare them in the same order in the WSDL.
     #
-    # We record the order fields are defined, so we can declare
-    # them in the same order in the WSDL.
+    # For Python 3 __prepare__ works out of the box, see PEP 3115.
+    # But we use `Preparable` metaclass for both Python 2 and Python 3 to
+    # support six.add_metaclass decorator
     #
     @classmethod
     def __prepare__(mcs, name, bases, **kwds):
