@@ -214,7 +214,7 @@ class RunTests(TestCommand):
         # For now we run it here
         from tox._config import parseconfig
         from tox._cmdline import Session
-        tox_args = ['-c tox.django.ini']
+        tox_args = ['-ctox.django.ini']
         config = parseconfig(tox_args, 'tox')
         ret = Session(config).runcommand()
 
