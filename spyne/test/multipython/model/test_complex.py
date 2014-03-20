@@ -20,19 +20,47 @@
 
 """Complex model tests runnable on different Python implementations."""
 import unittest
-from spyne.model.complex import ComplexModel, Array
+from spyne.model.complex import (ComplexModel, ComplexModelMeta,
+                                 ComplexModelBase, Array)
 from spyne.model.primitive import Unicode, Integer, String
+from spyne.util.six import add_metaclass
 
-
-class DeclareOrder_name(ComplexModel.customize(declare_order='name')):
-    field3 = Integer()
-    field1 = Integer()
-    field2 = Integer()
 
 class DeclareOrder_declare(ComplexModel.customize(declare_order='declared')):
-    field3 = Integer()
-    field1 = Integer()
-    field2 = Integer()
+    field3 = Integer
+    field1 = Integer
+    field2 = Integer
+
+
+class MyComplexModelMeta(ComplexModelMeta):
+
+    """Customer complex model metaclass."""
+
+    def __new__(mcs, name, bases, attrs):
+        attrs['new_field'] = Unicode
+        attrs['field1'] = Unicode
+        new_cls = super(MyComplexModelMeta, mcs).__new__(mcs, name, bases,
+                                                         attrs)
+        return new_cls
+
+
+@add_metaclass(MyComplexModelMeta)
+class MyComplexModel(ComplexModelBase):
+
+    """Custom complex model class."""
+
+
+class MyModelWithDeclaredOrder(MyComplexModel):
+
+    """Test model for complex model with custom metaclass."""
+
+    field3 = Integer
+    field1 = Integer
+    field2 = Integer
+
+    class Attributes(MyComplexModel.Attributes):
+        declare_order = 'declared'
+
 
 class TestComplexModel(unittest.TestCase):
     def test_add_field(self):
@@ -124,7 +152,7 @@ class TestComplexModel(unittest.TestCase):
         self.assertEquals(Derived3.Attributes.prop1, Base.Attributes.prop1)
 
     def test_declare_order(self):
-        self.assertEquals(["field1", "field2", "field3"], list(DeclareOrder_name._type_info))
-        self.assertEquals(["field3", "field1", "field2"], list(DeclareOrder_declare._type_info))
-
-
+        self.assertEquals(["field3", "field1", "field2"],
+                          list(DeclareOrder_declare._type_info))
+        self.assertEquals(["field3", "field1", "field2", "new_field"],
+                          list(MyModelWithDeclaredOrder._type_info))

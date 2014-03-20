@@ -258,25 +258,25 @@ def _get_type_info(cls, cls_name, cls_dict, attrs, base_type_info):
         cls_dict['_type_info'] = _type_info = TypeInfo()
         _type_info.update(base_type_info)
 
+        SUPPORTED_ORDERS = ('random', 'declared')
+        if (attrs.declare_order is not None and
+                not attrs.declare_order in SUPPORTED_ORDERS):
+
+            msg = "The declare_order attribute value %r is invalid in %s"
+            raise Exception(msg % (attrs.declare_order, cls_name))
+
+        declare_order = attrs.declare_order or const.DEFAULT_DECLARE_ORDER
+
+        if declare_order == 'random':
+            # support old behaviour
+            cls_dict = dict(cls_dict)
+
         class_fields = []
         for k, v in cls_dict.items():
             if not k.startswith('_'):
                 v = _get_spyne_type(cls_name, k, v)
                 if v is not None:
                     class_fields.append((k, v))
-
-        if (attrs.declare_order is not None and not attrs.declare_order in
-            cls._DECLARE_SORT):
-
-            msg = "The declare_order attribute value %r is invalid in %s"
-            raise Exception(msg % (attrs.declare_sort, cls_name))
-
-
-        declare_order = attrs.declare_order or const.DEFAULT_DECLARE_ORDER
-        declare_sort = cls._DECLARE_SORT[declare_order]
-
-        if declare_sort:
-            class_fields.sort(key=declare_sort)
         _type_info.update(class_fields)
 
     else:
@@ -409,12 +409,6 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
     """This metaclass sets ``_type_info``, ``__type_name__`` and ``__extends__``
     which are going to be used for (de)serialization and schema generation.
     """
-
-    _DECLARE_SORT = {
-        'declared': False,
-        'name': lambda item: item[0],
-        'random': False,
-    }
 
     def __new__(cls, cls_name, cls_bases, cls_dict):
         """This function initializes the class and registers attributes for
