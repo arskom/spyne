@@ -32,6 +32,11 @@ class ClassNotFoundException(Exception):
     """Raise when class declaration is not found in frame stack."""
 
 
+class AttributeNotFoundException(Exception):
+
+    """Raise when attribute is not found in class declaration."""
+
+
 class Prepareable(type):
 
     """Implement __prepare__ for Python2."""
@@ -77,7 +82,18 @@ class Prepareable(type):
                     try:
                         return _names.index(attribute_name)
                     except ValueError:
-                        return 0
+                        if attribute_name.startswith('_'):
+                            # we don't care about the order of magic and non
+                            # public attributes
+                            return 0
+                        else:
+                            msg = ("Can't find {0} in {1} class declaration. "
+                                   .format(attribute_name,
+                                           class_declaration.co_name))
+                            msg += ("HINT: use spyne.util.odict.odict for "
+                                    "class attributes if you populate them"
+                                    " dynamically.")
+                            raise AttributeNotFoundException(msg)
 
                 by_appearance = sorted(
                     attributes.items(), key=lambda item: get_index(item[0])

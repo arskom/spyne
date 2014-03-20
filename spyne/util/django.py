@@ -34,6 +34,7 @@ from django.core.validators import (slug_re,
                                     comma_separated_int_list_re, URLValidator)
 from spyne.model.complex import ComplexModelMeta, ComplexModelBase
 from spyne.model import primitive
+from spyne.util.odict import odict
 from spyne.util.six import add_metaclass
 
 
@@ -188,7 +189,7 @@ class DjangoModelMapper(object):
         :raises: :exc:`UnknownFieldMapperException`
 
         """
-        field_map = {}
+        field_map = odict()
 
         for field in self._get_fields(django_model, exclude):
             field_type = field.get_internal_type()
