@@ -258,19 +258,6 @@ def _get_type_info(cls, cls_name, cls_dict, attrs, base_type_info):
         cls_dict['_type_info'] = _type_info = TypeInfo()
         _type_info.update(base_type_info)
 
-        SUPPORTED_ORDERS = ('random', 'declared')
-        if (attrs.declare_order is not None and
-                not attrs.declare_order in SUPPORTED_ORDERS):
-
-            msg = "The declare_order attribute value %r is invalid in %s"
-            raise Exception(msg % (attrs.declare_order, cls_name))
-
-        declare_order = attrs.declare_order or const.DEFAULT_DECLARE_ORDER
-
-        if declare_order == 'random':
-            # support old behaviour
-            cls_dict = dict(cls_dict)
-
         class_fields = []
         for k, v in cls_dict.items():
             if not k.startswith('_'):
@@ -335,6 +322,23 @@ def _gen_methods(cls_dict):
                 methods[k] = descriptor
 
     return methods
+
+def _get_ordered_attributes(cls_dict, attrs):
+    assert isinstance(cls_dict, odict)
+
+    SUPPORTED_ORDERS = ('random', 'declared')
+    if (attrs.declare_order is not None and
+            not attrs.declare_order in SUPPORTED_ORDERS):
+
+        msg = "The declare_order attribute value %r is invalid in %s"
+        raise Exception(msg % (attrs.declare_order, cls_name))
+
+    declare_order = attrs.declare_order or const.DEFAULT_DECLARE_ORDER
+    if declare_order == 'random':
+        # support old behaviour
+        cls_dict = dict(cls_dict)
+
+    return cls_dict
 
 
 def _sanitize_sqlalchemy_parameters(cls_dict, attrs):
@@ -415,13 +419,15 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
         serialization.
         """
 
-        assert isinstance(cls_dict, odict)
+        attrs = _gen_attrs(cls_bases, cls_dict)
+        cls_dict = _get_ordered_attributes(cls_dict, attrs)
+
         type_name = cls_dict.get("__type_name__", None)
         if type_name is None:
             cls_dict["__type_name__"] = cls_name
 
         base_type_info = _get_base_type_info(cls_bases, cls_dict)
-        attrs = _gen_attrs(cls_bases, cls_dict)
+
         _type_info = _get_type_info(cls, cls_name, cls_dict, attrs,
                                                                  base_type_info)
 
