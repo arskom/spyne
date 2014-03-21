@@ -200,7 +200,7 @@ class RunTests(TestCommand):
         sys.path.append(join(EXAMPLES_DIR, 'django'))
         os.environ['DJANGO_SETTINGS_MODULE'] = 'rpctest.settings'
         ret = 0
-        ret = call_pytest('interface', 'model', 'protocol',
+        ret = call_pytest('interface', 'model', 'multipython', 'protocol',
                           'test_null_server.py', 'test_service.py',
                           'test_soft_validation.py', 'test_util.py',
                           'test_sqlalchemy.py',
