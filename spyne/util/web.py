@@ -37,7 +37,7 @@ from spyne.error import ResourceNotFoundError
 from spyne.service import ServiceBase
 from spyne.util import memoize
 from spyne.util.email import email_exception
-from spyne.model import Mandatory as M, UnsignedInteger32
+from spyne.model import Mandatory as M, UnsignedInteger32, PushBase
 from spyne.model import Unicode
 from spyne.model import Array
 from spyne.model import ComplexModelBase
@@ -277,6 +277,9 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False):
                 retval.append("%s[%s] (...)" % (cls.get_type_name(), l))
             else:
                 retval.append("[%s] (...)" % l)
+
+        elif isinstance(obj, PushBase):
+            retval.append('<PushData>')
 
         else:
             for i, o in enumerate(obj):
