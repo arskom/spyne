@@ -25,9 +25,10 @@ In case it's not obvious, this module is EXPERIMENTAL.
 from __future__ import absolute_import
 
 import logging
-from mmap import mmap, PROT_READ
-
 logger = logging.getLogger(__name__)
+
+from mmap import mmap, ACCESS_READ
+
 
 try:
     import simplejson as json
@@ -424,7 +425,7 @@ class PGFileJson(PGObjectJson):
                         complex_as=self.complex_as)
 
                 retval.handle = open(join(self.store, retval.path), 'rb')
-                retval.data = [mmap(retval.handle.fileno(), 0, access=PROT_READ)]
+                retval.data = [mmap(retval.handle.fileno(), 0, access=ACCESS_READ)]
 
             return retval
 
