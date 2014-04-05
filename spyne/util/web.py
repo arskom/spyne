@@ -290,9 +290,9 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False):
                     break
 
         if issubclass(cls, ComplexModelBase):
-            retval = "%s([%s])" % (cls.get_type_name(), ', '.join(retval))
+            retval = "%s=%s([%s])" % (parent, cls.get_type_name(), ', '.join(retval))
         else:
-            retval = "[%s]" % ', '.join(retval)
+            retval = "%s=[%s]" % (parent, ', '.join(retval))
 
     elif issubclass(cls, ComplexModelBase):
         retval = []
@@ -310,7 +310,7 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False):
     elif issubclass(cls, Unicode) and isinstance(obj, six.string_types):
         if len(obj) > MAX_STRING_FIELD_LENGTH:
             if parent is None:
-                return '%r(...)' % (obj[:MAX_STRING_FIELD_LENGTH])
+                return '%s=%r(...)' % (parent, obj[:MAX_STRING_FIELD_LENGTH])
             else:
                 return '%s=%r(...)' % (parent, obj[:MAX_STRING_FIELD_LENGTH])
 
