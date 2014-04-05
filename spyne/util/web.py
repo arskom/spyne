@@ -247,8 +247,14 @@ class Context(object):
 
 
 def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False):
-    """Use this function if you want to echo a ComplexModel subclass. It will
-    limit output size of the String types, making your logs smaller.
+    """Use this function if you want to serialize a ComplexModel subclass to
+    logs. It will:
+
+        * Limit size of the String types
+        * Limit size of Array types
+        * Not try to iterate on iterators, push data, etc.
+
+    ... in order to bring the size of your logs down to a manageable size.
     """
 
     if obj is None:
