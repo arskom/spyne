@@ -135,8 +135,10 @@ class HttpBase(ServerBase):
             there)
         """
 
-        params = {}
+        if path == '':
+            path = '/'
 
+        params = {}
         for patt in self._http_patterns:
             assert isinstance(patt, HttpPattern)
 
