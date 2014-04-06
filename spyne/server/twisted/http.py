@@ -60,7 +60,6 @@ from spyne.const.ansi_color import END_COLOR
 from spyne.const.http import HTTP_404, HTTP_200
 from spyne.model import PushBase
 from spyne.model.fault import Fault
-from spyne.protocol.http import HttpPattern
 from spyne.server.http import HttpBase
 from spyne.server.http import HttpMethodContext
 from spyne.server.http import HttpTransportContext
@@ -111,15 +110,6 @@ class TwistedHttpTransport(HttpBase):
         super(TwistedHttpTransport, self).__init__(app, chunked=chunked,
                max_content_length=max_content_length, block_length=block_length)
 
-        self._http_patterns = set()
-
-        for k, v in self.app.interface.service_method_map.items():
-            # p_ stands for primary
-            p_method_descriptor = v[0]
-            for patt in p_method_descriptor.patterns:
-                if isinstance(patt, HttpPattern):
-                    self._http_patterns.add(patt)
-
     def decompose_incoming_envelope(self, prot, ctx, message):
         """This function is only called by the HttpRpc protocol to have the
         twisted web's Request object is parsed into ``ctx.in_body_doc`` and
@@ -129,47 +119,17 @@ class TwistedHttpTransport(HttpBase):
         request = ctx.in_document
         assert isinstance(request, Request)
 
-        for patt in self._http_patterns:
-            params = {}
-            assert isinstance(patt, HttpPattern)
-
-            if patt.verb is not None:
-                match = patt.verb_re.match(request.method)
-                if match is None:
-                    continue
-                if not (match.span() == (0, len(request.method))):
-                    continue
-                params.update(match.groupdict())
-
-            if patt.host is not None:
-                match = patt.host_re.match(request.host)
-                if match is None:
-                    continue
-                if not (match.span() == (0, len(request.host))):
-                    continue
-                params.update(match.groupdict())
-
-            if patt.address is not None:
-                match = patt.address_re.match(request.uri)
-                if match is None:
-                    continue
-                if not (match.span() == (0, len(request.uri))):
-                    continue
-                params.update(match.groupdict())
-
-            ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
-                                                    patt.endpoint.name)
-            break
-        else:
-            params = {}
-            ctx.method_request_string = '{%s}%s' % (prot.app.interface.get_tns(),
-                                                    request.path.split('/')[-1])
-
         logger.debug("%sMethod name: %r%s" % (LIGHT_GREEN,
                                           ctx.method_request_string, END_COLOR))
 
         ctx.in_header_doc = dict(request.requestHeaders.getAllRawHeaders())
         ctx.in_body_doc = request.args
+
+        params = self.match_pattern(ctx, request.method, request.path,
+                                                                   request.host)
+        if ctx.method_request_string is None: # no pattern match
+            ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
+                                                    request.path.split('/')[-1])
 
         for k, v in params.items():
              if k in ctx.in_body_doc:

@@ -37,9 +37,9 @@ except ImportError: # Python 2
 
 try:
     from werkzeug.formparser import parse_form_data
-except ImportError as e:
+except ImportError as import_error:
     def parse_form_data(*args, **kwargs):
-        raise e
+        raise import_error
 
 from spyne.application import get_fault_string_from_exception
 from spyne.auxproc import process_contexts
@@ -47,7 +47,6 @@ from spyne.error import RequestTooLongError
 from spyne.model.binary import File
 from spyne.model.fault import Fault
 from spyne.protocol.http import HttpRpc
-from spyne.protocol.http import HttpPattern
 from spyne.server.http import HttpBase
 from spyne.server.http import HttpMethodContext
 from spyne.server.http import HttpTransportContext
@@ -200,40 +199,16 @@ class WsgiApplication(HttpBase):
             called both from success and error cases.
     """
 
-    def __init__(self, app, chunked=True,
-                max_content_length=2 * 1024 * 1024,
-                block_length=8 * 1024):
-        super(WsgiApplication, self).__init__(app, chunked, max_content_length, block_length)
+    def __init__(self, app, chunked=True, max_content_length=2 * 1024 * 1024,
+                                                         block_length=8 * 1024):
+        super(WsgiApplication, self).__init__(app, chunked, max_content_length,
+                                                                   block_length)
 
         self._mtx_build_interface_document = threading.Lock()
 
         self._wsdl = None
         if self.doc.wsdl11 is not None:
             self._wsdl = self.doc.wsdl11.get_interface_document()
-
-        # Initialize HTTP Patterns
-        self._http_patterns = None
-        self._map_adapter = None
-        self._mtx_build_map_adapter = threading.Lock()
-
-        for k,v in self.app.interface.service_method_map.items():
-            # p_ stands for primary
-            p_method_descriptor = v[0]
-            for patt in p_method_descriptor.patterns:
-                if isinstance(patt, HttpPattern):
-                    r = patt.as_werkzeug_rule()
-
-                    # We are doing this here because we want to import Werkzeug
-                    # as late as possible.
-                    if self._http_patterns is None:
-                        from werkzeug.routing import Map
-                        self._http_patterns = Map(host_matching=True)
-
-                    self._http_patterns.add(r)
-
-    @property
-    def has_patterns(self):
-        return self._http_patterns is not None
 
     def __call__(self, req_env, start_response, wsgi_url=None):
         """This method conforms to the WSGI spec for callable wsgi applications
@@ -507,19 +482,11 @@ class WsgiApplication(HttpBase):
         params = {}
 
         if self.has_patterns:
-            from werkzeug.exceptions import NotFound
-            if self._map_adapter is None:
-                self.generate_map_adapter(ctx)
-
-            try:
-                #If PATH_INFO matches a url, Set method_request_string to mrs
-                mrs, params = self._map_adapter.match(
-                                            ctx.in_document["PATH_INFO"],
-                                            ctx.in_document["REQUEST_METHOD"])
-                ctx.method_request_string = mrs
-
-            except NotFound:
-                pass
+            params = self.match_pattern(ctx,
+                    ctx.in_document.get('REQUEST_METHOD', ''),
+                    ctx.in_document.get('PATH_INFO', ''),
+                    ctx.in_document.get('HTTP_HOST', ''),
+                )
 
         if ctx.method_request_string is None:
             ctx.method_request_string = '{%s}%s' % (

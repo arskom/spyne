@@ -664,7 +664,7 @@ class TestHttpPatterns(unittest.TestCase):
         ctx, = server.generate_contexts(initial_ctx)
 
         foo = []
-        for i in server._http_patterns.iter_rules():
+        for i in server._http_patterns:
             foo.append(i)
 
         assert len(foo) == 1

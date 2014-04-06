@@ -20,6 +20,7 @@
 
 from spyne import TransportContext
 from spyne import MethodContext
+from spyne.protocol.http import HttpPattern
 from spyne.server import ServerBase
 from spyne.const.http import gen_body_redirect, HTTP_301, HTTP_302
 
@@ -113,3 +114,62 @@ class HttpBase(ServerBase):
         self.chunked = chunked
         self.max_content_length = max_content_length
         self.block_length = block_length
+
+        self._http_patterns = set()
+
+        for k, v in self.app.interface.service_method_map.items():
+            # p_ stands for primary
+            p_method_descriptor = v[0]
+            for patt in p_method_descriptor.patterns:
+                if isinstance(patt, HttpPattern):
+                    self._http_patterns.add(patt)
+
+    def match_pattern(self, ctx, method='', path='', host=''):
+        """Sets ctx.method_request_string if there's a match. It's O(n) which
+        means you should keep your number of patterns as low as possible.
+
+        :param ctx: A MethodContext instance
+        :param method: The verb in the HTTP Request (GET, POST, etc.)
+        :param host: The contents of the ``Host:`` header
+        :param path: Path but not the arguments. (i.e. stuff before '?', if it's
+            there)
+        """
+
+        params = {}
+
+        for patt in self._http_patterns:
+            assert isinstance(patt, HttpPattern)
+
+            if patt.verb is not None:
+                match = patt.verb_re.match(method)
+                if match is None:
+                    continue
+                if not (match.span() == (0, len(method))):
+                    continue
+                params.update(match.groupdict())
+
+            if patt.host is not None:
+                match = patt.host_re.match(host)
+                if match is None:
+                    continue
+                if not (match.span() == (0, len(host))):
+                    continue
+                params.update(match.groupdict())
+
+            if patt.address is not None:
+                match = patt.address_re.match(path)
+                if match is None:
+                    continue
+                if not (match.span() == (0, len(path))):
+                    continue
+                params.update(match.groupdict())
+
+            ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
+                                                    patt.endpoint.name)
+            break
+
+        return params
+
+    @property
+    def has_patterns(self):
+        return len(self._http_patterns) > 0
