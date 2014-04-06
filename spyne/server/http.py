@@ -124,6 +124,12 @@ class HttpBase(ServerBase):
                 if isinstance(patt, HttpPattern):
                     self._http_patterns.add(patt)
 
+        # this makes sure similar addresses with patterns are evaluated after
+        # addresses with wildcards, which puts the more specific addresses to
+        # the front.
+        self._http_patterns = list(reversed(sorted(self._http_patterns,
+                                          key=lambda x: (x.address, x.host) )))
+
     def match_pattern(self, ctx, method='', path='', host=''):
         """Sets ctx.method_request_string if there's a match. It's O(n) which
         means you should keep your number of patterns as low as possible.
