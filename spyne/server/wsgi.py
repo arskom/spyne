@@ -491,21 +491,21 @@ class WsgiApplication(HttpBase):
                 domain = domain.partition(':')[0] # strip port info
 
             params = self.match_pattern(ctx,
-                    ctx.in_document.get('REQUEST_METHOD', ''),
-                    ctx.in_document.get('PATH_INFO', ''),
+                    wsgi_env.get('REQUEST_METHOD', ''),
+                    wsgi_env.get('PATH_INFO', ''),
                     domain,
                 )
 
         if ctx.method_request_string is None:
             ctx.method_request_string = '{%s}%s' % (
                                     prot.app.interface.get_tns(),
-                                    ctx.in_document['PATH_INFO'].split('/')[-1])
+                                    wsgi_env['PATH_INFO'].split('/')[-1])
 
         logger.debug("%sMethod name: %r%s" % (LIGHT_GREEN,
                                           ctx.method_request_string, END_COLOR))
 
-        ctx.in_header_doc = _get_http_headers(ctx.in_document)
-        ctx.in_body_doc = _parse_qs(ctx.in_document['QUERY_STRING'])
+        ctx.in_header_doc = _get_http_headers(wsgi_env)
+        ctx.in_body_doc = _parse_qs(wsgi_env['QUERY_STRING'])
 
         for k, v in params.items():
              if k in ctx.in_body_doc:
@@ -513,9 +513,9 @@ class WsgiApplication(HttpBase):
              else:
                  ctx.in_body_doc[k] = [v]
 
-        verb = ctx.in_document['REQUEST_METHOD'].upper()
+        verb = wsgi_env['REQUEST_METHOD'].upper()
         if verb in ('POST', 'PUT', 'PATCH'):
-            stream, form, files = parse_form_data(ctx.in_document,
+            stream, form, files = parse_form_data(wsgi_env,
                                              stream_factory=prot.stream_factory)
 
             for k, v in form.lists():
