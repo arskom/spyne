@@ -34,7 +34,9 @@ class WsgiMounter(object):
     instances.
 
     :param mounts: dict of :class:`spyne.application.Application` instances
-    whose keys are url fragments.
+    whose keys are url fragments. Use ``''`` or ``'/'`` as key to set the
+    default handler. When a default handler is not set, an empty 404 page is
+    returned.
     """
 
     @staticmethod
