@@ -119,17 +119,17 @@ class TwistedHttpTransport(HttpBase):
         request = ctx.in_document
         assert isinstance(request, Request)
 
-        logger.debug("%sMethod name: %r%s" % (LIGHT_GREEN,
-                                          ctx.method_request_string, END_COLOR))
-
         ctx.in_header_doc = dict(request.requestHeaders.getAllRawHeaders())
-        ctx.in_body_doc = request.args
+        ctx.in_body_doc = dict(request.args.items())
 
         params = self.match_pattern(ctx, request.method, request.path,
                                                                    request.host)
         if ctx.method_request_string is None: # no pattern match
             ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
                                                     request.path.split('/')[-1])
+
+        logger.debug("%sMethod name: %r%s" % (LIGHT_GREEN,
+                                          ctx.method_request_string, END_COLOR))
 
         for k, v in params.items():
              if k in ctx.in_body_doc:
