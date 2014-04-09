@@ -83,7 +83,7 @@ def _wrapper(f):
     return _
 
 
-def run_tests_and_create_report(report_name, *tests):
+def run_tests_and_create_report(report_name, *tests, **kwargs):
     import spyne.test
     import pytest
     from glob import glob
@@ -95,6 +95,7 @@ def run_tests_and_create_report(report_name, *tests):
     tests_dir = os.path.dirname(spyne.test.__file__)
 
     args = ['--tb=short', '--junitxml=%s' % report_name]
+    args.extend('--{0}={1}'.format(k, v) for k, v in kwargs.items())
     args.extend(chain(*[glob("%s/%s" % (tests_dir, test)) for test in tests]))
 
     return pytest.main(args)
@@ -103,24 +104,26 @@ def run_tests_and_create_report(report_name, *tests):
 _ctr = 0
 
 
-def call_pytest(*tests):
+def call_pytest(*tests, **kwargs):
     global _ctr
 
     _ctr += 1
     file_name = 'test_result.%d.xml' % _ctr
-    return run_tests_and_create_report(file_name, *tests)
+    return run_tests_and_create_report(file_name, *tests, **kwargs)
 
 
-def call_pytest_subprocess(*tests):
+def call_pytest_subprocess(*tests, **kwargs):
     global _ctr
     import pytest
     _ctr += 1
     file_name = 'test_result.%d.xml' % _ctr
     if os.path.isfile(file_name):
         os.unlink(file_name)
-    return call_test(pytest.main, ['--tb=line', '--junitxml=%s' % file_name], tests)
+    args = ['--tb=line', '--junitxml=%s' % file_name]
+    args.extend('--{0}={1}'.format(k, v) for k, v in kwargs.items())
+    return call_test(pytest.main, args, tests)
 
-def call_trial(*tests):
+def call_trial(*tests, **kwargs):
     import spyne.test
     from glob import glob
     from itertools import chain
@@ -131,6 +134,7 @@ def call_trial(*tests):
     with SubUnitTee(file_name):
         tests_dir = os.path.dirname(spyne.test.__file__)
         sys.argv = ['trial', '--reporter=subunit']
+        sys.argv.extend('--{0}={1}'.format(k, v) for k, v in kwargs.items())
         sys.argv.extend(chain(*[glob(join(tests_dir, test)) for test in tests]))
 
         from twisted.scripts.trial import Options
@@ -188,12 +192,28 @@ def subunit2junitxml(ctr):
     filter_by_result(f, junit_file_name, True, False, protocol_version=2,
                                 passthrough_subunit=True, input_stream=subunit2)
 
-class RunTests(TestCommand):
+
+class ExtendedTestCommand(TestCommand):
+
+    """TestCommand customized to project needs."""
+
+    user_options = TestCommand.user_options + [
+        ('capture=', 'k', "py.test output capture control (see py.test "
+         "--capture)"),
+    ]
+
+    def initialize_options(self):
+        TestCommand.initialize_options(self)
+        self.capture = 'fd'
+
     def finalize_options(self):
         TestCommand.finalize_options(self)
 
         self.test_args = []
         self.test_suite = True
+
+
+class RunTests(ExtendedTestCommand):
 
     def run_tests(self):
         print("running tests")
@@ -208,7 +228,7 @@ class RunTests(TestCommand):
                           # here we run django tests in the same process
                           # for coverage reason
                           'interop/test_django.py',
-                          'interop/test_pyramid.py') or ret
+                          'interop/test_pyramid.py', capture=self.capture) or ret
         # test different versions of Django
         # FIXME: better to use tox in CI script
         # For now we run it here
@@ -218,12 +238,16 @@ class RunTests(TestCommand):
         config = parseconfig(tox_args, 'tox')
         ret = Session(config).runcommand()
 
-        ret = call_pytest_subprocess('interop/test_httprpc.py') or ret
-        ret = call_pytest_subprocess('interop/test_soap_client_http.py') or ret
-        ret = call_pytest_subprocess('interop/test_soap_client_zeromq.py') or ret
-        ret = call_pytest_subprocess('interop/test_suds.py') or ret
+        ret = call_pytest_subprocess('interop/test_httprpc.py',
+                                     capture=self.capture) or ret
+        ret = call_pytest_subprocess('interop/test_soap_client_http.py',
+                                     capture=self.capture) or ret
+        ret = call_pytest_subprocess('interop/test_soap_client_zeromq.py',
+                                     capture=self.capture) or ret
+        ret = call_pytest_subprocess('interop/test_suds.py',
+                                     capture=self.capture) or ret
         ret = call_trial('interop/test_soap_client_http_twisted.py',
-                         'transport/test_msgpack.py') or ret
+                         'transport/test_msgpack.py', capture=self.capture) or ret
 
         if ret == 0:
             print(GREEN + "All that glisters is not gold." + RESET)
@@ -233,7 +257,7 @@ class RunTests(TestCommand):
         raise SystemExit(ret)
 
 
-class RunDjangoTests(TestCommand):
+class RunDjangoTests(ExtendedTestCommand):
 
     """Run django interoperability tests.
 
@@ -241,19 +265,14 @@ class RunDjangoTests(TestCommand):
 
     """
 
-    def finalize_options(self):
-        TestCommand.finalize_options(self)
-
-        self.test_args = []
-        self.test_suite = True
-
     def run_tests(self):
         import django
         print("running django tests")
         sys.path.append(join(EXAMPLES_DIR, 'django'))
         os.environ['DJANGO_SETTINGS_MODULE'] = 'rpctest.settings'
         file_name = 'test_result_django_{0}.xml'.format(django.get_version())
-        ret = run_tests_and_create_report(file_name, 'interop/test_django.py')
+        ret = run_tests_and_create_report(file_name, 'interop/test_django.py',
+                                          capture=self.capture)
 
         if ret == 0:
             print(GREEN + "All Django tests passed." + RESET)
