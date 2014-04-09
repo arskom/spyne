@@ -480,12 +480,20 @@ class WsgiApplication(HttpBase):
         """
 
         params = {}
+        wsgi_env = ctx.in_document
 
         if self.has_patterns:
+            # http://legacy.python.org/dev/peps/pep-0333/#url-reconstruction
+            domain = wsgi_env.get('HTTP_HOST', None)
+            if domain is None:
+                domain = wsgi_env['SERVER_NAME']
+            else:
+                domain = domain.partition(':')[0] # strip port info
+
             params = self.match_pattern(ctx,
                     ctx.in_document.get('REQUEST_METHOD', ''),
                     ctx.in_document.get('PATH_INFO', ''),
-                    ctx.in_document.get('HTTP_HOST', ''),
+                    domain,
                 )
 
         if ctx.method_request_string is None:
