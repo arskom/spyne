@@ -26,8 +26,10 @@ from django.test import TestCase, TransactionTestCase, Client
 
 from spyne.client.django import DjangoTestClient
 from spyne.model.fault import Fault
+from spyne.util.django import DjangoComplexModel
 
-from rpctest.core.models import FieldContainer, RelatedFieldContainer
+from rpctest.core.models import (FieldContainer, RelatedFieldContainer,
+                                 UserProfile as DjUserProfile)
 from rpctest.core.views import app, hello_world_service, Container
 
 
@@ -126,3 +128,18 @@ class ModelTestCase(TestCase):
         c = create_container()
         self.assertIsInstance(c, Container)
         self.assertRaises(Fault, create_container)
+
+    def test_optional_relation_fields(self):
+        """Test if optional_relations flag makes fields optional."""
+        class UserProfile(DjangoComplexModel):
+            class Attributes(DjangoComplexModel.Attributes):
+                django_model = DjUserProfile
+
+        self.assertFalse(UserProfile._type_info['user_id'].Attributes.nullable)
+
+        class UserProfile(DjangoComplexModel):
+            class Attributes(DjangoComplexModel.Attributes):
+                django_model = DjUserProfile
+                django_optional_relations = True
+
+        self.assertTrue(UserProfile._type_info['user_id'].Attributes.nullable)
