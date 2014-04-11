@@ -28,6 +28,7 @@
 # EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+from django.core.exceptions import ValidationError
 from django.db.utils import IntegrityError
 from django.views.decorators.csrf import csrf_exempt
 
@@ -39,7 +40,7 @@ from spyne.service import ServiceBase
 from spyne.protocol.soap import Soap11
 from spyne.application import Application
 from spyne.decorator import rpc
-from spyne.util.django import DjangoComplexModel
+from spyne.util.django import DjangoComplexModel, Service
 
 from rpctest.core.models import FieldContainer
 
@@ -72,7 +73,21 @@ class ContainerService(ServiceBase):
         except IntegrityError:
             raise ResourceAlreadyExistsError('Container')
 
-app = Application([HelloWorldService, ContainerService],
+class ExceptionHandlingService(Service):
+
+    """Service for testing exception handling."""
+
+    @rpc(_returns=Container)
+    def raise_does_not_exist(ctx):
+        return FieldContainer.objects.get(pk=-1)
+
+    @rpc(_returns=Container)
+    def raise_validation_error(ctx):
+        raise ValidationError('Is not valid.')
+
+
+app = Application([HelloWorldService, ContainerService,
+                   ExceptionHandlingService],
     'spyne.examples.django',
     in_protocol=Soap11(validator='lxml'),
     out_protocol=Soap11(),
