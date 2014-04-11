@@ -55,6 +55,11 @@ class BaseDjangoFieldMapper(object):
 
     """Abstrace base class for field mappers."""
 
+    @staticmethod
+    def is_field_nullable(field, **kwargs):
+        """Return True if django field is nullable."""
+        return field.null
+
     def map(self, field, **kwargs):
         """Map field to spyne model.
 
@@ -68,12 +73,14 @@ class BaseDjangoFieldMapper(object):
         if field.max_length:
             params['max_len'] = field.max_length
 
-        required = not (field.has_default() or field.null or field.primary_key)
+        nullable = self.is_field_nullable(field, **kwargs)
+        required = not (field.has_default() or nullable or field.primary_key)
+
         if field.has_default():
             params['default'] = field.get_default()
 
         spyne_model = self.get_spyne_model(field, **kwargs)
-        customized_model = spyne_model(nullable=field.null,
+        customized_model = spyne_model(nullable=nullable,
                                        min_occurs=int(required), **params)
 
         return (field.attname, customized_model)
@@ -122,13 +129,24 @@ class RelationMapper(BaseDjangoFieldMapper):
         """Constructor for relation field mapper."""
         self.django_model_mapper = django_model_mapper
 
+    @staticmethod
+    def is_field_nullable(field, **kwargs):
+        """Return True if `optional_relations` is set.
+
+        Otherwise use basic behaviour.
+
+        """
+        optional_relations = kwargs.get('optional_relations', False)
+        return (optional_relations or
+                BaseDjangoFieldMapper.is_field_nullable(field, **kwargs))
+
     def get_spyne_model(self, field, **kwargs):
         """Return spyne model configured by related field."""
         related_field = field.rel.get_related_field()
         field_type = related_field.get_internal_type()
         field_mapper = self.django_model_mapper.get_field_mapper(field_type)
 
-        _, related_spyne_model = field_mapper.map(related_field)
+        _, related_spyne_model = field_mapper.map(related_field, **kwargs)
         return related_spyne_model
 
 
@@ -215,11 +233,13 @@ class DjangoModelMapper(object):
         return [field for field in meta.fields if field.name not in
                 field_names]
 
-    def map(self, django_model, exclude=None):
+    def map(self, django_model, exclude=None, **kwargs):
         """Prepare dict of model fields mapped to spyne models.
 
         :param django_model: Django model class.
         :param exclude: list of fields excluded from mapping.
+        :param kwargs: extra kwargs are passed to all field mappers
+
         :returns: dict mapping attribute names to spyne models
         :raises: :exc:`UnknownFieldMapperException`
 
@@ -241,7 +261,7 @@ class DjangoModelMapper(object):
                     logger.info('Field {0} is skipped from mapping.')
                     continue
 
-            attr_name, spyne_model = field_mapper.map(field)
+            attr_name, spyne_model = field_mapper.map(field, **kwargs)
             field_map[attr_name] = spyne_model
 
         return field_map
@@ -359,7 +379,10 @@ class DjangoComplexModelMeta(ComplexModelMeta):
         mapper = getattr(attributes, 'django_mapper', default_model_mapper)
         attributes.django_mapper = mapper
         exclude = getattr(attributes, 'django_exclude', None)
-        spyne_attrs = mapper.map(attributes.django_model, exclude=exclude)
+        optional_relations = getattr(attributes, 'django_optional_relations',
+                                     False)
+        spyne_attrs = mapper.map(attributes.django_model, exclude=exclude,
+                                 optional_relations=optional_relations)
         spyne_attrs.update(attrs)
         return super_new(mcs, name, bases, spyne_attrs)
 
@@ -399,5 +422,11 @@ class DjangoComplexModel(ComplexModelBase):
             class Attributes(DjangoComplexModel.Attributes):
                 django_model = Person
                 django_exclude = ['phone']
+
+    You may set `django_optional_relations`` attribute flag to indicate
+    that relation fields (ForeignKey, OneToOneField) of your model are
+    optional.  This is useful when you want to create base and related
+    instances in remote procedure. In this case primary key of base model is
+    not yet available.
 
     """

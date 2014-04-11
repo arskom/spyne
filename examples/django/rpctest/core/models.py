@@ -44,3 +44,18 @@ class RelatedFieldContainer(models.Model):
     """Related container model to test related fields."""
 
     id = models.CharField(max_length=30, primary_key=True)
+
+
+class User(models.Model):
+
+    """Model for tests of relation field mapper."""
+
+    name = models.CharField(max_length=50)
+
+
+class UserProfile(models.Model):
+
+    """Related model for tests of relation field mapper."""
+
+    user = models.ForeignKey(User)
+    data = models.CharField(max_length=50)
