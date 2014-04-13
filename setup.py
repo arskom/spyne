@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import os
 import re
+import sys
 
 from setuptools import setup
 from setuptools import find_packages
@@ -200,7 +201,7 @@ class RunTests(TestCommand):
         sys.path.append(join(EXAMPLES_DIR, 'django'))
         os.environ['DJANGO_SETTINGS_MODULE'] = 'rpctest.settings'
         ret = 0
-        ret = call_pytest('interface', 'model', 'protocol',
+        ret = call_pytest('interface', 'model', 'multipython', 'protocol',
                           'test_null_server.py', 'test_service.py',
                           'test_soft_validation.py', 'test_util.py',
                           'test_sqlalchemy.py',
@@ -214,7 +215,7 @@ class RunTests(TestCommand):
         # For now we run it here
         from tox._config import parseconfig
         from tox._cmdline import Session
-        tox_args = []
+        tox_args = ['-ctox.django.ini']
         config = parseconfig(tox_args, 'tox')
         ret = Session(config).runcommand()
 
@@ -263,20 +264,67 @@ class RunDjangoTests(TestCommand):
         raise SystemExit(ret)
 
 
-test_reqs = [
-    'pytest', 'werkzeug', 'sqlalchemy', 'coverage',
-    'lxml>=2.3', 'pyyaml', 'pyzmq', 'twisted', 'colorama',
-    'msgpack-python', 'webtest', 'django', 'pytest_django',
-    'python-subunit', 'pyramid',
-    'junitxml',  # to get junitxml output from trial
-    'tox'
-]
+class RunMultiPythonTests(TestCommand):
 
-import sys
-if sys.version_info < (3,0):
-    test_reqs.extend(['pyparsing<1.99', 'suds'])
+    """Run tests compatible with different python implementations. """
+
+    def finalize_options(self):
+        TestCommand.finalize_options(self)
+
+        self.test_args = []
+        self.test_suite = True
+
+    def get_python_flavour(self):
+        try:
+            # CPython2, PyPy
+            return sys.subversion[0]
+        except AttributeError:
+            pass
+
+        try:
+            # CPython3
+            return sys.implementation.cache_tag
+        except AttributeError:
+            pass
+
+        try:
+            # Jython
+            return sys.JYTHON_JAR
+        except AttributeError:
+            pass
+
+        raise NotImplementedError
+
+    def run_tests(self):
+        flavour = self.get_python_flavour()
+        file_name = 'test_result_multi_python_{0}.xml'.format(flavour)
+        ret = run_tests_and_create_report(file_name, 'multipython')
+
+        if ret == 0:
+            print(GREEN + "All multi Python tests passed." + RESET)
+        else:
+            print(RED + "At least one multi Python test failed." + RESET)
+
+        raise SystemExit(ret)
+
+
+multi_python_test_reqs = ['pytest', 'coverage', 'junitxml']
+
+if 'test_multi_python' in sys.argv:
+    test_reqs = multi_python_test_reqs
 else:
-    test_reqs.extend(['pyparsing'])
+    test_reqs = multi_python_test_reqs + [
+        'pytest', 'werkzeug', 'sqlalchemy',
+        'lxml>=2.3', 'pyyaml', 'pyzmq', 'twisted', 'colorama',
+        'msgpack-python', 'webtest', 'django', 'pytest_django',
+        'python-subunit', 'pyramid',
+        'tox'
+    ]
+
+    if sys.version_info < (3,0):
+        test_reqs.extend(['pyparsing<1.99', 'suds'])
+    else:
+        test_reqs.extend(['pyparsing'])
 
 
 class SubUnitTee(object):
@@ -362,5 +410,7 @@ setup(
 
     tests_require = test_reqs,
     cmdclass = {'test': RunTests, 'install_test_deps': InstallTestDeps,
-                'test_django': RunDjangoTests},
+                'test_django': RunDjangoTests,
+                'test_multi_python': RunMultiPythonTests
+               },
 )

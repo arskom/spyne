@@ -55,6 +55,10 @@ MANDATORY_PREFIX = 'Mandatory'
 MANDATORY_SUFFIX = ''
 """The suffix for types created with the :func:`spyne.model.Mandatory`."""
 
+DEFAULT_DECLARE_ORDER = 'random'
+"""Order of complex type attrs of :class:`spyne.model.complex.ComplexModel`."""
+
+
 def add_request_suffix(string):
     """Concatenates REQUEST_SUFFIX to end of string"""
     return string + REQUEST_SUFFIX
