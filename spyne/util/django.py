@@ -51,12 +51,14 @@ email_re = re.compile(
     r'(\.(25[0-5]|2[0-4]\d|[0-1]?\d?\d)){3}\]$', re.IGNORECASE)
 
 
-class DjangoFieldMapper(object):
+class BaseDjangoFieldMapper(object):
 
-    """Base mapper for django fields."""
+    """Abstrace base class for field mappers."""
 
-    def __init__(self, spyne_model):
-        self.spyne_model = spyne_model
+    @staticmethod
+    def is_field_nullable(field, **kwargs):
+        """Return True if django field is nullable."""
+        return field.null
 
     def map(self, field, **kwargs):
         """Map field to spyne model.
@@ -71,14 +73,34 @@ class DjangoFieldMapper(object):
         if field.max_length:
             params['max_len'] = field.max_length
 
-        required = not (field.has_default() or field.null or field.primary_key)
+        nullable = self.is_field_nullable(field, **kwargs)
+        required = not (field.has_default() or nullable or field.primary_key)
+
         if field.has_default():
             params['default'] = field.get_default()
 
-        customized_model = self.spyne_model(nullable=field.null,
-                                            min_occurs=int(required), **params)
+        spyne_model = self.get_spyne_model(field, **kwargs)
+        customized_model = spyne_model(nullable=nullable,
+                                       min_occurs=int(required), **params)
 
         return (field.attname, customized_model)
+
+    def get_spyne_model(self, field, **kwargs):
+        """Return spyne model for given Django field."""
+        raise NotImplementedError
+
+
+class DjangoFieldMapper(BaseDjangoFieldMapper):
+
+    """Basic mapper for django fields."""
+
+    def __init__(self, spyne_model):
+        """Django field mapper constructor."""
+        self.spyne_model = spyne_model
+
+    def get_spyne_model(self, field, **kwargs):
+        """Return configured spyne model."""
+        return self.spyne_model
 
 
 class DecimalMapper(DjangoFieldMapper):
@@ -97,6 +119,35 @@ class DecimalMapper(DjangoFieldMapper):
             'fraction_digits': field.decimal_places,
         })
         return super(DecimalMapper, self).map(field, **params)
+
+
+class RelationMapper(BaseDjangoFieldMapper):
+
+    """Mapper for relation fields (ForeignKey, OneToOneField)."""
+
+    def __init__(self, django_model_mapper):
+        """Constructor for relation field mapper."""
+        self.django_model_mapper = django_model_mapper
+
+    @staticmethod
+    def is_field_nullable(field, **kwargs):
+        """Return True if `optional_relations` is set.
+
+        Otherwise use basic behaviour.
+
+        """
+        optional_relations = kwargs.get('optional_relations', False)
+        return (optional_relations or
+                BaseDjangoFieldMapper.is_field_nullable(field, **kwargs))
+
+    def get_spyne_model(self, field, **kwargs):
+        """Return spyne model configured by related field."""
+        related_field = field.rel.get_related_field()
+        field_type = related_field.get_internal_type()
+        field_mapper = self.django_model_mapper.get_field_mapper(field_type)
+
+        _, related_spyne_model = field_mapper.map(related_field, **kwargs)
+        return related_spyne_model
 
 
 class DjangoModelMapper(object):
@@ -124,9 +175,11 @@ class DjangoModelMapper(object):
     field_mapper_class = DjangoFieldMapper
 
     class UnknownFieldMapperException(Exception):
+
         """Raises when there is no field mapper for given django_type."""
 
     def __init__(self, django_spyne_models=()):
+        """Register field mappers in internal registry."""
         self._registry = {}
 
         for django_type, spyne_model in django_spyne_models:
@@ -180,11 +233,13 @@ class DjangoModelMapper(object):
         return [field for field in meta.fields if field.name not in
                 field_names]
 
-    def map(self, django_model, exclude=None):
+    def map(self, django_model, exclude=None, **kwargs):
         """Prepare dict of model fields mapped to spyne models.
 
         :param django_model: Django model class.
         :param exclude: list of fields excluded from mapping.
+        :param kwargs: extra kwargs are passed to all field mappers
+
         :returns: dict mapping attribute names to spyne models
         :raises: :exc:`UnknownFieldMapperException`
 
@@ -206,7 +261,7 @@ class DjangoModelMapper(object):
                     logger.info('Field {0} is skipped from mapping.')
                     continue
 
-            attr_name, spyne_model = field_mapper.map(field)
+            attr_name, spyne_model = field_mapper.map(field, **kwargs)
             field_map[attr_name] = spyne_model
 
         return field_map
@@ -262,15 +317,34 @@ DEFAULT_FIELD_MAP = (
     ('DateField', primitive.Date),
     ('DateTimeField', primitive.DateTime),
 
+    # simple fixed defaults for relation fields
     ('ForeignKey', primitive.Integer32),
     ('OneToOneField', primitive.Integer32),
 )
 
-default_model_mapper = DjangoModelMapper(DEFAULT_FIELD_MAP)
+
+def model_mapper_factory(mapper_class, field_map):
+    """Factory for model mappers.
+
+    The factory is useful to create custom field mappers based on default one.
+
+    """
+    model_mapper = mapper_class(field_map)
+
+    # register relation field mappers that are aware of related field type
+    model_mapper.register_field_mapper(
+        'ForeignKey', RelationMapper(model_mapper))
+
+    model_mapper.register_field_mapper(
+        'OneToOneField', RelationMapper(model_mapper))
+
+    model_mapper.register_field_mapper('DecimalField',
+                                       DecimalMapper(primitive.Decimal))
+    return model_mapper
 
 
-default_model_mapper.register_field_mapper('DecimalField',
-                                           DecimalMapper(primitive.Decimal))
+default_model_mapper = model_mapper_factory(DjangoModelMapper,
+                                            DEFAULT_FIELD_MAP)
 
 
 class DjangoComplexModelMeta(ComplexModelMeta):
@@ -278,6 +352,7 @@ class DjangoComplexModelMeta(ComplexModelMeta):
     """Meta class for complex spyne models representing Django models."""
 
     def __new__(mcs, name, bases, attrs):  # pylint: disable=C0202
+        """Populate new complex type from configured Django model."""
         super_new = super(DjangoComplexModelMeta, mcs).__new__
 
         try:
@@ -304,7 +379,10 @@ class DjangoComplexModelMeta(ComplexModelMeta):
         mapper = getattr(attributes, 'django_mapper', default_model_mapper)
         attributes.django_mapper = mapper
         exclude = getattr(attributes, 'django_exclude', None)
-        spyne_attrs = mapper.map(attributes.django_model, exclude=exclude)
+        optional_relations = getattr(attributes, 'django_optional_relations',
+                                     False)
+        spyne_attrs = mapper.map(attributes.django_model, exclude=exclude,
+                                 optional_relations=optional_relations)
         spyne_attrs.update(attrs)
         return super_new(mcs, name, bases, spyne_attrs)
 
@@ -344,5 +422,11 @@ class DjangoComplexModel(ComplexModelBase):
             class Attributes(DjangoComplexModel.Attributes):
                 django_model = Person
                 django_exclude = ['phone']
+
+    You may set `django_optional_relations`` attribute flag to indicate
+    that relation fields (ForeignKey, OneToOneField) of your model are
+    optional.  This is useful when you want to create base and related
+    instances in remote procedure. In this case primary key of base model is
+    not yet available.
 
     """
