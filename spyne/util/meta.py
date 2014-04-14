@@ -114,10 +114,13 @@ class Prepareable(type):
 
             new_cls = constructor(cls, name, bases, namespace)
 
-            found_module = inspect.getmodule(class_declaration).__name__
-            assert found_module == new_cls.__module__, (
+            found_module = inspect.getmodule(class_declaration)
+            assert found_module is not None, (
+                'Module is not found for class_declaration {0}, name {1}'
+                .format(class_declaration, name))
+            assert found_module.__name__ == new_cls.__module__, (
                 'Found wrong class declaration of {0}: {1} != {2}.'
-                .format(name, found_module, new_cls.__module__))
+                .format(name, found_module.__name__, new_cls.__module__))
 
             return new_cls
 
