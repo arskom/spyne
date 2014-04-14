@@ -134,7 +134,6 @@ def call_trial(*tests, **kwargs):
     with SubUnitTee(file_name):
         tests_dir = os.path.dirname(spyne.test.__file__)
         sys.argv = ['trial', '--reporter=subunit']
-        sys.argv.extend('--{0}={1}'.format(k, v) for k, v in kwargs.items())
         sys.argv.extend(chain(*[glob(join(tests_dir, test)) for test in tests]))
 
         from twisted.scripts.trial import Options
