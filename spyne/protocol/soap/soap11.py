@@ -241,7 +241,7 @@ class Soap11(XmlDocument):
                 headers = [None] * len(header_class)
                 for i, (header_doc, head_class) in enumerate(
                                           zip(ctx.in_header_doc, header_class)):
-                    if i < len(header_doc):
+                    if i < len(header_class):
                         headers[i] = self.from_element(ctx, head_class, header_doc)
 
                 if len(headers) == 1:
