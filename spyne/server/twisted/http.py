@@ -164,7 +164,8 @@ class TwistedWebResource(Resource):
     def handle_rpc(self, request):
         initial_ctx = TwistedHttpMethodContext(self.http_transport, request,
                                  self.http_transport.app.out_protocol.mime_type)
-        initial_ctx.in_string = [request.content.getvalue()]
+        initial_ctx.in_string = [request.content.read()]
+        request.content.seek(0)
 
         contexts = self.http_transport.generate_contexts(initial_ctx)
         p_ctx, others = contexts[0], contexts[1:]
