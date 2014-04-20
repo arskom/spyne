@@ -46,9 +46,12 @@ from __future__ import absolute_import
 import logging
 logger = logging.getLogger(__name__)
 
+import re
+
 from os import fstat
 from mmap import mmap
 from inspect import isgenerator
+from collections import namedtuple
 
 from spyne.error import InternalError
 from twisted.python.log import err
@@ -60,7 +63,7 @@ from spyne.auxproc import process_contexts
 from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
 from spyne.const.http import HTTP_404, HTTP_200
-from spyne.model import PushBase
+from spyne.model import PushBase, File
 from spyne.model.fault import Fault
 from spyne.server.http import HttpBase
 from spyne.server.http import HttpMethodContext
@@ -122,7 +125,18 @@ class TwistedHttpTransport(HttpBase):
         assert isinstance(request, Request)
 
         ctx.in_header_doc = dict(request.requestHeaders.getAllRawHeaders())
-        ctx.in_body_doc = dict(request.args.items())
+        fi = ctx.transport.file_info
+        if len(request.args) == 1:
+            key, = request.args.keys()
+            if fi.field_name == key and fi.file_name is not None:
+                ctx.in_body_doc = {key: [File.Value(name=fi.file_name,
+                                    type=fi.file_type, data=request.args[key])]}
+
+            else:
+                ctx.in_body_doc = request.args
+        else:
+            ctx.in_body_doc = request.args
+
 
         params = self.match_pattern(ctx, request.method, request.path,
                                                                    request.host)
@@ -138,6 +152,48 @@ class TwistedHttpTransport(HttpBase):
                  ctx.in_body_doc[k].append(v)
              else:
                  ctx.in_body_doc[k] = [v]
+
+_FileInfo = namedtuple("_FileInfo", "field_name file_name file_type header_offset")
+FIELD_NAME_RE = re.compile(r'name="([^"]+)"')
+FILE_NAME_RE = re.compile(r'filename="([^"]+)"')
+def _get_file_name(instr):
+    """We need this huge hack because twisted doesn't offer a way to get file
+    name from Content-Disposition header. This works only when there's just one
+    file -- it won't get the names of the subsequent files even though that's a
+    perfectly valid request.
+    """
+
+    # hack to see if it looks like a multipart request. 5 is arbitrary.
+    field_name = file_name = file_type = content_idx = None
+    if instr[:5] == "-----":
+        first_page = instr[:4096] # 4096 = default page size on linux.
+
+        # this normally roughly <200
+        header_idx = first_page.find('\r\n') + 2
+        content_idx = first_page.find('\r\n\r\n', header_idx)
+        if header_idx > 0 and content_idx > header_idx:
+            headerstr = first_page[header_idx:content_idx]
+
+            for line in headerstr.split("\r\n"):
+                k, v = line.split(":", 2)
+                if k == "Content-Disposition":
+                    for subv in v.split(";"):
+                        subv = subv.strip()
+                        m = FIELD_NAME_RE.match(subv)
+                        if m:
+                            field_name = m.group(1)
+                            continue
+
+                        m = FILE_NAME_RE.match(subv)
+                        if m:
+                            file_name = m.group(1)
+                    continue
+
+                if k == "Content-Type":
+                    file_type = v.strip()
+
+        # 4 == len('\r\n\r\n')
+        return _FileInfo(field_name, file_name, file_type, content_idx + 4)
 
 
 class TwistedWebResource(Resource):
@@ -167,7 +223,6 @@ class TwistedWebResource(Resource):
     def render_GET(self, request):
         if request.uri.endswith('.wsdl') or request.uri.endswith('?wsdl'):
             return self.__handle_wsdl_request(request)
-
         else:
             return self.handle_rpc(request)
 
@@ -201,7 +256,6 @@ class TwistedWebResource(Resource):
     def handle_rpc(self, request):
         initial_ctx = TwistedHttpMethodContext(self.http_transport, request,
                                  self.http_transport.app.out_protocol.mime_type)
-
         if hasattr(request.content, 'fileno'):
             f = request.content
             if fstat(f.fileno()).st_size == 0:
@@ -210,6 +264,8 @@ class TwistedWebResource(Resource):
                 initial_ctx.in_string = [mmap(f.fileno(), 0)]
         else:
             initial_ctx.in_string = [request.content.read()]
+
+        initial_ctx.transport.file_info = _get_file_name(initial_ctx.in_string[0])
 
         contexts = self.http_transport.generate_contexts(initial_ctx)
         p_ctx, others = contexts[0], contexts[1:]
