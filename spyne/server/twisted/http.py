@@ -46,6 +46,8 @@ from __future__ import absolute_import
 import logging
 logger = logging.getLogger(__name__)
 
+from os import fstat
+from mmap import mmap
 from inspect import isgenerator
 
 from spyne.error import InternalError
@@ -199,7 +201,15 @@ class TwistedWebResource(Resource):
     def handle_rpc(self, request):
         initial_ctx = TwistedHttpMethodContext(self.http_transport, request,
                                  self.http_transport.app.out_protocol.mime_type)
-        initial_ctx.in_string = [request.content.getvalue()]
+
+        if hasattr(request.content, 'fileno'):
+            f = request.content
+            if fstat(f.fileno()).st_size == 0:
+                initial_ctx.in_string = ['']
+            else:
+                initial_ctx.in_string = [mmap(f.fileno(), 0)]
+        else:
+            initial_ctx.in_string = [request.content.read()]
 
         contexts = self.http_transport.generate_contexts(initial_ctx)
         p_ctx, others = contexts[0], contexts[1:]
