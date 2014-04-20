@@ -193,8 +193,7 @@ class File(SimpleModel):
             ('data', ByteArray(logged=False)),
         ]
 
-        def __init__(self, name=None, path=None,
-                                        type='application/octet-stream',
+        def __init__(self, name=None, path=None, type='application/octet-stream',
                                                         data=None, handle=None):
 
             self.name = name
