@@ -126,7 +126,7 @@ class TwistedHttpTransport(HttpBase):
 
         ctx.in_header_doc = dict(request.requestHeaders.getAllRawHeaders())
         fi = ctx.transport.file_info
-        if len(request.args) == 1:
+        if fi is not None and len(request.args) == 1:
             key, = request.args.keys()
             if fi.field_name == key and fi.file_name is not None:
                 ctx.in_body_doc = {key: [File.Value(name=fi.file_name,
