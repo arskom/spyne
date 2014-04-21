@@ -688,6 +688,9 @@ class ProtocolBase(object):
             encoding = suggested_encoding
 
         if isinstance(value, File.Value):
+            if value.data is not None:
+                return binary_encoding_handlers[encoding](value.data)
+
             if value.handle is not None:
                 assert isinstance(value.handle, file)
 
@@ -696,8 +699,6 @@ class ProtocolBase(object):
 
                 return binary_encoding_handlers[encoding](data)
 
-            elif value.data is not None:
-                return binary_encoding_handlers[encoding](value.data)
         else:
             return binary_encoding_handlers[encoding](value)
 
