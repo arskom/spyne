@@ -424,8 +424,10 @@ class PGFileJson(PGObjectJson):
                         ignore_wrappers=self.ignore_wrappers,
                         complex_as=self.complex_as)
 
-                retval.handle = open(join(self.store, retval.path), 'rb')
+                path = join(self.store, retval.path)
+                retval.handle = open(path, 'rb')
                 retval.data = [mmap(retval.handle.fileno(), 0, access=ACCESS_READ)]
+                retval.path = path
 
             return retval
 
