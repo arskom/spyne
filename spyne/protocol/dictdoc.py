@@ -697,7 +697,11 @@ class HierDictDocument(DictDocument):
             min_o = v.Attributes.min_occurs
 
             if val is not None or min_o > 0 or self.complex_as is list:
-                yield (k, val)
+                sub_name = v.Attributes.sub_name
+                if sub_name is None:
+                    sub_name = k
+
+                yield (sub_name, val)
 
     def _to_value(self, cls, value):
         if issubclass(cls, AnyDict):
