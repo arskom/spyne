@@ -391,17 +391,16 @@ class PGFileJson(PGObjectJson):
     def bind_processor(self, dialect):
         def process(value):
             if value is not None:
+                value.path = fp = join(self.store, uuid1().get_hex())
                 if value.data is not None:
-                    value.path = uuid1().get_hex()
-                    with open(join(self.store, value.path), 'wb') as file:
+                    with open(fp, 'wb') as file:
                         for d in value.data:
                             file.write(d)
                 else:
                     in_file_path = join(self.store, value.path)
                     with open(in_file_path, 'rb') as in_file:
-                        value.path = uuid1().get_hex()
                         data = mmap(in_file.fileno(), 0) # 0 = whole file
-                        with open(join(self.store, value.path), 'wb') as out_file:
+                        with open(fp, 'wb') as out_file:
                             out_file.write(data)
 
                 retval = get_object_as_json(value, self.cls,
