@@ -69,6 +69,7 @@ from spyne.server.http import HttpBase
 from spyne.server.http import HttpMethodContext
 from spyne.server.http import HttpTransportContext
 from spyne.server.twisted._base import Producer
+from spyne.util.six import text_type
 
 
 def _set_response_headers(request, headers):
@@ -99,6 +100,8 @@ def _reconstruct_url(request):
 
 class TwistedHttpTransportContext(HttpTransportContext):
     def set_mime_type(self, what):
+        if isinstance(what, text_type):
+            what = what.encode('ascii', errors='replace')
         super(TwistedHttpTransportContext, self).set_mime_type(what)
         self.req.setHeader('Content-Type', what)
 
