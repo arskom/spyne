@@ -98,7 +98,6 @@ def _reconstruct_url(request):
 
 
 class TwistedHttpTransportContext(HttpTransportContext):
-
     def set_mime_type(self, what):
         super(TwistedHttpTransportContext, self).set_mime_type(what)
         self.req.setHeader('Content-Type', what)
@@ -153,9 +152,11 @@ class TwistedHttpTransport(HttpBase):
              else:
                  ctx.in_body_doc[k] = [v]
 
-_FileInfo = namedtuple("_FileInfo", "field_name file_name file_type header_offset")
+
 FIELD_NAME_RE = re.compile(r'name="([^"]+)"')
 FILE_NAME_RE = re.compile(r'filename="([^"]+)"')
+_FileInfo = namedtuple("_FileInfo", "field_name file_name file_type "
+                                                                "header_offset")
 def _get_file_name(instr):
     """We need this huge hack because twisted doesn't offer a way to get file
     name from Content-Disposition header. This works only when there's just one
@@ -163,8 +164,9 @@ def _get_file_name(instr):
     perfectly valid request.
     """
 
-    # hack to see if it looks like a multipart request. 5 is arbitrary.
     field_name = file_name = file_type = content_idx = None
+
+    # hack to see if it looks like a multipart request. 5 is arbitrary.
     if instr[:5] == "-----":
         first_page = instr[:4096] # 4096 = default page size on linux.
 
@@ -265,7 +267,8 @@ class TwistedWebResource(Resource):
         else:
             initial_ctx.in_string = [request.content.read()]
 
-        initial_ctx.transport.file_info = _get_file_name(initial_ctx.in_string[0])
+        initial_ctx.transport.file_info = \
+                                        _get_file_name(initial_ctx.in_string[0])
 
         contexts = self.http_transport.generate_contexts(initial_ctx)
         p_ctx, others = contexts[0], contexts[1:]
@@ -399,7 +402,6 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
         p_ctx.out_object = [ret]
     else:
         p_ctx.out_object = ret
-
 
     retval = None
     if isinstance(ret, PushBase):
