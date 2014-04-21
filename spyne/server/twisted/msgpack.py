@@ -95,7 +95,6 @@ class TwistedMessagePackProtocol(Protocol):
             error, msgpack.packb(p_ctx.out_document[0].values()),
         ])
         self.transport.write(out_string)
-        print "HE", repr(out_string)
         p_ctx.close()
 
         try:
@@ -158,7 +157,6 @@ def _cb_deferred(retval, prot, p_ctx, others, nowrap=False):
 
         out_string = ''.join(p_ctx.out_string)
         prot.transport.write(out_string)
-        print "PC", repr(out_string)
 
     except Exception as e:
         logger.exception(e)
