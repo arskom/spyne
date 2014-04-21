@@ -36,7 +36,7 @@ else:
 
 from spyne import BODY_STYLE_WRAPPED, MethodDescriptor
 from spyne.error import ResourceNotFoundError
-from spyne.model.binary import BINARY_ENCODING_URLSAFE_BASE64
+from spyne.model.binary import BINARY_ENCODING_URLSAFE_BASE64, File
 from spyne.model.primitive import DateTime
 from spyne.protocol.dictdoc import SimpleDictDocument
 
@@ -232,6 +232,11 @@ class HttpRpc(SimpleDictDocument):
                 if out_class is not None:
                     ctx.out_document = self.to_string_iterable(out_class,
                                                                     out_object)
+                    if issubclass(out_class, File) and not \
+                             isinstance(out_object, (list, tuple, basestring)) \
+                                                and out_object.type is not None:
+                        ctx.transport.set_mime_type(out_object.type)
+
             # header
             if ctx.out_header is not None:
                 out_header = ctx.out_header
