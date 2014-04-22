@@ -37,7 +37,7 @@ except ImportError:
 from spyne.util import six
 import sqlalchemy
 
-from os.path import join, getsize
+from os.path import join, isabs
 from uuid import uuid1
 from inspect import isclass
 
@@ -75,7 +75,7 @@ from spyne.model.complex import xml as c_xml
 from spyne.model.complex import json as c_json
 from spyne.model.complex import table as c_table
 from spyne.model.complex import msgpack as c_msgpack
-from spyne.model.binary import HybridStore
+from spyne.model.binary import HybridFileStore
 
 # public types
 from spyne.model import SimpleModel, AnyDict
@@ -1056,10 +1056,11 @@ def _add_file_type(cls, props, table, k, v):
     col_args, col_kwargs = sanitize_args(v.Attributes.sqla_column_args)
     _sp_attrs_to_sqla_constraints(cls, v, col_kwargs)
 
-    if isinstance(p, HybridStore):
+    if isinstance(p, HybridFileStore):
         if k in table.c:
             col = table.c[k]
         else:
+            assert isabs(p.store)
             t = PGFileJson(p.store)
             col = Column(k, t, *col_args, **col_kwargs)
 

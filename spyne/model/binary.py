@@ -146,7 +146,7 @@ binary_decoding_handlers = {
 }
 
 
-class HybridStore(object):
+class HybridFileStore(object):
     """Hybrid Sql/Filesystem store."""
 
     def __init__(self, store, db_format):
