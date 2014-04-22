@@ -234,12 +234,8 @@ class TwistedWebResource(Resource):
 
         return retval
 
-    def __getattr__(self, item):
-        if item == "render_GET":
-            return Resource.__getattr__(self, item)
-        if item.startswith("render_"):
-            return self.handle_rpc(request)
-        return Resource.__getattr__(self, item)
+    def render(self, request):
+        return self.handle_rpc(request)
 
     def render_GET(self, request):
         if request.uri.endswith('.wsdl') or request.uri.endswith('?wsdl'):
