@@ -85,7 +85,8 @@ class ValidationError(Fault):
 class InternalError(Fault):
     """Raised to communicate server-side errors."""
     def __init__(self, error):
-        super(InternalError, self).__init__('Server', "InternalError: An unknown error has occured.")
+        super(InternalError, self).__init__('Server',
+                                 "InternalError: An unknown error has occured.")
 
 
 class ResourceNotFoundError(Fault):

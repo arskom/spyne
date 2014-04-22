@@ -29,7 +29,6 @@ logger = logging.getLogger(__name__)
 
 from mmap import mmap, ACCESS_READ
 
-
 try:
     import simplejson as json
 except ImportError:

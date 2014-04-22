@@ -27,17 +27,14 @@ from spyne.util.odict import odict
 
 
 class ClassNotFoundException(Exception):
-
     """Raise when class declaration is not found in frame stack."""
 
 
 class AttributeNotFoundException(Exception):
-
     """Raise when attribute is not found in class declaration."""
 
 
 class Prepareable(type):
-
     """Implement __prepare__ for Python 2.
 
     This class is used in Python 2 and Python 3 to support `six.add_metaclass`
@@ -45,7 +42,6 @@ class Prepareable(type):
     attributes dict of decorated class.
 
     Based on https://gist.github.com/DasIch/5562625
-
     """
 
     def __new__(cls, name, bases, attributes):
@@ -61,7 +57,7 @@ class Prepareable(type):
                 return constructor(cls, name, bases, attributes)
 
             if isinstance(attributes, odict):
-                # we create class dinamically with passed odict
+                # we create class dynamically with passed odict
                 return constructor(cls, name, bases, attributes)
 
             namespace = cls.__prepare__(name, bases)
@@ -69,7 +65,6 @@ class Prepareable(type):
             class_declaration = None
 
             while class_declaration is None:
-
                 literals = list(reversed(current_frame.f_code.co_consts))
 
                 for literal in literals:
