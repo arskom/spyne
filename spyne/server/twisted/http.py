@@ -201,6 +201,14 @@ def _get_file_name(instr):
         return _FileInfo(field_name, file_name, file_type, content_idx + 4)
 
 
+def _has_fd(istr):
+    if hasattr(istr, 'fileno'):
+        try:
+            istr.fileno()
+            return True
+        except IOError:
+            return False
+    return False
 class TwistedWebResource(Resource):
     """A server transport that exposes the application as a twisted web
     Resource.
@@ -265,8 +273,9 @@ class TwistedWebResource(Resource):
     def handle_rpc(self, request):
         initial_ctx = TwistedHttpMethodContext(self.http_transport, request,
                                  self.http_transport.app.out_protocol.mime_type)
-        if hasattr(request.content, 'fileno'):
+        if _has_fd(request.content):
             f = request.content
+            # it's best to avoid empty mappings.
             if fstat(f.fileno()).st_size == 0:
                 initial_ctx.in_string = ['']
             else:
