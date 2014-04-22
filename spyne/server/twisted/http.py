@@ -281,6 +281,7 @@ class TwistedWebResource(Resource):
             else:
                 initial_ctx.in_string = [mmap(f.fileno(), 0)]
         else:
+            request.content.seek(0)
             initial_ctx.in_string = [request.content.read()]
 
         initial_ctx.transport.file_info = \
