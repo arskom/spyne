@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 
 import pytz
 import uuid
+import errno
 
 from collections import deque
 from datetime import timedelta, time, datetime, date
@@ -47,7 +48,7 @@ from spyne.const.http import HTTP_405
 from spyne.const.http import HTTP_413
 from spyne.const.http import HTTP_500
 
-from spyne.error import Fault
+from spyne.error import Fault, InternalError
 from spyne.error import ResourceNotFoundError
 from spyne.error import RequestTooLongError
 from spyne.error import RequestNotAllowed
@@ -708,7 +709,13 @@ class ProtocolBase(object):
                 assert value.path is not None, "You need to write data to " \
                             "persistent storage first if you want to read it back."
 
-                f = open(value.path, 'rb')
+                try:
+                    f = open(value.path, 'rb')
+                except IOError as e:
+                    if e.errno == errno.ENOENT:
+                        raise ResourceNotFoundError(value.path)
+                    else:
+                        raise InternalError("Error accessing requested file")
 
             else:
                 f = value.handle
