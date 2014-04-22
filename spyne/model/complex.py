@@ -342,7 +342,7 @@ def _get_ordered_attributes(cls_dict, attrs):
         raise Exception(msg % (attrs.declare_order, cls_name))
 
     declare_order = attrs.declare_order or const.DEFAULT_DECLARE_ORDER
-    if declare_order == 'random':
+    if declare_order is None or declare_order == 'random':
         # support old behaviour
         cls_dict = dict(cls_dict)
 

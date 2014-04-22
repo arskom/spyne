@@ -51,6 +51,15 @@ class Prepareable(type):
             return type.__new__(cls, name, bases, attributes)
 
         def preparing_constructor(cls, name, bases, attributes):
+            # Don't bother with this shit unless the user *explicitly* asked for
+            # it
+            for b in bases:
+                if hasattr(b,'Attributes') and not \
+                               (b.Attributes.declare_order in (None, 'random')):
+                    break
+            else:
+                return constructor(cls, name, bases, attributes)
+
             try:
                 cls.__prepare__
             except AttributeError:
