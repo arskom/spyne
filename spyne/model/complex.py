@@ -331,8 +331,10 @@ def _gen_methods(cls_dict):
 
     return methods
 
-def _get_ordered_attributes(cls_dict, attrs):
-    assert isinstance(cls_dict, odict)
+def _get_ordered_attributes(cls_name, cls_dict, attrs):
+    if not isinstance(cls_dict, odict):
+        # FIXME: Maybe add a warning here?
+        return cls_dict
 
     SUPPORTED_ORDERS = ('random', 'declared')
     if (attrs.declare_order is not None and
@@ -428,7 +430,7 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
         """
 
         attrs = _gen_attrs(cls_bases, cls_dict)
-        cls_dict = _get_ordered_attributes(cls_dict, attrs)
+        cls_dict = _get_ordered_attributes(cls_name, cls_dict, attrs)
 
         type_name = cls_dict.get("__type_name__", None)
         if type_name is None:
