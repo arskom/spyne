@@ -276,21 +276,45 @@ class HttpPattern(object):
         pattern_regex = _pattern_re.sub(r'(?P<\1>.*)', pattern)
         return re.compile(pattern_regex)
 
-    def __init__(self, address, verb=None, host=None, endpoint=None):
-        assert isinstance(address, basestring)
-
+    def __init__(self, address=None, verb=None, host=None, endpoint=None):
         self.address = address
-        self.address_re = self._compile_pattern(self.address)
-
         self.host = host
-        self.host_re = self._compile_pattern(self.host)
-
         self.verb = verb
-        self.verb_re = self._compile_pattern(self.verb)
 
         self.endpoint = endpoint
         if self.endpoint is not None:
             assert isinstance(self.endpoint, MethodDescriptor)
+
+    def hello(self, descriptor):
+        if self.address is None:
+            self.address = descriptor.name
+
+    @property
+    def address(self):
+        return self.__address
+
+    @address.setter
+    def address(self, what):
+        self.__address = what
+        self.address_re = self._compile_pattern(what)
+
+    @property
+    def host(self):
+        return self.__host
+
+    @host.setter
+    def host(self, what):
+        self.__host = what
+        self.host_re = self._compile_pattern(what)
+
+    @property
+    def verb(self):
+        return self.__verb
+
+    @verb.setter
+    def verb(self, what):
+        self.__verb = what
+        self.verb_re = self._compile_pattern(what)
 
     def as_werkzeug_rule(self):
         from werkzeug.routing import Rule

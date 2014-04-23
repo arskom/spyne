@@ -321,6 +321,10 @@ def rpc(*params, **kparams):
                 service_class=_service_class,
             )
 
+            if _patterns is not None:
+                for p in _patterns:
+                    p.hello(retval)
+
             return retval
 
         explain_method.__doc__ = f.__doc__

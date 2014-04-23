@@ -164,7 +164,11 @@ class HttpBase(ServerBase):
                     continue
                 params.update(match.groupdict())
 
-            if patt.address is not None:
+            address = patt.address
+            if address is None:
+                address = ctx.descriptor.name
+
+            if address:
                 match = patt.address_re.match(path)
                 if match is None:
                     continue
