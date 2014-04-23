@@ -236,9 +236,11 @@ class X(ComplexModel):
     __namespace__ = 'tns'
     x = Integer(nillable=True, max_occurs='unbounded')
 
+
 class Y(X):
     __namespace__ = 'tns'
     y = Integer
+
 
 class TestIncompleteInput(unittest.TestCase):
     def test_x(self):
@@ -274,6 +276,7 @@ class SisMsg(ComplexModel):
     direction = String(nillable=False, min_occurs=1, max_occurs=1, max_len=50)
     interface_name = String(nillable=False, min_occurs=1, max_occurs=1, max_len=50)
     crt_dt = DateTime(nillable=False)
+
 
 class EncExtractXs(ComplexModel):
     __min_occurs__ = 1
