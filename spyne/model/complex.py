@@ -294,38 +294,38 @@ class _MethodsDict(dict):
 
         self._processed = True
 
-        for descriptor in self.values():
-            descriptor.parent_class = cls
+        for d in self.values():
+            d.parent_class = cls
 
-            if not descriptor.in_message_name_override:
-                descriptor.in_message.__type_name__ = '%s.%s' % \
-                          (cls.get_type_name(), descriptor.in_message.get_type_name())
-                descriptor.out_message.__type_name__ = '%s.%s' % \
-                          (cls.get_type_name(), descriptor.out_message.get_type_name())
+            if not d.in_message_name_override:
+                d.in_message.__type_name__ = '%s.%s' % \
+                          (cls.get_type_name(), d.in_message.get_type_name())
+                d.out_message.__type_name__ = '%s.%s' % \
+                          (cls.get_type_name(), d.out_message.get_type_name())
 
-            if descriptor.body_style in (BODY_STYLE_BARE, BODY_STYLE_EMPTY):
+            if d.body_style in (BODY_STYLE_BARE, BODY_STYLE_EMPTY):
                 # The method only needs the primary key(s) and shouldn't
                 # complain when other mandatory fields are missing.
-                descriptor.in_message = cls.novalidate_freq()
-                descriptor.body_style = BODY_STYLE_BARE
+                d.in_message = cls.novalidate_freq()
+                d.body_style = BODY_STYLE_BARE
 
             else:
-                descriptor.in_message.insert_field(0, 'self',
+                d.in_message.insert_field(0, 'self',
                                                           cls.novalidate_freq())
-                descriptor.body_style = BODY_STYLE_WRAPPED
+                d.body_style = BODY_STYLE_WRAPPED
 
-                for k, v in descriptor.in_message._type_info.items():
+                for k, v in d.in_message._type_info.items():
                     # SelfReference is replaced by descriptor.in_message itself.
                     # However, in the context of mrpc, SelfReference means
                     # parent class. here, we do that substitution. It's a safe
                     # hack but a hack nevertheless.
-                    if v is descriptor.in_message:
-                        descriptor.in_message._type_info[k] = cls
+                    if v is d.in_message:
+                        d.in_message._type_info[k] = cls
 
             # Same as above, for the output type.
-            for k, v in descriptor.out_message._type_info.items():
-                if v is descriptor.out_message:
-                    descriptor.out_message._type_info[k] = cls
+            for k, v in d.out_message._type_info.items():
+                if v is d.out_message:
+                    d.out_message._type_info[k] = cls
 
 
 def _gen_methods(cls_dict):
@@ -470,7 +470,6 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
 
         extends = self.__extends__
         if extends is not None and self.__orig__ is None:
-            print extends
             eattr = extends.Attributes;
             if eattr._subclasses is None:
                 eattr._subclasses = []
