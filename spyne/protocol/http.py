@@ -117,7 +117,7 @@ class HttpRpc(SimpleDictDocument):
 
     def __init__(self, app=None, validator=None, mime_type=None,
                     tmp_dir=None, tmp_delete_on_close=True, ignore_uncap=False,
-                                             parse_cookie=True, hier_delim="_"):
+                                             parse_cookie=True, hier_delim="."):
         super(HttpRpc, self).__init__(app, validator, mime_type,
                               ignore_uncap=ignore_uncap, hier_delim=hier_delim)
 
