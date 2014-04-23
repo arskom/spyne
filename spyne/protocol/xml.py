@@ -206,7 +206,7 @@ class XmlDocument(SubXmlBase):
                 strip_cdata=True,
                 resolve_entities=False,
                 huge_tree=False,
-                compact=True
+                compact=True,
             ):
         super(XmlDocument, self).__init__(app, validator)
         self.xml_declaration = xml_declaration
@@ -567,7 +567,7 @@ class XmlDocument(SubXmlBase):
                 if isgenerator(ret):
                     try:
                         while True:
-                            y = (yield) # may throw Break
+                            y = (yield)
                             ret.send(y)
 
                     except Break:

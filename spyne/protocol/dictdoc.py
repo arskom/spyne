@@ -303,6 +303,7 @@ class SimpleDictDocument(DictDocument):
         retval = inst_class.get_deserialization_instance()
         simple_type_info = inst_class.get_simple_type_info(inst_class,
                                                      hier_delim=self.hier_delim)
+
         for orig_k, v in sorted(doc.items(), key=lambda k: k[0]):
             k = RE_HTTP_ARRAY_INDEX.sub("", orig_k)
 
@@ -322,6 +323,7 @@ class SimpleDictDocument(DictDocument):
                                         and issubclass(member.type, Unicode) \
                                         and not isinstance(v2, unicode):
                     v2 = v2.decode(req_enc)
+
                 if (validator is self.SOFT_VALIDATION and not
                                   member.type.validate_string(member.type, v2)):
                     raise ValidationError((orig_k, v2))
