@@ -228,10 +228,12 @@ def rpc(*params, **kparams):
     :param _udp: Short for UserDefinedProperties, you can use this to mark the
         method with arbitrary metadata.
     :param _aux: The auxiliary backend to run this method. ``None`` if primary.
-    :param _throws: A sequence of exceptions that this function can throw. No
-        real functionality besides publishing this information in interface
-        documents.
+    :param _throws: A sequence of exceptions that this function can throw. This
+        has no real functionality besides publishing this information in
+        interface documents.
     :param _args: the name of the arguments to expose.
+    :param _service_class: A :class:`ServiceBase` subclass, if you feel like
+        overriding it.
     """
 
     def explain(f):
@@ -293,7 +295,7 @@ def rpc(*params, **kparams):
             doc = getattr(f, '__doc__')
 
             if _pattern is not None and _patterns != []:
-                raise ValueError("only one of '_pattern' and '__patterns' "
+                raise ValueError("only one of '_pattern' and '_patterns' "
                                                     "arguments should be given")
 
             if _pattern is not None:
