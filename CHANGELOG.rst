@@ -48,6 +48,8 @@ spyne-2.11.0
 * Removed ``@nillable_string`` and ``@nillable_string_iterable`` decorators from
   type (de)serializers from/to string. These methods are meant to be used via the
   wrapper functions {from,to}_string in ``ProtocolBase``\.
+* Spyne now tracks subclasses and adds them to the interface if they have the same
+  namespace as their parent.
 * Many, many, many bugs fixed.
 
 spyne-2.10.10
