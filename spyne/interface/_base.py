@@ -421,6 +421,19 @@ class Interface(object):
                     for c in self.add_method(descriptor):
                         self.add_class(c)
 
+            if cls.Attributes._subclasses is not None:
+                logger.debug("\tadding subclasses of '%s.%s'..." % \
+                                     (cls.get_namespace(), cls.get_type_name()))
+
+                for c in cls.Attributes._subclasses:
+                    child_ns = c.get_namespace()
+                    if child_ns == ns:
+                        self.add_class(c)
+                    else:
+                        logger.debug("\tnot importing %r to %r because it would "
+                            "cause circular imports because %r extends %r " % (
+                            child_ns, ns, c.get_type_name(), cls.get_type_name()))
+
     def is_valid_import(self, ns):
         """This will return False for base namespaces unless told otherwise."""
 

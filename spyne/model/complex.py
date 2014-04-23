@@ -338,6 +338,7 @@ def _gen_methods(cls_dict):
 
     return methods
 
+
 def _get_ordered_attributes(cls_name, cls_dict, attrs):
     if not isinstance(cls_dict, odict):
         # FIXME: Maybe add a warning here?
@@ -466,6 +467,14 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
 
     def __init__(self, cls_name, cls_bases, cls_dict):
         type_info = self._type_info
+
+        extends = self.__extends__
+        if extends is not None and self.__orig__ is None:
+            print extends
+            eattr = extends.Attributes;
+            if eattr._subclasses is None:
+                eattr._subclasses = []
+            eattr._subclasses.append(self)
 
         for k,v in type_info.items():
             if issubclass(v, SelfReference):
@@ -633,6 +642,7 @@ class ComplexModelBase(ModelBase):
         _variants = None
         _xml_tag_body_as = None, None
         _delayed_child_attrs = None
+        _subclasses = None
 
     def __init__(self, *args, **kwargs):
         cls = self.__class__
