@@ -28,7 +28,7 @@ from spyne.model.fault import Fault
 from spyne.interface import Interface
 from spyne import EventManager
 from spyne.util.appreg import register_application
-from spyne.error import ResourceNotFoundError
+from spyne.error import RespawnError
 
 
 def get_fault_string_from_exception(e):
@@ -205,9 +205,10 @@ class Application(object):
                 cls = cls.__orig__
 
             inst = cls.__respawn__(ctx)
+            print inst
             if inst is None:
-                raise ResourceNotFoundError('{%s}%s' %
-                                         (cls.get_namespace(), cls.get_type_name()))
+                raise RespawnError('{%s}%s' %
+                                     (cls.get_namespace(), cls.get_type_name()))
             in_cls = ctx.descriptor.in_message
 
             args = ctx.in_object

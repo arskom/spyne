@@ -97,6 +97,8 @@ class ResourceNotFoundError(Fault):
         super(ResourceNotFoundError, self).__init__(
             'Client.ResourceNotFound', fault_string % fault_object)
 
+class RespawnError(ResourceNotFoundError):
+    pass
 
 class ResourceAlreadyExistsError(Fault):
     """Raised when requested resource already exists on server side."""
