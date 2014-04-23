@@ -150,10 +150,15 @@ class TwistedHttpTransport(HttpBase):
                                           ctx.method_request_string, END_COLOR))
 
         for k, v in params.items():
-             if k in ctx.in_body_doc:
-                 ctx.in_body_doc[k].append(v)
-             else:
-                 ctx.in_body_doc[k] = [v]
+            val = ctx.in_body_doc.get(k, [])
+            val.extend(v)
+            ctx.in_body_doc[k] = val
+
+        # This is consistent with what server.wsgi does.
+        if request.method in ('POST', 'PUT', 'PATCH'):
+            for k, v in ctx.in_body_doc.items():
+                if v == ['']:
+                    ctx.in_body_doc[k] = [None]
 
 
 FIELD_NAME_RE = re.compile(r'name="([^"]+)"')
