@@ -287,14 +287,21 @@ class _MethodsDict(dict):
         self._processed = False
 
     def sanitize(self, cls):
+        # sanitize is called on every customization, so we make sure it's run
+        # only once in this class' lifetime.
         if self._processed:
             return
 
         self._processed = True
 
         for descriptor in self.values():
-            assert isinstance(descriptor, MethodDescriptor)
             descriptor.parent_class = cls
+
+            if not descriptor.in_message_name_override:
+                descriptor.in_message.__type_name__ = '%s.%s' % \
+                          (cls.get_type_name(), descriptor.in_message.get_type_name())
+                descriptor.out_message.__type_name__ = '%s.%s' % \
+                          (cls.get_type_name(), descriptor.out_message.get_type_name())
 
             if descriptor.body_style in (BODY_STYLE_BARE, BODY_STYLE_EMPTY):
                 # The method only needs the primary key(s) and shouldn't

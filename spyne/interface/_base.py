@@ -218,8 +218,6 @@ class Interface(object):
                                             not method.in_message_name_override:
             method_key = '{%s}%s.%s' % (self.app.tns,
                                                  s.get_type_name(), method.name)
-            method.in_message.__type_name__ = '%s.%s' % \
-                                                (s.get_type_name(), method.name)
 
         logger.debug('\tadding method %r to match %r tag.' %
                                                       (method.name, method_key))
