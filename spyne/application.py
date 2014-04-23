@@ -223,6 +223,11 @@ class Application(object):
                 args = args[1:]
 
             if ctx.descriptor.service_class is not None:
+                ctx.in_object = [inst, ctx]
+                ctx.in_object.extend(args)
+
+                # hack to make sure inst goes first
+                ctx.descriptor.no_ctx = True
                 retval = ctx.descriptor.service_class.call_wrapper(ctx)
 
             elif ctx.function is not None:
