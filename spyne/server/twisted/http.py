@@ -70,6 +70,7 @@ from spyne.server.http import HttpMethodContext
 from spyne.server.http import HttpTransportContext
 from spyne.server.twisted._base import Producer
 from spyne.util.six import text_type
+from spyne.util.six.moves.urllib.parse import unquote
 
 
 def _set_response_headers(request, headers):
@@ -139,7 +140,6 @@ class TwistedHttpTransport(HttpBase):
         else:
             ctx.in_body_doc = request.args
 
-
         params = self.match_pattern(ctx, request.method, request.path,
                                                                    request.host)
         if ctx.method_request_string is None: # no pattern match
@@ -154,6 +154,8 @@ class TwistedHttpTransport(HttpBase):
             val.extend(v)
             ctx.in_body_doc[k] = val
 
+        ctx.in_body_doc = dict(( (k, [unquote(v2) for v2 in v]) for k,v in
+                                                       ctx.in_body_doc.items()))
         # This is consistent with what server.wsgi does.
         if request.method in ('POST', 'PUT', 'PATCH'):
             for k, v in ctx.in_body_doc.items():
