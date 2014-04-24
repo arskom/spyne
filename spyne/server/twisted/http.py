@@ -154,8 +154,17 @@ class TwistedHttpTransport(HttpBase):
             val.extend(v)
             ctx.in_body_doc[k] = val
 
-        ctx.in_body_doc = dict(( (k, [unquote(v2) for v2 in v]) for k,v in
-                                                       ctx.in_body_doc.items()))
+        r = {}
+        for k,v in ctx.in_body_doc.items():
+            l = []
+            for v2 in v:
+                if isinstance(v2, basestring):
+                    l.append(unquote(v2))
+                else:
+                    l.append(v2)
+            r[k] = l
+        ctx.in_body_doc = r
+
         # This is consistent with what server.wsgi does.
         if request.method in ('POST', 'PUT', 'PATCH'):
             for k, v in ctx.in_body_doc.items():

@@ -509,9 +509,9 @@ class WsgiApplication(HttpBase):
 
         for k, v in params.items():
              if k in ctx.in_body_doc:
-                 ctx.in_body_doc[k].append(v)
+                 ctx.in_body_doc[k].extend(v)
              else:
-                 ctx.in_body_doc[k] = [v]
+                 ctx.in_body_doc[k] = list(v)
 
         verb = wsgi_env['REQUEST_METHOD'].upper()
         if verb in ('POST', 'PUT', 'PATCH'):

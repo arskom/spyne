@@ -16,7 +16,7 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
-
+from collections import defaultdict
 
 from spyne import TransportContext
 from spyne import MethodContext
@@ -144,7 +144,7 @@ class HttpBase(ServerBase):
         if path == '':
             path = '/'
 
-        params = {}
+        params = defaultdict(list)
         for patt in self._http_patterns:
             assert isinstance(patt, HttpPattern)
 
@@ -154,7 +154,9 @@ class HttpBase(ServerBase):
                     continue
                 if not (match.span() == (0, len(method))):
                     continue
-                params.update(match.groupdict())
+
+                for k,v in match.groupdict().items():
+                    params[k].append(v)
 
             if patt.host is not None:
                 match = patt.host_re.match(host)
@@ -162,7 +164,9 @@ class HttpBase(ServerBase):
                     continue
                 if not (match.span() == (0, len(host))):
                     continue
-                params.update(match.groupdict())
+
+                for k,v in match.groupdict().items():
+                    params[k].append(v)
 
             address = patt.address
             if address is None:
@@ -174,7 +178,8 @@ class HttpBase(ServerBase):
                     continue
                 if not (match.span() == (0, len(path))):
                     continue
-                params.update(match.groupdict())
+                for k,v in match.groupdict().items():
+                    params[k].append(v)
 
             ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
                                                     patt.endpoint.name)
