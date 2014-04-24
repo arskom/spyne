@@ -63,7 +63,7 @@ from spyne.auxproc import process_contexts
 from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
 from spyne.const.http import HTTP_404, HTTP_200
-from spyne.model import PushBase, File
+from spyne.model import PushBase, File, ComplexModelBase
 from spyne.model.fault import Fault
 from spyne.server.http import HttpBase
 from spyne.server.http import HttpMethodContext
@@ -305,14 +305,6 @@ class TwistedWebResource(Resource):
                 return self.handle_rpc_error(p_ctx, others, p_ctx.out_error,
                                                                         request)
 
-        resp_code = p_ctx.transport.resp_code
-        # If user code set its own response code, don't touch it.
-        if resp_code is None:
-            resp_code = HTTP_200
-        request.setResponseCode(int(resp_code[:3]))
-
-        _set_response_headers(request, p_ctx.transport.resp_headers)
-
         ret = p_ctx.out_object[0]
         if isinstance(ret, Deferred):
             ret.addCallback(_cb_deferred, request, p_ctx, others, self)
@@ -415,7 +407,16 @@ def _init_push(ret, request, p_ctx, others, resource):
 
 
 def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
-    if cb and len(p_ctx.descriptor.out_message._type_info) <= 1:
+    resp_code = p_ctx.transport.resp_code
+    # If user code set its own response code, don't touch it.
+    if resp_code is None:
+        resp_code = HTTP_200
+    request.setResponseCode(int(resp_code[:3]))
+
+    _set_response_headers(request, p_ctx.transport.resp_headers)
+
+    om = p_ctx.descriptor.out_message
+    if cb and ((not issubclass(om, ComplexModelBase)) or len(om._type_info) <= 1):
         p_ctx.out_object = [ret]
     else:
         p_ctx.out_object = ret

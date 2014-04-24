@@ -300,6 +300,8 @@ class _MethodsDict(dict):
             if not d.in_message_name_override:
                 d.in_message.__type_name__ = '%s.%s' % \
                           (cls.get_type_name(), d.in_message.get_type_name())
+
+            if d.body_style is BODY_STYLE_WRAPPED:
                 d.out_message.__type_name__ = '%s.%s' % \
                           (cls.get_type_name(), d.out_message.get_type_name())
 
