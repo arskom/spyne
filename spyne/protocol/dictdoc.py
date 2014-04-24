@@ -396,7 +396,7 @@ class SimpleDictDocument(DictDocument):
 
                 cfreq_key = cfreq_key + (ncls, nidx)
                 idx = nidx
-                ctype_info = ncls._type_info
+                ctype_info = ncls.get_flat_type_info(ncls)
 
             frequencies[cfreq_key][member.path[-1]] += len(value)
 
