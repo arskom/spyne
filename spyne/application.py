@@ -205,7 +205,6 @@ class Application(object):
                 cls = cls.__orig__
 
             inst = cls.__respawn__(ctx)
-            print inst
             if inst is None:
                 raise RespawnError('{%s}%s' %
                                      (cls.get_namespace(), cls.get_type_name()))
