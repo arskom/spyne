@@ -86,6 +86,8 @@ examples/file_manager/files/
 # test output
 coverage.xml
 spyne/test/protocol/html
+spyne/test/store
+html
 test_result*
 
 # vim cruft
