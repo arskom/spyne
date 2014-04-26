@@ -395,12 +395,22 @@ class PGFileJson(PGObjectJson):
                     with open(fp, 'wb') as file:
                         for d in value.data:
                             file.write(d)
-                else:
+
+                elif value.handle is not None:
+                    data = mmap(value.handle.fileno(), 0) # 0 = whole file
+                    with open(fp, 'wb') as out_file:
+                        out_file.write(data)
+
+                elif value.path is not None:
                     in_file_path = join(self.store, value.path)
                     with open(in_file_path, 'rb') as in_file:
                         data = mmap(in_file.fileno(), 0) # 0 = whole file
                         with open(fp, 'wb') as out_file:
                             out_file.write(data)
+
+                else:
+                    raise ValueError("Invalid file object passed in. All of "
+                                     "`.data` `.handle` and `.path` are None.")
 
                 retval = get_object_as_json(value, self.cls,
                         ignore_wrappers=self.ignore_wrappers,
@@ -1061,7 +1071,12 @@ def _add_file_type(cls, props, table, k, v):
             col = table.c[k]
         else:
             assert isabs(p.store)
-            t = PGFileJson(p.store)
+            #FIXME: Add support for storage markers from spyne.model.complex
+            if p.db_format == 'json':
+                t = PGFileJson(p.store)
+            else:
+                raise NotImplementedError(p.db_format)
+
             col = Column(k, t, *col_args, **col_kwargs)
 
         props[k] = col
