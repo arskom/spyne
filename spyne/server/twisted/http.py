@@ -29,13 +29,12 @@ it: ::
     resource = TwistedWebResource(...)
     resource.http_transport.doc.wsdl11.build_interface_document("http://example.com")
 
-This is not strictly necessary -- if you don't do this, Spyne will get the
-URL from the first request, build the wsdl on-the-fly and cache it as a
-string in memory for later requests. However, if you want to make sure
-you only have this url on the WSDL, this is how to do it. Note that if
-your client takes the information in wsdl seriously, all requests will go
-to the designated url above which can make testing a bit difficult. Use
-in moderation.
+This is not strictly necessary. If you don't do this, Spyne will get the URL
+from the first request, build the wsdl on-the-fly and cache it as a string in
+memory for later requests. However, if you want to make sure you only have this
+url on the WSDL, this is how to do it. Note that if your client takes the
+information in wsdl seriously, all requests will go to the designated url above
+which can make testing a bit difficult. Use in moderation.
 
 This module is EXPERIMENTAL. Your mileage may vary. Patches are welcome.
 """
@@ -108,7 +107,6 @@ class TwistedHttpTransportContext(HttpTransportContext):
 
 
 class TwistedHttpMethodContext(HttpMethodContext):
-
     default_transport_context = TwistedHttpTransportContext
 
 
