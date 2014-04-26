@@ -426,6 +426,9 @@ class Interface(object):
                                      (cls.get_namespace(), cls.get_type_name()))
 
                 for c in cls.Attributes._subclasses:
+                    if c.get_namespace() is None:
+                        c.resolve_namespace(c, ns)
+
                     child_ns = c.get_namespace()
                     if child_ns == ns:
                         self.add_class(c)
