@@ -476,6 +476,8 @@ class ComplexModelMeta(with_metaclass(Prepareable, type(ModelBase))):
             if eattr._subclasses is None:
                 eattr._subclasses = []
             eattr._subclasses.append(self)
+            if self.Attributes._subclasses is eattr._subclasses:
+                self.Attributes._subclasses = None
 
         for k,v in type_info.items():
             if issubclass(v, SelfReference):
