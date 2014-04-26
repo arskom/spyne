@@ -138,8 +138,11 @@ class TwistedHttpTransport(HttpBase):
         else:
             ctx.in_body_doc = request.args
 
-        params = self.match_pattern(ctx, request.method,
-                                             request.realpostpath, request.host)
+        postpath = getattr(request, 'realpostpath', None)
+        if postpath is None:
+            postpath = request.path
+
+        params = self.match_pattern(ctx, request.method, postpath, request.host)
 
         if ctx.method_request_string is None: # no pattern match
             ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
