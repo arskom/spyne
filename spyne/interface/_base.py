@@ -411,8 +411,8 @@ class Interface(object):
                                                 old, cls.get_type_name_ns(self))
 
             if cls.Attributes.methods is not None:
-                logger.debug("\tpopulating member methods for '%s.%s'..." % \
-                                     (cls.get_namespace(), cls.get_type_name()))
+                logger.debug("\tpopulating member methods for '%s.%s'...",
+                                       cls.get_namespace(), cls.get_type_name())
 
                 for method_key, descriptor in cls.Attributes.methods.items():
                     assert hasattr(cls, method_key)
