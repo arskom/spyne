@@ -53,12 +53,12 @@ from mmap import mmap
 from inspect import isgenerator
 from collections import namedtuple
 
-from spyne.error import InternalError
 from twisted.python.log import err
-from twisted.internet.defer import Deferred
-from twisted.web.resource import Resource, NoResource
 from twisted.web.server import NOT_DONE_YET, Request
+from twisted.web.resource import Resource, NoResource
+from twisted.internet.defer import Deferred
 
+from spyne.error import InternalError
 from spyne.auxproc import process_contexts
 from spyne.const.ansi_color import LIGHT_GREEN
 from spyne.const.ansi_color import END_COLOR
@@ -226,6 +226,7 @@ def _has_fd(istr):
             return False
     return False
 
+
 class TwistedWebResource(Resource):
     """A server transport that exposes the application as a twisted web
     Resource.
@@ -368,6 +369,7 @@ def _cb_request_finished(retval, request, p_ctx):
     request.finish()
     p_ctx.close()
 
+
 def _eb_request_finished(retval, request, p_ctx):
     err(request)
     p_ctx.close()
@@ -447,6 +449,7 @@ def _cb_deferred(ret, request, p_ctx, others, resource, cb=True):
     process_contexts(resource.http_transport, others, p_ctx)
 
     return retval
+
 
 def _eb_deferred(retval, request, p_ctx, others, resource):
     p_ctx.out_error = retval.value
