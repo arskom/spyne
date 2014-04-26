@@ -138,8 +138,9 @@ class TwistedHttpTransport(HttpBase):
         else:
             ctx.in_body_doc = request.args
 
-        params = self.match_pattern(ctx, request.method, request.path,
-                                                                   request.host)
+        params = self.match_pattern(ctx, request.method,
+                                             request.realpostpath, request.host)
+
         if ctx.method_request_string is None: # no pattern match
             ctx.method_request_string = '{%s}%s' % (self.app.interface.get_tns(),
                                                     request.path.split('/')[-1])
@@ -239,6 +240,13 @@ class TwistedWebResource(Resource):
         self._wsdl = None
 
     def getChildWithDefault(self, path, request):
+        # this hack is necessary because twisted takes the slash character in
+        # http requests too seriously. i.e. it insists that a leaf node can only
+        # handle the last path fragment.
+        if not hasattr(request, 'realprepath'):
+            request.realprepath = '/' + '/'.join(request.prepath[:-1])
+            request.realpostpath = request.path[len(request.realprepath):]
+
         if path in self.children:
             retval = self.children[path]
         else:
