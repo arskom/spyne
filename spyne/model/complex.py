@@ -681,6 +681,9 @@ class ComplexModelBase(ModelBase):
                     # except the attributes that sqlalchemy doesn't know about
                     if v.Attributes.exc_table:
                         setattr(self, k, None)
+                    elif issubclass(v, ComplexModelBase) and \
+                                                  v.Attributes.store_as is None:
+                        setattr(self, k, None)
                 else:
                     setattr(self, k, None)
 
