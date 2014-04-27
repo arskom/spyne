@@ -707,7 +707,7 @@ class ProtocolBase(object):
         if value.data is None:
             if value.handle is None:
                 assert value.path is not None, "You need to write data to " \
-                            "persistent storage first if you want to read it back."
+                         "persistent storage first if you want to read it back."
 
                 try:
                     f = open(value.path, 'rb')
