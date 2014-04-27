@@ -405,11 +405,11 @@ class PGFileJson(PGObjectJson):
                         out_file.write(data)
 
                 elif value.path is not None:
-                    in_file_path = join(self.store, value.path)
+                    in_file_path = value.path
                     with open(in_file_path, 'rb') as in_file:
                         value.path = uuid1().get_hex()
                         fp = join(self.store, value.path)
-                        data = mmap(in_file.fileno(), 0) # 0 = whole file
+                        data = mmap(in_file.fileno(), 0, access=ACCESS_READ) # 0 = whole file
                         with open(fp, 'wb') as out_file:
                             out_file.write(data)
 
