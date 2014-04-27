@@ -141,8 +141,8 @@ class HttpBase(ServerBase):
             there)
         """
 
-        if path == '':
-            path = '/'
+        if not path.startswith('/'):
+            path = '/' + path
 
         params = defaultdict(list)
         for patt in self._http_patterns:
