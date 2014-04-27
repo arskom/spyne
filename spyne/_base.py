@@ -338,7 +338,8 @@ class MethodDescriptor(object):
                  port_type=None, no_ctx=False, udp=None, class_key=None,
                  aux=None, patterns=None, body_style=None, args=None,
                  operation_name=None, no_self=None, translations=None, when=None,
-                 in_message_name_override=False, service_class=None):
+                 in_message_name_override=True, out_message_name_override=True,
+                 service_class=None):
 
         self.__real_function = function
         """The original callable for the user code."""
@@ -452,8 +453,14 @@ class MethodDescriptor(object):
         """
 
         self.in_message_name_override = in_message_name_override
-        """When True, no mangling of in message name will be performed by later
-        stages of the interface generation."""
+        """When False, no mangling of in message name will be performed by later
+        stages of the interface generation. Naturally, it will be up to you to
+        resolve name clashes."""
+
+        self.out_message_name_override = out_message_name_override
+        """When False, no mangling of out message name will be performed by
+        later stages of the interface generation. Naturally, it will be up to
+        you to resolve name clashes."""
 
     def translate(self, locale, default):
         """

@@ -1,4 +1,3 @@
-
 #
 # spyne - Copyright (C) Spyne contributors.
 #
@@ -32,6 +31,8 @@ from copy import copy
 
 from spyne import MethodDescriptor
 
+# Empty means empty input, bare output. Doesn't say anything about response
+# being empty
 from spyne._base import BODY_STYLE_EMPTY
 from spyne._base import BODY_STYLE_WRAPPED
 from spyne._base import BODY_STYLE_BARE
@@ -43,8 +44,7 @@ from spyne.const import add_request_suffix
 
 
 def _produce_input_message(f, params, kparams, in_message_name,
-                                      in_variable_names, no_ctx, no_self, args):
-
+                           in_variable_names, no_ctx, no_self, args):
     _body_style = _validate_body_style(kparams)
 
     arg_start = 0
@@ -68,13 +68,14 @@ def _produce_input_message(f, params, kparams, in_message_name,
 
         if len(params) != len(args):
             raise Exception("%r function has %d argument(s) but its decorator "
-                       "has %d." % (f.__name__, len(args), len(params)))
+                            "has %d." % (f.__name__, len(args), len(params)))
 
     else:
         args = copy(args)
         if len(params) != len(args):
             raise Exception("%r function has %d argument(s) but the _args "
-                     "argument has %d." % (f.__name__, len(args), len(params)))
+                            "argument has %d." % (
+                            f.__name__, len(args), len(params)))
 
     in_params = TypeInfo()
     for k, v in zip(args, params):
@@ -89,10 +90,10 @@ def _produce_input_message(f, params, kparams, in_message_name,
     if _body_style == 'bare':
         if len(in_params) > 1:
             raise Exception("body_style='bare' can handle at most one function "
-                                                                    "argument.")
+                            "argument.")
         if len(in_params) == 0:
             message = ComplexModel.produce(type_name=in_message_name,
-                                               namespace=ns, members=in_params)
+                                           namespace=ns, members=in_params)
         else:
             message, = in_params.values()
             message = message.customize(sub_name=in_message_name, sub_ns=ns)
@@ -100,7 +101,7 @@ def _produce_input_message(f, params, kparams, in_message_name,
 
     else:
         message = ComplexModel.produce(type_name=in_message_name,
-                                               namespace=ns, members=in_params)
+                                       namespace=ns, members=in_params)
         message.__namespace__ = ns
 
     return message
@@ -136,18 +137,18 @@ def _produce_output_message(func_name, kparams):
 
     _returns = kparams.get('_returns')
     _body_style = _validate_body_style(kparams)
-    _out_message_name = kparams.get('_out_message', '%s%s' %
+    _out_message_name = kparams.get('_out_message_name', '%s%s' %
                                        (func_name, spyne.const.RESPONSE_SUFFIX))
 
     out_params = TypeInfo()
 
     if _returns and _body_style == 'wrapped':
         if isinstance(_returns, (list, tuple)):
-            default_names = ['%s%s%d' % (func_name, spyne.const.RESULT_SUFFIX, i)
+            default_names = ['%s%s%d'% (func_name, spyne.const.RESULT_SUFFIX, i)
                                                   for i in range(len(_returns))]
 
             _out_variable_names = kparams.get('_out_variable_names',
-                                                                 default_names)
+                                              default_names)
 
             assert (len(_returns) == len(_out_variable_names))
 
@@ -156,7 +157,7 @@ def _produce_output_message(func_name, kparams):
 
         else:
             _out_variable_name = kparams.get('_out_variable_name',
-                               '%s%s' % (func_name, spyne.const.RESULT_SUFFIX))
+                                '%s%s' % (func_name, spyne.const.RESULT_SUFFIX))
 
             out_params[_out_variable_name] = _returns
 
@@ -169,11 +170,10 @@ def _produce_output_message(func_name, kparams):
 
     else:
         message = ComplexModel.produce(type_name=_out_message_name,
-                                        namespace=ns,
-                                        members=out_params)
+                                               namespace=ns, members=out_params)
 
         message.Attributes._wrapper = True
-        message.__namespace__ = ns # FIXME: is this necessary?
+        message.__namespace__ = ns  # FIXME: is this necessary?
 
     return message
 
@@ -202,10 +202,12 @@ def rpc(*params, **kparams):
     :param _out_header: A type or an iterable of types that that this method
         sends as outgoing header.
     :param _operation_name: The function's soap operation name. The operation
-        and SoapAction names will equal the value of ``_operation_name``.
+        and SoapAction names will be equal to the value of ``_operation_name``.
+        Default is the function name.
     :param _in_message_name: The public name of the function's input message.
-        If not set explicitly in @srpc, the input message will equal the value
-        of ``_operation_name + REQUEST_SUFFIX``.
+        Default is: ``_operation_name + REQUEST_SUFFIX``.
+    :param _out_message_name: The public name of the function's output message.
+        Default is: ``_operation_name + RESPONSE_SUFFIX``.
     :param _in_variable_names: The public names of the function arguments. It's
         a dict that maps argument names in the code to public ones.
     :param _out_variable_name: The public name of the function response object.
@@ -250,15 +252,16 @@ def rpc(*params, **kparams):
             _no_self = kparams.get('_no_self', True)
             _udp = kparams.get('_udp', None)
             _aux = kparams.get('_aux', None)
-            _pattern = kparams.get("_pattern",None)
-            _patterns = kparams.get("_patterns",[])
-            _args = kparams.get("_args",None)
+            _pattern = kparams.get("_pattern", None)
+            _patterns = kparams.get("_patterns", [])
+            _args = kparams.get("_args", None)
             _translations = kparams.get("_translations", None)
             _when = kparams.get("_when", None)
             _service_class = kparams.get("_service_class", None)
 
             if _no_self:
                 from spyne.model import SelfReference
+
                 if SelfReference in params:
                     raise ValueError("SelfReference can't be used in @rpc")
                 if SelfReference in kparams.values():
@@ -270,33 +273,35 @@ def rpc(*params, **kparams):
                                  "should be given, as they're synonyms.")
             elif '_faults' in kparams:
                 _faults = kparams.get('_faults', None)
+
             elif '_throws' in kparams:
                 _faults = kparams.get('_throws', None)
 
-            _in_message_name_override = ('_in_message_name' in kparams)
+            _in_message_name_override = not ('_in_message_name' in kparams)
             _in_message_name = kparams.get('_in_message_name', function_name)
 
             _operation_name = kparams.get('_operation_name', function_name)
 
             if _operation_name != function_name and _in_message_name != function_name:
-                raise ValueError("only one of '_operation_name' and '_in_message_name' "
-                                                    "arguments should be given")
+                raise ValueError(
+                    "only one of '_operation_name' and '_in_message_name' "
+                    "arguments should be given")
             if _in_message_name == function_name:
                 _in_message_name = add_request_suffix(_operation_name)
-
 
             _in_variable_names = kparams.get('_in_variable_names', {})
 
             in_message = _produce_input_message(f, params, kparams,
                  _in_message_name, _in_variable_names, _no_ctx, _no_self, _args)
 
+            _out_message_name_override = not ('_out_message_name' in kparams)
             out_message = _produce_output_message(function_name, kparams)
 
             doc = getattr(f, '__doc__')
 
             if _pattern is not None and _patterns != []:
                 raise ValueError("only one of '_pattern' and '_patterns' "
-                                                    "arguments should be given")
+                                 "arguments should be given")
 
             if _pattern is not None:
                 _patterns = [_pattern]
@@ -306,6 +311,7 @@ def rpc(*params, **kparams):
                 body_style = BODY_STYLE_BARE
                 t = in_message
                 from spyne.model import ComplexModelBase
+
                 if issubclass(t, ComplexModelBase) and len(t._type_info) == 0:
                     body_style = BODY_STYLE_EMPTY
 
@@ -318,6 +324,7 @@ def rpc(*params, **kparams):
                 operation_name=_operation_name, no_self=_no_self,
                 translations=_translations, when=_when,
                 in_message_name_override=_in_message_name_override,
+                out_message_name_override=_out_message_name_override,
                 service_class=_service_class,
             )
 
@@ -331,6 +338,7 @@ def rpc(*params, **kparams):
         explain_method._is_rpc = True
 
         return explain_method
+
     return explain
 
 

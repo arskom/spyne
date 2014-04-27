@@ -214,8 +214,7 @@ class Interface(object):
 
         method_key = '{%s}%s' % (self.app.tns, method.name)
 
-        if issubclass(s, ComplexModelBase) and \
-                                            not method.in_message_name_override:
+        if issubclass(s, ComplexModelBase) and method.in_message_name_override:
             method_key = '{%s}%s.%s' % (self.app.tns,
                                                  s.get_type_name(), method.name)
 
