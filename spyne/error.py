@@ -95,7 +95,7 @@ class ResourceNotFoundError(Fault):
     def __init__(self, fault_object,
                  fault_string="Requested resource %r not found"):
         super(ResourceNotFoundError, self).__init__(
-            'Client.ResourceNotFound', fault_string % fault_object)
+            'Client.ResourceNotFound', fault_string % (fault_object,))
 
 class RespawnError(ResourceNotFoundError):
     pass
