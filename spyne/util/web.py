@@ -25,6 +25,8 @@ If you're using this for anything serious, you're insane.
 
 from __future__ import absolute_import
 
+from inspect import isclass
+
 from spyne.util import six
 
 from spyne import BODY_STYLE_WRAPPED, rpc
@@ -37,7 +39,8 @@ from spyne.error import ResourceNotFoundError
 from spyne.service import ServiceBase
 from spyne.util import memoize
 from spyne.util.email import email_exception
-from spyne.model import Mandatory as M, UnsignedInteger32, PushBase
+from spyne.model import Mandatory as M, UnsignedInteger32, PushBase, Iterable, \
+    ModelBase
 from spyne.model import Unicode
 from spyne.model import Array
 from spyne.model import ComplexModelBase
@@ -247,14 +250,12 @@ class Context(object):
 
 
 def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False):
-    """Use this function if you want to serialize a ComplexModel subclass to
+    """Use this function if you want to serialize a ComplexModelBase instance to
     logs. It will:
 
         * Limit size of the String types
         * Limit size of Array types
         * Not try to iterate on iterators, push data, etc.
-
-    ... in order to bring the size of your logs down to a manageable size.
     """
 
     if obj is None:
@@ -263,7 +264,7 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False):
     if cls is None:
         cls = obj.__class__
 
-    if issubclass(cls, Array) or cls.Attributes.max_occurs > 1 and not from_array:
+    if (issubclass(cls, Array) or cls.Attributes.max_occurs > 1) and not from_array:
         retval = []
         if issubclass(cls, Array):
             cls, = cls._type_info.values()
@@ -295,19 +296,20 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False):
                     retval.append("(...)")
                     break
 
-        if issubclass(cls, ComplexModelBase):
-            retval = "%s=%s([%s])" % (parent, cls.get_type_name(), ', '.join(retval))
-        else:
-            retval = "%s=[%s]" % (parent, ', '.join(retval))
+        retval = "[%s]" % (', '.join(retval))
 
     elif issubclass(cls, ComplexModelBase):
         retval = []
 
         for k, t in cls.get_flat_type_info(cls).items():
             v = getattr(obj, k, None)
+            # HACK!: sometimes non-db attributes restored from database don't
+            # get properly reinitialized.
+            if isclass(v) and issubclass(v, ModelBase):
+                continue
             if t.Attributes.logged:
                 if v is not None:
-                    retval.append(log_repr(v, t, parent=k))
+                    retval.append("%s=%s" % (k, log_repr(v, t, parent=k)))
             else:
                 retval.append("%s=(...)" % k)
 
@@ -315,16 +317,10 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False):
 
     elif issubclass(cls, Unicode) and isinstance(obj, six.string_types):
         if len(obj) > MAX_STRING_FIELD_LENGTH:
-            if parent is None:
-                return '%s=%r(...)' % (parent, obj[:MAX_STRING_FIELD_LENGTH])
-            else:
-                return '%s=%r(...)' % (parent, obj[:MAX_STRING_FIELD_LENGTH])
+            return '%r(...)' % obj[:MAX_STRING_FIELD_LENGTH]
 
         else:
-            if parent is None:
-                return repr(obj)
-            else:
-                return '%s=%r' % (parent, obj)
+            return repr(obj)
 
     else:
         retval = repr(obj)
