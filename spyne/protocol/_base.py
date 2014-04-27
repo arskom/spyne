@@ -724,7 +724,11 @@ class ProtocolBase(object):
             return _file_to_iter(f)
 
         else:
-            return iter(value.data)
+            if isinstance(value.data, (list,tuple)) and \
+                                                isinstance(value.data[0], mmap):
+                return _file_to_iter(value.data[0])
+            else:
+                return iter(value.data)
 
     def simple_model_to_string_iterable(self, cls, value):
         retval = self.to_string(cls, value)
