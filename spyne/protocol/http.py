@@ -235,7 +235,7 @@ class HttpRpc(SimpleDictDocument):
                     if issubclass(out_class, File) and not \
                              isinstance(out_object, (list, tuple, basestring)) \
                                                 and out_object.type is not None:
-                        ctx.transport.set_mime_type(out_object.type)
+                        ctx.transport.set_mime_type(str(out_object.type))
 
             # header
             if ctx.out_header is not None:
