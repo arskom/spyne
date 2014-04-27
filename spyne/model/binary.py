@@ -207,9 +207,6 @@ class File(SimpleModel):
                 assert os.path.basename(self.name) == self.name
 
             self.path = path
-            if self.path is not None:
-                assert os.path.isabs(self.path)
-
             self.type = type
             self.data = data
             self.handle = handle
