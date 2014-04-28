@@ -113,12 +113,12 @@ class ModelTestCase(TestCase):
         self.assertEqual(c.custom_foreign_key_id, 'related')
         self.assertRaises(Fault, create_container)
 
-    def _test_create_container_unicode(self):
+    def test_create_container_unicode(self):
         """Test complex unicode input to create Django model."""
         new_container = FieldContainer(
             char_field=u'спайн',
             text_field=u'спайн',
-            slug_field=u'спайн',
+            slug_field='spyne',
             date_field=datetime.date.today(),
             datetime_field=datetime.datetime.now(),
             time_field=datetime.time()
