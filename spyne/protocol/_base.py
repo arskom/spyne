@@ -859,7 +859,7 @@ def _datetime_to_string(cls, value):
     if format is None:
         ret_str = value.isoformat()
     else:
-        ret_str = datetime.strftime(value, format)
+        ret_str = value.strftime(format)
 
     string_format = cls.Attributes.string_format
     if string_format is None:
