@@ -222,6 +222,10 @@ class ModelBase(object):
         #The key is either a ProtocolBase subclass or a ProtocolBase instance.
         #Instances override classes."""
 
+        empty_is_none = False
+        """When the incoming object is empty (e.g. '' for strings) treat it as
+        None. No effect (yet) for outgoing values."""
+
     class Annotations(object):
         """The class that holds the annotations for the given type."""
 

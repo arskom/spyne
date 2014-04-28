@@ -351,6 +351,9 @@ class ProtocolBase(object):
         if string is None:
             return None
 
+        if string == '' and class_.Attributes.empty_is_none:
+            return None
+
         handler = self._from_string_handlers[class_]
         return handler(class_, string, *args, **kwargs)
 
