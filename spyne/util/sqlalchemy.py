@@ -418,6 +418,7 @@ class PGFileJson(PGObjectJson):
                                      ".data .handle and .path are None.")
 
                 value.store = self.store
+                value.abspath = join(self.store, value.path)
 
                 retval = get_object_as_json(value, self.cls,
                         ignore_wrappers=self.ignore_wrappers,
@@ -443,6 +444,7 @@ class PGFileJson(PGObjectJson):
                 retval.handle = open(path, 'rb')
                 retval.data = [mmap(retval.handle.fileno(), 0, access=ACCESS_READ)]
                 retval.store = self.store
+                retval.abspath = path
 
             return retval
 
