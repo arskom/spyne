@@ -27,11 +27,13 @@ import unittest
 from lxml import etree
 import pytz
 
+from spyne import MethodContext
 from spyne.application import Application
 from spyne.decorator import rpc
 from spyne.interface.wsdl import Wsdl11
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
+from spyne.model.primitive import Unicode
 from spyne.model.primitive import DateTime, Date
 from spyne.model.primitive import Float
 from spyne.model.primitive import Integer
@@ -39,6 +41,7 @@ from spyne.model.primitive import String
 from spyne.model.fault import Fault
 from spyne.protocol.soap import Soap11
 from spyne.service import ServiceBase
+from spyne.server import ServerBase
 
 from spyne.protocol.soap import _from_soap
 from spyne.protocol.soap import _parse_xml_string
@@ -360,6 +363,71 @@ class TestSoap(unittest.TestCase):
 
         ret = Soap11().from_element(None, Fault, element[0][0])
         assert ret.faultcode == "soap:Client"
+
+
+# TestSoapHeader supporting classes.
+# SOAP Header Elements defined by WS-Addressing.
+
+NAMESPACE_ADDRESSING = 'http://www.w3.org/2005/08/addressing'
+
+class Action (Unicode):
+    __type_name__ = "Action"
+    __namespace__ = NAMESPACE_ADDRESSING
+
+class MessageID (Unicode):
+    __type_name__ = "MessageID"
+    __namespace__ = NAMESPACE_ADDRESSING
+
+class RelatesTo (Unicode):
+    __type_name__ = "RelatesTo"
+    __namespace__ = NAMESPACE_ADDRESSING
+
+class SOAPServiceWithHeader(ServiceBase):
+    @rpc(Unicode,
+        _in_header=(Action,
+                    MessageID,
+                    RelatesTo),
+        _out_variable_names= 'status',
+        _returns=Unicode
+        )
+    def someRequest(ctx, response):
+        print (response)
+        return 'OK'
+
+class TestSoapHeader(unittest.TestCase):
+
+    def setUp(self):
+        self.app = Application([SOAPServiceWithHeader],
+                               'tns',
+                               in_protocol=Soap11(),
+                               out_protocol=Soap11())
+
+    def test_soap_input_header(self):
+        server = ServerBase(self.app)
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = [
+            '<senv:Envelope xmlns:tns="tns"'
+                'xmlns:wsa="http://www.w3.org/2005/08/addressing"'
+                'xmlns:senv="http://schemas.xmlsoap.org/soap/envelope/">'
+                '<senv:Header>'
+                    '<wsa:Action>/SomeAction</wsa:Action>'
+                    '<wsa:MessageID>SomeMessageID</wsa:MessageID>'
+                    '<wsa:RelatesTo>SomeRelatesToID</wsa:RelatesTo>'
+                '</senv:Header>'
+                '<senv:Body>'
+                    '<tns:someRequest>'
+                        '<tns:status>OK</tns:status>'
+                    '</tns:someRequest>'
+                '</senv:Body>'
+                '</senv:Envelope>'
+        ]
+
+        ctx, = server.generate_contexts(initial_ctx)
+        server.get_in_object(ctx)
+
+        self.assertEquals(ctx.in_header[0], '/SomeAction')
+        self.assertEquals(ctx.in_header[1], 'SomeMessageID')
+        self.assertEquals(ctx.in_header[2], 'SomeRelatesToID')
 
 
 if __name__ == '__main__':
