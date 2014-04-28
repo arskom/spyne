@@ -24,6 +24,7 @@ import pytz
 import uuid
 import errno
 
+from os.path import isabs, join
 from collections import deque
 from datetime import timedelta, time, datetime, date
 from math import modf
@@ -713,7 +714,10 @@ class ProtocolBase(object):
                          "persistent storage first if you want to read it back."
 
                 try:
-                    f = open(value.path, 'rb')
+                    path = value.path
+                    if not isabs(value.path):
+                        path = join(value.store, value.path)
+                    f = open(path, 'rb')
                 except IOError as e:
                     if e.errno == errno.ENOENT:
                         raise ResourceNotFoundError(value.path)

@@ -417,6 +417,8 @@ class PGFileJson(PGObjectJson):
                     raise ValueError("Invalid file object passed in. All of "
                                      ".data .handle and .path are None.")
 
+                value.store = self.store
+
                 retval = get_object_as_json(value, self.cls,
                         ignore_wrappers=self.ignore_wrappers,
                         complex_as=self.complex_as,
@@ -440,7 +442,7 @@ class PGFileJson(PGObjectJson):
                 path = join(self.store, retval.path)
                 retval.handle = open(path, 'rb')
                 retval.data = [mmap(retval.handle.fileno(), 0, access=ACCESS_READ)]
-                retval.path = path
+                retval.store = self.store
 
             return retval
 
