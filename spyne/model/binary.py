@@ -246,10 +246,11 @@ class File(SimpleModel):
                            "if you want to read it back."
         f = open(value.path, 'rb')
 
-        data = f.read(0x4000) # this needs to be a multiple of 4 (for base64)
+        # base64 encodes every 3 bytes to 4 base64 characters
+        data = f.read(0x4001) # so this needs to be a multiple of 3
         while len(data) > 0:
             yield base64.b64encode(data)
-            data = f.read(0x4000)
+            data = f.read(0x4001)
 
         f.close()
 
