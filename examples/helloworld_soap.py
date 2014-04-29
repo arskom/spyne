@@ -30,7 +30,7 @@
 #
 
 
-'''
+"""
 This is a simple HelloWorld example to show the basics of writing
 a webservice using spyne, starting a server, and creating a service
 client.
@@ -49,7 +49,7 @@ Here's how to call it using suds:
       "Hello, punk",
  }
 >>>
-'''
+"""
 
 
 import logging
