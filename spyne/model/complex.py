@@ -297,16 +297,12 @@ class _MethodsDict(dict):
             d.parent_class = cls
 
             if d.in_message_name_override:
-                print d.in_message.__type_name__, "=>",
                 d.in_message.__type_name__ = '%s.%s' % \
                           (cls.get_type_name(), d.in_message.get_type_name())
-                print d.in_message.__type_name__
 
             if d.body_style is BODY_STYLE_WRAPPED or d.out_message_name_override:
-                print d.out_message.__type_name__, "=>",
                 d.out_message.__type_name__ = '%s.%s' % \
                           (cls.get_type_name(), d.out_message.get_type_name())
-                print d.out_message.__type_name__
 
             if d.body_style in (BODY_STYLE_BARE, BODY_STYLE_EMPTY):
                 # The method only needs the primary key(s) and shouldn't
