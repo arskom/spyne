@@ -210,6 +210,7 @@ class File(SimpleModel):
             self.type = type
             self.data = data
             self.handle = handle
+            self.abspath = abspath(path)
 
         def rollover(self):
             """This method normalizes the file object by making ``path``,
