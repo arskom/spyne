@@ -40,7 +40,7 @@ from spyne.util import six
 import sqlalchemy
 
 from os import fstat
-from os.path import join, isabs, abspath, dirname, basename
+from os.path import join, isabs, abspath, dirname, basename, isfile
 from uuid import uuid1
 from inspect import isclass
 
@@ -409,11 +409,16 @@ class PGFileJson(PGObjectJson):
 
                 elif value.path is not None:
                     in_file_path = value.path
+
+                    if not isfile(in_file_path):
+                        logger.error("File path in %r not found" % value)
+
                     if dirname(abspath(in_file_path)) != self.store:
                         dest = join(self.store, uuid1().get_hex())
 
                         if value.move:
                             shutil.move(in_file_path, dest)
+                            print "move", in_file_path, dest
                         else:
                             shutil.copy(in_file_path, dest)
 
