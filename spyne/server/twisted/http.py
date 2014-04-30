@@ -181,8 +181,9 @@ _FileInfo = namedtuple("_FileInfo", "field_name file_name file_type "
 def _get_file_name(instr):
     """We need this huge hack because twisted doesn't offer a way to get file
     name from Content-Disposition header. This works only when there's just one
-    file -- it won't get the names of the subsequent files even though that's a
-    perfectly valid request.
+    file because we want to avoid scanning the whole stream. So this won't get
+    the names of the subsequent files even though that's a perfectly valid
+    request.
     """
 
     field_name = file_name = file_type = content_idx = None
@@ -398,7 +399,7 @@ def _init_push(ret, request, p_ctx, others, resource):
     gen = resource.http_transport.get_out_string_push(p_ctx)
 
     assert isgenerator(gen), "It looks like this protocol is not " \
-                             "async-compliant. Yet."
+                             "async-compliant yet."
 
     def _cb_push_finish():
         p_ctx.out_stream.finish()
