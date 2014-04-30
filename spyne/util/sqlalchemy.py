@@ -39,6 +39,7 @@ except ImportError:
 from spyne.util import six
 import sqlalchemy
 
+from os import fstat
 from os.path import join, isabs, abspath, dirname, basename
 from uuid import uuid1
 from inspect import isclass
@@ -448,7 +449,10 @@ class PGFileJson(PGObjectJson):
 
                 path = join(self.store, retval.path)
                 retval.handle = open(path, 'rb')
-                retval.data = [mmap(retval.handle.fileno(), 0, access=ACCESS_READ)]
+                if fstat(retval.handle.fileno()).st_size > 0:
+                    retval.data = [mmap(retval.handle.fileno(), 0, access=ACCESS_READ)]
+                else:
+                    retval.data = ['']
                 retval.store = self.store
                 retval.abspath = path
 
