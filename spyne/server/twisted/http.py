@@ -236,20 +236,27 @@ class TwistedWebResource(Resource):
     """
 
     def __init__(self, app, chunked=False, max_content_length=2 * 1024 * 1024,
-                                           block_length=8 * 1024):
+                                           block_length=8 * 1024, prepath=None):
         Resource.__init__(self)
 
         self.http_transport = TwistedHttpTransport(app, chunked,
                                             max_content_length, block_length)
         self._wsdl = None
+        self.prepath = prepath
 
     def getChildWithDefault(self, path, request):
         # this hack is necessary because twisted takes the slash character in
         # http requests too seriously. i.e. it insists that a leaf node can only
         # handle the last path fragment.
-        if not hasattr(request, 'realprepath'):
-            request.realprepath = '/' + '/'.join(request.prepath[:-1])
-            request.realpostpath = request.path[len(request.realprepath):]
+        if self.prepath is None:
+            request.realprepath = '/' + '/'.join(request.prepath)
+        else:
+            if not self.prepath.startswith('/'):
+                request.realprepath = '/' + self.prepath
+            else:
+                request.realprepath = self.prepath
+
+        request.realpostpath = request.path[len(request.realprepath):]
 
         if path in self.children:
             retval = self.children[path]
