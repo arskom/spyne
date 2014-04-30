@@ -27,6 +27,8 @@ from __future__ import absolute_import
 import logging
 logger = logging.getLogger(__name__)
 
+import shutil
+
 from mmap import mmap, ACCESS_READ
 
 try:
@@ -37,7 +39,7 @@ except ImportError:
 from spyne.util import six
 import sqlalchemy
 
-from os.path import join, isabs
+from os.path import join, isabs, abspath, dirname, basename
 from uuid import uuid1
 from inspect import isclass
 
@@ -406,12 +408,16 @@ class PGFileJson(PGObjectJson):
 
                 elif value.path is not None:
                     in_file_path = value.path
-                    with open(in_file_path, 'rb') as in_file:
-                        value.path = uuid1().get_hex()
-                        fp = join(self.store, value.path)
-                        data = mmap(in_file.fileno(), 0, access=ACCESS_READ) # 0 = whole file
-                        with open(fp, 'wb') as out_file:
-                            out_file.write(data)
+                    if dirname(abspath(in_file_path)) != self.store:
+                        dest = join(self.store, uuid1().get_hex())
+
+                        if value.move:
+                            shutil.move(in_file_path, dest)
+                        else:
+                            shutil.copy(in_file_path, dest)
+
+                        value.path = basename(dest)
+                        value.abspath = dest
 
                 else:
                     raise ValueError("Invalid file object passed in. All of "

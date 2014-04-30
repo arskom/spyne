@@ -200,17 +200,22 @@ class File(SimpleModel):
         ]
 
         def __init__(self, name=None, path=None, type='application/octet-stream',
-                                                        data=None, handle=None):
+                                            data=None, handle=None, move=False):
 
             self.name = name
             if self.name is not None:
-                assert os.path.basename(self.name) == self.name
+                if not os.path.basename(self.name) == self.name:
+                    raise ValidationError(self.name,
+                                 "File name %r should not contain any '/' char")
 
             self.path = path
             self.type = type
             self.data = data
             self.handle = handle
-            self.abspath = abspath(path)
+            self.move = move
+            self.abspath = None
+            if self.path is not None:
+                self.abspath = abspath(self.path)
 
         def rollover(self):
             """This method normalizes the file object by making ``path``,
