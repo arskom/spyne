@@ -217,47 +217,47 @@ class HtmlColumnTable(HtmlTableBase):
 
     @coroutine
     def _gen_table(self, ctx, cls, inst, parent, name, gen_rows, **kwargs):
-      attrs = {}
-      if self.table_name_attr is not None:
-        attrs[self.table_name_attr] = cls.get_type_name()
+        attrs = {}
+        if self.table_name_attr is not None:
+            attrs[self.table_name_attr] = cls.get_type_name()
 
-      with parent.element('body'):
-        parent.write(E.style("""
-            td,th {
-                border-left: 1px solid #ccc;
-                border-right: 1px solid #ccc;
-                border-bottom: 1px solid;
-                margin: 0;
-            }""", type="text/css"))
+        with parent.element('body'):
+            parent.write(E.style("""
+                td,th {
+                    border-left: 1px solid #ccc;
+                    border-right: 1px solid #ccc;
+                    border-bottom: 1px solid;
+                    margin: 0;
+                }""", type="text/css"))
+    
+            with parent.element('table', attrs):
+                if self.produce_header:
+                    self._gen_header(ctx, cls, name, parent)
 
-        with parent.element('table', attrs):
-            if self.produce_header:
-                self._gen_header(ctx, cls, name, parent)
-
-            with parent.element('tbody'):
-                ret = gen_rows(ctx, cls, inst, parent, name, **kwargs)
-                if isgenerator(ret):
-                    try:
-                        while True:
-                            sv2 = (yield)
-                            ret.send(sv2)
-                    except Break as b:
+                with parent.element('tbody'):
+                    ret = gen_rows(ctx, cls, inst, parent, name, **kwargs)
+                    if isgenerator(ret):
                         try:
-                            ret.throw(b)
-                        except StopIteration:
-                            pass
+                            while True:
+                                sv2 = (yield)
+                                ret.send(sv2)
+                        except Break as b:
+                            try:
+                                ret.throw(b)
+                            except StopIteration:
+                                pass
 
-                ret = self.extend_table(ctx, cls, parent, name, **kwargs)
-                if isgenerator(ret):
-                    try:
-                        while True:
-                            sv2 = (yield)
-                            ret.send(sv2)
-                    except Break as b:
+                    ret = self.extend_table(ctx, cls, parent, name, **kwargs)
+                    if isgenerator(ret):
                         try:
-                            ret.throw(b)
-                        except StopIteration:
-                            pass
+                            while True:
+                                sv2 = (yield)
+                                ret.send(sv2)
+                        except Break as b:
+                            try:
+                                ret.throw(b)
+                            except StopIteration:
+                                pass
 
     def complex_model_to_parent(self, ctx, cls, inst, parent, name,
                                                       from_arr=False, **kwargs):
