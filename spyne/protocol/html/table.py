@@ -308,7 +308,8 @@ class HtmlRowTable(HtmlTableBase):
             parent.write(self.to_string(cls, inst))
 
     @coroutine
-    def complex_model_to_parent(self, ctx, cls, inst, parent, name, from_arr=False, **kwargs):
+    def complex_model_to_parent(self, ctx, cls, inst, parent, name,
+                                                      from_arr=False, **kwargs):
         attrs = {}
         if self.table_name_attr is not None:
             attrs[self.table_name_attr] = cls.get_type_name()
