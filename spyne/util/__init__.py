@@ -105,6 +105,7 @@ class Break(Exception):
 
 def coroutine(func):
     assert isgeneratorfunction(func)
+
     def start(*args, **kwargs):
         ret = func(*args, **kwargs)
 
@@ -116,7 +117,6 @@ def coroutine(func):
 
         except Exception as e:
             logger.exception(e)
-            raise
 
         return ret
 

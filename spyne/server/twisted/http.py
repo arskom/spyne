@@ -413,7 +413,6 @@ def _init_push(ret, request, p_ctx, others, resource):
         process_contexts(resource.http_transport, others, p_ctx)
 
     retval = ret.init(p_ctx, request, gen, _cb_push_finish, None)
-    """:type : Deferred"""
 
     if isinstance(retval, Deferred):
         def _eb_push_close(f):
