@@ -66,6 +66,7 @@ except ImportError as e:
     def apply_mtom(*args, **kwargs):
         raise e
 
+
 def _parse_qs(qs):
     pairs = (s2 for s1 in qs.split('&') for s2 in s1.split(';'))
     retval = odict()
