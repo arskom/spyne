@@ -122,9 +122,9 @@ class ToClothMixin(ProtocolBase):
                 logger.warning("elt id %r not in %r", k, cls)
                 continue
 
-            # if cls is an array, inst should be a sequence type (eg list), so
-            # there's no point in doing a getattr -- we will unwrap it and
-            # serialize it in the next round of to_cloth call.
+            # if cls is an array, inst should already be a sequence type
+            # (eg list), so there's no point in doing a getattr -- we will
+            # unwrap it and serialize it in the next round of to_cloth call.
             if issubclass(cls, Array):
                 val = inst
             else:
