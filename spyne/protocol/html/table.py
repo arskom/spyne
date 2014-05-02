@@ -142,6 +142,8 @@ class HtmlColumnTable(HtmlTableBase):
 
     @coroutine
     def _gen_row(self, ctx, cls, inst, parent, name, array_index=None, **kwargs):
+        print "ROWWW"
+
         with parent.element('tr'):
             for k, v in cls.get_flat_type_info(cls).items():
                 # FIXME: To be fixed to work with prot_attrs and renamed to exc
