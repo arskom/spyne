@@ -120,8 +120,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
             name = result_message_class.get_type_name()
             if ctx.descriptor.body_style == BODY_STYLE_WRAPPED:
                 if self.ignore_wrappers:
-                    ctx.out_object = ctx.out_object[0]
-                    result_message = ctx.out_object
+                    result_message = ctx.out_object[0]
                     while result_message_class.Attributes._wrapper and \
                                       len(result_message_class._type_info) == 1:
                         result_message_class, = \

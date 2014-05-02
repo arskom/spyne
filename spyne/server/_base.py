@@ -117,8 +117,9 @@ class ServerBase(object):
         if ctx.out_document is None:
             ret = ctx.out_protocol.serialize(ctx, message=ProtocolBase.RESPONSE)
             if isgenerator(ret):
-                oobj = ctx.out_object
-                assert isinstance(oobj, PushBase)
+                oobj, = ctx.out_object
+                assert isinstance(oobj, PushBase), \
+                                          "%r is not a PushBase instance" % oobj
                 self.run_push(oobj, ctx, [], ret)
                 oobj.close()
 
