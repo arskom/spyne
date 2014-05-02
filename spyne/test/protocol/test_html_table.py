@@ -212,8 +212,9 @@ class TestHtmlRowTable(unittest.TestCase):
             def some_call(ccm):
                 return ccm
 
-        app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
-                 out_protocol=HtmlRowTable(field_name_attr='class'))
+        app = Application([SomeService], 'tns',
+                          in_protocol=HttpRpc(hier_delim="_"),
+                          out_protocol=HtmlRowTable(field_name_attr='class'))
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app_kwargs(server, 'some_call',
