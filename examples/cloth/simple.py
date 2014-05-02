@@ -46,7 +46,7 @@ from spyne.model.complex import Iterable
 from spyne.model.primitive import UnsignedInteger
 from spyne.model.primitive import String
 from spyne.server.wsgi import WsgiApplication
-from lxml.builder import E
+
 
 class HelloWorldService(ServiceBase):
     @rpc(String, UnsignedInteger, _returns=Iterable(String))
@@ -54,10 +54,11 @@ class HelloWorldService(ServiceBase):
         def cb(ret):
             for i in range(times):
                 ret.append('Hello, %s' % name)
+
         return Iterable.Push(cb)
 
 if __name__=='__main__':
-    from wsgiref.simple_server import make_server
+    from lxml.builder import E
     logging.basicConfig(level=logging.DEBUG)
 
     cloth = E.html(E.body(
@@ -79,6 +80,7 @@ if __name__=='__main__':
 
     wsgi_application = WsgiApplication(application)
 
+    from wsgiref.simple_server import make_server
     server = make_server('127.0.0.1', 8000, wsgi_application)
 
     logging.info("listening to http://127.0.0.1:8000")

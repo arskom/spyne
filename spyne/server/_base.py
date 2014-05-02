@@ -30,7 +30,6 @@ from spyne.model import PushBase
 from spyne.protocol import ProtocolBase
 from spyne.util import Break
 from spyne.util import coroutine
-from spyne.util.six import StringIO
 
 
 class ServerBase(object):
@@ -145,6 +144,7 @@ class ServerBase(object):
             ctx.out_string = [""]
 
 
+    # for backwards compatibility
     get_out_string = get_out_string_pull
 
     @coroutine
