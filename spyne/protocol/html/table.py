@@ -110,6 +110,9 @@ class HtmlTableBase(XmlCloth):
     def model_base_to_parent(self, ctx, cls, inst, parent, name,  **kwargs):
         parent.write(self.to_string(cls, inst))
 
+    def null_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
+        pass
+
 class HtmlColumnTable(HtmlTableBase):
     def __init__(self, *args, **kwargs):
         super(HtmlColumnTable, self).__init__(*args, **kwargs)
