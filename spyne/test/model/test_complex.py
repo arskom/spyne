@@ -431,8 +431,8 @@ class TestFlatDict(unittest.TestCase):
 
         assert d['i'] == 5
         assert d['s'] == 'a'
-        assert d['c_i'] == 7
-        assert d['c_s'] == 'b'
+        assert d['c.i'] == 7
+        assert d['c.s'] == 'b'
 
         assert len(d) == 4
 
@@ -449,10 +449,10 @@ class TestFlatDict(unittest.TestCase):
         d = SimpleDictDocument().object_to_simple_dict(CCM, val)
         print(d)
 
-        assert d['c[0]_i'] == 0
-        assert d['c[0]_s'] == 'b'
-        assert d['c[1]_i'] == 1
-        assert d['c[1]_s'] == 'bb'
+        assert d['c[0].i'] == 0
+        assert d['c[0].s'] == 'b'
+        assert d['c[1].i'] == 1
+        assert d['c[1].s'] == 'bb'
 
         assert len(d) == 4
 
@@ -483,8 +483,8 @@ class TestFlatDict(unittest.TestCase):
         d = SimpleDictDocument().object_to_simple_dict(CCM, val)
         pprint(d)
 
-        assert d['c[0]_i'] == [0,1]
-        assert d['c[1]_i'] == [0,1,2]
+        assert d['c[0].i'] == [0,1]
+        assert d['c[1].i'] == [0,1,2]
 
         assert len(d) == 2
 
