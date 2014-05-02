@@ -68,7 +68,7 @@ from spyne.server.http import HttpBase
 from spyne.server.http import HttpMethodContext
 from spyne.server.http import HttpTransportContext
 from spyne.server.twisted._base import Producer
-from spyne.util.six import text_type
+from spyne.util.six import text_type, string_types
 from spyne.util.six.moves.urllib.parse import unquote
 
 
@@ -160,7 +160,7 @@ class TwistedHttpTransport(HttpBase):
         for k,v in ctx.in_body_doc.items():
             l = []
             for v2 in v:
-                if isinstance(v2, basestring):
+                if isinstance(v2, string_types):
                     l.append(unquote(v2))
                 else:
                     l.append(v2)

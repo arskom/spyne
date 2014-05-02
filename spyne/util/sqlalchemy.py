@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 import shutil
 
 from mmap import mmap, ACCESS_READ
+from spyne.util.six import string_types
 
 try:
     import simplejson as json
@@ -277,7 +278,7 @@ class PGHtml(UserDefinedType):
 
     def bind_processor(self, dialect):
         def process(value):
-            if isinstance(value, basestring) or value is None:
+            if isinstance(value, string_types) or value is None:
                 return value
             else:
                 return html.tostring(value, pretty_print=self.pretty_print,
@@ -310,7 +311,7 @@ class PGJson(UserDefinedType):
 
     def result_processor(self, dialect, col_type):
         def process(value):
-            if isinstance(value, basestring):
+            if isinstance(value, string_types):
                 return json.loads(value)
             else:
                 return value

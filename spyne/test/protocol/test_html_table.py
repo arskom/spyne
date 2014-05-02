@@ -255,6 +255,7 @@ class TestHtmlRowTable(unittest.TestCase):
         </table>
         """
 
+        print html.tostring(elt, pretty_print=True)
         resp = elt.find_class('CCM')
         assert len(resp) == 1
 

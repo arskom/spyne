@@ -39,6 +39,7 @@ from spyne.error import ResourceNotFoundError
 from spyne.model.binary import BINARY_ENCODING_URLSAFE_BASE64, File
 from spyne.model.primitive import DateTime
 from spyne.protocol.dictdoc import SimpleDictDocument
+from spyne.util.six import string_types
 
 
 try:
@@ -233,7 +234,7 @@ class HttpRpc(SimpleDictDocument):
                     ctx.out_document = self.to_string_iterable(out_class,
                                                                     out_object)
                     if issubclass(out_class, File) and not \
-                             isinstance(out_object, (list, tuple, basestring)) \
+                           isinstance(out_object, (list, tuple, string_types)) \
                                                 and out_object.type is not None:
                         ctx.transport.set_mime_type(str(out_object.type))
 

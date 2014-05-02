@@ -26,12 +26,11 @@ from lxml import html
 from lxml.builder import E
 
 from spyne import BODY_STYLE_WRAPPED
-from spyne.model import ComplexModelBase
 from spyne.util import Break, coroutine
 
 from spyne.protocol.cloth.to_parent import ToParentMixin
 from spyne.protocol.cloth.to_cloth import ToClothMixin
-from spyne.util.six import StringIO
+from spyne.util.six import StringIO, string_types
 
 
 class XmlCloth(ToParentMixin, ToClothMixin):
@@ -51,7 +50,7 @@ class XmlCloth(ToParentMixin, ToClothMixin):
 
         self._mrpc_cloth = self._root_cloth = None
         self._cloth = cloth
-        if isinstance(self._cloth, basestring):
+        if isinstance(self._cloth, string_types):
             if cloth_parser is None:
                 cloth_parser = etree.XMLParser(remove_comments=True)
             self._cloth = html.parse(cloth, parser=cloth_parser)

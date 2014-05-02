@@ -34,6 +34,9 @@ from spyne.util.etreeconv import dict_to_etree
 
 
 # FIXME: Serialize xml attributes!!!
+from spyne.util.six import string_types
+
+
 class ToParentMixin(ProtocolBase):
     def __init__(self, app=None, validator=None, mime_type=None,
                                      ignore_uncap=False, ignore_wrappers=False):
@@ -213,7 +216,7 @@ class ToParentMixin(ProtocolBase):
     def base_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         parent.write(E(name, self.to_string(cls, inst)))
 
-    def null_to_parent(self, ctx, cls, inst, parent, ns, name, **kwargs):
+    def null_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         parent.write(E(name, **{'{%s}nil' % NS_XSI: 'true'}))
 
     @coroutine
@@ -351,7 +354,7 @@ class ToParentMixin(ProtocolBase):
         self.base_to_parent(ctx, cls, str(inst), parent, ns, name)
 
     def xml_to_parent(self, ctx, cls, inst, parent, ns, name):
-        if isinstance(inst, basestring):
+        if isinstance(inst, string_types):
             inst = etree.fromstring(inst)
 
         parent.write(inst)

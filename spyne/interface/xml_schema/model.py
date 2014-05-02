@@ -41,6 +41,7 @@ _prot = XmlDocument()
 
 from spyne.util import memoize
 from spyne.util.etreeconv import dict_to_etree
+from spyne.util.six import string_types
 
 
 def xml_attribute_add(cls, name, element, document):
@@ -141,7 +142,7 @@ def complex_add(document, cls, tags):
     choice_tags = defaultdict(lambda: etree.Element('{%s}choice' % _ns_xsd))
 
     for k, v in type_info.items():
-        assert isinstance(k, basestring)
+        assert isinstance(k, string_types)
         assert issubclass(v, ModelBase)
 
         a = v.Attributes

@@ -50,7 +50,7 @@ from spyne.util import memoize_id
 from spyne.util import sanitize_args
 from spyne.util.meta import Prepareable
 from spyne.util.odict import odict
-from spyne.util.six import add_metaclass, with_metaclass
+from spyne.util.six import add_metaclass, with_metaclass, string_types
 
 
 PSSM_VALUES = {'json': json, 'xml': xml, 'msgpack': msgpack, 'table': table}
@@ -69,7 +69,7 @@ class TypeInfo(odict):
         self.attributes = {}
 
     def __setitem__(self, key, val):
-        assert isinstance(key, basestring)
+        assert isinstance(key, string_types)
         super(TypeInfo, self).__setitem__(key, val)
 
 
@@ -936,7 +936,7 @@ class ComplexModelBase(ModelBase):
 
     @classmethod
     def append_field(cls, field_name, field_type):
-        assert isinstance(field_name, basestring)
+        assert isinstance(field_name, string_types)
 
         dca = cls.Attributes._delayed_child_attrs
         if dca is not None:
@@ -954,7 +954,7 @@ class ComplexModelBase(ModelBase):
     @classmethod
     def insert_field(cls, index, field_name, field_type):
         assert isinstance(index, int)
-        assert isinstance(field_name, basestring)
+        assert isinstance(field_name, string_types)
 
         dca = cls.Attributes._delayed_child_attrs
         if dca is not None:
@@ -1061,7 +1061,7 @@ class Array(ComplexModelBase):
         if serializer.Attributes.max_occurs == 1:
             serializer = serializer.customize(max_occurs=decimal.Decimal('inf'))
 
-        assert isinstance(member_name, basestring), member_name
+        assert isinstance(member_name, string_types), member_name
         cls._type_info = {member_name: serializer}
 
     # the array belongs to its child's namespace, it doesn't have its own
