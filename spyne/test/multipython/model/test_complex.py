@@ -33,7 +33,6 @@ class DeclareOrder_declare(ComplexModel.customize(declare_order='declared')):
 
 
 class MyComplexModelMeta(ComplexModelMeta):
-
     """Customer complex model metaclass."""
 
     def __new__(mcs, name, bases, attrs):
@@ -46,12 +45,10 @@ class MyComplexModelMeta(ComplexModelMeta):
 
 @add_metaclass(MyComplexModelMeta)
 class MyComplexModel(ComplexModelBase):
-
     """Custom complex model class."""
 
 
 class MyModelWithDeclaredOrder(MyComplexModel):
-
     """Test model for complex model with custom metaclass."""
 
     field3 = Integer
