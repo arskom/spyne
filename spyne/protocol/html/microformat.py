@@ -29,17 +29,18 @@ from spyne.model import PushBase
 from spyne.model import ImageUri
 from spyne.model import AnyUri
 from spyne.model.binary import Attachment
-from spyne.protocol.html import HtmlBase
+from spyne.protocol.cloth import XmlCloth
 from spyne.util import coroutine, Break
 from spyne.util.cdict import cdict
 
 
-class HtmlMicroFormat(HtmlBase):
-    def __init__(self, app=None, validator=None,
-                    ignore_uncap=False, ignore_wrappers=False,
+class HtmlMicroFormat(XmlCloth):
+    def __init__(self, app=None, ignore_uncap=False, ignore_wrappers=False,
+                       cloth=None, attr_name='spyne_id', root_attr_name='spyne',
+                                                              cloth_parser=None,
                     root_tag='div', child_tag='div', field_name_attr='class',
                     field_name_tag=None, field_name_class='field_name'):
-        """Protocol that returns the response object as a html microformat. See
+        """Protocol that returns the response object as a cloth microformat. See
         https://en.wikipedia.org/wiki/Microformats for more info.
 
         The simple flavour is like the XmlDocument protocol, but returns data in
@@ -55,8 +56,10 @@ class HtmlMicroFormat(HtmlBase):
             field names of the complex object children.
         """
 
-        super(HtmlMicroFormat, self).__init__(app, validator, mime_type=None,
-                      ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers)
+        super(HtmlMicroFormat, self).__init__(app=app,
+                     ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
+                cloth=cloth, attr_name=attr_name, root_attr_name=root_attr_name,
+                                                      cloth_parser=cloth_parser)
 
         assert root_tag in ('div', 'span')
         assert child_tag in ('div', 'span')
@@ -157,4 +160,4 @@ class HtmlMicroFormat(HtmlBase):
         return [ E(self.child_tag, **{self.field_name_attr: name}) ]
 
 # yuck.
-HtmlBase.HtmlMicroFormat = HtmlMicroFormat
+XmlCloth.HtmlMicroFormat = HtmlMicroFormat
