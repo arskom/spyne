@@ -117,10 +117,15 @@ class ServerBase(object):
             ret = ctx.out_protocol.serialize(ctx, message=ProtocolBase.RESPONSE)
             if isgenerator(ret):
                 oobj, = ctx.out_object
-                assert isinstance(oobj, PushBase), \
+                if oobj is None:
+                    ret.throw(Break())
+
+                else:
+                    assert isinstance(oobj, PushBase), \
                                           "%r is not a PushBase instance" % oobj
-                self.run_push(oobj, ctx, [], ret)
-                oobj.close()
+
+                    self.run_push(oobj, ctx, [], ret)
+                    oobj.close()
 
         if ctx.service_class != None:
             if ctx.out_error is None:

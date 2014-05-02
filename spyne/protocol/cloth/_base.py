@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 from inspect import isgenerator
 from lxml import etree
 from lxml import html
+from lxml.etree import LxmlSyntaxError
 from lxml.builder import E
 
 from spyne import BODY_STYLE_WRAPPED
@@ -152,19 +153,25 @@ class XmlCloth(ToParentMixin, ToClothMixin):
         if name is None:
             name = cls.get_type_name()
 
-        with etree.xmlfile(ctx.out_stream) as xf:
-            ret = self.subserialize(ctx, cls, inst, xf, name)
-            if isgenerator(ret): # Poor man's yield from
-                try:
-                    while True:
-                        sv2 = (yield)
-                        ret.send(sv2)
-
-                except Break as b:
+        try:
+            with etree.xmlfile(ctx.out_stream) as xf:
+                ret = self.subserialize(ctx, cls, inst, xf, name)
+                if isgenerator(ret): # Poor man's yield from
                     try:
-                        ret.throw(b)
-                    except StopIteration:
-                        pass
+                        while True:
+                            sv2 = (yield)
+                            ret.send(sv2)
+
+                    except Break as b:
+                        try:
+                            ret.throw(b)
+                        except StopIteration:
+                            pass
+        except LxmlSyntaxError as e:
+            if e.msg == 'no content written':
+                pass
+            else:
+                raise
 
     def subserialize(self, ctx, cls, inst, parent, name=None, **kwargs):
         if name is None:
