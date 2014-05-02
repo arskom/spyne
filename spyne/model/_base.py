@@ -537,7 +537,7 @@ class PushBase(object):
     def close(self):
         try:
             self.gen.throw(Break())
-        except Break:
+        except (Break, StopIteration, GeneratorExit):
             pass
         self._cb_finish()
 

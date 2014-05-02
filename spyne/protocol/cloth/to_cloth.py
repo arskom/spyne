@@ -272,9 +272,13 @@ class ToClothMixin(ProtocolBase):
         self._close_template(ctx, parent)
 
     @coroutine
-    def to_root_cloth(self, ctx, cls, inst, template, parent, name=None):
-        self._enter_cloth(ctx, template, parent)
+    def to_root_cloth(self, ctx, cls, inst, cloth, parent, name=None):
+        ctx.protocol.stack = deque()
+        ctx.protocol.tags = set()
+
+        self._enter_cloth(ctx, cloth, parent)
         ret = self.to_parent(ctx, cls, inst, parent, name)
+
         if isgenerator(ret):
             try:
                 while True:
@@ -283,7 +287,5 @@ class ToClothMixin(ProtocolBase):
             except Break as e:
                 try:
                     ret.throw(e)
-                except StopIteration:
-                    pass
-        self._close_template(ctx, parent)
-
+                except (Break, StopIteration, GeneratorExit):
+                    self._close_template(ctx, parent)
