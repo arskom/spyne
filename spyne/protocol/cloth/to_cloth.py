@@ -17,15 +17,13 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
 
-from inspect import isgenerator
-
 import logging
-from spyne.util import Break, coroutine
-
 logger = logging.getLogger(__name__)
 
 from collections import deque
+from inspect import isgenerator
 
+from spyne.util import Break, coroutine
 from spyne.model import Array, AnyXml, AnyHtml, ModelBase, ComplexModelBase, \
     PushBase
 from spyne.protocol import ProtocolBase

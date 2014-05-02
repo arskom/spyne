@@ -28,6 +28,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 import shutil
+import sqlalchemy
 
 from mmap import mmap, ACCESS_READ
 from spyne.util.six import string_types
@@ -38,7 +39,6 @@ except ImportError:
     import json
 
 from spyne.util import six
-import sqlalchemy
 
 from os import fstat
 from os.path import join, isabs, abspath, dirname, basename, isfile
