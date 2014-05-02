@@ -32,7 +32,6 @@ from spyne.model.primitive import AnyUri
 from spyne.model.complex import Array
 from spyne.model.complex import ComplexModel
 from spyne.protocol.http import HttpRpc
-from spyne.protocol.html import HtmlTable
 from spyne.protocol.html.table import HtmlColumnTable, HtmlRowTable
 from spyne.service import ServiceBase
 from spyne.server.wsgi import WsgiApplication
@@ -291,7 +290,7 @@ class TestHtmlRowTable(unittest.TestCase):
                 return s
 
         app = Application([SomeService], 'tns', in_protocol=HttpRpc(),
-                out_protocol=HtmlTable(fields_as='rows', produce_header=False))
+                out_protocol=HtmlRowTable(produce_header=False))
         server = WsgiApplication(app)
 
         out_string = call_wsgi_app(server, body_pairs=(('s', '1'), ('s', '2')) )
