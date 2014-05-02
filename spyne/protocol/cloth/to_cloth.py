@@ -16,6 +16,7 @@
 # License along with this library; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301
 #
+
 from inspect import isgenerator
 
 import logging
@@ -249,7 +250,7 @@ class ToClothMixin(ProtocolBase):
 
         # write the element itself
         attrib = dict([(k2, v2) for k2, v2 in template.attrib.items()
-                                                       if k2 != self.attr_name])
+                           if not (k2 in (self.attr_name,self.root_attr_name))])
 
         curtag = parent.element(template.tag, attrib)
         curtag.__enter__()
