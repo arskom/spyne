@@ -18,8 +18,6 @@
 #
 
 import logging
-from spyne.model.binary import HybridStore
-
 logging.basicConfig(level=logging.DEBUG)
 
 import unittest
@@ -44,6 +42,7 @@ from spyne.model import Integer
 from spyne.model import Enum
 from spyne.model import TTableModel
 
+from spyne.model.binary import HybridFileStore
 from spyne.model.complex import xml
 from spyne.model.complex import table
 
@@ -665,7 +664,7 @@ class TestSqlAlchemySchema(unittest.TestCase):
             __tablename__ = "c"
 
             id = Integer32(pk=True)
-            f = File(store_as=HybridStore('store', 'json'))
+            f = File(store_as=HybridFileStore('store', 'json'))
 
         self.metadata.create_all()
         c = C(f=File.Value(name="name", type="type", data=["data"]))

@@ -264,13 +264,14 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False):
     if cls is None:
         cls = obj.__class__
 
-    if (issubclass(cls, Array) or cls.Attributes.max_occurs > 1) and not from_array:
+    if (issubclass(cls, Array) or cls.Attributes.max_occurs > 1) and not \
+                                                                     from_array:
         retval = []
         if issubclass(cls, Array):
             cls, = cls._type_info.values()
 
         if not cls.Attributes.logged:
-            retval.append("%s (...)" % cls.get_type_name())
+            retval.append("%s(...)" % cls.get_type_name())
 
         elif cls.Attributes.logged == 'len':
             l = '?'
@@ -280,10 +281,8 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False):
             except TypeError as e:
                 if given_len is not None:
                     l = str(given_len)
-            if issubclass(cls, ComplexModelBase):
-                retval.append("%s[%s] (...)" % (cls.get_type_name(), l))
-            else:
-                retval.append("[%s] (...)" % l)
+
+            retval.append("%s[%s] (...)" % (cls.get_type_name(), l))
 
         elif isinstance(obj, PushBase):
             retval.append('<PushData>')
@@ -310,8 +309,6 @@ def log_repr(obj, cls=None, given_len=None, parent=None, from_array=False):
             if t.Attributes.logged:
                 if v is not None:
                     retval.append("%s=%s" % (k, log_repr(v, t, parent=k)))
-            else:
-                retval.append("%s=(...)" % k)
 
         return "%s(%s)" % (cls.get_type_name(), ', '.join(retval))
 

@@ -194,7 +194,7 @@ class TestLogRepr(unittest.TestCase):
         val = Z(z=["abc"] * l, t=['t'], f=File.Value(name='aaa', data=['t']))
         print(repr(val))
         print
-        assert log_repr(val) == "Z(f=(...), t=(...), ['abc', 'abc', 'abc', 'abc', (...)])"
+        assert log_repr(val) == "Z(z=['abc', 'abc', 'abc', 'abc', (...)])"
 
 
 class TestDeserialize(unittest.TestCase):
