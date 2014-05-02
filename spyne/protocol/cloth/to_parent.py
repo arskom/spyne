@@ -53,7 +53,7 @@ class ToParentMixin(ProtocolBase):
             SchemaValidationError: self.schema_validation_error_to_parent,
         })
 
-    def to_parent(self, ctx, cls, inst, parent, name, from_arr=False, **kwargs):
+    def to_parent(self, ctx, cls, inst, parent, name, **kwargs):
         subprot = getattr(cls.Attributes, 'prot', None)
 
         if subprot is not None and not (subprot is self):
@@ -69,6 +69,7 @@ class ToParentMixin(ProtocolBase):
         if issubclass(cls, ComplexModelBase) and self.ignore_wrappers:
             cls, inst = self.strip_wrappers(cls, inst)
 
+        from_arr = kwargs.get('from_arr', False)
         if not from_arr and cls.Attributes.max_occurs > 1:
             return self.array_to_parent(ctx, cls, inst, parent, name, **kwargs)
 
