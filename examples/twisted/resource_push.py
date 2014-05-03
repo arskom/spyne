@@ -42,7 +42,7 @@ from twisted.web.server import Site
 from spyne.application import Application
 from spyne.protocol.http import HttpRpc
 
-from spyne.protocol.html import HtmlTable
+from spyne.protocol.html import HtmlColumnTable
 
 from spyne.server.twisted import TwistedWebResource
 
@@ -92,7 +92,7 @@ if __name__=='__main__':
     application = Application([HelloWorldService],
             'spyne.examples.twisted.resource_push',
             in_protocol=HttpRpc(),
-            out_protocol=HtmlTable(),
+            out_protocol=HtmlColumnTable(),
         )
 
     resource = TwistedWebResource(application)

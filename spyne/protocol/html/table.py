@@ -28,23 +28,21 @@ from spyne.model import Array
 from spyne.model import AnyUri
 from spyne.model import ImageUri
 from spyne.model.binary import Attachment
-from spyne.protocol.html import HtmlBase
+from spyne.protocol.cloth import XmlCloth
 from spyne.util import coroutine, Break
 from spyne.util.cdict import cdict
 
 
-def HtmlTable(app=None, validator=None, produce_header=True,
-                    ignore_uncap=False, ignore_wrappers=True,
-                    table_name_attr='class', field_name_attr='class', border=0,
-                        fields_as='columns', row_class=None, cell_class=None,
-                                                     header_cell_class=None):
+def HtmlTable(app=None, ignore_uncap=False, ignore_wrappers=True,
+                     produce_header=True, table_name_attr='class',
+                     field_name_attr='class', border=0, fields_as='columns',
+                     row_class=None, cell_class=None, header_cell_class=None):
     """Protocol that returns the response object as a html table.
 
     The simple flavour is like the HtmlMicroFormatprotocol, but returns data
     as a html table using the <table> tag.
 
     :param app: A spyne.application.Application instance.
-    :param validator: The validator to use. Ignored.
     :param produce_header: Boolean value to determine whether to show field
         names in the beginning of the table or not. Defaults to True. Set to
         False to skip headers.
@@ -67,33 +65,31 @@ def HtmlTable(app=None, validator=None, produce_header=True,
     """
 
     if fields_as == 'columns':
-        return HtmlColumnTable(app, validator,
-                                    ignore_uncap, ignore_wrappers,
-                                    produce_header,
-                                    table_name_attr, field_name_attr, border,
+        return HtmlColumnTable(app, ignore_uncap, ignore_wrappers,
+                    produce_header, table_name_attr, field_name_attr, border,
                                     row_class, cell_class, header_cell_class)
     elif fields_as == 'rows':
-        return HtmlRowTable(app, validator,
-                                    ignore_uncap, ignore_wrappers,
-                                    produce_header,
-                                    table_name_attr, field_name_attr, border,
+        return HtmlRowTable(app, ignore_uncap, ignore_wrappers,
+                    produce_header, table_name_attr, field_name_attr, border,
                                     row_class, cell_class, header_cell_class)
 
     else:
         raise ValueError(fields_as)
 
-class HtmlTableBase(HtmlBase):
+class HtmlTableBase(XmlCloth):
     mime_type = 'text/html'
 
-    def __init__(self, app=None, validator=None, ignore_uncap=False,
-                                                           ignore_wrappers=True,
-                                produce_header=True, table_name_attr='class',
+    def __init__(self, app=None, ignore_uncap=False, ignore_wrappers=True,
+                       cloth=None, attr_name='spyne_id', root_attr_name='spyne',
+                                                              cloth_parser=None,
+                             produce_header=True, table_name_attr='class',
                             field_name_attr='class', border=0, row_class=None,
                                 cell_class=None, header_cell_class=None):
 
-        super(HtmlTableBase, self).__init__(app, validator, None,
-                                                  ignore_uncap, ignore_wrappers)
-
+        super(HtmlTableBase, self).__init__(app=app,
+                     ignore_uncap=ignore_uncap, ignore_wrappers=ignore_wrappers,
+                cloth=cloth, attr_name=attr_name, root_attr_name=root_attr_name,
+                                                      cloth_parser=cloth_parser)
 
         self.produce_header = produce_header
         self.table_name_attr = table_name_attr
@@ -221,43 +217,34 @@ class HtmlColumnTable(HtmlTableBase):
         if self.table_name_attr is not None:
             attrs[self.table_name_attr] = cls.get_type_name()
 
-        with parent.element('body'):
-            parent.write(E.style("""
-                td,th {
-                    border-left: 1px solid #ccc;
-                    border-right: 1px solid #ccc;
-                    border-bottom: 1px solid;
-                    margin: 0;
-                }""", type="text/css"))
-    
-            with parent.element('table', attrs):
-                if self.produce_header:
-                    self._gen_header(ctx, cls, name, parent)
+        with parent.element('table', attrs):
+            if self.produce_header:
+                self._gen_header(ctx, cls, name, parent)
 
-                with parent.element('tbody'):
-                    ret = gen_rows(ctx, cls, inst, parent, name, **kwargs)
-                    if isgenerator(ret):
+            with parent.element('tbody'):
+                ret = gen_rows(ctx, cls, inst, parent, name, **kwargs)
+                if isgenerator(ret):
+                    try:
+                        while True:
+                            sv2 = (yield)
+                            ret.send(sv2)
+                    except Break as b:
                         try:
-                            while True:
-                                sv2 = (yield)
-                                ret.send(sv2)
-                        except Break as b:
-                            try:
-                                ret.throw(b)
-                            except StopIteration:
-                                pass
+                            ret.throw(b)
+                        except StopIteration:
+                            pass
 
-                    ret = self.extend_table(ctx, cls, parent, name, **kwargs)
-                    if isgenerator(ret):
+                ret = self.extend_table(ctx, cls, parent, name, **kwargs)
+                if isgenerator(ret):
+                    try:
+                        while True:
+                            sv2 = (yield)
+                            ret.send(sv2)
+                    except Break as b:
                         try:
-                            while True:
-                                sv2 = (yield)
-                                ret.send(sv2)
-                        except Break as b:
-                            try:
-                                ret.throw(b)
-                            except StopIteration:
-                                pass
+                            ret.throw(b)
+                        except StopIteration:
+                            pass
 
     def complex_model_to_parent(self, ctx, cls, inst, parent, name,
                                                       from_arr=False, **kwargs):
