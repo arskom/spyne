@@ -29,12 +29,12 @@ from spyne.model import PushBase
 from spyne.model import ImageUri
 from spyne.model import AnyUri
 from spyne.model.binary import Attachment
-from spyne.protocol.cloth import XmlCloth
+from spyne.protocol.html import HtmlBase
 from spyne.util import coroutine, Break
 from spyne.util.cdict import cdict
 
 
-class HtmlMicroFormat(XmlCloth):
+class HtmlMicroFormat(HtmlBase):
     def __init__(self, app=None, ignore_uncap=False, ignore_wrappers=False,
                        cloth=None, attr_name='spyne_id', root_attr_name='spyne',
                                                               cloth_parser=None,
@@ -160,4 +160,5 @@ class HtmlMicroFormat(XmlCloth):
         return [ E(self.child_tag, **{self.field_name_attr: name}) ]
 
 # yuck.
+from spyne.protocol.cloth import XmlCloth
 XmlCloth.HtmlMicroFormat = HtmlMicroFormat

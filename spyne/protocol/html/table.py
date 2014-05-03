@@ -28,7 +28,8 @@ from spyne.model import Array
 from spyne.model import AnyUri
 from spyne.model import ImageUri
 from spyne.model.binary import Attachment
-from spyne.protocol.cloth import XmlCloth
+from spyne.protocol.html import HtmlBase
+from spyne.protocol.html._base import NS_HTML
 from spyne.util import coroutine, Break
 from spyne.util.cdict import cdict
 
@@ -76,9 +77,7 @@ def HtmlTable(app=None, ignore_uncap=False, ignore_wrappers=True,
     else:
         raise ValueError(fields_as)
 
-class HtmlTableBase(XmlCloth):
-    mime_type = 'text/html'
-
+class HtmlTableBase(HtmlBase):
     def __init__(self, app=None, ignore_uncap=False, ignore_wrappers=True,
                        cloth=None, attr_name='spyne_id', root_attr_name='spyne',
                                                               cloth_parser=None,
