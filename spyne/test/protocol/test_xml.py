@@ -140,6 +140,114 @@ class TestXml(unittest.TestCase):
         assert ret.text == "a"
         assert ret.attrib['b'] == "b"
 
+    def test_multiple_attribute_of_multiple_rpc(self):
+        """
+        Tests the following:
+
+        1. Support for multiple attributes on a single element.
+        2. Correctness of attribute definition -- extension applied to correct 'attribute_of' element.
+        3. Another class/rpc with same element/attribute name works correctly.
+        """
+
+
+        class CMA(ComplexModel):
+            a = Unicode
+            ab = XmlAttribute(Unicode, attribute_of="a")
+            ac = XmlAttribute(Unicode, attribute_of="a")
+            ad = XmlAttribute(Integer, attribute_of="a")
+
+            b = Integer
+            bb = XmlAttribute(Unicode, attribute_of="b")
+
+        class CMB(ComplexModel):
+            b = Integer
+            bb = XmlAttribute(Unicode, attribute_of="b")
+
+
+
+        class SomeService(ServiceBase):
+            @srpc(CMA, _returns=CMA)
+            def some_call(cma):
+                assert cma.a == 'a'
+                assert cma.ab == 'b'
+                assert cma.ac == 'c'
+                assert cma.ad == 5
+                assert cma.b == 9
+                assert cma.bb == "attrib bb"
+                return cma
+
+            @srpc(CMB, _returns=CMB)
+            def another_call(cmb):
+                assert cmb.b == 9
+                assert cmb.bb == 'attrib bb'
+                return cmb
+
+        app = Application([SomeService], "tns", name="test_multiple_attribute_of",
+                        in_protocol=XmlDocument(), out_protocol=XmlDocument())
+        server = ServerBase(app)
+
+        # test some_call(CMA)
+
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = [
+            '<some_call xmlns="tns">'
+                '<cma>'
+                    '<a ab="b" ac="c" ad="5">a</a>'
+                    '<b bb="attrib bb">9</b>'
+                '</cma>'
+            '</some_call>'
+        ]
+
+        ctx, = server.generate_contexts(initial_ctx)
+        server.get_in_object(ctx)
+        server.get_out_object(ctx)
+        server.get_out_string(ctx)
+
+        ret = ''.join(ctx.out_string)
+        print(ret)
+        ret = etree.fromstring(ret)
+        ret = ret.xpath('//s0:a', namespaces=app.interface.nsmap)[0]
+
+        print(etree.tostring(ret, pretty_print=True))
+
+        assert ret.text == "a"
+        assert ret.attrib['ab'] == "b"
+        assert ret.attrib['ac'] == "c"
+        assert int(ret.attrib['ad']) == 5
+
+        ret = ret.xpath('//s0:b', namespaces=app.interface.nsmap)[0]
+        print(etree.tostring(ret, pretty_print=True))
+
+        assert ret.text == "9"
+        assert ret.attrib['bb'] == "attrib bb"
+
+        # test another_call(CMB)
+
+        initial_ctx = MethodContext(server)
+        initial_ctx.in_string = [
+            '<another_call xmlns="tns">'
+                '<cmb>'
+                    '<b bb="attrib bb">9</b>'
+                '</cmb>'
+            '</another_call>'
+        ]
+
+        ctx, = server.generate_contexts(initial_ctx)
+        server.get_in_object(ctx)
+        server.get_out_object(ctx)
+        server.get_out_string(ctx)
+
+        ret = ''.join(ctx.out_string)
+        print(ret)
+        ret = etree.fromstring(ret)
+        ret = ret.xpath('//s0:b', namespaces=app.interface.nsmap)[0]
+
+        print(etree.tostring(ret, pretty_print=True))
+
+        assert ret.text == "9"
+        assert ret.attrib['bb'] == "attrib bb"
+
+
     def test_attribute_of_multi(self):
         class C(ComplexModel):
             e = Unicode(max_occurs='unbounded')
