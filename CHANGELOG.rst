@@ -48,6 +48,8 @@ spyne-2.11.0
 * Removed ``@nillable_string`` and ``@nillable_string_iterable`` decorators from
   type (de)serializers from/to string. These methods are meant to be used via the
   wrapper functions {from,to}_string in ``ProtocolBase``\.
+* Adds (or restores) support for > 1 XmlAttribute referencing the same 'attribute_of' element
+  in a ComplexModel.  
 * Many, many, many bugs fixed.
 
 spyne-2.10.9
