@@ -19,8 +19,6 @@
 
 from inspect import isgenerator
 
-from lxml.html.builder import E
-
 from spyne.model import ModelBase
 from spyne.model import ByteArray
 from spyne.model import ComplexModelBase
@@ -29,7 +27,8 @@ from spyne.model import AnyUri
 from spyne.model import ImageUri
 from spyne.model.binary import Attachment
 from spyne.protocol.html import HtmlBase
-from spyne.protocol.html._base import NS_HTML
+from spyne.protocol.html import NSMAP
+from spyne.protocol.html import E
 from spyne.util import coroutine, Break
 from spyne.util.cdict import cdict
 
@@ -144,8 +143,6 @@ class HtmlColumnTable(HtmlTableBase):
 
     @coroutine
     def _gen_row(self, ctx, cls, inst, parent, name, array_index=None, **kwargs):
-        print "ROWWW"
-
         with parent.element('tr'):
             for k, v in cls.get_flat_type_info(cls).items():
                 # FIXME: To be fixed to work with prot_attrs and renamed to exc
@@ -221,7 +218,7 @@ class HtmlColumnTable(HtmlTableBase):
         if self.table_name_attr is not None:
             attrs[self.table_name_attr] = cls.get_type_name()
 
-        with parent.element('table', attrs):
+        with parent.element('table', attrs, nsmap=NSMAP):
             if self.produce_header:
                 self._gen_header(ctx, cls, name, parent)
 
@@ -305,7 +302,7 @@ class HtmlRowTable(HtmlTableBase):
         if self.table_name_attr is not None:
             attrs[self.table_name_attr] = cls.get_type_name()
 
-        with parent.element('table', attrs):
+        with parent.element('table', attrs, nsmap=NSMAP):
             with parent.element('tbody'):
                 for k, v in cls.get_flat_type_info(cls).items():
                     try:
@@ -343,7 +340,7 @@ class HtmlRowTable(HtmlTableBase):
 
     @coroutine
     def array_to_parent(self, ctx, cls, inst, parent, name, **kwargs):
-        with parent.element('div'):
+        with parent.element('div', nsmap=NSMAP):
             if issubclass(cls, ComplexModelBase):
                 ret = super(HtmlRowTable, self).array_to_parent(
                                          ctx, cls, inst, parent, name, **kwargs)
@@ -362,7 +359,7 @@ class HtmlRowTable(HtmlTableBase):
                 if self.table_name_attr:
                     table_attrs = {self.table_name_attr: name}
 
-                with parent.element('table', table_attrs):
+                with parent.element('table', table_attrs, nsmap=NSMAP):
                     with parent.element('tr'):
                         if self.produce_header:
                             parent.write(E.th(self.translate(cls, ctx.locale,

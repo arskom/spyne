@@ -1,5 +1,7 @@
 
 from spyne.protocol.html._base import HtmlBase
+from spyne.protocol.html._base import E
+from spyne.protocol.html._base import NSMAP
 from spyne.protocol.html.table import HtmlColumnTable
 from spyne.protocol.html.table import HtmlRowTable
 from spyne.protocol.html.microformat import HtmlMicroFormat
