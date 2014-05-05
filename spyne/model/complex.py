@@ -614,25 +614,30 @@ class ComplexModelBase(ModelBase):
 
         declare_order = None
         """The order fields of the :class:``ComplexModel`` are to be declared
-        in the SOAP WSDL.  The string ``random`` declares then in a random
-        order in the WSDL.  This randomised order can change can time the
-        program is run.  This is what earlier versions of spyne did if you
-        didn't set _type_info.  It means that clients who are manually
-        complied or generated from the WSDL will likely need to be recompiled
-        every time it changes.  The string ``name`` means the field names are
+        in the SOAP WSDL. If this is left as None or explicitly set to
+        ``'random'`` declares then the fields appear in whatever order the
+        Python's hash map implementation seems fit in the WSDL. This randomised
+        order can change every time the program is run. This is what Spyne <2.11
+        did if you didn't set _type_info as an explicit sequence (e.g. using a
+        list, odict, etc.). It means that clients who are manually complied or
+        generated from the WSDL will likely need to be recompiled every time it
+        changes. The string ``name`` means the field names are alphabetically
         sorted in the WSDL declaration.  The string ``declared`` means in the
         order the field type was declared in Python 2, and the order the
-        field was declared in Python 3.  If you create a new field type for
-        each field, ie always declare a field with ``field = Unicode()``
-        instead of ``field = Unicode`` the Python 2 behaviour for
-        ``declared`` becomes the same as Python 3.  The default is
-        :data:``declared`` in Python 3 and above, otherwise :data:``random``
-        in spyne versions below 3, and ``name`` when spyne version 3 or
-        above is used with Python 2.
+        field was declared in Python 3.
 
-        If you are using Python 2 explicitly setting this to ``name`` will
-        avoid problems in the future.  If you are using ``declared`` with
-        Python 2 be sure to create a new type for each field declaration."""
+        In order to get declared field order in Python 2, the
+        :class:`spyne.util.meta.Preparable` class inspects the frame stack in
+        order to locate the class definition, re-parses it to get declaration
+        order from the AST and uses that information to order elements.
+
+        It's a horrible hack that we tested to work with CPython 2.6 through 3.3
+        and PyPy. It breaks in Nuitka as Nuitka does away with code objects.
+        Other platforms were not tested.
+
+        It's not recommended to use set this to ``'declared'`` in Python 2
+        unless you're sure you fully understand the consequences.
+        """
 
         parent_variant = None
         """FIXME: document me yo."""
